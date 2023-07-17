@@ -1,0 +1,85 @@
+"""Build rules for Crown, a lightweight internal packaging format for Kubernetes."""
+
+_DEFAULT_CROWN_LABELS = ["crown_package"]
+
+def crown_package(name='', k8s=[], dev_k8s=[], prod_k8s=[]):
+    """Manages a Crown package.
+    Args:
+      name (str): Name of the rule.
+      k8s (list): k8s targets.
+      dev_k8s (list): k8s target to be deployed to minikube only.
+      prod_k8s (list): k8s target to be deployed to prod only.
+      visibility (list): Visibility of the rule.
+    """
+
+    def _crown_package(name='', k8s=[], prod=False):
+        k8s = [canonicalise(k8) for k8 in k8s]
+        prefix = f'{name}_' if name else ''
+        env = 'prod' if prod else 'dev'
+        
+        # Rule to output all of the docker image rules needed to load images in the package into docker.
+        image_ids = get_image_ids(push=prod)
+        push_images_rule = build_rule(
+            name = f'_{prefix}push_images_rule_{env}',
+            outs = [f'push_images_{env}.txt'],
+            cmd = '',
+            pre_build =  image_ids,
+            deps = k8s,
+            labels = ['crown_package_images_push_{env}']
+        )
+        # This rule is used to add a condition in the cmd below.
+        push_images_rule_condition = build_rule(
+            name = f'_{prefix}push_image_rules_condition_{env}',
+            outs = [f'_push_images_{env}_condition.txt'],
+            cmd = f'touch $OUTS && if [ -z $(grep "[^[:space:]]" "$(location {push_images_rule})") ]; then echo false > $OUTS; else echo true > $OUTS; fi',
+            deps = [push_images_rule],
+        )
+        push_images_cmd = f'if `cat $(location {push_images_rule_condition}) | tr "\n" " "`;'
+        push_images_cmd += f'then plz run sequential `cat $(location {push_images_rule}) | tr "\n" " "`;'
+        push_images_cmd += 'else echo "No docker images to push\n"; fi'
+        sh_cmd(
+            name = f'{prefix}push_images_{env}',
+            cmd = push_images_cmd,
+            deps = [push_images_rule, push_images_rule_condition],
+        )
+
+        # The rule outputs all of the docker image rules needed to push images in the package to docker.
+        push_k8s_cmd = 'plz run sequential %s' % ' '.join(['%s_push' % k8 for k8 in k8s])
+        sh_cmd(
+            name = f'{prefix}push_k8s_{env}',
+            cmd = push_k8s_cmd
+        )
+
+        # Rule to deploy package
+        sh_cmd(
+            name = f'{prefix}deploy_to_{env}',
+            cmd = '&&'.join([push_images_cmd, push_k8s_cmd]),
+            deps = [push_images_rule, push_images_rule_condition],
+        )
+
+    # Dev crown package.
+    _crown_package(
+        name=name,
+        k8s=k8s+dev_k8s,
+        prod=False,
+    )
+
+    # Prod crown package.
+    _crown_package(
+        name=name,
+        k8s=k8s+prod_k8s,
+        prod=True,
+    )
+
+
+def get_image_ids(push=True):
+    # Packages can include both distroless and 'normal' docker images. The underlying assumption here is
+    # that all container build defs that can be included in a crown package include both a _push and _load
+    # build rule. _load is used for local development and _push is used to push images to a remote container
+    # repo.
+    def _get_image_ids(name):
+        """Pre-build function that updates a target's command with all the dependent image rules."""
+        containers = get_labels(name, prefix='container:')
+        suffix = '_push' if push else '_load'
+        set_command(name, 'cat > $OUT << EOF\n%s\nEOF' % '\n'.join([c + suffix for c in containers]))
+    return _get_image_ids

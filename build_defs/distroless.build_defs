@@ -1,0 +1,33 @@
+subinclude("//infrastructure/build_defs:docker")
+subinclude("//infrastructure/build_defs:utils")
+
+_dockerfile = """
+FROM //common/docker_containers:go_base
+
+COPY __BINARY__ __BINARY__
+
+__GRPC_HEALTH_PROBE__
+
+ENTRYPOINT ["./__BINARY__"]
+"""
+
+def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibility:list=[]):
+    grpc_health_probe_replace = ''
+    if grpc_health_probe:
+        target_name = get_target_name('//common/go/grpc/grpc_health_probe')
+        grpc_health_probe_replace = f'COPY {target_name} {target_name}'
+    dockerfile = text_file(
+        filename = f'{name}_dockerfile',
+        content = _dockerfile,
+        replace = {
+            '__BINARY__': get_target_name(binary),
+            '__GRPC_HEALTH_PROBE__': grpc_health_probe_replace,
+        },
+    )
+    return docker_image(
+        name = name,
+        srcs = [binary, '//common/go/grpc/grpc_health_probe'],
+        dockerfile = dockerfile,
+        base_image = "//common/docker_containers:go_base",
+        visibility = visibility,
+    )

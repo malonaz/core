@@ -1,0 +1,20 @@
+go_library(
+    name = "dummy",
+    srcs = ["dummy.go"],
+    labels = ["manual"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__bazelbuild__buildtools__build",
+        "//third_party/go:github.com__envoyproxy__protoc-gen-validate",
+        "//third_party/go:github.com__google__subcommands",
+        "//third_party/go:github.com__google__wire",
+        "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-grpc-gateway",
+        "//third_party/go:github.com__kevinburke__go-bindata__v4",
+        "//third_party/go:github.com__scylladb__go-set__strset",
+        "//third_party/go:golang.org__x__tools__go__packages",
+        "//third_party/go:golang.org__x__tools__go__types__typeutil",
+        "//third_party/go:golang.org__x__tools__imports",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__types__pluginpb",
+    ],
+)

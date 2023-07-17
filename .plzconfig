@@ -1,0 +1,70 @@
+[please]
+version = 16.28.0
+autoclean = on
+
+[parse]
+experimentaldir = experimental
+preloadbuilddefs = build_defs/proto_extensions.build_defs
+
+[build]
+path = /bin:/usr/bin:/usr/local/bin:/opt/avengers/toolchain/1.0/bin/
+timeout = 2000
+
+[sandbox]
+test = true
+
+[buildconfig]
+proto-validate-go-plugin = //tools/proto:protoc-gen-validate-go
+proto-validate-go-dep = //tools/proto:protoc-gen-validate-go-dep
+grpc-gateway-go-plugin = //tools/proto:protoc-gen-grpc-gateway
+grpc-gateway-go-dep = //tools/proto:protoc-gen-grpc-gateway-dep
+grpc-web-plugin = //tools/proto:grpc-web-protoc
+default-docker-repo = localhost
+
+grpc-doc-plugin = //third_party/go:protoc-gen-doc
+protoc-deps = //third_party/proto:protoc_deps
+
+[cache]
+dir = .plz-cache
+
+[display]
+systemstats = true
+
+;; LANGUAGES
+[go]
+defaultStatic = true
+goTool = //tools:go_toolchain|go
+cgoEnabled = true
+
+[python]
+moduledir = third_party.python
+disablevendorflags
+
+[proto]
+protocTool = //tools/proto:protoc
+protocGoPlugin = //tools/proto:protoc-gen-go
+grpcGoPlugin = //tools/proto:protoc-gen-go-grpc
+goDep = //tools/proto:protoc-gen-go-dep
+goGrpcDep = //tools/proto:protoc-gen-go-grpc-dep
+grpcPythonPlugin = //tools/proto:grpc_python_plugin
+language = go
+language = js
+
+[alias "tidy"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run //tools/tidy
+
+[alias "deploy-admin-api"]
+cmd = run sequential //admin/admin_api/infra:docker_image_load //admin/admin_api/infra:k8s_push
+
+[alias "deploy-user"]
+cmd = run sequential //user/user_service/infra:docker_image_load //user/user_service/infra:k8s_push
+
+[alias "deploy-authentication"]
+cmd = run sequential //authentication/authentication_service/infra:docker_image_load //authentication/authentication_service/infra:k8s_push
+
+[alias "deploy-asset"]
+cmd = run sequential //asset/asset_service/infra:docker_image_load //asset/asset_service/infra:k8s_push
+
+[alias "deploy-chat"]
+cmd = run sequential //chat/chat_service/infra:docker_image_load //chat/chat_service/infra:minikube_k8s_push

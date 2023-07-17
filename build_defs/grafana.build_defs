@@ -1,0 +1,43 @@
+subinclude('//infrastructure/build_defs:utils')
+
+def grafana_python(name: str, src:str, deps:list=[], folder:str=None, visibility:list=[]):
+    py_bin = python_binary(
+        name = f"{name}_py",
+        main = src,
+        deps = deps,
+    )
+
+    json = genrule(
+        name = f"{name}_json",
+        srcs = [py_bin],
+        outs = [f"{name}.json"],
+        cmd = "$SRCS > $OUT",
+    )
+    grafana_json(
+        name = name,
+        src = json,
+        folder = folder,
+        visibility = visibility,
+    )
+
+
+def grafana_json(name: str, src: str, folder:str="", visibility:list=[]):
+    f = filegroup(
+        name = name,
+        srcs = [src],
+        visibility = visibility,
+    )
+    grafana_import_dashboard_tool = "//infrastructure/tools/grafana-import-dashboard"
+    sh_cmd(
+        name = f"{name}_push",
+        srcs = [f, grafana_import_dashboard_tool],
+        expand_env_vars = False,
+        cmd = ' '.join([
+            f"",
+            f"$(out_location {grafana_import_dashboard_tool})",
+            "--grafana-api-url $GRAFANA_API_HOST",
+            "--grafana-api-key $GRAFANA_API_KEY",
+            f"--grafana-folder {folder}" if folder != "" else "",
+            f"--dashboard-filepath $(out_location {f})",
+        ]),
+    )

@@ -1,0 +1,22 @@
+def text_file(filename:str, content:str, replace={}):
+    """
+    text_file is a utility function that creates a file with the given filename, and content.
+    the `replace` parameter allows a user to pass-in substitutions.
+    """
+    cmd = f"echo -e '{content}'"
+    for key, value in replace.items():
+        cmd += f" | sed 's@{key}@{value}@g'"
+    cmd += " | sed '/^$/d'" # Remove blank lines.
+    cmd += " > $OUTS"
+    log.info(cmd)
+    return genrule(
+        name = f'{filename}',
+        cmd = cmd,
+        outs = [f'{filename}'],
+    )
+
+def get_target_name(target:str):
+    """
+    Returns the name of a BUILD target.
+    """
+    return canonicalise(target).split(":")[1]

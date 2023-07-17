@@ -1,0 +1,222 @@
+original_proto_library = proto_library
+
+def proto_library(
+        name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],  protoc_flags:list=[],
+        languages:list|dict=None, test_only:bool&testonly=False, root_dir:str='', override_languages:dict={},
+        import_path:str='',
+):
+    """Extends the proto library with our customization"""
+    # Instantiate all configured languages.
+    languages = {language: None for language in CONFIG.PROTO_LANGUAGES}
+    # Inject extra languages.
+    languages['go'] = go_def(name, import_path)
+    languages['js'] = js_def(name)
+
+    # Override languages if appropriate.
+    for k, v in override_languages.items():
+        languages[k] = v
+
+
+
+    return original_proto_library(
+        name = name,
+        srcs = srcs,
+        deps = deps + [CONFIG.PROTO_VALIDATE_GO_PLUGIN],
+        languages = languages,
+        labels = labels,
+        root_dir = root_dir,
+        test_only = test_only,
+        visibility = visibility,
+        protoc_flags = protoc_flags,# + ['-I $(location //third_party/go:protoc-gen-validate-download)'],
+    )
+
+def grpc_library(
+        name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[], protoc_flags:list=[],
+        languages:list|dict=None, test_only:bool&testonly=False, root_dir:str='', import_path:str='',
+):
+    """Extends the grpc library with our customization"""
+    return proto_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        languages = languages,
+        labels = labels,
+        protoc_flags = protoc_flags,
+        root_dir = root_dir,
+        test_only = test_only,
+        visibility = visibility,
+        override_languages={
+            'go': go_def(name, import_path, grpc=True),
+        },
+    )
+
+def grpc_gateway_library(
+        name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[], protoc_flags:list=[],
+        languages:list|dict=None, test_only:bool&testonly=False, root_dir:str='', import_path:str='',
+):
+    """Implements the grpc gateway library rule"""
+    return proto_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        languages = languages,
+        labels = labels,
+        protoc_flags = protoc_flags,
+        root_dir = root_dir,
+        test_only = test_only,
+        visibility = visibility,
+        override_languages={
+            'go': go_def(name, import_path, grpc_gateway=True),
+        },
+    )
+
+def grpc_gateway_standalone_library(
+        name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[], protoc_flags:list=[],
+        languages:list|dict=None, test_only:bool&testonly=False, root_dir:str='', import_path:str='', configuration:str='',
+):
+    """Implements the grpc gateway standalone library rule"""
+    configuration_rule = filegroup(
+        name = f"_{name}_configuration",
+        srcs = [configuration],
+        visibility = visibility,
+    )
+    return proto_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        languages = languages,
+        labels = labels,
+        protoc_flags = protoc_flags,
+        root_dir = root_dir,
+        test_only = test_only,
+        visibility = visibility,
+        override_languages={
+            'go': go_def(name, import_path, grpc_gateway=True, grpc_gateway_configuration=configuration_rule),
+        },
+    )
+
+def js_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gateway_configuration:str=''):
+    # Extends the regular proto library to include validation.
+    # Copy & modify the existing Go definition so we don't have to reinvent wheels.
+    d = grpc_languages().get('js').copy()
+    d['func'] = lambda name, srcs, deps, test_only: filegroup(
+        name = name,
+        srcs = srcs,
+        test_only=test_only,
+    )
+
+    # PROTOC-GEN-GO
+    protoc_flags = [
+
+        '--plugin=protoc-gen-es=$TOOLS_BUFBUILD/.bin/protoc-gen-es', '--es_out=$OUT_DIR',
+        '--plugin=protoc-gen-connect-es=$TOOLS_BUFBUILD/.bin/protoc-gen-connect-es', '--connect-es_out=$OUT_DIR'
+    ]
+    deps = []
+    tools = {
+        "protoc_grpc_web": [CONFIG.GRPC_WEB_PLUGIN],
+        "bufbuild": ['//third_party/js:node_modules']
+    }
+    d['protoc_flags'] = protoc_flags
+    d['tools'] = tools
+    d['deps'] = deps
+    return d
+
+def doc_def():
+    """Proto language to compile docs"""
+    return proto_language(
+        language = 'doc',
+        func = lambda name, srcs, deps, test_only: filegroup(
+            name = name,
+            srcs = srcs,
+            deps = deps,
+            test_only = test_only,
+            requires = ['doc'],
+        ),
+        protoc_flags = ['--doc_out=$TMP_DIR/out_dir', '--doc_opt=html,index.html', '--plugin=protoc-gen-doc=$TOOLS_DOC'],
+        tools = [CONFIG.GRPC_DOC_PLUGIN],
+    )
+
+def go_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gateway_configuration:str=''):
+    # Extends the regular proto library to include validation.
+    # Copy & modify the existing Go definition so we don't have to reinvent wheels.
+    d = grpc_languages().get('go').copy()
+    d['func'] = lambda name, srcs, deps, test_only: go_library(
+        name = name,
+        srcs = srcs,
+        package = _parent_rule(name),
+        deps = deps,
+        import_path=import_path,
+        test_only = test_only,
+    )
+    d['pre_build'] = _go_path_mapping()
+
+    if grpc_gateway_configuration != '':
+        d['protoc_flags'] = [
+            # Grpc gateway plugin.
+            '--grpc-gateway_out=$OUT_DIR',
+            '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_GO`"',
+            f'--grpc-gateway_opt=paths=source_relative,standalone=true,grpc_api_configuration=$(out_location {grpc_gateway_configuration})',
+        ]
+        tools = {'grpc_gateway_go': [CONFIG.GRPC_GATEWAY_GO_PLUGIN], 'grpc_gateway_configuration': [grpc_gateway_configuration]}
+        d['tools'] = tools
+        d['deps'] = [CONFIG.GRPC_GATEWAY_GO_DEP, CONFIG.GRPC_GO_DEP, CONFIG.PROTO_GO_DEP]
+        return d
+
+    # PROTOC-GEN-GO
+    protoc_flags = [
+        # Go plugin.
+        '--plugin=protoc-gen-go="`which $TOOLS_GO`"', '--go_out="$OUT_DIR"', '--go_opt=paths=source_relative',
+        # Gen validate plugin.
+        '--plugin=protoc-gen-validate="`which $TOOLS_PROTOC_GEN_VALIDATE`"', f'--validate_opt=paths=source_relative,import_path={name}',
+    ]
+    tools = {
+        "go": [CONFIG.PROTOC_GO_PLUGIN],
+        "protoc_gen_validate": [CONFIG.PROTO_VALIDATE_GO_PLUGIN],
+    }
+    deps = [CONFIG.PROTO_GO_DEP, CONFIG.PROTO_VALIDATE_GO_DEP]
+
+    # PROTOC-GEN-GRPC
+    if grpc or grpc_gateway:
+        protoc_flags += [
+            # Grpc plugin.
+            '--go-grpc_out=$OUT_DIR', '--plugin=protoc-gen-go-grpc="`which $TOOLS_GRPC_GO`"', '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
+        ]
+        tools['grpc_go'] = [CONFIG.GRPC_GO_PLUGIN]
+        deps += [CONFIG.GRPC_GO_DEP]
+
+    # PROTOC-GEN-GRPC-GATEWAY
+    if grpc_gateway:
+        protoc_flags += [
+            # Grpc gateway plugin.
+            '--grpc-gateway_out=$OUT_DIR', '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_GO`"', f'--grpc-gateway_opt=paths=source_relative',
+        ]
+        tools['grpc_gateway_go'] = [CONFIG.GRPC_GATEWAY_GO_PLUGIN]
+        deps += [CONFIG.GRPC_GATEWAY_GO_DEP]
+
+    d['protoc_flags'] = protoc_flags
+    d['tools'] = tools
+    d['deps'] = deps
+    return d
+
+def _go_path_mapping():
+    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
+    def _map_go_paths(rule_name):
+        labels = get_labels(rule_name, 'proto:go-map:')
+        mapping = ''
+        mapping_validate = ''
+        if len(labels) > 0:
+            mapping = 'M' + ',M'.join(labels) + ':'
+            mapping_validate = ',M' + ',M'.join(labels)
+
+        cmd = get_command(rule_name)
+        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
+        new_cmd = new_cmd.replace('lang=go', f'lang=go{mapping_validate}')
+        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
+        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
+        set_command(rule_name, new_cmd)
+    return _map_go_paths
+
+def _parent_rule(name):
+    """Returns the parent rule, i.e. strips the leading _ and trailing #hashtag."""
+    before, _, _ = name.partition('#')
+    return before.lstrip('_')

@@ -1,0 +1,17 @@
+main
+avengers
+SECRET*
+*.secret
+
+report/pdf/*
+
+plz-out/*
+.plz-cache/*
+pleasew
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+build.zip
+.plzconfig.local

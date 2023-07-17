@@ -1,0 +1,26 @@
+def go_bindata(name, srcs, package=None, input_dir=None, prefix=None, out=None,
+               memcopy=False, metadata=False, compress=False, visibility=None,
+               test_only=False, flatten=True, all_dirs=False):
+    """Defines a rule that invokes go_bindata to embed data into Go code."""
+    if all_dirs:
+        input_dir = '`find $PKG -type d | sort`'
+        flatten = False
+    cmd = '$TOOL -o $OUT %s %s %s -pkg %s %s %s' % (
+        '' if memcopy else '-nomemcopy',
+        '' if metadata else '-nometadata',
+        '' if compress else '-nocompress',
+        package or '$(basename $PKG)',
+        ('-prefix ' + prefix) if prefix else '',
+        input_dir or prefix or ('$(dir %s)' % srcs[0] if srcs[0].startswith('/') else '$PKG'),
+    )
+    if flatten:
+        cmd = 'mv $SRCS $PKG; ' + cmd
+    return build_rule(
+        name = name,
+        srcs = srcs,
+        outs = [out or name + '.bindata.go'],
+        cmd = cmd,
+        tools = ["//tools/bindata:go-bindata"],
+        test_only = test_only,
+        visibility = visibility,
+    )

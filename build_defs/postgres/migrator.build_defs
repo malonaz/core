@@ -1,0 +1,275 @@
+subinclude("//infrastructure/build_defs:go_bindata")
+subinclude("//infrastructure/build_defs:distroless")
+subinclude("//infrastructure/build_defs:k8s")
+subinclude("//infrastructure/build_defs:utils")
+
+initializer_main_go = """
+package main
+
+import (
+        "context"
+	"common/go/postgres"
+	"common/go/flags"
+	"common/go/postgres/migrator"
+)
+
+var opts struct {
+	Postgres postgres.Opts
+	Database string `long:"database" env:"DATABASE" required:"true"`
+	User string `long:"user" env:"USER" required:"true"`
+	Password string `long:"password" env:"PASSWORD" required:"true"`
+}
+
+func main() {
+	flags.MustParse(&opts)
+
+	migrator := migrator.MustNewMigrator(opts.Postgres)
+	migrator.MustInitializeDatabase(context.Background(), opts.Database, opts.User, opts.Password)
+}
+"""
+
+_initializer_deployment_yaml = """
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __DATABASE__-db-initializer
+  labels:
+    project: __PROJECT__
+    group: migration
+    app: __DATABASE__-db-initializer
+spec:
+  template:
+    metadata:
+      labels:
+        project: __PROJECT__
+        app: __DATABASE__-db-initializer
+    spec:
+      containers:
+      - name: main
+        image: __IMAGE__
+        envFrom:
+          - secretRef:
+              name: postgres-db
+        env:
+          - name: DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: __DATABASE__-db
+                key: POSTGRES_DATABASE
+          - name: USER
+            valueFrom:
+              secretKeyRef:
+                name: __DATABASE__-db
+                key: POSTGRES_USER
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: __DATABASE__-db
+                key: POSTGRES_PASSWORD
+      restartPolicy: OnFailure
+"""
+
+
+migrator_main_go = """
+package main
+
+import (
+        "context"
+	"common/go/postgres"
+	"common/go/flags"
+	"common/go/postgres/migrator"
+	"__PKG__"
+)
+
+var opts struct {
+	Postgres postgres.Opts
+}
+
+func main() {
+	flags.MustParse(&opts)
+
+	migrator := migrator.MustNewMigrator(opts.Postgres)
+	migrator.MustRunMigrations(context.Background(), migrations.Asset, __MIGRATIONS_DIRECTORIES__)
+}
+"""
+
+_migrations_test_go = """
+package __NAME__
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"common/go/postgres/migrator/migrations"
+)
+
+func TestMigrations(t *testing.T) {
+	for _, migrationDirectory := range []string{__MIGRATIONS_DIRECTORIES__} {
+		migrations, err := migrations.GetMigrations(Asset, migrationDirectory)
+		require.NoError(t, err)
+		for _, migration := range migrations {
+			require.Equal(t, migration.ExpectedHash, migration.Hash, "Hash migration has changed.")
+		}
+	}
+}
+"""
+
+_migrator_deployment_yaml = """
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __DATABASE__-db-migrator
+  labels:
+    project: __PROJECT__
+    group: migration
+    app: __DATABASE__-db-migrator
+spec:
+  template:
+    metadata:
+      labels:
+        project: __PROJECT__
+        app: __DATABASE__-db-migrator
+    spec:
+      containers:
+      - name: main
+        image: __IMAGE__
+        envFrom:
+          - secretRef:
+              name: __DATABASE__-db
+      restartPolicy: OnFailure
+"""
+
+def postgres_migrator(name, project, database, migrations_directories=['.'], visibility=[]):
+    pkg = package_name()
+
+    ################################################### INITIALIZER  ###################################################
+    # Generates a main.go file based on the above template.
+    initializer_main_go_file = text_file(
+        filename = 'initializer_main.go',
+        content = initializer_main_go,
+        replace = {
+            '__PKG__': pkg,
+            '__NAME__': name,
+        },
+    )
+    initializer_main = go_binary(
+        name = "initializer_main",
+        srcs = [
+            initializer_main_go_file,
+        ],
+        visibility = visibility,
+        deps = [
+            "//common/go/postgres",
+            "//common/go/flags",
+            "//common/go/postgres/migrator",
+        ],
+    )
+
+    # Generates a main.go file based on the above template.
+    initializer_docker_image = distroless_go(
+        name = 'initializer_docker_image',
+        binary = initializer_main,
+        visibility = visibility,
+    )
+
+    # Generate a deployment.yaml file, and create a k8s target.
+    initializer_deployment_yaml = text_file(
+        filename = 'initializer_deployment.yaml',
+        content = _initializer_deployment_yaml,
+        replace = {
+            "__PROJECT__": project,
+            "__DATABASE__": database,
+            "__IMAGE__": canonicalise(initializer_docker_image),
+        },
+    )
+    initializer_k8s = k8s_config(
+        name = "initializer_k8s",
+        srcs = [initializer_deployment_yaml],
+        containers = [initializer_docker_image],
+        visibility = visibility,
+    )
+
+
+
+    ################################################### MIGRATOR  ###################################################
+    # Creates bindata of the migration directories as a library.
+    migrations_bindata = go_bindata(
+        name = "migrations_bindata",
+        srcs = migrations_directories,
+        visibility = visibility,
+        all_dirs = True,
+        package = name,
+    )
+    migrations = go_library(
+        name = name,
+        srcs = [migrations_bindata],
+        visibility = visibility,
+    )
+
+    # Tests the migration hashes have not changed.
+    migrations_test_go_file = text_file(
+        filename = 'migrations_test.go',
+        content = _migrations_test_go,
+        replace = {
+            '__NAME__': name,
+            '__MIGRATIONS_DIRECTORIES__': ', '.join([f'"{pkg}/{x}"' for x in migrations_directories]),
+        },
+    )
+    migrations_test = go_test(
+        name = 'migration_hash_not_changed',
+        srcs = [migrations_test_go_file],
+        deps = [
+            "//third_party/go:github.com__stretchr__testify__require",
+            "//common/go/postgres/migrator/migrations",
+            migrations,
+        ],
+    )
+
+    # Generates a main.go file based on the above template.
+    migrator_main_go_file = text_file(
+        filename = 'migrator_main.go',
+        content = migrator_main_go,
+        replace = {
+            '__PKG__': pkg,
+            '__NAME__': name,
+            '__MIGRATIONS_DIRECTORIES__': ', '.join([f'"{pkg}/{x}"' for x in migrations_directories]),
+        },
+    )
+    migrator_main = go_binary(
+        name = "migrator_main",
+        srcs = [
+            migrator_main_go_file,
+        ],
+        visibility = visibility,
+        deps = [
+            "//common/go/postgres",
+            "//common/go/flags",
+            "//common/go/postgres/migrator",
+            migrations,
+        ],
+    )
+
+    # Generates a main.go file based on the above template.
+    migrator_docker_image = distroless_go(
+        name = 'migrator_docker_image',
+        binary = migrator_main,
+        visibility = visibility,
+    )
+
+    # Generate a deployment.yaml file, and create a k8s target.
+    migrator_deployment_yaml = text_file(
+        filename = 'migrator_deployment.yaml',
+        content = _migrator_deployment_yaml,
+        replace = {
+            "__PROJECT__": project,
+            "__DATABASE__": database,
+            "__IMAGE__": canonicalise(migrator_docker_image),
+        },
+    )
+    migrator_k8s = k8s_config(
+        name = "migrator_k8s",
+        srcs = [migrator_deployment_yaml],
+        containers = [migrator_docker_image],
+        visibility = visibility,
+    )

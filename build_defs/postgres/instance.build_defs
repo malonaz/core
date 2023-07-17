@@ -1,0 +1,89 @@
+subinclude("//infrastructure/build_defs:utils")
+subinclude("//infrastructure/build_defs:k8s")
+
+_deployment_yaml = """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __DATABASE__-postgres
+  namespace: __NAMESPACE__
+  labels:
+    group: postgres
+    project: __PROJECT__
+    app: __DATABASE__
+spec:
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      group: postgres
+      project: __PROJECT__
+      app: __DATABASE__
+  template:
+    metadata:
+      labels:
+        group: postgres
+        project: __PROJECT__
+        app: __DATABASE__
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:12-alpine
+        resources:
+          requests:
+            memory: 100Mi
+            cpu: 10m
+          limits:
+            memory: 200Mi
+            cpu: 50m
+        ports:
+        - containerPort: 5432
+          name: psql
+        envFrom:
+        - secretRef:
+            name:  __DATABASE__-db
+"""
+
+_service_yaml = """
+apiVersion: v1
+kind: Service
+metadata:
+  name: __DATABASE__-postgres
+  namespace: __NAMESPACE__
+  labels:
+    group: postgres
+    project: __PROJECT__
+    app: __DATABASE__
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      name: psql
+  selector:
+    group: postgres
+    project: __PROJECT__
+    app: __DATABASE__
+"""
+
+def postgres_instance_deployment_k8s(name, project, database, namespace="default", visibility=[]):
+    replace = {
+        '__DATABASE__': database,
+        "__PROJECT__": project,
+        '__NAMESPACE__': namespace,
+    }
+    deployment_yaml = text_file(
+        filename = 'postgres-deployment.yaml',
+        content = _deployment_yaml,
+        replace = replace,
+    )
+
+    service_yaml = text_file(
+        filename = 'postgres-service.yaml',
+        content = _service_yaml,
+        replace = replace,
+    )
+
+    k8s = k8s_config(
+        name = name,
+        srcs = [deployment_yaml, service_yaml],
+        visibility = visibility,
+    )

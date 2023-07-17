@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+import "google/protobuf/any.proto";
+
+// Contains the operation resources.
+package operation.v1;
+
+// Represents the status of some (account, token) transfer.
+enum Status {
+  // Used to detect an unset field.
+  STATUS_UNKNOWN = 0;
+  // The transfer has not been executed yet.
+  STATUS_QUEUED = 1;
+  // The transfer has been executed as far as the venue reporting this transfer is concerned.
+  STATUS_PROCESSING = 2;
+  // The transfer has been settled by our system.
+  STATUS_COMPLETED = 3;
+}
+
+// Represents metadata of an operation.
+message Metadata {
+  // The timestamp at which this operation was created.
+  uint64 creation_timestamp = 1 [(validate.rules).uint64.gt = 0];
+  // The timestamp at which this operation was completed.
+  uint64 completion_timestamp = 2;
+  // The request that yielded this operation.
+  google.protobuf.Any request = 3 [(validate.rules).any.required = true];
+  // The status of the operation.
+  Status status = 4 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+  // Human readable logs that can indicate progress etc.
+  repeated string logs = 5;
+}

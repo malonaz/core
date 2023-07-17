@@ -1,0 +1,142 @@
+def signed_remote_file(name, url, sig_url=None, key=None, hashes=None, out=None, binary=False,
+                       visibility=None, licences=None, test_only=False, deps=None):
+    """Extension of builtin remote_file rule to perform signature verification with GPG.
+
+    Args:
+      name (str): Name of the rule
+      url (str): URL to fetch
+      sig_url (str): URL of signature file. Defaults to url + .asc.
+      key (str): Key to verify signature with. Can either be a URL, in which case it is
+                 automatically downloaded, or a rule or source file which is used directly.
+                 Currently only ASCII-armored format is supported.
+      hashes (list): List of hashes; the output must match at least one of these.
+                     Note that this applies to the file itself, not the signature.
+      out (str): Output name of the file. Chosen automatically if not given.
+      binary (bool): True to mark the output as binary and runnable.
+      visibility (list): Visibility declaration of the rule.
+      licences (list): List of licences that apply to this rule.
+      test_only (bool): If true the rule is only visible to test targets.
+      deps (list): List of extra dependencies for this rule.
+    """
+    file_rule = remote_file(
+        name = f'_{name}#file',
+        url = url,
+        hashes = hashes,
+        out = out,
+        binary = binary,
+        licences = licences,
+        test_only = test_only,
+        deps = deps,
+    )
+
+    sig_url = sig_url or url + '.asc'
+    sig_rule = remote_file(
+        name = f'_{name}#sig',
+        url = sig_url,
+        test_only = test_only,
+        deps = deps,
+    )
+
+    if key.startswith('http://') or key.startswith('https://'):
+        key = remote_file(
+            name = f'_{name}#key',
+            url = key,
+            test_only = test_only,
+            deps = deps,
+        )
+
+    verify_rule = build_rule(
+        name = name,
+        tag = 'verify',
+        srcs = {
+            'file': [file_rule],
+            'sig': [sig_rule],
+            'key': [key],
+        },
+        cmd = 'gpg --dearmor $SRCS_KEY && gpg --no-default-keyring --keyring ${SRCS_KEY}.gpg --verify $SRCS_SIG $SRCS_FILE',
+        test_only = test_only,
+    )
+
+    return filegroup(
+        name = name,
+        srcs = [file_rule],
+        deps = [verify_rule],
+        test_only = test_only,
+        visibility = visibility,
+    )
+
+
+def github_file(name, repo, file, revision='master', out=None, hash=None, visibility=None, test_only=False):
+    """Defines a rule to fetch a file from Github.
+
+    This is just a convenience wrapper around remote_file but is somewhat clearer to write.
+
+    Args:
+      name (str): Name of the rule.
+      repo (str): Repository to fetch from (e.g. thought-machine/please).
+      file (str): File in the repo to fetch (e.g. src/parse/rules/misc_rules.py).
+      revision (str): Git revision to fetch from. Defaults to most recent on master.
+      out (str): Name of the output file
+      hash (str): Hash of downloaded file. You should set 'revision' if you set this.
+      visibility (list): Visibility declaration of the rule.
+      test_only (bool): If true the rule is only visible to test targets.
+    """
+    if revision == 'master' and hash:
+        log.warning('Your github_file rule fetches from master but is hash verified; this '
+                    'is prone to breaking if upstream changes at any point.')
+    return remote_file(
+        name = name,
+        url = 'https://' + join_path('raw.githubusercontent.com', repo, revision, file),
+        out = out,
+        hashes = [hash] if hash else None,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+
+def git_repo(name, repo, revision='master', files=None, hash=None, visibility=None, test_only=False, patch=None, submodules=False):
+    """Defines a rule to fetch a remote Git repository.
+
+    Optionally the contents returned can be filtered to a specific set of files. This won't
+    of course improve the efficiency of the fetch.
+
+    Args:
+      name (str): Name of the rule.
+      repo (str): Repository to fetch from (e.g. https://github.com/thought-machine/please.git).
+      files (list): File in the repo to fetch (e.g. ['src']).
+      revision (str): Git revision to fetch from. Defaults to most recent on master.
+      hash (str): Hash of downloaded file. You should set 'revision' if you set this.
+      visibility (list): Visibility declaration of the rule.
+      test_only (bool): If true the rule is only visible to test targets.
+    """
+    if revision == 'master' and hash:
+        log.warning('Your git_repo rule fetches from master but is hash verified; this '
+                    'is prone to breaking if upstream changes at any point.')
+
+    cmds = [
+        f'git clone -q {repo} {name}',
+        f'cd {name} && git checkout -q {revision}',
+        'git submodule update --init --recursive' if submodules else 'echo not loading submodules',
+        f'rm -rf {name}/.git',
+    ]
+
+    if patch:
+        cmds += [f'for p in "$TMP_DIR"/$SRCS_PATCH; do patch -d {name} -p1 < $p; done']
+
+    cmd = ' && '.join(cmds)
+    if files:
+        find_query = ' -or '.join([f'-name {f}' for f in files])
+        cmd = ' && '.join([cmd, f'find {name} {find_query}'])
+
+    build_rule(
+        name = name,
+        srcs = {
+          "PATCH": patch,
+        },
+        outs = [name],
+        cmd = cmd,
+        hashes = [hash] if hash else None,
+        visibility = visibility,
+        test_only = test_only,
+        sandbox = False,
+    )
