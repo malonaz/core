@@ -7,7 +7,7 @@ experimentaldir = experimental
 preloadbuilddefs = build_defs/proto_extensions.build_defs
 
 [build]
-path = /bin:/usr/bin:/usr/local/bin:/opt/avengers/toolchain/1.0/bin/
+path = /bin:/usr/bin:/usr/local/bin:/opt/toolchain/1.0/bin/
 timeout = 2000
 
 [sandbox]

@@ -94,23 +94,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__acomagu__trie",
-    _tag = "download",
-    module = "github.com/acomagu/trie",
-    version = "v1.0.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__acomagu__trie",
-    download = ":_github.com__acomagu__trie#download",
-    install = ["."],
-    module = "github.com/acomagu/trie",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__bazelbuild__buildtools",
     _tag = "download",
     module = "github.com/bazelbuild/buildtools",
@@ -149,32 +132,6 @@ go_module(
     download = ":_github.com__beorn7__perks#download",
     install = ["quantile"],
     module = "github.com/beorn7/perks",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__cavaliergopher__grab__v3",
-    _tag = "download",
-    module = "github.com/cavaliergopher/grab/v3",
-    version = "v3.0.1",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__cavaliergopher__grab__v3",
-    download = ":_github.com__cavaliergopher__grab__v3#download",
-    install = ["."],
-    module = "github.com/cavaliergopher/grab/v3",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__cavaliergopher__grab__v3__pkg__bps"],
-)
-
-go_module(
-    name = "github.com__cavaliergopher__grab__v3__pkg__bps",
-    download = ":_github.com__cavaliergopher__grab__v3#download",
-    install = ["pkg/bps"],
-    module = "github.com/cavaliergopher/grab/v3",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -243,23 +200,6 @@ go_module(
     download = ":_github.com__davecgh__go-spew#download",
     install = ["spew"],
     module = "github.com/davecgh/go-spew",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__dgrijalva__jwt-go",
-    _tag = "download",
-    module = "github.com/dgrijalva/jwt-go",
-    version = "v3.2.0+incompatible",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__dgrijalva__jwt-go",
-    download = ":_github.com__dgrijalva__jwt-go#download",
-    install = ["."],
-    module = "github.com/dgrijalva/jwt-go",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -766,43 +706,6 @@ go_module(
     module = "github.com/gorilla/websocket",
     visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_mod_download(
-    name = "github.com__gosimple__slug",
-    _tag = "download",
-    module = "github.com/gosimple/slug",
-    version = "v1.1.1",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__gosimple__slug",
-    download = ":_github.com__gosimple__slug#download",
-    install = ["."],
-    module = "github.com/gosimple/slug",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__rainycape__unidecode"],
-)
-
-go_mod_download(
-    name = "github.com__grafana-tools__sdk",
-    _tag = "download",
-    module = "github.com/grafana-tools/sdk",
-    version = "v0.0.0-20220919052116-6562121319fc",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__grafana-tools__sdk",
-    download = ":_github.com__grafana-tools__sdk#download",
-    install = ["."],
-    module = "github.com/grafana-tools/sdk",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__gosimple__slug",
-        ":github.com__pkg__errors",
-    ],
 )
 
 go_mod_download(
@@ -1337,41 +1240,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__jmoiron__sqlx",
-    _tag = "download",
-    module = "github.com/jmoiron/sqlx",
-    version = "v1.3.5",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__jmoiron__sqlx",
-    download = ":_github.com__jmoiron__sqlx#download",
-    install = ["."],
-    module = "github.com/jmoiron/sqlx",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__jmoiron__sqlx__reflectx"],
-)
-
-go_module(
-    name = "github.com__jmoiron__sqlx__reflectx",
-    download = ":_github.com__jmoiron__sqlx#download",
-    install = ["reflectx"],
-    module = "github.com/jmoiron/sqlx",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "github.com__jmoiron__sqlx__types",
-    download = ":_github.com__jmoiron__sqlx#download",
-    install = ["types"],
-    module = "github.com/jmoiron/sqlx",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__joonix__log",
     _tag = "download",
     module = "github.com/joonix/log",
@@ -1772,23 +1640,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__rainycape__unidecode",
-    _tag = "download",
-    module = "github.com/rainycape/unidecode",
-    version = "v0.0.0-20150907023854-cb7f23ec59be",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__rainycape__unidecode",
-    download = ":_github.com__rainycape__unidecode#download",
-    install = ["."],
-    module = "github.com/rainycape/unidecode",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__satori__go.uuid",
     _tag = "download",
     module = "github.com/satori/go.uuid",
@@ -1843,23 +1694,6 @@ go_module(
         ":google.golang.org__grpc__grpclog",
         ":google.golang.org__grpc__resolver",
     ],
-)
-
-go_mod_download(
-    name = "github.com__shopspring__decimal",
-    _tag = "download",
-    module = "github.com/shopspring/decimal",
-    version = "v1.3.1",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__shopspring__decimal",
-    download = ":_github.com__shopspring__decimal#download",
-    install = ["."],
-    module = "github.com/shopspring/decimal",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -2264,24 +2098,6 @@ go_mod_download(
     module = "golang.org/x/crypto",
     version = "v0.10.0",
     visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "golang.org__x__crypto__bcrypt",
-    download = ":_golang.org__x__crypto#download",
-    install = ["bcrypt"],
-    module = "golang.org/x/crypto",
-    visibility = ["PUBLIC"],
-    deps = [":golang.org__x__crypto__blowfish"],
-)
-
-go_module(
-    name = "golang.org__x__crypto__blowfish",
-    download = ":_golang.org__x__crypto#download",
-    install = ["blowfish"],
-    module = "golang.org/x/crypto",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_module(

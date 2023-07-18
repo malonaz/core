@@ -14,7 +14,6 @@ import (
 
 type Tx = pgx.Tx
 
-
 const (
 	Serializable    = pgx.Serializable
 	RepeatableRead  = pgx.RepeatableRead

@@ -1,8 +1,8 @@
 package migrator
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"github.com/pkg/errors"

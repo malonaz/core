@@ -30,14 +30,14 @@ sh_cmd(
     name = "tidy",
     cmd = [
         echo_message("Running 'go mod tidy'"),
-        "go mod tidy",
         "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
+        "$(out_exe //tools:go_toolchain|go) mod tidy",
         echo_message("Running 'go deps'"),
         "$(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
         echo_message("Running 'wollemi'"),
         "$(out_exe :wollemi) gofmt ./...",
         echo_message("Running 'gofmt'"),
-        f"gofmt -s -w \\\\$(go list ./... | sed s#github.com/malonaz/chat/##g)",
+        f"gofmt -s -w \\\\$(go list ./... | sed s#github.com/malonaz/core/##g)",
     ],
     deps = [
         ":godeps",

@@ -3,12 +3,12 @@ package testserver
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
-	"context"
 
 	"github.com/pkg/errors"
 
