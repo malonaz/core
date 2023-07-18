@@ -113,7 +113,7 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
         if dockerfile.startswith('//'):
             _, _, label = dockerfile.partition(':')
             out = 'Dockerfile-' + label
-        elif: dockerfile.startswith('@'):
+        elif dockerfile.startswith('@'):
             _, _, label = dockerfile.partition(':')
             out = 'Dockerfile-' + label
         else:
