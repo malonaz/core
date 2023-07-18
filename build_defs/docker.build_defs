@@ -122,10 +122,10 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
             tag = 'dockerfile',
             srcs = {
                 'dockerfile': [dockerfile],
-                'fqn': [base_image + '_fqn'],
+                'fqn': [sanitized_base_image + '_fqn'],
             },
             outs = [out],
-            cmd = 'FQN="`cat $SRCS_FQN`"; sed -e "s|%s|$FQN|g" $SRCS_DOCKERFILE >> $OUTS' % base_image,
+            cmd = 'FQN="`cat $SRCS_FQN`"; sed -e "s|%s|$FQN|g" $SRCS_DOCKERFILE >> $OUTS' % sanitized_base_image,
             test_only = test_only,
         )
 
