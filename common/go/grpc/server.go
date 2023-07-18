@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bufbuild/protovalidate-go"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -223,17 +225,16 @@ func streamServerLoggingInterceptor() grpc.StreamServerInterceptor {
 	}
 }
 
-// The validate interface of protoc-gen-validate.
-type validator interface{ ValidateAll() error }
-
 // unaryServerValidateInterceptor returns a new unary server interceptor that validates incoming messages.
 // Invalid messages will be rejected with `InvalidArgument` before reaching any userspace handlers.
 func unaryServerValidateInterceptor() grpc.UnaryServerInterceptor {
+	validator, err := protovalidate.New()
+	if err != nil {
+		log.Panicf("could not instantiate proto validator")
+	}
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		if v, ok := req.(validator); ok {
-			if err := v.ValidateAll(); err != nil {
-				return nil, status.Error(codes.InvalidArgument, err.Error())
-			}
+		if err := validator.Validate(req.(proto.Message)); err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		return handler(ctx, req)
 	}
@@ -245,13 +246,21 @@ func unaryServerValidateInterceptor() grpc.UnaryServerInterceptor {
 // handlers. For `ClientStream` (n:1) or `BidiStream` (n:m) RPCs, the messages will be rejected on
 // calls to `stream.Recv()`.
 func streamServerValidateInterceptor() grpc.StreamServerInterceptor {
+	validator, err := protovalidate.New()
+	if err != nil {
+		log.Panicf("could not instantiate proto validator")
+	}
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		wrapper := &recvWrapperValidate{stream}
+		wrapper := &recvWrapperValidate{
+			ServerStream: stream,
+			validator: validator,
+		}
 		return handler(srv, wrapper)
 	}
 }
 
 type recvWrapperValidate struct {
+	validator *protovalidate.Validator
 	grpc.ServerStream
 }
 
@@ -259,10 +268,8 @@ func (s *recvWrapperValidate) RecvMsg(m any) error {
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
 	}
-	if v, ok := m.(validator); ok {
-		if err := v.ValidateAll(); err != nil {
-			return status.Error(codes.InvalidArgument, err.Error())
-		}
+	if err := s.validator.Validate(m.(proto.Message)); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
 	}
 	return nil
 }

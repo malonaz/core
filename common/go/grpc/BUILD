@@ -17,6 +17,7 @@ go_library(
         "//common/go/health",
         "//common/go/logging",
         "//common/go/prometheus",
+        "//third_party/go:github.com__bufbuild__protovalidate-go",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__retry",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-prometheus",

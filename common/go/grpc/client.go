@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bufbuild/protovalidate-go"
 	"github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sercand/kuberesolver/v5"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/codes"
@@ -201,11 +203,13 @@ func withTimeout(
 // unaryClientValidateInterceptor returns a new unary client interceptor that validates outgoing messages.
 // Invalid messages will be rejected with `InvalidArgument` before sending the request to server.
 func unaryClientValidateInterceptor() grpc.UnaryClientInterceptor {
+	validator, err := protovalidate.New()
+	if err != nil {
+		log.Panicf("could not instantiate proto validator")
+	}
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		if v, ok := req.(validator); ok {
-			if err := v.ValidateAll(); err != nil {
-				return status.Error(codes.InvalidArgument, err.Error())
-			}
+		if err := validator.Validate(req.(proto.Message)); err != nil {
+			return status.Error(codes.InvalidArgument, err.Error())
 		}
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
