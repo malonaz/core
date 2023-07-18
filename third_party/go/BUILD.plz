@@ -2116,6 +2116,7 @@ go_mod_download(
     module = "go.einride.tech/spanner-aip",
     version = "v0.50.0",
     visibility = ["PUBLIC"],
+    patch = ["spanner-aip.patch"],
 )
 
 go_module(
