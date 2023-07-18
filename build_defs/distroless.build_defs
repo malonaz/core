@@ -14,7 +14,7 @@ ENTRYPOINT ["./__BINARY__"]
 def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibility:list=[]):
     grpc_health_probe_replace = ''
     if grpc_health_probe:
-        target_name = get_target_name('//common/go/grpc/grpc_health_probe')
+        target_name = get_target_name('@plugins/core//common/go/grpc/grpc_health_probe')
         grpc_health_probe_replace = f'COPY {target_name} {target_name}'
     dockerfile = text_file(
         filename = f'{name}_dockerfile',
