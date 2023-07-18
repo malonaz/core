@@ -2,7 +2,7 @@ subinclude("//build_defs:docker")
 subinclude("//build_defs:utils")
 
 _dockerfile = """
-FROM @plugins/core//common/docker_containers:go_base
+FROM __CORE_PLUGIN__//common/docker_containers:go_base
 
 COPY __BINARY__ __BINARY__
 
@@ -14,20 +14,21 @@ ENTRYPOINT ["./__BINARY__"]
 def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibility:list=[]):
     grpc_health_probe_replace = ''
     if grpc_health_probe:
-        target_name = get_target_name('@plugins/core//common/go/grpc/grpc_health_probe')
+        target_name = get_target_name(CONFIG.CORE_PLUGIN + '//common/go/grpc/grpc_health_probe')
         grpc_health_probe_replace = f'COPY {target_name} {target_name}'
     dockerfile = text_file(
         filename = f'{name}_dockerfile',
         content = _dockerfile,
         replace = {
+            '__CORE_PLUGIN__': CONFIG.CORE_PLUGIN,
             '__BINARY__': get_target_name(binary),
             '__GRPC_HEALTH_PROBE__': grpc_health_probe_replace,
         },
     )
     return docker_image(
         name = name,
-        srcs = [binary, '@plugins/core//common/go/grpc/grpc_health_probe'],
+        srcs = [binary, CONFIG.CORE_PLUGIN + '//common/go/grpc/grpc_health_probe'],
         dockerfile = dockerfile,
-        base_image = "@plugins/core//common/docker_containers:go_base",
+        base_image = CONFIG.CORE_PLUGIN + "//common/docker_containers:go_base",
         visibility = visibility,
     )
