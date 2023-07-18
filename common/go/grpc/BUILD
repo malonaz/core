@@ -44,7 +44,6 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/proto/buf:validate",
-        "//validate",
     ],
 )
 
