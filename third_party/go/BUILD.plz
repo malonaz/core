@@ -45,7 +45,7 @@ go_module(
     module = "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go",
     visibility = ["PUBLIC"],
     deps = [
-        ":buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate__priv",
+        "//third_party/proto/buf:priv",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
         ":google.golang.org__protobuf__types__descriptorpb",
@@ -205,7 +205,7 @@ go_module(
     module = "github.com/bufbuild/protovalidate-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
+        "//third_party/proto/buf:validate",
         ":github.com__bufbuild__protovalidate-go__internal__celext",
         ":github.com__bufbuild__protovalidate-go__internal__errors",
         ":github.com__bufbuild__protovalidate-go__internal__evaluator",
@@ -253,7 +253,7 @@ go_module(
     install = ["internal/errors"],
     module = "github.com/bufbuild/protovalidate-go",
     visibility = ["PUBLIC"],
-    deps = [":buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate"],
+    deps = ["//third_party/proto/buf:validate"],
 )
 
 go_module(

@@ -21,7 +21,7 @@ def proto_library(
     return original_proto_library(
         name = name,
         srcs = srcs,
-        deps = deps + [CONFIG.PROTO_VALIDATE_GO_DEP],
+        deps = deps,
         languages = languages,
         labels = labels,
         root_dir = root_dir,
