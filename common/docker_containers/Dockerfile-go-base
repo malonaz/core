@@ -6,8 +6,8 @@ RUN apk --update add ca-certificates
 RUN ln -s /lib/ld-musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
 
 # certs
-#COPY ca.crt .
-#COPY server.crt .
-#COPY server.key .
-#COPY client.crt .
-#COPY client.key .
+COPY ca.crt .
+COPY server.crt .
+COPY server.key .
+COPY client.crt .
+COPY client.key .
