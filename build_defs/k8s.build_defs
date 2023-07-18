@@ -105,7 +105,7 @@ def k8s_config(name:str, srcs:list, containers:list=[], params:dict=None, subs:d
     push_rule = genrule(
         name=name + '_push',
         srcs = rules,
-        tools = ['@plugins/core///k8s:push'],
+        tools = ['@plugins/core///infrastructure/k8s:push'],
         outs=[name + '_push.sh'],
         cmd = 'sed -e "s|\\\$SRCS|$SRCS|g" $TOOL > $OUT',
         binary=True,
@@ -114,7 +114,7 @@ def k8s_config(name:str, srcs:list, containers:list=[], params:dict=None, subs:d
     cleanup_rule = genrule(
         name=name + '_cleanup',
         srcs = rules,
-        tools = ['@plugins/core//k8s:cleanup'],
+        tools = ['@plugins/core//infrastructure/k8s:cleanup'],
         outs=[name + '_cleanup.sh'],
         cmd = 'sed -e "s|\\\$SRCS|$SRCS|g" $TOOL > $OUT',
         binary=True,
