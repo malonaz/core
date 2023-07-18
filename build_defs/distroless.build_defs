@@ -2,7 +2,7 @@ subinclude("//build_defs:docker")
 subinclude("//build_defs:utils")
 
 _dockerfile = """
-FROM //common/docker_containers:go_base
+FROM @plugins/core//common/docker_containers:go_base
 
 COPY __BINARY__ __BINARY__
 
