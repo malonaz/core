@@ -53,10 +53,10 @@ def docker_image(name, srcs=[], image=None, version='',
     )
 
     # docker build
-    cmd = 'docker build -t `cat $SRCS_FQN` -f $(basename $SRCS_DOCKERFILE) - < $(out_location %s)' % tarball    
+    cmd = 'docker build -t `cat $SRCS_FQN` -f $(basename $SRCS_DOCKERFILE) - < $(out_location %s)' % tarball
     #cmd = 'docker build -t %s -f $(basename $SRCS_DOCKERFILE) - < $(out_location %s)' % (name, tarball)
     if base_image:
-        cmd = './$(out_location %s) && %s' % (base_image, cmd)       
+        cmd = './$(out_location %s) && %s' % (base_image, cmd)
     docker_build = sh_cmd(
         name = name,
         cmd = cmd,
@@ -111,6 +111,9 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
     if base_image:
         # Define rule to template the source image into the Dockerfile.
         if dockerfile.startswith('//'):
+            _, _, label = dockerfile.partition(':')
+            out = 'Dockerfile-' + label
+        elif: dockerfile.startswith('@'):
             _, _, label = dockerfile.partition(':')
             out = 'Dockerfile-' + label
         else:
