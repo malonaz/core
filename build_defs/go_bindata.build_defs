@@ -20,7 +20,7 @@ def go_bindata(name, srcs, package=None, input_dir=None, prefix=None, out=None,
         srcs = srcs,
         outs = [out or name + '.bindata.go'],
         cmd = cmd,
-        tools = ["//tools/bindata:go-bindata"],
+        tools = ["@plugins/core//tools/bindata:go-bindata"],
         test_only = test_only,
         visibility = visibility,
     )
