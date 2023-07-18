@@ -1,4 +1,4 @@
-def text_file(filename:str, content:str, replace={}):
+def text_file(filename:str, content:str, replace={}, deps=[]):
     """
     text_file is a utility function that creates a file with the given filename, and content.
     the `replace` parameter allows a user to pass-in substitutions.
@@ -13,6 +13,7 @@ def text_file(filename:str, content:str, replace={}):
         name = f'{filename}',
         cmd = cmd,
         outs = [f'{filename}'],
+        deps = deps,
     )
 
 def get_target_name(target:str):

@@ -17,12 +17,14 @@ def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibilit
     if grpc_health_probe:
         target_name = get_target_name(core_plugin + '//common/go/grpc/grpc_health_probe')
         grpc_health_probe_replace = f'COPY {target_name} {target_name}'
+
+
     dockerfile = text_file(
         filename = f'{name}_dockerfile',
         content = _dockerfile,
         replace = {
             '__CORE_PLUGIN__': core_plugin,
-            '__BINARY__': get_target_name(binary),
+            '__BINARY__': get_target_name(core_plugin + binary),
             '__GRPC_HEALTH_PROBE__': grpc_health_probe_replace,
         },
     )

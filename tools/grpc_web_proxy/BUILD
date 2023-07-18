@@ -11,9 +11,9 @@ remote_file(
 genrule(
     name = "grpc_web_proxy",
     srcs = [":grpcwebproxy_zip"],
-    outs = ["grpcwebproxy"],
+    outs = ["grpc_web_proxy"],
     binary = True,
-    cmd = "$TOOL x $SRCS && mv dist/* grpcwebproxy",
+    cmd = "$TOOL x $SRCS && mv dist/* grpc_web_proxy",
     tools = [CONFIG.JARCAT_TOOL],
 )
 
