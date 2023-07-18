@@ -109,12 +109,11 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
     This will then later on be fed into `docker build` as a docker context.
     """
     if base_image:
+        sanitized_base_image = base_image.replace('@', '///')
         # Define rule to template the source image into the Dockerfile.
         if dockerfile.startswith('//'):
             _, _, label = dockerfile.partition(':')
             out = 'Dockerfile-' + label
-        elif dockerfile.startswith('@'):
-            fail("Use /// instead of @")
         else:
             out = dockerfile
 
