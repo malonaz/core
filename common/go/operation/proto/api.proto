@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "validate/validate.proto";
+import "buf/validate/validate.proto";
 import "google/protobuf/any.proto";
 
 // Contains the operation resources.
@@ -21,13 +21,13 @@ enum Status {
 // Represents metadata of an operation.
 message Metadata {
   // The timestamp at which this operation was created.
-  uint64 creation_timestamp = 1 [(validate.rules).uint64.gt = 0];
+  uint64 creation_timestamp = 1 [(buf.validate.field).uint64.gt = 0];
   // The timestamp at which this operation was completed.
   uint64 completion_timestamp = 2;
   // The request that yielded this operation.
-  google.protobuf.Any request = 3 [(validate.rules).any.required = true];
+  google.protobuf.Any request = 3 [(buf.validate.field).required = true];
   // The status of the operation.
-  Status status = 4 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+  Status status = 4 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
   // Human readable logs that can indicate progress etc.
   repeated string logs = 5;
 }

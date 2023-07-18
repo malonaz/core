@@ -2,14 +2,13 @@ syntax = "proto3";
 
 package common.go.grpc;
 
-import "validate/validate.proto";
-
+import "buf/validate/validate.proto";
 
 message HttpCookie {
   // The unique name of the cookie, used as the key to identify and retrieve the cookie's value.
-  string name = 1 [(validate.rules).string.min_len = 1];
+  string name = 1 [(buf.validate.field).string.min_len = 1];
   // The actual data stored in the cookie, which is associated with the cookie's name.
-  string value = 2 [(validate.rules).string.min_len = 1];
+  string value = 2 [(buf.validate.field).string.min_len = 1];
 
   // Specifies the URL path scope for which the cookie is valid, controlling which requests include the cookie.
   string path = 3;

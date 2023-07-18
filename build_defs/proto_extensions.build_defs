@@ -21,7 +21,7 @@ def proto_library(
     return original_proto_library(
         name = name,
         srcs = srcs,
-        deps = deps + [CONFIG.PROTO_VALIDATE_GO_PLUGIN],
+        deps = deps + [CONFIG.PROTO_VALIDATE_GO_DEP],
         languages = languages,
         labels = labels,
         root_dir = root_dir,
@@ -165,14 +165,11 @@ def go_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gatewa
     protoc_flags = [
         # Go plugin.
         '--plugin=protoc-gen-go="`which $TOOLS_GO`"', '--go_out="$OUT_DIR"', '--go_opt=paths=source_relative',
-        # Gen validate plugin.
-        '--plugin=protoc-gen-validate="`which $TOOLS_PROTOC_GEN_VALIDATE`"', '--validate_out=$OUT_DIR', f'--validate_opt=paths=source_relative,import_path={name}',
     ]
     tools = {
         "go": [CONFIG.PROTOC_GO_PLUGIN],
-        "protoc_gen_validate": [CONFIG.PROTO_VALIDATE_GO_PLUGIN],
     }
-    deps = [CONFIG.PROTO_GO_DEP, CONFIG.PROTO_VALIDATE_GO_DEP]
+    deps = [CONFIG.PROTO_GO_DEP]
 
     # PROTOC-GEN-GRPC
     if grpc or grpc_gateway:
@@ -202,14 +199,11 @@ def _go_path_mapping():
     def _map_go_paths(rule_name):
         labels = get_labels(rule_name, 'proto:go-map:')
         mapping = ''
-        mapping_validate = ''
         if len(labels) > 0:
             mapping = 'M' + ',M'.join(labels) + ':'
-            mapping_validate = ',M' + ',M'.join(labels)
 
         cmd = get_command(rule_name)
         new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
-        new_cmd = new_cmd.replace('lang=go', f'lang=go{mapping_validate}')
         new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
         new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
         set_command(rule_name, new_cmd)

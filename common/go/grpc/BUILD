@@ -41,5 +41,19 @@ proto_library(
     name = "types",
     srcs = ["types.proto"],
     visibility = ["PUBLIC"],
-    deps = ["//validate"],
+    deps = [
+        "//third_party/proto/buf:validate",
+        "//validate",
+    ],
+)
+
+go_test(
+    name = "types_test",
+    srcs = ["types_test.go"],
+    external = True,
+    deps = [
+        ":types",
+        "//third_party/go:github.com__bufbuild__protovalidate-go",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
 )

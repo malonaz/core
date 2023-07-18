@@ -58,24 +58,12 @@ filegroup(
     visibility = ["PUBLIC"],
 )
 
-# Protoc go validate plugin - referenced in .plzconfig.
-go_module(
-    name = "protoc-gen-validate-go",
-    binary = True,
-    download = "//third_party/go:_github.com__envoyproxy__protoc-gen-validate#download",
-    install = ["cmd/protoc-gen-validate-go"],
-    module = "github.com/envoyproxy/protoc-gen-validate",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//third_party/go:github.com__envoyproxy__protoc-gen-validate__module",
-    ],
-)
-
-# Gathers the proto go validate depdencies - referenced in .plzconfig.
+# Gathers the proto go validate dependencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-validate-go-dep",
     exported_deps = [
-        "//third_party/go:github.com__envoyproxy__protoc-gen-validate__validate",
+        "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
+        "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate__priv",
     ],
     visibility = ["PUBLIC"],
 )
