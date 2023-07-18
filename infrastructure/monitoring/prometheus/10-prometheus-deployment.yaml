@@ -1,0 +1,128 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: monitoring
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: monitoring
+  labels:
+    app: prometheus
+spec:
+  serviceName: prometheus
+  revisionHistoryLimit: 5
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: prometheus
+      nodeSelector:
+        premptible: "false"      
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.33.4
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=30d
+            - --web.external-url=/
+            - --web.enable-admin-api
+          ports:
+            - containerPort: 9090
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+          volumeMounts:
+            - mountPath: /prometheus
+              name: prometheus-data
+            - mountPath: /etc/prometheus
+              name: config-volume
+            - mountPath: /etc/blackbox-https-targets
+              name: blackbox-https-targets
+            - mountPath: /etc/blackbox-tcp-targets
+              name: blackbox-tcp-targets
+      volumes:
+        - configMap:
+            name: prometheus-config
+          name: config-volume
+        - configMap:
+            name: blackbox-https-targets
+            optional: true
+          name: blackbox-https-targets
+        - configMap:
+            name: blackbox-tcp-targets
+            optional: true
+          name: blackbox-tcp-targets
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        runAsGroup: 65534
+        fsGroup: 2000
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: premium
+      resources:
+        requests:
+          storage: 20Gi

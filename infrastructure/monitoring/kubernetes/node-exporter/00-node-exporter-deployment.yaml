@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: monitoring
+  labels:
+    app: node-exporter
+    project: monitoring
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+      project: monitoring
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+        project: monitoring
+    spec:
+      containers:
+        - image: prom/node-exporter:latest
+          args:
+            - "--path.procfs=/host/proc"
+            - "--path.sysfs=/host/sys"
+          name: node-exporter
+          ports:
+            - name: prom-node-exp
+              # ^ must be an IANA_SVC_NAME (at most 15 characters, ..)
+              containerPort: 9100
+              hostPort: 9100
+          volumeMounts:
+            - name: proc
+              readOnly: true
+              mountPath: /host/proc
+            - name: sys
+              readOnly: true
+              mountPath: /host/sys
+
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys

@@ -1,5 +1,5 @@
 go_binary(
-    name = "grafana-import-dashboard",
+    name = "grafana_import_dashboard",
     srcs = ["main.go"],
     visibility = ["PUBLIC"],
     deps = [

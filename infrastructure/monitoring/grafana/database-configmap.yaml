@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-database
+  namespace: monitoring
+  labels:
+    app: grafana
+data:
+  GF_DATABASE_HOST: "10.77.32.3"
+  GF_DATABASE_PORT: "5432"
+  GF_DATABASE_USER: "grafana"
+  GF_DATABASE_NAME: "grafana"
+  GF_DATABASE_TYPE: "postgres"

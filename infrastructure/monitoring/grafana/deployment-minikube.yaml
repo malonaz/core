@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: monitoring
+spec:
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:6.5.3
+          args:
+            # NOTE: the below config should not be used in any real envs!
+            - cfg:auth.anonymous.enabled=true
+            - cfg:auth.anonymous.org_name=Main Org.
+            - cfg:auth.anonymous.org_role=Admin
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2500Mi
+            requests:
+              cpu: 1m
+              memory: 10Mi
+          volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: datasources
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources            

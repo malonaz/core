@@ -27,7 +27,7 @@ def grafana_json(name: str, src: str, folder:str="", visibility:list=[]):
         srcs = [src],
         visibility = visibility,
     )
-    grafana_import_dashboard_tool = "//tools/grafana-import-dashboard"
+    grafana_import_dashboard_tool = "//tools/grafana_import_dashboard"
     sh_cmd(
         name = f"{name}_push",
         srcs = [f, grafana_import_dashboard_tool],
