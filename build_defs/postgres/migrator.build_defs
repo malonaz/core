@@ -160,9 +160,9 @@ def postgres_migrator(name, project, database, migrations_directories=['.'], vis
         ],
         visibility = visibility,
         deps = [
-            "//common/go/postgres",
-            "//common/go/flags",
-            "//common/go/postgres/migrator",
+            "@plugins/core//common/go/postgres",
+            "@plugins/core//common/go/flags",
+            "@plugins/core//common/go/postgres/migrator",
         ],
     )
 
@@ -221,7 +221,7 @@ def postgres_migrator(name, project, database, migrations_directories=['.'], vis
         srcs = [migrations_test_go_file],
         deps = [
             "//third_party/go:github.com__stretchr__testify__require",
-            "//common/go/postgres/migrator/migrations",
+            "@plugins/core//common/go/postgres/migrator/migrations",
             migrations,
         ],
     )
@@ -243,9 +243,9 @@ def postgres_migrator(name, project, database, migrations_directories=['.'], vis
         ],
         visibility = visibility,
         deps = [
-            "//common/go/postgres",
-            "//common/go/flags",
-            "//common/go/postgres/migrator",
+            "@plugins/core//common/go/postgres",
+            "@plugins/core//common/go/flags",
+            "@plugins/core//common/go/postgres/migrator",
             migrations,
         ],
     )
