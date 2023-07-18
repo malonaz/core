@@ -26,7 +26,7 @@ def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibilit
     )
     return docker_image(
         name = name,
-        srcs = [binary, '//common/go/grpc/grpc_health_probe'],
+        srcs = [binary, '@plugins/core//common/go/grpc/grpc_health_probe'],
         dockerfile = dockerfile,
         base_image = "//common/docker_containers:go_base",
         visibility = visibility,
