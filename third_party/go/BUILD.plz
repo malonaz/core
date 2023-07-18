@@ -709,6 +709,43 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__gosimple__slug",
+    _tag = "download",
+    module = "github.com/gosimple/slug",
+    version = "v1.1.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__gosimple__slug",
+    download = ":_github.com__gosimple__slug#download",
+    install = ["."],
+    module = "github.com/gosimple/slug",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__rainycape__unidecode"],
+)
+
+go_mod_download(
+    name = "github.com__grafana-tools__sdk",
+    _tag = "download",
+    module = "github.com/grafana-tools/sdk",
+    version = "v0.0.0-20220919052116-6562121319fc",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__grafana-tools__sdk",
+    download = ":_github.com__grafana-tools__sdk#download",
+    install = ["."],
+    module = "github.com/grafana-tools/sdk",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__gosimple__slug",
+        ":github.com__pkg__errors",
+    ],
+)
+
+go_mod_download(
     name = "github.com__grpc-ecosystem__go-grpc-middleware",
     _tag = "download",
     module = "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -1640,6 +1677,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__rainycape__unidecode",
+    _tag = "download",
+    module = "github.com/rainycape/unidecode",
+    version = "v0.0.0-20150907023854-cb7f23ec59be",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__rainycape__unidecode",
+    download = ":_github.com__rainycape__unidecode#download",
+    install = ["."],
+    module = "github.com/rainycape/unidecode",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__satori__go.uuid",
     _tag = "download",
     module = "github.com/satori/go.uuid",
@@ -2062,7 +2116,6 @@ go_mod_download(
     module = "go.einride.tech/spanner-aip",
     version = "v0.50.0",
     visibility = ["PUBLIC"],
-    patch = ["spanner-aip.patch"],
 )
 
 go_module(
