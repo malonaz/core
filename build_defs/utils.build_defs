@@ -20,3 +20,6 @@ def get_target_name(target:str):
     Returns the name of a BUILD target.
     """
     return canonicalise(target).split(":")[1]
+
+def get_core_plugin():
+    return CONFIG.CORE_PLUGIN.replace('@', '///') if CONFIG.CORE_PLUGIN else ''

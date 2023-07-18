@@ -1,3 +1,5 @@
+subinclude("//build_defs:utils")
+
 def go_bindata(name, srcs, package=None, input_dir=None, prefix=None, out=None,
                memcopy=False, metadata=False, compress=False, visibility=None,
                test_only=False, flatten=True, all_dirs=False):
@@ -20,7 +22,7 @@ def go_bindata(name, srcs, package=None, input_dir=None, prefix=None, out=None,
         srcs = srcs,
         outs = [out or name + '.bindata.go'],
         cmd = cmd,
-        tools = ["@plugins/core//tools/bindata:go-bindata"],
+        tools = [get_core_plugin() + "//tools/bindata:go-bindata"],
         test_only = test_only,
         visibility = visibility,
     )
