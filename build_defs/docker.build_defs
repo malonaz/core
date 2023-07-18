@@ -117,6 +117,8 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
         else:
             out = dockerfile
 
+        log.error(base_image)
+        log.error(sanitized_base_image)
         dockerfile = build_rule(
             name = name,
             tag = 'dockerfile',
