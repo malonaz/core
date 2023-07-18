@@ -19,6 +19,6 @@ genrule(
 
 distroless_go(
     name = "docker_image",
-    binary = ":grpcwebproxy",
+    binary = ":grpc_web_proxy",
     visibility = ["PUBLIC"],
 )
