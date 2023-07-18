@@ -1,6 +1,7 @@
 package(default_visibility = ["PUBLIC"])
 
 subinclude("//build_defs:remote")
+subinclude("//build_defs:proto_extensions")
 
 # Revision of googleapis/googelapis repo.
 GOOGLEAPI_REVISION = "5e5d500bc4f8c4d5591cd1fda817556b3fe663a7"
