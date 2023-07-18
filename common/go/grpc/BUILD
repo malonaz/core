@@ -1,3 +1,5 @@
+subinclude("//build_defs:proto_extensions")
+
 go_library(
     name = "grpc",
     srcs = [

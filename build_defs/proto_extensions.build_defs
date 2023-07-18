@@ -107,7 +107,6 @@ def js_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gatewa
 
     # PROTOC-GEN-GO
     protoc_flags = [
-
         '--plugin=protoc-gen-es=$TOOLS_BUFBUILD/.bin/protoc-gen-es', '--es_out=$OUT_DIR',
         '--plugin=protoc-gen-connect-es=$TOOLS_BUFBUILD/.bin/protoc-gen-connect-es', '--connect-es_out=$OUT_DIR'
     ]
