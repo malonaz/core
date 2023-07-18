@@ -21,13 +21,8 @@ def proto_library(
     return original_proto_library(
         name = name,
         srcs = srcs,
-        deps = deps + [CONFIG.PROTO_VALIDATE_GO_PLUGIN],
-        languages = languages,
-        labels = labels,
-        root_dir = root_dir,
-        test_only = test_only,
-        visibility = visibility,
-        protoc_flags = protoc_flags,# + ['-I $(location //third_party/go:protoc-gen-validate-download)'],
+        deps = deps + [
+        protoc_flags = protoc_flags,
     )
 
 def grpc_library(
@@ -167,7 +162,7 @@ def go_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gatewa
         # Go plugin.
         '--plugin=protoc-gen-go="`which $TOOLS_GO`"', '--go_out="$OUT_DIR"', '--go_opt=paths=source_relative',
         # Gen validate plugin.
-        '--plugin=protoc-gen-validate="`which $TOOLS_PROTOC_GEN_VALIDATE`"', f'--validate_opt=paths=source_relative,import_path={name}',
+        '--plugin=protoc-gen-validate="`which $TOOLS_PROTOC_GEN_VALIDATE`"', '--validate_out=$OUT_DIR', f'--validate_opt=paths=source_relative,import_path={name}',
     ]
     tools = {
         "go": [CONFIG.PROTOC_GO_PLUGIN],
