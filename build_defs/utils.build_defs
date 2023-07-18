@@ -5,7 +5,7 @@ def text_file(filename:str, content:str, replace={}):
     """
     cmd = f"echo -e '{content}'"
     for key, value in replace.items():
-        cmd += f" | sed 's@{key}@{value}@g'"
+        cmd += f" | sed 's!{key}!{value}!g'"
     cmd += " | sed '/^$/d'" # Remove blank lines.
     cmd += " > $OUTS"
     log.info(cmd)
