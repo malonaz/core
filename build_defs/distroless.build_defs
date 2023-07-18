@@ -12,6 +12,7 @@ ENTRYPOINT ["./__BINARY__"]
 """
 
 def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibility:list=[]):
+    core_plugin = CONFIG.CORE_PLUGIN if CONFIG.CORE_PLUGIN else ''
     grpc_health_probe_replace = ''
     if grpc_health_probe:
         target_name = get_target_name(CONFIG.CORE_PLUGIN + '//common/go/grpc/grpc_health_probe')
@@ -20,15 +21,15 @@ def distroless_go(name:str, binary:str, grpc_health_probe: bool=False, visibilit
         filename = f'{name}_dockerfile',
         content = _dockerfile,
         replace = {
-            '__CORE_PLUGIN__': CONFIG.CORE_PLUGIN,
+            '__CORE_PLUGIN__': core_plugin,
             '__BINARY__': get_target_name(binary),
             '__GRPC_HEALTH_PROBE__': grpc_health_probe_replace,
         },
     )
     return docker_image(
         name = name,
-        srcs = [binary, CONFIG.CORE_PLUGIN + '//common/go/grpc/grpc_health_probe'],
+        srcs = [binary, f'{core_plugin}//common/go/grpc/grpc_health_probe'],
         dockerfile = dockerfile,
-        base_image = CONFIG.CORE_PLUGIN + "//common/docker_containers:go_base",
+        base_image = f"{core_plugin}//common/docker_containers:go_base",
         visibility = visibility,
     )

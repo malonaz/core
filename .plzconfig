@@ -14,7 +14,7 @@ timeout = 2000
 test = true
 
 [buildconfig]
-core-plugin =
+core-plugin = false
 proto-validate-go-plugin = //tools/proto:protoc-gen-validate-go
 proto-validate-go-dep = //tools/proto:protoc-gen-validate-go-dep
 grpc-gateway-go-plugin = //tools/proto:protoc-gen-grpc-gateway
