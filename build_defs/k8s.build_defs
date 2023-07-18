@@ -38,7 +38,7 @@ def k8s_config(name:str, srcs:list, containers:list=[], params:dict=None, subs:d
 
     # This will template image tags into k8s resource files that reference docker images by build target.
     fqns = ['%s_fqn' % c for c in containers]
-    log.error(fqns)
+
     # Tag with appropriate labels
     labels += ['k8s'] + ['container:' + c for c in containers]
 
