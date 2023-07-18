@@ -1,7 +1,7 @@
-subinclude("//infrastructure/build_defs:go_bindata")
-subinclude("//infrastructure/build_defs:distroless")
-subinclude("//infrastructure/build_defs:k8s")
-subinclude("//infrastructure/build_defs:utils")
+subinclude("//build_defs:go_bindata")
+subinclude("//build_defs:distroless")
+subinclude("//build_defs:k8s")
+subinclude("//build_defs:utils")
 
 initializer_main_go = """
 package main

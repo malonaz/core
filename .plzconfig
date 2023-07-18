@@ -53,18 +53,3 @@ language = js
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
 cmd = run //tools/tidy
-
-[alias "deploy-admin-api"]
-cmd = run sequential //admin/admin_api/infra:docker_image_load //admin/admin_api/infra:k8s_push
-
-[alias "deploy-user"]
-cmd = run sequential //user/user_service/infra:docker_image_load //user/user_service/infra:k8s_push
-
-[alias "deploy-authentication"]
-cmd = run sequential //authentication/authentication_service/infra:docker_image_load //authentication/authentication_service/infra:k8s_push
-
-[alias "deploy-asset"]
-cmd = run sequential //asset/asset_service/infra:docker_image_load //asset/asset_service/infra:k8s_push
-
-[alias "deploy-chat"]
-cmd = run sequential //chat/chat_service/infra:docker_image_load //chat/chat_service/infra:minikube_k8s_push

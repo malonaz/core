@@ -1,5 +1,5 @@
-subinclude("//infrastructure/build_defs:docker")
-subinclude("//infrastructure/build_defs:utils")
+subinclude("//build_defs:docker")
+subinclude("//build_defs:utils")
 
 _dockerfile = """
 FROM //common/docker_containers:go_base
