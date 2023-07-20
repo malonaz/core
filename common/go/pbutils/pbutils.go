@@ -5,6 +5,9 @@ import (
 
 	"github.com/mennanov/fmutils"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 // ApplyMask filters a proto message with the given paths.
@@ -19,4 +22,17 @@ func ApplyMask(message proto.Message, paths string) {
 func ApplyMaskInverse(message proto.Message, paths string) {
 	mask := fmutils.NestedMaskFromPaths(strings.Split(paths, ","))
 	mask.Prune(message)
+}
+
+type enum interface {
+	protoreflect.Enum
+	String() string
+}
+
+// MustGetEnumValueOption returns the enum value option or panics.
+func MustGetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) interface{} {
+	enumDescriptor := enum.Descriptor()
+	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
+	options := valueEnumDescriptor.Options().(*descriptorpb.EnumValueOptions)
+	return proto.GetExtension(options, extensionInfo)
 }

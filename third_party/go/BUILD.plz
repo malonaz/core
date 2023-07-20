@@ -45,12 +45,12 @@ go_module(
     module = "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go",
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/proto/buf:priv",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
         ":google.golang.org__protobuf__types__descriptorpb",
         ":google.golang.org__protobuf__types__known__durationpb",
         ":google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto/buf:priv",
     ],
 )
 
@@ -205,12 +205,12 @@ go_module(
     module = "github.com/bufbuild/protovalidate-go",
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/proto/buf:validate",
         ":github.com__bufbuild__protovalidate-go__internal__celext",
         ":github.com__bufbuild__protovalidate-go__internal__errors",
         ":github.com__bufbuild__protovalidate-go__internal__evaluator",
         ":google.golang.org__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/proto/buf:validate",
     ],
 )
 
@@ -2570,8 +2570,8 @@ go_mod_download(
     name = "go.einride.tech__spanner-aip",
     _tag = "download",
     module = "go.einride.tech/spanner-aip",
-    version = "v0.50.0",
     patch = ["spanner-aip.patch"],
+    version = "v0.50.0",
     visibility = ["PUBLIC"],
 )
 

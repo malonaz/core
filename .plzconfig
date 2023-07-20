@@ -52,3 +52,7 @@ language = js
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
 cmd = run //tools/tidy
+
+[alias "wollemi"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run //tools/tidy:wollemi_fmt

@@ -27,6 +27,19 @@ def echo_message(message):
     return f'echo "###### {message} ######"'
 
 sh_cmd(
+    name = "wollemi_fmt",
+    cmd = [
+        "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
+        echo_message("Running 'wollemi'"),
+        "$(out_exe :wollemi) gofmt ./...",
+    ],
+    deps = [
+        ":wollemi",
+        "//tools:go_toolchain",
+    ],
+)
+
+sh_cmd(
     name = "tidy",
     cmd = [
         echo_message("Running 'go mod tidy'"),
