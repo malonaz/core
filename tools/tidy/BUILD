@@ -27,11 +27,13 @@ def echo_message(message):
     return f'echo "###### {message} ######"'
 
 sh_cmd(
-    name = "wollemi_fmt",
+    name = "lint",
     cmd = [
         "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
         echo_message("Running 'wollemi'"),
         "$(out_exe :wollemi) gofmt ./...",
+        echo_message("Running 'gofmt'"),
+        f"gofmt -s -w \\\\$(go list -e ./...| sed s#github.com/time-app/deeptime/##g)",
     ],
     deps = [
         ":wollemi",
@@ -43,14 +45,14 @@ sh_cmd(
     name = "tidy",
     cmd = [
         echo_message("Running 'go mod tidy'"),
-        "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
         "$(out_exe //tools:go_toolchain|go) mod tidy",
+        "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
         echo_message("Running 'go deps'"),
         "$(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
         echo_message("Running 'wollemi'"),
         "$(out_exe :wollemi) gofmt ./...",
         echo_message("Running 'gofmt'"),
-        f"gofmt -s -w \\\\$(go list ./... | sed s#github.com/malonaz/core/##g)",
+        f"gofmt -s -w \\\\$(go list -e ./... | sed s#github.com/malonaz/core/##g)",
     ],
     deps = [
         ":godeps",

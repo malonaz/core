@@ -5,9 +5,9 @@ import (
 
 	"github.com/mennanov/fmutils"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // ApplyMask filters a proto message with the given paths.

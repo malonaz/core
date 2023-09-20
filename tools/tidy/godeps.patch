@@ -1,8 +1,19 @@
 diff --git a/cmd/godeps/generate_builtin.go b/cmd/godeps/generate_builtin.go
-index 6216332..ac4f727 100644
+index 6216332..7930dfe 100644
 --- a/cmd/godeps/generate_builtin.go
 +++ b/cmd/godeps/generate_builtin.go
-@@ -57,6 +57,15 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+@@ -11,7 +11,9 @@ import (
+ 	"github.com/sagikazarmark/please-go-modules/pkg/depgraph"
+ )
+ 
+-func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noExpand bool) (*buildify.File, bool, map[string]string) {
++func generateBuiltinBuildFiles(
++  moduleList []depgraph.Module, ruleDir string, noExpand bool, moduleNameToPatches map[string][]string,
++) (*buildify.File, bool, map[string]string) {
+ 	file := newFile("", subinclude)
+ 	var generateOsConfig bool
+ 	knownDeps := make(map[string]string)
+@@ -57,9 +59,33 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
  						Op:  "=",
  						RHS: &buildify.StringExpr{Value: module.Version},
  					},
@@ -18,11 +29,56 @@ index 6216332..ac4f727 100644
  				},
  			}
  
++      if patches, ok := moduleNameToPatches[name]; ok && len(patches) > 0 {
++        list := []buildify.Expr{}
++        for _, patch := range patches {
++          list = append(list, &buildify.StringExpr{Value: patch})
++        }
++        patchAssignExpr := &buildify.AssignExpr{
++          LHS: &buildify.Ident{Name: "patch"},
++          Op:  "=",
++          RHS: &buildify.ListExpr{
++            List: list,
++          },
++        }
++        rule.List = append(rule.List, patchAssignExpr)
++      }
++
+ 			file.Stmt = append(file.Stmt, rule)
+ 
+ 			for _, pkg := range module.Packages {
 diff --git a/cmd/godeps/main.go b/cmd/godeps/main.go
-index 415d199..cb50186 100644
+index 415d199..b652cbe 100644
 --- a/cmd/godeps/main.go
 +++ b/cmd/godeps/main.go
-@@ -168,9 +168,15 @@ func main() {
+@@ -89,11 +89,25 @@ func main() {
+ 		ruleDir = path.Join(*base, *dir)
+ 	}
+ 
++  // Parse the BUILD file if it exists.
++  moduleNameToPatches := map[string][]string{}
++  filename := path.Join(ruleDir, "patches.json")
++  bytes, err := os.ReadFile(filename)
++  if err != nil {
++    if !os.IsNotExist(err) {
++      log.Fatalf("File %s does not exist: %v", filename, err)
++    }
++  } else {
++    if err := json.Unmarshal(bytes, &moduleNameToPatches); err != nil {
++      log.Fatalf("unmarshaling %s: %v", filename, err)
++    }
++  }
++
+ 	var buildFiles map[string]*buildify.File
+ 	var filePaths []string
+ 	var knownDependencies map[string]string
+ 
+-	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand)
++	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand, moduleNameToPatches)
+ 
+ 	if generateOsConfig {
+ 		file.Stmt = append(generateOsConfigExprs(""), file.Stmt...)
+@@ -168,9 +182,15 @@ func main() {
  		}
  
  		if *wollemi && len(knownDependencies) > 0 {
