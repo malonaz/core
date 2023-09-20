@@ -48,10 +48,18 @@ index 6216332..7930dfe 100644
  
  			for _, pkg := range module.Packages {
 diff --git a/cmd/godeps/main.go b/cmd/godeps/main.go
-index 415d199..b652cbe 100644
+index 415d199..395a1e4 100644
 --- a/cmd/godeps/main.go
 +++ b/cmd/godeps/main.go
-@@ -89,11 +89,25 @@ func main() {
+@@ -2,6 +2,7 @@ package main
+ 
+ import (
+ 	"encoding/json"
++	"errors"
+ 	"flag"
+ 	"fmt"
+ 	"log"
+@@ -89,11 +90,25 @@ func main() {
  		ruleDir = path.Join(*base, *dir)
  	}
  
@@ -78,7 +86,7 @@ index 415d199..b652cbe 100644
  
  	if generateOsConfig {
  		file.Stmt = append(generateOsConfigExprs(""), file.Stmt...)
-@@ -168,9 +182,15 @@ func main() {
+@@ -168,9 +183,27 @@ func main() {
  		}
  
  		if *wollemi && len(knownDependencies) > 0 {
@@ -86,11 +94,23 @@ index 415d199..b652cbe 100644
 -				"known_dependency": knownDependencies,
 +			bytes, err := os.ReadFile(".wollemi.json")
 +			if err != nil {
-+				panic(err)
++				if !errors.Is(err, os.ErrNotExist) {
++					panic(err)
++				}
 +			}
 +			wollemiConfig := map[string]interface{}{}
-+			if err := json.Unmarshal(bytes, &wollemiConfig); err != nil {
-+				panic(err)
++			manualDependencies := map[string]interface{}{}
++			if len(bytes) > 0 {
++				if err := json.Unmarshal(bytes, &wollemiConfig); err != nil {
++					panic(err)
++				}
++				payload, ok := wollemiConfig["manual_dependencies"]
++				if ok {
++					manualDependencies = payload.(map[string]interface{})
++				}
++			}
++			for k, v := range manualDependencies {
++				knownDependencies[k] = v.(string)
  			}
 +			wollemiConfig["known_dependency"] = knownDependencies
  
