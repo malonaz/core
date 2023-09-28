@@ -82,7 +82,7 @@ require (
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -112,8 +112,7 @@ def js_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gatewa
     ]
     deps = []
     tools = {
-        "protoc_grpc_web": [CONFIG.GRPC_WEB_PLUGIN],
-        "bufbuild": ['//third_party/js:node_modules']
+        "bufbuild": [CONFIG.GRPC_JS_PLUGIN]
     }
     d['protoc_flags'] = protoc_flags
     d['tools'] = tools
@@ -143,7 +142,7 @@ def go_def(name, import_path:str='', grpc=False, grpc_gateway=False, grpc_gatewa
         name = name,
         srcs = srcs,
         package = _parent_rule(name),
-        deps = deps,
+        deps = deps + [CONFIG.PROTO_VALIDATE_GO_DEP],
         import_path=import_path,
         test_only = test_only,
     )

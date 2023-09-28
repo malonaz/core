@@ -115,12 +115,15 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
-# GRPC web
-GRPCWEB_PROTOC_VERSION = "1.4.2"
-
-remote_file(
-    name = "grpc-web-protoc",
-    binary = True,
-    url = "https://github.com/grpc/grpc-web/releases/download/%s/protoc-gen-grpc-web-%s-$XOS-$XARCH" % (GRPCWEB_PROTOC_VERSION, GRPCWEB_PROTOC_VERSION),
+# Javascript
+genrule(
+    name = "bufbuild",
+    srcs = ["package.json"],
+    outs = [
+        "node_modules",
+    ],
+    building_description = "fetching node modules",
+    cmd = "yarn --cwd $PKG_DIR install && mv $PKG_DIR/node_modules .",
+    output_is_complete = True,
     visibility = ["PUBLIC"],
 )

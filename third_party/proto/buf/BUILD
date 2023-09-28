@@ -42,7 +42,7 @@ def protovalidate_api(
             cmd = "cat $SRCS > $OUT",
         )
         srcs += [new_src]
-    import_path = "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go" + dir.split("protovalidate")[1]
+    import_path = "buf.build/gen/go" + dir.split("protovalidate")[1]
     return proto_library(
         name = name,
         srcs = srcs,

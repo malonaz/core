@@ -2792,7 +2792,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.9.0",
+    version = "v0.11.0",
     visibility = ["PUBLIC"],
 )
 
