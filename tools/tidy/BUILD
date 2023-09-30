@@ -43,9 +43,9 @@ _lint_cmds = [
     echo_message("Running 'wollemi'"),
     "$(out_exe :wollemi) gofmt ./...",
     echo_message("Running 'gofmt'"),
-    f"gofmt -s -w \\\\$(go list -e ./...| sed 's#github.com/[^/]*/[^/]*/\(.*\)#\1#g')",
+    f"git ls-files | grep '\.go$'| xargs gofmt -l -s -w",
     echo_message("Running 'buf format'"),
-    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
+    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto$' | sed -e 's/^/--path /')",
 ]
 
 sh_cmd(
