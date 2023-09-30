@@ -48,8 +48,12 @@ grpcPythonPlugin = //tools/proto:grpc_python_plugin
 language = go
 language = js
 
+[alias "lint"]
+desc = Lint all files
+cmd = run //tools/tidy:lint
+
 [alias "tidy"]
-desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+desc = Tidy dependencies and lint.
 cmd = run //tools/tidy
 
 [alias "wollemi"]
