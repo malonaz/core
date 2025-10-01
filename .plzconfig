@@ -1,0 +1,51 @@
+[please]
+version = 17.18.0
+
+[build]
+timeout = 2000
+
+[sandbox]
+test = true
+
+[cache]
+dir = .plz-cache
+dirClean = true
+dirCacheHighWaterMark = 5GiB
+dirCacheLowWaterMark = 800MiB
+
+[display]
+systemstats = true
+
+[parse]
+preloadsubincludes = ///shell//build_defs:shell
+preloadSubincludes = ///python//build_defs:python
+preloadsubincludes = ///go//build_defs:go
+preloadsubincludes = ///proto//build_defs:proto
+
+
+[Plugin "shell"]
+Target = //plugins:shell
+
+[Plugin "python"]
+Target = //plugins:python
+
+[Plugin "go"]
+Target = //plugins:go
+GoTool = //tools/go:toolchain|go
+ImportPath = github.com/malonaz/core
+CgoEnabled = true
+
+[Plugin "proto"]
+Target = //plugins:proto
+LanguageDef = ///malonaz//build_defs/proto:go
+
+[Plugin "malonaz"]
+Target = //plugins:malonaz
+
+[alias "tidy"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run ///malonaz//tools/tidy
+
+[alias "lint"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run ///malonaz//tools/tidy:lint
