@@ -1,0 +1,18 @@
+go_library(
+    name = "pbutil",
+    srcs = ["pbutil.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__mennanov__fmutils",
+        "//third_party/go:go.einride.tech__aip__fieldmask",
+        "//third_party/go:google.golang.org__protobuf__encoding__protojson",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
