@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jessevdk/go-flags v1.6.1
 	github.com/joonix/log v0.0.0-20230221083239-7988383bab32
 	github.com/lib/pq v1.10.9
 	github.com/mennanov/fmutils v0.3.3

@@ -811,6 +811,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__jessevdk__go-flags",
+    _tag = "download",
+    module = "github.com/jessevdk/go-flags",
+    version = "v1.6.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__jessevdk__go-flags",
+    download = ":_github.com__jessevdk__go-flags#download",
+    install = ["."],
+    module = "github.com/jessevdk/go-flags",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__sys__unix"],
+)
+
+go_mod_download(
     name = "github.com__joonix__log",
     _tag = "download",
     module = "github.com/joonix/log",

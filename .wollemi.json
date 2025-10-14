@@ -61,6 +61,7 @@
         "github.com/jackc/pgx/v5/pgxpool": "//third_party/go:github.com__jackc__pgx__v5__pgxpool",
         "github.com/jackc/puddle/v2": "//third_party/go:github.com__jackc__puddle__v2",
         "github.com/jackc/puddle/v2/internal/genstack": "//third_party/go:github.com__jackc__puddle__v2__internal__genstack",
+        "github.com/jessevdk/go-flags": "//third_party/go:github.com__jessevdk__go-flags",
         "github.com/joonix/log": "//third_party/go:github.com__joonix__log",
         "github.com/lib/pq": "//third_party/go:github.com__lib__pq",
         "github.com/lib/pq/oid": "//third_party/go:github.com__lib__pq__oid",
