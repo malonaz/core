@@ -1,0 +1,27 @@
+go_library(
+    name = "interceptor",
+    srcs = [
+        "field_mask.go",
+        "logging.go",
+        "propagation.go",
+        "retry.go",
+        "timeout.go",
+        "validation.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/contexttag",
+        "//go/logging",
+        "//go/pbutil",
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__logging",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__protovalidate",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__retry",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__proto",
+    ],
+)
