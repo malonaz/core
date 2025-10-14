@@ -17,7 +17,7 @@ go_library(
         "//go/logging",
         "//go/pbutil",
         "//go/prometheus",
-        "//proto:grpc",
+        "//proto/grpc",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__recovery",
