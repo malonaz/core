@@ -20,11 +20,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	grpcpb "common/proto/grpc"
 	"github.com/malonaz/core/go/certs"
 	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/prometheus"
+	grpcpb "github.com/malonaz/core/proto/grpc"
 )
 
 const (

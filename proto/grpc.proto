@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package malonaz.grpc.v1;
+
+import "google/protobuf/descriptor.proto";
+
+message HttpCookie {
+  // The unique name of the cookie, used as the key to identify and retrieve the cookie's value.
+  string name = 1;
+  // The actual data stored in the cookie, which is associated with the cookie's name.
+  string value = 2;
+
+  // Specifies the URL path scope for which the cookie is valid, controlling which requests include the cookie.
+  string path = 3;
+  // Determines the domain(s) for which the cookie is valid, controlling which websites can access the cookie.
+  string domain = 4;
+  // The date and time when the cookie will expire, after which the browser will automatically delete the cookie.
+  uint64 expires = 5;
+
+  // MaxAge=0 means no 'Max-Age' attribute specified.
+  // MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+  // MaxAge>0 means Max-Age attribute present and given in seconds  //
+  int64 max_age = 6;
+
+  // A flag indicating whether the cookie should be inaccessible to client-side scripts (e.g., JavaScript), providing protection against certain types of attacks like XSS.
+  bool httpOnly = 7;
+  // A flag indicating whether the cookie should only be sent over secure (HTTPS) connections, helping protect the cookie's data during transmission.
+  bool secure = 8;
+}
+
+extend google.protobuf.EnumValueOptions {
+  //string header_key = 23240;
+  string trailer_key = 23241;
+  string metadata_key = 23242;
+}
+
+extend google.protobuf.MethodOptions {
+  GatewayOptions gateway_options = 50000;
+}
+
+message GatewayOptions {
+  string custom_mime = 1;
+}

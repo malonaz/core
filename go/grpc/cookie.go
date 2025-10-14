@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	grpcpb "common/proto/grpc"
 	"github.com/malonaz/core/go/pbutil"
+	grpcpb "github.com/malonaz/core/proto/grpc"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////

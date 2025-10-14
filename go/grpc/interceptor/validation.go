@@ -13,7 +13,7 @@ import (
 
 // unaryClientValidateInterceptor returns a new unary client interceptor that validates outgoing messages.
 // Invalid messages will be rejected with `InvalidArgument` before sending the request to server.
-func UnaryClientValidate(validator *protovalidate.Validator) grpc.UnaryClientInterceptor {
+func UnaryClientValidate(validator protovalidate.Validator) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if err := validator.Validate(req.(proto.Message)); err != nil {
 			return status.Error(codes.InvalidArgument, err.Error())
@@ -22,10 +22,10 @@ func UnaryClientValidate(validator *protovalidate.Validator) grpc.UnaryClientInt
 	}
 }
 
-func UnaryServerValidate(validator *protovalidate.Validator) grpc.UnaryServerInterceptor {
+func UnaryServerValidate(validator protovalidate.Validator) grpc.UnaryServerInterceptor {
 	return grpc_protovalidate.UnaryServerInterceptor(validator)
 }
 
-func StreamServerValidate(validator *protovalidate.Validator) grpc.StreamServerInterceptor {
+func StreamServerValidate(validator protovalidate.Validator) grpc.StreamServerInterceptor {
 	return grpc_protovalidate.StreamServerInterceptor(validator)
 }

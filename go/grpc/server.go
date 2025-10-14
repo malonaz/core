@@ -276,3 +276,8 @@ func (s *Server) Check(ctx context.Context, in *grpc_health_v1.HealthCheckReques
 func (s *Server) Watch(in *grpc_health_v1.HealthCheckRequest, stream grpc_health_v1.Health_WatchServer) error {
 	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
 }
+
+// List implements the grpc health v1 interface.
+func (s *Server) List(ctx context.Context, in *grpc_health_v1.HealthListRequest) (*grpc_health_v1.HealthListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}

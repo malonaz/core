@@ -3,6 +3,7 @@ version = 17.18.0
 
 [build]
 timeout = 2000
+LinkGeneratedSources=true
 
 [sandbox]
 test = true
@@ -15,7 +16,7 @@ preloadsubincludes = ///shell//build_defs:shell
 preloadSubincludes = ///python//build_defs:python
 preloadsubincludes = ///go//build_defs:go
 preloadsubincludes = ///proto//build_defs:proto
-
+preloadsubincludes = ///malonaz//build_defs/proto:utils
 
 [Plugin "shell"]
 Target = //plugins:shell
