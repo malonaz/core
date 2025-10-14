@@ -1,1 +1,0 @@
-/home/malon/core/plz-out/gen/third_party/proto/codegen/admin_api.pb.go

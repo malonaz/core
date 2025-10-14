@@ -1,1 +1,0 @@
-/home/malon/core/plz-out/gen/third_party/proto/googleapis/google/rpc/status.pb.go

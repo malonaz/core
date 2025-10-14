@@ -1,1 +1,0 @@
-/home/malon/core/plz-out/gen/proto/grpc/grpc.pb.go
