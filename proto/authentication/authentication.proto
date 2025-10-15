@@ -13,40 +13,34 @@ message Session {
   int64 expire_timestamp = 3;
   // The user id of this user.
   string user_id = 4;
+  // The organization id.
   string organization_id = 5;
-  // RBAC information
-  repeated Role roles = 6;
-  // Permissions.
-  repeated string permissions = 7;
+  // Roles this session has.
+  repeated string role_ids = 6;
   // Metadata and others.
-  SessionMetadata metadata = 8;
+  SessionMetadata metadata = 7;
 }
 
 message Role {
   // Name of the role.
-  string name = 1;
+  string id = 1;
   // Permissions for thisrole.
   repeated string permissions = 2;
   // Optional: role hierarchy
-  repeated string inherited_roles = 3;
+  repeated string inherited_role_ids = 3;
   // Optional: context/scope (e.g., organization-specific roles)
   string scope = 4;
-}
-
-message Permission {
-  // Modern RBAC-based permissions
-  Requirements requirements = 1;
 }
 
 message Requirements {
   // Required permissions to access this endpoint
   repeated string required_permissions = 1;
   // Required roles to access this endpoint
-  repeated string required_roles = 2;
+  repeated string required_role_ids = 2;
   // Require ANY of these permissions (OR logic)
   repeated string any_permissions = 3;
   // Require ANY of these roles (OR logic)
-  repeated string any_roles = 4;
+  repeated string any_role_ids = 4;
 }
 
 message SessionMetadata {
@@ -74,6 +68,6 @@ message RateLimit {
 }
 
 extend google.protobuf.MethodOptions {
-  Permission permission = 6000321;
+  Requirements requirements = 6000321;
   RateLimit rate_limit = 6000322;
 }

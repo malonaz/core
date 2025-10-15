@@ -880,6 +880,18 @@ go_module(
 )
 
 go_module(
+    name = "github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",
+    download = ":_github.com__grpc-ecosystem__go-grpc-middleware__v2#download",
+    install = ["interceptors/selector"],
+    module = "github.com/grpc-ecosystem/go-grpc-middleware/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
+        ":google.golang.org__grpc",
+    ],
+)
+
+go_module(
     name = "github.com__grpc-ecosystem__go-grpc-middleware__v2__metadata",
     download = ":_github.com__grpc-ecosystem__go-grpc-middleware__v2#download",
     install = ["metadata"],
@@ -1489,8 +1501,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):

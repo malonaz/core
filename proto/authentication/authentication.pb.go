@@ -31,14 +31,13 @@ type Session struct {
 	// Time at which this sessione expires.
 	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
 	// The user id of this user.
-	UserId         string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// The organization id.
 	OrganizationId string `protobuf:"bytes,5,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	// RBAC information
-	Roles []*Role `protobuf:"bytes,6,rep,name=roles,proto3" json:"roles,omitempty"`
-	// Permissions.
-	Permissions []string `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	// Roles this session has.
+	RoleIds []string `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	// Metadata and others.
-	Metadata      *SessionMetadata `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -108,16 +107,9 @@ func (x *Session) GetOrganizationId() string {
 	return ""
 }
 
-func (x *Session) GetRoles() []*Role {
+func (x *Session) GetRoleIds() []string {
 	if x != nil {
-		return x.Roles
-	}
-	return nil
-}
-
-func (x *Session) GetPermissions() []string {
-	if x != nil {
-		return x.Permissions
+		return x.RoleIds
 	}
 	return nil
 }
@@ -132,11 +124,11 @@ func (x *Session) GetMetadata() *SessionMetadata {
 type Role struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Name of the role.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// Permissions for thisrole.
 	Permissions []string `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	// Optional: role hierarchy
-	InheritedRoles []string `protobuf:"bytes,3,rep,name=inherited_roles,json=inheritedRoles,proto3" json:"inherited_roles,omitempty"`
+	InheritedRoleIds []string `protobuf:"bytes,3,rep,name=inherited_role_ids,json=inheritedRoleIds,proto3" json:"inherited_role_ids,omitempty"`
 	// Optional: context/scope (e.g., organization-specific roles)
 	Scope         string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -173,9 +165,9 @@ func (*Role) Descriptor() ([]byte, []int) {
 	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Role) GetName() string {
+func (x *Role) GetId() string {
 	if x != nil {
-		return x.Name
+		return x.Id
 	}
 	return ""
 }
@@ -187,9 +179,9 @@ func (x *Role) GetPermissions() []string {
 	return nil
 }
 
-func (x *Role) GetInheritedRoles() []string {
+func (x *Role) GetInheritedRoleIds() []string {
 	if x != nil {
-		return x.InheritedRoles
+		return x.InheritedRoleIds
 	}
 	return nil
 }
@@ -201,68 +193,23 @@ func (x *Role) GetScope() string {
 	return ""
 }
 
-type Permission struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Modern RBAC-based permissions
-	Requirements  *Requirements `protobuf:"bytes,1,opt,name=requirements,proto3" json:"requirements,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Permission) Reset() {
-	*x = Permission{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Permission) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Permission) ProtoMessage() {}
-
-func (x *Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Permission.ProtoReflect.Descriptor instead.
-func (*Permission) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *Permission) GetRequirements() *Requirements {
-	if x != nil {
-		return x.Requirements
-	}
-	return nil
-}
-
 type Requirements struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required permissions to access this endpoint
 	RequiredPermissions []string `protobuf:"bytes,1,rep,name=required_permissions,json=requiredPermissions,proto3" json:"required_permissions,omitempty"`
 	// Required roles to access this endpoint
-	RequiredRoles []string `protobuf:"bytes,2,rep,name=required_roles,json=requiredRoles,proto3" json:"required_roles,omitempty"`
+	RequiredRoleIds []string `protobuf:"bytes,2,rep,name=required_role_ids,json=requiredRoleIds,proto3" json:"required_role_ids,omitempty"`
 	// Require ANY of these permissions (OR logic)
 	AnyPermissions []string `protobuf:"bytes,3,rep,name=any_permissions,json=anyPermissions,proto3" json:"any_permissions,omitempty"`
 	// Require ANY of these roles (OR logic)
-	AnyRoles      []string `protobuf:"bytes,4,rep,name=any_roles,json=anyRoles,proto3" json:"any_roles,omitempty"`
+	AnyRoleIds    []string `protobuf:"bytes,4,rep,name=any_role_ids,json=anyRoleIds,proto3" json:"any_role_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Requirements) Reset() {
 	*x = Requirements{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -274,7 +221,7 @@ func (x *Requirements) String() string {
 func (*Requirements) ProtoMessage() {}
 
 func (x *Requirements) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -287,7 +234,7 @@ func (x *Requirements) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Requirements.ProtoReflect.Descriptor instead.
 func (*Requirements) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{3}
+	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Requirements) GetRequiredPermissions() []string {
@@ -297,9 +244,9 @@ func (x *Requirements) GetRequiredPermissions() []string {
 	return nil
 }
 
-func (x *Requirements) GetRequiredRoles() []string {
+func (x *Requirements) GetRequiredRoleIds() []string {
 	if x != nil {
-		return x.RequiredRoles
+		return x.RequiredRoleIds
 	}
 	return nil
 }
@@ -311,9 +258,9 @@ func (x *Requirements) GetAnyPermissions() []string {
 	return nil
 }
 
-func (x *Requirements) GetAnyRoles() []string {
+func (x *Requirements) GetAnyRoleIds() []string {
 	if x != nil {
-		return x.AnyRoles
+		return x.AnyRoleIds
 	}
 	return nil
 }
@@ -334,7 +281,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +293,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,7 +306,7 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMetadata.ProtoReflect.Descriptor instead.
 func (*SessionMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{4}
+	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SessionMetadata) GetIpAddress() string {
@@ -401,7 +348,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -413,7 +360,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +373,7 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientVersion.ProtoReflect.Descriptor instead.
 func (*ClientVersion) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{5}
+	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ClientVersion) GetMajor() int32 {
@@ -462,7 +409,7 @@ type RateLimit struct {
 
 func (x *RateLimit) Reset() {
 	*x = RateLimit{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[6]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +421,7 @@ func (x *RateLimit) String() string {
 func (*RateLimit) ProtoMessage() {}
 
 func (x *RateLimit) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[6]
+	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +434,7 @@ func (x *RateLimit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RateLimit.ProtoReflect.Descriptor instead.
 func (*RateLimit) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{6}
+	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RateLimit) GetTokens() uint64 {
@@ -507,10 +454,10 @@ func (x *RateLimit) GetIntervalSeconds() int64 {
 var file_proto_authentication_authentication_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
-		ExtensionType: (*Permission)(nil),
+		ExtensionType: (*Requirements)(nil),
 		Field:         6000321,
-		Name:          "malonaz.core.authentication.v1.permission",
-		Tag:           "bytes,6000321,opt,name=permission",
+		Name:          "malonaz.core.authentication.v1.requirements",
+		Tag:           "bytes,6000321,opt,name=requirements",
 		Filename:      "proto/authentication/authentication.proto",
 	},
 	{
@@ -525,8 +472,8 @@ var file_proto_authentication_authentication_proto_extTypes = []protoimpl.Extens
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// optional malonaz.core.authentication.v1.Permission permission = 6000321;
-	E_Permission = &file_proto_authentication_authentication_proto_extTypes[0]
+	// optional malonaz.core.authentication.v1.Requirements requirements = 6000321;
+	E_Requirements = &file_proto_authentication_authentication_proto_extTypes[0]
 	// optional malonaz.core.authentication.v1.RateLimit rate_limit = 6000322;
 	E_RateLimit = &file_proto_authentication_authentication_proto_extTypes[1]
 )
@@ -535,29 +482,26 @@ var File_proto_authentication_authentication_proto protoreflect.FileDescriptor
 
 const file_proto_authentication_authentication_proto_rawDesc = "" +
 	"\n" +
-	")proto/authentication/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"\xdc\x02\n" +
+	")proto/authentication/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"\x99\x02\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
 	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
 	"\x10expire_timestamp\x18\x03 \x01(\x03R\x0fexpireTimestamp\x12\x17\n" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\x12'\n" +
-	"\x0forganization_id\x18\x05 \x01(\tR\x0eorganizationId\x12:\n" +
-	"\x05roles\x18\x06 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\x12 \n" +
-	"\vpermissions\x18\a \x03(\tR\vpermissions\x12K\n" +
-	"\bmetadata\x18\b \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"{\n" +
-	"\x04Role\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\vpermissions\x18\x02 \x03(\tR\vpermissions\x12'\n" +
-	"\x0finherited_roles\x18\x03 \x03(\tR\x0einheritedRoles\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"^\n" +
-	"\n" +
-	"Permission\x12P\n" +
-	"\frequirements\x18\x01 \x01(\v2,.malonaz.core.authentication.v1.RequirementsR\frequirements\"\xae\x01\n" +
+	"\x0forganization_id\x18\x05 \x01(\tR\x0eorganizationId\x12\x19\n" +
+	"\brole_ids\x18\x06 \x03(\tR\aroleIds\x12K\n" +
+	"\bmetadata\x18\a \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"|\n" +
+	"\x04Role\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
+	"\vpermissions\x18\x02 \x03(\tR\vpermissions\x12,\n" +
+	"\x12inherited_role_ids\x18\x03 \x03(\tR\x10inheritedRoleIds\x12\x14\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\"\xb8\x01\n" +
 	"\fRequirements\x121\n" +
-	"\x14required_permissions\x18\x01 \x03(\tR\x13requiredPermissions\x12%\n" +
-	"\x0erequired_roles\x18\x02 \x03(\tR\rrequiredRoles\x12'\n" +
-	"\x0fany_permissions\x18\x03 \x03(\tR\x0eanyPermissions\x12\x1b\n" +
-	"\tany_roles\x18\x04 \x03(\tR\banyRoles\"\xc7\x02\n" +
+	"\x14required_permissions\x18\x01 \x03(\tR\x13requiredPermissions\x12*\n" +
+	"\x11required_role_ids\x18\x02 \x03(\tR\x0frequiredRoleIds\x12'\n" +
+	"\x0fany_permissions\x18\x03 \x03(\tR\x0eanyPermissions\x12 \n" +
+	"\fany_role_ids\x18\x04 \x03(\tR\n" +
+	"anyRoleIds\"\xc7\x02\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12T\n" +
@@ -575,10 +519,8 @@ const file_proto_authentication_authentication_proto_rawDesc = "" +
 	"\x05patch\x18\x03 \x01(\x05R\x05patch\"M\n" +
 	"\tRateLimit\x12\x16\n" +
 	"\x06Tokens\x18\x01 \x01(\x04R\x06Tokens\x12(\n" +
-	"\x0fIntervalSeconds\x18\x02 \x01(\x03R\x0fIntervalSeconds:m\n" +
-	"\n" +
-	"permission\x12\x1e.google.protobuf.MethodOptions\x18\xc1\x9d\xee\x02 \x01(\v2*.malonaz.core.authentication.v1.PermissionR\n" +
-	"permission:k\n" +
+	"\x0fIntervalSeconds\x18\x02 \x01(\x03R\x0fIntervalSeconds:s\n" +
+	"\frequirements\x12\x1e.google.protobuf.MethodOptions\x18\xc1\x9d\xee\x02 \x01(\v2,.malonaz.core.authentication.v1.RequirementsR\frequirements:k\n" +
 	"\n" +
 	"rate_limit\x12\x1e.google.protobuf.MethodOptions\x18\u009d\xee\x02 \x01(\v2).malonaz.core.authentication.v1.RateLimitR\trateLimitb\x06proto3"
 
@@ -594,33 +536,30 @@ func file_proto_authentication_authentication_proto_rawDescGZIP() []byte {
 	return file_proto_authentication_authentication_proto_rawDescData
 }
 
-var file_proto_authentication_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_authentication_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_authentication_authentication_proto_goTypes = []any{
 	(*Session)(nil),                    // 0: malonaz.core.authentication.v1.Session
 	(*Role)(nil),                       // 1: malonaz.core.authentication.v1.Role
-	(*Permission)(nil),                 // 2: malonaz.core.authentication.v1.Permission
-	(*Requirements)(nil),               // 3: malonaz.core.authentication.v1.Requirements
-	(*SessionMetadata)(nil),            // 4: malonaz.core.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),              // 5: malonaz.core.authentication.v1.ClientVersion
-	(*RateLimit)(nil),                  // 6: malonaz.core.authentication.v1.RateLimit
-	nil,                                // 7: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
-	(*descriptorpb.MethodOptions)(nil), // 8: google.protobuf.MethodOptions
+	(*Requirements)(nil),               // 2: malonaz.core.authentication.v1.Requirements
+	(*SessionMetadata)(nil),            // 3: malonaz.core.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),              // 4: malonaz.core.authentication.v1.ClientVersion
+	(*RateLimit)(nil),                  // 5: malonaz.core.authentication.v1.RateLimit
+	nil,                                // 6: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	(*descriptorpb.MethodOptions)(nil), // 7: google.protobuf.MethodOptions
 }
 var file_proto_authentication_authentication_proto_depIdxs = []int32{
-	1, // 0: malonaz.core.authentication.v1.Session.roles:type_name -> malonaz.core.authentication.v1.Role
-	4, // 1: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
-	3, // 2: malonaz.core.authentication.v1.Permission.requirements:type_name -> malonaz.core.authentication.v1.Requirements
-	5, // 3: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
-	7, // 4: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
-	8, // 5: malonaz.core.authentication.v1.permission:extendee -> google.protobuf.MethodOptions
-	8, // 6: malonaz.core.authentication.v1.rate_limit:extendee -> google.protobuf.MethodOptions
-	2, // 7: malonaz.core.authentication.v1.permission:type_name -> malonaz.core.authentication.v1.Permission
-	6, // 8: malonaz.core.authentication.v1.rate_limit:type_name -> malonaz.core.authentication.v1.RateLimit
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	7, // [7:9] is the sub-list for extension type_name
-	5, // [5:7] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3, // 0: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
+	4, // 1: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
+	6, // 2: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	7, // 3: malonaz.core.authentication.v1.requirements:extendee -> google.protobuf.MethodOptions
+	7, // 4: malonaz.core.authentication.v1.rate_limit:extendee -> google.protobuf.MethodOptions
+	2, // 5: malonaz.core.authentication.v1.requirements:type_name -> malonaz.core.authentication.v1.Requirements
+	5, // 6: malonaz.core.authentication.v1.rate_limit:type_name -> malonaz.core.authentication.v1.RateLimit
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	5, // [5:7] is the sub-list for extension type_name
+	3, // [3:5] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_authentication_authentication_proto_init() }
@@ -634,7 +573,7 @@ func file_proto_authentication_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_authentication_proto_rawDesc), len(file_proto_authentication_authentication_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   7,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
