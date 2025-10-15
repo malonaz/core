@@ -108,7 +108,7 @@ var file_proto_codegen_admin_api_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
 		ExtensionType: (*ServiceOpts)(nil),
 		Field:         112211,
-		Name:          "codegen.admin_api.v1.service_opts",
+		Name:          "malonaz.core.codegen.admin_api.v1.service_opts",
 		Tag:           "bytes,112211,opt,name=service_opts",
 		Filename:      "proto/codegen/admin_api.proto",
 	},
@@ -116,7 +116,7 @@ var file_proto_codegen_admin_api_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*MethodOpts)(nil),
 		Field:         22942,
-		Name:          "codegen.admin_api.v1.method_opts",
+		Name:          "malonaz.core.codegen.admin_api.v1.method_opts",
 		Tag:           "bytes,22942,opt,name=method_opts",
 		Filename:      "proto/codegen/admin_api.proto",
 	},
@@ -124,7 +124,7 @@ var file_proto_codegen_admin_api_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.ServiceOptions.
 var (
-	// optional codegen.admin_api.v1.ServiceOpts service_opts = 112211;
+	// optional malonaz.core.codegen.admin_api.v1.ServiceOpts service_opts = 112211;
 	E_ServiceOpts = &file_proto_codegen_admin_api_proto_extTypes[0]
 )
 
@@ -132,7 +132,7 @@ var (
 var (
 	// If true, a custom handler is used.
 	//
-	// optional codegen.admin_api.v1.MethodOpts method_opts = 22942;
+	// optional malonaz.core.codegen.admin_api.v1.MethodOpts method_opts = 22942;
 	E_MethodOpts = &file_proto_codegen_admin_api_proto_extTypes[1]
 )
 
@@ -140,13 +140,13 @@ var File_proto_codegen_admin_api_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_admin_api_proto_rawDesc = "" +
 	"\n" +
-	"\x1dproto/codegen/admin_api.proto\x12\x14codegen.admin_api.v1\x1a google/protobuf/descriptor.proto\"\r\n" +
+	"\x1dproto/codegen/admin_api.proto\x12!malonaz.core.codegen.admin_api.v1\x1a google/protobuf/descriptor.proto\"\r\n" +
 	"\vServiceOpts\"3\n" +
 	"\n" +
 	"MethodOpts\x12%\n" +
-	"\x0ecustom_handler\x18\x01 \x01(\bR\rcustomHandler:g\n" +
-	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2!.codegen.admin_api.v1.ServiceOptsR\vserviceOpts:c\n" +
-	"\vmethod_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2 .codegen.admin_api.v1.MethodOptsR\n" +
+	"\x0ecustom_handler\x18\x01 \x01(\bR\rcustomHandler:t\n" +
+	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2..malonaz.core.codegen.admin_api.v1.ServiceOptsR\vserviceOpts:p\n" +
+	"\vmethod_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2-.malonaz.core.codegen.admin_api.v1.MethodOptsR\n" +
 	"methodOptsB.Z,github.com/malonaz/malonaz/codegen/admin_apib\x06proto3"
 
 var (
@@ -163,16 +163,16 @@ func file_proto_codegen_admin_api_proto_rawDescGZIP() []byte {
 
 var file_proto_codegen_admin_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_codegen_admin_api_proto_goTypes = []any{
-	(*ServiceOpts)(nil),                 // 0: codegen.admin_api.v1.ServiceOpts
-	(*MethodOpts)(nil),                  // 1: codegen.admin_api.v1.MethodOpts
+	(*ServiceOpts)(nil),                 // 0: malonaz.core.codegen.admin_api.v1.ServiceOpts
+	(*MethodOpts)(nil),                  // 1: malonaz.core.codegen.admin_api.v1.MethodOpts
 	(*descriptorpb.ServiceOptions)(nil), // 2: google.protobuf.ServiceOptions
 	(*descriptorpb.MethodOptions)(nil),  // 3: google.protobuf.MethodOptions
 }
 var file_proto_codegen_admin_api_proto_depIdxs = []int32{
-	2, // 0: codegen.admin_api.v1.service_opts:extendee -> google.protobuf.ServiceOptions
-	3, // 1: codegen.admin_api.v1.method_opts:extendee -> google.protobuf.MethodOptions
-	0, // 2: codegen.admin_api.v1.service_opts:type_name -> codegen.admin_api.v1.ServiceOpts
-	1, // 3: codegen.admin_api.v1.method_opts:type_name -> codegen.admin_api.v1.MethodOpts
+	2, // 0: malonaz.core.codegen.admin_api.v1.service_opts:extendee -> google.protobuf.ServiceOptions
+	3, // 1: malonaz.core.codegen.admin_api.v1.method_opts:extendee -> google.protobuf.MethodOptions
+	0, // 2: malonaz.core.codegen.admin_api.v1.service_opts:type_name -> malonaz.core.codegen.admin_api.v1.ServiceOpts
+	1, // 3: malonaz.core.codegen.admin_api.v1.method_opts:type_name -> malonaz.core.codegen.admin_api.v1.MethodOpts
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	2, // [2:4] is the sub-list for extension type_name

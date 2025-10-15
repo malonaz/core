@@ -315,7 +315,7 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*CreateOpts)(nil),
 		Field:         98331,
-		Name:          "malonaz.codegen.rpc.v1.create",
+		Name:          "malonaz.core.codegen.rpc.v1.create",
 		Tag:           "bytes,98331,opt,name=create",
 		Filename:      "proto/codegen/rpc.proto",
 	},
@@ -323,7 +323,7 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*UpdateOpts)(nil),
 		Field:         98332,
-		Name:          "malonaz.codegen.rpc.v1.update",
+		Name:          "malonaz.core.codegen.rpc.v1.update",
 		Tag:           "bytes,98332,opt,name=update",
 		Filename:      "proto/codegen/rpc.proto",
 	},
@@ -331,7 +331,7 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*DeleteOpts)(nil),
 		Field:         98333,
-		Name:          "malonaz.codegen.rpc.v1.delete",
+		Name:          "malonaz.core.codegen.rpc.v1.delete",
 		Tag:           "bytes,98333,opt,name=delete",
 		Filename:      "proto/codegen/rpc.proto",
 	},
@@ -339,7 +339,7 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*GetOpts)(nil),
 		Field:         98334,
-		Name:          "malonaz.codegen.rpc.v1.get",
+		Name:          "malonaz.core.codegen.rpc.v1.get",
 		Tag:           "bytes,98334,opt,name=get",
 		Filename:      "proto/codegen/rpc.proto",
 	},
@@ -347,7 +347,7 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*ListOpts)(nil),
 		Field:         98335,
-		Name:          "malonaz.codegen.rpc.v1.list",
+		Name:          "malonaz.core.codegen.rpc.v1.list",
 		Tag:           "bytes,98335,opt,name=list",
 		Filename:      "proto/codegen/rpc.proto",
 	},
@@ -355,15 +355,15 @@ var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// optional malonaz.codegen.rpc.v1.CreateOpts create = 98331;
+	// optional malonaz.core.codegen.rpc.v1.CreateOpts create = 98331;
 	E_Create = &file_proto_codegen_rpc_proto_extTypes[0]
-	// optional malonaz.codegen.rpc.v1.UpdateOpts update = 98332;
+	// optional malonaz.core.codegen.rpc.v1.UpdateOpts update = 98332;
 	E_Update = &file_proto_codegen_rpc_proto_extTypes[1]
-	// optional malonaz.codegen.rpc.v1.DeleteOpts delete = 98333;
+	// optional malonaz.core.codegen.rpc.v1.DeleteOpts delete = 98333;
 	E_Delete = &file_proto_codegen_rpc_proto_extTypes[2]
-	// optional malonaz.codegen.rpc.v1.GetOpts get = 98334;
+	// optional malonaz.core.codegen.rpc.v1.GetOpts get = 98334;
 	E_Get = &file_proto_codegen_rpc_proto_extTypes[3]
-	// optional malonaz.codegen.rpc.v1.ListOpts list = 98335;
+	// optional malonaz.core.codegen.rpc.v1.ListOpts list = 98335;
 	E_List = &file_proto_codegen_rpc_proto_extTypes[4]
 )
 
@@ -371,7 +371,7 @@ var File_proto_codegen_rpc_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_rpc_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/codegen/rpc.proto\x12\x16malonaz.codegen.rpc.v1\x1a google/protobuf/descriptor.proto\"X\n" +
+	"\x17proto/codegen/rpc.proto\x12\x1bmalonaz.core.codegen.rpc.v1\x1a google/protobuf/descriptor.proto\"X\n" +
 	"\n" +
 	"CreateOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x15\n" +
@@ -391,12 +391,12 @@ const file_proto_codegen_rpc_proto_rawDesc = "" +
 	"\bListOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x15\n" +
 	"\x06pre_fn\x18\x02 \x01(\bR\x05preFn\x12\x17\n" +
-	"\apost_fn\x18\x03 \x01(\bR\x06postFn:\\\n" +
-	"\x06create\x12\x1e.google.protobuf.MethodOptions\x18\x9b\x80\x06 \x01(\v2\".malonaz.codegen.rpc.v1.CreateOptsR\x06create:\\\n" +
-	"\x06update\x12\x1e.google.protobuf.MethodOptions\x18\x9c\x80\x06 \x01(\v2\".malonaz.codegen.rpc.v1.UpdateOptsR\x06update:\\\n" +
-	"\x06delete\x12\x1e.google.protobuf.MethodOptions\x18\x9d\x80\x06 \x01(\v2\".malonaz.codegen.rpc.v1.DeleteOptsR\x06delete:S\n" +
-	"\x03get\x12\x1e.google.protobuf.MethodOptions\x18\x9e\x80\x06 \x01(\v2\x1f.malonaz.codegen.rpc.v1.GetOptsR\x03get:V\n" +
-	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2 .malonaz.codegen.rpc.v1.ListOptsR\x04listB(Z&github.com/malonaz/malonaz/codegen/rpcb\x06proto3"
+	"\apost_fn\x18\x03 \x01(\bR\x06postFn:a\n" +
+	"\x06create\x12\x1e.google.protobuf.MethodOptions\x18\x9b\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.CreateOptsR\x06create:a\n" +
+	"\x06update\x12\x1e.google.protobuf.MethodOptions\x18\x9c\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.UpdateOptsR\x06update:a\n" +
+	"\x06delete\x12\x1e.google.protobuf.MethodOptions\x18\x9d\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.DeleteOptsR\x06delete:X\n" +
+	"\x03get\x12\x1e.google.protobuf.MethodOptions\x18\x9e\x80\x06 \x01(\v2$.malonaz.core.codegen.rpc.v1.GetOptsR\x03get:[\n" +
+	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2%.malonaz.core.codegen.rpc.v1.ListOptsR\x04listB(Z&github.com/malonaz/malonaz/codegen/rpcb\x06proto3"
 
 var (
 	file_proto_codegen_rpc_proto_rawDescOnce sync.Once
@@ -412,24 +412,24 @@ func file_proto_codegen_rpc_proto_rawDescGZIP() []byte {
 
 var file_proto_codegen_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_codegen_rpc_proto_goTypes = []any{
-	(*CreateOpts)(nil),                 // 0: malonaz.codegen.rpc.v1.CreateOpts
-	(*UpdateOpts)(nil),                 // 1: malonaz.codegen.rpc.v1.UpdateOpts
-	(*DeleteOpts)(nil),                 // 2: malonaz.codegen.rpc.v1.DeleteOpts
-	(*GetOpts)(nil),                    // 3: malonaz.codegen.rpc.v1.GetOpts
-	(*ListOpts)(nil),                   // 4: malonaz.codegen.rpc.v1.ListOpts
+	(*CreateOpts)(nil),                 // 0: malonaz.core.codegen.rpc.v1.CreateOpts
+	(*UpdateOpts)(nil),                 // 1: malonaz.core.codegen.rpc.v1.UpdateOpts
+	(*DeleteOpts)(nil),                 // 2: malonaz.core.codegen.rpc.v1.DeleteOpts
+	(*GetOpts)(nil),                    // 3: malonaz.core.codegen.rpc.v1.GetOpts
+	(*ListOpts)(nil),                   // 4: malonaz.core.codegen.rpc.v1.ListOpts
 	(*descriptorpb.MethodOptions)(nil), // 5: google.protobuf.MethodOptions
 }
 var file_proto_codegen_rpc_proto_depIdxs = []int32{
-	5,  // 0: malonaz.codegen.rpc.v1.create:extendee -> google.protobuf.MethodOptions
-	5,  // 1: malonaz.codegen.rpc.v1.update:extendee -> google.protobuf.MethodOptions
-	5,  // 2: malonaz.codegen.rpc.v1.delete:extendee -> google.protobuf.MethodOptions
-	5,  // 3: malonaz.codegen.rpc.v1.get:extendee -> google.protobuf.MethodOptions
-	5,  // 4: malonaz.codegen.rpc.v1.list:extendee -> google.protobuf.MethodOptions
-	0,  // 5: malonaz.codegen.rpc.v1.create:type_name -> malonaz.codegen.rpc.v1.CreateOpts
-	1,  // 6: malonaz.codegen.rpc.v1.update:type_name -> malonaz.codegen.rpc.v1.UpdateOpts
-	2,  // 7: malonaz.codegen.rpc.v1.delete:type_name -> malonaz.codegen.rpc.v1.DeleteOpts
-	3,  // 8: malonaz.codegen.rpc.v1.get:type_name -> malonaz.codegen.rpc.v1.GetOpts
-	4,  // 9: malonaz.codegen.rpc.v1.list:type_name -> malonaz.codegen.rpc.v1.ListOpts
+	5,  // 0: malonaz.core.codegen.rpc.v1.create:extendee -> google.protobuf.MethodOptions
+	5,  // 1: malonaz.core.codegen.rpc.v1.update:extendee -> google.protobuf.MethodOptions
+	5,  // 2: malonaz.core.codegen.rpc.v1.delete:extendee -> google.protobuf.MethodOptions
+	5,  // 3: malonaz.core.codegen.rpc.v1.get:extendee -> google.protobuf.MethodOptions
+	5,  // 4: malonaz.core.codegen.rpc.v1.list:extendee -> google.protobuf.MethodOptions
+	0,  // 5: malonaz.core.codegen.rpc.v1.create:type_name -> malonaz.core.codegen.rpc.v1.CreateOpts
+	1,  // 6: malonaz.core.codegen.rpc.v1.update:type_name -> malonaz.core.codegen.rpc.v1.UpdateOpts
+	2,  // 7: malonaz.core.codegen.rpc.v1.delete:type_name -> malonaz.core.codegen.rpc.v1.DeleteOpts
+	3,  // 8: malonaz.core.codegen.rpc.v1.get:type_name -> malonaz.core.codegen.rpc.v1.GetOpts
+	4,  // 9: malonaz.core.codegen.rpc.v1.list:type_name -> malonaz.core.codegen.rpc.v1.ListOpts
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type
 	5,  // [5:10] is the sub-list for extension type_name

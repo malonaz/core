@@ -192,7 +192,7 @@ var file_proto_codegen_model_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*ModelOpts)(nil),
 		Field:         8810,
-		Name:          "malonaz.codegen.model.v1.model_opts",
+		Name:          "malonaz.core.codegen.model.v1.model_opts",
 		Tag:           "bytes,8810,opt,name=model_opts",
 		Filename:      "proto/codegen/model.proto",
 	},
@@ -200,7 +200,7 @@ var file_proto_codegen_model_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
 		ExtensionType: (*FieldOpts)(nil),
 		Field:         32423,
-		Name:          "malonaz.codegen.model.v1.field_opts",
+		Name:          "malonaz.core.codegen.model.v1.field_opts",
 		Tag:           "bytes,32423,opt,name=field_opts",
 		Filename:      "proto/codegen/model.proto",
 	},
@@ -208,13 +208,13 @@ var file_proto_codegen_model_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
-	// optional malonaz.codegen.model.v1.ModelOpts model_opts = 8810;
+	// optional malonaz.core.codegen.model.v1.ModelOpts model_opts = 8810;
 	E_ModelOpts = &file_proto_codegen_model_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
-	// optional malonaz.codegen.model.v1.FieldOpts field_opts = 32423;
+	// optional malonaz.core.codegen.model.v1.FieldOpts field_opts = 32423;
 	E_FieldOpts = &file_proto_codegen_model_proto_extTypes[1]
 )
 
@@ -222,7 +222,7 @@ var File_proto_codegen_model_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/codegen/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xd1\x01\n" +
+	"\x19proto/codegen/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xd1\x01\n" +
 	"\tModelOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x1d\n" +
 	"\n" +
@@ -236,11 +236,11 @@ const file_proto_codegen_model_proto_rawDesc = "" +
 	"\bnullable\x18\x03 \x01(\bR\bnullable\x12\x12\n" +
 	"\x04skip\x18\x04 \x01(\bR\x04skip\x12\x14\n" +
 	"\x05embed\x18\x05 \x01(\bR\x05embed\x12\x1b\n" +
-	"\tpg_vector\x18\x06 \x01(\bR\bpgVector:d\n" +
+	"\tpg_vector\x18\x06 \x01(\bR\bpgVector:i\n" +
 	"\n" +
-	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2#.malonaz.codegen.model.v1.ModelOptsR\tmodelOpts:c\n" +
+	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2(.malonaz.core.codegen.model.v1.ModelOptsR\tmodelOpts:h\n" +
 	"\n" +
-	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2#.malonaz.codegen.model.v1.FieldOptsR\tfieldOptsB*Z(github.com/malonaz/malonaz/codegen/modelb\x06proto3"
+	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2(.malonaz.core.codegen.model.v1.FieldOptsR\tfieldOptsB*Z(github.com/malonaz/malonaz/codegen/modelb\x06proto3"
 
 var (
 	file_proto_codegen_model_proto_rawDescOnce sync.Once
@@ -256,16 +256,16 @@ func file_proto_codegen_model_proto_rawDescGZIP() []byte {
 
 var file_proto_codegen_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_codegen_model_proto_goTypes = []any{
-	(*ModelOpts)(nil),                   // 0: malonaz.codegen.model.v1.ModelOpts
-	(*FieldOpts)(nil),                   // 1: malonaz.codegen.model.v1.FieldOpts
+	(*ModelOpts)(nil),                   // 0: malonaz.core.codegen.model.v1.ModelOpts
+	(*FieldOpts)(nil),                   // 1: malonaz.core.codegen.model.v1.FieldOpts
 	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
 	(*descriptorpb.FieldOptions)(nil),   // 3: google.protobuf.FieldOptions
 }
 var file_proto_codegen_model_proto_depIdxs = []int32{
-	2, // 0: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
-	3, // 1: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
-	0, // 2: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
-	1, // 3: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
+	2, // 0: malonaz.core.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
+	3, // 1: malonaz.core.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
+	0, // 2: malonaz.core.codegen.model.v1.model_opts:type_name -> malonaz.core.codegen.model.v1.ModelOpts
+	1, // 3: malonaz.core.codegen.model.v1.field_opts:type_name -> malonaz.core.codegen.model.v1.FieldOpts
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	2, // [2:4] is the sub-list for extension type_name

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package malonaz.codegen.aip.v1;
+package malonaz.core.codegen.aip.v1;
 
 import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/descriptor.proto";

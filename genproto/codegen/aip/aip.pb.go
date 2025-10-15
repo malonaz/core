@@ -373,7 +373,7 @@ var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*ListOptions)(nil),
 		Field:         92000,
-		Name:          "malonaz.codegen.aip.v1.list",
+		Name:          "malonaz.core.codegen.aip.v1.list",
 		Tag:           "bytes,92000,opt,name=list",
 		Filename:      "proto/codegen/aip.proto",
 	},
@@ -381,7 +381,7 @@ var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*UpdateOptions)(nil),
 		Field:         92001,
-		Name:          "malonaz.codegen.aip.v1.update",
+		Name:          "malonaz.core.codegen.aip.v1.update",
 		Tag:           "bytes,92001,opt,name=update",
 		Filename:      "proto/codegen/aip.proto",
 	},
@@ -389,9 +389,9 @@ var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
-	// optional malonaz.codegen.aip.v1.ListOptions list = 92000;
+	// optional malonaz.core.codegen.aip.v1.ListOptions list = 92000;
 	E_List = &file_proto_codegen_aip_proto_extTypes[0]
-	// optional malonaz.codegen.aip.v1.UpdateOptions update = 92001;
+	// optional malonaz.core.codegen.aip.v1.UpdateOptions update = 92001;
 	E_Update = &file_proto_codegen_aip_proto_extTypes[1]
 )
 
@@ -399,12 +399,12 @@ var File_proto_codegen_aip_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/codegen/aip.proto\x12\x16malonaz.codegen.aip.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a google/protobuf/descriptor.proto\"\x9b\x02\n" +
+	"\x17proto/codegen/aip.proto\x12\x1bmalonaz.core.codegen.aip.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a google/protobuf/descriptor.proto\"\xa5\x02\n" +
 	"\vListOptions\x12*\n" +
 	"\x11default_page_size\x18\x01 \x01(\x05R\x0fdefaultPageSize\x12\x19\n" +
-	"\border_by\x18\x02 \x03(\tR\aorderBy\x12=\n" +
-	"\afilters\x18\x03 \x03(\v2#.malonaz.codegen.aip.v1.FilterIdentR\afilters\x12J\n" +
-	"\aaliases\x18\x04 \x03(\v20.malonaz.codegen.aip.v1.ListOptions.AliasesEntryR\aaliases\x1a:\n" +
+	"\border_by\x18\x02 \x03(\tR\aorderBy\x12B\n" +
+	"\afilters\x18\x03 \x03(\v2(.malonaz.core.codegen.aip.v1.FilterIdentR\afilters\x12O\n" +
+	"\aaliases\x18\x04 \x03(\v25.malonaz.core.codegen.aip.v1.ListOptions.AliasesEntryR\aaliases\x1a:\n" +
 	"\fAliasesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xde\x01\n" +
@@ -414,19 +414,19 @@ const file_proto_codegen_aip_proto_rawDesc = "" +
 	"\n" +
 	"well_known\x18\x03 \x01(\x0e2,.google.api.expr.v1alpha1.Type.WellKnownTypeH\x00R\twellKnown\x12\x14\n" +
 	"\x04enum\x18\x04 \x01(\tH\x00R\x04enumB\x06\n" +
-	"\x04type\"\xdd\x01\n" +
+	"\x04type\"\xe7\x01\n" +
 	"\rUpdateOptions\x12#\n" +
-	"\rdefault_paths\x18\x01 \x03(\tR\fdefaultPaths\x12W\n" +
-	"\x10authorized_paths\x18\x02 \x03(\v2,.malonaz.codegen.aip.v1.AuthorizedUpdatePathR\x0fauthorizedPaths\x12N\n" +
-	"\rpath_mappings\x18\x03 \x03(\v2).malonaz.codegen.aip.v1.UpdatePathMappingR\fpathMappings\"@\n" +
+	"\rdefault_paths\x18\x01 \x03(\tR\fdefaultPaths\x12\\\n" +
+	"\x10authorized_paths\x18\x02 \x03(\v21.malonaz.core.codegen.aip.v1.AuthorizedUpdatePathR\x0fauthorizedPaths\x12S\n" +
+	"\rpath_mappings\x18\x03 \x03(\v2..malonaz.core.codegen.aip.v1.UpdatePathMappingR\fpathMappings\"@\n" +
 	"\x14AuthorizedUpdatePath\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
 	"\x05admin\x18\x02 \x01(\bR\x05admin\"7\n" +
 	"\x11UpdatePathMapping\x12\x12\n" +
 	"\x04from\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x02 \x03(\tR\x02to:Z\n" +
-	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2#.malonaz.codegen.aip.v1.ListOptionsR\x04list:`\n" +
-	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2%.malonaz.codegen.aip.v1.UpdateOptionsR\x06updateB Z\x1egithub.com/malonaz/malonaz/aipb\x06proto3"
+	"\x02to\x18\x02 \x03(\tR\x02to:_\n" +
+	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
+	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB Z\x1egithub.com/malonaz/malonaz/aipb\x06proto3"
 
 var (
 	file_proto_codegen_aip_proto_rawDescOnce sync.Once
@@ -442,27 +442,27 @@ func file_proto_codegen_aip_proto_rawDescGZIP() []byte {
 
 var file_proto_codegen_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_codegen_aip_proto_goTypes = []any{
-	(*ListOptions)(nil),                 // 0: malonaz.codegen.aip.v1.ListOptions
-	(*FilterIdent)(nil),                 // 1: malonaz.codegen.aip.v1.FilterIdent
-	(*UpdateOptions)(nil),               // 2: malonaz.codegen.aip.v1.UpdateOptions
-	(*AuthorizedUpdatePath)(nil),        // 3: malonaz.codegen.aip.v1.AuthorizedUpdatePath
-	(*UpdatePathMapping)(nil),           // 4: malonaz.codegen.aip.v1.UpdatePathMapping
-	nil,                                 // 5: malonaz.codegen.aip.v1.ListOptions.AliasesEntry
+	(*ListOptions)(nil),                 // 0: malonaz.core.codegen.aip.v1.ListOptions
+	(*FilterIdent)(nil),                 // 1: malonaz.core.codegen.aip.v1.FilterIdent
+	(*UpdateOptions)(nil),               // 2: malonaz.core.codegen.aip.v1.UpdateOptions
+	(*AuthorizedUpdatePath)(nil),        // 3: malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
+	(*UpdatePathMapping)(nil),           // 4: malonaz.core.codegen.aip.v1.UpdatePathMapping
+	nil,                                 // 5: malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
 	(v1alpha1.Type_PrimitiveType)(0),    // 6: google.api.expr.v1alpha1.Type.PrimitiveType
 	(v1alpha1.Type_WellKnownType)(0),    // 7: google.api.expr.v1alpha1.Type.WellKnownType
 	(*descriptorpb.MessageOptions)(nil), // 8: google.protobuf.MessageOptions
 }
 var file_proto_codegen_aip_proto_depIdxs = []int32{
-	1,  // 0: malonaz.codegen.aip.v1.ListOptions.filters:type_name -> malonaz.codegen.aip.v1.FilterIdent
-	5,  // 1: malonaz.codegen.aip.v1.ListOptions.aliases:type_name -> malonaz.codegen.aip.v1.ListOptions.AliasesEntry
-	6,  // 2: malonaz.codegen.aip.v1.FilterIdent.primitive:type_name -> google.api.expr.v1alpha1.Type.PrimitiveType
-	7,  // 3: malonaz.codegen.aip.v1.FilterIdent.well_known:type_name -> google.api.expr.v1alpha1.Type.WellKnownType
-	3,  // 4: malonaz.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.codegen.aip.v1.AuthorizedUpdatePath
-	4,  // 5: malonaz.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.codegen.aip.v1.UpdatePathMapping
-	8,  // 6: malonaz.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
-	8,  // 7: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	0,  // 8: malonaz.codegen.aip.v1.list:type_name -> malonaz.codegen.aip.v1.ListOptions
-	2,  // 9: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
+	1,  // 0: malonaz.core.codegen.aip.v1.ListOptions.filters:type_name -> malonaz.core.codegen.aip.v1.FilterIdent
+	5,  // 1: malonaz.core.codegen.aip.v1.ListOptions.aliases:type_name -> malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
+	6,  // 2: malonaz.core.codegen.aip.v1.FilterIdent.primitive:type_name -> google.api.expr.v1alpha1.Type.PrimitiveType
+	7,  // 3: malonaz.core.codegen.aip.v1.FilterIdent.well_known:type_name -> google.api.expr.v1alpha1.Type.WellKnownType
+	3,  // 4: malonaz.core.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
+	4,  // 5: malonaz.core.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.core.codegen.aip.v1.UpdatePathMapping
+	8,  // 6: malonaz.core.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
+	8,  // 7: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	0,  // 8: malonaz.core.codegen.aip.v1.list:type_name -> malonaz.core.codegen.aip.v1.ListOptions
+	2,  // 9: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type
 	8,  // [8:10] is the sub-list for extension type_name

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package codegen.admin_api.v1;
+package malonaz.core.codegen.admin_api.v1;
 
 import "google/protobuf/descriptor.proto";
 
