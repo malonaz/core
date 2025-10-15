@@ -5,7 +5,7 @@ package malonaz.core.codegen.aip.v1;
 import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/malonaz/aip";
+option go_package = "github.com/malonaz/core/genproto/codegen/aip";
 
 extend google.protobuf.MessageOptions {
   ListOptions list = 92000;

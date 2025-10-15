@@ -4,7 +4,7 @@ package malonaz.core.codegen.rpc.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/malonaz/codegen/rpc";
+option go_package = "github.com/malonaz/core/genproto/codegen/rpc";
 
 extend google.protobuf.MethodOptions {
   CreateOpts create = 98331;

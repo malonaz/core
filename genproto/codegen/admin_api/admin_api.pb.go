@@ -147,7 +147,7 @@ const file_proto_codegen_admin_api_proto_rawDesc = "" +
 	"\x0ecustom_handler\x18\x01 \x01(\bR\rcustomHandler:t\n" +
 	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2..malonaz.core.codegen.admin_api.v1.ServiceOptsR\vserviceOpts:p\n" +
 	"\vmethod_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2-.malonaz.core.codegen.admin_api.v1.MethodOptsR\n" +
-	"methodOptsB.Z,github.com/malonaz/malonaz/codegen/admin_apib\x06proto3"
+	"methodOptsB4Z2github.com/malonaz/core/genproto/codegen/admin_apib\x06proto3"
 
 var (
 	file_proto_codegen_admin_api_proto_rawDescOnce sync.Once

@@ -240,7 +240,7 @@ const file_proto_codegen_model_proto_rawDesc = "" +
 	"\n" +
 	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2(.malonaz.core.codegen.model.v1.ModelOptsR\tmodelOpts:h\n" +
 	"\n" +
-	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2(.malonaz.core.codegen.model.v1.FieldOptsR\tfieldOptsB*Z(github.com/malonaz/malonaz/codegen/modelb\x06proto3"
+	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2(.malonaz.core.codegen.model.v1.FieldOptsR\tfieldOptsB0Z.github.com/malonaz/core/genproto/codegen/modelb\x06proto3"
 
 var (
 	file_proto_codegen_model_proto_rawDescOnce sync.Once

@@ -396,7 +396,7 @@ const file_proto_codegen_rpc_proto_rawDesc = "" +
 	"\x06update\x12\x1e.google.protobuf.MethodOptions\x18\x9c\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.UpdateOptsR\x06update:a\n" +
 	"\x06delete\x12\x1e.google.protobuf.MethodOptions\x18\x9d\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.DeleteOptsR\x06delete:X\n" +
 	"\x03get\x12\x1e.google.protobuf.MethodOptions\x18\x9e\x80\x06 \x01(\v2$.malonaz.core.codegen.rpc.v1.GetOptsR\x03get:[\n" +
-	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2%.malonaz.core.codegen.rpc.v1.ListOptsR\x04listB(Z&github.com/malonaz/malonaz/codegen/rpcb\x06proto3"
+	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2%.malonaz.core.codegen.rpc.v1.ListOptsR\x04listB.Z,github.com/malonaz/core/genproto/codegen/rpcb\x06proto3"
 
 var (
 	file_proto_codegen_rpc_proto_rawDescOnce sync.Once

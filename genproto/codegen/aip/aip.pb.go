@@ -426,7 +426,7 @@ const file_proto_codegen_aip_proto_rawDesc = "" +
 	"\x04from\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
 	"\x02to\x18\x02 \x03(\tR\x02to:_\n" +
 	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
-	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB Z\x1egithub.com/malonaz/malonaz/aipb\x06proto3"
+	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB.Z,github.com/malonaz/core/genproto/codegen/aipb\x06proto3"
 
 var (
 	file_proto_codegen_aip_proto_rawDescOnce sync.Once

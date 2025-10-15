@@ -240,7 +240,7 @@ const file_proto_grpc_proto_rawDesc = "" +
 	"\vtrailer_key\x12!.google.protobuf.EnumValueOptions\x18ɵ\x01 \x01(\tR\n" +
 	"trailerKey:F\n" +
 	"\fmetadata_key\x12!.google.protobuf.EnumValueOptions\x18ʵ\x01 \x01(\tR\vmetadataKey:g\n" +
-	"\x0fgateway_options\x12\x1e.google.protobuf.MethodOptions\x18І\x03 \x01(\v2\x1c.core.grpc.v1.GatewayOptionsR\x0egatewayOptionsb\x06proto3"
+	"\x0fgateway_options\x12\x1e.google.protobuf.MethodOptions\x18І\x03 \x01(\v2\x1c.core.grpc.v1.GatewayOptionsR\x0egatewayOptionsB'Z%github.com/malonaz/core/genproto/grpcb\x06proto3"
 
 var (
 	file_proto_grpc_proto_rawDescOnce sync.Once

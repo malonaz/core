@@ -4,6 +4,8 @@ package core.grpc.v1;
 
 import "google/protobuf/descriptor.proto";
 
+option go_package = "github.com/malonaz/core/genproto/grpc";
+
 message HttpCookie {
   // The unique name of the cookie, used as the key to identify and retrieve the cookie's value.
   string name = 1;

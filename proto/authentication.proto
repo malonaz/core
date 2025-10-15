@@ -4,6 +4,8 @@ package malonaz.core.authentication.v1;
 
 import "google/protobuf/descriptor.proto";
 
+option go_package = "github.com/malonaz/core/genproto/authentication";
+
 message Session {
   // Id of this session.
   string id = 1;

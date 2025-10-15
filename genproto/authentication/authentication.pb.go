@@ -522,7 +522,7 @@ const file_proto_authentication_proto_rawDesc = "" +
 	"\x0fIntervalSeconds\x18\x02 \x01(\x03R\x0fIntervalSeconds:s\n" +
 	"\frequirements\x12\x1e.google.protobuf.MethodOptions\x18\xc1\x9d\xee\x02 \x01(\v2,.malonaz.core.authentication.v1.RequirementsR\frequirements:k\n" +
 	"\n" +
-	"rate_limit\x12\x1e.google.protobuf.MethodOptions\x18\u009d\xee\x02 \x01(\v2).malonaz.core.authentication.v1.RateLimitR\trateLimitb\x06proto3"
+	"rate_limit\x12\x1e.google.protobuf.MethodOptions\x18\u009d\xee\x02 \x01(\v2).malonaz.core.authentication.v1.RateLimitR\trateLimitB1Z/github.com/malonaz/core/genproto/authenticationb\x06proto3"
 
 var (
 	file_proto_authentication_proto_rawDescOnce sync.Once

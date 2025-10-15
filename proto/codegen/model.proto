@@ -4,7 +4,7 @@ package malonaz.core.codegen.model.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/malonaz/codegen/model";
+option go_package = "github.com/malonaz/core/genproto/codegen/model";
 
 extend google.protobuf.MessageOptions {
   ModelOpts model_opts = 8810;
