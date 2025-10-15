@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: proto/authentication/authentication.proto
+// source: proto/authentication.proto
 
 package authentication
 
@@ -44,7 +44,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[0]
+	mi := &file_proto_authentication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -56,7 +56,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[0]
+	mi := &file_proto_authentication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -69,7 +69,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{0}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Session) GetId() string {
@@ -137,7 +137,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[1]
+	mi := &file_proto_authentication_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -149,7 +149,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[1]
+	mi := &file_proto_authentication_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +162,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{1}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Role) GetId() string {
@@ -209,7 +209,7 @@ type Requirements struct {
 
 func (x *Requirements) Reset() {
 	*x = Requirements{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
+	mi := &file_proto_authentication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -221,7 +221,7 @@ func (x *Requirements) String() string {
 func (*Requirements) ProtoMessage() {}
 
 func (x *Requirements) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[2]
+	mi := &file_proto_authentication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -234,7 +234,7 @@ func (x *Requirements) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Requirements.ProtoReflect.Descriptor instead.
 func (*Requirements) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{2}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Requirements) GetRequiredPermissions() []string {
@@ -281,7 +281,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -293,7 +293,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +306,7 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMetadata.ProtoReflect.Descriptor instead.
 func (*SessionMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{3}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SessionMetadata) GetIpAddress() string {
@@ -348,7 +348,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +360,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +373,7 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientVersion.ProtoReflect.Descriptor instead.
 func (*ClientVersion) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{4}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ClientVersion) GetMajor() int32 {
@@ -409,7 +409,7 @@ type RateLimit struct {
 
 func (x *RateLimit) Reset() {
 	*x = RateLimit{}
-	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -421,7 +421,7 @@ func (x *RateLimit) String() string {
 func (*RateLimit) ProtoMessage() {}
 
 func (x *RateLimit) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -434,7 +434,7 @@ func (x *RateLimit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RateLimit.ProtoReflect.Descriptor instead.
 func (*RateLimit) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_authentication_proto_rawDescGZIP(), []int{5}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RateLimit) GetTokens() uint64 {
@@ -451,14 +451,14 @@ func (x *RateLimit) GetIntervalSeconds() int64 {
 	return 0
 }
 
-var file_proto_authentication_authentication_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_proto_authentication_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*Requirements)(nil),
 		Field:         6000321,
 		Name:          "malonaz.core.authentication.v1.requirements",
 		Tag:           "bytes,6000321,opt,name=requirements",
-		Filename:      "proto/authentication/authentication.proto",
+		Filename:      "proto/authentication.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
@@ -466,23 +466,23 @@ var file_proto_authentication_authentication_proto_extTypes = []protoimpl.Extens
 		Field:         6000322,
 		Name:          "malonaz.core.authentication.v1.rate_limit",
 		Tag:           "bytes,6000322,opt,name=rate_limit",
-		Filename:      "proto/authentication/authentication.proto",
+		Filename:      "proto/authentication.proto",
 	},
 }
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
 	// optional malonaz.core.authentication.v1.Requirements requirements = 6000321;
-	E_Requirements = &file_proto_authentication_authentication_proto_extTypes[0]
+	E_Requirements = &file_proto_authentication_proto_extTypes[0]
 	// optional malonaz.core.authentication.v1.RateLimit rate_limit = 6000322;
-	E_RateLimit = &file_proto_authentication_authentication_proto_extTypes[1]
+	E_RateLimit = &file_proto_authentication_proto_extTypes[1]
 )
 
-var File_proto_authentication_authentication_proto protoreflect.FileDescriptor
+var File_proto_authentication_proto protoreflect.FileDescriptor
 
-const file_proto_authentication_authentication_proto_rawDesc = "" +
+const file_proto_authentication_proto_rawDesc = "" +
 	"\n" +
-	")proto/authentication/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"\x99\x02\n" +
+	"\x1aproto/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"\x99\x02\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
 	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
@@ -525,19 +525,19 @@ const file_proto_authentication_authentication_proto_rawDesc = "" +
 	"rate_limit\x12\x1e.google.protobuf.MethodOptions\x18\u009d\xee\x02 \x01(\v2).malonaz.core.authentication.v1.RateLimitR\trateLimitb\x06proto3"
 
 var (
-	file_proto_authentication_authentication_proto_rawDescOnce sync.Once
-	file_proto_authentication_authentication_proto_rawDescData []byte
+	file_proto_authentication_proto_rawDescOnce sync.Once
+	file_proto_authentication_proto_rawDescData []byte
 )
 
-func file_proto_authentication_authentication_proto_rawDescGZIP() []byte {
-	file_proto_authentication_authentication_proto_rawDescOnce.Do(func() {
-		file_proto_authentication_authentication_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_authentication_authentication_proto_rawDesc), len(file_proto_authentication_authentication_proto_rawDesc)))
+func file_proto_authentication_proto_rawDescGZIP() []byte {
+	file_proto_authentication_proto_rawDescOnce.Do(func() {
+		file_proto_authentication_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_authentication_proto_rawDesc), len(file_proto_authentication_proto_rawDesc)))
 	})
-	return file_proto_authentication_authentication_proto_rawDescData
+	return file_proto_authentication_proto_rawDescData
 }
 
-var file_proto_authentication_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_proto_authentication_authentication_proto_goTypes = []any{
+var file_proto_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_authentication_proto_goTypes = []any{
 	(*Session)(nil),                    // 0: malonaz.core.authentication.v1.Session
 	(*Role)(nil),                       // 1: malonaz.core.authentication.v1.Role
 	(*Requirements)(nil),               // 2: malonaz.core.authentication.v1.Requirements
@@ -547,7 +547,7 @@ var file_proto_authentication_authentication_proto_goTypes = []any{
 	nil,                                // 6: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
 	(*descriptorpb.MethodOptions)(nil), // 7: google.protobuf.MethodOptions
 }
-var file_proto_authentication_authentication_proto_depIdxs = []int32{
+var file_proto_authentication_proto_depIdxs = []int32{
 	3, // 0: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
 	4, // 1: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
 	6, // 2: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
@@ -562,27 +562,27 @@ var file_proto_authentication_authentication_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_proto_authentication_authentication_proto_init() }
-func file_proto_authentication_authentication_proto_init() {
-	if File_proto_authentication_authentication_proto != nil {
+func init() { file_proto_authentication_proto_init() }
+func file_proto_authentication_proto_init() {
+	if File_proto_authentication_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_authentication_proto_rawDesc), len(file_proto_authentication_authentication_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_proto_rawDesc), len(file_proto_authentication_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_authentication_authentication_proto_goTypes,
-		DependencyIndexes: file_proto_authentication_authentication_proto_depIdxs,
-		MessageInfos:      file_proto_authentication_authentication_proto_msgTypes,
-		ExtensionInfos:    file_proto_authentication_authentication_proto_extTypes,
+		GoTypes:           file_proto_authentication_proto_goTypes,
+		DependencyIndexes: file_proto_authentication_proto_depIdxs,
+		MessageInfos:      file_proto_authentication_proto_msgTypes,
+		ExtensionInfos:    file_proto_authentication_proto_extTypes,
 	}.Build()
-	File_proto_authentication_authentication_proto = out.File
-	file_proto_authentication_authentication_proto_goTypes = nil
-	file_proto_authentication_authentication_proto_depIdxs = nil
+	File_proto_authentication_proto = out.File
+	file_proto_authentication_proto_goTypes = nil
+	file_proto_authentication_proto_depIdxs = nil
 }

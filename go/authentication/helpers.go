@@ -3,7 +3,7 @@ package authentication
 import (
 	"fmt"
 
-	authenticationpb "github.com/malonaz/core/proto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication"
 )
 
 // Helper functions to convert session data to sets for O(1) lookup

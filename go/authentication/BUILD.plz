@@ -8,9 +8,9 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//genproto/authentication",
         "//go/contexttag",
         "//go/pbutil",
-        "//proto/authentication",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",

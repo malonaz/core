@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: proto/grpc/grpc.proto
+// source: proto/grpc.proto
 
 package grpc
 
@@ -48,7 +48,7 @@ type HttpCookie struct {
 
 func (x *HttpCookie) Reset() {
 	*x = HttpCookie{}
-	mi := &file_proto_grpc_grpc_proto_msgTypes[0]
+	mi := &file_proto_grpc_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -60,7 +60,7 @@ func (x *HttpCookie) String() string {
 func (*HttpCookie) ProtoMessage() {}
 
 func (x *HttpCookie) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_grpc_grpc_proto_msgTypes[0]
+	mi := &file_proto_grpc_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -73,7 +73,7 @@ func (x *HttpCookie) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HttpCookie.ProtoReflect.Descriptor instead.
 func (*HttpCookie) Descriptor() ([]byte, []int) {
-	return file_proto_grpc_grpc_proto_rawDescGZIP(), []int{0}
+	return file_proto_grpc_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *HttpCookie) GetName() string {
@@ -141,7 +141,7 @@ type GatewayOptions struct {
 
 func (x *GatewayOptions) Reset() {
 	*x = GatewayOptions{}
-	mi := &file_proto_grpc_grpc_proto_msgTypes[1]
+	mi := &file_proto_grpc_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +153,7 @@ func (x *GatewayOptions) String() string {
 func (*GatewayOptions) ProtoMessage() {}
 
 func (x *GatewayOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_grpc_grpc_proto_msgTypes[1]
+	mi := &file_proto_grpc_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,7 +166,7 @@ func (x *GatewayOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GatewayOptions.ProtoReflect.Descriptor instead.
 func (*GatewayOptions) Descriptor() ([]byte, []int) {
-	return file_proto_grpc_grpc_proto_rawDescGZIP(), []int{1}
+	return file_proto_grpc_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GatewayOptions) GetCustomMime() string {
@@ -176,14 +176,14 @@ func (x *GatewayOptions) GetCustomMime() string {
 	return ""
 }
 
-var file_proto_grpc_grpc_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_proto_grpc_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.EnumValueOptions)(nil),
 		ExtensionType: (*string)(nil),
 		Field:         23241,
 		Name:          "core.grpc.v1.trailer_key",
 		Tag:           "bytes,23241,opt,name=trailer_key",
-		Filename:      "proto/grpc/grpc.proto",
+		Filename:      "proto/grpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.EnumValueOptions)(nil),
@@ -191,7 +191,7 @@ var file_proto_grpc_grpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		Field:         23242,
 		Name:          "core.grpc.v1.metadata_key",
 		Tag:           "bytes,23242,opt,name=metadata_key",
-		Filename:      "proto/grpc/grpc.proto",
+		Filename:      "proto/grpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
@@ -199,7 +199,7 @@ var file_proto_grpc_grpc_proto_extTypes = []protoimpl.ExtensionInfo{
 		Field:         50000,
 		Name:          "core.grpc.v1.gateway_options",
 		Tag:           "bytes,50000,opt,name=gateway_options",
-		Filename:      "proto/grpc/grpc.proto",
+		Filename:      "proto/grpc.proto",
 	},
 }
 
@@ -208,22 +208,22 @@ var (
 	// string header_key = 23240;
 	//
 	// optional string trailer_key = 23241;
-	E_TrailerKey = &file_proto_grpc_grpc_proto_extTypes[0]
+	E_TrailerKey = &file_proto_grpc_proto_extTypes[0]
 	// optional string metadata_key = 23242;
-	E_MetadataKey = &file_proto_grpc_grpc_proto_extTypes[1]
+	E_MetadataKey = &file_proto_grpc_proto_extTypes[1]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
 	// optional core.grpc.v1.GatewayOptions gateway_options = 50000;
-	E_GatewayOptions = &file_proto_grpc_grpc_proto_extTypes[2]
+	E_GatewayOptions = &file_proto_grpc_proto_extTypes[2]
 )
 
-var File_proto_grpc_grpc_proto protoreflect.FileDescriptor
+var File_proto_grpc_proto protoreflect.FileDescriptor
 
-const file_proto_grpc_grpc_proto_rawDesc = "" +
+const file_proto_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/grpc/grpc.proto\x12\fcore.grpc.v1\x1a google/protobuf/descriptor.proto\"\xc9\x01\n" +
+	"\x10proto/grpc.proto\x12\fcore.grpc.v1\x1a google/protobuf/descriptor.proto\"\xc9\x01\n" +
 	"\n" +
 	"HttpCookie\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
@@ -243,25 +243,25 @@ const file_proto_grpc_grpc_proto_rawDesc = "" +
 	"\x0fgateway_options\x12\x1e.google.protobuf.MethodOptions\x18І\x03 \x01(\v2\x1c.core.grpc.v1.GatewayOptionsR\x0egatewayOptionsb\x06proto3"
 
 var (
-	file_proto_grpc_grpc_proto_rawDescOnce sync.Once
-	file_proto_grpc_grpc_proto_rawDescData []byte
+	file_proto_grpc_proto_rawDescOnce sync.Once
+	file_proto_grpc_proto_rawDescData []byte
 )
 
-func file_proto_grpc_grpc_proto_rawDescGZIP() []byte {
-	file_proto_grpc_grpc_proto_rawDescOnce.Do(func() {
-		file_proto_grpc_grpc_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_grpc_grpc_proto_rawDesc), len(file_proto_grpc_grpc_proto_rawDesc)))
+func file_proto_grpc_proto_rawDescGZIP() []byte {
+	file_proto_grpc_proto_rawDescOnce.Do(func() {
+		file_proto_grpc_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_grpc_proto_rawDesc), len(file_proto_grpc_proto_rawDesc)))
 	})
-	return file_proto_grpc_grpc_proto_rawDescData
+	return file_proto_grpc_proto_rawDescData
 }
 
-var file_proto_grpc_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_grpc_grpc_proto_goTypes = []any{
+var file_proto_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_grpc_proto_goTypes = []any{
 	(*HttpCookie)(nil),                    // 0: core.grpc.v1.HttpCookie
 	(*GatewayOptions)(nil),                // 1: core.grpc.v1.GatewayOptions
 	(*descriptorpb.EnumValueOptions)(nil), // 2: google.protobuf.EnumValueOptions
 	(*descriptorpb.MethodOptions)(nil),    // 3: google.protobuf.MethodOptions
 }
-var file_proto_grpc_grpc_proto_depIdxs = []int32{
+var file_proto_grpc_proto_depIdxs = []int32{
 	2, // 0: core.grpc.v1.trailer_key:extendee -> google.protobuf.EnumValueOptions
 	2, // 1: core.grpc.v1.metadata_key:extendee -> google.protobuf.EnumValueOptions
 	3, // 2: core.grpc.v1.gateway_options:extendee -> google.protobuf.MethodOptions
@@ -273,27 +273,27 @@ var file_proto_grpc_grpc_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_grpc_grpc_proto_init() }
-func file_proto_grpc_grpc_proto_init() {
-	if File_proto_grpc_grpc_proto != nil {
+func init() { file_proto_grpc_proto_init() }
+func file_proto_grpc_proto_init() {
+	if File_proto_grpc_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_grpc_grpc_proto_rawDesc), len(file_proto_grpc_grpc_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_grpc_proto_rawDesc), len(file_proto_grpc_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 3,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_grpc_grpc_proto_goTypes,
-		DependencyIndexes: file_proto_grpc_grpc_proto_depIdxs,
-		MessageInfos:      file_proto_grpc_grpc_proto_msgTypes,
-		ExtensionInfos:    file_proto_grpc_grpc_proto_extTypes,
+		GoTypes:           file_proto_grpc_proto_goTypes,
+		DependencyIndexes: file_proto_grpc_proto_depIdxs,
+		MessageInfos:      file_proto_grpc_proto_msgTypes,
+		ExtensionInfos:    file_proto_grpc_proto_extTypes,
 	}.Build()
-	File_proto_grpc_grpc_proto = out.File
-	file_proto_grpc_grpc_proto_goTypes = nil
-	file_proto_grpc_grpc_proto_depIdxs = nil
+	File_proto_grpc_proto = out.File
+	file_proto_grpc_proto_goTypes = nil
+	file_proto_grpc_proto_depIdxs = nil
 }

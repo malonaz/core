@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	authenticationpb "github.com/malonaz/core/proto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication"
 )
 
 type Interceptor struct {

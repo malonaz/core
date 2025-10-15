@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-cp -rf plz-out/gen/proto/grpc/grpc.pb.go proto/grpc
-cp -rf plz-out/gen/proto/authentication/authentication.pb.go proto/authentication
+mkdir -p genproto/grpc && cp -rf plz-out/gen/proto/grpc.pb.go genproto/grpc/
+mkdir -p genproto/authentication && cp -rf plz-out/gen/proto/authentication.pb.go genproto/authentication/
