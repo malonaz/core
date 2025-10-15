@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package malonaz.core.authentication.v1;
+
+import "google/protobuf/descriptor.proto";
+
+message Session {
+  // Id of this session.
+  string id = 1;
+  // Time at which this session was created.
+  int64 create_timestamp = 2;
+  // Time at which this sessione expires.
+  int64 expire_timestamp = 3;
+  // The user id of this user.
+  string user_id = 4;
+  string organization_id = 5;
+  // RBAC information
+  repeated Role roles = 6;
+  // Permissions.
+  repeated string permissions = 7;
+  // Metadata and others.
+  SessionMetadata metadata = 8;
+}
+
+message Role {
+  // Name of the role.
+  string name = 1;
+  // Permissions for thisrole.
+  repeated string permissions = 2;
+  // Optional: role hierarchy
+  repeated string inherited_roles = 3;
+  // Optional: context/scope (e.g., organization-specific roles)
+  string scope = 4;
+}
+
+message Permission {
+  // Modern RBAC-based permissions
+  Requirements requirements = 1;
+}
+
+message Requirements {
+  // Required permissions to access this endpoint
+  repeated string required_permissions = 1;
+  // Required roles to access this endpoint
+  repeated string required_roles = 2;
+  // Require ANY of these permissions (OR logic)
+  repeated string any_permissions = 3;
+  // Require ANY of these roles (OR logic)
+  repeated string any_roles = 4;
+}
+
+message SessionMetadata {
+  // Ip address of the client.
+  string ip_address = 1;
+  // Version of the client caller.
+  ClientVersion client_version = 2;
+  // User agent.
+  string user_agent = 3;
+  // Extra data.
+  map<string, string> key_to_value = 4;
+}
+
+message ClientVersion {
+  int32 major = 1;
+  int32 minor = 2;
+  int32 patch = 3;
+}
+
+message RateLimit {
+  // How many requests available.
+  uint64 Tokens = 1;
+  // Over what period.
+  int64 IntervalSeconds = 2;
+}
+
+extend google.protobuf.MethodOptions {
+  Permission permission = 6000321;
+  RateLimit rate_limit = 6000322;
+}

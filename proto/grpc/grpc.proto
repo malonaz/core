@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package malonaz.grpc.v1;
+package core.grpc.v1;
 
 import "google/protobuf/descriptor.proto";
 
