@@ -4,8 +4,15 @@ import (
 	"context"
 	"errors"
 
+	grpc_metadata "github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	authenticationpb "github.com/malonaz/core/proto/authentication"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
+
+const metadataKeySession = "x-session-bin"
 
 type localSessionKey struct{}
 
@@ -33,4 +40,29 @@ func MustGetSession(ctx context.Context) *authenticationpb.Session {
 		panic(err)
 	}
 	return session
+}
+
+func WithRole(ctx context.Context, roleID string) (context.Context, error) {
+	session := &authenticationpb.Session{
+		RoleIds: []string{roleID},
+	}
+	return InjectSession(ctx, session)
+}
+
+// InjectSession into the context.
+func InjectSession(ctx context.Context, session *authenticationpb.Session) (context.Context, error) {
+	// We do not support multi session injection for now.
+	if value := grpc_metadata.ExtractOutgoing(ctx).Get(metadataKeySession); value != "" {
+		return nil, status.Errorf(codes.Internal, "multi-session context is not supported")
+	}
+
+	// We inject it to outgoing context.
+	bytes, err := proto.Marshal(session)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "marshaling session: %v", err)
+	}
+	ctx = metadata.AppendToOutgoingContext(ctx, metadataKeySession, string(bytes))
+
+	// We also inject it into the local context, so that admin-api handlers can access it.
+	return context.WithValue(ctx, localSessionKey{}, session), nil
 }
