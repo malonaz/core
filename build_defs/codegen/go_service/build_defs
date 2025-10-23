@@ -28,7 +28,7 @@ def go_service_runtime_src(
         visibility:list=[],
 ):
     return go_template(
-        name = f"{name}",
+        name = name,
         templates = [
             "///core//build_defs/codegen/go_service/templates:service.runtime.go.tmpl",
         ],
@@ -46,7 +46,7 @@ def go_service_src(
         templates = ["///core//build_defs/codegen/go_service/templates:service.go.tmpl"]
     templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
     return go_template(
-        name = f"{name}",
+        name = name,
         templates = templates,
         data = manifest,
         format = "yaml",
@@ -65,7 +65,7 @@ def go_main_src(
     templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
 
     return go_template(
-        name = f"{name}",
+        name = name,
         templates = templates,
         data = manifest,
         format = "yaml",
@@ -76,14 +76,16 @@ def go_main_src(
 def go_admin_api_main_src(
         name:str,
         manifest:str,
+        templates:list=[],
         visibility:list=[],
 ):
+    if len(templates) == 0:
+        templates = ["///core//build_defs/codegen/go_service/templates:admin_api_main.go.tmpl"]
+    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+
     return go_template(
-        name = f"{name}",
-        templates = [
-            "///core//build_defs/codegen/go_service/templates:admin_api_main.go.tmpl",
-            "///core//build_defs/codegen/go_service/templates:utils.go.tmpl",
-        ],
+        name = name,
+        templates = templates,
         data = manifest,
         format = "yaml",
         visibility = visibility,
