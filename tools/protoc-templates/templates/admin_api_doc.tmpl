@@ -1,0 +1,84 @@
+{{ $file := .File }}
+{{ $files := .Files }}
+{{- $enumNameToEnum := dict }}
+{{- range $f := $files -}}
+    {{- range $enum := $f.Enums }}
+        {{- $key := printf "%s.%s" $f.Desc.Package $enum.GoIdent.GoName }}
+        {{- $_ := set $enumNameToEnum $key $enum }}
+    {{- end -}}
+{{- end -}}
+
+
+{{- define "filterType" -}}
+    {{- if not (empty .Filter.GetPrimitive) -}}
+        {{- .Filter.GetPrimitive -}}
+    {{- else if not (empty .Filter.GetWellKnown ) -}}
+        {{- /* Do nothing for well-known types */ -}}
+    {{- else if not (empty .Filter.GetEnum ) -}}
+        {{ $enum := get .EnumNameToEnum .Filter.GetEnum }}
+        {{- $enumValues := list -}}
+        {{- range $enum.Values -}}
+            {{- $enumValues = append $enumValues (.GoIdent.GoName | trimPrefix (printf "%s_" $enum.GoIdent.GoName)) -}}
+        {{- end -}}
+        {{- if not (empty $enumValues) -}}
+            ENUM With Available Values ({{ join ", " $enumValues }})
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+package service
+
+
+func init() {
+{{- range $service := $file.Services }}
+    packageToMethodToFieldToDoc["{{ $service.GoName | trimSuffix "Handler" | lower }}"] = map[string]map[string]string{
+    {{- range $method := $service.Methods }}
+        {{- if contains "List" $method.GoName }}
+            "{{ $method.GoName | kebabcase }}": map[string]string{
+            {{- $listOpts := getExt $method.Input.Desc "aip.v1.list" -}}
+            {{- if not (empty $listOpts.OrderBy) -}}
+                {{ "\n" }}
+                "order-by": `Can order by fields: {{ join ", " $listOpts.OrderBy }}. You may use any combination of them: e.g. "<field1> desc, <field2> asc"`,
+            {{- end }}
+            {{- if not (empty $listOpts.Filters) -}}
+                {{ "\n" }}
+                "filter": `Can filter by {{ range $listOpts.Filters }}{{ .Field }} ({{ template "filterType" (dict "Filter" . "EnumNameToEnum" $enumNameToEnum) }}), {{ end }}`,
+            {{- end }}
+            },
+        {{ end }}
+
+        {{- if contains "Update" $method.GoName }}
+            "{{ $method.GoName | kebabcase }}": map[string]string{
+            {{- $updateOpts := getExt $method.Input.Desc "aip.v1.update" -}}
+            {{- if not (empty $updateOpts.AuthorizedPaths) -}}
+                {{ "\n" }}
+                "field-mask-paths": `Can be any of (comma-separated): {{ range $updateOpts.AuthorizedPaths }}{{ .Path }}, {{ end }}. Use these to specify which fields to update. You must specify at least one. Only these paths can be updated."`,
+            {{- end }}
+            },
+        {{ end }}
+    {{- end -}}
+    }
+
+    packageToResourceNameToResourceFieldMaskPaths["{{ $service.GoName | trimSuffix "Handler" | lower }}"] = map[string][]string{
+    {{ $resourceNameSet := dict }}
+    {{- range $method := $service.Methods }}
+        {{- if hasPrefix "Create" $method.GoName }}
+            {{ $resourceName := $method.Output.GoIdent.GoName | snakecase | untitle }}
+            {{ if not (empty (get $resourceNameSet $resourceName)) }}{{ continue }}{{ end }}
+            {{ $_ := set $resourceNameSet $resourceName "t" }}
+            "{{ $resourceName }}": {
+            {{- range $field := $method.Output.Fields }}
+                {{- if eq $field.Desc.Kind 11 }}
+                    {{- range $subField := $field.Message.Fields }}
+                        "{{ $field.Desc.Name }}.{{ $subField.Desc.Name }}",
+                    {{- end }}
+                {{- else }}
+                    "{{ $field.Desc.Name }}",
+                {{- end }}
+            {{- end }}
+            },
+        {{- end }}
+    {{- end }}
+    }
+{{- end }}
+}

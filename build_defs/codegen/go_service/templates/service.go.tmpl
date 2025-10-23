@@ -1,0 +1,96 @@
+package service
+
+import (
+	"fmt"
+	"context"
+
+	"github.com/malonaz/core/go/logging"
+	{{ if .google.firebase }}"firebase.google.com/go/v4/auth"{{ end }}
+	{{ if .openAI }}"github.com/malonaz/core/go/llm"{{ end }}
+	{{ if .google.storage }}"cloud.google.com/go/storage"{{ end }}
+	{{ if or .nats.publishers .nats.client }}"github.com/malonaz/core/go/nats"{{- end }}
+	{{ if .configuration }}configurationpb "configuration/proto/api"{{ end }}
+	{{ if .postgres.client }}"github.com/malonaz/core/go/postgres"{{ end }}
+	{{- if .postgres.db.implementation }}
+	{{ template "goImport" (dict "Target" .postgres.db.implementation) }}
+	{{- end }}
+	{{ range $i, $grpcClient := .grpc.clients }}
+	{{ template "goImport" (dict "Target" $grpcClient "As" (printf "pbclient%d" $i)) }}
+	{{- end }}
+	{{ range $i, $grpcServer := .grpc.servers }}
+	{{ template "goImport" (dict "Target" $grpcServer "As" (printf "pbserver%d" $i)) }}
+	{{- end }}
+)
+
+type Service struct {
+	{{ range $i, $grpcServer := .grpc.servers }}
+  {{ printf "pbserver%d" $i }}.Unimplemented{{ grpcSvcName $grpcServer}}Server
+	{{- end }}
+	opts *Opts
+	ctxAdmin context.Context
+	{{ if .configuration }}configuration *configurationpb.Configuration{{ end }}
+	{{ if .postgres.client}}postgresClient *postgres.Client{{ end }}
+	{{ if .postgres.db.implementation }}db *db.DB{{ end }}
+	{{ if .openAI }}openAIClient llm.Client{{ end }}
+	{{ if .google.firebase }}firebaseAuthenticationClient *auth.Client{{ end }}
+	{{ if .google.storage }}storageClient *storage.Client{{ end }}
+	{{ if .nats.client }}natsClient *nats.Client{{ end }}
+	{{- range $i, $natsPublisher := .nats.publishers }}
+	{{ template "natsPublisher" $natsPublisher }} *nats.Publisher
+	{{- end }}
+	{{ range $i, $grpcClient := .grpc.clients }}
+	{{ grpcSvcName $grpcClient | untitle }}Client {{ printf "pbclient%d" $i }}.{{ grpcSvcName $grpcClient }}Client
+	{{- end }}
+
+	*Runtime
+}
+
+var (
+	log = logging.NewLogger()
+)
+
+// New instantiates and returns a new service.
+func New(
+	opts *Opts,
+	{{ if .configuration }}configuration *configurationpb.Configuration,{{ end }}
+	{{ if .postgres.client}}postgresClient *postgres.Client,{{ end }}
+	{{ if .postgres.db.implementation }}db *db.DB,{{ end }}
+	{{ if .openAI }}openAIClient llm.Client,{{ end }}
+	{{ if .google.firebase }}firebaseAuthenticationClient *auth.Client,{{ end }}
+	{{ if .google.storage }}storageClient *storage.Client,{{ end }}
+	{{ if .nats.client }}natsClient *nats.Client,{{ end }}
+	{{- range $i, $natsPublisher := .nats.publishers }}
+	{{ template "natsPublisher" $natsPublisher }} *nats.Publisher,
+	{{- end }}
+	{{ range $i, $grpcClient := .grpc.clients }}
+	{{ grpcSvcName $grpcClient | untitle }}Client {{ printf "pbclient%d" $i }}.{{ grpcSvcName $grpcClient }}Client,
+	{{- end }}
+) (*Service, error) {
+	runtime, err := newRuntime(opts)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating runtime: %w", err)
+	}
+	return &Service{
+		Runtime: runtime,
+		opts: opts,
+		{{ if .configuration }}configuration:        configuration,{{ end }}
+		{{ if .postgres.client}}postgresClient: postgresClient,{{ end }}
+		{{ if .postgres.db.implementation }}db: db,{{ end }}
+		{{ if .openAI }}openAIClient: openAIClient,{{ end }}
+		{{ if .google.firebase }}firebaseAuthenticationClient: firebaseAuthenticationClient,{{ end }}
+		{{ if .google.storage }}storageClient: storageClient,{{ end }}
+		{{ if .nats.client }}natsClient: natsClient, {{ end }}
+		{{- range $i, $natsPublisher := .nats.publishers }}
+		{{ template "natsPublisher" $natsPublisher }}: {{ template "natsPublisher" $natsPublisher }},
+		{{- end }}
+		{{ range $i, $grpcClient := .grpc.clients }}
+		{{ grpcSvcName $grpcClient | untitle }}Client: {{ grpcSvcName $grpcClient | untitle }}Client,
+		{{- end }}
+	}, nil
+}
+
+// Start this service. Returns clean up function.
+func (s *Service) Start(ctx context.Context) (func(), error) {
+	s.ctxAdmin = ctx
+	return s.start(ctx)
+}

@@ -1,0 +1,102 @@
+subinclude(
+    "///proto//build_defs/sdk",
+    "///go//build_defs:go"
+)
+
+def _go_path_mapping():
+    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
+    def _map_go_paths(rule_name):
+        labels = get_labels(rule_name, 'proto:go-map:')
+        mapping = ''
+        mapping_validate = ''
+        if len(labels) > 0:
+            mapping = 'M' + ',M'.join(labels) + ':'
+            mapping_validate = ',M' + ',M'.join(labels)
+
+        cmd = get_command(rule_name)
+        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
+        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
+        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
+        new_cmd = new_cmd.replace('--cobra_out=', f'--cobra_out={mapping}')
+        new_cmd = new_cmd.replace('--templates_out=', f'--templates_out={mapping}')
+        set_command(rule_name, new_cmd)
+    return _map_go_paths
+
+
+def _go_mapping_labels(name:str, srcs:list, root_dir:str):
+    base_path = get_base_path()
+    diff_pkg = basename(base_path) != name
+    if CONFIG.GO_IMPORT_PATH:
+        base_path = join_path(CONFIG.GO_IMPORT_PATH, base_path)
+    return [f'proto:go-map: {base_path}/{src}={base_path}/{name}' for src in srcs
+               if not looks_like_build_label(src)]
+
+def go_proto_template_library(
+        name:str,
+        template:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    """Compile a .proto file to generate code for golang.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
+    """
+    processed_template = template
+    if not template.startswith('//') and not template.startswith(':'):
+        processed_template = export_file(
+            name = f"{name}_template",
+            src = template,
+        )
+
+    tools= {"protoc_templates": [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]}
+    plugin_flags = [
+        '--plugin=protoc-gen-templates="`which $TOOLS_PROTOC_TEMPLATES`"',
+        '--templates_out="$OUT_DIR"',
+        f'--templates_opt=paths=source_relative,debug=true,template=$(location {processed_template})',
+    ]
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "go",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps + [
+            processed_template,
+            filegroup(
+                name = name,
+                tag = "protoc_wkt",
+                exported_deps = [CONFIG.PROTO.PROTOC_TOOL],
+                test_only = test_only,
+                requires = ["proto"],
+            )
+        ],
+        visibility = visibility,
+        pre_build = _go_path_mapping(),
+    )
+
+    return filegroup(
+        name = name,
+        srcs = [protoc],
+        visibility = visibility,
+    )

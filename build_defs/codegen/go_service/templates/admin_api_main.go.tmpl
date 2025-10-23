@@ -1,0 +1,294 @@
+{{/*///////////////// PRE-PROCESSING WORK ///////////////////*/}}
+{{- $googleStorage := not (empty .google.storage) -}}
+{{- $allGrpcClients := list -}}
+{{- range .grpc.handlers -}}
+    {{- range .clients -}}
+        {{- $allGrpcClients = append $allGrpcClients . -}}
+    {{- end -}}
+    {{- if .google.storage }}{{ $googleStorage = true }}{{- end -}}
+{{- end -}}
+{{- $allGrpcClients = uniq (sortAlpha $allGrpcClients) -}}
+
+{{- $allGrpcServers := list -}}
+{{- range .grpc.handlers -}}
+    {{- $allGrpcServers = append $allGrpcServers .server -}}
+{{- end -}}
+{{- $allGrpcServers = uniq (sortAlpha $allGrpcServers) -}}
+
+{{- $allNatsPublishers := list -}}
+{{- range .grpc.handlers -}}
+    {{- range .nats.publishers -}}
+        {{- $allNatsPublishers = append $allNatsPublishers . -}}
+    {{- end -}}
+{{- end -}}
+{{- $allNatsPublishers = uniq (sortAlpha $allNatsPublishers) -}}
+
+{{- $authorizationClient := false -}}
+{{-  range .grpc.handlers -}}
+    {{- if .authorizationClient -}}
+        {{- $authorizationClient = true -}}
+    {{- end -}}
+{{-  end -}}
+
+{{- $skipGrpcHealthCheck := not (empty .grpc.skipHealthCheck) -}}
+
+package main
+
+import (
+"context"
+"common/go/logging"
+"common/go/prometheus"
+"common/go/flags"
+"common/go/health"
+"math/rand"
+"time"
+
+"landing/landing_server"
+
+// Google Service account imports.
+"google.golang.org/protobuf/reflect/protoreflect"
+"google.golang.org/api/option"
+
+
+// Firebase imports.
+"firebase.google.com/go/v4"
+
+{{ if $googleStorage }}
+	  // Google storage imports.
+	  "cloud.google.com/go/storage"
+{{- end }}
+
+"configuration"
+
+// gRPC common imports.
+"common/go/grpc"
+"common/go/certs"
+
+// Nats imports.
+{{- if $allNatsPublishers }}
+	  // Nats import.
+    "common/go/nats"
+    natspb "infrastructure/nats/proto/api"
+{{- end }}
+
+
+{{- if $allGrpcServers }}
+	  {{- "\n" }}
+	  // gRPC server proto imports.
+	  {{- range $i, $grpcServer := $allGrpcServers }}
+        {{ grpcSvcName $grpcServer | lower }}pb {{ template "goImport" (dict "Target" $grpcServer) }}
+	  {{- end }}
+{{- end }}
+
+{{- if $allGrpcClients }}
+	  {{- "\n" }}
+	  // gRPC client proto imports.
+	  {{- range $grpcClient := $allGrpcClients }}
+        {{ grpcSvcName $grpcClient | lower }}pb {{ template "goImport" (dict "Target" $grpcClient) }}
+	  {{- end }}
+{{- end }}
+
+{{- if .grpc.handlers }}
+	  {{- "\n" }}
+    // Grpc Handler services.
+	  {{- range $i, $grpcHandler := .grpc.handlers }}
+        "{{ $grpcHandler.server | trimPrefix "//"  | replace ":" "/" | replace "proto/v1" "handlers"}}"
+	  {{- end }}
+{{- end }}
+
+{{ if $authorizationClient }}
+    "economy/authorization"
+{{ end }}
+
+"admin/admin_api/authentication"
+"common/go/contexttag"
+)
+
+var fileDescriptors = []protoreflect.FileDescriptor{
+{{- range $grpcHandler := .grpc.handlers }}
+    {{ grpcSvcName $grpcHandler.server | lower }}pb.{{ template "pbFileDescriptor" $grpcHandler.server }},
+{{- end }}
+}
+
+{{- if .grpc.handlers }}
+	  {{- "\n" }}
+    var registerHandlers = []grpc.RegisterHandler{
+	  {{- range $i, $grpcHandler := .grpc.handlers }}
+        {{- if not $grpcHandler.gateway }}{{ continue }}{{ end }}
+        {{ grpcSvcName $grpcHandler.server | lower }}pb.Register{{ grpcSvcName $grpcHandler.server }}HandlerFromEndpoint,
+	  {{- end }}
+    }
+{{- end }}
+
+var log = logging.NewLogger()
+
+
+var opts struct {
+// Defaults opts.
+Health                health.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
+Prometheus            prometheus.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
+// Nats opts.
+{{ if $allNatsPublishers }}
+    Nats                  *nats.Opts           `group:"Nats" namespace:"nats" env-namespace:"NATS"`
+{{ end }}
+
+{{ range $i, $grpcHandler := .grpc.handlers }}
+    {{- if not  $grpcHandler.start }}{{ continue }}{{ end }}
+    {{ grpcSvcName $grpcHandler.server }}Handler *{{ $grpcHandler.server | trimPrefix "//admin/admin_api/proto/v1:" }}.Opts `group:"{{ grpcSvcName $grpcHandler.server }}" namespace:"{{ grpcSvcName $grpcHandler.server | kebabcase}}"`
+{{ end }}
+
+LandingServer    *landing_server.Opts `group:"LandingServer"  namespace:"landing-server"`
+Authentication *authentication.Opts `group:"Authentication" namespace:"authentication"`
+// Google Firebase opts.
+GoogleFirebaseCredentials string `long:"google-firebase-credentials" default:"secrets/firebase/service_account_key.json" description:"Credentials for google"`
+
+{{- if $googleStorage }}
+	  // Postgres opts.
+	  GoogleStorageCredentials string `long:"google-storage-credentials" default:"secrets/google-storage/service_account_key.json" description:"Credentials for google"`
+{{- end }}
+
+{{- if .grpc }}
+	  // gRPC Gateway server opts.
+	  GRPCGateway                   grpc.GatewayOpts   `group:"Grpc" namespace:"grpc" env-namespace:"GRPC"`
+	  Certs                  certs.Opts  `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
+{{- end }}
+
+// gRPC Client opts.
+{{- range $grpcClient := $allGrpcClients }}
+    {{- $grpcSvcName := grpcSvcName $grpcClient }}
+    {{ $grpcSvcName }} grpc.Opts `group:"{{ $grpcSvcName }}" namespace:"{{ $grpcSvcName | kebabcase }}" env-namespace:"{{ $grpcSvcName | snakecase | upper }}"`
+{{- end }}
+}
+
+func main() {
+rand.Seed(time.Now().UnixNano())
+flags.MustParse(&opts)
+prometheus.Serve(opts.Prometheus)
+ctx := context.Background()
+
+// We always start services using a ctx with admin permissions.
+ctxAdmin, err := authentication.WithAdminRole(ctx)
+if err != nil {
+log.Panicf("injecting admin role into context: %v", err)
+}
+ctxAdmin = contexttag.SetOntoContextNoop(ctxAdmin)
+
+// Parse the configuration.
+configuration, err := configuration.Get()
+if err != nil {
+log.Panicf("parsing configuration: %v", err)
+}
+
+{{- if $allNatsPublishers }}
+	  {{- "\n" }}
+	  // Instantiate nats client.
+	  natsClient, err := nats.NewClient(opts.Nats)
+	  if err != nil {
+		log.Panicf("instantiating nats client: %v", err)
+	  }
+	  defer natsClient.Close()
+{{- end }}
+{{- range $natsPublisher := $allNatsPublishers }}
+	  {{- "\n" }}
+	  // Instantiate {{ $natsPublisher }} publisher.
+	  natsPublisher{{ $natsPublisher | lower | camelcase }} := nats.NewPublisher(natspb.Subject_SUBJECT_{{ $natsPublisher }}, natsClient)
+{{- end }}
+
+// Instantiate Firebase app.
+firebaseApp, err := firebase.NewApp(ctx, nil, option.WithCredentialsFile(opts.GoogleFirebaseCredentials))
+if err != nil {
+log.Panicf("instantiating firebase app: %v", err)
+}
+
+firebaseAuthenticationClient, err := firebaseApp.Auth(ctx)
+if err != nil {
+log.Panicf("instantiating firebase authentication client: %v", err)
+}
+
+{{- if $googleStorage }}
+	  {{- "\n" }}
+	  // Instantiate google storage client.
+	  storageClient, err := storage.NewClient(ctx, option.WithCredentialsFile(opts.GoogleStorageCredentials))
+	  if err != nil {
+		log.Panicf("Failed to create google storage client with given key file: %v", err)
+	  }
+	  defer storageClient.Close()
+{{- end }}
+
+{{- range $i, $grpcClient := $allGrpcClients }}
+	  {{- "\n" }}
+	  // Instantiate {{ grpcSvcName $grpcClient }} gRPC Client.
+	  {{ grpcSvcName $grpcClient | untitle }}Connection, _ := grpc.NewClient(opts.{{ grpcSvcName $grpcClient }}, opts.Certs, opts.Prometheus).Connect()
+    defer {{ grpcSvcName $grpcClient | untitle }}Connection.Close()
+	  {{ grpcSvcName $grpcClient | untitle }}Client := {{ grpcSvcName $grpcClient | lower }}pb.New{{ grpcSvcName $grpcClient }}Client({{ grpcSvcName $grpcClient | untitle }}Connection)
+{{- end }}
+
+{{ if $authorizationClient }}
+    authorizationClient := authorization.NewClient(ctxAdmin, configuration.Economy, economyServiceClient)
+{{ end }}
+
+// Setup health check.
+healthCheck := health.Checks()
+health.Serve(opts.Health, healthCheck)
+
+authenticationInterceptor := authentication.NewInterceptor(
+opts.Authentication,
+configuration,
+firebaseAuthenticationClient,
+userServiceClient,
+economyServiceClient,
+fileDescriptors,
+)
+configurationHashInterceptor := authentication.NewConfigurationHashInterceptor(configuration.Hash)
+rateLimiterInterceptor, err := authentication.NewRateLimiterInterceptor(configuration, fileDescriptors)
+if err != nil {
+log.Panicf("instantiating rate limiter interceptor: %v", err)
+}
+
+{{- range $grpcHandler := .grpc.handlers }}
+		{{ grpcSvcName $grpcHandler.server | untitle }} := {{ $grpcHandler.server | trimPrefix "//admin/admin_api/proto/v1:" }}.New{{ grpcSvcName $grpcHandler.server }}(
+    {{ if $grpcHandler.start }}opts.{{ grpcSvcName $grpcHandler.server }}Handler,{{ end }}
+    ctxAdmin,
+    {{- if $grpcHandler.configuration }}configuration,{{ end }}
+    {{- if $grpcHandler.google.storage }}storageClient,{{ end }}
+    {{- range $grpcClient := $grpcHandler.clients -}}
+        {{ grpcSvcName $grpcClient | untitle }}Client,
+    {{ end -}}
+    {{- range $grpcHandler := $grpcHandler.handlers -}}
+        {{ $grpcHandler}}Handler,
+    {{ end -}}
+    {{ if $grpcHandler.authorizationClient }}authorizationClient,{{ end }}
+    {{- range $natsPublisher := $grpcHandler.nats.publishers }}
+        natsPublisher{{ $natsPublisher | lower | camelcase }},
+    {{ end }}
+    )
+    {{ if $grpcHandler.start }}
+        if err := {{ grpcSvcName $grpcHandler.server | untitle }}.Start(ctxAdmin); err != nil {
+        log.Panicf("starting {{ grpcSvcName $grpcHandler.server }}: %v", err)
+        }
+    {{ end }}
+{{- end }}
+
+// Register gRPC server interfaces.
+register := func(server *grpc.Server) {
+{{- range $grpcHandler := .grpc.handlers }}
+		{{ grpcSvcName $grpcHandler.server | lower }}pb.Register{{ grpcSvcName $grpcHandler.server }}Server(server.Raw, {{ grpcSvcName $grpcHandler.server | untitle }})
+{{- end }}
+}
+
+landingServer, err := landing_server.NewStaticServer(opts.LandingServer, configuration, paymentServiceClient, reportingServiceClient)
+if err != nil {
+log.Panic("instantiating landing server: %v", err)
+}
+go func() {
+if err := landingServer.Serve(ctxAdmin); err != nil {
+log.Errorf("serving landing: %w", err)
+}
+}()
+go grpc.NewGateway(opts.GRPCGateway, opts.Certs, opts.Prometheus, registerHandlers).Serve(ctx)
+	  // Start gRPC server.
+	  grpc.NewServer(opts.GRPCGateway.GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
+    WithPreUnaryInterceptors(configurationHashInterceptor.Unary(), authenticationInterceptor.Unary(), rateLimiterInterceptor.Unary()).
+    WithPreStreamInterceptors(configurationHashInterceptor.Stream(), authenticationInterceptor.Stream(), rateLimiterInterceptor.Stream()).
+    Serve()
+}

@@ -1,0 +1,194 @@
+"""Build rules for compiling protocol buffers & gRPC service stubs.
+"""
+subinclude(
+    "///proto//build_defs/sdk",
+    "///go//build_defs:go"
+)
+
+def _go_path_mapping():
+    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
+    def _map_go_paths(rule_name):
+        labels = get_labels(rule_name, 'proto:go-map:')
+        mapping = ''
+        mapping_validate = ''
+        if len(labels) > 0:
+            mapping = 'M' + ',M'.join(labels) + ':'
+            mapping_validate = ',M' + ',M'.join(labels)
+
+        cmd = get_command(rule_name)
+        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
+        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
+        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
+        new_cmd = new_cmd.replace('--cobra_out=', f'--cobra_out={mapping}')
+        new_cmd = new_cmd.replace('--templates_out=', f'--templates_out={mapping}')
+        set_command(rule_name, new_cmd)
+    return _map_go_paths
+
+
+def _go_mapping_labels(name:str, srcs:list, root_dir:str):
+    base_path = get_base_path()
+    diff_pkg = basename(base_path) != name
+    if CONFIG.GO_IMPORT_PATH:
+        base_path = join_path(CONFIG.GO_IMPORT_PATH, base_path)
+    return [f'proto:go-map: {base_path}/{src}={base_path}/{name}' for src in srcs
+               if not looks_like_build_label(src)]
+
+def _import_path(name, root_dir, additional_context=None):
+    pkg = package_name()
+    if basename(pkg) != name:
+        pkg += "/" + name
+    if root_dir:
+        pkg = pkg.removeprefix(root_dir + "/")
+    if additional_context and "go_import_path" in additional_context:
+        return additional_context["go_import_path"]
+    if CONFIG.GO.IMPORT_PATH:
+        return join_path(CONFIG.GO.IMPORT_PATH, pkg)
+    return pkg
+
+
+def go_proto_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    """Compile a .proto file to generate code for golang.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
+    """
+    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP]
+    tools= {"go": [CONFIG.CORE.PROTOC_GEN_GO]}
+    plugin_flags = [
+        '--go_out="$OUT_DIR"',
+        '--plugin=protoc-gen-go="$(which $TOOLS_GO)"',
+        '--go_opt=paths=source_relative',
+    ]
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "go",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+        pre_build = _go_path_mapping(),
+    )
+
+    return go_library(
+        name = f"_{name}#go",
+        srcs = [protoc],
+        deps = deps,
+        test_only = test_only,
+        labels = labels,
+        visibility = visibility,
+        import_path = _import_path(name, root_dir, additional_context),
+    )
+
+def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
+                      test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
+    """Defines a rule for a go grpc library.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
+    """
+    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
+    tools = {'go': [CONFIG.CORE.PROTOC_GEN_GO], "grpc_go": [CONFIG.CORE.PROTOC_GEN_GRPC_GO]}
+    plugin_flags = [
+        '--plugin=protoc-gen-go="`which $TOOLS_GO`"',
+        '--go_out="$OUT_DIR"',
+        '--go_opt=paths=source_relative',
+        '--plugin=protoc-gen-go-grpc="$(which $TOOLS_GRPC_GO)"',
+        '--go-grpc_out="$OUT_DIR"',
+        '--go-grpc_opt=paths=source_relative',
+    ]
+    if additional_context and "go_cobra_cli" in additional_context:
+        plugin_flags += [
+            # Cobra plugin.
+            '--cobra_out=$OUT_DIR',
+            '--plugin=protoc-gen-cobra="`which $TOOLS_COBRA_PLUGIN`"',
+            '--cobra_opt=paths=source_relative',
+        ]
+        tools['cobra_plugin'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
+
+    if additional_context and "go_grpc_gateway" in additional_context:
+        plugin_flags += [
+            # Grpc gateway plugin.
+            '--grpc-gateway_out=$OUT_DIR',
+            '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_PLUGIN`"',
+            f'--grpc-gateway_opt=paths=source_relative',
+        ]
+        tools['grpc_gateway_plugin'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "go",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+        pre_build = _go_path_mapping(),
+    )
+
+    return go_library(
+        name = f"_{name}#go",
+        srcs = [protoc],
+        deps = deps,
+        test_only = test_only,
+        labels = labels,
+        visibility = visibility,
+        import_path = _import_path(name, root_dir, additional_context),
+    )
+
+def go_grpc_language():
+    """A rule for a grpc language for go
+    see https://github.com/please-build/proto-rules/blob/master/build_defs/sdk/sdk.build_defs for more info
+    """
+    return proto_language(
+        language = "go",
+        build_def = go_grpc_library,
+        additional_provides={"go_src": "go_srcs", "modinfo": "go_modinfo"},
+    )
+
+def go_proto_language():
+    """A rule for a proto language for go
+    see https://github.com/please-build/proto-rules/blob/master/build_defs/sdk/sdk.build_defs for more info
+    """
+    return proto_language(
+        language = "go",
+        build_def = go_proto_library,
+        additional_provides={"go_src": "go_srcs", "modinfo": "go_modinfo"},
+    )

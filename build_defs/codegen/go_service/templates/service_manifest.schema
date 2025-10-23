@@ -1,0 +1,209 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["name", "project"],
+    "additionalProperties": false,
+    "properties": {
+        "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$"
+        },
+        "namespace": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$"
+        },
+        "project": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$"
+        },
+        "job": {
+            "type": "boolean"
+        },
+        "setup": {
+            "type": "boolean"
+        },
+        "configuration": {
+            "type": "boolean"
+        },
+        "service": {
+            "type": "string",
+            "pattern": "^//[a-zA-Z0-9/_-]+$"
+        },
+        "grpc": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "servers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^//[a-zA-Z0-9/_-]+:api$"
+                    }
+                },
+                "clients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^//[a-zA-Z0-9/_-]+:(api|chat)$"
+                    }
+                }
+            }
+        },
+        "nats": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "client": {
+                    "type": "boolean"
+                },
+                "publishers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[A-Z_]+$"
+                    }
+                },
+                "consumers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["subject", "cg", "batch_size"],
+                        "properties": {
+                            "subject": {
+                                "type": "string",
+                                "pattern": "^[A-Z_]+$"
+                            },
+                            "cg": {
+                                "type": "string",
+                                "pattern": "^[a-z_]+$"
+                            },
+                            "batch_size": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "fn": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z]+$"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "postgres": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "client": {
+                    "type": "boolean"
+                },
+                "db": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name"],
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        },
+                        "implementation": {
+                            "type": "string",
+                            "pattern": "^//[a-zA-Z0-9/_-]+/db$"
+                        }
+                    }
+                }
+            }
+        },
+        "google": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "firebase": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "authentication": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "storage": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "openAI": {
+            "type": "boolean"
+        },
+        "k8s": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dockerImage"],
+            "properties": {
+                "dockerImage": {
+                    "type": "string",
+                    "pattern": "^//[a-zA-Z0-9/_-]+:docker_image$"
+                },
+                "replicas": {
+                    "type": "integer"
+                },
+                "requestMemory": {
+                    "type": "string",
+                    "pattern": "^[0-9]+[KMGTPi]+$"
+                },
+                "requestCpu": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^[0-9]+m$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "limitMemory": {
+                    "type": "string",
+                    "pattern": "^[0-9]+[KMGTPi]+$"
+                },
+                "limitCpu": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^[0-9]+m$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["name", "secret", "key"],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "secret": {
+                                "type": "string"
+                            },
+                            "key": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

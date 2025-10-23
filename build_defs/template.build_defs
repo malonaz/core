@@ -1,0 +1,113 @@
+def templated_text_file(filename:str, content:str, replace={}, deps=[]):
+    """
+    templated_text_file is a utility function that creates a file with the given filename, and content.
+    the `replace` parameter allows a user to pass-in substitutions.
+    """
+    cmd = f"echo -e '{content}'"
+    for key, value in replace.items():
+        cmd += f" | sed 's@{key}@{value}@g'"
+    cmd += " | sed '/^$/d'" # Remove blank lines.
+    cmd += " > $OUTS"
+    return genrule(
+        name = f'{filename}',
+        cmd = cmd,
+        outs = [f'{filename}'],
+        deps = deps,
+    )
+
+def text_template(
+        name:str,
+        src:str,
+        visibility:list=[],
+        delims:str=None,
+):
+    args = [
+        f"--output {name}",
+        f"--template $(location {src})",
+    ]
+    if delims:
+        args.append(f"--delims '{delims}'")
+
+    return genrule(
+        name=name,
+        cmd = [
+            f"$TOOLS " + " ".join(args),
+        ],
+        tools = [CONFIG.CORE.TEMPLATES_GO],
+        srcs = [src],
+        outs = [name],
+        labels = ["codegen"],
+        visibility = visibility,
+    )
+
+def go_template(
+        name:str,
+        templates:list=[],
+        data:str=None,
+        extra_data:dict=None,
+        format:str="json",
+        deps:list=[],
+        visibility:list=[],
+):
+    # Handle templates that need export_file rules
+    processed_templates = []
+    template_deps = []
+
+    for i, t in enumerate(templates):
+        if not t.startswith('//') and not t.startswith(':'):
+            # Create an export_file rule for this template
+            f = export_file(
+                name = f"{name}_template_{i}",
+                src = t,
+            )
+            processed_templates.append(f)
+            template_deps.append(f)
+        else:
+            processed_templates.append(t)
+            template_deps.append(t)
+
+    args = [
+        f"--output {name}",
+        f"--data-format {format}",
+    ] + [f"--template $(location {t})" for t in processed_templates]
+
+    if data:
+        args.append(f"--data $(location {data})")
+    if extra_data:
+        for k, v in extra_data:
+            args += f"--extra-data {k}:{v}"
+
+    return genrule(
+        name=name,
+        cmd = [
+            f"$TOOLS " + " ".join(args),
+            "gofmt -w $OUTS",
+        ],
+        tools = [CONFIG.CORE.TEMPLATES_GO],
+        deps = deps + template_deps + ([data] if data else []),
+        outs = [name],
+        labels = ["codegen"],
+        visibility = visibility,
+    )
+
+def validated_file(
+        name:str,
+        src:str,
+        schema:str,
+        format:str="json",
+        exported_deps:list=[],
+        visibility:list=[],
+):
+    return genrule(
+        name = name,
+        srcs = [src],
+        exported_deps = exported_deps,
+        cmd = [
+            f"$TOOLS --file $SRCS --format {format} --schema $(location {schema})",
+            "mv $SRCS $OUTS"
+        ],
+        deps = [schema],
+        out = name,
+        tools = [CONFIG.CORE.VALIDATE_SCHEMA],
+        visibility=visibility,
+    )

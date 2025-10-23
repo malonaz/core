@@ -1,0 +1,9 @@
+go_binary(
+    name = "validate-schema",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__xeipuuv__gojsonschema",
+        "//third_party/go:gopkg.in__yaml.v3",
+    ],
+)

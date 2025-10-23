@@ -1,0 +1,16 @@
+{{- define "goImport" -}}
+    {{- $path := .Target | replace ":" "/" | trimPrefix "//" -}}
+    {{- if not (empty .As) }}{{ .As }} {{ end }}"{{ $path -}}"
+{{- end -}}
+
+{{ define "pbFileDescriptor" -}}
+    File_{{- . | replace ":" "/" | trimPrefix "//" | replace "/" "_" -}}_proto
+{{- end }}
+
+{{ define "natsPublisher" }}
+    {{- $replaced := . | replace "." "_" -}}
+    {{- $camelCase := $replaced | snakecase | camelcase -}}
+    {{- $firstChar := substr 0 1 $camelCase | lower -}}
+    {{- $rest := substr 1 (len $camelCase) $camelCase -}}
+    {{- printf "%s%sPublisher" $firstChar $rest -}}
+{{ end }}

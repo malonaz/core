@@ -1,0 +1,77 @@
+def github_file(name, repo, file, revision='master', out=None, hash=None, visibility=None, test_only=False):
+    """Defines a rule to fetch a file from Github.
+
+    This is just a convenience wrapper around remote_file but is somewhat clearer to write.
+
+    Args:
+      name (str): Name of the rule.
+      repo (str): Repository to fetch from (e.g. thought-machine/please).
+      file (str): File in the repo to fetch (e.g. src/parse/rules/misc_rules.py).
+      revision (str): Git revision to fetch from. Defaults to most recent on master.
+      out (str): Name of the output file
+      hash (str): Hash of downloaded file. You should set 'revision' if you set this.
+      visibility (list): Visibility declaration of the rule.
+      test_only (bool): If true the rule is only visible to test targets.
+    """
+    if revision == 'master' and hash:
+        log.warning('Your github_file rule fetches from master but is hash verified; this '
+                    'is prone to breaking if upstream changes at any point.')
+    return remote_file(
+        name = name,
+        url = 'https://' + join_path('raw.githubusercontent.com', repo, revision, file),
+        out = out,
+        hashes = [hash] if hash else None,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+def github_proto_srcs(
+        name:str,
+        repo:str,
+        revision:str,
+        dir:str,
+        files:list,
+):
+    """Downloads and organizes protocol buffer source files from a GitHub repository.
+
+    This function fetches multiple proto files from a GitHub repository while maintaining
+    their directory structure. It creates a filegroup containing all the downloaded files.
+
+    Args:
+        name (str): Name of the rule and used as package name if it matches the last directory component.
+        repo (str): GitHub repository to fetch files from (e.g., "grpc-ecosystem/grpc-gateway").
+        revision (str): Git revision/branch/tag to fetch from.
+        dir (str): Directory path in the repository where the proto files are located.
+        files (list): List of proto files to download (relative to dir).
+
+    Returns:
+        A filegroup rule containing all the downloaded and processed proto files.
+    """
+
+    srcs = []
+    sub_directory = "/".join(dir.split("/")[1:])
+
+    # Package name will be folder name. So we don't want to remove it.
+    sub_directory = "/" + sub_directory if sub_directory != name else ""
+    for f in files:
+        sanitized_filename = f.replace("/", "_")
+        src = github_file(
+            name = f"_{name}#{sanitized_filename}",
+            out = f,
+            file = join_path(dir, f),
+            repo = repo,
+            revision = revision,
+        )
+        new_src_name = f"_{name}#{sanitized_filename}_correct_packages"
+        new_src = genrule(
+            name = new_src_name,
+            srcs = [src],
+            out = join_path(dir, f),
+            cmd = "cat $SRCS > $OUT",
+        )
+        srcs += [new_src]
+    return filegroup(
+        name = name,
+        srcs=srcs,
+        exported_deps=srcs,
+    )

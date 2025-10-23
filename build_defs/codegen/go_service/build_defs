@@ -1,0 +1,121 @@
+subinclude("//build_defs:template")
+subinclude("//build_defs:docker")
+subinclude("//build_defs:k8s")
+
+def go_manifest(
+        name:str,
+        manifest:str="manifest.yaml",
+        proto_rules:list=[],
+        visibility:list=[],
+        schema:str="///core//build_defs/codegen/go_service/templates:service_manifest.schema",
+):
+
+    templated_manifest = text_template(
+        name = "manifest_templated.yaml",
+        src = manifest,
+    )
+    return validated_file(
+        name = name,
+        src=templated_manifest,
+        schema = schema,
+        format="yaml",
+        exported_deps = proto_rules,
+        visibility=visibility,
+    )
+
+def go_service_runtime_src(
+        name:str,
+        visibility:list=[],
+):
+    return go_template(
+        name = f"{name}",
+        templates = [
+            "///core//build_defs/codegen/go_service/templates:service.runtime.go.tmpl",
+        ],
+        format = "yaml",
+        visibility = visibility,
+    )
+
+def go_service_src(
+        name:str,
+        manifest:str,
+        templates:list=[],
+        visibility:list=[],
+):
+    if len(templates) == 0:
+        templates = ["///core//build_defs/codegen/go_service/templates:service.go.tmpl"]
+    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+    return go_template(
+        name = f"{name}",
+        templates = templates,
+        data = manifest,
+        format = "yaml",
+        visibility = visibility,
+    )
+
+
+def go_main_src(
+        name:str,
+        manifest:str,
+        templates:list=[],
+        visibility:list=[],
+):
+    if len(templates) == 0:
+        templates = ["///core//build_defs/codegen/go_service/templates:main.go.tmpl"]
+    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+
+    return go_template(
+        name = f"{name}",
+        templates = templates,
+        data = manifest,
+        format = "yaml",
+        visibility = visibility,
+    )
+
+
+def go_admin_api_main_src(
+        name:str,
+        manifest:str,
+        visibility:list=[],
+):
+    return go_template(
+        name = f"{name}",
+        templates = [
+            "///core//build_defs/codegen/go_service/templates:admin_api_main.go.tmpl",
+            "///core//build_defs/codegen/go_service/templates:utils.go.tmpl",
+        ],
+        data = manifest,
+        format = "yaml",
+        visibility = visibility,
+    )
+
+
+def go_k8s(
+        manifest:str,
+        binary:str,
+        resources:list=[],
+        deps:list=[],
+):
+    ########################### DOCKER IMAGE ###########################
+    docker_image = distroless_go(
+        name = "docker_image",
+        binary = binary,
+        resources=resources,
+    )
+
+    ########################### K8S DEPLOYMENT ###########################
+    k8s = go_template(
+        name = "k8s_templated.yaml",
+        templates = [
+            "///core//build_defs/codegen/go_service/templates:k8s.yaml.tmpl",
+            "///core//build_defs/codegen/go_service/templates:utils.go.tmpl",
+        ],
+        data = manifest,
+        format = "yaml",
+        deps = deps,
+    )
+    k8s_config(
+        name = "k8s",
+        srcs = [k8s],
+        containers = [docker_image],
+    )

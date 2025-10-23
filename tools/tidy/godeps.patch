@@ -1,0 +1,123 @@
+diff --git a/cmd/godeps/generate_builtin.go b/cmd/godeps/generate_builtin.go
+index 6216332..7930dfe 100644
+--- a/cmd/godeps/generate_builtin.go
++++ b/cmd/godeps/generate_builtin.go
+@@ -11,7 +11,9 @@ import (
+ 	"github.com/sagikazarmark/please-go-modules/pkg/depgraph"
+ )
+ 
+-func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noExpand bool) (*buildify.File, bool, map[string]string) {
++func generateBuiltinBuildFiles(
++  moduleList []depgraph.Module, ruleDir string, noExpand bool, moduleNameToPatches map[string][]string,
++) (*buildify.File, bool, map[string]string) {
+ 	file := newFile("", subinclude)
+ 	var generateOsConfig bool
+ 	knownDeps := make(map[string]string)
+@@ -57,9 +59,33 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+ 						Op:  "=",
+ 						RHS: &buildify.StringExpr{Value: module.Version},
+ 					},
++					&buildify.AssignExpr{
++						LHS: &buildify.Ident{Name: "visibility"},
++						Op:  "=",
++						RHS: &buildify.ListExpr{
++							List: []buildify.Expr{
++								&buildify.StringExpr{Value: "PUBLIC"},
++							},
++						},
++					},
+ 				},
+ 			}
+ 
++      if patches, ok := moduleNameToPatches[name]; ok && len(patches) > 0 {
++        list := []buildify.Expr{}
++        for _, patch := range patches {
++          list = append(list, &buildify.StringExpr{Value: patch})
++        }
++        patchAssignExpr := &buildify.AssignExpr{
++          LHS: &buildify.Ident{Name: "patch"},
++          Op:  "=",
++          RHS: &buildify.ListExpr{
++            List: list,
++          },
++        }
++        rule.List = append(rule.List, patchAssignExpr)
++      }
++
+ 			file.Stmt = append(file.Stmt, rule)
+ 
+ 			for _, pkg := range module.Packages {
+diff --git a/cmd/godeps/main.go b/cmd/godeps/main.go
+index 415d199..b652cbe 100644
+--- a/cmd/godeps/main.go
++++ b/cmd/godeps/main.go
+@@ -89,11 +89,25 @@ func main() {
+ 		ruleDir = path.Join(*base, *dir)
+ 	}
+ 
++  // Parse the BUILD file if it exists.
++  moduleNameToPatches := map[string][]string{}
++  filename := path.Join(ruleDir, "patches.json")
++  bytes, err := os.ReadFile(filename)
++  if err != nil {
++    if !os.IsNotExist(err) {
++      log.Fatalf("File %s does not exist: %v", filename, err)
++    }
++  } else {
++    if err := json.Unmarshal(bytes, &moduleNameToPatches); err != nil {
++      log.Fatalf("unmarshaling %s: %v", filename, err)
++    }
++  }
++
+ 	var buildFiles map[string]*buildify.File
+ 	var filePaths []string
+ 	var knownDependencies map[string]string
+ 
+-	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand)
++	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand, moduleNameToPatches)
+ 
+ 	if generateOsConfig {
+ 		file.Stmt = append(generateOsConfigExprs(""), file.Stmt...)
+@@ -168,9 +182,15 @@ func main() {
+ 		}
+ 
+ 		if *wollemi && len(knownDependencies) > 0 {
+-			wollemiConfig := map[string]interface{}{
+-				"known_dependency": knownDependencies,
++			bytes, err := os.ReadFile(".wollemi.json")
++			if err != nil {
++				panic(err)
++			}
++			wollemiConfig := map[string]interface{}{}
++			if err := json.Unmarshal(bytes, &wollemiConfig); err != nil {
++				panic(err)
+ 			}
++			wollemiConfig["known_dependency"] = knownDependencies
+ 
+ 			file, err := os.OpenFile(".wollemi.json", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+ 			if err != nil {
+diff --git a/cmd/godeps/platform.go b/cmd/godeps/platform.go
+index b15b04e..532304c 100644
+--- a/cmd/godeps/platform.go
++++ b/cmd/godeps/platform.go
+@@ -14,5 +14,4 @@ func (p Platform) String() string {
+ var SupportedPlatforms = []Platform{
+ 	{"linux", "amd64"},
+ 	{"darwin", "amd64"},
+-	{"darwin", "arm64"},
+ }
+diff --git a/pkg/depgraph/depgraph.go b/pkg/depgraph/depgraph.go
+index 78e9f69..03f853d 100644
+--- a/pkg/depgraph/depgraph.go
++++ b/pkg/depgraph/depgraph.go
+@@ -312,7 +312,9 @@ func packageFilter(rootModule string, pkg golist.Package) bool {
+ 	if pkg.Standard {
+ 		return false
+ 	}
+-
++	if pkg.Module == nil {
++		return false
++	}
+ 	// We don't care about the root module for now
+ 	if pkg.Module.Path == rootModule {
+ 		return false

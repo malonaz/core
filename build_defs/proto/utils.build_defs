@@ -1,0 +1,73 @@
+subinclude(
+    "//build_defs:remote",
+    "///proto//build_defs:proto",
+)
+
+def github_proto_library(
+        name:str,
+        repo:str,
+        revision:str,
+        dir:str,
+        files:list,
+        deps:list=[],
+        protoc_flags:list=[],
+
+        additional_context:dict=None,
+):
+    """
+    A github proto library.
+    """
+    src = github_proto_srcs(
+        name = f"_{name}#srcs",
+        dir = dir,
+        files = files,
+        repo = repo,
+        revision = revision,
+    )
+
+    return proto_library(
+        name = name,
+        srcs = [src],
+        protoc_flags = protoc_flags + ["-I" + package_name()],
+        additional_context = additional_context,
+        deps = deps,
+    )
+
+def external_github_proto_library(
+        name:str,
+        repo:str,
+        revision:str,
+        files:list,
+        dir:str,
+        go_dep:str,
+):
+    """ Used to grab third party protofiles, but use an external go_dep.
+    This is used when we don't want to compile the go library ourselves and want to use an external one instead.
+    """
+    srcs = []
+    for f in files:
+        sanitized_filename = f.replace("/", "_")
+        src = github_file(
+            name = f"_{name}#{sanitized_filename}",
+            out = f,
+            file = f,
+            repo = repo,
+            revision = revision,
+        )
+        new_src_name = f"_{name}#{sanitized_filename}_correct_packages"
+        new_src = genrule(
+            name = new_src_name,
+            srcs = [src],
+            out = join_path(dir, basename(f)),
+            cmd = "cat $SRCS > $OUT",
+        )
+        srcs += [new_src]
+    return filegroup(
+        name = name,
+        srcs = srcs,
+        exported_deps = srcs,
+        provides = {
+            "go": go_dep,
+            "proto": srcs,
+        },
+    )

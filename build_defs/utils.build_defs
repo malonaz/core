@@ -1,0 +1,11 @@
+def go_copy(
+        name:str,
+        src:str,
+):
+    return genrule(
+        name=name,
+        srcs = [src],
+        cmd = f"mv $SRCS $OUT",
+        out=name,
+        requires=["go"],
+    )

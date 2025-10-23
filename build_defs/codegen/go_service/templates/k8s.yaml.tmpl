@@ -1,0 +1,219 @@
+{{- $hasAdminAPIClient := false -}}
+{{- if .grpc.clients }}
+    {{- range $grpcClient := .grpc.clients -}}
+        {{- if (contains "admin_api/proto/v1" $grpcClient) -}}
+            {{- $hasAdminAPIClient = true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- $googleFirebase := false -}}
+{{- $googleStorage := false -}}
+{{- if .google.firebase -}}{{- $googleFirebase = true -}}{{- end -}}
+{{- if .google.storage -}}{{- $googleStorage = true -}}{{- end -}}
+{{- $allGrpcClients := list -}}
+{{- if .grpc.clients -}}
+    {{- $allGrpcClients = concat $allGrpcClients .grpc.clients -}}
+{{- end -}}
+{{- $allNatsPublishers := list -}}
+{{- if .grpc.handlers -}}
+    {{- range $handler := .grpc.handlers -}}
+        {{- if $handler.google.firebase -}}{{- $googleFirebase = true -}}{{- end -}}
+        {{- if $handler.google.storage -}}{{- $googleStorage = true -}}{{- end -}}
+        {{- if $handler.clients -}}
+            {{- $allGrpcClients = concat $allGrpcClients $handler.clients -}}
+        {{- end -}}
+        {{- range .nats.publishers -}}
+            {{- $allNatsPublishers = append $allNatsPublishers . -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- $allGrpcClients = uniq $allGrpcClients -}}
+
+
+{{ if .job }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .name }}
+  namespace: {{ if .namespace }}{{ .namespace }}default{{ end }}
+  labels:
+    project: {{ .project }}
+    app: {{ .name }}
+spec:
+  template:
+    metadata:
+      labels:
+        project: {{ .project }}
+        app: nats-topic-manager
+    spec:
+      containers:
+      - name: main
+        image: {{ .k8s.dockerImage }}
+        args:
+          {{ if or .nats $allNatsPublishers }}- --nats.url=nats-server:4222{{ end }}
+      restartPolicy: OnFailure
+{{ else }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .name }}
+  namespace: {{ if .namespace }}{{ .namespace }}default{{ end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+  labels:
+    project: {{ .project }}
+    app: {{ .name }}
+spec:
+  replicas: {{ if .k8s.replicas }}{{ .k8s.replicas }}{{ else }}1{{ end }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      project: {{ .project }}
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        project: {{ .project }}
+        app: {{ .name }}
+    spec:
+      serviceAccountName: {{ .name }}
+      containers:
+      - name: main
+        image: {{ .k8s.dockerImage }}
+        args:
+          {{ range .k8s.args }}
+          - {{ . }}
+          {{ end -}}
+          {{ if .nats }}- --nats.url=nats-server:4222{{ end }}
+          {{ if .openAI }}- --open-ai.base-url=https://api.openai.com/v1{{ end }}
+          {{ if $hasAdminAPIClient }}- --admin-api-grpc.host=kubernetes:///admin-api{{ end }}
+          {{- range $i, $grpcClient := $allGrpcClients }}
+          {{ if not (contains "admin/admin_api/proto/v1" $grpcClient) }}- --{{ grpcSvcName $grpcClient | kebabcase }}.host=kubernetes:///{{ grpcSvcName $grpcClient | kebabcase }}{{ end }}
+          {{ end }}
+        resources:
+          requests:
+            memory: {{ .k8s.requestMemory }}
+            cpu: {{ .k8s.requestCpu }}
+          limits:
+            memory: {{ .k8s.limitMemory }}
+            cpu: {{ .k8s.limitCpu }}
+        ports:
+        - containerPort: 13434
+          name: prometheus
+        {{- range .k8s.ports }}
+        - containerPort: {{ .port }}
+          name: {{ .name }}
+        {{ end }}
+        {{ if .k8s.env }}
+        {{ if doOnce "env" }}env:{{ end }}
+        {{ range .k8s.env }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secret }}
+              key: {{ .key }}
+        {{ end }}
+        {{ end }}
+
+        {{ if .openAI }}
+        {{ if doOnce "env" }}env:{{ end }}
+        - name: OPEN_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: open-ai
+              key: API_KEY_{{ .name | snakecase | upper }}
+        {{ end }}
+        {{ if .postgres -}}
+        {{ if doOnce "envFrom" }}envFrom:{{ end }}
+          - secretRef:
+              name: {{ .postgres.db.name }}-db
+          {{ end }}
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 4040
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /liveness
+            port: 4040
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+{{/* ################# VOLUME MOUNTS ############## */}}
+{{- if $googleFirebase }}
+        {{ if doOnce "volumeMounts" }}volumeMounts:{{ end }}
+        - name: firebase-secret
+          mountPath: /secrets/firebase/
+          readOnly: true
+{{ end -}}
+{{- if $googleStorage }}
+        {{ if doOnce "volumeMounts" }}volumeMounts:{{ end }}
+        - name: google-storage
+          mountPath: /secrets/google-storage/
+          readOnly: true
+{{ end -}}
+{{/* ################# VOLUMEs ############## */}}
+{{- if $googleFirebase }}
+      {{ if doOnce "volumes" }}volumes:{{ end }}
+      - name: firebase-secret
+        secret:
+          secretName: firebase
+{{ end }}
+{{- if $googleStorage }}
+      {{ if doOnce "volumes" }}volumes:{{ end }}
+      - name: google-storage
+        secret:
+          secretName: google-storage
+{{ end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  namespace: {{ if .namespace }}{{ .namespace }}default{{ end }}
+  labels:
+    project: {{ .project }}
+    app: {{ .name }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "13434"
+    {{- range .k8s.svc.annotations }}
+    {{ .key }}: '{{ .value }}'{{ end }}
+spec:
+  type: {{ ternary "ClusterIP" .k8s.svc.type (empty .k8s.svc.type) }}
+  {{ ternary "clusterIP: None" "" (empty .k8s.svc.type) }}
+  ports:
+  - port: 13434
+    name: prometheus
+  {{- range .k8s.ports }}
+  - port: {{ .port }}
+    name: {{ .name }}
+    {{ if .targetPort }}targetPort: {{ .targetPort }}{{ end }}
+    {{ if .protocol }}protocol: {{ .protocol }}{{ end }}
+  {{ end }}
+  selector:
+    project: {{ .project }}
+    app: {{ .name }}
+{{ end }}
+{{ if .k8s.backendConfig }}
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: {{ .name }}
+  namespace: {{ if .namespace }}{{ .namespace }}default{{ end }}
+  labels:
+    project: {{ .project }}
+    app: {{ .name }}
+spec:
+  healthCheck:
+    requestPath: /readiness
+    port: 4040
+    type: HTTP
+{{ end }}

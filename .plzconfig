@@ -15,7 +15,7 @@ preloadsubincludes = ///shell//build_defs:shell
 preloadSubincludes = ///python//build_defs:python
 preloadsubincludes = ///go//build_defs:go
 preloadsubincludes = ///proto//build_defs:proto
-preloadsubincludes = ///malonaz//build_defs/proto:utils
+preloadsubincludes = ///core//build_defs/proto:utils
 
 [Plugin "shell"]
 Target = //plugins:shell
@@ -31,18 +31,59 @@ CgoEnabled = true
 
 [Plugin "proto"]
 Target = //plugins:proto
-LanguageDef = ///malonaz//build_defs/proto:go
+LanguageDef = //build_defs/proto:go
 
-[Plugin "malonaz"]
-Target = //plugins:malonaz
+[Plugin "core"]
+Target = //plugins:core
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLUGIN ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[PluginDefinition]
+Name = core
+
+[PluginConfig "protoc_gen_go"]
+ConfigKey = ProtocGenGo
+DefaultValue = //tools/proto:protoc-gen-go
+
+[PluginConfig "protoc_gen_grpc_go"]
+ConfigKey = ProtocGenGrpcGo
+DefaultValue = //tools/proto:protoc-gen-go-grpc
+
+[PluginConfig "protoc_gen_go_dep"]
+ConfigKey = ProtocGenGoDep
+DefaultValue = //tools/proto:protoc-gen-go-dep
+
+[PluginConfig "protoc_gen_grpc_go_dep"]
+ConfigKey = ProtocGenGrpcGoDep
+DefaultValue = //tools/proto:protoc-gen-go-grpc-dep
+
+[PluginConfig "protoc_gen_cobra_go"]
+ConfigKey = ProtocGenCobraGo
+DefaultValue = //tools/proto:protoc-gen-cobra
+
+[PluginConfig "protoc_gen_grpc_gateway_go"]
+ConfigKey = ProtocGenGrpcGatewayGo
+DefaultValue = //tools/proto:protoc-gen-grpc-gateway
+
+[PluginConfig "protoc_gen_templates_go"]
+ConfigKey = ProtocGenTemplatesGo
+DefaultValue = //tools/protoc-templates
+
+[PluginConfig "templates_go"]
+ConfigKey = TemplatesGo
+DefaultValue = //tools/template
+
+[PluginConfig "validate_schema"]
+ConfigKey = ValidateSchema
+DefaultValue = //tools/validate-schema
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
-cmd = run ///malonaz//tools/tidy
+cmd = run //tools/tidy
 
 [alias "lint"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
-cmd = run ///malonaz//tools/tidy:lint
+cmd = //tools/tidy:lint
 
 [alias "gen"]
 desc = Copy generated code from plz-out to git

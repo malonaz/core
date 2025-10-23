@@ -1,0 +1,14 @@
+go_binary(
+    name = "template",
+    srcs = [
+        "functions.go",
+        "main.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/flags",
+        "//go/logging",
+        "//third_party/go:github.com__Masterminds__sprig__v3",
+        "//third_party/go:gopkg.in__yaml.v3",
+    ],
+)

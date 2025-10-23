@@ -1,0 +1,234 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["name", "project"],
+    "additionalProperties": false,
+    "properties": {
+        "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$"
+        },
+        "project": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$"
+        },
+        "google": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "firebase": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "authentication": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        },
+        "grpc": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "interceptors": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "authentication": {
+                            "type": "boolean"
+                        },
+                        "configurationHash": {
+                            "type": "boolean"
+                        },
+                        "rateLimiter": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "handlers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["server"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "server": {
+                                "type": "string",
+                                "pattern": "^//[a-zA-Z0-9/_-]+:[a-zA-Z0-9-]+$"
+                            },
+                            "gateway": {
+                                "type": "boolean"
+                            },
+                            "authorizationClient": {
+                                "type": "boolean"
+                            },
+                            "start": {
+                                "type": "boolean"
+                            },
+                            "configuration": {
+                                "type": "boolean"
+                            },
+                            "google": {
+                                "type": "object",
+                                "properties": {
+                                    "storage": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            },
+                            "handlers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "nats": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "publishers": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^[A-Z_]+$"
+                                        }
+                                    }
+                                }
+                            },
+                            "clients": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^//[a-zA-Z0-9/_-]+:[a-zA-Z0-9-]+$"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "k8s": {
+            "type": "object",
+            "required": ["dockerImage"],
+            "additionalProperties": false,
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "dockerImage": {
+                    "type": "string",
+                    "pattern": "^//[a-zA-Z0-9/_-]+:docker_image$"
+                },
+                "requestMemory": {
+                    "type": "string",
+                    "pattern": "^[0-9]+[KMGTPi]+$"
+                },
+                "requestCpu": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^[0-9]+m$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "limitMemory": {
+                    "type": "string",
+                    "pattern": "^[0-9]+[KMGTPi]+$"
+                },
+                "limitCpu": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^[0-9]+m$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "secret", "key"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "secret": {
+                                "type": "string"
+                            },
+                            "key": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "svc": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": ["NodePort"]
+                        },
+                        "annotations": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["key", "value"],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["port", "name"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "port": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "protocol": {
+                                "type": "string",
+                                "enum": ["TCP"]
+                            },
+                            "targetPort": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "backendConfig": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

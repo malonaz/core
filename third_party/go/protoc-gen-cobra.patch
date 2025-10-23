@@ -1,0 +1,101 @@
+diff --git a/client/client.go b/client/client.go
+index c1f404d..b497350 100644
+--- a/client/client.go
++++ b/client/client.go
+@@ -50,6 +50,8 @@ type Config struct {
+ 	preDialers  []PreDialer
+ 	inDecoders  map[string]iocodec.DecoderMaker
+ 	outEncoders map[string]iocodec.EncoderMaker
++
++	preOut func(v any) error
+ }
+ 
+ var DefaultConfig = &Config{
+@@ -179,7 +181,16 @@ func RoundTrip(ctx context.Context, cfg *Config, fn func(grpc.ClientConnInterfac
+ 	}
+ 	defer cc.Close()
+ 
+-	return fn(cc, in, out)
++	wrappedOut := out
++	if cfg.preOut != nil {
++		wrappedOut = func(v any) error {
++			if err := cfg.preOut(v); err != nil {
++				return err
++			}
++			return out(v)
++		}
++	}
++	return fn(cc, in, wrappedOut)
+ }
+ 
+ func (c *Config) makeDecoder() (iocodec.Decoder, error) {
+diff --git a/client/options.go b/client/options.go
+index c0a3f85..e84b301 100644
+--- a/client/options.go
++++ b/client/options.go
+@@ -113,3 +113,9 @@ func WithOutputEncoder(format string, maker iocodec.EncoderMaker) Option {
+ 		c.outEncoders = e
+ 	}
+ }
++
++func WithOutputPreInterceptor(fn func(v any) error) Option {
++	return func(c *Config) {
++		c.preOut = fn
++	}
++}
+diff --git a/cobra.go b/cobra.go
+index ae0d087..0685440 100644
+--- a/cobra.go
++++ b/cobra.go
+@@ -5,12 +5,24 @@ import (
+ 	"sort"
+ 	"strings"
+ 	"text/template"
++	"unicode"
+ 
+ 	"google.golang.org/protobuf/compiler/protogen"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/types/descriptorpb"
+ )
+ 
++func toKebabCase(s string) string {
++	var result strings.Builder
++	for i, r := range s {
++		if i > 0 && unicode.IsUpper(r) {
++			result.WriteRune('-')
++		}
++		result.WriteRune(unicode.ToLower(r))
++	}
++	return result.String()
++}
++
+ func genFile(gen *protogen.Plugin, file *protogen.File) error {
+ 	if len(file.Services) == 0 {
+ 		return nil
+@@ -37,7 +49,7 @@ func {{.GoName}}ClientCommand(options ...client.Option) *cobra.Command {
+ 	cfg := client.NewConfig(options...)
+ 	cmd := &cobra.Command{
+ 		Use: cfg.CommandNamer("{{.GoName}}"),
+-		Short: "{{.GoName}} service client",
++		Short: "Subcommands: {{ range .Methods }}{{ .GoName | kebabcase }} {{ end }}",
+ 		Long: {{.Comments.Leading | cleanComments | printf "%q"}},{{if .Desc.Options.GetDeprecated}}
+ 		Deprecated: "deprecated",{{end}}
+ 	}
+@@ -49,7 +61,7 @@ func {{.GoName}}ClientCommand(options ...client.Option) *cobra.Command {
+ }
+ `
+ 	serviceTemplate = template.Must(template.New("service").
+-			Funcs(template.FuncMap{"cleanComments": cleanComments}).
++		Funcs(template.FuncMap{"cleanComments": cleanComments, "kebabcase": toKebabCase}).
+ 			Parse(serviceTemplateCode))
+ 	serviceImports = []protogen.GoImportPath{
+ 		"github.com/NathanBaulch/protoc-gen-cobra/client",
+@@ -95,7 +107,7 @@ func _{{.Parent.GoName}}{{.GoName}}Command(cfg *client.Config) *cobra.Command {
+ 			}
+ 			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
+ 				cli := New{{.Parent.GoName}}Client(cc)
+-				v := &{{.Input.GoIdent.GoName}}{}
++				v := &{{.InputType}}{}
+ 	{{if .Desc.IsStreamingClient}}
+ 				stm, err := cli.{{.GoName}}(cmd.Context())
+ 				if err != nil {
