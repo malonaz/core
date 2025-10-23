@@ -6,7 +6,9 @@ toolchain go1.24.7
 
 require (
 	buf.build/go/protovalidate v1.0.0
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/google/go-cmp v0.7.0
+	github.com/google/go-jsonnet v0.21.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
@@ -63,4 +65,5 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/genproto v0.0.0-20240711142825-46eb208f015d // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )

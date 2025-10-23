@@ -16,6 +16,7 @@
         "cel.dev/expr": "//third_party/go:cel.dev__expr",
         "github.com/antlr4-go/antlr/v4": "//third_party/go:github.com__antlr4-go__antlr__v4",
         "github.com/beorn7/perks/quantile": "//third_party/go:github.com__beorn7__perks__quantile",
+        "github.com/cenkalti/backoff/v4": "//third_party/go:github.com__cenkalti__backoff__v4",
         "github.com/cespare/xxhash/v2": "//third_party/go:github.com__cespare__xxhash__v2",
         "github.com/davecgh/go-spew/spew": "//third_party/go:github.com__davecgh__go-spew__spew",
         "github.com/fsnotify/fsnotify": "//third_party/go:github.com__fsnotify__fsnotify",
@@ -56,6 +57,13 @@
         "github.com/google/go-cmp/cmp/internal/flags": "//third_party/go:github.com__google__go-cmp__cmp__internal__flags",
         "github.com/google/go-cmp/cmp/internal/function": "//third_party/go:github.com__google__go-cmp__cmp__internal__function",
         "github.com/google/go-cmp/cmp/internal/value": "//third_party/go:github.com__google__go-cmp__cmp__internal__value",
+        "github.com/google/go-jsonnet": "//third_party/go:github.com__google__go-jsonnet",
+        "github.com/google/go-jsonnet/ast": "//third_party/go:github.com__google__go-jsonnet__ast",
+        "github.com/google/go-jsonnet/astgen": "//third_party/go:github.com__google__go-jsonnet__astgen",
+        "github.com/google/go-jsonnet/internal/errors": "//third_party/go:github.com__google__go-jsonnet__internal__errors",
+        "github.com/google/go-jsonnet/internal/parser": "//third_party/go:github.com__google__go-jsonnet__internal__parser",
+        "github.com/google/go-jsonnet/internal/program": "//third_party/go:github.com__google__go-jsonnet__internal__program",
+        "github.com/google/go-jsonnet/toolutils": "//third_party/go:github.com__google__go-jsonnet__toolutils",
         "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
@@ -132,6 +140,7 @@
         "go.einride.tech/aip/fieldmask": "//third_party/go:go.einride.tech__aip__fieldmask",
         "go.yaml.in/yaml/v2": "//third_party/go:go.yaml.in__yaml__v2",
         "golang.org/x/crypto/pbkdf2": "//third_party/go:golang.org__x__crypto__pbkdf2",
+        "golang.org/x/crypto/sha3": "//third_party/go:golang.org__x__crypto__sha3",
         "golang.org/x/exp/slices": "//third_party/go:golang.org__x__exp__slices",
         "golang.org/x/net/context": "//third_party/go:golang.org__x__net__context",
         "golang.org/x/net/http/httpguts": "//third_party/go:golang.org__x__net__http__httpguts",
@@ -143,6 +152,7 @@
         "golang.org/x/net/trace": "//third_party/go:golang.org__x__net__trace",
         "golang.org/x/sync/errgroup": "//third_party/go:golang.org__x__sync__errgroup",
         "golang.org/x/sync/semaphore": "//third_party/go:golang.org__x__sync__semaphore",
+        "golang.org/x/sys/cpu": "//third_party/go:golang.org__x__sys__cpu",
         "golang.org/x/sys/unix": "//third_party/go:golang.org__x__sys__unix",
         "golang.org/x/text/cases": "//third_party/go:golang.org__x__text__cases",
         "golang.org/x/text/feature/plural": "//third_party/go:golang.org__x__text__feature__plural",
@@ -284,6 +294,8 @@
         "google.golang.org/protobuf/types/known/timestamppb": "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "google.golang.org/protobuf/types/known/wrapperspb": "//third_party/go:google.golang.org__protobuf__types__known__wrapperspb",
         "gopkg.in/yaml.v2": "//third_party/go:gopkg.in__yaml.v2",
-        "gopkg.in/yaml.v3": "//third_party/go:gopkg.in__yaml.v3"
+        "gopkg.in/yaml.v3": "//third_party/go:gopkg.in__yaml.v3",
+        "sigs.k8s.io/yaml": "//third_party/go:sigs.k8s.io__yaml",
+        "sigs.k8s.io/yaml/goyaml.v2": "//third_party/go:sigs.k8s.io__yaml__goyaml.v2"
     }
 }

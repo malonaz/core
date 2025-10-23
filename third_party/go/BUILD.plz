@@ -160,6 +160,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__cenkalti__backoff__v4",
+    _tag = "download",
+    module = "github.com/cenkalti/backoff/v4",
+    version = "v4.3.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__cenkalti__backoff__v4",
+    download = ":_github.com__cenkalti__backoff__v4#download",
+    install = ["."],
+    module = "github.com/cenkalti/backoff/v4",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__cespare__xxhash__v2",
     _tag = "download",
     module = "github.com/cespare/xxhash/v2",
@@ -768,6 +785,96 @@ go_module(
     module = "github.com/google/go-cmp",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__google__go-jsonnet",
+    _tag = "download",
+    module = "github.com/google/go-jsonnet",
+    version = "v0.21.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["."],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__go-jsonnet__ast",
+        ":github.com__google__go-jsonnet__astgen",
+        ":github.com__google__go-jsonnet__internal__errors",
+        ":github.com__google__go-jsonnet__internal__parser",
+        ":github.com__google__go-jsonnet__internal__program",
+        ":github.com__google__go-jsonnet__toolutils",
+        ":golang.org__x__crypto__sha3",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__ast",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["ast"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__astgen",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["astgen"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__google__go-jsonnet__ast"],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__internal__errors",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["internal/errors"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__google__go-jsonnet__ast"],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__internal__parser",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["internal/parser"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__go-jsonnet__ast",
+        ":github.com__google__go-jsonnet__internal__errors",
+    ],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__internal__program",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["internal/program"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__go-jsonnet__ast",
+        ":github.com__google__go-jsonnet__internal__errors",
+        ":github.com__google__go-jsonnet__internal__parser",
+    ],
+)
+
+go_module(
+    name = "github.com__google__go-jsonnet__toolutils",
+    download = ":_github.com__google__go-jsonnet#download",
+    install = ["toolutils"],
+    module = "github.com/google/go-jsonnet",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__go-jsonnet__ast",
+        ":github.com__google__go-jsonnet__internal__parser",
+    ],
 )
 
 go_mod_download(
@@ -1501,8 +1608,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -1884,6 +1991,15 @@ go_module(
     deps = [],
 )
 
+go_module(
+    name = "golang.org__x__crypto__sha3",
+    download = ":_golang.org__x__crypto#download",
+    install = ["sha3"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__sys__cpu"],
+)
+
 go_mod_download(
     name = "golang.org__x__exp",
     _tag = "download",
@@ -2025,6 +2141,15 @@ go_mod_download(
     module = "golang.org/x/sys",
     version = "v0.35.0",
     visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "golang.org__x__sys__cpu",
+    download = ":_golang.org__x__sys#download",
+    install = ["cpu"],
+    module = "golang.org/x/sys",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_module(
@@ -3918,6 +4043,32 @@ go_module(
     download = ":_gopkg.in__yaml.v3#download",
     install = ["."],
     module = "gopkg.in/yaml.v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "sigs.k8s.io__yaml",
+    _tag = "download",
+    module = "sigs.k8s.io/yaml",
+    version = "v1.4.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "sigs.k8s.io__yaml",
+    download = ":_sigs.k8s.io__yaml#download",
+    install = ["."],
+    module = "sigs.k8s.io/yaml",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__yaml__goyaml.v2"],
+)
+
+go_module(
+    name = "sigs.k8s.io__yaml__goyaml.v2",
+    download = ":_sigs.k8s.io__yaml#download",
+    install = ["goyaml.v2"],
+    module = "sigs.k8s.io/yaml",
     visibility = ["PUBLIC"],
     deps = [],
 )
