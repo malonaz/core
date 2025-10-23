@@ -1,6 +1,6 @@
 go_library(
-    name = "admin_api",
-    srcs = ["admin_api.pb.go"],
+    name = "gateway",
+    srcs = ["gateway.pb.go"],
     visibility = ["//..."],
     deps = [
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

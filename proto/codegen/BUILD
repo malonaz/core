@@ -6,8 +6,8 @@ proto_library(
 )
 
 proto_library(
-    name = "admin_api",
-    srcs = ["admin_api.proto"],
+    name = "gateway",
+    srcs = ["gateway.proto"],
 )
 
 proto_library(

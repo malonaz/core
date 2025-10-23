@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package malonaz.core.codegen.admin_api.v1;
+package malonaz.core.codegen.gateway.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/core/genproto/codegen/admin_api";
+option go_package = "github.com/malonaz/core/genproto/codegen/gateway";
 
 extend google.protobuf.ServiceOptions {
   ServiceOpts service_opts = 112211;
@@ -12,12 +12,12 @@ extend google.protobuf.ServiceOptions {
 
 extend google.protobuf.MethodOptions {
   // If true, a custom handler is used.
-  MethodOpts method_opts = 22942;
+  HandlerOpts handler_opts = 22942;
 }
 
 message ServiceOpts {}
 
-message MethodOpts {
+message HandlerOpts {
   // If true, a custom handler is used.
-  bool custom_handler = 1;
+  bool custom = 1;
 }
