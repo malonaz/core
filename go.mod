@@ -4,6 +4,8 @@ go 1.24.0
 
 toolchain go1.24.7
 
+replace github.com/bazelbuild/buildtools => github.com/peterebden/buildtools v0.0.0-20201001123124-f7a36c689cc9
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
 	buf.build/go/protovalidate v1.0.0

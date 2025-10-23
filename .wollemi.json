@@ -26,7 +26,6 @@
         "github.com/NathanBaulch/protoc-gen-cobra/ptypes": "//third_party/go:github.com__NathanBaulch__protoc-gen-cobra__ptypes",
         "github.com/antlr4-go/antlr/v4": "//third_party/go:github.com__antlr4-go__antlr__v4",
         "github.com/bazelbuild/buildtools/build": "//third_party/go:github.com__bazelbuild__buildtools__build",
-        "github.com/bazelbuild/buildtools/labels": "//third_party/go:github.com__bazelbuild__buildtools__labels",
         "github.com/bazelbuild/buildtools/tables": "//third_party/go:github.com__bazelbuild__buildtools__tables",
         "github.com/beorn7/perks/quantile": "//third_party/go:github.com__beorn7__perks__quantile",
         "github.com/cenkalti/backoff/v4": "//third_party/go:github.com__cenkalti__backoff__v4",

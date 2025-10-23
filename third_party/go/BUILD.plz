@@ -322,8 +322,8 @@ go_module(
 go_mod_download(
     name = "github.com__bazelbuild__buildtools",
     _tag = "download",
-    module = "github.com/bazelbuild/buildtools",
-    version = "v0.0.0-20250930140053-2eb4fccefb52",
+    module = "github.com/peterebden/buildtools",
+    version = "v0.0.0-20201001123124-f7a36c689cc9",
     visibility = ["PUBLIC"],
 )
 
@@ -333,19 +333,7 @@ go_module(
     install = ["build"],
     module = "github.com/bazelbuild/buildtools",
     visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__bazelbuild__buildtools__labels",
-        ":github.com__bazelbuild__buildtools__tables",
-    ],
-)
-
-go_module(
-    name = "github.com__bazelbuild__buildtools__labels",
-    download = ":_github.com__bazelbuild__buildtools#download",
-    install = ["labels"],
-    module = "github.com/bazelbuild/buildtools",
-    visibility = ["PUBLIC"],
-    deps = [],
+    deps = [":github.com__bazelbuild__buildtools__tables"],
 )
 
 go_module(
