@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/malonaz/core/go/certs"
-	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
+	"github.com/malonaz/core/go/grpc/interceptor"
 	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/prometheus"
 )
@@ -40,17 +40,13 @@ type Client struct {
 	unaryInterceptors []grpc.UnaryClientInterceptor
 	// The first interceptor is called first.
 	streamInterceptors []grpc.StreamClientInterceptor
-	// Streaming retry is handled differently because it panics on client-side streaming (not supported).
-	// We thus allow a client to disable it.
-	withStreamRetry bool
-	options         []grpc.DialOption
+	options            []grpc.DialOption
 }
 
 // NewClient creates and returns a new gRPC client.
 func NewClient(opts Opts, certsOpts certs.Opts, prometheusOpts prometheus.Opts) *Client {
 	client := &Client{
-		opts:            opts,
-		withStreamRetry: true,
+		opts: opts,
 	}
 
 	validator, err := protovalidate.New()
@@ -74,8 +70,8 @@ func NewClient(opts Opts, certsOpts certs.Opts, prometheusOpts prometheus.Opts) 
 	}
 
 	// Default interceptors.
-	client.unaryInterceptors = append(client.unaryInterceptors, grpc_interceptor.UnaryClientTrailerPropagation())
-	client.streamInterceptors = append(client.streamInterceptors, grpc_interceptor.StreamClientTrailerPropagation())
+	client.unaryInterceptors = append(client.unaryInterceptors, interceptor.UnaryClientTrailerPropagation())
+	client.streamInterceptors = append(client.streamInterceptors, interceptor.StreamClientTrailerPropagation())
 
 	if !prometheusOpts.Disable {
 		metrics := grpc_prometheus.NewClientMetrics(
@@ -88,17 +84,11 @@ func NewClient(opts Opts, certsOpts certs.Opts, prometheusOpts prometheus.Opts) 
 	}
 	client.unaryInterceptors = append(
 		client.unaryInterceptors,
-		grpc_interceptor.UnaryClientValidate(validator),
-		grpc_interceptor.UnaryClientTimeout(),
-		grpc_interceptor.UnaryClientRetry(),
+		interceptor.UnaryClientValidate(validator),
+		interceptor.UnaryClientTimeout(),
+		interceptor.UnaryClientRetry(),
 	)
 	return client
-}
-
-// WithoutStreamRetryInterceptor disables the stream retry interceptor for this client.
-func (c *Client) WithoutStreamRetryInterceptor() *Client {
-	c.withStreamRetry = false
-	return c
 }
 
 // WithOptions adds options to this gRPC client.
@@ -122,10 +112,8 @@ func (c *Client) WithStreamInterceptors(interceptors ...grpc.StreamClientInterce
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
 func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
-	if c.withStreamRetry {
-		// We put the retry interceptor first.
-		c.streamInterceptors = append([]grpc.StreamClientInterceptor{grpc_interceptor.StreamClientRetry()}, c.streamInterceptors...)
-	}
+	// We put the retry interceptor first.
+	c.streamInterceptors = append([]grpc.StreamClientInterceptor{interceptor.StreamClientRetry()}, c.streamInterceptors...)
 
 	// Chain interceptors.
 	if len(c.unaryInterceptors) > 0 {

@@ -1,9 +1,12 @@
 package interceptor
 
 import (
+	"context"
 	"time"
 
+	grpc_interceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
+	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
@@ -17,9 +20,15 @@ const (
 
 // DefaultRetriableCodes is a set of well known types gRPC codes that should be retri-able.
 // `Unavailable` means that system is currently unavailable and the client should retry again.
-var retriableCodes = []codes.Code{
-	codes.Unavailable,
-}
+var (
+	retriableCodes = []codes.Code{
+		codes.Unavailable,
+	}
+
+	allButClientStream = grpc_selector.MatchFunc(func(ctx context.Context, callMeta grpc_interceptors.CallMeta) bool {
+		return callMeta.Typ != grpc_interceptors.ClientStream && callMeta.Typ != grpc_interceptors.BidiStream
+	})
+)
 
 // UnaryClientRetry returns a gRPC DialOption that adds a default retrying interceptor to all unary RPC calls.
 // Only retries on ResourceExhausted and Unavailable errors.
@@ -33,9 +42,10 @@ func UnaryClientRetry() grpc.UnaryClientInterceptor {
 
 // StreamClientRetry returns a grpc retry interceptor.
 func StreamClientRetry() grpc.StreamClientInterceptor {
-	return grpc_retry.StreamClientInterceptor(
+	interceptor := grpc_retry.StreamClientInterceptor(
 		grpc_retry.WithBackoff(grpc_retry.BackoffExponential(retryBackoff)),
 		grpc_retry.WithMax(maxRetries),
 		grpc_retry.WithCodes(retriableCodes...),
 	)
+	return grpc_selector.StreamClientInterceptor(interceptor, allButClientStream)
 }
