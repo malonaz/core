@@ -42,8 +42,6 @@ message UpdateOptions {
 message AuthorizedUpdatePath {
   // The field that's updatable.
   string path = 1;
-  // If true, only an admin may update this field.
-  bool admin = 2;
 }
 
 message UpdatePathMapping {

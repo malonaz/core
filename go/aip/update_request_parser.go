@@ -91,7 +91,7 @@ func NewUpdateRequestParser(request UpdateRequest) *UpdateRequestParser {
 }
 
 func (p *UpdateRequestParser) Parse(
-	fieldMask *fieldmaskpb.FieldMask, resource proto.Message, admin bool,
+	fieldMask *fieldmaskpb.FieldMask, resource proto.Message,
 ) (*ParsedUpdateRequest, error) {
 	// Validate the paths are valid.
 	if err := fieldmask.Validate(fieldMask, resource); err != nil {
@@ -106,7 +106,7 @@ func (p *UpdateRequestParser) Parse(
 	// Iterate over each path in the field mask.
 	for i, path := range append(fieldMask.Paths, p.defaultPaths...) {
 		// We only verify non default paths for authorization.
-		if i < len(fieldMask.Paths) && !p.isAuthorizedPath(path, admin) {
+		if i < len(fieldMask.Paths) && !p.isAuthorizedPath(path) {
 			return nil, fmt.Errorf("unauthorized field mask path: %s", path)
 		}
 
@@ -149,11 +149,8 @@ func (p *UpdateRequestParser) match(mapping *aippb.UpdatePathMapping, fieldPath 
 }
 
 // Helper method to check if a fieldPath is authorized considering wildcard.
-func (p *UpdateRequestParser) isAuthorizedPath(fieldPath string, admin bool) bool {
+func (p *UpdateRequestParser) isAuthorizedPath(fieldPath string) bool {
 	for _, authorizedPath := range p.authorizedPaths {
-		if authorizedPath.Admin && !admin {
-			continue
-		}
 		if strings.HasSuffix(authorizedPath.Path, ".*") {
 			// If authorizedPath is a wildcard pattern, strip the wildcard and compare prefixes.
 			prefix := strings.TrimSuffix(authorizedPath.Path, "*")

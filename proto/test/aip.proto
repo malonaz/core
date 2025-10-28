@@ -135,11 +135,7 @@ message UpdateResource2Request {
     default_paths: ["field1"],
     authorized_paths: [
       {path: "nested"},
-      {
-        path: "nested2",
-        admin: true
-      }
-    ]
+      {path: "nested2"}]
   };
 
   // The user you wish to update. We carry out validation ourselves in the code.

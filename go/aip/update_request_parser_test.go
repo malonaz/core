@@ -76,7 +76,7 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource, false)
+			parsedRequest, err := parser.Parse(fieldMask, resource)
 
 			// Check for errors if expected.
 			if tt.wantErr {
@@ -121,7 +121,7 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource, false)
+			parsedRequest, err := parser.Parse(fieldMask, resource)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -158,7 +158,7 @@ func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource, false)
+			parsedRequest, err := parser.Parse(fieldMask, resource)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -166,49 +166,6 @@ func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
 			}
-		})
-	}
-}
-
-func TestUpdateRequestParser_ParseWithAdminPrivileges(t *testing.T) {
-	parser := NewUpdateRequestParser(&pb.UpdateResource2Request{})
-	tests := []struct {
-		name             string
-		fieldMaskPaths   []string
-		wantUpdateClause string
-		requiresAdmin    bool
-	}{
-		{
-			name:             "regular fields",
-			fieldMaskPaths:   []string{"nested"},
-			wantUpdateClause: "nested = EXCLUDED.nested, field1 = EXCLUDED.field1",
-			requiresAdmin:    false,
-		},
-		{
-			name:             "touches admin field",
-			fieldMaskPaths:   []string{"nested2"},
-			wantUpdateClause: "nested2 = EXCLUDED.nested2, field1 = EXCLUDED.field1",
-			requiresAdmin:    true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
-			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource, false)
-			if tt.requiresAdmin {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
-			}
-
-			t.Run("admin=true", func(t *testing.T) {
-				parsedRequest, err := parser.Parse(fieldMask, resource, true)
-				require.NoError(t, err)
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
-			})
 		})
 	}
 }
