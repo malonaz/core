@@ -2,7 +2,6 @@ go_library(
     name = "authentication",
     srcs = [
         "authentication.go",
-        "helpers.go",
         "session.go",
         "session_injector.go",
     ],
@@ -10,6 +9,7 @@ go_library(
     deps = [
         "//genproto/authentication",
         "//go/contexttag",
+        "//go/jsonnet",
         "//go/pbutil",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
@@ -21,6 +21,5 @@ go_library(
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
     ],
 )
