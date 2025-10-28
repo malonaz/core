@@ -265,9 +265,7 @@ func (x *UpdateOptions) GetPathMappings() []*UpdatePathMapping {
 type AuthorizedUpdatePath struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The field that's updatable.
-	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	// If true, only an admin may update this field.
-	Admin         bool `protobuf:"varint,2,opt,name=admin,proto3" json:"admin,omitempty"`
+	Path          string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -307,13 +305,6 @@ func (x *AuthorizedUpdatePath) GetPath() string {
 		return x.Path
 	}
 	return ""
-}
-
-func (x *AuthorizedUpdatePath) GetAdmin() bool {
-	if x != nil {
-		return x.Admin
-	}
-	return false
 }
 
 type UpdatePathMapping struct {
@@ -418,10 +409,9 @@ const file_proto_codegen_aip_proto_rawDesc = "" +
 	"\rUpdateOptions\x12#\n" +
 	"\rdefault_paths\x18\x01 \x03(\tR\fdefaultPaths\x12\\\n" +
 	"\x10authorized_paths\x18\x02 \x03(\v21.malonaz.core.codegen.aip.v1.AuthorizedUpdatePathR\x0fauthorizedPaths\x12S\n" +
-	"\rpath_mappings\x18\x03 \x03(\v2..malonaz.core.codegen.aip.v1.UpdatePathMappingR\fpathMappings\"@\n" +
+	"\rpath_mappings\x18\x03 \x03(\v2..malonaz.core.codegen.aip.v1.UpdatePathMappingR\fpathMappings\"*\n" +
 	"\x14AuthorizedUpdatePath\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
-	"\x05admin\x18\x02 \x01(\bR\x05admin\"7\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\"7\n" +
 	"\x11UpdatePathMapping\x12\x12\n" +
 	"\x04from\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
 	"\x02to\x18\x02 \x03(\tR\x02to:_\n" +

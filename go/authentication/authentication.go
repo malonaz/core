@@ -3,6 +3,7 @@ package authentication
 import (
 	"context"
 	"fmt"
+	"os"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_interceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -15,7 +16,12 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication"
+	"github.com/malonaz/core/go/pbutil"
 )
+
+type Opts struct {
+	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
+}
 
 type Interceptor struct {
 	roleIDToRole                     map[string]*authenticationpb.Role
@@ -34,9 +40,19 @@ type CompiledRequirements struct {
 	anyRoleIDSet     map[string]struct{}
 }
 
-func NewInterceptor(roles []*authenticationpb.Role, fileDescriptors ...protoreflect.FileDescriptor) (*Interceptor, error) {
+func NewInterceptor(opts *Opts, fileDescriptors ...protoreflect.FileDescriptor) (*Interceptor, error) {
+	// Parse the configuration file
+	bytes, err := os.ReadFile(opts.Config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file %s: %w", opts.Config, err)
+	}
+	configuration := &authenticationpb.Configuration{}
+	if err := pbutil.JSONUnmarshal(bytes, configuration); err != nil {
+		return nil, fmt.Errorf("failed to parse config file %s: %w", opts.Config, err)
+	}
+
 	roleIDToRole := map[string]*authenticationpb.Role{}
-	for _, role := range roles {
+	for _, role := range configuration.Roles {
 		roleIDToRole[role.Id] = role
 	}
 

@@ -6,21 +6,12 @@ import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/malonaz/core/genproto/authentication";
 
-message Session {
-  // Id of this session.
-  string id = 1;
-  // Time at which this session was created.
-  int64 create_timestamp = 2;
-  // Time at which this sessione expires.
-  int64 expire_timestamp = 3;
-  // The user id of this user.
-  string user_id = 4;
-  // The organization id.
-  string organization_id = 5;
-  // Roles this session has.
-  repeated string role_ids = 6;
-  // Metadata and others.
-  SessionMetadata metadata = 7;
+extend google.protobuf.MethodOptions {
+  Requirements requirements = 6000321;
+}
+
+message Configuration {
+  repeated Role roles = 1;
 }
 
 message Role {
@@ -45,6 +36,23 @@ message Requirements {
   repeated string any_role_ids = 4;
 }
 
+message Session {
+  // Id of this session.
+  string id = 1;
+  // Time at which this session was created.
+  int64 create_timestamp = 2;
+  // Time at which this sessione expires.
+  int64 expire_timestamp = 3;
+  // The user id of this user.
+  string user_id = 4;
+  // The organization id.
+  string organization_id = 5;
+  // Roles this session has.
+  repeated string role_ids = 6;
+  // Metadata and others.
+  SessionMetadata metadata = 7;
+}
+
 message SessionMetadata {
   // Ip address of the client.
   string ip_address = 1;
@@ -60,16 +68,4 @@ message ClientVersion {
   int32 major = 1;
   int32 minor = 2;
   int32 patch = 3;
-}
-
-message RateLimit {
-  // How many requests available.
-  uint64 Tokens = 1;
-  // Over what period.
-  int64 IntervalSeconds = 2;
-}
-
-extend google.protobuf.MethodOptions {
-  Requirements requirements = 6000321;
-  RateLimit rate_limit = 6000322;
 }

@@ -22,40 +22,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Session struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Id of this session.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Time at which this session was created.
-	CreateTimestamp int64 `protobuf:"varint,2,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
-	// Time at which this sessione expires.
-	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
-	// The user id of this user.
-	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	// The organization id.
-	OrganizationId string `protobuf:"bytes,5,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	// Roles this session has.
-	RoleIds []string `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	// Metadata and others.
-	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+type Configuration struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Roles         []*Role                `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Session) Reset() {
-	*x = Session{}
+func (x *Configuration) Reset() {
+	*x = Configuration{}
 	mi := &file_proto_authentication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Session) String() string {
+func (x *Configuration) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Session) ProtoMessage() {}
+func (*Configuration) ProtoMessage() {}
 
-func (x *Session) ProtoReflect() protoreflect.Message {
+func (x *Configuration) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_authentication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -67,56 +54,14 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Session.ProtoReflect.Descriptor instead.
-func (*Session) Descriptor() ([]byte, []int) {
+// Deprecated: Use Configuration.ProtoReflect.Descriptor instead.
+func (*Configuration) Descriptor() ([]byte, []int) {
 	return file_proto_authentication_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Session) GetId() string {
+func (x *Configuration) GetRoles() []*Role {
 	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *Session) GetCreateTimestamp() int64 {
-	if x != nil {
-		return x.CreateTimestamp
-	}
-	return 0
-}
-
-func (x *Session) GetExpireTimestamp() int64 {
-	if x != nil {
-		return x.ExpireTimestamp
-	}
-	return 0
-}
-
-func (x *Session) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *Session) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *Session) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
-	}
-	return nil
-}
-
-func (x *Session) GetMetadata() *SessionMetadata {
-	if x != nil {
-		return x.Metadata
+		return x.Roles
 	}
 	return nil
 }
@@ -265,6 +210,105 @@ func (x *Requirements) GetAnyRoleIds() []string {
 	return nil
 }
 
+type Session struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Id of this session.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Time at which this session was created.
+	CreateTimestamp int64 `protobuf:"varint,2,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
+	// Time at which this sessione expires.
+	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
+	// The user id of this user.
+	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// The organization id.
+	OrganizationId string `protobuf:"bytes,5,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	// Roles this session has.
+	RoleIds []string `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	// Metadata and others.
+	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_proto_authentication_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_authentication_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_proto_authentication_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Session) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Session) GetCreateTimestamp() int64 {
+	if x != nil {
+		return x.CreateTimestamp
+	}
+	return 0
+}
+
+func (x *Session) GetExpireTimestamp() int64 {
+	if x != nil {
+		return x.ExpireTimestamp
+	}
+	return 0
+}
+
+func (x *Session) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Session) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *Session) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
+}
+
+func (x *Session) GetMetadata() *SessionMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type SessionMetadata struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Ip address of the client.
@@ -281,7 +325,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_proto_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -293,7 +337,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +350,7 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMetadata.ProtoReflect.Descriptor instead.
 func (*SessionMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{3}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SessionMetadata) GetIpAddress() string {
@@ -348,7 +392,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_proto_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +404,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +417,7 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientVersion.ProtoReflect.Descriptor instead.
 func (*ClientVersion) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{4}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ClientVersion) GetMajor() int32 {
@@ -397,60 +441,6 @@ func (x *ClientVersion) GetPatch() int32 {
 	return 0
 }
 
-type RateLimit struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// How many requests available.
-	Tokens uint64 `protobuf:"varint,1,opt,name=Tokens,proto3" json:"Tokens,omitempty"`
-	// Over what period.
-	IntervalSeconds int64 `protobuf:"varint,2,opt,name=IntervalSeconds,proto3" json:"IntervalSeconds,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *RateLimit) Reset() {
-	*x = RateLimit{}
-	mi := &file_proto_authentication_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RateLimit) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RateLimit) ProtoMessage() {}
-
-func (x *RateLimit) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RateLimit.ProtoReflect.Descriptor instead.
-func (*RateLimit) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *RateLimit) GetTokens() uint64 {
-	if x != nil {
-		return x.Tokens
-	}
-	return 0
-}
-
-func (x *RateLimit) GetIntervalSeconds() int64 {
-	if x != nil {
-		return x.IntervalSeconds
-	}
-	return 0
-}
-
 var file_proto_authentication_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
@@ -460,37 +450,21 @@ var file_proto_authentication_proto_extTypes = []protoimpl.ExtensionInfo{
 		Tag:           "bytes,6000321,opt,name=requirements",
 		Filename:      "proto/authentication.proto",
 	},
-	{
-		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
-		ExtensionType: (*RateLimit)(nil),
-		Field:         6000322,
-		Name:          "malonaz.core.authentication.v1.rate_limit",
-		Tag:           "bytes,6000322,opt,name=rate_limit",
-		Filename:      "proto/authentication.proto",
-	},
 }
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
 	// optional malonaz.core.authentication.v1.Requirements requirements = 6000321;
 	E_Requirements = &file_proto_authentication_proto_extTypes[0]
-	// optional malonaz.core.authentication.v1.RateLimit rate_limit = 6000322;
-	E_RateLimit = &file_proto_authentication_proto_extTypes[1]
 )
 
 var File_proto_authentication_proto protoreflect.FileDescriptor
 
 const file_proto_authentication_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"\x99\x02\n" +
-	"\aSession\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
-	"\x10expire_timestamp\x18\x03 \x01(\x03R\x0fexpireTimestamp\x12\x17\n" +
-	"\auser_id\x18\x04 \x01(\tR\x06userId\x12'\n" +
-	"\x0forganization_id\x18\x05 \x01(\tR\x0eorganizationId\x12\x19\n" +
-	"\brole_ids\x18\x06 \x03(\tR\aroleIds\x12K\n" +
-	"\bmetadata\x18\a \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"|\n" +
+	"\x1aproto/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a google/protobuf/descriptor.proto\"K\n" +
+	"\rConfiguration\x12:\n" +
+	"\x05roles\x18\x01 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\"|\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
 	"\vpermissions\x18\x02 \x03(\tR\vpermissions\x12,\n" +
@@ -501,7 +475,15 @@ const file_proto_authentication_proto_rawDesc = "" +
 	"\x11required_role_ids\x18\x02 \x03(\tR\x0frequiredRoleIds\x12'\n" +
 	"\x0fany_permissions\x18\x03 \x03(\tR\x0eanyPermissions\x12 \n" +
 	"\fany_role_ids\x18\x04 \x03(\tR\n" +
-	"anyRoleIds\"\xc7\x02\n" +
+	"anyRoleIds\"\x99\x02\n" +
+	"\aSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
+	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
+	"\x10expire_timestamp\x18\x03 \x01(\x03R\x0fexpireTimestamp\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x12'\n" +
+	"\x0forganization_id\x18\x05 \x01(\tR\x0eorganizationId\x12\x19\n" +
+	"\brole_ids\x18\x06 \x03(\tR\aroleIds\x12K\n" +
+	"\bmetadata\x18\a \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"\xc7\x02\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12T\n" +
@@ -516,13 +498,8 @@ const file_proto_authentication_proto_rawDesc = "" +
 	"\rClientVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
 	"\x05minor\x18\x02 \x01(\x05R\x05minor\x12\x14\n" +
-	"\x05patch\x18\x03 \x01(\x05R\x05patch\"M\n" +
-	"\tRateLimit\x12\x16\n" +
-	"\x06Tokens\x18\x01 \x01(\x04R\x06Tokens\x12(\n" +
-	"\x0fIntervalSeconds\x18\x02 \x01(\x03R\x0fIntervalSeconds:s\n" +
-	"\frequirements\x12\x1e.google.protobuf.MethodOptions\x18\xc1\x9d\xee\x02 \x01(\v2,.malonaz.core.authentication.v1.RequirementsR\frequirements:k\n" +
-	"\n" +
-	"rate_limit\x12\x1e.google.protobuf.MethodOptions\x18\u009d\xee\x02 \x01(\v2).malonaz.core.authentication.v1.RateLimitR\trateLimitB1Z/github.com/malonaz/core/genproto/authenticationb\x06proto3"
+	"\x05patch\x18\x03 \x01(\x05R\x05patch:s\n" +
+	"\frequirements\x12\x1e.google.protobuf.MethodOptions\x18\xc1\x9d\xee\x02 \x01(\v2,.malonaz.core.authentication.v1.RequirementsR\frequirementsB1Z/github.com/malonaz/core/genproto/authenticationb\x06proto3"
 
 var (
 	file_proto_authentication_proto_rawDescOnce sync.Once
@@ -538,28 +515,27 @@ func file_proto_authentication_proto_rawDescGZIP() []byte {
 
 var file_proto_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_authentication_proto_goTypes = []any{
-	(*Session)(nil),                    // 0: malonaz.core.authentication.v1.Session
+	(*Configuration)(nil),              // 0: malonaz.core.authentication.v1.Configuration
 	(*Role)(nil),                       // 1: malonaz.core.authentication.v1.Role
 	(*Requirements)(nil),               // 2: malonaz.core.authentication.v1.Requirements
-	(*SessionMetadata)(nil),            // 3: malonaz.core.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),              // 4: malonaz.core.authentication.v1.ClientVersion
-	(*RateLimit)(nil),                  // 5: malonaz.core.authentication.v1.RateLimit
+	(*Session)(nil),                    // 3: malonaz.core.authentication.v1.Session
+	(*SessionMetadata)(nil),            // 4: malonaz.core.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),              // 5: malonaz.core.authentication.v1.ClientVersion
 	nil,                                // 6: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
 	(*descriptorpb.MethodOptions)(nil), // 7: google.protobuf.MethodOptions
 }
 var file_proto_authentication_proto_depIdxs = []int32{
-	3, // 0: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
-	4, // 1: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
-	6, // 2: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
-	7, // 3: malonaz.core.authentication.v1.requirements:extendee -> google.protobuf.MethodOptions
-	7, // 4: malonaz.core.authentication.v1.rate_limit:extendee -> google.protobuf.MethodOptions
+	1, // 0: malonaz.core.authentication.v1.Configuration.roles:type_name -> malonaz.core.authentication.v1.Role
+	4, // 1: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
+	5, // 2: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
+	6, // 3: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	7, // 4: malonaz.core.authentication.v1.requirements:extendee -> google.protobuf.MethodOptions
 	2, // 5: malonaz.core.authentication.v1.requirements:type_name -> malonaz.core.authentication.v1.Requirements
-	5, // 6: malonaz.core.authentication.v1.rate_limit:type_name -> malonaz.core.authentication.v1.RateLimit
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	5, // [5:7] is the sub-list for extension type_name
-	3, // [3:5] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	5, // [5:6] is the sub-list for extension type_name
+	4, // [4:5] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_authentication_proto_init() }
@@ -574,7 +550,7 @@ func file_proto_authentication_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_proto_rawDesc), len(file_proto_authentication_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
-			NumExtensions: 2,
+			NumExtensions: 1,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_authentication_proto_goTypes,

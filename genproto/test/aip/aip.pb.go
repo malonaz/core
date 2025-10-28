@@ -435,14 +435,14 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\rnested.field2\x12\x10nested_field_two\x1a\x12\n" +
 	"\anested2\x12\anested2\x1a\x1a\n" +
 	"\tnested4.*\x12\rnested4_jsonb\x1a!\n" +
-	"\anested3\x12\x06field1\x12\x06field1\x12\x06field2\"\xab\x01\n" +
+	"\anested3\x12\x06field1\x12\x06field1\x12\x06field2\"\xa9\x01\n" +
 	"\x16UpdateResource2Request\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.aip.mock.v1.ResourceR\bresource\x129\n" +
 	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:#\x8a\xf6,\x1f\n" +
+	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:!\x8a\xf6,\x1d\n" +
 	"\x06field1\x12\b\n" +
-	"\x06nested\x12\v\n" +
-	"\anested2\x10\x01*4\n" +
+	"\x06nested\x12\t\n" +
+	"\anested2*4\n" +
 	"\x06MyEnum\x12\x17\n" +
 	"\x13MY_ENUM_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rMY_ENUM_VALUE\x10\x01B/Z-github.com/malonaz/core/genproto/test/aipmockb\x06proto3"
