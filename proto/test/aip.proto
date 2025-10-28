@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package aip.mock.v1;
+
+import "google/protobuf/field_mask.proto";
+import "proto/codegen/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/aipmock";
+
+enum MyEnum {
+  MY_ENUM_UNSPECIFIED = 0;
+  MY_ENUM_VALUE = 1;
+}
+
+message ListResourcesRequest {
+  option (malonaz.core.codegen.aip.v1.list) = {
+    default_page_size: 1000,
+    order_by: [
+      "id",
+      "create_timestamp",
+      "update_timestamp"
+    ],
+    aliases: [
+      {
+        key: "replaceable_field",
+        value: "replaced_field"
+      }
+    ],
+    filters: [
+      {
+        field: "id",
+        primitive: STRING,
+      },
+      {
+        field: "replaceable_field",
+        primitive: STRING,
+      },
+      {
+        field: "json_field",
+        primitive: STRING,
+      },
+      {
+        field: "json_field@key",
+        primitive: STRING,
+      },
+      {
+        field: "json_field@key@key2",
+        primitive: STRING,
+      },
+      {
+        field: "create_timestamp",
+        primitive: INT64,
+      },
+      {
+        field: "update_timestamp",
+        primitive: INT64,
+      },
+      {
+        field: "deleted",
+        primitive: BOOL,
+      },
+      {
+        field: "my_enum",
+        enum: "aip.mock.v1.MyEnum"
+      }
+    ]
+  };
+
+  string filter = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  string order_by = 4;
+}
+
+message Resource {
+  string field1 = 1;
+  NestedResource nested = 2;
+  NestedResource nested2 = 3;
+  NestedResource nested3 = 4;
+  NestedResource nested4 = 5;
+  MyEnum my_enum = 6;
+}
+
+message NestedResource {
+  bool field1 = 1;
+  int64 field2 = 2;
+  string field3 = 3;
+}
+
+message UpdateResourceRequest {
+  option (malonaz.core.codegen.aip.v1.update) = {
+    path_mappings: [
+      {
+        from: "field1",
+        to: ["field_one"],
+      },
+      {
+        from: "nested.field2",
+        to: ["nested_field_two"],
+      },
+      {
+        from: "nested2",
+        to: ["nested2"],
+      },
+      {
+        from: "nested4.*",
+        to: ["nested4_jsonb"],
+      },
+      {
+        from: "nested3",
+        to: [
+          "field1",
+          "field1",
+          "field2"
+        ],
+      }
+    ],
+    authorized_paths: [
+      {path: "field1"},
+      {path: "nested.field2"},
+      {path: "nested2"},
+      {path: "nested"},
+      {path: "nested4.field1"},
+      {path: "nested4.field3"},
+      {path: "nested3"}]
+  };
+
+  // The user you wish to update. We carry out validation ourselves in the code.
+  Resource resource = 1;
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+message UpdateResource2Request {
+  option (malonaz.core.codegen.aip.v1.update) = {
+    default_paths: ["field1"],
+    authorized_paths: [
+      {path: "nested"},
+      {
+        path: "nested2",
+        admin: true
+      }
+    ]
+  };
+
+  // The user you wish to update. We carry out validation ourselves in the code.
+  Resource resource = 1;
+  google.protobuf.FieldMask field_mask = 2;
+}

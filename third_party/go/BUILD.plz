@@ -126,6 +126,40 @@ go_module(
 )
 
 go_mod_download(
+    name = "cloud.google.com__go",
+    _tag = "download",
+    module = "cloud.google.com/go",
+    version = "v0.121.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__civil",
+    download = ":_cloud.google.com__go#download",
+    install = ["civil"],
+    module = "cloud.google.com/go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "cloud.google.com__go__spanner",
+    _tag = "download",
+    module = "cloud.google.com/go/spanner",
+    version = "v1.83.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__spanner__spansql",
+    download = ":_cloud.google.com__go__spanner#download",
+    install = ["spansql"],
+    module = "cloud.google.com/go/spanner",
+    visibility = ["PUBLIC"],
+    deps = [":cloud.google.com__go__civil"],
+)
+
+go_mod_download(
     name = "dario.cat__mergo",
     _tag = "download",
     module = "dario.cat/mergo",
@@ -485,7 +519,7 @@ go_mod_download(
     name = "github.com__golang__glog",
     _tag = "download",
     module = "github.com/golang/glog",
-    version = "v1.2.4",
+    version = "v1.2.5",
     visibility = ["PUBLIC"],
 )
 
@@ -2129,8 +2163,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -2611,6 +2645,77 @@ go_module(
         ":google.golang.org__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__aip__filtering",
+    download = ":_go.einride.tech__aip#download",
+    install = ["filtering"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genproto__googleapis__api__expr__v1alpha1",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__aip__ordering",
+    download = ":_go.einride.tech__aip#download",
+    install = ["ordering"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.einride.tech__aip__fieldmask",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__aip__pagination",
+    download = ":_go.einride.tech__aip#download",
+    install = ["pagination"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [":google.golang.org__protobuf__proto"],
+)
+
+go_mod_download(
+    name = "go.einride.tech__spanner-aip",
+    _tag = "download",
+    module = "go.einride.tech/spanner-aip",
+    patch = ["spanner-aip.patch"],
+    version = "v0.55.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.einride.tech__spanner-aip__spanfiltering",
+    download = ":_go.einride.tech__spanner-aip#download",
+    install = ["spanfiltering"],
+    module = "go.einride.tech/spanner-aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__spanner__spansql",
+        ":go.einride.tech__aip__filtering",
+        ":google.golang.org__genproto__googleapis__api__expr__v1alpha1",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__spanner-aip__spanordering",
+    download = ":_go.einride.tech__spanner-aip#download",
+    install = ["spanordering"],
+    module = "go.einride.tech/spanner-aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__spanner__spansql",
+        ":go.einride.tech__aip__ordering",
     ],
 )
 
@@ -3127,7 +3232,7 @@ go_mod_download(
     name = "google.golang.org__genproto",
     _tag = "download",
     module = "google.golang.org/genproto",
-    version = "v0.0.0-20240711142825-46eb208f015d",
+    version = "v0.0.0-20250505200425-f936aa4a68b2",
     visibility = ["PUBLIC"],
 )
 
@@ -3257,7 +3362,7 @@ go_mod_download(
     name = "google.golang.org__grpc",
     _tag = "download",
     module = "google.golang.org/grpc",
-    version = "v1.73.0",
+    version = "v1.74.2",
     visibility = ["PUBLIC"],
 )
 

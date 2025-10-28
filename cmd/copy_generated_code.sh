@@ -5,3 +5,6 @@ mkdir -p genproto/codegen/model && cp -rf plz-out/gen/proto/codegen/model.pb.go 
 mkdir -p genproto/codegen/gateway && cp -rf plz-out/gen/proto/codegen/gateway.pb.go genproto/codegen/gateway
 mkdir -p genproto/codegen/rpc && cp -rf plz-out/gen/proto/codegen/rpc.pb.go genproto/codegen/rpc
 mkdir -p genproto/codegen/aip && cp -rf plz-out/gen/proto/codegen/aip.pb.go genproto/codegen/aip
+
+# Test files.
+mkdir -p genproto/test/aip && cp -rf plz-out/gen/proto/test/aip.pb.go genproto/test/aip

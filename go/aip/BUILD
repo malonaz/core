@@ -1,0 +1,43 @@
+go_library(
+    name = "aip",
+    srcs = [
+        "list_request_parser.go",
+        "paginate.go",
+        "update_request_parser.go",
+    ],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//genproto/codegen/aip",
+        "//go/pbutil",
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:go.einride.tech__aip__fieldmask",
+        "//third_party/go:go.einride.tech__aip__filtering",
+        "//third_party/go:go.einride.tech__aip__ordering",
+        "//third_party/go:go.einride.tech__aip__pagination",
+        "//third_party/go:go.einride.tech__spanner-aip__spanfiltering",
+        "//third_party/go:go.einride.tech__spanner-aip__spanordering",
+        "//third_party/go:golang.org__x__sync__errgroup",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__expr__v1alpha1",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = [
+        "list_request_parser_test.go",
+        "update_request_parser_test.go",
+    ],
+    deps = [
+        ":aip",
+        "//genproto/test/aip",
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
