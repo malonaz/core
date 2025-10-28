@@ -17,10 +17,12 @@ extend google.protobuf.MethodOptions {
 message CreateOpts {
   // If true, we generate the create method.
   bool generate = 1;
+  // The uuid namespace we will use to create the resource.
+  string uuid_namespace = 2;
   // If true, we expect a post insert function.
-  bool pre_fn = 2;
+  bool pre_fn = 3;
   // If true, we expect a post insert function.
-  bool post_fn = 3;
+  bool post_fn = 4;
 }
 
 message UpdateOpts {

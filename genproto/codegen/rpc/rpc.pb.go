@@ -26,10 +26,12 @@ type CreateOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// If true, we generate the create method.
 	Generate bool `protobuf:"varint,1,opt,name=generate,proto3" json:"generate,omitempty"`
+	// The uuid namespace we will use to create the resource.
+	UuidNamespace string `protobuf:"bytes,2,opt,name=uuid_namespace,json=uuidNamespace,proto3" json:"uuid_namespace,omitempty"`
 	// If true, we expect a post insert function.
-	PreFn bool `protobuf:"varint,2,opt,name=pre_fn,json=preFn,proto3" json:"pre_fn,omitempty"`
+	PreFn bool `protobuf:"varint,3,opt,name=pre_fn,json=preFn,proto3" json:"pre_fn,omitempty"`
 	// If true, we expect a post insert function.
-	PostFn        bool `protobuf:"varint,3,opt,name=post_fn,json=postFn,proto3" json:"post_fn,omitempty"`
+	PostFn        bool `protobuf:"varint,4,opt,name=post_fn,json=postFn,proto3" json:"post_fn,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,6 +71,13 @@ func (x *CreateOpts) GetGenerate() bool {
 		return x.Generate
 	}
 	return false
+}
+
+func (x *CreateOpts) GetUuidNamespace() string {
+	if x != nil {
+		return x.UuidNamespace
+	}
+	return ""
 }
 
 func (x *CreateOpts) GetPreFn() bool {
@@ -371,12 +380,13 @@ var File_proto_codegen_rpc_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_rpc_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/codegen/rpc.proto\x12\x1bmalonaz.core.codegen.rpc.v1\x1a google/protobuf/descriptor.proto\"X\n" +
+	"\x17proto/codegen/rpc.proto\x12\x1bmalonaz.core.codegen.rpc.v1\x1a google/protobuf/descriptor.proto\"\x7f\n" +
 	"\n" +
 	"CreateOpts\x12\x1a\n" +
-	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x15\n" +
-	"\x06pre_fn\x18\x02 \x01(\bR\x05preFn\x12\x17\n" +
-	"\apost_fn\x18\x03 \x01(\bR\x06postFn\"X\n" +
+	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12%\n" +
+	"\x0euuid_namespace\x18\x02 \x01(\tR\ruuidNamespace\x12\x15\n" +
+	"\x06pre_fn\x18\x03 \x01(\bR\x05preFn\x12\x17\n" +
+	"\apost_fn\x18\x04 \x01(\bR\x06postFn\"X\n" +
 	"\n" +
 	"UpdateOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x15\n" +
