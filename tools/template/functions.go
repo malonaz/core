@@ -13,6 +13,7 @@ var (
 	serviceRegex              = regexp.MustCompile(`service\s+([\w]+)\s+{`)
 	publisherRegex            = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
 	goPackageRegex            = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
+	doOnceCache               = map[string]bool{}
 	filepathToContent         = map[string]string{}
 	filepathToGrpcServiceName = map[string]string{}
 	goImportPathToAlias       = map[string]string{}
@@ -21,6 +22,14 @@ var (
 		"debug": func(v any) error {
 			fmt.Printf("%+v\n", v)
 			return nil
+		},
+
+		"doOnce": func(key string) bool {
+			if _, ok := doOnceCache[key]; ok {
+				return false
+			}
+			doOnceCache[key] = true
+			return true
 		},
 
 		"readFile": readFile,

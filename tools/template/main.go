@@ -55,19 +55,8 @@ func main() {
 		log.Fatalf("invalid delimiter format: %v", err)
 	}
 
-	// Use to do operations once and only once.
-	cache := map[string]bool{}
-	doOnce := func(key string) bool {
-		if _, ok := cache[key]; ok {
-			return false // Already done.
-		}
-		cache[key] = true
-		return true
-	}
-
 	// Read the template file
 	funcMap := sprig.TxtFuncMap()
-	funcMap["doOnce"] = doOnce
 	for k, v := range customFuncMap {
 		funcMap[k] = v
 	}
