@@ -12,6 +12,11 @@ export_file(
 )
 
 export_file(
+    name = "main.opts.go.tmpl",
+    src = "main.opts.go.tmpl",
+)
+
+export_file(
     name = "service.go.tmpl",
     src = "service.go.tmpl",
 )
@@ -21,6 +26,7 @@ export_file(
     src = "k8s.yaml.tmpl",
 )
 
+############## SCHEMAS ###################
 export_file(
     name = "service_manifest.schema",
     src = "service_manifest.schema",
@@ -29,15 +35,4 @@ export_file(
 export_file(
     name = "service.go.schema",
     src = "service.go.schema",
-)
-
-############# ADMIN_API #################
-export_file(
-    name = "admin_api_main.go.tmpl",
-    src = "admin_api_main.go.tmpl",
-)
-
-export_file(
-    name = "admin_api_manifest.schema",
-    src = "admin_api_manifest.schema",
 )

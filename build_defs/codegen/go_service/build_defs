@@ -72,7 +72,10 @@ def go_main_src(
         visibility:list=[],
 ):
     if len(templates) == 0:
-        templates = ["///core//build_defs/codegen/go_service/templates:main.go.tmpl"]
+        templates = [
+            "///core//build_defs/codegen/go_service/templates:main.go.tmpl",
+            "///core//build_defs/codegen/go_service/templates:main.opts.go.tmpl",
+        ]
     templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
 
     return go_template(
@@ -82,26 +85,6 @@ def go_main_src(
         format = "yaml",
         visibility = visibility,
     )
-
-
-def go_admin_api_main_src(
-        name:str,
-        manifest:str,
-        templates:list=[],
-        visibility:list=[],
-):
-    if len(templates) == 0:
-        templates = ["///core//build_defs/codegen/go_service/templates:admin_api_main.go.tmpl"]
-    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
-
-    return go_template(
-        name = name,
-        templates = templates,
-        data = manifest,
-        format = "yaml",
-        visibility = visibility,
-    )
-
 
 def go_k8s(
         manifest:str,

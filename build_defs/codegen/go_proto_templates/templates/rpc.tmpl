@@ -19,11 +19,11 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
 {{- range $service := $file.Services }}
     {{- range $method := $service.Methods }}
-        {{- $createOpts := getExt $method.Desc "codegen.aip.v1.create" -}}
-        {{- $updateOpts := getExt $method.Desc "codegen.aip.v1.update" -}}
-        {{- $deleteOpts := getExt $method.Desc "codegen.aip.v1.delete" -}}
-        {{- $getOpts := getExt $method.Desc "codegen.aip.v1.get" -}}
-        {{- $listOpts := getExt $method.Desc "codegen.aip.v1.list" -}}
+        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
+        {{- $updateOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.update" -}}
+        {{- $deleteOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.delete" -}}
+        {{- $getOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.get" -}}
+        {{- $listOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.list" -}}
 
         {{/* Validate that only one Opts is defined */}}
         {{- $optsCount := 0 -}}
@@ -43,24 +43,17 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             {{- $resourceGoName := $resource.GoIdent.GoName }}
             {{- if $createOpts.UuidNamespace }}
                 {{ if not ($method.Input.Desc.Fields.ByName "request_id") -}}{{ fail "request_id field is not defined" }}{{ end }}
-                var uuidNamespace{{ $resourceGoName }} = {{ fqn "common/go/uuid" "MustParse" }}("{{ $createOpts.UuidNamespace }}")
+                var uuidNamespace{{ $resourceGoName }} = {{ fqn "github.com/malonaz/core/go/uuid" "MustParse" }}("{{ $createOpts.UuidNamespace }}")
             {{- end }}
             // {{ printf "Create%s creates a %s" $resourceGoName $resourceGoName }}
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             {{- if $createOpts.UuidNamespace }}
                 // Set the id.
-                request.{{ $resourceGoName }}.Id = {{ fqn "common/go/uuid" "MustNewV5" }}(uuidNamespace{{ $resourceGoName }}, request.RequestId).String()
+                request.{{ $resourceGoName }}.Id = {{ fqn "github.com/malonaz/core/go/uuid" "NewV5" }}(uuidNamespace{{ $resourceGoName }}, request.RequestId).String()
             {{- end }}
 
             {{/* Name space by user if necessary */}}
-            {{- $userIDField :=  ternary "user_id" $createOpts.UserIdField (empty $createOpts.UserIdField) -}}
-            {{ if $resource.Desc.Fields.ByName (protoreflectName $userIDField ) -}}
-                // Set the user id.
-                session := {{ fqn "admin/admin_api/authentication" "MustGetSession" }}(ctx)
-                if !session.Admin {
-                request.{{ $resourceGoName }}.{{ $userIDField | camelcase }} = session.UserId
-                }
-            {{ end -}}
+            {{- $userIDField := "user_id" -}}
 
             {{ if $createOpts.PreFn -}}
                 // PRE FN.
@@ -85,35 +78,16 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 	          }
 
             // STEP 3: Insert the resource idempotently.
-            ok, err := s.db.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
+            ok, err := s.{{ $resourceGoName | untitle }}DBClient.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
 	          }
 	          if !ok {
-		        list{{ $resourceGoName }}sRequest := &pb.List{{ $resourceGoName }}sRequest{
-			      Filter: {{ fqn "fmt" "Sprintf" }}(`id="%s"`, request.{{ $resourceGoName }}.Id),
+		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{
+            {{ $resourceGoName }}Id: request.{{ $resourceGoName }}.Id,
 		        }
-		        list{{ $resourceGoName }}sResponse, err := s.List{{ $resourceGoName }}s(ctx, list{{ $resourceGoName }}sRequest)
-		        if err != nil {
-			      return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "could not find {{ $resourceGoName | snakecase }}: %v", err)
-		        }
-		        if len(list{{ $resourceGoName }}sResponse.{{ $resourceGoName }}s) != 1 {
-			      return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "expected 1 {{ $resourceGoName | snakecase }}, got %d", len(list{{ $resourceGoName }}sResponse.{{ $resourceGoName }}s))
-		        }
-		        request.{{ $resourceGoName }} = list{{ $resourceGoName }}sResponse.{{ $resourceGoName }}s[0]
+            return s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
 	          }
-
-            {{- if $createOpts.EmitEvent }}
-                {{ "\n" }}
-                // Emit event.
-                {{ $resourceGoName | snakecase }}CreatedEvent := &api.{{ $resourceGoName }}CreatedEvent{
-                {{ $resourceGoName }}: request.{{ $resourceGoName }},
-                }
-	              if err := s.{{ template "subjectToPublisher" $createOpts.EmitEvent }}.Publish(ctx, {{ $resourceGoName | snakecase }}CreatedEvent); err != nil {
-		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Unavailable" }}, "publishing {{ $resourceGoName | snakecase }} created event: %v", err)
-                }
-            {{ end }}
-
             return {{ if  $createOpts.PostFn }} s.post{{ $method.GoName }}(ctx, request){{ else }}request.{{ $resourceGoName }}, nil{{ end }}
             }
         {{ end -}}
@@ -138,7 +112,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                     {{- $enumValues := $viewFd.Enum.Values -}}
                     {{- range $i := untilStep 1 $enumValues.Len 1 }}
                         {{- $enumValueFd :=  $enumValues.Get $i -}}
-                        {{- $viewOpts :=  getExt $enumValueFd "codegen.aip.v1.view" }}
+                        {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
                         {{- if $viewOpts.UpdateView -}}
                             {{- if $updateView -}}{{- fail "duplicate update view" -}}{{- end -}}
                             {{- $updateView = $enumValueFd -}}
@@ -148,19 +122,11 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 {{- end }}
             {{- end -}}
 
-            var update{{ $resourceGoName }}RequestParser = {{ fqn "common/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
+            var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
 
             {{/* Wrapping function for error checks. */}}
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            {{ if $updateOpts.CatchError -}}
-                response, err := s.{{ $method.GoName | untitle }}(ctx, request)
-                if err != nil {
-                return nil, s.catchError{{ $method.GoName }}(err)
-                }
-                return response, nil
-            {{ else -}}
                 return s.{{ $method.GoName | untitle }}(ctx, request)
-            {{ end }}
             }
 
             func (s *Service) {{ $method.GoName | untitle }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
@@ -171,10 +137,8 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 }
             {{ end }}
 
-            session := {{ fqn "admin/admin_api/authentication" "MustGetSession" }}(ctx)
-
             // STEP 1: Parse request.
-	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.FieldMask, request.{{ $resourceGoName }}, session.Admin)
+	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.FieldMask, request.{{ $resourceGoName }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err)
 	          }
@@ -192,14 +156,6 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             }
             updated{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "Clone" }}(existing{{ $resourceGoName }}).(*{{ qualifiedGoIdent $method.Output.GoIdent }})
 
-            {{- $userIDField :=  ternary "user_id" $updateOpts.UserIdField (empty $updateOpts.UserIdField) -}}
-            {{ if $resource.Desc.Fields.ByName (protoreflectName $userIDField ) }}
-                // STEP 2.A: Namespace check.
-                if !session.Admin && existing{{ $resourceGoName }}.{{ $userIDField | camelcase }} != session.UserId {
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "PermissionDenied" }}, "{{ $resourceGoName | snakecase | untitle }} does not belong to user")
-                }
-            {{ end }}
-
             // STEP 3: Patch the existing resource.
             {{ if $resource.Desc.Fields.ByName "update_timestamp" -}}
 	              updated{{ $resourceGoName }}.UpdateTimestamp = {{ fqn "time" "Now" }}().UnixMicro()
@@ -213,26 +169,13 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting pb.{{ $resourceGoName }} to model.{{ $resourceGoName }}: %v", err)
 	          }
-	          ok, err := s.db.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
+	          ok, err := s.{{ $resourceGoName | untitle }}DBClient.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | untitle }}: %v", err)
 	          }
 	          if !ok {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $resourceGoName | untitle }} does not exist")
 	          }
-
-            {{- if $updateOpts.EmitEvent }}
-                {{ "\n" }}
-                // Emit event.
-                {{ $resourceGoName | untitle }}UpdatedEvent := &api.{{ $resourceGoName }}UpdatedEvent{
-                Existing{{ $resourceGoName }}: existing{{ $resourceGoName }},
-                Updated{{ $resourceGoName }}: updated{{ $resourceGoName }},
-                FieldMask: request.FieldMask,
-                }
-	              if err := s.{{ template "subjectToPublisher" $updateOpts.EmitEvent }}.Publish(ctx, {{ $resourceGoName | untitle }}UpdatedEvent); err != nil {
-		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Unavailable" }}, "publishing {{ $resourceGoName | snakecase }} updated event: %v", err)
-                }
-            {{ end }}
 
             {{ if  $updateOpts.PostFn }}
                 if err := s.post{{ $method.GoName }}(ctx, request, existing{{ $resourceGoName }}, updated{{ $resourceGoName }}); err != nil {
@@ -255,17 +198,9 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 {{ end  }}
             {{ end }}
             {{ if not $resource }}{{ fail "could not find go resource by inspecting methods" }}{{ end }}
-            {{- $modelOpts := getExt $resource.Desc "codegen.model.v1.model_opts" -}}
+            {{- $modelOpts := getExt $resource.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
 
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}, error) {
-            {{ if $modelOpts.SoftDeletable -}}
-                //  Only admins may hard delete resources.
-                session := {{ fqn "admin/admin_api/authentication" "MustGetSession" }}(ctx)
-	              if request.HardDelete && !session.Admin {
-		            return nil, status.Error({{ fqn "google.golang.org/grpc/codes" "PermissionDenied" }}, "hard deletes require admin role")
-	              }
-                {{ "\n" }}
-            {{- end -}}
             get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request {
             {{ $resourceGoName }}Id: request.{{ $resourceGoName }}Id,
             }
@@ -283,7 +218,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
             {{ if $modelOpts.SoftDeletable }}
                 if request.HardDelete {
-                if err := s.db.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
+                if err := s.{{ $resourceGoName | untitle }}DBClient.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "hard deleting: %v", err)
                 }
                 } else {
@@ -296,26 +231,15 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 },
                 }
 
-                {{ $resourceGoName | untitle }}, err = s.Update{{ $resourceGoName }}(s.ctxAdmin, updateRequest)
+                {{ $resourceGoName | untitle }}, err = s.Update{{ $resourceGoName }}(ctx, updateRequest)
                 if err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting: %v", err)
                 }
                 }
             {{ else }}
-                if err := s.db.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
+                if err := s.{{ $resourceGoName | untitle }}DBClient.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting: %v", err)
                 }
-            {{ end }}
-
-
-            {{ if $deleteOpts.EmitEvent }}
-                {{ $resourceGoName | untitle }}DeletedEvent := &{{ fqn ($resource.GoIdent.GoImportPath | toString | unquote | unquote) (printf "%sDeletedEvent" $resourceGoName) }}{
-                {{ $resourceGoName }}: {{ $resourceGoName | untitle }},
-                {{ if $modelOpts.SoftDeletable }}HardDelete: request.HardDelete,{{ end }}
-	              }
-	              if err := s.{{ template "subjectToPublisher" $deleteOpts.EmitEvent }}.Publish(ctx, {{ $resourceGoName | untitle }}DeletedEvent); err != nil {
-		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Unavailable" }}, "publishing {{ $resourceGoName | untitle }}_deleted_event: %v", err)
-	              }
             {{ end }}
 
 	          return &emptypb.Empty{}, nil
@@ -324,7 +248,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
         {{/* GET ENDPOINT */}}
         {{- if $getOpts.Generate }}
-            {{ $getFieldName :=  ternary "id" $getOpts.FieldName (empty $getOpts.FieldName) }}
+            {{ $getFieldName :=  "id" }}
             {{- $resource := $method.Output }}
             {{- $resourceGoName := $resource.GoIdent.GoName }}
             {{ $descFields := $resource.Desc.Fields }}
@@ -369,14 +293,14 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 {{- $enumValues := $viewFd.Enum.Values -}}
                 {{- range $i := untilStep 1 $enumValues.Len 1 }}
                     {{- $enumValueFd :=  $enumValues.Get $i -}}
-                    {{- $viewOpts :=  getExt $enumValueFd "codegen.aip.v1.view" }}
-                    {{ $enumValueFd.Name | toString | camelcase | untitle }} = {{ fqn "common/go/postgres" "GetDBColumns" }}(model.{{ $resource.GoIdent.GoName }}{}, {{ range $viewOpts.Exclude }}"{{ . }}",{{ end }})
+                    {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
+                    {{ $enumValueFd.Name | toString | camelcase | untitle }} = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}(model.{{ $resource.GoIdent.GoName }}{}, {{ range $viewOpts.Exclude }}"{{ . }}",{{ end }})
                 {{ end -}}
                 )
             {{- end }}
 
 
-            var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "common/go/aip" "NewListRequestParser" }}(&pb.{{ $method.Input.GoIdent.GoName }}{})
+            var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "NewListRequestParser" }}(&pb.{{ $method.Input.GoIdent.GoName }}{})
 
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             {{ if $listOpts.PreFn -}}
@@ -393,19 +317,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 }
             {{ end }}
 
-            {{- $userIDField :=  ternary "user_id" $listOpts.UserIdField (empty $listOpts.UserIdField) -}}
-            {{ if and ($resource.Desc.Fields.ByName (protoreflectName $userIDField)) (not $listOpts.IgnoreUserNamespace) }}
-                {{- $modelOpts := getExt $resource.Desc "codegen.model.v1.model_opts" -}}
-                // Some authentication.
-	              session := {{ fqn "admin/admin_api/authentication" "MustGetSession" }}(ctx)
-	              if !session.Admin {
-		            filter := {{ fqn "fmt" "Sprintf" }}(`{{ $userIDField }}="%s"{{if $modelOpts.SoftDeletable }} AND ISNULL(delete_timestamp){{ end }}`, session.UserId)
-		            if request.Filter != "" {
-			          filter = filter + " AND (" + request.Filter + ")"
-		            }
-		            request.Filter = filter
-	              }
-            {{ end }}
+            {{- $userIDField :=  "user_id" -}}
 
 	          parsed, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.ParseRequest(request)
 	          if err != nil {
@@ -418,7 +330,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 {{- $enumValues := $viewFd.Enum.Values -}}
                 {{- range $i := untilStep 1 $enumValues.Len 1 }}
                     {{- $enumValueFd :=  $enumValues.Get $i -}}
-                    {{- $viewOpts :=  getExt $enumValueFd "codegen.aip.v1.view" }}
+                    {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
                     case pb.{{ $viewFd.Enum.Name | toString }}_{{ $enumValueFd.Name | toString | snakecase | upper }}:
                     dbColumns = {{ $enumValueFd.Name | toString | camelcase | untitle }}
                 {{ end -}}
@@ -428,7 +340,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             {{- end }}
 
 
-	          {{ $resourceDbName }}s, err := s.db.{{ $method.GoName }}(ctx, whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
+	          {{ $resourceDbName }}s, err := s.{{ $resourceGoName | untitle }}DBClient.{{ $method.GoName }}(ctx, whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
 	          }

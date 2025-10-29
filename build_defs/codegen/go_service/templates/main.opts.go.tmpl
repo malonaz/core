@@ -1,0 +1,70 @@
+{{- define "mainOpts" -}}
+    {{- $core := "github.com/malonaz/core/go" -}}
+	  // Core service options
+	  Authentication *{{ goImport (printf "%s/authentication" $core) }}.Opts `group:"Authentication" namespace:"authentication" env-namespace:"AUTHENTICATION"`
+	  Health         *{{ goImport (printf "%s/health" $core) }}.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
+	  Prometheus     *{{ goImport (printf "%s/prometheus" $core) }}.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
+    Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
+
+    {{- /* GATHER SERVICE MANIFESTS */ -}}
+    {{- $serviceManifests := list -}}
+    {{- range $grpcServer := .grpc.servers -}}
+        {{- range $service := $grpcServer.services -}}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+        {{- end -}}
+    {{- end -}}
+
+    {{- /* POSTGRES DATABASE OPTIONS */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "postgres" -}}
+                {{- if doOnce "post_client_opts" -}}{{"\n\n// Postgres client options"}}{{- end -}}
+                {{- $dbKey := printf "postgres_db_opts_%s" $dep.name -}}
+                {{- if doOnce $dbKey }}
+                    {{ $dep.name | title }}Postgres *{{ goImport (printf "%s/postgres" $core) }}.Opts `group:"{{ $dep.name | title }} Postgres" namespace:"{{ $dep.name | kebabcase }}-postgres" env-namespace:"{{ $dep.name | snakecase | upper }}_POSTGRES"`
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    {{- /* GRPC CLIENT OPTIONS */ -}}
+	  {{- range $serviceManifest := $serviceManifests -}}
+	      {{- if $serviceManifest.dependencies -}}
+	          {{- range $dep := $serviceManifest.dependencies -}}
+	              {{- if eq $dep.type "grpc_client" -}}
+                    {{- if doOnce "grpc_client_opts" -}}{{"\n\n// gRPC client options"}}{{- end -}}
+	                  {{- $clientKey := printf "grpc_client_opts_%s" (grpcSvcName $dep.proto) -}}
+	                  {{- if doOnce $clientKey -}}
+	                      {{- $grpcSvcName := grpcSvcName $dep.proto }}
+	                      {{ $grpcSvcName }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcSvcName }} GRPC" namespace:"{{ $grpcSvcName | kebabcase }}-grpc" env-namespace:"{{ $grpcSvcName | snakecase | upper }}_GRPC"`
+	                  {{- end }}
+	              {{- end }}
+	          {{- end }}
+	      {{- end }}
+	  {{- end }}
+
+    {{- /* GRPC SERVER OPTIONS */ -}}
+    {{- range $grpcServer := .grpc.servers -}}
+        {{- if doOnce "grpc_server_option_comment" }}{{ "\n\n// gRPC server options" }}{{ end }}
+        {{ $grpcServer.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcServer.name | camelcase }} GRPC" namespace:"{{ $grpcServer.name | kebabcase }}-grpc" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC"`
+        {{ $hasGrpcGateway := false }}
+        {{ range $service := $grpcServer.services }}
+            {{ if $service.gateway }} {{ $hasGrpcGateway = true }}{{ break }}{{ end }}
+        {{ end }}
+        {{ if $hasGrpcGateway }}
+            {{ $grpcServer.name | camelcase }}GRPCGateway *{{ goImport (printf "%s/grpc" $core) }}.GatewayOpts `group:"{{ $grpcServer.name | camelcase }} GRPC Gateway" namespace:"{{ $grpcServer.name | kebabcase }}-grpc-gateway" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC_GATEWAY"`
+        {{ end }}
+    {{- end }}
+
+    {{- /* SERVICE OPTIONS */ -}}
+    {{- range $serviceManifest := $serviceManifests }}
+        {{- if doOnce "service_opts" -}}{{"\n\n// Service options"}}{{- end -}}
+        {{- $serviceKey := printf "service_opts_%s" $serviceManifest.name -}}
+        {{- if doOnce $serviceKey }}
+            {{- $serviceName := $serviceManifest.name | camelcase | title }}
+            {{ $serviceName }} *{{ plzGoImport $serviceManifest.implementation ($serviceName | lower) }}.Opts `group:"{{ $serviceName }}" namespace:"{{ $serviceManifest.name | kebabcase }}" env-namespace:"{{ $serviceManifest.name | snakecase | upper }}"`
+        {{- end }}
+    {{- end }}
+
+{{- end -}}

@@ -209,7 +209,7 @@ func (s *Server) GracefulStop() {
 	go func() {
 		log.Infof("attempting to gracefully stop server, with a grace period of %s", duration)
 		s.Raw.GracefulStop()
-		log.Info("server stopped")
+		log.Info("server stopped gracefully")
 		ch <- struct{}{}
 	}()
 	select {

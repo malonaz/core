@@ -1,371 +1,185 @@
 package main
 
-import (
-"context"
-"github.com/malonaz/core/go/logging"
-"github.com/malonaz/core/go/prometheus"
-"github.com/malonaz/core/go/flags"
-"github.com/malonaz/core/go/health"
-"github.com/malonaz/core/go/authentication"
-
-"math/rand"
-"time"
-{{- if not .grpc.servers }}
-	  "os"
-	  "os/signal"
-	  "syscall"
-{{- end }}
-
-{{- "\n" }}
-{{ if .google }}
-	  // Google Service account imports.
-	  "google.golang.org/api/option"
-{{- end }}
-{{ if .google.firebase }}
-	  // Firebase imports.
-	  "firebase.google.com/go/v4"
-{{- end }}
-{{ if .google.storage }}
-	  // Google storage imports.
-	  "cloud.google.com/go/storage"
-{{- end }}
-
-{{- if .configuration }}
-	  "configuration"
-	  {{- "\n" }}
-{{- end }}
-
-{{- if or .grpc.servers .grpc.clients }}
-	  {{- "\n" }}
-	  // gRPC common imports.
-	  "github.com/malonaz/core/go/grpc"
-	  "github.com/malonaz/core/go/certs"
-    authenticationpb "github.com/malonaz/core/genproto/authentication"
-{{- end }}
-{{- if .postgres }}
-	  // Postgres imports.
-	  "github.com/malonaz/core/go/postgres"
-{{- end }}
-{{- if or .nats }}
-	  // Nats import.
- 	  "github.com/malonaz/core/go/nats"
-{{- end }}
-{{- if or .nats.publishers .nats.consumers }}
-	  // Nats import.
- 	  natspb "infrastructure/nats/proto/api"
-{{- end }}
-// Service imports.
-{{ if .service }}{{ template "goImport" (dict "Target" .service) -}}{{ end }}
-{{- if .postgres.db.implementation }}
-	  {{ template "goImport" (dict "Target" .postgres.db.implementation) }}
-{{- end }}
-
-{{- if .openAI }}
-	  // llm imports.
-	  "github.com/malonaz/core/go/llm/openai"
-{{- end }}
-
-{{- if .grpc.servers }}
-	  {{- "\n" }}
-	  // gRPC server proto imports.
-	  {{- range $i, $grpcServer := .grpc.servers }}
-        {{ grpcSvcName $grpcServer | lower }}pb {{ template "goImport" (dict "Target" $grpcServer) }}
-	  {{- end }}
-{{- end }}
-
-{{- if .grpc.clients }}
-	  {{- "\n" }}
-	  // gRPC client proto imports.
-	  {{- range $grpcClient := .grpc.clients }}
-        {{ grpcSvcName $grpcClient | lower }}pb {{ template "goImport" (dict "Target" $grpcClient) }}
-	  {{- end }}
-{{- end }}
-
-"github.com/malonaz/core/go/contexttag"
-)
-
-{{- $hasAdminAPIClient := false -}}
-{{- if .grpc.clients }}
-    {{- range $grpcClient := .grpc.clients -}}
-        {{- if (contains "admin_api/proto/v1" $grpcClient) -}}
-            {{- $hasAdminAPIClient = true -}}
-        {{- end -}}
-    {{- end -}}
-{{- end }}
-
-var log = logging.NewLogger()
-
+var log = {{ goImport "github.com/malonaz/core/go/logging" }}.NewLogger()
 
 var opts struct {
-// Defaults opts.
-Health                health.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
-Prometheus            prometheus.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
-{{ if .service }}Service               *service.Opts `group:"Service" namespace:"service" env-namespace:"SERVICE"`{{ end }}
-
-{{- if .setup }}
-	  Setup                 setupOpts
-{{- end }}
-
-{{- if .google.firebase }}
-	  // Google Firebase Opts.
-	  GoogleFirebaseCredentials string `long:"google-firebase-credentials" default:"secrets/firebase/service_account_key.json" description:"Credentials for google"`
-{{- end }}
-
-{{- if .google.storage }}
-	  // Postgres opts.
-	  GoogleStorageCredentials string `long:"google-storage-credentials" default:"secrets/google-storage/service_account_key.json" description:"Credentials for google"`
-{{- end }}
-
-{{- if .postgres }}
-	  // Postgres opts.
-	  Postgres              postgres.Opts           `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
-{{- end }}
-
-{{- if or .nats }}
-	  // Nats opts.
-	  Nats                  *nats.Opts           `group:"Nats" namespace:"nats" env-namespace:"NATS"`
-{{- end }}
-
-{{- if .openAI }}
-	  // OpenAi opts.
-	  OpenAi                *openai.Opts   `group:"Open AI" namespace:"open-ai" env-namespace:"OPEN_AI"`
-{{- end }}
-
-{{- if .grpc }}
-	  // gRPC server opts.
-	  GRPC                   grpc.Opts   `group:"Grpc" namespace:"grpc" env-namespace:"GRPC"`
-	  Certs                  certs.Opts  `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
-{{- end }}
-
-// gRPC Client opts.
-{{- if $hasAdminAPIClient }}
-    AdminAPI grpc.Opts `group:"Admin API" namespace:"admin-api-grpc" env-namespace:"ADMIN_API_GRPC"`
-{{- end }}
-{{- range $grpcClient := .grpc.clients }}
-    {{- $grpcSvcName := grpcSvcName $grpcClient -}}
-    {{- if not (contains "admin_api/proto/v1" $grpcClient) }}
-        {{ $grpcSvcName }} grpc.Opts `group:"{{ $grpcSvcName }}" namespace:"{{ $grpcSvcName | kebabcase }}" env-namespace:"{{ $grpcSvcName | snakecase | upper }}"`
-    {{- end }}
-{{- end }}
+{{ template "mainOpts" . }}
 }
 
 func main() {
-rand.Seed(time.Now().UnixNano())
-flags.MustParse(&opts)
-prometheus.Serve(opts.Prometheus)
-ctx := context.Background()
+{{ goImport "math/rand" }}.Seed({{ goImport "time"}}.Now().UnixNano())
+{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+{{ goImport "github.com/malonaz/core/go/prometheus" }}.Serve(opts.Prometheus)
+ctx := {{ goImport "context" }}.Background()
 
-// We always start services using a ctx with admin permissions.
-ctxWithRole, err := authentication.WithRole(ctx, "{{ .name }}")
+ctxWithRole, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithRole(ctx, "{{ .name }}")
 if err != nil {
-log.Panicf("injecting admin role into context: %v", err)
+log.Panicf("injecting role into context: %v", err)
 }
-ctxWithRole = contexttag.SetOntoContextNoop(ctxWithRole)
+ctxWithRole = {{ goImport "github.com/malonaz/core/go/contexttag" }}.SetOntoContextNoop(ctxWithRole)
 
-{{- if .configuration }}
-	  {{- "\n" }}
-	  // Parse the configuration.
-	  configuration, err := configuration.Get()
-	  if err != nil {
-		log.Panicf("parsing configuration: %v", err)
-	  }
-{{- end }}
+var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
 
-{{- if .postgres }}
-	  {{- "\n" }}
-	  // Instantiate Postgres client.
-	  psqlClient := postgres.MustNewClient(opts.Postgres)
-	  defer psqlClient.Close()
-{{- end }}
+{{- /* GATHER SERVICE MANIFESTS */ -}}
+{{- $serviceManifests := list -}}
+{{- range $grpcServer := .grpc.servers -}}
+    {{- range $service := $grpcServer.services -}}
+        {{- $serviceManifest := parseYaml $service.manifest -}}
+        {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+    {{- end -}}
+{{- end -}}
 
-{{- if .postgres.db.implementation }}
-	  {{- "\n" }}
-	  // Instantiate db client.
-	  dbClient := db.New(psqlClient)
-{{- end }}
-
-{{- if .openAI }}
-	  {{- "\n" }}
-	  // Instantiate Open AI client.
-	  openAIClient := openai.NewClient(opts.OpenAi)
-{{- end }}
-
-{{- if .google.firebase }}
-	  {{- "\n" }}
-	  // Instantiate Firebase app.
-	  firebaseApp, err := firebase.NewApp(ctx, nil, option.WithCredentialsFile(opts.GoogleFirebaseCredentials))
-	  if err != nil {
-		log.Panicf("instantiating firebase app: %v", err)
-	  }
-{{- end }}
-
-{{- if .google.firebase.authentication }}
-	  firebaseAuthenticationClient, err := firebaseApp.Auth(ctx)
-	  if err != nil {
-		log.Panicf("instantiating firebase authentication client: %v", err)
-	  }
-{{- end }}
-
-{{- if .google.storage }}
-	  {{- "\n" }}
-	  // Instantiate google storage client.
-	  storageClient, err := storage.NewClient(ctx, option.WithCredentialsFile(opts.GoogleStorageCredentials))
-	  if err != nil {
-		log.Panicf("Failed to create google storage client with given key file: %v", err)
-	  }
-	  defer storageClient.Close()
-{{- end }}
-
-{{- if $hasAdminAPIClient }}
-    adminAPIConnection, adminAPIHealthCheck := grpc.NewClient(opts.AdminAPI, opts.Certs, opts.Prometheus).Connect()
-    defer adminAPIConnection.Close()
-{{- end }}
-{{- range $i, $grpcClient := .grpc.clients }}
-	  {{- "\n" }}
-	  // Instantiate {{ grpcSvcName $grpcClient }} gRPC Client.
-    {{- $isAdminAPIClient := contains "admin_api/proto/v1" $grpcClient -}}
-    {{- if not $isAdminAPIClient }}
-	      {{ grpcSvcName $grpcClient | untitle }}Connection, {{ grpcSvcName $grpcClient | untitle }}HealthCheck := grpc.NewClient(opts.{{ grpcSvcName $grpcClient }}, opts.Certs, opts.Prometheus).Connect()
-        defer {{ grpcSvcName $grpcClient | untitle }}Connection.Close()
+{{- /* DEPENDENCIES GRPC*/ -}}
+{{- range $serviceManifest := $serviceManifests -}}
+    {{- range $dep := $serviceManifest.dependencies -}}
+        {{- if eq $dep.type "grpc_client" -}}
+            {{- $clientKey := printf "grpc_client_%s" (grpcSvcName $dep.proto) -}}
+            {{- if doOnce $clientKey -}}
+                {{- if doOnce "grpc_client_instantiatations" -}}{{ "\n\n// Instantiate GRPC Clients\n" -}}{{- end -}}
+                {{ grpcSvcName $dep.proto | untitle }}Connection, {{ grpcSvcName $dep.proto | untitle }}HealthCheck := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewClient(opts.{{ grpcSvcName $dep.proto }}GRPC, opts.Certs, opts.Prometheus).Connect()
+                defer {{ grpcSvcName $dep.proto | untitle }}Connection.Close()
+                {{ grpcSvcName $dep.proto | untitle }}Client := {{ plzGoImport $dep.proto (protoGoImportAlias $dep.proto)}}.New{{ grpcSvcName $dep.proto }}Client({{ grpcSvcName $dep.proto | untitle }}Connection)
+                healthChecks = append(healthChecks, {{ grpcSvcName $dep.proto | untitle }}HealthCheck)
+            {{- end }}
+        {{- end }}
     {{- end }}
-	  {{ grpcSvcName $grpcClient | untitle }}Client := {{ grpcSvcName $grpcClient | lower }}pb.New{{ grpcSvcName $grpcClient }}Client({{ if $isAdminAPIClient }}adminAPI{{ else }}{{ grpcSvcName $grpcClient | untitle }}{{ end }}Connection)
 {{- end }}
 
-{{- if or .nats }}
-	  {{- "\n" }}
-	  // Instantiate nats client.
-	  natsClient, err := nats.NewClient(opts.Nats)
-	  if err != nil {
-		log.Panicf("instantiating nats client: %v", err)
-	  }
-	  defer natsClient.Close()
-{{- end }}
-{{- range $i, $natsPublisher := .nats.publishers }}
-	  {{- "\n" }}
-	  // Instantiate '{{ $natsPublisher }}' publisher.
-	  natsPublisher{{ $i }} := nats.NewPublisher(natspb.Subject_SUBJECT_{{ $natsPublisher }}, natsClient)
-{{- end }}
-
-{{ if .service }}
-    // Instantiate service.
-    service, err := service.New(
-    opts.Service,
-    {{- if .configuration }} configuration,{{- end}}
-    {{- if .postgres.client }} psqlClient,{{- end}}
-    {{- if .postgres.db.implementation }} dbClient,{{- end}}
-    {{- if .openAI }} openAIClient,{{- end}}
-    {{- if .google.firebase.authentication }} firebaseAuthenticationClient,{{- end}}
-    {{- if .google.storage }} storageClient,{{- end}}
-    {{- if .nats.client }} natsClient,{{- end}}
-    {{- range $i, $natsPublisher := .nats.publishers }} natsPublisher{{ $i }},{{- end }}
-    {{- range $grpcClient := .grpc.clients }} {{ grpcSvcName $grpcClient | untitle }}Client,{{- end }}
-    )
-    if err != nil {
-    log.Panicf("instantiating service: %v", err)
-    }
-{{ end }}
-
-{{- if .setup }}
-    {
-	  cleanup, err := setup(ctxWithRole, service)
-    if err != nil {
-    log.Panicf("setting up: %v", err)
-    }
-    defer cleanup()
-    }
-{{- end }}
-{{ if .service }}
-    cleanup, err := service.Start(ctxWithRole)
-    if err != nil {
-    log.Panicf("starting service: %v", err)
-    }
-    defer cleanup()
-{{ end }}
-
-// Setup health check.
-healthCheck := health.Checks(
-{{- "\n" -}}
-{{- if .postgres }} psqlClient.Ping,{{- end }}
-{{- if $hasAdminAPIClient }}adminAPIHealthCheck,{{ end }}
-{{- range $grpcClient := .grpc.clients }} {{ if not (contains "admin_api/proto/v1" $grpcClient)  }}{{ grpcSvcName $grpcClient | untitle }}HealthCheck,{{- end }}{{ end }}
-)
-health.Serve(opts.Health, healthCheck)
-
-{{- range $i, $natsConsumer := .nats.consumers }}
-	  {{- "\n" }}
-	  natsConsumer{{ $i }} := nats.NewConsumer(
-	  natsClient,
-    natspb.Subject_SUBJECT_{{ $natsConsumer.subject }},
-    "{{ $natsConsumer.cg }}",
-    {{ $natsConsumer.batch_size }},
-	  service.{{ ternary (printf "Process%sMessages" ($natsConsumer.subject | camelcase)) $natsConsumer.fn (empty $natsConsumer.fn) }},
-	  )
-	  // Nats consumer run with admin roles.
- 	  if err := natsConsumer{{ $i }}.Start(ctxWithRole); err != nil {
- 	 	log.Panicf("starting nats consumer: %v", err)
-	  }
- 	  defer natsConsumer{{ $i }}.Close()
+{{- /* DEPENDENCIES POSTGRES*/ -}}
+{{- range $serviceManifest := $serviceManifests -}}
+    {{- range $dep := $serviceManifest.dependencies -}}
+        {{- if eq $dep.type "postgres" -}}
+            {{- $dbKey := printf "postgres_db_%s" $dep.name -}}
+            {{- if doOnce $dbKey }}
+                {{- "\n" }}
+                // Instantiate {{ $dep.name }} db client.
+	              {{ $dep.name }}PsqlClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.MustNewClient(opts.{{ $dep.name | title }}Postgres)
+	              defer {{ $dep.name }}PsqlClient.Close()
+                {{ $dep.name }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name }}PsqlClient)
+                healthChecks = append(healthChecks, {{ $dep.name }}PsqlClient.Ping)
+            {{- end }}
+        {{- end }}
+    {{- end }}
 {{- end }}
 
-{{ if .grpc.interceptors.authentication }}
-    authenticationInterceptor := authentication.NewInterceptor(
-		opts.Authentication,
-		configuration,
-		firebaseAuthenticationClient,
-		userServiceClient,
-		economyServiceClient,
-	  )
-{{ end }}
-{{ if .grpc.interceptors.configurationHash }}
-    configurationHashInterceptor := authentication.NewConfigurationHashInterceptor(configuration.Hash)
-{{ end }}
-{{ if .grpc.interceptors.rateLimiter }}
-    rateLimiterInterceptor, err := authentication.NewRateLimiterInterceptor(configuration)
-    if err != nil {
-    log.Panicf("instantiating rate limiter interceptor: %v", err)
-    }
-{{ end }}
-
-{{- if .grpc.servers }}
-	  {{- "\n" }}
-	  // Register gRPC server interfaces.
-	  register := func(server *grpc.Server) {
-		{{- range $grpcServer := .grpc.servers }}
-		    {{ grpcSvcName $grpcServer | lower }}pb.Register{{ grpcSvcName $grpcServer }}Server(server.Raw, service)
-		{{- end }}
-	  }
-
-    {{ if .grpc.servers }}
-        authenticationInterceptor, err := authentication.NewInterceptor(
-        []*authenticationpb.Role{},
-		    {{- range $grpcServer := .grpc.servers }}
-            {{ grpcSvcName $grpcServer | lower }}pb.{{ template "pbFileDescriptor" $grpcServer }},
-		    {{- end }}
+{{- /* INSTANTIATE IMPLEMENTATIONS*/ -}}
+{{- range $serviceManifest := $serviceManifests }}
+    {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+    {{- $serviceKey := printf "service_%s" $serviceManifest.implementation }}
+    {{- if doOnce $serviceKey }}
+        {{ "\n" }}// Instantiate {{ $serviceName }}.
+        {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
+        opts.{{ $serviceName | title }},
+        {{- range $dep := $serviceManifest.dependencies }}
+            {{- if eq $dep.type "grpc_client" }}
+                {{ grpcSvcName $dep.proto | untitle }}Client,
+            {{- else if eq $dep.type "postgres" }}
+                {{ $dep.name }}DBClient,
+            {{- end }}
+        {{- end }}
         )
         if err != nil {
-        log.Panicf("instantiating permissions interceptor: %v", err)
+        log.Panicf("instantiating {{ $serviceName }}: %v", err)
         }
+        // Start {{ $serviceName }} service.
+        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctxWithRole)
+        if err != nil {
+        log.Panicf("starting {{ $serviceName }} service: %v", err)
+        }
+        defer {{ $serviceName }}Cleanup()
+    {{- end }}
+{{- end }}
+
+// Setup health check.
+healthCheck := {{ goImport "github.com/malonaz/core/go/health" }}.Checks(healthChecks...)
+{{ goImport "github.com/malonaz/core/go/health" }}.Serve(opts.Health, healthCheck)
+
+
+// Instantiate interceptors.
+authenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInterceptor(opts.Authentication)
+if err != nil {
+log.Panicf("instantiating authentication interceptor: %v", err)
+}
+
+var gracefulStopFns []func()
+var stopFns []func()
+
+{{ range $grpcServer := .grpc.servers }}
+    // Start {{ $grpcServer.name | camelcase }} gRPC Server
+    {
+    register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
+    {{- range $service := $grpcServer.services }}
+        {{- $serviceManifest := parseYaml $service.manifest -}}
+        {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+        {{ plzGoImport $service.proto (protoGoImportAlias $service.proto)}}.Register{{ grpcSvcName $service.proto }}Server(server.Raw, {{ $serviceName }})
+    {{- end }}
+    }
+	  grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
+    WithPreUnaryInterceptors({{ goImport "github.com/malonaz/core/go/authentication" }}.UnarySessionInjectorInterceptor(), authenticationInterceptor.Unary()).
+    WithPreStreamInterceptors({{ goImport "github.com/malonaz/core/go/authentication" }}.StreamSessionInjectorInterceptor(), authenticationInterceptor.Stream())
+    gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
+    stopFns = append(stopFns, grpcServer.Stop)
+    go grpcServer.Serve()
+
+    {{- $hasGateway := false -}}
+    {{- range $service := $grpcServer.services -}}
+        {{- if $service.gateway -}}
+            {{- if doOnce $grpcServer.name }}
+                {{ $hasGateway = true }}
+                // GRPC gateway handlers.
+                var registerHandlers =[]{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
+            {{- end }}
+            {{ plzGoImport $service.proto (protoGoImportAlias $service.proto)}}.Register{{ grpcSvcName $service.proto }}HandlerFromEndpoint,
+        {{ end }}
     {{ end }}
+    {{- if $hasGateway -}}
+        }
+        grpcGatewayServer := grpc.NewGateway(opts.{{ $grpcServer.name | camelcase }}GRPCGateway, opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
+        go grpcGatewayServer.Serve(ctx)
+    {{- end }}
+    }
+{{- end }}
 
-	  // Start gRPC server.
-	  grpc.NewServer(opts.GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
-    WithPreUnaryInterceptors(authentication.UnarySessionInjectorInterceptor(), authenticationInterceptor.Unary()).
-    WithPreStreamInterceptors(authentication.StreamSessionInjectorInterceptor(), authenticationInterceptor.Stream()).Serve()
-	{{- end }}
+signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
+{{ goImport "os/signal" }}.Notify(signalChan, {{ goImport "syscall" }}.SIGTERM, {{ goImport "syscall" }}.SIGINT, {{ goImport "syscall" }}.SIGHUP)
 
-	{{- if .job }}
-	log.Info("running job")
-	if err := service.Run(ctxWithRole); err != nil {
-      log.Panicf("running job: %v", err)
-  }
-	log.Info("job completed")
-	return
-	{{- end}}
+// Wait for first signal
+sig := <- signalChan
+log.Infof("Received signal #1: %v, initiating graceful shutdown", sig)
 
-	{{- if (not .grpc.servers) }}
-	{{- "\n" }}
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	log.Infof("system call: %+v", <-sig)
-	{{- end }}
+// Start graceful shutdown in parallel
+var wg {{ goImport "sync" }}.WaitGroup
+wg.Add(len(gracefulStopFns))
+for _, gracefulStopFn := range gracefulStopFns {
+    go func(fn func()) {
+        defer wg.Done()
+        fn()
+    }(gracefulStopFn)
+}
+
+// Set up a channel to know when graceful shutdown is complete
+gracefulDone := make(chan struct{})
+go func() {
+    wg.Wait()
+    close(gracefulDone)
+}()
+
+// Wait for either graceful shutdown to complete or second signal
+select {
+case <-gracefulDone:
+    log.Info("Graceful shutdown completed")
+case sig := <-signalChan:
+    log.Warnf("Received signal #2: %v, forcing immediate shutdown", sig)
+    // Force stop everything immediately in parallel but wait for completion
+    var wg {{ goImport "sync" }}.WaitGroup
+    wg.Add(len(stopFns))
+    for _, stopFn := range stopFns {
+        go func(fn func()) {
+            defer wg.Done()
+            fn()
+        }(stopFn)
+    }
+    wg.Wait()
+    log.Info("Force shutdown completed")
+}
 }
