@@ -5,21 +5,45 @@ subinclude("//build_defs:k8s")
 def go_manifest(
         name:str,
         manifest:str="manifest.yaml",
-        proto_rules:list=[],
+        deps:list=[],
         visibility:list=[],
         schema:str="///core//build_defs/codegen/go_service/templates:service_manifest.schema",
 ):
+    if len(deps) == 0:
+        # If no deps, just use the original manifest
+        templated_manifest = text_template(
+            name = "manifest_templated.yaml",
+            src = manifest,
+        )
+    else:
+        # Build sed commands for each dep
+        sed_commands = []
+        for dep in deps:
+            # Canonicalize the label - if no target specified, add the last path component as target
+            canonical_dep = canonicalise(dep)
+            sed_commands.append(f"sed -i 's|{dep}|{canonical_dep}($(location {dep}))|g' $OUT")
 
-    templated_manifest = text_template(
-        name = "manifest_templated.yaml",
-        src = manifest,
-    )
+        cmd = "cp $SRC $OUT\n" + "\n".join(sed_commands)
+
+        genrule(
+            name = f"{name}_processed_manifest",
+            srcs = [manifest],
+            deps = deps,
+            cmd = cmd,
+            out = "processed_manifest.yaml",
+        )
+
+        templated_manifest = text_template(
+            name = "manifest_templated.yaml",
+            src = f":{name}_processed_manifest",
+        )
+
     return validated_file(
         name = name,
         src=templated_manifest,
         schema = schema,
         format="yaml",
-        exported_deps = proto_rules,
+        exported_deps = deps,
         visibility=visibility,
     )
 

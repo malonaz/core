@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 	"regexp"
@@ -10,15 +11,16 @@ import (
 )
 
 var (
-	serviceRegex              = regexp.MustCompile(`service\s+([\w]+)\s+{`)
-	publisherRegex            = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
-	goPackageRegex            = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
-	doOnceCache               = map[string]bool{}
-	filepathToContent         = map[string]string{}
-	filepathToGrpcServiceName = map[string]string{}
-	goImportPathToAlias       = map[string]string{}
-	aliasToGoImportPath       = map[string]string{}
-	customFuncMap             = template.FuncMap{
+	pleaseFilenameRegex    = regexp.MustCompile(`[^(]+\(([^)]+)\)`)
+	serviceRegex           = regexp.MustCompile(`service\s+([\w]+)\s+{`)
+	publisherRegex         = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
+	goPackageRegex         = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
+	doOnceCache            = map[string]bool{}
+	filepathToContent      = map[string][]byte{}
+	labelToGrpcServiceName = map[string]string{}
+	goImportPathToAlias    = map[string]string{}
+	aliasToGoImportPath    = map[string]string{}
+	customFuncMap          = template.FuncMap{
 		"debug": func(v any) error {
 			fmt.Printf("%+v\n", v)
 			return nil
@@ -32,11 +34,21 @@ var (
 			return true
 		},
 
-		"readFile": readFile,
+		"parseYaml": parseYaml,
 
 		// Imports plz go labels like "//user/proto:api".
 		"plzGoImport": func(in ...string) (string, error) {
 			label := in[0]
+
+			// Remove trailing (filepath) if present
+			if pleaseFilenameRegex.MatchString(label) {
+				// Extract just the label part (everything before the parentheses)
+				parts := strings.Split(label, "(")
+				if len(parts) > 0 {
+					label = parts[0]
+				}
+			}
+
 			importPath := strings.TrimPrefix(strings.ReplaceAll(label, ":", "/"), "//")
 			in[0] = importPath
 			return goImport(in...)
@@ -63,7 +75,7 @@ var (
 			}
 
 			// Find all matches
-			matches := publisherRegex.FindStringSubmatch(content)
+			matches := publisherRegex.FindStringSubmatch(string(content))
 			if len(matches) != 2 {
 				return []string{}, nil // No publishers found
 			}
@@ -108,17 +120,20 @@ func findAvailableAlias(requestedAlias, importPath string) string {
 	}
 }
 
-func readFile(filepath string) (string, error) {
+func readFile(label string) ([]byte, error) {
+	filepath, err := extractFilenameFromLabel(label)
+	if err != nil {
+		return nil, fmt.Errorf("extracing filename from label: %v", err)
+	}
 	if content, ok := filepathToContent[filepath]; ok {
 		return content, nil
 	}
 	bytes, err := os.ReadFile(filepath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	content := string(bytes)
-	filepathToContent[filepath] = content
-	return content, nil
+	filepathToContent[filepath] = bytes
+	return bytes, nil
 }
 
 func goImport(in ...string) (string, error) {
@@ -185,28 +200,49 @@ func injectGoImports(content []byte) []byte {
 	return result
 }
 
-func grpcSvcName(filepath string) (string, error) {
-	if serviceName, ok := filepathToGrpcServiceName[filepath]; ok {
+func grpcSvcName(label string) (string, error) {
+	if serviceName, ok := labelToGrpcServiceName[label]; ok {
 		return serviceName, nil
 	}
-	sanitizedFilepath := strings.TrimPrefix(filepath, "//")
-	sanitizedFilepath = strings.ReplaceAll(sanitizedFilepath, ":", "/")
-	content, err := readFile(sanitizedFilepath + ".proto")
+	bytes, err := readFile(label)
 	if err != nil {
 		return "", err
 	}
+	content := string(bytes)
 
 	// Find the service definition
+
 	matches := serviceRegex.FindStringSubmatch(content)
 	if len(matches) != 2 {
-		return "", fmt.Errorf("no service found in %s", sanitizedFilepath)
+		return "", fmt.Errorf("no service found")
 	}
 
 	// Extract the service name
 	serviceName := matches[1]
 	if len(serviceName) == 0 {
-		return "", fmt.Errorf("empty service name found in %s", sanitizedFilepath)
+		return "", fmt.Errorf("empty service name found")
 	}
-	filepathToGrpcServiceName[filepath] = serviceName
+	labelToGrpcServiceName[label] = serviceName
 	return serviceName, nil
+}
+
+func parseYaml(label string) (map[string]any, error) {
+	bytes, err := readFile(label)
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]any{}
+	if err := yaml.Unmarshal(bytes, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// Returns the filename and a boolean indicating if the pattern was found
+func extractFilenameFromLabel(input string) (string, error) {
+	matches := pleaseFilenameRegex.FindStringSubmatch(input)
+	if len(matches) >= 2 {
+		return matches[1], nil
+	}
+	return "", fmt.Errorf("no match found")
 }

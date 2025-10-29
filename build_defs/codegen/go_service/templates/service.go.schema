@@ -32,8 +32,7 @@
                         "pattern": "^//[a-zA-Z0-9/_-]+$"
                     },
                     "proto": {
-                        "type": "string",
-                        "pattern": "^//[a-zA-Z0-9/_-]+:(api|chat)$"
+                        "type": "string"
                     }
                 },
                 "allOf": [
