@@ -67,7 +67,7 @@ def go_template(
             template_deps.append(t)
 
     args = [
-        f"--output {name}",
+        f"--output unformatted_{name}",
         f"--data-format {format}",
     ] + [f"--template $(location {t})" for t in processed_templates]
 
@@ -77,14 +77,25 @@ def go_template(
         for k, v in extra_data:
             args += f"--extra-data {k}:{v}"
 
-    return genrule(
-        name=name,
+    # First genrule: Generate the template
+    template_rule = genrule(
+        name=f"_unformatted_{name}",
         cmd = [
             f"$TOOLS " + " ".join(args),
-            "gofmt -w $OUTS",
         ],
         tools = [CONFIG.CORE.TEMPLATES_GO],
         deps = deps + template_deps + ([data] if data else []),
+        outs = [f"unformatted_{name}"],
+    )
+
+    # Second genrule: Format the generated file
+    return genrule(
+        name=name,
+        cmd = [
+            "cp $SRCS $OUTS",
+            "gofmt -w $OUTS",
+        ],
+        srcs = [template_rule],
         outs = [name],
         labels = ["codegen"],
         visibility = visibility,

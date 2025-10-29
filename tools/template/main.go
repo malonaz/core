@@ -127,8 +127,12 @@ func main() {
 	if err := tmpl.Execute(&buf, data); err != nil {
 		log.Fatalf("executing template: %v", err)
 	}
+
+	// Inject Go imports if any were collected
+	finalContent := injectGoImports(buf.Bytes())
+
 	// Write the result to the output file
-	if err := os.WriteFile(opts.Output, buf.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(opts.Output, finalContent, 0644); err != nil {
 		log.Fatalf("writing output file: %v", err)
 	}
 	log.Printf("Successfully processed template and data")
