@@ -17,11 +17,6 @@ export_file(
 )
 
 export_file(
-    name = "service.runtime.go.tmpl",
-    src = "service.runtime.go.tmpl",
-)
-
-export_file(
     name = "k8s.yaml.tmpl",
     src = "k8s.yaml.tmpl",
 )
