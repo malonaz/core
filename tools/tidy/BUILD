@@ -46,7 +46,7 @@ def echo_message(message):
     return f'echo "###### {message} ######"'
 
 _lint_cmds = [
-    "export GOROOT=\\\\$($(out_exe //tools:go_toolchain|go) env GOROOT)",
+    "export GOROOT=\\\\$($(out_exe //tools/go:toolchain|go) env GOROOT)",
     echo_message("Building codegen"),
     "plz build --include codegen > /dev/null 2>&1 || echo 'Codegen build failed'",
     echo_message("Running 'wollemi'"),
@@ -65,7 +65,7 @@ sh_cmd(
     deps = [
         ":buf",
         ":wollemi",
-        "//tools:go_toolchain",
+        "//tools/go:toolchain",
     ],
 )
 
@@ -81,6 +81,6 @@ sh_cmd(
         ":buf",
         ":godeps",
         ":wollemi",
-        "//tools:go_toolchain",
+        "//tools/go:toolchain",
     ],
 )
