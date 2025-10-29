@@ -12,6 +12,9 @@
             "type": "string",
             "pattern": "^//[a-zA-Z0-9/_-]+$"
         },
+        "includeRuntime": {
+            "type": "boolean"
+        },
         "dependencies": {
             "type": "array",
             "items": {
