@@ -189,7 +189,7 @@ def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=N
       protoc_flags (list): Additional flags to pass to protoc.
       additional_context (dict): Additional context.
     """
-    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
+    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
     tools = {'go': [CONFIG.CORE.PROTOC_GEN_GO], "grpc_go": [CONFIG.CORE.PROTOC_GEN_GRPC_GO]}
     plugin_flags = [
         '--plugin=protoc-gen-go="`which $TOOLS_GO`"',

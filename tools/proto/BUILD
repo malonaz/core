@@ -82,7 +82,7 @@ go_module(
 
 # Gathers the proto go validate depdencies - referenced in .plzconfig.
 filegroup(
-    name = "protoc-gen-grpc-gateway-dep",
+    name = "protoc-gen-go-grpc-gateway-dep",
     exported_deps = [
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",

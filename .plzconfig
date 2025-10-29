@@ -44,25 +44,29 @@ Name = core
 ConfigKey = ProtocGenGo
 DefaultValue = //tools/proto:protoc-gen-go
 
-[PluginConfig "protoc_gen_grpc_go"]
-ConfigKey = ProtocGenGrpcGo
-DefaultValue = //tools/proto:protoc-gen-go-grpc
-
 [PluginConfig "protoc_gen_go_dep"]
 ConfigKey = ProtocGenGoDep
 DefaultValue = //tools/proto:protoc-gen-go-dep
+
+[PluginConfig "protoc_gen_grpc_go"]
+ConfigKey = ProtocGenGrpcGo
+DefaultValue = //tools/proto:protoc-gen-go-grpc
 
 [PluginConfig "protoc_gen_grpc_go_dep"]
 ConfigKey = ProtocGenGrpcGoDep
 DefaultValue = //tools/proto:protoc-gen-go-grpc-dep
 
-[PluginConfig "protoc_gen_cobra_go"]
-ConfigKey = ProtocGenCobraGo
-DefaultValue = //tools/proto:protoc-gen-cobra
-
 [PluginConfig "protoc_gen_grpc_gateway_go"]
 ConfigKey = ProtocGenGrpcGatewayGo
 DefaultValue = //tools/proto:protoc-gen-grpc-gateway
+
+[PluginConfig "protoc_gen_grpc_gateway_go_dep"]
+ConfigKey = ProtocGenGrpcGatewayGoDep
+DefaultValue = //tools/proto:protoc-gen-go-grpc-gateway-dep
+
+[PluginConfig "protoc_gen_cobra_go"]
+ConfigKey = ProtocGenCobraGo
+DefaultValue = //tools/proto:protoc-gen-cobra
 
 [PluginConfig "protoc_gen_templates_go"]
 ConfigKey = ProtocGenTemplatesGo
