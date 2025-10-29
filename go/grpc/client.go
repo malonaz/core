@@ -33,7 +33,7 @@ var (
 
 // Client is a gRPC client.
 type Client struct {
-	opts       Opts
+	opts       *Opts
 	connection *grpc.ClientConn
 
 	// The first interceptor is called first.
@@ -44,7 +44,7 @@ type Client struct {
 }
 
 // NewClient creates and returns a new gRPC client.
-func NewClient(opts Opts, certsOpts certs.Opts, prometheusOpts prometheus.Opts) *Client {
+func NewClient(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) *Client {
 	client := &Client{
 		opts: opts,
 	}

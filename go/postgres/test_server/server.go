@@ -120,8 +120,8 @@ func MustNewServer(config Config) *Server {
 }
 
 // GetOpts returns this server's postgres.Opts.
-func (s *Server) GetOpts() postgres.Opts {
-	return postgres.Opts{
+func (s *Server) GetOpts() *postgres.Opts {
+	return &postgres.Opts{
 		Host:     s.config.Host,
 		Port:     s.config.Port,
 		User:     s.config.User,

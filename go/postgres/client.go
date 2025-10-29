@@ -37,12 +37,12 @@ type Opts struct {
 
 // Client is a wrapper around sqlx db to avoid importing it in core packages.
 type Client struct {
-	Opts Opts
+	Opts *Opts
 	*pgxpool.Pool
 }
 
 // NewClient instantiates and returns a new Postgres Client. Returns an error if it fails to ping server.
-func NewClient(opts Opts) (*Client, error) {
+func NewClient(opts *Opts) (*Client, error) {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
 		opts.Host, opts.Port, opts.User, opts.Database, opts.Password,
@@ -62,7 +62,7 @@ func NewClient(opts Opts) (*Client, error) {
 }
 
 // MustNewClient connects and pings the db, then returns it. It panics if an error occurs
-func MustNewClient(opts Opts) *Client {
+func MustNewClient(opts *Opts) *Client {
 	db, err := NewClient(opts)
 	if err != nil {
 		log.Panicf(err.Error())

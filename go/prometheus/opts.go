@@ -18,7 +18,7 @@ type Opts struct {
 }
 
 // Serve serves prometheus in a goroutine.
-func Serve(opts Opts) {
+func Serve(opts *Opts) {
 	if opts.Disable {
 		return
 	}

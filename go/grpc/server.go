@@ -59,8 +59,8 @@ type ServerOptions struct {
 
 // Server is a gRPC server.
 type Server struct {
-	opts                    Opts
-	prometheusOpts          prometheus.Opts
+	opts                    *Opts
+	prometheusOpts          *prometheus.Opts
 	register                func(*Server)
 	Raw                     *grpc.Server
 	prometheusServerMetrics *grpc_prometheus.ServerMetrics
@@ -79,7 +79,7 @@ type Server struct {
 }
 
 // NewServer creates and returns a new Server.
-func NewServer(opts Opts, certsOpts certs.Opts, prometheusOpts prometheus.Opts, register func(*Server)) *Server {
+func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, register func(*Server)) *Server {
 	server := &Server{
 		opts:           opts,
 		prometheusOpts: prometheusOpts,

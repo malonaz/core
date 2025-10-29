@@ -41,7 +41,7 @@ type RegisterHandler = func(ctx context.Context, mux *runtime.ServeMux, endpoint
 
 // Gateway is a gRPC gateway.
 type Gateway struct {
-	opts             GatewayOpts
+	opts             *GatewayOpts
 	registerHandlers []RegisterHandler
 
 	// HTTP.
@@ -59,7 +59,7 @@ type Gateway struct {
 }
 
 // NewGateway creates and returns a new Gateway.
-func NewGateway(opts GatewayOpts, certsOpts certs.Opts, prometheusOpts prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+func NewGateway(opts *GatewayOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
 	gateway := &Gateway{
 		opts:             opts,
 		registerHandlers: registerHandlers,

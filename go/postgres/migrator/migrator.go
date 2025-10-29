@@ -18,7 +18,7 @@ type Migrator struct {
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(opts postgres.Opts) (*Migrator, error) {
+func NewMigrator(opts *postgres.Opts) (*Migrator, error) {
 	client, err := postgres.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func NewMigrator(opts postgres.Opts) (*Migrator, error) {
 }
 
 // MustNewMigrator returns a new Migrator and panics on error.
-func MustNewMigrator(opts postgres.Opts) *Migrator {
+func MustNewMigrator(opts *postgres.Opts) *Migrator {
 	migrator, err := NewMigrator(opts)
 	if err != nil {
 		log.Panicf("Could not create migrator: %v", err)

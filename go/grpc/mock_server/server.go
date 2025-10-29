@@ -26,12 +26,12 @@ func (s *Server) getHandler(service, method string) (Handler, bool) {
 }
 
 // NewServer returns a new server.
-func NewServer(port string, opts commongrpc.Opts, certsOpts certs.Opts) *Server {
+func NewServer(port string, opts *commongrpc.Opts, certsOpts *certs.Opts) *Server {
 	server := &Server{
 		methodToHandler: map[string]Handler{},
 	}
 	register := func(*commongrpc.Server) {}
-	grpcServer := commongrpc.NewServer(opts, certsOpts, prometheus.Opts{}, register).WithOptions(
+	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register).WithOptions(
 		grpc.CustomCodec(Codec{}), grpc.UnknownServiceHandler(server.handleRPC),
 	)
 	go grpcServer.Serve()

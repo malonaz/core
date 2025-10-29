@@ -24,7 +24,7 @@ type Opts struct {
 type Check func(context.Context) error
 
 // Serve serves health in a goroutine.
-func Serve(opts Opts, handlerFN Check) {
+func Serve(opts *Opts, handlerFN Check) {
 	if opts.Disable {
 		return
 	}
