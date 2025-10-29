@@ -31,6 +31,11 @@ export_file(
     src = "service_manifest.schema",
 )
 
+export_file(
+    name = "service.go.schema",
+    src = "service.go.schema",
+)
+
 ############# ADMIN_API #################
 export_file(
     name = "admin_api_main.go.tmpl",
