@@ -198,19 +198,24 @@ func (s *Server) WithPostStreamInterceptors(interceptors ...grpc.StreamServerInt
 	return s
 }
 
-func (s *Server) gracefulStop(server *grpc.Server) {
+func (s *Server) Stop() {
+	log.Warningf("stopping server")
+	s.Raw.Stop()
+}
+
+func (s *Server) GracefulStop() {
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ch := make(chan struct{})
 	go func() {
 		log.Infof("attempting to gracefully stop server, with a grace period of %s", duration)
-		server.GracefulStop()
+		s.Raw.GracefulStop()
 		log.Info("server stopped")
 		ch <- struct{}{}
 	}()
 	select {
 	case <-time.After(duration):
 		log.Infof("grace period exhausted, stopping server")
-		server.Stop()
+		s.Raw.Stop()
 	case <-ch:
 	}
 }
@@ -239,7 +244,7 @@ func (s *Server) Serve() {
 		go s.assertHealthPeriodically()
 		grpc_health_v1.RegisterHealthServer(s.Raw, s)
 	}
-	go handleSignals(func() { s.gracefulStop(s.Raw) }, s.Raw.Stop)
+
 	if !s.prometheusOpts.Disable {
 		s.prometheusServerMetrics.InitializeMetrics(s.Raw)
 		prom.DefaultRegisterer.MustRegister(s.prometheusServerMetrics)

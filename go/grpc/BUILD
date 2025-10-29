@@ -7,7 +7,6 @@ go_library(
         "gateway.go",
         "opts.go",
         "server.go",
-        "utils.go",
     ],
     visibility = ["PUBLIC"],
     deps = [

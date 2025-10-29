@@ -7,7 +7,6 @@ import (
 	"net/textproto"
 	"reflect"
 	"strings"
-	"time"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -144,9 +143,6 @@ func (g *Gateway) Serve(ctx context.Context) {
 	if len(g.streamInterceptors) > 0 {
 		g.dialOptions = append(g.dialOptions, grpc.WithChainStreamInterceptor(g.streamInterceptors...))
 	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	mux := runtime.NewServeMux(g.options...)
 	endpoint := fmt.Sprintf(":%d", g.grpcOpts.Port)
 	for _, registerHandler := range g.registerHandlers {
@@ -154,7 +150,6 @@ func (g *Gateway) Serve(ctx context.Context) {
 			log.Panicf("Could not register handler: %v", err)
 		}
 	}
-	go handleSignals(cancel)
 	log.Infof("Connected to gRPC server on [%s]", endpoint)
 
 	g.routeToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
@@ -201,18 +196,9 @@ func (g *Gateway) Serve(ctx context.Context) {
 	url := fmt.Sprintf(":%d", g.opts.Port)
 	handler := customMimeWrapper(g.routeToGatewayOptions, allowCORS(mux))
 	httpServer := http.Server{Addr: url, Handler: handler}
-	go func() {
-		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-			log.Panicf("Gateway server exited unexpectedly: %v", err)
-		}
-	}()
 	log.Infof("Serving gRPC Gateway on port [:%d]", g.opts.Port)
-
-	<-ctx.Done()
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := httpServer.Shutdown(ctx); err != nil {
-		log.Panicf("Could not shutdown http server: %v", err)
+	if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		log.Panicf("Gateway server exited unexpectedly: %v", err)
 	}
 }
 
