@@ -53,6 +53,9 @@
                                         },
                                         "manifest": {
                                             "type": "string"
+                                        },
+                                        "gateway": {
+                                            "type": "boolean"
                                         }
                                     }
                                 }

@@ -16,7 +16,6 @@ type Opts struct {
 
 // GatewayOpts holds a gRPC gateway server opts.
 type GatewayOpts struct {
-	GRPC *Opts
-	Host string `long:"gateway-host" description:"Host for a client to connect to"`
-	Port int    `long:"gateway-port" description:"Port to serve gateway on." default:"8080"`
+	Port int    `long:"port" env:"PORT" description:"Port to serve gRPC on." default:"8080"`
+	Host string `long:"host" env:"HOST" description:"Host for a client to connect to."`
 }

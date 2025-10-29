@@ -41,7 +41,10 @@ type RegisterHandler = func(ctx context.Context, mux *runtime.ServeMux, endpoint
 
 // Gateway is a gRPC gateway.
 type Gateway struct {
-	opts             *GatewayOpts
+	// Opts for this gateway.
+	opts *GatewayOpts
+	// Opts for the grpc server this gateway is connecting to.
+	grpcOpts         *Opts
 	registerHandlers []RegisterHandler
 
 	// HTTP.
@@ -59,9 +62,10 @@ type Gateway struct {
 }
 
 // NewGateway creates and returns a new Gateway.
-func NewGateway(opts *GatewayOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
 	gateway := &Gateway{
 		opts:             opts,
+		grpcOpts:         grpcOpts,
 		registerHandlers: registerHandlers,
 		options: []runtime.ServeMuxOption{
 			// Some default options.
@@ -82,7 +86,7 @@ func NewGateway(opts *GatewayOpts, certsOpts *certs.Opts, prometheusOpts *promet
 		grpc.MaxCallSendMsgSize(MaximumMessageSize),
 	)
 	gateway.dialOptions = append(gateway.dialOptions, WithDNSBalancer(), messageSizeDialOptions) // Currently makes no sense as we are dialing to localhost.
-	if opts.GRPC.DisableTLS {
+	if grpcOpts.DisableTLS {
 		log.Warningf("Starting gRPC client using insecure gRPC dial")
 		gateway.dialOptions = append(gateway.dialOptions, grpc.WithInsecure())
 	} else {
@@ -144,7 +148,7 @@ func (g *Gateway) Serve(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	mux := runtime.NewServeMux(g.options...)
-	endpoint := fmt.Sprintf(":%d", g.opts.GRPC.Port)
+	endpoint := fmt.Sprintf(":%d", g.grpcOpts.Port)
 	for _, registerHandler := range g.registerHandlers {
 		if err := registerHandler(ctx, mux, endpoint, g.dialOptions); err != nil {
 			log.Panicf("Could not register handler: %v", err)
