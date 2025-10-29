@@ -27,8 +27,7 @@ import (
 
 const (
 	// maximum message size for the server (20 MB)
-	MaximumMessageSize         = 20 * 1024 * 1024
-	gracefulStopTimeoutSeconds = 30
+	MaximumMessageSize = 20 * 1024 * 1024
 )
 
 var (
@@ -200,15 +199,16 @@ func (s *Server) WithPostStreamInterceptors(interceptors ...grpc.StreamServerInt
 }
 
 func (s *Server) gracefulStop(server *grpc.Server) {
+	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ch := make(chan struct{})
 	go func() {
-		log.Infof("attempting to gracefully stop server, with a grace period of %d seconds", gracefulStopTimeoutSeconds)
+		log.Infof("attempting to gracefully stop server, with a grace period of %s", duration)
 		server.GracefulStop()
 		log.Info("server stopped")
 		ch <- struct{}{}
 	}()
 	select {
-	case <-time.After(time.Duration(gracefulStopTimeoutSeconds) * time.Second):
+	case <-time.After(duration):
 		log.Infof("grace period exhausted, stopping server")
 		server.Stop()
 	case <-ch:
