@@ -2,7 +2,7 @@
 """
 subinclude(
     "///proto//build_defs/sdk",
-    "///go//build_defs:go"
+    "///go//build_defs:go",
 )
 
 def _go_path_mapping():
@@ -173,10 +173,70 @@ def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, lab
         import_path = _import_path(name, root_dir, additional_context),
     )
 
-def go_grpc_language():
-    """A rule for a grpc language for go
-    see https://github.com/please-build/proto-rules/blob/master/build_defs/sdk/sdk.build_defs for more info
+def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
+                      test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
+    """Defines a rule for a go grpc library.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
     """
+    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
+    tools = {'go': [CONFIG.CORE.PROTOC_GEN_GO], "grpc_go": [CONFIG.CORE.PROTOC_GEN_GRPC_GO]}
+    plugin_flags = [
+        '--plugin=protoc-gen-go="`which $TOOLS_GO`"',
+        '--go_out="$OUT_DIR"',
+        '--go_opt=paths=source_relative',
+        '--plugin=protoc-gen-go-grpc="$(which $TOOLS_GRPC_GO)"',
+        '--go-grpc_out="$OUT_DIR"',
+        '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
+        '--grpc-gateway_out=$OUT_DIR',
+        '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_PLUGIN`"',
+        f'--grpc-gateway_opt=paths=source_relative',
+    ]
+    tools['grpc_gateway_plugin'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "go",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+        pre_build = _go_path_mapping(),
+    )
+
+    return go_library(
+        name = f"_{name}#go",
+        srcs = [protoc],
+        deps = deps,
+        test_only = test_only,
+        labels = labels,
+        visibility = visibility,
+        import_path = _import_path(name, root_dir, additional_context),
+    )
+
+def go_grpc_gateway_language():
+    return proto_language(
+        language = "go",
+        build_def = go_grpc_gateway_library,
+        additional_provides={"go_src": "go_srcs", "modinfo": "go_modinfo"},
+    )
+
+def go_grpc_language():
     return proto_language(
         language = "go",
         build_def = go_grpc_library,
@@ -184,9 +244,6 @@ def go_grpc_language():
     )
 
 def go_proto_language():
-    """A rule for a proto language for go
-    see https://github.com/please-build/proto-rules/blob/master/build_defs/sdk/sdk.build_defs for more info
-    """
     return proto_language(
         language = "go",
         build_def = go_proto_library,

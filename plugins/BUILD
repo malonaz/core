@@ -17,11 +17,11 @@ plugin_repo(
 plugin_repo(
     name = "proto",
     owner = "malonaz",
-    revision = "f12c8c4444a32c2a40f468ef5ff865f7a6533c26",
+    revision = "0d941955963cbe0f1c0c3bd8349e8ee47f5138c8",
 )
 
 plugin_repo(
     name = "core",
     owner = "malonaz",
-    revision = "f0aed7bd500feb8e35562322c57c908538e4fa23",
+    revision = "3cbc919337d54fe746106d19fd53051ef42c7b14",
 )
