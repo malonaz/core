@@ -1,0 +1,32 @@
+package main
+
+//go:embed {{ range $dir := .directories }}{{ $dir.name }}/*.sql {{ $dir.name }}_migrations.yaml {{ end }}
+var migrationsFS {{ goImport "embed" }}.FS
+
+var opts struct {
+	Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
+	PostgresSuper *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres Super" namespace:"postgres-super" env-namespace:"POSTGRES_SUPER"`
+}
+
+func main() {
+	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+	ctx := {{ goImport "context" }}.Background()
+
+	// Initialize using the super user. This create the database, user and sets the password.
+	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.PostgresSuper)
+	m.MustInitializeDatabase(ctx, opts.Postgres.Database, opts.Postgres.User, opts.Postgres.Password)
+
+	{{ $hasExtensions := false }}
+	{{ range $dir := .directories }}{{ if $dir.extension }}{{ $hasExtensions = true }}{{ end }}{{ end }}
+	{{ if $hasExtensions }}
+		// Create the migrations table as a regular user.
+		mRegular := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
+		mRegular.MustCreateMigrationsTableIfNotExist(ctx)
+
+		// This is where it gets annoying/tricky.
+		// We run extensions migrations as the superuser but *into* the regular table.
+		opts.PostgresSuper.Database = opts.Postgres.Database
+	  mSuper := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.PostgresSuper)
+	  mSuper.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
+	{{ end }}
+}

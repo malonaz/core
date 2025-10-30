@@ -1,0 +1,90 @@
+subinclude("//build_defs/codegen/go_service:build_defs")
+subinclude("///go//build_defs:go")
+
+def postgres_migrations(
+        name:str,
+        dirs:list,
+):
+    # Manifest.
+    manifest = go_main_manifest(
+        name = "manifest",
+        ignore_schema = True,
+        visibility = ["//chat/chat_service/..."],
+    )
+
+    # Create migrations filegroup.
+    migration_yaml_files = []
+    for d in dirs:
+        migration_yaml_file = genrule(
+            name = f"{d}_migrations.yaml",
+            srcs = [manifest],
+            out = f"{d}_migrations.yaml",
+            cmd = f"""
+echo "migrations:" > $OUT
+sed -n '/- name: {d}/,/- name:/p' $SRCS | \
+grep -E "^\s+- filename:|^\s+hash:" | \
+sed 's/^    /  /' >> $OUT
+            """,
+        )
+        migration_yaml_files += [migration_yaml_file]
+
+    # Test
+    go_main_src(
+        name = "migration_hash_test.go",
+        manifest = ":manifest",
+        templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator_test.go.tmpl"]
+    )
+    go_test(
+        name = "migration_hash_test",
+        srcs = [":migration_hash_test.go"],
+        resources = [
+            "chat",
+            "user",
+        ] + migration_yaml_files,
+        deps = [
+            "//third_party/go:github.com__malonaz__core__go__postgres__migrator__migrations",
+            "//third_party/go:github.com__stretchr__testify__require",
+        ],
+    )
+
+    # Initializer.
+    go_main_src(
+        name = "initializer.go",
+        manifest = ":manifest",
+        templates = ["///core//build_defs/codegen/postgres/templates:postgres_initializer.go.tmpl"]
+    )
+    go_binary(
+        name = "initializer",
+        srcs = [":initializer.go"],
+        resources = [
+            "chat",
+            "user",
+        ] + migration_yaml_files,
+        visibility = ["//chat/chat_service/..."],
+        deps = [
+            "//third_party/go:github.com__malonaz__core__go__flags",
+            "//third_party/go:github.com__malonaz__core__go__postgres",
+            "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
+        ],
+    )
+
+    # Migrator.
+    go_main_src(
+        name = "migrator.go",
+        manifest = ":manifest",
+        templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator.go.tmpl"]
+    )
+    go_binary(
+        name = "migrator",
+        srcs = [":migrator.go"],
+        resources = [
+            "chat",
+            "user",
+        ] + migration_yaml_files,
+        visibility = ["//chat/chat_service/..."],
+        deps = [
+            "//third_party/go:github.com__malonaz__core__go__flags",
+            "//third_party/go:github.com__malonaz__core__go__postgres",
+            "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
+        ],
+    )

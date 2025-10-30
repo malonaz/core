@@ -1,0 +1,16 @@
+package main
+
+//go:embed {{ range $dir := .directories }}{{ $dir.name }}/*.sql {{ $dir.name }}_migrations.yaml {{ end }}
+var migrationsFS {{ goImport "embed" }}.FS
+
+var opts struct {
+	Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
+}
+
+func main() {
+	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+	ctx := {{ goImport "context" }}.Background()
+
+	migrator := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
+	migrator.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if not $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
+}
