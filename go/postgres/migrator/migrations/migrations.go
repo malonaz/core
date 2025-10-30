@@ -44,7 +44,7 @@ type File struct {
 // ParseMigrationsFile parses a migration file into a MigrationFile.
 func ParseMigrationsFile(fileLoader FileLoader, migrationDirectory string) (File, error) {
 	migrationsFile := File{}
-	bytes, err := fileLoader(migrationDirectory + "/migrations.yaml")
+	bytes, err := fileLoader(migrationDirectory + "_migrations.yaml")
 	if err != nil {
 		return migrationsFile, err
 	}
