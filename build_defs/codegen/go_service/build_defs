@@ -19,6 +19,7 @@ def go_main_manifest(
         ignore_schema=ignore_schema,
     )
 
+
 def go_service_manifest(
         name:str,
         manifest:str="manifest.yaml",
@@ -51,14 +52,16 @@ def _go_manifest(
             src = manifest,
         )
     else:
-        # Build sed commands for each dep
-        sed_commands = []
-        for dep in deps:
-            # Canonicalize the label - if no target specified, add the last path component as target
+        # Build awk commands using variables (safer than inline strings)
+        awk_commands = ["cp $SRC $OUT"]
+        for i, dep in enumerate(deps):
             canonical_dep = canonicalise(dep)
-            sed_commands.append(f"sed -i 's|{dep}|{canonical_dep}($(location {dep}))|g' $OUT")
+            replacement = f"{canonical_dep}($(location {dep}))"
 
-        cmd = "cp $SRC $OUT\n" + "\n".join(sed_commands)
+            # Use awk with -v to pass variables (avoids shell escaping issues)
+            awk_commands.append(f'awk -v old="{dep}" -v new="{replacement}" \'{{ gsub(old, new); print }}\' $OUT > $OUT.tmp && mv $OUT.tmp $OUT')
+
+        cmd = "\n".join(awk_commands)
 
         genrule(
             name = f"{name}_processed_manifest",

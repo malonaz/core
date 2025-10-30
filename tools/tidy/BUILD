@@ -37,7 +37,11 @@ genrule(
     out = "buf",
     binary = True,
     cmd = [
-        f'wget https://github.com/bufbuild/buf/releases/download/{BUF_VERSION}/buf-${OS^}-$(if [ "$ARCH" == "amd64" ]; then echo $XARCH; else echo $ARCH; fi) -O $OUT',
+        f'''
+        OS_NAME={CONFIG.OS}
+        ARCH_FINAL=$(if [ "$ARCH" == "amd64" ]; then echo $XARCH; else echo $ARCH; fi)
+        curl -L https://github.com/bufbuild/buf/releases/download/{BUF_VERSION}/buf-$OS_NAME-$ARCH_FINAL -o $OUT
+        ''',
     ],
     visibility = ["PUBLIC"],
 )
@@ -52,7 +56,7 @@ _lint_cmds = [
     echo_message("Running 'wollemi'"),
     "$(out_exe :wollemi) gofmt ./...",
     echo_message("Running 'gofmt'"),
-    f"git ls-files | grep '\.go$'| xargs gofmt -l -s -w",
+    f"git ls-files | grep '\.go$'| xargs $(out_exe //tools/go:toolchain|gofmt) -l -s -w",
     echo_message("Running 'buf format'"),
     "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/",
     echo_message("Removing third_party/go/dummy/BUILD.plz"),

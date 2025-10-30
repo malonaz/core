@@ -93,10 +93,11 @@ def go_template(
         name=name,
         cmd = [
             "cp $SRCS $OUTS",
-            "gofmt -w $OUTS",
+            "$TOOLS -w $OUTS",
         ],
         srcs = [template_rule],
         outs = [name],
+        tools = ["//tools/go:toolchain|gofmt"],
         labels = ["codegen"],
         visibility = visibility,
     )
