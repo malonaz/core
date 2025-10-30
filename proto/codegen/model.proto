@@ -18,13 +18,15 @@ message ModelOpts {
   // Generate a model for this message.
   bool generate = 1;
   // Override the table name.
-  string table_name = 2;
+  string database_name = 2;
+  // Override the table name.
+  string table_name = 3;
   // If true, generate a db.Delete with 'hard/soft' options.
-  bool soft_deletable = 3;
+  bool soft_deletable = 4;
   // Do not generate an db.Insert function.
-  bool skip_insert_function = 4;
+  bool skip_insert_function = 5;
   // Do not generate an db.Delete function.
-  bool skip_delete_function = 5;
+  bool skip_delete_function = 6;
 }
 
 message FieldOpts {

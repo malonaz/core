@@ -17,6 +17,64 @@ pb "{{ $apiImportPath }}"
 // Prevent compiling from acting up.
 type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
+{{- /* Create a mapping of method.Desc.FullName to resource object */ -}}
+{{- $methodToResource := dict -}}
+{{- range $service := $file.Services }}
+    {{- /* First pass: Find all resources from Create methods */ -}}
+    {{- $resources := dict -}}
+    {{- range $method := $service.Methods }}
+        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
+        {{- if $createOpts.Generate }}
+            {{- $resourceGoName := $method.Output.GoIdent.GoName -}}
+            {{- $_ := set $resources $resourceGoName $method.Output -}}
+        {{- end }}
+    {{- end }}
+
+    {{- /* Second pass: Map all CRUD methods to their resources */ -}}
+    {{- range $method := $service.Methods }}
+        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
+        {{- $updateOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.update" -}}
+        {{- $deleteOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.delete" -}}
+        {{- $getOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.get" -}}
+        {{- $listOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.list" -}}
+
+        {{- /* Check if this method has any CRUD options */ -}}
+        {{- $hasCrudOpts := false -}}
+        {{- if or $createOpts.Generate $updateOpts.Generate $deleteOpts.Generate $getOpts.Generate $listOpts.Generate }}
+            {{- $hasCrudOpts = true -}}
+        {{- end }}
+
+        {{- if $hasCrudOpts }}
+            {{- $resource := false -}}
+            {{- if $createOpts.Generate }}
+                {{- $resource = $method.Output -}}
+            {{- else if $updateOpts.Generate }}
+                {{- $resource = $method.Output -}}
+            {{- else if $getOpts.Generate }}
+                {{- $resource = $method.Output -}}
+            {{- else if $deleteOpts.Generate }}
+                {{- $resourceGoName := $method.GoName | trimPrefix "Delete" -}}
+                {{- $resource = index $resources $resourceGoName -}}
+                {{- if not $resource }}
+                    {{- fail (printf "Cannot find resource '%s' for Delete method '%s'. Ensure a corresponding Create method exists." $resourceGoName $method.GoName) -}}
+                {{- end }}
+            {{- else if $listOpts.Generate }}
+                {{- $resourceGoName := $method.GoName | trimPrefix "List" | trimSuffix "s" -}}
+                {{- $resource = index $resources $resourceGoName -}}
+                {{- if not $resource }}
+                    {{- fail (printf "Cannot find resource '%s' for List method '%s'. Ensure a corresponding Create method exists." $resourceGoName $method.GoName) -}}
+                {{- end }}
+            {{- end }}
+
+            {{- if not $resource }}
+                {{- fail (printf "Cannot identify resource for CRUD method '%s'. Resource identification failed." $method.GoName) -}}
+            {{- end }}
+
+            {{- $_ := set $methodToResource ($method.Desc.FullName | toString) $resource -}}
+        {{- end }}
+    {{- end }}
+{{- end }}
+
 {{- range $service := $file.Services }}
     {{- range $method := $service.Methods }}
         {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
@@ -36,11 +94,14 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             {{- fail (printf "Method %s has multiple operation types defined" $method.GoName) -}}
         {{- end -}}
 
+        {{- $resource := index $methodToResource ($method.Desc.FullName | toString) -}}
+        {{- $modelOpts := getExt $resource.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
+        {{- $resourceGoName := $resource.GoIdent.GoName }}
+        {{- $dbClient := printf "%sDBClient" $modelOpts.DatabaseName -}}
+
         {{/* CREATE ENDPOINT */}}
         {{- if $createOpts.Generate }}
             {{- $_ := fqn $modelImportPath "" -}}
-            {{- $resource := $method.Output }}
-            {{- $resourceGoName := $resource.GoIdent.GoName }}
             {{- if $createOpts.UuidNamespace }}
                 {{ if not ($method.Input.Desc.Fields.ByName "request_id") -}}{{ fail "request_id field is not defined" }}{{ end }}
                 var uuidNamespace{{ $resourceGoName }} = {{ fqn "github.com/malonaz/core/go/uuid" "MustParse" }}("{{ $createOpts.UuidNamespace }}")
@@ -78,7 +139,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 	          }
 
             // STEP 3: Insert the resource idempotently.
-            ok, err := s.{{ $resourceGoName | untitle }}DBClient.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
+            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
 	          }
@@ -95,9 +156,6 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
         {{/* UPDATE ENDPOINT */}}
         {{- if $updateOpts.Generate }}
             {{- $_ := fqn $modelImportPath "" -}}
-            {{- $resource := $method.Output }}
-            {{- $resourceGoName := $resource.GoIdent.GoName }}
-
             {{/* Find the Get method to extract view field */}}
             {{- $getMethod := false -}}
             {{- range $m := $service.Methods -}}
@@ -126,7 +184,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
             {{/* Wrapping function for error checks. */}}
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-                return s.{{ $method.GoName | untitle }}(ctx, request)
+            return s.{{ $method.GoName | untitle }}(ctx, request)
             }
 
             func (s *Service) {{ $method.GoName | untitle }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
@@ -169,7 +227,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting pb.{{ $resourceGoName }} to model.{{ $resourceGoName }}: %v", err)
 	          }
-	          ok, err := s.{{ $resourceGoName | untitle }}DBClient.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
+	          ok, err := s.{{ $dbClient }}.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | untitle }}: %v", err)
 	          }
@@ -188,18 +246,6 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
         {{/* GET ENDPOINT */}}
         {{- if $deleteOpts.Generate }}
-            {{- $resourceGoName := $method.GoName | trimPrefix "Delete" -}}
-            {{- $resource := false -}}
-            {{- range $method := $service.Methods }}
-                {{ range $field := $method.Output.Fields }}
-                    {{ if eq $field.GoName (printf "%ss" $resourceGoName) }}
-                        {{ $resource = $field.Message }}
-                    {{ end }}
-                {{ end  }}
-            {{ end }}
-            {{ if not $resource }}{{ fail "could not find go resource by inspecting methods" }}{{ end }}
-            {{- $modelOpts := getExt $resource.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
-
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}, error) {
             get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request {
             {{ $resourceGoName }}Id: request.{{ $resourceGoName }}Id,
@@ -218,7 +264,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 
             {{ if $modelOpts.SoftDeletable }}
                 if request.HardDelete {
-                if err := s.{{ $resourceGoName | untitle }}DBClient.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
+                if err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "hard deleting: %v", err)
                 }
                 } else {
@@ -237,7 +283,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
                 }
                 }
             {{ else }}
-                if err := s.{{ $resourceGoName | untitle }}DBClient.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
+                if err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting: %v", err)
                 }
             {{ end }}
@@ -340,7 +386,7 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             {{- end }}
 
 
-	          {{ $resourceDbName }}s, err := s.{{ $resourceGoName | untitle }}DBClient.{{ $method.GoName }}(ctx, whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
+	          {{ $resourceDbName }}s, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
 	          }
