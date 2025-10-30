@@ -84,7 +84,11 @@ func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, promet
 		grpc.MaxCallRecvMsgSize(MaximumMessageSize),
 		grpc.MaxCallSendMsgSize(MaximumMessageSize),
 	)
-	gateway.dialOptions = append(gateway.dialOptions, WithDNSBalancer(), messageSizeDialOptions) // Currently makes no sense as we are dialing to localhost.
+	gateway.dialOptions = append(gateway.dialOptions, messageSizeDialOptions)
+	// If we use sockets, we do not use the load balancer. Note that we basically always hit localhost so not very useful.
+	if !grpcOpts.useSocket() {
+		gateway.dialOptions = append(gateway.dialOptions, WithDNSBalancer())
+	}
 	if grpcOpts.DisableTLS {
 		log.Warningf("Starting gRPC client using insecure gRPC dial")
 		gateway.dialOptions = append(gateway.dialOptions, grpc.WithInsecure())
@@ -144,7 +148,7 @@ func (g *Gateway) Serve(ctx context.Context) {
 		g.dialOptions = append(g.dialOptions, grpc.WithChainStreamInterceptor(g.streamInterceptors...))
 	}
 	mux := runtime.NewServeMux(g.options...)
-	endpoint := fmt.Sprintf(":%d", g.grpcOpts.Port)
+	endpoint := g.grpcOpts.network()
 	for _, registerHandler := range g.registerHandlers {
 		if err := registerHandler(ctx, mux, endpoint, g.dialOptions); err != nil {
 			log.Panicf("Could not register handler: %v", err)

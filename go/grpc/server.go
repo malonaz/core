@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -230,13 +232,38 @@ func (s *Server) Serve() {
 	)
 	s.options = append(s.options, chainUnaryInterceptorOption, chainStreamInterceptorOption)
 
-	// Connect.
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
-	if err != nil {
-		log.Panicf("Failed to listen on port [%d]: %v", s.opts.Port, err)
+	// Create listener based on network type
+	var listener net.Listener
+	var err error
+	if s.opts.useSocket() {
+		defer os.Remove(s.opts.SocketPath)
+		// Clean up existing socket file if it exists
+		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
+			log.Panicf("Failed to remove existing socket file [%s]: %v", s.opts.SocketPath, err)
+		}
+		// Ensure directory exists
+		dir := filepath.Dir(s.opts.SocketPath)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Panicf("Failed to create socket directory [%s]: %v", dir, err)
+		}
+		listener, err = net.Listen("unix", s.opts.SocketPath)
+		if err != nil {
+			log.Panicf("Failed to listen on socket [%s]: %v", s.opts.SocketPath, err)
+		}
+		// Set appropriate permissions
+		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
+			log.Warningf("Failed to set socket permissions: %v", err)
+		}
+		log.Infof("Serving gRPC on Unix socket [%s]", s.opts.SocketPath)
+	} else {
+		// Connect.
+		listener, err = net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
+		if err != nil {
+			log.Panicf("Failed to listen on port [%d]: %v", s.opts.Port, err)
+		}
+		log.Infof("Serving gRPC on port [:%d]", s.opts.Port)
 	}
 	defer listener.Close()
-	log.Infof("Serving gRPC on port [:%d]", s.opts.Port)
 
 	s.Raw = grpc.NewServer(s.options...)
 	s.register(s)

@@ -21,9 +21,6 @@ import (
 )
 
 var (
-	// DisableLogging is used by cli application to avoid messing with stdout.
-	DisableLogging = false
-
 	clientKeepAliveParameters = keepalive.ClientParameters{
 		Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
 		Timeout:             time.Second,      // wait 1 second for ping ack before considering the connection dead
@@ -55,11 +52,12 @@ func NewClient(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	}
 
 	// Default options.
-	client.options = append(client.options, grpc.WithMaxMsgSize(MaximumMessageSize), WithDNSBalancer())
+	client.options = append(client.options, grpc.WithMaxMsgSize(MaximumMessageSize))
+	if !opts.useSocket() {
+		client.options = append(client.options, WithDNSBalancer())
+	}
 	if opts.DisableTLS {
-		if !DisableLogging {
-			log.Warningf("Starting gRPC client using insecure gRPC dial")
-		}
+		log.Warningf("Starting gRPC client using insecure gRPC dial")
 		client.options = append(client.options, grpc.WithInsecure())
 	} else {
 		tlsConfig, err := certsOpts.ClientTLSConfig()
@@ -124,14 +122,12 @@ func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
 	}
 
 	// Connect.
-	url := fmt.Sprintf("%s:%d", c.opts.Host, c.opts.Port)
-	connection, err := grpc.Dial(url, c.options...)
+	endpoint := c.opts.network()
+	connection, err := grpc.Dial(endpoint, c.options...)
 	if err != nil {
-		log.Panicf("Failed to dial grpc [%s]: %v", url, err)
+		log.Panicf("Failed to dial grpc [%s]: %v", endpoint, err)
 	}
-	if !DisableLogging {
-		log.Infof("connected to gRPC server on [%s]", url)
-	}
+	log.Infof("connected to gRPC server on [%s]", endpoint)
 	c.connection = connection
 	return c.connection, c.HealthCheck
 }
