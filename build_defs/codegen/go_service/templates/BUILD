@@ -1,5 +1,6 @@
 package(default_visibility = ["PUBLIC"])
 
+############# UTILS #################
 export_file(
     name = "utils.go.tmpl",
     src = "utils.go.tmpl",
@@ -24,15 +25,4 @@ export_file(
 export_file(
     name = "k8s.yaml.tmpl",
     src = "k8s.yaml.tmpl",
-)
-
-############## SCHEMAS ###################
-export_file(
-    name = "service_manifest.schema",
-    src = "service_manifest.schema",
-)
-
-export_file(
-    name = "service.go.schema",
-    src = "service.go.schema",
 )

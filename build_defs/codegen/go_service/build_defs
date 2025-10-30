@@ -2,12 +2,47 @@ subinclude("//build_defs:template")
 subinclude("//build_defs:docker")
 subinclude("//build_defs:k8s")
 
-def go_manifest(
+def go_main_manifest(
         name:str,
         manifest:str="manifest.yaml",
         deps:list=[],
         visibility:list=[],
-        schema:str="///core//build_defs/codegen/go_service/templates:service_manifest.schema",
+        schema:str="///core//build_defs/codegen/go_service/schemas:main.go.schema",
+        ignore_schema:bool=False,
+):
+    return _go_manifest(
+        name=name,
+        manifest=manifest,
+        deps=deps,
+        visibility=visibility,
+        schema=schema,
+        ignore_schema=ignore_schema,
+    )
+
+def go_service_manifest(
+        name:str,
+        manifest:str="manifest.yaml",
+        deps:list=[],
+        visibility:list=[],
+        schema:str="///core//build_defs/codegen/go_service/schemas:service.go.schema",
+        ignore_schema:bool=False,
+):
+    return _go_manifest(
+        name=name,
+        manifest=manifest,
+        deps=deps,
+        visibility=visibility,
+        schema=schema,
+        ignore_schema=ignore_schema,
+    )
+
+def _go_manifest(
+        name:str,
+        manifest:str="manifest.yaml",
+        deps:list=[],
+        visibility:list=[],
+        schema:str,
+        ignore_schema:bool=False,
 ):
     if len(deps) == 0:
         # If no deps, just use the original manifest
@@ -38,14 +73,23 @@ def go_manifest(
             src = f":{name}_processed_manifest",
         )
 
-    return validated_file(
-        name = name,
-        src=templated_manifest,
-        schema = schema,
-        format="yaml",
-        exported_deps = deps,
-        visibility=visibility,
-    )
+    # Skip validation if ignore_schema is True
+    if ignore_schema:
+        return filegroup(
+            name = name,
+            srcs = [templated_manifest],
+            exported_deps = deps,
+            visibility = visibility,
+        )
+    else:
+        return validated_file(
+            name = name,
+            src = templated_manifest,
+            schema = schema,
+            format = "yaml",
+            exported_deps = deps,
+            visibility = visibility,
+        )
 
 def go_service_src(
         name:str,
