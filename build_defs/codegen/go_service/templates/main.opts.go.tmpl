@@ -46,7 +46,7 @@
     {{- /* GRPC SERVER OPTIONS */ -}}
     {{- range $grpcServer := .grpc.servers -}}
         {{- if doOnce "grpc_server_option_comment" }}{{ "\n\n// gRPC server options" }}{{ end }}
-        {{ $grpcServer.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcServer.name | camelcase }} GRPC" namespace:"{{ $grpcServer.name | kebabcase }}-grpc" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC"`
+        {{ $grpcServer.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcServer.name | camelcase }} GRPC (Server)" namespace:"{{ $grpcServer.name | kebabcase }}-grpc" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC"`
         {{ $hasGrpcGateway := false }}
         {{ range $service := $grpcServer.services }}
             {{ if $service.gateway }} {{ $hasGrpcGateway = true }}{{ break }}{{ end }}

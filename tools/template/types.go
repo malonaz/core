@@ -105,7 +105,7 @@ func (t *GRPC) OptsFieldName() string {
 }
 
 func (t *GRPC) Opts() (string, error) {
-	return t.template("{optsFieldName} *{grpcImport}.Opts `group:\"{nameHumanCaseT} GRPC\" namespace:\"{nameKebabCase}-grpc\" env-namespace:\"{nameSnakeCaseUpper}_GRPC\"`")
+	return t.template("{optsFieldName} *{grpcImport}.Opts `group:\"{nameHumanCaseT} GRPC (Client)\" namespace:\"{nameKebabCase}-grpc\" env-namespace:\"{nameSnakeCaseUpper}_GRPC\"`")
 }
 
 func (t *GRPC) Connection() string {
