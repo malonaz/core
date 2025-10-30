@@ -33,13 +33,13 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
         {{- if eq $dep.type "grpc_client" -}}
-            {{- $clientKey := printf "grpc_client_%s" (grpcSvcName $dep.proto) -}}
-            {{- if doOnce $clientKey -}}
-                {{- if doOnce "grpc_client_instantiatations" -}}{{ "\n\n// Instantiate GRPC Clients\n" -}}{{- end -}}
-                {{ grpcSvcName $dep.proto | untitle }}Connection, {{ grpcSvcName $dep.proto | untitle }}HealthCheck := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewClient(opts.{{ grpcSvcName $dep.proto }}GRPC, opts.Certs, opts.Prometheus).Connect()
-                defer {{ grpcSvcName $dep.proto | untitle }}Connection.Close()
-                {{ grpcSvcName $dep.proto | untitle }}Client := {{ plzGoImport $dep.proto (protoGoImportAlias $dep.proto)}}.New{{ grpcSvcName $dep.proto }}Client({{ grpcSvcName $dep.proto | untitle }}Connection)
-                healthChecks = append(healthChecks, {{ grpcSvcName $dep.proto | untitle }}HealthCheck)
+            {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients\n" -}}{{- end -}}
+            {{- if doOnce (printf "grpc_deps_%s" $dep.proto) -}}
+                {{ $grpc := parseGRPC $dep.proto }}
+                {{ $grpc.Connection }}, {{ $grpc.HealthCheck }} := {{ $grpc.NewConnection }}.Connect()
+                defer {{ $grpc.Connection }}.Close()
+                {{ $grpc.Client }} := {{ $grpc.NewClient }}
+                healthChecks = append(healthChecks, {{ $grpc.HealthCheck }})
             {{- end }}
         {{- end }}
     {{- end }}
@@ -72,7 +72,8 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
         opts.{{ $serviceName | title }},
         {{- range $dep := $serviceManifest.dependencies }}
             {{- if eq $dep.type "grpc_client" }}
-                {{ grpcSvcName $dep.proto | untitle }}Client,
+                {{ $grpc := parseGRPC $dep.proto -}}
+                {{ $grpc.Client }},
             {{- else if eq $dep.type "postgres" }}
                 {{ $dep.name }}DBClient,
             {{- end }}
@@ -111,7 +112,8 @@ var stopFns []func()
     {{- range $service := $grpcServer.services }}
         {{- $serviceManifest := parseYaml $service.manifest -}}
         {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-        {{ plzGoImport $service.proto (protoGoImportAlias $service.proto)}}.Register{{ grpcSvcName $service.proto }}Server(server.Raw, {{ $serviceName }})
+        {{ $grpc := parseGRPC $service.proto -}}
+        {{ $grpc.Register $serviceName }}
     {{- end }}
     }
 	  grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
@@ -124,12 +126,13 @@ var stopFns []func()
     {{- $hasGateway := false -}}
     {{- range $service := $grpcServer.services -}}
         {{- if $service.gateway -}}
+            {{- $grpc := parseGRPC $service.proto -}}
             {{- if doOnce $grpcServer.name }}
                 {{ $hasGateway = true }}
                 // GRPC gateway handlers.
                 var registerHandlers =[]{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
             {{- end }}
-            {{ plzGoImport $service.proto (protoGoImportAlias $service.proto)}}.Register{{ grpcSvcName $service.proto }}HandlerFromEndpoint,
+            {{ $grpc.RegisterHandlerFromEndpoint }},
         {{ end }}
     {{ end }}
     {{- if $hasGateway -}}

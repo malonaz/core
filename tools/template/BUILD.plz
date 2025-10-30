@@ -3,12 +3,14 @@ go_binary(
     srcs = [
         "functions.go",
         "main.go",
+        "types.go",
     ],
     visibility = ["//..."],
     deps = [
         "//go/flags",
         "//go/logging",
         "//third_party/go:github.com__Masterminds__sprig__v3",
+        "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:gopkg.in__yaml.v3",
     ],
 )

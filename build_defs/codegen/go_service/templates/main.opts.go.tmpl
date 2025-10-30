@@ -34,10 +34,9 @@
 	          {{- range $dep := $serviceManifest.dependencies -}}
 	              {{- if eq $dep.type "grpc_client" -}}
                     {{- if doOnce "grpc_client_opts" -}}{{"\n\n// gRPC client options"}}{{- end -}}
-	                  {{- $clientKey := printf "grpc_client_opts_%s" (grpcSvcName $dep.proto) -}}
-	                  {{- if doOnce $clientKey -}}
-	                      {{- $grpcSvcName := grpcSvcName $dep.proto }}
-	                      {{ $grpcSvcName }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcSvcName }} GRPC" namespace:"{{ $grpcSvcName | kebabcase }}-grpc" env-namespace:"{{ $grpcSvcName | snakecase | upper }}_GRPC"`
+                    {{- if doOnce (printf "grpc_client_opts_%s" $dep.proto) -}}
+                        {{ $grpc := parseGRPC $dep.proto }}
+                        {{ $grpc.Opts }}
 	                  {{- end }}
 	              {{- end }}
 	          {{- end }}

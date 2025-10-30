@@ -35,36 +35,12 @@ var (
 		},
 
 		"parseYaml": parseYaml,
+		"parseGRPC": parseGRPC,
 
-		// Imports plz go labels like "//user/proto:api".
-		"plzGoImport": func(in ...string) (string, error) {
-			label := in[0]
-
-			// Remove trailing (filepath) if present
-			if pleaseFilenameRegex.MatchString(label) {
-				// Extract just the label part (everything before the parentheses)
-				parts := strings.Split(label, "(")
-				if len(parts) > 0 {
-					label = parts[0]
-				}
-			}
-
-			importPath := strings.TrimPrefix(strings.ReplaceAll(label, ":", "/"), "//")
-			in[0] = importPath
-			return goImport(in...)
-		},
-
-		"goImport": goImport,
-
-		"protoGoImportAlias": func(filepath string) (string, error) {
-			grpcSvcName, err := grpcSvcName(filepath)
-			if err != nil {
-				return "", err
-			}
-			return strings.ToLower(grpcSvcName) + "pb", nil
-		},
-
-		"grpcSvcName": grpcSvcName,
+		"plzGoImport":        plzGoImport,
+		"goImport":           goImport,
+		"protoGoImportAlias": protoGoImportAlias,
+		"grpcSvcName":        grpcSvcName,
 
 		"grpcNatsPublishers": func(filepath string) ([]string, error) {
 			sanitizedFilepath := strings.TrimPrefix(filepath, "//")
@@ -163,6 +139,24 @@ func goImport(in ...string) (string, error) {
 	return finalAlias, nil
 }
 
+// Imports plz go labels like "//user/proto:api".
+func plzGoImport(in ...string) (string, error) {
+	label := in[0]
+
+	// Remove trailing (filepath) if present
+	if pleaseFilenameRegex.MatchString(label) {
+		// Extract just the label part (everything before the parentheses)
+		parts := strings.Split(label, "(")
+		if len(parts) > 0 {
+			label = parts[0]
+		}
+	}
+
+	importPath := strings.TrimPrefix(strings.ReplaceAll(label, ":", "/"), "//")
+	in[0] = importPath
+	return goImport(in...)
+}
+
 func injectGoImports(content []byte) []byte {
 	if len(goImportPathToAlias) == 0 {
 		return content // No imports to inject
@@ -198,6 +192,14 @@ func injectGoImports(content []byte) []byte {
 	result = append(result, content[packageEnd[1]:]...) // Rest of the content
 
 	return result
+}
+
+func protoGoImportAlias(filepath string) (string, error) {
+	grpcSvcName, err := grpcSvcName(filepath)
+	if err != nil {
+		return "", err
+	}
+	return strings.ToLower(grpcSvcName) + "pb", nil
 }
 
 func grpcSvcName(label string) (string, error) {
