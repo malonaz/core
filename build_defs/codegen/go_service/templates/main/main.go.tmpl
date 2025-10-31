@@ -61,7 +61,8 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
 
 // Setup health check.
 healthCheck := {{ goImport "github.com/malonaz/core/go/health" }}.Checks(healthChecks...)
-{{ goImport "github.com/malonaz/core/go/health" }}.Serve(opts.Health, healthCheck)
+healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, healthCheck)
+go healthServer.Serve(ctx)
 
 var gracefulStopFns []func()
 var stopFns []func()
@@ -179,6 +180,7 @@ var stopFns []func()
     }
 {{- end }}
 
+  healthServer.MarkReady()
   handleSignals(gracefulStopFns, stopFns)
 }
 
