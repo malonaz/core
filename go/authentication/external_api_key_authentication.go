@@ -23,7 +23,7 @@ func WithAPIKey(ctx context.Context, apiKey string) context.Context {
 }
 
 type ExternalApiKeyAuthenticationInterceptorOpts struct {
-	APIKeys []string `long:"apikey" env:"API_KEYS" env-delim:"," description:"List of service_account_id:api_key pairs" required:"true"`
+	APIKeys []string `long:"api-keys" env:"API_KEYS" env-delim:"," description:"List of service_account_id:api_key pairs" required:"true"`
 	Config  string   `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
