@@ -1,10 +1,19 @@
 {{- define "mainOpts" -}}
     {{- $core := "github.com/malonaz/core/go" -}}
 	  // Core service options
-	  Authentication *{{ goImport (printf "%s/authentication" $core) }}.Opts `group:"Authentication" namespace:"authentication" env-namespace:"AUTHENTICATION"`
 	  Health         *{{ goImport (printf "%s/health" $core) }}.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
 	  Prometheus     *{{ goImport (printf "%s/prometheus" $core) }}.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
     Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
+
+    {{- /* CHECK IF ANY GRPC SERVER REQUIRES AUTHENTICATION */ -}}
+	  {{- range $grpcServer := .grpc.servers -}}
+	      {{- range $interceptor := $grpcServer.interceptors -}}
+	          {{- if eq $interceptor.type "internal_authentication" -}}
+                {{- doOnce "internal_authentication_opts" -}}
+                InternalAuthentication *{{ goImport (printf "%s/authentication" $core) }}.Opts `group:"Internal Authentication" namespace:"internal-authentication" env-namespace:"INTERNAL_AUTHENTICATION"`
+            {{ end }}
+	      {{- end -}}
+	  {{- end }}
 
     {{- /* GATHER SERVICE MANIFESTS */ -}}
     {{- $serviceManifests := list -}}

@@ -6,6 +6,12 @@ option go_package = "github.com/malonaz/core/genproto/authentication";
 
 message Configuration {
   repeated Role roles = 1;
+  repeated ServiceAccount service_accounts = 2;
+}
+
+message ServiceAccount {
+  string id = 1;
+  repeated string role_ids = 2;
 }
 
 message Role {
@@ -28,12 +34,14 @@ message Session {
   int64 expire_timestamp = 3;
   // The user id of this user.
   string user_id = 4;
+  // Programatic access.
+  string service_account_id = 5;
   // The organization id.
-  string organization_id = 5;
+  string organization_id = 6;
   // Roles this session has.
-  repeated string role_ids = 6;
+  repeated string role_ids = 7;
   // Metadata and others.
-  SessionMetadata metadata = 7;
+  SessionMetadata metadata = 8;
 }
 
 message SessionMetadata {

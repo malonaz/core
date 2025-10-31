@@ -22,10 +22,11 @@ const (
 )
 
 type Configuration struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Roles         []*Role                `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Roles           []*Role                `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
+	ServiceAccounts []*ServiceAccount      `protobuf:"bytes,2,rep,name=service_accounts,json=serviceAccounts,proto3" json:"service_accounts,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Configuration) Reset() {
@@ -65,6 +66,65 @@ func (x *Configuration) GetRoles() []*Role {
 	return nil
 }
 
+func (x *Configuration) GetServiceAccounts() []*ServiceAccount {
+	if x != nil {
+		return x.ServiceAccounts
+	}
+	return nil
+}
+
+type ServiceAccount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RoleIds       []string               `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ServiceAccount) Reset() {
+	*x = ServiceAccount{}
+	mi := &file_proto_authentication_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ServiceAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServiceAccount) ProtoMessage() {}
+
+func (x *ServiceAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_authentication_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServiceAccount.ProtoReflect.Descriptor instead.
+func (*ServiceAccount) Descriptor() ([]byte, []int) {
+	return file_proto_authentication_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ServiceAccount) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ServiceAccount) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
+}
+
 type Role struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Name of the role.
@@ -81,7 +141,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_proto_authentication_proto_msgTypes[1]
+	mi := &file_proto_authentication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -93,7 +153,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[1]
+	mi := &file_proto_authentication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,7 +166,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{1}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Role) GetId() string {
@@ -147,19 +207,21 @@ type Session struct {
 	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
 	// The user id of this user.
 	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// Programatic access.
+	ServiceAccountId string `protobuf:"bytes,5,opt,name=service_account_id,json=serviceAccountId,proto3" json:"service_account_id,omitempty"`
 	// The organization id.
-	OrganizationId string `protobuf:"bytes,5,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrganizationId string `protobuf:"bytes,6,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	// Roles this session has.
-	RoleIds []string `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	RoleIds []string `protobuf:"bytes,7,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	// Metadata and others.
-	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *SessionMetadata `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_authentication_proto_msgTypes[2]
+	mi := &file_proto_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -171,7 +233,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[2]
+	mi := &file_proto_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -184,7 +246,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{2}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Session) GetId() string {
@@ -211,6 +273,13 @@ func (x *Session) GetExpireTimestamp() int64 {
 func (x *Session) GetUserId() string {
 	if x != nil {
 		return x.UserId
+	}
+	return ""
+}
+
+func (x *Session) GetServiceAccountId() string {
+	if x != nil {
+		return x.ServiceAccountId
 	}
 	return ""
 }
@@ -252,7 +321,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_proto_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +333,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +346,7 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMetadata.ProtoReflect.Descriptor instead.
 func (*SessionMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{3}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SessionMetadata) GetIpAddress() string {
@@ -319,7 +388,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_proto_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -331,7 +400,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -344,7 +413,7 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientVersion.ProtoReflect.Descriptor instead.
 func (*ClientVersion) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_proto_rawDescGZIP(), []int{4}
+	return file_proto_authentication_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ClientVersion) GetMajor() int32 {
@@ -372,22 +441,27 @@ var File_proto_authentication_proto protoreflect.FileDescriptor
 
 const file_proto_authentication_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/authentication.proto\x12\x1emalonaz.core.authentication.v1\"K\n" +
+	"\x1aproto/authentication.proto\x12\x1emalonaz.core.authentication.v1\"\xa6\x01\n" +
 	"\rConfiguration\x12:\n" +
-	"\x05roles\x18\x01 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\"|\n" +
+	"\x05roles\x18\x01 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\x12Y\n" +
+	"\x10service_accounts\x18\x02 \x03(\v2..malonaz.core.authentication.v1.ServiceAccountR\x0fserviceAccounts\";\n" +
+	"\x0eServiceAccount\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\brole_ids\x18\x02 \x03(\tR\aroleIds\"|\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
 	"\vpermissions\x18\x02 \x03(\tR\vpermissions\x12,\n" +
 	"\x12inherited_role_ids\x18\x03 \x03(\tR\x10inheritedRoleIds\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"\x99\x02\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\"\xc7\x02\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
 	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
 	"\x10expire_timestamp\x18\x03 \x01(\x03R\x0fexpireTimestamp\x12\x17\n" +
-	"\auser_id\x18\x04 \x01(\tR\x06userId\x12'\n" +
-	"\x0forganization_id\x18\x05 \x01(\tR\x0eorganizationId\x12\x19\n" +
-	"\brole_ids\x18\x06 \x03(\tR\aroleIds\x12K\n" +
-	"\bmetadata\x18\a \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"\xc7\x02\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x12,\n" +
+	"\x12service_account_id\x18\x05 \x01(\tR\x10serviceAccountId\x12'\n" +
+	"\x0forganization_id\x18\x06 \x01(\tR\x0eorganizationId\x12\x19\n" +
+	"\brole_ids\x18\a \x03(\tR\aroleIds\x12K\n" +
+	"\bmetadata\x18\b \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"\xc7\x02\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12T\n" +
@@ -416,25 +490,27 @@ func file_proto_authentication_proto_rawDescGZIP() []byte {
 	return file_proto_authentication_proto_rawDescData
 }
 
-var file_proto_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_authentication_proto_goTypes = []any{
 	(*Configuration)(nil),   // 0: malonaz.core.authentication.v1.Configuration
-	(*Role)(nil),            // 1: malonaz.core.authentication.v1.Role
-	(*Session)(nil),         // 2: malonaz.core.authentication.v1.Session
-	(*SessionMetadata)(nil), // 3: malonaz.core.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),   // 4: malonaz.core.authentication.v1.ClientVersion
-	nil,                     // 5: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	(*ServiceAccount)(nil),  // 1: malonaz.core.authentication.v1.ServiceAccount
+	(*Role)(nil),            // 2: malonaz.core.authentication.v1.Role
+	(*Session)(nil),         // 3: malonaz.core.authentication.v1.Session
+	(*SessionMetadata)(nil), // 4: malonaz.core.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),   // 5: malonaz.core.authentication.v1.ClientVersion
+	nil,                     // 6: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
 }
 var file_proto_authentication_proto_depIdxs = []int32{
-	1, // 0: malonaz.core.authentication.v1.Configuration.roles:type_name -> malonaz.core.authentication.v1.Role
-	3, // 1: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
-	4, // 2: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
-	5, // 3: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 0: malonaz.core.authentication.v1.Configuration.roles:type_name -> malonaz.core.authentication.v1.Role
+	1, // 1: malonaz.core.authentication.v1.Configuration.service_accounts:type_name -> malonaz.core.authentication.v1.ServiceAccount
+	4, // 2: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
+	5, // 3: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
+	6, // 4: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_proto_authentication_proto_init() }
@@ -448,7 +524,7 @@ func file_proto_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_proto_rawDesc), len(file_proto_authentication_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

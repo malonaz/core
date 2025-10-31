@@ -116,7 +116,7 @@ var stopFns []func()
             sessionInjectorInterceptor := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionInjectorInterceptor()
         {{ else if eq $interceptor.type "internal_authentication" }}
             // Instantiate interceptors.
-            internalAuthenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInterceptor(opts.Authentication)
+            internalAuthenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInternalInterceptor(opts.Authentication)
             if err != nil {
             log.Panicf("instantiating authentication interceptor: %v", err)
             }

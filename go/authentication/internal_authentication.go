@@ -2,8 +2,6 @@ package authentication
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_interceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -14,16 +12,15 @@ import (
 	"google.golang.org/grpc/status"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication"
-	"github.com/malonaz/core/go/jsonnet"
-	"github.com/malonaz/core/go/pbutil"
 )
 
-type Opts struct {
+type InternalAuthenticationInterceptorOpts struct {
 	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
-type Interceptor struct {
-	permissionToRoleIDSet map[string]map[string]struct{}
+type InternalAuthenticationInterceptor struct {
+	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
+	permissionToRoleIDSet            map[string]map[string]struct{}
 }
 
 var (
@@ -32,19 +29,16 @@ var (
 	})
 )
 
-func NewInterceptor(opts *Opts) (*Interceptor, error) {
-	// Parse the configuration file
-	bytes, err := os.ReadFile(opts.Config)
+func NewInternalAuthenticationInterceptor(opts *InternalAuthenticationInterceptorOpts) (*InternalAuthenticationInterceptor, error) {
+	configuration, err := parseAuthenticationConfig(opts.Config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", opts.Config, err)
+		return nil, err
 	}
-	bytes, err = jsonnet.EvaluateSnippet(string(bytes))
-	if err != nil {
-		return nil, fmt.Errorf("failed to evaluate config file %s: %w", opts.Config, err)
-	}
-	configuration := &authenticationpb.Configuration{}
-	if err := pbutil.JSONUnmarshal(bytes, configuration); err != nil {
-		return nil, fmt.Errorf("failed to parse config file %s: %w", opts.Config, err)
+
+	// Build service account lookup map
+	serviceAccountIDToServiceAccount := make(map[string]*authenticationpb.ServiceAccount)
+	for _, serviceAccount := range configuration.ServiceAccounts {
+		serviceAccountIDToServiceAccount[serviceAccount.Id] = serviceAccount
 	}
 
 	roleIDToRole := map[string]*authenticationpb.Role{}
@@ -70,8 +64,9 @@ func NewInterceptor(opts *Opts) (*Interceptor, error) {
 		}
 	}
 
-	return &Interceptor{
-		permissionToRoleIDSet: permissionToRoleIDSet,
+	return &InternalAuthenticationInterceptor{
+		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
+		permissionToRoleIDSet:            permissionToRoleIDSet,
 	}, nil
 }
 
@@ -107,7 +102,7 @@ func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authentica
 	return permissions
 }
 
-func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) error {
+func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) error {
 	session, err := GetSession(ctx)
 	if err != nil {
 		return status.Errorf(codes.Unauthenticated, "getting session: %v", err)
@@ -119,8 +114,13 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) error
 		return status.Errorf(codes.PermissionDenied, "no role available for permission: %s", permission)
 	}
 
+	serviceAccountRoleIDs := i.serviceAccountIDToServiceAccount[session.ServiceAccountId].GetRoleIds()
+	sessionRoleIDSet := make(map[string]struct{}, len(session.RoleIds)+len(serviceAccountRoleIDs))
+	for _, roleID := range append(session.RoleIds, serviceAccountRoleIDs...) {
+		sessionRoleIDSet[roleID] = struct{}{}
+	}
 	found := false
-	for _, roleID := range session.RoleIds {
+	for roleID := range sessionRoleIDSet {
 		if _, ok := roleIDSet[roleID]; ok {
 			found = true
 			break
@@ -133,7 +133,7 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) error
 }
 
 // Unary implements the authentication unary interceptor.
-func (i *Interceptor) Unary() grpc.UnaryServerInterceptor {
+func (i *InternalAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if err := i.authenticate(ctx, info.FullMethod); err != nil {
 			return nil, err
@@ -143,8 +143,8 @@ func (i *Interceptor) Unary() grpc.UnaryServerInterceptor {
 	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
 }
 
-// StreamInterceptor implements the authentication stream interceptor.
-func (i *Interceptor) Stream() grpc.StreamServerInterceptor {
+// Stream implements the authentication stream interceptor.
+func (i *InternalAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		if err := i.authenticate(ctx, info.FullMethod); err != nil {

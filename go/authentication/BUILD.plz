@@ -1,9 +1,11 @@
 go_library(
     name = "authentication",
     srcs = [
-        "authentication.go",
+        "external_api_key_authentication.go",
+        "internal_authentication.go",
         "session.go",
         "session_injector.go",
+        "utils.go",
     ],
     visibility = ["//..."],
     deps = [

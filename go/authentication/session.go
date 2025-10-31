@@ -42,9 +42,9 @@ func MustGetSession(ctx context.Context) *authenticationpb.Session {
 	return session
 }
 
-func WithRole(ctx context.Context, roleID string) (context.Context, error) {
+func WithServiceAccount(ctx context.Context, serviceAccountID string) (context.Context, error) {
 	session := &authenticationpb.Session{
-		RoleIds: []string{roleID},
+		ServiceAccountId: serviceAccountID,
 	}
 	return InjectSession(ctx, session)
 }
