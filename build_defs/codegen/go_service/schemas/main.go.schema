@@ -25,52 +25,49 @@
         "configuration": {
             "type": "boolean"
         },
-        "grpc": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "servers": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["name", "services"],
-                        "additionalProperties": false,
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "pattern": "^[a-zA-Z0-9-]+$"
-                            },
-                            "interceptors": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": ["type"],
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "type": {
-                                            "type": "string"
-                                        }
-                                    }
+        "servers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["type", "name", "services"],
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9-]+$"
+                    },
+                    "interceptors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["type"],
+                            "additionalProperties": false,
+                            "properties": {
+                                "type": {
+                                    "type": "string"
                                 }
-                            },
-                            "services": {
-                                "type": "array",
-                                "minItems": 1,
-                                "items": {
-                                    "type": "object",
-                                    "required": ["proto", "manifest"],
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "proto": {
-                                            "type": "string"
-                                        },
-                                        "manifest": {
-                                            "type": "string"
-                                        },
-                                        "gateway": {
-                                            "type": "boolean"
-                                        }
-                                    }
+                            }
+                        }
+                    },
+                    "services": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["proto", "manifest"],
+                            "additionalProperties": false,
+                            "properties": {
+                                "proto": {
+                                    "type": "string"
+                                },
+                                "manifest": {
+                                    "type": "string"
+                                },
+                                "gateway": {
+                                    "type": "boolean"
                                 }
                             }
                         }
