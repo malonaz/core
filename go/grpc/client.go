@@ -117,7 +117,7 @@ func (c *Client) WithStreamInterceptors(interceptors ...grpc.StreamClientInterce
 
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
-func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
+func (c *Client) Connect() *grpc.ClientConn {
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
 	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
@@ -139,21 +139,23 @@ func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
 	}
 	log.Infof("connected to gRPC server on [%s]", endpoint)
 	c.connection = connection
-	return c.connection, c.HealthCheck
+	return c.connection
 }
 
 // HealthCheck calls the `Check` method of the grpc server.
-func (c *Client) HealthCheck(ctx context.Context) error {
-	healthClient := grpc_health_v1.NewHealthClient(c.connection)
-	request := &grpc_health_v1.HealthCheckRequest{}
-	response, err := healthClient.Check(ctx, request)
-	if err != nil {
-		return err
+func (c *Client) HealthCheckFn(service string) health.Check {
+	return func(ctx context.Context) error {
+		healthClient := grpc_health_v1.NewHealthClient(c.connection)
+		request := &grpc_health_v1.HealthCheckRequest{Service: service}
+		response, err := healthClient.Check(ctx, request)
+		if err != nil {
+			return err
+		}
+		if response.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
+			return fmt.Errorf("grpc health failed health check with status: %s", grpc_health_v1.HealthCheckResponse_ServingStatus_name[int32(response.GetStatus())])
+		}
+		return nil
 	}
-	if response.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
-		return fmt.Errorf("grpc health failed health check with status: %s", grpc_health_v1.HealthCheckResponse_ServingStatus_name[int32(response.GetStatus())])
-	}
-	return nil
 }
 
 // withDNSBalancer returns gRPC DialOption that does client-side load balancing based on DNS.
