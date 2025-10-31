@@ -70,10 +70,13 @@ type Server struct {
 	healthCheckErr      error
 	healthCheckErrMutex sync.RWMutex
 
-	// Order of interceptors is [PRE_DEFAULT, PRE_OPTIONS, POST_OPTIONS, POST_DEFAULT].
+	// The **first** interceptor is the **outermost** (executes first on request, last on response).
+	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
 	preUnaryInterceptors   []grpc.UnaryServerInterceptor
+	unaryInterceptors      []grpc.UnaryServerInterceptor
 	postUnaryInterceptors  []grpc.UnaryServerInterceptor
 	preStreamInterceptors  []grpc.StreamServerInterceptor
+	streamInterceptors     []grpc.StreamServerInterceptor
 	postStreamInterceptors []grpc.StreamServerInterceptor
 
 	options []grpc.ServerOption
@@ -119,27 +122,28 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 		log.Panicf("could not instantiate proto validator")
 	}
 
-	// PRE (1): Prometheus first.
-	if !prometheusOpts.Disable {
-		server.preUnaryInterceptors = append(server.preUnaryInterceptors, prometheusUnaryInterceptor)
-		server.preStreamInterceptors = append(server.preStreamInterceptors, prometheusStreamInterceptor)
-	}
-	// PRE (2): Context tags (allows downstream interceptors to pass values back down to the logging interceptor.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
-	// PRE (3): Context propagator (it overwrites and outgoing context written prior so must be placed first.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextPropagation())
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextPropagation())
-	// PRE (4): Logging interceptor.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(log))
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerLogging(log))
-	// PRE (5): Panic interceptor.
+	// PRE (1): Panic interceptor. We *never* want to panic.
 	server.preUnaryInterceptors = append(
 		server.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor(),
 	)
 	server.preStreamInterceptors = append(
 		server.preStreamInterceptors, grpc_recovery.StreamServerInterceptor(),
 	)
+	// PRE (2): Prometheus first.
+	if !prometheusOpts.Disable {
+		server.preUnaryInterceptors = append(server.preUnaryInterceptors, prometheusUnaryInterceptor)
+		server.preStreamInterceptors = append(server.preStreamInterceptors, prometheusStreamInterceptor)
+	}
+	// PRE (3): Context tags (allows downstream interceptors to pass values back down to the logging interceptor.
+	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
+	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
+	// PRE (4): Context propagator (it overwrites and outgoing context written prior so must be placed first.
+	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextPropagation())
+	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextPropagation())
+	// PRE (5): Logging interceptor.
+	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(log))
+	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerLogging(log))
+
 	// PRE (6): Trailer propagator interceptor.
 	server.preUnaryInterceptors = append(
 		server.preUnaryInterceptors, grpc_interceptor.UnaryServerTrailerPropagation(),
@@ -172,31 +176,17 @@ func (s *Server) WithOptions(options ...grpc.ServerOption) *Server {
 	return s
 }
 
-// WithPreUnaryInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *AFTER* the default pre interceptors.
-func (s *Server) WithPreUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) *Server {
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, interceptors...)
+// WithUnaryInterceptors adds interceptors to this gRPC server.
+// These interceptors are added *AFTER* the default pre interceptors and *BEFORE* the default post interceptors.
+func (s *Server) WithUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) *Server {
+	s.unaryInterceptors = append(s.unaryInterceptors, interceptors...)
 	return s
 }
 
-// WithPostUnaryInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *BEFORE* the default post interceptors, in the order they are given.
-func (s *Server) WithPostUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) *Server {
-	s.postUnaryInterceptors = append(interceptors, s.postUnaryInterceptors...)
-	return s
-}
-
-// WithPreStreamInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *AFTER* the default pre interceptors.
-func (s *Server) WithPreStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) *Server {
-	s.preStreamInterceptors = append(s.preStreamInterceptors, interceptors...)
-	return s
-}
-
-// WithPostStreamInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *BEFORE* the default post interceptors, in the order they are given.
-func (s *Server) WithPostStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) *Server {
-	s.postStreamInterceptors = append(interceptors, s.postStreamInterceptors...)
+// WithStreamInterceptors adds interceptors to this gRPC server.
+// These interceptors are added *AFTER* the default pre interceptors and *BEFORE* the default post interceptors.
+func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) *Server {
+	s.streamInterceptors = append(s.streamInterceptors, interceptors...)
 	return s
 }
 
@@ -224,13 +214,17 @@ func (s *Server) GracefulStop() {
 
 // Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve() {
-	chainUnaryInterceptorOption := grpc.ChainUnaryInterceptor(
-		append(s.preUnaryInterceptors, s.postUnaryInterceptors...)...,
-	)
-	chainStreamInterceptorOption := grpc.ChainStreamInterceptor(
-		append(s.preStreamInterceptors, s.postStreamInterceptors...)...,
-	)
-	s.options = append(s.options, chainUnaryInterceptorOption, chainStreamInterceptorOption)
+	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
+	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
+	streamInterceptors := append(s.preStreamInterceptors, s.streamInterceptors...)
+	streamInterceptors = append(streamInterceptors, s.postStreamInterceptors...)
+	// Chain interceptors.
+	if len(unaryInterceptors) > 0 {
+		s.options = append(s.options, grpc.ChainUnaryInterceptor(unaryInterceptors...))
+	}
+	if len(streamInterceptors) > 0 {
+		s.options = append(s.options, grpc.ChainStreamInterceptor(streamInterceptors...))
+	}
 
 	// Create listener based on network type
 	var listener net.Listener

@@ -16,11 +16,17 @@ import (
 )
 
 // ////////////////////////////////////////// FOR DOWNSTREAM SERVERS ////////////////////////////////////////////
+type SessionInjectorInterceptor struct{}
+
+func NewSessionInjectorInterceptor() *SessionInjectorInterceptor {
+	return &SessionInjectorInterceptor{}
+}
+
 // UnarySessionInjectorInterceptor:
 //  1. parses the session from the incoming context
 //  2. injects it into the local context
 //  3. Injects relevant log fields via context tags.
-func UnarySessionInjectorInterceptor() grpc.UnaryServerInterceptor {
+func (i *SessionInjectorInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		ctx, err := sessionInjectorFn(ctx)
 		if err != nil {
@@ -35,7 +41,7 @@ func UnarySessionInjectorInterceptor() grpc.UnaryServerInterceptor {
 //  1. parses the session from the incoming context
 //  2. injects it into the local context
 //  3. Injects relevant log fields via context tags.
-func StreamSessionInjectorInterceptor() grpc.StreamServerInterceptor {
+func (i *SessionInjectorInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		ctx, err := sessionInjectorFn(ctx)

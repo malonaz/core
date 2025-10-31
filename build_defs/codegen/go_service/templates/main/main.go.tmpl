@@ -95,13 +95,6 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
 healthCheck := {{ goImport "github.com/malonaz/core/go/health" }}.Checks(healthChecks...)
 {{ goImport "github.com/malonaz/core/go/health" }}.Serve(opts.Health, healthCheck)
 
-
-// Instantiate interceptors.
-authenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInterceptor(opts.Authentication)
-if err != nil {
-log.Panicf("instantiating authentication interceptor: %v", err)
-}
-
 var gracefulStopFns []func()
 var stopFns []func()
 
@@ -116,9 +109,41 @@ var stopFns []func()
         {{ $grpc.Register $serviceName }}
     {{- end }}
     }
+
+    {{- range $interceptor := $grpcServer.interceptors -}}
+        {{ if eq $interceptor.type "session_injector" }}
+            // Instantiate session injector interceptor.
+            sessionInjectorInterceptor := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionInjectorInterceptor()
+        {{ else if eq $interceptor.type "internal_authentication" }}
+            // Instantiate interceptors.
+            internalAuthenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInterceptor(opts.Authentication)
+            if err != nil {
+            log.Panicf("instantiating authentication interceptor: %v", err)
+            }
+        {{ else }}
+            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+        {{ end }}
+    {{- end }}
+
 	  grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
-    WithPreUnaryInterceptors({{ goImport "github.com/malonaz/core/go/authentication" }}.UnarySessionInjectorInterceptor(), authenticationInterceptor.Unary()).
-    WithPreStreamInterceptors({{ goImport "github.com/malonaz/core/go/authentication" }}.StreamSessionInjectorInterceptor(), authenticationInterceptor.Stream())
+    WithUnaryInterceptors({{- range $interceptor := $grpcServer.interceptors -}}
+        {{- if eq $interceptor.type "session_injector" }}
+            sessionInjectorInterceptor.Unary(),
+        {{- else if eq $interceptor.type "internal_authentication" }}
+            internalAuthenticationInterceptor.Unary(),
+        {{ else }}
+            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+        {{- end -}}
+    {{- end -}}).
+    WithStreamInterceptors({{- range $interceptor := $grpcServer.interceptors -}}
+        {{- if eq $interceptor.type "session_injector" }}
+            sessionInjectorInterceptor.Stream(),
+        {{- else if eq $interceptor.type "internal_authentication" }}
+            internalAuthenticationInterceptor.Stream(),
+        {{ else }}
+            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+        {{- end -}}
+    {{- end -}})
     gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
     stopFns = append(stopFns, grpcServer.Stop)
     go grpcServer.Serve()

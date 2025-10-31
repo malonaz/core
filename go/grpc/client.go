@@ -33,11 +33,16 @@ type Client struct {
 	opts       *Opts
 	connection *grpc.ClientConn
 
-	// The first interceptor is called first.
-	unaryInterceptors []grpc.UnaryClientInterceptor
-	// The first interceptor is called first.
-	streamInterceptors []grpc.StreamClientInterceptor
-	options            []grpc.DialOption
+	// The **first** interceptor is the **outermost** (executes first on request, last on response).
+	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
+	preUnaryInterceptors   []grpc.UnaryClientInterceptor
+	unaryInterceptors      []grpc.UnaryClientInterceptor
+	postUnaryInterceptors  []grpc.UnaryClientInterceptor
+	preStreamInterceptors  []grpc.StreamClientInterceptor
+	streamInterceptors     []grpc.StreamClientInterceptor
+	postStreamInterceptors []grpc.StreamClientInterceptor
+
+	options []grpc.DialOption
 }
 
 // NewClient creates and returns a new gRPC client.
@@ -68,24 +73,27 @@ func NewClient(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	}
 
 	// Default interceptors.
-	client.unaryInterceptors = append(client.unaryInterceptors, interceptor.UnaryClientTrailerPropagation())
-	client.streamInterceptors = append(client.streamInterceptors, interceptor.StreamClientTrailerPropagation())
+	client.preUnaryInterceptors = append(client.preUnaryInterceptors, interceptor.UnaryClientTrailerPropagation())
+	client.preStreamInterceptors = append(client.preStreamInterceptors, interceptor.StreamClientTrailerPropagation())
 
 	if !prometheusOpts.Disable {
 		metrics := grpc_prometheus.NewClientMetrics(
 			grpc_prometheus.WithClientHandlingTimeHistogram(
-				grpc_prometheus.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
 			),
 		)
-		client.unaryInterceptors = append(client.unaryInterceptors, metrics.UnaryClientInterceptor())
-		client.streamInterceptors = append(client.streamInterceptors, metrics.StreamClientInterceptor())
+		client.preUnaryInterceptors = append(client.preUnaryInterceptors, metrics.UnaryClientInterceptor())
+		client.preStreamInterceptors = append(client.preStreamInterceptors, metrics.StreamClientInterceptor())
 	}
-	client.unaryInterceptors = append(
-		client.unaryInterceptors,
+
+	// Post interceptors.
+	client.postUnaryInterceptors = append(
+		client.postUnaryInterceptors,
 		interceptor.UnaryClientValidate(validator),
 		interceptor.UnaryClientTimeout(),
 		interceptor.UnaryClientRetry(),
 	)
+	client.postStreamInterceptors = append(client.postStreamInterceptors, interceptor.StreamClientRetry())
 	return client
 }
 
@@ -110,15 +118,17 @@ func (c *Client) WithStreamInterceptors(interceptors ...grpc.StreamClientInterce
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
 func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
-	// We put the retry interceptor first.
-	c.streamInterceptors = append([]grpc.StreamClientInterceptor{interceptor.StreamClientRetry()}, c.streamInterceptors...)
+	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
+	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
+	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
+	streamInterceptors = append(streamInterceptors, c.postStreamInterceptors...)
 
 	// Chain interceptors.
-	if len(c.unaryInterceptors) > 0 {
-		c.options = append(c.options, grpc.WithChainUnaryInterceptor(c.unaryInterceptors...))
+	if len(unaryInterceptors) > 0 {
+		c.options = append(c.options, grpc.WithChainUnaryInterceptor(unaryInterceptors...))
 	}
-	if len(c.streamInterceptors) > 0 {
-		c.options = append(c.options, grpc.WithChainStreamInterceptor(c.streamInterceptors...))
+	if len(streamInterceptors) > 0 {
+		c.options = append(c.options, grpc.WithChainStreamInterceptor(streamInterceptors...))
 	}
 
 	// Connect.
