@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "required": ["name", "project"],
+    "required": ["name", "servers"],
     "additionalProperties": false,
     "properties": {
         "name": {
@@ -9,10 +9,6 @@
             "pattern": "^[a-zA-Z0-9-]+$"
         },
         "namespace": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9-]+$"
-        },
-        "project": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9-]+$"
         },
@@ -29,7 +25,7 @@
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["type", "name", "services"],
+                "required": ["type", "name", "serviceAccount", "services"],
                 "additionalProperties": false,
                 "properties": {
                     "type": {
@@ -38,6 +34,9 @@
                     "name": {
                         "type": "string",
                         "pattern": "^[a-zA-Z0-9-]+$"
+                    },
+                    "serviceAccount": {
+                        "type": "string"
                     },
                     "interceptors": {
                         "type": "array",
