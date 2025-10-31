@@ -28,8 +28,8 @@ var (
 	}
 )
 
-// Client is a gRPC client.
-type Client struct {
+// Connection is a gRPC client.
+type Connection struct {
 	opts       *Opts
 	connection *grpc.ClientConn
 
@@ -45,9 +45,9 @@ type Client struct {
 	options []grpc.DialOption
 }
 
-// NewClient creates and returns a new gRPC client.
-func NewClient(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) *Client {
-	client := &Client{
+// NewConnection creates and returns a new gRPC client.
+func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) *Connection {
+	client := &Connection{
 		opts: opts,
 	}
 
@@ -98,26 +98,26 @@ func NewClient(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 }
 
 // WithOptions adds options to this gRPC client.
-func (c *Client) WithOptions(options ...grpc.DialOption) *Client {
+func (c *Connection) WithOptions(options ...grpc.DialOption) *Connection {
 	c.options = append(c.options, options...)
 	return c
 }
 
 // WithUnaryInterceptors adds interceptors to this gRPC client.
-func (c *Client) WithUnaryInterceptors(interceptors ...grpc.UnaryClientInterceptor) *Client {
+func (c *Connection) WithUnaryInterceptors(interceptors ...grpc.UnaryClientInterceptor) *Connection {
 	c.unaryInterceptors = append(c.unaryInterceptors, interceptors...)
 	return c
 }
 
 // WithStreamInterceptors adds interceptors to this gRPC client.
-func (c *Client) WithStreamInterceptors(interceptors ...grpc.StreamClientInterceptor) *Client {
+func (c *Connection) WithStreamInterceptors(interceptors ...grpc.StreamClientInterceptor) *Connection {
 	c.streamInterceptors = append(c.streamInterceptors, interceptors...)
 	return c
 }
 
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
-func (c *Client) Connect() *grpc.ClientConn {
+func (c *Connection) Connect() *Connection {
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
 	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
@@ -139,11 +139,25 @@ func (c *Client) Connect() *grpc.ClientConn {
 	}
 	log.Infof("connected to gRPC server on [%s]", endpoint)
 	c.connection = connection
+	return c
+}
+
+func (c *Connection) Close() error {
+	if c.connection == nil {
+		return nil
+	}
+	return c.connection.Close()
+}
+
+func (c *Connection) Get() *grpc.ClientConn {
+	if c.connection == nil {
+		log.Panicf("must call connect before getting the underyling gRPC connection")
+	}
 	return c.connection
 }
 
 // HealthCheck calls the `Check` method of the grpc server.
-func (c *Client) HealthCheckFn(service string) health.Check {
+func (c *Connection) HealthCheckFn(service string) health.Check {
 	return func(ctx context.Context) error {
 		healthClient := grpc_health_v1.NewHealthClient(c.connection)
 		request := &grpc_health_v1.HealthCheckRequest{Service: service}

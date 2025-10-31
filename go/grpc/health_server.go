@@ -33,7 +33,7 @@ func newHealthServer() *HealthServer {
 // Use an empty string "" to register checks for the overall server health.
 func (h *HealthServer) RegisterService(serviceName string, checks []health.Check) {
 	h.serviceNameToHealthCheck[serviceName] = health.Checks(checks...)
-	log.Infof("Registered %d health check(s) for service: %s", len(checks), serviceName)
+	log.Debugf("Registered %d health check(s) for service: %s", len(checks), serviceName)
 }
 
 // Check performs health checks for the specified service.

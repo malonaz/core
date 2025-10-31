@@ -1,6 +1,8 @@
 package grpc
 
 import (
+	"context"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -157,7 +159,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	return server
 }
 
-func (s *Server) RegisterHealthService(serviceName string, healthChecks ...health.Check) *Server {
+func (s *Server) RegisterServiceHealthChecks(serviceName string, healthChecks ...health.Check) *Server {
 	if s.healthServer == nil {
 		s.healthServer = newHealthServer()
 	}
@@ -205,6 +207,20 @@ func (s *Server) GracefulStop() {
 		s.Raw.Stop()
 	case <-ch:
 	}
+}
+
+func (s *Server) HealthCheck(ctx context.Context) error {
+	if s.healthServer == nil {
+		return fmt.Errorf("health server is not setup")
+	}
+	response, err := s.healthServer.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	if err != nil {
+		return err
+	}
+	if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+		return fmt.Errorf("server returned health status [%s]", response.Status)
+	}
+	return nil
 }
 
 // Serve instantiates the gRPC server and blocks forever.

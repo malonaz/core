@@ -100,6 +100,10 @@ func (t *GRPC) template(template string, params ...any) (string, error) {
 }
 
 // //////////////////////////// Methods to be used in templates are below ///////////////////////////
+func (t *GRPC) ServiceDescriptionName() (string, error) {
+	return t.template("{protoImport}.{nameCamelCaseT}_ServiceDesc.ServiceName")
+}
+
 func (t *GRPC) HumanName() string {
 	return t.replacements["nameHumanCaseT"]
 }
@@ -129,11 +133,11 @@ func (t *GRPC) ClientInterface() (string, error) {
 }
 
 func (t *GRPC) NewConnection() (string, error) {
-	return t.template("{grpcImport}.NewClient(opts.{optsFieldName}, opts.Certs, opts.Prometheus)")
+	return t.template("{grpcImport}.NewConnection(opts.{optsFieldName}, opts.Certs, opts.Prometheus)")
 }
 
 func (t *GRPC) NewClient() (string, error) {
-	return t.template("{protoImport}.New{nameCamelCaseT}Client({connection})")
+	return t.template("{protoImport}.New{nameCamelCaseT}Client({connection}.Get())")
 }
 
 func (t *GRPC) Register(serviceName string) (string, error) {
