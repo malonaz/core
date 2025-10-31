@@ -100,6 +100,10 @@ func (t *GRPC) template(template string, params ...any) (string, error) {
 }
 
 // //////////////////////////// Methods to be used in templates are below ///////////////////////////
+func (t *GRPC) HumanName() string {
+	return t.replacements["nameHumanCaseT"]
+}
+
 func (t *GRPC) OptsFieldName() string {
 	return t.replacements["optsFieldName"]
 }
