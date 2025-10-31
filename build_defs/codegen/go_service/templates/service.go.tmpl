@@ -17,6 +17,7 @@ func (s *Service) start(ctx {{ goImport "context" }}.Context) (func(), error) { 
 type Service struct {
 	*Runtime
 	opts *Opts
+  ctxSA {{ goImport "context" }}.Context
         {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
                 {{ $grpc := parseGRPC $dep.proto }}
@@ -60,6 +61,7 @@ func New(
 }
 
 // Start this service. Returns clean up function.
-func (s *Service) Start(ctx {{ goImport "context" }}.Context) (func(), error) {
-	return s.start(ctx)
+func (s *Service) Start(ctxSA {{ goImport "context" }}.Context) (func(), error) {
+  s.ctxSA = ctxSA
+	return s.start(ctxSA)
 }
