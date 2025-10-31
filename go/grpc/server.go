@@ -1,12 +1,10 @@
 package grpc
 
 import (
-	"context"
 	"net"
 	"os"
 	"path/filepath"
 	"strconv"
-	"sync"
 	"time"
 
 	"buf.build/go/protovalidate"
@@ -14,12 +12,10 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	_ "google.golang.org/grpc/encoding/gzip" // Enable compression.
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/status"
 
 	"github.com/malonaz/core/go/certs"
 	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
@@ -65,10 +61,7 @@ type Server struct {
 	register                func(*Server)
 	Raw                     *grpc.Server
 	prometheusServerMetrics *grpc_prometheus.ServerMetrics
-
-	healthCheck         health.Check
-	healthCheckErr      error
-	healthCheckErrMutex sync.RWMutex
+	healthServer            *HealthServer
 
 	// The **first** interceptor is the **outermost** (executes first on request, last on response).
 	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
@@ -164,9 +157,11 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	return server
 }
 
-// WithHealthCheck adds grpc health check capabilitites to the server.
-func (s *Server) WithHealthCheck(healthCheck health.Check) *Server {
-	s.healthCheck = healthCheck
+func (s *Server) RegisterHealthService(serviceName string, healthChecks ...health.Check) *Server {
+	if s.healthServer == nil {
+		s.healthServer = newHealthServer()
+	}
+	s.healthServer.RegisterService(serviceName, healthChecks)
 	return s
 }
 
@@ -261,9 +256,8 @@ func (s *Server) Serve() {
 
 	s.Raw = grpc.NewServer(s.options...)
 	s.register(s)
-	if s.healthCheck != nil {
-		go s.assertHealthPeriodically()
-		grpc_health_v1.RegisterHealthServer(s.Raw, s)
+	if s.healthServer != nil {
+		grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
 	}
 
 	if !s.prometheusOpts.Disable {
@@ -273,37 +267,4 @@ func (s *Server) Serve() {
 	if err := s.Raw.Serve(listener); err != nil {
 		log.Panicf("gRPC server exited with error: %v", err)
 	}
-}
-
-func (s *Server) assertHealthPeriodically() {
-	ticker := time.NewTicker(5 * time.Second)
-	for range ticker.C {
-		err := s.healthCheck(context.Background())
-		s.healthCheckErrMutex.Lock()
-		s.healthCheckErr = err
-		s.healthCheckErrMutex.Unlock()
-	}
-}
-
-// Check implements the grpc health v1 interface.
-func (s *Server) Check(ctx context.Context, in *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
-	s.healthCheckErrMutex.RLock()
-	defer s.healthCheckErrMutex.RUnlock()
-
-	status := grpc_health_v1.HealthCheckResponse_SERVING
-	if s.healthCheckErr != nil {
-		status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
-	}
-
-	return &grpc_health_v1.HealthCheckResponse{Status: status}, nil
-}
-
-// Watch implements the grpc health v1 interface.
-func (s *Server) Watch(in *grpc_health_v1.HealthCheckRequest, stream grpc_health_v1.Health_WatchServer) error {
-	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
-}
-
-// List implements the grpc health v1 interface.
-func (s *Server) List(ctx context.Context, in *grpc_health_v1.HealthListRequest) (*grpc_health_v1.HealthListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
