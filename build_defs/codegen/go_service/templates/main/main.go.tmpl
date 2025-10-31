@@ -12,22 +12,19 @@ func main() {
 {{ goImport "github.com/malonaz/core/go/prometheus" }}.Serve(opts.Prometheus)
 ctx := {{ goImport "context" }}.Background()
 
-ctxWithRole, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithRole(ctx, "{{ .name }}")
-if err != nil {
-log.Panicf("injecting role into context: %v", err)
-}
-ctxWithRole = {{ goImport "github.com/malonaz/core/go/contexttag" }}.SetOntoContextNoop(ctxWithRole)
-
 var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
 
 {{- /* GATHER SERVICE MANIFESTS */ -}}
 {{- $serviceManifests := list -}}
-{{- range $grpcServer := .grpc.servers -}}
-    {{- range $service := $grpcServer.services -}}
-        {{- $serviceManifest := parseYaml $service.manifest -}}
-        {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+{{- range $server := .servers -}}
+    {{- if eq $server.type "grpc" -}}
+        {{- range $service := $server.services -}}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+        {{- end -}}
     {{- end -}}
 {{- end -}}
+
 
 {{- /* DEPENDENCIES GRPC*/ -}}
 {{- range $serviceManifest := $serviceManifests -}}
@@ -62,11 +59,27 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
     {{- end }}
 {{- end }}
 
-{{- /* INSTANTIATE IMPLEMENTATIONS*/ -}}
-{{- range $serviceManifest := $serviceManifests }}
-    {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-    {{- $serviceKey := printf "service_%s" $serviceManifest.implementation }}
-    {{- if doOnce $serviceKey }}
+// Setup health check.
+healthCheck := {{ goImport "github.com/malonaz/core/go/health" }}.Checks(healthChecks...)
+{{ goImport "github.com/malonaz/core/go/health" }}.Serve(opts.Health, healthCheck)
+
+var gracefulStopFns []func()
+var stopFns []func()
+
+{{ range $server := .servers }}
+    // Start {{ $server.name | camelcase }} Server
+    {
+    ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ .serviceAccount }}")
+    if err != nil {
+    log.Panicf("injecting role into context: %v", err)
+    }
+    ctxSA = {{ goImport "github.com/malonaz/core/go/contexttag" }}.SetOntoContextNoop(ctxSA)
+
+    {{- /* INSTANTIATE SERVICES*/ -}}
+    {{- range $service := $server.services }}
+        {{- $serviceManifest := parseYaml $service.manifest -}}
+        {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+        {{- $serviceKey := printf "service_%s" $serviceManifest.implementation }}
         {{ "\n" }}// Instantiate {{ $serviceName }}.
         {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
         opts.{{ $serviceName | title }},
@@ -83,87 +96,85 @@ var healthChecks []{{ goImport "github.com/malonaz/core/go/health" }}.Check
         log.Panicf("instantiating {{ $serviceName }}: %v", err)
         }
         // Start {{ $serviceName }} service.
-        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctxWithRole)
+        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctxSA)
         if err != nil {
         log.Panicf("starting {{ $serviceName }} service: %v", err)
         }
         defer {{ $serviceName }}Cleanup()
     {{- end }}
-{{- end }}
 
-// Setup health check.
-healthCheck := {{ goImport "github.com/malonaz/core/go/health" }}.Checks(healthChecks...)
-{{ goImport "github.com/malonaz/core/go/health" }}.Serve(opts.Health, healthCheck)
-
-var gracefulStopFns []func()
-var stopFns []func()
-
-{{ range $grpcServer := .grpc.servers }}
-    // Start {{ $grpcServer.name | camelcase }} gRPC Server
-    {
-    register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
-    {{- range $service := $grpcServer.services }}
-        {{- $serviceManifest := parseYaml $service.manifest -}}
-        {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-        {{ $grpc := parseGRPC $service.proto -}}
-        {{ $grpc.Register $serviceName }}
-    {{- end }}
-    }
-
-    {{- range $interceptor := $grpcServer.interceptors -}}
-        {{ if eq $interceptor.type "session_injector" }}
-            // Instantiate session injector interceptor.
-            sessionInjectorInterceptor := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionInjectorInterceptor()
-        {{ else if eq $interceptor.type "internal_authentication" }}
-            // Instantiate interceptors.
-            internalAuthenticationInterceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewInternalInterceptor(opts.Authentication)
-            if err != nil {
-            log.Panicf("instantiating authentication interceptor: %v", err)
-            }
-        {{ else }}
-            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-        {{ end }}
-    {{- end }}
-
-	  grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
-    WithUnaryInterceptors({{- range $interceptor := $grpcServer.interceptors -}}
-        {{- if eq $interceptor.type "session_injector" }}
-            sessionInjectorInterceptor.Unary(),
-        {{- else if eq $interceptor.type "internal_authentication" }}
-            internalAuthenticationInterceptor.Unary(),
-        {{ else }}
-            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-        {{- end -}}
-    {{- end -}}).
-    WithStreamInterceptors({{- range $interceptor := $grpcServer.interceptors -}}
-        {{- if eq $interceptor.type "session_injector" }}
-            sessionInjectorInterceptor.Stream(),
-        {{- else if eq $interceptor.type "internal_authentication" }}
-            internalAuthenticationInterceptor.Stream(),
-        {{ else }}
-            {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-        {{- end -}}
-    {{- end -}})
-    gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
-    stopFns = append(stopFns, grpcServer.Stop)
-    go grpcServer.Serve()
-
-    {{- $hasGateway := false -}}
-    {{- range $service := $grpcServer.services -}}
-        {{- if $service.gateway -}}
-            {{- $grpc := parseGRPC $service.proto -}}
-            {{- if doOnce $grpcServer.name }}
-                {{ $hasGateway = true }}
-                // GRPC gateway handlers.
-                var registerHandlers =[]{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
-            {{- end }}
-            {{ $grpc.RegisterHandlerFromEndpoint }},
-        {{ end }}
-    {{ end }}
-    {{- if $hasGateway -}}
+    {{- if eq $server.type "grpc" }}
+        register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
+        {{- range $service := $server.services }}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+            {{ $grpc := parseGRPC $service.proto -}}
+            {{ $grpc.Register $serviceName }}
+        {{- end }}
         }
-        grpcGatewayServer := grpc.NewGateway(opts.{{ $grpcServer.name | camelcase }}GRPCGateway, opts.{{ $grpcServer.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-        go grpcGatewayServer.Serve(ctx)
+
+        {{- range $interceptor := $server.interceptors -}}
+            {{ if eq $interceptor.type "session_injector" }}
+                sessionInjectorInterceptor := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionInjectorInterceptor()
+            {{ else if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }})
+                if err != nil {
+                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                }
+            {{ else if eq $interceptor.type "external_api_key_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }})
+                if err != nil {
+                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                }
+            {{ else }}
+                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+            {{ end }}
+        {{- end }}
+
+	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).WithHealthCheck(healthCheck).
+        WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
+            {{- if eq $interceptor.type "session_injector" }}
+                sessionInjectorInterceptor.Unary(),
+            {{- else if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "external_api_key_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{ else }}
+                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+            {{- end -}}
+        {{- end -}}).
+        WithStreamInterceptors({{- range $interceptor := $server.interceptors -}}
+            {{- if eq $interceptor.type "session_injector" }}
+                sessionInjectorInterceptor.Stream(),
+            {{- else if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "external_api_key_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{ else }}
+                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+            {{- end -}}
+        {{- end -}})
+        gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
+        stopFns = append(stopFns, grpcServer.Stop)
+        go grpcServer.Serve()
+
+        {{- $hasGateway := false -}}
+        {{- range $service := $server.services -}}
+            {{- if $service.gateway -}}
+                {{- $grpc := parseGRPC $service.proto -}}
+                {{- if doOnce $server.name }}
+                    {{ $hasGateway = true }}
+                    // GRPC gateway handlers.
+                    var registerHandlers =[]{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
+                {{- end }}
+                {{ $grpc.RegisterHandlerFromEndpoint }},
+            {{ end }}
+        {{ end }}
+        {{- if $hasGateway -}}
+            }
+            grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
+            go grpcGatewayServer.Serve(ctx)
+        {{- end }}
     {{- end }}
     }
 {{- end }}

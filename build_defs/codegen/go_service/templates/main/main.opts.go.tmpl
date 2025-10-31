@@ -6,19 +6,27 @@
     Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
 
     {{- /* CHECK IF ANY GRPC SERVER REQUIRES AUTHENTICATION */ -}}
-	  {{- range $grpcServer := .grpc.servers -}}
-	      {{- range $interceptor := $grpcServer.interceptors -}}
-	          {{- if eq $interceptor.type "internal_authentication" -}}
-                {{- doOnce "internal_authentication_opts" -}}
-                InternalAuthentication *{{ goImport (printf "%s/authentication" $core) }}.Opts `group:"Internal Authentication" namespace:"internal-authentication" env-namespace:"INTERNAL_AUTHENTICATION"`
-            {{ end }}
+	  {{- range $server := .servers -}}
+	      {{- if eq $server.type "grpc" -}}
+	          {{- range $interceptor := $server.interceptors -}}
+	              {{- if eq $interceptor.type "internal_authentication" -}}
+                    {{- if doOnce $interceptor.type }}
+                        {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
+                    {{ end }}
+                {{ end }}
+	              {{- if eq $interceptor.type "external_api_key_authentication" -}}
+                    {{- if doOnce $interceptor.type }}
+                        {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
+                    {{ end }}
+                {{ end }}
+	          {{- end -}}
 	      {{- end -}}
 	  {{- end }}
 
     {{- /* GATHER SERVICE MANIFESTS */ -}}
     {{- $serviceManifests := list -}}
-    {{- range $grpcServer := .grpc.servers -}}
-        {{- range $service := $grpcServer.services -}}
+    {{- range $server := .servers -}}
+        {{- range $service := $server.services -}}
             {{- $serviceManifest := parseYaml $service.manifest -}}
             {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
         {{- end -}}
@@ -53,16 +61,18 @@
 	  {{- end }}
 
     {{- /* GRPC SERVER OPTIONS */ -}}
-    {{- range $grpcServer := .grpc.servers -}}
-        {{- if doOnce "grpc_server_option_comment" }}{{ "\n\n// gRPC server options" }}{{ end }}
-        {{ $grpcServer.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $grpcServer.name | camelcase }} GRPC (Server)" namespace:"{{ $grpcServer.name | kebabcase }}-grpc" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC"`
-        {{ $hasGrpcGateway := false }}
-        {{ range $service := $grpcServer.services }}
-            {{ if $service.gateway }} {{ $hasGrpcGateway = true }}{{ break }}{{ end }}
-        {{ end }}
-        {{ if $hasGrpcGateway }}
-            {{ $grpcServer.name | camelcase }}GRPCGateway *{{ goImport (printf "%s/grpc" $core) }}.GatewayOpts `group:"{{ $grpcServer.name | camelcase }} GRPC Gateway" namespace:"{{ $grpcServer.name | kebabcase }}-grpc-gateway" env-namespace:"{{ $grpcServer.name | snakecase | upper }}_GRPC_GATEWAY"`
-        {{ end }}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpc" -}}
+            {{- if doOnce "grpc_server_option_comment" }}{{ "\n\n// gRPC server options" }}{{ end }}
+            {{ $server.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $server.name | camelcase }} GRPC (Server)" namespace:"{{ $server.name | kebabcase }}-grpc" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC"`
+            {{ $hasGrpcGateway := false }}
+            {{ range $service := $server.services }}
+                {{ if $service.gateway }} {{ $hasGrpcGateway = true }}{{ break }}{{ end }}
+            {{ end }}
+            {{ if $hasGrpcGateway }}
+                {{ $server.name | camelcase }}GRPCGateway *{{ goImport (printf "%s/grpc" $core) }}.GatewayOpts `group:"{{ $server.name | camelcase }} GRPC Gateway" namespace:"{{ $server.name | kebabcase }}-grpc-gateway" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC_GATEWAY"`
+            {{ end }}
+        {{- end -}}
     {{- end }}
 
     {{- /* SERVICE OPTIONS */ -}}
