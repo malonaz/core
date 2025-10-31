@@ -143,46 +143,7 @@ var stopFns []func()
     }
 {{- end }}
 
-signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
-{{ goImport "os/signal" }}.Notify(signalChan, {{ goImport "syscall" }}.SIGTERM, {{ goImport "syscall" }}.SIGINT, {{ goImport "syscall" }}.SIGHUP)
-
-// Wait for first signal
-sig := <- signalChan
-log.Infof("Received signal #1: %v, initiating graceful shutdown", sig)
-
-// Start graceful shutdown in parallel
-var wg {{ goImport "sync" }}.WaitGroup
-wg.Add(len(gracefulStopFns))
-for _, gracefulStopFn := range gracefulStopFns {
-    go func(fn func()) {
-        defer wg.Done()
-        fn()
-    }(gracefulStopFn)
+  handleSignals(gracefulStopFns, stopFns)
 }
 
-// Set up a channel to know when graceful shutdown is complete
-gracefulDone := make(chan struct{})
-go func() {
-    wg.Wait()
-    close(gracefulDone)
-}()
-
-// Wait for either graceful shutdown to complete or second signal
-select {
-case <-gracefulDone:
-    log.Info("Graceful shutdown completed")
-case sig := <-signalChan:
-    log.Warnf("Received signal #2: %v, forcing immediate shutdown", sig)
-    // Force stop everything immediately in parallel but wait for completion
-    var wg {{ goImport "sync" }}.WaitGroup
-    wg.Add(len(stopFns))
-    for _, stopFn := range stopFns {
-        go func(fn func()) {
-            defer wg.Done()
-            fn()
-        }(stopFn)
-    }
-    wg.Wait()
-    log.Info("Force shutdown completed")
-}
-}
+{{ template "shutdownOpts" . }}

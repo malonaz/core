@@ -8,16 +8,6 @@ export_file(
 
 ############# SERVICE #################
 export_file(
-    name = "main.go.tmpl",
-    src = "main.go.tmpl",
-)
-
-export_file(
-    name = "main.opts.go.tmpl",
-    src = "main.opts.go.tmpl",
-)
-
-export_file(
     name = "service.go.tmpl",
     src = "service.go.tmpl",
 )
