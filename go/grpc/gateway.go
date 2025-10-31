@@ -148,7 +148,7 @@ func (g *Gateway) Serve(ctx context.Context) {
 		g.dialOptions = append(g.dialOptions, grpc.WithChainStreamInterceptor(g.streamInterceptors...))
 	}
 	mux := runtime.NewServeMux(g.options...)
-	endpoint := g.grpcOpts.network()
+	endpoint := g.grpcOpts.Endpoint()
 	for _, registerHandler := range g.registerHandlers {
 		if err := registerHandler(ctx, mux, endpoint, g.dialOptions); err != nil {
 			log.Panicf("Could not register handler: %v", err)

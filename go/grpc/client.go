@@ -132,7 +132,7 @@ func (c *Client) Connect() (*grpc.ClientConn, health.Check) {
 	}
 
 	// Connect.
-	endpoint := c.opts.network()
+	endpoint := c.opts.Endpoint()
 	connection, err := grpc.Dial(endpoint, c.options...)
 	if err != nil {
 		log.Panicf("Failed to dial grpc [%s]: %v", endpoint, err)

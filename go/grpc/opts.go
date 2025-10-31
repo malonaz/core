@@ -27,7 +27,8 @@ func (o *Opts) useSocket() bool {
 	return o.SocketPath != ""
 }
 
-func (o *Opts) network() string {
+// Returns the target endpoint.
+func (o *Opts) Endpoint() string {
 	if o.useSocket() {
 		return "unix:" + o.SocketPath
 	}
