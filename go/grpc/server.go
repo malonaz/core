@@ -63,7 +63,7 @@ type Server struct {
 	register                func(*Server)
 	Raw                     *grpc.Server
 	prometheusServerMetrics *grpc_prometheus.ServerMetrics
-	healthServer            *HealthServer
+	healthServer            *health.GRPCServer
 
 	// The **first** interceptor is the **outermost** (executes first on request, last on response).
 	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
@@ -83,6 +83,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 		opts:           opts,
 		prometheusOpts: prometheusOpts,
 		register:       register,
+		healthServer:   health.NewGRPCServer(opts.Health),
 	}
 
 	// Default options.
@@ -160,10 +161,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 }
 
 func (s *Server) RegisterServiceHealthChecks(serviceName string, healthChecks ...health.Check) *Server {
-	if s.healthServer == nil {
-		s.healthServer = newHealthServer()
-	}
-	s.healthServer.RegisterService(serviceName, healthChecks)
+	s.healthServer.RegisterService(serviceName, healthChecks...)
 	return s
 }
 
@@ -190,6 +188,7 @@ func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterce
 func (s *Server) Stop() {
 	log.Warningf("stopping server")
 	s.Raw.Stop()
+	s.healthServer.Shutdown()
 }
 
 func (s *Server) GracefulStop() {
@@ -204,27 +203,27 @@ func (s *Server) GracefulStop() {
 	select {
 	case <-time.After(duration):
 		log.Infof("grace period exhausted, stopping server")
-		s.Raw.Stop()
+		s.Stop()
 	case <-ch:
 	}
 }
 
-func (s *Server) HealthCheck(ctx context.Context) error {
-	if s.healthServer == nil {
-		return fmt.Errorf("health server is not setup")
+func (s *Server) HealthCheckFn() health.Check {
+	return func(ctx context.Context) error {
+		request := &grpc_health_v1.HealthCheckRequest{}
+		response, err := s.healthServer.Check(ctx, request)
+		if err != nil {
+			return err
+		}
+		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+			return fmt.Errorf("health check returned :%s", response.Status)
+		}
+		return nil
 	}
-	response, err := s.healthServer.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
-	if err != nil {
-		return err
-	}
-	if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
-		return fmt.Errorf("server returned health status [%s]", response.Status)
-	}
-	return nil
 }
 
 // Serve instantiates the gRPC server and blocks forever.
-func (s *Server) Serve() {
+func (s *Server) Serve(ctx context.Context) {
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
 	streamInterceptors := append(s.preStreamInterceptors, s.streamInterceptors...)
@@ -272,9 +271,8 @@ func (s *Server) Serve() {
 
 	s.Raw = grpc.NewServer(s.options...)
 	s.register(s)
-	if s.healthServer != nil {
-		grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
-	}
+	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
+	s.healthServer.Start(ctx)
 
 	if !s.prometheusOpts.Disable {
 		s.prometheusServerMetrics.InitializeMetrics(s.Raw)

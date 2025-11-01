@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"fmt"
+
+	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/logging"
 )
 
@@ -9,11 +11,12 @@ var log = logging.NewLogger()
 
 // Opts holds a gRPC server opts.
 type Opts struct {
-	Port                int    `long:"port" env:"PORT" description:"Port to serve gRPC on." default:"9090"`
-	Host                string `long:"host" env:"HOST" description:"Host for a client to connect to."`
-	DisableTLS          bool   `long:"disable-tls" env:"DISABLE_TLS" description:"Set to true in order to disable TLS for this service."`
-	GracefulStopTimeout int    `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
-	SocketPath          string `long:"socket-path" env:"SOCKET_PATH" description:"Unix socket path to use instead of TCP port"`
+	Health              *health.GRPCOpts `group:"Health" namespace:"health" env-namespace:"HEALTH"`
+	Port                int              `long:"port" env:"PORT" description:"Port to serve gRPC on." default:"9090"`
+	Host                string           `long:"host" env:"HOST" description:"Host for a client to connect to."`
+	DisableTLS          bool             `long:"disable-tls" env:"DISABLE_TLS" description:"Set to true in order to disable TLS for this service."`
+	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
+	SocketPath          string           `long:"socket-path" env:"SOCKET_PATH" description:"Unix socket path to use instead of TCP port"`
 }
 
 // GatewayOpts holds a gRPC gateway server opts.

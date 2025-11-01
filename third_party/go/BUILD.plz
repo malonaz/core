@@ -2154,8 +2154,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -3687,6 +3687,25 @@ go_module(
     module = "google.golang.org/grpc",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "google.golang.org__grpc__health",
+    download = ":_google.golang.org__grpc#download",
+    install = ["health"],
+    module = "google.golang.org/grpc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__balancer",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__connectivity",
+        ":google.golang.org__grpc__grpclog",
+        ":google.golang.org__grpc__health__grpc_health_v1",
+        ":google.golang.org__grpc__internal",
+        ":google.golang.org__grpc__internal__backoff",
+        ":google.golang.org__grpc__status",
+    ],
 )
 
 go_module(

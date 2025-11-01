@@ -1,6 +1,7 @@
 package mockserver
 
 import (
+	"context"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -34,7 +35,7 @@ func NewServer(port string, opts *commongrpc.Opts, certsOpts *certs.Opts) *Serve
 	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register).WithOptions(
 		grpc.CustomCodec(Codec{}), grpc.UnknownServiceHandler(server.handleRPC),
 	)
-	go grpcServer.Serve()
+	go grpcServer.Serve(context.Background())
 	return server
 }
 

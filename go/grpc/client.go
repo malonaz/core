@@ -156,17 +156,17 @@ func (c *Connection) Get() *grpc.ClientConn {
 	return c.connection
 }
 
-// HealthCheck calls the `Check` method of the grpc server.
+// HealthCheck calls the `Check` method of the grpc server, specifying the service.
 func (c *Connection) HealthCheckFn(service string) health.Check {
+	healthClient := grpc_health_v1.NewHealthClient(c.connection)
 	return func(ctx context.Context) error {
-		healthClient := grpc_health_v1.NewHealthClient(c.connection)
 		request := &grpc_health_v1.HealthCheckRequest{Service: service}
 		response, err := healthClient.Check(ctx, request)
 		if err != nil {
 			return err
 		}
-		if response.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
-			return fmt.Errorf("grpc health failed health check with status: %s", grpc_health_v1.HealthCheckResponse_ServingStatus_name[int32(response.GetStatus())])
+		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+			return fmt.Errorf("health check returned :%s", response.Status)
 		}
 		return nil
 	}

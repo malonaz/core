@@ -5,7 +5,6 @@ go_library(
         "cookie.go",
         "errors.go",
         "gateway.go",
-        "health_server.go",
         "opts.go",
         "server.go",
     ],
