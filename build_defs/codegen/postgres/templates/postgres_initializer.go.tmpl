@@ -4,8 +4,8 @@ package main
 var migrationsFS {{ goImport "embed" }}.FS
 
 var opts struct {
+	{{ .name | camelcase }}Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"{{ .name | camelcase }}Postgres" namespace:"{{ .name | kebabcase }}-postgres" env-namespace:"{{ .name | snakecase | upper }}_POSTGRES"`
 	Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
-	PostgresSuper *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres Super" namespace:"postgres-super" env-namespace:"POSTGRES_SUPER"`
 }
 
 func main() {
@@ -13,20 +13,20 @@ func main() {
 	ctx := {{ goImport "context" }}.Background()
 
 	// Initialize using the super user. This create the database, user and sets the password.
-	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.PostgresSuper)
-	m.MustInitializeDatabase(ctx, opts.Postgres.Database, opts.Postgres.User, opts.Postgres.Password)
+	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
+	m.MustInitializeDatabase(ctx, opts.{{ .name | camelcase }}Postgres.Database, opts.{{ .name | camelcase }}Postgres.User, opts.{{ .name | camelcase }}Postgres.Password)
 
 	{{ $hasExtensions := false }}
 	{{ range $dir := .directories }}{{ if $dir.extension }}{{ $hasExtensions = true }}{{ end }}{{ end }}
 	{{ if $hasExtensions }}
 		// Create the migrations table as a regular user.
-		mRegular := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
+		mRegular := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.{{ .name | camelcase }}Postgres)
 		mRegular.MustCreateMigrationsTableIfNotExist(ctx)
 
 		// This is where it gets annoying/tricky.
 		// We run extensions migrations as the superuser but *into* the regular table.
-		opts.PostgresSuper.Database = opts.Postgres.Database
-	  mSuper := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.PostgresSuper)
+		opts.Postgres.Database = opts.{{ .name | camelcase }}Postgres.Database
+	  mSuper := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
 	  mSuper.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
 	{{ end }}
 }

@@ -4,13 +4,13 @@ package main
 var migrationsFS {{ goImport "embed" }}.FS
 
 var opts struct {
-	Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
+  {{ .name | camelcase }}Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"{{ .name | camelcase }}Postgres" namespace:"{{ .name | kebabcase }}-postgres" env-namespace:"{{ .name | snakecase | upper }}_POSTGRES"`
 }
 
 func main() {
 	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
 	ctx := {{ goImport "context" }}.Background()
 
-	migrator := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
+	migrator := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.{{ .name | camelcase }}Postgres)
 	migrator.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if not $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
 }
