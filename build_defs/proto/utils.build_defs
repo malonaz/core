@@ -10,8 +10,8 @@ def github_proto_library(
         dir:str,
         files:list,
         deps:list=[],
+        visibility:list=None,
         protoc_flags:list=[],
-
         additional_context:dict=None,
 ):
     """
@@ -31,6 +31,7 @@ def github_proto_library(
         protoc_flags = protoc_flags + ["-I" + package_name()],
         additional_context = additional_context,
         deps = deps,
+        visibility=visibility,
     )
 
 def external_github_proto_library(
@@ -38,8 +39,9 @@ def external_github_proto_library(
         repo:str,
         revision:str,
         files:list,
-        dir:str,
         go_dep:str,
+        dir:str=None,
+        visibility:list=None,
 ):
     """ Used to grab third party protofiles, but use an external go_dep.
     This is used when we don't want to compile the go library ourselves and want to use an external one instead.
@@ -54,18 +56,23 @@ def external_github_proto_library(
             repo = repo,
             revision = revision,
         )
+        if dir is None:
+            srcs += [src]
+            continue
         new_src_name = f"_{name}#{sanitized_filename}_correct_packages"
         new_src = genrule(
             name = new_src_name,
             srcs = [src],
             out = join_path(dir, basename(f)),
             cmd = "cat $SRCS > $OUT",
+            visibility=visibility,
         )
         srcs += [new_src]
     return filegroup(
         name = name,
         srcs = srcs,
         exported_deps = srcs,
+        visibility=visibility,
         provides = {
             "go": go_dep,
             "proto": srcs,
