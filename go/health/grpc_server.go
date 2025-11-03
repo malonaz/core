@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -132,4 +133,18 @@ func (s *GRPCServer) checkService(ctx context.Context, req *grpc_health_v1.Healt
 		status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 	}
 	return &grpc_health_v1.HealthCheckResponse{Status: status}, nil
+}
+
+func (s *GRPCServer) CheckFn() Check {
+	return func(ctx context.Context) error {
+		request := &grpc_health_v1.HealthCheckRequest{}
+		response, err := s.Check(ctx, request)
+		if err != nil {
+			return err
+		}
+		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+			return fmt.Errorf("health check returned :%s", response.Status)
+		}
+		return nil
+	}
 }

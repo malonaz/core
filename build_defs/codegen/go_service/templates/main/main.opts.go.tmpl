@@ -75,6 +75,14 @@
         {{- end -}}
     {{- end }}
 
+    {{- /* SERVER OPTIONS */ -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "http" -}}
+            {{- if doOnce "http_server_option_comment" }}{{ "\n\n// HTTP server options" }}{{ end }}
+            {{ $server.name | camelcase }}HTTP *{{ goImport (printf "%s/http" $core) }}.Opts `group:"{{ $server.name | camelcase }} HTTP (Server)" namespace:"{{ $server.name | kebabcase }}-http" env-namespace:"{{ $server.name | snakecase | upper }}_HTTP"`
+        {{- end -}}
+    {{- end }}
+
     {{- /* SERVICE OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests }}
         {{- if doOnce "service_opts" -}}{{"\n\n// Service options"}}{{- end -}}

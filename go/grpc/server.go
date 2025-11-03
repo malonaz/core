@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -160,9 +159,8 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	return server
 }
 
-func (s *Server) RegisterServiceHealthChecks(serviceName string, healthChecks ...health.Check) *Server {
-	s.healthServer.RegisterService(serviceName, healthChecks...)
-	return s
+func (s *Server) GetHealthServer() *health.GRPCServer {
+	return s.healthServer
 }
 
 // WithOptions adds options to this gRPC server.
@@ -205,20 +203,6 @@ func (s *Server) GracefulStop() {
 		log.Infof("grace period exhausted, stopping server")
 		s.Stop()
 	case <-ch:
-	}
-}
-
-func (s *Server) HealthCheckFn() health.Check {
-	return func(ctx context.Context) error {
-		request := &grpc_health_v1.HealthCheckRequest{}
-		response, err := s.healthServer.Check(ctx, request)
-		if err != nil {
-			return err
-		}
-		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
-			return fmt.Errorf("health check returned :%s", response.Status)
-		}
-		return nil
 	}
 }
 

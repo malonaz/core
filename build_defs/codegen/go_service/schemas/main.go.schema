@@ -56,7 +56,7 @@
                         "minItems": 1,
                         "items": {
                             "type": "object",
-                            "required": ["proto", "manifest"],
+                            "required": ["manifest"],
                             "additionalProperties": false,
                             "properties": {
                                 "proto": {

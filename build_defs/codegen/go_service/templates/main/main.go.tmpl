@@ -34,6 +34,7 @@ ctx := {{ goImport "context" }}.Background()
 {{- /* DEPENDENCIES GRPC CONNECTIONS*/ -}}
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
+
         {{- if eq $dep.type "grpc_client" -}}
             {{- if doOnce "grpc_conns_instantiations" -}}
                 {{ "\n\n// Instantiate GRPC Connections (using one per identical endpoint)\n" -}}
@@ -56,26 +57,26 @@ ctx := {{ goImport "context" }}.Background()
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
         {{- if eq $dep.type "grpc_client" -}}
+            {{ $grpc := parseGRPC $dep.proto }}
             {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients" -}}{{- end -}}
-            {{- if doOnce (printf "grpc_deps_%s" $dep.proto) -}}
-                {{ $grpc := parseGRPC $dep.proto }}
+            {{- if doOnce (printf "grpc_deps_%s" $dep.proto) }}
                 {{ $grpc.Connection }}, ok := networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
                 if !ok {
                 log.Panicf("could not find grpc connection on for {{ $grpc.HumanName}}")
                 }
                 {{ $grpc.Client }} := {{ $grpc.NewClient }}
                 {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
+            {{ end }}
 
-                {{- /* Add health check function to all servers that use this service */ -}}
-                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
-                {{- range $serverName := $serverNames -}}
-                    {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
-                    {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                    {{- $updatedHealthChecks := append $existingHealthChecks $grpc.HealthCheck -}}
-                    {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
-                    {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
-                {{- end -}}
-            {{- end }}
+            {{- /* Add health check function to all servers that use this service */ -}}
+            {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+            {{- range $serverName := $serverNames -}}
+                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
+                {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
+                {{- $updatedHealthChecks := append $existingHealthChecks $grpc.HealthCheck -}}
+                {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
+                {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+            {{- end -}}
         {{- end }}
     {{- end }}
 {{- end }}
@@ -91,17 +92,16 @@ ctx := {{ goImport "context" }}.Background()
 	              {{ $dep.name }}PsqlClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.MustNewClient(opts.{{ $dep.name | title }}Postgres)
 	              defer {{ $dep.name }}PsqlClient.Close()
                 {{ $dep.name }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name }}PsqlClient)
-
-                {{- /* Add health check function to all servers that use this service */ -}}
-                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
-                {{- range $serverName := $serverNames -}}
-                    {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
-                    {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                    {{- $updatedHealthChecks := append $existingHealthChecks (printf "%sPsqlClient.Ping" $dep.name) -}}
-                    {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
-                    {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
-                {{- end -}}
-            {{- end }}
+            {{ end }}
+            {{- /* Add health check function to all servers that use this service */ -}}
+            {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+            {{- range $serverName := $serverNames -}}
+                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
+                {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
+                {{- $updatedHealthChecks := append $existingHealthChecks (printf "%sPsqlClient.Ping" $dep.name) -}}
+                {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
+                {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+            {{- end -}}
         {{- end }}
     {{- end }}
 {{- end }}
@@ -111,6 +111,7 @@ var gracefulStopFns []func()
 var stopFns []func()
 
 {{ range $server := .servers }}
+
     // Start {{ $server.name | camelcase }} Server
     {
     ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ .serviceAccount }}")
@@ -200,22 +201,20 @@ var stopFns []func()
         {{- end -}})
         gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
         stopFns = append(stopFns, grpcServer.Stop)
-        // Register service health checks.
-        // I need access to all the health check deps for a grpc service. (not for server).
         {{- range $service := $server.services }}
             {{- $serviceManifest := parseYaml $service.manifest -}}
             {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
             {{ $grpc := parseGRPC $service.proto -}}
             {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name -}}
             {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-            grpcServer.RegisterServiceHealthChecks(
+            grpcServer.GetHealthServer().RegisterService(
             {{- $grpc.ServiceDescriptionName -}},
             {{- range $healthCheckFn := $serviceHealthChecks -}}
                 {{ $healthCheckFn }},
             {{- end -}}
             )
         {{- end }}
-        healthServer.RegisterService("{{ $server.name }}", grpcServer.HealthCheckFn())
+        healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
         go grpcServer.Serve(ctx)
 
         {{- $hasGateway := false -}}
@@ -235,6 +234,34 @@ var stopFns []func()
             grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
             go grpcGatewayServer.Serve(ctx)
         {{- end }}
+    {{- end }}
+
+    {{- if eq $server.type "http" }}
+        register := func(server *{{ goImport "github.com/malonaz/core/go/http"}}.Server) {
+        {{- range $service := $server.services }}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+            {{ $serviceName }}.RegisterRoutes(server)
+        {{- end }}
+        }
+
+	      httpServer := {{ goImport "github.com/malonaz/core/go/http"}}.NewServer(opts.{{ $server.name | camelcase }}HTTP, register)
+        gracefulStopFns = append(gracefulStopFns, httpServer.GracefulStop)
+        stopFns = append(stopFns, httpServer.Stop)
+        {{- range $service := $server.services }}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+            {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name | default (dict) -}}
+            {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) }}
+            httpServer.GetHealthServer().RegisterService(
+            "{{- $serviceName | kebabcase}}",
+            {{- range $healthCheckFn := $serviceHealthChecks -}}
+                {{ $healthCheckFn }},
+            {{- end -}}
+            )
+        {{- end }}
+        healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
+        go httpServer.Serve(ctx)
     {{- end }}
     }
 {{- end }}
