@@ -25,7 +25,7 @@
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["type", "name", "serviceAccount", "services"],
+                "required": ["type", "name", "services"],
                 "additionalProperties": false,
                 "properties": {
                     "type": {
@@ -34,9 +34,6 @@
                     "name": {
                         "type": "string",
                         "pattern": "^[a-zA-Z0-9-]+$"
-                    },
-                    "serviceAccount": {
-                        "type": "string"
                     },
                     "interceptors": {
                         "type": "array",

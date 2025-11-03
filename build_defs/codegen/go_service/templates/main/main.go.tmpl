@@ -114,7 +114,7 @@ var stopFns []func()
 
     // Start {{ $server.name | camelcase }} Server
     {
-    ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ .serviceAccount }}")
+    ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ $server.name | kebabcase }}")
     if err != nil {
     log.Panicf("injecting role into context: %v", err)
     }
