@@ -12,6 +12,7 @@ import (
 	_ "github.com/malonaz/core/go/pbutil"
 	_ "github.com/malonaz/core/go/postgres"
 	_ "github.com/please-build/gcfg"
+	_ "github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
 	_ "github.com/scylladb/go-set/strset"
 	_ "github.com/sirupsen/logrus"
 	_ "github.com/spf13/cobra"

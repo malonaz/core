@@ -194,6 +194,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__Masterminds__semver",
+    _tag = "download",
+    module = "github.com/Masterminds/semver",
+    version = "v1.5.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__Masterminds__semver",
+    download = ":_github.com__Masterminds__semver#download",
+    install = ["."],
+    module = "github.com/Masterminds/semver",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__Masterminds__semver__v3",
     _tag = "download",
     module = "github.com/Masterminds/semver/v3",
@@ -208,6 +225,31 @@ go_module(
     module = "github.com/Masterminds/semver/v3",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__Masterminds__sprig",
+    _tag = "download",
+    module = "github.com/Masterminds/sprig",
+    version = "v2.22.0+incompatible",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__Masterminds__sprig",
+    download = ":_github.com__Masterminds__sprig#download",
+    install = ["."],
+    module = "github.com/Masterminds/sprig",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__Masterminds__goutils",
+        ":github.com__Masterminds__semver",
+        ":github.com__google__uuid",
+        ":github.com__huandu__xstrings",
+        ":github.com__imdario__mergo",
+        ":github.com__mitchellh__copystructure",
+        ":golang.org__x__crypto__scrypt",
+    ],
 )
 
 go_mod_download(
@@ -448,6 +490,29 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__envoyproxy__protoc-gen-validate",
+    _tag = "download",
+    module = "github.com/envoyproxy/protoc-gen-validate",
+    version = "v1.2.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__envoyproxy__protoc-gen-validate__validate",
+    download = ":_github.com__envoyproxy__protoc-gen-validate#download",
+    install = ["validate"],
+    module = "github.com/envoyproxy/protoc-gen-validate",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        ":google.golang.org__protobuf__types__known__durationpb",
+        ":google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_mod_download(
     name = "github.com__fsnotify__fsnotify",
     _tag = "download",
     module = "github.com/fsnotify/fsnotify",
@@ -516,6 +581,32 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__gogo__protobuf",
+    _tag = "download",
+    module = "github.com/gogo/protobuf",
+    version = "v1.3.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__gogo__protobuf__proto",
+    download = ":_github.com__gogo__protobuf#download",
+    install = ["proto"],
+    module = "github.com/gogo/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__gogo__protobuf__protoc-gen-gogo__descriptor",
+    download = ":_github.com__gogo__protobuf#download",
+    install = ["protoc-gen-gogo/descriptor"],
+    module = "github.com/gogo/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__gogo__protobuf__proto"],
+)
+
+go_mod_download(
     name = "github.com__golang__glog",
     _tag = "download",
     module = "github.com/golang/glog",
@@ -576,6 +667,32 @@ go_module(
         ":google.golang.org__protobuf__reflect__protoregistry",
         ":google.golang.org__protobuf__runtime__protoiface",
         ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "github.com__golang__protobuf__protoc-gen-go__descriptor",
+    download = ":_github.com__golang__protobuf#download",
+    install = ["protoc-gen-go/descriptor"],
+    module = "github.com/golang/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__descriptorpb",
+    ],
+)
+
+go_module(
+    name = "github.com__golang__protobuf__protoc-gen-go__plugin",
+    download = ":_github.com__golang__protobuf#download",
+    install = ["protoc-gen-go/plugin"],
+    module = "github.com/golang/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__pluginpb",
     ],
 )
 
@@ -1536,7 +1653,7 @@ go_mod_download(
     name = "github.com__iancoleman__strcase",
     _tag = "download",
     module = "github.com/iancoleman/strcase",
-    version = "v0.2.0",
+    version = "v0.3.0",
     visibility = ["PUBLIC"],
 )
 
@@ -1545,6 +1662,23 @@ go_module(
     download = ":_github.com__iancoleman__strcase#download",
     install = ["."],
     module = "github.com/iancoleman/strcase",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__imdario__mergo",
+    _tag = "download",
+    module = "github.com/imdario/mergo",
+    version = "v0.3.13",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__imdario__mergo",
+    download = ":_github.com__imdario__mergo#download",
+    install = ["."],
+    module = "github.com/imdario/mergo",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -1925,6 +2059,26 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__mwitkow__go-proto-validators",
+    _tag = "download",
+    module = "github.com/mwitkow/go-proto-validators",
+    version = "v0.3.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__mwitkow__go-proto-validators",
+    download = ":_github.com__mwitkow__go-proto-validators#download",
+    install = ["."],
+    module = "github.com/mwitkow/go-proto-validators",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__gogo__protobuf__proto",
+        ":github.com__gogo__protobuf__protoc-gen-gogo__descriptor",
+    ],
+)
+
+go_mod_download(
     name = "github.com__please-build__gcfg",
     _tag = "download",
     module = "github.com/please-build/gcfg",
@@ -2154,8 +2308,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -2178,6 +2332,123 @@ if is_platform(
     os = ["linux"],
 ):
     go_module(name = "github.com__prometheus__procfs__internal__util", download = ":_github.com__prometheus__procfs#download", install = ["internal/util"], module = "github.com/prometheus/procfs", visibility = ["PUBLIC"], deps = [])
+
+go_mod_download(
+    name = "github.com__pseudomuto__protoc-gen-doc",
+    _tag = "download",
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    patch = ["protoc-gen-doc.patch"],
+    version = "v1.5.2-0.20250211140318-129dc82aa469",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["."],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__Masterminds__sprig",
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__protoc-gen-go__descriptor",
+        ":github.com__golang__protobuf__protoc-gen-go__plugin",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions",
+        ":github.com__pseudomuto__protokit",
+    ],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__cmd__protoc-gen-doc",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["cmd/protoc-gen-doc"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pseudomuto__protoc-gen-doc",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions__google_api_http",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions__lyft_validate",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions__validator_field",
+        ":github.com__pseudomuto__protokit",
+    ],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__extensions",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["extensions"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__extensions__envoyproxy_validate",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["extensions/envoyproxy_validate"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__envoyproxy__protoc-gen-validate__validate",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions",
+    ],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__extensions__google_api_http",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["extensions/google_api_http"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pseudomuto__protoc-gen-doc__extensions",
+        ":google.golang.org__genproto__googleapis__api__annotations",
+    ],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__extensions__lyft_validate",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["extensions/lyft_validate"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__pseudomuto__protoc-gen-doc__extensions__envoyproxy_validate"],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protoc-gen-doc__extensions__validator_field",
+    download = ":_github.com__pseudomuto__protoc-gen-doc#download",
+    install = ["extensions/validator_field"],
+    module = "github.com/pseudomuto/protoc-gen-doc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__protoc-gen-go__descriptor",
+        ":github.com__mwitkow__go-proto-validators",
+        ":github.com__pseudomuto__protoc-gen-doc__extensions",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__pseudomuto__protokit",
+    _tag = "download",
+    module = "github.com/pseudomuto/protokit",
+    version = "v0.2.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__pseudomuto__protokit",
+    download = ":_github.com__pseudomuto__protokit#download",
+    install = ["."],
+    module = "github.com/pseudomuto/protokit",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__protoc-gen-go__descriptor",
+        ":github.com__golang__protobuf__protoc-gen-go__plugin",
+    ],
+)
 
 go_mod_download(
     name = "github.com__scylladb__go-set",
@@ -4928,7 +5199,7 @@ go_mod_download(
     name = "gopkg.in__yaml.v2",
     _tag = "download",
     module = "gopkg.in/yaml.v2",
-    version = "v2.3.0",
+    version = "v2.4.0",
     visibility = ["PUBLIC"],
 )
 

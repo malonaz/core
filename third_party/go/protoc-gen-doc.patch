@@ -1,0 +1,158 @@
+diff --git a/plugin.go b/plugin.go
+index 5fbabe6..0bf1d05 100644
+--- a/plugin.go
++++ b/plugin.go
+@@ -7,12 +7,83 @@ import (
+ 	"path/filepath"
+ 	"regexp"
+ 	"strings"
++	"os"
++	"bufio"
+ 
++	"google.golang.org/protobuf/types/descriptorpb"
+ 	"github.com/golang/protobuf/proto"
+ 	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
+ 	"github.com/pseudomuto/protokit"
+ )
+ 
++var write func(s string, args ...interface{})
++
++func init () {
++	fn := func() {
++		file, err := os.OpenFile("example.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
++		if err != nil {
++			panic(err)
++		}
++
++		writer := bufio.NewWriter(file)
++		write = func(s string, args ...interface{}) {
++			_, err := writer.WriteString(fmt.Sprintf(s, args...))
++			if err != nil {panic(err) }
++			if err := writer.Flush(); err != nil { panic(err) }
++		}
++	}
++	_ = fn
++}
++
++var typeRegistry map[string]string // maps message.FullName -> fileName
++
++// Add this function to build the registry
++func buildTypeRegistry(protoFiles []*descriptorpb.FileDescriptorProto) {
++	if typeRegistry == nil {
++		typeRegistry = map[string]string{}
++	}
++
++	for _, f := range protoFiles {
++		fileName := f.GetName()
++		packageName := f.GetPackage()
++
++		// Process all messages in the file
++		for _, msg := range f.GetMessageType() {
++			registerMessage(fileName, packageName, "", msg)
++		}
++	}
++}
++
++// Recursively register messages (including nested messages)
++func registerMessage(fileName, packageName, parentPrefix string, msg *descriptorpb.DescriptorProto) {
++	// Build the full name
++	var fullName string
++	if packageName != "" {
++		if parentPrefix != "" {
++			fullName = fmt.Sprintf("%s.%s.%s", packageName, parentPrefix, msg.GetName())
++		} else {
++			fullName = fmt.Sprintf("%s.%s", packageName, msg.GetName())
++		}
++	} else {
++		if parentPrefix != "" {
++			fullName = fmt.Sprintf("%s.%s", parentPrefix, msg.GetName())
++		} else {
++			fullName = msg.GetName()
++		}
++	}
++
++	typeRegistry[fullName] = fileName
++
++	// Process nested messages
++	nestedPrefix := msg.GetName()
++	if parentPrefix != "" {
++		nestedPrefix = parentPrefix + "." + nestedPrefix
++	}
++	for _, nested := range msg.GetNestedType() {
++		registerMessage(fileName, packageName, nestedPrefix, nested)
++	}
++}
++
+ // PluginOptions encapsulates options for the plugin. The type of renderer, template file, and the name of the output
+ // file are included.
+ type PluginOptions struct {
+@@ -38,6 +109,9 @@ func (p *Plugin) Generate(r *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGen
+ 		return nil, err
+ 	}
+ 
++	// Build the type registry
++	buildTypeRegistry(r.ProtoFile)
++
+ 	result := excludeUnwantedProtos(protokit.ParseCodeGenRequest(r), options.ExcludePatterns)
+ 
+ 	customTemplate := ""
+diff --git a/template.go b/template.go
+index ee0d933..b8de698 100644
+--- a/template.go
++++ b/template.go
+@@ -252,7 +252,7 @@ type MessageField struct {
+ 	IsOneof      bool   `json:"isoneof"`
+ 	OneofDecl    string `json:"oneofdecl"`
+ 	DefaultValue string `json:"defaultValue"`
+-
++	File         string `json:"file"`
+ 	Options map[string]interface{} `json:"options,omitempty"`
+ }
+ 
+@@ -383,12 +383,15 @@ type ServiceMethod struct {
+ 	RequestType       string `json:"requestType"`
+ 	RequestLongType   string `json:"requestLongType"`
+ 	RequestFullType   string `json:"requestFullType"`
++	RequestFile string `json:"requestFile"`
+ 	RequestStreaming  bool   `json:"requestStreaming"`
+ 	ResponseType      string `json:"responseType"`
+ 	ResponseLongType  string `json:"responseLongType"`
+ 	ResponseFullType  string `json:"responseFullType"`
++	ResponseFile string `json:"responseFile"`
+ 	ResponseStreaming bool   `json:"responseStreaming"`
+ 
++
+ 	Options map[string]interface{} `json:"options,omitempty"`
+ }
+ 
+@@ -503,6 +506,7 @@ func parseMessageField(pf *protokit.FieldDescriptor, oneofDecls []*descriptor.On
+ 		LongType:     lt,
+ 		FullType:     ft,
+ 		DefaultValue: pf.GetDefaultValue(),
++		File: typeRegistry[ft],
+ 		Options:      mergeOptions(extractOptions(pf.GetOptions()), extensions.Transform(pf.OptionExtensions)),
+ 		IsOneof:      pf.OneofIndex != nil,
+ 	}
+@@ -542,16 +546,20 @@ func parseService(ps *protokit.ServiceDescriptor) *Service {
+ }
+ 
+ func parseServiceMethod(pm *protokit.MethodDescriptor) *ServiceMethod {
++	requestFT := strings.TrimPrefix(pm.GetInputType(), ".")
++	responseFT := strings.TrimPrefix(pm.GetOutputType(), ".")
+ 	return &ServiceMethod{
+ 		Name:              pm.GetName(),
+ 		Description:       description(pm.GetComments().String()),
+ 		RequestType:       baseName(pm.GetInputType()),
+ 		RequestLongType:   strings.TrimPrefix(pm.GetInputType(), "."+pm.GetPackage()+"."),
+-		RequestFullType:   strings.TrimPrefix(pm.GetInputType(), "."),
++		RequestFullType:   requestFT,
++		RequestFile: typeRegistry[requestFT],
+ 		RequestStreaming:  pm.GetClientStreaming(),
+ 		ResponseType:      baseName(pm.GetOutputType()),
+ 		ResponseLongType:  strings.TrimPrefix(pm.GetOutputType(), "."+pm.GetPackage()+"."),
+-		ResponseFullType:  strings.TrimPrefix(pm.GetOutputType(), "."),
++		ResponseFullType:  responseFT,
++		ResponseFile: typeRegistry[responseFT],
+ 		ResponseStreaming: pm.GetServerStreaming(),
+ 		Options:           mergeOptions(extractOptions(pm.GetOptions()), extensions.Transform(pm.OptionExtensions)),
+ 	}
