@@ -28,7 +28,7 @@ var log = logging.NewLogger()
 // Opts is the Client config containing the host, port, user and password.
 type Opts struct {
 	Host     string `long:"host"     env:"HOST"     default:"database" description:"Postgres host"`
-	Port     int    `long:"port"     env:"PORT"     default:"3000"     description:"Postgres port"`
+	Port     int    `long:"port"     env:"PORT"     default:"5432"     description:"Postgres port"`
 	User     string `long:"user"     env:"USER"     default:"postgres" description:"Postgres username"`
 	Password string `long:"password" env:"PASSWORD" default:"postgres" description:"Postgres password"`
 	Database string `long:"database" env:"DATABASE" default:"postgres" description:"Postgres database"`

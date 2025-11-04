@@ -140,6 +140,7 @@ def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, lab
         tools['cobra_plugin'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
 
     if additional_context and "go_grpc_gateway" in additional_context:
+        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
         plugin_flags += [
             # Grpc gateway plugin.
             '--grpc-gateway_out=$OUT_DIR',
@@ -189,44 +190,18 @@ def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=N
       protoc_flags (list): Additional flags to pass to protoc.
       additional_context (dict): Additional context.
     """
-    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
-    tools = {'go': [CONFIG.CORE.PROTOC_GEN_GO], "grpc_go": [CONFIG.CORE.PROTOC_GEN_GRPC_GO]}
-    plugin_flags = [
-        '--plugin=protoc-gen-go="`which $TOOLS_GO`"',
-        '--go_out="$OUT_DIR"',
-        '--go_opt=paths=source_relative',
-        '--plugin=protoc-gen-go-grpc="$(which $TOOLS_GRPC_GO)"',
-        '--go-grpc_out="$OUT_DIR"',
-        '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
-        '--grpc-gateway_out=$OUT_DIR',
-        '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_PLUGIN`"',
-        f'--grpc-gateway_opt=paths=source_relative',
-    ]
-    tools['grpc_gateway_plugin'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
-
-    protoc = protoc_rule(
+    if additional_context is None:
+        additional_context = {"go_grpc_gateway": "_"}
+    return go_grpc_library(
         name = name,
         srcs = srcs,
-        language = "go",
-        tools = tools,
-        protoc_flags = protoc_flags,
-        plugin_flags = plugin_flags,
-        labels = labels + _go_mapping_labels(name, srcs, root_dir),
-        test_only = test_only,
-        root_dir = root_dir,
         deps = deps,
         visibility = visibility,
-        pre_build = _go_path_mapping(),
-    )
-
-    return go_library(
-        name = f"_{name}#go",
-        srcs = [protoc],
-        deps = deps,
-        test_only = test_only,
         labels = labels,
-        visibility = visibility,
-        import_path = _import_path(name, root_dir, additional_context),
+        test_only=test_only,
+        root_dir=root_dir,
+        protoc_flags=protoc_flags,
+        additional_context = additional_context,
     )
 
 def go_grpc_gateway_language():
