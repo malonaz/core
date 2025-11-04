@@ -22,21 +22,32 @@ func WithAPIKey(ctx context.Context, apiKey string) context.Context {
 	return metadata.NewOutgoingContext(ctx, md)
 }
 
-type ExternalApiKeyAuthenticationInterceptorOpts struct {
+type ExternalApiKeysOpts struct {
 	APIKeys []string `long:"api-keys" env:"API_KEYS" env-delim:"," description:"List of service_account_id:api_key pairs" required:"true"`
-	Config  string   `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
-type ExternalApiKeyAuthenticationInterceptor struct {
-	apiKeyToServiceAccountID map[string]string
-	serviceAccountIDSet      map[string]struct{}
+func (o *ExternalApiKeysOpts) ParseAPIKey(serviceAccountID string) (string, error) {
+	apiKeyToServiceAccountID, err := o.parse()
+	if err != nil {
+		return "", err
+	}
+	var targetAPIKey string
+	for apiKey, serviceAccountID := range apiKeyToServiceAccountID {
+		if serviceAccountID == serviceAccountID {
+			targetAPIKey = apiKey
+			break
+		}
+	}
+	if targetAPIKey == "" {
+		return "", fmt.Errorf("no api key found")
+	}
+	return targetAPIKey, nil
 }
 
-func NewExternalApiKeyAuthenticationInterceptor(opts *ExternalApiKeyAuthenticationInterceptorOpts) (*ExternalApiKeyAuthenticationInterceptor, error) {
-	// Parse API keys
+func (o *ExternalApiKeysOpts) parse() (map[string]string, error) {
 	apiKeyToServiceAccountID := make(map[string]string)
 
-	for _, keyPair := range opts.APIKeys {
+	for _, keyPair := range o.APIKeys {
 		parts := strings.SplitN(keyPair, ":", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid api key format: %s (expected service_account_id:api_key)", keyPair)
@@ -55,9 +66,27 @@ func NewExternalApiKeyAuthenticationInterceptor(opts *ExternalApiKeyAuthenticati
 
 		apiKeyToServiceAccountID[apiKey] = serviceAccountID
 	}
-
 	if len(apiKeyToServiceAccountID) == 0 {
 		return nil, fmt.Errorf("no valid api keys configured")
+	}
+	return apiKeyToServiceAccountID, nil
+}
+
+type ExternalApiKeyAuthenticationInterceptorOpts struct {
+	*ExternalApiKeysOpts
+	Config  string   `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
+}
+
+type ExternalApiKeyAuthenticationInterceptor struct {
+	apiKeyToServiceAccountID map[string]string
+	serviceAccountIDSet      map[string]struct{}
+}
+
+func NewExternalApiKeyAuthenticationInterceptor(opts *ExternalApiKeyAuthenticationInterceptorOpts) (*ExternalApiKeyAuthenticationInterceptor, error) {
+	// Parse API keys
+	apiKeyToServiceAccountID, err := opts.parse()
+	if err != nil {
+		return nil, err
 	}
 
 	configuration, err := parseAuthenticationConfig(opts.Config)
