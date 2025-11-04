@@ -10,7 +10,7 @@ def go_main_manifest(
         schema:str="///core//build_defs/codegen/go_service/schemas:main.go.schema",
         ignore_schema:bool=False,
 ):
-    return _go_manifest(
+    return go_manifest(
         name=name,
         manifest=manifest,
         deps=deps,
@@ -28,7 +28,7 @@ def go_service_manifest(
         schema:str="///core//build_defs/codegen/go_service/schemas:service.go.schema",
         ignore_schema:bool=False,
 ):
-    return _go_manifest(
+    return go_manifest(
         name=name,
         manifest=manifest,
         deps=deps,
@@ -37,12 +37,12 @@ def go_service_manifest(
         ignore_schema=ignore_schema,
     )
 
-def _go_manifest(
+def go_manifest(
         name:str,
         manifest:str="manifest.yaml",
         deps:list=[],
         visibility:list=[],
-        schema:str,
+        schema:str=None,
         ignore_schema:bool=False,
 ):
     if len(deps) == 0:
@@ -111,7 +111,6 @@ def go_service_src(
         visibility = visibility,
     )
 
-
 def go_main_src(
         name:str,
         manifest:str,
@@ -133,6 +132,23 @@ def go_main_src(
         format = "yaml",
         visibility = visibility,
     )
+
+def go_src(
+        name:str,
+        manifest:str,
+        templates:list,
+        visibility:list=[],
+):
+    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+
+    return go_template(
+        name = name,
+        templates = templates,
+        data = manifest,
+        format = "yaml",
+        visibility = visibility,
+    )
+
 
 def go_k8s(
         manifest:str,

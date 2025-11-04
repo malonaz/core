@@ -6,7 +6,7 @@ def postgres_migrations(
         dirs:list,
 ):
     # Manifest.
-    manifest = go_main_manifest(
+    manifest = go_manifest(
         name = "manifest",
         ignore_schema = True,
         visibility = ["//chat/chat_service/..."],
@@ -29,7 +29,7 @@ sed 's/^    /  /' >> $OUT
         migration_yaml_files += [migration_yaml_file]
 
     # Test
-    go_main_src(
+    go_src(
         name = "migration_hash_test.go",
         manifest = ":manifest",
         templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator_test.go.tmpl"]
@@ -48,7 +48,7 @@ sed 's/^    /  /' >> $OUT
     )
 
     # Initializer.
-    go_main_src(
+    go_src(
         name = "initializer.go",
         manifest = ":manifest",
         templates = ["///core//build_defs/codegen/postgres/templates:postgres_initializer.go.tmpl"]
@@ -69,7 +69,7 @@ sed 's/^    /  /' >> $OUT
     )
 
     # Migrator.
-    go_main_src(
+    go_src(
         name = "migrator.go",
         manifest = ":manifest",
         templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator.go.tmpl"]

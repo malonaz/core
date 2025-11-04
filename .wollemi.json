@@ -6,6 +6,7 @@
             "go_copy": "{{ name }}",
             "go_main_src": "{{ name }}",
             "go_service_src": "{{ name }}",
+            "go_src": "{{ name }}",
             "go_template": "{{ name }}"
         }
     },
