@@ -14,53 +14,53 @@ enum MyEnum {
 
 message ListResourcesRequest {
   option (malonaz.core.codegen.aip.v1.list) = {
-    default_page_size: 1000,
+    default_page_size: 1000
     order_by: [
       "id",
       "create_timestamp",
       "update_timestamp"
-    ],
+    ]
     aliases: [
       {
-        key: "replaceable_field",
+        key: "replaceable_field"
         value: "replaced_field"
       }
-    ],
+    ]
     filters: [
       {
-        field: "id",
-        primitive: STRING,
+        field: "id"
+        primitive: STRING
       },
       {
-        field: "replaceable_field",
-        primitive: STRING,
+        field: "replaceable_field"
+        primitive: STRING
       },
       {
-        field: "json_field",
-        primitive: STRING,
+        field: "json_field"
+        primitive: STRING
       },
       {
-        field: "json_field@key",
-        primitive: STRING,
+        field: "json_field@key"
+        primitive: STRING
       },
       {
-        field: "json_field@key@key2",
-        primitive: STRING,
+        field: "json_field@key@key2"
+        primitive: STRING
       },
       {
-        field: "create_timestamp",
-        primitive: INT64,
+        field: "create_timestamp"
+        primitive: INT64
       },
       {
-        field: "update_timestamp",
-        primitive: INT64,
+        field: "update_timestamp"
+        primitive: INT64
       },
       {
-        field: "deleted",
-        primitive: BOOL,
+        field: "deleted"
+        primitive: BOOL
       },
       {
-        field: "my_enum",
+        field: "my_enum"
         enum: "aip.mock.v1.MyEnum"
       }
     ]
@@ -91,30 +91,30 @@ message UpdateResourceRequest {
   option (malonaz.core.codegen.aip.v1.update) = {
     path_mappings: [
       {
-        from: "field1",
-        to: ["field_one"],
+        from: "field1"
+        to: ["field_one"]
       },
       {
-        from: "nested.field2",
-        to: ["nested_field_two"],
+        from: "nested.field2"
+        to: ["nested_field_two"]
       },
       {
-        from: "nested2",
-        to: ["nested2"],
+        from: "nested2"
+        to: ["nested2"]
       },
       {
-        from: "nested4.*",
-        to: ["nested4_jsonb"],
+        from: "nested4.*"
+        to: ["nested4_jsonb"]
       },
       {
-        from: "nested3",
+        from: "nested3"
         to: [
           "field1",
           "field1",
           "field2"
-        ],
+        ]
       }
-    ],
+    ]
     authorized_paths: [
       {path: "field1"},
       {path: "nested.field2"},
@@ -132,7 +132,7 @@ message UpdateResourceRequest {
 
 message UpdateResource2Request {
   option (malonaz.core.codegen.aip.v1.update) = {
-    default_paths: ["field1"],
+    default_paths: ["field1"]
     authorized_paths: [
       {path: "nested"},
       {path: "nested2"}]

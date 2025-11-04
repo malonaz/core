@@ -30,7 +30,7 @@ go_module(
     ],
 )
 
-BUF_VERSION = "v1.26.1"
+BUF_VERSION = "v1.59.0"
 
 genrule(
     name = "buf",
@@ -58,7 +58,7 @@ _lint_cmds = [
     echo_message("Running 'gofmt'"),
     f"git ls-files | grep '\.go$'| xargs $(out_exe //tools/go:toolchain|gofmt) -l -s -w",
     echo_message("Running 'buf format'"),
-    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/",
+    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache",
     echo_message("Removing third_party/go/dummy/BUILD.plz"),
     "rm -f $(git rev-parse --show-toplevel)/third_party/go/dummy/BUILD.plz",
 ]
