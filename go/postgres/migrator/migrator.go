@@ -62,8 +62,8 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 	}
 
 	// Grant user to superuser.
-	log.Infof("Granting user '%s' to superuser '%s'", database, m.client.Opts.User)
-	if _, err = m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, database, m.client.Opts.User)); err != nil {
+	log.Infof("Granting user '%s' to superuser '%s'", user, m.client.Opts.User)
+	if _, err = m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, user, m.client.Opts.User)); err != nil {
 		return fmt.Errorf("granting user to superuser: %w", err)
 	}
 
