@@ -68,6 +68,10 @@ DefaultValue = //tools/proto:protoc-gen-go-grpc-gateway-dep
 ConfigKey = ProtocGenCobraGo
 DefaultValue = //tools/proto:protoc-gen-cobra
 
+[PluginConfig "protoc_gen_cobra_go_dep"]
+ConfigKey = ProtocGenCobraGoDep
+DefaultValue = //tools/proto:protoc-gen-go-cobra-dep
+
 [PluginConfig "protoc_gen_templates_go"]
 ConfigKey = ProtocGenTemplatesGo
 DefaultValue = //tools/protoc-templates

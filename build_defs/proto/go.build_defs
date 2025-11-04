@@ -5,6 +5,9 @@ subinclude(
     "///go//build_defs:go",
 )
 
+GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
+GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
+
 def _go_path_mapping():
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
     def _map_go_paths(rule_name):
@@ -130,7 +133,8 @@ def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, lab
         '--go-grpc_out="$OUT_DIR"',
         '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
     ]
-    if additional_context and "go_cobra_cli" in additional_context:
+    if additional_context and GENERATE_GO_COBRA_CLI in additional_context:
+        deps += [CONFIG.CORE.PROTOC_GEN_COBRA_GO_DEP]
         plugin_flags += [
             # Cobra plugin.
             '--cobra_out=$OUT_DIR',
@@ -139,7 +143,7 @@ def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, lab
         ]
         tools['cobra_plugin'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
 
-    if additional_context and "go_grpc_gateway" in additional_context:
+    if additional_context and GENERATE_GO_GRPC_GATEWAY in additional_context:
         deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
         plugin_flags += [
             # Grpc gateway plugin.
@@ -191,7 +195,7 @@ def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=N
       additional_context (dict): Additional context.
     """
     if additional_context is None:
-        additional_context = {"go_grpc_gateway": "_"}
+        additional_context = {GENERATE_GO_GRPC_GATEWAY: True}
     return go_grpc_library(
         name = name,
         srcs = srcs,
