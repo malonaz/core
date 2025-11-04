@@ -4,12 +4,13 @@ subinclude("///go//build_defs:go")
 def postgres_migrations(
         name:str,
         dirs:list,
+        visibility:list=[],
 ):
     # Manifest.
     manifest = go_manifest(
         name = "manifest",
         ignore_schema = True,
-        visibility = ["//chat/chat_service/..."],
+        visibility = visibility,
     )
 
     # Create migrations filegroup.
@@ -37,10 +38,7 @@ sed 's/^    /  /' >> $OUT
     go_test(
         name = "migration_hash_test",
         srcs = [":migration_hash_test.go"],
-        resources = [
-            "chat",
-            "user",
-        ] + migration_yaml_files,
+        resources = dirs + migration_yaml_files,
         deps = [
             "//third_party/go:github.com__malonaz__core__go__postgres__migrator__migrations",
             "//third_party/go:github.com__stretchr__testify__require",
@@ -56,11 +54,8 @@ sed 's/^    /  /' >> $OUT
     go_binary(
         name = "initializer",
         srcs = [":initializer.go"],
-        resources = [
-            "chat",
-            "user",
-        ] + migration_yaml_files,
-        visibility = ["//chat/chat_service/..."],
+        resources = dirs + migration_yaml_files,
+        visibility = visibility,
         deps = [
             "//third_party/go:github.com__malonaz__core__go__flags",
             "//third_party/go:github.com__malonaz__core__go__postgres",
@@ -77,11 +72,8 @@ sed 's/^    /  /' >> $OUT
     go_binary(
         name = "migrator",
         srcs = [":migrator.go"],
-        resources = [
-            "chat",
-            "user",
-        ] + migration_yaml_files,
-        visibility = ["//chat/chat_service/..."],
+        resources = dirs + migration_yaml_files,
+        visibility = visibility,
         deps = [
             "//third_party/go:github.com__malonaz__core__go__flags",
             "//third_party/go:github.com__malonaz__core__go__postgres",
