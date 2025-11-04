@@ -74,7 +74,7 @@ func (o *ExternalApiKeysOpts) parse() (map[string]string, error) {
 
 type ExternalApiKeyAuthenticationInterceptorOpts struct {
 	*ExternalApiKeysOpts
-	Config  string   `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
+	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
 type ExternalApiKeyAuthenticationInterceptor struct {

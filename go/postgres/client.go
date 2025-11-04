@@ -33,6 +33,7 @@ type Opts struct {
 	Password string `long:"password" env:"PASSWORD" default:"postgres" description:"Postgres password"`
 	Database string `long:"database" env:"DATABASE" default:"postgres" description:"Postgres database"`
 	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"       description:"Max number of connections"`
+	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"  description:"Postgres SSL mode"`
 }
 
 // Client is a wrapper around sqlx db to avoid importing it in core packages.
@@ -44,10 +45,13 @@ type Client struct {
 // NewClient instantiates and returns a new Postgres Client. Returns an error if it fails to ping server.
 func NewClient(opts *Opts) (*Client, error) {
 	psqlInfo := fmt.Sprintf(
-		"host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
-		opts.Host, opts.Port, opts.User, opts.Database, opts.Password,
+		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+		opts.Host, opts.Port, opts.User, opts.Database, opts.Password, opts.SSLMode,
 	)
-	log.Infof("Connecting to postgres server %s@%s on [%s:%d]", opts.User, opts.Database, opts.Host, opts.Port)
+	log.Infof(
+		"Connecting to postgres server %s@%s on [%s:%d] using sslmode[%s]",
+		opts.User, opts.Database, opts.Host, opts.Port, opts.SSLMode,
+	)
 	config, err := pgxpool.ParseConfig(psqlInfo)
 	if err != nil {
 		return nil, fmt.Errorf("parsing configuration: %w", err)
