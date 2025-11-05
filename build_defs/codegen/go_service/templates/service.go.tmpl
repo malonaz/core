@@ -1,4 +1,4 @@
-package {{ .implementation | base}}
+package {{ .implementation | base | splitList ":" | last }}
 
 var log = {{ goImport "github.com/malonaz/core/go/logging" }}.NewLogger()
 

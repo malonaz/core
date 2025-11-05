@@ -68,11 +68,11 @@ def go_manifest(
             srcs = [manifest],
             deps = deps,
             cmd = cmd,
-            out = "processed_manifest.yaml",
+            out = f"{name}_processed_manifest",
         )
 
         templated_manifest = text_template(
-            name = "manifest_templated.yaml",
+            name = f"{name}_manifest_templated.yaml",
             src = f":{name}_processed_manifest",
         )
 

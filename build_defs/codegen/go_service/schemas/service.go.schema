@@ -9,8 +9,7 @@
             "pattern": "^[a-zA-Z0-9-]+$"
         },
         "implementation": {
-            "type": "string",
-            "pattern": "^//[a-zA-Z0-9/_-]+$"
+            "type": "string"
         },
         "includeRuntime": {
             "type": "boolean"
@@ -31,8 +30,7 @@
                         "pattern": "^[a-z0-9_]+$"
                     },
                     "implementation": {
-                        "type": "string",
-                        "pattern": "^//[a-zA-Z0-9/_-]+$"
+                        "type": "string"
                     },
                     "proto": {
                         "type": "string"
