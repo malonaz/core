@@ -4,46 +4,7 @@ subinclude(
     "///proto//build_defs/sdk",
 )
 
-def _go_path_mapping():
-    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
-    def _map_go_paths(rule_name):
-        labels = get_labels(rule_name, 'proto:go-map:')
-        mapping = ''
-        mapping_validate = ''
-        if len(labels) > 0:
-            mapping = 'M' + ',M'.join(labels) + ':'
-            mapping_validate = ',M' + ',M'.join(labels)
-
-        cmd = get_command(rule_name)
-        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
-        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
-        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
-        new_cmd = new_cmd.replace('--cobra_out=', f'--cobra_out={mapping}')
-        new_cmd = new_cmd.replace('--templates_out=', f'--templates_out={mapping}')
-        set_command(rule_name, new_cmd)
-    return _map_go_paths
-
-
-def _go_mapping_labels(name:str, srcs:list, root_dir:str):
-    base_path = get_base_path()
-    diff_pkg = basename(base_path) != name
-    if CONFIG.GO.IMPORT_PATH:
-        base_path = join_path(CONFIG.GO.IMPORT_PATH, base_path)
-    return [f'proto:go-map: {base_path}/{src}={base_path}/{name}' for src in srcs
-               if not looks_like_build_label(src)]
-
-def _import_path(name, root_dir, additional_context=None):
-    pkg = package_name()
-    if basename(pkg) != name:
-        pkg += "/" + name
-    if root_dir:
-        pkg = pkg.removeprefix(root_dir + "/")
-    if additional_context and "go_import_path" in additional_context:
-        return additional_context["go_import_path"]
-    if CONFIG.GO.IMPORT_PATH:
-        return join_path(CONFIG.GO.IMPORT_PATH, pkg)
-    return pkg
-
+USE_CUSTOM_DOC_TEMPLATE = "use_customer_doc_template"
 
 def doc_proto_library(
         name:str,
@@ -70,16 +31,17 @@ def doc_proto_library(
       protoc_flags (list): Additional flags to pass to protoc.
       additional_context (dict): Additional context.
     """
-    html_template = "//build_defs/proto:protoc-gen-doc-template.html"
-    if additional_context and "doc_template_path" in additional_context:
-        html_template = additional_context["doc_template_path"]
+    html_template = "///core//build_defs/proto:protoc-gen-doc-template.html"
+    if additional_context and USE_CUSTOM_DOC_TEMPLATE in additional_context:
+        html_template = additional_context[USE_CUSTOM_DOC_TEMPLATE]
 
     tools = {"protoc_gen_doc": [CONFIG.CORE.PROTOC_GEN_DOC]}
     plugin_flags = [
         '--doc_out="$OUT_DIR"',
         '--plugin=protoc-gen-doc="$(which $TOOLS_PROTOC_GEN_DOC)"',
-        f'--doc_opt=./$(location {html_template}),{name}.html,source_relative',
+        f'--doc_opt=$TOOLS_TEMPLATE,{name}.html,source_relative',
     ]
+    tools["template"]= html_template
 
     protoc = protoc_rule(
         name = name,
@@ -91,7 +53,7 @@ def doc_proto_library(
         labels = labels,
         test_only = test_only,
         root_dir = root_dir,
-        deps = deps + [html_template],
+        deps = deps,
         visibility = visibility,
     )
 
@@ -100,7 +62,7 @@ def doc_proto_library(
         srcs = [protoc],
         test_only = test_only,
         labels = labels,
-        provides = {"html": protoc},
+        exported_deps = deps,
         visibility = visibility,
     )
 
@@ -109,5 +71,4 @@ def doc_proto_language():
     return proto_language(
         language = "doc",
         build_def = doc_proto_library,
-        additional_provides={"doc_src": "doc_srcs", "modinfo": "doc_modinfo"},
     )

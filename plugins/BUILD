@@ -23,5 +23,5 @@ plugin_repo(
 plugin_repo(
     name = "core",
     owner = "malonaz",
-    revision = "32238dd96bf6ffbc4165d59297dfcbd4717dcfc9",
+    revision = "f0c03d77a0bc35a7e7b988e76029f901181b3e56",
 )
