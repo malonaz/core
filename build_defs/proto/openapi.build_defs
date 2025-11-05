@@ -1,0 +1,101 @@
+"""Build rules for compiling protocol buffers & gRPC service stubs.
+"""
+subinclude(
+    "///proto//build_defs/sdk",
+)
+
+OPENAPI_OPTS = "openapi_opts"
+OPENAPI_INCLUDE_FILES = "openapi_include_files"
+
+def _path_mapping(plugin_out_keys:list):
+    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
+    def _map_go_paths(rule_name):
+        labels = get_labels(rule_name, 'proto:package:')
+        mapping = ''
+        if len(labels) > 0:
+            mapping = 'M' + ',M'.join(labels) + ':'
+
+        new_cmd = get_command(rule_name)
+        for plugin_out_key in plugin_out_keys:
+            new_cmd = new_cmd.replace(f'--{plugin_out_key}=', f'--{plugin_out_key}={mapping}')
+        set_command(rule_name, new_cmd)
+    return _map_go_paths
+
+def openapi_grpc_gateway_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    """Compile a .proto file to generate code for golang.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
+    """
+    # See link below for all available options.
+    # https://github.com/grpc-ecosystem/grpc-gateway/blob/main/protoc-gen-openapiv2/main.go
+    opts = '--openapiv2_opt=' + ','.join([
+        'use_go_templates=true',
+        'omit_enum_default_value=true',
+    ])
+    templates = []
+    if additional_context:
+        if OPENAPI_OPTS in additional_context:
+            opts += "," + additional_context[OPENAPI_OPTS]
+        if OPENAPI_INCLUDE_FILES in additional_context:
+            templates = additional_context[OPENAPI_INCLUDE_FILES]
+
+    tools = {"protoc_gen_openapi": [CONFIG.CORE.PROTOC_GEN_OPENAPI]}
+    plugin_flags = [
+        '--plugin=protoc-gen-openapiv2="$(which $TOOLS_PROTOC_GEN_OPENAPI)"',
+        '--openapiv2_out="$OUT_DIR"',
+        opts,
+    ]
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "openapi",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+        pre_build = _path_mapping(["openapiv2_out"]),
+    )
+
+    return filegroup(
+        name = f"_{name}#openapi",
+        srcs = [protoc],
+        test_only = test_only,
+        needs_transitive_deps=True,
+        provides = {"openapi": f":_{name}#openapi"},
+        requires = ["openapi", "go"],
+        labels = labels,
+        visibility = visibility,
+    )
+
+
+
+def openapi_grpc_gateway_language():
+    return proto_language(
+        language = "openai",
+        build_def = openapi_grpc_gateway_library,
+    )

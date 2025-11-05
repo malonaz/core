@@ -24,6 +24,15 @@ proto_build_defs(
     visibility = ["PUBLIC"],
 )
 
+proto_build_defs(
+    name = "openapi",
+    srcs = ["openapi.build_defs"],
+    proto_languages = {
+        "grpc_gateway_language": ["openapi_grpc_gateway_language"],
+    },
+    visibility = ["PUBLIC"],
+)
+
 filegroup(
     name = "utils",
     srcs = ["utils.build_defs"],

@@ -33,6 +33,7 @@ CgoEnabled = true
 Target = //plugins:proto
 LanguageDef = //build_defs/proto:go
 LanguageDef = //build_defs/proto:doc
+LanguageDef = //build_defs/proto:openapi
 
 [Plugin "core"]
 Target = //plugins:core
@@ -80,6 +81,10 @@ DefaultValue = //tools/protoc-templates
 [PluginConfig "protoc_gen_doc"]
 ConfigKey = ProtocGenDoc
 DefaultValue = //tools/proto:protoc-gen-doc
+
+[PluginConfig "protoc_gen_openapi"]
+ConfigKey = ProtocGenOpenapi
+DefaultValue = //tools/proto:protoc-gen-openapiv2
 
 [PluginConfig "templates_go"]
 ConfigKey = TemplatesGo

@@ -5,30 +5,26 @@ subinclude(
     "///go//build_defs:go",
 )
 
+GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
 
-def _go_path_mapping():
+def go_path_mapping(plugin_out_keys:list):
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
     def _map_go_paths(rule_name):
         labels = get_labels(rule_name, 'proto:go-map:')
         mapping = ''
-        mapping_validate = ''
         if len(labels) > 0:
             mapping = 'M' + ',M'.join(labels) + ':'
-            mapping_validate = ',M' + ',M'.join(labels)
 
-        cmd = get_command(rule_name)
-        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
-        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
-        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
-        new_cmd = new_cmd.replace('--cobra_out=', f'--cobra_out={mapping}')
-        new_cmd = new_cmd.replace('--templates_out=', f'--templates_out={mapping}')
+        new_cmd = get_command(rule_name)
+        for plugin_out_key in plugin_out_keys:
+            new_cmd = new_cmd.replace(f'--{plugin_out_key}=', f'--{plugin_out_key}={mapping}')
         set_command(rule_name, new_cmd)
     return _map_go_paths
 
 
-def _go_mapping_labels(name:str, srcs:list, root_dir:str):
+def go_mapping_labels(name:str, srcs:list, root_dir:str):
     base_path = get_base_path()
     diff_pkg = basename(base_path) != name
     if CONFIG.GO.IMPORT_PATH:
@@ -74,13 +70,47 @@ def go_proto_library(
       protoc_flags (list): Additional flags to pass to protoc.
       additional_context (dict): Additional context.
     """
+    tools= {"protoc_gen_go": [CONFIG.CORE.PROTOC_GEN_GO]}
     deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP]
-    tools= {"go": [CONFIG.CORE.PROTOC_GEN_GO]}
+    plugin_out_keys = ['go_out']
     plugin_flags = [
+        '--plugin=protoc-gen-go="$(which $TOOLS_PROTOC_GEN_GO)"',
         '--go_out="$OUT_DIR"',
-        '--plugin=protoc-gen-go="$(which $TOOLS_GO)"',
         '--go_opt=paths=source_relative',
     ]
+
+    # PROTOC-GEN-GRPC
+    if additional_context and GENERATE_GO_GRPC in additional_context:
+        tools["protoc_gen_grpc_go"] = CONFIG.CORE.PROTOC_GEN_GRPC_GO
+        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
+        plugin_out_keys += ['go-grpc_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-go-grpc="$(which $TOOLS_PROTOC_GEN_GRPC_GO)"',
+            '--go-grpc_out="$OUT_DIR"',
+            '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
+        ]
+
+    # PROTOC-GEN-COBRA
+    if additional_context and GENERATE_GO_COBRA_CLI in additional_context:
+        tools['protoc_gen_cobra_go'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
+        deps += [CONFIG.CORE.PROTOC_GEN_COBRA_GO_DEP]
+        plugin_out_keys += ['cobra_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-cobra="`which $TOOLS_PROTOC_GEN_COBRA_GO`"',
+            '--cobra_out=$OUT_DIR',
+            '--cobra_opt=paths=source_relative',
+        ]
+
+    # PROTOC-GEN-GRPC-GATEWAY
+    if additional_context and GENERATE_GO_GRPC_GATEWAY in additional_context:
+        tools['protoc_gen_grpc_gateway_go'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
+        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
+        plugin_out_keys += ['grpc-gateway_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_PROTOC_GEN_GRPC_GATEWAY_GO`"',
+            '--grpc-gateway_out=$OUT_DIR',
+            f'--grpc-gateway_opt=paths=source_relative',
+        ]
 
     protoc = protoc_rule(
         name = name,
@@ -89,12 +119,12 @@ def go_proto_library(
         tools = tools,
         protoc_flags = protoc_flags,
         plugin_flags = plugin_flags,
-        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        labels = labels + go_mapping_labels(name, srcs, root_dir),
         test_only = test_only,
         root_dir = root_dir,
         deps = deps,
         visibility = visibility,
-        pre_build = _go_path_mapping(),
+        pre_build = go_path_mapping(plugin_out_keys),
     )
 
     return go_library(
@@ -123,59 +153,19 @@ def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, lab
       protoc_flags (list): Additional flags to pass to protoc.
       additional_context (dict): Additional context.
     """
-    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP, CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
-    tools = {'go': [CONFIG.CORE.PROTOC_GEN_GO], "grpc_go": [CONFIG.CORE.PROTOC_GEN_GRPC_GO]}
-    plugin_flags = [
-        '--plugin=protoc-gen-go="`which $TOOLS_GO`"',
-        '--go_out="$OUT_DIR"',
-        '--go_opt=paths=source_relative',
-        '--plugin=protoc-gen-go-grpc="$(which $TOOLS_GRPC_GO)"',
-        '--go-grpc_out="$OUT_DIR"',
-        '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
-    ]
-    if additional_context and GENERATE_GO_COBRA_CLI in additional_context:
-        deps += [CONFIG.CORE.PROTOC_GEN_COBRA_GO_DEP]
-        plugin_flags += [
-            # Cobra plugin.
-            '--cobra_out=$OUT_DIR',
-            '--plugin=protoc-gen-cobra="`which $TOOLS_COBRA_PLUGIN`"',
-            '--cobra_opt=paths=source_relative',
-        ]
-        tools['cobra_plugin'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
-
-    if additional_context and GENERATE_GO_GRPC_GATEWAY in additional_context:
-        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
-        plugin_flags += [
-            # Grpc gateway plugin.
-            '--grpc-gateway_out=$OUT_DIR',
-            '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_GRPC_GATEWAY_PLUGIN`"',
-            f'--grpc-gateway_opt=paths=source_relative',
-        ]
-        tools['grpc_gateway_plugin'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
-
-    protoc = protoc_rule(
+    if additional_context is None:
+        additional_context = {}
+    additional_context[GENERATE_GO_GRPC] = True
+    return go_proto_library(
         name = name,
         srcs = srcs,
-        language = "go",
-        tools = tools,
-        protoc_flags = protoc_flags,
-        plugin_flags = plugin_flags,
-        labels = labels + _go_mapping_labels(name, srcs, root_dir),
-        test_only = test_only,
-        root_dir = root_dir,
         deps = deps,
         visibility = visibility,
-        pre_build = _go_path_mapping(),
-    )
-
-    return go_library(
-        name = f"_{name}#go",
-        srcs = [protoc],
-        deps = deps,
-        test_only = test_only,
         labels = labels,
-        visibility = visibility,
-        import_path = _import_path(name, root_dir, additional_context),
+        test_only=test_only,
+        root_dir=root_dir,
+        protoc_flags=protoc_flags,
+        additional_context = additional_context,
     )
 
 def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
@@ -195,7 +185,8 @@ def go_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=N
       additional_context (dict): Additional context.
     """
     if additional_context is None:
-        additional_context = {GENERATE_GO_GRPC_GATEWAY: True}
+        additional_context = {}
+    additional_context[GENERATE_GO_GRPC_GATEWAY] = True
     return go_grpc_library(
         name = name,
         srcs = srcs,

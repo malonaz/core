@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package aip.mock.v1;
+package test.aip.v1;
 
 import "google/protobuf/field_mask.proto";
 import "proto/codegen/aip.proto";
 
-option go_package = "github.com/malonaz/core/genproto/test/aipmock";
+option go_package = "github.com/malonaz/core/genproto/test/aip";
 
 enum MyEnum {
   MY_ENUM_UNSPECIFIED = 0;
@@ -61,7 +61,7 @@ message ListResourcesRequest {
       },
       {
         field: "my_enum"
-        enum: "aip.mock.v1.MyEnum"
+        enum: "test.aip.v1.MyEnum"
       }
     ]
   };

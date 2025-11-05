@@ -19,6 +19,6 @@ proto_library(
     name = "aip",
     srcs = ["aip.proto"],
     deps = [
-        "//third_party/proto/googleapis:v1alpha1",
+        "//third_party/proto:googleapis_v1alpha1",
     ],
 )

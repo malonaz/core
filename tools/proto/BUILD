@@ -75,6 +75,29 @@ go_module(
     deps = ["//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-grpc-gateway"],
 )
 
+# Protoc go grpc plugin - referenced in .plzconfig.
+go_module(
+    name = "protoc-gen-openapiv2",
+    binary = True,
+    download = "//third_party/go:_github.com__grpc-ecosystem__grpc-gateway__v2#download",
+    install = ["protoc-gen-openapiv2"],
+    module = "github.com/grpc-ecosystem/grpc-gateway/v2",
+    deps = [
+        "//third_party/go:github.com__golang__glog",
+        "//third_party/go:github.com__golang__protobuf__descriptor",
+        "//third_party/go:github.com__golang__protobuf__ptypes__any",
+        "//third_party/go:golang.org__x__text__cases",
+        "//third_party/go:golang.org__x__text__language",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__visibility",
+        "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:gopkg.in__yaml.v3",
+    ],
+)
+
 # Gathers the proto go validate depdencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-go-grpc-gateway-dep",
@@ -97,7 +120,6 @@ go_module(
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
-        "//third_party/go:google.golang.org__protobuf__types__pluginpb",
     ],
 )
 

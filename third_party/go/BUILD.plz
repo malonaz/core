@@ -653,6 +653,21 @@ go_mod_download(
 )
 
 go_module(
+    name = "github.com__golang__protobuf__descriptor",
+    download = ":_github.com__golang__protobuf#download",
+    install = ["descriptor"],
+    module = "github.com/golang/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__protoc-gen-go__descriptor",
+        ":google.golang.org__protobuf__reflect__protodesc",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
     name = "github.com__golang__protobuf__proto",
     download = ":_github.com__golang__protobuf#download",
     install = ["proto"],
@@ -3592,6 +3607,19 @@ go_module(
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
         ":google.golang.org__protobuf__types__known__anypb",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__api__visibility",
+    download = ":_google.golang.org__genproto__googleapis__api#download",
+    install = ["visibility"],
+    module = "google.golang.org/genproto/googleapis/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__descriptorpb",
     ],
 )
 

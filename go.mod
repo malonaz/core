@@ -13,6 +13,7 @@ require (
 	github.com/NathanBaulch/protoc-gen-cobra v1.2.1
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-jsonnet v0.21.0
 	github.com/google/uuid v1.6.0
@@ -69,7 +70,6 @@ require (
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.2.5 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect

@@ -4,7 +4,7 @@
 // 	protoc        v6.30.0
 // source: proto/test/aip.proto
 
-package aipmock
+package aip
 
 import (
 	_ "github.com/malonaz/core/genproto/codegen/aip"
@@ -144,7 +144,7 @@ type Resource struct {
 	Nested2       *NestedResource        `protobuf:"bytes,3,opt,name=nested2,proto3" json:"nested2,omitempty"`
 	Nested3       *NestedResource        `protobuf:"bytes,4,opt,name=nested3,proto3" json:"nested3,omitempty"`
 	Nested4       *NestedResource        `protobuf:"bytes,5,opt,name=nested4,proto3" json:"nested4,omitempty"`
-	MyEnum        MyEnum                 `protobuf:"varint,6,opt,name=my_enum,json=myEnum,proto3,enum=aip.mock.v1.MyEnum" json:"my_enum,omitempty"`
+	MyEnum        MyEnum                 `protobuf:"varint,6,opt,name=my_enum,json=myEnum,proto3,enum=test.aip.v1.MyEnum" json:"my_enum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -391,7 +391,7 @@ var File_proto_test_aip_proto protoreflect.FileDescriptor
 
 const file_proto_test_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/test/aip.proto\x12\vaip.mock.v1\x1a google/protobuf/field_mask.proto\x1a\x17proto/codegen/aip.proto\"\x91\x03\n" +
+	"\x14proto/test/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a\x17proto/codegen/aip.proto\"\x91\x03\n" +
 	"\x14ListResourcesRequest\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -407,21 +407,21 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\x10create_timestamp\x10\x02\x1a\x14\n" +
 	"\x10update_timestamp\x10\x02\x1a\v\n" +
 	"\adeleted\x10\x01\x1a\x1d\n" +
-	"\amy_enum\"\x12aip.mock.v1.MyEnum\"#\n" +
+	"\amy_enum\"\x12test.aip.v1.MyEnum\"#\n" +
 	"\x11replaceable_field\x12\x0ereplaced_field\"\xaa\x02\n" +
 	"\bResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\tR\x06field1\x123\n" +
-	"\x06nested\x18\x02 \x01(\v2\x1b.aip.mock.v1.NestedResourceR\x06nested\x125\n" +
-	"\anested2\x18\x03 \x01(\v2\x1b.aip.mock.v1.NestedResourceR\anested2\x125\n" +
-	"\anested3\x18\x04 \x01(\v2\x1b.aip.mock.v1.NestedResourceR\anested3\x125\n" +
-	"\anested4\x18\x05 \x01(\v2\x1b.aip.mock.v1.NestedResourceR\anested4\x12,\n" +
-	"\amy_enum\x18\x06 \x01(\x0e2\x13.aip.mock.v1.MyEnumR\x06myEnum\"X\n" +
+	"\x06nested\x18\x02 \x01(\v2\x1b.test.aip.v1.NestedResourceR\x06nested\x125\n" +
+	"\anested2\x18\x03 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested2\x125\n" +
+	"\anested3\x18\x04 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested3\x125\n" +
+	"\anested4\x18\x05 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested4\x12,\n" +
+	"\amy_enum\x18\x06 \x01(\x0e2\x13.test.aip.v1.MyEnumR\x06myEnum\"X\n" +
 	"\x0eNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
 	"\x06field3\x18\x03 \x01(\tR\x06field3\"\xf7\x02\n" +
 	"\x15UpdateResourceRequest\x121\n" +
-	"\bresource\x18\x01 \x01(\v2\x15.aip.mock.v1.ResourceR\bresource\x129\n" +
+	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x129\n" +
 	"\n" +
 	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:\xef\x01\x8a\xf6,\xea\x01\x12\b\n" +
 	"\x06field1\x12\x0f\n" +
@@ -437,7 +437,7 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\tnested4.*\x12\rnested4_jsonb\x1a!\n" +
 	"\anested3\x12\x06field1\x12\x06field1\x12\x06field2\"\xa9\x01\n" +
 	"\x16UpdateResource2Request\x121\n" +
-	"\bresource\x18\x01 \x01(\v2\x15.aip.mock.v1.ResourceR\bresource\x129\n" +
+	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x129\n" +
 	"\n" +
 	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:!\x8a\xf6,\x1d\n" +
 	"\x06field1\x12\b\n" +
@@ -445,7 +445,7 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\anested2*4\n" +
 	"\x06MyEnum\x12\x17\n" +
 	"\x13MY_ENUM_UNSPECIFIED\x10\x00\x12\x11\n" +
-	"\rMY_ENUM_VALUE\x10\x01B/Z-github.com/malonaz/core/genproto/test/aipmockb\x06proto3"
+	"\rMY_ENUM_VALUE\x10\x01B+Z)github.com/malonaz/core/genproto/test/aipb\x06proto3"
 
 var (
 	file_proto_test_aip_proto_rawDescOnce sync.Once
@@ -462,24 +462,24 @@ func file_proto_test_aip_proto_rawDescGZIP() []byte {
 var file_proto_test_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_test_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_test_aip_proto_goTypes = []any{
-	(MyEnum)(0),                    // 0: aip.mock.v1.MyEnum
-	(*ListResourcesRequest)(nil),   // 1: aip.mock.v1.ListResourcesRequest
-	(*Resource)(nil),               // 2: aip.mock.v1.Resource
-	(*NestedResource)(nil),         // 3: aip.mock.v1.NestedResource
-	(*UpdateResourceRequest)(nil),  // 4: aip.mock.v1.UpdateResourceRequest
-	(*UpdateResource2Request)(nil), // 5: aip.mock.v1.UpdateResource2Request
+	(MyEnum)(0),                    // 0: test.aip.v1.MyEnum
+	(*ListResourcesRequest)(nil),   // 1: test.aip.v1.ListResourcesRequest
+	(*Resource)(nil),               // 2: test.aip.v1.Resource
+	(*NestedResource)(nil),         // 3: test.aip.v1.NestedResource
+	(*UpdateResourceRequest)(nil),  // 4: test.aip.v1.UpdateResourceRequest
+	(*UpdateResource2Request)(nil), // 5: test.aip.v1.UpdateResource2Request
 	(*fieldmaskpb.FieldMask)(nil),  // 6: google.protobuf.FieldMask
 }
 var file_proto_test_aip_proto_depIdxs = []int32{
-	3, // 0: aip.mock.v1.Resource.nested:type_name -> aip.mock.v1.NestedResource
-	3, // 1: aip.mock.v1.Resource.nested2:type_name -> aip.mock.v1.NestedResource
-	3, // 2: aip.mock.v1.Resource.nested3:type_name -> aip.mock.v1.NestedResource
-	3, // 3: aip.mock.v1.Resource.nested4:type_name -> aip.mock.v1.NestedResource
-	0, // 4: aip.mock.v1.Resource.my_enum:type_name -> aip.mock.v1.MyEnum
-	2, // 5: aip.mock.v1.UpdateResourceRequest.resource:type_name -> aip.mock.v1.Resource
-	6, // 6: aip.mock.v1.UpdateResourceRequest.field_mask:type_name -> google.protobuf.FieldMask
-	2, // 7: aip.mock.v1.UpdateResource2Request.resource:type_name -> aip.mock.v1.Resource
-	6, // 8: aip.mock.v1.UpdateResource2Request.field_mask:type_name -> google.protobuf.FieldMask
+	3, // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
+	3, // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
+	3, // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
+	3, // 3: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
+	0, // 4: test.aip.v1.Resource.my_enum:type_name -> test.aip.v1.MyEnum
+	2, // 5: test.aip.v1.UpdateResourceRequest.resource:type_name -> test.aip.v1.Resource
+	6, // 6: test.aip.v1.UpdateResourceRequest.field_mask:type_name -> google.protobuf.FieldMask
+	2, // 7: test.aip.v1.UpdateResource2Request.resource:type_name -> test.aip.v1.Resource
+	6, // 8: test.aip.v1.UpdateResource2Request.field_mask:type_name -> google.protobuf.FieldMask
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name
