@@ -24,20 +24,16 @@ const (
 
 type ModelOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Generate a model for this message.
-	Generate bool `protobuf:"varint,1,opt,name=generate,proto3" json:"generate,omitempty"`
 	// Override the table name.
-	DatabaseName string `protobuf:"bytes,2,opt,name=database_name,json=databaseName,proto3" json:"database_name,omitempty"`
+	DatabaseName string `protobuf:"bytes,1,opt,name=database_name,json=databaseName,proto3" json:"database_name,omitempty"`
 	// Override the table name.
-	TableName string `protobuf:"bytes,3,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	// If true, generate a db.Delete with 'hard/soft' options.
-	SoftDeletable bool `protobuf:"varint,4,opt,name=soft_deletable,json=softDeletable,proto3" json:"soft_deletable,omitempty"`
+	TableName string `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
 	// Do not generate an db.Insert function.
-	SkipInsertFunction bool `protobuf:"varint,5,opt,name=skip_insert_function,json=skipInsertFunction,proto3" json:"skip_insert_function,omitempty"`
+	SkipInsertFunction bool `protobuf:"varint,3,opt,name=skip_insert_function,json=skipInsertFunction,proto3" json:"skip_insert_function,omitempty"`
 	// Do not generate an db.Delete function.
-	SkipDeleteFunction bool `protobuf:"varint,6,opt,name=skip_delete_function,json=skipDeleteFunction,proto3" json:"skip_delete_function,omitempty"`
+	SkipDeleteFunction bool `protobuf:"varint,4,opt,name=skip_delete_function,json=skipDeleteFunction,proto3" json:"skip_delete_function,omitempty"`
 	// Do not generate an db.Delete function.
-	SkipGetFunction bool `protobuf:"varint,7,opt,name=skip_get_function,json=skipGetFunction,proto3" json:"skip_get_function,omitempty"`
+	SkipGetFunction bool `protobuf:"varint,5,opt,name=skip_get_function,json=skipGetFunction,proto3" json:"skip_get_function,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -72,13 +68,6 @@ func (*ModelOpts) Descriptor() ([]byte, []int) {
 	return file_proto_codegen_model_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ModelOpts) GetGenerate() bool {
-	if x != nil {
-		return x.Generate
-	}
-	return false
-}
-
 func (x *ModelOpts) GetDatabaseName() string {
 	if x != nil {
 		return x.DatabaseName
@@ -91,13 +80,6 @@ func (x *ModelOpts) GetTableName() string {
 		return x.TableName
 	}
 	return ""
-}
-
-func (x *ModelOpts) GetSoftDeletable() bool {
-	if x != nil {
-		return x.SoftDeletable
-	}
-	return false
 }
 
 func (x *ModelOpts) GetSkipInsertFunction() bool {
@@ -240,16 +222,14 @@ var File_proto_codegen_model_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/codegen/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xa2\x02\n" +
-	"\tModelOpts\x12\x1a\n" +
-	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12#\n" +
-	"\rdatabase_name\x18\x02 \x01(\tR\fdatabaseName\x12\x1d\n" +
+	"\x19proto/codegen/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xdf\x01\n" +
+	"\tModelOpts\x12#\n" +
+	"\rdatabase_name\x18\x01 \x01(\tR\fdatabaseName\x12\x1d\n" +
 	"\n" +
-	"table_name\x18\x03 \x01(\tR\ttableName\x12%\n" +
-	"\x0esoft_deletable\x18\x04 \x01(\bR\rsoftDeletable\x120\n" +
-	"\x14skip_insert_function\x18\x05 \x01(\bR\x12skipInsertFunction\x120\n" +
-	"\x14skip_delete_function\x18\x06 \x01(\bR\x12skipDeleteFunction\x12*\n" +
-	"\x11skip_get_function\x18\a \x01(\bR\x0fskipGetFunction\"\xb8\x01\n" +
+	"table_name\x18\x02 \x01(\tR\ttableName\x120\n" +
+	"\x14skip_insert_function\x18\x03 \x01(\bR\x12skipInsertFunction\x120\n" +
+	"\x14skip_delete_function\x18\x04 \x01(\bR\x12skipDeleteFunction\x12*\n" +
+	"\x11skip_get_function\x18\x05 \x01(\bR\x0fskipGetFunction\"\xb8\x01\n" +
 	"\tFieldOpts\x12\"\n" +
 	"\ras_json_bytes\x18\x01 \x01(\bR\vasJsonBytes\x12$\n" +
 	"\x0eas_proto_bytes\x18\x02 \x01(\bR\fasProtoBytes\x12\x1a\n" +

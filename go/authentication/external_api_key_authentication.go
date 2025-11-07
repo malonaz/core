@@ -26,14 +26,14 @@ type ExternalApiKeysOpts struct {
 	APIKeys []string `long:"api-keys" env:"API_KEYS" env-delim:"," description:"List of service_account_id:api_key pairs" required:"true"`
 }
 
-func (o *ExternalApiKeysOpts) ParseAPIKey(serviceAccountID string) (string, error) {
+func (o *ExternalApiKeysOpts) ParseAPIKey(targetServiceAccountID string) (string, error) {
 	apiKeyToServiceAccountID, err := o.parse()
 	if err != nil {
 		return "", err
 	}
 	var targetAPIKey string
 	for apiKey, serviceAccountID := range apiKeyToServiceAccountID {
-		if serviceAccountID == serviceAccountID {
+		if serviceAccountID == targetServiceAccountID {
 			targetAPIKey = apiKey
 			break
 		}

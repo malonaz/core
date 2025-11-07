@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
 	aippb "github.com/malonaz/core/genproto/codegen/aip"
@@ -14,7 +15,6 @@ import (
 )
 
 var (
-	messageTypeToMessage             = map[string]*protogen.Message{}
 	messageTypeToResourceDescriptor  = map[string]*annotationspb.ResourceDescriptor{}
 	resourceTypeToResourceDescriptor = map[string]*annotationspb.ResourceDescriptor{}
 	resourceTypeToParentResourceType = map[string]string{}
@@ -47,8 +47,6 @@ func registerAnnotations(files []*protogen.File) error {
 		// Register message-level resources
 		for _, message := range f.Messages {
 			messageType := string(message.Desc.FullName())
-			messageTypeToMessage[messageType] = message
-
 			msgOpts := message.Desc.Options()
 			if msgOpts != nil {
 				if proto.HasExtension(msgOpts, annotationspb.E_Resource) {
@@ -126,7 +124,34 @@ func (pr *ParsedResource) PatternVariable() (string, error) {
 	return pr.Desc.Singular, nil
 }
 
+func (pr *ParsedResource) PatternVariableIDs(goStyle bool) string {
+	vals := make([]string, 0, len(pr.PatternVariables))
+	for _, v := range pr.PatternVariables {
+		val := v + "_id"
+		if goStyle {
+			val = xstrings.ToCamelCase(val)
+		}
+		vals = append(vals, val)
+	}
+	return strings.Join(vals, ", ")
+}
+
+func (pr *ParsedResource) PatternVariableIDPtrs() string {
+	vals := make([]string, 0, len(pr.PatternVariables))
+	for _, v := range pr.PatternVariables {
+		val := "&" + xstrings.ToCamelCase(v+"_id")
+		vals = append(vals, val)
+	}
+	return strings.Join(vals, ", ")
+}
+
+var parsedResourceTypeToParsedResource = map[string]*ParsedResource{}
+
 func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*ParsedResource, error) {
+	if val, ok := parsedResourceTypeToParsedResource[resourceDescriptor.Type]; ok {
+		return val, nil
+	}
+
 	if resourceDescriptor.Singular == "" {
 		return nil, fmt.Errorf("resource descriptor %s must define `singular`", resourceDescriptor.Type)
 	}
@@ -182,15 +207,16 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 		}
 	}
 
-	return &ParsedResource{
+	parsedResource := &ParsedResource{
 		Desc:             resourceDescriptor,
 		Type:             resourceType,
 		Pattern:          pattern,
 		Singleton:        singleton,
 		PatternVariables: patternVariables,
-
-		Parent: parent,
-	}, nil
+		Parent:           parent,
+	}
+	parsedResourceTypeToParsedResource[resourceDescriptor.Type] = parsedResource
+	return parsedResource, nil
 }
 
 func parseResourceFromMessage(message *protogen.Message) (*ParsedResource, error) {

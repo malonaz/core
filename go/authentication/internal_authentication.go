@@ -127,7 +127,7 @@ func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fu
 		}
 	}
 	if !found {
-		return status.Errorf(codes.PermissionDenied, "missing permissions")
+		return status.Errorf(codes.PermissionDenied, "requires %s permission", permission)
 	}
 	return nil
 }
