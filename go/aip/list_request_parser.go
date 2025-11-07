@@ -144,7 +144,6 @@ func NewListRequestParser(request ListRequest) *Parser {
 	for k, v := range options.Aliases {
 		aliases[k] = v
 	}
-	aliases["creation_timestamp"] = "create_timestamp"
 	return &Parser{
 		orderByOptions:  orderByOptions,
 		declarations:    declarations,

@@ -359,7 +359,60 @@ func (x *UpdatePathMapping) GetTo() []string {
 	return nil
 }
 
+type StandardMethod struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource for this standard method.
+	Resource      string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StandardMethod) Reset() {
+	*x = StandardMethod{}
+	mi := &file_proto_codegen_aip_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StandardMethod) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StandardMethod) ProtoMessage() {}
+
+func (x *StandardMethod) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_codegen_aip_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StandardMethod.ProtoReflect.Descriptor instead.
+func (*StandardMethod) Descriptor() ([]byte, []int) {
+	return file_proto_codegen_aip_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StandardMethod) GetResource() string {
+	if x != nil {
+		return x.Resource
+	}
+	return ""
+}
+
 var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
+	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*StandardMethod)(nil),
+		Field:         92002,
+		Name:          "malonaz.core.codegen.aip.v1.standard_method",
+		Tag:           "bytes,92002,opt,name=standard_method",
+		Filename:      "proto/codegen/aip.proto",
+	},
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*ListOptions)(nil),
@@ -378,12 +431,18 @@ var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 	},
 }
 
+// Extension fields to descriptorpb.MethodOptions.
+var (
+	// optional malonaz.core.codegen.aip.v1.StandardMethod standard_method = 92002;
+	E_StandardMethod = &file_proto_codegen_aip_proto_extTypes[0]
+)
+
 // Extension fields to descriptorpb.MessageOptions.
 var (
 	// optional malonaz.core.codegen.aip.v1.ListOptions list = 92000;
-	E_List = &file_proto_codegen_aip_proto_extTypes[0]
+	E_List = &file_proto_codegen_aip_proto_extTypes[1]
 	// optional malonaz.core.codegen.aip.v1.UpdateOptions update = 92001;
-	E_Update = &file_proto_codegen_aip_proto_extTypes[1]
+	E_Update = &file_proto_codegen_aip_proto_extTypes[2]
 )
 
 var File_proto_codegen_aip_proto protoreflect.FileDescriptor
@@ -414,7 +473,10 @@ const file_proto_codegen_aip_proto_rawDesc = "" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"7\n" +
 	"\x11UpdatePathMapping\x12\x12\n" +
 	"\x04from\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x02 \x03(\tR\x02to:_\n" +
+	"\x02to\x18\x02 \x03(\tR\x02to\",\n" +
+	"\x0eStandardMethod\x12\x1a\n" +
+	"\bresource\x18\x01 \x01(\tR\bresource:v\n" +
+	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xe2\xce\x05 \x01(\v2+.malonaz.core.codegen.aip.v1.StandardMethodR\x0estandardMethod:_\n" +
 	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
 	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB.Z,github.com/malonaz/core/genproto/codegen/aipb\x06proto3"
 
@@ -430,33 +492,37 @@ func file_proto_codegen_aip_proto_rawDescGZIP() []byte {
 	return file_proto_codegen_aip_proto_rawDescData
 }
 
-var file_proto_codegen_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_codegen_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_codegen_aip_proto_goTypes = []any{
 	(*ListOptions)(nil),                 // 0: malonaz.core.codegen.aip.v1.ListOptions
 	(*FilterIdent)(nil),                 // 1: malonaz.core.codegen.aip.v1.FilterIdent
 	(*UpdateOptions)(nil),               // 2: malonaz.core.codegen.aip.v1.UpdateOptions
 	(*AuthorizedUpdatePath)(nil),        // 3: malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
 	(*UpdatePathMapping)(nil),           // 4: malonaz.core.codegen.aip.v1.UpdatePathMapping
-	nil,                                 // 5: malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
-	(v1alpha1.Type_PrimitiveType)(0),    // 6: google.api.expr.v1alpha1.Type.PrimitiveType
-	(v1alpha1.Type_WellKnownType)(0),    // 7: google.api.expr.v1alpha1.Type.WellKnownType
-	(*descriptorpb.MessageOptions)(nil), // 8: google.protobuf.MessageOptions
+	(*StandardMethod)(nil),              // 5: malonaz.core.codegen.aip.v1.StandardMethod
+	nil,                                 // 6: malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
+	(v1alpha1.Type_PrimitiveType)(0),    // 7: google.api.expr.v1alpha1.Type.PrimitiveType
+	(v1alpha1.Type_WellKnownType)(0),    // 8: google.api.expr.v1alpha1.Type.WellKnownType
+	(*descriptorpb.MethodOptions)(nil),  // 9: google.protobuf.MethodOptions
+	(*descriptorpb.MessageOptions)(nil), // 10: google.protobuf.MessageOptions
 }
 var file_proto_codegen_aip_proto_depIdxs = []int32{
 	1,  // 0: malonaz.core.codegen.aip.v1.ListOptions.filters:type_name -> malonaz.core.codegen.aip.v1.FilterIdent
-	5,  // 1: malonaz.core.codegen.aip.v1.ListOptions.aliases:type_name -> malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
-	6,  // 2: malonaz.core.codegen.aip.v1.FilterIdent.primitive:type_name -> google.api.expr.v1alpha1.Type.PrimitiveType
-	7,  // 3: malonaz.core.codegen.aip.v1.FilterIdent.well_known:type_name -> google.api.expr.v1alpha1.Type.WellKnownType
+	6,  // 1: malonaz.core.codegen.aip.v1.ListOptions.aliases:type_name -> malonaz.core.codegen.aip.v1.ListOptions.AliasesEntry
+	7,  // 2: malonaz.core.codegen.aip.v1.FilterIdent.primitive:type_name -> google.api.expr.v1alpha1.Type.PrimitiveType
+	8,  // 3: malonaz.core.codegen.aip.v1.FilterIdent.well_known:type_name -> google.api.expr.v1alpha1.Type.WellKnownType
 	3,  // 4: malonaz.core.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
 	4,  // 5: malonaz.core.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.core.codegen.aip.v1.UpdatePathMapping
-	8,  // 6: malonaz.core.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
-	8,  // 7: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	0,  // 8: malonaz.core.codegen.aip.v1.list:type_name -> malonaz.core.codegen.aip.v1.ListOptions
-	2,  // 9: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	8,  // [8:10] is the sub-list for extension type_name
-	6,  // [6:8] is the sub-list for extension extendee
+	9,  // 6: malonaz.core.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
+	10, // 7: malonaz.core.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
+	10, // 8: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	5,  // 9: malonaz.core.codegen.aip.v1.standard_method:type_name -> malonaz.core.codegen.aip.v1.StandardMethod
+	0,  // 10: malonaz.core.codegen.aip.v1.list:type_name -> malonaz.core.codegen.aip.v1.ListOptions
+	2,  // 11: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	9,  // [9:12] is the sub-list for extension type_name
+	6,  // [6:9] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
 }
 
@@ -476,8 +542,8 @@ func file_proto_codegen_aip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_aip_proto_rawDesc), len(file_proto_codegen_aip_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
-			NumExtensions: 2,
+			NumMessages:   7,
+			NumExtensions: 3,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_codegen_aip_proto_goTypes,

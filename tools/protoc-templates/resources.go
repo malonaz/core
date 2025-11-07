@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/huandu/xstrings"
-	rpcpb "github.com/malonaz/core/genproto/codegen/rpc"
+	aippb "github.com/malonaz/core/genproto/codegen/aip"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
@@ -18,6 +18,7 @@ var (
 	messageTypeToResourceDescriptor  = map[string]*annotationspb.ResourceDescriptor{}
 	resourceTypeToResourceDescriptor = map[string]*annotationspb.ResourceDescriptor{}
 	resourceTypeToParentResourceType = map[string]string{}
+	resourceTypeToMessage            = map[string]*protogen.Message{}
 )
 
 func registerAnnotations(files []*protogen.File) error {
@@ -56,6 +57,7 @@ func registerAnnotations(files []*protogen.File) error {
 					if ok && rd != nil && rd.Type != "" {
 						resourceTypeToResourceDescriptor[rd.Type] = rd
 						messageTypeToResourceDescriptor[messageType] = rd
+						resourceTypeToMessage[rd.Type] = message
 					}
 				}
 			}
@@ -167,11 +169,7 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 	if hasParent {
 		parentResourceType, ok := resourceTypeToParentResourceType[resourceDescriptor.Type]
 		if !ok {
-			x := ""
-			for k, v := range resourceTypeToParentResourceType {
-				x += fmt.Sprintf("%s => %s\n", k, v)
-			}
-			return nil, fmt.Errorf("could not [%s]'s parent resource type: %s", resourceDescriptor.Type, x)
+			return nil, fmt.Errorf("could not [%s]'s parent resource type", resourceDescriptor.Type)
 		}
 		parentResourceDescriptor, ok := resourceTypeToResourceDescriptor[parentResourceType]
 		if !ok {
@@ -208,9 +206,9 @@ func parseResourceFromMessage(message *protogen.Message) (*ParsedResource, error
 
 // CompiledResource.
 type RPC struct {
-	MethodType     rpcpb.MethodType
-	Message        *protogen.Message
-	ParsedResource *ParsedResource
+	Message                           *protogen.Message
+	ParsedResource                    *ParsedResource
+	Create, Update, Delete, Get, List bool
 }
 
 // Given a protogen.Method
@@ -223,55 +221,59 @@ type RPC struct {
 // 7. Using the resource_reference.type => find the resourceDescriptor for that referenced resource.
 // 8. Save it as a field on 'StandardRPC'.
 func parseRPC(method *protogen.Method) (*RPC, error) {
-	// 1. Get the message_type annotation
+	// Check if we are using a standard method.
 	methodOpts := method.Desc.Options()
 	if methodOpts == nil {
-		return nil, fmt.Errorf("method %s has no options", method.Desc.Name())
+		return nil, nil
 	}
-	if !proto.HasExtension(methodOpts, rpcpb.E_MessageType) {
-		return nil, fmt.Errorf("method %s has no message_type annotation", method.Desc.Name())
-	}
-	messageTypeExt := proto.GetExtension(methodOpts, rpcpb.E_MessageType)
-	messageType, ok := messageTypeExt.(string)
-	if !ok || messageType == "" {
-		return nil, fmt.Errorf("method %s has invalid message_type annotation", method.Desc.Name())
+	if !proto.HasExtension(methodOpts, aippb.E_StandardMethod) {
+		return nil, nil
 	}
 
-	// 2. Get the message using messageTypeToMessage
-	message, ok := messageTypeToMessage[messageType]
+	// 1. Get the message_type annotation
+	standardMethodExt := proto.GetExtension(methodOpts, aippb.E_StandardMethod)
+	standardMethod, ok := standardMethodExt.(*aippb.StandardMethod)
+	if !ok || standardMethod == nil {
+		return nil, fmt.Errorf("method %s has invalid standard_method annotation", method.Desc.Name())
+	}
+
+	resourceType := standardMethod.Resource
+	if resourceType == "" {
+		return nil, fmt.Errorf("method %s must define a resource type", method.Desc.Name())
+	}
+
+	// 2. Get the message.
+	message, ok := resourceTypeToMessage[resourceType]
 	if !ok {
-		return nil, fmt.Errorf("message type %s not found for method %s", messageType, method.Desc.Name())
+		return nil, fmt.Errorf("cannot find message type for resource %s", resourceType)
 	}
 
 	// 3. Parse the resource.
 	parsedResource, err := parseResourceFromMessage(message)
 	if err != nil {
-		return nil, fmt.Errorf("parsing resource for message type %s: %w", messageType, err)
+		return nil, fmt.Errorf("parsing resource %s: %w", resourceType, err)
 	}
 
 	// 4. Determine the method type based on the method name
 	resourceNameSingular := xstrings.ToPascalCase(parsedResource.Desc.Singular)
 	resourceNamePlural := xstrings.ToPascalCase(parsedResource.Desc.Plural)
-	var methodType rpcpb.MethodType
-	switch method.GoName {
-	case "Create" + resourceNameSingular:
-		methodType = rpcpb.MethodType_METHOD_TYPE_CREATE
-	case "Get" + resourceNameSingular:
-		methodType = rpcpb.MethodType_METHOD_TYPE_GET
-	case "Update" + resourceNameSingular:
-		methodType = rpcpb.MethodType_METHOD_TYPE_UPDATE
-	case "Delete" + resourceNameSingular:
-		methodType = rpcpb.MethodType_METHOD_TYPE_DELETE
-	case "List" + resourceNamePlural:
-		methodType = rpcpb.MethodType_METHOD_TYPE_LIST
-	default:
-		return nil, fmt.Errorf("method %s does not match any standard method pattern for resource %s", method.GoName, resourceNameSingular)
+	create := method.GoName == "Create"+resourceNameSingular
+	get := method.GoName == "Get"+resourceNameSingular
+	update := method.GoName == "Update"+resourceNameSingular
+	delete := method.GoName == "Delete"+resourceNameSingular
+	list := method.GoName == "List"+resourceNamePlural
+	if !(create || get || update || delete || list) {
+		return nil, fmt.Errorf("method %s does not match any standard CRUD pattern for resource %s", method.GoName, resourceType)
 	}
 
 	return &RPC{
-		MethodType:     methodType,
 		Message:        message,
 		ParsedResource: parsedResource,
+		Create:         create,
+		Get:            get,
+		Update:         update,
+		Delete:         delete,
+		List:           list,
 	}, nil
 
 }

@@ -36,8 +36,10 @@ type ModelOpts struct {
 	SkipInsertFunction bool `protobuf:"varint,5,opt,name=skip_insert_function,json=skipInsertFunction,proto3" json:"skip_insert_function,omitempty"`
 	// Do not generate an db.Delete function.
 	SkipDeleteFunction bool `protobuf:"varint,6,opt,name=skip_delete_function,json=skipDeleteFunction,proto3" json:"skip_delete_function,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Do not generate an db.Delete function.
+	SkipGetFunction bool `protobuf:"varint,7,opt,name=skip_get_function,json=skipGetFunction,proto3" json:"skip_get_function,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ModelOpts) Reset() {
@@ -108,6 +110,13 @@ func (x *ModelOpts) GetSkipInsertFunction() bool {
 func (x *ModelOpts) GetSkipDeleteFunction() bool {
 	if x != nil {
 		return x.SkipDeleteFunction
+	}
+	return false
+}
+
+func (x *ModelOpts) GetSkipGetFunction() bool {
+	if x != nil {
+		return x.SkipGetFunction
 	}
 	return false
 }
@@ -231,7 +240,7 @@ var File_proto_codegen_model_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/codegen/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xf6\x01\n" +
+	"\x19proto/codegen/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\xa2\x02\n" +
 	"\tModelOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12#\n" +
 	"\rdatabase_name\x18\x02 \x01(\tR\fdatabaseName\x12\x1d\n" +
@@ -239,7 +248,8 @@ const file_proto_codegen_model_proto_rawDesc = "" +
 	"table_name\x18\x03 \x01(\tR\ttableName\x12%\n" +
 	"\x0esoft_deletable\x18\x04 \x01(\bR\rsoftDeletable\x120\n" +
 	"\x14skip_insert_function\x18\x05 \x01(\bR\x12skipInsertFunction\x120\n" +
-	"\x14skip_delete_function\x18\x06 \x01(\bR\x12skipDeleteFunction\"\xb8\x01\n" +
+	"\x14skip_delete_function\x18\x06 \x01(\bR\x12skipDeleteFunction\x12*\n" +
+	"\x11skip_get_function\x18\a \x01(\bR\x0fskipGetFunction\"\xb8\x01\n" +
 	"\tFieldOpts\x12\"\n" +
 	"\ras_json_bytes\x18\x01 \x01(\bR\vasJsonBytes\x12$\n" +
 	"\x0eas_proto_bytes\x18\x02 \x01(\bR\fasProtoBytes\x12\x1a\n" +

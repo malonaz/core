@@ -27,6 +27,8 @@ message ModelOpts {
   bool skip_insert_function = 5;
   // Do not generate an db.Delete function.
   bool skip_delete_function = 6;
+  // Do not generate an db.Delete function.
+  bool skip_get_function = 7;
 }
 
 message FieldOpts {

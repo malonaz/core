@@ -7,6 +7,10 @@ import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/aip";
 
+extend google.protobuf.MethodOptions {
+  StandardMethod standard_method = 92002;
+}
+
 extend google.protobuf.MessageOptions {
   ListOptions list = 92000;
   UpdateOptions update = 92001;
@@ -47,4 +51,9 @@ message AuthorizedUpdatePath {
 message UpdatePathMapping {
   string from = 1;
   repeated string to = 2;
+}
+
+message StandardMethod {
+  // The resource for this standard method.
+  string resource = 1;
 }
