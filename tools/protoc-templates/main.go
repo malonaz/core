@@ -16,6 +16,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/gateway"
 	_ "github.com/malonaz/core/genproto/codegen/model"
 	_ "github.com/malonaz/core/genproto/codegen/rpc"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
 var (
@@ -68,7 +69,12 @@ func main() {
 		// Get template name for output filename
 		templateFilename := filepath.Base(*opts.Template)
 		templateFilenameWithoutExtension := strings.TrimSuffix(templateFilename, filepath.Ext(templateFilename))
-
+		if err := registerAnnotations(gen.Files); err != nil {
+			return fmt.Errorf("registering annotations: %v", err)
+		}
+		if err := registerAncestors(gen.Files); err != nil {
+			return fmt.Errorf("registering ancestors: %v", err)
+		}
 		// Let's grab other files.
 		otherFiles := []*protogen.File{}
 		for _, f := range gen.Files {
@@ -86,10 +92,11 @@ func main() {
 			)
 			generatedFile := gen.NewGeneratedFile(generatedFilename, "")
 			scopedExecution := newScopedExecution(generatedFile)
+			funcMap := scopedExecution.FuncMap()
 
 			// Create template with custom functions first, then parse
 			tmpl, err := template.New(templateFilename).
-				Funcs(scopedExecution.FuncMap()).
+				Funcs(funcMap).
 				Parse(templateContent)
 			if err != nil {
 				return fmt.Errorf("parsing template with functions: %w", err)

@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package test.resource_annotations.v1;
+
+import "google/api/resource.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/resource_annotations";
+
+// A user represents a user.
+message User {
+  option (google.api.resource) = {
+    type: "malonaz.com/User"
+    pattern: "users/{user}"
+    singular: "user"
+    plural: "users"
+  };
+  // The resource name of the contact.
+  string name = 1;
+}
+
+// A contact holds contact information for a [user][user.v1.User].
+message Contact {
+  option (google.api.resource) = {
+    type: "malonaz.com/Contact"
+    pattern: "users/{user}/contacts/{contact}"
+    singular: "contact"
+    plural: "contacts"
+  };
+
+  // The resource name of the contact.
+  string name = 1;
+}

@@ -22,6 +22,82 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Standard method types for resource-oriented APIs.
+// Based on AIP-136 (https://google.aip.dev/136).
+type MethodType int32
+
+const (
+	// Unspecified standard method.
+	MethodType_METHOD_TYPE_UNSPECIFIED MethodType = 0
+	// Create a new resource.
+	// Maps to HTTP POST on a collection (e.g., POST /v1/users).
+	// Request: parent + resource, Response: resource.
+	MethodType_METHOD_TYPE_CREATE MethodType = 1
+	// Retrieve a single resource by identifier.
+	// Maps to HTTP GET on a resource (e.g., GET /v1/users/123).
+	// Request: resource name, Response: resource.
+	MethodType_METHOD_TYPE_GET MethodType = 2
+	// Update an existing resource.
+	// Maps to HTTP PATCH or PUT on a resource (e.g., PATCH /v1/users/123).
+	// Request: resource + update_mask, Response: resource.
+	MethodType_METHOD_TYPE_UPDATE MethodType = 3
+	// Delete a resource.
+	// Maps to HTTP DELETE on a resource (e.g., DELETE /v1/users/123).
+	// Request: resource name, Response: empty or deleted resource.
+	MethodType_METHOD_TYPE_DELETE MethodType = 4
+	// List resources in a collection.
+	// Maps to HTTP GET on a collection (e.g., GET /v1/users).
+	// Request: parent + page_size + page_token, Response: resources + next_page_token.
+	MethodType_METHOD_TYPE_LIST MethodType = 5
+)
+
+// Enum value maps for MethodType.
+var (
+	MethodType_name = map[int32]string{
+		0: "METHOD_TYPE_UNSPECIFIED",
+		1: "METHOD_TYPE_CREATE",
+		2: "METHOD_TYPE_GET",
+		3: "METHOD_TYPE_UPDATE",
+		4: "METHOD_TYPE_DELETE",
+		5: "METHOD_TYPE_LIST",
+	}
+	MethodType_value = map[string]int32{
+		"METHOD_TYPE_UNSPECIFIED": 0,
+		"METHOD_TYPE_CREATE":      1,
+		"METHOD_TYPE_GET":         2,
+		"METHOD_TYPE_UPDATE":      3,
+		"METHOD_TYPE_DELETE":      4,
+		"METHOD_TYPE_LIST":        5,
+	}
+)
+
+func (x MethodType) Enum() *MethodType {
+	p := new(MethodType)
+	*p = x
+	return p
+}
+
+func (x MethodType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MethodType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_codegen_rpc_proto_enumTypes[0].Descriptor()
+}
+
+func (MethodType) Type() protoreflect.EnumType {
+	return &file_proto_codegen_rpc_proto_enumTypes[0]
+}
+
+func (x MethodType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MethodType.Descriptor instead.
+func (MethodType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_codegen_rpc_proto_rawDescGZIP(), []int{0}
+}
+
 type CreateOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// If true, we generate the create method.
@@ -322,58 +398,80 @@ func (x *ListOpts) GetPostFn() bool {
 var file_proto_codegen_rpc_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
-		ExtensionType: (*CreateOpts)(nil),
+		ExtensionType: (*string)(nil),
+		Field:         98330,
+		Name:          "malonaz.core.codegen.rpc.v1.message_type",
+		Tag:           "bytes,98330,opt,name=message_type",
+		Filename:      "proto/codegen/rpc.proto",
+	},
+	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*MethodType)(nil),
 		Field:         98331,
+		Name:          "malonaz.core.codegen.rpc.v1.method_type",
+		Tag:           "varint,98331,opt,name=method_type,enum=malonaz.core.codegen.rpc.v1.MethodType",
+		Filename:      "proto/codegen/rpc.proto",
+	},
+	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*CreateOpts)(nil),
+		Field:         98332,
 		Name:          "malonaz.core.codegen.rpc.v1.create",
-		Tag:           "bytes,98331,opt,name=create",
+		Tag:           "bytes,98332,opt,name=create",
 		Filename:      "proto/codegen/rpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*UpdateOpts)(nil),
-		Field:         98332,
+		Field:         98333,
 		Name:          "malonaz.core.codegen.rpc.v1.update",
-		Tag:           "bytes,98332,opt,name=update",
+		Tag:           "bytes,98333,opt,name=update",
 		Filename:      "proto/codegen/rpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*DeleteOpts)(nil),
-		Field:         98333,
+		Field:         98334,
 		Name:          "malonaz.core.codegen.rpc.v1.delete",
-		Tag:           "bytes,98333,opt,name=delete",
+		Tag:           "bytes,98334,opt,name=delete",
 		Filename:      "proto/codegen/rpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*GetOpts)(nil),
-		Field:         98334,
+		Field:         98335,
 		Name:          "malonaz.core.codegen.rpc.v1.get",
-		Tag:           "bytes,98334,opt,name=get",
+		Tag:           "bytes,98335,opt,name=get",
 		Filename:      "proto/codegen/rpc.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*ListOpts)(nil),
-		Field:         98335,
+		Field:         98336,
 		Name:          "malonaz.core.codegen.rpc.v1.list",
-		Tag:           "bytes,98335,opt,name=list",
+		Tag:           "bytes,98336,opt,name=list",
 		Filename:      "proto/codegen/rpc.proto",
 	},
 }
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// optional malonaz.core.codegen.rpc.v1.CreateOpts create = 98331;
-	E_Create = &file_proto_codegen_rpc_proto_extTypes[0]
-	// optional malonaz.core.codegen.rpc.v1.UpdateOpts update = 98332;
-	E_Update = &file_proto_codegen_rpc_proto_extTypes[1]
-	// optional malonaz.core.codegen.rpc.v1.DeleteOpts delete = 98333;
-	E_Delete = &file_proto_codegen_rpc_proto_extTypes[2]
-	// optional malonaz.core.codegen.rpc.v1.GetOpts get = 98334;
-	E_Get = &file_proto_codegen_rpc_proto_extTypes[3]
-	// optional malonaz.core.codegen.rpc.v1.ListOpts list = 98335;
-	E_List = &file_proto_codegen_rpc_proto_extTypes[4]
+	// Type of the resource we wish to create, like 'user.v1.User'.
+	//
+	// optional string message_type = 98330;
+	E_MessageType = &file_proto_codegen_rpc_proto_extTypes[0]
+	// optional malonaz.core.codegen.rpc.v1.MethodType method_type = 98331;
+	E_MethodType = &file_proto_codegen_rpc_proto_extTypes[1]
+	// optional malonaz.core.codegen.rpc.v1.CreateOpts create = 98332;
+	E_Create = &file_proto_codegen_rpc_proto_extTypes[2]
+	// optional malonaz.core.codegen.rpc.v1.UpdateOpts update = 98333;
+	E_Update = &file_proto_codegen_rpc_proto_extTypes[3]
+	// optional malonaz.core.codegen.rpc.v1.DeleteOpts delete = 98334;
+	E_Delete = &file_proto_codegen_rpc_proto_extTypes[4]
+	// optional malonaz.core.codegen.rpc.v1.GetOpts get = 98335;
+	E_Get = &file_proto_codegen_rpc_proto_extTypes[5]
+	// optional malonaz.core.codegen.rpc.v1.ListOpts list = 98336;
+	E_List = &file_proto_codegen_rpc_proto_extTypes[6]
 )
 
 var File_proto_codegen_rpc_proto protoreflect.FileDescriptor
@@ -401,12 +499,23 @@ const file_proto_codegen_rpc_proto_rawDesc = "" +
 	"\bListOpts\x12\x1a\n" +
 	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x15\n" +
 	"\x06pre_fn\x18\x02 \x01(\bR\x05preFn\x12\x17\n" +
-	"\apost_fn\x18\x03 \x01(\bR\x06postFn:a\n" +
-	"\x06create\x12\x1e.google.protobuf.MethodOptions\x18\x9b\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.CreateOptsR\x06create:a\n" +
-	"\x06update\x12\x1e.google.protobuf.MethodOptions\x18\x9c\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.UpdateOptsR\x06update:a\n" +
-	"\x06delete\x12\x1e.google.protobuf.MethodOptions\x18\x9d\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.DeleteOptsR\x06delete:X\n" +
-	"\x03get\x12\x1e.google.protobuf.MethodOptions\x18\x9e\x80\x06 \x01(\v2$.malonaz.core.codegen.rpc.v1.GetOptsR\x03get:[\n" +
-	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2%.malonaz.core.codegen.rpc.v1.ListOptsR\x04listB.Z,github.com/malonaz/core/genproto/codegen/rpcb\x06proto3"
+	"\apost_fn\x18\x03 \x01(\bR\x06postFn*\x9c\x01\n" +
+	"\n" +
+	"MethodType\x12\x1b\n" +
+	"\x17METHOD_TYPE_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12METHOD_TYPE_CREATE\x10\x01\x12\x13\n" +
+	"\x0fMETHOD_TYPE_GET\x10\x02\x12\x16\n" +
+	"\x12METHOD_TYPE_UPDATE\x10\x03\x12\x16\n" +
+	"\x12METHOD_TYPE_DELETE\x10\x04\x12\x14\n" +
+	"\x10METHOD_TYPE_LIST\x10\x05:C\n" +
+	"\fmessage_type\x12\x1e.google.protobuf.MethodOptions\x18\x9a\x80\x06 \x01(\tR\vmessageType:j\n" +
+	"\vmethod_type\x12\x1e.google.protobuf.MethodOptions\x18\x9b\x80\x06 \x01(\x0e2'.malonaz.core.codegen.rpc.v1.MethodTypeR\n" +
+	"methodType:a\n" +
+	"\x06create\x12\x1e.google.protobuf.MethodOptions\x18\x9c\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.CreateOptsR\x06create:a\n" +
+	"\x06update\x12\x1e.google.protobuf.MethodOptions\x18\x9d\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.UpdateOptsR\x06update:a\n" +
+	"\x06delete\x12\x1e.google.protobuf.MethodOptions\x18\x9e\x80\x06 \x01(\v2'.malonaz.core.codegen.rpc.v1.DeleteOptsR\x06delete:X\n" +
+	"\x03get\x12\x1e.google.protobuf.MethodOptions\x18\x9f\x80\x06 \x01(\v2$.malonaz.core.codegen.rpc.v1.GetOptsR\x03get:[\n" +
+	"\x04list\x12\x1e.google.protobuf.MethodOptions\x18\xa0\x80\x06 \x01(\v2%.malonaz.core.codegen.rpc.v1.ListOptsR\x04listB.Z,github.com/malonaz/core/genproto/codegen/rpcb\x06proto3"
 
 var (
 	file_proto_codegen_rpc_proto_rawDescOnce sync.Once
@@ -420,30 +529,35 @@ func file_proto_codegen_rpc_proto_rawDescGZIP() []byte {
 	return file_proto_codegen_rpc_proto_rawDescData
 }
 
+var file_proto_codegen_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_codegen_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_codegen_rpc_proto_goTypes = []any{
-	(*CreateOpts)(nil),                 // 0: malonaz.core.codegen.rpc.v1.CreateOpts
-	(*UpdateOpts)(nil),                 // 1: malonaz.core.codegen.rpc.v1.UpdateOpts
-	(*DeleteOpts)(nil),                 // 2: malonaz.core.codegen.rpc.v1.DeleteOpts
-	(*GetOpts)(nil),                    // 3: malonaz.core.codegen.rpc.v1.GetOpts
-	(*ListOpts)(nil),                   // 4: malonaz.core.codegen.rpc.v1.ListOpts
-	(*descriptorpb.MethodOptions)(nil), // 5: google.protobuf.MethodOptions
+	(MethodType)(0),                    // 0: malonaz.core.codegen.rpc.v1.MethodType
+	(*CreateOpts)(nil),                 // 1: malonaz.core.codegen.rpc.v1.CreateOpts
+	(*UpdateOpts)(nil),                 // 2: malonaz.core.codegen.rpc.v1.UpdateOpts
+	(*DeleteOpts)(nil),                 // 3: malonaz.core.codegen.rpc.v1.DeleteOpts
+	(*GetOpts)(nil),                    // 4: malonaz.core.codegen.rpc.v1.GetOpts
+	(*ListOpts)(nil),                   // 5: malonaz.core.codegen.rpc.v1.ListOpts
+	(*descriptorpb.MethodOptions)(nil), // 6: google.protobuf.MethodOptions
 }
 var file_proto_codegen_rpc_proto_depIdxs = []int32{
-	5,  // 0: malonaz.core.codegen.rpc.v1.create:extendee -> google.protobuf.MethodOptions
-	5,  // 1: malonaz.core.codegen.rpc.v1.update:extendee -> google.protobuf.MethodOptions
-	5,  // 2: malonaz.core.codegen.rpc.v1.delete:extendee -> google.protobuf.MethodOptions
-	5,  // 3: malonaz.core.codegen.rpc.v1.get:extendee -> google.protobuf.MethodOptions
-	5,  // 4: malonaz.core.codegen.rpc.v1.list:extendee -> google.protobuf.MethodOptions
-	0,  // 5: malonaz.core.codegen.rpc.v1.create:type_name -> malonaz.core.codegen.rpc.v1.CreateOpts
-	1,  // 6: malonaz.core.codegen.rpc.v1.update:type_name -> malonaz.core.codegen.rpc.v1.UpdateOpts
-	2,  // 7: malonaz.core.codegen.rpc.v1.delete:type_name -> malonaz.core.codegen.rpc.v1.DeleteOpts
-	3,  // 8: malonaz.core.codegen.rpc.v1.get:type_name -> malonaz.core.codegen.rpc.v1.GetOpts
-	4,  // 9: malonaz.core.codegen.rpc.v1.list:type_name -> malonaz.core.codegen.rpc.v1.ListOpts
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	5,  // [5:10] is the sub-list for extension type_name
-	0,  // [0:5] is the sub-list for extension extendee
+	6,  // 0: malonaz.core.codegen.rpc.v1.message_type:extendee -> google.protobuf.MethodOptions
+	6,  // 1: malonaz.core.codegen.rpc.v1.method_type:extendee -> google.protobuf.MethodOptions
+	6,  // 2: malonaz.core.codegen.rpc.v1.create:extendee -> google.protobuf.MethodOptions
+	6,  // 3: malonaz.core.codegen.rpc.v1.update:extendee -> google.protobuf.MethodOptions
+	6,  // 4: malonaz.core.codegen.rpc.v1.delete:extendee -> google.protobuf.MethodOptions
+	6,  // 5: malonaz.core.codegen.rpc.v1.get:extendee -> google.protobuf.MethodOptions
+	6,  // 6: malonaz.core.codegen.rpc.v1.list:extendee -> google.protobuf.MethodOptions
+	0,  // 7: malonaz.core.codegen.rpc.v1.method_type:type_name -> malonaz.core.codegen.rpc.v1.MethodType
+	1,  // 8: malonaz.core.codegen.rpc.v1.create:type_name -> malonaz.core.codegen.rpc.v1.CreateOpts
+	2,  // 9: malonaz.core.codegen.rpc.v1.update:type_name -> malonaz.core.codegen.rpc.v1.UpdateOpts
+	3,  // 10: malonaz.core.codegen.rpc.v1.delete:type_name -> malonaz.core.codegen.rpc.v1.DeleteOpts
+	4,  // 11: malonaz.core.codegen.rpc.v1.get:type_name -> malonaz.core.codegen.rpc.v1.GetOpts
+	5,  // 12: malonaz.core.codegen.rpc.v1.list:type_name -> malonaz.core.codegen.rpc.v1.ListOpts
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	7,  // [7:13] is the sub-list for extension type_name
+	0,  // [0:7] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
 }
 
@@ -457,13 +571,14 @@ func file_proto_codegen_rpc_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_rpc_proto_rawDesc), len(file_proto_codegen_rpc_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   5,
-			NumExtensions: 5,
+			NumExtensions: 7,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_codegen_rpc_proto_goTypes,
 		DependencyIndexes: file_proto_codegen_rpc_proto_depIdxs,
+		EnumInfos:         file_proto_codegen_rpc_proto_enumTypes,
 		MessageInfos:      file_proto_codegen_rpc_proto_msgTypes,
 		ExtensionInfos:    file_proto_codegen_rpc_proto_extTypes,
 	}.Build()

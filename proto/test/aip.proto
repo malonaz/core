@@ -127,7 +127,7 @@ message UpdateResourceRequest {
 
   // The user you wish to update. We carry out validation ourselves in the code.
   Resource resource = 1;
-  google.protobuf.FieldMask field_mask = 2;
+  google.protobuf.FieldMask update_mask = 2;
 }
 
 message UpdateResource2Request {
@@ -140,5 +140,5 @@ message UpdateResource2Request {
 
   // The user you wish to update. We carry out validation ourselves in the code.
   Resource resource = 1;
-  google.protobuf.FieldMask field_mask = 2;
+  google.protobuf.FieldMask update_mask = 2;
 }

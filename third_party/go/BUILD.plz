@@ -2922,6 +2922,36 @@ go_mod_download(
 )
 
 go_module(
+    name = "go.einride.tech__aip__cmd__protoc-gen-go-aip",
+    download = ":_go.einride.tech__aip#download",
+    install = ["cmd/protoc-gen-go-aip"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.einride.tech__aip__cmd__protoc-gen-go-aip__internal__genaip",
+        ":google.golang.org__protobuf__compiler__protogen",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__aip__cmd__protoc-gen-go-aip__internal__genaip",
+    download = ":_go.einride.tech__aip#download",
+    install = ["cmd/protoc-gen-go-aip/internal/genaip"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__stoewer__go-strcase",
+        ":go.einride.tech__aip__reflect__aipreflect",
+        ":go.einride.tech__aip__resourcename",
+        ":google.golang.org__genproto__googleapis__api__annotations",
+        ":google.golang.org__protobuf__compiler__protogen",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)
+
+go_module(
     name = "go.einride.tech__aip__fieldmask",
     download = ":_go.einride.tech__aip#download",
     install = ["fieldmask"],
@@ -2967,6 +2997,32 @@ go_module(
     module = "go.einride.tech/aip",
     visibility = ["PUBLIC"],
     deps = [":google.golang.org__protobuf__proto"],
+)
+
+go_module(
+    name = "go.einride.tech__aip__reflect__aipreflect",
+    download = ":_go.einride.tech__aip#download",
+    install = ["reflect/aipreflect"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.einride.tech__aip__resourcename",
+        ":google.golang.org__genproto__googleapis__api__annotations",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protopath",
+        ":google.golang.org__protobuf__reflect__protorange",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)
+
+go_module(
+    name = "go.einride.tech__aip__resourcename",
+    download = ":_go.einride.tech__aip#download",
+    install = ["resourcename"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -4989,6 +5045,35 @@ go_module(
         ":google.golang.org__protobuf__reflect__protoregistry",
         ":google.golang.org__protobuf__types__descriptorpb",
         ":google.golang.org__protobuf__types__gofeaturespb",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__protobuf__reflect__protopath",
+    download = ":_google.golang.org__protobuf#download",
+    install = ["reflect/protopath"],
+    module = "google.golang.org/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__internal__encoding__text",
+        ":google.golang.org__protobuf__internal__msgfmt",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__protobuf__reflect__protorange",
+    download = ":_google.golang.org__protobuf#download",
+    install = ["reflect/protorange"],
+    module = "google.golang.org/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__internal__genid",
+        ":google.golang.org__protobuf__internal__order",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protopath",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
     ],
 )
 

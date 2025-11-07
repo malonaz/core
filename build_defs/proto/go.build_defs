@@ -8,6 +8,7 @@ subinclude(
 GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
+GENERATE_GO_AIP = "generate_go_aip"
 
 def go_path_mapping(plugin_out_keys:list):
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
@@ -111,6 +112,18 @@ def go_proto_library(
             '--grpc-gateway_out=$OUT_DIR',
             f'--grpc-gateway_opt=paths=source_relative',
         ]
+
+    # PROTOC-GEN-AIP
+    if additional_context and GENERATE_GO_AIP in additional_context:
+        tools["protoc_gen_aip_go"] = CONFIG.CORE.PROTOC_GEN_AIP_GO
+        deps += [CONFIG.CORE.PROTOC_GEN_AIP_GO_DEP]
+        plugin_out_keys += ['go-aip_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-go-aip="$(which $TOOLS_PROTOC_GEN_AIP_GO)"',
+            '--go-aip_out="$OUT_DIR"',
+            '--go-aip_opt=paths=source_relative',
+        ]
+
 
     protoc = protoc_rule(
         name = name,

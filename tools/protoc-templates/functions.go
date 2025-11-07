@@ -11,7 +11,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/dynamicpb"
 )
 
 type scopedExecution struct {
@@ -37,11 +36,12 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 			return nil
 		},
 		"protoreflectName": func(s string) protoreflect.Name { return protoreflect.Name(s) },
-		"goIdent": func(goName string, goImportPath protogen.GoImportPath) protogen.GoIdent {
-			return protogen.GoIdent{
+		"goIdent": func(goImportPath protogen.GoImportPath, goName string) string {
+			goIdent := protogen.GoIdent{
 				GoName:       goName,
 				GoImportPath: goImportPath,
 			}
+			return se.qualifiedGoIdent(goIdent)
 		},
 
 		"emptyPb": func(message proto.Message) bool {
@@ -55,6 +55,9 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"replaceImportPath": se.replaceImportPath,
 		"fqn":               se.fqn,
 		"qualifiedGoIdent":  se.qualifiedGoIdent,
+
+		"parseRPC":                parseRPC,
+		"parseResourceDescriptor": parseResourceDescriptor,
 
 		"getExt":      getExt,
 		"fieldName":   fieldName,
@@ -125,25 +128,4 @@ func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {
 		}
 	}
 	return ext, nil
-}
-
-func registerAllExtensions(extTypes *protoregistry.Types, descs interface {
-	Messages() protoreflect.MessageDescriptors
-	Extensions() protoreflect.ExtensionDescriptors
-}) error {
-	mds := descs.Messages()
-	for i := 0; i < mds.Len(); i++ {
-		m := mds.Get(i)
-		if err := extTypes.RegisterMessage(dynamicpb.NewMessageType(m)); err != nil {
-			return err
-		}
-		registerAllExtensions(extTypes, m)
-	}
-	xds := descs.Extensions()
-	for i := 0; i < xds.Len(); i++ {
-		if err := extTypes.RegisterExtension(dynamicpb.NewExtensionType(xds.Get(i))); err != nil {
-			return err
-		}
-	}
-	return nil
 }

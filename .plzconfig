@@ -66,6 +66,14 @@ DefaultValue = //tools/proto:protoc-gen-grpc-gateway
 ConfigKey = ProtocGenGrpcGatewayGoDep
 DefaultValue = //tools/proto:protoc-gen-go-grpc-gateway-dep
 
+[PluginConfig "protoc_gen_aip_go"]
+ConfigKey = ProtocGenAipGo
+DefaultValue = //tools/proto:protoc-gen-go-aip
+
+[PluginConfig "protoc_gen_aip_go_dep"]
+ConfigKey = ProtocGenAipGoDep
+DefaultValue = //tools/proto:protoc-gen-go-aip-dep
+
 [PluginConfig "protoc_gen_cobra_go"]
 ConfigKey = ProtocGenCobraGo
 DefaultValue = //tools/proto:protoc-gen-cobra

@@ -38,8 +38,17 @@ func fieldGoTypeInternal(g *protogen.GeneratedFile, field *protogen.Field) (stri
 		goType = "[]byte"
 		pointer = false // rely on nullability of slices for presence
 	case protoreflect.MessageKind, protoreflect.GroupKind:
-		goType = "*" + g.QualifiedGoIdent(field.Message.GoIdent)
-		pointer = false // pointer captured as part of the type
+		// Check if this is a google.protobuf.Timestamp
+		if string(field.Message.Desc.FullName()) == "google.protobuf.Timestamp" {
+			goType = g.QualifiedGoIdent(protogen.GoIdent{
+				GoName:       "Time",
+				GoImportPath: "time",
+			})
+			pointer = true
+		} else {
+			goType = "*" + g.QualifiedGoIdent(field.Message.GoIdent)
+			pointer = false // pointer captured as part of the type
+		}
 	}
 	switch {
 	case field.Desc.IsList():
@@ -122,6 +131,11 @@ func zeroValue(field *protogen.Field) (string, error) {
 		v = `""`
 	case protoreflect.BytesKind:
 		v = "nil"
+	case protoreflect.MessageKind:
+		// Check if this is a google.protobuf.Timestamp
+		if string(field.Message.Desc.FullName()) == "google.protobuf.Timestamp" {
+			v = "nil"
+		}
 	}
 	if v == "" {
 		return "", fmt.Errorf("unsupported field kind %v", field.Desc.FullName())

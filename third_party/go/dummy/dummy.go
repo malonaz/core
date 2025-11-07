@@ -17,6 +17,7 @@ import (
 	_ "github.com/scylladb/go-set/strset"
 	_ "github.com/sirupsen/logrus"
 	_ "github.com/spf13/cobra"
+	_ "go.einride.tech/aip/cmd/protoc-gen-go-aip"
 	_ "golang.org/x/mod/modfile"
 	_ "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	_ "google.golang.org/genproto/googleapis/api/visibility"

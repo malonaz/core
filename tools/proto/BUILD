@@ -158,3 +158,30 @@ go_module(
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
     ],
 )
+
+# Protoc go aip plugin - referenced in .plzconfig.
+go_module(
+    name = "protoc-gen-go-aip",
+    binary = True,
+    download = "//third_party/go:_go.einride.tech__aip#download",
+    install = ["cmd/protoc-gen-go-aip"],
+    module = "go.einride.tech/aip",
+    deps = [
+        "//third_party/go:github.com__stoewer__go-strcase",
+        "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)
+
+# Gathers the proto go aip dependencies - referenced in .plzconfig.
+filegroup(
+    name = "protoc-gen-go-aip-dep",
+    exported_deps = [
+        "//third_party/go:go.einride.tech__aip__resourcename",
+    ],
+)

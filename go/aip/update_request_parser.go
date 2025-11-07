@@ -16,7 +16,7 @@ import (
 // UpdateRequest defines the interface of an AIP update request.
 type UpdateRequest interface {
 	proto.Message
-	GetFieldMask() *fieldmaskpb.FieldMask
+	GetUpdateMask() *fieldmaskpb.FieldMask
 }
 
 // ParsedUpdateRequest is a request that is parsed.

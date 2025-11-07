@@ -285,7 +285,7 @@ type UpdateResourceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The user you wish to update. We carry out validation ourselves in the code.
 	Resource      *Resource              `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -327,9 +327,9 @@ func (x *UpdateResourceRequest) GetResource() *Resource {
 	return nil
 }
 
-func (x *UpdateResourceRequest) GetFieldMask() *fieldmaskpb.FieldMask {
+func (x *UpdateResourceRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.FieldMask
+		return x.UpdateMask
 	}
 	return nil
 }
@@ -338,7 +338,7 @@ type UpdateResource2Request struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The user you wish to update. We carry out validation ourselves in the code.
 	Resource      *Resource              `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -380,9 +380,9 @@ func (x *UpdateResource2Request) GetResource() *Resource {
 	return nil
 }
 
-func (x *UpdateResource2Request) GetFieldMask() *fieldmaskpb.FieldMask {
+func (x *UpdateResource2Request) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.FieldMask
+		return x.UpdateMask
 	}
 	return nil
 }
@@ -419,11 +419,11 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\x0eNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
-	"\x06field3\x18\x03 \x01(\tR\x06field3\"\xf7\x02\n" +
+	"\x06field3\x18\x03 \x01(\tR\x06field3\"\xf9\x02\n" +
 	"\x15UpdateResourceRequest\x121\n" +
-	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x129\n" +
-	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:\xef\x01\x8a\xf6,\xea\x01\x12\b\n" +
+	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
+	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask:\xef\x01\x8a\xf6,\xea\x01\x12\b\n" +
 	"\x06field1\x12\x0f\n" +
 	"\rnested.field2\x12\t\n" +
 	"\anested2\x12\b\n" +
@@ -435,11 +435,11 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\rnested.field2\x12\x10nested_field_two\x1a\x12\n" +
 	"\anested2\x12\anested2\x1a\x1a\n" +
 	"\tnested4.*\x12\rnested4_jsonb\x1a!\n" +
-	"\anested3\x12\x06field1\x12\x06field1\x12\x06field2\"\xa9\x01\n" +
+	"\anested3\x12\x06field1\x12\x06field1\x12\x06field2\"\xab\x01\n" +
 	"\x16UpdateResource2Request\x121\n" +
-	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x129\n" +
-	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:!\x8a\xf6,\x1d\n" +
+	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
+	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask:!\x8a\xf6,\x1d\n" +
 	"\x06field1\x12\b\n" +
 	"\x06nested\x12\t\n" +
 	"\anested2*4\n" +
@@ -477,9 +477,9 @@ var file_proto_test_aip_proto_depIdxs = []int32{
 	3, // 3: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
 	0, // 4: test.aip.v1.Resource.my_enum:type_name -> test.aip.v1.MyEnum
 	2, // 5: test.aip.v1.UpdateResourceRequest.resource:type_name -> test.aip.v1.Resource
-	6, // 6: test.aip.v1.UpdateResourceRequest.field_mask:type_name -> google.protobuf.FieldMask
+	6, // 6: test.aip.v1.UpdateResourceRequest.update_mask:type_name -> google.protobuf.FieldMask
 	2, // 7: test.aip.v1.UpdateResource2Request.resource:type_name -> test.aip.v1.Resource
-	6, // 8: test.aip.v1.UpdateResource2Request.field_mask:type_name -> google.protobuf.FieldMask
+	6, // 8: test.aip.v1.UpdateResource2Request.update_mask:type_name -> google.protobuf.FieldMask
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name
