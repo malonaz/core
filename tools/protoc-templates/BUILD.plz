@@ -3,7 +3,6 @@ go_binary(
     srcs = [
         "functions.go",
         "main.go",
-        "parse_identifiers.go",
         "resources.go",
         "types.go",
     ],
@@ -16,35 +15,6 @@ go_binary(
         "//genproto/codegen/rpc",
         "//third_party/go:github.com__Masterminds__sprig__v3",
         "//third_party/go:github.com__huandu__xstrings",
-        "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
-        "//third_party/go:go.einride.tech__aip__resourcename",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
-        "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
-        "//third_party/go:google.golang.org__protobuf__types__pluginpb",
-    ],
-)
-
-go_test(
-    name = "test",
-    srcs = [
-        "functions.go",
-        "main.go",
-        "parse_identifiers.go",
-        "parse_identifiers_test.go",
-        "resources.go",
-        "types.go",
-    ],
-    deps = [
-        "//genproto/codegen/aip",
-        "//genproto/codegen/gateway",
-        "//genproto/codegen/model",
-        "//genproto/codegen/rpc",
-        "//third_party/go:github.com__Masterminds__sprig__v3",
-        "//third_party/go:github.com__huandu__xstrings",
-        "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",

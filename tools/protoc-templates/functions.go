@@ -56,8 +56,9 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"fqn":               se.fqn,
 		"qualifiedGoIdent":  se.qualifiedGoIdent,
 
-		"parseRPC":                parseRPC,
-		"parseResourceDescriptor": parseResourceDescriptor,
+		"parseRPC":                 parseRPC,
+		"parseResource":            parseResource,
+		"parseResourceFromMessage": parseResourceFromMessage,
 
 		"getExt":      getExt,
 		"fieldName":   fieldName,

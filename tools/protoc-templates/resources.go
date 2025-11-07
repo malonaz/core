@@ -10,6 +10,7 @@ import (
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 var (
@@ -64,126 +65,78 @@ func registerAnnotations(files []*protogen.File) error {
 }
 
 func registerAncestors(files []*protogen.File) error {
+	// Build a registry from the files
+	registry := &protoregistry.Files{}
 	for _, f := range files {
-		for _, service := range f.Services {
-			for _, method := range service.Methods {
-				// Check if method has message_type annotation
-				methodOpts := method.Desc.Options()
-				if methodOpts == nil {
-					continue
-				}
-				if !proto.HasExtension(methodOpts, rpcpb.E_MessageType) {
-					continue
-				}
-
-				// Get the message type
-				messageTypeExt := proto.GetExtension(methodOpts, rpcpb.E_MessageType)
-				messageType, ok := messageTypeExt.(string)
-				if !ok || messageType == "" {
-					continue
-				}
-
-				// Get the resource descriptor for this message
-				resourceDescriptor, ok := messageTypeToResourceDescriptor[messageType]
-				if !ok {
-					continue
-				}
-
-				// Check if this is a LIST method by checking the method name
-				resourceNamePlural := xstrings.ToPascalCase(resourceDescriptor.Plural)
-				if method.GoName != "List"+resourceNamePlural {
-					continue
-				}
-
-				// Check if input message has a 'parent' field
-				parentField := method.Input.Desc.Fields().ByName("parent")
-				if parentField == nil {
-					continue
-				}
-
-				// Get the resource_reference annotation from parent field
-				parentFieldOpts := parentField.Options()
-				if parentFieldOpts == nil || !proto.HasExtension(parentFieldOpts, annotationspb.E_ResourceReference) {
-					return fmt.Errorf("parent field in LIST method %s must have resource_reference annotation", method.Desc.Name())
-				}
-
-				parentResourceRefExt := proto.GetExtension(parentFieldOpts, annotationspb.E_ResourceReference)
-				parentResourceRef, ok := parentResourceRefExt.(*annotationspb.ResourceReference)
-				if !ok || parentResourceRef == nil {
-					return fmt.Errorf("invalid resource_reference on parent field in LIST method %s", method.Desc.Name())
-				}
-
-				// Store the mapping: child resource type -> parent resource type
-				resourceTypeToParentResourceType[resourceDescriptor.Type] = parentResourceRef.Type
-			}
+		if err := registry.RegisterFile(f.Desc); err != nil {
+			return fmt.Errorf("failed to register file %s: %w", f.Desc.Path(), err)
 		}
 	}
+
+	// Iterate over all files to find resources and their parents
+	for _, f := range files {
+		packageName := f.Desc.Package()
+
+		// Process all resource descriptors in this file
+		aipreflect.RangeResourceDescriptorsInFile(f.Desc, func(resource *annotationspb.ResourceDescriptor) bool {
+			if len(resource.Pattern) == 0 {
+				return true // continue
+			}
+
+			// Use the first pattern
+			pattern := resource.Pattern[0]
+
+			// Find the immediate parent for this resource
+			aipreflect.RangeParentResourcesInPackage(
+				registry,
+				packageName,
+				pattern,
+				func(parent *annotationspb.ResourceDescriptor) bool {
+					// Store the parent relationship
+					resourceTypeToParentResourceType[resource.Type] = parent.Type
+					// Return false to stop after finding the first (immediate) parent
+					return false
+				},
+			)
+
+			return true // continue processing other resources
+		})
+	}
+
 	return nil
 }
 
 type ParsedResource struct {
-	Message *protogen.Message
-	RD      *annotationspb.ResourceDescriptor
-	PRD     *annotationspb.ResourceDescriptor
+	Desc             *annotationspb.ResourceDescriptor
+	Type             string
+	Pattern          string
+	Singleton        bool
+	PatternVariables []string
 
-	// Pattern variables
-	Pattern                string
-	Singleton              bool
-	ParentPatternVariables []string
-	PatternVariables       []string
+	Parent *ParsedResource
 }
 
-func (pr *ParsedResource) ResourceType() (string, error) {
-	t := pr.RD.GetType()
-	if t == "" {
-		return "", fmt.Errorf("no resource type")
-	}
-	return aipreflect.ResourceType(t).Type(), nil
-}
-
-func (pr *ParsedResource) ResourceName() (string, error) {
-	resourceType, err := pr.ResourceType()
-	if err != nil {
-		return "", err
-	}
-	return resourceType + "ResourceName", nil
-}
-
-func (pr *ParsedResource) ParentResourceType() (string, error) {
-	t := pr.RD.GetType()
-	if t == "" {
-		return "", fmt.Errorf("no parent resource type")
-	}
-	return aipreflect.ResourceType(t).Type(), nil
-}
-
-func (pr *ParsedResource) ParentResourceName() (string, error) {
-	parentResourceType, err := pr.ParentResourceType()
-	if err != nil {
-		return "", err
-	}
-	return parentResourceType + "ResourceName", nil
-}
-
-// Retursn the self pattern variable.
+// Returns the self pattern variable.
 func (pr *ParsedResource) PatternVariable() (string, error) {
 	if pr.Singleton {
 		return "", fmt.Errorf("called PatternVariable on singleton resource")
 	}
-	return pr.RD.Singular, nil
+	return pr.Desc.Singular, nil
 }
 
-func (pr *ParsedResource) HasParent() bool {
-	return len(pr.ParentPatternVariables) > 0
-}
-
-func parseResource(message *protogen.Message) (*ParsedResource, error) {
-	// Parse the resource Descriptor.
-	messageType := string(message.Desc.FullName())
-	resourceDescriptor, ok := messageTypeToResourceDescriptor[messageType]
-	if !ok {
-		return nil, fmt.Errorf("no resource descriptor found for message type %s", messageType)
+func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*ParsedResource, error) {
+	if resourceDescriptor.Singular == "" {
+		return nil, fmt.Errorf("resource descriptor %s must define `singular`", resourceDescriptor.Type)
 	}
+	if resourceDescriptor.Plural == "" {
+		return nil, fmt.Errorf("resource descriptor %s must define `plural`", resourceDescriptor.Type)
+	}
+
+	t := resourceDescriptor.GetType()
+	if t == "" {
+		return nil, fmt.Errorf("no resource type")
+	}
+	resourceType := aipreflect.ResourceType(t).Type()
 
 	// Parse the pattern.
 	if len(resourceDescriptor.Pattern) != 1 {
@@ -193,129 +146,71 @@ func parseResource(message *protogen.Message) (*ParsedResource, error) {
 
 	// set pattern variables.
 	var sc resourcename.Scanner
-	var singleton bool
-	var parentPatternVariables []string
+	singleton := true
+	hasParent := false
 	var patternVariables []string
 	sc.Init(pattern)
 	for sc.Scan() {
 		if sc.Segment().IsVariable() {
 			patternVariable := string(sc.Segment().Literal())
-			if patternVariable == resourceDescriptor.Singular {
-				singleton = true
-			} else {
-				parentPatternVariables = append(parentPatternVariables, patternVariable)
-			}
 			patternVariables = append(patternVariables, patternVariable)
+			if patternVariable == resourceDescriptor.Singular {
+				singleton = false
+			} else {
+				hasParent = true
+			}
 		}
 	}
 
 	// Fetch the parent resource descriptor.
-	var parentResourceDescriptor *annotationspb.ResourceDescriptor
-	if len(parentPatternVariables) > 0 {
+	var parent *ParsedResource
+	if hasParent {
 		parentResourceType, ok := resourceTypeToParentResourceType[resourceDescriptor.Type]
 		if !ok {
-			return nil, fmt.Errorf("parent resource type %s not found", resourceDescriptor.Type)
+			x := ""
+			for k, v := range resourceTypeToParentResourceType {
+				x += fmt.Sprintf("%s => %s\n", k, v)
+			}
+			return nil, fmt.Errorf("could not [%s]'s parent resource type: %s", resourceDescriptor.Type, x)
 		}
-		parentResourceDescriptor, ok = resourceTypeToResourceDescriptor[parentResourceType]
+		parentResourceDescriptor, ok := resourceTypeToResourceDescriptor[parentResourceType]
 		if !ok {
 			return nil, fmt.Errorf("resource descriptor %s not found", parentResourceType)
+		}
+		var err error
+		parent, err = parseResource(parentResourceDescriptor)
+		if err != nil {
+			return nil, fmt.Errorf("parsing (parent) resource descriptor %s: %v", parentResourceType, err)
 		}
 	}
 
 	return &ParsedResource{
-		Message: message,
-		RD:      resourceDescriptor,
-		PRD:     parentResourceDescriptor,
+		Desc:             resourceDescriptor,
+		Type:             resourceType,
+		Pattern:          pattern,
+		Singleton:        singleton,
+		PatternVariables: patternVariables,
 
-		Pattern:                pattern,
-		Singleton:              singleton,
-		ParentPatternVariables: parentPatternVariables,
-		PatternVariables:       patternVariables,
+		Parent: parent,
 	}, nil
-
 }
 
-type ParsedResourceDescriptor struct {
-	ResourceDescriptor *annotationspb.ResourceDescriptor
-	Identifier         string
-	ParentIdentifiers  []string
-	AllIdentifiers     []string
-}
-
-func parseResourceDescriptor(message *protogen.Message) (*ParsedResourceDescriptor, error) {
-	// 1. Get the resource descriptor for this message
+func parseResourceFromMessage(message *protogen.Message) (*ParsedResource, error) {
+	// Parse the resource Descriptor.
 	messageType := string(message.Desc.FullName())
 	resourceDescriptor, ok := messageTypeToResourceDescriptor[messageType]
 	if !ok {
 		return nil, fmt.Errorf("no resource descriptor found for message type %s", messageType)
 	}
-	if resourceDescriptor.Type == "" {
-		return nil, fmt.Errorf("%s has no type defined", resourceDescriptor.Singular)
-	}
-	if len(resourceDescriptor.Pattern) != 1 {
-		return nil, fmt.Errorf("expected 1 pattern got %d for %s", len(resourceDescriptor.Pattern), resourceDescriptor.Singular)
-	}
 
-	allIdentifiers := parseIdentifiersFromPattern(resourceDescriptor.Pattern[0])
-	identifier := ""
-	parentIdentifiers := make([]string, 0, len(allIdentifiers))
-	// Iterate in reverse.
-	for i := len(allIdentifiers) - 1; i >= 0; i-- {
-		currentIdentifier := allIdentifiers[i]
-		if currentIdentifier == resourceDescriptor.Singular {
-			identifier = currentIdentifier
-		} else {
-			parentIdentifiers = append(parentIdentifiers, currentIdentifier)
-		}
-	}
-
-	return &ParsedResourceDescriptor{
-		ResourceDescriptor: resourceDescriptor,
-		Identifier:         identifier,
-		ParentIdentifiers:  parentIdentifiers,
-		AllIdentifiers:     allIdentifiers,
-	}, nil
+	return parseResource(resourceDescriptor)
 }
 
 // CompiledResource.
 type RPC struct {
-	MethodType               rpcpb.MethodType
-	ParsedResource           *ParsedResource
-	Message                  *protogen.Message
-	ParsedResourceDescriptor *ParsedResourceDescriptor
-	ParentResourceDescriptor *annotationspb.ResourceDescriptor
-}
-
-func (rpc *RPC) ResourceType() (string, error) {
-	t := rpc.ParsedResourceDescriptor.ResourceDescriptor.GetType()
-	if t == "" {
-		return "", fmt.Errorf("no resource type")
-	}
-	return aipreflect.ResourceType(t).Type(), nil
-}
-
-func (rpc *RPC) ResourceName() (string, error) {
-	resourceType, err := rpc.ResourceType()
-	if err != nil {
-		return "", err
-	}
-	return resourceType + "ResourceName", nil
-}
-
-func (rpc *RPC) ParentResourceType() (string, error) {
-	t := rpc.ParentResourceDescriptor.GetType()
-	if t == "" {
-		return "", fmt.Errorf("no parent resource type")
-	}
-	return aipreflect.ResourceType(t).Type(), nil
-}
-
-func (rpc *RPC) ParentResourceName() (string, error) {
-	parentResourceType, err := rpc.ParentResourceType()
-	if err != nil {
-		return "", err
-	}
-	return parentResourceType + "ResourceName", nil
+	MethodType     rpcpb.MethodType
+	Message        *protogen.Message
+	ParsedResource *ParsedResource
 }
 
 // Given a protogen.Method
@@ -349,34 +244,14 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 	}
 
 	// 3. Parse the resource.
-	parsedResource, err := parseResource(message)
+	parsedResource, err := parseResourceFromMessage(message)
 	if err != nil {
 		return nil, fmt.Errorf("parsing resource for message type %s: %w", messageType, err)
 	}
-	_ = parsedResource
 
-	// 3. Parse the resource descriptor.
-	prd, err := parseResourceDescriptor(message)
-	if err != nil {
-		return nil, fmt.Errorf("parsing resource descriptor: %v", err)
-	}
-
-	// 4. Find the parent resource descriptor if it exists.
-	var parentResourceDescriptor *annotationspb.ResourceDescriptor
-	if len(prd.ParentIdentifiers) > 0 {
-		parentResourceType, ok := resourceTypeToParentResourceType[prd.ResourceDescriptor.Type]
-		if !ok {
-			return nil, fmt.Errorf("parent resource type not found for method %s", method.Desc.Name())
-		}
-		parentResourceDescriptor, ok = resourceTypeToResourceDescriptor[parentResourceType]
-		if !ok {
-			return nil, fmt.Errorf("parent resource descriptor not found for method %s", method.Desc.Name())
-		}
-	}
-
-	// 5. Determine the method type based on the method name
-	resourceNameSingular := xstrings.ToPascalCase(prd.ResourceDescriptor.Singular)
-	resourceNamePlural := xstrings.ToPascalCase(prd.ResourceDescriptor.Plural)
+	// 4. Determine the method type based on the method name
+	resourceNameSingular := xstrings.ToPascalCase(parsedResource.Desc.Singular)
+	resourceNamePlural := xstrings.ToPascalCase(parsedResource.Desc.Plural)
 	var methodType rpcpb.MethodType
 	switch method.GoName {
 	case "Create" + resourceNameSingular:
@@ -393,12 +268,10 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 		return nil, fmt.Errorf("method %s does not match any standard method pattern for resource %s", method.GoName, resourceNameSingular)
 	}
 
-	// 4. Grab the parent resource descriptor.
 	return &RPC{
-		MethodType:               methodType,
-		Message:                  message,
-		ParsedResourceDescriptor: prd,
-		ParentResourceDescriptor: parentResourceDescriptor,
+		MethodType:     methodType,
+		Message:        message,
+		ParsedResource: parsedResource,
 	}, nil
 
 }
