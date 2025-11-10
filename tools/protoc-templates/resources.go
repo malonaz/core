@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	messageTypeToResourceDescriptor  = map[string]*annotationspb.ResourceDescriptor{}
-	resourceTypeToResourceDescriptor = map[string]*annotationspb.ResourceDescriptor{}
-	resourceTypeToParentResourceType = map[string]string{}
-	resourceTypeToMessage            = map[string]*protogen.Message{}
+	messageTypeToResourceDescriptor    = map[string]*annotationspb.ResourceDescriptor{}
+	resourceTypeToResourceDescriptor   = map[string]*annotationspb.ResourceDescriptor{}
+	resourceTypeToParentResourceType   = map[string]string{}
+	resourceTypeToChildResourceTypeSet = map[string]map[string]struct{}{}
+	resourceTypeToMessage              = map[string]*protogen.Message{}
 )
 
 func registerAnnotations(files []*protogen.File) error {
@@ -94,6 +95,10 @@ func registerAncestors(files []*protogen.File) error {
 				func(parent *annotationspb.ResourceDescriptor) bool {
 					// Store the parent relationship
 					resourceTypeToParentResourceType[resource.Type] = parent.Type
+					if resourceTypeToChildResourceTypeSet[parent.Type] == nil {
+						resourceTypeToChildResourceTypeSet[parent.Type] = map[string]struct{}{}
+					}
+					resourceTypeToChildResourceTypeSet[parent.Type][resource.Type] = struct{}{}
 					// Return false to stop after finding the first (immediate) parent
 					return false
 				},
@@ -113,7 +118,8 @@ type ParsedResource struct {
 	Singleton        bool
 	PatternVariables []string
 
-	Parent *ParsedResource
+	Parent   *ParsedResource
+	Children []*ParsedResource
 }
 
 // Returns the self pattern variable.
@@ -189,8 +195,17 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 		}
 	}
 
+	parsedResource := &ParsedResource{
+		Desc:             resourceDescriptor,
+		Type:             resourceType,
+		Pattern:          pattern,
+		Singleton:        singleton,
+		PatternVariables: patternVariables,
+	}
+	// Store it before recursing to avoid infinite loops.
+	parsedResourceTypeToParsedResource[resourceDescriptor.Type] = parsedResource
+
 	// Fetch the parent resource descriptor.
-	var parent *ParsedResource
 	if hasParent {
 		parentResourceType, ok := resourceTypeToParentResourceType[resourceDescriptor.Type]
 		if !ok {
@@ -201,21 +216,24 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 			return nil, fmt.Errorf("resource descriptor %s not found", parentResourceType)
 		}
 		var err error
-		parent, err = parseResource(parentResourceDescriptor)
+		parsedResource.Parent, err = parseResource(parentResourceDescriptor)
 		if err != nil {
 			return nil, fmt.Errorf("parsing (parent) resource descriptor %s: %v", parentResourceType, err)
 		}
 	}
 
-	parsedResource := &ParsedResource{
-		Desc:             resourceDescriptor,
-		Type:             resourceType,
-		Pattern:          pattern,
-		Singleton:        singleton,
-		PatternVariables: patternVariables,
-		Parent:           parent,
+	for childResourceType := range resourceTypeToChildResourceTypeSet[resourceDescriptor.Type] {
+		childResourceDescriptor, ok := resourceTypeToResourceDescriptor[childResourceType]
+		if !ok {
+			return nil, fmt.Errorf("resource descriptor %s not found", childResourceType)
+		}
+		child, err := parseResource(childResourceDescriptor)
+		if err != nil {
+			return nil, fmt.Errorf("parsing (child) resource descriptor %s: %v", childResourceType, err)
+		}
+		parsedResource.Children = append(parsedResource.Children, child)
 	}
-	parsedResourceTypeToParsedResource[resourceDescriptor.Type] = parsedResource
+
 	return parsedResource, nil
 }
 

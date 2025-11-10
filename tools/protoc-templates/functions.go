@@ -59,6 +59,9 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"parseRPC":                 parseRPC,
 		"parseResource":            parseResource,
 		"parseResourceFromMessage": parseResourceFromMessage,
+		"getMessageUsingResourceType": func(resourceType string) *protogen.Message {
+			return resourceTypeToMessage[resourceType]
+		},
 
 		"getExt":      getExt,
 		"fieldName":   fieldName,
