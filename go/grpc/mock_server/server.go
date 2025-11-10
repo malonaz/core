@@ -32,7 +32,11 @@ func NewServer(port string, opts *commongrpc.Opts, certsOpts *certs.Opts) *Serve
 		methodToHandler: map[string]Handler{},
 	}
 	register := func(*commongrpc.Server) {}
-	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register).WithOptions(
+	grpcServer, err := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register)
+	if err != nil {
+		panic(err)
+	}
+	grpcServer.WithOptions(
 		grpc.CustomCodec(Codec{}), grpc.UnknownServiceHandler(server.handleRPC),
 	)
 	go grpcServer.Serve(context.Background())

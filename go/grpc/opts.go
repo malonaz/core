@@ -21,8 +21,9 @@ type Opts struct {
 
 // GatewayOpts holds a gRPC gateway server opts.
 type GatewayOpts struct {
-	Port int    `long:"port" env:"PORT" description:"Port to serve the GRPC gateway on." default:"8080"`
-	Host string `long:"host" env:"HOST" description:"Host for a client to connect to."`
+	Port                int    `long:"port" env:"PORT" description:"Port to serve the GRPC gateway on." default:"8080"`
+	Host                string `long:"host" env:"HOST" description:"Host for a client to connect to."`
+	GracefulStopTimeout int    `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
 }
 
 // Returns true if this opts uses sockets.

@@ -7,6 +7,7 @@ import (
 	"net/textproto"
 	"reflect"
 	"strings"
+	"time"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -43,7 +44,12 @@ type Gateway struct {
 	// Opts for this gateway.
 	opts *GatewayOpts
 	// Opts for the grpc server this gateway is connecting to.
-	grpcOpts         *Opts
+	grpcOpts *Opts
+
+	// HTTP Server.
+	httpServer *http.Server
+
+	// Handlers.
 	registerHandlers []RegisterHandler
 
 	// HTTP.
@@ -61,7 +67,7 @@ type Gateway struct {
 }
 
 // NewGateway creates and returns a new Gateway.
-func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) (*Gateway, error) {
 	gateway := &Gateway{
 		opts:             opts,
 		grpcOpts:         grpcOpts,
@@ -95,7 +101,7 @@ func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, promet
 	} else {
 		tlsConfig, err := certsOpts.ClientTLSConfig()
 		if err != nil {
-			log.Panicf("Could not load client TLS config: %v", err)
+			return nil, fmt.Errorf("loading client TLS config: %w", err)
 		}
 		gateway.dialOptions = append(gateway.dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	}
@@ -111,7 +117,7 @@ func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, promet
 		gateway.unaryInterceptors = append(gateway.unaryInterceptors, metrics.UnaryClientInterceptor())
 		gateway.streamInterceptors = append(gateway.streamInterceptors, metrics.StreamClientInterceptor())
 	}
-	return gateway
+	return gateway, nil
 }
 
 // WithOptions adds options to this gRPC gateway.
@@ -139,7 +145,7 @@ func (g *Gateway) WithClientStreamInterceptors(interceptors ...grpc.StreamClient
 }
 
 // Serve serves this gRPC gateway. Blocking call.
-func (g *Gateway) Serve(ctx context.Context) {
+func (g *Gateway) Serve(ctx context.Context) error {
 	// Chain interceptors.
 	if len(g.unaryInterceptors) > 0 {
 		g.dialOptions = append(g.dialOptions, grpc.WithChainUnaryInterceptor(g.unaryInterceptors...))
@@ -151,11 +157,12 @@ func (g *Gateway) Serve(ctx context.Context) {
 	endpoint := g.grpcOpts.Endpoint()
 	for _, registerHandler := range g.registerHandlers {
 		if err := registerHandler(ctx, mux, endpoint, g.dialOptions); err != nil {
-			log.Panicf("Could not register handler: %v", err)
+			return fmt.Errorf("registering handler: %w", err)
 		}
 	}
 	log.Infof("Connected to gRPC server on [%s]", endpoint)
 
+	var protoRegistryRangeFileErr error
 	g.routeToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
 	protoregistry.GlobalFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		services := fd.Services()
@@ -188,7 +195,8 @@ func (g *Gateway) Serve(ctx context.Context) {
 					path = pattern.Custom.Path
 				}
 				if path == "" {
-					log.Panic("no path defined in %v", httpRule)
+					protoRegistryRangeFileErr = fmt.Errorf("no path defined in %v", httpRule)
+					return false
 				}
 				g.routeToGatewayOptions[path] = gatewayOptions
 				log.Infof("[%s] registered gateway options: %+v", path, gatewayOptions)
@@ -196,14 +204,46 @@ func (g *Gateway) Serve(ctx context.Context) {
 		}
 		return true
 	})
+	if protoRegistryRangeFileErr != nil {
+		return protoRegistryRangeFileErr
+	}
 
 	url := fmt.Sprintf(":%d", g.opts.Port)
 	handler := customMimeWrapper(g.routeToGatewayOptions, allowCORS(mux))
-	httpServer := http.Server{Addr: url, Handler: handler}
+	g.httpServer = &http.Server{Addr: url, Handler: handler}
 	log.Infof("Serving gRPC Gateway on port [:%d]", g.opts.Port)
-	if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		log.Panicf("Gateway server exited unexpectedly: %v", err)
+	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		return fmt.Errorf("gateway server exited unexpectedly: %w", err)
 	}
+	return nil
+}
+
+// Stop immediately stops the gateway server.
+func (g *Gateway) Stop() error {
+	if g.httpServer == nil {
+		return nil
+	}
+	log.Info("Stopping gRPC Gateway")
+	return g.httpServer.Close()
+}
+
+// GracefulStop gracefully stops the gateway server.
+func (g *Gateway) GracefulStop() error {
+	if g.httpServer == nil {
+		return nil
+	}
+	log.Info("Gracefully stopping gRPC Gateway")
+	duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	err := g.httpServer.Shutdown(ctx)
+	if err == context.DeadlineExceeded {
+		log.Warning("Graceful shutdown timed out")
+		// Force close any remaining connections
+		return g.Stop()
+	}
+	return err
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////

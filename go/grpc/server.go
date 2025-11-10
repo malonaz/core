@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -77,7 +78,7 @@ type Server struct {
 }
 
 // NewServer creates and returns a new Server.
-func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, register func(*Server)) *Server {
+func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, register func(*Server)) (*Server, error) {
 	server := &Server{
 		opts:           opts,
 		prometheusOpts: prometheusOpts,
@@ -90,7 +91,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	if !opts.DisableTLS {
 		tlsConfig, err := certsOpts.ServerTLSConfig()
 		if err != nil {
-			log.Panicf("Could not load server TLS config: %v", err)
+			return nil, fmt.Errorf("loading TLS config: %w", err)
 		}
 		server.options = append(server.options, grpc.Creds(credentials.NewTLS(tlsConfig)))
 	} else {
@@ -114,7 +115,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	// Instantiate validator.
 	validator, err := protovalidate.New()
 	if err != nil {
-		log.Panicf("could not instantiate proto validator")
+		return nil, fmt.Errorf("instantiating proto validator: %w", err)
 	}
 
 	// PRE (1): Panic interceptor. We *never* want to panic.
@@ -156,7 +157,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	server.postStreamInterceptors = append(
 		server.postStreamInterceptors, grpc_interceptor.StreamServerValidate(validator),
 	)
-	return server
+	return server, nil
 }
 
 func (s *Server) GetHealthServer() *health.GRPCServer {
@@ -183,13 +184,14 @@ func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterce
 	return s
 }
 
-func (s *Server) Stop() {
+func (s *Server) Stop() error {
 	log.Warningf("stopping server")
 	s.Raw.Stop()
 	s.healthServer.Shutdown()
+	return nil
 }
 
-func (s *Server) GracefulStop() {
+func (s *Server) GracefulStop() error {
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ch := make(chan struct{})
 	go func() {
@@ -200,14 +202,16 @@ func (s *Server) GracefulStop() {
 	}()
 	select {
 	case <-time.After(duration):
-		log.Infof("grace period exhausted, stopping server")
+		log.Infof("grace period exhausted")
 		s.Stop()
 	case <-ch:
 	}
+	s.healthServer.Shutdown()
+	return nil
 }
 
 // Serve instantiates the gRPC server and blocks forever.
-func (s *Server) Serve(ctx context.Context) {
+func (s *Server) Serve(ctx context.Context) error {
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
 	streamInterceptors := append(s.preStreamInterceptors, s.streamInterceptors...)
@@ -227,27 +231,27 @@ func (s *Server) Serve(ctx context.Context) {
 		defer os.Remove(s.opts.SocketPath)
 		// Clean up existing socket file if it exists
 		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
-			log.Panicf("Failed to remove existing socket file [%s]: %v", s.opts.SocketPath, err)
+			return fmt.Errorf("removing existing socket [%s]: %w", s.opts.SocketPath, err)
 		}
 		// Ensure directory exists
 		dir := filepath.Dir(s.opts.SocketPath)
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Panicf("Failed to create socket directory [%s]: %v", dir, err)
+			return fmt.Errorf("creating socket  [%s]: %w", s.opts.SocketPath, err)
 		}
 		listener, err = net.Listen("unix", s.opts.SocketPath)
 		if err != nil {
-			log.Panicf("Failed to listen on socket [%s]: %v", s.opts.SocketPath, err)
+			return fmt.Errorf("listening on socket [%s]: %w", s.opts.SocketPath, err)
 		}
 		// Set appropriate permissions
 		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
-			log.Warningf("Failed to set socket permissions: %v", err)
+			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
 		}
 		log.Infof("Serving gRPC on Unix socket [%s]", s.opts.SocketPath)
 	} else {
 		// Connect.
 		listener, err = net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
 		if err != nil {
-			log.Panicf("Failed to listen on port [%d]: %v", s.opts.Port, err)
+			return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
 		}
 		log.Infof("Serving gRPC on port [:%d]", s.opts.Port)
 	}
@@ -263,6 +267,7 @@ func (s *Server) Serve(ctx context.Context) {
 		prom.DefaultRegisterer.MustRegister(s.prometheusServerMetrics)
 	}
 	if err := s.Raw.Serve(listener); err != nil {
-		log.Panicf("gRPC server exited with error: %v", err)
+		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}
+	return nil
 }

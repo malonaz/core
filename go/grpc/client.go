@@ -46,14 +46,14 @@ type Connection struct {
 }
 
 // NewConnection creates and returns a new gRPC client.
-func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) *Connection {
+func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) (*Connection, error) {
 	client := &Connection{
 		opts: opts,
 	}
 
 	validator, err := protovalidate.New()
 	if err != nil {
-		log.Panicf("could not instantiate proto validator")
+		return nil, fmt.Errorf("instantiating proto validator: %w", err)
 	}
 
 	// Default options.
@@ -67,7 +67,7 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 	} else {
 		tlsConfig, err := certsOpts.ClientTLSConfig()
 		if err != nil {
-			log.Panicf("Could not load client TLS config: %v", err)
+			return nil, fmt.Errorf("loading client TLS config: %w", err)
 		}
 		client.options = append(client.options, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	}
@@ -94,7 +94,7 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 		interceptor.UnaryClientRetry(),
 	)
 	client.postStreamInterceptors = append(client.postStreamInterceptors, interceptor.StreamClientRetry())
-	return client
+	return client, nil
 }
 
 // WithOptions adds options to this gRPC client.
@@ -117,7 +117,7 @@ func (c *Connection) WithStreamInterceptors(interceptors ...grpc.StreamClientInt
 
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
-func (c *Connection) Connect() *Connection {
+func (c *Connection) Connect() error {
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
 	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
@@ -135,11 +135,11 @@ func (c *Connection) Connect() *Connection {
 	endpoint := c.opts.Endpoint()
 	connection, err := grpc.Dial(endpoint, c.options...)
 	if err != nil {
-		log.Panicf("Failed to dial grpc [%s]: %v", endpoint, err)
+		return fmt.Errorf("dialing grpc [%s]: %v", endpoint, err)
 	}
 	log.Infof("connected to gRPC server on [%s]", endpoint)
 	c.connection = connection
-	return c
+	return nil
 }
 
 func (c *Connection) Close() error {

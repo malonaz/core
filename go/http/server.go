@@ -43,12 +43,13 @@ func NewServer(opts *Opts, register func(*Server)) *Server {
 	}
 }
 
-func (s *Server) RegisterRoute(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+func (s *Server) RegisterRoute(pattern string, handler func(http.ResponseWriter, *http.Request)) error {
 	if _, ok := s.patternSet[pattern]; ok {
-		log.Panicf("duplicate pattern registered [%s]", pattern)
+		return fmt.Errorf("duplicate pattern registered [%s]", pattern)
 	}
 	s.patternSet[pattern] = struct{}{}
 	s.mux.HandleFunc(pattern, handler)
+	return nil
 }
 
 func (s *Server) GetHealthServer() *health.GRPCServer {
@@ -56,7 +57,7 @@ func (s *Server) GetHealthServer() *health.GRPCServer {
 }
 
 // Serve the HTTP server.
-func (s *Server) Serve(ctx context.Context) {
+func (s *Server) Serve(ctx context.Context) error {
 	s.register(s)
 	// Start health server in background
 	go s.healthServer.Start(ctx)
@@ -73,26 +74,36 @@ func (s *Server) Serve(ctx context.Context) {
 	// Start HTTP server
 	log.Infof("Starting HTTP server on port %d", s.opts.Port)
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Panicf("http server exited with error: %v", err)
+		return fmt.Errorf("HTTP server exited unexpectedly: %w", err)
 	}
+	return nil
 }
 
-func (s *Server) Stop() {
+// Stop immediately stops the gateway server.
+func (s *Server) Stop() error {
+	if s.httpServer == nil {
+		return nil
+	}
+	log.Info("Stopping HTTP server")
+	s.healthServer.Shutdown()
+	return s.httpServer.Close()
 }
 
-// Stop gracefully shuts down the HTTP server.
-func (s *Server) GracefulStop() {
-	return
-	// TODO(malon): this is trickier as 'ListenAndServe' returns immediately once this is called.
+// GracefulStop gracefully stops the gateway server.
+func (s *Server) GracefulStop() error {
+	if s.httpServer == nil {
+		return nil
+	}
+	log.Info("Gracefully stopping gRPC Gateway")
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), duration)
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	log.Infof("attempting to gracefully stop server, with a grace period of %s", duration)
-	// Shutdown HTTP server
-	if err := s.httpServer.Shutdown(shutdownCtx); err != nil {
-		//return fmt.Errorf("failed to shutdown HTTP server: %w", err)
+	err := s.httpServer.Shutdown(ctx)
+	if err == context.DeadlineExceeded {
+		log.Warning("Graceful shutdown timed out")
+		// Force close any remaining connections
+		return s.Stop()
 	}
-
-	log.Info("HTTP server shutdown complete")
+	return err
 }

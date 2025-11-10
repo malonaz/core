@@ -44,7 +44,13 @@ ctx := {{ goImport "context" }}.Background()
             {{- if doOnce (printf "grpc_conn_deps_%s" $dep.proto) -}}
                 {{ $grpc := parseGRPC $dep.proto }}
                 if _, ok := networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
-                connection := {{ $grpc.NewConnection }}.Connect()
+                connection, err := {{ $grpc.NewConnection }}
+                if err != nil {
+                log.Panicf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
+                }
+                if err := connection.Connect(); err != nil {
+                log.Panicf("connecting [%s]: %v", "{{ $dep.proto }}", err)
+                }
                 defer connection.Close()
                 networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
                 }
@@ -107,8 +113,8 @@ ctx := {{ goImport "context" }}.Background()
 {{- end }}
 
 healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health)
-var gracefulStopFns []func()
-var stopFns []func()
+var gracefulStopFns []func() error
+var stopFns []func() error
 
 {{ range $server := .servers }}
 
@@ -176,8 +182,12 @@ var stopFns []func()
             {{ end }}
         {{- end }}
 
-	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register).
-        WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
+	      grpcServer, err := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register)
+        if err != nil {
+        log.Panicf("instantiating grpc server [%s]: %v", "{{ $server.name }}", err)
+        }
+
+        grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
             {{- if eq $interceptor.type "session_injector" }}
                 sessionInjectorInterceptor.Unary(),
             {{- else if eq $interceptor.type "internal_authentication" }}
@@ -215,7 +225,7 @@ var stopFns []func()
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
-        go grpcServer.Serve(ctx)
+        serveOrPanic(ctx, "{{ $server.name }}", grpcServer.Serve)
 
         {{- $hasGateway := false -}}
         {{- range $service := $server.services -}}
@@ -231,8 +241,11 @@ var stopFns []func()
         {{ end }}
         {{- if $hasGateway -}}
             }
-            grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-            go grpcGatewayServer.Serve(ctx)
+            grpcGatewayServer, err := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
+            if err != nil {
+            log.Panicf("instantiating grpc gateway [%s]: %v", "{{ $server.name }}", err)
+            }
+            serveOrPanic(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
         {{- end }}
     {{- end }}
 
@@ -261,7 +274,7 @@ var stopFns []func()
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
-        go httpServer.Serve(ctx)
+        serveOrPanic(ctx, "{{ $server.name }}", httpServer.Serve)
     {{- end }}
     }
 {{- end }}
@@ -270,8 +283,20 @@ var stopFns []func()
 // Setup health check.
 go healthServer.Serve(ctx)
 
+gracefulStopFns = append(gracefulStopFns, func() error {
+healthServer.Shutdown()
+return nil
+})
 healthServer.MarkReady()
   handleSignals(gracefulStopFns, stopFns)
 }
 
 {{ template "shutdownOpts" . }}
+
+func serveOrPanic(ctx context.Context, serverName string, serveFn func(context.Context) error) {
+    go func() {
+        if err := serveFn(ctx); err != nil {
+            log.Panicf("server [%s] failed: %v", serverName, err)
+        }
+    }()
+}
