@@ -78,6 +78,71 @@ func registerAncestors(files []*protogen.File) error {
 	for _, f := range files {
 		packageName := f.Desc.Package()
 
+		aipreflect.RangeResourceDescriptorsInFile(f.Desc, func(resource *annotationspb.ResourceDescriptor) bool {
+			if len(resource.Pattern) == 0 {
+				return true // continue
+			}
+
+			// Use the first pattern as the canonical one (consistent with the rest of the code).
+			childPattern := resource.Pattern[0]
+
+			// Track the closest (immediate) parent we can find.
+			var immediateParent *annotationspb.ResourceDescriptor
+			maxSlashCount := -1
+
+			aipreflect.RangeParentResourcesInPackage(
+				registry,
+				packageName,
+				childPattern,
+				func(parent *annotationspb.ResourceDescriptor) bool {
+					// A parent resource can have multiple patterns; pick the one that is an ancestor
+					// of the child and has the highest depth (slash count).
+					for _, p := range parent.GetPattern() {
+						if resourcename.HasParent(childPattern, p) {
+							// Use slash count as a depth proxy; deeper = closer.
+							depth := strings.Count(p, "/")
+							if depth > maxSlashCount {
+								maxSlashCount = depth
+								immediateParent = parent
+							}
+							// No need to check other patterns of this same parent once we matched one.
+							break
+						}
+					}
+					// Keep iterating to ensure we find the closest parent.
+					return true
+				},
+			)
+
+			// Store only the immediate parent relationship (if any).
+			if immediateParent != nil {
+				resourceTypeToParentResourceType[resource.Type] = immediateParent.Type
+				if resourceTypeToChildResourceTypeSet[immediateParent.Type] == nil {
+					resourceTypeToChildResourceTypeSet[immediateParent.Type] = map[string]struct{}{}
+				}
+				resourceTypeToChildResourceTypeSet[immediateParent.Type][resource.Type] = struct{}{}
+			}
+
+			return true
+		})
+	}
+
+	return nil
+}
+
+func registerAncestorsOld(files []*protogen.File) error {
+	// Build a registry from the files
+	registry := &protoregistry.Files{}
+	for _, f := range files {
+		if err := registry.RegisterFile(f.Desc); err != nil {
+			return fmt.Errorf("failed to register file %s: %w", f.Desc.Path(), err)
+		}
+	}
+
+	// Iterate over all files to find resources and their parents
+	for _, f := range files {
+		packageName := f.Desc.Package()
+
 		// Process all resource descriptors in this file
 		aipreflect.RangeResourceDescriptorsInFile(f.Desc, func(resource *annotationspb.ResourceDescriptor) bool {
 			if len(resource.Pattern) == 0 {
