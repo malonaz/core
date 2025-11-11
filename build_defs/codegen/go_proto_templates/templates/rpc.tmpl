@@ -14,200 +14,103 @@ import (
 pb "{{ $apiImportPath }}"
 )
 
-// Prevent compiling from acting up.
-type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
-
-{{- /* Create a mapping of method.Desc.FullName to resource object */ -}}
-{{- $methodToResource := dict -}}
-{{- range $service := $file.Services }}
-    {{- /* First pass: Find all resources from Create methods */ -}}
-    {{- $resources := dict -}}
-    {{- range $method := $service.Methods }}
-        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
-        {{- if $createOpts.Generate }}
-            {{- $resourceGoName := $method.Output.GoIdent.GoName -}}
-            {{- $_ := set $resources $resourceGoName $method.Output -}}
-        {{- end }}
-    {{- end }}
-
-    {{- /* Second pass: Map all CRUD methods to their resources */ -}}
-    {{- range $method := $service.Methods }}
-        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
-        {{- $updateOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.update" -}}
-        {{- $deleteOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.delete" -}}
-        {{- $getOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.get" -}}
-        {{- $listOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.list" -}}
-
-        {{- /* Check if this method has any CRUD options */ -}}
-        {{- $hasCrudOpts := false -}}
-        {{- if or $createOpts.Generate $updateOpts.Generate $deleteOpts.Generate $getOpts.Generate $listOpts.Generate }}
-            {{- $hasCrudOpts = true -}}
-        {{- end }}
-
-        {{- if $hasCrudOpts }}
-            {{- $resource := false -}}
-            {{- if $createOpts.Generate }}
-                {{- $resource = $method.Output -}}
-            {{- else if $updateOpts.Generate }}
-                {{- $resource = $method.Output -}}
-            {{- else if $getOpts.Generate }}
-                {{- $resource = $method.Output -}}
-            {{- else if $deleteOpts.Generate }}
-                {{- $resourceGoName := $method.GoName | trimPrefix "Delete" -}}
-                {{- $resource = index $resources $resourceGoName -}}
-                {{- if not $resource }}
-                    {{- fail (printf "Cannot find resource '%s' for Delete method '%s'. Ensure a corresponding Create method exists." $resourceGoName $method.GoName) -}}
-                {{- end }}
-            {{- else if $listOpts.Generate }}
-                {{- $resourceGoName := $method.GoName | trimPrefix "List" | trimSuffix "s" -}}
-                {{- $resource = index $resources $resourceGoName -}}
-                {{- if not $resource }}
-                    {{- fail (printf "Cannot find resource '%s' for List method '%s'. Ensure a corresponding Create method exists." $resourceGoName $method.GoName) -}}
-                {{- end }}
-            {{- end }}
-
-            {{- if not $resource }}
-                {{- fail (printf "Cannot identify resource for CRUD method '%s'. Resource identification failed." $method.GoName) -}}
-            {{- end }}
-
-            {{- $_ := set $methodToResource ($method.Desc.FullName | toString) $resource -}}
-        {{- end }}
-    {{- end }}
-{{- end }}
 
 {{- range $service := $file.Services }}
     {{- range $method := $service.Methods }}
-        {{- $createOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.create" -}}
-        {{- $updateOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.update" -}}
-        {{- $deleteOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.delete" -}}
-        {{- $getOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.get" -}}
-        {{- $listOpts := getExt $method.Desc "malonaz.core.codegen.rpc.v1.list" -}}
+        {{ $rpc := parseRPC $method }}
+        {{ if not $rpc }}{{ continue }}{{ end }}
+        {{ $pr := $rpc.ParsedResource }}
+        {{- $resourceGoName := $pr.Desc.Singular | camelcase }}
+        {{- $softDeletable := $rpc.Message.Desc.Fields.ByName "delete_time" }}
 
-        {{/* Validate that only one Opts is defined */}}
-        {{- $optsCount := 0 -}}
-        {{- if not (emptyPb $createOpts) }}{{- $optsCount = add $optsCount 1 -}}{{- end -}}
-        {{- if not (emptyPb $updateOpts) }}{{- $optsCount = add $optsCount 1 -}}{{- end -}}
-        {{- if not (emptyPb $deleteOpts) }}{{- $optsCount = add $optsCount 1 -}}{{- end -}}
-        {{- if not (emptyPb $getOpts) }}{{- $optsCount = add $optsCount 1 -}}{{- end -}}
-        {{- if not (emptyPb $listOpts) }}{{- $optsCount = add $optsCount 1 -}}{{- end -}}
-        {{- if gt $optsCount 1 }}
-            {{- fail (printf "Method %s has multiple operation types defined" $method.GoName) -}}
-        {{- end -}}
-
-        {{- $resource := index $methodToResource ($method.Desc.FullName | toString) -}}
-        {{- $modelOpts := getExt $resource.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
-        {{- $resourceGoName := $resource.GoIdent.GoName }}
+        {{- $modelOpts := getExt $rpc.Message.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
         {{- $dbClient := printf "%sDBClient" $modelOpts.DatabaseName -}}
 
-        {{/* CREATE ENDPOINT */}}
-        {{- if $createOpts.Generate }}
+        {{- if $rpc.Create }}
             {{- $_ := fqn $modelImportPath "" -}}
-            {{- if $createOpts.UuidNamespace }}
-                {{ if not ($method.Input.Desc.Fields.ByName "request_id") -}}{{ fail "request_id field is not defined" }}{{ end }}
-                var uuidNamespace{{ $resourceGoName }} = {{ fqn "github.com/malonaz/core/go/uuid" "MustParse" }}("{{ $createOpts.UuidNamespace }}")
-            {{- end }}
             // {{ printf "Create%s creates a %s" $resourceGoName $resourceGoName }}
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            {{- if $createOpts.UuidNamespace }}
-                // Set the id.
-                request.{{ $resourceGoName }}.Id = {{ fqn "github.com/malonaz/core/go/uuid" "NewV5" }}(uuidNamespace{{ $resourceGoName }}, request.RequestId).String()
-            {{- end }}
-
-            {{/* Name space by user if necessary */}}
-            {{- $userIDField := "user_id" -}}
-
-            {{ if $createOpts.PreFn -}}
-                // PRE FN.
-                if err := s.pre{{ $method.GoName }}(ctx, request); err != nil {
-                return nil, err
+            // STEP 1: Set identifiers.
+            {{- if not $pr.Singleton }}
+                {{ $pr.PatternVariable | camelcase | untitle }}Id := request.{{ $resourceGoName }}Id
+                if {{ $pr.PatternVariable | camelcase | untitle }}Id == "" {
+                {{ $pr.PatternVariable | camelcase | untitle }}Id = {{ fqn "github.com/malonaz/core/go/uuid" "MustNewV7" }}().String()
                 }
             {{ end }}
 
-            // STEP 1: Set some input fields.
-            {{ if $resource.Desc.Fields.ByName "create_timestamp" -}}
-                request.{{ $resourceGoName }}.CreateTimestamp = {{ fqn "time" "Now" }}().UnixMicro()
+            {{ if $pr.Parent }}
+                var {{ $pr.Parent.PatternVariableIDs true }} string
+                if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
+		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err)
+                }
+            {{ end }}
+            request.{{ $resourceGoName }}.Name = {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $pr.Pattern }}", {{ $pr.PatternVariableIDs true }})
+
+            // STEP 2: Instantiate timestamps.
+            {{ if $rpc.Message.Desc.Fields.ByName "create_time" -}}
+                request.{{ $resourceGoName }}.CreateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
             {{ end -}}
-            {{ if $resource.Desc.Fields.ByName "update_timestamp" -}}
-                request.{{ $resourceGoName }}.UpdateTimestamp = request.{{ $resourceGoName }}.CreateTimestamp
+            {{ if $rpc.Message.Desc.Fields.ByName "update_time" -}}
+                request.{{ $resourceGoName }}.UpdateTime = request.{{ $resourceGoName }}.CreateTime
             {{ end -}}
 
             {{ "\n" }}
-            // STEP 2: Convert the resource to the database representation.
+            // STEP 3: Convert the resource to the database representation.
             {{ $resourceGoName | untitle }}, err := model.{{ $resourceGoName }}FromPb(request.{{ $resourceGoName }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $resourceGoName | untitle }}: %v", err)
 	          }
 
-            // STEP 3: Insert the resource idempotently.
+            // STEP 4: Insert the resource idempotently.
             ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
 	          }
 	          if !ok {
-		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{
-            {{ $resourceGoName }}Id: request.{{ $resourceGoName }}.Id,
-		        }
-            return s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
-	          }
-            return {{ if  $createOpts.PostFn }} s.post{{ $method.GoName }}(ctx, request){{ else }}request.{{ $resourceGoName }}, nil{{ end }}
+		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
+            var err error
+            request.{{ $resourceGoName }}, err = s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+            if err != nil {
+            return nil, err
             }
-        {{ end -}}
-
-        {{/* UPDATE ENDPOINT */}}
-        {{- if $updateOpts.Generate }}
-            {{- $_ := fqn $modelImportPath "" -}}
-            {{/* Find the Get method to extract view field */}}
-            {{- $getMethod := false -}}
-            {{- range $m := $service.Methods -}}
-                {{- if eq $m.GoName (printf "Get%s" $resourceGoName) -}}
-                    {{- $getMethod = $m -}}
-                {{- end -}}
-            {{- end -}}
-            {{ $updateView := false }}
-            {{- if $getMethod -}}
-                {{- $viewFd := $getMethod.Input.Desc.Fields.ByName "view" -}}
-                {{- if $viewFd }}
-                    {{- $enumValues := $viewFd.Enum.Values -}}
-                    {{- range $i := untilStep 1 $enumValues.Len 1 }}
-                        {{- $enumValueFd :=  $enumValues.Get $i -}}
-                        {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
-                        {{- if $viewOpts.UpdateView -}}
-                            {{- if $updateView -}}{{- fail "duplicate update view" -}}{{- end -}}
-                            {{- $updateView = $enumValueFd -}}
-                        {{- end -}}
-                    {{ end -}}
-                    {{- if not $updateView -}}{{- fail "no update view defined" -}}{{- end -}}
-                {{- end }}
-            {{- end -}}
-
-            var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
-
-            {{/* Wrapping function for error checks. */}}
-            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            return s.{{ $method.GoName | untitle }}(ctx, request)
             }
 
-            func (s *Service) {{ $method.GoName | untitle }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            {{ if $updateOpts.PreFn -}}
-                // PRE FN.
-                if err := s.pre{{ $method.GoName }}(ctx, request); err != nil {
-                return nil, err
-                }
+            {{- range $child := $pr.Children }}
+                {{- if $child.Singleton }}
+                    // Instantiate child singleton resource: {{ $child.Type }}
+                    {{- $childMessage := getMessageUsingResourceType $child.Desc.Type }}
+                    {{- $childResourceGoName := $child.Desc.Singular | camelcase -}}
+                    {{- if not $childMessage }}
+                        {{- fail (printf "could not find message for child resource type %s" $child.Desc.Type) }}
+                    {{- end }}
+                    {{ $childResourceGoName | untitle }} := &{{ qualifiedGoIdent $childMessage.GoIdent }}{
+                    Name: {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $child.Pattern }}", {{ $child.PatternVariableIDs true }}),
+                    CreateTime: request.{{ $resourceGoName }}.CreateTime,
+                    UpdateTime: request.{{ $resourceGoName }}.UpdateTime,
+                    }
+                    {{ $childResourceGoName | untitle }}Db, err := model.{{ $childResourceGoName }}FromPb({{ $childResourceGoName | untitle }})
+                    if err != nil {
+		                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childResourceGoName | untitle }}: %v", err)
+	                  }
+                    if _, err = s.{{ $dbClient }}.Insert{{ $childResourceGoName }}(ctx, {{ $childResourceGoName | untitle }}Db); err != nil {
+		                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $childResourceGoName | snakecase }}: %v", err)
+	                  }
+                {{ end }}
             {{ end }}
+            return  request.{{ $resourceGoName }}, nil
+            }
 
+        {{- else if $rpc.Update }}
+            var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
+            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             // STEP 1: Parse request.
-	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.FieldMask, request.{{ $resourceGoName }})
+	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.UpdateMask, request.{{ $resourceGoName }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err)
 	          }
 
-            // STEP 2: Retrieve existing resource.
-            get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{
-            {{ $resourceGoName }}Id: request.{{ $resourceGoName }}.Id,
-            {{- if $updateView }}
-                View: pb.{{ $updateView.Parent.Name | toString }}_{{ $updateView.Name }},
-            {{- end }}
-            }
+            // STEP 2: retrieve existing resource.
+            get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
             existing{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
             if err != nil {
             return nil, err
@@ -215,8 +118,8 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
             updated{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "Clone" }}(existing{{ $resourceGoName }}).(*{{ qualifiedGoIdent $method.Output.GoIdent }})
 
             // STEP 3: Patch the existing resource.
-            {{ if $resource.Desc.Fields.ByName "update_timestamp" -}}
-	              updated{{ $resourceGoName }}.UpdateTimestamp = {{ fqn "time" "Now" }}().UnixMicro()
+            {{ if $rpc.Message.Desc.Fields.ByName "update_time" -}}
+	              updated{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
             {{ end }}
 	          if err := parsedRequest.ApplyFieldMask(updated{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask: %v", err)
@@ -235,158 +138,110 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $resourceGoName | untitle }} does not exist")
 	          }
 
-            {{ if  $updateOpts.PostFn }}
-                if err := s.post{{ $method.GoName }}(ctx, request, existing{{ $resourceGoName }}, updated{{ $resourceGoName }}); err != nil {
-                return nil, err
-                }
-            {{ end }}
             return updated{{ $resourceGoName }}, nil
             }
-        {{ end -}}
 
-        {{/* GET ENDPOINT */}}
-        {{- if $deleteOpts.Generate }}
-            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}, error) {
-            get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request {
-            {{ $resourceGoName }}Id: request.{{ $resourceGoName }}Id,
-            }
-            // This ensure that the resource exists *and* that caller has permissions over it.
-            {{ $resourceGoName | untitle }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+        {{- else if $rpc.Delete }}
+            func (s *Service) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Delete{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            // STEP 1: Parse resource name.
+            {{ $pr.PatternVariableIDs true }}, err := model.Parse{{ $resourceGoName }}Name(request.Name)
             if err != nil {
-            return nil, err
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err)
             }
-            _ = {{ $resourceGoName | untitle }} // To avoid having complicated logic.
-            {{ if $deleteOpts.PreFn }}
-                if err := s.preDelete{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}); err != nil {
-                return nil, err
-                }
-            {{ end }}
 
-            {{ if $modelOpts.SoftDeletable }}
-                if request.HardDelete {
-                if err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "hard deleting: %v", err)
-                }
-                } else {
-                // Soft delete by updating delete_timestamp
-                {{ $resourceGoName | untitle }}.DeleteTimestamp = {{ fqn "time" "Now" }}().UnixMicro()
-                updateRequest := &pb.Update{{ $resourceGoName }}Request{
-                {{ $resourceGoName }}: {{ $resourceGoName | untitle }},
-                FieldMask: &{{ fqn "google.golang.org/protobuf/types/known/fieldmaskpb" "FieldMask" }}{
-                Paths: []string{"delete_timestamp"},
-                },
-                }
-
-                {{ $resourceGoName | untitle }}, err = s.Update{{ $resourceGoName }}(ctx, updateRequest)
+            {{- if $softDeletable }}
+                // STEP 2: Soft delete the resource.
+                deleteTime := {{ fqn "time" "Now" }}()
+                {{ $resourceGoName | untitle }}, ok, err := s.{{ $dbClient }}.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}, deleteTime)
                 if err != nil {
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting: %v", err)
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $resourceGoName | snakecase }}: %v", err)
                 }
+                if !ok {
+                {{- if $method.Input.Desc.Fields.ByName "allow_missing" }}
+                    if request.AllowMissing {
+                    return &{{ qualifiedGoIdent $method.Output.GoIdent }}{Name: request.Name}, nil
+                    }
+                {{- end }}
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $resourceGoName | snakecase }} not found or already deleted")
                 }
+
+                // STEP 3: Convert to protobuf and return.
+                pb{{ $resourceGoName }}, err := {{ $resourceGoName | untitle }}.ToPb()
+                if err != nil {
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to pb.{{ $resourceGoName }}: %v", err)
+                }
+
+                return pb{{ $resourceGoName }}, nil
             {{ else }}
-                if err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx, request.{{ $resourceGoName }}Id); err != nil {
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting: %v", err)
+                // STEP 2: Hard delete the resource.
+                ok, err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx{{ range $id := $pr.PatternVariables true }}, {{ $id | camelcase | untitle }}ID{{ end }})
+                if err != nil {
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $resourceGoName | snakecase }}: %v", err)
                 }
+                if !ok {
+                {{- if $method.Input.Desc.Fields.ByName "allow_missing" }}
+                    if request.AllowMissing {
+                    return &{{ qualifiedGoIdent $method.Output.GoIdent }}{}, nil
+                    }
+                {{- end }}
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $resourceGoName | snakecase }} not found or already deleted")
+                }
+
+                return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
             {{ end }}
-
-	          return &emptypb.Empty{}, nil
             }
-        {{ end -}}
 
-        {{/* GET ENDPOINT */}}
-        {{- if $getOpts.Generate }}
-            {{ $getFieldName :=  "id" }}
-            {{- $resource := $method.Output }}
-            {{- $resourceGoName := $resource.GoIdent.GoName }}
-            {{ $descFields := $resource.Desc.Fields }}
-            {{ $getField := $descFields.ByName ( $getFieldName | protoreflectName) }}
-            {{ $isStringField := eq ($getField.Kind | toString) "string" }}
-
-            {{- $viewFd := $method.Input.Desc.Fields.ByName "view" -}}
-
-            // {{ printf "Get%s retrieves a single %s" $resourceGoName $resourceGoName }}
-            func (s *Service) Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Get{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            list{{ $resourceGoName }}sRequest := &pb.List{{ $resourceGoName }}sRequest{
-            Filter: {{ fqn "fmt" "Sprintf" }}(`{{ $getFieldName }}={{ ternary "\"%s\""  "%d" $isStringField}}`, request.{{ $resourceGoName }}{{ $getFieldName | camelcase | title }}),
-            {{ if $viewFd }}View: request.View,{{ end }}
-            }
-            list{{ $resourceGoName }}sResponse, err := s.List{{ $resourceGoName }}s(ctx, list{{ $resourceGoName }}sRequest)
-            if err != nil {
-            return nil, err
-            }
-            if len(list{{ $resourceGoName }}sResponse.{{ $resourceGoName }}s) != 1 {
-            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "could not find {{ $resourceGoName }}")
-            }
-            return list{{ $resourceGoName }}sResponse.{{ $resourceGoName }}s[0], nil
-            }
-        {{ end -}}
-
-
-        {{/* LIST ENDPOINT */}}
-        {{- if $listOpts.Generate }}
-            {{- $resourceGoName := $method.GoName | trimPrefix "List" | trimSuffix "s" -}}
+        {{- else if $rpc.Get }}
             {{- $resourceDbName := printf "db%s" $resourceGoName }}
-            {{ $resource := false }}
-            {{ range $field := $method.Output.Fields }}
-                {{ if eq $field.GoName (printf "%ss" $resourceGoName) }}
-                    {{ $resource = $field.Message }}
-                {{ end }}
-            {{ end  }}
-            {{ if not $resource }}{{ fail "could not find go resource by inspecting response" }}{{ end }}
+            func (s *Service) Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Get{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.Name) {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard")
+            }
 
-            {{- $viewFd := $method.Input.Desc.Fields.ByName "view" -}}
-            {{- if $viewFd }}
-                var (
-                {{- $enumValues := $viewFd.Enum.Values -}}
-                {{- range $i := untilStep 1 $enumValues.Len 1 }}
-                    {{- $enumValueFd :=  $enumValues.Get $i -}}
-                    {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
-                    {{ $enumValueFd.Name | toString | camelcase | untitle }} = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}(model.{{ $resource.GoIdent.GoName }}{}, {{ range $viewOpts.Exclude }}"{{ . }}",{{ end }})
-                {{ end -}}
-                )
-            {{- end }}
+            {{ $pr.PatternVariableIDs true }}, err := model.Parse{{ $resourceGoName }}Name(request.Name)
+            if err != nil {
+		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err)
+            }
 
+            // Retrieve from the database.
+            {{ $resourceDbName }}, ok, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ $pr.PatternVariableIDs true }})
+	          if err != nil {
+		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
+	          }
+            if !ok {
+		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "not found")
+	          }
 
+		        {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
+		        if err != nil {
+			      return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to pb.{{ $resourceGoName }}: %v", err)
+		        }
+            return {{ $resourceGoName | untitle }}, nil
+            }
+
+        {{- else if $rpc.List }}
             var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "NewListRequestParser" }}(&pb.{{ $method.Input.GoIdent.GoName }}{})
 
             func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            {{ if $listOpts.PreFn -}}
-                // PRE FN.
-                if err := s.pre{{ $method.GoName }}(ctx, request); err != nil {
-                return nil, err
+            {{- $resourceDbName := printf "db%s" $resourceGoName }}
+            {{ if $pr.Parent }}
+                // Parse parent names
+                var {{ $pr.Parent.PatternVariableIDs true }} string
+                if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
+		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err)
                 }
             {{ end }}
 
-            {{- if $viewFd }}
-                if request.View == pb.{{ $viewFd.Enum.Name | toString }}_{{ $viewFd.Enum.Name | toString | snakecase | upper }}_UNSPECIFIED {
-                request.View = pb.{{ $viewFd.Enum.Name | toString }}_{{ $viewFd.Enum.Name | toString | snakecase | upper }}_BASIC
-
-                }
-            {{ end }}
-
-            {{- $userIDField :=  "user_id" -}}
-
-	          parsed, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.ParseRequest(request)
+            // Parse request
+            parsed, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.ParseRequest(request)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error())
 	          }
 	          whereClause, whereParams := parsed.GetSQLWhereClause()
             var dbColumns []string
-            {{- if $viewFd }}
-                switch request.View {
-                {{- $enumValues := $viewFd.Enum.Values -}}
-                {{- range $i := untilStep 1 $enumValues.Len 1 }}
-                    {{- $enumValueFd :=  $enumValues.Get $i -}}
-                    {{- $viewOpts :=  getExt $enumValueFd "malonaz.core.codegen.rpc.v1.view" }}
-                    case pb.{{ $viewFd.Enum.Name | toString }}_{{ $enumValueFd.Name | toString | snakecase | upper }}:
-                    dbColumns = {{ $enumValueFd.Name | toString | camelcase | untitle }}
-                {{ end -}}
-                default:
-		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "unknown view %s", request.View)
-                }
-            {{- end }}
 
-
-	          {{ $resourceDbName }}s, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
+            // Retrieve from the database.
+            {{ $resourceDbName }}s, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
 	          }
@@ -395,7 +250,8 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 		        {{ $resourceDbName }}s = {{ $resourceDbName }}s[:len({{ $resourceDbName }}s)-1]
 	          }
 
-            {{ $resourceGoName | untitle }}s := make([]*{{ qualifiedGoIdent $resource.GoIdent }}, 0, len({{ $resourceDbName }}s))
+            // Convert back to proto.
+            {{ $resourceGoName | untitle }}s := make([]*{{ qualifiedGoIdent $rpc.Message.GoIdent }}, 0, len({{ $resourceDbName }}s))
 	          for _, {{ $resourceDbName }} := range {{ $resourceDbName }}s {
 		        {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
 		        if err != nil {
@@ -404,17 +260,12 @@ type _ pb.{{ (index $file.Messages 0).GoIdent.GoName }}
 		        {{ $resourceGoName | untitle }}s = append({{ $resourceGoName | untitle }}s, {{ $resourceGoName | untitle }})
 	          }
 
-            {{ if  $listOpts.PostFn }}
-                if err := s.post{{ $method.GoName }}(ctx, {{ $resourceGoName | untitle }}s); err != nil {
-                return nil, err
-                }
-            {{ end }}
+            // Create and return response.
             return &pb.{{ $method.Output.GoIdent.GoName }}{
             {{ $resourceGoName }}s: {{ $resourceGoName | untitle}}s,
             NextPageToken: nextPageToken,
             }, nil
             }
         {{ end -}}
-
     {{ end }}
 {{- end }}
