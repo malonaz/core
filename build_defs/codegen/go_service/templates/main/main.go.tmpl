@@ -120,11 +120,14 @@ var stopFns []func() error
 
     // Start {{ $server.name | camelcase }} Server
     {
+    withServiceAccount := func(ctx context.Context) (context.Context, error) {
     ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ $server.name | kebabcase }}")
     if err != nil {
-    log.Panicf("injecting role into context: %v", err)
+    return nil, err
     }
     ctxSA = {{ goImport "github.com/malonaz/core/go/contexttag" }}.SetOntoContextNoop(ctxSA)
+    return ctxSA, nil
+    }
 
     {{- /* INSTANTIATE SERVICES*/ -}}
     {{- range $service := $server.services }}
@@ -147,7 +150,7 @@ var stopFns []func() error
         log.Panicf("instantiating {{ $serviceName }}: %v", err)
         }
         // Start {{ $serviceName }} service.
-        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctxSA)
+        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, withServiceAccount)
         if err != nil {
         log.Panicf("starting {{ $serviceName }} service: %v", err)
         }
