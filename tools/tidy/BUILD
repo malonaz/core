@@ -53,16 +53,17 @@ _lint_cmds = [
     "export GOROOT=\\\\$($(out_exe //tools/go:toolchain|go) env GOROOT)",
     echo_message("Building codegen"),
     "plz build --include codegen > /dev/null 2>&1 || echo 'Codegen build failed'",
-    echo_message("Running 'wollemi'"),
+    echo_message("Running wollemi"),
     "mv third_party/go/dummy/dummy.go third_party/go/dummy/dummy.ignore 2>/dev/null || true",
     "$(out_exe :wollemi) gofmt ./...",
     "mv third_party/go/dummy/dummy.ignore third_party/go/dummy/dummy.go 2>/dev/null || true",
-    echo_message("Running 'gofmt'"),
+    echo_message("Running gofmt"),
     f"git ls-files | grep '\.go$'| xargs $(out_exe //tools/go:toolchain|gofmt) -l -s -w",
-    echo_message("Running 'buf format'"),
-    f"$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_CONFIG})",
-    echo_message("Running 'buf lint'"),
-    f"$(out_exe :buf) lint --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_CONFIG}) \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
+    f"BUF_CONFIG=\\\\$(if [ -f buf.yaml ]; then echo buf.yaml; else echo $(out_location //tools/tidy:buf.yaml); fi)",
+    echo_message("Running buf format (\\\\$BUF_CONFIG)"),
+    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache --config \\\\$BUF_CONFIG",
+    echo_message("Running buf lint (\\\\$BUF_CONFIG)"),
+    "$(out_exe :buf) lint --exclude-path plz-out/ --exclude-path .plz-cache --config \\\\$BUF_CONFIG \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
 ]
 
 sh_cmd(
@@ -70,7 +71,7 @@ sh_cmd(
     cmd = _lint_cmds,
     deps = [
         ":buf",
-        CONFIG.CORE.BUF_CONFIG,
+        ":buf.yaml",
         ":wollemi",
         "//tools/go:toolchain",
     ],
@@ -80,13 +81,13 @@ sh_cmd(
     name = "tidy",
     cmd = [
         echo_message("Running 'go mod tidy'"),
-        "go mod tidy",
+        "$(out_exe //tools/go:toolchain|go) mod tidy",
         echo_message("Running 'go deps'"),
         "$(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
     ] + _lint_cmds,
     deps = [
         ":buf",
-        CONFIG.CORE.BUF_CONFIG,
+        ":buf.yaml",
         ":godeps",
         ":wollemi",
         "//tools/go:toolchain",
