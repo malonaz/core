@@ -103,8 +103,8 @@ ConfigKey = ValidateSchema
 DefaultValue = //tools/validate-schema
 
 
-[PluginConfig "buf_yaml"]
-ConfigKey = BufYaml
+[PluginConfig "buf_config"]
+ConfigKey = BufConfig
 DefaultValue = //tools/tidy:buf.yaml
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

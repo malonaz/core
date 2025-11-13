@@ -60,9 +60,9 @@ _lint_cmds = [
     echo_message("Running 'gofmt'"),
     f"git ls-files | grep '\.go$'| xargs $(out_exe //tools/go:toolchain|gofmt) -l -s -w",
     echo_message("Running 'buf format'"),
-    f"$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_YAML})",
+    f"$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_CONFIG})",
     echo_message("Running 'buf lint'"),
-    f"$(out_exe :buf) lint --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_YAML}) \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
+    f"$(out_exe :buf) lint --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_CONFIG}) \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
 ]
 
 sh_cmd(
@@ -70,7 +70,7 @@ sh_cmd(
     cmd = _lint_cmds,
     deps = [
         ":buf",
-        CONFIG.CORE.BUF_YAML,
+        CONFIG.CORE.BUF_CONFIG,
         ":wollemi",
         "//tools/go:toolchain",
     ],
@@ -86,7 +86,7 @@ sh_cmd(
     ] + _lint_cmds,
     deps = [
         ":buf",
-        CONFIG.CORE.BUF_YAML,
+        CONFIG.CORE.BUF_CONFIG,
         ":godeps",
         ":wollemi",
         "//tools/go:toolchain",
