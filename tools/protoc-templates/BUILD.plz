@@ -12,7 +12,6 @@ go_binary(
         "//genproto/codegen/aip",
         "//genproto/codegen/gateway",
         "//genproto/codegen/model",
-        "//genproto/codegen/rpc",
         "//third_party/go:github.com__Masterminds__sprig__v3",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:go.einride.tech__aip__reflect__aipreflect",

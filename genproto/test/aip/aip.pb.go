@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: proto/test/aip.proto
+// source: proto/test/aip/aip.proto
 
 package aip
 
@@ -23,11 +23,14 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// MyEnum is a test enum for filter validation.
 type MyEnum int32
 
 const (
+	// Unspecified enum.
 	MyEnum_MY_ENUM_UNSPECIFIED MyEnum = 0
-	MyEnum_MY_ENUM_VALUE       MyEnum = 1
+	// Some specified value.
+	MyEnum_MY_ENUM_VALUE MyEnum = 1
 )
 
 // Enum value maps for MyEnum.
@@ -53,11 +56,11 @@ func (x MyEnum) String() string {
 }
 
 func (MyEnum) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_test_aip_proto_enumTypes[0].Descriptor()
+	return file_proto_test_aip_aip_proto_enumTypes[0].Descriptor()
 }
 
 func (MyEnum) Type() protoreflect.EnumType {
-	return &file_proto_test_aip_proto_enumTypes[0]
+	return &file_proto_test_aip_aip_proto_enumTypes[0]
 }
 
 func (x MyEnum) Number() protoreflect.EnumNumber {
@@ -66,22 +69,27 @@ func (x MyEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MyEnum.Descriptor instead.
 func (MyEnum) EnumDescriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{0}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{0}
 }
 
+// ListResourcesRequest tests list operation with filters, ordering, and aliases.
 type ListResourcesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Filter        string                 `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	OrderBy       string                 `protobuf:"bytes,4,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Filter expression for resources.
+	Filter string `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Maximum number of resources to return.
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// Pagination token from previous response.
+	PageToken string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// Ordering clause for results.
+	OrderBy       string `protobuf:"bytes,4,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
-	mi := &file_proto_test_aip_proto_msgTypes[0]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -93,7 +101,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_test_aip_proto_msgTypes[0]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,7 +114,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{0}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ListResourcesRequest) GetFilter() string {
@@ -137,21 +145,28 @@ func (x *ListResourcesRequest) GetOrderBy() string {
 	return ""
 }
 
+// Resource is a test message with nested fields.
 type Resource struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Field1        string                 `protobuf:"bytes,1,opt,name=field1,proto3" json:"field1,omitempty"`
-	Nested        *NestedResource        `protobuf:"bytes,2,opt,name=nested,proto3" json:"nested,omitempty"`
-	Nested2       *NestedResource        `protobuf:"bytes,3,opt,name=nested2,proto3" json:"nested2,omitempty"`
-	Nested3       *NestedResource        `protobuf:"bytes,4,opt,name=nested3,proto3" json:"nested3,omitempty"`
-	Nested4       *NestedResource        `protobuf:"bytes,5,opt,name=nested4,proto3" json:"nested4,omitempty"`
-	MyEnum        MyEnum                 `protobuf:"varint,6,opt,name=my_enum,json=myEnum,proto3,enum=test.aip.v1.MyEnum" json:"my_enum,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Simple string field.
+	Field1 string `protobuf:"bytes,1,opt,name=field1,proto3" json:"field1,omitempty"`
+	// Nested resource for path mapping tests.
+	Nested *NestedResource `protobuf:"bytes,2,opt,name=nested,proto3" json:"nested,omitempty"`
+	// Second nested resource for full object updates.
+	Nested2 *NestedResource `protobuf:"bytes,3,opt,name=nested2,proto3" json:"nested2,omitempty"`
+	// Third nested resource for multi-column mapping.
+	Nested3 *NestedResource `protobuf:"bytes,4,opt,name=nested3,proto3" json:"nested3,omitempty"`
+	// Fourth nested resource for wildcard mapping.
+	Nested4 *NestedResource `protobuf:"bytes,5,opt,name=nested4,proto3" json:"nested4,omitempty"`
+	// Enum field for filter testing.
+	MyEnum        MyEnum `protobuf:"varint,6,opt,name=my_enum,json=myEnum,proto3,enum=test.aip.v1.MyEnum" json:"my_enum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Resource) Reset() {
 	*x = Resource{}
-	mi := &file_proto_test_aip_proto_msgTypes[1]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -163,7 +178,7 @@ func (x *Resource) String() string {
 func (*Resource) ProtoMessage() {}
 
 func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_test_aip_proto_msgTypes[1]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -176,7 +191,7 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{1}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Resource) GetField1() string {
@@ -221,18 +236,22 @@ func (x *Resource) GetMyEnum() MyEnum {
 	return MyEnum_MY_ENUM_UNSPECIFIED
 }
 
+// NestedResource contains fields for testing nested path updates.
 type NestedResource struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Field1        bool                   `protobuf:"varint,1,opt,name=field1,proto3" json:"field1,omitempty"`
-	Field2        int64                  `protobuf:"varint,2,opt,name=field2,proto3" json:"field2,omitempty"`
-	Field3        string                 `protobuf:"bytes,3,opt,name=field3,proto3" json:"field3,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Boolean field.
+	Field1 bool `protobuf:"varint,1,opt,name=field1,proto3" json:"field1,omitempty"`
+	// Integer field for selective updates.
+	Field2 int64 `protobuf:"varint,2,opt,name=field2,proto3" json:"field2,omitempty"`
+	// String field.
+	Field3        string `protobuf:"bytes,3,opt,name=field3,proto3" json:"field3,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NestedResource) Reset() {
 	*x = NestedResource{}
-	mi := &file_proto_test_aip_proto_msgTypes[2]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -244,7 +263,7 @@ func (x *NestedResource) String() string {
 func (*NestedResource) ProtoMessage() {}
 
 func (x *NestedResource) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_test_aip_proto_msgTypes[2]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -257,7 +276,7 @@ func (x *NestedResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NestedResource.ProtoReflect.Descriptor instead.
 func (*NestedResource) Descriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{2}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NestedResource) GetField1() bool {
@@ -281,10 +300,12 @@ func (x *NestedResource) GetField3() string {
 	return ""
 }
 
+// UpdateResourceRequest tests field mask with path mappings and authorization.
 type UpdateResourceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The user you wish to update. We carry out validation ourselves in the code.
-	Resource      *Resource              `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	// Resource to update.
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	// Field mask specifying which fields to update.
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -292,7 +313,7 @@ type UpdateResourceRequest struct {
 
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
-	mi := &file_proto_test_aip_proto_msgTypes[3]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -304,7 +325,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_test_aip_proto_msgTypes[3]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -317,7 +338,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{3}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UpdateResourceRequest) GetResource() *Resource {
@@ -334,10 +355,12 @@ func (x *UpdateResourceRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
+// UpdateResource2Request tests default paths with authorized paths.
 type UpdateResource2Request struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The user you wish to update. We carry out validation ourselves in the code.
-	Resource      *Resource              `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	// Resource to update.
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	// Field mask specifying which fields to update.
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -345,7 +368,7 @@ type UpdateResource2Request struct {
 
 func (x *UpdateResource2Request) Reset() {
 	*x = UpdateResource2Request{}
-	mi := &file_proto_test_aip_proto_msgTypes[4]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -357,7 +380,7 @@ func (x *UpdateResource2Request) String() string {
 func (*UpdateResource2Request) ProtoMessage() {}
 
 func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_test_aip_proto_msgTypes[4]
+	mi := &file_proto_test_aip_aip_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -370,7 +393,7 @@ func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResource2Request.ProtoReflect.Descriptor instead.
 func (*UpdateResource2Request) Descriptor() ([]byte, []int) {
-	return file_proto_test_aip_proto_rawDescGZIP(), []int{4}
+	return file_proto_test_aip_aip_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UpdateResource2Request) GetResource() *Resource {
@@ -387,11 +410,11 @@ func (x *UpdateResource2Request) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
-var File_proto_test_aip_proto protoreflect.FileDescriptor
+var File_proto_test_aip_aip_proto protoreflect.FileDescriptor
 
-const file_proto_test_aip_proto_rawDesc = "" +
+const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/test/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a\x17proto/codegen/aip.proto\"\x91\x03\n" +
+	"\x18proto/test/aip/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a\x1bproto/codegen/aip/aip.proto\"\x91\x03\n" +
 	"\x14ListResourcesRequest\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -448,20 +471,20 @@ const file_proto_test_aip_proto_rawDesc = "" +
 	"\rMY_ENUM_VALUE\x10\x01B+Z)github.com/malonaz/core/genproto/test/aipb\x06proto3"
 
 var (
-	file_proto_test_aip_proto_rawDescOnce sync.Once
-	file_proto_test_aip_proto_rawDescData []byte
+	file_proto_test_aip_aip_proto_rawDescOnce sync.Once
+	file_proto_test_aip_aip_proto_rawDescData []byte
 )
 
-func file_proto_test_aip_proto_rawDescGZIP() []byte {
-	file_proto_test_aip_proto_rawDescOnce.Do(func() {
-		file_proto_test_aip_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_test_aip_proto_rawDesc), len(file_proto_test_aip_proto_rawDesc)))
+func file_proto_test_aip_aip_proto_rawDescGZIP() []byte {
+	file_proto_test_aip_aip_proto_rawDescOnce.Do(func() {
+		file_proto_test_aip_aip_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_test_aip_aip_proto_rawDesc), len(file_proto_test_aip_aip_proto_rawDesc)))
 	})
-	return file_proto_test_aip_proto_rawDescData
+	return file_proto_test_aip_aip_proto_rawDescData
 }
 
-var file_proto_test_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_test_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_proto_test_aip_proto_goTypes = []any{
+var file_proto_test_aip_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_proto_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_test_aip_aip_proto_goTypes = []any{
 	(MyEnum)(0),                    // 0: test.aip.v1.MyEnum
 	(*ListResourcesRequest)(nil),   // 1: test.aip.v1.ListResourcesRequest
 	(*Resource)(nil),               // 2: test.aip.v1.Resource
@@ -470,7 +493,7 @@ var file_proto_test_aip_proto_goTypes = []any{
 	(*UpdateResource2Request)(nil), // 5: test.aip.v1.UpdateResource2Request
 	(*fieldmaskpb.FieldMask)(nil),  // 6: google.protobuf.FieldMask
 }
-var file_proto_test_aip_proto_depIdxs = []int32{
+var file_proto_test_aip_aip_proto_depIdxs = []int32{
 	3, // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
 	3, // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
 	3, // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
@@ -487,27 +510,27 @@ var file_proto_test_aip_proto_depIdxs = []int32{
 	0, // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_proto_test_aip_proto_init() }
-func file_proto_test_aip_proto_init() {
-	if File_proto_test_aip_proto != nil {
+func init() { file_proto_test_aip_aip_proto_init() }
+func file_proto_test_aip_aip_proto_init() {
+	if File_proto_test_aip_aip_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_test_aip_proto_rawDesc), len(file_proto_test_aip_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_test_aip_aip_proto_rawDesc), len(file_proto_test_aip_aip_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_test_aip_proto_goTypes,
-		DependencyIndexes: file_proto_test_aip_proto_depIdxs,
-		EnumInfos:         file_proto_test_aip_proto_enumTypes,
-		MessageInfos:      file_proto_test_aip_proto_msgTypes,
+		GoTypes:           file_proto_test_aip_aip_proto_goTypes,
+		DependencyIndexes: file_proto_test_aip_aip_proto_depIdxs,
+		EnumInfos:         file_proto_test_aip_aip_proto_enumTypes,
+		MessageInfos:      file_proto_test_aip_aip_proto_msgTypes,
 	}.Build()
-	File_proto_test_aip_proto = out.File
-	file_proto_test_aip_proto_goTypes = nil
-	file_proto_test_aip_proto_depIdxs = nil
+	File_proto_test_aip_aip_proto = out.File
+	file_proto_test_aip_aip_proto_goTypes = nil
+	file_proto_test_aip_aip_proto_depIdxs = nil
 }

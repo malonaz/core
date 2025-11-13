@@ -4,6 +4,12 @@ modules:
   - path: plz-out/gen/third_party/proto
 lint:
   use:
+    # Minimal
+    - DIRECTORY_SAME_PACKAGE
+    - PACKAGE_DEFINED
+    #- PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_NO_IMPORT_CYCLE
+    - PACKAGE_SAME_DIRECTORY
     # BASIC
     - ENUM_FIRST_VALUE_ZERO
     - ENUM_NO_ALLOW_ALIAS
@@ -46,7 +52,7 @@ lint:
   enum_zero_value_suffix: _UNSPECIFIED
   rpc_allow_same_request_response: false
   rpc_allow_google_protobuf_empty_requests: false
-  rpc_allow_google_protobuf_empty_responses: false
+  rpc_allow_google_protobuf_empty_responses: true
   service_suffix: Service
   ignore:
     - plz-out

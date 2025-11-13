@@ -15,7 +15,6 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/aip"
 	_ "github.com/malonaz/core/genproto/codegen/gateway"
 	_ "github.com/malonaz/core/genproto/codegen/model"
-	_ "github.com/malonaz/core/genproto/codegen/rpc"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
