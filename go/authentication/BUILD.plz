@@ -9,7 +9,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        "//genproto/authentication",
+        "//genproto/authentication/v1",
         "//go/contexttag",
         "//go/jsonnet",
         "//go/pbutil",

@@ -6,7 +6,7 @@ import (
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	authenticationpb "github.com/malonaz/core/genproto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/contexttag"
 	"github.com/malonaz/core/go/pbutil"
 	"google.golang.org/grpc"

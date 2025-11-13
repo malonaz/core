@@ -4,7 +4,7 @@ proto_library(
     test_only = True,
     visibility = ["//go/aip/..."],
     deps = [
-        "//genproto/codegen/aip",
-        "//proto/codegen/aip",
+        "//genproto/codegen/aip/v1",
+        "//proto/codegen/aip/v1",
     ],
 )

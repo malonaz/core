@@ -10,7 +10,7 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//genproto/grpc",
+        "//genproto/grpc/v1",
         "//go/certs",
         "//go/grpc/interceptor",
         "//go/health",

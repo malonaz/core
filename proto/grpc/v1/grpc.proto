@@ -4,7 +4,7 @@ package core.grpc.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/core/genproto/grpc";
+option go_package = "github.com/malonaz/core/genproto/grpc/v1";
 
 // HttpCookie represents an HTTP cookie with all standard cookie attributes.
 // This message is used to serialize/deserialize cookies when passing them

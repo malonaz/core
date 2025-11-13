@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: proto/codegen/gateway/gateway.proto
+// source: proto/codegen/gateway/v1/gateway.proto
 
-package gateway
+package v1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -33,7 +33,7 @@ type ServiceOpts struct {
 
 func (x *ServiceOpts) Reset() {
 	*x = ServiceOpts{}
-	mi := &file_proto_codegen_gateway_gateway_proto_msgTypes[0]
+	mi := &file_proto_codegen_gateway_v1_gateway_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *ServiceOpts) String() string {
 func (*ServiceOpts) ProtoMessage() {}
 
 func (x *ServiceOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_gateway_gateway_proto_msgTypes[0]
+	mi := &file_proto_codegen_gateway_v1_gateway_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *ServiceOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceOpts.ProtoReflect.Descriptor instead.
 func (*ServiceOpts) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_gateway_gateway_proto_rawDescGZIP(), []int{0}
+	return file_proto_codegen_gateway_v1_gateway_proto_rawDescGZIP(), []int{0}
 }
 
 // HandlerOpts defines gateway-specific options for individual RPC methods.
@@ -79,7 +79,7 @@ type HandlerOpts struct {
 
 func (x *HandlerOpts) Reset() {
 	*x = HandlerOpts{}
-	mi := &file_proto_codegen_gateway_gateway_proto_msgTypes[1]
+	mi := &file_proto_codegen_gateway_v1_gateway_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -91,7 +91,7 @@ func (x *HandlerOpts) String() string {
 func (*HandlerOpts) ProtoMessage() {}
 
 func (x *HandlerOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_gateway_gateway_proto_msgTypes[1]
+	mi := &file_proto_codegen_gateway_v1_gateway_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +104,7 @@ func (x *HandlerOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HandlerOpts.ProtoReflect.Descriptor instead.
 func (*HandlerOpts) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_gateway_gateway_proto_rawDescGZIP(), []int{1}
+	return file_proto_codegen_gateway_v1_gateway_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *HandlerOpts) GetCustom() bool {
@@ -114,14 +114,14 @@ func (x *HandlerOpts) GetCustom() bool {
 	return false
 }
 
-var file_proto_codegen_gateway_gateway_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_proto_codegen_gateway_v1_gateway_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
 		ExtensionType: (*ServiceOpts)(nil),
 		Field:         112211,
 		Name:          "malonaz.core.codegen.gateway.v1.service_opts",
 		Tag:           "bytes,112211,opt,name=service_opts",
-		Filename:      "proto/codegen/gateway/gateway.proto",
+		Filename:      "proto/codegen/gateway/v1/gateway.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
@@ -129,7 +129,7 @@ var file_proto_codegen_gateway_gateway_proto_extTypes = []protoimpl.ExtensionInf
 		Field:         22942,
 		Name:          "malonaz.core.codegen.gateway.v1.handler_opts",
 		Tag:           "bytes,22942,opt,name=handler_opts",
-		Filename:      "proto/codegen/gateway/gateway.proto",
+		Filename:      "proto/codegen/gateway/v1/gateway.proto",
 	},
 }
 
@@ -138,7 +138,7 @@ var (
 	// Opts for a service.
 	//
 	// optional malonaz.core.codegen.gateway.v1.ServiceOpts service_opts = 112211;
-	E_ServiceOpts = &file_proto_codegen_gateway_gateway_proto_extTypes[0]
+	E_ServiceOpts = &file_proto_codegen_gateway_v1_gateway_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
@@ -146,40 +146,40 @@ var (
 	// Opts for a handler.
 	//
 	// optional malonaz.core.codegen.gateway.v1.HandlerOpts handler_opts = 22942;
-	E_HandlerOpts = &file_proto_codegen_gateway_gateway_proto_extTypes[1]
+	E_HandlerOpts = &file_proto_codegen_gateway_v1_gateway_proto_extTypes[1]
 )
 
-var File_proto_codegen_gateway_gateway_proto protoreflect.FileDescriptor
+var File_proto_codegen_gateway_v1_gateway_proto protoreflect.FileDescriptor
 
-const file_proto_codegen_gateway_gateway_proto_rawDesc = "" +
+const file_proto_codegen_gateway_v1_gateway_proto_rawDesc = "" +
 	"\n" +
-	"#proto/codegen/gateway/gateway.proto\x12\x1fmalonaz.core.codegen.gateway.v1\x1a google/protobuf/descriptor.proto\"\r\n" +
+	"&proto/codegen/gateway/v1/gateway.proto\x12\x1fmalonaz.core.codegen.gateway.v1\x1a google/protobuf/descriptor.proto\"\r\n" +
 	"\vServiceOpts\"%\n" +
 	"\vHandlerOpts\x12\x16\n" +
 	"\x06custom\x18\x01 \x01(\bR\x06custom:r\n" +
 	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2,.malonaz.core.codegen.gateway.v1.ServiceOptsR\vserviceOpts:q\n" +
-	"\fhandler_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2,.malonaz.core.codegen.gateway.v1.HandlerOptsR\vhandlerOptsB2Z0github.com/malonaz/core/genproto/codegen/gatewayb\x06proto3"
+	"\fhandler_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2,.malonaz.core.codegen.gateway.v1.HandlerOptsR\vhandlerOptsB5Z3github.com/malonaz/core/genproto/codegen/gateway/v1b\x06proto3"
 
 var (
-	file_proto_codegen_gateway_gateway_proto_rawDescOnce sync.Once
-	file_proto_codegen_gateway_gateway_proto_rawDescData []byte
+	file_proto_codegen_gateway_v1_gateway_proto_rawDescOnce sync.Once
+	file_proto_codegen_gateway_v1_gateway_proto_rawDescData []byte
 )
 
-func file_proto_codegen_gateway_gateway_proto_rawDescGZIP() []byte {
-	file_proto_codegen_gateway_gateway_proto_rawDescOnce.Do(func() {
-		file_proto_codegen_gateway_gateway_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_codegen_gateway_gateway_proto_rawDesc), len(file_proto_codegen_gateway_gateway_proto_rawDesc)))
+func file_proto_codegen_gateway_v1_gateway_proto_rawDescGZIP() []byte {
+	file_proto_codegen_gateway_v1_gateway_proto_rawDescOnce.Do(func() {
+		file_proto_codegen_gateway_v1_gateway_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_codegen_gateway_v1_gateway_proto_rawDesc), len(file_proto_codegen_gateway_v1_gateway_proto_rawDesc)))
 	})
-	return file_proto_codegen_gateway_gateway_proto_rawDescData
+	return file_proto_codegen_gateway_v1_gateway_proto_rawDescData
 }
 
-var file_proto_codegen_gateway_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_codegen_gateway_gateway_proto_goTypes = []any{
+var file_proto_codegen_gateway_v1_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_codegen_gateway_v1_gateway_proto_goTypes = []any{
 	(*ServiceOpts)(nil),                 // 0: malonaz.core.codegen.gateway.v1.ServiceOpts
 	(*HandlerOpts)(nil),                 // 1: malonaz.core.codegen.gateway.v1.HandlerOpts
 	(*descriptorpb.ServiceOptions)(nil), // 2: google.protobuf.ServiceOptions
 	(*descriptorpb.MethodOptions)(nil),  // 3: google.protobuf.MethodOptions
 }
-var file_proto_codegen_gateway_gateway_proto_depIdxs = []int32{
+var file_proto_codegen_gateway_v1_gateway_proto_depIdxs = []int32{
 	2, // 0: malonaz.core.codegen.gateway.v1.service_opts:extendee -> google.protobuf.ServiceOptions
 	3, // 1: malonaz.core.codegen.gateway.v1.handler_opts:extendee -> google.protobuf.MethodOptions
 	0, // 2: malonaz.core.codegen.gateway.v1.service_opts:type_name -> malonaz.core.codegen.gateway.v1.ServiceOpts
@@ -191,27 +191,27 @@ var file_proto_codegen_gateway_gateway_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_codegen_gateway_gateway_proto_init() }
-func file_proto_codegen_gateway_gateway_proto_init() {
-	if File_proto_codegen_gateway_gateway_proto != nil {
+func init() { file_proto_codegen_gateway_v1_gateway_proto_init() }
+func file_proto_codegen_gateway_v1_gateway_proto_init() {
+	if File_proto_codegen_gateway_v1_gateway_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_gateway_gateway_proto_rawDesc), len(file_proto_codegen_gateway_gateway_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_gateway_v1_gateway_proto_rawDesc), len(file_proto_codegen_gateway_v1_gateway_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_codegen_gateway_gateway_proto_goTypes,
-		DependencyIndexes: file_proto_codegen_gateway_gateway_proto_depIdxs,
-		MessageInfos:      file_proto_codegen_gateway_gateway_proto_msgTypes,
-		ExtensionInfos:    file_proto_codegen_gateway_gateway_proto_extTypes,
+		GoTypes:           file_proto_codegen_gateway_v1_gateway_proto_goTypes,
+		DependencyIndexes: file_proto_codegen_gateway_v1_gateway_proto_depIdxs,
+		MessageInfos:      file_proto_codegen_gateway_v1_gateway_proto_msgTypes,
+		ExtensionInfos:    file_proto_codegen_gateway_v1_gateway_proto_extTypes,
 	}.Build()
-	File_proto_codegen_gateway_gateway_proto = out.File
-	file_proto_codegen_gateway_gateway_proto_goTypes = nil
-	file_proto_codegen_gateway_gateway_proto_depIdxs = nil
+	File_proto_codegen_gateway_v1_gateway_proto = out.File
+	file_proto_codegen_gateway_v1_gateway_proto_goTypes = nil
+	file_proto_codegen_gateway_v1_gateway_proto_depIdxs = nil
 }

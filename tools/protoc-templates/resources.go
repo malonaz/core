@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-	aippb "github.com/malonaz/core/genproto/codegen/aip"
+	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
@@ -130,7 +130,7 @@ func registerAncestors(files []*protogen.File) error {
 	return nil
 }
 
-func registerAncestorsOld(files []*protogen.File) error {
+func registerAncestorsOldj(files []*protogen.File) error {
 	// Build a registry from the files
 	registry := &protoregistry.Files{}
 	for _, f := range files {

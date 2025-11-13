@@ -1,5 +1,5 @@
 proto_library(
-    name = "aip",
+    name = "v1",
     srcs = ["aip.proto"],
     visibility = ["PUBLIC"],
     deps = [

@@ -4,7 +4,7 @@ package malonaz.core.codegen.gateway.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/core/genproto/codegen/gateway";
+option go_package = "github.com/malonaz/core/genproto/codegen/gateway/v1";
 
 // Extension for service-level gateway configuration options.
 // Allows customizing how a gRPC service is exposed through the gateway.

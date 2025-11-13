@@ -3,7 +3,7 @@ syntax = "proto3";
 package test.aip.v1;
 
 import "google/protobuf/field_mask.proto";
-import "proto/codegen/aip/aip.proto";
+import "proto/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
 

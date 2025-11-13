@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
-	authenticationpb "github.com/malonaz/core/genproto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 )
 
 type InternalAuthenticationInterceptorOpts struct {

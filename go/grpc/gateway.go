@@ -20,7 +20,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	grpcpb "github.com/malonaz/core/genproto/grpc"
+	grpcpb "github.com/malonaz/core/genproto/grpc/v1"
 	"github.com/malonaz/core/go/certs"
 	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
 	"github.com/malonaz/core/go/pbutil"

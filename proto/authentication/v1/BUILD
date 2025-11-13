@@ -1,5 +1,5 @@
 proto_library(
-    name = "authentication",
+    name = "v1",
     srcs = ["authentication.proto"],
     visibility = ["PUBLIC"],
 )

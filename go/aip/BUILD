@@ -7,7 +7,7 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//genproto/codegen/aip",
+        "//genproto/codegen/aip/v1",
         "//go/pbutil",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__huandu__xstrings",

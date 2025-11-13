@@ -4,7 +4,7 @@ package malonaz.core.codegen.model.v1;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/malonaz/core/genproto/codegen/model";
+option go_package = "github.com/malonaz/core/genproto/codegen/model/v1";
 
 // Extension for adding model-level code generation options to protobuf messages.
 // Used to control database table mapping and function generation for a message type.

@@ -1,5 +1,5 @@
 proto_library(
-    name = "grpc",
+    name = "v1",
     srcs = ["grpc.proto"],
     visibility = ["PUBLIC"],
 )

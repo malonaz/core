@@ -3,7 +3,7 @@ package authentication
 import (
 	"fmt"
 
-	authenticationpb "github.com/malonaz/core/genproto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/jsonnet"
 	"github.com/malonaz/core/go/pbutil"
 	"os"

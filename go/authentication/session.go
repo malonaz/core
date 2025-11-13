@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	grpc_metadata "github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
-	authenticationpb "github.com/malonaz/core/genproto/authentication"
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"

@@ -1,5 +1,5 @@
 proto_library(
-    name = "gateway",
+    name = "v1",
     srcs = ["gateway.proto"],
     visibility = ["PUBLIC"],
 )

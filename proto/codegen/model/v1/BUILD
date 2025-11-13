@@ -1,5 +1,5 @@
 proto_library(
-    name = "model",
+    name = "v1",
     srcs = ["model.proto"],
     visibility = ["PUBLIC"],
 )

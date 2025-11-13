@@ -9,9 +9,9 @@ go_binary(
     resources = ["templates"],
     visibility = ["//..."],
     deps = [
-        "//genproto/codegen/aip",
-        "//genproto/codegen/gateway",
-        "//genproto/codegen/model",
+        "//genproto/codegen/aip/v1",
+        "//genproto/codegen/gateway/v1",
+        "//genproto/codegen/model/v1",
         "//third_party/go:github.com__Masterminds__sprig__v3",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
