@@ -87,7 +87,7 @@ func main() {
 				continue
 			}
 			generatedFilename := fmt.Sprintf(
-				"%s_%s.pb.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
+				"%s.%s.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
 			)
 			generatedFile := gen.NewGeneratedFile(generatedFilename, "")
 			scopedExecution := newScopedExecution(generatedFile)

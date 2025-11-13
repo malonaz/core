@@ -2,7 +2,7 @@
 {{ $file := .File }}
 {{ $generatedFile := .GeneratedFile }}
 {{- $apiImportPathRaw := $file.GoImportPath | toString | clean | dir -}}
-{{- $apiImportPath := printf "%s/%s" (trimPrefix "\"" $apiImportPathRaw) "api" -}}
+{{- $apiImportPath := (trimPrefix "\"" $apiImportPathRaw) -}}
 {{- $dummy := replaceImportPath $file.GoImportPath $apiImportPath -}}
 {{- $pgvector := "github.com/pgvector/pgvector-go" -}}
 

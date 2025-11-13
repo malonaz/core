@@ -152,7 +152,30 @@ func plzGoImport(in ...string) (string, error) {
 		}
 	}
 
-	importPath := strings.TrimPrefix(strings.ReplaceAll(label, ":", "/"), "//")
+	var importPath string
+
+	// Check if label contains a colon
+	if strings.Contains(label, ":") {
+		parts := strings.Split(label, ":")
+		if len(parts) == 2 {
+			dirPath := strings.TrimPrefix(parts[0], "//")
+			targetName := parts[1]
+
+			// Get the last directory name
+			lastDir := path.Base(dirPath)
+
+			// If target name matches last directory, don't append it
+			if lastDir == targetName {
+				importPath = dirPath
+			} else {
+				importPath = dirPath + "/" + targetName
+			}
+		}
+	} else {
+		// No colon, just trim the prefix
+		importPath = strings.TrimPrefix(label, "//")
+	}
+
 	in[0] = importPath
 	return goImport(in...)
 }

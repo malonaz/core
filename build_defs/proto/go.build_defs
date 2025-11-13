@@ -30,7 +30,8 @@ def go_mapping_labels(name:str, srcs:list, root_dir:str):
     diff_pkg = basename(base_path) != name
     if CONFIG.GO.IMPORT_PATH:
         base_path = join_path(CONFIG.GO.IMPORT_PATH, base_path)
-    return [f'proto:go-map: {base_path}/{src}={base_path}/{name}' for src in srcs
+    destination = f"{base_path}/{name}" if diff_pkg else base_path
+    return [f'proto:go-map: {base_path}/{src}={destination}' for src in srcs
                if not looks_like_build_label(src)]
 
 def _import_path(name, root_dir, additional_context=None):

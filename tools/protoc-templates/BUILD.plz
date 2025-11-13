@@ -6,7 +6,6 @@ go_binary(
         "resources.go",
         "types.go",
     ],
-    resources = ["templates"],
     visibility = ["//..."],
     deps = [
         "//genproto/codegen/aip/v1",

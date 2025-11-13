@@ -7,10 +7,8 @@
 {{ $packageName := index $l (sub (len $l) 2) }}
 
 {{- $apiImportPathRaw := $file.GoImportPath | toString | clean | dir -}}
-{{- $apiImportPath := printf "%s/%s" (trimPrefix "\"" $apiImportPathRaw) $packageName -}}
+{{- $apiImportPath := (trimPrefix "\"" $apiImportPathRaw) -}}
 {{- $dummy := replaceImportPath $file.GoImportPath $apiImportPath -}}
-
-{{- $requireAuthorizationClient := false -}}
 
 {{- /* ################### HELPER TEMPLATES ################### */ -}}
 {{- define "pipeServerStreamFn" -}}
