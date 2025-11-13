@@ -21,10 +21,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Configuration defines the complete authentication and authorization setup
+// for the system, including all roles and service accounts.
 type Configuration struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Roles           []*Role                `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
-	ServiceAccounts []*ServiceAccount      `protobuf:"bytes,2,rep,name=service_accounts,json=serviceAccounts,proto3" json:"service_accounts,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// List of all roles defined in the system, including their permissions
+	// and inheritance relationships.
+	Roles []*Role `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
+	// List of all service accounts configured in the system, each with their
+	// assigned roles for programmatic access.
+	ServiceAccounts []*ServiceAccount `protobuf:"bytes,2,rep,name=service_accounts,json=serviceAccounts,proto3" json:"service_accounts,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -73,10 +79,15 @@ func (x *Configuration) GetServiceAccounts() []*ServiceAccount {
 	return nil
 }
 
+// ServiceAccount represents a non-human identity used for programmatic access
+// to the system, such as API clients, background jobs, or inter-service communication.
 type ServiceAccount struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Unique identifier for this service account.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// List of role IDs assigned to this service account, determining what
+	// permissions and access it has within the system.
+	RoleIds       []string `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -125,15 +136,21 @@ func (x *ServiceAccount) GetRoleIds() []string {
 	return nil
 }
 
+// Role defines a set of permissions and capabilities that can be assigned to
+// users or service accounts. Roles support inheritance for hierarchical permission management.
 type Role struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Name of the role.
+	// Unique identifier for this role.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Permissions for thisrole.
+	// List of permission strings this role grants. Permissions typically correspond
+	// to RPC method names (e.g., "/api.v1.UserService/GetUser").
 	Permissions []string `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
-	// Optional: role hierarchy
+	// Optional list of role IDs from which this role inherits permissions.
+	// Enables hierarchical role definitions where a role can include all
+	// permissions from parent roles.
 	InheritedRoleIds []string `protobuf:"bytes,3,rep,name=inherited_role_ids,json=inheritedRoleIds,proto3" json:"inherited_role_ids,omitempty"`
-	// Optional: context/scope (e.g., organization-specific roles)
+	// Optional scope or context for this role, enabling organization-specific
+	// or domain-specific role definitions (e.g., "org:123" for organization-level roles).
 	Scope         string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -197,23 +214,30 @@ func (x *Role) GetScope() string {
 	return ""
 }
 
+// Session represents an authenticated session for either a user or service account,
+// containing identity information, permissions, and metadata about the session.
 type Session struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Id of this session.
+	// Unique identifier for this session instance.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Time at which this session was created.
+	// Unix timestamp (seconds since epoch) when this session was created.
 	CreateTimestamp int64 `protobuf:"varint,2,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
-	// Time at which this sessione expires.
+	// Unix timestamp (seconds since epoch) when this session expires and
+	// is no longer valid for authentication.
 	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
-	// The user id of this user.
+	// User ID if this session belongs to a human user. Empty for service account sessions.
 	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	// Programatic access.
+	// Service account ID if this session represents programmatic access.
+	// Empty for human user sessions.
 	ServiceAccountId string `protobuf:"bytes,5,opt,name=service_account_id,json=serviceAccountId,proto3" json:"service_account_id,omitempty"`
-	// The organization id.
+	// Organization ID that this session is scoped to, enabling multi-tenant
+	// access control and organization-specific permissions.
 	OrganizationId string `protobuf:"bytes,6,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	// Roles this session has.
+	// List of role IDs active in this session, which may include roles assigned
+	// directly to the user/service account plus any additional session-specific roles.
 	RoleIds []string `protobuf:"bytes,7,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	// Metadata and others.
+	// Additional metadata about the session, including client information
+	// and context for logging and auditing purposes.
 	Metadata      *SessionMetadata `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -305,15 +329,21 @@ func (x *Session) GetMetadata() *SessionMetadata {
 	return nil
 }
 
+// SessionMetadata contains contextual information about a session, useful for
+// logging, auditing, security monitoring, and debugging.
 type SessionMetadata struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Ip address of the client.
+	// IP address of the client that created or is using this session,
+	// useful for security monitoring and geographic access tracking.
 	IpAddress string `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
-	// Version of the client caller.
+	// Semantic version of the client application making requests with this session,
+	// enabling version-specific behavior and compatibility tracking.
 	ClientVersion *ClientVersion `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3" json:"client_version,omitempty"`
-	// User agent.
+	// User-Agent string from the client, providing information about the
+	// client software, operating system, and browser (if applicable).
 	UserAgent string `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
-	// Extra data.
+	// Extensible key-value store for additional custom metadata that may be
+	// needed for specific use cases or integrations.
 	KeyToValue    map[string]string `protobuf:"bytes,4,rep,name=key_to_value,json=keyToValue,proto3" json:"key_to_value,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -377,11 +407,16 @@ func (x *SessionMetadata) GetKeyToValue() map[string]string {
 	return nil
 }
 
+// ClientVersion represents a semantic version (semver) of the client application,
+// following the major.minor.patch versioning scheme.
 type ClientVersion struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Major         int32                  `protobuf:"varint,1,opt,name=major,proto3" json:"major,omitempty"`
-	Minor         int32                  `protobuf:"varint,2,opt,name=minor,proto3" json:"minor,omitempty"`
-	Patch         int32                  `protobuf:"varint,3,opt,name=patch,proto3" json:"patch,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Major version number, incremented for incompatible API changes.
+	Major int32 `protobuf:"varint,1,opt,name=major,proto3" json:"major,omitempty"`
+	// Minor version number, incremented for backwards-compatible functionality additions.
+	Minor int32 `protobuf:"varint,2,opt,name=minor,proto3" json:"minor,omitempty"`
+	// Patch version number, incremented for backwards-compatible bug fixes.
+	Patch         int32 `protobuf:"varint,3,opt,name=patch,proto3" json:"patch,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

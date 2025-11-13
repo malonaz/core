@@ -22,25 +22,41 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// HttpCookie represents an HTTP cookie with all standard cookie attributes.
+// This message is used to serialize/deserialize cookies when passing them
+// through gRPC metadata between clients, servers, and gateways.
 type HttpCookie struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The unique name of the cookie, used as the key to identify and retrieve the cookie's value.
+	// name is the unique identifier for the cookie. It serves as the key
+	// to retrieve the cookie's value from the cookie store.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The actual data stored in the cookie, which is associated with the cookie's name.
+	// value is the actual data stored in the cookie. This is associated
+	// with the cookie's name and represents the information being persisted.
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	// Specifies the URL path scope for which the cookie is valid, controlling which requests include the cookie.
+	// path specifies the URL path scope for which the cookie is valid.
+	// Only requests to URLs matching this path will include the cookie.
+	// For example, "/api" means the cookie is only sent for paths starting with /api.
 	Path string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	// Determines the domain(s) for which the cookie is valid, controlling which websites can access the cookie.
+	// domain determines which domain(s) can access the cookie.
+	// This controls the scope of websites that will receive the cookie in requests.
+	// For example, ".example.com" allows all subdomains of example.com to access it.
 	Domain string `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"`
-	// The date and time when the cookie will expire, after which the browser will automatically delete the cookie.
+	// expires is the Unix timestamp (in microseconds) indicating when the cookie
+	// will expire. After this time, the browser will automatically delete the cookie.
 	Expires uint64 `protobuf:"varint,5,opt,name=expires,proto3" json:"expires,omitempty"`
-	// MaxAge=0 means no 'Max-Age' attribute specified.
-	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-	// MaxAge>0 means Max-Age attribute present and given in seconds  //
+	// max_age specifies the cookie's lifetime in seconds, providing an alternative
+	// to the expires attribute with the following semantics:
+	// - MaxAge = 0: No 'Max-Age' attribute is specified
+	// - MaxAge < 0: Delete the cookie immediately (equivalent to 'Max-Age: 0')
+	// - MaxAge > 0: The cookie expires after the specified number of seconds
 	MaxAge int64 `protobuf:"varint,6,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
-	// A flag indicating whether the cookie should be inaccessible to client-side scripts (e.g., JavaScript), providing protection against certain types of attacks like XSS.
-	HttpOnly bool `protobuf:"varint,7,opt,name=httpOnly,proto3" json:"httpOnly,omitempty"`
-	// A flag indicating whether the cookie should only be sent over secure (HTTPS) connections, helping protect the cookie's data during transmission.
+	// http_only is a security flag that, when true, prevents client-side scripts
+	// (e.g., JavaScript) from accessing the cookie. This provides protection
+	// against Cross-Site Scripting (XSS) attacks.
+	HttpOnly bool `protobuf:"varint,7,opt,name=http_only,json=httpOnly,proto3" json:"http_only,omitempty"`
+	// secure is a security flag that, when true, ensures the cookie is only
+	// transmitted over secure HTTPS connections. This protects the cookie's
+	// data from being intercepted during transmission over unencrypted connections.
 	Secure        bool `protobuf:"varint,8,opt,name=secure,proto3" json:"secure,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -132,9 +148,15 @@ func (x *HttpCookie) GetSecure() bool {
 	return false
 }
 
+// GatewayOptions provides configuration for how the gRPC-Gateway should
+// handle a specific RPC method, allowing customization of gateway behavior
+// on a per-method basis.
 type GatewayOptions struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CustomMime    string                 `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3" json:"custom_mime,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// custom_mime specifies a custom MIME type to use for this method's
+	// HTTP requests/responses. This overrides the default content type
+	// and allows handling of non-standard formats (e.g., "application/raw-webhook").
+	CustomMime    string `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3" json:"custom_mime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,16 +227,23 @@ var file_proto_grpc_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.EnumValueOptions.
 var (
-	// string header_key = 23240;
+	// trailer_key specifies a custom key name to use when this enum value
+	// is sent as a gRPC trailer (metadata sent after the response body).
 	//
 	// optional string trailer_key = 23241;
 	E_TrailerKey = &file_proto_grpc_proto_extTypes[0]
+	// metadata_key specifies a custom key name to use when this enum value
+	// is sent as gRPC metadata (headers sent before the response body).
+	//
 	// optional string metadata_key = 23242;
 	E_MetadataKey = &file_proto_grpc_proto_extTypes[1]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
+	// gateway_options allows attaching gateway-specific configuration
+	// to individual RPC methods, controlling how the gRPC-Gateway handles them.
+	//
 	// optional core.grpc.v1.GatewayOptions gateway_options = 50000;
 	E_GatewayOptions = &file_proto_grpc_proto_extTypes[2]
 )
@@ -223,7 +252,7 @@ var File_proto_grpc_proto protoreflect.FileDescriptor
 
 const file_proto_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/grpc.proto\x12\fcore.grpc.v1\x1a google/protobuf/descriptor.proto\"\xc9\x01\n" +
+	"\x10proto/grpc.proto\x12\fcore.grpc.v1\x1a google/protobuf/descriptor.proto\"\xca\x01\n" +
 	"\n" +
 	"HttpCookie\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
@@ -231,8 +260,8 @@ const file_proto_grpc_proto_rawDesc = "" +
 	"\x04path\x18\x03 \x01(\tR\x04path\x12\x16\n" +
 	"\x06domain\x18\x04 \x01(\tR\x06domain\x12\x18\n" +
 	"\aexpires\x18\x05 \x01(\x04R\aexpires\x12\x17\n" +
-	"\amax_age\x18\x06 \x01(\x03R\x06maxAge\x12\x1a\n" +
-	"\bhttpOnly\x18\a \x01(\bR\bhttpOnly\x12\x16\n" +
+	"\amax_age\x18\x06 \x01(\x03R\x06maxAge\x12\x1b\n" +
+	"\thttp_only\x18\a \x01(\bR\bhttpOnly\x12\x16\n" +
 	"\x06secure\x18\b \x01(\bR\x06secure\"1\n" +
 	"\x0eGatewayOptions\x12\x1f\n" +
 	"\vcustom_mime\x18\x01 \x01(\tR\n" +

@@ -22,17 +22,24 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ModelOpts defines code generation options for an entire message/model.
+// Controls database mapping and which CRUD functions are generated.
 type ModelOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Override the table name.
+	// Override the default database name for this model.
+	// If not set, uses a default derived from the message name.
 	DatabaseName string `protobuf:"bytes,1,opt,name=database_name,json=databaseName,proto3" json:"database_name,omitempty"`
-	// Override the table name.
+	// Override the default table name for this model.
+	// If not set, uses a default derived from the message name.
 	TableName string `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	// Do not generate an db.Insert function.
+	// If true, skip generating a db.Insert function for this model.
+	// Useful when insert logic is custom or handled elsewhere.
 	SkipInsertFunction bool `protobuf:"varint,3,opt,name=skip_insert_function,json=skipInsertFunction,proto3" json:"skip_insert_function,omitempty"`
-	// Do not generate an db.Delete function.
+	// If true, skip generating a db.Delete function for this model.
+	// Useful when delete logic is custom or handled elsewhere.
 	SkipDeleteFunction bool `protobuf:"varint,4,opt,name=skip_delete_function,json=skipDeleteFunction,proto3" json:"skip_delete_function,omitempty"`
-	// Do not generate an db.Delete function.
+	// If true, skip generating a db.Get function for this model.
+	// Useful when retrieval logic is custom or handled elsewhere.
 	SkipGetFunction bool `protobuf:"varint,5,opt,name=skip_get_function,json=skipGetFunction,proto3" json:"skip_get_function,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -103,14 +110,28 @@ func (x *ModelOpts) GetSkipGetFunction() bool {
 	return false
 }
 
+// FieldOpts defines code generation options for individual message fields.
+// Controls serialization format and nullability handling.
 type FieldOpts struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AsJsonBytes   bool                   `protobuf:"varint,1,opt,name=as_json_bytes,json=asJsonBytes,proto3" json:"as_json_bytes,omitempty"`
-	AsProtoBytes  bool                   `protobuf:"varint,2,opt,name=as_proto_bytes,json=asProtoBytes,proto3" json:"as_proto_bytes,omitempty"`
-	Nullable      bool                   `protobuf:"varint,3,opt,name=nullable,proto3" json:"nullable,omitempty"`
-	Skip          bool                   `protobuf:"varint,4,opt,name=skip,proto3" json:"skip,omitempty"`
-	Embed         bool                   `protobuf:"varint,5,opt,name=embed,proto3" json:"embed,omitempty"`
-	PgVector      bool                   `protobuf:"varint,6,opt,name=pg_vector,json=pgVector,proto3" json:"pg_vector,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// If true, serialize this field as JSON bytes in the database.
+	// The field will be stored as JSONB and marshaled/unmarshaled using JSON encoding.
+	AsJsonBytes bool `protobuf:"varint,1,opt,name=as_json_bytes,json=asJsonBytes,proto3" json:"as_json_bytes,omitempty"`
+	// If true, serialize this field as Protocol Buffer bytes in the database.
+	// The field will be stored as bytea and marshaled/unmarshaled using protobuf encoding.
+	AsProtoBytes bool `protobuf:"varint,2,opt,name=as_proto_bytes,json=asProtoBytes,proto3" json:"as_proto_bytes,omitempty"`
+	// If true, treat this field as nullable (use pointer type in Go).
+	// Allows distinguishing between zero values and null/unset values.
+	Nullable bool `protobuf:"varint,3,opt,name=nullable,proto3" json:"nullable,omitempty"`
+	// If true, skip this field entirely in code generation.
+	// The field will not be included in database models or conversion functions.
+	Skip bool `protobuf:"varint,4,opt,name=skip,proto3" json:"skip,omitempty"`
+	// If true, embed this field's properties directly into the parent struct.
+	// Instead of a nested field, the properties are flattened into the parent.
+	Embed bool `protobuf:"varint,5,opt,name=embed,proto3" json:"embed,omitempty"`
+	// If true, treat this field as a pgvector type for vector similarity search.
+	// The field will use the pgvector.Vector type for PostgreSQL vector operations.
+	PgVector      bool `protobuf:"varint,6,opt,name=pg_vector,json=pgVector,proto3" json:"pg_vector,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -208,12 +229,16 @@ var file_proto_codegen_model_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
+	// Opts for a model.
+	//
 	// optional malonaz.core.codegen.model.v1.ModelOpts model_opts = 8810;
 	E_ModelOpts = &file_proto_codegen_model_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
+	// Opts for a field.
+	//
 	// optional malonaz.core.codegen.model.v1.FieldOpts field_opts = 32423;
 	E_FieldOpts = &file_proto_codegen_model_proto_extTypes[1]
 )

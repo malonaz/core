@@ -4,59 +4,111 @@ package malonaz.core.authentication.v1;
 
 option go_package = "github.com/malonaz/core/genproto/authentication";
 
+// Configuration defines the complete authentication and authorization setup
+// for the system, including all roles and service accounts.
 message Configuration {
+  // List of all roles defined in the system, including their permissions
+  // and inheritance relationships.
   repeated Role roles = 1;
+
+  // List of all service accounts configured in the system, each with their
+  // assigned roles for programmatic access.
   repeated ServiceAccount service_accounts = 2;
 }
 
+// ServiceAccount represents a non-human identity used for programmatic access
+// to the system, such as API clients, background jobs, or inter-service communication.
 message ServiceAccount {
+  // Unique identifier for this service account.
   string id = 1;
+
+  // List of role IDs assigned to this service account, determining what
+  // permissions and access it has within the system.
   repeated string role_ids = 2;
 }
 
+// Role defines a set of permissions and capabilities that can be assigned to
+// users or service accounts. Roles support inheritance for hierarchical permission management.
 message Role {
-  // Name of the role.
+  // Unique identifier for this role.
   string id = 1;
-  // Permissions for thisrole.
+
+  // List of permission strings this role grants. Permissions typically correspond
+  // to RPC method names (e.g., "/api.v1.UserService/GetUser").
   repeated string permissions = 2;
-  // Optional: role hierarchy
+
+  // Optional list of role IDs from which this role inherits permissions.
+  // Enables hierarchical role definitions where a role can include all
+  // permissions from parent roles.
   repeated string inherited_role_ids = 3;
-  // Optional: context/scope (e.g., organization-specific roles)
+
+  // Optional scope or context for this role, enabling organization-specific
+  // or domain-specific role definitions (e.g., "org:123" for organization-level roles).
   string scope = 4;
 }
 
+// Session represents an authenticated session for either a user or service account,
+// containing identity information, permissions, and metadata about the session.
 message Session {
-  // Id of this session.
+  // Unique identifier for this session instance.
   string id = 1;
-  // Time at which this session was created.
+
+  // Unix timestamp (seconds since epoch) when this session was created.
   int64 create_timestamp = 2;
-  // Time at which this sessione expires.
+
+  // Unix timestamp (seconds since epoch) when this session expires and
+  // is no longer valid for authentication.
   int64 expire_timestamp = 3;
-  // The user id of this user.
+
+  // User ID if this session belongs to a human user. Empty for service account sessions.
   string user_id = 4;
-  // Programatic access.
+
+  // Service account ID if this session represents programmatic access.
+  // Empty for human user sessions.
   string service_account_id = 5;
-  // The organization id.
+
+  // Organization ID that this session is scoped to, enabling multi-tenant
+  // access control and organization-specific permissions.
   string organization_id = 6;
-  // Roles this session has.
+
+  // List of role IDs active in this session, which may include roles assigned
+  // directly to the user/service account plus any additional session-specific roles.
   repeated string role_ids = 7;
-  // Metadata and others.
+
+  // Additional metadata about the session, including client information
+  // and context for logging and auditing purposes.
   SessionMetadata metadata = 8;
 }
 
+// SessionMetadata contains contextual information about a session, useful for
+// logging, auditing, security monitoring, and debugging.
 message SessionMetadata {
-  // Ip address of the client.
+  // IP address of the client that created or is using this session,
+  // useful for security monitoring and geographic access tracking.
   string ip_address = 1;
-  // Version of the client caller.
+
+  // Semantic version of the client application making requests with this session,
+  // enabling version-specific behavior and compatibility tracking.
   ClientVersion client_version = 2;
-  // User agent.
+
+  // User-Agent string from the client, providing information about the
+  // client software, operating system, and browser (if applicable).
   string user_agent = 3;
-  // Extra data.
+
+  // Extensible key-value store for additional custom metadata that may be
+  // needed for specific use cases or integrations.
   map<string, string> key_to_value = 4;
 }
 
+// ClientVersion represents a semantic version (semver) of the client application,
+// following the major.minor.patch versioning scheme.
 message ClientVersion {
+  // Major version number, incremented for incompatible API changes.
   int32 major = 1;
+
+  // Minor version number, incremented for backwards-compatible functionality additions.
   int32 minor = 2;
+
+  // Patch version number, incremented for backwards-compatible bug fixes.
   int32 patch = 3;
 }

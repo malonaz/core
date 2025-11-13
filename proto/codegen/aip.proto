@@ -7,53 +7,114 @@ import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/aip";
 
+// Extension for method options to mark methods as standard AIP methods (Create, Get, Update, Delete, List).
 extend google.protobuf.MethodOptions {
+  // Extension for standard method.
   StandardMethod standard_method = 92002;
 }
 
+// Extensions for message options to configure AIP list and update behaviors.
 extend google.protobuf.MessageOptions {
+  // Configuration for AIP List RPCs, including filtering, pagination, and ordering.
   ListOptions list = 92000;
+
+  // Configuration for AIP Update RPCs, including field mask handling and authorization.
   UpdateOptions update = 92001;
 }
 
+// Configuration options for AIP-compliant List methods.
+// This message defines how list requests should be parsed and validated.
 message ListOptions {
+  // The default number of items to return per page when page_size is not specified.
+  // This value is used to prevent unbounded queries and ensure consistent pagination.
   int32 default_page_size = 1;
+
+  // List of field names that can be used in the order_by parameter.
+  // Only fields listed here are allowed for sorting to prevent SQL injection
+  // and ensure queries can be efficiently executed.
   repeated string order_by = 2;
+
+  // List of fields that can be used in the filter expression.
+  // Each FilterIdent defines a filterable field and its type for validation.
   repeated FilterIdent filters = 3;
+
+  // Map of field name aliases for backward compatibility or user-friendly naming.
+  // Keys are the alias names used in requests, values are the actual field names
+  // used in the database or internal logic.
+  // Example: {"user_name": "user_id"} allows filtering by "user_name" which maps to "user_id"
   map<string, string> aliases = 4;
 }
 
+// Defines a filterable field and its type for AIP filter expressions.
+// Used by the parser to validate filter syntax and generate SQL where clauses.
 message FilterIdent {
+  // The name of the field that can be filtered.
+  // This should match the field name in the proto message or its alias.
   string field = 1;
+
+  // The type of the field, used for validation and SQL generation.
+  // Only one of these types should be set.
   oneof type {
+    // Primitive types like INT64, UINT64, BOOL, STRING, DOUBLE.
     google.api.expr.v1alpha1.Type.PrimitiveType primitive = 2;
+
+    // Well-known types like TIMESTAMP, DURATION, etc.
     google.api.expr.v1alpha1.Type.WellKnownType well_known = 3;
+
+    // Fully qualified enum type name (e.g., "mypackage.MyEnum").
+    // Used to validate enum values in filter expressions.
     string enum = 4;
   }
 }
 
+// Configuration options for AIP-compliant Update methods.
+// Defines which fields can be updated and how field masks are processed.
 message UpdateOptions {
-  // These fields are automatically updated whenever an update request comes through.
+  // Fields that are automatically included in every update, even if not in the field mask.
+  // Commonly includes fields like "update_time" that should always be refreshed.
+  // These paths are added to the update operation without requiring explicit authorization.
   repeated string default_paths = 1;
-  // These are updatable fields.
+
+  // List of field paths that users are authorized to update.
+  // Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
+  // This provides fine-grained access control at the field level.
   repeated AuthorizedUpdatePath authorized_paths = 2;
-  // Some paths may not map to db columns.
-  // For example a jsonb metadata path `metadata.name` can be mapped to `metadata`.
-  // Supports `*` so `metadata.* => metadata` can be used.
+
+  // Mappings from proto field paths to database column names or JSONB paths.
+  // Allows decoupling the proto field structure from the database schema.
+  // Supports wildcards (e.g., "metadata.*" => "metadata_jsonb") for nested fields.
   repeated UpdatePathMapping path_mappings = 3;
 }
 
+// Represents a single authorized field path for updates.
+// Used within UpdateOptions to define which fields can be modified.
 message AuthorizedUpdatePath {
-  // The field that's updatable.
+  // The field path that can be updated (e.g., "name", "metadata.description").
+  // Supports wildcards with ".*" suffix to authorize all nested fields
+  // (e.g., "metadata.*" authorizes "metadata.name", "metadata.description", etc.).
   string path = 1;
 }
 
+// Defines how a proto field path maps to database column(s).
+// This allows complex mappings where a single proto field may update multiple DB columns,
+// or multiple proto fields map to a single JSONB column.
 message UpdatePathMapping {
+  // The source field path from the proto field mask.
+  // Supports wildcards with ".*" suffix to match all nested fields
+  // (e.g., "metadata.*" matches "metadata.name", "metadata.tags", etc.).
   string from = 1;
+
+  // The target database column name(s) to update.
+  // Multiple columns can be specified if one proto field affects multiple DB columns.
+  // Example: ["metadata_jsonb"] for JSONB columns, or ["field1", "field2"] for multiple columns.
   repeated string to = 2;
 }
 
+// Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
+// The protoc-templates plugin uses this to generate appropriate server and client code.
 message StandardMethod {
-  // The resource for this standard method.
+  // The resource type this method operates on (e.g., "example.com/User").
+  // Must match a resource type defined in google.api.resource annotations.
+  // Used to determine request/response message types and validate method naming.
   string resource = 1;
 }

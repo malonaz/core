@@ -7,11 +7,15 @@ import "proto/codegen/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
 
+// MyEnum is a test enum for filter validation.
 enum MyEnum {
+  // Unspecified enum.
   MY_ENUM_UNSPECIFIED = 0;
+  // Some specified value.
   MY_ENUM_VALUE = 1;
 }
 
+// ListResourcesRequest tests list operation with filters, ordering, and aliases.
 message ListResourcesRequest {
   option (malonaz.core.codegen.aip.v1.list) = {
     default_page_size: 1000
@@ -66,27 +70,43 @@ message ListResourcesRequest {
     ]
   };
 
+  // Filter expression for resources.
   string filter = 1;
+  // Maximum number of resources to return.
   int32 page_size = 2;
+  // Pagination token from previous response.
   string page_token = 3;
+  // Ordering clause for results.
   string order_by = 4;
 }
 
+// Resource is a test message with nested fields.
 message Resource {
+  // Simple string field.
   string field1 = 1;
+  // Nested resource for path mapping tests.
   NestedResource nested = 2;
+  // Second nested resource for full object updates.
   NestedResource nested2 = 3;
+  // Third nested resource for multi-column mapping.
   NestedResource nested3 = 4;
+  // Fourth nested resource for wildcard mapping.
   NestedResource nested4 = 5;
+  // Enum field for filter testing.
   MyEnum my_enum = 6;
 }
 
+// NestedResource contains fields for testing nested path updates.
 message NestedResource {
+  // Boolean field.
   bool field1 = 1;
+  // Integer field for selective updates.
   int64 field2 = 2;
+  // String field.
   string field3 = 3;
 }
 
+// UpdateResourceRequest tests field mask with path mappings and authorization.
 message UpdateResourceRequest {
   option (malonaz.core.codegen.aip.v1.update) = {
     path_mappings: [
@@ -125,11 +145,13 @@ message UpdateResourceRequest {
       {path: "nested3"}]
   };
 
-  // The user you wish to update. We carry out validation ourselves in the code.
+  // Resource to update.
   Resource resource = 1;
+  // Field mask specifying which fields to update.
   google.protobuf.FieldMask update_mask = 2;
 }
 
+// UpdateResource2Request tests default paths with authorized paths.
 message UpdateResource2Request {
   option (malonaz.core.codegen.aip.v1.update) = {
     default_paths: ["field1"]
@@ -138,7 +160,8 @@ message UpdateResource2Request {
       {path: "nested2"}]
   };
 
-  // The user you wish to update. We carry out validation ourselves in the code.
+  // Resource to update.
   Resource resource = 1;
+  // Field mask specifying which fields to update.
   google.protobuf.FieldMask update_mask = 2;
 }

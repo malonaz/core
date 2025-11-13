@@ -102,6 +102,11 @@ DefaultValue = //tools/template
 ConfigKey = ValidateSchema
 DefaultValue = //tools/validate-schema
 
+
+[PluginConfig "buf_yaml"]
+ConfigKey = BufYaml
+DefaultValue = //tools/tidy:buf.yaml
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.

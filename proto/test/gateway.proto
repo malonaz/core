@@ -6,8 +6,10 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
 
+// GreeterService provides greeting functionality for users.
 service GreeterService {
-  rpc SayHello(HelloRequest) returns (HelloResponse) {
+  // SayHello generates a personalized greeting message for the provided name.
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
     option (google.api.http) = {
       post: "/v1/hello"
       body: "*"
@@ -15,10 +17,14 @@ service GreeterService {
   }
 }
 
-message HelloRequest {
+// SayHelloRequest contains the input parameters for generating a greeting.
+message SayHelloRequest {
+  // name is the person's name to include in the greeting message.
   string name = 1;
 }
 
-message HelloResponse {
+// SayHelloResponse contains the generated greeting message.
+message SayHelloResponse {
+  // message is the personalized greeting text returned to the caller.
   string message = 1;
 }

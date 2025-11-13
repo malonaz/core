@@ -54,13 +54,15 @@ _lint_cmds = [
     echo_message("Building codegen"),
     "plz build --include codegen > /dev/null 2>&1 || echo 'Codegen build failed'",
     echo_message("Running 'wollemi'"),
+    "mv third_party/go/dummy/dummy.go third_party/go/dummy/dummy.ignore 2>/dev/null || true",
     "$(out_exe :wollemi) gofmt ./...",
+    "mv third_party/go/dummy/dummy.ignore third_party/go/dummy/dummy.go 2>/dev/null || true",
     echo_message("Running 'gofmt'"),
     f"git ls-files | grep '\.go$'| xargs $(out_exe //tools/go:toolchain|gofmt) -l -s -w",
     echo_message("Running 'buf format'"),
-    "$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache",
-    echo_message("Removing third_party/go/dummy/BUILD.plz"),
-    "rm -f $(git rev-parse --show-toplevel)/third_party/go/dummy/BUILD.plz",
+    f"$(out_exe :buf) format -w \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /') --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_YAML})",
+    echo_message("Running 'buf lint'"),
+    f"$(out_exe :buf) lint --exclude-path plz-out/ --exclude-path .plz-cache --config $(out_location {CONFIG.CORE.BUF_YAML}) \\\\$(git ls-files | grep '\\.proto' | sed -e 's/^/--path /')",
 ]
 
 sh_cmd(
@@ -68,6 +70,7 @@ sh_cmd(
     cmd = _lint_cmds,
     deps = [
         ":buf",
+        CONFIG.CORE.BUF_YAML,
         ":wollemi",
         "//tools/go:toolchain",
     ],
@@ -83,8 +86,14 @@ sh_cmd(
     ] + _lint_cmds,
     deps = [
         ":buf",
+        CONFIG.CORE.BUF_YAML,
         ":godeps",
         ":wollemi",
         "//tools/go:toolchain",
     ],
+)
+
+export_file(
+    name = "buf.yaml",
+    src = "buf.yaml",
 )

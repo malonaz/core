@@ -22,6 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ServiceOpts defines gateway-specific options for an entire gRPC service.
+// Currently empty but can be extended with service-wide gateway configurations
+// such as authentication requirements, rate limiting, or routing rules.
 type ServiceOpts struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -58,9 +61,17 @@ func (*ServiceOpts) Descriptor() ([]byte, []int) {
 	return file_proto_codegen_gateway_proto_rawDescGZIP(), []int{0}
 }
 
+// HandlerOpts defines gateway-specific options for individual RPC methods.
+// Controls how the gateway generates and handles the method implementation.
 type HandlerOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// If true, a custom handler is used.
+	// custom indicates whether this method uses a custom handler implementation.
+	// When true, the code generator will skip generating the default pass-through
+	// handler for this method, expecting the developer to provide a custom
+	// implementation. This is useful for methods that require special logic,
+	// transformation, aggregation, or integration with multiple backend services.
+	//
+	// Default: false (auto-generate standard pass-through handler)
 	Custom        bool `protobuf:"varint,1,opt,name=custom,proto3" json:"custom,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -124,13 +135,15 @@ var file_proto_codegen_gateway_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.ServiceOptions.
 var (
+	// Opts for a service.
+	//
 	// optional malonaz.core.codegen.gateway.v1.ServiceOpts service_opts = 112211;
 	E_ServiceOpts = &file_proto_codegen_gateway_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// If true, a custom handler is used.
+	// Opts for a handler.
 	//
 	// optional malonaz.core.codegen.gateway.v1.HandlerOpts handler_opts = 22942;
 	E_HandlerOpts = &file_proto_codegen_gateway_proto_extTypes[1]

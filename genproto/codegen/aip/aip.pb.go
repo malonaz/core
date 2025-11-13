@@ -23,14 +23,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Configuration options for AIP-compliant List methods.
+// This message defines how list requests should be parsed and validated.
 type ListOptions struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	DefaultPageSize int32                  `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3" json:"default_page_size,omitempty"`
-	OrderBy         []string               `protobuf:"bytes,2,rep,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
-	Filters         []*FilterIdent         `protobuf:"bytes,3,rep,name=filters,proto3" json:"filters,omitempty"`
-	Aliases         map[string]string      `protobuf:"bytes,4,rep,name=aliases,proto3" json:"aliases,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The default number of items to return per page when page_size is not specified.
+	// This value is used to prevent unbounded queries and ensure consistent pagination.
+	DefaultPageSize int32 `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3" json:"default_page_size,omitempty"`
+	// List of field names that can be used in the order_by parameter.
+	// Only fields listed here are allowed for sorting to prevent SQL injection
+	// and ensure queries can be efficiently executed.
+	OrderBy []string `protobuf:"bytes,2,rep,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
+	// List of fields that can be used in the filter expression.
+	// Each FilterIdent defines a filterable field and its type for validation.
+	Filters []*FilterIdent `protobuf:"bytes,3,rep,name=filters,proto3" json:"filters,omitempty"`
+	// Map of field name aliases for backward compatibility or user-friendly naming.
+	// Keys are the alias names used in requests, values are the actual field names
+	// used in the database or internal logic.
+	// Example: {"user_name": "user_id"} allows filtering by "user_name" which maps to "user_id"
+	Aliases       map[string]string `protobuf:"bytes,4,rep,name=aliases,proto3" json:"aliases,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOptions) Reset() {
@@ -91,9 +104,16 @@ func (x *ListOptions) GetAliases() map[string]string {
 	return nil
 }
 
+// Defines a filterable field and its type for AIP filter expressions.
+// Used by the parser to validate filter syntax and generate SQL where clauses.
 type FilterIdent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	Field string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	// The name of the field that can be filtered.
+	// This should match the field name in the proto message or its alias.
+	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	// The type of the field, used for validation and SQL generation.
+	// Only one of these types should be set.
+	//
 	// Types that are valid to be assigned to Type:
 	//
 	//	*FilterIdent_Primitive
@@ -180,14 +200,18 @@ type isFilterIdent_Type interface {
 }
 
 type FilterIdent_Primitive struct {
+	// Primitive types like INT64, UINT64, BOOL, STRING, DOUBLE.
 	Primitive v1alpha1.Type_PrimitiveType `protobuf:"varint,2,opt,name=primitive,proto3,enum=google.api.expr.v1alpha1.Type_PrimitiveType,oneof"`
 }
 
 type FilterIdent_WellKnown struct {
+	// Well-known types like TIMESTAMP, DURATION, etc.
 	WellKnown v1alpha1.Type_WellKnownType `protobuf:"varint,3,opt,name=well_known,json=wellKnown,proto3,enum=google.api.expr.v1alpha1.Type_WellKnownType,oneof"`
 }
 
 type FilterIdent_Enum struct {
+	// Fully qualified enum type name (e.g., "mypackage.MyEnum").
+	// Used to validate enum values in filter expressions.
 	Enum string `protobuf:"bytes,4,opt,name=enum,proto3,oneof"`
 }
 
@@ -197,15 +221,21 @@ func (*FilterIdent_WellKnown) isFilterIdent_Type() {}
 
 func (*FilterIdent_Enum) isFilterIdent_Type() {}
 
+// Configuration options for AIP-compliant Update methods.
+// Defines which fields can be updated and how field masks are processed.
 type UpdateOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// These fields are automatically updated whenever an update request comes through.
+	// Fields that are automatically included in every update, even if not in the field mask.
+	// Commonly includes fields like "update_time" that should always be refreshed.
+	// These paths are added to the update operation without requiring explicit authorization.
 	DefaultPaths []string `protobuf:"bytes,1,rep,name=default_paths,json=defaultPaths,proto3" json:"default_paths,omitempty"`
-	// These are updatable fields.
+	// List of field paths that users are authorized to update.
+	// Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
+	// This provides fine-grained access control at the field level.
 	AuthorizedPaths []*AuthorizedUpdatePath `protobuf:"bytes,2,rep,name=authorized_paths,json=authorizedPaths,proto3" json:"authorized_paths,omitempty"`
-	// Some paths may not map to db columns.
-	// For example a jsonb metadata path `metadata.name` can be mapped to `metadata`.
-	// Supports `*` so `metadata.* => metadata` can be used.
+	// Mappings from proto field paths to database column names or JSONB paths.
+	// Allows decoupling the proto field structure from the database schema.
+	// Supports wildcards (e.g., "metadata.*" => "metadata_jsonb") for nested fields.
 	PathMappings  []*UpdatePathMapping `protobuf:"bytes,3,rep,name=path_mappings,json=pathMappings,proto3" json:"path_mappings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -262,9 +292,13 @@ func (x *UpdateOptions) GetPathMappings() []*UpdatePathMapping {
 	return nil
 }
 
+// Represents a single authorized field path for updates.
+// Used within UpdateOptions to define which fields can be modified.
 type AuthorizedUpdatePath struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The field that's updatable.
+	// The field path that can be updated (e.g., "name", "metadata.description").
+	// Supports wildcards with ".*" suffix to authorize all nested fields
+	// (e.g., "metadata.*" authorizes "metadata.name", "metadata.description", etc.).
 	Path          string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -307,10 +341,19 @@ func (x *AuthorizedUpdatePath) GetPath() string {
 	return ""
 }
 
+// Defines how a proto field path maps to database column(s).
+// This allows complex mappings where a single proto field may update multiple DB columns,
+// or multiple proto fields map to a single JSONB column.
 type UpdatePathMapping struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	From          string                 `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	To            []string               `protobuf:"bytes,2,rep,name=to,proto3" json:"to,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The source field path from the proto field mask.
+	// Supports wildcards with ".*" suffix to match all nested fields
+	// (e.g., "metadata.*" matches "metadata.name", "metadata.tags", etc.).
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// The target database column name(s) to update.
+	// Multiple columns can be specified if one proto field affects multiple DB columns.
+	// Example: ["metadata_jsonb"] for JSONB columns, or ["field1", "field2"] for multiple columns.
+	To            []string `protobuf:"bytes,2,rep,name=to,proto3" json:"to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -359,9 +402,13 @@ func (x *UpdatePathMapping) GetTo() []string {
 	return nil
 }
 
+// Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
+// The protoc-templates plugin uses this to generate appropriate server and client code.
 type StandardMethod struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The resource for this standard method.
+	// The resource type this method operates on (e.g., "example.com/User").
+	// Must match a resource type defined in google.api.resource annotations.
+	// Used to determine request/response message types and validate method naming.
 	Resource      string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -433,14 +480,20 @@ var file_proto_codegen_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
+	// Extension for standard method.
+	//
 	// optional malonaz.core.codegen.aip.v1.StandardMethod standard_method = 92002;
 	E_StandardMethod = &file_proto_codegen_aip_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
+	// Configuration for AIP List RPCs, including filtering, pagination, and ordering.
+	//
 	// optional malonaz.core.codegen.aip.v1.ListOptions list = 92000;
 	E_List = &file_proto_codegen_aip_proto_extTypes[1]
+	// Configuration for AIP Update RPCs, including field mask handling and authorization.
+	//
 	// optional malonaz.core.codegen.aip.v1.UpdateOptions update = 92001;
 	E_Update = &file_proto_codegen_aip_proto_extTypes[2]
 )
