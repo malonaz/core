@@ -1,0 +1,13 @@
+go_library(
+    name = "model",
+    srcs = ["job.model.go"],
+    visibility = ["//..."],
+    deps = [
+        "//genproto/scheduler/v1",
+        "//go/pbutil",
+        "//go/postgres",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

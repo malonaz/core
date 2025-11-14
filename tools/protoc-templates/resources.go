@@ -130,52 +130,6 @@ func registerAncestors(files []*protogen.File) error {
 	return nil
 }
 
-func registerAncestorsOldj(files []*protogen.File) error {
-	// Build a registry from the files
-	registry := &protoregistry.Files{}
-	for _, f := range files {
-		if err := registry.RegisterFile(f.Desc); err != nil {
-			return fmt.Errorf("failed to register file %s: %w", f.Desc.Path(), err)
-		}
-	}
-
-	// Iterate over all files to find resources and their parents
-	for _, f := range files {
-		packageName := f.Desc.Package()
-
-		// Process all resource descriptors in this file
-		aipreflect.RangeResourceDescriptorsInFile(f.Desc, func(resource *annotationspb.ResourceDescriptor) bool {
-			if len(resource.Pattern) == 0 {
-				return true // continue
-			}
-
-			// Use the first pattern
-			pattern := resource.Pattern[0]
-
-			// Find the immediate parent for this resource
-			aipreflect.RangeParentResourcesInPackage(
-				registry,
-				packageName,
-				pattern,
-				func(parent *annotationspb.ResourceDescriptor) bool {
-					// Store the parent relationship
-					resourceTypeToParentResourceType[resource.Type] = parent.Type
-					if resourceTypeToChildResourceTypeSet[parent.Type] == nil {
-						resourceTypeToChildResourceTypeSet[parent.Type] = map[string]struct{}{}
-					}
-					resourceTypeToChildResourceTypeSet[parent.Type][resource.Type] = struct{}{}
-					// Return false to stop after finding the first (immediate) parent
-					return false
-				},
-			)
-
-			return true // continue processing other resources
-		})
-	}
-
-	return nil
-}
-
 type ParsedResource struct {
 	Desc             *annotationspb.ResourceDescriptor
 	Type             string
@@ -315,6 +269,7 @@ func parseResourceFromMessage(message *protogen.Message) (*ParsedResource, error
 
 // CompiledResource.
 type RPC struct {
+	StandardMethod                    *aippb.StandardMethod
 	Message                           *protogen.Message
 	ParsedResource                    *ParsedResource
 	Create, Update, Delete, Get, List bool
@@ -376,6 +331,7 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 	}
 
 	return &RPC{
+		StandardMethod: standardMethod,
 		Message:        message,
 		ParsedResource: parsedResource,
 		Create:         create,

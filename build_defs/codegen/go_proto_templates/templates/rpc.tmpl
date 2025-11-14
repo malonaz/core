@@ -60,20 +60,6 @@ pb "{{ $apiImportPath }}"
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $resourceGoName | untitle }}: %v", err)
 	          }
 
-            // STEP 4: Insert the resource idempotently.
-            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }})
-	          if err != nil {
-		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
-	          }
-	          if !ok {
-		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
-            var err error
-            request.{{ $resourceGoName }}, err = s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
-            if err != nil {
-            return nil, err
-            }
-            }
-
             {{- range $child := $pr.Children }}
                 {{- if $child.Singleton }}
                     // Instantiate child singleton resource: {{ $child.Type }}
@@ -91,11 +77,24 @@ pb "{{ $apiImportPath }}"
                     if err != nil {
 		                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childResourceGoName | untitle }}: %v", err)
 	                  }
-                    if _, err = s.{{ $dbClient }}.Insert{{ $childResourceGoName }}(ctx, {{ $childResourceGoName | untitle }}Db); err != nil {
-		                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $childResourceGoName | snakecase }}: %v", err)
-	                  }
+
                 {{ end }}
             {{ end }}
+
+            // STEP 4: Insert the resource idempotently.
+            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $pr.Children }}{{ if $child.Singleton }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }}{{ end }})
+	          if err != nil {
+		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
+	          }
+	          if !ok {
+		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
+            var err error
+            request.{{ $resourceGoName }}, err = s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+            if err != nil {
+            return nil, err
+            }
+            }
+
             return  request.{{ $resourceGoName }}, nil
             }
 

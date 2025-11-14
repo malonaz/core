@@ -5,6 +5,7 @@ subinclude(
     "///go//build_defs:go",
 )
 
+GO_IMPORT_PATH = "go_import_path"
 GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
@@ -40,8 +41,8 @@ def _import_path(name, root_dir, additional_context=None):
         pkg += "/" + name
     if root_dir:
         pkg = pkg.removeprefix(root_dir + "/")
-    if additional_context and "go_import_path" in additional_context:
-        return additional_context["go_import_path"]
+    if additional_context and GO_IMPORT_PATH in additional_context:
+        return additional_context[GO_IMPORT_PATH]
     if CONFIG.GO.IMPORT_PATH:
         return join_path(CONFIG.GO.IMPORT_PATH, pkg)
     return pkg

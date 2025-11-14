@@ -117,4 +117,7 @@ message StandardMethod {
   // Must match a resource type defined in google.api.resource annotations.
   // Used to determine request/response message types and validate method naming.
   string resource = 1;
+  // Emit an event for this action, using github.com/malonaz/pgq.
+  // Only supported on CREATE, UPDATE & DELETE methods.
+  bool emit_event = 2;
 }

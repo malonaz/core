@@ -7,10 +7,15 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+)
+
+var (
+	doOnceCache = map[string]bool{}
 )
 
 type scopedExecution struct {
@@ -44,6 +49,14 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 			return se.qualifiedGoIdent(goIdent)
 		},
 
+		"doOnce": func(key string) bool {
+			if _, ok := doOnceCache[key]; ok {
+				return false
+			}
+			doOnceCache[key] = true
+			return true
+		},
+
 		"emptyPb": func(message proto.Message) bool {
 			// Create a new instance of the same type
 			empty := proto.Clone(message)
@@ -64,7 +77,7 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		},
 
 		"getExt":      getExt,
-		"fieldName":   fieldName,
+		"columnName":  columnName,
 		"fieldGoType": fieldGoType,
 		"fieldType":   fieldType,
 		"zeroValue":   zeroValue,
@@ -107,8 +120,28 @@ func unquote(str string) string {
 	return strings.TrimSuffix(strings.TrimPrefix(out, `"`), `"`)
 }
 
-func fieldName(field *protogen.Field) string {
-	return field.Desc.TextName()
+func columnName(field *protogen.Field) (string, error) {
+	name := field.Desc.TextName()
+	// Check if we are using a standard field.
+	options := field.Desc.Options()
+	if options == nil {
+		return name, nil
+	}
+	if !proto.HasExtension(options, modelpb.E_FieldOpts) {
+		return name, nil
+	}
+
+	// 1. Get the message_type annotation
+	fieldOptsExt := proto.GetExtension(options, modelpb.E_FieldOpts)
+	fieldOpts, ok := fieldOptsExt.(*modelpb.FieldOpts)
+	if !ok || fieldOpts == nil {
+		return "", fmt.Errorf("field %s has invalid field_opts annotation", field.Desc.Name())
+	}
+
+	if fieldOpts.ColumnName != "" {
+		return fieldOpts.ColumnName, nil
+	}
+	return name, nil
 }
 
 func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {

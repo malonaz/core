@@ -37,16 +37,22 @@
 {{- end -}}
 
 {{- define "Marshal" -}}
+    {{- $marshalLib := "github.com/malonaz/core/go/pbutil" -}}
     {{- $marshal := "Marshal" -}}
     {{-  $fieldOpts := (getExt .Desc "malonaz.core.codegen.model.v1.field_opts") -}}
     {{- if $fieldOpts.AsJsonBytes -}}
 		    {{- $marshal = "JSONMarshal" -}}
     {{- end -}}
+    {{- if .Desc.IsMap -}}
+        {{- if not $fieldOpts.AsJsonBytes -}}{{ fail "field of type map cannot be marshaled as proto bytes" }}{{ end }}
+        {{ $marshalLib = "encoding/json" }}
+		    {{- $marshal = "Marshal" -}}
+    {{ end }}
     {{- if $fieldOpts.Nullable -}}
 	 	    var {{ .GoName -}}Bytes []byte
 	 	    if proto.{{ .GoName }} != nil {
 		    var err error
-			  {{ .GoName -}}Bytes, err = {{ fqn "github.com/malonaz/core/go/pbutil" $marshal }}(proto.{{ .GoName }})
+			  {{ .GoName -}}Bytes, err = {{ fqn $marshalLib $marshal }}(proto.{{ .GoName }})
 			  if err != nil {
 			 	return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
 			  }
@@ -55,7 +61,7 @@
         if proto.{{ .GoName }} == nil {
 			 	return nil, {{ fqn "fmt" "Errorf" }}("{{ .GoName }} cannot be nil")
         }
-	      {{ .GoName -}}Bytes, err := {{ fqn "github.com/malonaz/core/go/pbutil" $marshal }}(proto.{{ .GoName }})
+	      {{ .GoName -}}Bytes, err := {{ fqn $marshalLib $marshal }}(proto.{{ .GoName }})
 	      if err != nil {
 	 		  return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
 		    }
@@ -63,22 +69,45 @@
 {{- end -}}
 
 {{- define "Unmarshal" -}}
+    {{- $marshalLib := "github.com/malonaz/core/go/pbutil" -}}
     {{- $marshal := "Unmarshal" -}}
     {{-  $fieldOpts := (getExt .Desc "malonaz.core.codegen.model.v1.field_opts") -}}
     {{- if $fieldOpts.AsJsonBytes -}}
 		    {{- $marshal = "JSONUnmarshal" -}}
     {{- end -}}
+    {{- if .Desc.IsMap }}
+        {{- if not $fieldOpts.AsJsonBytes -}}{{ fail "field of type map cannot be marshaled as proto bytes" }}{{ end }}
+        {{- $marshalLib = "encoding/json" }}
+		    {{- $marshal = "Unmarshal" }}
+    {{ end }}
     {{- if $fieldOpts.Nullable }}
-	      var {{ .GoName }} *{{ qualifiedGoIdent .Message.GoIdent }}
-	      if m.{{ .GoName }} != nil {
-	 		  {{- .GoName -}} = &{{- qualifiedGoIdent .Message.GoIdent -}}{}
-	 		  if err := {{ fqn "github.com/malonaz/core/go/pbutil" $marshal }}(m.{{ .GoName -}}, {{- .GoName -}}); err != nil {
-	 			return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
-	 		  }
-	      }
+        {{- if .Desc.IsMap }}
+            {{ $t := printf "map[%s]%s" .Desc.MapKey.Kind .Desc.MapValue.Kind }}
+	          var {{ .GoName }} {{ $t }}
+            if m.{{ .GoName }} != nil {
+	 		      {{- .GoName -}} = {{ $t }}{}
+	 		      if err := {{ fqn $marshalLib $marshal }}(m.{{ .GoName -}}, &{{- .GoName -}}); err != nil {
+	 			    return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
+	 		      }
+            }
+        {{- else }}
+	          var {{ .GoName }} *{{ qualifiedGoIdent .Message.GoIdent }}
+	          if m.{{ .GoName }} != nil {
+	 		      {{- .GoName -}} = &{{- qualifiedGoIdent .Message.GoIdent -}}{}
+	 		      if err := {{ fqn $marshalLib $marshal }}(m.{{ .GoName -}}, {{- .GoName -}}); err != nil {
+	 			    return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
+	 		      }
+            }
+        {{ end }}
     {{ else }}
-	      {{- .GoName -}} := &{{- qualifiedGoIdent .Message.GoIdent -}}{}
-	      if err := {{ fqn "github.com/malonaz/core/go/pbutil" $marshal }}(m.{{ .GoName -}}, {{- .GoName -}}); err != nil {
+        {{- $unmarshalPrefix := "" }}
+        {{- if .Desc.IsMap }}
+            {{- $unmarshalPrefix = "&" }}
+	          {{- .GoName -}} := map[{{ .Desc.MapKey.Kind }}]{{ .Desc.MapValue.Kind }}{}
+        {{- else }}
+	          {{- .GoName -}} := &{{- qualifiedGoIdent .Message.GoIdent -}}{}
+        {{- end }}
+	      if err := {{ fqn $marshalLib $marshal }}(m.{{ .GoName -}}, {{ $unmarshalPrefix }}{{ .GoName }}); err != nil {
 	 		  return nil, {{ fqn "fmt" "Errorf" }}("marshaling {{ .GoName -}}: %w", err)
 	      }
     {{ end }}
@@ -105,8 +134,13 @@ package {{ $file.GoPackageName }}
     {{ $pr := parseResourceFromMessage $message }}
 
 		type {{ $message.GoIdent.GoName }} struct {
-    {{- range $id := $pr.PatternVariables }}
-        {{ $id | camelcase }}ID string `db:"{{ $id }}_id"`
+    {{- range $i, $id := $pr.PatternVariables }}
+        {{ if and (eq $i 0) $modelOpts.IdColumnName }}
+            {{ if $pr.Singleton }}{{ fail (printf "singleton resource %s declares a id_column_name" $pr.Desc.Type) }}{{ end }}
+            {{ $id | camelcase }}ID string `db:"{{ $modelOpts.IdColumnName }}"`
+        {{ else }}
+            {{ $id | camelcase }}ID string `db:"{{ $id }}_id"`
+        {{ end }}
     {{- end }}
 		{{- range $field := $message.Fields -}}
         {{-  $fieldOpts := (getExt .Desc "malonaz.core.codegen.model.v1.field_opts") -}}
@@ -122,7 +156,7 @@ package {{ $file.GoPackageName }}
     				{{- if $fieldOpts.Nullable -}}*{{- end -}}
 						{{- template "SanitizedFieldType" $field -}}
 				{{- end -}}
-				{{ if not $fieldOpts.Embed }} `db:"{{- fieldName $field -}}"`{{ end }}
+				{{ if not $fieldOpts.Embed }} `db:"{{- columnName $field -}}"`{{ end }}
 		{{- end }}
     }
 {{ end -}}

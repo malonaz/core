@@ -409,7 +409,10 @@ type StandardMethod struct {
 	// The resource type this method operates on (e.g., "example.com/User").
 	// Must match a resource type defined in google.api.resource annotations.
 	// Used to determine request/response message types and validate method naming.
-	Resource      string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	Resource string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	// Emit an event for this action, using github.com/malonaz/pgq.
+	// Only supported on CREATE, UPDATE & DELETE methods.
+	EmitEvent     bool `protobuf:"varint,2,opt,name=emit_event,json=emitEvent,proto3" json:"emit_event,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -449,6 +452,13 @@ func (x *StandardMethod) GetResource() string {
 		return x.Resource
 	}
 	return ""
+}
+
+func (x *StandardMethod) GetEmitEvent() bool {
+	if x != nil {
+		return x.EmitEvent
+	}
+	return false
 }
 
 var file_proto_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
@@ -526,9 +536,11 @@ const file_proto_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"7\n" +
 	"\x11UpdatePathMapping\x12\x12\n" +
 	"\x04from\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x02 \x03(\tR\x02to\",\n" +
+	"\x02to\x18\x02 \x03(\tR\x02to\"K\n" +
 	"\x0eStandardMethod\x12\x1a\n" +
-	"\bresource\x18\x01 \x01(\tR\bresource:v\n" +
+	"\bresource\x18\x01 \x01(\tR\bresource\x12\x1d\n" +
+	"\n" +
+	"emit_event\x18\x02 \x01(\bR\temitEvent:v\n" +
 	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xe2\xce\x05 \x01(\v2+.malonaz.core.codegen.aip.v1.StandardMethodR\x0estandardMethod:_\n" +
 	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
 	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"

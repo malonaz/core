@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package malonaz.core.scheduler.v1;
+
+import "google/api/resource.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/core/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+
+// An job represents some scheduled job.
+message Job {
+  option (google.api.resource) = {
+    type: "scheduler.malonaz.com/Job"
+    pattern: "jobs/{job}"
+    singular: "job"
+    plural: "jobs"
+  };
+
+  option (malonaz.core.codegen.model.v1.model_opts) = {
+    database_name: "user"
+    table_name: "job"
+    id_column_name: "id"
+  };
+
+  // The resource name of the job.
+  string name = 1;
+
+  // The creation timestamp of the job.
+  google.protobuf.Timestamp create_time = 2 [(malonaz.core.codegen.model.v1.field_opts).column_name = "created_at"];
+  // Time at which a consumer started to process the job.
+  google.protobuf.Timestamp start_time = 3 [
+    (malonaz.core.codegen.model.v1.field_opts).column_name = "started_at",
+    (malonaz.core.codegen.model.v1.field_opts).nullable = true
+  ];
+  // Time at which this job should be processed. Job is scheduled immediately if not set.
+  google.protobuf.Timestamp schedule_time = 4 [
+    (malonaz.core.codegen.model.v1.field_opts).column_name = "scheduled_for",
+    (malonaz.core.codegen.model.v1.field_opts).nullable = true
+  ];
+  // Time at which this job was completed (either success or failure).
+  google.protobuf.Timestamp complete_time = 5 [
+    (malonaz.core.codegen.model.v1.field_opts).column_name = "processed_at",
+    (malonaz.core.codegen.model.v1.field_opts).nullable = true
+  ];
+  // A consumer locks this job using this field.
+  google.protobuf.Timestamp lock_time = 6 [
+    (malonaz.core.codegen.model.v1.field_opts).column_name = "locked_until",
+    (malonaz.core.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The payload of this job.
+  google.protobuf.Any payload = 7 [(malonaz.core.codegen.model.v1.field_opts).as_proto_bytes = true];
+
+  // Key value metadata for this job.
+  map<string, string> metadata = 8 [(malonaz.core.codegen.model.v1.field_opts).as_json_bytes = true];
+
+  // The integer incremented by consumer retries.
+  int32 attempt_count = 9 [(malonaz.core.codegen.model.v1.field_opts).column_name = "consumed_count"];
+
+  // The reason why the processing of the message failed provided by the consumer. Empty means no error.
+  string failure_reason = 10 [
+    (malonaz.core.codegen.model.v1.field_opts).column_name = "error_detail",
+    (malonaz.core.codegen.model.v1.field_opts).nullable = true
+  ];
+}

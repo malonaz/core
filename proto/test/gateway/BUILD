@@ -3,6 +3,6 @@ grpc_gateway_library(
     srcs = ["gateway.proto"],
     test_only = True,
     deps = [
-        "//third_party/proto:googleapis_annotations",
+        "//third_party/proto:google__api__annotations",
     ],
 )

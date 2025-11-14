@@ -4,6 +4,10 @@ version = 17.23.0
 [build]
 timeout = 2000
 
+[buildconfig]
+;; Tracks the core revision.
+core-revision = ee3cc2e3f2f84e844f4ee7c85a7efad726c49eda
+
 [sandbox]
 test = true
 

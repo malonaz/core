@@ -13,34 +13,34 @@
 package {{ $file.GoPackageName }}
 
 import (
-	"context"
-	"fmt"
-	"strings"
+"context"
+"fmt"
+"strings"
 
-	"github.com/jackc/pgx/v5"
+"github.com/jackc/pgx/v5"
 
-	"{{ $modelImportPath }}"
-	"github.com/malonaz/core/go/postgres"
+"{{ $modelImportPath }}"
+"github.com/malonaz/core/go/postgres"
 )
 
 
 // DB is this service's db layer.
 type DB struct {
-	client *postgres.Client
+client *postgres.Client
 }
 
 // New returns a new db.
 func New(client *postgres.Client) *DB {
-	return &DB{client: client}
+return &DB{client: client}
 }
 
 func addToWhereClause(whereClause, newClause string) string {
-         if whereClause == "" {
-             whereClause = "WHERE (" + newClause + ")"
-         } else {
-             whereClause += " AND (" + newClause + ")"
-         }
-         return whereClause
+if whereClause == "" {
+whereClause = "WHERE (" + newClause + ")"
+} else {
+whereClause += " AND (" + newClause + ")"
+}
+return whereClause
 }
 
 {{/* ################### TYPE DEFINITIONS ################### */}}
@@ -51,10 +51,10 @@ func addToWhereClause(whereClause, newClause string) string {
     {{- $pr := parseResourceFromMessage $message }}
 
 		{{ $goName := untitle $message.GoIdent.GoName }}
-		{{ $tableName := ternary (snakecase $goName) $modelOpts.TableName (empty $modelOpts.TableName) }}
+		{{ $tableName := ternary $pr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
     {{- $placeholders := list }}
     {{- range $i, $var := $pr.PatternVariables }}
-      {{- $placeholders = append $placeholders (printf "%s_id = $%d" $var (add $i 1)) }}
+        {{- $placeholders = append $placeholders (printf "%s_id = $%d" $var (add $i 1)) }}
     {{- end }}
     {{- $placeholderDeclarations := (join " AND " $placeholders) }}
 
@@ -62,28 +62,102 @@ func addToWhereClause(whereClause, newClause string) string {
 
 		{{/* ################### INSERT ################### */}}
 		{{- if not $modelOpts.SkipInsertFunction -}}
-		func (db *DB) Insert{{ $message.GoIdent.GoName }}(ctx context.Context,  {{ $goName }} *model.{{ $message.GoIdent.GoName }}) (bool, error) {
-         query := `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $pr.PatternVariableIDs false }}) DO NOTHING`
-				 query, params := postgres.InsertQuery(query, {{ $goName }})
-				 result, err := db.client.Exec(ctx, query, params...)
-				 if err != nil {
-				 		return false, err
-				 }
-				 return result.RowsAffected() == 1, nil
-		}
-    {{- end }}
+        {{- $singletonChildren := list }}
+        {{- range $childPr := $pr.Children }}
+            {{- if $childPr.Singleton }}
+                {{- $singletonChildren = append $singletonChildren $childPr }}
+            {{- end }}
+        {{- end }}
+
+func (db *DB) Insert{{ $message.GoIdent.GoName }}(ctx context.Context,  {{ $goName }} *model.{{ $message.GoIdent.GoName }}{{ range $childPr := $singletonChildren }}, {{  $childPr.Desc.Singular | camelcase | untitle }} *model.{{ $childPr.Desc.Singular | camelcase }}{{ end }}, opts ...func(context.Context, postgres.Tx) error) (bool, error) {
+     query := `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $pr.PatternVariableIDs false }}) DO NOTHING`
+     query, params := postgres.InsertQuery(query, {{ $goName }})
+     {{ range $i, $childPr := $singletonChildren }}
+        {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
+        {{- $modelOpts := (getExt $message.Desc "malonaz.core.codegen.model.v1.model_opts") }}
+    		{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+        query{{ add $i 2 }} := `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $childPr.PatternVariableIDs false }}) DO NOTHING`
+       query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery(query{{ add $i 2 }}, {{  $childPr.Desc.Singular | camelcase | untitle }})
+     {{ end }}
+
+     {{ if eq (len $singletonChildren) 0 }}
+     if len(opts) == 0 {
+         result, err := db.client.Exec(ctx, query, params...)
+         if err != nil {
+             return false, err
+         }
+         return result.RowsAffected() == 1, nil
+     }
+     {{ end }}
+
+     // Execute within transaction if opts provided
+     var inserted bool
+     transactionFN := func(tx postgres.Tx) error {
+         result, err := tx.Exec(ctx, query, params...)
+         if err != nil {
+             return err
+         }
+         inserted = result.RowsAffected() == 1
+
+         {{ range $i, $_ := $singletonChildren }}
+         if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
+             return err
+         }
+         {{ end }}
+
+         // Apply all opts functions after insertion
+         for _, opt := range opts {
+             if err := opt(ctx, tx); err != nil {
+                 return err
+             }
+         }
+         return nil
+     }
+
+     if err := db.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+         return false, err
+     }
+     return inserted, nil
+}
+{{- end }}
 
 		{{/* ################### UPDATE ################### */}}
-		func (db *DB) Update{{ $message.GoIdent.GoName }}(ctx context.Context,  {{ $goName }} *model.{{ $message.GoIdent.GoName }}, updateClause string) (bool, error) {
-         query := `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $pr.PatternVariableIDs false }}) DO UPDATE SET #update_clause#`
-		     query = strings.ReplaceAll(query, "#update_clause#", updateClause)
-				 query, params := postgres.InsertQuery(query, {{ $goName }})
-				 result, err := db.client.Exec(ctx, query, params...)
-				 if err != nil {
-				 		return false, err
-				 }
-				 return result.RowsAffected() == 1, nil
-		}
+func (db *DB) Update{{ $message.GoIdent.GoName }}(ctx context.Context,  {{ $goName }} *model.{{ $message.GoIdent.GoName }}, updateClause string, opts ...func(context.Context, postgres.Tx) error) (bool, error) {
+     query := `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $pr.PatternVariableIDs false }}) DO UPDATE SET #update_clause#`
+     query = strings.ReplaceAll(query, "#update_clause#", updateClause)
+     query, params := postgres.InsertQuery(query, {{ $goName }})
+
+     if len(opts) == 0 {
+         result, err := db.client.Exec(ctx, query, params...)
+         if err != nil {
+             return false, err
+         }
+         return result.RowsAffected() == 1, nil
+     }
+
+     // Execute within transaction if opts provided
+     var updated bool
+     transactionFN := func(tx postgres.Tx) error {
+         result, err := tx.Exec(ctx, query, params...)
+         if err != nil {
+             return err
+         }
+         updated = result.RowsAffected() == 1
+
+         // Apply all opts functions after update
+         for _, opt := range opts {
+             if err := opt(ctx, tx); err != nil {
+                 return err
+             }
+         }
+         return nil
+     }
+
+     if err := db.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+         return false, err
+     }
+     return updated, nil
+}
 
 {{/* ################### DELETE ################### */}}
 {{- if not $modelOpts.SkipDeleteFunction -}}
@@ -105,9 +179,9 @@ func (db *DB) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $p
      return row, true, nil
 }
 {{ else }}
-func (db *DB) Delete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs }} string) (bool, error) {
+func (db *DB) Delete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) (bool, error) {
      query := `DELETE FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
-     result, err := db.client.Exec(ctx, query, {{ $pr.PatternVariableIDs }})
+     result, err := db.client.Exec(ctx, query, {{ $pr.PatternVariableIDs true }})
      if err != nil {
          return false, err
      }
