@@ -81,8 +81,33 @@ pb "{{ $apiImportPath }}"
                 {{ end }}
             {{ end }}
 
+            {{ if $rpc.StandardMethod.EmitEvent }}
+                var insertOpts []func({{ fqn "context" "Context" }}, {{ fqn "github.com/malonaz/core/go/postgres" "Tx" }}) error
+                {// Emit event. {{ $rpc.Message.GoIdent.GoImportPath | toString | replace "\"" "" }}
+                event := &{{ goIdent $rpc.Message.GoIdent.GoImportPath (printf "%sCreatedEvent" $resourceGoName) }}{
+                {{ $resourceGoName }}: request.{{ $resourceGoName }},
+                }
+                any, err := {{ fqn "google.golang.org/protobuf/types/known/anypb" "New" }}(event)
+                if err != nil {
+		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "creating anypb for event: %v", err)
+                }
+                bytes, err := {{ fqn "github.com/malonaz/core/go/pbutil" "Marshal" }}(any)
+                if err != nil {
+		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "marshaling created event: %v", err)
+                }
+                message := &{{ fqn "github.com/malonaz/pgq" "MessageOutgoing" }}{
+                Payload: bytes,
+                }
+                publisher := {{ fqn "github.com/malonaz/pgq" "NewPublisher" }}(nil)
+                insertOpt := func(ctx {{ fqn "context" "Context" }}, tx {{ fqn "github.com/malonaz/core/go/postgres" "Tx" }}) error {
+                _, err := publisher.PublishInTx(ctx, tx, "job", message)
+                return err
+                }
+                insertOpts = append(insertOpts, insertOpt)
+                }
+            {{ end }}
             // STEP 4: Insert the resource idempotently.
-            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $pr.Children }}{{ if $child.Singleton }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }}{{ end }})
+            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $pr.Children }}{{ if $child.Singleton }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }}{{ end }}{{ if $rpc.StandardMethod.EmitEvent }}, insertOpts...{{ end }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
 	          }

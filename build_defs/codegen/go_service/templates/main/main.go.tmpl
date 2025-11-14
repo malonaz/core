@@ -133,6 +133,7 @@ var stopFns []func() error
     {{- range $service := $server.services }}
         {{- $serviceManifest := parseYaml $service.manifest -}}
         {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+        {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
 
         {{ "\n" }}// Instantiate {{ $serviceName }}.
         {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
