@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	protoGoPackageRegex    = regexp.MustCompile(`option\s+go_package\s*=\s*"([^";]+)(?:;[^"]*)?";`)
 	pleaseFilenameRegex    = regexp.MustCompile(`[^(]+\(([^)]+)\)`)
 	serviceRegex           = regexp.MustCompile(`service\s+([\w]+)\s+{`)
 	publisherRegex         = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
@@ -145,6 +146,22 @@ func plzGoImport(in ...string) (string, error) {
 
 	// Remove trailing (filepath) if present
 	if pleaseFilenameRegex.MatchString(label) {
+		if strings.Contains(label, ".proto") {
+			// Check if the proto file declares a 'option go_package'!
+			bytes, err := readFile(label)
+			if err != nil {
+				return "", fmt.Errorf("reading file %v", in)
+			}
+			matches := protoGoPackageRegex.FindSubmatch(bytes)
+			if len(matches) >= 2 {
+				// Extract the import path (everything before the optional semicolon)
+				importPath := string(matches[1])
+				in[0] = importPath
+				// Use goImport to handle the registration and aliasing
+				return goImport(in...)
+			}
+		}
+
 		// Extract just the label part (everything before the parentheses)
 		parts := strings.Split(label, "(")
 		if len(parts) > 0 {

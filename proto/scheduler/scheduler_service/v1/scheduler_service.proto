@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/core/codegen/aip/v1/aip.proto";
 import "malonaz/core/scheduler/v1/job.proto";
@@ -49,7 +50,7 @@ service Scheduler {
   //
   // See: https://google.aip.dev/135 (Standard methods: Delete).
   // See: https://google.aip.dev/164 (Soft delete).
-  rpc DeleteJob(DeleteJobRequest) returns (malonaz.core.scheduler.v1.Job) {
+  rpc DeleteJob(DeleteJobRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1/{name=jobs/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.core.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
