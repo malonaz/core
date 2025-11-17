@@ -19,7 +19,7 @@ message Job {
   };
 
   option (malonaz.core.codegen.model.v1.model_opts) = {
-    database_name: "user"
+    database_name: "scheduler"
     table_name: "job"
     id_column_name: "id"
   };

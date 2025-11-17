@@ -6,7 +6,7 @@ timeout = 2000
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = a6684def407cde1f72490c129f575c101369650c
+core-revision = ce062b65a60ca1ab81359bd6c63f4f7e3f1ac9be
 
 [sandbox]
 test = true
@@ -118,3 +118,7 @@ cmd = run //tools/tidy:lint
 [alias "gen"]
 desc = Copy generated code from plz-out to git
 cmd = run //cmd:copy_generated_code
+
+[alias "bump"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run //cmd:bump_core_dep

@@ -156,7 +156,7 @@ var File_proto_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_proto_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/scheduler/v1/job.proto\x12\x19malonaz.core.scheduler.v1\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a)malonaz/core/codegen/model/v1/model.proto\"\xbe\x06\n" +
+	"\x1cproto/scheduler/v1/job.proto\x12\x19malonaz.core.scheduler.v1\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a)malonaz/core/codegen/model/v1/model.proto\"\xc3\x06\n" +
 	"\x03Job\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12M\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x10\xba\xea\x0f\f\n" +
@@ -182,10 +182,10 @@ const file_proto_scheduler_v1_job_proto_rawDesc = "" +
 	"\ferror_detail \x01R\rfailureReason\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:H\xeaA2\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:M\xeaA2\n" +
 	"\x19scheduler.malonaz.com/Job\x12\n" +
-	"jobs/{job}*\x04jobs2\x03jobҦ\x04\x0f\n" +
-	"\x04user\x12\x03job\x1a\x02idB/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
+	"jobs/{job}*\x04jobs2\x03jobҦ\x04\x14\n" +
+	"\tscheduler\x12\x03job\x1a\x02idB/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var (
 	file_proto_scheduler_v1_job_proto_rawDescOnce sync.Once

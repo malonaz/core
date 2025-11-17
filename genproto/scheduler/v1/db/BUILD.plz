@@ -1,0 +1,10 @@
+go_library(
+    name = "db",
+    srcs = ["job.db.go"],
+    visibility = ["//..."],
+    deps = [
+        "//genproto/scheduler/v1/model",
+        "//go/postgres",
+        "//third_party/go:github.com__jackc__pgx__v5",
+    ],
+)
