@@ -1,0 +1,137 @@
+{{- /* ################### TOPLINE VARIABLES ################### */ -}}
+{{ $file := .File }}
+{{ $generatedFile := .GeneratedFile }}
+{{- $goImportPath := $file.GoImportPath | toString | replace "\"" "" }}
+{{- if $file.Desc.Options.GetGoPackage -}}{{- $goImportPath = printf "%s/llm" $file.Desc.Options.GetGoPackage }}{{- end -}}
+{{ $apiImportPath := $goImportPath | dir }}
+{{- $dummy := replaceImportPath $file.GoImportPath $apiImportPath -}}
+
+{{- /* ################### HELPERS ################### */ -}}
+{{- define "FieldTypeDoc" -}}
+    {{- if .Enum -}}
+        string (one of:{{ range $i, $value := .Enum.Values }}{{ if $i }} "{{ $value.Desc.Name }}"{{ end }}{{ end }})
+    {{- else if .Message -}}
+        {{- if eq .Message.Desc.FullName "google.protobuf.Timestamp" -}}
+            string (ISO 8601 timestamp)
+        {{- else -}}
+            object
+        {{- end -}}
+    {{- else -}}
+        {{- if eq .Desc.Kind.String "string" -}}
+            string
+        {{- else if or (eq .Desc.Kind.String "int32") (eq .Desc.Kind.String "int64") (eq .Desc.Kind.String "uint32") (eq .Desc.Kind.String "uint64") -}}
+            number
+        {{- else if or (eq .Desc.Kind.String "float") (eq .Desc.Kind.String "double") -}}
+            number (float)
+        {{- else if eq .Desc.Kind.String "bool" -}}
+            boolean
+        {{- else if eq .Desc.Kind.String "bytes" -}}
+            string (base64)
+        {{- else -}}
+            {{ .Desc.Kind.String }}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- define "PostalAddressDoc" -}}
+    {{- $indent := .indent -}}
+    {
+    {{- $indent }}  "region_code": string,  // Country/region code (e.g., "US", "CH")
+    {{- $indent }}  "postal_code": string,  // Postal/ZIP code
+    {{- $indent }}  "administrative_area": string,  // State/province/region
+    {{- $indent }}  "locality": string,  // City/town
+    {{- $indent }}  "address_lines": [string],  // Street address lines (in envelope order for the country)
+    {{- $indent }}}
+{{- end -}}
+
+{{- define "DateDoc" -}}
+    {{- $indent := .indent -}}
+    {
+    {{- $indent }}  "year": number,  // Year of the date. Must be from 1 to 9999.
+    {{- $indent }}  "month": number // Month of a year. Must be from 1 to 12.
+    {{- $indent }}  "day": number,  // Day of a month. Must be from 1 to 31 and valid for the year and month.
+    {{- $indent }}}
+{{- end -}}
+
+{{- define "FieldDoc" -}}
+    {{- $indent := .indent -}}
+    {{- $field := .field -}}
+    {{- $fieldOpts := (getExt $field.Desc "malonaz.core.codegen.model.v1.field_opts") -}}
+    {{- if not $fieldOpts.Skip -}}
+        {{ $indent }}"{{ $field.Desc.JSONName -}}":
+        {{- if $field.Desc.IsList -}}
+            [
+            {{- if $field.Message -}}
+                {{- $nestedIndent := printf "%s  " $indent -}}
+                {{ $nestedIndent }}{
+                {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s    " $indent) -}}
+                {{ $nestedIndent }}}
+            {{- else -}}
+                {{ template "FieldTypeDoc" $field }}
+            {{- end -}}
+            ]
+        {{- else if $field.Desc.IsMap -}}
+            {
+            {{ $indent }}  "key": {{ template "FieldTypeDoc" $field.Desc.MapKey }},
+            {{ $indent }}  "value":
+            {{- if $field.Desc.MapValue.Message -}}
+                {
+                {{- template "MessageFieldsDoc" dict "message" $field.Desc.MapValue.Message "indent" (printf "%s    " $indent) -}}
+                {{ $indent }}  }
+            {{- else -}}
+                {{ template "FieldTypeDoc" $field.Desc.MapValue }}
+            {{- end -}}
+            {{ $indent }}}
+        {{- else if $field.Message -}}
+            {{- if eq $field.Message.Desc.FullName "google.protobuf.Timestamp" -}}
+                {{ template "FieldTypeDoc" $field }}
+            {{- else if eq $field.Message.Desc.FullName "google.type.PostalAddress" -}}
+                {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
+                {{- template "DateDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else -}}
+                {
+                {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s  " $indent) -}}
+                {{ $indent }}}
+            {{- end -}}
+        {{- else -}}
+            {{- template "FieldTypeDoc" $field -}}
+        {{- end -}}
+        {{- if $field.Comments.Leading -}}
+            {{ " " }}{{ $field.Comments.Leading.String | trim }}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- define "MessageFieldsDoc" -}}
+    {{- $message := .message -}}
+    {{- $indent := .indent -}}
+    {{- range $i, $field := $message.Fields -}}
+        {{- $fieldOpts := (getExt $field.Desc "malonaz.core.codegen.llm.v1.field_opts") -}}
+        {{- if not $fieldOpts.Skip -}}
+            {{- if $i -}},{{ end -}}
+            {{ template "FieldDoc" dict "field" $field "indent" $indent -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+// Code generated by protoc-templates. DO NOT EDIT.
+// source: {{ $file.Desc.Path }}
+package llm
+
+const BaseFieldDoc =`
+- For enums, use the exact string values shown in the allowed option
+- For timestamps, use ISO 8601 format (e.g., "2024-01-15T10:30:00Z")
+`
+{{- range $message := $file.Messages -}}
+    {{- $llmOpts := (getExt .Desc "malonaz.core.codegen.llm.v1.opts") -}}
+    {{- if not $llmOpts.Document -}}{{ continue }}{{- end }}
+
+    // {{ $message.GoIdent.GoName }}Doc is the LLM documentation for extracting {{ $message.GoIdent.GoName }} from text.
+    // The LLM should generate a JSON object matching this structure:
+    const {{ $message.GoIdent.GoName }}Doc = `
+Structure for {{ $message.Desc.Name }}: {{ if $message.Comments.Leading }}{{ $message.Comments.Leading.String | trim }}{{ end }}
+{
+{{- template "MessageFieldsDoc" dict "message" $message "indent" "\n  " }}
+}`
+{{ end -}}

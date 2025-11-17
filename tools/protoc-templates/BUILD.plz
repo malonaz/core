@@ -10,6 +10,7 @@ go_binary(
     deps = [
         "//genproto/codegen/aip/v1",
         "//genproto/codegen/gateway/v1",
+        "//genproto/codegen/llm/v1",
         "//genproto/codegen/model/v1",
         "//third_party/go:github.com__Masterminds__sprig__v3",
         "//third_party/go:github.com__huandu__xstrings",

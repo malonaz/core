@@ -11,26 +11,15 @@ declare -a FILES=(
   # Proto libraries
   "proto/grpc/v1/grpc.pb.go:grpc/v1"
   "proto/authentication/v1/authentication.pb.go:authentication/v1"
-  "proto/scheduler/v1/job.pb.go:scheduler/v1"
-
-  # GRPC services
-  "proto/scheduler/scheduler_service/v1/scheduler_service.pb.go:scheduler/scheduler_service/v1"
-  "proto/scheduler/scheduler_service/v1/scheduler_service_grpc.pb.go:scheduler/scheduler_service/v1"
-  "proto/scheduler/scheduler_service/v1/scheduler_service.pb.gw.go:scheduler/scheduler_service/v1"
 
   # Proto codegen
   "proto/codegen/model/v1/model.pb.go:codegen/model/v1"
   "proto/codegen/gateway/v1/gateway.pb.go:codegen/gateway/v1"
   "proto/codegen/aip/v1/aip.pb.go:codegen/aip/v1"
+  "proto/codegen/llm/v1/llm.pb.go:codegen/llm/v1"
 
   # Proto test files
   "proto/test/aip/aip.pb.go:test/aip"
-
-  # Go model files (need path rewriting and custom destination)
-  "proto/scheduler/v1/job.model.go:scheduler/v1/model"
-  "proto/scheduler/v1/job.db.go:scheduler/v1/db"
-  "proto/scheduler/scheduler_service/v1/scheduler_service.rpc.go:scheduler/scheduler_service/v1/rpc"
-  "proto/scheduler/scheduler_service/v1/service.tmpl.go:scheduler/scheduler_service/v1/rpc"
 )
 
 # Collect all directories we'll be writing to

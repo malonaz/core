@@ -51,12 +51,18 @@ external_github_proto_library(
     revision = GOOGLEAPI_REVISION,
 )
 
-######################### MALONAZ ########################
 external_github_proto_library(
-    name = "core__codegen__aip__v1",
-    dir = "malonaz/core/codegen/aip/v1",
-    files = ["proto/codegen/aip/v1/aip.proto"],
-    go_dep = "//genproto/codegen/aip/v1",
-    repo = "malonaz/core",
-    revision = CONFIG.CORE_REVISION,
+    name = "google__type__postaladdress",
+    files = ["google/type/postal_address.proto"],
+    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__type__postaladdress",
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
+)
+
+external_github_proto_library(
+    name = "google__type__date",
+    files = ["google/type/date.proto"],
+    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__type__date",
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
 )

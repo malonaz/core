@@ -104,4 +104,5 @@ def go_proto_template_library(
         name = name,
         srcs = [protoc],
         visibility = visibility,
+        test_only = test_only,
     )

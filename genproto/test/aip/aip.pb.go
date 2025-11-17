@@ -414,7 +414,7 @@ var File_proto_test_aip_aip_proto protoreflect.FileDescriptor
 
 const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/test/aip/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a%malonaz/core/codegen/aip/v1/aip.proto\"\x91\x03\n" +
+	"\x18proto/test/aip/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a\x1eproto/codegen/aip/v1/aip.proto\"\x91\x03\n" +
 	"\x14ListResourcesRequest\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +

@@ -3626,6 +3626,30 @@ go_module(
 )
 
 go_module(
+    name = "google.golang.org__genproto__googleapis__type__date",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/date"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__postaladdress",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/postaladdress"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
     name = "google.golang.org__genproto__protobuf__field_mask",
     download = ":_google.golang.org__genproto#download",
     install = ["protobuf/field_mask"],

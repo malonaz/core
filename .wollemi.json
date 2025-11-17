@@ -263,6 +263,8 @@
         "google.golang.org/genproto/googleapis/logging/type": "//third_party/go:google.golang.org__genproto__googleapis__logging__type",
         "google.golang.org/genproto/googleapis/rpc/errdetails": "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "google.golang.org/genproto/googleapis/rpc/status": "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
+        "google.golang.org/genproto/googleapis/type/date": "//third_party/go:google.golang.org__genproto__googleapis__type__date",
+        "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/go:google.golang.org__genproto__googleapis__type__postaladdress",
         "google.golang.org/genproto/protobuf/field_mask": "//third_party/go:google.golang.org__genproto__protobuf__field_mask",
         "google.golang.org/grpc": "//third_party/go:google.golang.org__grpc",
         "google.golang.org/grpc/attributes": "//third_party/go:google.golang.org__grpc__attributes",

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package malonaz.core.codegen.llm.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/codegen/llm/v1";
+
+// Extensions for message options to configure LLM documentation behavior.
+extend google.protobuf.MessageOptions {
+  // If true, we generate llm document.
+  MessageOpts opts = 93000;
+}
+
+// Extension for field options to configure LLM documentation behavior.
+extend google.protobuf.FieldOptions {
+  // Opts for a field.
+  FieldOpts field_opts = 93001;
+}
+
+// Opts for llm documentation.
+message MessageOpts {
+  // If set, we generate documention for this message.
+  bool document = 1;
+}
+
+// Opts for llm documentation.
+message FieldOpts {
+  // If set we do not generate documentation for this field.
+  bool skip = 1;
+}
