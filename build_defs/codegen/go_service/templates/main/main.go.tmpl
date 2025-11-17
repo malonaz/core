@@ -38,12 +38,12 @@ ctx := {{ goImport "context" }}.Background()
         {{- if eq $dep.type "grpc_client" -}}
             {{- if doOnce "grpc_conns_instantiations" -}}
                 {{ "\n\n// Instantiate GRPC Connections (using one per identical endpoint)\n" -}}
-                networkToGRPCConnection := map[string]*{{ goImport "github.com/malonaz/core/go/grpc" }}.Connection{}
+                endpointToGRPCConnection := map[string]*{{ goImport "github.com/malonaz/core/go/grpc" }}.Connection{}
             {{- end -}}
 
             {{- if doOnce (printf "grpc_conn_deps_%s" $dep.proto) -}}
-                {{ $grpc := parseGRPC $dep.proto }}
-                if _, ok := networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
+                {{ $grpc := parseGRPC $dep.proto $dep.name }}
+                if _, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
                 connection, err := {{ $grpc.NewConnection }}
                 if err != nil {
                 log.Panicf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
@@ -52,7 +52,7 @@ ctx := {{ goImport "context" }}.Background()
                 log.Panicf("connecting [%s]: %v", "{{ $dep.proto }}", err)
                 }
                 defer connection.Close()
-                networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
+                endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
                 }
             {{- end }}
         {{- end }}
@@ -63,10 +63,10 @@ ctx := {{ goImport "context" }}.Background()
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
         {{- if eq $dep.type "grpc_client" -}}
-            {{ $grpc := parseGRPC $dep.proto }}
+            {{ $grpc := parseGRPC $dep.proto $dep.name }}
             {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients" -}}{{- end -}}
             {{- if doOnce (printf "grpc_deps_%s" $dep.proto) }}
-                {{ $grpc.Connection }}, ok := networkToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
+                {{ $grpc.Connection }}, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
                 if !ok {
                 log.Panicf("could not find grpc connection on for {{ $grpc.HumanName}}")
                 }
@@ -87,27 +87,54 @@ ctx := {{ goImport "context" }}.Background()
     {{- end }}
 {{- end }}
 
+
+{{- /* DEPENDENCIES POSTGRES Connections*/ -}}
+{{- range $serviceManifest := $serviceManifests -}}
+    {{- range $dep := $serviceManifest.dependencies -}}
+        {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+            {{- if doOnce "postgres_db_client_instantiations" -}}
+                {{ "\n\n// Instantiate Postgres Connections (using one per identical endpoint)" }}
+                endpointToPostgresConnection := map[string]*{{ goImport "github.com/malonaz/core/go/postgres" }}.Client{}
+            {{- end }}
+            if _, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]; !ok {
+            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.MustNewClient(opts.{{ $dep.name | camelcase }}Postgres)
+	          defer connection.Close()
+            endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()] = connection
+            }
+        {{- end }}
+    {{- end }}
+{{- end }}
+
 {{- /* DEPENDENCIES POSTGRES*/ -}}
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if eq $dep.type "postgres" -}}
-            {{- $dbKey := printf "postgres_db_%s" $dep.name -}}
+        {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+            {{- $dbKey := printf "postgres_db_client_%s_%s" $dep.name  -}}
             {{- if doOnce $dbKey }}
                 {{- "\n" }}
                 // Instantiate {{ $dep.name }} db client.
-	              {{ $dep.name }}PsqlClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.MustNewClient(opts.{{ $dep.name | title }}Postgres)
-	              defer {{ $dep.name }}PsqlClient.Close()
-                {{ $dep.name }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name }}PsqlClient)
-            {{ end }}
+	              {{ $dep.name | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]
+                if !ok {
+                log.Panicf("could not find postgres connection for {{ $dep.name }}")
+                }
+            {{- end }}
+
             {{- /* Add health check function to all servers that use this service */ -}}
             {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
             {{- range $serverName := $serverNames -}}
                 {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
                 {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                {{- $updatedHealthChecks := append $existingHealthChecks (printf "%sPsqlClient.Ping" $dep.name) -}}
+                {{- $updatedHealthChecks := append $existingHealthChecks (printf "%sPsqlClient.Ping" ($dep.name | camelcase | untitle)) -}}
                 {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
                 {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
             {{- end -}}
+
+            {{- if eq $dep.type "postgres_db_client" -}}
+                {{- $dbImplKey := printf "postgres_impl_%s_%s" $dep.name $dep.implementation  -}}
+                {{- if doOnce $dbImplKey }}
+                    {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name | camelcase | untitle }}PsqlClient)
+                {{ end }}
+            {{- end }}
         {{- end }}
     {{- end }}
 {{- end }}
@@ -140,10 +167,12 @@ var stopFns []func() error
         opts.{{ $serviceName | title }},
         {{- range $dep := $serviceManifest.dependencies }}
             {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto -}}
+                {{ $grpc := parseGRPC $dep.proto $dep.name -}}
                 {{ $grpc.Client }},
-            {{- else if eq $dep.type "postgres" }}
-                {{ $dep.name }}DBClient,
+            {{- else if eq $dep.type "postgres_db_client" }}
+                {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  }}DBClient,
+            {{- else if eq $dep.type "postgres_client" }}
+                {{ $dep.name | camelcase | untitle }}PsqlClient,
             {{- end }}
         {{- end }}
         )
@@ -163,7 +192,7 @@ var stopFns []func() error
         {{- range $service := $server.services }}
             {{- $serviceManifest := parseYaml $service.manifest -}}
             {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $grpc := parseGRPC $service.proto -}}
+            {{ $grpc := parseGRPC $service.proto "" -}}
             {{ $grpc.Register $serviceName }}
         {{- end }}
         }
@@ -218,7 +247,7 @@ var stopFns []func() error
         {{- range $service := $server.services }}
             {{- $serviceManifest := parseYaml $service.manifest -}}
             {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $grpc := parseGRPC $service.proto -}}
+            {{ $grpc := parseGRPC $service.proto "" -}}
             {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name -}}
             {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
             grpcServer.GetHealthServer().RegisterService(
@@ -234,7 +263,7 @@ var stopFns []func() error
         {{- $hasGateway := false -}}
         {{- range $service := $server.services -}}
             {{- if $service.gateway -}}
-                {{- $grpc := parseGRPC $service.proto -}}
+                {{- $grpc := parseGRPC $service.proto "" -}}
                 {{- if doOnce $server.name }}
                     {{ $hasGateway = true }}
                     // GRPC gateway handlers.

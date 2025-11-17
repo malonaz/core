@@ -60,21 +60,3 @@ external_github_proto_library(
     repo = "malonaz/core",
     revision = CONFIG.CORE_REVISION,
 )
-
-external_github_proto_library(
-    name = "core__codegen__model__v1",
-    dir = "malonaz/core/codegen/model/v1",
-    files = ["proto/codegen/model/v1/model.proto"],
-    go_dep = "//genproto/codegen/model/v1",
-    repo = "malonaz/core",
-    revision = CONFIG.CORE_REVISION,
-)
-
-external_github_proto_library(
-    name = "core__scheduler__v1",
-    dir = "malonaz/core/scheduler/v1",
-    files = ["proto/scheduler/v1/job.proto"],
-    go_dep = "//genproto/scheduler/v1",
-    repo = "malonaz/core",
-    revision = CONFIG.CORE_REVISION,
-)

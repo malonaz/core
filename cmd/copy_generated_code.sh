@@ -16,6 +16,7 @@ declare -a FILES=(
   # GRPC services
   "proto/scheduler/scheduler_service/v1/scheduler_service.pb.go:scheduler/scheduler_service/v1"
   "proto/scheduler/scheduler_service/v1/scheduler_service_grpc.pb.go:scheduler/scheduler_service/v1"
+  "proto/scheduler/scheduler_service/v1/scheduler_service.pb.gw.go:scheduler/scheduler_service/v1"
 
   # Proto codegen
   "proto/codegen/model/v1/model.pb.go:codegen/model/v1"

@@ -1948,6 +1948,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__joschi__pgq",
+    _tag = "download",
+    module = "github.com/joschi/pgq",
+    version = "v0.0.6",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__joschi__pgq__internal__pg",
+    download = ":_github.com__joschi__pgq#download",
+    install = ["internal/pg"],
+    module = "github.com/joschi/pgq",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__lib__pq",
     _tag = "download",
     module = "github.com/lib/pq",
@@ -1983,6 +2000,23 @@ go_module(
     module = "github.com/lib/pq",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__malonaz__pgq",
+    _tag = "download",
+    module = "github.com/malonaz/pgq",
+    version = "v0.0.0-20251114112516-9240ed92bf50",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__malonaz__pgq__x__schema",
+    download = ":_github.com__malonaz__pgq#download",
+    install = ["x/schema"],
+    module = "github.com/malonaz/pgq",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__joschi__pgq__internal__pg"],
 )
 
 go_mod_download(
@@ -2332,8 +2366,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -2341,8 +2375,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -3295,7 +3329,7 @@ go_mod_download(
     name = "golang.org__x__sync",
     _tag = "download",
     module = "golang.org/x/sync",
-    version = "v0.16.0",
+    version = "v0.18.0",
     visibility = ["PUBLIC"],
 )
 

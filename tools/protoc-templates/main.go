@@ -23,6 +23,7 @@ var (
 		Debug         *bool
 		Template      *string
 		Configuration *string
+		PackageName   *string
 	}
 )
 
@@ -31,6 +32,7 @@ type Input struct {
 	Files         []*protogen.File
 	GeneratedFile *protogen.GeneratedFile
 	Configuration map[any]any
+	PackageName   string
 }
 
 func main() {
@@ -38,6 +40,7 @@ func main() {
 	opts.Debug = flags.Bool("debug", false, "verbose output")
 	opts.Template = flags.String("template", "", "template file to compile")
 	opts.Configuration = flags.String("configuration", "", "configuration to inject in context")
+	opts.PackageName = flags.String("package-name", "", "Override the package name of the output go files")
 	options := protogen.Options{
 		ParamFunc: flags.Set,
 	}
@@ -101,11 +104,16 @@ func main() {
 				return fmt.Errorf("parsing template with functions: %w", err)
 			}
 
+			var packageName string
+			if opts.PackageName != nil {
+				packageName = *opts.PackageName
+			}
 			input := &Input{
 				File:          f,
 				Files:         otherFiles,
 				GeneratedFile: generatedFile,
 				Configuration: configuration,
+				PackageName:   packageName,
 			}
 			if err := tmpl.Execute(generatedFile, input); err != nil {
 				return fmt.Errorf("executing template: %w", err)

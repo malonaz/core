@@ -35,11 +35,11 @@
     {{- /* POSTGRES DATABASE OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests -}}
         {{- range $dep := $serviceManifest.dependencies -}}
-            {{- if eq $dep.type "postgres" -}}
-                {{- if doOnce "post_client_opts" -}}{{"\n\n// Postgres client options"}}{{- end -}}
+            {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+                {{- if doOnce "postgres_db_client_opts" -}}{{"\n\n// Postgres client options"}}{{- end -}}
                 {{- $dbKey := printf "postgres_db_opts_%s" $dep.name -}}
                 {{- if doOnce $dbKey }}
-                    {{ $dep.name | title }}Postgres *{{ goImport (printf "%s/postgres" $core) }}.Opts `group:"{{ $dep.name | title }} Postgres" namespace:"{{ $dep.name | kebabcase }}-postgres" env-namespace:"{{ $dep.name | snakecase | upper }}_POSTGRES"`
+                    {{ $dep.name | camelcase }}Postgres *{{ goImport (printf "%s/postgres" $core) }}.Opts `group:"{{ $dep.name | title }} Postgres" namespace:"{{ $dep.name | kebabcase }}-postgres" env-namespace:"{{ $dep.name | snakecase | upper }}_POSTGRES"`
                 {{- end }}
             {{- end }}
         {{- end }}
@@ -52,7 +52,7 @@
 	              {{- if eq $dep.type "grpc_client" -}}
                     {{- if doOnce "grpc_client_opts" -}}{{"\n\n// gRPC client options"}}{{- end -}}
                     {{- if doOnce (printf "grpc_client_opts_%s" $dep.proto) -}}
-                        {{ $grpc := parseGRPC $dep.proto }}
+                        {{ $grpc := parseGRPC $dep.proto $dep.name }}
                         {{ $grpc.Opts }}
 	                  {{- end }}
 	              {{- end }}

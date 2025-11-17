@@ -36,6 +36,13 @@ type Opts struct {
 	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"  description:"Postgres SSL mode"`
 }
 
+func (o *Opts) Endpoint() string {
+	return fmt.Sprintf(
+		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+		o.Host, o.Port, o.User, o.Database, o.Password, o.SSLMode,
+	)
+}
+
 // Client is a wrapper around sqlx db to avoid importing it in core packages.
 type Client struct {
 	Opts *Opts
@@ -44,15 +51,11 @@ type Client struct {
 
 // NewClient instantiates and returns a new Postgres Client. Returns an error if it fails to ping server.
 func NewClient(opts *Opts) (*Client, error) {
-	psqlInfo := fmt.Sprintf(
-		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-		opts.Host, opts.Port, opts.User, opts.Database, opts.Password, opts.SSLMode,
-	)
 	log.Infof(
 		"Connecting to postgres server %s@%s on [%s:%d] using sslmode[%s]",
 		opts.User, opts.Database, opts.Host, opts.Port, opts.SSLMode,
 	)
-	config, err := pgxpool.ParseConfig(psqlInfo)
+	config, err := pgxpool.ParseConfig(opts.Endpoint())
 	if err != nil {
 		return nil, fmt.Errorf("parsing configuration: %w", err)
 	}

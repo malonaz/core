@@ -1,7 +1,0 @@
-name: scheduler-service
-includeRuntime: true
-implementation: //genproto/scheduler/scheduler_service/v1/service
-dependencies:
-  - type: postgres
-    name: scheduler
-    implementation: //github.com/malonaz/core/genproto/scheduler/v1/db

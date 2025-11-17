@@ -23,11 +23,11 @@
                 "properties": {
                     "type": {
                         "type": "string",
-                        "enum": ["grpc_client", "postgres", "firebase_auth", "google_storage", "openai"]
+                        "enum": ["grpc_client", "postgres_db_client", "postgres_client"]
                     },
                     "name": {
                         "type": "string",
-                        "pattern": "^[a-z0-9_]+$"
+                        "pattern": "^[a-z0-9_-]+$"
                     },
                     "implementation": {
                         "type": "string"
@@ -47,10 +47,18 @@
                     },
                     {
                         "if": {
-                            "properties": { "type": { "const": "postgres" } }
+                            "properties": { "type": { "const": "postgres_db_client" } }
                         },
                         "then": {
                             "required": ["name", "implementation"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "postgres_client" } }
+                        },
+                        "then": {
+                            "required": ["name"]
                         }
                     }
                 ]

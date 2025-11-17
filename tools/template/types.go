@@ -17,7 +17,7 @@ type GRPC struct {
 	replacements map[string]string
 }
 
-func parseGRPC(input string) (*GRPC, error) {
+func parseGRPC(input, depName string) (*GRPC, error) {
 	if grpc, ok := inputToGRPC[input]; ok {
 		return grpc, nil
 	}
@@ -25,14 +25,27 @@ func parseGRPC(input string) (*GRPC, error) {
 	if err != nil {
 		return nil, err
 	}
+	displayName := serviceName
+	if depName != "" {
+		displayName = xstrings.ToPascalCase(depName)
+	}
 
 	nameCamelCase := strings.ToLower(serviceName[:1]) + serviceName[1:]
-	nameCamelCaseT := strings.Title(strings.ToLower(serviceName[:1]) + serviceName[1:])
+	nameCamelCaseT := strings.Title(serviceName)
 	nameCamelCaseUpper := strings.ToUpper(nameCamelCase)
 	nameSnakeCase := xstrings.ToSnakeCase(nameCamelCase)
 	nameSnakeCaseUpper := strings.ToUpper(nameSnakeCase)
 	nameKebabCase := xstrings.ToKebabCase(serviceName)
 	nameHumanCaseT := strings.Title(strings.ReplaceAll(nameKebabCase, "-", " "))
+
+	displayNameCamelCase := strings.ToLower(displayName[:1]) + displayName[1:]
+	displayNameCamelCaseT := strings.Title(displayName)
+	displayNameCamelCaseUpper := strings.ToUpper(displayNameCamelCase)
+	displayNameSnakeCase := xstrings.ToSnakeCase(displayNameCamelCase)
+	displayNameSnakeCaseUpper := strings.ToUpper(displayNameSnakeCase)
+	displayNameKebabCase := xstrings.ToKebabCase(displayName)
+	displayNameHumanCaseT := strings.Title(strings.ReplaceAll(displayNameKebabCase, "-", " "))
+
 	m := map[string]string{
 		"packageImport":      strings.ToLower(nameCamelCase) + "pb",
 		"nameCamelCase":      nameCamelCase,
@@ -43,11 +56,19 @@ func parseGRPC(input string) (*GRPC, error) {
 		"nameKebabCase":      nameKebabCase,
 		"nameHumanCaseT":     nameHumanCaseT,
 
+		"displayNameCamelCase":      displayNameCamelCase,
+		"displayNameCamelCaseT":     displayNameCamelCaseT,
+		"displayNameCamelCaseUpper": displayNameCamelCaseUpper,
+		"displayNameSnakeCaseUpper": displayNameSnakeCaseUpper,
+		"displayNameSnakeCase":      displayNameSnakeCase,
+		"displayNameKebabCase":      displayNameKebabCase,
+		"displayNameHumanCaseT":     displayNameHumanCaseT,
+
 		// Higher level functions.
-		"optsFieldName": nameCamelCaseT + "GRPC",
-		"connection":    nameCamelCase + "Connection",
-		"healthCheck":   nameCamelCase + "HealthCheck",
-		"client":        nameCamelCase + "Client",
+		"optsFieldName": displayNameCamelCaseT + "GRPC",
+		"connection":    displayNameCamelCase + "Connection",
+		"healthCheck":   displayNameCamelCase + "HealthCheck",
+		"client":        displayNameCamelCase + "Client",
 	}
 	grpc := &GRPC{
 		input:        input,
@@ -105,7 +126,7 @@ func (t *GRPC) ServiceDescriptionName() (string, error) {
 }
 
 func (t *GRPC) HumanName() string {
-	return t.replacements["nameHumanCaseT"]
+	return t.replacements["displayNameHumanCaseT"]
 }
 
 func (t *GRPC) OptsFieldName() string {
@@ -113,7 +134,7 @@ func (t *GRPC) OptsFieldName() string {
 }
 
 func (t *GRPC) Opts() (string, error) {
-	return t.template("{optsFieldName} *{grpcImport}.Opts `group:\"{nameHumanCaseT} GRPC (Client)\" namespace:\"{nameKebabCase}-grpc\" env-namespace:\"{nameSnakeCaseUpper}_GRPC\"`")
+	return t.template("{optsFieldName} *{grpcImport}.Opts `group:\"{displayNameHumanCaseT} GRPC (Client)\" namespace:\"{displayNameKebabCase}-grpc\" env-namespace:\"{displayNameSnakeCaseUpper}_GRPC\"`")
 }
 
 func (t *GRPC) Connection() string {

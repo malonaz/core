@@ -27,6 +27,7 @@ require (
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/joonix/log v0.0.0-20230221083239-7988383bab32
 	github.com/lib/pq v1.10.9
+	github.com/malonaz/pgq v0.0.0-20251114112516-9240ed92bf50
 	github.com/mennanov/fmutils v0.3.3
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2
@@ -42,7 +43,7 @@ require (
 	go.einride.tech/spanner-aip v0.55.0
 	golang.org/x/mod v0.26.0
 	golang.org/x/net v0.43.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.18.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822
 	google.golang.org/grpc v1.74.2
@@ -78,6 +79,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/joschi/pgq v0.0.6 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect

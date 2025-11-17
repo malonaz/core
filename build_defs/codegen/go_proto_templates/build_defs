@@ -3,6 +3,8 @@ subinclude(
     "///go//build_defs:go"
 )
 
+GO_PROTO_TEMPLATES_PACKAGE_NAME = "go_proto_templates_package_name"
+
 def _go_path_mapping():
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
     def _map_go_paths(rule_name):
@@ -64,11 +66,14 @@ def go_proto_template_library(
             src = template,
         )
 
+    templates_opts_arg = f'--templates_opt=paths=source_relative,debug=true,template=$(location {processed_template})'
+    if additional_context and GO_PROTO_TEMPLATES_PACKAGE_NAME in additional_context:
+        templates_opts_arg += ',package-name=' + additional_context[GO_PROTO_TEMPLATES_PACKAGE_NAME]
     tools= {"protoc_templates": [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]}
     plugin_flags = [
         '--plugin=protoc-gen-templates="`which $TOOLS_PROTOC_TEMPLATES`"',
         '--templates_out="$OUT_DIR"',
-        f'--templates_opt=paths=source_relative,debug=true,template=$(location {processed_template})',
+        templates_opts_arg,
     ]
 
     protoc = protoc_rule(

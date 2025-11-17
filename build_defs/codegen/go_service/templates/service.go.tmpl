@@ -20,10 +20,12 @@ type Service struct {
   withServiceAccount func({{ goImport "context" }}.Context) ({{ goImport "context" }}.Context, error)
         {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto }}
+                {{ $grpc := parseGRPC $dep.proto $dep.name}}
                 {{ $grpc.Client }} {{ $grpc.ClientInterface }}
-            {{- else if eq $dep.type "postgres" }}
+            {{- else if eq $dep.type "postgres_db_client" }}
                 {{ $dep.name }}DBClient *{{ plzGoImport $dep.implementation }}.DB
+            {{- else if eq $dep.type "postgres_client" }}
+                {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
             {{- end }}
         {{- end }}
 }
@@ -34,10 +36,12 @@ func New(
 	opts *Opts,
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto }}
+                {{ $grpc := parseGRPC $dep.proto $dep.name }}
                 {{ $grpc.Client }} {{ $grpc.ClientInterface }},
-            {{- else if eq $dep.type "postgres" }}
+            {{- else if eq $dep.type "postgres_db_client" }}
                 {{ $dep.name }}DBClient *{{ plzGoImport $dep.implementation }}.DB,
+            {{- else if eq $dep.type "postgres_client" }}
+                {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client,
             {{- end }}
         {{- end }}
 
@@ -51,10 +55,12 @@ func New(
 		opts: opts,
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto }}
+                {{ $grpc := parseGRPC $dep.proto $dep.name }}
                 {{ $grpc.Client }}: {{ $grpc.Client }},
-            {{- else if eq $dep.type "postgres" }}
+            {{- else if eq $dep.type "postgres_db_client" }}
                 {{ $dep.name }}DBClient: {{ $dep.name }}DBClient,
+            {{- else if eq $dep.type "postgres_client" }}
+                {{ $dep.name }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- end }}
         {{- end }}
 	}, nil
