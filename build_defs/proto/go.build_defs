@@ -10,6 +10,7 @@ GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
 GENERATE_GO_AIP = "generate_go_aip"
+GENERATE_GO_LLM = "generate_go_llm"
 
 def go_path_mapping(plugin_out_keys:list):
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
@@ -126,6 +127,16 @@ def go_proto_library(
             '--go-aip_opt=paths=source_relative',
         ]
 
+    if additional_context and GENERATE_GO_LLM in additional_context:
+        template = "///core//build_defs/codegen/go_proto_templates/templates:llm"
+        tools["protoc_templates"] = [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]
+        deps += [CONFIG.CORE.PROTOC_GEN_AIP_GO_DEP, template]
+        plugin_out_keys += ['templates_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-templates="`which $TOOLS_PROTOC_TEMPLATES`"',
+            '--templates_out="$OUT_DIR"',
+            f'--templates_opt=paths=source_relative,template=$(location {template})',
+        ]
 
     protoc = protoc_rule(
         name = name,

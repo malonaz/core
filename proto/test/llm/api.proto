@@ -36,6 +36,32 @@ message ChatAnalysis {
   Contact contact = 8;
   // Some contact.
   Contact contact2 = 9 [(malonaz.core.codegen.llm.v1.field_opts).skip = true];
+
+  // A brief 1-2 sentence summary of why they are calling.
+  // Empty if call is aborted or called never speaks.
+  StructuredData reason = 10;
+}
+
+// Represents structured data extracted from a chat.
+message StructuredData {
+  // The data collection identifier
+  string id = 1 [(malonaz.core.codegen.llm.v1.field_opts).skip = true];
+
+  // The JSON schema used for this field
+  string json_schema = 2 [(malonaz.core.codegen.llm.v1.field_opts).skip = true];
+
+  // Rationale for the extraction of this field.
+  string rationale = 3;
+
+  // The extracted value (stored as string, can be parsed based on schema)
+  oneof value {
+    // Set if it's a bool value.
+    bool bool_value = 4;
+    // Set if it's a string value.
+    string string_value = 5;
+    // Set if it's an int value.
+    int64 int_value = 6;
+  }
 }
 
 // Represents the classification of a chat.
