@@ -19,6 +19,7 @@ type InternalAuthenticationInterceptorOpts struct {
 }
 
 type InternalAuthenticationInterceptor struct {
+	sessionManager                   *SessionManager
 	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
 	permissionToRoleIDSet            map[string]map[string]struct{}
 }
@@ -29,7 +30,10 @@ var (
 	})
 )
 
-func NewInternalAuthenticationInterceptor(opts *InternalAuthenticationInterceptorOpts) (*InternalAuthenticationInterceptor, error) {
+func NewInternalAuthenticationInterceptor(
+	opts *InternalAuthenticationInterceptorOpts,
+	sessionManager *SessionManager,
+) (*InternalAuthenticationInterceptor, error) {
 	configuration, err := parseAuthenticationConfig(opts.Config)
 	if err != nil {
 		return nil, err
@@ -65,6 +69,7 @@ func NewInternalAuthenticationInterceptor(opts *InternalAuthenticationIntercepto
 	}
 
 	return &InternalAuthenticationInterceptor{
+		sessionManager:                   sessionManager,
 		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
 		permissionToRoleIDSet:            permissionToRoleIDSet,
 	}, nil
@@ -102,16 +107,28 @@ func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authentica
 	return permissions
 }
 
-func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) error {
-	session, err := GetSession(ctx)
+func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
+	// Grab the session and verify its signature.
+	signedSession, err := i.sessionManager.getSignedSessionFromLocalContext(ctx)
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting session: %v", err)
+		return nil, err
+	}
+	ok, err := i.sessionManager.verify(signedSession)
+	if err != nil {
+		return nil, err
+	}
+	session := signedSession.Session
+
+	// The session is already authorized, we do not re-check permissions.
+	if session.Authorized {
+		return ctx, nil
 	}
 
+	// Process edge request.
 	permission := fullMethod // We use method names as permissions.
 	roleIDSet, ok := i.permissionToRoleIDSet[permission]
 	if !ok {
-		return status.Errorf(codes.PermissionDenied, "no role available for permission: %s", permission)
+		return nil, status.Errorf(codes.PermissionDenied, "no role available for permission: %s", permission)
 	}
 
 	serviceAccountRoleIDs := i.serviceAccountIDToServiceAccount[session.ServiceAccountId].GetRoleIds()
@@ -127,15 +144,24 @@ func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fu
 		}
 	}
 	if !found {
-		return status.Errorf(codes.PermissionDenied, "requires %s permission", permission)
+		return nil, status.Errorf(codes.PermissionDenied, "requires %s permission", permission)
 	}
-	return nil
+
+	// Set the session to authorized, sign it and store it.
+	session.Authorized = true
+	signedSession, err = i.sessionManager.sign(session)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "signing session: %v", err)
+	}
+	isUpdate := true
+	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }
 
 // Unary implements the authentication unary interceptor.
 func (i *InternalAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		if err := i.authenticate(ctx, info.FullMethod); err != nil {
+		ctx, err := i.authenticate(ctx, info.FullMethod)
+		if err != nil {
 			return nil, err
 		}
 		return handler(ctx, request)
@@ -146,8 +172,8 @@ func (i *InternalAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor 
 // Stream implements the authentication stream interceptor.
 func (i *InternalAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx := stream.Context()
-		if err := i.authenticate(ctx, info.FullMethod); err != nil {
+		ctx, err := i.authenticate(stream.Context(), info.FullMethod)
+		if err != nil {
 			return err
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})

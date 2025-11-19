@@ -12,6 +12,12 @@ import (
 	"github.com/malonaz/core/go/contexttag"
 )
 
+const (
+	suffixPropagate = "-propagate"
+)
+
+//////////////////////////////// TAGS INITIALIZER ////////////////////////////////////////
+
 // UnaryServerContextTagsInterceptor initializes context tags.
 func UnaryServerContextTagsInitializer() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
@@ -27,13 +33,15 @@ func StreamServerContextTagsInitializer() grpc.StreamServerInterceptor {
 	}
 }
 
+//////////////////////////////// HEADER PROPAGATION ////////////////////////////////////////
+
 // UnaryServerContextPropagation propagates incoming context to downstream calls.
-func UnaryServerContextPropagation() grpc.UnaryServerInterceptor {
+func UnaryServerHeaderPropagation() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			md := md.Copy()
 			for k := range md {
-				if strings.HasSuffix(k, "-no-prop") {
+				if !strings.HasSuffix(k, suffixPropagate) {
 					delete(md, k)
 				}
 			}
@@ -44,17 +52,26 @@ func UnaryServerContextPropagation() grpc.UnaryServerInterceptor {
 }
 
 // StreamServerContextPropagation propagates incoming context to downstream calls.
-func StreamServerContextPropagation() grpc.StreamServerInterceptor {
+func StreamServerHeaderPropagation() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return handler(srv, stream)
 		}
+		// Filter to only propagate keys with '-propagate' suffix
+		md = md.Copy()
+		for k := range md {
+			if !strings.HasSuffix(k, suffixPropagate) {
+				delete(md, k)
+			}
+		}
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
 }
+
+//////////////////////////////// TRAILER PROPAGATION ////////////////////////////////////////
 
 // UnaryServerTrailerPropagation propagates any trailers back to the client.
 func UnaryServerTrailerPropagation() grpc.UnaryServerInterceptor {
@@ -63,8 +80,7 @@ func UnaryServerTrailerPropagation() grpc.UnaryServerInterceptor {
 		if tags, ok := contexttag.GetTrailersTags(ctx); ok && len(tags.Values()) > 0 {
 			md := metadata.MD{}
 			for key, values := range tags.Values() {
-				if !strings.HasPrefix(key, "x-") {
-					// We only propagate our own trailers.
+				if !strings.HasSuffix(key, suffixPropagate) {
 					continue
 				}
 				md.Set(key, values...)
@@ -87,8 +103,7 @@ func StreamServerTrailerPropagation() grpc.StreamServerInterceptor {
 		if tags, ok := contexttag.GetTrailersTags(ctx); ok && len(tags.Values()) > 0 {
 			md := metadata.MD{}
 			for key, values := range tags.Values() {
-				if !strings.HasPrefix(key, "x-") {
-					// We only propagate our own trailers.
+				if !strings.HasSuffix(key, suffixPropagate) {
 					continue
 				}
 				md.Set(key, values...)

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package malonaz.core.authentication.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/malonaz/core/genproto/authentication/v1";
 
 // Configuration defines the complete authentication and authorization setup
@@ -47,18 +49,25 @@ message Role {
   string scope = 4;
 }
 
+// Wraps around a session to include signature.
+message SignedSession {
+  // The session that is signed.
+  Session session = 1;
+  // Cryptographic signature of the session data to ensure integrity and prevent tampering.
+  bytes signature = 2;
+}
+
 // Session represents an authenticated session for either a user or service account,
 // containing identity information, permissions, and metadata about the session.
 message Session {
   // Unique identifier for this session instance.
   string id = 1;
 
-  // Unix timestamp (seconds since epoch) when this session was created.
-  int64 create_timestamp = 2;
+  // Time at which this session was created.
+  google.protobuf.Timestamp create_time = 2;
 
-  // Unix timestamp (seconds since epoch) when this session expires and
-  // is no longer valid for authentication.
-  int64 expire_timestamp = 3;
+  // Time at which this session expires and is no longer valid for authentication.
+  google.protobuf.Timestamp expire_time = 3;
 
   // User ID if this session belongs to a human user. Empty for service account sessions.
   string user_id = 4;
@@ -75,9 +84,16 @@ message Session {
   // directly to the user/service account plus any additional session-specific roles.
   repeated string role_ids = 7;
 
+  // An authorized session does not get checked again method permissions.
+  // We only check at edges entry point.
+  // For example, let's look at an external call:
+  //  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+  //  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+  bool authorized = 8;
+
   // Additional metadata about the session, including client information
   // and context for logging and auditing purposes.
-  SessionMetadata metadata = 8;
+  SessionMetadata metadata = 9;
 }
 
 // SessionMetadata contains contextual information about a session, useful for

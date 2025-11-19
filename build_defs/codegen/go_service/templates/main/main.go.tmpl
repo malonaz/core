@@ -14,6 +14,7 @@ func main() {
 {{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
 {{ goImport "github.com/malonaz/core/go/prometheus" }}.Serve(opts.Prometheus)
 ctx := {{ goImport "context" }}.Background()
+sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
 
 {{- /* GATHER SERVICE MANIFESTS */ -}}
 {{- $serviceManifests := list -}}
@@ -25,7 +26,6 @@ ctx := {{ goImport "context" }}.Background()
         {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
         {{- $updatedServers := append $existingServers $server.name -}}
         {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
-
     {{- end -}}
 {{- end -}}
 
@@ -147,13 +147,12 @@ var stopFns []func() error
 
     // Start {{ $server.name | camelcase }} Server
     {
-    withServiceAccount := func(ctx context.Context) (context.Context, error) {
-    ctxSA, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.WithServiceAccount(ctx, "{{ $server.name | kebabcase }}")
+    apiKey, err := opts.ExternalApiKeyAuthentication.ParseAPIKey("{{ $server.name | kebabcase }}")
     if err != nil {
-    return nil, err
+      log.Panicf("parsing api key for {{ $server.name | kebabcase }}")
     }
-    ctxSA = {{ goImport "github.com/malonaz/core/go/contexttag" }}.SetOntoContextNoop(ctxSA)
-    return ctxSA, nil
+    withServiceAccount := func(ctx context.Context) context.Context {
+      return opts.ExternalApiKeyAuthentication.WithAPIKey(ctx, apiKey)
     }
 
     {{- /* INSTANTIATE SERVICES*/ -}}
@@ -198,18 +197,18 @@ var stopFns []func() error
         }
 
         {{- range $interceptor := $server.interceptors -}}
-            {{ if eq $interceptor.type "session_injector" }}
-                sessionInjectorInterceptor := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionInjectorInterceptor()
-            {{ else if eq $interceptor.type "internal_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }})
+            {{ if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
                 log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
             {{ else if eq $interceptor.type "external_api_key_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }})
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
                 log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
+            {{ else if eq $interceptor.type "session_local_context_injector" }} {{- /*session manager method*/ -}}
+            {{ else if eq $interceptor.type "session_outgoing_context_injector" }} {{- /*session manager method*/ -}}
             {{ else }}
                 {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
             {{ end }}
@@ -221,23 +220,27 @@ var stopFns []func() error
         }
 
         grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
-            {{- if eq $interceptor.type "session_injector" }}
-                sessionInjectorInterceptor.Unary(),
-            {{- else if eq $interceptor.type "internal_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- if eq $interceptor.type "session_local_context_injector" }}
+                sessionManager.UnaryServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
+                sessionManager.UnaryServerOutgoingContextInjectorInterceptor(),
             {{ else }}
                 {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
             {{- end -}}
         {{- end -}}).
         WithStreamInterceptors({{- range $interceptor := $server.interceptors -}}
-            {{- if eq $interceptor.type "session_injector" }}
-                sessionInjectorInterceptor.Stream(),
-            {{- else if eq $interceptor.type "internal_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- if eq $interceptor.type "session_local_context_injector" }}
+                sessionManager.StreamServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "internal_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
+                sessionManager.StreamServerOutgoingContextInjectorInterceptor(),
             {{ else }}
                 {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
             {{- end -}}

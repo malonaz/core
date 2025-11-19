@@ -130,12 +130,12 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 		server.preUnaryInterceptors = append(server.preUnaryInterceptors, prometheusUnaryInterceptor)
 		server.preStreamInterceptors = append(server.preStreamInterceptors, prometheusStreamInterceptor)
 	}
-	// PRE (3): Context tags (allows downstream interceptors to pass values back down to the logging interceptor.
+	// PRE (3): Context tags: allows downstream interceptors to pass values back down to the logging interceptor.
 	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
 	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
-	// PRE (4): Context propagator (it overwrites and outgoing context written prior so must be placed first.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextPropagation())
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextPropagation())
+	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
+	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerHeaderPropagation())
+	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerHeaderPropagation())
 	// PRE (5): Logging interceptor.
 	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(log))
 	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerLogging(log))

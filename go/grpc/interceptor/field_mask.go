@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	metadataKeyFieldMask = "x-fields-no-prop"
+	metadataKeyFieldMask = "x-field-mask"
 )
 
 func WithFieldMask(ctx context.Context, paths string) context.Context {

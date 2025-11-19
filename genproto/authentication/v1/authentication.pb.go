@@ -9,6 +9,7 @@ package v1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -214,17 +215,71 @@ func (x *Role) GetScope() string {
 	return ""
 }
 
+// Wraps around a session to include signature.
+type SignedSession struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session that is signed.
+	Session *Session `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	// Cryptographic signature of the session data to ensure integrity and prevent tampering.
+	Signature     []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SignedSession) Reset() {
+	*x = SignedSession{}
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignedSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignedSession) ProtoMessage() {}
+
+func (x *SignedSession) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignedSession.ProtoReflect.Descriptor instead.
+func (*SignedSession) Descriptor() ([]byte, []int) {
+	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SignedSession) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+func (x *SignedSession) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
+}
+
 // Session represents an authenticated session for either a user or service account,
 // containing identity information, permissions, and metadata about the session.
 type Session struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Unique identifier for this session instance.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Unix timestamp (seconds since epoch) when this session was created.
-	CreateTimestamp int64 `protobuf:"varint,2,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
-	// Unix timestamp (seconds since epoch) when this session expires and
-	// is no longer valid for authentication.
-	ExpireTimestamp int64 `protobuf:"varint,3,opt,name=expire_timestamp,json=expireTimestamp,proto3" json:"expire_timestamp,omitempty"`
+	// Time at which this session was created.
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	// Time at which this session expires and is no longer valid for authentication.
+	ExpireTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
 	// User ID if this session belongs to a human user. Empty for service account sessions.
 	UserId string `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// Service account ID if this session represents programmatic access.
@@ -236,16 +291,22 @@ type Session struct {
 	// List of role IDs active in this session, which may include roles assigned
 	// directly to the user/service account plus any additional session-specific roles.
 	RoleIds []string `protobuf:"bytes,7,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	// An authorized session does not get checked again method permissions.
+	// We only check at edges entry point.
+	// For example, let's look at an external call:
+	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+	Authorized bool `protobuf:"varint,8,opt,name=authorized,proto3" json:"authorized,omitempty"`
 	// Additional metadata about the session, including client information
 	// and context for logging and auditing purposes.
-	Metadata      *SessionMetadata `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *SessionMetadata `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +318,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +331,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{3}
+	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Session) GetId() string {
@@ -280,18 +341,18 @@ func (x *Session) GetId() string {
 	return ""
 }
 
-func (x *Session) GetCreateTimestamp() int64 {
+func (x *Session) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTimestamp
+		return x.CreateTime
 	}
-	return 0
+	return nil
 }
 
-func (x *Session) GetExpireTimestamp() int64 {
+func (x *Session) GetExpireTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.ExpireTimestamp
+		return x.ExpireTime
 	}
-	return 0
+	return nil
 }
 
 func (x *Session) GetUserId() string {
@@ -320,6 +381,13 @@ func (x *Session) GetRoleIds() []string {
 		return x.RoleIds
 	}
 	return nil
+}
+
+func (x *Session) GetAuthorized() bool {
+	if x != nil {
+		return x.Authorized
+	}
+	return false
 }
 
 func (x *Session) GetMetadata() *SessionMetadata {
@@ -351,7 +419,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +431,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +444,7 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMetadata.ProtoReflect.Descriptor instead.
 func (*SessionMetadata) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{4}
+	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SessionMetadata) GetIpAddress() string {
@@ -423,7 +491,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +503,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[5]
+	mi := &file_proto_authentication_v1_authentication_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +516,7 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientVersion.ProtoReflect.Descriptor instead.
 func (*ClientVersion) Descriptor() ([]byte, []int) {
-	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{5}
+	return file_proto_authentication_v1_authentication_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ClientVersion) GetMajor() int32 {
@@ -476,7 +544,7 @@ var File_proto_authentication_v1_authentication_proto protoreflect.FileDescripto
 
 const file_proto_authentication_v1_authentication_proto_rawDesc = "" +
 	"\n" +
-	",proto/authentication/v1/authentication.proto\x12\x1emalonaz.core.authentication.v1\"\xa6\x01\n" +
+	",proto/authentication/v1/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x01\n" +
 	"\rConfiguration\x12:\n" +
 	"\x05roles\x18\x01 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\x12Y\n" +
 	"\x10service_accounts\x18\x02 \x03(\v2..malonaz.core.authentication.v1.ServiceAccountR\x0fserviceAccounts\";\n" +
@@ -487,16 +555,24 @@ const file_proto_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
 	"\vpermissions\x18\x02 \x03(\tR\vpermissions\x12,\n" +
 	"\x12inherited_role_ids\x18\x03 \x03(\tR\x10inheritedRoleIds\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"\xc7\x02\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\"p\n" +
+	"\rSignedSession\x12A\n" +
+	"\asession\x18\x01 \x01(\v2'.malonaz.core.authentication.v1.SessionR\asession\x12\x1c\n" +
+	"\tsignature\x18\x02 \x01(\fR\tsignature\"\x8b\x03\n" +
 	"\aSession\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x10create_timestamp\x18\x02 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
-	"\x10expire_timestamp\x18\x03 \x01(\x03R\x0fexpireTimestamp\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
+	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12;\n" +
+	"\vexpire_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"expireTime\x12\x17\n" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\x12,\n" +
 	"\x12service_account_id\x18\x05 \x01(\tR\x10serviceAccountId\x12'\n" +
 	"\x0forganization_id\x18\x06 \x01(\tR\x0eorganizationId\x12\x19\n" +
-	"\brole_ids\x18\a \x03(\tR\aroleIds\x12K\n" +
-	"\bmetadata\x18\b \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"\xc7\x02\n" +
+	"\brole_ids\x18\a \x03(\tR\aroleIds\x12\x1e\n" +
+	"\n" +
+	"authorized\x18\b \x01(\bR\n" +
+	"authorized\x12K\n" +
+	"\bmetadata\x18\t \x01(\v2/.malonaz.core.authentication.v1.SessionMetadataR\bmetadata\"\xc7\x02\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12T\n" +
@@ -525,27 +601,32 @@ func file_proto_authentication_v1_authentication_proto_rawDescGZIP() []byte {
 	return file_proto_authentication_v1_authentication_proto_rawDescData
 }
 
-var file_proto_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_authentication_v1_authentication_proto_goTypes = []any{
-	(*Configuration)(nil),   // 0: malonaz.core.authentication.v1.Configuration
-	(*ServiceAccount)(nil),  // 1: malonaz.core.authentication.v1.ServiceAccount
-	(*Role)(nil),            // 2: malonaz.core.authentication.v1.Role
-	(*Session)(nil),         // 3: malonaz.core.authentication.v1.Session
-	(*SessionMetadata)(nil), // 4: malonaz.core.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),   // 5: malonaz.core.authentication.v1.ClientVersion
-	nil,                     // 6: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	(*Configuration)(nil),         // 0: malonaz.core.authentication.v1.Configuration
+	(*ServiceAccount)(nil),        // 1: malonaz.core.authentication.v1.ServiceAccount
+	(*Role)(nil),                  // 2: malonaz.core.authentication.v1.Role
+	(*SignedSession)(nil),         // 3: malonaz.core.authentication.v1.SignedSession
+	(*Session)(nil),               // 4: malonaz.core.authentication.v1.Session
+	(*SessionMetadata)(nil),       // 5: malonaz.core.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),         // 6: malonaz.core.authentication.v1.ClientVersion
+	nil,                           // 7: malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 }
 var file_proto_authentication_v1_authentication_proto_depIdxs = []int32{
 	2, // 0: malonaz.core.authentication.v1.Configuration.roles:type_name -> malonaz.core.authentication.v1.Role
 	1, // 1: malonaz.core.authentication.v1.Configuration.service_accounts:type_name -> malonaz.core.authentication.v1.ServiceAccount
-	4, // 2: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
-	5, // 3: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
-	6, // 4: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4, // 2: malonaz.core.authentication.v1.SignedSession.session:type_name -> malonaz.core.authentication.v1.Session
+	8, // 3: malonaz.core.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	8, // 4: malonaz.core.authentication.v1.Session.expire_time:type_name -> google.protobuf.Timestamp
+	5, // 5: malonaz.core.authentication.v1.Session.metadata:type_name -> malonaz.core.authentication.v1.SessionMetadata
+	6, // 6: malonaz.core.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.core.authentication.v1.ClientVersion
+	7, // 7: malonaz.core.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.core.authentication.v1.SessionMetadata.KeyToValueEntry
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_authentication_v1_authentication_proto_init() }
@@ -559,7 +640,7 @@ func file_proto_authentication_v1_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_authentication_v1_authentication_proto_rawDesc), len(file_proto_authentication_v1_authentication_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

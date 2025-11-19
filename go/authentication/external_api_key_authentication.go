@@ -12,18 +12,18 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const metadataKeyAPIKey = "x-api-key"
-
-// WithAPIKey creates a new context with the API key set in outgoing metadata.
-func WithAPIKey(ctx context.Context, apiKey string) context.Context {
-	md := metadata.Pairs(metadataKeyAPIKey, apiKey)
-	return metadata.NewOutgoingContext(ctx, md)
+type ExternalApiKeysOpts struct {
+	MetadataHeader string `long:"metadata-header" env:"METADATA_HEADER" description:"The header you wish to use for api keys" default:"x-api-key"`
+	APIKeys        string `long:"api-keys" env:"API_KEYS" description:"List of service_account_id:api_key pairs" required:"true"`
 }
 
-type ExternalApiKeysOpts struct {
-	APIKeys []string `long:"api-keys" env:"API_KEYS" env-delim:"," description:"List of service_account_id:api_key pairs" required:"true"`
+// WithAPIKey creates a new context with the API key set in outgoing metadata.
+func (o *ExternalApiKeysOpts) WithAPIKey(ctx context.Context, apiKey string) context.Context {
+	md := metadata.Pairs(o.MetadataHeader, apiKey)
+	return metadata.NewOutgoingContext(ctx, md)
 }
 
 func (o *ExternalApiKeysOpts) ParseAPIKey(targetServiceAccountID string) (string, error) {
@@ -47,7 +47,8 @@ func (o *ExternalApiKeysOpts) ParseAPIKey(targetServiceAccountID string) (string
 func (o *ExternalApiKeysOpts) parse() (map[string]string, error) {
 	apiKeyToServiceAccountID := make(map[string]string)
 
-	for _, keyPair := range o.APIKeys {
+	apiKeyPairs := strings.Split(o.APIKeys, ",")
+	for _, keyPair := range apiKeyPairs {
 		parts := strings.SplitN(keyPair, ":", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid api key format: %s (expected service_account_id:api_key)", keyPair)
@@ -74,49 +75,39 @@ func (o *ExternalApiKeysOpts) parse() (map[string]string, error) {
 
 type ExternalApiKeyAuthenticationInterceptorOpts struct {
 	*ExternalApiKeysOpts
-	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
 type ExternalApiKeyAuthenticationInterceptor struct {
+	opts                     *ExternalApiKeyAuthenticationInterceptorOpts
+	sessionManager           *SessionManager
 	apiKeyToServiceAccountID map[string]string
-	serviceAccountIDSet      map[string]struct{}
 }
 
-func NewExternalApiKeyAuthenticationInterceptor(opts *ExternalApiKeyAuthenticationInterceptorOpts) (*ExternalApiKeyAuthenticationInterceptor, error) {
+func NewExternalApiKeyAuthenticationInterceptor(
+	opts *ExternalApiKeyAuthenticationInterceptorOpts,
+	sessionManager *SessionManager,
+) (*ExternalApiKeyAuthenticationInterceptor, error) {
 	// Parse API keys
 	apiKeyToServiceAccountID, err := opts.parse()
 	if err != nil {
 		return nil, err
 	}
 
-	configuration, err := parseAuthenticationConfig(opts.Config)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build service account id set.
-	serviceAccountIDSet := map[string]struct{}{}
-	for _, serviceAccount := range configuration.ServiceAccounts {
-		serviceAccountIDSet[serviceAccount.Id] = struct{}{}
-	}
-
-	// Validate that all configured service account IDs exist in the configuration
-	for _, serviceAccountID := range apiKeyToServiceAccountID {
-		if _, ok := serviceAccountIDSet[serviceAccountID]; !ok {
-			return nil, fmt.Errorf("service account ID %s not found in configuration", serviceAccountID)
-		}
-	}
-
 	return &ExternalApiKeyAuthenticationInterceptor{
+		opts:                     opts,
+		sessionManager:           sessionManager,
 		apiKeyToServiceAccountID: apiKeyToServiceAccountID,
-		serviceAccountIDSet:      serviceAccountIDSet,
 	}, nil
 }
 
 func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context.Context) (context.Context, error) {
-	values := metadata.ValueFromIncomingContext(ctx, metadataKeyAPIKey)
+	values := metadata.ValueFromIncomingContext(ctx, i.opts.MetadataHeader)
 	if len(values) == 0 {
-		return nil, status.Errorf(codes.Unauthenticated, "missing api key")
+		// There is no api key so we simply return.
+		return ctx, nil
+	}
+	if len(values) != 1 {
+		return nil, status.Errorf(codes.Unauthenticated, "expected 1 api key got %d", len(values))
 	}
 
 	apiKey := values[0]
@@ -129,17 +120,19 @@ func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context
 		return nil, status.Errorf(codes.Unauthenticated, "invalid api key")
 	}
 
-	if _, ok := i.serviceAccountIDSet[serviceAccountID]; !ok {
-		return nil, status.Errorf(codes.Internal, "service account %s not found", serviceAccountID)
-	}
-
 	// Create a session with the service account and its roles
 	session := &authenticationpb.Session{
+		CreateTime:       timestamppb.Now(),
 		ServiceAccountId: serviceAccountID,
 	}
 
-	// Inject the session into the local context
-	return InjectSession(ctx, session)
+	signedSession, err := i.sessionManager.sign(session)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "signing session: %v", err)
+	}
+
+	isUpdate := false
+	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }
 
 // Unary implements the API key authentication unary interceptor.
