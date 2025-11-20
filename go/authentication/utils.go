@@ -3,25 +3,32 @@ package authentication
 import (
 	"fmt"
 
-	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
+	"buf.build/go/protovalidate"
 	"github.com/malonaz/core/go/jsonnet"
 	"github.com/malonaz/core/go/pbutil"
-	"os"
+	"google.golang.org/protobuf/proto"
 )
 
-func parseAuthenticationConfig(path string) (*authenticationpb.Configuration, error) {
-	// Parse the configuration file
-	bytes, err := os.ReadFile(path)
+var (
+	validator = func() protovalidate.Validator {
+		validator, err := protovalidate.New()
+		if err != nil {
+			panic(fmt.Errorf("instantiating proto validator: %w", err))
+		}
+		return validator
+	}()
+)
+
+func parseConfig(path string, config proto.Message) error {
+	bytes, err := jsonnet.EvaluateFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
+		return fmt.Errorf("failed to evaluate config file %s: %w", path, err)
 	}
-	bytes, err = jsonnet.EvaluateSnippet(string(bytes))
-	if err != nil {
-		return nil, fmt.Errorf("failed to evaluate config file %s: %w", path, err)
+	if err := pbutil.JSONUnmarshalStrict(bytes, config); err != nil {
+		return fmt.Errorf("failed to parse config file %s: %w", path, err)
 	}
-	configuration := &authenticationpb.Configuration{}
-	if err := pbutil.JSONUnmarshal(bytes, configuration); err != nil {
-		return nil, fmt.Errorf("failed to parse config file %s: %w", path, err)
+	if err := validator.Validate(config); err != nil {
+		return fmt.Errorf("validating config: %v", err)
 	}
-	return configuration, nil
+	return nil
 }

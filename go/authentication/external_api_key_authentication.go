@@ -18,6 +18,7 @@ import (
 type ExternalApiKeysOpts struct {
 	MetadataHeader string `long:"metadata-header" env:"METADATA_HEADER" description:"The header you wish to use for api keys" default:"x-api-key"`
 	APIKeys        string `long:"api-keys" env:"API_KEYS" description:"List of service_account_id:api_key pairs" required:"true"`
+	Config         string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
 // WithAPIKey creates a new context with the API key set in outgoing metadata.
@@ -78,9 +79,10 @@ type ExternalApiKeyAuthenticationInterceptorOpts struct {
 }
 
 type ExternalApiKeyAuthenticationInterceptor struct {
-	opts                     *ExternalApiKeyAuthenticationInterceptorOpts
-	sessionManager           *SessionManager
-	apiKeyToServiceAccountID map[string]string
+	opts                             *ExternalApiKeyAuthenticationInterceptorOpts
+	sessionManager                   *SessionManager
+	apiKeyToServiceAccountID         map[string]string
+	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
 }
 
 func NewExternalApiKeyAuthenticationInterceptor(
@@ -93,10 +95,22 @@ func NewExternalApiKeyAuthenticationInterceptor(
 		return nil, err
 	}
 
+	configuration := &authenticationpb.ServiceAccountConfiguration{}
+	if err := parseConfig(opts.Config, configuration); err != nil {
+		return nil, err
+	}
+
+	// Build service account lookup map
+	serviceAccountIDToServiceAccount := make(map[string]*authenticationpb.ServiceAccount)
+	for _, serviceAccount := range configuration.ServiceAccounts {
+		serviceAccountIDToServiceAccount[serviceAccount.Id] = serviceAccount
+	}
+
 	return &ExternalApiKeyAuthenticationInterceptor{
-		opts:                     opts,
-		sessionManager:           sessionManager,
-		apiKeyToServiceAccountID: apiKeyToServiceAccountID,
+		opts:                             opts,
+		sessionManager:                   sessionManager,
+		apiKeyToServiceAccountID:         apiKeyToServiceAccountID,
+		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
 	}, nil
 }
 
@@ -120,10 +134,20 @@ func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context
 		return nil, status.Errorf(codes.Unauthenticated, "invalid api key")
 	}
 
+	serviceAccount, ok := i.serviceAccountIDToServiceAccount[serviceAccountID]
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, "could not find service account")
+	}
+
 	// Create a session with the service account and its roles
 	session := &authenticationpb.Session{
-		CreateTime:       timestamppb.Now(),
-		ServiceAccountId: serviceAccountID,
+		CreateTime: timestamppb.Now(),
+		Identity: &authenticationpb.Session_ServiceAccountIdentity{
+			ServiceAccountIdentity: &authenticationpb.ServiceAccountIdentity{
+				ServiceAccount: serviceAccount,
+			},
+		},
+		RoleIds: serviceAccount.RoleIds,
 	}
 
 	signedSession, err := i.sessionManager.sign(session)

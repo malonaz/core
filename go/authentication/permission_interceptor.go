@@ -19,9 +19,8 @@ type PermissionAuthenticationInterceptorOpts struct {
 }
 
 type PermissionAuthenticationInterceptor struct {
-	sessionManager                   *SessionManager
-	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
-	permissionToRoleIDSet            map[string]map[string]struct{}
+	sessionManager        *SessionManager
+	permissionToRoleIDSet map[string]map[string]struct{}
 }
 
 var (
@@ -34,15 +33,9 @@ func NewPermissionAuthenticationInterceptor(
 	opts *PermissionAuthenticationInterceptorOpts,
 	sessionManager *SessionManager,
 ) (*PermissionAuthenticationInterceptor, error) {
-	configuration, err := parseAuthenticationConfig(opts.Config)
-	if err != nil {
+	configuration := &authenticationpb.RoleConfiguration{}
+	if err := parseConfig(opts.Config, configuration); err != nil {
 		return nil, err
-	}
-
-	// Build service account lookup map
-	serviceAccountIDToServiceAccount := make(map[string]*authenticationpb.ServiceAccount)
-	for _, serviceAccount := range configuration.ServiceAccounts {
-		serviceAccountIDToServiceAccount[serviceAccount.Id] = serviceAccount
 	}
 
 	roleIDToRole := map[string]*authenticationpb.Role{}
@@ -69,9 +62,8 @@ func NewPermissionAuthenticationInterceptor(
 	}
 
 	return &PermissionAuthenticationInterceptor{
-		sessionManager:                   sessionManager,
-		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
-		permissionToRoleIDSet:            permissionToRoleIDSet,
+		sessionManager:        sessionManager,
+		permissionToRoleIDSet: permissionToRoleIDSet,
 	}, nil
 }
 
@@ -131,13 +123,8 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		return nil, status.Errorf(codes.PermissionDenied, "no role available for permission: %s", permission)
 	}
 
-	serviceAccountRoleIDs := i.serviceAccountIDToServiceAccount[session.ServiceAccountId].GetRoleIds()
-	sessionRoleIDSet := make(map[string]struct{}, len(session.RoleIds)+len(serviceAccountRoleIDs))
-	for _, roleID := range append(session.RoleIds, serviceAccountRoleIDs...) {
-		sessionRoleIDSet[roleID] = struct{}{}
-	}
 	found := false
-	for roleID := range sessionRoleIDSet {
+	for _, roleID := range session.RoleIds {
 		if _, ok := roleIDSet[roleID]; ok {
 			found = true
 			break

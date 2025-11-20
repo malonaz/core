@@ -2,6 +2,7 @@ go_library(
     name = "authentication",
     srcs = [
         "external_api_key_authentication.go",
+        "internal_service_authentication.go",
         "permission_interceptor.go",
         "session_manager.go",
         "utils.go",
@@ -11,6 +12,7 @@ go_library(
         "//genproto/authentication/v1",
         "//go/jsonnet",
         "//go/pbutil",
+        "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",

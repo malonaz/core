@@ -147,19 +147,16 @@ var stopFns []func() error
 
     // Start {{ $server.name | camelcase }} Server
     {
-    apiKey, err := opts.ExternalApiKeyAuthentication.ParseAPIKey("{{ $server.name | kebabcase }}")
-    if err != nil {
-    log.Panicf("parsing api key for {{ $server.name | kebabcase }}")
-    }
-    withServiceAccount := func(ctx context.Context) context.Context {
-    return opts.ExternalApiKeyAuthentication.WithAPIKey(ctx, apiKey)
-    }
-
     {{- /* INSTANTIATE SERVICES*/ -}}
     {{- range $service := $server.services }}
         {{- $serviceManifest := parseYaml $service.manifest -}}
         {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
         {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
+
+        {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
+        if err != nil {
+        log.Panicf("with service account: {{ $serviceManifest.name }}: %v", err)
+        }
 
         {{ "\n" }}// Instantiate {{ $serviceName }}.
         {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
@@ -179,7 +176,7 @@ var stopFns []func() error
         log.Panicf("instantiating {{ $serviceName }}: %v", err)
         }
         // Start {{ $serviceName }} service.
-        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, withServiceAccount)
+        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
         if err != nil {
         log.Panicf("starting {{ $serviceName }} service: %v", err)
         }
@@ -198,6 +195,11 @@ var stopFns []func() error
 
         {{- range $interceptor := $server.interceptors -}}
             {{ if eq $interceptor.type "external_api_key_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                if err != nil {
+                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                }
+            {{ else if eq $interceptor.type "internal_service_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
                 log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
@@ -224,6 +226,8 @@ var stopFns []func() error
                 sessionManager.UnaryServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "internal_service_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
@@ -236,6 +240,8 @@ var stopFns []func() error
             {{- if eq $interceptor.type "session_local_context_injector" }}
                 sessionManager.StreamServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "internal_service_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),

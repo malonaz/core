@@ -20,6 +20,11 @@
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}
                 {{ end }}
+	              {{- if eq $interceptor.type "internal_service_authentication" -}}
+                    {{- if doOnce $interceptor.type }}
+                        {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
+                    {{ end }}
+                {{ end }}
 	          {{- end -}}
 	      {{- end -}}
 	  {{- end }}
