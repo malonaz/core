@@ -338,14 +338,12 @@ func customMimeWrapper(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, 
 }
 
 func preflightHandler(w http.ResponseWriter, r *http.Request) {
-	headers := []string{
-		"Content-Type",
-		"Accept",
-		"Access-Control-Allow-Credentials",
-		textproto.CanonicalMIMEHeaderKey("Grpc-Metadata-X-Api-Key"),
+	// Allow whatever headers the client is requesting
+	if requestHeaders := r.Header.Get("Access-Control-Request-Headers"); requestHeaders != "" {
+		w.Header().Set("Access-Control-Allow-Headers", requestHeaders)
 	}
-	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
-	methods := []string{"GET", "HEAD", "POST", "PUT", "DELETE"}
+
+	methods := []string{"GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"}
 	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
