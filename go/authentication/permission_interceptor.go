@@ -14,11 +14,11 @@ import (
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 )
 
-type InternalAuthenticationInterceptorOpts struct {
+type PermissionAuthenticationInterceptorOpts struct {
 	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
-type InternalAuthenticationInterceptor struct {
+type PermissionAuthenticationInterceptor struct {
 	sessionManager                   *SessionManager
 	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
 	permissionToRoleIDSet            map[string]map[string]struct{}
@@ -30,10 +30,10 @@ var (
 	})
 )
 
-func NewInternalAuthenticationInterceptor(
-	opts *InternalAuthenticationInterceptorOpts,
+func NewPermissionAuthenticationInterceptor(
+	opts *PermissionAuthenticationInterceptorOpts,
 	sessionManager *SessionManager,
-) (*InternalAuthenticationInterceptor, error) {
+) (*PermissionAuthenticationInterceptor, error) {
 	configuration, err := parseAuthenticationConfig(opts.Config)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func NewInternalAuthenticationInterceptor(
 		}
 	}
 
-	return &InternalAuthenticationInterceptor{
+	return &PermissionAuthenticationInterceptor{
 		sessionManager:                   sessionManager,
 		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
 		permissionToRoleIDSet:            permissionToRoleIDSet,
@@ -107,7 +107,7 @@ func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authentica
 	return permissions
 }
 
-func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
+func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
 	// Grab the session and verify its signature.
 	signedSession, err := i.sessionManager.getSignedSessionFromLocalContext(ctx)
 	if err != nil {
@@ -158,7 +158,7 @@ func (i *InternalAuthenticationInterceptor) authenticate(ctx context.Context, fu
 }
 
 // Unary implements the authentication unary interceptor.
-func (i *InternalAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
+func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		ctx, err := i.authenticate(ctx, info.FullMethod)
 		if err != nil {
@@ -170,7 +170,7 @@ func (i *InternalAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor 
 }
 
 // Stream implements the authentication stream interceptor.
-func (i *InternalAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
+func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx, err := i.authenticate(stream.Context(), info.FullMethod)
 		if err != nil {

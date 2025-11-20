@@ -149,10 +149,10 @@ var stopFns []func() error
     {
     apiKey, err := opts.ExternalApiKeyAuthentication.ParseAPIKey("{{ $server.name | kebabcase }}")
     if err != nil {
-      log.Panicf("parsing api key for {{ $server.name | kebabcase }}")
+    log.Panicf("parsing api key for {{ $server.name | kebabcase }}")
     }
     withServiceAccount := func(ctx context.Context) context.Context {
-      return opts.ExternalApiKeyAuthentication.WithAPIKey(ctx, apiKey)
+    return opts.ExternalApiKeyAuthentication.WithAPIKey(ctx, apiKey)
     }
 
     {{- /* INSTANTIATE SERVICES*/ -}}
@@ -197,12 +197,12 @@ var stopFns []func() error
         }
 
         {{- range $interceptor := $server.interceptors -}}
-            {{ if eq $interceptor.type "internal_authentication" }}
+            {{ if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
                 log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
-            {{ else if eq $interceptor.type "external_api_key_authentication" }}
+            {{ else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
                 log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
@@ -224,7 +224,7 @@ var stopFns []func() error
                 sessionManager.UnaryServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
-            {{- else if eq $interceptor.type "internal_authentication" }}
+            {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
                 sessionManager.UnaryServerOutgoingContextInjectorInterceptor(),
@@ -237,7 +237,7 @@ var stopFns []func() error
                 sessionManager.StreamServerLocalContextInjectorInterceptor(),
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
-            {{- else if eq $interceptor.type "internal_authentication" }}
+            {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
             {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
                 sessionManager.StreamServerOutgoingContextInjectorInterceptor(),

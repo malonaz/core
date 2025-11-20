@@ -17,10 +17,10 @@ Also injects some log fields from the session into the ctx for logging purposes.
 
 ## Interceptor Flow
 1. Request comes in.
-2. SessionManager.PreInterceptor grabs an IncomingContext.SignedSession => sets it to local context (if it exists).
-3. ExternalApiKeyAuthentication + (any other authentication) => can create a signed session and inject it into local context.
-4. InternalAuthentication => inspects local context and *must* see a signed session. Verifies the signed session!
+2. SessionManager.LocalContextInjectorInterceptor grabs an IncomingContext.SignedSession => sets it to local context (if it exists).
+3. ExternalApiKeyAuthentication + (any other authentication interceptor) => can create a signed session and inject it into local context.
+4. PermissionInterceptor => inspects local context and *must* see a signed session. Verifies the signed session!
    If session is authorized => let it through
    If session is not authorized => verify permissions => update session + resign => update in local context.
-5. SessionManager.PostInterceptor => Sets it on outgoing context.
+5. SessionManager.OutgoingContextInjectorInterceptor => grabs the local session and sets it on outgoing context. Perhaps we should be doing this on a client interceptor?
 6. Request is processed by handler.
