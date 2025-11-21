@@ -82,6 +82,12 @@ pb "{{ $apiImportPath }}"
                 {{ end }}
             {{ end }}
 
+            {{- if $method.Input.Desc.Fields.ByName "validate_only" }}
+                if request.ValidateOnly {
+                return  request.{{ $resourceGoName }}, nil
+                }
+            {{- end }}
+
             // STEP 4: Insert the resource idempotently.
             ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $pr.Children }}{{ if $child.Singleton }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }}{{ end }})
 	          if err != nil {
