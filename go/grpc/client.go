@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 
@@ -45,6 +46,28 @@ type Connection struct {
 	options []grpc.DialOption
 }
 
+func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (grpc.DialOption, error) {
+	if opts.DisableTLS {
+		if opts.Plaintext {
+			log.Warningf("Starting gRPC client using insecure gRPC dial")
+			return grpc.WithInsecure(), nil
+		}
+		return grpc.WithTransportCredentials(insecure.NewCredentials()), nil
+	}
+
+	// TLS is enabled
+	if opts.Plaintext {
+		return nil, fmt.Errorf("cannot use plaintext with TLS")
+	}
+
+	tlsConfig, err := certsOpts.ClientTLSConfig()
+	if err != nil {
+		return nil, fmt.Errorf("loading client TLS config: %w", err)
+	}
+
+	return grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)), nil
+}
+
 // NewConnection creates and returns a new gRPC client.
 func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) (*Connection, error) {
 	client := &Connection{
@@ -61,16 +84,13 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 	if !opts.useSocket() {
 		client.options = append(client.options, WithDNSBalancer())
 	}
-	if opts.DisableTLS {
-		log.Warningf("Starting gRPC client using insecure gRPC dial")
-		client.options = append(client.options, grpc.WithInsecure())
-	} else {
-		tlsConfig, err := certsOpts.ClientTLSConfig()
-		if err != nil {
-			return nil, fmt.Errorf("loading client TLS config: %w", err)
-		}
-		client.options = append(client.options, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+
+	// Handle TLS / Plaintext configuration.
+	clientTransportCredentialsOptions, err := getClientTransportCredentialsOptions(opts, certsOpts)
+	if err != nil {
+		return nil, err
 	}
+	client.options = append(client.options, clientTransportCredentialsOptions)
 
 	// Default interceptors.
 	client.preUnaryInterceptors = append(client.preUnaryInterceptors, interceptor.UnaryClientTrailerPropagation())

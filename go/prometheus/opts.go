@@ -13,17 +13,17 @@ var logger = logging.NewLogger()
 
 // Opts holds prometheus opts.
 type Opts struct {
-	Enable bool `long:"enable" env:"ENABLE" description:"Set to true to disable prometheus metrics" default:"true"`
-	Port   int  `long:"port" env:"PORT" description:"Port to serve Prometheus metrics on" default:"13434"`
+	Disable bool `long:"disable" env:"DISABLE" description:"Set to true to disable prometheus metrics"`
+	Port    int  `long:"port" env:"PORT" description:"Port to serve Prometheus metrics on" default:"13434"`
 }
 
 func (o *Opts) Enabled() bool {
-	return o != nil && o.Enable
+	return o != nil && !o.Disable
 }
 
 // Serve serves prometheus in a goroutine.
 func Serve(opts *Opts) {
-	if !opts.Enable {
+	if !opts.Enabled() {
 		return
 	}
 	mux := http.NewServeMux()

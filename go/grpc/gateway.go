@@ -14,7 +14,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -95,16 +94,13 @@ func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, promet
 	if !grpcOpts.useSocket() {
 		gateway.dialOptions = append(gateway.dialOptions, WithDNSBalancer())
 	}
-	if grpcOpts.DisableTLS {
-		log.Warningf("Starting gRPC client using insecure gRPC dial")
-		gateway.dialOptions = append(gateway.dialOptions, grpc.WithInsecure())
-	} else {
-		tlsConfig, err := certsOpts.ClientTLSConfig()
-		if err != nil {
-			return nil, fmt.Errorf("loading client TLS config: %w", err)
-		}
-		gateway.dialOptions = append(gateway.dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+
+	// Handle TLS / Plaintext configuration.
+	clientTransportCredentialsOptions, err := getClientTransportCredentialsOptions(grpcOpts, certsOpts)
+	if err != nil {
+		return nil, err
 	}
+	gateway.dialOptions = append(gateway.dialOptions, clientTransportCredentialsOptions)
 
 	// Default interceptors.
 	gateway.unaryInterceptors = append(gateway.unaryInterceptors, grpc_interceptor.UnaryClientRetry())

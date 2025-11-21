@@ -30,6 +30,7 @@ go_library(
         "//third_party/go:google.golang.org__grpc__balancer__roundrobin",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__credentials",
+        "//third_party/go:google.golang.org__grpc__credentials__insecure",
         "//third_party/go:google.golang.org__grpc__encoding__gzip",
         "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
         "//third_party/go:google.golang.org__grpc__keepalive",
