@@ -1,6 +1,8 @@
 package {{ .implementation | base}}
+{{- $exportFields := not (empty .exportServiceFields) }}
 
 var log = {{ goImport "github.com/malonaz/core/go/logging" }}.NewLogger()
+
 
 {{ if .includeRuntime }}
 type Opts struct{}
@@ -16,16 +18,16 @@ func (s *Service) start(ctx {{ goImport "context" }}.Context) (func(), error) { 
 
 type Service struct {
 	*Runtime
-	opts *Opts
-  withServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context
+	{{ ternary "Opts" "opts" $exportFields }} *Opts
+  {{ ternary "With" "with" $exportFields }}ServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context
         {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
                 {{ $grpc := parseGRPC $dep.proto $dep.name}}
-                {{ $grpc.Client }} {{ $grpc.ClientInterface }}
+                {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }} {{ $grpc.ClientInterface }}
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name }}DBClient *{{ plzGoImport $dep.implementation }}.DB
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}DBClient *{{ plzGoImport $dep.implementation }}.DB
             {{- else if eq $dep.type "postgres_client" }}
-                {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
             {{- end }}
         {{- end }}
 }
@@ -52,15 +54,15 @@ func New(
 	}
 	return &Service{
 		Runtime: runtime,
-		opts: opts,
+		{{ ternary "Opts" "opts" $exportFields }}: opts,
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
                 {{ $grpc := parseGRPC $dep.proto $dep.name }}
-                {{ $grpc.Client }}: {{ $grpc.Client }},
+                {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }}: {{ $grpc.Client }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name }}DBClient: {{ $dep.name }}DBClient,
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}DBClient: {{ $dep.name }}DBClient,
             {{- else if eq $dep.type "postgres_client" }}
-                {{ $dep.name }}PostgresClient: {{ $dep.name }}PostgresClient,
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- end }}
         {{- end }}
 	}, nil
@@ -68,7 +70,7 @@ func New(
 
 // Start this service. Returns clean up function.
 func (s *Service) Start(ctx {{ goImport "context" }}.Context, withServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context) (func(), error) {
-  s.withServiceAccount = withServiceAccount
+  s.{{ ternary "With" "with" $exportFields }}ServiceAccount = withServiceAccount
   ctxSA := withServiceAccount(ctx)
 	return s.start(ctxSA)
 }
