@@ -108,7 +108,7 @@ func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, promet
 
 	// Default interceptors.
 	gateway.unaryInterceptors = append(gateway.unaryInterceptors, grpc_interceptor.UnaryClientRetry())
-	if !prometheusOpts.Disable {
+	if prometheusOpts.Enabled() {
 		metrics := grpc_prometheus.NewClientMetrics(
 			grpc_prometheus.WithClientHandlingTimeHistogram(
 				grpc_prometheus.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),

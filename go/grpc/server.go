@@ -101,7 +101,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	// Instantiate prometheus interceptors if relevant.
 	var prometheusUnaryInterceptor grpc.UnaryServerInterceptor
 	var prometheusStreamInterceptor grpc.StreamServerInterceptor
-	if !prometheusOpts.Disable {
+	if prometheusOpts.Enabled() {
 		metrics := grpc_prometheus.NewServerMetrics(
 			grpc_prometheus.WithServerHandlingTimeHistogram(
 				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
@@ -126,7 +126,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 		server.preStreamInterceptors, grpc_recovery.StreamServerInterceptor(),
 	)
 	// PRE (2): Prometheus first.
-	if !prometheusOpts.Disable {
+	if prometheusOpts.Enabled() {
 		server.preUnaryInterceptors = append(server.preUnaryInterceptors, prometheusUnaryInterceptor)
 		server.preStreamInterceptors = append(server.preStreamInterceptors, prometheusStreamInterceptor)
 	}
@@ -262,7 +262,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
 	s.healthServer.Start(ctx)
 
-	if !s.prometheusOpts.Disable {
+	if s.prometheusOpts.Enabled() {
 		s.prometheusServerMetrics.InitializeMetrics(s.Raw)
 		prom.DefaultRegisterer.MustRegister(s.prometheusServerMetrics)
 	}
