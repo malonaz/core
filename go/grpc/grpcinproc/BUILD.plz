@@ -1,0 +1,12 @@
+go_library(
+    name = "grpcinproc",
+    srcs = [
+        "doc.go",
+        "server_stream.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__metadata",
+    ],
+)
