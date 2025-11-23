@@ -1302,6 +1302,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__gorilla__websocket",
+    _tag = "download",
+    module = "github.com/gorilla/websocket",
+    version = "v1.5.3",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__gorilla__websocket",
+    download = ":_github.com__gorilla__websocket#download",
+    install = ["."],
+    module = "github.com/gorilla/websocket",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
     _tag = "download",
     module = "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus",
@@ -2366,8 +2383,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):

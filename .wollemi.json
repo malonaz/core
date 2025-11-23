@@ -91,6 +91,7 @@
         "github.com/google/go-jsonnet/internal/program": "//third_party/go:github.com__google__go-jsonnet__internal__program",
         "github.com/google/go-jsonnet/toolutils": "//third_party/go:github.com__google__go-jsonnet__toolutils",
         "github.com/google/uuid": "//third_party/go:github.com__google__uuid",
+        "github.com/gorilla/websocket": "//third_party/go:github.com__gorilla__websocket",
         "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
