@@ -187,7 +187,7 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 		if h.onCloseFN != nil {
 			h.onCloseFN(err) // Pass error to callback
 		}
-		h.log.Info("websocket handler closed")
+		h.log.Info("handler closed")
 	}
 }
 
@@ -238,18 +238,10 @@ func (h *Handler[Req, Resp]) CloseError() error {
 
 func (h *Handler[Req, Resp]) read(ctx context.Context) {
 	h.log.InfoContext(ctx, "starting read routine")
+	defer h.log.InfoContext(ctx, "exiting read routine")
 	defer close(h.readChan)
 
 	for {
-		select {
-		case <-ctx.Done():
-			h.log.InfoContext(ctx, "exiting read routine for websocket")
-			return
-		case <-h.close:
-			return
-		default:
-		}
-
 		_, bytes, err := h.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -271,7 +263,6 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 		select {
 		case h.readChan <- payload:
 		case <-ctx.Done():
-			h.log.InfoContext(ctx, "exiting read routine")
 			return
 		case <-h.close:
 			return
@@ -280,7 +271,6 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 			select {
 			case h.readChan <- payload: // Wait for buffer to free up
 			case <-ctx.Done():
-				h.log.InfoContext(ctx, "exiting read routine")
 				return
 			case <-h.close:
 				return
@@ -291,10 +281,10 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 
 func (h *Handler[Req, Resp]) write(ctx context.Context) {
 	h.log.InfoContext(ctx, "starting write routine")
+	defer h.log.InfoContext(ctx, "exiting write routine")
 	for {
 		select {
 		case <-ctx.Done():
-			h.log.InfoContext(ctx, "exiting write routine for websocket")
 			return
 		case <-h.close:
 			return
