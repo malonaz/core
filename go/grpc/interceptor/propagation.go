@@ -39,13 +39,15 @@ func StreamServerContextTagsInitializer() grpc.StreamServerInterceptor {
 func UnaryServerHeaderPropagation() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			md := md.Copy()
-			for k := range md {
-				if !strings.HasSuffix(k, suffixPropagate) {
-					delete(md, k)
+			propagateMD := metadata.MD{}
+			for k, v := range md {
+				if strings.HasSuffix(k, suffixPropagate) {
+					propagateMD[k] = v
 				}
 			}
-			ctx = metadata.NewOutgoingContext(ctx, md)
+			if len(propagateMD) > 0 {
+				ctx = metadata.NewOutgoingContext(ctx, propagateMD)
+			}
 		}
 		return handler(ctx, req)
 	}
@@ -60,13 +62,15 @@ func StreamServerHeaderPropagation() grpc.StreamServerInterceptor {
 			return handler(srv, stream)
 		}
 		// Filter to only propagate keys with '-propagate' suffix
-		md = md.Copy()
-		for k := range md {
-			if !strings.HasSuffix(k, suffixPropagate) {
-				delete(md, k)
+		propagateMD := metadata.MD{}
+		for k, v := range md {
+			if strings.HasSuffix(k, suffixPropagate) {
+				propagateMD[k] = v
 			}
 		}
-		ctx = metadata.NewOutgoingContext(ctx, md)
+		if len(propagateMD) > 0 {
+			ctx = metadata.NewOutgoingContext(ctx, propagateMD)
+		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
 }
@@ -126,7 +130,9 @@ func UnaryClientTrailerPropagation() grpc.UnaryClientInterceptor {
 		opts = append(opts, grpc.Trailer(&trailer))
 		err := invoker(ctx, method, req, reply, cc, opts...)
 		for key, values := range trailer {
-			tags.Append(key, values...)
+			if strings.HasSuffix(key, suffixPropagate) {
+				tags.Append(key, values...)
+			}
 		}
 		return err
 	}
@@ -178,7 +184,9 @@ func (w *wrappedStream) handleTrailers() {
 			// Assume that an existing implementation of contexttag.Set is being used.
 			// Note that you have to implement the logic for setting the trailer metadata.
 			for key, values := range trailers {
-				tags.Append(key, values...)
+				if strings.HasSuffix(key, suffixPropagate) {
+					tags.Append(key, values...)
+				}
 			}
 		}
 	}
