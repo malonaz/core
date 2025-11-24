@@ -53,12 +53,21 @@
     {{- $indent }}}
 {{- end -}}
 
+
+{{- define "TimeOfDayDoc" -}}
+    {{- $indent := .indent -}}
+    {
+    {{- $indent }}  "hours": number,  // Hours of day in 24 hour format. Should be from 0 to 23
+    {{- $indent }}  "minutes": number // Minutes of hour of day. Must be from 0 to 59.,
+    {{- $indent }}}
+{{- end -}}
+
 {{- define "FieldDoc" -}}
     {{- $indent := .indent -}}
     {{- $field := .field -}}
     {{- $fieldOpts := (getExt $field.Desc "malonaz.core.codegen.model.v1.field_opts") -}}
     {{- if not $fieldOpts.Skip -}}
-        {{ $indent }}"{{ $field.Desc.JSONName -}}":
+        {{ $indent }}"{{ $field.Desc.Name -}}":
         {{- if $field.Desc.IsList -}}
             [
             {{- if $field.Message -}}
@@ -89,6 +98,8 @@
                 {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
             {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
                 {{- template "DateDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else if eq $field.Message.Desc.FullName "google.type.TimeOfDay" -}}
+                {{- template "TimeOfDayDoc" dict "indent" (printf "%s    " $indent) -}}
             {{- else -}}
                 {
                 {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s  " $indent) -}}
@@ -122,7 +133,7 @@
                     {{- range $j, $oneofField := $field.Oneof.Fields -}}
                         {{- $oneofFieldOpts := (getExt $oneofField.Desc "malonaz.core.codegen.llm.v1.field_opts") -}}
                         {{- if not $oneofFieldOpts.Skip -}}
-                            {{- if $j -}}, {{ end -}}{{ $oneofField.Desc.JSONName }}
+                            {{- if $j -}}, {{ end -}}{{ $oneofField.Desc.Name }}
                         {{- end -}}
                     {{- end -}}]
                     {{- range $j, $oneofField := $field.Oneof.Fields -}}
