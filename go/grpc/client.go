@@ -145,6 +145,10 @@ func (c *Connection) WithStreamInterceptors(interceptors ...grpc.StreamClientInt
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
 func (c *Connection) Connect(ctx context.Context) error {
+	c.log = c.log.WithGroup("grpc_client").With(
+		"port", c.opts.Port, "host", c.opts.Host, "socket_path", c.opts.SocketPath,
+		"disable_tls", c.opts.DisableTLS, "plaintext", c.opts.Plaintext,
+	)
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
 	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
@@ -164,7 +168,7 @@ func (c *Connection) Connect(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("dialing grpc [%s]: %v", endpoint, err)
 	}
-	c.log.InfoContext(ctx, "connected to gRPC server", "endpoint", endpoint)
+	c.log.InfoContext(ctx, "connected")
 	c.connection = connection
 	return nil
 }

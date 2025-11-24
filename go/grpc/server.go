@@ -149,7 +149,10 @@ func (s *Server) GracefulStop() error {
 
 // Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve(ctx context.Context) error {
-	s.log = s.log.WithGroup("grpc_server")
+	s.log = s.log.WithGroup("grpc_server").With(
+		"port", s.opts.Port, "host", s.opts.Host, "socket_path", s.opts.SocketPath,
+		"disable_tls", s.opts.DisableTLS, "plaintext", s.opts.Plaintext,
+	)
 	// Default options.
 	s.options = append(s.options, grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize))
 	if !s.opts.DisableTLS {
@@ -255,15 +258,14 @@ func (s *Server) Serve(ctx context.Context) error {
 		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
 			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
 		}
-		s.log.InfoContext(ctx, "listening on unix socket", "socket_path", s.opts.SocketPath)
 	} else {
 		// Connect.
 		listener, err = net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
 		if err != nil {
 			return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
 		}
-		s.log.InfoContext(ctx, "listing on port", "port", s.opts.Port)
 	}
+	s.log.InfoContext(ctx, "serving")
 	defer listener.Close()
 
 	s.Raw = grpc.NewServer(s.options...)

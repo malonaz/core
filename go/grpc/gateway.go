@@ -114,7 +114,13 @@ func (g *Gateway) WithClientStreamInterceptors(interceptors ...grpc.StreamClient
 
 // Serve serves this gRPC gateway. Blocking call.
 func (g *Gateway) Serve(ctx context.Context) error {
-	g.log = g.log.WithGroup("grpc_gateway_server")
+	g.log = g.log.WithGroup("grpc_gateway_server").With(
+		"port", g.opts.Port, "host",
+		slog.Group("grpc_server",
+			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath, "disable_tls",
+			g.grpcOpts.DisableTLS, "plaintext", g.grpcOpts.Plaintext,
+		),
+	)
 	gatewayCookie := &GatewayCookie{log: g.log}
 	// Some default options.
 	g.options = append(
@@ -173,7 +179,6 @@ func (g *Gateway) Serve(ctx context.Context) error {
 			return fmt.Errorf("registering handler: %w", err)
 		}
 	}
-	g.log.InfoContext(ctx, "Connected to gRPC server", "endpoint", endpoint)
 
 	var protoRegistryRangeFileErr error
 	g.routeToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
