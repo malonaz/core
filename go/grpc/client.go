@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"time"
@@ -55,22 +56,19 @@ func (c *Connection) WithLogger(logger *slog.Logger) *Connection {
 
 func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (grpc.DialOption, error) {
 	if opts.DisableTLS {
-		if opts.Plaintext {
-			return grpc.WithInsecure(), nil
-		}
 		return grpc.WithTransportCredentials(insecure.NewCredentials()), nil
 	}
 
-	// TLS is enabled
-	if opts.Plaintext {
-		return nil, fmt.Errorf("cannot use plaintext with TLS")
+	var tlsConfig *tls.Config
+	if certsOpts == nil {
+		tlsConfig = &tls.Config{InsecureSkipVerify: true}
+	} else {
+		var err error
+		tlsConfig, err = certsOpts.ClientTLSConfig()
+		if err != nil {
+			return nil, fmt.Errorf("loading client TLS config: %w", err)
+		}
 	}
-
-	tlsConfig, err := certsOpts.ClientTLSConfig()
-	if err != nil {
-		return nil, fmt.Errorf("loading client TLS config: %w", err)
-	}
-
 	return grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)), nil
 }
 
@@ -147,7 +145,7 @@ func (c *Connection) WithStreamInterceptors(interceptors ...grpc.StreamClientInt
 func (c *Connection) Connect(ctx context.Context) error {
 	c.log = c.log.WithGroup("grpc_client").With(
 		"port", c.opts.Port, "host", c.opts.Host, "socket_path", c.opts.SocketPath,
-		"disable_tls", c.opts.DisableTLS, "plaintext", c.opts.Plaintext,
+		"disable_tls", c.opts.DisableTLS,
 	)
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)

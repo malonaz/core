@@ -151,7 +151,7 @@ func (s *Server) GracefulStop() error {
 func (s *Server) Serve(ctx context.Context) error {
 	s.log = s.log.WithGroup("grpc_server").With(
 		"port", s.opts.Port, "host", s.opts.Host, "socket_path", s.opts.SocketPath,
-		"disable_tls", s.opts.DisableTLS, "plaintext", s.opts.Plaintext,
+		"disable_tls", s.opts.DisableTLS,
 	)
 	// Default options.
 	s.options = append(s.options, grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize))

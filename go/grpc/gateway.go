@@ -117,8 +117,8 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	g.log = g.log.WithGroup("grpc_gateway_server").With(
 		"port", g.opts.Port, "host", g.opts.Host,
 		slog.Group("grpc_server",
-			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath, "disable_tls",
-			g.grpcOpts.DisableTLS, "plaintext", g.grpcOpts.Plaintext,
+			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath,
+			"disable_tls", g.grpcOpts.DisableTLS,
 		),
 	)
 	gatewayCookie := &GatewayCookie{log: g.log}
