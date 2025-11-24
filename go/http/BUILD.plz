@@ -2,8 +2,5 @@ go_library(
     name = "http",
     srcs = ["server.go"],
     visibility = ["//..."],
-    deps = [
-        "//go/health",
-        "//go/logging",
-    ],
+    deps = ["//go/health"],
 )

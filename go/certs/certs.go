@@ -6,11 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-
-	"github.com/malonaz/core/go/logging"
 )
-
-var logger = logging.NewLogger()
 
 // Opts holds options for certificates.
 type Opts struct {

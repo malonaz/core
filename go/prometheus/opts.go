@@ -1,15 +1,13 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
-
-	"github.com/malonaz/core/go/logging"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
-var logger = logging.NewLogger()
 
 // Opts holds prometheus opts.
 type Opts struct {
@@ -21,18 +19,53 @@ func (o *Opts) Enabled() bool {
 	return o != nil && !o.Disable
 }
 
-// Serve serves prometheus in a goroutine.
-func Serve(opts *Opts) {
-	if !opts.Enabled() {
+type Server struct {
+	opts   *Opts
+	log    *slog.Logger
+	server *http.Server
+}
+
+func NewServer(opts *Opts) *Server {
+	return &Server{
+		opts: opts,
+		log:  slog.Default(),
+	}
+}
+
+func (s *Server) WithLogger(logger *slog.Logger) *Server {
+	s.log = logger
+	return s
+}
+
+func (s *Server) Start(ctx context.Context) {
+	if !s.opts.Enabled() {
 		return
 	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
-	logger.Infof("Serving Prometheus metrics on [:%d/metrics]", opts.Port)
-	go func() {
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", opts.Port), mux); err != nil {
-			logger.Warningf("Prometheus server shutdown unexpectedly : %v", err)
-		}
-	}()
 
+	s.server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", s.opts.Port),
+		Handler: mux,
+	}
+
+	s.log.Info("serving Prometheus metrics", "port", s.opts.Port, "endpoint", "/metrics")
+	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		s.log.Warn("prometheus server shutdown unexpectedly", "error", err)
+	}
+}
+
+func (s *Server) Stop(ctx context.Context) error {
+	if s.server == nil {
+		return nil
+	}
+
+	s.log.Info("stopping Prometheus server")
+	if err := s.server.Shutdown(ctx); err != nil {
+		s.log.Error("Prometheus server forced to shutdown", "error", err)
+		return err
+	}
+	s.log.Info("Prometheus server stopped gracefully")
+	return nil
 }

@@ -4,10 +4,7 @@ import (
 	"fmt"
 
 	"github.com/malonaz/core/go/health"
-	"github.com/malonaz/core/go/logging"
 )
-
-var log = logging.NewLogger()
 
 // Opts holds a gRPC server opts.
 type Opts struct {

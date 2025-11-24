@@ -3,48 +3,36 @@ package migrator
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 
-	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/postgres/migrator/migrations"
 )
 
-var log = logging.NewLogger()
-
 // Migrator is database migrator.
 type Migrator struct {
+	log    *slog.Logger
 	client *postgres.Client
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(opts *postgres.Opts) (*Migrator, error) {
-	client, err := postgres.NewClient(opts)
-	if err != nil {
-		return nil, err
+func NewMigrator(client *postgres.Client) *Migrator {
+	return &Migrator{
+		log:    slog.Default(),
+		client: client,
 	}
-	return &Migrator{client: client}, nil
 }
 
-// MustNewMigrator returns a new Migrator and panics on error.
-func MustNewMigrator(opts *postgres.Opts) *Migrator {
-	migrator, err := NewMigrator(opts)
-	if err != nil {
-		log.Panicf("Could not create migrator: %v", err)
-	}
-	return migrator
-}
-
-// MustInitializeDatabase initializes a database.
-func (m *Migrator) MustInitializeDatabase(ctx context.Context, database, user, password string) {
-	if err := m.InitializeDatabase(ctx, database, user, password); err != nil {
-		log.Panicf("initializing database: %v", err)
-	}
+func (m *Migrator) WithLogger(logger *slog.Logger) *Migrator {
+	m.log = logger
+	return m
 }
 
 // InitializeDatabase initializes a database.
-func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, password string) error {
-	log.Info("Initializer started")
+func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, password, superUser string) error {
+	m.log = m.log.WithGroup("initializer").With("database", database, "user", user, "super_user", superUser)
+	m.log.InfoContext(ctx, "starting")
 
 	// Check if user exists
 	var userExists int
@@ -55,15 +43,15 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 
 	// Create user if it doesn't exist
 	if userExists == 0 {
-		log.Infof("Creating user '%s'", user)
+		m.log.InfoContext(ctx, "creating user")
 		if _, err = m.client.Exec(ctx, fmt.Sprintf(`CREATE USER "%s" WITH PASSWORD '%s'`, user, password)); err != nil {
 			return fmt.Errorf("creating user: %w", err)
 		}
 	}
 
 	// Grant user to superuser.
-	log.Infof("Granting user '%s' to superuser '%s'", user, m.client.Opts.User)
-	if _, err = m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, user, m.client.Opts.User)); err != nil {
+	m.log.InfoContext(ctx, "granting user to superuser")
+	if _, err = m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, user, superUser)); err != nil {
 		return fmt.Errorf("granting user to superuser: %w", err)
 	}
 
@@ -76,45 +64,33 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 
 	// Create database if it doesn't exist
 	if dbExists == 0 {
-		log.Infof("Creating database '%s'", database)
+		m.log.InfoContext(ctx, "creating database")
 		if _, err = m.client.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s" WITH OWNER "%s"`, database, user)); err != nil {
 			return fmt.Errorf("creating database: %w", err)
 		}
 	}
-	log.Info("Initializer shutting down")
+	m.log.InfoContext(ctx, "initializer shutting down")
 	return nil
 }
 
 // RunMigrations runs migrations.
 func (m *Migrator) RunMigrations(ctx context.Context, fileLoader migrations.FileLoader, migrationsDirectories ...string) error {
-	log.Infof("Migrator started")
-	if err := m.createMigrationsTableIfNotExist(ctx); err != nil {
+	m.log = m.log.WithGroup("migrator")
+	m.log.InfoContext(ctx, "started")
+	if err := m.CreateMigrationsTableIfNotExist(ctx); err != nil {
 		return err
 	}
 	for _, migrationsDirectory := range migrationsDirectories {
-		log.Infof("Running [%s] migrations", filepath.Base(migrationsDirectory))
+		m.log.InfoContext(ctx, "running migrations", "dir", filepath.Base(migrationsDirectory))
 		if err := m.runMigrations(ctx, fileLoader, migrationsDirectory); err != nil {
 			return err
 		}
 	}
-	log.Infof("Migrator shutting down")
+	m.log.InfoContext(ctx, "shutting down")
 	return nil
 }
 
-// MustRunMigrations runs migrations or panics.
-func (m *Migrator) MustRunMigrations(ctx context.Context, fileLoader migrations.FileLoader, migrationsDirectories ...string) {
-	if err := m.RunMigrations(ctx, fileLoader, migrationsDirectories...); err != nil {
-		log.Panicf("Error running migrations: %v", err)
-	}
-}
-
-func (m *Migrator) MustCreateMigrationsTableIfNotExist(ctx context.Context) {
-	if err := m.createMigrationsTableIfNotExist(ctx); err != nil {
-		log.Panic(err.Error())
-	}
-}
-
-func (m *Migrator) createMigrationsTableIfNotExist(ctx context.Context) error {
+func (m *Migrator) CreateMigrationsTableIfNotExist(ctx context.Context) error {
 	if _, err := m.client.Exec(ctx, creationMigrationTableQuery); err != nil {
 		return fmt.Errorf("could not create migration table: %w", err)
 	}
@@ -128,8 +104,7 @@ func (m *Migrator) runMigrations(ctx context.Context, fileLoader migrations.File
 	}
 	for _, migration := range migrations {
 		if err := m.runMigration(ctx, migration); err != nil {
-			log.Errorf("Could not run migration [%s]", migration.Name())
-			return err
+			return fmt.Errorf("running migration [%s]: %w", migration.Name(), err)
 		}
 	}
 	return nil
@@ -141,10 +116,10 @@ func (m *Migrator) runMigration(ctx context.Context, migration *migrations.Migra
 		return fmt.Errorf("could not execute migration [%s]: %w", migration.Name(), err)
 	}
 	if !ok {
-		log.Infof("Migration [%s] already applied - skipping", migration.Name())
+		m.log.InfoContext(ctx, "migration already applied - skipping", "migration", migration.Name())
 		return nil
 	}
-	log.Infof("Migration [%s] applied", migration.Name())
+	m.log.InfoContext(ctx, "migration applied", "migration", migration.Name())
 	return nil
 }
 

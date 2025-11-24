@@ -4,21 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/Masterminds/sprig/v3"
+	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/logging"
-	"gopkg.in/yaml.v3"
-)
-
-var (
-	log = logging.NewPrettyLogger()
 )
 
 var opts struct {
+	Logging    *logging.Opts
 	Templates  []string `long:"template" description:"The template files to use" required:"true"`
 	Data       string   `long:"data" description:"The data file to use"`
 	DataFormat string   `long:"data-format" description:"The data format to use (json or yaml)" default:"json"`
@@ -42,17 +39,24 @@ func parseDelims(format string) (left, right string, err error) {
 
 func main() {
 	flags.MustParse(&opts)
+	logging.Init(opts.Logging)
+	if err := run(); err != nil {
+		panic(err)
+	}
+}
+
+func run() error {
 	if opts.Output == "" {
-		log.Fatal("--output is required")
+		return fmt.Errorf("--output is required")
 	}
 	if len(opts.Templates) == 0 {
-		log.Fatal("--output is required")
+		fmt.Errorf("--template is required")
 	}
 
 	// Parse delimiters
 	leftDelim, rightDelim, err := parseDelims(opts.Delims)
 	if err != nil {
-		log.Fatalf("invalid delimiter format: %v", err)
+		return fmt.Errorf("invalid delimiter format: %w", err)
 	}
 
 	// Read the template file
@@ -65,11 +69,11 @@ func main() {
 	for _, templatePath := range opts.Templates {
 		bytes, err := os.ReadFile(templatePath)
 		if err != nil {
-			log.Fatalf("reading template file: %v", err)
+			return fmt.Errorf("reading template file: %w", err)
 		}
 		tmpl, err = tmpl.Parse(string(bytes))
 		if err != nil {
-			log.Fatalf("parsing template: %v", err)
+			return fmt.Errorf("parsing template: %w", err)
 		}
 	}
 
@@ -78,7 +82,7 @@ func main() {
 	if opts.Data != "" {
 		dataBytes, err := os.ReadFile(opts.Data)
 		if err != nil {
-			log.Fatalf("reading data file: %v", err)
+			return fmt.Errorf("reading data file: %v", err)
 		}
 		fixedDataBytes := bytes.ReplaceAll(dataBytes, []byte("True"), []byte("true"))
 		fixedDataBytes = bytes.ReplaceAll(fixedDataBytes, []byte("False"), []byte("false"))
@@ -87,14 +91,14 @@ func main() {
 		switch opts.DataFormat {
 		case "json":
 			if err := json.Unmarshal(fixedDataBytes, &data); err != nil {
-				log.Fatalf("unmarshaling json data: %v", err)
+				return fmt.Errorf("unmarshaling json data: %v", err)
 			}
 		case "yaml":
 			if err := yaml.Unmarshal(fixedDataBytes, &data); err != nil {
-				log.Fatalf("unmarshaling yaml data: %v", err)
+				return fmt.Errorf("unmarshaling yaml data: %v", err)
 			}
 		default:
-			log.Fatalf("unknown data format: %s", opts.DataFormat)
+			return fmt.Errorf("unknown data format: %s", opts.DataFormat)
 		}
 	}
 
@@ -106,7 +110,7 @@ func main() {
 	for _, extra := range opts.ExtraData {
 		split := strings.Split(extra, ":")
 		if len(split) != 2 {
-			log.Fatalf("invalid extra data: %s", extra)
+			return fmt.Errorf("invalid extra data: %s", extra)
 		}
 		extraData[split[0]] = split[1]
 	}
@@ -114,7 +118,7 @@ func main() {
 	// Execute the template with the data
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
-		log.Fatalf("executing template: %v", err)
+		return fmt.Errorf("executing template: %v", err)
 	}
 
 	// Inject Go imports if any were collected
@@ -122,7 +126,7 @@ func main() {
 
 	// Write the result to the output file
 	if err := os.WriteFile(opts.Output, finalContent, 0644); err != nil {
-		log.Fatalf("writing output file: %v", err)
+		return fmt.Errorf("writing output file: %v", err)
 	}
-	log.Printf("Successfully processed template and data")
+	return nil
 }

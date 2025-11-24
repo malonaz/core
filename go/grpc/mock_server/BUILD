@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/certs",
         "//go/grpc",
-        "//go/logging",
         "//go/pbutil",
         "//go/prometheus",
         "//third_party/go:google.golang.org__grpc",

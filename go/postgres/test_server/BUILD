@@ -8,7 +8,6 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/binary",
-        "//go/logging",
         "//go/postgres",
         "//go/postgres/migrator",
         "//go/postgres/migrator/migrations",

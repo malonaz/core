@@ -9,11 +9,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v2"
-
-	"github.com/malonaz/core/go/logging"
 )
-
-var logger = logging.NewLogger()
 
 // FileLoader loads a file and returns bytes.
 type FileLoader func(string) ([]byte, error)

@@ -4,13 +4,35 @@ package main
 var migrationsFS {{ goImport "embed" }}.FS
 
 var opts struct {
+	Logging *{{ goImport "github.com/malonaz/core/go/logging" }}.Opts `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
   {{ .name | camelcase }}Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"{{ .name | camelcase }}Postgres" namespace:"{{ .name | kebabcase }}-postgres" env-namespace:"{{ .name | snakecase | upper }}_POSTGRES"`
 }
 
-func main() {
-	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
-	ctx := {{ goImport "context" }}.Background()
 
-	migrator := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.{{ .name | camelcase }}Postgres)
-	migrator.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if not $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
+func main() {
+	ctx := {{ goImport "context" }}.Background()
+	if err := run(ctx); err != nil {
+		{{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
+		{{ goImport "os" }}.Exit(1)
+	}
+}
+
+func run(ctx {{ goImport "context" }}.Context) error {
+	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+	if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
+		return err
+	}
+
+	// Initialize the postgres client.
+	postgresClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ .name | camelcase }}Postgres)
+	if err := postgresClient.Start(ctx); err != nil {
+		return {{ goImport "fmt" }}.Errorf("starting postgres client: %w", err)
+	}
+	defer postgresClient.Close()
+
+	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.NewMigrator(postgresClient)
+	if err := m.RunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if not $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }}); err != nil {
+		return {{ goImport "fmt" }}.Errorf("running migrations: %w", err)
+	}
+	return nil
 }

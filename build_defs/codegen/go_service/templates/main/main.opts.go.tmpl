@@ -1,6 +1,7 @@
 {{- define "mainOpts" -}}
     {{- $core := "github.com/malonaz/core/go" -}}
 	  // Core service options
+	  Logging         *{{ goImport (printf "%s/logging" $core) }}.Opts            `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	  Health         *{{ goImport (printf "%s/health" $core) }}.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
 	  Prometheus     *{{ goImport (printf "%s/prometheus" $core) }}.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
     Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`

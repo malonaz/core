@@ -4,29 +4,69 @@ package main
 var migrationsFS {{ goImport "embed" }}.FS
 
 var opts struct {
+	Logging *{{ goImport "github.com/malonaz/core/go/logging" }}.Opts `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	{{ .name | camelcase }}Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"{{ .name | camelcase }}Postgres" namespace:"{{ .name | kebabcase }}-postgres" env-namespace:"{{ .name | snakecase | upper }}_POSTGRES"`
 	Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
 }
 
 func main() {
-	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
 	ctx := {{ goImport "context" }}.Background()
+	if err := run(ctx); err != nil {
+		{{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
+		{{ goImport "os" }}.Exit(1)
+	}
+}
+
+func run(ctx {{ goImport "context" }}.Context) error {
+	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+	if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
+		return err
+	}
+
+	// Initialize the postgres client.
+	postgresClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.Postgres)
+	if err := postgresClient.Start(ctx); err != nil {
+		return {{ goImport "fmt" }}.Errorf("starting postgres client: %w", err)
+	}
+	defer postgresClient.Close()
 
 	// Initialize using the super user. This create the database, user and sets the password.
-	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
-	m.MustInitializeDatabase(ctx, opts.{{ .name | camelcase }}Postgres.Database, opts.{{ .name | camelcase }}Postgres.User, opts.{{ .name | camelcase }}Postgres.Password)
+	m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.NewMigrator(postgresClient)
+	if err := m.InitializeDatabase(ctx, opts.{{ .name | camelcase }}Postgres.Database, opts.{{ .name | camelcase }}Postgres.User, opts.{{ .name | camelcase }}Postgres.Password, opts.Postgres.User); err != nil {
+		return {{ goImport "fmt" }}.Errorf("initializing database: %w", err)
+	}
 
 	{{ $hasExtensions := false }}
 	{{ range $dir := .directories }}{{ if $dir.extension }}{{ $hasExtensions = true }}{{ end }}{{ end }}
 	{{ if $hasExtensions }}
+	{ // Extensions migrations
+		// STEP 1: We create the migrations table in case it does not exist yet, using the regular user.
+		postgresClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ .name | camelcase }}Postgres)
+		if err := postgresClient.Start(ctx); err != nil {
+			return {{ goImport "fmt" }}.Errorf("starting super postgres client: %w", err)
+		}
+		defer postgresClient.Close()
 		// Create the migrations table as a regular user.
-		mRegular := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.{{ .name | camelcase }}Postgres)
-		mRegular.MustCreateMigrationsTableIfNotExist(ctx)
+		m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.NewMigrator(postgresClient)
+		if err := m.CreateMigrationsTableIfNotExist(ctx); err != nil {
+			return {{ goImport "fmt" }}.Errorf("creating migration table: %w", err)
+		}
 
-		// This is where it gets annoying/tricky.
-		// We run extensions migrations as the superuser but *into* the regular table.
-		opts.Postgres.Database = opts.{{ .name | camelcase }}Postgres.Database
-	  mSuper := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.MustNewMigrator(opts.Postgres)
-	  mSuper.MustRunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }})
+		// STEP 2: Run extensions migration as the superuser, in the regular table.
+		{
+			opts.Postgres.Database = opts.{{ .name | camelcase }}Postgres.Database
+			postgresClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.Postgres)
+			if err := postgresClient.Start(ctx); err != nil {
+				return {{ goImport "fmt" }}.Errorf("starting super postgres client: %w", err)
+			}
+			defer postgresClient.Close()
+			m := {{ goImport "github.com/malonaz/core/go/postgres/migrator" }}.NewMigrator(postgresClient)
+			if err := m.RunMigrations(ctx, migrationsFS.ReadFile, {{ range $dir := .directories }}{{ if $dir.extension}}"{{ $dir.name }}", {{ end  }}{{ end }}); err != nil {
+				return {{ goImport "fmt" }}.Errorf("running extensions migrations: %w", err)
+			}
+		}
+	}
 	{{ end }}
+
+	return nil
 }

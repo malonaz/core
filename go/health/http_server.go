@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -21,6 +22,7 @@ type Opts struct {
 type Server struct {
 	*GRPCServer
 	opts       *Opts
+	log        *slog.Logger
 	ready      bool
 	mutex      sync.RWMutex
 	httpServer *http.Server
@@ -31,7 +33,14 @@ func NewServer(opts *Opts) *Server {
 	return &Server{
 		GRPCServer: NewGRPCServer(opts.GRPCOpts),
 		opts:       opts,
+		log:        slog.Default(),
 	}
+}
+
+func (s *Server) WithLogger(logger *slog.Logger) *Server {
+	s.log = logger
+	s.GRPCServer.WithLogger(logger)
+	return s
 }
 
 func (s *Server) isReady() bool {
@@ -46,7 +55,7 @@ func (s *Server) MarkReady() {
 	s.mutex.Lock()
 	s.ready = true
 	s.mutex.Unlock()
-	log.Infof("Health server marked as ready")
+	s.log.Info("Health server marked as ready")
 }
 
 // Serve starts the HTTP health check server.
@@ -72,7 +81,7 @@ func (s *Server) Serve(ctx context.Context) {
 	mux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
 		// Check if server is ready first
 		if !s.isReady() {
-			log.Debugf("Readiness check failed: server not ready")
+			s.log.DebugContext(ctx, "readiness check failed: server not ready")
 			http.Error(w, "Server not ready", http.StatusServiceUnavailable)
 			return
 		}
@@ -81,7 +90,7 @@ func (s *Server) Serve(ctx context.Context) {
 		healthListRequest := &grpc_health_v1.HealthListRequest{}
 		healthListResponse, err := s.List(r.Context(), healthListRequest)
 		if err != nil {
-			log.Debugf("Readiness check failed: %v", err)
+			s.log.DebugContext(ctx, "readiness check failed", "error", err)
 			http.Error(w, "Failed to carry out the readiness check", http.StatusInternalServerError)
 			return
 		}
@@ -95,13 +104,13 @@ func (s *Server) Serve(ctx context.Context) {
 		// Use pbutil.JSONMarshal instead of json.NewEncoder
 		responseBytes, err := pbutil.JSONMarshal(healthListResponse)
 		if err != nil {
-			log.Errorf("Failed to marshal list response: %v", err)
+			s.log.ErrorContext(ctx, "marshaling list response", "error", err)
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
 
 		if _, err := w.Write(responseBytes); err != nil {
-			log.Errorf("Failed to write response: %v", err)
+			s.log.ErrorContext(ctx, "writing response", "error", err)
 		}
 	})
 
@@ -111,8 +120,8 @@ func (s *Server) Serve(ctx context.Context) {
 		Handler: mux,
 	}
 
-	log.Infof("Serving health check on [:%d]", s.opts.Port)
+	s.log.InfoContext(ctx, "serving health check", "port", s.opts.Port)
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Warningf("Health server shutdown unexpectedly: %v", err)
+		s.log.WarnContext(ctx, "health server shutdown unexpectedly", "port", s.opts.Port, "error", err)
 	}
 }

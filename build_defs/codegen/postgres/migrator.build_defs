@@ -57,6 +57,7 @@ sed 's/^    /  /' >> $OUT
         resources = dirs + migration_yaml_files,
         visibility = visibility,
         deps = [
+            "//third_party/go:github.com__malonaz__core__go__logging",
             "//third_party/go:github.com__malonaz__core__go__flags",
             "//third_party/go:github.com__malonaz__core__go__postgres",
             "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
@@ -76,6 +77,7 @@ sed 's/^    /  /' >> $OUT
         visibility = visibility,
         deps = [
             "//third_party/go:github.com__malonaz__core__go__flags",
+            "//third_party/go:github.com__malonaz__core__go__logging",
             "//third_party/go:github.com__malonaz__core__go__postgres",
             "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
         ],

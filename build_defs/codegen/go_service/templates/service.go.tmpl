@@ -1,9 +1,6 @@
 package {{ .implementation | base}}
 {{- $exportFields := not (empty .exportServiceFields) }}
 
-var log = {{ goImport "github.com/malonaz/core/go/logging" }}.NewLogger()
-
-
 {{ if .includeRuntime }}
 type Opts struct{}
 
@@ -17,6 +14,7 @@ func (s *Service) start(ctx {{ goImport "context" }}.Context) (func(), error) { 
 {{ end }}
 
 type Service struct {
+	log *{{ goImport "log/slog" }}.Logger
 	*Runtime
 	{{ ternary "Opts" "opts" $exportFields }} *Opts
   {{ ternary "With" "with" $exportFields }}ServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context
@@ -32,6 +30,10 @@ type Service struct {
         {{- end }}
 }
 
+func (s *Service) WithLogger(logger *{{ goImport "log/slog" }}.Logger) *Service {
+	s.log = logger
+	return s
+}
 
 // New instantiates and returns a new service.
 func New(
@@ -53,6 +55,7 @@ func New(
 		return nil, {{ goImport "fmt" }}.Errorf("instantiating runtime: %w", err)
 	}
 	return &Service{
+		log: {{ goImport "log/slog" }}.Default(),
 		Runtime: runtime,
 		{{ ternary "Opts" "opts" $exportFields }}: opts,
       {{- range $dep := .dependencies }}

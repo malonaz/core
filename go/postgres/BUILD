@@ -9,7 +9,6 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/logging",
         "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
         "//third_party/go:github.com__jackc__pgx__v5__pgconn",

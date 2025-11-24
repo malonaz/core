@@ -1,5 +1,5 @@
 {{- define "shutdownOpts" -}}
-    func handleSignals(gracefulStopFns, stopFns[]func() error) {
+    func handleSignals(ctx {{ goImport "context" }}.Context, gracefulStopFns, stopFns[]func() error) {
 	  signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
     {{ goImport "os/signal" }}.Notify(
   	signalChan,
@@ -10,7 +10,7 @@
 
 	  // Wait for first signal
 	  sig := <- signalChan
-	  log.Infof("Received signal #1: %v, initiating graceful shutdown", sig)
+	  {{ goImport "log/slog" }}.InfoContext(ctx, "received signal #1: initiating graceful shutdown", "signal", sig)
 
 	  // Set up a channel to know when graceful shutdown is complete
 	  gracefulDone := make(chan struct{})
@@ -26,14 +26,14 @@
 	  // Wait for either graceful shutdown to complete or second signal
 	  select {
 	  case <-gracefulDone:
-		log.Info("Graceful shutdown completed")
+		{{ goImport "log/slog" }}.InfoContext(ctx, "graceful shutdown completed")
 	  case sig := <-signalChan:
-		log.Warnf("Received signal #2: %v, forcing immediate shutdown", sig)
+		{{ goImport "log/slog" }}.WarnContext(ctx, "Received signal #2: initiating force shutdown", "signal", sig)
 		// Force stop everything immediately sequentially in reverse order
 		for i := len(stopFns) - 1; i >= 0; i-- {
 		stopFns[i]()
 		}
-		log.Info("Force shutdown completed")
+		{{ goImport "log/slog" }}.InfoContext(ctx, "force shutdown completed")
 	  }
     }
 {{- end -}}

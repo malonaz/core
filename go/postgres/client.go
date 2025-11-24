@@ -1,17 +1,15 @@
-// Package postgres provides access to database.
 package postgres
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/malonaz/core/go/logging"
 )
 
 type Tx = pgx.Tx
@@ -22,8 +20,6 @@ const (
 	ReadCommitted   = pgx.ReadCommitted
 	ReadUncommitted = pgx.ReadUncommitted
 )
-
-var log = logging.NewLogger()
 
 // Opts is the Client config containing the host, port, user and password.
 type Opts struct {
@@ -45,36 +41,51 @@ func (o *Opts) Endpoint() string {
 
 // Client is a wrapper around sqlx db to avoid importing it in core packages.
 type Client struct {
-	Opts *Opts
 	*pgxpool.Pool
+	log  *slog.Logger
+	opts *Opts
+}
+
+func NewClient(opts *Opts) *Client {
+	return &Client{
+		log:  slog.Default(),
+		opts: opts,
+	}
+}
+
+func (c *Client) WithLogger(logger *slog.Logger) *Client {
+	c.log = logger
+	return c
+}
+
+func (c *Client) Close() {
+	if c.Pool != nil {
+		c.Pool.Close()
+	}
 }
 
 // NewClient instantiates and returns a new Postgres Client. Returns an error if it fails to ping server.
-func NewClient(opts *Opts) (*Client, error) {
-	log.Infof(
-		"Connecting to postgres server %s@%s on [%s:%d] using sslmode[%s]",
-		opts.User, opts.Database, opts.Host, opts.Port, opts.SSLMode,
+func (c *Client) Start(ctx context.Context) error {
+	log := c.log.WithGroup("postgres").With(
+		"user", c.opts.User,
+		"database", c.opts.Database,
+		"host", c.opts.Host,
+		"port", c.opts.Port,
+		"ssl", c.opts.SSLMode,
 	)
-	config, err := pgxpool.ParseConfig(opts.Endpoint())
+	log.InfoContext(ctx, "connecting to postgres server")
+	config, err := pgxpool.ParseConfig(c.opts.Endpoint())
 	if err != nil {
-		return nil, fmt.Errorf("parsing configuration: %w", err)
+		return fmt.Errorf("parsing configuration: %w", err)
 	}
-	config.MaxConns = int32(opts.MaxConns) // Add this line to set MaxConns in the config
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	config.MaxConns = int32(c.opts.MaxConns)
+	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("creating pool: %w", err)
+		return fmt.Errorf("creating pool: %w", err)
 	}
-	log.Infof("Connected to postgres server on [%s:%d] using %d max conns", opts.Host, opts.Port, config.MaxConns)
-	return &Client{Opts: opts, Pool: pool}, nil
-}
-
-// MustNewClient connects and pings the db, then returns it. It panics if an error occurs
-func MustNewClient(opts *Opts) *Client {
-	db, err := NewClient(opts)
-	if err != nil {
-		log.Panicf(err.Error())
-	}
-	return db
+	c.Pool = pool
+	log.InfoContext(ctx, "connected to postgres server")
+	return nil
 }
 
 var (

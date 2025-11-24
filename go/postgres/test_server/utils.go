@@ -1,6 +1,7 @@
 package testserver
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 )
@@ -9,11 +10,11 @@ import (
 func getPostgresBinaryDir() string {
 	postgres, err := exec.LookPath("postgres")
 	if err != nil {
-		logger.Fatalf("Can't find postgres on PATH: %s", err)
+		panic(fmt.Errorf("looking up postgres on PATH: %w", err))
 	}
 	postgres, err = filepath.EvalSymlinks(postgres)
 	if err != nil {
-		logger.Fatalf("Can't resolve postgres to a real path: %s", err)
+		panic(fmt.Errorf("resolving postgres path"))
 	}
 	return filepath.Dir(postgres)
 }

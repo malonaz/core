@@ -7,6 +7,7 @@ import (
 	_ "github.com/NathanBaulch/protoc-gen-cobra/flag"
 	_ "github.com/bazelbuild/buildtools/build"
 	_ "github.com/golang/protobuf/descriptor"
+	_ "github.com/golang/protobuf/ptypes/any"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/utilities"

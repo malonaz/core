@@ -3,6 +3,7 @@ package grpc
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/textproto"
 	"reflect"
@@ -40,10 +41,15 @@ type RegisterHandler = func(ctx context.Context, mux *runtime.ServeMux, endpoint
 
 // Gateway is a gRPC gateway.
 type Gateway struct {
+	log *slog.Logger
 	// Opts for this gateway.
 	opts *GatewayOpts
 	// Opts for the grpc server this gateway is connecting to.
 	grpcOpts *Opts
+	// Opts for certs.
+	certsOpts *certs.Opts
+	// Opts for prometheus.
+	prometheusOpts *prometheus.Opts
 
 	// HTTP Server.
 	httpServer *http.Server
@@ -65,55 +71,21 @@ type Gateway struct {
 	routeToGatewayOptions map[string]*grpcpb.GatewayOptions
 }
 
+func (g *Gateway) WithLogger(logger *slog.Logger) *Gateway {
+	g.log = logger
+	return g
+}
+
 // NewGateway creates and returns a new Gateway.
-func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) (*Gateway, error) {
-	gateway := &Gateway{
+func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+	return &Gateway{
+		log:              slog.Default(),
 		opts:             opts,
 		grpcOpts:         grpcOpts,
+		certsOpts:        certsOpts,
+		prometheusOpts:   prometheusOpts,
 		registerHandlers: registerHandlers,
-		options: []runtime.ServeMuxOption{
-			// Some default options.
-			runtime.WithOutgoingHeaderMatcher(outgoingHeaderMatcher),
-			runtime.WithIncomingHeaderMatcher(incomingHeaderMatcher),
-			runtime.WithForwardResponseOption(GatewayCookie{}.forwardOutOption),
-			runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
-			runtime.WithMetadata(GatewayCookie{}.forwardInOption),
-			runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
-			withCustomMarshaler(),
-			withHTTPPatternAnnotation(),
-		},
 	}
-
-	// Default dial options.
-	messageSizeDialOptions := grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(MaximumMessageSize),
-		grpc.MaxCallSendMsgSize(MaximumMessageSize),
-	)
-	gateway.dialOptions = append(gateway.dialOptions, messageSizeDialOptions)
-	// If we use sockets, we do not use the load balancer. Note that we basically always hit localhost so not very useful.
-	if !grpcOpts.useSocket() {
-		gateway.dialOptions = append(gateway.dialOptions, WithDNSBalancer())
-	}
-
-	// Handle TLS / Plaintext configuration.
-	clientTransportCredentialsOptions, err := getClientTransportCredentialsOptions(grpcOpts, certsOpts)
-	if err != nil {
-		return nil, err
-	}
-	gateway.dialOptions = append(gateway.dialOptions, clientTransportCredentialsOptions)
-
-	// Default interceptors.
-	gateway.unaryInterceptors = append(gateway.unaryInterceptors, grpc_interceptor.UnaryClientRetry())
-	if prometheusOpts.Enabled() {
-		metrics := grpc_prometheus.NewClientMetrics(
-			grpc_prometheus.WithClientHandlingTimeHistogram(
-				grpc_prometheus.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
-			),
-		)
-		gateway.unaryInterceptors = append(gateway.unaryInterceptors, metrics.UnaryClientInterceptor())
-		gateway.streamInterceptors = append(gateway.streamInterceptors, metrics.StreamClientInterceptor())
-	}
-	return gateway, nil
 }
 
 // WithOptions adds options to this gRPC gateway.
@@ -142,6 +114,51 @@ func (g *Gateway) WithClientStreamInterceptors(interceptors ...grpc.StreamClient
 
 // Serve serves this gRPC gateway. Blocking call.
 func (g *Gateway) Serve(ctx context.Context) error {
+	g.log = g.log.WithGroup("grpc_gateway_server")
+	gatewayCookie := &GatewayCookie{log: g.log}
+	// Some default options.
+	g.options = append(
+		g.options,
+		runtime.WithOutgoingHeaderMatcher(outgoingHeaderMatcher),
+		runtime.WithIncomingHeaderMatcher(incomingHeaderMatcher),
+		runtime.WithForwardResponseOption(gatewayCookie.forwardOutOption),
+		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
+		runtime.WithMetadata(gatewayCookie.forwardInOption),
+		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
+		withCustomMarshaler(),
+		withHTTPPatternAnnotation(),
+	)
+
+	// Default dial options.
+	messageSizeDialOptions := grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(MaximumMessageSize),
+		grpc.MaxCallSendMsgSize(MaximumMessageSize),
+	)
+	g.dialOptions = append(g.dialOptions, messageSizeDialOptions)
+	// If we use sockets, we do not use the load balancer. Note that we basically always hit localhost so not very useful.
+	if !g.grpcOpts.useSocket() {
+		g.dialOptions = append(g.dialOptions, WithDNSBalancer())
+	}
+
+	// Handle TLS / Plaintext configuration.
+	clientTransportCredentialsOptions, err := getClientTransportCredentialsOptions(g.grpcOpts, g.certsOpts)
+	if err != nil {
+		return err
+	}
+	g.dialOptions = append(g.dialOptions, clientTransportCredentialsOptions)
+
+	// Default interceptors.
+	g.unaryInterceptors = append(g.unaryInterceptors, grpc_interceptor.UnaryClientRetry())
+	if g.prometheusOpts.Enabled() {
+		metrics := grpc_prometheus.NewClientMetrics(
+			grpc_prometheus.WithClientHandlingTimeHistogram(
+				grpc_prometheus.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+			),
+		)
+		g.unaryInterceptors = append(g.unaryInterceptors, metrics.UnaryClientInterceptor())
+		g.streamInterceptors = append(g.streamInterceptors, metrics.StreamClientInterceptor())
+	}
+
 	// Chain interceptors.
 	if len(g.unaryInterceptors) > 0 {
 		g.dialOptions = append(g.dialOptions, grpc.WithChainUnaryInterceptor(g.unaryInterceptors...))
@@ -156,7 +173,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 			return fmt.Errorf("registering handler: %w", err)
 		}
 	}
-	log.Infof("Connected to gRPC server on [%s]", endpoint)
+	g.log.InfoContext(ctx, "Connected to gRPC server", "endpoint", endpoint)
 
 	var protoRegistryRangeFileErr error
 	g.routeToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
@@ -195,7 +212,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 					return false
 				}
 				g.routeToGatewayOptions[path] = gatewayOptions
-				log.Infof("[%s] registered gateway options: %+v", path, gatewayOptions)
+				g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
 			}
 		}
 		return true
@@ -207,9 +224,9 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	url := fmt.Sprintf(":%d", g.opts.Port)
 	handler := customMimeWrapper(g.routeToGatewayOptions, allowCORS(mux))
 	g.httpServer = &http.Server{Addr: url, Handler: handler}
-	log.Infof("Serving gRPC Gateway on port [:%d]", g.opts.Port)
+	g.log.InfoContext(ctx, "serving", "port", g.opts.Port)
 	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		return fmt.Errorf("gateway server exited unexpectedly: %w", err)
+		return fmt.Errorf("exited unexpectedly: %w", err)
 	}
 	return nil
 }
@@ -219,7 +236,7 @@ func (g *Gateway) Stop() error {
 	if g.httpServer == nil {
 		return nil
 	}
-	log.Info("Stopping gRPC Gateway")
+	g.log.Info("stopping")
 	return g.httpServer.Close()
 }
 
@@ -228,14 +245,14 @@ func (g *Gateway) GracefulStop() error {
 	if g.httpServer == nil {
 		return nil
 	}
-	log.Info("Gracefully stopping gRPC Gateway")
+	g.log.Info("gracefully stopping")
 	duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
 	err := g.httpServer.Shutdown(ctx)
 	if err == context.DeadlineExceeded {
-		log.Warning("Graceful shutdown timed out")
+		g.log.Warn("graceful shutdown timed out")
 		// Force close any remaining connections
 		return g.Stop()
 	}

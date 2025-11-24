@@ -1,6 +1,6 @@
 module github.com/malonaz/core
 
-go 1.24.0
+go 1.24.3
 
 toolchain go1.24.7
 
@@ -9,6 +9,7 @@ replace github.com/bazelbuild/buildtools => github.com/peterebden/buildtools v0.
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
 	buf.build/go/protovalidate v1.0.0
+	github.com/Marlliton/slogpretty v0.1.3
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/NathanBaulch/protoc-gen-cobra v1.2.1
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
@@ -26,7 +27,6 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/joonix/log v0.0.0-20230221083239-7988383bab32
 	github.com/lib/pq v1.10.9
 	github.com/malonaz/pgq v0.0.0-20251114112516-9240ed92bf50
 	github.com/mennanov/fmutils v0.3.3

@@ -19,15 +19,15 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 
 func (e *Error) Err() error { return e.status.Err() }
 
-func (e *Error) WithLocalizedMessage(message string, params ...any) *Error {
+func (e *Error) WithLocalizedMessage(message string, params ...any) (*Error, error) {
 	localizedMessage := &errdetails.LocalizedMessage{
 		Locale:  "en-US",
 		Message: fmt.Sprintf(message, params...),
 	}
 	status, err := e.status.WithDetails(localizedMessage)
 	if err != nil {
-		log.Panicf("constructing status with details: %v", err)
+		return nil, fmt.Errorf("constructing status with details: %w", err)
 	}
 	e.status = status
-	return e
+	return e, nil
 }

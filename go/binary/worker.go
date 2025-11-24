@@ -2,20 +2,19 @@ package binary
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
-
-	"github.com/malonaz/core/go/logging"
 )
 
 // Worker manages the lifecycle of a set of binaries, abstracting away the complexities
 // of shutting down subprocesses, as well as collecting any unexpected errors these subprocesses encounter.
 type Worker struct {
+	// Allows a client to pass a custom logger to this worker.
+	log *slog.Logger
 	// Name of this worker, which will be used by the logger.
 	name string
-	// Allows a client to pass a custom logger to this worker.
-	logger *logging.Logger
 	// indicates whether this worker was run in sequential mode.
 	sequentialMode bool
 	// The binaries managed by this worker.
@@ -35,6 +34,7 @@ type Worker struct {
 // NewWorker returns a new worker.
 func NewWorker(name string, binaries []*Binary) *Worker {
 	return &Worker{
+		log:      slog.Default(),
 		name:     name,
 		binaries: binaries,
 	}
@@ -50,12 +50,9 @@ func (w *Worker) WithEnv(keyToValue map[string]string) *Worker {
 	return w
 }
 
-// SetLogger sets this worker's logger.
-func (w *Worker) SetLogger(logger *logging.Logger) *Worker {
-	w.logger = logger
-	for _, binary := range w.binaries {
-		binary.SetLogger(logger)
-	}
+// WithLogger sets this worker's logger.
+func (w *Worker) WithLogger(logger *slog.Logger) *Worker {
+	w.log = logger
 	return w
 }
 
@@ -76,9 +73,6 @@ func (w *Worker) GetError() error {
 // Run runs this worker, calling Run() on its binaries in parallel.
 // If a binary encounters an error, all binaries will be terminated.
 func (w *Worker) Run() {
-	if w.logger == nil {
-		w.logger = logging.NewRawLogger()
-	}
 	// Start binaries concurrently.
 	wg := sync.WaitGroup{}
 	wg.Add(len(w.binaries))
@@ -92,9 +86,7 @@ func (w *Worker) Run() {
 // RunSequentially runs this worker, calling Run() on its binaries sequentially.
 // If a binary encounters an error, all binaries will be cleaned up cleanly.
 func (w *Worker) RunSequentially() {
-	if w.logger == nil {
-		w.logger = logging.NewRawLogger()
-	}
+	w.log = w.log.With("worker_name", w.name, "mode", "sequential")
 	w.sequentialMode = true
 	for _, binary := range w.binaries {
 		w.runBinary(binary)
@@ -102,6 +94,7 @@ func (w *Worker) RunSequentially() {
 }
 
 func (w *Worker) runBinary(binary *Binary) {
+	binary.WithLogger(w.log)
 	// Always die on binary error.
 	binary.OnError(func(err error) {
 		err = fmt.Errorf("[%s] encountered a fatal error: %w", binary.Name(), err)
@@ -133,18 +126,18 @@ func (w *Worker) die(err error) {
 		for _, errorCallback := range w.errorCallbacks {
 			errorCallback(err)
 		}
-		w.log("dying: %v", err)
+		w.log.Error("dying", "error", err)
 		w.terminate()
-		w.log("died")
+		w.log.Error("died")
 	})
 }
 
 // Exit shuts down this worker gracefully.
 func (w *Worker) Exit() {
 	w.terminateOnce.Do(func() {
-		w.log("Exiting gracefully.")
+		w.log.Info("Exiting gracefully")
 		w.terminate()
-		w.log("Exited gracefully.")
+		w.log.Info("Exited gracefully")
 	})
 }
 
@@ -162,9 +155,4 @@ func (w *Worker) terminate() {
 		go fn()
 	}
 	wg.Wait()
-}
-
-func (w *Worker) log(msg string, args ...any) {
-	newMsg := fmt.Sprintf(msg, args...)
-	w.logger.Printf("Worker[%s]: %s.", w.name, newMsg)
 }

@@ -6,7 +6,6 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/logging",
         "//go/postgres",
         "//go/postgres/migrator/migrations",
     ],

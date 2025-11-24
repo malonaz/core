@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -58,7 +59,9 @@ type ServerOptions struct {
 
 // Server is a gRPC server.
 type Server struct {
+	log                     *slog.Logger
 	opts                    *Opts
+	certsOpts               *certs.Opts
 	prometheusOpts          *prometheus.Opts
 	register                func(*Server)
 	Raw                     *grpc.Server
@@ -77,87 +80,21 @@ type Server struct {
 	options []grpc.ServerOption
 }
 
+func (s *Server) WithLogger(logger *slog.Logger) *Server {
+	s.log = logger
+	return s
+}
+
 // NewServer creates and returns a new Server.
-func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, register func(*Server)) (*Server, error) {
-	server := &Server{
+func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, register func(*Server)) *Server {
+	return &Server{
+		log:            slog.Default(),
 		opts:           opts,
+		certsOpts:      certsOpts,
 		prometheusOpts: prometheusOpts,
 		register:       register,
 		healthServer:   health.NewGRPCServer(opts.Health),
 	}
-
-	// Default options.
-	server.options = append(server.options, grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize))
-	if !opts.DisableTLS {
-		tlsConfig, err := certsOpts.ServerTLSConfig()
-		if err != nil {
-			return nil, fmt.Errorf("loading TLS config: %w", err)
-		}
-		server.options = append(server.options, grpc.Creds(credentials.NewTLS(tlsConfig)))
-	} else {
-		log.Warningf("Starting gRPC server without TLS")
-	}
-
-	// Instantiate prometheus interceptors if relevant.
-	var prometheusUnaryInterceptor grpc.UnaryServerInterceptor
-	var prometheusStreamInterceptor grpc.StreamServerInterceptor
-	if prometheusOpts.Enabled() {
-		metrics := grpc_prometheus.NewServerMetrics(
-			grpc_prometheus.WithServerHandlingTimeHistogram(
-				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
-			),
-		)
-		server.prometheusServerMetrics = metrics
-		prometheusUnaryInterceptor = metrics.UnaryServerInterceptor()
-		prometheusStreamInterceptor = metrics.StreamServerInterceptor()
-	}
-
-	// Instantiate validator.
-	validator, err := protovalidate.New()
-	if err != nil {
-		return nil, fmt.Errorf("instantiating proto validator: %w", err)
-	}
-
-	// PRE (1): Panic interceptor. We *never* want to panic.
-	server.preUnaryInterceptors = append(
-		server.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor(),
-	)
-	server.preStreamInterceptors = append(
-		server.preStreamInterceptors, grpc_recovery.StreamServerInterceptor(),
-	)
-	// PRE (2): Prometheus first.
-	if prometheusOpts.Enabled() {
-		server.preUnaryInterceptors = append(server.preUnaryInterceptors, prometheusUnaryInterceptor)
-		server.preStreamInterceptors = append(server.preStreamInterceptors, prometheusStreamInterceptor)
-	}
-	// PRE (3): Context tags: allows downstream interceptors to pass values back down to the logging interceptor.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
-	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerHeaderPropagation())
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerHeaderPropagation())
-	// PRE (5): Logging interceptor.
-	server.preUnaryInterceptors = append(server.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(log))
-	server.preStreamInterceptors = append(server.preStreamInterceptors, grpc_interceptor.StreamServerLogging(log))
-
-	// PRE (6): Trailer propagator interceptor.
-	server.preUnaryInterceptors = append(
-		server.preUnaryInterceptors, grpc_interceptor.UnaryServerTrailerPropagation(),
-	)
-	server.preStreamInterceptors = append(
-		server.preStreamInterceptors, grpc_interceptor.StreamServerTrailerPropagation(),
-	)
-
-	// POST (1): Proto validator interceptor. (Last before it goes on the wire).
-	server.postUnaryInterceptors = append(
-		server.postUnaryInterceptors,
-		grpc_interceptor.UnaryServerValidate(validator),
-		grpc_interceptor.UnaryServerFieldMask(),
-	)
-	server.postStreamInterceptors = append(
-		server.postStreamInterceptors, grpc_interceptor.StreamServerValidate(validator),
-	)
-	return server, nil
 }
 
 func (s *Server) GetHealthServer() *health.GRPCServer {
@@ -185,7 +122,7 @@ func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterce
 }
 
 func (s *Server) Stop() error {
-	log.Warningf("stopping server")
+	s.log.Warn("stopping")
 	s.Raw.Stop()
 	s.healthServer.Shutdown()
 	return nil
@@ -195,14 +132,14 @@ func (s *Server) GracefulStop() error {
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ch := make(chan struct{})
 	go func() {
-		log.Infof("attempting to gracefully stop server, with a grace period of %s", duration)
+		s.log.Info("gracefully stopping", "grace_period", duration)
 		s.Raw.GracefulStop()
-		log.Info("server stopped gracefully")
+		s.log.Info("stopped gracefully")
 		ch <- struct{}{}
 	}()
 	select {
 	case <-time.After(duration):
-		log.Infof("grace period exhausted")
+		s.log.Info("grace period exhausted")
 		s.Stop()
 	case <-ch:
 	}
@@ -212,6 +149,79 @@ func (s *Server) GracefulStop() error {
 
 // Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve(ctx context.Context) error {
+	s.log = s.log.WithGroup("grpc_server")
+	// Default options.
+	s.options = append(s.options, grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize))
+	if !s.opts.DisableTLS {
+		tlsConfig, err := s.certsOpts.ServerTLSConfig()
+		if err != nil {
+			return fmt.Errorf("loading TLS config: %w", err)
+		}
+		s.options = append(s.options, grpc.Creds(credentials.NewTLS(tlsConfig)))
+	} else {
+		s.log.WarnContext(ctx, "starting without TLS")
+	}
+
+	// Instantiate prometheus interceptors if relevant.
+	var prometheusUnaryInterceptor grpc.UnaryServerInterceptor
+	var prometheusStreamInterceptor grpc.StreamServerInterceptor
+	if s.prometheusOpts.Enabled() {
+		metrics := grpc_prometheus.NewServerMetrics(
+			grpc_prometheus.WithServerHandlingTimeHistogram(
+				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
+			),
+		)
+		s.prometheusServerMetrics = metrics
+		prometheusUnaryInterceptor = metrics.UnaryServerInterceptor()
+		prometheusStreamInterceptor = metrics.StreamServerInterceptor()
+	}
+
+	// Instantiate validator.
+	validator, err := protovalidate.New()
+	if err != nil {
+		return fmt.Errorf("instantiating proto validator: %w", err)
+	}
+
+	// PRE (1): Panic interceptor. We *never* want to panic.
+	s.preUnaryInterceptors = append(
+		s.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor(),
+	)
+	s.preStreamInterceptors = append(
+		s.preStreamInterceptors, grpc_recovery.StreamServerInterceptor(),
+	)
+	// PRE (2): Prometheus first.
+	if s.prometheusOpts.Enabled() {
+		s.preUnaryInterceptors = append(s.preUnaryInterceptors, prometheusUnaryInterceptor)
+		s.preStreamInterceptors = append(s.preStreamInterceptors, prometheusStreamInterceptor)
+	}
+	// PRE (3): Context tags: allows downstream interceptors to pass values back down to the logging interceptor.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
+	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerHeaderPropagation())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerHeaderPropagation())
+	// PRE (5): Logging interceptor.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(s.log))
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerLogging(s.log))
+
+	// PRE (6): Trailer propagator interceptor.
+	s.preUnaryInterceptors = append(
+		s.preUnaryInterceptors, grpc_interceptor.UnaryServerTrailerPropagation(),
+	)
+	s.preStreamInterceptors = append(
+		s.preStreamInterceptors, grpc_interceptor.StreamServerTrailerPropagation(),
+	)
+
+	// POST (1): Proto validator interceptor. (Last before it goes on the wire).
+	s.postUnaryInterceptors = append(
+		s.postUnaryInterceptors,
+		grpc_interceptor.UnaryServerValidate(validator),
+		grpc_interceptor.UnaryServerFieldMask(),
+	)
+	s.postStreamInterceptors = append(
+		s.postStreamInterceptors, grpc_interceptor.StreamServerValidate(validator),
+	)
+
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
 	streamInterceptors := append(s.preStreamInterceptors, s.streamInterceptors...)
@@ -226,7 +236,6 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	// Create listener based on network type
 	var listener net.Listener
-	var err error
 	if s.opts.useSocket() {
 		defer os.Remove(s.opts.SocketPath)
 		// Clean up existing socket file if it exists
@@ -246,14 +255,14 @@ func (s *Server) Serve(ctx context.Context) error {
 		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
 			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
 		}
-		log.Infof("Serving gRPC on Unix socket [%s]", s.opts.SocketPath)
+		s.log.InfoContext(ctx, "listening on unix socket", "socket_path", s.opts.SocketPath)
 	} else {
 		// Connect.
 		listener, err = net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
 		if err != nil {
 			return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
 		}
-		log.Infof("Serving gRPC on port [:%d]", s.opts.Port)
+		s.log.InfoContext(ctx, "listing on port", "port", s.opts.Port)
 	}
 	defer listener.Close()
 

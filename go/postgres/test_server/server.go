@@ -5,21 +5,19 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
 
 	"github.com/malonaz/core/go/binary"
-	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/postgres/migrator"
 	"github.com/malonaz/core/go/postgres/migrator/migrations"
 )
 
 var (
-	logger     = logging.NewLogger()
-	rawLogger  = logging.NewRawLogger()
 	dbInstance *postgres.Client
 )
 
@@ -51,6 +49,7 @@ type Config struct {
 
 // Server controls a Postgres instance.
 type Server struct {
+	log    *slog.Logger
 	config Config
 
 	// Keep track of binaries to ensure they are cleaned up after.
@@ -60,7 +59,7 @@ type Server struct {
 }
 
 // NewServer instantiates and returns a new Server.
-func NewServer(config Config) (*Server, error) {
+func NewServer(config Config, log *slog.Logger) (*Server, error) {
 	// Apply defaults to config if not provided.
 	if config.Host == "" {
 		config.Host = defaultHost
@@ -91,32 +90,24 @@ func NewServer(config Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate init job: %w", err)
 	}
-	initJob.SetLogger(rawLogger).AsJob()
+	initJob.WithLogger(log).AsJob()
 	startJob, err := binary.New("postgres-start", binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "start")
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate start job: %w", err)
 	}
-	startJob.WithPort(config.Port).SetLogger(rawLogger).AsJob()
+	startJob.WithPort(config.Port).WithLogger(log).AsJob()
 	stopJob, err := binary.New("postgres-stop", binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "stop", "--mode", "immediate")
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate stop job: %w", err)
 	}
-	stopJob.SetLogger(rawLogger).AsJob()
+	stopJob.WithLogger(log).AsJob()
 	return &Server{
+		log:      log,
 		config:   config,
 		initJob:  initJob,
 		startJob: startJob,
 		stopJob:  stopJob,
 	}, nil
-}
-
-// MustNewServer instantiates and returns a new Server. Panics on error.
-func MustNewServer(config Config) *Server {
-	server, err := NewServer(config)
-	if err != nil {
-		logger.Panicf("could not start server: %v", err)
-	}
-	return server
 }
 
 // GetOpts returns this server's postgres.Opts.
@@ -165,17 +156,8 @@ func (s *Server) Shutdown() error {
 }
 
 // GetClient instantiates and returns a *postgres.Client.
-func (s *Server) GetClient() (*postgres.Client, error) {
+func (s *Server) GetClient() *postgres.Client {
 	return postgres.NewClient(s.GetOpts())
-}
-
-// MustGetClient instantiates and returns a *postgres.Client. Panics on error.
-func (s *Server) MustGetClient() *postgres.Client {
-	client, err := s.GetClient()
-	if err != nil {
-		logger.Panicf("could not create client: %v", err)
-	}
-	return client
 }
 
 func (s *Server) createSocketDirectory() error {
@@ -222,22 +204,33 @@ func (s *Server) writeConfigToDisk() error {
 // RunWithPostgres will start a temporary postgres instance, run all migrations, run all tests, then terminate postgres.
 // It will also write the client to the input client parameter.
 func RunWithPostgres(
-	m *testing.M, client **postgres.Client,
+	ctx context.Context, m *testing.M, logger *slog.Logger, client **postgres.Client,
 	extensionLoader migrations.FileLoader, extensionDirectories []string,
 	migrationLoader migrations.FileLoader, migrationDirectories []string,
 ) {
 	fn := func() int {
-		server := MustNewServer(Config{})
+		server, err := NewServer(Config{}, logger)
+		if err != nil {
+			panic(err)
+		}
 		defer server.Shutdown()
 		if err := server.Run(); err != nil {
-			logger.Panicf("could not run server")
+			panic(fmt.Errorf("running server: %w", err))
 		}
-		migrator := migrator.MustNewMigrator(server.GetOpts())
+		*client = server.GetClient()
+		if err := (*client).Start(ctx); err != nil {
+			panic(err)
+		}
+
+		migrator := migrator.NewMigrator(*client)
 		if len(extensionDirectories) > 0 {
-			migrator.MustRunMigrations(context.Background(), extensionLoader, extensionDirectories...)
+			if err := migrator.RunMigrations(ctx, extensionLoader, extensionDirectories...); err != nil {
+				panic(err)
+			}
 		}
-		migrator.MustRunMigrations(context.Background(), migrationLoader, migrationDirectories...)
-		*client = server.MustGetClient()
+		if err := migrator.RunMigrations(ctx, migrationLoader, migrationDirectories...); err != nil {
+			panic(err)
+		}
 
 		code := m.Run()
 		return code
@@ -246,17 +239,17 @@ func RunWithPostgres(
 }
 
 // ClearTables truncates tables and restarts any identity such as auto-increments
-func ClearTables(client *postgres.Client, tables ...string) {
+func ClearTables(ctx context.Context, client *postgres.Client, tables ...string) {
 	for _, table := range tables {
 		query := fmt.Sprintf("TRUNCATE %s RESTART IDENTITY", table)
-		client.Exec(context.Background(), query)
+		client.Exec(ctx, query)
 	}
 }
 
 // DropTables drops all tables from the migration.
-func DropTables(client *postgres.Client, tables ...string) {
-	client.Exec(context.Background(), "DROP TABLE IF EXISTS migration")
+func DropTables(ctx context.Context, client *postgres.Client, tables ...string) {
+	client.Exec(ctx, "DROP TABLE IF EXISTS migration")
 	for _, table := range tables {
-		client.Exec(context.Background(), fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
+		client.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
 	}
 }

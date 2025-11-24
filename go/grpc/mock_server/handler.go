@@ -25,8 +25,7 @@ func getHandler(handler any) Handler {
 		protoReqValue := handlerReqValue.Interface().(proto.Message)
 
 		if err := pbutil.Unmarshal(req, protoReqValue); err != nil {
-			logger.Warningf("Error unmarshaling bytes in grpc handler into proto. Err: <%v>", err)
-			return nil, err
+			return nil, fmt.Errorf("unmarshaling bytes in grpc handler into proto: %w", err)
 		}
 
 		// then we call the Handler with the unmarshaled request value
@@ -36,15 +35,13 @@ func getHandler(handler any) Handler {
 
 		if !handlerErr.IsNil() {
 			err := handlerErr.Interface().(error)
-			logger.Warningf("Error returned by function handler. Err <%v>", err)
-			return nil, err
+			return nil, fmt.Errorf("error returned by function handler: %w", err)
 		}
 
 		// Finally we marshal the return value and return it
 		respBytes, err := proto.Marshal(protoResp.Interface().(proto.Message))
 		if err != nil {
-			logger.Warningf("Error marshalling proto into bytes in grpc handler. Err: <%v>", err)
-			return nil, err
+			return nil, fmt.Errorf("marshaling proto into bytes in grpc handler: %w", err)
 		}
 
 		return respBytes, nil

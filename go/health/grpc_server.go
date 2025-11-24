@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -23,6 +24,7 @@ type GRPCOpts struct {
 type GRPCServer struct {
 	*health.Server
 	opts                     *GRPCOpts
+	log                      *slog.Logger
 	serviceNameToHealthCheck map[string]Check
 	shutdownChan             chan struct{}
 }
@@ -32,9 +34,15 @@ func NewGRPCServer(opts *GRPCOpts) *GRPCServer {
 	return &GRPCServer{
 		Server:                   health.NewServer(),
 		opts:                     opts,
+		log:                      slog.Default(),
 		serviceNameToHealthCheck: make(map[string]Check),
 		shutdownChan:             make(chan struct{}),
 	}
+}
+
+func (s *GRPCServer) WithLogger(logger *slog.Logger) *GRPCServer {
+	s.log = logger
+	return s
 }
 
 // RegisterService registers health checks for a specific service.
@@ -43,7 +51,7 @@ func NewGRPCServer(opts *GRPCOpts) *GRPCServer {
 func (s *GRPCServer) RegisterService(serviceName string, checks ...Check) {
 	s.serviceNameToHealthCheck[serviceName] = CombineChecks(checks...)
 	s.SetServingStatus(serviceName, grpc_health_v1.HealthCheckResponse_NOT_SERVING)
-	log.Debugf("Registered %d health check(s) for service: %s", len(checks), serviceName)
+	s.log.Debug("registered health check", "service", serviceName, "checks", len(checks))
 }
 
 // Check performs health checks for the specified service, implementing the gRPC health interface.
@@ -80,15 +88,16 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 					var status grpc_health_v1.HealthCheckResponse_ServingStatus
 					response, err := s.checkService(ctx, request)
 					if err != nil {
+						log := s.log.With("service", request.Service, "error", err)
 						switch {
 						case errors.Is(err, context.Canceled):
-							log.Debugf("Health check cancelled for service [%s]: %v", request.Service, err)
+							log.DebugContext(ctx, "health check cancelled")
 							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
 						case errors.Is(err, context.DeadlineExceeded):
-							log.Warnf("Health check timed out for service [%s]: %v", request.Service, err)
+							log.DebugContext(ctx, "health check timed out")
 							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
 						default:
-							log.Warnf("Health check failed for service [%s]: %v", request.Service, err)
+							log.WarnContext(ctx, "health check failed")
 							status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 						}
 					} else {

@@ -3,11 +3,8 @@ package health
 import (
 	"context"
 
-	"github.com/malonaz/core/go/logging"
 	"golang.org/x/sync/errgroup"
 )
-
-var log = logging.NewLogger()
 
 // Check defines the health check function type using gRPC health check interface.
 type Check func(context.Context) error

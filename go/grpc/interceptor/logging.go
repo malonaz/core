@@ -2,12 +2,11 @@ package interceptor
 
 import (
 	"context"
+	"log/slog"
 
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-
-	"github.com/malonaz/core/go/logging"
 )
 
 var (
@@ -17,12 +16,12 @@ var (
 	}
 )
 
-func UnaryServerLogging(log *logging.Logger) grpc.UnaryServerInterceptor {
-	return grpc_logging.UnaryServerInterceptor(loggingInterceptor(log), loggingInterceptorOptions...)
+func UnaryServerLogging(logger *slog.Logger) grpc.UnaryServerInterceptor {
+	return grpc_logging.UnaryServerInterceptor(loggingInterceptor(logger), loggingInterceptorOptions...)
 }
 
-func StreamServerLogging(log *logging.Logger) grpc.StreamServerInterceptor {
-	return grpc_logging.StreamServerInterceptor(loggingInterceptor(log), loggingInterceptorOptions...)
+func StreamServerLogging(logger *slog.Logger) grpc.StreamServerInterceptor {
+	return grpc_logging.StreamServerInterceptor(loggingInterceptor(logger), loggingInterceptorOptions...)
 }
 
 // Map gRPC return codes to log levels.
@@ -44,26 +43,21 @@ func errorCodeToLogLevel(code codes.Code) grpc_logging.Level {
 }
 
 // interceptorLogger adapts logrus logger to interceptor logger.
-func loggingInterceptor(log *logging.Logger) grpc_logging.Logger {
+func loggingInterceptor(logger *slog.Logger) grpc_logging.Logger {
 	return grpc_logging.LoggerFunc(func(ctx context.Context, level grpc_logging.Level, msg string, fields ...any) {
-		f := make(map[string]any, len(fields)/2)
-		for iterator := grpc_logging.Fields(fields).Iterator(); iterator.Next(); {
-			k, v := iterator.At()
-			f[k] = v
-		}
 
-		logger := log.WithFields(f).WithContext(ctx)
+		logger = logger.With(fields...)
 		switch level {
 		case grpc_logging.LevelDebug:
-			logger.Debug(msg)
+			logger.DebugContext(ctx, msg)
 		case grpc_logging.LevelInfo:
-			logger.Info(msg)
+			logger.InfoContext(ctx, msg)
 		case grpc_logging.LevelWarn:
-			logger.Warn(msg)
+			logger.WarnContext(ctx, msg)
 		case grpc_logging.LevelError:
-			logger.Error(msg)
+			logger.ErrorContext(ctx, msg)
 		default:
-			logger.Panicf("unknown level %v", level)
+			logger.InfoContext(ctx, msg)
 		}
 	})
 }

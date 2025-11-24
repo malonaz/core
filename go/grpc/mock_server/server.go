@@ -2,6 +2,7 @@ package mockserver
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -10,11 +11,8 @@ import (
 
 	"github.com/malonaz/core/go/certs"
 	commongrpc "github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/prometheus"
 )
-
-var logger = logging.NewLogger()
 
 // Server mocks a gRPC server.
 type Server struct {
@@ -32,14 +30,15 @@ func NewServer(port string, opts *commongrpc.Opts, certsOpts *certs.Opts) *Serve
 		methodToHandler: map[string]Handler{},
 	}
 	register := func(*commongrpc.Server) {}
-	grpcServer, err := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register)
-	if err != nil {
-		panic(err)
-	}
+	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, register)
 	grpcServer.WithOptions(
 		grpc.CustomCodec(Codec{}), grpc.UnknownServiceHandler(server.handleRPC),
 	)
-	go grpcServer.Serve(context.Background())
+	go func() {
+		if err := grpcServer.Serve(context.Background()); err != nil {
+			panic(err)
+		}
+	}()
 	return server
 }
 
@@ -49,14 +48,14 @@ func (s *Server) handleRPC(_ any, stream grpc.ServerStream) error {
 	_ = stream.RecvMsg(f)
 	splitMethod := strings.Split(fullMethod, "/")
 	if len(splitMethod) != 3 {
-		logger.Fatalf("Method format did not match grpc standard: %s", fullMethod)
+		return fmt.Errorf("method format did not match grpc standard: %s", fullMethod)
 	}
 	service := splitMethod[1]
 	method := splitMethod[2]
 
 	handler, ok := s.getHandler(service, method)
 	if !ok {
-		logger.Fatalf("Method does not have a handler defined: %s", fullMethod)
+		return fmt.Errorf("method does not have a handler defined: %s", fullMethod)
 	}
 
 	response, err := handler(stream.Context(), f.payload)
@@ -66,7 +65,7 @@ func (s *Server) handleRPC(_ any, stream grpc.ServerStream) error {
 
 	f.payload = response
 	if err := stream.SendMsg(f); err != nil {
-		logger.Fatalf("Error whilst sending mock response %s", err)
+		return fmt.Errorf("sending mock response: %w", err)
 	}
 	return status.Error(codes.OK, "OK")
 }

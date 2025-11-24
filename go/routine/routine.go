@@ -4,17 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/malonaz/core/go/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
-
-var log = logging.NewLogger()
 
 // PermanentError is a permanent error that will cause a routine to immediately panic.
 type PermanentError struct{ Err error }
@@ -38,12 +36,15 @@ type FN func(context.Context) error
 
 // Routine is a wrapper around some function that needs to be executed in a loop in a go routine.
 type Routine struct {
+	log *slog.Logger
+
 	// Required fields.
-	name         string
-	fn           FN
-	close        chan struct{}
-	closeOnce    sync.Once
-	retryChannel chan struct{}
+	name             string
+	fn               FN
+	onPermanentError func(error)
+	close            chan struct{}
+	closeOnce        sync.Once
+	retryChannel     chan struct{}
 
 	// Additional fields.
 	timeoutSeconds       int
@@ -56,16 +57,23 @@ type Routine struct {
 }
 
 // New instantiates and return a new Routine.
-func New(name string, fn FN) *Routine {
+func New(name string, fn FN, onPermanentError func(error)) *Routine {
 	return &Routine{
-		name:         name,
-		fn:           fn,
-		close:        make(chan struct{}),    // unbuffered to make sure it's blocking write.
-		retryChannel: make(chan struct{}, 1), // non-blocking writes.
+		log:              slog.Default(),
+		name:             name,
+		fn:               fn,
+		onPermanentError: onPermanentError,
+		close:            make(chan struct{}),    // unbuffered to make sure it's blocking write.
+		retryChannel:     make(chan struct{}, 1), // non-blocking writes.
 	}
 }
 
-// WithMaxConsecutiveErrors sets a max consecutive error threshold which, if exceeded, triggers a panic.
+func (r *Routine) WithLogger(logger *slog.Logger) *Routine {
+	r.log = logger
+	return r
+}
+
+// WithMaxConsecutiveErrors sets a max consecutive error threshold which, if exceeded, kills the routine.
 func (r *Routine) WithMaxConsecutiveErrors(maxConsecutiveErrors int) *Routine {
 	r.maxConsecutiveErrors = maxConsecutiveErrors
 	return r
@@ -135,14 +143,15 @@ func (r *Routine) WithConstantBackOff(seconds int) *Routine {
 // Start the routine. Non-block calling call.
 func (r *Routine) Start(ctx context.Context) *Routine {
 	ctx, cancel := context.WithCancel(ctx)
-	log.Infof("started routine: %s", r.name)
+	r.log = r.log.With("routine", r.name)
+	r.log.InfoContext(ctx, "started routine")
 	consecutiveErrors := 0
 	fn := func(ctx context.Context) error {
-		if r.maxConsecutiveErrors != 0 && consecutiveErrors >= r.maxConsecutiveErrors {
-			log.Panicf("exceeded max (%d) consecutive errors", r.maxConsecutiveErrors)
-		}
 		if err := r.execute(ctx); err != nil {
 			consecutiveErrors++
+			if r.maxConsecutiveErrors != 0 && consecutiveErrors >= r.maxConsecutiveErrors {
+				return NewPermanentError("exceeded max consecutive errors (%d): %w", r.maxConsecutiveErrors, err)
+			}
 			return err
 		}
 		consecutiveErrors = 0
@@ -178,12 +187,14 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 	go func() {
 		defer cancel()
 		for {
-			log := log.WithField("routine_name", r.name)
 			if err := fn(ctx); err != nil {
 				if errors.Is(err, &PermanentError{}) {
-					log.WithContext(ctx).Panicf("routine %s: %v", r.name, err)
+					r.log.ErrorContext(ctx, "exiting due to permanent error", "error", err)
+					r.onPermanentError(err)
+					r.Close()
+					return
 				}
-				log.WithContext(ctx).Errorf("routine %s: %v", r.name, err)
+				r.log.ErrorContext(ctx, "executing fn", "error", err)
 				if r.constantBackOff != nil {
 					time.Sleep(r.constantBackOff.NextBackOff())
 				}
@@ -196,17 +207,17 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 
 			select {
 			case <-ctx.Done():
-				log.Infof("routine %s: context cancelled", r.name)
+				r.log.InfoContext(ctx, "context cancelled", "error", ctx.Err())
 				go func() { <-r.close }()
 				r.Close()
 				return
 			case <-r.close:
-				log.Infof("routine %s: Close called", r.name)
+				r.log.InfoContext(ctx, "close called")
 				return
 			case <-signal:
-				log.Debugf("routine %s: received signal", r.name)
+				r.log.DebugContext(ctx, "received signal")
 			case <-r.retryChannel:
-				log.Debugf("routine %s: retrying", r.name)
+				r.log.DebugContext(ctx, "retrying")
 			}
 		}
 	}()
@@ -216,7 +227,7 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 // Close closes this routine. It is a blocking call guaranteeing that the routine has exited its loop by the time it returns.
 func (r *Routine) Close() {
 	r.closeOnce.Do(func() {
-		log.Infof("routine %s: send close signal", r.name)
+		r.log.Info("sending close signal")
 		r.close <- struct{}{}
 		if r.ticker != nil {
 			r.ticker.Stop()
@@ -246,7 +257,6 @@ func (r *Routine) execute(ctx context.Context) error {
 
 // CloseInParallelFN returns a function that will close routine in parallel and block until all routines have exited their loop.
 func CloseInParallelFN(routines []*Routine) func() {
-	log.Infof("closing %d routines in parallel", len(routines))
 	return func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(routines))

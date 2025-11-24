@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"os"
 	"os/exec"
@@ -16,8 +17,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	"github.com/malonaz/core/go/logging"
 )
 
 const (
@@ -28,10 +27,10 @@ const (
 
 // Binary represents an executable binary, or a job.
 type Binary struct {
+	// Logger allows a caller to pass a custom logger to this binary.
+	log *slog.Logger
 	// Name of the binary, which will be used by the logger.
 	name string
-	// Logger allows a caller to pass a custom logger to this binary.
-	logger *logging.Logger
 	// Path is the path of the executable. Can be a symbolic link as the library will dereference symbolic links.
 	path string
 	// Port is the port this binary will open. If a binary does not open ports, it can simply leave this port as `0`.
@@ -76,8 +75,8 @@ func dereferenceLinks(path string) (string, error) {
 }
 
 // MustNew instantiates and returns a new binary. Panics if path is invalid.
-func MustNew(name, path string, args ...string) *Binary {
-	binary, err := New(name, path, args...)
+func MustNew(path string, args ...string) *Binary {
+	binary, err := New(path, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -85,13 +84,14 @@ func MustNew(name, path string, args ...string) *Binary {
 }
 
 // New returns a new binary.
-func New(name, path string, args ...string) (*Binary, error) {
+func New(path string, args ...string) (*Binary, error) {
 	realPath, err := lookupPath(path)
 	if err != nil {
 		return nil, err
 	}
 	return &Binary{
-		name: name,
+		log:  slog.Default(),
+		name: path,
 		path: realPath,
 		done: make(chan struct{}),
 		args: args,
@@ -148,9 +148,15 @@ func (b *Binary) WithEnv(key, value string) *Binary {
 	return b
 }
 
+// SetName sets this binary's name.
+func (b *Binary) WithName(name string) *Binary {
+	b.name = name
+	return b
+}
+
 // SetLogger sets this binary's logger.
-func (b *Binary) SetLogger(logger *logging.Logger) *Binary {
-	b.logger = logger
+func (b *Binary) WithLogger(logger *slog.Logger) *Binary {
+	b.log = logger
 	return b
 }
 
@@ -204,9 +210,6 @@ func (b *Binary) RunAsJob() error {
 // If any args are passed to this method, they will override any args defined when creating
 // the binary.
 func (b *Binary) Run() {
-	if b.logger == nil {
-		b.logger = logging.NewRawLogger()
-	}
 	b.cmd = exec.Command(b.path, b.args...)
 	b.cmd.Env = b.env
 	if err := b.redirectOutput(b.cmd.StdoutPipe); err != nil {
@@ -243,7 +246,7 @@ func (b *Binary) Run() {
 	// If this is a job, we wait for the job to exit.
 	if b.job {
 		<-b.done
-		b.log("job completed")
+		b.log.Info("job completed")
 	}
 }
 
@@ -256,7 +259,7 @@ func (b *Binary) redirectOutput(fn func() (io.ReadCloser, error)) error {
 	go func() {
 		for outScanner.Scan() {
 			text := outScanner.Text()
-			b.log(text)
+			b.log.Info(text)
 		}
 	}()
 	return nil
@@ -288,11 +291,11 @@ func (b *Binary) isRunning() bool {
 // that an inrecuperable error has occurred.
 func (b *Binary) die(err error) {
 	b.terminateOnce.Do(func() {
-		b.log("dying: %v", err)
+		b.log.Error("dying", "error", err)
 		if b.isRunning() {
 			b.terminate()
 		}
-		b.log("died")
+		b.log.Error("died")
 	})
 }
 
@@ -301,23 +304,19 @@ func (b *Binary) Exit() {
 	b.terminateOnce.Do(func() {
 		b.exiting = true
 		if b.isRunning() {
-			b.log("exiting gracefully")
+			b.log.Info("exiting gracefully")
 			b.terminate()
-			b.log("exited gracefully")
+			b.log.Info("exited gracefully")
 		}
 	})
 }
 
 func (b *Binary) terminate() {
 	if err := b.cmd.Process.Signal(syscall.SIGTERM); err != nil {
-		b.log("Could not exit process: %v", err)
+		b.log.Error("could not exit process", "error", err)
 	}
 
 	// We not wait on done. If you check out the `Run` method, you'll notice that
 	// done is closed only when a process exits.
 	<-b.done
-}
-
-func (b *Binary) log(msg string, args ...any) {
-	b.logger.Printf("Binary[%s]: %s", b.name, fmt.Sprintf(msg, args...))
 }

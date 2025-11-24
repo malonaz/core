@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"buf.build/go/protovalidate"
@@ -31,6 +32,7 @@ var (
 
 // Connection is a gRPC client.
 type Connection struct {
+	log        *slog.Logger
 	opts       *Opts
 	connection *grpc.ClientConn
 
@@ -46,10 +48,14 @@ type Connection struct {
 	options []grpc.DialOption
 }
 
+func (c *Connection) WithLogger(logger *slog.Logger) *Connection {
+	c.log = logger
+	return c
+}
+
 func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (grpc.DialOption, error) {
 	if opts.DisableTLS {
 		if opts.Plaintext {
-			log.Warningf("Starting gRPC client using insecure gRPC dial")
 			return grpc.WithInsecure(), nil
 		}
 		return grpc.WithTransportCredentials(insecure.NewCredentials()), nil
@@ -71,6 +77,7 @@ func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (gr
 // NewConnection creates and returns a new gRPC client.
 func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) (*Connection, error) {
 	client := &Connection{
+		log:  slog.Default(),
 		opts: opts,
 	}
 
@@ -137,7 +144,7 @@ func (c *Connection) WithStreamInterceptors(interceptors ...grpc.StreamClientInt
 
 // Connect dials the gRPC connection and returns it, as well as a health.ProbeFN, to encourage
 // any client to use the probe fn as a health check.
-func (c *Connection) Connect() error {
+func (c *Connection) Connect(ctx context.Context) error {
 	unaryInterceptors := append(c.preUnaryInterceptors, c.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, c.postUnaryInterceptors...)
 	streamInterceptors := append(c.preStreamInterceptors, c.streamInterceptors...)
@@ -153,11 +160,11 @@ func (c *Connection) Connect() error {
 
 	// Connect.
 	endpoint := c.opts.Endpoint()
-	connection, err := grpc.Dial(endpoint, c.options...)
+	connection, err := grpc.DialContext(ctx, endpoint, c.options...)
 	if err != nil {
 		return fmt.Errorf("dialing grpc [%s]: %v", endpoint, err)
 	}
-	log.Infof("connected to gRPC server on [%s]", endpoint)
+	c.log.InfoContext(ctx, "connected to gRPC server", "endpoint", endpoint)
 	c.connection = connection
 	return nil
 }
@@ -170,9 +177,6 @@ func (c *Connection) Close() error {
 }
 
 func (c *Connection) Get() *grpc.ClientConn {
-	if c.connection == nil {
-		log.Panicf("must call connect before getting the underyling gRPC connection")
-	}
 	return c.connection
 }
 

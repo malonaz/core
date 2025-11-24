@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -55,11 +56,13 @@ func cookieFromProto(httpCookie *grpcpb.HttpCookie) *http.Cookie {
 const grpcGatewayCookieMetadataKey = "set-cookie-bin" // `-bin` suffix is necessary to send binary data.
 
 // GatewayCookie namespaces methods for grpc-gateway cookies.
-type GatewayCookie struct{}
+type GatewayCookie struct {
+	log *slog.Logger
+}
 
 // forwardOutOption sets cookies on an http response before forwarding the response back to a caller. a gRPC server can pass cookies to the
 // grpc gateway by adding a proto.Cookie in the context metadata with the key `grpcGatewayCookieMetadataKey`.
-func (GatewayCookie) forwardOutOption(ctx context.Context, w http.ResponseWriter, _ proto.Message) error {
+func (*GatewayCookie) forwardOutOption(ctx context.Context, w http.ResponseWriter, _ proto.Message) error {
 	md, ok := runtime.ServerMetadataFromContext(ctx)
 	if !ok {
 		return nil
@@ -79,7 +82,7 @@ func (GatewayCookie) forwardOutOption(ctx context.Context, w http.ResponseWriter
 	return nil
 }
 
-func (GatewayCookie) forwardInOption(ctx context.Context, request *http.Request) metadata.MD {
+func (gc *GatewayCookie) forwardInOption(ctx context.Context, request *http.Request) metadata.MD {
 	cookies := request.Cookies()
 	if len(cookies) == 0 {
 		return nil
@@ -90,8 +93,7 @@ func (GatewayCookie) forwardInOption(ctx context.Context, request *http.Request)
 		httpCookie := cookieToProto(cookie)
 		bytes, err := proto.Marshal(httpCookie)
 		if err != nil {
-			// We have no way to set an error... this is annoying...
-			log.Errorf("Marshaling http cookie: %v", err)
+			gc.log.Error("marshaling http cookie", "error", err)
 			continue
 		}
 		md.Append(grpcGatewayCookieMetadataKey, string(bytes))
@@ -100,7 +102,7 @@ func (GatewayCookie) forwardInOption(ctx context.Context, request *http.Request)
 }
 
 // SetHTTPCookies is used by a server to send cookies through grpc headers, to the grpc gateway during an RPC call.
-func (GatewayCookie) SetHTTPCookies(ctx context.Context, httpCookies ...*grpcpb.HttpCookie) error {
+func (*GatewayCookie) SetHTTPCookies(ctx context.Context, httpCookies ...*grpcpb.HttpCookie) error {
 	md := metadata.MD{}
 	for _, httpCookie := range httpCookies {
 		bytes, err := proto.Marshal(httpCookie)
@@ -116,7 +118,7 @@ func (GatewayCookie) SetHTTPCookies(ctx context.Context, httpCookies ...*grpcpb.
 }
 
 // GetHTTPCookies retrieves any http cookies from a context.
-func (GatewayCookie) GetHTTPCookies(ctx context.Context) ([]*grpcpb.HttpCookie, error) {
+func (*GatewayCookie) GetHTTPCookies(ctx context.Context) ([]*grpcpb.HttpCookie, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, nil
@@ -134,7 +136,7 @@ func (GatewayCookie) GetHTTPCookies(ctx context.Context) ([]*grpcpb.HttpCookie, 
 }
 
 // GetHTTPCookie retrieves the http cookie with the given name from the context.
-func (gc GatewayCookie) GetHTTPCookie(ctx context.Context, name string) (*grpcpb.HttpCookie, error) {
+func (gc *GatewayCookie) GetHTTPCookie(ctx context.Context, name string) (*grpcpb.HttpCookie, error) {
 	httpCookies, err := gc.GetHTTPCookies(ctx)
 	if err != nil {
 		return nil, err

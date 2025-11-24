@@ -3,17 +3,34 @@
 // To make changes, edit the template file and regenerate.
 package main
 
-var log = {{ goImport "github.com/malonaz/core/go/logging" }}.NewLogger()
-
 var opts struct {
 {{ template "mainOpts" . }}
 }
 
+
 func main() {
+ctx := {{ goImport "context" }}.Background()
+if err := run(ctx); err != nil {
+{{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
+{{ goImport "os" }}.Exit(1)
+}
+}
+
+func run(ctx {{ goImport "context" }}.Context) error {
 {{ goImport "math/rand" }}.Seed({{ goImport "time"}}.Now().UnixNano())
 {{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
-{{ goImport "github.com/malonaz/core/go/prometheus" }}.Serve(opts.Prometheus)
-ctx := {{ goImport "context" }}.Background()
+if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
+return err
+}
+{{ if .setup }}
+ if err := setup(ctx); err != nil {
+ return {{ goImport "fmt" }}.Errorf("setup: %w", err)
+ }
+
+{{ end }}
+prometheusServer := {{ goImport "github.com/malonaz/core/go/prometheus" }}.NewServer(opts.Prometheus)
+go prometheusServer.Start(ctx)
+defer prometheusServer.Stop(ctx)
 sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
 
 {{- /* GATHER SERVICE MANIFESTS */ -}}
@@ -46,10 +63,10 @@ sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.New
                 if _, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
                 connection, err := {{ $grpc.NewConnection }}
                 if err != nil {
-                log.Panicf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
+                return {{ goImport "fmt" }}.Errorf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
                 }
-                if err := connection.Connect(); err != nil {
-                log.Panicf("connecting [%s]: %v", "{{ $dep.proto }}", err)
+                if err := connection.Connect(ctx); err != nil {
+                return {{ goImport "fmt" }}.Errorf("connecting [%s]: %v", "{{ $dep.proto }}", err)
                 }
                 defer connection.Close()
                 endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
@@ -68,7 +85,7 @@ sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.New
             {{- if doOnce (printf "grpc_deps_%s" $dep.proto) }}
                 {{ $grpc.Connection }}, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
                 if !ok {
-                log.Panicf("could not find grpc connection on for {{ $grpc.HumanName}}")
+                return {{ goImport "fmt" }}.Errorf("could not find grpc connection on for {{ $grpc.HumanName}}")
                 }
                 {{ $grpc.Client }} := {{ $grpc.NewClient }}
                 {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
@@ -97,7 +114,10 @@ sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.New
                 endpointToPostgresConnection := map[string]*{{ goImport "github.com/malonaz/core/go/postgres" }}.Client{}
             {{- end }}
             if _, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]; !ok {
-            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.MustNewClient(opts.{{ $dep.name | camelcase }}Postgres)
+            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ $dep.name | camelcase }}Postgres)
+            if err := connection.Start(ctx); err != nil {
+            return {{ goImport "fmt" }}.Errorf("starting postgres connection ({{ $dep.name}}): %w", err)
+            }
 	          defer connection.Close()
             endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()] = connection
             }
@@ -115,7 +135,7 @@ sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.New
                 // Instantiate {{ $dep.name }} db client.
 	              {{ $dep.name | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]
                 if !ok {
-                log.Panicf("could not find postgres connection for {{ $dep.name }}")
+                return {{ goImport "fmt" }}.Errorf("could not find postgres connection for {{ $dep.name }}")
                 }
             {{- end }}
 
@@ -155,7 +175,7 @@ var stopFns []func() error
 
         {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
         if err != nil {
-        log.Panicf("with service account: {{ $serviceManifest.name }}: %v", err)
+        return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
         }
 
         {{ "\n" }}// Instantiate {{ $serviceName }}.
@@ -173,12 +193,12 @@ var stopFns []func() error
         {{- end }}
         )
         if err != nil {
-        log.Panicf("instantiating {{ $serviceName }}: %v", err)
+        return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
         }
         // Start {{ $serviceName }} service.
         {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
         if err != nil {
-        log.Panicf("starting {{ $serviceName }} service: %v", err)
+        return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
         }
         defer {{ $serviceName }}Cleanup()
     {{- end }}
@@ -197,17 +217,17 @@ var stopFns []func() error
             {{ if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
-                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
             {{ else if eq $interceptor.type "internal_service_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
-                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
             {{ else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
-                log.Panicf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
             {{ else if eq $interceptor.type "session_local_context_injector" }} {{- /*session manager method*/ -}}
             {{ else if eq $interceptor.type "session_outgoing_context_injector" }} {{- /*session manager method*/ -}}
@@ -216,10 +236,7 @@ var stopFns []func() error
             {{ end }}
         {{- end }}
 
-	      grpcServer, err := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register)
-        if err != nil {
-        log.Panicf("instantiating grpc server [%s]: %v", "{{ $server.name }}", err)
-        }
+	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register)
 
         grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
             {{- if eq $interceptor.type "session_local_context_injector" }}
@@ -283,10 +300,7 @@ var stopFns []func() error
         {{ end }}
         {{- if $hasGateway -}}
             }
-            grpcGatewayServer, err := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-            if err != nil {
-            log.Panicf("instantiating grpc gateway [%s]: %v", "{{ $server.name }}", err)
-            }
+            grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
             serveOrPanic(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
         {{- end }}
     {{- end }}
@@ -330,7 +344,8 @@ healthServer.Shutdown()
 return nil
 })
 healthServer.MarkReady()
-  handleSignals(gracefulStopFns, stopFns)
+  handleSignals(ctx, gracefulStopFns, stopFns)
+  return nil
 }
 
 {{ template "shutdownOpts" . }}
@@ -338,7 +353,8 @@ healthServer.MarkReady()
 func serveOrPanic(ctx context.Context, serverName string, serveFn func(context.Context) error) {
     go func() {
         if err := serveFn(ctx); err != nil {
-            log.Panicf("server [%s] failed: %v", serverName, err)
+        slog.ErrorContext(ctx, "server failed", "server", serverName, "error", err)
+        panic(err)
         }
     }()
 }

@@ -3,14 +3,12 @@ package http
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/malonaz/core/go/health"
-	"github.com/malonaz/core/go/logging"
 )
-
-var log = logging.NewLogger()
 
 // Opts holds HTTP server options.
 type Opts struct {
@@ -25,6 +23,7 @@ type Opts struct {
 // Server holds the HTTP server state.
 type Server struct {
 	opts         *Opts
+	log          *slog.Logger
 	httpServer   *http.Server
 	mux          *http.ServeMux
 	healthServer *health.GRPCServer
@@ -36,11 +35,17 @@ type Server struct {
 func NewServer(opts *Opts, register func(*Server)) *Server {
 	return &Server{
 		opts:         opts,
+		log:          slog.Default(),
 		mux:          http.NewServeMux(),
 		healthServer: health.NewGRPCServer(opts.Health),
 		register:     register,
 		patternSet:   map[string]struct{}{},
 	}
+}
+
+func (s *Server) WithLogger(logger *slog.Logger) *Server {
+	s.log = logger
+	return s
 }
 
 func (s *Server) RegisterRoute(pattern string, handler func(http.ResponseWriter, *http.Request)) error {
@@ -72,7 +77,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 
 	// Start HTTP server
-	log.Infof("Starting HTTP server on port %d", s.opts.Port)
+	s.log.InfoContext(ctx, "starting HTTP server", "port", s.opts.Port)
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("HTTP server exited unexpectedly: %w", err)
 	}
@@ -84,7 +89,7 @@ func (s *Server) Stop() error {
 	if s.httpServer == nil {
 		return nil
 	}
-	log.Info("Stopping HTTP server")
+	s.log.Info("stopping HTTP server")
 	s.healthServer.Shutdown()
 	return s.httpServer.Close()
 }
@@ -94,14 +99,14 @@ func (s *Server) GracefulStop() error {
 	if s.httpServer == nil {
 		return nil
 	}
-	log.Info("Gracefully stopping gRPC Gateway")
+	s.log.Info("gracefully stopping gRPC Gateway")
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
 	err := s.httpServer.Shutdown(ctx)
 	if err == context.DeadlineExceeded {
-		log.Warning("Graceful shutdown timed out")
+		s.log.Warn("graceful shutdown timed out")
 		// Force close any remaining connections
 		return s.Stop()
 	}

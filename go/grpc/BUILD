@@ -14,7 +14,6 @@ go_library(
         "//go/certs",
         "//go/grpc/interceptor",
         "//go/health",
-        "//go/logging",
         "//go/pbutil",
         "//go/prometheus",
         "//third_party/go:buf.build__go__protovalidate",

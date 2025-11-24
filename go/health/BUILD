@@ -7,7 +7,6 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/logging",
         "//go/pbutil",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc__codes",

@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gorilla/websocket"
-
-	"github.com/malonaz/core/go/logging"
 )
 
 var (
@@ -21,8 +19,6 @@ var (
 			return true // Allow all origins by default
 		},
 	}
-
-	handlerCounter atomic.Uint64
 )
 
 const (
@@ -32,16 +28,18 @@ const (
 
 // Config holds the configuration options for a Handler
 type Config struct {
+	log          *slog.Logger
 	onCloseFN    func(error)
 	upgrader     *websocket.Upgrader
 	readBufSize  int
 	writeBufSize int
-	logger       *logging.Logger
 }
 
 // Handler handles a single upgraded websocket connection
 type Handler[Req, Resp any] struct {
 	Config
+	w          http.ResponseWriter
+	r          *http.Request
 	conn       *websocket.Conn
 	readChan   chan Req
 	writeChan  chan Resp
@@ -54,6 +52,13 @@ type Handler[Req, Resp any] struct {
 
 // Option configures a Handler
 type Option func(*Config)
+
+// WithLogger sets the logger.
+func WithLogger(logger *slog.Logger) Option {
+	return func(c *Config) {
+		c.log = logger
+	}
+}
 
 // WithOnClose sets the callback function called when the handler closes
 // The callback receives any error that caused the closure
@@ -96,20 +101,14 @@ func WithCheckOrigin(fn func(*http.Request) bool) Option {
 	}
 }
 
-// WithLogger sets a custom logger for the handler
-func WithLogger(logger *logging.Logger) Option {
-	return func(c *Config) {
-		c.logger = logger
-	}
-}
-
 // NewHandler upgrades an HTTP connection to websocket and returns a Handler
 func NewHandler[Req, Resp any](
 	w http.ResponseWriter,
 	r *http.Request,
 	options ...Option,
-) (*Handler[Req, Resp], error) {
+) *Handler[Req, Resp] {
 	config := Config{
+		log:          slog.Default(),
 		upgrader:     defaultUpgrader,
 		readBufSize:  defaultReadBufferSize,
 		writeBufSize: defaultWriteBufferSize,
@@ -120,33 +119,30 @@ func NewHandler[Req, Resp any](
 		opt(&config)
 	}
 
-	if config.logger == nil {
-		config.logger = logging.NewLogger()
-	}
-
-	handler := &Handler[Req, Resp]{
+	return &Handler[Req, Resp]{
+		r:      r,
+		w:      w,
 		Config: config,
 	}
-
-	// Upgrade the connection
-	conn, err := handler.upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return nil, fmt.Errorf("upgrading connection: %w", err)
-	}
-
-	handler.conn = conn
-	handler.readChan = make(chan Req, handler.readBufSize)
-	handler.writeChan = make(chan Resp, handler.writeBufSize)
-	handler.errChan = make(chan error, 1) // Buffered to prevent blocking
-	handler.close = make(chan struct{})
-
-	return handler, nil
 }
 
 // Start begins processing reads/writes from/to the websocket connection
 func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	h.cancel = cancel
+
+	// Upgradpe the connection
+	conn, err := h.upgrader.Upgrade(h.w, h.r, nil)
+	if err != nil {
+		return fmt.Errorf("upgrading connection: %w", err)
+	}
+
+	h.conn = conn
+	h.readChan = make(chan Req, h.readBufSize)
+	h.writeChan = make(chan Resp, h.writeBufSize)
+	h.errChan = make(chan error, 1) // Buffered to prevent blocking
+	h.close = make(chan struct{})
+
 	go h.read(ctx)
 	go h.write(ctx)
 	return nil
@@ -190,7 +186,7 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 			h.onCloseFN(err) // Pass error to callback
 		}
 
-		h.logger.Infof("Websocket handler closed")
+		h.log.Info("websocket handler closed")
 	}
 }
 
@@ -222,7 +218,7 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			h.logger.Infof("exiting read routine for websocket")
+			h.log.InfoContext(ctx, "exiting read routine for websocket")
 			return
 		case <-h.close:
 			return
@@ -232,7 +228,7 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 		_, bytes, err := h.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				h.logger.Errorf("reading message: %v", err)
+				h.log.ErrorContext(ctx, "reading message", "error", err)
 				h.closeWithError(fmt.Errorf("read error: %w", err))
 			} else {
 				h.Close()
@@ -242,7 +238,7 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 
 		var payload Req
 		if err := json.Unmarshal(bytes, &payload); err != nil {
-			h.logger.Errorf("unmarshaling message: %v", err)
+			h.log.ErrorContext(ctx, "unmarshaling message", "error", err)
 			h.closeWithError(fmt.Errorf("unmarshal error: %w", err))
 			return
 		}
@@ -250,16 +246,16 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 		select {
 		case h.readChan <- payload:
 		case <-ctx.Done():
-			h.logger.Infof("exiting read routine")
+			h.log.InfoContext(ctx, "exiting read routine")
 			return
 		case <-h.close:
 			return
 		default:
-			h.logger.Warningf("read channel is full - blocking")
+			h.log.WarnContext(ctx, "read channel is full - blocking")
 			select {
 			case h.readChan <- payload: // Wait for buffer to free up
 			case <-ctx.Done():
-				h.logger.Infof("exiting read routine")
+				h.log.InfoContext(ctx, "exiting read routine")
 				return
 			case <-h.close:
 				return
@@ -272,13 +268,13 @@ func (h *Handler[Req, Resp]) write(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			h.logger.Infof("exiting write routine for websocket")
+			h.log.InfoContext(ctx, "exiting write routine for websocket")
 			return
 		case <-h.close:
 			return
 		case payload := <-h.writeChan:
 			if err := h.conn.WriteJSON(payload); err != nil {
-				h.logger.Errorf("writing to websocket: %v", err)
+				h.log.ErrorContext(ctx, "writing to websocket", "error", err)
 				h.closeWithError(fmt.Errorf("write error: %w", err))
 				return
 			}

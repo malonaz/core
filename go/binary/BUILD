@@ -5,8 +5,5 @@ go_library(
         "worker.go",
     ],
     visibility = ["PUBLIC"],
-    deps = [
-        "//go/logging",
-        "//third_party/go:github.com__hashicorp__go-multierror",
-    ],
+    deps = ["//third_party/go:github.com__hashicorp__go-multierror"],
 )
