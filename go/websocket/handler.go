@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -131,7 +132,7 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	h.cancel = cancel
 
-	// Upgradpe the connection
+	// Upgrade the connection
 	conn, err := h.upgrader.Upgrade(h.w, h.r, nil)
 	if err != nil {
 		return fmt.Errorf("upgrading connection: %w", err)
@@ -143,6 +144,8 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	h.errChan = make(chan error, 1) // Buffered to prevent blocking
 	h.close = make(chan struct{})
 
+	h.log = h.log.WithGroup("websocket").With("remote_addr", h.r.RemoteAddr, "path", h.r.URL.Path)
+	h.log.InfoContext(ctx, "started")
 	go h.read(ctx)
 	go h.write(ctx)
 	return nil
@@ -161,7 +164,6 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 	select {
 	case <-h.close:
 		// Already closed
-		return
 	default:
 		// Store the error
 		h.closeErr = err
@@ -185,7 +187,6 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 		if h.onCloseFN != nil {
 			h.onCloseFN(err) // Pass error to callback
 		}
-
 		h.log.Info("websocket handler closed")
 	}
 }
@@ -205,6 +206,29 @@ func (h *Handler[Req, Resp]) Error() <-chan error {
 	return h.errChan
 }
 
+// ReadMessage blocks until a message is received, the context is cancelled, or an error occurs
+func (h *Handler[Req, Resp]) ReadMessage(ctx context.Context) (Req, error) {
+	var zero Req
+
+	select {
+	case <-ctx.Done():
+		return zero, ctx.Err()
+	case <-h.close:
+		if err := h.CloseError(); err != nil {
+			return zero, fmt.Errorf("handler closed: %w", err)
+		}
+		return zero, io.EOF
+	case msg, ok := <-h.readChan:
+		if !ok {
+			if err := h.CloseError(); err != nil {
+				return zero, fmt.Errorf("read channel closed: %w", err)
+			}
+			return zero, io.EOF
+		}
+		return msg, nil
+	}
+}
+
 // CloseError returns the error that caused the handler to close, if any
 func (h *Handler[Req, Resp]) CloseError() error {
 	h.closeMutex.Lock()
@@ -213,6 +237,7 @@ func (h *Handler[Req, Resp]) CloseError() error {
 }
 
 func (h *Handler[Req, Resp]) read(ctx context.Context) {
+	h.log.InfoContext(ctx, "starting read routine")
 	defer close(h.readChan)
 
 	for {
@@ -265,6 +290,7 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 }
 
 func (h *Handler[Req, Resp]) write(ctx context.Context) {
+	h.log.InfoContext(ctx, "starting write routine")
 	for {
 		select {
 		case <-ctx.Done():
