@@ -465,25 +465,33 @@ var file_proto_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*StandardMethod)(nil),
-		Field:         92002,
+		Field:         93000,
 		Name:          "malonaz.core.codegen.aip.v1.standard_method",
-		Tag:           "bytes,92002,opt,name=standard_method",
+		Tag:           "bytes,93000,opt,name=standard_method",
+		Filename:      "proto/codegen/aip/v1/aip.proto",
+	},
+	{
+		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
+		ExtensionType: (*string)(nil),
+		Field:         92000,
+		Name:          "malonaz.core.codegen.aip.v1.uuid_namespace",
+		Tag:           "bytes,92000,opt,name=uuid_namespace",
 		Filename:      "proto/codegen/aip/v1/aip.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*ListOptions)(nil),
-		Field:         92000,
+		Field:         92001,
 		Name:          "malonaz.core.codegen.aip.v1.list",
-		Tag:           "bytes,92000,opt,name=list",
+		Tag:           "bytes,92001,opt,name=list",
 		Filename:      "proto/codegen/aip/v1/aip.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*UpdateOptions)(nil),
-		Field:         92001,
+		Field:         92002,
 		Name:          "malonaz.core.codegen.aip.v1.update",
-		Tag:           "bytes,92001,opt,name=update",
+		Tag:           "bytes,92002,opt,name=update",
 		Filename:      "proto/codegen/aip/v1/aip.proto",
 	},
 }
@@ -492,20 +500,24 @@ var file_proto_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 var (
 	// Extension for standard method.
 	//
-	// optional malonaz.core.codegen.aip.v1.StandardMethod standard_method = 92002;
+	// optional malonaz.core.codegen.aip.v1.StandardMethod standard_method = 93000;
 	E_StandardMethod = &file_proto_codegen_aip_v1_aip_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
+	//	The uuid namespace for a resource.
+	//
+	// optional string uuid_namespace = 92000;
+	E_UuidNamespace = &file_proto_codegen_aip_v1_aip_proto_extTypes[1]
 	// Configuration for AIP List RPCs, including filtering, pagination, and ordering.
 	//
-	// optional malonaz.core.codegen.aip.v1.ListOptions list = 92000;
-	E_List = &file_proto_codegen_aip_v1_aip_proto_extTypes[1]
+	// optional malonaz.core.codegen.aip.v1.ListOptions list = 92001;
+	E_List = &file_proto_codegen_aip_v1_aip_proto_extTypes[2]
 	// Configuration for AIP Update RPCs, including field mask handling and authorization.
 	//
-	// optional malonaz.core.codegen.aip.v1.UpdateOptions update = 92001;
-	E_Update = &file_proto_codegen_aip_v1_aip_proto_extTypes[2]
+	// optional malonaz.core.codegen.aip.v1.UpdateOptions update = 92002;
+	E_Update = &file_proto_codegen_aip_v1_aip_proto_extTypes[3]
 )
 
 var File_proto_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
@@ -541,9 +553,10 @@ const file_proto_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\bresource\x18\x01 \x01(\tR\bresource\x12\x1d\n" +
 	"\n" +
 	"emit_event\x18\x02 \x01(\bR\temitEvent:v\n" +
-	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xe2\xce\x05 \x01(\v2+.malonaz.core.codegen.aip.v1.StandardMethodR\x0estandardMethod:_\n" +
-	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
-	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
+	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2+.malonaz.core.codegen.aip.v1.StandardMethodR\x0estandardMethod:H\n" +
+	"\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\tR\ruuidNamespace:_\n" +
+	"\x04list\x12\x1f.google.protobuf.MessageOptions\x18\xe1\xce\x05 \x01(\v2(.malonaz.core.codegen.aip.v1.ListOptionsR\x04list:e\n" +
+	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xe2\xce\x05 \x01(\v2*.malonaz.core.codegen.aip.v1.UpdateOptionsR\x06updateB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
 
 var (
 	file_proto_codegen_aip_v1_aip_proto_rawDescOnce sync.Once
@@ -579,15 +592,16 @@ var file_proto_codegen_aip_v1_aip_proto_depIdxs = []int32{
 	3,  // 4: malonaz.core.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
 	4,  // 5: malonaz.core.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.core.codegen.aip.v1.UpdatePathMapping
 	9,  // 6: malonaz.core.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
-	10, // 7: malonaz.core.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
-	10, // 8: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	5,  // 9: malonaz.core.codegen.aip.v1.standard_method:type_name -> malonaz.core.codegen.aip.v1.StandardMethod
-	0,  // 10: malonaz.core.codegen.aip.v1.list:type_name -> malonaz.core.codegen.aip.v1.ListOptions
-	2,  // 11: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	9,  // [9:12] is the sub-list for extension type_name
-	6,  // [6:9] is the sub-list for extension extendee
+	10, // 7: malonaz.core.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
+	10, // 8: malonaz.core.codegen.aip.v1.list:extendee -> google.protobuf.MessageOptions
+	10, // 9: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	5,  // 10: malonaz.core.codegen.aip.v1.standard_method:type_name -> malonaz.core.codegen.aip.v1.StandardMethod
+	0,  // 11: malonaz.core.codegen.aip.v1.list:type_name -> malonaz.core.codegen.aip.v1.ListOptions
+	2,  // 12: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	10, // [10:13] is the sub-list for extension type_name
+	6,  // [6:10] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
 }
 
@@ -608,7 +622,7 @@ func file_proto_codegen_aip_v1_aip_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_aip_v1_aip_proto_rawDesc), len(file_proto_codegen_aip_v1_aip_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
-			NumExtensions: 3,
+			NumExtensions: 4,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_codegen_aip_v1_aip_proto_goTypes,

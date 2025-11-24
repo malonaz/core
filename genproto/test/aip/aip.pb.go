@@ -420,7 +420,7 @@ const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x19\n" +
-	"\border_by\x18\x04 \x01(\tR\aorderBy:\x89\x02\x82\xf6,\x84\x02\b\xe8\a\x12\x02id\x12\x10create_timestamp\x12\x10update_timestamp\x1a\x06\n" +
+	"\border_by\x18\x04 \x01(\tR\aorderBy:\x89\x02\x8a\xf6,\x84\x02\b\xe8\a\x12\x02id\x12\x10create_timestamp\x12\x10update_timestamp\x1a\x06\n" +
 	"\x02id\x10\x05\x1a\x15\n" +
 	"\x11replaceable_field\x10\x05\x1a\x0e\n" +
 	"\n" +
@@ -446,7 +446,7 @@ const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"\x15UpdateResourceRequest\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask:\xef\x01\x8a\xf6,\xea\x01\x12\b\n" +
+	"updateMask:\xef\x01\x92\xf6,\xea\x01\x12\b\n" +
 	"\x06field1\x12\x0f\n" +
 	"\rnested.field2\x12\t\n" +
 	"\anested2\x12\b\n" +
@@ -462,7 +462,7 @@ const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"\x16UpdateResource2Request\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask:!\x8a\xf6,\x1d\n" +
+	"updateMask:!\x92\xf6,\x1d\n" +
 	"\x06field1\x12\b\n" +
 	"\x06nested\x12\t\n" +
 	"\anested2*4\n" +

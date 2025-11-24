@@ -10,16 +10,19 @@ option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
 // Extension for method options to mark methods as standard AIP methods (Create, Get, Update, Delete, List).
 extend google.protobuf.MethodOptions {
   // Extension for standard method.
-  StandardMethod standard_method = 92002;
+  StandardMethod standard_method = 93000;
 }
 
 // Extensions for message options to configure AIP list and update behaviors.
 extend google.protobuf.MessageOptions {
+  //  The uuid namespace for a resource.
+  string uuid_namespace = 92000;
+
   // Configuration for AIP List RPCs, including filtering, pagination, and ordering.
-  ListOptions list = 92000;
+  ListOptions list = 92001;
 
   // Configuration for AIP Update RPCs, including field mask handling and authorization.
-  UpdateOptions update = 92001;
+  UpdateOptions update = 92002;
 }
 
 // Configuration options for AIP-compliant List methods.

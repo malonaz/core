@@ -755,7 +755,7 @@ var File_proto_authentication_v1_authentication_proto protoreflect.FileDescripto
 
 const file_proto_authentication_v1_authentication_proto_rawDesc = "" +
 	"\n" +
-	",proto/authentication/v1/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\"O\n" +
+	",proto/authentication/v1/authentication.proto\x12\x1emalonaz.core.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"O\n" +
 	"\x11RoleConfiguration\x12:\n" +
 	"\x05roles\x18\x01 \x03(\v2$.malonaz.core.authentication.v1.RoleR\x05roles\"x\n" +
 	"\x1bServiceAccountConfiguration\x12Y\n" +

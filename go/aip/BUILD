@@ -4,11 +4,13 @@ go_library(
         "list_request_parser.go",
         "paginate.go",
         "update_request_parser.go",
+        "uuid_namespace.go",
     ],
     visibility = ["PUBLIC"],
     deps = [
         "//genproto/codegen/aip/v1",
         "//go/pbutil",
+        "//go/uuid",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:go.einride.tech__aip__fieldmask",
