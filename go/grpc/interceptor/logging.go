@@ -46,18 +46,18 @@ func errorCodeToLogLevel(code codes.Code) grpc_logging.Level {
 func loggingInterceptor(logger *slog.Logger) grpc_logging.Logger {
 	return grpc_logging.LoggerFunc(func(ctx context.Context, level grpc_logging.Level, msg string, fields ...any) {
 
-		logger = logger.With(fields...)
+		log := logger.With(fields...)
 		switch level {
 		case grpc_logging.LevelDebug:
-			logger.DebugContext(ctx, msg)
+			log.DebugContext(ctx, msg)
 		case grpc_logging.LevelInfo:
-			logger.InfoContext(ctx, msg)
+			log.InfoContext(ctx, msg)
 		case grpc_logging.LevelWarn:
-			logger.WarnContext(ctx, msg)
+			log.WarnContext(ctx, msg)
 		case grpc_logging.LevelError:
-			logger.ErrorContext(ctx, msg)
+			log.ErrorContext(ctx, msg)
 		default:
-			logger.InfoContext(ctx, msg)
+			log.InfoContext(ctx, msg)
 		}
 	})
 }
