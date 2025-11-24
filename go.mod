@@ -1,19 +1,17 @@
 module github.com/malonaz/core
 
-go 1.24.3
-
-toolchain go1.24.7
+go 1.25
 
 replace github.com/bazelbuild/buildtools => github.com/peterebden/buildtools v0.0.0-20201001123124-f7a36c689cc9
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
 	buf.build/go/protovalidate v1.0.0
-	github.com/Marlliton/slogpretty v0.1.3
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/NathanBaulch/protoc-gen-cobra v1.2.1
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-jsonnet v0.21.0

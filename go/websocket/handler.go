@@ -144,7 +144,7 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	h.errChan = make(chan error, 1) // Buffered to prevent blocking
 	h.close = make(chan struct{})
 
-	h.log = h.log.WithGroup("websocket").With("remote_addr", h.r.RemoteAddr, "path", h.r.URL.Path)
+	h.log = h.log.WithGroup("websocket_handler").With("remote_addr", h.r.RemoteAddr, "path", h.r.URL.Path)
 	h.log.InfoContext(ctx, "started")
 	go h.read(ctx)
 	go h.write(ctx)

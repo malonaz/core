@@ -115,7 +115,7 @@ func (g *Gateway) WithClientStreamInterceptors(interceptors ...grpc.StreamClient
 // Serve serves this gRPC gateway. Blocking call.
 func (g *Gateway) Serve(ctx context.Context) error {
 	g.log = g.log.WithGroup("grpc_gateway_server").With(
-		"port", g.opts.Port, "host",
+		"port", g.opts.Port, "host", g.opts.Host,
 		slog.Group("grpc_server",
 			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath, "disable_tls",
 			g.grpcOpts.DisableTLS, "plaintext", g.grpcOpts.Plaintext,
