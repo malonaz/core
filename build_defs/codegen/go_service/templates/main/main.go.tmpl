@@ -23,15 +23,25 @@ if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging)
 return err
 }
 {{ if .setup }}
- if err := setup(ctx); err != nil {
- return {{ goImport "fmt" }}.Errorf("setup: %w", err)
- }
+    if err := setup(ctx); err != nil {
+    return {{ goImport "fmt" }}.Errorf("setup: %w", err)
+    }
 
 {{ end }}
 prometheusServer := {{ goImport "github.com/malonaz/core/go/prometheus" }}.NewServer(opts.Prometheus)
 go prometheusServer.Start(ctx)
 defer prometheusServer.Stop(ctx)
 sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
+
+	serverErrGroup := &{{ goImport "golang.org/x/sync/errgroup" }}.Group{}
+	serveInErrGroup := func(ctx {{ goImport "context" }}.Context, serverName string, serveFn func({{ goImport "context" }}.Context) error) {
+		serverErrGroup.Go(func() error {
+			if err := serveFn(ctx); err != nil {
+				return {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
+			}
+			return nil
+		})
+	}
 
 {{- /* GATHER SERVICE MANIFESTS */ -}}
 {{- $serviceManifests := list -}}
@@ -284,7 +294,7 @@ var stopFns []func() error
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
-        serveOrPanic(ctx, "{{ $server.name }}", grpcServer.Serve)
+        serveInErrGroup(ctx, "{{ $server.name }}", grpcServer.Serve)
 
         {{- $hasGateway := false -}}
         {{- range $service := $server.services -}}
@@ -301,7 +311,7 @@ var stopFns []func() error
         {{- if $hasGateway -}}
             }
             grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-            serveOrPanic(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
+            serveInErrGroup(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
         {{- end }}
     {{- end }}
 
@@ -330,7 +340,7 @@ var stopFns []func() error
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
-        serveOrPanic(ctx, "{{ $server.name }}", httpServer.Serve)
+        serveInErrGroup(ctx, "{{ $server.name }}", httpServer.Serve)
     {{- end }}
     }
 {{- end }}
@@ -344,17 +354,8 @@ healthServer.Shutdown()
 return nil
 })
 healthServer.MarkReady()
-  handleSignals(ctx, gracefulStopFns, stopFns)
+  handleSignals(ctx, serverErrGroup, gracefulStopFns, stopFns)
   return nil
 }
 
 {{ template "shutdownOpts" . }}
-
-func serveOrPanic(ctx context.Context, serverName string, serveFn func(context.Context) error) {
-    go func() {
-        if err := serveFn(ctx); err != nil {
-        slog.ErrorContext(ctx, "server failed", "server", serverName, "error", err)
-        panic(err)
-        }
-    }()
-}

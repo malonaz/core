@@ -1,39 +1,50 @@
 {{- define "shutdownOpts" -}}
-    func handleSignals(ctx {{ goImport "context" }}.Context, gracefulStopFns, stopFns[]func() error) {
-	  signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
-    {{ goImport "os/signal" }}.Notify(
+func handleSignals(ctx {{ goImport "context" }}.Context, eg *{{ goImport "golang.org/x/sync/errgroup" }}.Group, gracefulStopFns, stopFns[]func() error) {
+	errChan := make(chan error, 1)
+	go func() {
+    if err := eg.Wait(); err != nil {
+			errChan <- err
+    }
+	}()
+
+	signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
+	{{ goImport "os/signal" }}.Notify(
   	signalChan,
   	{{ goImport "syscall" }}.SIGTERM,
   	{{ goImport "syscall" }}.SIGINT,
   	{{ goImport "syscall" }}.SIGHUP,
-    )
+	)
 
-	  // Wait for first signal
-	  sig := <- signalChan
-	  {{ goImport "log/slog" }}.InfoContext(ctx, "received signal #1: initiating graceful shutdown", "signal", sig)
+	// Wait for first signal
+	select {
+	case sig := <- signalChan:
+		{{ goImport "log/slog" }}.InfoContext(ctx, "received signal #1: initiating graceful shutdown", "signal", sig)
+	case err := <- errChan:
+		slog.ErrorContext(ctx, "serverErrGroup", "error", err)
+	}
 
-	  // Set up a channel to know when graceful shutdown is complete
-	  gracefulDone := make(chan struct{})
+	// Set up a channel to know when graceful shutdown is complete
+	gracefulDone := make(chan struct{})
 
-	  // Start graceful shutdown sequentially in reverse order in a goroutine
-	  go func() {
+	// Start graceful shutdown sequentially in reverse order in a goroutine
+	go func() {
 		for i := len(gracefulStopFns) - 1; i >= 0; i-- {
-		gracefulStopFns[i]()
+			gracefulStopFns[i]()
 		}
 		close(gracefulDone)
-	  }()
+	}()
 
-	  // Wait for either graceful shutdown to complete or second signal
-	  select {
-	  case <-gracefulDone:
+	// Wait for either graceful shutdown to complete or second signal
+	select {
+	case <-gracefulDone:
 		{{ goImport "log/slog" }}.InfoContext(ctx, "graceful shutdown completed")
-	  case sig := <-signalChan:
+	case sig := <-signalChan:
 		{{ goImport "log/slog" }}.WarnContext(ctx, "Received signal #2: initiating force shutdown", "signal", sig)
 		// Force stop everything immediately sequentially in reverse order
 		for i := len(stopFns) - 1; i >= 0; i-- {
-		stopFns[i]()
+			stopFns[i]()
 		}
 		{{ goImport "log/slog" }}.InfoContext(ctx, "force shutdown completed")
-	  }
-    }
+	}
+}
 {{- end -}}
