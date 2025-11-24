@@ -158,6 +158,12 @@ func (h *Handler[Req, Resp]) Close() {
 
 // closeWithError closes the handler and optionally sends an error to the error channel
 func (h *Handler[Req, Resp]) closeWithError(err error) {
+	if err != nil {
+		h.log.Error("closing", "error", err)
+	} else {
+		h.log.Info("closing")
+	}
+
 	h.closeMutex.Lock()
 	defer h.closeMutex.Unlock()
 
@@ -187,7 +193,6 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 		if h.onCloseFN != nil {
 			h.onCloseFN(err) // Pass error to callback
 		}
-		h.log.Info("handler closed")
 	}
 }
 

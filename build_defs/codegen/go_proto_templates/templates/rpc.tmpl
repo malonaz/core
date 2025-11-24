@@ -48,7 +48,14 @@ pb "{{ $apiImportPath }}"
 
             // STEP 2: Instantiate timestamps.
             {{ if $rpc.Message.Desc.Fields.ByName "create_time" -}}
+                // Check for override-create-time header
+                if values := {{ fqn "google.golang.org/grpc/metadata" "ValueFromIncomingContext" }}(ctx, "override-create-time-propagate"); len(values) > 0 {
+                if request.{{ $resourceGoName }}.CreateTime == nil {
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "override-create-time used without setting a create_time")
+                }
+                } else {
                 request.{{ $resourceGoName }}.CreateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
+                }
             {{ end -}}
             {{ if $rpc.Message.Desc.Fields.ByName "update_time" -}}
                 request.{{ $resourceGoName }}.UpdateTime = request.{{ $resourceGoName }}.CreateTime

@@ -166,7 +166,12 @@ func (c *Client[Req, Resp]) Close() {
 
 // closeWithError closes the client with an error
 func (c *Client[Req, Resp]) closeWithError(err error) {
-	c.log.Error("closing", "error", err)
+	if err != nil {
+		c.log.Error("closing", "error", err)
+	} else {
+		c.log.Info("closing")
+	}
+
 	c.closeMutex.Lock()
 	defer c.closeMutex.Unlock()
 
@@ -335,6 +340,7 @@ func (c *Client[Req, Resp]) read(ctx context.Context) {
 				c.closeWithError(fmt.Errorf("reconnection error: %w", err))
 				return
 			}
+			continue
 		}
 
 		var payload Resp
