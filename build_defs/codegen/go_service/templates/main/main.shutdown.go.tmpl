@@ -1,12 +1,5 @@
 {{- define "shutdownOpts" -}}
-func handleSignals(ctx {{ goImport "context" }}.Context, eg *{{ goImport "golang.org/x/sync/errgroup" }}.Group, gracefulStopFns, stopFns[]func() error) {
-	errChan := make(chan error, 1)
-	go func() {
-    if err := eg.Wait(); err != nil {
-			errChan <- err
-    }
-	}()
-
+func handleSignals(ctx {{ goImport "context" }}.Context, errChan chan error, gracefulStopFns, stopFns[]func() error) {
 	signalChan := make(chan {{ goImport "os" }}.Signal, 2) // One for each category of stops.
 	{{ goImport "os/signal" }}.Notify(
   	signalChan,
@@ -15,6 +8,7 @@ func handleSignals(ctx {{ goImport "context" }}.Context, eg *{{ goImport "golang
   	{{ goImport "syscall" }}.SIGHUP,
 	)
 
+	{{ goImport "log/slog" }}.InfoContext(ctx, "waiting for signal")
 	// Wait for first signal
 	select {
 	case sig := <- signalChan:

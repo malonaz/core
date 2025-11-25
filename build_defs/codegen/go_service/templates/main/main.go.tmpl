@@ -33,14 +33,13 @@ go prometheusServer.Start(ctx)
 defer prometheusServer.Stop(ctx)
 sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
 
-	serverErrGroup := &{{ goImport "golang.org/x/sync/errgroup" }}.Group{}
-	serveInErrGroup := func(ctx {{ goImport "context" }}.Context, serverName string, serveFn func({{ goImport "context" }}.Context) error) {
-		serverErrGroup.Go(func() error {
-			if err := serveFn(ctx); err != nil {
-				return {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
-			}
-			return nil
-		})
+  errChan := make(chan error, 1)
+	runServer := func(ctx {{ goImport "context" }}.Context, serverName string, serveFn func({{ goImport "context" }}.Context) error) {
+      go func() {
+  		   if err := serveFn(ctx); err != nil {
+            errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
+         }
+     }()
 	}
 
 {{- /* GATHER SERVICE MANIFESTS */ -}}
@@ -294,7 +293,7 @@ var stopFns []func() error
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
-        serveInErrGroup(ctx, "{{ $server.name }}", grpcServer.Serve)
+        runServer(ctx, "{{ $server.name }}", grpcServer.Serve)
 
         {{- $hasGateway := false -}}
         {{- range $service := $server.services -}}
@@ -311,7 +310,7 @@ var stopFns []func() error
         {{- if $hasGateway -}}
             }
             grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-            serveInErrGroup(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
+            runServer(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
         {{- end }}
     {{- end }}
 
@@ -340,7 +339,7 @@ var stopFns []func() error
             )
         {{- end }}
         healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
-        serveInErrGroup(ctx, "{{ $server.name }}", httpServer.Serve)
+        runServer(ctx, "{{ $server.name }}", httpServer.Serve)
     {{- end }}
     }
 {{- end }}
@@ -354,7 +353,7 @@ healthServer.Shutdown()
 return nil
 })
 healthServer.MarkReady()
-  handleSignals(ctx, serverErrGroup, gracefulStopFns, stopFns)
+  handleSignals(ctx, errChan, gracefulStopFns, stopFns)
   return nil
 }
 
