@@ -172,10 +172,10 @@ func (c *Connection) Connect(ctx context.Context) error {
 }
 
 func (c *Connection) Close() error {
-	if c.connection == nil {
-		return nil
+	if c.connection != nil {
+		return c.connection.Close()
 	}
-	return c.connection.Close()
+	return nil
 }
 
 func (c *Connection) Get() *grpc.ClientConn {

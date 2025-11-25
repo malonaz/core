@@ -229,7 +229,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	url := fmt.Sprintf(":%d", g.opts.Port)
 	handler := customMimeWrapper(g.routeToGatewayOptions, allowCORS(mux))
 	g.httpServer = &http.Server{Addr: url, Handler: handler}
-	g.log.InfoContext(ctx, "serving", "port", g.opts.Port)
+	g.log.InfoContext(ctx, "serving")
 	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		return fmt.Errorf("exited unexpectedly: %w", err)
 	}
@@ -238,30 +238,29 @@ func (g *Gateway) Serve(ctx context.Context) error {
 
 // Stop immediately stops the gateway server.
 func (g *Gateway) Stop() error {
-	if g.httpServer == nil {
-		return nil
-	}
 	g.log.Info("stopping")
-	return g.httpServer.Close()
+	if g.httpServer != nil {
+		return g.httpServer.Close()
+	}
+	return nil
 }
 
 // GracefulStop gracefully stops the gateway server.
 func (g *Gateway) GracefulStop() error {
-	if g.httpServer == nil {
-		return nil
-	}
 	g.log.Info("gracefully stopping")
-	duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), duration)
-	defer cancel()
-
-	err := g.httpServer.Shutdown(ctx)
-	if err == context.DeadlineExceeded {
-		g.log.Warn("graceful shutdown timed out")
-		// Force close any remaining connections
-		return g.Stop()
+	if g.httpServer != nil {
+		duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), duration)
+		defer cancel()
+		err := g.httpServer.Shutdown(ctx)
+		if err == context.DeadlineExceeded {
+			g.log.Warn("graceful shutdown timed out")
+			// Force close any remaining connections
+			return g.Stop()
+		}
+		return err
 	}
-	return err
+	return nil
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////

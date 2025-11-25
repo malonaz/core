@@ -123,7 +123,9 @@ func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterce
 
 func (s *Server) Stop() error {
 	s.log.Warn("stopping")
-	s.Raw.Stop()
+	if s.Raw != nil {
+		s.Raw.Stop()
+	}
 	s.healthServer.Shutdown()
 	return nil
 }
@@ -133,7 +135,9 @@ func (s *Server) GracefulStop() error {
 	ch := make(chan struct{})
 	go func() {
 		s.log.Info("gracefully stopping", "grace_period", duration)
-		s.Raw.GracefulStop()
+		if s.Raw != nil {
+			s.Raw.GracefulStop()
+		}
 		s.log.Info("stopped gracefully")
 		ch <- struct{}{}
 	}()
