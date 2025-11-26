@@ -2,12 +2,15 @@ package interceptor
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -16,6 +19,7 @@ var (
 	loggingInterceptorOptions = []grpc_logging.Option{
 		grpc_logging.WithLogOnEvents(grpc_logging.FinishCall),
 		grpc_logging.WithLevels(errorCodeToLogLevel),
+		grpc_logging.WithErrorFields(extractErrorDetails),
 	}
 )
 
@@ -112,4 +116,29 @@ func loggingInterceptor(logger *slog.Logger) grpc_logging.Logger {
 			log.InfoContext(ctx, msg)
 		}
 	})
+}
+
+func extractErrorDetails(err error) grpc_logging.Fields {
+	if err == nil {
+		return nil
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		return nil
+	}
+	details := st.Details()
+	if len(details) == 0 {
+		return nil
+	}
+	fields := make(grpc_logging.Fields, 0, len(details)*2)
+	for _, detail := range details {
+		var detailType string
+		if msg, ok := detail.(proto.Message); ok {
+			detailType = string(msg.ProtoReflect().Descriptor().Name())
+		} else {
+			detailType = fmt.Sprintf("%T", detail)
+		}
+		fields = append(fields, "grpc.error."+detailType, detail)
+	}
+	return fields
 }

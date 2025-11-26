@@ -21,14 +21,105 @@ type serviceMetadata struct {
 	domain      string
 }
 
-// errorInterceptor processes errors before they're sent to clients
-type errorInterceptor struct {
+// ===== Debug Info Scrubber Interceptor =====
+
+// debugInfoScrubber removes debug information from errors
+type debugInfoScrubber struct{}
+
+// UnaryServerDebugInfoScrubber strips debug info from errors before they're sent to clients.
+// Debug info is logged but not included in the response.
+func UnaryServerDebugInfoScrubber() grpc.UnaryServerInterceptor {
+	scrubber := &debugInfoScrubber{}
+
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		resp, err := handler(ctx, req)
+
+		if err != nil {
+			err = scrubber.scrubDebugInfo(ctx, info.FullMethod, err)
+		}
+
+		return resp, err
+	}
+}
+
+// StreamServerDebugInfoScrubber strips debug info from errors before they're sent to clients.
+// Debug info is logged but not included in the response.
+func StreamServerDebugInfoScrubber() grpc.StreamServerInterceptor {
+	scrubber := &debugInfoScrubber{}
+
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		err := handler(srv, stream)
+
+		if err != nil {
+			err = scrubber.scrubDebugInfo(stream.Context(), info.FullMethod, err)
+		}
+
+		return err
+	}
+}
+
+// scrubDebugInfo removes DebugInfo details from errors after logging them
+func (s *debugInfoScrubber) scrubDebugInfo(ctx context.Context, fullMethod string, err error) error {
+	st, ok := status.FromError(err)
+	if !ok {
+		return err
+	}
+
+	var hasDebugInfo bool
+	var otherDetails []protoadapt.MessageV1
+
+	for _, detail := range st.Details() {
+		switch d := detail.(type) {
+		case *errdetails.DebugInfo:
+			// Log debug info but don't include it in the response
+			hasDebugInfo = true
+			if len(d.StackEntries) > 0 {
+				slog.DebugContext(ctx, "error debug info",
+					"method", fullMethod,
+					"stack", d.StackEntries,
+					"detail", d.Detail,
+				)
+			}
+		default:
+			// Keep all other details
+			if msg, ok := detail.(protoadapt.MessageV1); ok {
+				otherDetails = append(otherDetails, msg)
+			}
+		}
+	}
+
+	// If no debug info was found, return original error
+	if !hasDebugInfo {
+		return err
+	}
+
+	// Create new status without debug info
+	newSt := status.New(st.Code(), st.Message())
+	if len(otherDetails) > 0 {
+		var newErr error
+		newSt, newErr = newSt.WithDetails(otherDetails...)
+		if newErr != nil {
+			slog.ErrorContext(ctx, "attaching error details after scrubbing debug info",
+				"error", newErr,
+				"method", fullMethod,
+			)
+			return newSt.Err()
+		}
+	}
+
+	return newSt.Err()
+}
+
+// ===== ErrorInfo Injector Interceptor =====
+
+// errorInfoInjector adds ErrorInfo metadata to errors
+type errorInfoInjector struct {
 	fullMethodNameToServiceMetadata map[string]*serviceMetadata
 }
 
-// newErrorInterceptor creates a new error interceptor with service metadata
-func newErrorInterceptor() *errorInterceptor {
-	ei := &errorInterceptor{
+// newErrorInfoInjector creates a new error info injector with service metadata
+func newErrorInfoInjector() *errorInfoInjector {
+	ei := &errorInfoInjector{
 		fullMethodNameToServiceMetadata: make(map[string]*serviceMetadata),
 	}
 	ei.buildServiceMetadataCache()
@@ -36,7 +127,7 @@ func newErrorInterceptor() *errorInterceptor {
 }
 
 // buildServiceMetadataCache extracts service metadata from proto file descriptors
-func (ei *errorInterceptor) buildServiceMetadataCache() {
+func (ei *errorInfoInjector) buildServiceMetadataCache() {
 	files := protoregistry.GlobalFiles
 	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		services := fd.Services()
@@ -72,42 +163,38 @@ func (ei *errorInterceptor) buildServiceMetadataCache() {
 	})
 }
 
-// UnaryServerError processes errors before they're sent to clients.
-// It strips debug info (after logging) and injects ErrorInfo metadata.
-// Pass nil for files if you don't want service metadata injection.
-func UnaryServerError() grpc.UnaryServerInterceptor {
-	ei := newErrorInterceptor()
+// UnaryServerErrorInfoInjector adds ErrorInfo metadata to errors if not already present.
+func UnaryServerErrorInfoInjector() grpc.UnaryServerInterceptor {
+	injector := newErrorInfoInjector()
 
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		resp, err := handler(ctx, req)
 
 		if err != nil {
-			err = ei.processError(ctx, info.FullMethod, err)
+			err = injector.injectErrorInfo(ctx, info.FullMethod, err)
 		}
 
 		return resp, err
 	}
 }
 
-// StreamServerError processes errors before they're sent to clients.
-// It strips debug info (after logging) and injects ErrorInfo metadata.
-// Pass nil for files if you don't want service metadata injection.
-func StreamServerError() grpc.StreamServerInterceptor {
-	ei := newErrorInterceptor()
+// StreamServerErrorInfoInjector adds ErrorInfo metadata to errors if not already present.
+func StreamServerErrorInfoInjector() grpc.StreamServerInterceptor {
+	injector := newErrorInfoInjector()
 
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		err := handler(srv, stream)
 
 		if err != nil {
-			err = ei.processError(stream.Context(), info.FullMethod, err)
+			err = injector.injectErrorInfo(stream.Context(), info.FullMethod, err)
 		}
 
 		return err
 	}
 }
 
-// processError handles error transformation: strips debug info and adds ErrorInfo
-func (ei *errorInterceptor) processError(ctx context.Context, fullMethod string, err error) error {
+// injectErrorInfo adds ErrorInfo to errors that don't already have it
+func (ei *errorInfoInjector) injectErrorInfo(ctx context.Context, fullMethod string, err error) error {
 	st, ok := status.FromError(err)
 	if !ok {
 		return err
@@ -116,62 +203,61 @@ func (ei *errorInterceptor) processError(ctx context.Context, fullMethod string,
 	// Get service metadata using full method name
 	metadata := ei.fullMethodNameToServiceMetadata[fullMethod]
 
-	// Process existing details
+	// If no metadata available, return original error
+	if metadata == nil {
+		return err
+	}
+
+	// Check if ErrorInfo already exists
 	var existingErrorInfo bool
-	var otherDetails []protoadapt.MessageV1
-
 	for _, detail := range st.Details() {
-		switch d := detail.(type) {
-		case *errdetails.DebugInfo:
-			// Log debug info but don't include it in the response
-			if len(d.StackEntries) > 0 {
-				slog.DebugContext(ctx, "error debug info",
-					"method", fullMethod,
-					"stack", d.StackEntries,
-					"detail", d.Detail,
-				)
-			}
-		case *errdetails.ErrorInfo:
-			// Keep existing ErrorInfo as-is
+		if _, ok := detail.(*errdetails.ErrorInfo); ok {
 			existingErrorInfo = true
-			if msg, ok := detail.(protoadapt.MessageV1); ok {
-				otherDetails = append(otherDetails, msg)
-			}
-		default:
-			// Convert to MessageV1 for status.WithDetails
-			if msg, ok := detail.(protoadapt.MessageV1); ok {
-				otherDetails = append(otherDetails, msg)
-			}
+			break
 		}
 	}
 
-	// Only create ErrorInfo if one doesn't exist and we have metadata
-	if !existingErrorInfo && metadata != nil {
-		// Create new ErrorInfo with service metadata
-		newErrorInfo := &errdetails.ErrorInfo{
-			Domain: metadata.domain,
-			Metadata: map[string]string{
-				"service": metadata.defaultHost,
-			},
-		}
-		otherDetails = append([]protoadapt.MessageV1{newErrorInfo}, otherDetails...)
+	// If ErrorInfo already exists, return original error
+	if existingErrorInfo {
+		return err
 	}
 
-	// Build new error details (without debug info, but with original or new ErrorInfo)
-	newDetails := otherDetails
+	// Convert existing details to MessageV1
+	var existingDetails []protoadapt.MessageV1
+	for _, detail := range st.Details() {
+		if msg, ok := detail.(protoadapt.MessageV1); ok {
+			existingDetails = append(existingDetails, msg)
+		}
+	}
 
-	// Create new status
+	// Extract just the method name from full method path
+	// fullMethod format: "/package.ServiceName/MethodName"
+	methodName := fullMethod
+	if lastSlash := strings.LastIndex(fullMethod, "/"); lastSlash != -1 {
+		methodName = fullMethod[lastSlash+1:]
+	}
+
+	// Create new ErrorInfo with service metadata
+	newErrorInfo := &errdetails.ErrorInfo{
+		Domain: metadata.domain,
+		Metadata: map[string]string{
+			"service": metadata.defaultHost,
+			"method":  methodName,
+		},
+	}
+
+	// Prepend ErrorInfo to existing details
+	allDetails := append([]protoadapt.MessageV1{newErrorInfo}, existingDetails...)
+
+	// Create new status with ErrorInfo
 	newSt := status.New(st.Code(), st.Message())
-	if len(newDetails) > 0 {
-		var newErr error
-		newSt, newErr = newSt.WithDetails(newDetails...)
-		if newErr != nil {
-			slog.ErrorContext(ctx, "attaching error details",
-				"error", newErr,
-				"method", fullMethod,
-			)
-			return newSt.Err()
-		}
+	newSt, newErr := newSt.WithDetails(allDetails...)
+	if newErr != nil {
+		slog.ErrorContext(ctx, "injecting error info",
+			"error", newErr,
+			"method", fullMethod,
+		)
+		return st.Err() // Return original error on failure
 	}
 
 	return newSt.Err()
