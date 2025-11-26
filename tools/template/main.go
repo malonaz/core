@@ -38,8 +38,12 @@ func parseDelims(format string) (left, right string, err error) {
 }
 
 func main() {
-	flags.MustParse(&opts)
-	logging.Init(opts.Logging)
+	if err := flags.Parse(&opts); err != nil {
+		panic(err)
+	}
+	if err := logging.Init(opts.Logging); err != nil {
+		panic(err)
+	}
 	if err := run(); err != nil {
 		panic(err)
 	}

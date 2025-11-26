@@ -18,7 +18,9 @@ func main() {
 }
 
 func run(ctx {{ goImport "context" }}.Context) error {
-	{{ goImport "github.com/malonaz/core/go/flags" }}.MustParse(&opts)
+  if err := {{ goImport "github.com/malonaz/core/go/flags" }}.Parse(&opts); err != nil {
+    return err
+  }
 	if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
 		return err
 	}
