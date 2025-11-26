@@ -103,7 +103,7 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 	// Grab the session and verify its signature.
 	signedSession, err := i.sessionManager.getSignedSessionFromLocalContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 	ok, err := i.sessionManager.verify(signedSession)
 	if err != nil {

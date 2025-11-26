@@ -190,44 +190,36 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 
 	// PRE (1): Panic interceptor. We *never* want to panic.
-	s.preUnaryInterceptors = append(
-		s.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor(),
-	)
-	s.preStreamInterceptors = append(
-		s.preStreamInterceptors, grpc_recovery.StreamServerInterceptor(),
-	)
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_recovery.StreamServerInterceptor())
 	// PRE (2): Prometheus first.
 	if s.prometheusOpts.Enabled() {
 		s.preUnaryInterceptors = append(s.preUnaryInterceptors, prometheusUnaryInterceptor)
 		s.preStreamInterceptors = append(s.preStreamInterceptors, prometheusStreamInterceptor)
 	}
-	// PRE (3): Context tags: allows downstream interceptors to pass values back down to the logging interceptor.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerContextTagsInitializer())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerContextTagsInitializer())
-	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
+	// PRE (3): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerHeaderPropagation())
 	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerHeaderPropagation())
-	// PRE (5): Logging interceptor.
+	// PRE (4): Trailer propagator interceptor.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerTrailerPropagation())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerTrailerPropagation())
+	// PRE (5): Inject context tag: allows downstream components to inject log fields via the ctx for the logging interceptor to log.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerLogContextTagInitializer())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerLogContextTagInitializer())
+	// PRE (6): Logging interceptor.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerLogging(s.log))
 	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerLogging(s.log))
-
-	// PRE (6): Trailer propagator interceptor.
-	s.preUnaryInterceptors = append(
-		s.preUnaryInterceptors, grpc_interceptor.UnaryServerTrailerPropagation(),
-	)
-	s.preStreamInterceptors = append(
-		s.preStreamInterceptors, grpc_interceptor.StreamServerTrailerPropagation(),
-	)
+	// PRE (7): Error interceptor.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerError())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerError())
 
 	// POST (1): Proto validator interceptor. (Last before it goes on the wire).
-	s.postUnaryInterceptors = append(
-		s.postUnaryInterceptors,
-		grpc_interceptor.UnaryServerValidate(validator),
-		grpc_interceptor.UnaryServerFieldMask(),
-	)
-	s.postStreamInterceptors = append(
-		s.postStreamInterceptors, grpc_interceptor.StreamServerValidate(validator),
-	)
+	// We place this interceptor in the 'post' to allow authentication middleware to take precedence.
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, grpc_interceptor.UnaryServerValidate(validator))
+	s.postStreamInterceptors = append(s.postStreamInterceptors, grpc_interceptor.StreamServerValidate(validator))
+	// POST (2): Field mask interceptor.
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, grpc_interceptor.UnaryServerFieldMask())
+	s.postStreamInterceptors = append(s.postStreamInterceptors, grpc_interceptor.StreamServerFieldMask())
 
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)

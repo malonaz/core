@@ -4,17 +4,65 @@ import (
 	"context"
 	"log/slog"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
 
 var (
+	logFieldsTagKey = logFieldsTagKeyType("log-fields-tag-key")
+
 	loggingInterceptorOptions = []grpc_logging.Option{
 		grpc_logging.WithLogOnEvents(grpc_logging.FinishCall),
 		grpc_logging.WithLevels(errorCodeToLogLevel),
 	}
 )
+
+type logFieldsTagKeyType string
+
+type logFieldsTag struct {
+	fields []any
+}
+
+func setLogFieldsTagOntoContext(ctx context.Context) context.Context {
+	tag := &logFieldsTag{}
+	return context.WithValue(ctx, logFieldsTagKey, tag)
+}
+
+// Inject fields onto the log context tag.
+func InjectLogFields(ctx context.Context, args ...any) bool {
+	tag, ok := ctx.Value(logFieldsTagKey).(*logFieldsTag)
+	if !ok {
+		return false
+	}
+	tag.fields = append(tag.fields, args...)
+	return true
+}
+
+func GetFields(ctx context.Context) ([]any, bool) {
+	tag, ok := ctx.Value(logFieldsTagKey).(*logFieldsTag)
+	if !ok {
+		return nil, false
+	}
+	return tag.fields, true
+}
+
+// UnaryServerContextTagsInterceptor initializes context tags.
+func UnaryServerLogContextTagInitializer() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		ctx = setLogFieldsTagOntoContext(ctx)
+		return handler(ctx, req)
+	}
+}
+
+// StreamServerContextTagsInterceptor initializes context tags.
+func StreamServerLogContextTagInitializer() grpc.StreamServerInterceptor {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := setLogFieldsTagOntoContext(stream.Context())
+		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
+	}
+}
 
 func UnaryServerLogging(logger *slog.Logger) grpc.UnaryServerInterceptor {
 	return grpc_logging.UnaryServerInterceptor(loggingInterceptor(logger), loggingInterceptorOptions...)
@@ -45,6 +93,10 @@ func errorCodeToLogLevel(code codes.Code) grpc_logging.Level {
 // interceptorLogger adapts logrus logger to interceptor logger.
 func loggingInterceptor(logger *slog.Logger) grpc_logging.Logger {
 	return grpc_logging.LoggerFunc(func(ctx context.Context, level grpc_logging.Level, msg string, fields ...any) {
+		// Get fields from context tag and append them
+		if ctxFields, ok := GetFields(ctx); ok {
+			fields = append(fields, ctxFields...)
+		}
 
 		log := logger.With(fields...)
 		switch level {

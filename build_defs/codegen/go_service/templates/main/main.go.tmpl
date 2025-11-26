@@ -241,6 +241,7 @@ var stopFns []func() error
                 return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
             {{ else if eq $interceptor.type "session_local_context_injector" }} {{- /*session manager method*/ -}}
+            {{ else if eq $interceptor.type "session_log_injector" }} {{- /*session manager method*/ -}}
             {{ else if eq $interceptor.type "session_outgoing_context_injector" }} {{- /*session manager method*/ -}}
             {{ else }}
                 {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
@@ -258,6 +259,8 @@ var stopFns []func() error
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "session_log_injector" }}
+                sessionManager.UnaryServerLogInjectorInterceptor(),
             {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
                 sessionManager.UnaryServerOutgoingContextInjectorInterceptor(),
             {{ else }}
@@ -273,6 +276,8 @@ var stopFns []func() error
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "session_log_injector" }}
+                sessionManager.StreamServerLogInjectorInterceptor(),
             {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
                 sessionManager.StreamServerOutgoingContextInjectorInterceptor(),
             {{ else }}

@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
+	"github.com/malonaz/core/go/grpc/interceptor"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -96,7 +97,6 @@ func (s *SessionManager) getSignedSessionFromLocalContext(ctx context.Context) (
 	if value == nil {
 		return nil, ErrSignedSessionNotFound
 	}
-
 	signedSession, ok := value.(*authenticationpb.SignedSession)
 	if !ok {
 		return nil, ErrSignedSessionNotFound
@@ -198,4 +198,95 @@ func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ct
 		return nil, status.Errorf(codes.Internal, "marshaling signed session: %v", err)
 	}
 	return metadata.AppendToOutgoingContext(ctx, metadataKeySignedSession, string(bytes)), nil
+}
+
+// ///////////////////////////////////////////////// INJECT SESSION TO LOG SESSION INTERCEPTOR ////////////////////////////////
+// injectSessionFieldsIntoLogContext extracts session information and injects it into the log context
+func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) error {
+	signedSession, err := s.getSignedSessionFromLocalContext(ctx)
+	if err != nil {
+		return status.Errorf(codes.Internal, "getting signed session from local context: %v", err)
+	}
+
+	session := signedSession.Session
+	fields := make([]any, 0)
+
+	// Add session ID if non-zero
+	if session.Id != "" {
+		fields = append(fields, "session_id", session.Id)
+	}
+
+	// Add basic session fields (only non-zero values)
+	if len(session.RoleIds) > 0 {
+		fields = append(fields, "role_ids", session.RoleIds)
+	}
+	if session.Authorized {
+		fields = append(fields, "authorized", session.Authorized)
+	}
+	if ipAddr := session.GetMetadata().GetIpAddress(); ipAddr != "" {
+		fields = append(fields, "ip_address", ipAddr)
+	}
+	if clientVersion := session.GetMetadata().GetClientVersion(); clientVersion != nil {
+		fields = append(fields, "client_version", fmt.Sprintf("%d.%d.%d", clientVersion.Major, clientVersion.Minor, clientVersion.Patch))
+	}
+	if userAgent := session.GetMetadata().GetUserAgent(); userAgent != "" {
+		fields = append(fields, "user_agent", userAgent)
+	}
+
+	// Add custom metadata fields
+	for k, v := range session.GetMetadata().GetKeyToValue() {
+		if v != "" {
+			fields = append(fields, fmt.Sprintf("custom.%s", k), v)
+		}
+	}
+
+	// Add identity-specific fields
+	switch identity := session.Identity.(type) {
+	case *authenticationpb.Session_UserIdentity:
+		fields = append(fields, "session_type", "user")
+		if identity.UserIdentity.OrganizationId != "" {
+			fields = append(fields, "organization_id", identity.UserIdentity.OrganizationId)
+		}
+		if identity.UserIdentity.UserId != "" {
+			fields = append(fields, "user_id", identity.UserIdentity.UserId)
+		}
+	case *authenticationpb.Session_ServiceAccountIdentity:
+		fields = append(fields, "session_type", "service_account")
+		if identity.ServiceAccountIdentity.ServiceAccount.Id != "" {
+			fields = append(fields, "service_account_id", identity.ServiceAccountIdentity.ServiceAccount.Id)
+		}
+		if saType := identity.ServiceAccountIdentity.ServiceAccount.Type.String(); saType != "" {
+			fields = append(fields, "service_account_type", saType)
+		}
+	}
+
+	// Single call to inject all fields
+	if len(fields) > 0 {
+		interceptor.InjectLogFields(ctx, fields...)
+	}
+
+	return nil
+}
+
+// UnaryServerLogInjectorInterceptor injects session fields into the log context for unary RPCs
+func (s *SessionManager) UnaryServerLogInjectorInterceptor() grpc.UnaryServerInterceptor {
+	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		if err := s.injectSessionFieldsIntoLogContext(ctx); err != nil {
+			return nil, err
+		}
+		return handler(ctx, request)
+	}
+	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+}
+
+// StreamServerLogInjectorInterceptor injects session fields into the log context for streaming RPCs
+func (s *SessionManager) StreamServerLogInjectorInterceptor() grpc.StreamServerInterceptor {
+	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := stream.Context()
+		if err := s.injectSessionFieldsIntoLogContext(ctx); err != nil {
+			return err
+		}
+		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
+	}
+	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
 }

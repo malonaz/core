@@ -10,6 +10,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//genproto/authentication/v1",
+        "//go/grpc/interceptor",
         "//go/jsonnet",
         "//go/pbutil",
         "//third_party/go:buf.build__go__protovalidate",

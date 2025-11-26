@@ -51,3 +51,43 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 		return response, nil
 	}
 }
+
+func StreamServerFieldMask() grpc.StreamServerInterceptor {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		// Extract field mask from metadata
+		md, ok := metadata.FromIncomingContext(stream.Context())
+		if !ok {
+			return handler(srv, stream)
+		}
+		values := md.Get(metadataKeyFieldMask)
+		if len(values) == 0 || values[0] == "*" {
+			return handler(srv, stream)
+		}
+		fieldMaskPaths := values[0]
+
+		// Wrap the stream to intercept SendMsg
+		wrappedStream := &fieldMaskServerStream{
+			ServerStream:   stream,
+			fieldMaskPaths: fieldMaskPaths,
+		}
+		return handler(srv, wrappedStream)
+	}
+}
+
+type fieldMaskServerStream struct {
+	grpc.ServerStream
+	fieldMaskPaths string
+}
+
+func (s *fieldMaskServerStream) SendMsg(m any) error {
+	message, ok := m.(proto.Message)
+	if !ok {
+		return status.Errorf(codes.Internal, "message is not a protobuf message: %T", m)
+	}
+
+	if err := pbutil.ApplyMask(message, s.fieldMaskPaths); err != nil {
+		return status.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	return s.ServerStream.SendMsg(m)
+}
