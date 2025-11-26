@@ -29,7 +29,7 @@ pb "{{ $apiImportPath }}"
 
         {{- if $rpc.Create }}
             // {{ printf "Create%s creates a %s" $resourceGoName $resourceGoName }}
-            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             // STEP 1: Set identifiers.
             {{- if not $pr.Singleton }}
                 {{ $pr.PatternVariable | camelcase | untitle }}Id := request.{{ $resourceGoName }}Id
@@ -104,14 +104,14 @@ pb "{{ $apiImportPath }}"
             {{- end }}
 
             // STEP 4: Insert the resource idempotently.
-            ok, err := s.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }})
+            ok, err := c.{{ $dbClient }}.Insert{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }}Db{{ end }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err)
 	          }
 	          if !ok {
 		        get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
             var err error
-            request.{{ $resourceGoName }}, err = s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+            request.{{ $resourceGoName }}, err = c.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
             if err != nil {
             return nil, err
             }
@@ -122,7 +122,7 @@ pb "{{ $apiImportPath }}"
 
         {{- else if $rpc.Update }}
             var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
-            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             // STEP 1: Parse request.
 	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.UpdateMask, request.{{ $resourceGoName }})
 	          if err != nil {
@@ -131,7 +131,7 @@ pb "{{ $apiImportPath }}"
 
             // STEP 2: retrieve existing resource.
             get{{ $resourceGoName }}Request := &pb.Get{{ $resourceGoName }}Request{ Name: request.{{ $resourceGoName }}.Name }
-            existing{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+            existing{{ $resourceGoName }}, err := c.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
             if err != nil {
             return nil, err
             }
@@ -150,7 +150,7 @@ pb "{{ $apiImportPath }}"
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting pb.{{ $resourceGoName }} to model.{{ $resourceGoName }}: %v", err)
 	          }
-	          ok, err := s.{{ $dbClient }}.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
+	          ok, err := c.{{ $dbClient }}.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | untitle }}: %v", err)
 	          }
@@ -162,7 +162,7 @@ pb "{{ $apiImportPath }}"
             }
 
         {{- else if $rpc.Delete }}
-            func (s *Service) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Delete{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            func (c *codegen) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Delete{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             // STEP 1: Parse resource name.
             {{ $pr.PatternVariableIDs true }}, err := model.Parse{{ $resourceGoName }}Name(request.Name)
             if err != nil {
@@ -172,7 +172,7 @@ pb "{{ $apiImportPath }}"
             {{- if $softDeletable }}
                 // STEP 2: Soft delete the resource.
                 deleteTime := {{ fqn "time" "Now" }}()
-                {{ $resourceGoName | untitle }}, ok, err := s.{{ $dbClient }}.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}, deleteTime)
+                {{ $resourceGoName | untitle }}, ok, err := c.{{ $dbClient }}.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}, deleteTime)
                 if err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $resourceGoName | snakecase }}: %v", err)
                 }
@@ -194,7 +194,7 @@ pb "{{ $apiImportPath }}"
                 return pb{{ $resourceGoName }}, nil
             {{ else }}
                 // STEP 2: Hard delete the resource.
-                ok, err := s.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx{{ range $id := $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }})
+                ok, err := c.{{ $dbClient }}.Delete{{ $resourceGoName }}(ctx{{ range $id := $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }})
                 if err != nil {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $resourceGoName | snakecase }}: %v", err)
                 }
@@ -213,7 +213,7 @@ pb "{{ $apiImportPath }}"
 
         {{- else if $rpc.Get }}
             {{- $resourceDbName := printf "db%s" $resourceGoName }}
-            func (s *Service) Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Get{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            func (c *codegen) Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *pb.Get{{ $resourceGoName }}Request) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.Name) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard")
             }
@@ -224,7 +224,7 @@ pb "{{ $apiImportPath }}"
             }
 
             // Retrieve from the database.
-            {{ $resourceDbName }}, ok, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ $pr.PatternVariableIDs true }})
+            {{ $resourceDbName }}, ok, err := c.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ $pr.PatternVariableIDs true }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
 	          }
@@ -242,7 +242,7 @@ pb "{{ $apiImportPath }}"
         {{- else if $rpc.List }}
             var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "NewListRequestParser" }}(&pb.{{ $method.Input.GoIdent.GoName }}{})
 
-            func (s *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             {{- $resourceDbName := printf "db%s" $resourceGoName }}
             {{ if $pr.Parent }}
                 // Parse parent names
@@ -261,7 +261,7 @@ pb "{{ $apiImportPath }}"
             var dbColumns []string
 
             // Retrieve from the database.
-            {{ $resourceDbName }}s, err := s.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
+            {{ $resourceDbName }}s, err := c.{{ $dbClient }}.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsed.GetSQLOrderByClause(), parsed.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err)
 	          }

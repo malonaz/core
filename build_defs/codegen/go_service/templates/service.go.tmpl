@@ -4,18 +4,22 @@ package {{ .implementation | base}}
 {{ if .includeRuntime }}
 type Opts struct{}
 
-type Runtime struct{}
+type runtime struct{}
 
-func newRuntime(opts *Opts) (*Runtime, error) {
-    return &Runtime{}, nil
+func newRuntime(opts *Opts) (*runtime, error) {
+    return &runtime{}, nil
 }
 
 func (s *Service) start(ctx {{ goImport "context" }}.Context) (func(), error) { return func() {}, nil }
 {{ end }}
 
 type Service struct {
+  *runtime
+  *codegen
+}
+
+type codegen struct {
 	log *{{ goImport "log/slog" }}.Logger
-	*Runtime
 	{{ ternary "Opts" "opts" $exportFields }} *Opts
   {{ ternary "With" "with" $exportFields }}ServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context
         {{- range $dep := .dependencies }}
@@ -54,9 +58,8 @@ func New(
 	if err != nil {
 		return nil, {{ goImport "fmt" }}.Errorf("instantiating runtime: %w", err)
 	}
-	return &Service{
+	codegen := &codegen{
 		log: {{ goImport "log/slog" }}.Default(),
-		Runtime: runtime,
 		{{ ternary "Opts" "opts" $exportFields }}: opts,
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
@@ -68,7 +71,11 @@ func New(
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- end }}
         {{- end }}
-	}, nil
+	}
+  return &Service{
+   runtime: runtime,
+   codegen: codegen,
+  }, nil
 }
 
 // Start this service. Returns clean up function.
