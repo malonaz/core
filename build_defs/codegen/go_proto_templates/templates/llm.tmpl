@@ -9,7 +9,13 @@
 {{- /* ################### HELPERS ################### */ -}}
 {{- define "FieldTypeDoc" -}}
     {{- if .Enum -}}
-        string (one of:{{ range $i, $value := .Enum.Values }}{{ if $i }} "{{ $value.Desc.Name }}"{{ end }}{{ end }})
+        string (one of:
+        {{- range $i, $value := .Enum.Values -}}
+            {{- if $i -}}
+                {{ " " }}("{{- $value.Desc.Name }}" {{ $value.Comments.Leading.String | trim }}),
+            {{- end -}}
+        {{- end -}})
+
     {{- else if .Message -}}
         {{- if eq .Message.Desc.FullName "google.protobuf.Timestamp" -}}
             string (ISO 8601 timestamp)

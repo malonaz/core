@@ -67,7 +67,11 @@ func addToWhereClause(whereClause, newClause string) string {
 {{- $singletonChildren := list }}
 {{- range $childPr := $pr.Children }}
 {{- if $childPr.Singleton }}
-{{- $singletonChildren = append $singletonChildren $childPr }}
+	{{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
+	{{- $modelOpts := (getExt $childMessage.Desc "malonaz.core.codegen.model.v1.model_opts") }}
+    {{- if $modelOpts.DatabaseName }}
+  {{- $singletonChildren = append $singletonChildren $childPr }}
+  {{ end }}
 {{- end }}
 {{- end }}
 
