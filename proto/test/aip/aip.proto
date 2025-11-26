@@ -18,7 +18,7 @@ enum MyEnum {
 // ListResourcesRequest tests list operation with filters, ordering, and aliases.
 message ListResourcesRequest {
   option (malonaz.core.codegen.aip.v1.list) = {
-    default_page_size: 1000
+    max_page_size: 1000
     order_by: [
       "id",
       "create_timestamp",

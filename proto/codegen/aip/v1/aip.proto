@@ -28,9 +28,9 @@ extend google.protobuf.MessageOptions {
 // Configuration options for AIP-compliant List methods.
 // This message defines how list requests should be parsed and validated.
 message ListOptions {
-  // The default number of items to return per page when page_size is not specified.
+  // The max number of items to return per page. Used as default if page_size is not specified.
   // This value is used to prevent unbounded queries and ensure consistent pagination.
-  int32 default_page_size = 1;
+  int32 max_page_size = 1;
 
   // List of field names that can be used in the order_by parameter.
   // Only fields listed here are allowed for sorting to prevent SQL injection

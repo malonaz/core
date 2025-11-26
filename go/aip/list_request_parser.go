@@ -42,10 +42,10 @@ func GetNthPageToken(request ListRequest, n int) (string, error) {
 
 // Parser implements aip parsing.
 type Parser struct {
-	declarations    *filtering.Declarations
-	orderByOptions  []string
-	defaultPageSize int32
-	aliases         map[string]string
+	declarations   *filtering.Declarations
+	orderByOptions []string
+	maxPageSize    int32
+	aliases        map[string]string
 }
 
 // NewListRequestParser instantiates and returns a new parser.
@@ -54,8 +54,8 @@ func NewListRequestParser(request ListRequest) *Parser {
 	if options == nil {
 		panic(fmt.Sprintf("%T must define ListOptions", request))
 	}
-	if options.DefaultPageSize == 0 {
-		panic(fmt.Sprintf("must set default page size"))
+	if options.MaxPageSize == 0 {
+		panic(fmt.Sprintf("must set max page size"))
 	}
 
 	isNullFunctionEnumOverloads := []*v1alpha1.Decl_FunctionDecl_Overload{
@@ -145,10 +145,10 @@ func NewListRequestParser(request ListRequest) *Parser {
 		aliases[k] = v
 	}
 	return &Parser{
-		orderByOptions:  orderByOptions,
-		declarations:    declarations,
-		defaultPageSize: options.DefaultPageSize,
-		aliases:         aliases,
+		orderByOptions: orderByOptions,
+		declarations:   declarations,
+		maxPageSize:    options.MaxPageSize,
+		aliases:        aliases,
 	}
 }
 
@@ -258,11 +258,14 @@ func (p *Parser) ParseRequest(request ListRequest, macros ...filtering.Macro) (P
 		panic(err)
 	}
 
-	// Apply default page size if required.
+	// Apply max page size if required.
 	if request.GetPageSize() == 0 {
-		if err := setPageSize(request, p.defaultPageSize); err != nil {
+		if err := setPageSize(request, p.maxPageSize); err != nil {
 			panic(err)
 		}
+	}
+	if request.GetPageSize() > p.maxPageSize {
+		return nil, fmt.Errorf("page_size (%d) exceeds max page_size (%d)", request.GetPageSize(), p.maxPageSize)
 	}
 
 	// Parse page token.
@@ -329,7 +332,7 @@ func setStringField(msg proto.Message, field, newValue string) error {
 	return nil
 }
 
-func setPageSize(msg proto.Message, defaultPageSize int32) error {
+func setPageSize(msg proto.Message, pageSize int32) error {
 	// Reflect on the message to obtain the value
 	v := reflect.ValueOf(msg)
 
@@ -347,6 +350,6 @@ func setPageSize(msg proto.Message, defaultPageSize int32) error {
 	if fieldType != reflect.Int32 {
 		return fmt.Errorf("Filter is not an integer field")
 	}
-	structField.SetInt(int64(defaultPageSize))
+	structField.SetInt(int64(pageSize))
 	return nil
 }

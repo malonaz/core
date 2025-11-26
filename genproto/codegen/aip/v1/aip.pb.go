@@ -27,9 +27,9 @@ const (
 // This message defines how list requests should be parsed and validated.
 type ListOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The default number of items to return per page when page_size is not specified.
+	// The max number of items to return per page. Used as default if page_size is not specified.
 	// This value is used to prevent unbounded queries and ensure consistent pagination.
-	DefaultPageSize int32 `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3" json:"default_page_size,omitempty"`
+	MaxPageSize int32 `protobuf:"varint,1,opt,name=max_page_size,json=maxPageSize,proto3" json:"max_page_size,omitempty"`
 	// List of field names that can be used in the order_by parameter.
 	// Only fields listed here are allowed for sorting to prevent SQL injection
 	// and ensure queries can be efficiently executed.
@@ -76,9 +76,9 @@ func (*ListOptions) Descriptor() ([]byte, []int) {
 	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ListOptions) GetDefaultPageSize() int32 {
+func (x *ListOptions) GetMaxPageSize() int32 {
 	if x != nil {
-		return x.DefaultPageSize
+		return x.MaxPageSize
 	}
 	return 0
 }
@@ -524,9 +524,9 @@ var File_proto_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/codegen/aip/v1/aip.proto\x12\x1bmalonaz.core.codegen.aip.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a google/protobuf/descriptor.proto\"\xa5\x02\n" +
-	"\vListOptions\x12*\n" +
-	"\x11default_page_size\x18\x01 \x01(\x05R\x0fdefaultPageSize\x12\x19\n" +
+	"\x1eproto/codegen/aip/v1/aip.proto\x12\x1bmalonaz.core.codegen.aip.v1\x1a&google/api/expr/v1alpha1/checked.proto\x1a google/protobuf/descriptor.proto\"\x9d\x02\n" +
+	"\vListOptions\x12\"\n" +
+	"\rmax_page_size\x18\x01 \x01(\x05R\vmaxPageSize\x12\x19\n" +
 	"\border_by\x18\x02 \x03(\tR\aorderBy\x12B\n" +
 	"\afilters\x18\x03 \x03(\v2(.malonaz.core.codegen.aip.v1.FilterIdentR\afilters\x12O\n" +
 	"\aaliases\x18\x04 \x03(\v25.malonaz.core.codegen.aip.v1.ListOptions.AliasesEntryR\aaliases\x1a:\n" +
