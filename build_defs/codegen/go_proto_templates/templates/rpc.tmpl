@@ -253,7 +253,7 @@ pb "{{ $apiImportPath }}"
             {{ end }}
 
             // Parse request
-            parsed, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.ParseRequest(request)
+            parsed, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.Parse(request)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error())
 	          }

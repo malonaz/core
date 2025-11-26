@@ -85,7 +85,7 @@ func TestParser_ParseRequest(t *testing.T) {
 				PageSize: 0,
 				OrderBy:  "create_timestamp desc",
 			}
-			parsedRequest, err := parser.ParseRequest(request)
+			parsedRequest, err := parser.Parse(request)
 			require.NoError(t, err)
 
 			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
@@ -102,7 +102,7 @@ func TestParser_ParseRequest(t *testing.T) {
 				PageSize: 10,
 				OrderBy:  "create_timestamp desc",
 			}
-			parsedRequest, err := parser.ParseRequest(request)
+			parsedRequest, err := parser.Parse(request)
 			require.NoError(t, err)
 
 			whereClause, whereParams := parsedRequest.GetSQLWhereClause()

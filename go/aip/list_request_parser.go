@@ -23,33 +23,20 @@ import (
 type ListRequest interface {
 	proto.Message
 	GetFilter() string
-	GetPageSize() int32
-	GetPageToken() string
 	GetOrderBy() string
+	pagination.Request
 }
 
-// GetNextPageToken computes the next page token of this request.
-func GetNthPageToken(request ListRequest, n int) (string, error) {
-	pageToken, err := pagination.ParsePageToken(request)
-	if err != nil {
-		return "", fmt.Errorf("parsing page token: %w", err)
-	}
-	for i := 0; i < n; i++ {
-		pageToken = pageToken.Next(request)
-	}
-	return pageToken.String(), nil
-}
-
-// Parser implements aip parsing.
-type Parser struct {
+// ListRequestParser implements aip parsing.
+type ListRequestParser struct {
 	declarations   *filtering.Declarations
 	orderByOptions []string
 	maxPageSize    int32
 	aliases        map[string]string
 }
 
-// NewListRequestParser instantiates and returns a new parser.
-func NewListRequestParser(request ListRequest) *Parser {
+// NewListRequestListRequestParser instantiates and returns a new parser.
+func NewListRequestParser(request ListRequest) *ListRequestParser {
 	options := pbutil.MustGetMessageOption(request, aippb.E_List).(*aippb.ListOptions)
 	if options == nil {
 		panic(fmt.Sprintf("%T must define ListOptions", request))
@@ -144,7 +131,7 @@ func NewListRequestParser(request ListRequest) *Parser {
 	for k, v := range options.Aliases {
 		aliases[k] = v
 	}
-	return &Parser{
+	return &ListRequestParser{
 		orderByOptions: orderByOptions,
 		declarations:   declarations,
 		maxPageSize:    options.MaxPageSize,
@@ -192,8 +179,8 @@ var (
 	)
 )
 
-// ParsedRequest is a request that is parsed.
-type ParsedRequest interface {
+// ParsedListRequest is a request that is parsed.
+type ParsedListRequest interface {
 	// Returns an SQL limit/offset clause. The limit is 0 if the request's page size is 0, or pageSize + 1 otherwise. Offset is the page token's offset if it exists.
 	GetSQLPaginationClause() string
 	// Returns "" if the request's page size is 0 or if we found `GetLimit` objects, indicating there is no more pages.
@@ -205,42 +192,26 @@ type ParsedRequest interface {
 	GetSQLOrderByClause() string
 }
 
-type parsedRequest struct {
-	request     ListRequest
-	pageToken   pagination.PageToken
+type parsedListRequest struct {
+	request ListRequest
+	ParsedPaginatedRequest
 	orderBy     ordering.OrderBy
 	whereClause string
 	whereParams []any
 }
 
-// GetSQLLimitClause implements the ParsedRequest interface.
-func (pr *parsedRequest) GetSQLPaginationClause() string {
-	if pr.request.GetPageSize() == 0 {
-		return ""
-	}
-	return fmt.Sprintf("OFFSET %d LIMIT %d", pr.pageToken.Offset, pr.request.GetPageSize()+1)
-}
-
-// GetNextPageToken implements the ParsedRequest interface.
-func (pr *parsedRequest) GetNextPageToken(itemsFetched int) string {
-	if pr.request.GetPageSize() == 0 || itemsFetched <= int(pr.request.GetPageSize()) {
-		return ""
-	}
-	return pr.pageToken.Next(pr.request).String()
-}
-
-// GetSQLOrderByClause implements the ParsedRequest interface.
-func (pr *parsedRequest) GetSQLOrderByClause() string {
+// GetSQLOrderByClause implements the ParsedListRequest interface.
+func (pr *parsedListRequest) GetSQLOrderByClause() string {
 	return spanordering.TranspileOrderBy(pr.orderBy)
 }
 
-// GetSQLWhereClause implements the ParsedRequest interface.
-func (pr *parsedRequest) GetSQLWhereClause() (string, []any) {
+// GetSQLWhereClause implements the ParsedListRequest interface.
+func (pr *parsedListRequest) GetSQLWhereClause() (string, []any) {
 	return pr.whereClause, pr.whereParams
 }
 
-// ParseRequest parses the given request. Any error should be returned as a InvalidArgument error.
-func (p *Parser) ParseRequest(request ListRequest, macros ...filtering.Macro) (ParsedRequest, error) {
+// Parse parses the given request. Any error should be returned as a InvalidArgument error.
+func (p *ListRequestParser) Parse(request ListRequest, macros ...filtering.Macro) (ParsedListRequest, error) {
 	// Apply replacements to the request.
 	filterExpression := request.GetFilter()
 	for k, v := range p.aliases {
@@ -269,7 +240,7 @@ func (p *Parser) ParseRequest(request ListRequest, macros ...filtering.Macro) (P
 	}
 
 	// Parse page token.
-	pageToken, err := pagination.ParsePageToken(request)
+	parsedPaginatedRequest, err := ParsePaginatedRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("parsing page token: %w", err)
 	}
@@ -301,12 +272,12 @@ func (p *Parser) ParseRequest(request ListRequest, macros ...filtering.Macro) (P
 		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
 	}
 
-	return &parsedRequest{
-		request:     request,
-		pageToken:   pageToken,
-		orderBy:     orderBy,
-		whereClause: whereClause,
-		whereParams: whereParams,
+	return &parsedListRequest{
+		ParsedPaginatedRequest: parsedPaginatedRequest,
+		request:                request,
+		orderBy:                orderBy,
+		whereClause:            whereClause,
+		whereParams:            whereParams,
 	}, nil
 }
 

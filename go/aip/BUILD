@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "list_request_parser.go",
         "paginate.go",
+        "pagination.go",
         "update_request_parser.go",
         "uuid_namespace.go",
     ],
