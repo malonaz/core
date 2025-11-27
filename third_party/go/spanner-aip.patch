@@ -19,7 +19,7 @@ index 5770db6..b7e33d4 100644
  	t.Init(filter)
  	return t.Transpile()
 diff --git a/spanfiltering/transpiler.go b/spanfiltering/transpiler.go
-index b858ae6..c82c7a4 100644
+index b858ae6..a280f5b 100644
 --- a/spanfiltering/transpiler.go
 +++ b/spanfiltering/transpiler.go
 @@ -4,6 +4,7 @@ import (
@@ -101,7 +101,7 @@ index b858ae6..c82c7a4 100644
  		return nil, fmt.Errorf("unknown type of ident expr %d", e.Id)
  	}
  	if messageType := identType.GetMessageType(); messageType != "" {
-@@ -194,6 +205,66 @@ func (t *Transpiler) transpileComparisonCallExpr(
+@@ -194,6 +205,110 @@ func (t *Transpiler) transpileComparisonCallExpr(
  	}, nil
  }
  
@@ -147,28 +147,72 @@ index b858ae6..c82c7a4 100644
 +	if err != nil {
 +		return nil, err
 +	}
++
++	// Determine the expected type from the type map
++	exprType, ok := t.filter.CheckedExpr.TypeMap[e.Id]
++	if !ok {
++		return nil, fmt.Errorf("unknown type of JSONB expr %d", e.Id)
++	}
++
++
++	// Determine if we need type casting
++	needsCast := true
++	var castType string
++
++	primitive := exprType.GetPrimitive()
++	switch primitive {
++	case expr.Type_STRING:
++		needsCast = false // strings use ->> operator
++	case expr.Type_BOOL:
++		castType = "boolean"
++	case expr.Type_INT64:
++		castType = "bigint"
++	case expr.Type_UINT64:
++		castType = "bigint" // PostgreSQL doesn't have unsigned types
++	case expr.Type_DOUBLE:
++		castType = "double precision"
++	default:
++		// fallback to string.
++		// Note: protobuf timestamps get marshaled as string in json.
++		needsCast = false
++	}
++
++
 +	var sb strings.Builder
 +	split := strings.Split(jsonPathExpr.SQL(), "@")
 +	if len(split) < 1 {
 +		return nil, fmt.Errorf("jsonpath path needs at least one value")
 +	}
 +	sb.WriteString(jsonbStartPlaceholder)
++	if needsCast {
++		sb.WriteString("(")
++	}
 +	sb.WriteString(split[0])
++
++	// Build the JSON path expression
 +	for i := 1; i < len(split); i++ {
-+		if i < len(split) - 1{
++		// Use -> for intermediate levels, ->> for final level (string extraction)
++		if i < len(split)-1 {
 +			sb.WriteString("->")
 +		} else {
 +			sb.WriteString("->>")
 +		}
 +		sb.WriteString("'" + split[i] + "'")
 +	}
++
++	// Add type cast if needed
++	if needsCast {
++		sb.WriteString(")::")
++		sb.WriteString(castType)
++	}
++
 +	return spansql.Param(sb.String()), nil
 +}
 +
  func (t *Transpiler) transpileBinaryLogicalCallExpr(
  	e *expr.Expr,
  	op spansql.LogicalOperator,
-@@ -292,12 +363,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
+@@ -292,12 +407,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
  
  func (t *Transpiler) param(param interface{}) spansql.Param {
  	p := t.nextParam()

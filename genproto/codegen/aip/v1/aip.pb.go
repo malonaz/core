@@ -8,7 +8,6 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
@@ -28,8 +27,8 @@ const (
 type FilteringOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// List of fields that can be used in the filter expression.
-	// Each FilterIdent defines a filterable field and its type for validation.
-	Filters       []*FilterIdent `protobuf:"bytes,1,rep,name=filters,proto3" json:"filters,omitempty"`
+	// Can use * or some.path.* wildcards.
+	Paths         []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -64,9 +63,9 @@ func (*FilteringOptions) Descriptor() ([]byte, []int) {
 	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *FilteringOptions) GetFilters() []*FilterIdent {
+func (x *FilteringOptions) GetPaths() []string {
 	if x != nil {
-		return x.Filters
+		return x.Paths
 	}
 	return nil
 }
@@ -174,123 +173,6 @@ func (x *OrderingOptions) GetDefault() string {
 	return ""
 }
 
-// Defines a filterable field and its type for AIP filter expressions.
-// Used by the parser to validate filter syntax and generate SQL where clauses.
-type FilterIdent struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The name of the field that can be filtered.
-	// This should match the field name in the proto message or its alias.
-	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
-	// The type of the field, used for validation and SQL generation.
-	// Only one of these types should be set.
-	//
-	// Types that are valid to be assigned to Type:
-	//
-	//	*FilterIdent_Primitive
-	//	*FilterIdent_WellKnown
-	//	*FilterIdent_Enum
-	Type          isFilterIdent_Type `protobuf_oneof:"type"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FilterIdent) Reset() {
-	*x = FilterIdent{}
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FilterIdent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FilterIdent) ProtoMessage() {}
-
-func (x *FilterIdent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FilterIdent.ProtoReflect.Descriptor instead.
-func (*FilterIdent) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *FilterIdent) GetField() string {
-	if x != nil {
-		return x.Field
-	}
-	return ""
-}
-
-func (x *FilterIdent) GetType() isFilterIdent_Type {
-	if x != nil {
-		return x.Type
-	}
-	return nil
-}
-
-func (x *FilterIdent) GetPrimitive() v1alpha1.Type_PrimitiveType {
-	if x != nil {
-		if x, ok := x.Type.(*FilterIdent_Primitive); ok {
-			return x.Primitive
-		}
-	}
-	return v1alpha1.Type_PrimitiveType(0)
-}
-
-func (x *FilterIdent) GetWellKnown() v1alpha1.Type_WellKnownType {
-	if x != nil {
-		if x, ok := x.Type.(*FilterIdent_WellKnown); ok {
-			return x.WellKnown
-		}
-	}
-	return v1alpha1.Type_WellKnownType(0)
-}
-
-func (x *FilterIdent) GetEnum() string {
-	if x != nil {
-		if x, ok := x.Type.(*FilterIdent_Enum); ok {
-			return x.Enum
-		}
-	}
-	return ""
-}
-
-type isFilterIdent_Type interface {
-	isFilterIdent_Type()
-}
-
-type FilterIdent_Primitive struct {
-	// Primitive types like INT64, UINT64, BOOL, STRING, DOUBLE.
-	Primitive v1alpha1.Type_PrimitiveType `protobuf:"varint,2,opt,name=primitive,proto3,enum=google.api.expr.v1alpha1.Type_PrimitiveType,oneof"`
-}
-
-type FilterIdent_WellKnown struct {
-	// Well-known types like TIMESTAMP, DURATION, etc.
-	WellKnown v1alpha1.Type_WellKnownType `protobuf:"varint,3,opt,name=well_known,json=wellKnown,proto3,enum=google.api.expr.v1alpha1.Type_WellKnownType,oneof"`
-}
-
-type FilterIdent_Enum struct {
-	// Fully qualified enum type name (e.g., "mypackage.MyEnum").
-	// Used to validate enum values in filter expressions.
-	Enum string `protobuf:"bytes,4,opt,name=enum,proto3,oneof"`
-}
-
-func (*FilterIdent_Primitive) isFilterIdent_Type() {}
-
-func (*FilterIdent_WellKnown) isFilterIdent_Type() {}
-
-func (*FilterIdent_Enum) isFilterIdent_Type() {}
-
 // Configuration options for AIP-compliant Update methods.
 // Defines which fields can be updated and how field masks are processed.
 type UpdateOptions struct {
@@ -313,7 +195,7 @@ type UpdateOptions struct {
 
 func (x *UpdateOptions) Reset() {
 	*x = UpdateOptions{}
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[4]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -325,7 +207,7 @@ func (x *UpdateOptions) String() string {
 func (*UpdateOptions) ProtoMessage() {}
 
 func (x *UpdateOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[4]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -338,7 +220,7 @@ func (x *UpdateOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOptions.ProtoReflect.Descriptor instead.
 func (*UpdateOptions) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{4}
+	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UpdateOptions) GetDefaultPaths() []string {
@@ -376,7 +258,7 @@ type AuthorizedUpdatePath struct {
 
 func (x *AuthorizedUpdatePath) Reset() {
 	*x = AuthorizedUpdatePath{}
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[5]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +270,7 @@ func (x *AuthorizedUpdatePath) String() string {
 func (*AuthorizedUpdatePath) ProtoMessage() {}
 
 func (x *AuthorizedUpdatePath) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[5]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +283,7 @@ func (x *AuthorizedUpdatePath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizedUpdatePath.ProtoReflect.Descriptor instead.
 func (*AuthorizedUpdatePath) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{5}
+	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AuthorizedUpdatePath) GetPath() string {
@@ -430,7 +312,7 @@ type UpdatePathMapping struct {
 
 func (x *UpdatePathMapping) Reset() {
 	*x = UpdatePathMapping{}
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[6]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -442,7 +324,7 @@ func (x *UpdatePathMapping) String() string {
 func (*UpdatePathMapping) ProtoMessage() {}
 
 func (x *UpdatePathMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[6]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -455,7 +337,7 @@ func (x *UpdatePathMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePathMapping.ProtoReflect.Descriptor instead.
 func (*UpdatePathMapping) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{6}
+	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdatePathMapping) GetFrom() string {
@@ -489,7 +371,7 @@ type StandardMethod struct {
 
 func (x *StandardMethod) Reset() {
 	*x = StandardMethod{}
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[7]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -501,7 +383,7 @@ func (x *StandardMethod) String() string {
 func (*StandardMethod) ProtoMessage() {}
 
 func (x *StandardMethod) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[7]
+	mi := &file_proto_codegen_aip_v1_aip_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -514,7 +396,7 @@ func (x *StandardMethod) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StandardMethod.ProtoReflect.Descriptor instead.
 func (*StandardMethod) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{7}
+	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StandardMethod) GetResource() string {
@@ -618,22 +500,15 @@ var File_proto_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
 
 const file_proto_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/codegen/aip/v1/aip.proto\x12\x1bmalonaz.core.codegen.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a&google/api/expr/v1alpha1/checked.proto\x1a google/protobuf/descriptor.proto\"V\n" +
-	"\x10FilteringOptions\x12B\n" +
-	"\afilters\x18\x01 \x03(\v2(.malonaz.core.codegen.aip.v1.FilterIdentR\afilters\"H\n" +
+	"\x1eproto/codegen/aip/v1/aip.proto\x12\x1bmalonaz.core.codegen.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\"(\n" +
+	"\x10FilteringOptions\x12\x14\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"H\n" +
 	"\x11PaginationOptions\x123\n" +
 	"\x11default_page_size\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x0fdefaultPageSize\"\xc7\x02\n" +
 	"\x0fOrderingOptions\x125\n" +
 	"\x06fields\x18\x01 \x03(\tB\x1d\xbaH\x1a\x92\x01\x17\"\x15r\x132\x11^[a-z][a-z0-9_]*$R\x06fields\x12B\n" +
 	"\adefault\x18\x02 \x01(\tB(\xbaH%\xc8\x01\x01r 2\x1e^[a-z][a-z0-9_]*\\s+(asc|desc)$R\adefault:\xb8\x01\xbaH\xb4\x01\x1a\xb1\x01\n" +
-	"\"ordering_options.default_in_fields\x129default ordering field must be present in the fields list\x1aPthis.fields.exists(f, f + ' asc' == this.default || f + ' desc' == this.default)\"\xde\x01\n" +
-	"\vFilterIdent\x12\x14\n" +
-	"\x05field\x18\x01 \x01(\tR\x05field\x12L\n" +
-	"\tprimitive\x18\x02 \x01(\x0e2,.google.api.expr.v1alpha1.Type.PrimitiveTypeH\x00R\tprimitive\x12M\n" +
-	"\n" +
-	"well_known\x18\x03 \x01(\x0e2,.google.api.expr.v1alpha1.Type.WellKnownTypeH\x00R\twellKnown\x12\x14\n" +
-	"\x04enum\x18\x04 \x01(\tH\x00R\x04enumB\x06\n" +
-	"\x04type\"\xe7\x01\n" +
+	"\"ordering_options.default_in_fields\x129default ordering field must be present in the fields list\x1aPthis.fields.exists(f, f + ' asc' == this.default || f + ' desc' == this.default)\"\xe7\x01\n" +
 	"\rUpdateOptions\x12#\n" +
 	"\rdefault_paths\x18\x01 \x03(\tR\fdefaultPaths\x12\\\n" +
 	"\x10authorized_paths\x18\x02 \x03(\v21.malonaz.core.codegen.aip.v1.AuthorizedUpdatePathR\x0fauthorizedPaths\x12S\n" +
@@ -668,43 +543,37 @@ func file_proto_codegen_aip_v1_aip_proto_rawDescGZIP() []byte {
 	return file_proto_codegen_aip_v1_aip_proto_rawDescData
 }
 
-var file_proto_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_codegen_aip_v1_aip_proto_goTypes = []any{
 	(*FilteringOptions)(nil),            // 0: malonaz.core.codegen.aip.v1.FilteringOptions
 	(*PaginationOptions)(nil),           // 1: malonaz.core.codegen.aip.v1.PaginationOptions
 	(*OrderingOptions)(nil),             // 2: malonaz.core.codegen.aip.v1.OrderingOptions
-	(*FilterIdent)(nil),                 // 3: malonaz.core.codegen.aip.v1.FilterIdent
-	(*UpdateOptions)(nil),               // 4: malonaz.core.codegen.aip.v1.UpdateOptions
-	(*AuthorizedUpdatePath)(nil),        // 5: malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
-	(*UpdatePathMapping)(nil),           // 6: malonaz.core.codegen.aip.v1.UpdatePathMapping
-	(*StandardMethod)(nil),              // 7: malonaz.core.codegen.aip.v1.StandardMethod
-	(v1alpha1.Type_PrimitiveType)(0),    // 8: google.api.expr.v1alpha1.Type.PrimitiveType
-	(v1alpha1.Type_WellKnownType)(0),    // 9: google.api.expr.v1alpha1.Type.WellKnownType
-	(*descriptorpb.MethodOptions)(nil),  // 10: google.protobuf.MethodOptions
-	(*descriptorpb.MessageOptions)(nil), // 11: google.protobuf.MessageOptions
+	(*UpdateOptions)(nil),               // 3: malonaz.core.codegen.aip.v1.UpdateOptions
+	(*AuthorizedUpdatePath)(nil),        // 4: malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
+	(*UpdatePathMapping)(nil),           // 5: malonaz.core.codegen.aip.v1.UpdatePathMapping
+	(*StandardMethod)(nil),              // 6: malonaz.core.codegen.aip.v1.StandardMethod
+	(*descriptorpb.MethodOptions)(nil),  // 7: google.protobuf.MethodOptions
+	(*descriptorpb.MessageOptions)(nil), // 8: google.protobuf.MessageOptions
 }
 var file_proto_codegen_aip_v1_aip_proto_depIdxs = []int32{
-	3,  // 0: malonaz.core.codegen.aip.v1.FilteringOptions.filters:type_name -> malonaz.core.codegen.aip.v1.FilterIdent
-	8,  // 1: malonaz.core.codegen.aip.v1.FilterIdent.primitive:type_name -> google.api.expr.v1alpha1.Type.PrimitiveType
-	9,  // 2: malonaz.core.codegen.aip.v1.FilterIdent.well_known:type_name -> google.api.expr.v1alpha1.Type.WellKnownType
-	5,  // 3: malonaz.core.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
-	6,  // 4: malonaz.core.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.core.codegen.aip.v1.UpdatePathMapping
-	10, // 5: malonaz.core.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
-	11, // 6: malonaz.core.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
-	11, // 7: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	11, // 8: malonaz.core.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
-	11, // 9: malonaz.core.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
-	11, // 10: malonaz.core.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
-	7,  // 11: malonaz.core.codegen.aip.v1.standard_method:type_name -> malonaz.core.codegen.aip.v1.StandardMethod
-	4,  // 12: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
-	1,  // 13: malonaz.core.codegen.aip.v1.pagination:type_name -> malonaz.core.codegen.aip.v1.PaginationOptions
-	2,  // 14: malonaz.core.codegen.aip.v1.ordering:type_name -> malonaz.core.codegen.aip.v1.OrderingOptions
-	0,  // 15: malonaz.core.codegen.aip.v1.filtering:type_name -> malonaz.core.codegen.aip.v1.FilteringOptions
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	11, // [11:16] is the sub-list for extension type_name
-	5,  // [5:11] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	4,  // 0: malonaz.core.codegen.aip.v1.UpdateOptions.authorized_paths:type_name -> malonaz.core.codegen.aip.v1.AuthorizedUpdatePath
+	5,  // 1: malonaz.core.codegen.aip.v1.UpdateOptions.path_mappings:type_name -> malonaz.core.codegen.aip.v1.UpdatePathMapping
+	7,  // 2: malonaz.core.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
+	8,  // 3: malonaz.core.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
+	8,  // 4: malonaz.core.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	8,  // 5: malonaz.core.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
+	8,  // 6: malonaz.core.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
+	8,  // 7: malonaz.core.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
+	6,  // 8: malonaz.core.codegen.aip.v1.standard_method:type_name -> malonaz.core.codegen.aip.v1.StandardMethod
+	3,  // 9: malonaz.core.codegen.aip.v1.update:type_name -> malonaz.core.codegen.aip.v1.UpdateOptions
+	1,  // 10: malonaz.core.codegen.aip.v1.pagination:type_name -> malonaz.core.codegen.aip.v1.PaginationOptions
+	2,  // 11: malonaz.core.codegen.aip.v1.ordering:type_name -> malonaz.core.codegen.aip.v1.OrderingOptions
+	0,  // 12: malonaz.core.codegen.aip.v1.filtering:type_name -> malonaz.core.codegen.aip.v1.FilteringOptions
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	8,  // [8:13] is the sub-list for extension type_name
+	2,  // [2:8] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_codegen_aip_v1_aip_proto_init() }
@@ -712,18 +581,13 @@ func file_proto_codegen_aip_v1_aip_proto_init() {
 	if File_proto_codegen_aip_v1_aip_proto != nil {
 		return
 	}
-	file_proto_codegen_aip_v1_aip_proto_msgTypes[3].OneofWrappers = []any{
-		(*FilterIdent_Primitive)(nil),
-		(*FilterIdent_WellKnown)(nil),
-		(*FilterIdent_Enum)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_aip_v1_aip_proto_rawDesc), len(file_proto_codegen_aip_v1_aip_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   7,
 			NumExtensions: 6,
 			NumServices:   0,
 		},

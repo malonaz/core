@@ -3,7 +3,6 @@ syntax = "proto3";
 package malonaz.core.codegen.aip.v1;
 
 import "buf/validate/validate.proto";
-import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
@@ -33,8 +32,8 @@ extend google.protobuf.MessageOptions {
 // Options for filtering.
 message FilteringOptions {
   // List of fields that can be used in the filter expression.
-  // Each FilterIdent defines a filterable field and its type for validation.
-  repeated FilterIdent filters = 1;
+  // Can use * or some.path.* wildcards.
+  repeated string paths = 1;
 }
 
 // Options for pagination.
@@ -60,28 +59,6 @@ message OrderingOptions {
     (buf.validate.field).required = true,
     (buf.validate.field).string.pattern = "^[a-z][a-z0-9_]*\\s+(asc|desc)$"
   ];
-}
-
-// Defines a filterable field and its type for AIP filter expressions.
-// Used by the parser to validate filter syntax and generate SQL where clauses.
-message FilterIdent {
-  // The name of the field that can be filtered.
-  // This should match the field name in the proto message or its alias.
-  string field = 1;
-
-  // The type of the field, used for validation and SQL generation.
-  // Only one of these types should be set.
-  oneof type {
-    // Primitive types like INT64, UINT64, BOOL, STRING, DOUBLE.
-    google.api.expr.v1alpha1.Type.PrimitiveType primitive = 2;
-
-    // Well-known types like TIMESTAMP, DURATION, etc.
-    google.api.expr.v1alpha1.Type.WellKnownType well_known = 3;
-
-    // Fully qualified enum type name (e.g., "mypackage.MyEnum").
-    // Used to validate enum values in filter expressions.
-    string enum = 4;
-  }
 }
 
 // Configuration options for AIP-compliant Update methods.

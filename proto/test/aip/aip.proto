@@ -4,6 +4,7 @@ package test.aip.v1;
 
 import "google/protobuf/field_mask.proto";
 import "proto/codegen/aip/v1/aip.proto";
+import "proto/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
 
@@ -13,6 +14,31 @@ enum MyEnum {
   MY_ENUM_UNSPECIFIED = 0;
   // Some specified value.
   MY_ENUM_VALUE = 1;
+}
+
+// A nullable enum.
+enum MyNullableEnum {
+  // Default value.
+  MY_NULLABLE_ENUM_UNSPECIFIED = 0;
+}
+
+// ListResourcesRequest2 tests wildcard path filtering.
+message ListResourcesRequest2 {
+  option (malonaz.core.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.core.codegen.aip.v1.filtering) = {
+    paths: [
+      "id",
+      "nested.*",
+      "nested2.further_nested.*"
+    ]
+  };
+
+  // A filter.
+  string filter = 1;
+  // A page size.
+  int32 page_size = 2;
+  // A page token.
+  string page_token = 3;
 }
 
 // ListResourcesRequest tests list operation with filters, ordering, and aliases.
@@ -27,44 +53,7 @@ message ListResourcesRequest {
     default: "create_timestamp desc"
   };
   option (malonaz.core.codegen.aip.v1.filtering) = {
-    filters: [
-      {
-        field: "id"
-        primitive: STRING
-      },
-      {
-        field: "nested.field2"
-        primitive: INT64
-      },
-      {
-        field: "nested.field3"
-        primitive: STRING
-      },
-      {
-        field: "nested.further_nested.field3"
-        primitive: STRING
-      },
-      {
-        field: "nested.further_nested.field2"
-        primitive: INT64
-      },
-      {
-        field: "create_timestamp"
-        primitive: INT64
-      },
-      {
-        field: "update_timestamp"
-        primitive: INT64
-      },
-      {
-        field: "deleted"
-        primitive: BOOL
-      },
-      {
-        field: "my_enum"
-        enum: "test.aip.v1.MyEnum"
-      }
-    ]
+    paths: ["*"]
   };
 
   // Filter expression for resources.
@@ -109,9 +98,9 @@ message Resource {
   // Simple string field.
   string field1 = 2;
   // Nested resource for path mapping tests.
-  NestedResource nested = 3;
+  NestedResource nested = 3 [(malonaz.core.codegen.model.v1.field_opts).as_json_bytes = true];
   // Second nested resource for full object updates.
-  NestedResource nested2 = 4;
+  NestedResource nested2 = 4 [(malonaz.core.codegen.model.v1.field_opts).as_json_bytes = true];
   // Third nested resource for multi-column mapping.
   NestedResource nested3 = 5;
   // Fourth nested resource for wildcard mapping.
@@ -120,6 +109,10 @@ message Resource {
   MyEnum my_enum = 7;
   // Some boolean field.
   bool deleted = 8;
+  // Nullable enum.
+  MyNullableEnum nullable_enum = 10 [(malonaz.core.codegen.model.v1.field_opts).nullable = true];
+  // A field with a column name change.
+  int64 column_name_changed = 11 [(malonaz.core.codegen.model.v1.field_opts).column_name = "new_name"];
 }
 
 // NestedResource contains fields for testing nested path updates.
@@ -131,7 +124,17 @@ message NestedResource {
   // String field.
   string field3 = 3;
   // Another nested resource.
-  NestedResource further_nested = 4;
+  DeeplyNestedResource further_nested = 4;
+}
+
+// Deeply nested resource.
+message DeeplyNestedResource {
+  // Boolean field.
+  bool field1 = 1;
+  // Integer field for selective updates.
+  int64 field2 = 2;
+  // String field.
+  string field3 = 3;
 }
 
 // UpdateResourceRequest tests field mask with path mappings and authorization.

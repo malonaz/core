@@ -2,6 +2,7 @@ package aip
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -29,9 +30,7 @@ type FilteringRequestParser[T filteringRequest, R proto.Message] struct {
 	resourceMessage R
 	validator       protovalidate.Validator
 	declarations    *filtering.Declarations
-	// All nested fields ordered in decreasing length.
-	nestedFieldsSorted []string
-	fieldToReplacement map[string]string
+	tree            *Tree
 }
 
 func MustNewFilteringRequestParser[T filteringRequest, R proto.Message]() *FilteringRequestParser[T, R] {
@@ -65,101 +64,97 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	// Create a zero value of the resource type for validation
 	var resourceZero R
 
-	fieldToFieldOpts := map[string]*modelpb.FieldOpts{}
-	// Iterate through R's fields and get field options for each
+	// Create a tree and explore.
+	tree, err := NewTree(validator, 10, filteringOptions.GetPaths())
+	if err != nil {
+		return nil, err
+	}
 	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
 	fields := resourceDescriptor.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		options := field.Options()
-		if !proto.HasExtension(options, modelpb.E_FieldOpts) {
+		fieldName := field.TextName()
+		if fieldName == "name" { // Forbidden: this is the resource name.
 			continue
 		}
-		fieldOpts := proto.GetExtension(options, modelpb.E_FieldOpts).(*modelpb.FieldOpts)
-		if fieldOpts == nil {
-			continue
-		}
-		// Validate field options
-		if err := validator.Validate(fieldOpts); err != nil {
-			return nil, fmt.Errorf("validating field options for %s: %v", field.FullName(), err)
-		}
-		fieldToFieldOpts[field.TextName()] = fieldOpts
-		if fieldOpts.ColumnName != "" {
-			fmt.Println(field.TextName(), fieldOpts.ColumnName)
+
+		if err := tree.Explore(fieldName, field, 0); err != nil {
+			return nil, fmt.Errorf("exploring %s: %v", fieldName, field)
 		}
 	}
 
-	declarationOptions := make([]filtering.DeclarationOption, 0, len(filteringOptions.Filters)+3)
-	declarationOptions = append(declarationOptions, filtering.DeclareStandardFunctions(), jsonbFunctionDeclarationOption)
-
-	var nestedFieldsSorted []string
-	fieldToReplacement := map[string]string{}
+	// Instantiate data we need to collect.
+	fieldPathToReplacement := map[string]string{}
+	var declarationOptions []filtering.DeclarationOption
 	isNullFunctionOverloads := getIsNullFunctionDefaultOverloads()
-	for _, filter := range filteringOptions.Filters {
-		if err := pbutil.ValidateMask(resourceZero, filter.Field); err != nil {
-			return nil, fmt.Errorf("validating path %s: %v", filter.Field, err)
+
+	// Sort the nodes in increase depth order and process.
+	tree.SortAsc()
+	for _, node := range tree.Nodes {
+		// Adjust path.
+		replacementPath := node.Path
+
+		// Check column name override on root object.
+		if node.Depth == 0 && node.ColumnName != "" {
+			replacementPath = node.ColumnName
 		}
-
-		fieldName := filter.Field
-		if strings.Contains(fieldName, ".") {
-			// Capture nested field.
-			nestedFieldsSorted = append(nestedFieldsSorted, fieldName)
-			// Capture replacement.
-			replacement := strings.ReplaceAll(fieldName, ".", "@")
-			fieldToReplacement[fieldName] = replacement
-			// Replace.
-			fieldName = replacement
-		}
-		switch filter.Type.(type) {
-		case *aippb.FilterIdent_WellKnown:
-			exprType := &v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: filter.GetWellKnown()}}
-			declarationOption := filtering.DeclareIdent(fieldName, exprType)
-			declarationOptions = append(declarationOptions, declarationOption)
-
-		case *aippb.FilterIdent_Primitive:
-			exprType := &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: filter.GetPrimitive()}}
-			declarationOption := filtering.DeclareIdent(fieldName, exprType)
-			declarationOptions = append(declarationOptions, declarationOption)
-
-		case *aippb.FilterIdent_Enum:
-			enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(filter.GetEnum()))
-			if err != nil {
-				return nil, fmt.Errorf("finding enum type %s: %w", filter.GetEnum(), err)
+		// Handle nested fields.
+		if node.Depth > 0 {
+			// Handle the case where this node is nested under a root path with a replacement path.
+			// The root replacement must already be in the map because we sort the tree in ascending node depth.
+			rootNodePath := node.RootNodePath()
+			if rootNodeReplacement, ok := fieldPathToReplacement[rootNodePath]; ok {
+				replacementPath = strings.Replace(replacementPath, rootNodePath, rootNodeReplacement, 1) // 1 to only make one replacement.
 			}
-			declarationOption := filtering.DeclareEnumIdent(fieldName, enumType)
-			declarationOptions = append(declarationOptions, declarationOption)
-
-			// Overload is null function.
-			enumIdentType := filtering.TypeEnum(enumType)
-			isNullFunctionOverload := filtering.NewFunctionOverload(
-				spanfiltering.FunctionIsNull+"_"+enumIdentType.GetMessageType(),
-				filtering.TypeBool,
-				enumIdentType,
-			)
-			isNullFunctionOverloads = append(isNullFunctionOverloads, isNullFunctionOverload)
+			replacementPath = strings.ReplaceAll(replacementPath, ".", "@")
+		}
+		// Tag the replacement.
+		if replacementPath != node.Path {
+			node.ReplacementPath = replacementPath
+			node.ReplacementPathRegexp = getReplacementPathRegexp(node.Path)
 		}
 	}
 
-	// Construct the isNull declaration option.
+	for _, node := range tree.AllowedNodes() {
+		replacementPath := node.Path
+		if node.ReplacementPath != "" {
+			replacementPath = node.ReplacementPath
+		}
+
+		if node.ExprType != nil {
+			declarationOptions = append(declarationOptions, filtering.DeclareIdent(replacementPath, node.ExprType))
+		}
+		if node.EnumType != nil {
+			declarationOptions = append(declarationOptions, filtering.DeclareEnumIdent(replacementPath, node.EnumType))
+			if node.Nullable || node.Depth > 0 { // It's either a root nullable field or a nullable-by-default JSONB value.
+				enumIdentType := filtering.TypeEnum(node.EnumType)
+				isNullOverload := filtering.NewFunctionOverload(
+					spanfiltering.FunctionIsNull+"_"+enumIdentType.GetMessageType(), filtering.TypeBool, enumIdentType,
+				)
+				isNullFunctionOverloads = append(isNullFunctionOverloads, isNullOverload)
+			}
+		}
+	}
+
+	// Standard functions.
+	declarationOptions = append(declarationOptions, filtering.DeclareStandardFunctions())
+	// Jsonb function.
+	declarationOptions = append(declarationOptions, jsonbFunctionDeclarationOption)
+	// Construct the isNull declaration option
 	isNullDeclarationOption := filtering.DeclareFunction(spanfiltering.FunctionIsNull, isNullFunctionOverloads...)
 	declarationOptions = append(declarationOptions, isNullDeclarationOption)
 
-	// Build the declarations.
+	// Build the declarations
 	declarations, err := filtering.NewDeclarations(declarationOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("creating filter declarations: %w", err)
 	}
 
-	// Sorting.
-	slices.SortFunc(nestedFieldsSorted, func(a, b string) int { return len(b) - len(a) }) // b - a for descending (longest first) }
-
-	// Return the parser.
 	return &FilteringRequestParser[T, R]{
-		resourceMessage:    resourceZero,
-		validator:          validator,
-		declarations:       declarations,
-		nestedFieldsSorted: nestedFieldsSorted,
-		fieldToReplacement: fieldToReplacement,
+		resourceMessage: resourceZero,
+		validator:       validator,
+		declarations:    declarations,
+		tree:            tree,
 	}, nil
 }
 
@@ -169,13 +164,8 @@ func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, erro
 	// We need to replace those with `JSONB(hello@hi@now)`
 	// We must be careful to ensure that if there's a `hello.hi` declared and a `hello.hi.now` declared.
 	// We don't do `JSONB(hello.hi).now` / this would be problematic.
-	// We sort by length to prevent this issue in the instantiation of the parser.
-	for _, nestedField := range p.nestedFieldsSorted {
-		replacement, ok := p.fieldToReplacement[nestedField]
-		if !ok {
-			return nil, fmt.Errorf("%s replacement not found", nestedField)
-		}
-		filterClause = strings.ReplaceAll(filterClause, nestedField, "JSONB("+replacement+")")
+	for _, node := range p.tree.AllowedNodes() {
+		filterClause = node.ApplyReplacement(filterClause)
 	}
 	p.setFilter(request, filterClause)
 
@@ -230,6 +220,13 @@ var (
 			filtering.TypeString,
 			filtering.TypeString,
 		),
+
+		// Type casted as concrete type.
+		filtering.NewFunctionOverload(
+			spanfiltering.FunctionJSONB+"_bool",
+			filtering.TypeBool,
+			filtering.TypeBool,
+		),
 		filtering.NewFunctionOverload(
 			spanfiltering.FunctionJSONB+"_int",
 			filtering.TypeInt,
@@ -266,4 +263,211 @@ func getIsNullFunctionDefaultOverloads() []*v1alpha1.Decl_FunctionDecl_Overload 
 			filtering.TypeFloat,
 		),
 	}
+}
+
+type Tree struct {
+	Validator      protovalidate.Validator
+	AllowAllPaths  bool
+	AllowedPathSet map[string]struct{}
+	MaxDepth       int
+	Nodes          []*Node
+}
+
+func NewTree(validator protovalidate.Validator, maxDepth int, allowedPaths []string) (*Tree, error) {
+	var allowAllPaths bool
+	allowedPathSet := make(map[string]struct{}, len(allowedPaths))
+	for _, allowedPath := range allowedPaths {
+		allowedPathSet[allowedPath] = struct{}{}
+		if allowedPath == "*" {
+			allowAllPaths = true
+		}
+	}
+	if allowAllPaths && len(allowedPaths) != 1 {
+		return nil, fmt.Errorf("cannot use '*' in combination with other paths")
+	}
+
+	return &Tree{
+		Validator:      validator,
+		AllowAllPaths:  allowAllPaths,
+		AllowedPathSet: allowedPathSet,
+		MaxDepth:       10,
+	}, nil
+}
+
+func (t *Tree) AllowedNodes() []*Node {
+	var allowedNodes = make([]*Node, 0, len(t.Nodes))
+	for _, node := range t.Nodes {
+		if t.IsPathAllowed(node) {
+			allowedNodes = append(allowedNodes, node)
+		}
+	}
+	return allowedNodes
+}
+
+func (t *Tree) SortAsc() {
+	slices.SortFunc(t.Nodes, func(a, b *Node) int { return a.Depth - b.Depth })
+}
+
+func (t *Tree) Add(n *Node) {
+	t.Nodes = append(t.Nodes, n)
+}
+
+// IsPathAllowed checks if a path is allowed for filtering based on the configured paths.
+// Returns true if:
+// - No paths are configured (AllowedPathSet is empty), meaning all paths are allowed
+// - The path exactly matches an allowed path
+// - The path matches a wildcard pattern (e.g., "nested.*" allows "nested.field1")
+// - The path is a parent of an allowed path (e.g., "nested" is allowed if "nested.field1" is allowed)
+func (t *Tree) IsPathAllowed(node *Node) bool {
+	// This should not be possible but better to be defensive.
+	if len(t.AllowedPathSet) == 0 {
+		return false
+	}
+	if t.AllowAllPaths {
+		return true
+	}
+
+	// Check exact match
+	path := node.Path
+	if _, ok := t.AllowedPathSet[path]; ok {
+		return true
+	}
+
+	// Check wildcard matches
+	// For path "nested.field1", check if "nested.*" is allowed
+	// For path "nested.deep.field", check both "nested.*" and "nested.deep.*"
+	parts := strings.Split(path, ".")
+	for i := 1; i <= len(parts); i++ {
+		wildcardPath := strings.Join(parts[:i], ".") + ".*"
+		if _, ok := t.AllowedPathSet[wildcardPath]; ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+type Node struct {
+	// Parse time.
+	Depth      int
+	ColumnName string
+	Path       string
+	Nullable   bool
+	ExprType   *v1alpha1.Type
+	EnumType   protoreflect.EnumType
+
+	// Replacement stuff.
+	ReplacementPath       string
+	ReplacementPathRegexp *regexp.Regexp
+}
+
+func (n *Node) RootNodePath() string {
+	if idx := strings.Index(n.Path, "."); idx != -1 {
+		return n.Path[:idx]
+	}
+	return n.Path
+}
+
+func getReplacementPathRegexp(path string) *regexp.Regexp {
+	return regexp.MustCompile(`\b` + regexp.QuoteMeta(path) + `\b(?:[^.]|$)`)
+}
+
+// ApplyReplacement replaces all occurrences of a field path in the clause with its replacement.
+// The field is treated as an atomic unit - dots are literal separators, not regex wildcards.
+// A field matches only when:
+//   - It starts at a word boundary
+//   - It ends at a word boundary
+//   - It's NOT followed by a dot (which would make it part of a longer path)
+//
+// After replacement, if the replacement contains '@' (indicating a nested JSONB field),
+// it wraps the replacement in JSONB().
+func (n *Node) ApplyReplacement(clause string) string {
+	if n.ReplacementPath == "" {
+		return clause
+	}
+	result := n.ReplacementPathRegexp.ReplaceAllStringFunc(clause, func(match string) string {
+		// The match includes the field + one extra character (or nothing at end)
+		// We need to preserve that extra character
+		fieldLen := len(n.Path)
+		suffix := match[fieldLen:] // Empty string or the non-dot character
+
+		replacementPath := n.ReplacementPath
+		if strings.Contains(replacementPath, "@") {
+			replacementPath = "JSONB(" + replacementPath + ")"
+		}
+		return replacementPath + suffix
+	})
+
+	return result
+}
+
+func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor, depth int) error {
+	if depth == t.MaxDepth+1 { // Exact check as sanity check that we are traversing correctly.
+		return nil
+	}
+
+	// Parse options.
+	fieldName := fieldDesc.TextName()
+	options := fieldDesc.Options()
+	var fieldOpts *modelpb.FieldOpts
+	if proto.HasExtension(options, modelpb.E_FieldOpts) {
+		fieldOpts = proto.GetExtension(options, modelpb.E_FieldOpts).(*modelpb.FieldOpts)
+		if err := t.Validator.Validate(fieldOpts); err != nil {
+			return fmt.Errorf("validating fields opts %s: %v", fieldName, err)
+		}
+	}
+
+	// We do not store this field in the db.
+	if fieldOpts.GetSkip() {
+		return nil
+	}
+
+	// Create and add the node.
+	node := &Node{Depth: depth, Path: fieldPath, Nullable: fieldOpts.GetNullable(), ColumnName: fieldOpts.GetColumnName()}
+	t.Add(node)
+
+	switch fieldDesc.Kind() {
+	case protoreflect.BoolKind:
+		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_BOOL}}
+
+	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind,
+		protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
+		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_INT64}}
+
+	case protoreflect.FloatKind, protoreflect.DoubleKind:
+		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_DOUBLE}}
+
+	case protoreflect.StringKind:
+		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_STRING}}
+
+	case protoreflect.EnumKind:
+		enumType, err := protoregistry.GlobalTypes.FindEnumByName(fieldDesc.Enum().FullName())
+		if err != nil {
+			return fmt.Errorf("finding enum type %s: %w", fieldDesc.Enum().FullName(), err)
+		}
+		node.EnumType = enumType
+
+	case protoreflect.MessageKind:
+		msgFullName := fieldDesc.Message().FullName()
+		switch msgFullName {
+		case "google.protobuf.Timestamp":
+			node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}}
+
+		default:
+			if fieldOpts.GetAsJsonBytes() || depth > 0 {
+				// Recursively handle nested message fields
+				nestedFieldsDescriptor := fieldDesc.Message().Fields()
+				for i := 0; i < nestedFieldsDescriptor.Len(); i++ {
+					nestedFieldDesc := nestedFieldsDescriptor.Get(i)
+					nestedFieldName := nestedFieldDesc.TextName()
+					nestedFieldPath := fieldPath + "." + nestedFieldName
+					if err := t.Explore(nestedFieldPath, nestedFieldDesc, depth+1); err != nil {
+						return fmt.Errorf("%s: %v", nestedFieldPath, err)
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }

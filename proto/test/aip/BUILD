@@ -5,7 +5,8 @@ proto_library(
     visibility = ["//go/aip/..."],
     deps = [
         "//genproto/codegen/aip/v1",
+        "//genproto/codegen/model/v1",
         "//proto/codegen/aip/v1",
-        "//third_party/proto:google__api__expr__v1alpha1",
+        "//proto/codegen/model/v1",
     ],
 )
