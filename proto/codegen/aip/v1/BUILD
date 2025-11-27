@@ -4,5 +4,6 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/proto:google__api__expr__v1alpha1",
+        "//third_party/proto:validate",
     ],
 )

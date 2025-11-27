@@ -26,7 +26,7 @@ type enum interface {
 func MustGetServiceOption(
 	serviceName string,
 	extensionInfo *protoimpl.ExtensionInfo,
-) interface{} {
+) any {
 	serviceOption, ok := GetServiceOption(serviceName, extensionInfo)
 	if !ok {
 		panic("could not find service option")
@@ -38,7 +38,7 @@ func MustGetServiceOption(
 func GetServiceOption(
 	serviceName string,
 	extensionInfo *protoimpl.ExtensionInfo,
-) (interface{}, bool) {
+) (any, bool) {
 	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
 	if err != nil {
 		panic("could not find service descriptor: " + err.Error())
@@ -60,7 +60,7 @@ func GetServiceOption(
 }
 
 // MustGetEnumValueOption returns the enum value option or panics.
-func MustGetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) interface{} {
+func MustGetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) any {
 	enumDescriptor := enum.Descriptor()
 	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
 	options := valueEnumDescriptor.Options().(*descriptorpb.EnumValueOptions)
@@ -68,7 +68,7 @@ func MustGetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) i
 }
 
 // MustGetMessageOption returns an option for the given message.
-func MustGetMessageOption(m proto.Message, extensionInfo *protoimpl.ExtensionInfo) interface{} {
+func MustGetMessageOption(m proto.Message, extensionInfo *protoimpl.ExtensionInfo) any {
 	options := m.ProtoReflect().Descriptor().Options()
 	if options != nil {
 		if err := protovalidate.Validate(options); err != nil {
@@ -78,8 +78,28 @@ func MustGetMessageOption(m proto.Message, extensionInfo *protoimpl.ExtensionInf
 	return proto.GetExtension(options, extensionInfo)
 }
 
+// GetMessageOption returns an option for the given message.
+// Returns an error if validation fails or if the type assertion fails.
+func GetMessageOption[T proto.Message](m proto.Message, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+	var zero T
+	options := m.ProtoReflect().Descriptor().Options()
+	if options != nil {
+		if err := protovalidate.Validate(options); err != nil {
+			return zero, fmt.Errorf("validating message option: %w", err)
+		}
+	}
+
+	ext := proto.GetExtension(options, extensionInfo)
+	result, ok := ext.(T)
+	if !ok {
+		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
+	}
+
+	return result, nil
+}
+
 // GetEnumValueOption returns the enum value option along with any error encountered.
-func GetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) (interface{}, error) {
+func GetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) (any, error) {
 	enumDescriptor := enum.Descriptor()
 	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
 	if valueEnumDescriptor == nil {

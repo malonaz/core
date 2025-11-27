@@ -1,9 +1,12 @@
 go_library(
     name = "aip",
     srcs = [
+        "filtering_request.go",
         "list_request_parser.go",
+        "ordering_request.go",
         "paginate.go",
-        "pagination.go",
+        "pagination_request.go",
+        "search_request_parser.go",
         "update_request_parser.go",
         "uuid_namespace.go",
     ],
@@ -33,7 +36,9 @@ go_library(
 go_test(
     name = "test",
     srcs = [
-        "list_request_parser_test.go",
+        "filtering_request_test.go",
+        "ordering_request_test.go",
+        "pagination_request_test.go",
         "update_request_parser_test.go",
     ],
     deps = [

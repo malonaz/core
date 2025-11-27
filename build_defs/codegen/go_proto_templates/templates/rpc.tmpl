@@ -240,7 +240,7 @@ pb "{{ $apiImportPath }}"
             }
 
         {{- else if $rpc.List }}
-            var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "NewListRequestParser" }}(&pb.{{ $method.Input.GoIdent.GoName }}{})
+            var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewListRequestParser" }}[*pb.{{ $method.Input.GoIdent.GoName }}, *{{ qualifiedGoIdent $rpc.Message.GoIdent }}]()
 
             func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             {{- $resourceDbName := printf "db%s" $resourceGoName }}

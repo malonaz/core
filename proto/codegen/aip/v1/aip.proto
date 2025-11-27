@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package malonaz.core.codegen.aip.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/expr/v1alpha1/checked.proto";
 import "google/protobuf/descriptor.proto";
 
@@ -18,34 +19,47 @@ extend google.protobuf.MessageOptions {
   //  The uuid namespace for a resource.
   string uuid_namespace = 92000;
 
-  // Configuration for AIP List RPCs, including filtering, pagination, and ordering.
-  ListOptions list = 92001;
-
   // Configuration for AIP Update RPCs, including field mask handling and authorization.
-  UpdateOptions update = 92002;
+  UpdateOptions update = 920013;
+
+  // Option for pagination.
+  PaginationOptions pagination = 94000;
+  // Option for ordering.
+  OrderingOptions ordering = 94001;
+  // Option for ordering.
+  FilteringOptions filtering = 94002;
 }
 
-// Configuration options for AIP-compliant List methods.
-// This message defines how list requests should be parsed and validated.
-message ListOptions {
-  // The max number of items to return per page. Used as default if page_size is not specified.
-  // This value is used to prevent unbounded queries and ensure consistent pagination.
-  int32 max_page_size = 1;
+// Options for filtering.
+message FilteringOptions {
+  // List of fields that can be used in the filter expression.
+  // Each FilterIdent defines a filterable field and its type for validation.
+  repeated FilterIdent filters = 1;
+}
+
+// Options for pagination.
+message PaginationOptions {
+  // The default number of items to return per page.
+  uint32 default_page_size = 1 [(buf.validate.field).uint32.gt = 0];
+}
+
+// Options for ordering.
+message OrderingOptions {
+  option (buf.validate.message).cel = {
+    id: "ordering_options.default_in_fields"
+    message: "default ordering field must be present in the fields list"
+    expression: "this.fields.exists(f, f + ' asc' == this.default || f + ' desc' == this.default)"
+  };
 
   // List of field names that can be used in the order_by parameter.
   // Only fields listed here are allowed for sorting to prevent SQL injection
   // and ensure queries can be efficiently executed.
-  repeated string order_by = 2;
-
-  // List of fields that can be used in the filter expression.
-  // Each FilterIdent defines a filterable field and its type for validation.
-  repeated FilterIdent filters = 3;
-
-  // Map of field name aliases for backward compatibility or user-friendly naming.
-  // Keys are the alias names used in requests, values are the actual field names
-  // used in the database or internal logic.
-  // Example: {"user_name": "user_id"} allows filtering by "user_name" which maps to "user_id"
-  map<string, string> aliases = 4;
+  repeated string fields = 1 [(buf.validate.field).repeated.items.string = {pattern: "^[a-z][a-z0-9_]*$"}];
+  // The default ordering by option.
+  string default = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.pattern = "^[a-z][a-z0-9_]*\\s+(asc|desc)$"
+  ];
 }
 
 // Defines a filterable field and its type for AIP filter expressions.
