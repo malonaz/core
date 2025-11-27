@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -44,7 +45,7 @@ func MustNewFilteringRequestParser[T filteringRequest, R proto.Message]() *Filte
 func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*FilteringRequestParser[T, R], error) {
 	validator, err := protovalidate.New(
 		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(&aippb.FilteringOptions{}),
+		protovalidate.WithMessages(&aippb.FilteringOptions{}, &modelpb.FieldOpts{}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating validator for filtering request parser: %v", err)
@@ -63,6 +64,30 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 
 	// Create a zero value of the resource type for validation
 	var resourceZero R
+
+	fieldToFieldOpts := map[string]*modelpb.FieldOpts{}
+	// Iterate through R's fields and get field options for each
+	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
+	fields := resourceDescriptor.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		options := field.Options()
+		if !proto.HasExtension(options, modelpb.E_FieldOpts) {
+			continue
+		}
+		fieldOpts := proto.GetExtension(options, modelpb.E_FieldOpts).(*modelpb.FieldOpts)
+		if fieldOpts == nil {
+			continue
+		}
+		// Validate field options
+		if err := validator.Validate(fieldOpts); err != nil {
+			return nil, fmt.Errorf("validating field options for %s: %v", field.FullName(), err)
+		}
+		fieldToFieldOpts[field.TextName()] = fieldOpts
+		if fieldOpts.ColumnName != "" {
+			fmt.Println(field.TextName(), fieldOpts.ColumnName)
+		}
+	}
 
 	declarationOptions := make([]filtering.DeclarationOption, 0, len(filteringOptions.Filters)+3)
 	declarationOptions = append(declarationOptions, filtering.DeclareStandardFunctions(), jsonbFunctionDeclarationOption)

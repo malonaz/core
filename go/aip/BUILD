@@ -13,6 +13,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//genproto/codegen/aip/v1",
+        "//genproto/codegen/model/v1",
         "//go/pbutil",
         "//go/uuid",
         "//third_party/go:buf.build__go__protovalidate",
