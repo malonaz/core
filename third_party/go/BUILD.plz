@@ -129,7 +129,7 @@ go_mod_download(
     name = "cloud.google.com__go",
     _tag = "download",
     module = "cloud.google.com/go",
-    version = "v0.121.4",
+    version = "v0.123.0",
     visibility = ["PUBLIC"],
 )
 
@@ -146,7 +146,7 @@ go_mod_download(
     name = "cloud.google.com__go__spanner",
     _tag = "download",
     module = "cloud.google.com/go/spanner",
-    version = "v1.83.0",
+    version = "v1.86.0",
     visibility = ["PUBLIC"],
 )
 
@@ -533,7 +533,7 @@ go_mod_download(
     name = "github.com__go-jose__go-jose__v4",
     _tag = "download",
     module = "github.com/go-jose/go-jose/v4",
-    version = "v4.0.5",
+    version = "v4.1.1",
     visibility = ["PUBLIC"],
 )
 
@@ -546,7 +546,6 @@ go_module(
     deps = [
         ":github.com__go-jose__go-jose__v4__cipher",
         ":github.com__go-jose__go-jose__v4__json",
-        ":golang.org__x__crypto__pbkdf2",
     ],
 )
 
@@ -3084,7 +3083,7 @@ go_mod_download(
     _tag = "download",
     module = "go.einride.tech/spanner-aip",
     patch = ["spanner-aip.patch"],
-    version = "v0.55.0",
+    version = "v0.67.2-0.20251120124954-1d9f5bae7b61",
     visibility = ["PUBLIC"],
 )
 
@@ -3628,7 +3627,7 @@ go_mod_download(
     name = "google.golang.org__genproto",
     _tag = "download",
     module = "google.golang.org/genproto",
-    version = "v0.0.0-20250505200425-f936aa4a68b2",
+    version = "v0.0.0-20250603155806-513f23925822",
     visibility = ["PUBLIC"],
 )
 
@@ -3669,7 +3668,7 @@ go_mod_download(
     name = "google.golang.org__genproto__googleapis__api",
     _tag = "download",
     module = "google.golang.org/genproto/googleapis/api",
-    version = "v0.0.0-20250603155806-513f23925822",
+    version = "v0.0.0-20250818200422-3122310a409c",
     visibility = ["PUBLIC"],
 )
 
@@ -3748,7 +3747,7 @@ go_mod_download(
     name = "google.golang.org__genproto__googleapis__rpc",
     _tag = "download",
     module = "google.golang.org/genproto/googleapis/rpc",
-    version = "v0.0.0-20250603155806-513f23925822",
+    version = "v0.0.0-20250818200422-3122310a409c",
     visibility = ["PUBLIC"],
 )
 
@@ -3782,7 +3781,7 @@ go_mod_download(
     name = "google.golang.org__grpc",
     _tag = "download",
     module = "google.golang.org/grpc",
-    version = "v1.74.2",
+    version = "v1.75.1",
     visibility = ["PUBLIC"],
 )
 

@@ -19,18 +19,20 @@ index 5770db6..b7e33d4 100644
  	t.Init(filter)
  	return t.Transpile()
 diff --git a/spanfiltering/transpiler.go b/spanfiltering/transpiler.go
-index b858ae6..a280f5b 100644
+index 1be28fc..d4dd8fa 100644
 --- a/spanfiltering/transpiler.go
 +++ b/spanfiltering/transpiler.go
-@@ -4,6 +4,7 @@ import (
+@@ -3,8 +3,8 @@ package spanfiltering
+ import (
  	"fmt"
  	"strconv"
+-	"strings"
  	"time"
 +	"strings"
  
  	"cloud.google.com/go/spanner/spansql"
  	"go.einride.tech/aip/filtering"
-@@ -12,36 +13,41 @@ import (
+@@ -13,36 +13,41 @@ import (
  	"google.golang.org/protobuf/reflect/protoregistry"
  )
  
@@ -61,7 +63,7 @@ index b858ae6..a280f5b 100644
 -		return spansql.True, nil, nil
 +		return "", nil, nil
  	}
- 	resultExpr, err := t.transpileExpr(t.filter.CheckedExpr.Expr)
+ 	resultExpr, err := t.transpileExpr(t.filter.CheckedExpr.GetExpr())
  	if err != nil {
 -		return nil, nil, err
 +		return "", nil, err
@@ -82,7 +84,7 @@ index b858ae6..a280f5b 100644
  }
  
  func (t *Transpiler) transpileExpr(e *expr.Expr) (spansql.Expr, error) {
-@@ -105,6 +111,10 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (spansql.Expr, error) {
+@@ -109,6 +114,10 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (spansql.Expr, error) {
  		return t.transpileNotCallExpr(e)
  	case filtering.FunctionTimestamp:
  		return t.transpileTimestampCallExpr(e)
@@ -91,17 +93,9 @@ index b858ae6..a280f5b 100644
 +	case FunctionJSONB:
 +		return t.transpileJSONBCallExpr(e)
  	default:
- 		return nil, fmt.Errorf("unsupported function call: %s", e.GetCallExpr().Function)
+ 		return nil, fmt.Errorf("unsupported function call: %s", e.GetCallExpr().GetFunction())
  	}
-@@ -114,6 +124,7 @@ func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (spansql.Expr, error) {
- 	identExpr := e.GetIdentExpr()
- 	identType, ok := t.filter.CheckedExpr.TypeMap[e.Id]
- 	if !ok {
-+		fmt.Printf("%+v\n", identExpr)
- 		return nil, fmt.Errorf("unknown type of ident expr %d", e.Id)
- 	}
- 	if messageType := identType.GetMessageType(); messageType != "" {
-@@ -194,6 +205,110 @@ func (t *Transpiler) transpileComparisonCallExpr(
+@@ -236,6 +245,110 @@ func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr
  	}, nil
  }
  
@@ -212,7 +206,7 @@ index b858ae6..a280f5b 100644
  func (t *Transpiler) transpileBinaryLogicalCallExpr(
  	e *expr.Expr,
  	op spansql.LogicalOperator,
-@@ -292,12 +407,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
+@@ -334,12 +447,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
  
  func (t *Transpiler) param(param interface{}) spansql.Param {
  	p := t.nextParam()

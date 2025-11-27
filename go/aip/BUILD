@@ -6,6 +6,7 @@ go_library(
         "ordering_request.go",
         "paginate.go",
         "pagination_request.go",
+        "resource_tree.go",
         "search_request_parser.go",
         "update_request_parser.go",
         "uuid_namespace.go",
