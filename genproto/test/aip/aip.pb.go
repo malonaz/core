@@ -769,16 +769,14 @@ const file_proto_test_aip_aip_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken:2\x82\xf3-\x02\bd\x92\xf3-(\n" +
 	"\x02id\n" +
 	"\bnested.*\n" +
-	"\x18nested2.further_nested.*\"\xd8\x01\n" +
+	"\x18nested2.further_nested.*\"\xb3\x01\n" +
 	"\x14ListResourcesRequest\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x19\n" +
-	"\border_by\x18\x04 \x01(\tR\aorderBy:Q\x82\xf3-\x03\b\xe8\a\x8a\xf3-?\n" +
-	"\x02id\n" +
-	"\x10create_timestamp\n" +
-	"\x10update_timestamp\x12\x15create_timestamp desc\x92\xf3-\x03\n" +
+	"\border_by\x18\x04 \x01(\tR\aorderBy:,\x82\xf3-\x03\b\xe8\a\x8a\xf3-\x1a\n" +
+	"\x01*\x12\x15create_timestamp desc\x92\xf3-\x03\n" +
 	"\x01*\"Y\n" +
 	"\x13PaginateOnlyRequest\x12\x1b\n" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +

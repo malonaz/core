@@ -57,7 +57,7 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	}
 
 	// Create a tree and explore.
-	tree, err := BuildResourceTree[R](validator, 10, filteringOptions.GetPaths())
+	tree, err := BuildResourceTree[R](10, filteringOptions.GetPaths(), WithTransformNestedPath())
 	if err != nil {
 		return nil, err
 	}

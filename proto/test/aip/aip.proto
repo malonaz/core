@@ -45,11 +45,7 @@ message ListResourcesRequest2 {
 message ListResourcesRequest {
   option (malonaz.core.codegen.aip.v1.pagination) = {default_page_size: 1000};
   option (malonaz.core.codegen.aip.v1.ordering) = {
-    fields: [
-      "id",
-      "create_timestamp",
-      "update_timestamp"
-    ]
+    paths: ["*"]
     default: "create_timestamp desc"
   };
   option (malonaz.core.codegen.aip.v1.filtering) = {

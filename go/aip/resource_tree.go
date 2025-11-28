@@ -16,16 +16,38 @@ import (
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 )
 
+type TreeConfig struct {
+	TransformNestedPath bool
+}
+
 type Tree struct {
 	Validator      protovalidate.Validator
 	AllowAllPaths  bool
 	AllowedPathSet map[string]struct{}
 	MaxDepth       int
 	Nodes          []*Node
+	Config         *TreeConfig
+}
+
+type TreeOption func(*TreeConfig)
+
+func WithTransformNestedPath() TreeOption {
+	return func(tc *TreeConfig) {
+		tc.TransformNestedPath = true
+	}
 }
 
 // In filtering_request.go, extract tree building to a shared function
-func BuildResourceTree[R proto.Message](validator protovalidate.Validator, maxDepth int, allowedPaths []string) (*Tree, error) {
+func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opts ...TreeOption) (*Tree, error) {
+	config := &TreeConfig{}
+	for _, opt := range opts {
+		opt(config)
+	}
+	validator, err := protovalidate.New(
+		protovalidate.WithDisableLazy(),
+		protovalidate.WithMessages(&modelpb.FieldOpts{}),
+	)
+
 	// Move the tree building logic here
 	tree, err := newTree(validator, maxDepth, allowedPaths)
 	if err != nil {
@@ -52,6 +74,8 @@ func BuildResourceTree[R proto.Message](validator protovalidate.Validator, maxDe
 	// Implement the replacements.
 	fieldPathToReplacement := map[string]string{}
 	for _, node := range tree.Nodes {
+		node.AllowedPath = tree.IsPathAllowed(node) // Set the status.
+
 		// Adjust path.
 		replacementPath := node.Path
 
@@ -67,7 +91,9 @@ func BuildResourceTree[R proto.Message](validator protovalidate.Validator, maxDe
 			if rootNodeReplacement, ok := fieldPathToReplacement[rootNodePath]; ok {
 				replacementPath = strings.Replace(replacementPath, rootNodePath, rootNodeReplacement, 1) // 1 to only make one replacement.
 			}
-			replacementPath = strings.ReplaceAll(replacementPath, ".", "@")
+			if config.TransformNestedPath {
+				replacementPath = strings.ReplaceAll(replacementPath, ".", "@")
+			}
 		}
 		// Tag the replacement.
 		if replacementPath != node.Path {
@@ -82,7 +108,7 @@ func BuildResourceTree[R proto.Message](validator protovalidate.Validator, maxDe
 func (t *Tree) AllowedNodes() iter.Seq[*Node] {
 	return func(yield func(*Node) bool) {
 		for _, node := range t.Nodes {
-			if t.IsPathAllowed(node) {
+			if node.AllowedPath {
 				if !yield(node) {
 					return
 				}
@@ -165,6 +191,7 @@ type Node struct {
 	EnumType   protoreflect.EnumType
 
 	// Replacement stuff.
+	AllowedPath           bool
 	ReplacementPath       string
 	ReplacementPathRegexp *regexp.Regexp
 }

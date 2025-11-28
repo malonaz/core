@@ -44,21 +44,11 @@ message PaginationOptions {
 
 // Options for ordering.
 message OrderingOptions {
-  option (buf.validate.message).cel = {
-    id: "ordering_options.default_in_fields"
-    message: "default ordering field must be present in the fields list"
-    expression: "this.fields.exists(f, f + ' asc' == this.default || f + ' desc' == this.default)"
-  };
-
-  // List of field names that can be used in the order_by parameter.
-  // Only fields listed here are allowed for sorting to prevent SQL injection
-  // and ensure queries can be efficiently executed.
-  repeated string fields = 1 [(buf.validate.field).repeated.items.string = {pattern: "^[a-z][a-z0-9_]*$"}];
+  // List of fields that can be used in the filter expression.
+  // Can use * or some.path.* wildcards.
+  repeated string paths = 1 [(buf.validate.field).required = true];
   // The default ordering by option.
-  string default = 2 [
-    (buf.validate.field).required = true,
-    (buf.validate.field).string.pattern = "^[a-z][a-z0-9_]*\\s+(asc|desc)$"
-  ];
+  string default = 2 [(buf.validate.field).required = true];
 }
 
 // Configuration options for AIP-compliant Update methods.

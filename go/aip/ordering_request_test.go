@@ -14,7 +14,6 @@ func TestOrderingRequestParser_NewParser(t *testing.T) {
 		createParser    func() (*OrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource], error)
 		wantErr         bool
 		expectedDefault string
-		expectedFields  []string
 	}{
 		{
 			name: "valid parser creation",
@@ -23,7 +22,6 @@ func TestOrderingRequestParser_NewParser(t *testing.T) {
 			},
 			wantErr:         false,
 			expectedDefault: "create_timestamp desc",
-			expectedFields:  []string{"id", "create_timestamp", "update_timestamp"},
 		},
 	}
 
@@ -38,7 +36,6 @@ func TestOrderingRequestParser_NewParser(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, parser)
 				require.Equal(t, tc.expectedDefault, parser.options.Default)
-				require.Equal(t, tc.expectedFields, parser.options.Fields)
 			}
 		})
 	}
@@ -96,14 +93,14 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 			orderBy:              "unauthorized_field asc",
 			expectedOrderBySQL:   "",
 			wantErr:              true,
-			expectedErrorMessage: "validating paths",
+			expectedErrorMessage: "invalid order path",
 		},
 		{
 			name:                 "mixed authorized and unauthorized fields",
 			orderBy:              "id asc, unauthorized_field desc",
 			expectedOrderBySQL:   "",
 			wantErr:              true,
-			expectedErrorMessage: "validating paths",
+			expectedErrorMessage: "invalid order path",
 		},
 		{
 			name:               "single field asc (implicit)",
@@ -307,6 +304,63 @@ func TestOrderingRequest_GetSQLOrderByClause(t *testing.T) {
 
 			clause := parsedRequest.GetSQLOrderByClause()
 			tc.verifyClause(t, clause)
+		})
+	}
+}
+
+func TestOrderingRequestParser_ColumnNameOverride(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name               string
+		orderBy            string
+		expectedOrderBySQL string
+		wantErr            bool
+	}{
+		{
+			name:               "column name override ascending works",
+			orderBy:            "column_name_changed asc",
+			expectedOrderBySQL: "ORDER BY new_name",
+			wantErr:            false,
+		},
+		{
+			name:               "column name override descending",
+			orderBy:            "column_name_changed desc",
+			expectedOrderBySQL: "ORDER BY new_name DESC",
+			wantErr:            false,
+		},
+		{
+			name:               "column name override with other fields",
+			orderBy:            "id asc, column_name_changed desc",
+			expectedOrderBySQL: "ORDER BY id, new_name DESC",
+			wantErr:            false,
+		},
+		{
+			name:               "multiple column name overrides",
+			orderBy:            "column_name_changed asc, column_name_changed desc",
+			expectedOrderBySQL: "ORDER BY new_name, new_name DESC",
+			wantErr:            false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &pb.ListResourcesRequest{
+				OrderBy: tc.orderBy,
+			}
+
+			parsedRequest, err := parser.Parse(request)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, parsedRequest)
+
+				orderBySQL := parsedRequest.GetSQLOrderByClause()
+				require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
+			}
 		})
 	}
 }

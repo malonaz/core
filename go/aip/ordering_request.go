@@ -2,6 +2,7 @@ package aip
 
 import (
 	"fmt"
+	"strings"
 
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/ordering"
@@ -21,8 +22,10 @@ type orderingRequest interface {
 
 // ////////////////////////////// PARSER //////////////////////////
 type OrderingRequestParser[T orderingRequest, R proto.Message] struct {
-	validator protovalidate.Validator
-	options   *aippb.OrderingOptions
+	validator   protovalidate.Validator
+	options     *aippb.OrderingOptions
+	tree        *Tree
+	pathToAllow map[string]bool
 }
 
 func MustNewOrderingRequestParser[T orderingRequest, R proto.Message]() *OrderingRequestParser[T, R] {
@@ -53,21 +56,22 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
-	// Create a zero value of the resource type for validation
-	var resourceZero R
-	for _, field := range options.Fields {
-		orderBy := &ordering.OrderBy{}
-		if err := orderBy.UnmarshalString(field); err != nil {
-			return nil, fmt.Errorf("parsing %s: %v", field, err)
-		}
-		if err := orderBy.ValidateForMessage(resourceZero); err != nil {
-			return nil, fmt.Errorf("validating %s: %v", field, err)
-		}
+	// Create a tree and explore.
+	tree, err := BuildResourceTree[R](10, options.GetPaths())
+	if err != nil {
+		return nil, err
+	}
+
+	pathToAllow := map[string]bool{}
+	for _, node := range tree.Nodes {
+		pathToAllow[node.Path] = node.AllowedPath
 	}
 
 	return &OrderingRequestParser[T, R]{
-		validator: validator,
-		options:   options,
+		validator:   validator,
+		options:     options,
+		tree:        tree,
+		pathToAllow: pathToAllow,
 	}, nil
 }
 
@@ -76,15 +80,37 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 	if request.GetOrderBy() == "" {
 		p.setOrderBy(request, p.options.Default)
 	}
+	orderByClause := request.GetOrderBy()
 
-	// Parse order by
+	// First pass to validate.
+	{
+		orderBy, err := ordering.ParseOrderBy(request)
+		if err != nil {
+			return nil, fmt.Errorf("parsing order by: %w", err)
+		}
+
+		for _, field := range orderBy.Fields {
+			allow, ok := p.pathToAllow[field.Path]
+			if !ok {
+				return nil, fmt.Errorf("invalid order path %s", field.Path)
+			}
+			if !allow {
+				return nil, fmt.Errorf("ordering by path %s not allowed", field.Path)
+			}
+		}
+	}
+
+	// Apply the replacement.
+	for node := range p.tree.AllowedNodes() {
+		orderByClause = node.ApplyReplacement(orderByClause)
+	}
+	orderByClause = strings.ReplaceAll(orderByClause, "@", ".")
+	p.setOrderBy(request, orderByClause)
+
+	// Second pass to transpile.
 	orderBy, err := ordering.ParseOrderBy(request)
 	if err != nil {
 		return nil, fmt.Errorf("parsing order by: %w", err)
-	}
-
-	if err := orderBy.ValidateForPaths(p.options.Fields...); err != nil {
-		return nil, fmt.Errorf("validating paths: %v", err)
 	}
 
 	return &OrderingRequest{

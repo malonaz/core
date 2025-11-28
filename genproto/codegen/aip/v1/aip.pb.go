@@ -119,10 +119,9 @@ func (x *PaginationOptions) GetDefaultPageSize() uint32 {
 // Options for ordering.
 type OrderingOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// List of field names that can be used in the order_by parameter.
-	// Only fields listed here are allowed for sorting to prevent SQL injection
-	// and ensure queries can be efficiently executed.
-	Fields []string `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty"`
+	// List of fields that can be used in the filter expression.
+	// Can use * or some.path.* wildcards.
+	Paths []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
 	// The default ordering by option.
 	Default       string `protobuf:"bytes,2,opt,name=default,proto3" json:"default,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -159,9 +158,9 @@ func (*OrderingOptions) Descriptor() ([]byte, []int) {
 	return file_proto_codegen_aip_v1_aip_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *OrderingOptions) GetFields() []string {
+func (x *OrderingOptions) GetPaths() []string {
 	if x != nil {
-		return x.Fields
+		return x.Paths
 	}
 	return nil
 }
@@ -504,11 +503,10 @@ const file_proto_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x10FilteringOptions\x12\x14\n" +
 	"\x05paths\x18\x01 \x03(\tR\x05paths\"H\n" +
 	"\x11PaginationOptions\x123\n" +
-	"\x11default_page_size\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x0fdefaultPageSize\"\xc7\x02\n" +
-	"\x0fOrderingOptions\x125\n" +
-	"\x06fields\x18\x01 \x03(\tB\x1d\xbaH\x1a\x92\x01\x17\"\x15r\x132\x11^[a-z][a-z0-9_]*$R\x06fields\x12B\n" +
-	"\adefault\x18\x02 \x01(\tB(\xbaH%\xc8\x01\x01r 2\x1e^[a-z][a-z0-9_]*\\s+(asc|desc)$R\adefault:\xb8\x01\xbaH\xb4\x01\x1a\xb1\x01\n" +
-	"\"ordering_options.default_in_fields\x129default ordering field must be present in the fields list\x1aPthis.fields.exists(f, f + ' asc' == this.default || f + ' desc' == this.default)\"\xe7\x01\n" +
+	"\x11default_page_size\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x0fdefaultPageSize\"Q\n" +
+	"\x0fOrderingOptions\x12\x1c\n" +
+	"\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01R\x05paths\x12 \n" +
+	"\adefault\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\adefault\"\xe7\x01\n" +
 	"\rUpdateOptions\x12#\n" +
 	"\rdefault_paths\x18\x01 \x03(\tR\fdefaultPaths\x12\\\n" +
 	"\x10authorized_paths\x18\x02 \x03(\v21.malonaz.core.codegen.aip.v1.AuthorizedUpdatePathR\x0fauthorizedPaths\x12S\n" +
