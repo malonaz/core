@@ -1,0 +1,9 @@
+go_library(
+    name = "types",
+    srcs = [
+        "config.go",
+        "file.go",
+    ],
+    visibility = ["//..."],
+    deps = ["//third_party/go:google.golang.org__protobuf__proto"],
+)

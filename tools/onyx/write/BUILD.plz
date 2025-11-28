@@ -1,0 +1,9 @@
+go_library(
+    name = "write",
+    srcs = ["write.go"],
+    visibility = ["//..."],
+    deps = [
+        "//tools/onyx/parse",
+        "//tools/onyx/types",
+    ],
+)

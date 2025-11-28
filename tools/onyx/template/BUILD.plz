@@ -1,0 +1,15 @@
+filegroup(
+    name = "templates",
+    srcs = ["templates"],
+)
+
+go_library(
+    name = "template",
+    srcs = [
+        "engine.go",
+        "functions.go",
+    ],
+    resources = [":templates"],
+    visibility = ["//..."],
+    deps = ["//third_party/go:github.com__Masterminds__sprig__v3"],
+)

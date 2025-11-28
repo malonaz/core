@@ -1,0 +1,14 @@
+go_binary(
+    name = "onyx",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/flags",
+        "//go/logging",
+        "//tools/onyx/buildify",
+        "//tools/onyx/gen",
+        "//tools/onyx/parse",
+        "//tools/onyx/template",
+        "//tools/onyx/write",
+    ],
+)

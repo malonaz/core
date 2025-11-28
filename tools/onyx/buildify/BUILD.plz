@@ -1,0 +1,13 @@
+go_library(
+    name = "buildify",
+    srcs = [
+        "buildify.go",
+        "service.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//proto/onyx/v1",
+        "//tools/onyx/template",
+        "//tools/onyx/types",
+    ],
+)

@@ -1,7 +1,9 @@
 version: v2
 modules:
   - path: .
-  - path: plz-out/gen/third_party/proto/
+    excludes:
+      - proto/onyx/
+  - path: plz-out/gen/third_party/proto
     excludes:
       - plz-out/gen/third_party/proto/proto # contains core protos downloaded by intermediary rule for 'external_github_library'.
 lint:

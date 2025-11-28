@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package onyx;
+
+option go_package = "github.com/malonaz/core/tools/onyx/proto";
+
+// ObjectMeta contains metadata that all persisted resources must have
+message ObjectMeta {
+  string name = 1;
+  map<string, string> labels = 2;
+  map<string, string> annotations = 3;
+}
+
+// DependencySpec represents a service dependency
+message DependencySpec {
+  string name = 1;
+  oneof dependency {
+    GrpcClientDependency grpc_client = 2;
+    PostgresClientDependency postgres_client = 3;
+    PostgresDbClientDependency postgres_db_client = 4;
+  }
+}
+
+// GrpcClientDependency represents a gRPC client dependency
+message GrpcClientDependency {
+  string proto = 1;
+}
+
+// PostgresClientDependency represents a Postgres client dependency
+message PostgresClientDependency {
+  string implementation = 1;
+}
+
+// PostgresDbClientDependency represents a Postgres database client dependency
+message PostgresDbClientDependency {
+  string implementation = 1;
+}
