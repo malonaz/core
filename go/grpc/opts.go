@@ -14,6 +14,7 @@ type Opts struct {
 	DisableTLS          bool             `long:"disable-tls" env:"DISABLE_TLS" description:"Set to true in order to disable TLS for this service."`
 	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
 	SocketPath          string           `long:"socket-path" env:"SOCKET_PATH" description:"Unix socket path to use instead of TCP port"`
+	EnableReflection    bool             `long:"enable-reflection" env:"ENABLE_REFLECTION" description:"enable the reflection api"`
 }
 
 // GatewayOpts holds a gRPC gateway server opts.

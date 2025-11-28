@@ -61,12 +61,35 @@ func newRuntime(opts *Opts) (*runtime, error) {
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
-	if err := s.cartesiaClient.Start(ctx); err != nil {
-		return nil, fmt.Errorf("starting cartesia client: %v", err)
+	if s.cartesiaClient != nil {
+		if err := s.cartesiaClient.Start(ctx); err != nil {
+			return nil, fmt.Errorf("starting cartesia client: %v", err)
+		}
 	}
 	return func() {
-		s.cartesiaClient.Stop()
+		if s.cartesiaClient != nil {
+			s.cartesiaClient.Stop()
+		}
 	}, nil
+}
+
+// TextToTextStream implements the gRPC streaming method - direct pass-through
+func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.Ai_TextToTextStreamServer) error {
+	modelConfig, err := provider.GetModelConfig(request.Model)
+	if err != nil {
+		return err
+	}
+	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_TTT {
+		return fmt.Errorf("model %s is not of type TTT", request.Model)
+	}
+
+	client, ok := provider.GetTextToTextClient(request.Model)
+	if !ok {
+		return fmt.Errorf("no TextToText client registered for provider %s and model %s", modelConfig.Provider, request.Model)
+	}
+
+	// Direct pass-through - provider implements exact gRPC interface
+	return client.TextToTextStream(request, srv)
 }
 
 // textToText forwards the request to the appropriate registered client.

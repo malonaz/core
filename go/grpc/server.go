@@ -19,6 +19,7 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip" // Enable compression.
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/malonaz/core/go/certs"
 	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
@@ -264,7 +265,6 @@ func (s *Server) Serve(ctx context.Context) error {
 			return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
 		}
 	}
-	s.log.InfoContext(ctx, "serving")
 	defer listener.Close()
 
 	s.Raw = grpc.NewServer(s.options...)
@@ -272,10 +272,17 @@ func (s *Server) Serve(ctx context.Context) error {
 	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
 	s.healthServer.Start(ctx)
 
+	if s.opts.EnableReflection {
+		reflection.Register(s.Raw)
+		s.log.InfoContext(ctx, "gRPC reflection enabled")
+	}
+
 	if s.prometheusOpts.Enabled() {
 		s.prometheusServerMetrics.InitializeMetrics(s.Raw)
 		prom.DefaultRegisterer.MustRegister(s.prometheusServerMetrics)
 	}
+
+	s.log.InfoContext(ctx, "serving")
 	if err := s.Raw.Serve(listener); err != nil {
 		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}

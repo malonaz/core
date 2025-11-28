@@ -5,6 +5,7 @@ go_library(
         "speech_to_text.go",
         "text_to_speech.go",
         "text_to_text.go",
+        "text_to_text_stream.go",
     ],
     visibility = ["//..."],
     deps = [

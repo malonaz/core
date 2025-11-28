@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "anthropic.go",
         "text_to_text.go",
+        "text_to_text_stream.go",
     ],
     visibility = ["//..."],
     deps = [

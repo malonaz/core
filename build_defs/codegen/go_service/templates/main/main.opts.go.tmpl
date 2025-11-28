@@ -5,13 +5,15 @@
 	  Health         *{{ goImport (printf "%s/health" $core) }}.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
 	  Prometheus     *{{ goImport (printf "%s/prometheus" $core) }}.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
     Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
-    SessionManager          *{{ goImport (printf "%s/authentication" $core) }}.SessionManagerOpts           `group:"Session Manager" namespace:"session-manager" env-namespace:"SESSION_MANAGER"`
 
     {{- /* CHECK IF ANY GRPC SERVER REQUIRES AUTHENTICATION */ -}}
 	  {{- range $server := .servers -}}
 	      {{- if eq $server.type "grpc" -}}
 	          {{- range $interceptor := $server.interceptors -}}
 	              {{- if eq $interceptor.type "permission_authentication" -}}
+                    {{- if doOnce "sessionManagerOpts" }}
+                        SessionManager          *{{ goImport (printf "%s/authentication" $core) }}.SessionManagerOpts           `group:"Session Manager" namespace:"session-manager" env-namespace:"SESSION_MANAGER"`
+                    {{ end }}
                     {{- if doOnce $interceptor.type }}
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}

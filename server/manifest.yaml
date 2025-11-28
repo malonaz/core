@@ -1,0 +1,7 @@
+name: server
+servers:
+  - type: grpc
+    name: core
+    services:
+      - proto: //proto/ai/ai_service/v1
+        manifest: //go/ai/ai_service:manifest

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/malonaz/core/go/pbutil"
 
@@ -22,6 +23,7 @@ type SpeechToTextClient interface {
 type TextToTextClient interface {
 	Provider
 	TextToText(context.Context, *aiservicepb.TextToTextRequest) (*aiservicepb.TextToTextResponse, error)
+	TextToTextStream(*aiservicepb.TextToTextStreamRequest, aiservicepb.Ai_TextToTextStreamServer) error
 }
 
 // TextToSpeechClient uses the exact gRPC server streaming interface
@@ -77,6 +79,7 @@ func GetTextToSpeechClient(model aipb.Model) (TextToSpeechClient, bool) {
 func RegisterProviders(providers ...Provider) error {
 	for _, provider := range providers {
 		providerEnum := provider.Provider()
+		slog.Info("registering provider", "provider", providerEnum)
 		for model, modelConfig := range modelToModelConfig {
 			if modelConfig.Provider != providerEnum {
 				continue

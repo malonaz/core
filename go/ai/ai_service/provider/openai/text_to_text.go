@@ -46,7 +46,7 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 		Messages:            messages,
 		MaxCompletionTokens: int(request.Configuration.GetMaxTokens()),
 		Temperature:         float32(request.Configuration.GetTemperature()),
-		ReasoningEffort:     pbReasoningEffortToOpenAI(request.Configuration.GetReasoningEffort()),
+		ReasoningEffort:     providerToReasoningEffortToOpenAI[c.Provider()][request.Configuration.GetReasoningEffort()],
 	}
 	if c.Provider() == aipb.Provider_PROVIDER_GROQ {
 		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
@@ -193,17 +193,17 @@ func pbToolCallToOpenAI(toolCall *aipb.ToolCall) openai.ToolCall {
 	}
 }
 
-func pbReasoningEffortToOpenAI(reasoningEffort aipb.ReasoningEffort) string {
-	switch reasoningEffort {
-	case aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:
-		return "default"
-	case aipb.ReasoningEffort_REASONING_EFFORT_LOW:
-		return "low"
-	case aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:
-		return "medium"
-	case aipb.ReasoningEffort_REASONING_EFFORT_HIGH:
-		return "high"
-	default:
-		return ""
-	}
+var providerToReasoningEffortToOpenAI = map[aipb.Provider]map[aipb.ReasoningEffort]string{
+	aipb.Provider_PROVIDER_OPENAI: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "medium",
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "low",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "medium",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "high",
+	},
+	aipb.Provider_PROVIDER_GROQ: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
+	},
 }

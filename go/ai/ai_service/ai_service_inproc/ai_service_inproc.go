@@ -24,19 +24,19 @@ func New(opts *ai_service.Opts) (*Client, error) {
 	return &Client{Service: svc}, nil
 }
 
-// TextToSpeechStream provides a client-facing streaming interface.
+// TextToTextStream provides a client-facing streaming interface.
 // It wraps the underlying server streaming implementation using grpcinproc.
-func (c *Client) TextToSpeechStream(
+func (c *Client) TextToTextStream(
 	ctx context.Context,
-	request *aiservicepb.TextToSpeechStreamRequest,
+	request *aiservicepb.TextToTextStreamRequest,
 	_ ...grpc.CallOption,
-) (aiservicepb.Ai_TextToSpeechStreamClient, error) {
+) (aiservicepb.Ai_TextToTextStreamClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
-		aiservicepb.TextToSpeechStreamRequest,
-		aiservicepb.TextToSpeechStreamResponse,
-		aiservicepb.Ai_TextToSpeechStreamServer,
-	](c.Service.TextToSpeechStream)
+		aiservicepb.TextToTextStreamRequest,
+		aiservicepb.TextToTextStreamResponse,
+		aiservicepb.Ai_TextToTextStreamServer,
+	](c.Service.TextToTextStream)
 
 	return serverStreamClient(ctx, request)
 }
@@ -67,3 +67,25 @@ func (c *Client) TextToSpeech(
 ) (*aiservicepb.TextToSpeechResponse, error) {
 	return c.Service.TextToSpeech(ctx, request)
 }
+
+// TextToSpeechStream provides a client-facing streaming interface.
+// It wraps the underlying server streaming implementation using grpcinproc.
+func (c *Client) TextToSpeechStream(
+	ctx context.Context,
+	request *aiservicepb.TextToSpeechStreamRequest,
+	_ ...grpc.CallOption,
+) (aiservicepb.Ai_TextToSpeechStreamClient, error) {
+	// Use grpcinproc to convert the provider's server streaming implementation to a client
+	serverStreamClient := grpcinproc.NewServerStreamAsClient[
+		aiservicepb.TextToSpeechStreamRequest,
+		aiservicepb.TextToSpeechStreamResponse,
+		aiservicepb.Ai_TextToSpeechStreamServer,
+	](c.Service.TextToSpeechStream)
+
+	return serverStreamClient(ctx, request)
+}
+
+// Verify interface compliance at compile time.
+var (
+	_ aiservicepb.AiClient = (*Client)(nil)
+)

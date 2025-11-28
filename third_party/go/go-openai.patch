@@ -55,3 +55,15 @@ index 0aa0187..3d46bd0 100644
  }
  
  // ChatCompletionRequest represents a request structure for chat completion API.
+diff --git a/chat_stream.go b/chat_stream.go
+index 80d16cc..de1d7c9 100644
+--- a/chat_stream.go
++++ b/chat_stream.go
+@@ -17,6 +17,7 @@ type ChatCompletionStreamChoiceDelta struct {
+ 	// the doc from deepseek:
+ 	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
+ 	ReasoningContent string `json:"reasoning_content,omitempty"`
++	Reasoning string `json:"reasoning,omitempty"`
+ }
+ 
+ type ChatCompletionStreamChoiceLogprobs struct {

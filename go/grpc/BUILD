@@ -34,6 +34,7 @@ go_library(
         "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
         "//third_party/go:google.golang.org__grpc__keepalive",
         "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__protoadapt",
