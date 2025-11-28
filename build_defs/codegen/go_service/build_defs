@@ -2,7 +2,7 @@ subinclude("//build_defs:template")
 subinclude("//build_defs:docker")
 subinclude("//build_defs:k8s")
 
-_PREFIX = "" if "CORE" in CONFIG else "///core"
+_PREFIX = "" if "IS_CORE_REPO" in CONFIG else "///core"
 
 # Schema templates.
 _SCHEMA_MAIN_GO = f"{_PREFIX}//build_defs/codegen/go_service/schemas:main.go.schema"
