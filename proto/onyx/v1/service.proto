@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package onyx.v1;
+package malonaz.core.onyx.v1;
 
-import "proto/onyx/v1/onyx.proto";
+import "onyx/v1/onyx.proto";
 
-option go_package = "github.com/malonaz/core/tools/onyx/proto";
+option go_package = "github.com/malonaz/core/genproto/onyx/v1";
 
 // Service represents a service configuration
 message Service {

@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package test.llm.v1;
 
+import "codegen/llm/v1/llm.proto";
 import "google/protobuf/timestamp.proto";
 import "google/type/date.proto";
 import "google/type/postal_address.proto";
-import "proto/codegen/llm/v1/llm.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/llm";
 

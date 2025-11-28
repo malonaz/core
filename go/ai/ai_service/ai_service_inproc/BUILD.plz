@@ -1,0 +1,11 @@
+go_library(
+    name = "ai_service_inproc",
+    srcs = ["ai_service_inproc.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service",
+        "//go/grpc/grpcinproc",
+        "//proto/ai/ai_service/v1",
+        "//third_party/go:google.golang.org__grpc",
+    ],
+)

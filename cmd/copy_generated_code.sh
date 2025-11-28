@@ -11,6 +11,18 @@ declare -a FILES=(
   # Proto libraries
   "proto/grpc/v1/grpc.pb.go:grpc/v1"
   "proto/authentication/v1/authentication.pb.go:authentication/v1"
+  "proto/onyx/v1/onyx.pb.go:onyx/v1"
+  "proto/onyx/v1/service.pb.go:onyx/v1"
+  "proto/audio/v1/audio.pb.go:audio/v1"
+  "proto/ai/v1/model.pb.go:ai/v1"
+  "proto/ai/v1/message.pb.go:ai/v1"
+  "proto/ai/v1/jsonschema.pb.go:ai/v1"
+  "proto/ai/v1/metrics.pb.go:ai/v1"
+  "proto/ai/v1/tool.pb.go:ai/v1"
+
+  "proto/ai/ai_service/v1/ai_service.pb.go:ai/ai_service/v1"
+  "proto/ai/ai_service/v1/ai_service_grpc.pb.go:ai/ai_service/v1"
+
 
   # Proto codegen
   "proto/codegen/model/v1/model.pb.go:codegen/model/v1"

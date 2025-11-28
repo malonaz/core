@@ -1,0 +1,10 @@
+go_library(
+    name = "v1",
+    srcs = ["audio.pb.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)

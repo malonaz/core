@@ -1,0 +1,21 @@
+go_library(
+    name = "cartesia",
+    srcs = [
+        "cartesia.go",
+        "multiplexer.go",
+        "text_to_speech.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/audio",
+        "//go/grpc",
+        "//go/websocket",
+        "//proto/ai/ai_service/v1",
+        "//proto/ai/v1",
+        "//proto/audio/v1",
+        "//third_party/go:golang.org__x__sync__errgroup",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+    ],
+)

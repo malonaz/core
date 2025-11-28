@@ -2,12 +2,27 @@ subinclude("//build_defs:template")
 subinclude("//build_defs:docker")
 subinclude("//build_defs:k8s")
 
+_PREFIX = "" if "CORE" in CONFIG else "///core"
+
+# Schema templates.
+_SCHEMA_MAIN_GO = f"{_PREFIX}//build_defs/codegen/go_service/schemas:main.go.schema"
+_SCHEMA_SERVICE_GO = f"{_PREFIX}//build_defs/codegen/go_service/schemas:service.go.schema"
+
+# Codegen templates.
+_TEMPLATE_UTILS_GO = f"{_PREFIX}//build_defs/codegen/go_service/templates:utils.go.tmpl"
+_TEMPLATE_SERVICE_GO = f"{_PREFIX}//build_defs/codegen/go_service/templates:service.go.tmpl"
+_TEMPLATE_MAIN_GO = [
+    f"{_PREFIX}//build_defs/codegen/go_service/templates/main:main.go.tmpl",
+    f"{_PREFIX}//build_defs/codegen/go_service/templates/main:main.opts.go.tmpl",
+    f"{_PREFIX}//build_defs/codegen/go_service/templates/main:main.shutdown.go.tmpl",
+]
+
 def go_main_manifest(
         name:str,
         manifest:str="manifest.yaml",
         deps:list=[],
         visibility:list=[],
-        schema:str="///core//build_defs/codegen/go_service/schemas:main.go.schema",
+        schema:str=_SCHEMA_MAIN_GO,
         ignore_schema:bool=False,
 ):
     return go_manifest(
@@ -25,7 +40,7 @@ def go_service_manifest(
         manifest:str="manifest.yaml",
         deps:list=[],
         visibility:list=[],
-        schema:str="///core//build_defs/codegen/go_service/schemas:service.go.schema",
+        schema:str=_SCHEMA_SERVICE_GO,
         ignore_schema:bool=False,
 ):
     return go_manifest(
@@ -103,8 +118,8 @@ def go_service_src(
 ):
     if not exclude_default_templates:
         if len(templates) == 0:
-            templates = ["///core//build_defs/codegen/go_service/templates:service.go.tmpl"]
-        templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+            templates = [_TEMPLATE_SERVICE_GO]
+        templates.append(_TEMPLATE_UTILS_GO)
     return go_template(
         name = name,
         templates = templates,
@@ -120,12 +135,8 @@ def go_main_src(
         visibility:list=[],
 ):
     if len(templates) == 0:
-        templates = [
-            "///core//build_defs/codegen/go_service/templates/main:main.go.tmpl",
-            "///core//build_defs/codegen/go_service/templates/main:main.opts.go.tmpl",
-            "///core//build_defs/codegen/go_service/templates/main:main.shutdown.go.tmpl",
-        ]
-    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+        templates = _TEMPLATE_MAIN_GO
+    templates.append(_TEMPLATE_UTILS_GO)
 
     return go_template(
         name = name,
@@ -141,7 +152,7 @@ def go_src(
         templates:list,
         visibility:list=[],
 ):
-    templates.append("///core//build_defs/codegen/go_service/templates:utils.go.tmpl")
+    templates.append(_TEMPLATE_UTILS_GO)
 
     return go_template(
         name = name,
@@ -170,7 +181,7 @@ def go_k8s(
         name = "k8s_templated.yaml",
         templates = [
             "///core//build_defs/codegen/go_service/templates:k8s.yaml.tmpl",
-            "///core//build_defs/codegen/go_service/templates:utils.go.tmpl",
+            _TEMPLATE_UTILS_GO,
         ],
         data = manifest,
         format = "yaml",

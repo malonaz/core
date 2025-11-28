@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
 	"github.com/malonaz/core/go/flags"
-	onyxpb "github.com/malonaz/core/proto/onyx/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"gopkg.in/yaml.v3"
 )

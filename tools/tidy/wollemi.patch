@@ -25,7 +25,7 @@ index d9bce4d..dbfec3e 100644
  		dir.Build = build
  	}
 diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 331b925..f50cf84 100644
+index 331b925..2b66cf9 100644
 --- a/domain/wollemi/service_format.go
 +++ b/domain/wollemi/service_format.go
 @@ -8,6 +8,7 @@ import (
@@ -68,7 +68,24 @@ index 331b925..f50cf84 100644
  }
  
  // getTarget gets the target for an import path or generated file
-@@ -181,20 +197,11 @@ func (this *Service) parsePaths() error {
+@@ -66,6 +82,16 @@ func (this *Service) getTarget(config wollemi.Config, p string, isFile bool) str
+ }
+ 
+ func (this *Service) getTargetInternal(config wollemi.Config, path string, isFile bool, depth int) (string, string) {
++	// Apply import path remapping from config
++	if config.Gofmt.ImportPathRemapping != nil {
++		for prefix, replacement := range config.Gofmt.ImportPathRemapping {
++			if strings.HasPrefix(path, prefix) {
++				path = strings.Replace(path, prefix, replacement, 1)
++				break
++			}
++		}
++	}
++
+ 	if target, ok := config.KnownDependency[path]; ok {
+ 		return target, path
+ 	}
+@@ -181,20 +207,11 @@ func (this *Service) parsePaths() error {
  				} {
  				Imports:
  					for _, godep := range imports {
@@ -91,7 +108,7 @@ index 331b925..f50cf84 100644
  						if this.isInternal(path) {
  							path = strings.TrimPrefix(path, this.gopkg+"/")
  						} else {
-@@ -316,9 +323,11 @@ func (this *Service) parsePaths() error {
+@@ -316,9 +333,11 @@ func (this *Service) parsePaths() error {
  					case kind != "go_test":
  						this.goFormat.internal[filepath.Join(this.gopkg, path)] = "//" + target
  
@@ -105,7 +122,7 @@ index 331b925..f50cf84 100644
  					}
  				}
  			})
-@@ -392,7 +401,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
+@@ -392,7 +411,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
  	this.goFormat = newGoFormat(this.normalizePaths(paths))
  	defer this.goFormat.resolveLimiter.Close()
  
@@ -114,7 +131,7 @@ index 331b925..f50cf84 100644
  
  	log := this.log.WithField("rewrite", this.config.Gofmt.GetRewrite())
  
-@@ -433,7 +442,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+@@ -433,7 +452,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
  		}
  
  		for _, path := range imports {
@@ -123,7 +140,7 @@ index 331b925..f50cf84 100644
  				continue
  			}
  
-@@ -504,6 +513,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
+@@ -504,6 +523,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
  		return
  	}
  
@@ -131,7 +148,7 @@ index 331b925..f50cf84 100644
  	config := this.filesystem.Config(dir.Path).Merge(this.config)
  
  	log.WithFields(logging.Fields{
-@@ -526,7 +536,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
+@@ -526,7 +546,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
  			managed = append(managed, rule)
  		}
  
@@ -140,7 +157,7 @@ index 331b925..f50cf84 100644
  	})
  
  	sortManagedRules(config, managed)
-@@ -632,7 +642,7 @@ ManageRules:
+@@ -632,7 +652,7 @@ ManageRules:
  				log.WithField("reason", "no source files").Warn("removed")
  
  				rule.DelAttr("srcs")
@@ -149,7 +166,7 @@ index 331b925..f50cf84 100644
  
  				dir.Build.DelRule(rule.Name())
  
-@@ -728,7 +738,7 @@ ManageRules:
+@@ -728,7 +748,7 @@ ManageRules:
  
  			log.Debug("managed")
  
@@ -158,7 +175,7 @@ index 331b925..f50cf84 100644
  		}
  
  		break
-@@ -890,7 +900,7 @@ CreateRules:
+@@ -890,7 +910,7 @@ CreateRules:
  			rule.SetAttr("deps", please.Strings(resolved...))
  		}
  
@@ -167,7 +184,7 @@ index 331b925..f50cf84 100644
  
  		dir.Build.SetRule(rule)
  
-@@ -917,7 +927,7 @@ CreateRules:
+@@ -917,7 +937,7 @@ CreateRules:
  	}
  }
  
@@ -176,7 +193,7 @@ index 331b925..f50cf84 100644
  	var srcFiles []string
  
  	switch expr := expr.(type) {
-@@ -931,7 +941,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -931,7 +951,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  					if target.Path == "" || target.Path == dir.Path {
  						rule := dir.Build.GetRule(target.Name)
  						if rule != nil {
@@ -185,7 +202,7 @@ index 331b925..f50cf84 100644
  						}
  					}
  				} else {
-@@ -941,8 +951,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -941,8 +961,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  	case *please.BinaryExpr:
  		if expr.Op == "+" {
@@ -196,7 +213,7 @@ index 331b925..f50cf84 100644
  		}
  	case *please.CallExpr:
  		var kind string
-@@ -953,13 +963,16 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -953,13 +973,16 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  
  		switch kind {
@@ -218,7 +235,7 @@ index 331b925..f50cf84 100644
  		case "glob":
  			var include []string
  			var exclude []string
-@@ -1011,7 +1024,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -1011,7 +1034,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  			}
  		case "filegroup":
  			srcs := please.Attr(expr, "srcs")
@@ -227,7 +244,7 @@ index 331b925..f50cf84 100644
  		}
  	}
  
-@@ -1143,15 +1156,14 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
+@@ -1143,15 +1166,14 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
  	return rule
  }
  
@@ -245,7 +262,7 @@ index 331b925..f50cf84 100644
  	for i := 0; i < len(files); i++ {
  		name := files[i]
  
-@@ -1164,15 +1176,17 @@ func (fc *fileConsumer) Update(rule please.Rule) {
+@@ -1164,15 +1186,17 @@ func (fc *fileConsumer) Update(rule please.Rule) {
  		// Ignore please rule targets
  		default:
  			if _, ok := fc.Dir.Files[name]; !ok {
@@ -271,28 +288,32 @@ index 331b925..f50cf84 100644
  		}
  	}
 diff --git a/ports/wollemi/config.go b/ports/wollemi/config.go
-index bce9462..74c3f62 100644
+index bce9462..0abd722 100644
 --- a/ports/wollemi/config.go
 +++ b/ports/wollemi/config.go
-@@ -26,6 +26,7 @@ type Gofmt struct {
+@@ -26,6 +26,8 @@ type Gofmt struct {
  	Create  gofmtCreate `json:"create,omitempty"`
  	Manage  gofmtManage `json:"manage,omitempty"`
  	Mapped  gofmtMapped `json:"mapped,omitempty"`
 +	CodegenRuleFormatting gofmtCodegenRuleFormatting `json:"codegen_rule_formatting,omitempty"`
++	ImportPathRemapping map[string]string `json:"import_path_remapping"`
  }
  
  func (gofmt *Gofmt) GetRewrite() bool {
-@@ -106,6 +107,9 @@ func (this Config) Merge(that Config) Config {
+@@ -106,6 +108,12 @@ func (this Config) Merge(that Config) Config {
  		merge.ExplicitSources = v
  	}
  
 +	if v := that.Gofmt.CodegenRuleFormatting; v != nil {
 +		merge.Gofmt.CodegenRuleFormatting = v
 +	}
++	if v := that.Gofmt.ImportPathRemapping; v != nil {
++		merge.Gofmt.ImportPathRemapping = v
++	}
  	if v := that.Gofmt.Rewrite; v != nil {
  		merge.Gofmt.Rewrite = v
  	}
-@@ -125,6 +129,25 @@ func (this Config) Merge(that Config) Config {
+@@ -125,6 +133,25 @@ func (this Config) Merge(that Config) Config {
  	return merge
  }
  

@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package malonaz.core.ai.ai_service.v1;
+
+import "ai/v1/message.proto";
+import "ai/v1/metrics.proto";
+import "ai/v1/model.proto";
+import "ai/v1/tool.proto";
+import "audio/v1/audio.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// This API represents an AI service.
+//
+// It handles TextToText, SpeechToText & TextToSpeech generation.
+service Ai {
+  option (google.api.default_host) = "ai.malonaz.com";
+
+  // Converts speech audio to text using the specified model.
+  rpc SpeechToText(SpeechToTextRequest) returns (SpeechToTextResponse) {
+    option (google.api.http) = {
+      post: "/v1/speech-to-text"
+      body: "*"
+    };
+  }
+
+  // Converts text to text using chat completion models.
+  rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
+    option (google.api.http) = {
+      post: "/v1/text-to-text"
+      body: "*"
+    };
+  }
+
+  // Converts text to speech audio, returning complete audio data.
+  rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
+    option (google.api.http) = {
+      post: "/v1/text-to-speech"
+      body: "*"
+    };
+  }
+
+  // Converts text to speech audio with streaming response.
+  rpc TextToSpeechStream(TextToSpeechStreamRequest) returns (stream TextToSpeechStreamResponse) {
+    option (google.api.http) = {
+      post: "/v1/text-to-speech:stream"
+      body: "*"
+    };
+  }
+}
+
+// Request message for Ai.SpeechToText.
+message SpeechToTextRequest {
+  // The model for this request.
+  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // Audio data in PCM format.
+  bytes audio = 2 [(buf.validate.field).required = true];
+
+  // Optional language code to improve transcription accuracy (e.g., "en", "es").
+  string language = 3;
+}
+
+// Response message for Ai.SpeechToText.
+message SpeechToTextResponse {
+  // The transcribed text.
+  string transcript = 1;
+
+  // Model usage metrics.
+  .malonaz.core.ai.v1.ModelUsage model_usage = 2;
+
+  // Generation metrics.
+  .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 3;
+}
+
+// Request message for Ai.TextToText.
+message TextToTextRequest {
+  // The model for this request.
+  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // The conversation messages.
+  repeated .malonaz.core.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.core.ai.v1.Tool tools = 3;
+
+  // For the model to use a tool.
+  string tool_choice = 4;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+}
+
+// Configuration for text to text generation.
+message TextToTextConfiguration {
+  // Maximum number of tokens to generate. Includes reasoning tokens.
+  int64 max_tokens = 1 [(buf.validate.field).int64.gte = 0];
+
+  // Sampling temperature (0.0 to 2.0).
+  double temperature = 2 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 2.0
+  }];
+
+  // Represents the level of reasoning effort for AI model responses.
+  // The reasoning effort parameter guides the model on how many reasoning tokens
+  // to generate before creating a response to the prompt. Higher effort levels
+  // result in more thorough reasoning at the cost of speed and token usage.
+  .malonaz.core.ai.v1.ReasoningEffort reasoning_effort = 3;
+
+  // If true, we attempt to clean the output to extract a json object.
+  // Fails the request if a json object cannot be found.
+  bool extract_json_object = 4;
+}
+
+// Response message for Ai.TextToText.
+message TextToTextResponse {
+  // The generated message.
+  .malonaz.core.ai.v1.Message message = 1;
+
+  // Model usage metrics.
+  .malonaz.core.ai.v1.ModelUsage model_usage = 2;
+
+  // Generation metrics.
+  .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 3;
+}
+
+// Request message for Ai.TextToSpeech.
+message TextToSpeechRequest {
+  // The model for this request.
+  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // The text to convert to speech.
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+
+  // Voice identifier to use for speech generation.
+  string voice = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// Response message for Ai.TextToSpeech.
+message TextToSpeechResponse {
+  // Audio format of the audio.
+  audio.v1.Format audio_format = 1;
+
+  // Audio data chunk in PCM16 format.
+  audio.v1.Chunk audio_chunk = 2;
+
+  // Model usage metrics.
+  .malonaz.core.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for Ai.TextToSpeechStream.
+message TextToSpeechStreamRequest {
+  // The model for this request.
+  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // The text to convert to speech.
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+
+  // Voice identifier to use for speech generation.
+  string voice = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// Response message for Ai.TextToSpeechStream.
+message TextToSpeechStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Audio format of the audio stream.
+    audio.v1.Format audio_format = 1;
+
+    // Audio data chunk in PCM16 format.
+    audio.v1.Chunk audio_chunk = 2;
+
+    // Model usage event (sent last).
+    .malonaz.core.ai.v1.ModelUsage model_usage = 3;
+
+    // Generation metrics.
+    .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 4;
+  }
+}

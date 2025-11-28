@@ -13,10 +13,10 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//genproto/codegen/aip/v1",
-        "//genproto/codegen/model/v1",
         "//go/pbutil",
         "//go/uuid",
+        "//proto/codegen/aip/v1",
+        "//proto/codegen/model/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:go.einride.tech__aip__fieldmask",
@@ -45,7 +45,7 @@ go_test(
     ],
     deps = [
         ":aip",
-        "//genproto/test/aip",
+        "//proto/test/aip",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",

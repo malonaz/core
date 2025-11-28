@@ -1,6 +1,6 @@
 version: v2
 modules:
-  - path: .
+  - path: proto
     excludes:
       - proto/onyx/
   - path: plz-out/gen/third_party/proto

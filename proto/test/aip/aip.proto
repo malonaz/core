@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package test.aip.v1;
 
+import "codegen/aip/v1/aip.proto";
+import "codegen/model/v1/model.proto";
 import "google/protobuf/field_mask.proto";
-import "proto/codegen/aip/v1/aip.proto";
-import "proto/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
 

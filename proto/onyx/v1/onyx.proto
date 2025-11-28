@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package onyx;
+package malonaz.core.onyx.v1;
 
-option go_package = "github.com/malonaz/core/tools/onyx/proto";
+option go_package = "github.com/malonaz/core/genproto/onyx/v1";
 
 // ObjectMeta contains metadata that all persisted resources must have
 message ObjectMeta {

@@ -1,0 +1,17 @@
+go_library(
+    name = "anthropic",
+    srcs = [
+        "anthropic.go",
+        "text_to_text.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//proto/ai/ai_service/v1",
+        "//proto/ai/v1",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__option",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__shared__constant",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+    ],
+)

@@ -10,12 +10,12 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//genproto/grpc/v1",
         "//go/certs",
         "//go/grpc/interceptor",
         "//go/health",
         "//go/pbutil",
         "//go/prometheus",
+        "//proto/grpc/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__recovery",

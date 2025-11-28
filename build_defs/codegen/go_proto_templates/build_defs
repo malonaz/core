@@ -66,7 +66,8 @@ def go_proto_template_library(
             src = template,
         )
 
-    templates_opts_arg = f'--templates_opt=paths=source_relative,debug=true,template=$(location {processed_template})'
+
+    templates_opts_arg = f'--templates_opt=paths=source_relative,debug=true,template=$HOME/$(location {processed_template})'
     if additional_context and GO_PROTO_TEMPLATES_PACKAGE_NAME in additional_context:
         templates_opts_arg += ',package-name=' + additional_context[GO_PROTO_TEMPLATES_PACKAGE_NAME]
     tools= {"protoc_templates": [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]}

@@ -1,0 +1,12 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "onyx.pb.go",
+        "service.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)

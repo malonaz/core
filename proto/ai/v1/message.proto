@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package malonaz.core.ai.v1;
+
+import "ai/v1/tool.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// Represents the role of a message in a multi-turn AI conversation.
+enum Role {
+  // Used to detect an unset field.
+  ROLE_UNSPECIFIED = 0;
+  // System message.
+  ROLE_SYSTEM = 1;
+  // Assistant message.
+  ROLE_ASSISTANT = 2;
+  // User message.
+  ROLE_USER = 3;
+  // User message.
+  ROLE_TOOL = 4;
+}
+
+// Represents a message in a multi-turn AI conversation.
+message Message {
+  option (buf.validate.message).cel = {
+    id: "tool_call_id_requires_tool_role"
+    message: "tool_call_id can only be set when role is ROLE_TOOL"
+    expression: "has(this.tool_call_id) && this.tool_call_id != '' ? this.role == 4 : true"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "tool_role_requires_tool_call_id"
+    message: "ROLE_TOOL requires tool_call_id to be set"
+    expression: "this.role == 4 ? has(this.tool_call_id) && this.tool_call_id != '' : true"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "assistant_requires_content_or_tool_calls"
+    message: "ROLE_ASSISTANT must have either content or at least one tool_call"
+    expression: "this.role == 2 ? (this.content != '' || size(this.tool_calls) > 0) : true"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "tool_calls_require_assistant_role"
+    message: "tool_calls can only be set when role is ROLE_ASSISTANT"
+    expression: "size(this.tool_calls) > 0 ? this.role == 2 : true"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "reasoning_requires_assistant_role"
+    message: "reasoning can only be set when role is ROLE_ASSISTANT"
+    expression: "has(this.reasoning) && this.reasoning != '' ? this.role == 2 : true"
+  };
+
+  // Role of the message sender.
+  Role role = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // Content of the message.
+  string content = 2;
+
+  // Thinking content.
+  string reasoning = 3;
+
+  // Tool calls requested by the assistant.
+  repeated ToolCall tool_calls = 4;
+
+  // The ID of the tool call this is responding to.
+  string tool_call_id = 5;
+}

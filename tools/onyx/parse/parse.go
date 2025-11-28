@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/yaml.v3"
 
-	onyxpb "github.com/malonaz/core/proto/onyx/v1"
+	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
 	"github.com/malonaz/core/tools/onyx/types"
 )
 

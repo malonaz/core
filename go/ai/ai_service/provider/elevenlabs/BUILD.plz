@@ -1,0 +1,16 @@
+go_library(
+    name = "elevenlabs",
+    srcs = [
+        "elevenlabs.go",
+        "text_to_speech.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/audio",
+        "//proto/ai/ai_service/v1",
+        "//proto/ai/v1",
+        "//proto/audio/v1",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+    ],
+)

@@ -1,0 +1,10 @@
+go_library(
+    name = "audio",
+    srcs = [
+        "analysis.go",
+        "conversions.go",
+        "utils.go",
+    ],
+    visibility = ["//..."],
+    deps = ["//third_party/go:github.com__AlexxIT__go2rtc__pkg__pcm"],
+)

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package malonaz.core.audio.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/audio/v1";
+
+// Audio format specification for PCM.
+message Format {
+  // e.g., 16000, 44100, 48000
+  int32 sample_rate = 1;
+  // 1 for mono, 2 for stereo
+  int32 channels = 2;
+  // typically 16 or 24
+  int32 bits_per_sample = 3;
+}
+
+// A chunk of audio data.
+message Chunk {
+  // Specifies the sequential order of this chunk within a stream (0-indexed).
+  uint32 sequence_number = 1;
+  // Audio data.
+  bytes data = 2 [(buf.validate.field).bytes.min_len = 1];
+}

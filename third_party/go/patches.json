@@ -1,5 +1,6 @@
 {
   "go.einride.tech__spanner-aip": ["spanner-aip.patch"],
   "github.com__NathanBaulch__protoc-gen-cobra": ["protoc-gen-cobra.patch"],
-  "github.com__pseudomuto__protoc-gen-doc": ["protoc-gen-doc.patch"]
+  "github.com__pseudomuto__protoc-gen-doc": ["protoc-gen-doc.patch"],
+  "github.com__sashabaranov__go-openai": ["go-openai.patch"]
 }

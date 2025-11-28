@@ -1,0 +1,11 @@
+# wollemi:keep
+go_library(
+    name = "provider",
+    srcs = ["provider.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//proto/ai/ai_service/v1",
+        "//proto/ai/v1",
+    ],
+)

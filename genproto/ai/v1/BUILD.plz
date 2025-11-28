@@ -1,0 +1,19 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "jsonschema.pb.go",
+        "message.pb.go",
+        "metrics.pb.go",
+        "model.pb.go",
+        "tool.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//proto/audio/v1",
+        "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+    ],
+)
