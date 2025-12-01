@@ -7,10 +7,13 @@ import (
 	"time"
 
 	openai "github.com/sashabaranov/go-openai"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai/ai_service/provider"
+	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -71,11 +74,15 @@ func (c *Client) TextToTextStream(
 
 	// Add tool choice if provided
 	if request.ToolChoice != "" {
-		chatCompletionRequest.ToolChoice = openai.ToolChoice{
-			Type: openai.ToolTypeFunction,
-			Function: openai.ToolFunction{
-				Name: request.ToolChoice,
-			},
+		if request.ToolChoice == "auto" {
+			chatCompletionRequest.ToolChoice = "auto"
+		} else {
+			chatCompletionRequest.ToolChoice = openai.ToolChoice{
+				Type: openai.ToolTypeFunction,
+				Function: openai.ToolFunction{
+					Name: request.ToolChoice,
+				},
+			}
 		}
 	}
 
@@ -86,10 +93,21 @@ func (c *Client) TextToTextStream(
 	}
 	defer chatStream.Close()
 
-	generationMetrics := &aipb.GenerationMetrics{}
-	var promptTokens, completionTokens, reasoningTokens, cachedTokens int
+	cs := provider.NewAsyncTextToTextContentSender(stream, 100)
+	defer cs.Close()
 
-	for {
+	var sentTtfb bool
+
+	// Track active tool calls being accumulated
+	type toolCallAcc struct {
+		id       string
+		name     string
+		args     string
+		function openai.FunctionCall
+	}
+	toolCalls := make(map[int]*toolCallAcc)
+
+	for cs.Err() == nil {
 		response, err := chatStream.Recv()
 		if err != nil {
 			if err == io.EOF {
@@ -99,22 +117,38 @@ func (c *Client) TextToTextStream(
 		}
 
 		// Set TTFB on first response
-		if generationMetrics.Ttfb == nil {
-			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
+		if !sentTtfb {
+			generationMetrics := &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))}
+			cs.SendGenerationMetrics(ctx, generationMetrics)
+			sentTtfb = true
 		}
 
 		// Accumulate usage stats if present
 		if response.Usage != nil {
-			promptTokens = response.Usage.PromptTokens
-			completionTokens = response.Usage.CompletionTokens
-
-			if response.Usage.CompletionTokensDetails != nil {
-				reasoningTokens = response.Usage.CompletionTokensDetails.ReasoningTokens
+			modelUsage := &aipb.ModelUsage{
+				Model: request.Model,
 			}
-
-			if response.Usage.PromptTokensDetails != nil {
-				cachedTokens = response.Usage.PromptTokensDetails.CachedTokens
+			if response.Usage.PromptTokens > 0 {
+				modelUsage.InputToken = &aipb.ResourceConsumption{
+					Quantity: int32(response.Usage.PromptTokens),
+				}
 			}
+			if response.Usage.CompletionTokens > 0 {
+				modelUsage.OutputToken = &aipb.ResourceConsumption{
+					Quantity: int32(response.Usage.CompletionTokens),
+				}
+			}
+			if response.Usage.CompletionTokensDetails != nil && response.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
+				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
+					Quantity: int32(response.Usage.CompletionTokensDetails.ReasoningTokens),
+				}
+			}
+			if response.Usage.PromptTokensDetails != nil && response.Usage.PromptTokensDetails.CachedTokens > 0 {
+				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
+					Quantity: int32(response.Usage.PromptTokensDetails.CachedTokens),
+				}
+			}
+			cs.SendModelUsage(ctx, modelUsage)
 		}
 
 		if len(response.Choices) == 0 {
@@ -124,81 +158,63 @@ func (c *Client) TextToTextStream(
 
 		// Send content chunk
 		if choice.Delta.Content != "" {
-			if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
-				Content: &aiservicepb.TextToTextStreamResponse_ContentChunk{
-					ContentChunk: choice.Delta.Content,
-				},
-			}); err != nil {
-				return err
-			}
+			cs.SendContentChunk(ctx, choice.Delta.Content)
 		}
 
-		// Send reasoning chunk
+		// Send reasoning chunk (OpenAI reasoning models)
 		if choice.Delta.ReasoningContent != "" {
-			if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
-				Content: &aiservicepb.TextToTextStreamResponse_ReasoningChunk{
-					ReasoningChunk: choice.Delta.ReasoningContent,
-				},
-			}); err != nil {
-				return err
-			}
+			cs.SendReasoningChunk(ctx, choice.Delta.ReasoningContent)
 		}
 
 		// Handle Groq reasoning format
 		if choice.Delta.Reasoning != "" {
-			if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
-				Content: &aiservicepb.TextToTextStreamResponse_ReasoningChunk{
-					ReasoningChunk: choice.Delta.Reasoning,
-				},
-			}); err != nil {
-				return err
+			cs.SendReasoningChunk(ctx, choice.Delta.Reasoning)
+		}
+
+		// Handle tool calls
+		for _, toolCall := range choice.Delta.ToolCalls {
+			acc, exists := toolCalls[*toolCall.Index]
+			if !exists {
+				acc = &toolCallAcc{
+					id:   toolCall.ID,
+					name: toolCall.Function.Name,
+				}
+				toolCalls[*toolCall.Index] = acc
 			}
+
+			// Accumulate function arguments
+			acc.args += toolCall.Function.Arguments
+		}
+
+		// Handle finish reason / stop reason
+		if choice.FinishReason != "" {
+			stopReason, ok := openAIFinishReasonToPb[choice.FinishReason]
+			if !ok {
+				return grpc.Errorf(codes.Internal, "unknown finish reason: %s", choice.FinishReason).Err()
+			}
+			// Send stop reason
+			cs.SendStopReason(ctx, stopReason)
 		}
 	}
 
-	generationMetrics.Ttlb = durationpb.New(time.Since(startTime))
-
-	// Send model usage
-	modelUsage := &aipb.ModelUsage{
-		Model: request.Model,
-		InputToken: &aipb.ResourceConsumption{
-			Quantity: int32(promptTokens),
-		},
-		OutputToken: &aipb.ResourceConsumption{
-			Quantity: int32(completionTokens),
-		},
-	}
-
-	if reasoningTokens > 0 {
-		modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
-			Quantity: int32(reasoningTokens),
+	// Send any accumulated tool calls
+	for _, acc := range toolCalls {
+		toolCall := &aipb.ToolCall{
+			Id:        acc.id,
+			Name:      acc.name,
+			Arguments: acc.args,
 		}
-		// Back out reasoning tokens from output tokens
-		modelUsage.OutputToken.Quantity -= int32(reasoningTokens)
+		cs.SendToolCall(ctx, toolCall)
 	}
 
-	if cachedTokens > 0 {
-		modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
-			Quantity: int32(cachedTokens),
-		}
-		// Back out cached tokens from input tokens
-		modelUsage.InputToken.Quantity -= int32(cachedTokens)
+	// Send final generation metrics
+	generationMetrics := &aipb.GenerationMetrics{
+		Ttlb: durationpb.New(time.Since(startTime)),
 	}
+	cs.SendGenerationMetrics(ctx, generationMetrics)
 
-	if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_ModelUsage{
-			ModelUsage: modelUsage,
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Send generation metrics
-	if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_GenerationMetrics{
-			GenerationMetrics: generationMetrics,
-		},
-	}); err != nil {
+	cs.Close()
+	if err := cs.Wait(ctx); err != nil {
 		return err
 	}
 
@@ -259,4 +275,11 @@ var providerToReasoningEffortToOpenAI = map[string]map[aipb.ReasoningEffort]stri
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
 	},
+}
+
+var openAIFinishReasonToPb = map[openai.FinishReason]aiservicepb.TextToTextStopReason{
+	openai.FinishReasonStop:          aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
+	openai.FinishReasonLength:        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
+	openai.FinishReasonToolCalls:     aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
+	openai.FinishReasonContentFilter: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
 }
