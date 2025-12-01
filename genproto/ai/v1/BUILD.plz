@@ -9,7 +9,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        "//proto/audio/v1",
+        "//malonaz/audio/v1",
         "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

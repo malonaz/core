@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package malonaz.authentication.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/malonaz/core/genproto/authentication/v1";
+
+// Configuration for roles.
+message RoleConfiguration {
+  // List of all roles defined in the system, including their permissions
+  // and inheritance relationships.
+  repeated Role roles = 1;
+}
+
+// Configuration for service accounts.
+message ServiceAccountConfiguration {
+  // List of all service accounts configured in the system, each with their
+  // assigned roles for programmatic access.
+  repeated ServiceAccount service_accounts = 1;
+}
+
+// ServiceAccount represents a non-human identity used for programmatic access
+// to the system, such as API clients, background jobs, or inter-service communication.
+message ServiceAccount {
+  // Unique identifier for this service account.
+  string id = 1 [(buf.validate.field).required = true];
+
+  // The type of sercice account this is.
+  ServiceAccountType type = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // List of role IDs assigned to this service account, determining what
+  // permissions and access it has within the system.
+  repeated string role_ids = 3;
+}
+
+// Type of the service account.
+enum ServiceAccountType {
+  // Used to detect an unset field.
+  SERVICE_ACCOUNT_TYPE_UNSPECIFIED = 0;
+
+  // Represents an external system accessing your API via an API key
+  SERVICE_ACCOUNT_TYPE_API_KEY = 1;
+
+  // Represents an internal service within your system architecture
+  SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE = 2;
+}
+
+// Role defines a set of permissions and capabilities that can be assigned to
+// users or service accounts. Roles support inheritance for hierarchical permission management.
+message Role {
+  // Unique identifier for this role.
+  string id = 1;
+
+  // List of permission strings this role grants. Permissions typically correspond
+  // to RPC method names (e.g., "/api.v1.UserService/GetUser").
+  repeated string permissions = 2;
+
+  // Optional list of role IDs from which this role inherits permissions.
+  // Enables hierarchical role definitions where a role can include all
+  // permissions from parent roles.
+  repeated string inherited_role_ids = 3;
+
+  // Optional scope or context for this role, enabling organization-specific
+  // or domain-specific role definitions (e.g., "org:123" for organization-level roles).
+  string scope = 4;
+}
+
+// Wraps around a session to include signature.
+message SignedSession {
+  // The session that is signed.
+  Session session = 1;
+  // Cryptographic signature of the session data to ensure integrity and prevent tampering.
+  bytes signature = 2;
+}
+
+// Session represents an authenticated session for either a user or service account,
+// containing identity information, permissions, and metadata about the session.
+message Session {
+  // Unique identifier for this session instance.
+  string id = 1;
+
+  // Time at which this session was created.
+  google.protobuf.Timestamp create_time = 2;
+
+  // Identity that owns this session (mutually exclusive)
+  oneof identity {
+    // Human user identity
+    UserIdentity user_identity = 3;
+
+    // Service account identity for programmatic access
+    ServiceAccountIdentity service_account_identity = 4;
+  }
+
+  // The role ids available to this session.
+  repeated string role_ids = 5;
+
+  // An authorized session does not get checked again method permissions.
+  // We only check at edges entry point.
+  // For example, let's look at an external call:
+  //  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+  //  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+  bool authorized = 6;
+
+  // Additional metadata about the session, including client information
+  // and context for logging and auditing purposes.
+  SessionMetadata metadata = 7;
+}
+
+// Identity of a human user
+message UserIdentity {
+  // The id of the organization the user belongs to.
+  string organization_id = 1;
+  // A unique idenfier for this user.
+  string user_id = 2;
+}
+
+// Identity of a service account
+message ServiceAccountIdentity {
+  // The service account behind this identity.
+  ServiceAccount service_account = 1;
+}
+
+// SessionMetadata contains contextual information about a session, useful for
+// logging, auditing, security monitoring, and debugging.
+message SessionMetadata {
+  // IP address of the client that created or is using this session,
+  // useful for security monitoring and geographic access tracking.
+  string ip_address = 1;
+
+  // Semantic version of the client application making requests with this session,
+  // enabling version-specific behavior and compatibility tracking.
+  ClientVersion client_version = 2;
+
+  // User-Agent string from the client, providing information about the
+  // client software, operating system, and browser (if applicable).
+  string user_agent = 3;
+
+  // Extensible key-value store for additional custom metadata that may be
+  // needed for specific use cases or integrations.
+  map<string, string> key_to_value = 4;
+}
+
+// ClientVersion represents a semantic version (semver) of the client application,
+// following the major.minor.patch versioning scheme.
+message ClientVersion {
+  // Major version number, incremented for incompatible API changes.
+  int32 major = 1;
+
+  // Minor version number, incremented for backwards-compatible functionality additions.
+  int32 minor = 2;
+
+  // Patch version number, incremented for backwards-compatible bug fixes.
+  int32 patch = 3;
+}

@@ -12,7 +12,7 @@ go_library(
         "//go/grpc/interceptor",
         "//go/jsonnet",
         "//go/pbutil",
-        "//proto/authentication/v1",
+        "//malonaz/authentication/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",

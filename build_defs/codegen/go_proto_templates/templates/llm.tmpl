@@ -71,7 +71,7 @@
 {{- define "FieldDoc" -}}
     {{- $indent := .indent -}}
     {{- $field := .field -}}
-    {{- $fieldOpts := (getExt $field.Desc "malonaz.core.codegen.model.v1.field_opts") -}}
+    {{- $fieldOpts := (getExt $field.Desc "malonaz.codegen.model.v1.field_opts") -}}
     {{- if not $fieldOpts.Skip -}}
         {{ $indent }}"{{ $field.Desc.Name -}}":
         {{- if $field.Desc.IsList -}}
@@ -127,7 +127,7 @@
     {{- $processedOneofs := dict -}}
     {{- $firstField := true -}}
     {{- range $i, $field := $message.Fields -}}
-        {{- $fieldOpts := (getExt $field.Desc "malonaz.core.codegen.llm.v1.field_opts") -}}
+        {{- $fieldOpts := (getExt $field.Desc "malonaz.codegen.llm.v1.field_opts") -}}
         {{- if not $fieldOpts.Skip -}}
             {{- if $field.Oneof -}}
                 {{- $oneofName := $field.Oneof.Desc.Name | toString -}}
@@ -137,13 +137,13 @@
                     {{- $firstField = false }}
                     {{- $indent }}// ONEOF: exactly one of the following must be set: [
                     {{- range $j, $oneofField := $field.Oneof.Fields -}}
-                        {{- $oneofFieldOpts := (getExt $oneofField.Desc "malonaz.core.codegen.llm.v1.field_opts") -}}
+                        {{- $oneofFieldOpts := (getExt $oneofField.Desc "malonaz.codegen.llm.v1.field_opts") -}}
                         {{- if not $oneofFieldOpts.Skip -}}
                             {{- if $j -}}, {{ end -}}{{ $oneofField.Desc.Name }}
                         {{- end -}}
                     {{- end -}}]
                     {{- range $j, $oneofField := $field.Oneof.Fields -}}
-                        {{- $oneofFieldOpts := (getExt $oneofField.Desc "malonaz.core.codegen.llm.v1.field_opts") -}}
+                        {{- $oneofFieldOpts := (getExt $oneofField.Desc "malonaz.codegen.llm.v1.field_opts") -}}
                         {{- if not $oneofFieldOpts.Skip -}}
                             {{- if $j -}},{{ end -}}
                             {{ template "FieldDoc" dict "field" $oneofField "indent" $indent -}}
@@ -168,7 +168,7 @@ const BaseFieldDoc =`
 - For timestamps, use ISO 8601 format (e.g., "2024-01-15T10:30:00Z")
 `
 {{- range $message := $file.Messages -}}
-    {{- $llmOpts := (getExt .Desc "malonaz.core.codegen.llm.v1.opts") -}}
+    {{- $llmOpts := (getExt .Desc "malonaz.codegen.llm.v1.opts") -}}
     {{- if not $llmOpts.Document -}}{{ continue }}{{- end }}
 
     func (m *{{ $message.GoIdent.GoName }}) Doc() string {

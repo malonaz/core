@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: ai/v1/model.proto
+// source: malonaz/ai/v1/model.proto
 
 package v1
 
@@ -67,11 +67,11 @@ func (x ModelType) String() string {
 }
 
 func (ModelType) Descriptor() protoreflect.EnumDescriptor {
-	return file_ai_v1_model_proto_enumTypes[0].Descriptor()
+	return file_malonaz_ai_v1_model_proto_enumTypes[0].Descriptor()
 }
 
 func (ModelType) Type() protoreflect.EnumType {
-	return &file_ai_v1_model_proto_enumTypes[0]
+	return &file_malonaz_ai_v1_model_proto_enumTypes[0]
 }
 
 func (x ModelType) Number() protoreflect.EnumNumber {
@@ -80,7 +80,7 @@ func (x ModelType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ModelType.Descriptor instead.
 func (ModelType) EnumDescriptor() ([]byte, []int) {
-	return file_ai_v1_model_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{0}
 }
 
 // Contains configuration for a  model.
@@ -112,7 +112,7 @@ type Model struct {
 
 func (x *Model) Reset() {
 	*x = Model{}
-	mi := &file_ai_v1_model_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -124,7 +124,7 @@ func (x *Model) String() string {
 func (*Model) ProtoMessage() {}
 
 func (x *Model) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_model_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -137,7 +137,7 @@ func (x *Model) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Model.ProtoReflect.Descriptor instead.
 func (*Model) Descriptor() ([]byte, []int) {
-	return file_ai_v1_model_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Model) GetName() string {
@@ -191,7 +191,7 @@ type SttModelConfig struct {
 
 func (x *SttModelConfig) Reset() {
 	*x = SttModelConfig{}
-	mi := &file_ai_v1_model_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -203,7 +203,7 @@ func (x *SttModelConfig) String() string {
 func (*SttModelConfig) ProtoMessage() {}
 
 func (x *SttModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_model_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,7 +216,7 @@ func (x *SttModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SttModelConfig.ProtoReflect.Descriptor instead.
 func (*SttModelConfig) Descriptor() ([]byte, []int) {
-	return file_ai_v1_model_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{1}
 }
 
 // Configuration for a ttt model.
@@ -232,7 +232,7 @@ type TttModelConfig struct {
 
 func (x *TttModelConfig) Reset() {
 	*x = TttModelConfig{}
-	mi := &file_ai_v1_model_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -244,7 +244,7 @@ func (x *TttModelConfig) String() string {
 func (*TttModelConfig) ProtoMessage() {}
 
 func (x *TttModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_model_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -257,7 +257,7 @@ func (x *TttModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TttModelConfig.ProtoReflect.Descriptor instead.
 func (*TttModelConfig) Descriptor() ([]byte, []int) {
-	return file_ai_v1_model_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TttModelConfig) GetReasoning() bool {
@@ -285,7 +285,7 @@ type TtsModelConfig struct {
 
 func (x *TtsModelConfig) Reset() {
 	*x = TtsModelConfig{}
-	mi := &file_ai_v1_model_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +297,7 @@ func (x *TtsModelConfig) String() string {
 func (*TtsModelConfig) ProtoMessage() {}
 
 func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_model_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +310,7 @@ func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TtsModelConfig.ProtoReflect.Descriptor instead.
 func (*TtsModelConfig) Descriptor() ([]byte, []int) {
-	return file_ai_v1_model_proto_rawDescGZIP(), []int{3}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TtsModelConfig) GetAudioFormat() *v1.Format {
@@ -320,25 +320,25 @@ func (x *TtsModelConfig) GetAudioFormat() *v1.Format {
 	return nil
 }
 
-var File_ai_v1_model_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_model_proto protoreflect.FileDescriptor
 
-const file_ai_v1_model_proto_rawDesc = "" +
+const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x11ai/v1/model.proto\x12\x12malonaz.core.ai.v1\x1a\x14audio/v1/audio.proto\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x83\x03\n" +
+	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xf4\x02\n" +
 	"\x05Model\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12*\n" +
 	"\x11provider_model_id\x18\x02 \x01(\tR\x0fproviderModelId\x12A\n" +
-	"\x0edeprecate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x124\n" +
-	"\x03stt\x18\x04 \x01(\v2\".malonaz.core.ai.v1.SttModelConfigR\x03stt\x124\n" +
-	"\x03ttt\x18\x05 \x01(\v2\".malonaz.core.ai.v1.TttModelConfigR\x03ttt\x124\n" +
-	"\x03tts\x18\x06 \x01(\v2\".malonaz.core.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
+	"\x0edeprecate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x12/\n" +
+	"\x03stt\x18\x04 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
+	"\x03ttt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
+	"\x03tts\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
 	"\x0eSttModelConfig\"K\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
-	"\ttool_call\x18\x02 \x01(\bR\btoolCall\"R\n" +
-	"\x0eTtsModelConfig\x12@\n" +
-	"\faudio_format\x18\x01 \x01(\v2\x1d.malonaz.core.audio.v1.FormatR\vaudioFormat*c\n" +
+	"\ttool_call\x18\x02 \x01(\bR\btoolCall\"M\n" +
+	"\x0eTtsModelConfig\x12;\n" +
+	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat*c\n" +
 	"\tModelType\x12\x1a\n" +
 	"\x16MODEL_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eMODEL_TYPE_STT\x10\x01\x12\x12\n" +
@@ -347,34 +347,34 @@ const file_ai_v1_model_proto_rawDesc = "" +
 	"\x17ai.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\bproviderZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
-	file_ai_v1_model_proto_rawDescOnce sync.Once
-	file_ai_v1_model_proto_rawDescData []byte
+	file_malonaz_ai_v1_model_proto_rawDescOnce sync.Once
+	file_malonaz_ai_v1_model_proto_rawDescData []byte
 )
 
-func file_ai_v1_model_proto_rawDescGZIP() []byte {
-	file_ai_v1_model_proto_rawDescOnce.Do(func() {
-		file_ai_v1_model_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_v1_model_proto_rawDesc), len(file_ai_v1_model_proto_rawDesc)))
+func file_malonaz_ai_v1_model_proto_rawDescGZIP() []byte {
+	file_malonaz_ai_v1_model_proto_rawDescOnce.Do(func() {
+		file_malonaz_ai_v1_model_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_model_proto_rawDesc), len(file_malonaz_ai_v1_model_proto_rawDesc)))
 	})
-	return file_ai_v1_model_proto_rawDescData
+	return file_malonaz_ai_v1_model_proto_rawDescData
 }
 
-var file_ai_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_ai_v1_model_proto_goTypes = []any{
-	(ModelType)(0),                // 0: malonaz.core.ai.v1.ModelType
-	(*Model)(nil),                 // 1: malonaz.core.ai.v1.Model
-	(*SttModelConfig)(nil),        // 2: malonaz.core.ai.v1.SttModelConfig
-	(*TttModelConfig)(nil),        // 3: malonaz.core.ai.v1.TttModelConfig
-	(*TtsModelConfig)(nil),        // 4: malonaz.core.ai.v1.TtsModelConfig
+var file_malonaz_ai_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_v1_model_proto_goTypes = []any{
+	(ModelType)(0),                // 0: malonaz.ai.v1.ModelType
+	(*Model)(nil),                 // 1: malonaz.ai.v1.Model
+	(*SttModelConfig)(nil),        // 2: malonaz.ai.v1.SttModelConfig
+	(*TttModelConfig)(nil),        // 3: malonaz.ai.v1.TttModelConfig
+	(*TtsModelConfig)(nil),        // 4: malonaz.ai.v1.TtsModelConfig
 	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*v1.Format)(nil),             // 6: malonaz.core.audio.v1.Format
+	(*v1.Format)(nil),             // 6: malonaz.audio.v1.Format
 }
-var file_ai_v1_model_proto_depIdxs = []int32{
-	5, // 0: malonaz.core.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
-	2, // 1: malonaz.core.ai.v1.Model.stt:type_name -> malonaz.core.ai.v1.SttModelConfig
-	3, // 2: malonaz.core.ai.v1.Model.ttt:type_name -> malonaz.core.ai.v1.TttModelConfig
-	4, // 3: malonaz.core.ai.v1.Model.tts:type_name -> malonaz.core.ai.v1.TtsModelConfig
-	6, // 4: malonaz.core.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.core.audio.v1.Format
+var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
+	5, // 0: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
+	2, // 1: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
+	3, // 2: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
+	4, // 3: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
+	6, // 4: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -382,27 +382,27 @@ var file_ai_v1_model_proto_depIdxs = []int32{
 	0, // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_ai_v1_model_proto_init() }
-func file_ai_v1_model_proto_init() {
-	if File_ai_v1_model_proto != nil {
+func init() { file_malonaz_ai_v1_model_proto_init() }
+func file_malonaz_ai_v1_model_proto_init() {
+	if File_malonaz_ai_v1_model_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_model_proto_rawDesc), len(file_ai_v1_model_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_model_proto_rawDesc), len(file_malonaz_ai_v1_model_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_ai_v1_model_proto_goTypes,
-		DependencyIndexes: file_ai_v1_model_proto_depIdxs,
-		EnumInfos:         file_ai_v1_model_proto_enumTypes,
-		MessageInfos:      file_ai_v1_model_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_model_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_model_proto_depIdxs,
+		EnumInfos:         file_malonaz_ai_v1_model_proto_enumTypes,
+		MessageInfos:      file_malonaz_ai_v1_model_proto_msgTypes,
 	}.Build()
-	File_ai_v1_model_proto = out.File
-	file_ai_v1_model_proto_goTypes = nil
-	file_ai_v1_model_proto_depIdxs = nil
+	File_malonaz_ai_v1_model_proto = out.File
+	file_malonaz_ai_v1_model_proto_goTypes = nil
+	file_malonaz_ai_v1_model_proto_depIdxs = nil
 }

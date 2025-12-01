@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package malonaz.onyx.v1;
+
+import "malonaz/onyx/v1/onyx.proto";
+
+option go_package = "github.com/malonaz/core/genproto/onyx/v1";
+
+// Service represents a service configuration
+message Service {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  ServiceSpec spec = 4;
+}
+
+// ServiceSpec represents the configuration for a Go service
+message ServiceSpec {
+  bool include_runtime = 1;
+  bool export_service_fields = 2;
+  repeated DependencySpec dependencies = 3;
+}

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: ai/v1/tool.proto
+// source: malonaz/ai/v1/tool.proto
 
 package v1
 
@@ -37,7 +37,7 @@ type Tool struct {
 
 func (x *Tool) Reset() {
 	*x = Tool{}
-	mi := &file_ai_v1_tool_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +49,7 @@ func (x *Tool) String() string {
 func (*Tool) ProtoMessage() {}
 
 func (x *Tool) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_tool_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *Tool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tool.ProtoReflect.Descriptor instead.
 func (*Tool) Descriptor() ([]byte, []int) {
-	return file_ai_v1_tool_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Tool) GetName() string {
@@ -101,7 +101,7 @@ type ToolCall struct {
 
 func (x *ToolCall) Reset() {
 	*x = ToolCall{}
-	mi := &file_ai_v1_tool_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +113,7 @@ func (x *ToolCall) String() string {
 func (*ToolCall) ProtoMessage() {}
 
 func (x *ToolCall) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_tool_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +126,7 @@ func (x *ToolCall) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolCall.ProtoReflect.Descriptor instead.
 func (*ToolCall) Descriptor() ([]byte, []int) {
-	return file_ai_v1_tool_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ToolCall) GetId() string {
@@ -150,15 +150,15 @@ func (x *ToolCall) GetArguments() string {
 	return ""
 }
 
-var File_ai_v1_tool_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
-const file_ai_v1_tool_proto_rawDesc = "" +
+const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x10ai/v1/tool.proto\x12\x12malonaz.core.ai.v1\x1a\x16ai/v1/jsonschema.proto\x1a\x1bbuf/validate/validate.proto\"\x8f\x01\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x8a\x01\n" +
 	"\x04Tool\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
-	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12?\n" +
-	"\vjson_schema\x18\x03 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\n" +
+	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12:\n" +
+	"\vjson_schema\x18\x03 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\n" +
 	"jsonSchema\"\\\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
@@ -166,25 +166,25 @@ const file_ai_v1_tool_proto_rawDesc = "" +
 	"\targuments\x18\x03 \x01(\tR\targumentsB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
-	file_ai_v1_tool_proto_rawDescOnce sync.Once
-	file_ai_v1_tool_proto_rawDescData []byte
+	file_malonaz_ai_v1_tool_proto_rawDescOnce sync.Once
+	file_malonaz_ai_v1_tool_proto_rawDescData []byte
 )
 
-func file_ai_v1_tool_proto_rawDescGZIP() []byte {
-	file_ai_v1_tool_proto_rawDescOnce.Do(func() {
-		file_ai_v1_tool_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_v1_tool_proto_rawDesc), len(file_ai_v1_tool_proto_rawDesc)))
+func file_malonaz_ai_v1_tool_proto_rawDescGZIP() []byte {
+	file_malonaz_ai_v1_tool_proto_rawDescOnce.Do(func() {
+		file_malonaz_ai_v1_tool_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)))
 	})
-	return file_ai_v1_tool_proto_rawDescData
+	return file_malonaz_ai_v1_tool_proto_rawDescData
 }
 
-var file_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_ai_v1_tool_proto_goTypes = []any{
-	(*Tool)(nil),       // 0: malonaz.core.ai.v1.Tool
-	(*ToolCall)(nil),   // 1: malonaz.core.ai.v1.ToolCall
-	(*JsonSchema)(nil), // 2: malonaz.core.ai.v1.JsonSchema
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_ai_v1_tool_proto_goTypes = []any{
+	(*Tool)(nil),       // 0: malonaz.ai.v1.Tool
+	(*ToolCall)(nil),   // 1: malonaz.ai.v1.ToolCall
+	(*JsonSchema)(nil), // 2: malonaz.ai.v1.JsonSchema
 }
-var file_ai_v1_tool_proto_depIdxs = []int32{
-	2, // 0: malonaz.core.ai.v1.Tool.json_schema:type_name -> malonaz.core.ai.v1.JsonSchema
+var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
+	2, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -192,27 +192,27 @@ var file_ai_v1_tool_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_ai_v1_tool_proto_init() }
-func file_ai_v1_tool_proto_init() {
-	if File_ai_v1_tool_proto != nil {
+func init() { file_malonaz_ai_v1_tool_proto_init() }
+func file_malonaz_ai_v1_tool_proto_init() {
+	if File_malonaz_ai_v1_tool_proto != nil {
 		return
 	}
-	file_ai_v1_jsonschema_proto_init()
+	file_malonaz_ai_v1_jsonschema_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_tool_proto_rawDesc), len(file_ai_v1_tool_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_ai_v1_tool_proto_goTypes,
-		DependencyIndexes: file_ai_v1_tool_proto_depIdxs,
-		MessageInfos:      file_ai_v1_tool_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_tool_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_tool_proto_depIdxs,
+		MessageInfos:      file_malonaz_ai_v1_tool_proto_msgTypes,
 	}.Build()
-	File_ai_v1_tool_proto = out.File
-	file_ai_v1_tool_proto_goTypes = nil
-	file_ai_v1_tool_proto_depIdxs = nil
+	File_malonaz_ai_v1_tool_proto = out.File
+	file_malonaz_ai_v1_tool_proto_goTypes = nil
+	file_malonaz_ai_v1_tool_proto_depIdxs = nil
 }

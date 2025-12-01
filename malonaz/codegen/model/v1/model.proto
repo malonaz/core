@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package malonaz.codegen.model.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/codegen/model/v1";
+
+// Extension for adding model-level code generation options to protobuf messages.
+// Used to control database table mapping and function generation for a message type.
+extend google.protobuf.MessageOptions {
+  // Opts for a model.
+  ModelOpts model_opts = 8810;
+}
+
+// Extension for adding field-level code generation options to protobuf fields.
+// Used to control how individual fields are serialized and handled in the database layer.
+extend google.protobuf.FieldOptions {
+  // Opts for a field.
+  FieldOpts field_opts = 32423;
+}
+
+// ModelOpts defines code generation options for an entire message/model.
+// Controls database mapping and which CRUD functions are generated.
+message ModelOpts {
+  // Override the default database name for this model.
+  // If not set, uses a default derived from the message name.
+  string database_name = 1;
+
+  // Override the default table name for this model.
+  // If not set, uses a default derived from the message name.
+  string table_name = 2;
+
+  // Override the id column name. Cannot be set for singletons as they have no id.
+  string id_column_name = 3;
+
+  // If true, skip generating a db.Insert function for this model.
+  // Useful when insert logic is custom or handled elsewhere.
+  bool skip_insert_function = 4;
+
+  // If true, skip generating a db.Delete function for this model.
+  // Useful when delete logic is custom or handled elsewhere.
+  bool skip_delete_function = 5;
+
+  // If true, skip generating a db.Get function for this model.
+  // Useful when retrieval logic is custom or handled elsewhere.
+  bool skip_get_function = 6;
+}
+
+// FieldOpts defines code generation options for individual message fields.
+// Controls serialization format and nullability handling.
+message FieldOpts {
+  // Override the column name for this field.
+  string column_name = 1;
+
+  // If true, serialize this field as JSON bytes in the database.
+  // The field will be stored as JSONB and marshaled/unmarshaled using JSON encoding.
+  bool as_json_bytes = 2;
+
+  // If true, serialize this field as Protocol Buffer bytes in the database.
+  // The field will be stored as bytea and marshaled/unmarshaled using protobuf encoding.
+  bool as_proto_bytes = 3;
+
+  // If true, treat this field as nullable (use pointer type in Go).
+  // Allows distinguishing between zero values and null/unset values.
+  bool nullable = 4;
+
+  // If true, skip this field entirely in code generation.
+  // The field will not be included in database models or conversion functions.
+  bool skip = 5;
+
+  // If true, embed this field's properties directly into the parent struct.
+  // Instead of a nested field, the properties are flattened into the parent.
+  bool embed = 6;
+
+  // If true, treat this field as a pgvector type for vector similarity search.
+  // The field will use the pgvector.Vector type for PostgreSQL vector operations.
+  bool pg_vector = 7;
+}

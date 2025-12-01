@@ -4,7 +4,7 @@ go_binary(
     visibility = ["//..."],
     deps = [
         "//go/grpc",
-        "//proto/ai/ai_service/v1",
-        "//proto/ai/v1",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
     ],
 )

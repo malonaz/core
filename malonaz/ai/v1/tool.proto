@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/ai/v1/jsonschema.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// Represents a tool that can be called by the AI model.
+message Tool {
+  // The name of the tool to be called.
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+
+  // A description of what the tool does.
+  string description = 2 [(buf.validate.field).string.min_len = 1];
+
+  // The json schema of the exected object to be returned.
+  JsonSchema json_schema = 3;
+}
+
+// A tool call that the model wants to invoke.
+message ToolCall {
+  // The id of this tool call.
+  string id = 1 [(buf.validate.field).required = true];
+
+  // The name of the tool to call.
+  string name = 2 [(buf.validate.field).required = true];
+
+  // The arguments to call the tool with, as JSON.
+  string arguments = 3;
+}

@@ -276,7 +276,7 @@ type RPC struct {
 }
 
 // Given a protogen.Method
-// 1. Grab the malonaz.core.codegen.rpc.v1.message_type annotation.
+// 1. Grab the malonaz.codegen.rpc.v1.message_type annotation.
 // 2. Use the 'messageTypeToMessage' to understand what message we're building a CRUD method for.
 // 3. Grab the 'resource descriptor' of that mesasge.
 // 4. Parse the cannonical pattern of the resource descriptor (the first one), and identify which identifiers fully characterise the 'resource'.

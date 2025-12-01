@@ -1,0 +1,377 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/ai/v1/model.proto";
+import "malonaz/ai/v1/tool.proto";
+import "malonaz/audio/v1/audio.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// This API represents an AI service.
+//
+// It handles TextToText, SpeechToText & TextToSpeech generation.
+service Ai {
+  option (google.api.default_host) = "ai.malonaz.com";
+
+  // Create a model.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Create).
+  rpc CreateModel(CreateModelRequest) returns (ai.v1.Model) {
+    option (google.api.http) = {post: "/v1/{name=providers/*/models/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Get a model.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetModel(GetModelRequest) returns (ai.v1.Model) {
+    option (google.api.http) = {get: "/v1/{name=providers/*/models/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List models for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=providers/*/*}/models"};
+    option (google.api.method_signature) = "parent";
+  }
+
+  // Converts speech audio to text using the specified model.
+  rpc SpeechToText(SpeechToTextRequest) returns (SpeechToTextResponse) {
+    option (google.api.http) = {
+      post: "/v1/providers/{provider}/models/{model}/speech-to-text"
+      body: "*"
+    };
+  }
+
+  // Convert text to text using chat completion models.
+  rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
+    option (google.api.http) = {
+      post: "/v1/providers/{provider}/models/{model}/text-to-text"
+      body: "*"
+    };
+  }
+
+  // Converts text to text using chat completion models with streaming response.
+  rpc TextToTextStream(TextToTextStreamRequest) returns (stream TextToTextStreamResponse) {
+    option (google.api.http) = {
+      post: "/v1/providers/{provider}/models/{model}/text-to-text:stream"
+      body: "*"
+    };
+  }
+
+  // Converts text to speech audio, returning complete audio data.
+  rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
+    option (google.api.http) = {
+      post: "/v1/providers/{provider}/models/{model}/text-to-speech"
+      body: "*"
+    };
+  }
+
+  // Converts text to speech audio with streaming response.
+  rpc TextToSpeechStream(TextToSpeechStreamRequest) returns (stream TextToSpeechStreamResponse) {
+    option (google.api.http) = {
+      post: "/v1/providers/{provider}/models/{model}/text-to-speech:stream"
+      body: "*"
+    };
+  }
+}
+
+// Request message for Ai.CreateModel.
+message CreateModelRequest {
+  // The resource name of the parent provider for which this model will be created.
+  // Format: providers/{provider}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/Provider"}
+  ];
+  // The model to create.
+  ai.v1.Model model = 2 [(buf.validate.field).required = true];
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  //
+  // This value should be 4-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string model_id = 3 [(buf.validate.field).required = true];
+}
+
+// Request message for Ai.GetModel.
+message GetModelRequest {
+  // The resource name of the model to retrieve.
+  // Format: providers/{provider}/models/{model}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+}
+
+// Request message for Ai.ListModels.
+message ListModelsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 500};
+
+  // The resource name of the parent, which owns this collection of models.
+  // Format: providers/{provider}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/Provider"}
+  ];
+
+  // Requested page size. Server may return fewer models than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListModelsResponse.next_page_token][ai.ai_service.v1.ListModelsResponse.next_page_token]
+  // returned from the previous call to `ListModels` method.
+  string page_token = 3;
+}
+
+// Response message for Ai.ListModels.
+message ListModelsResponse {
+  // The list of models.
+  repeated ai.v1.Model models = 1;
+  // A token to retrieve next page of results. Pass this value in the
+  // [ListModelsRequest.page_token][ai.ai_service.v1.ListModelsRequest.page_token]
+  // field in the subsequent call to `ListModels` method to retrieve the next
+  // page of results.
+  string next_page_token = 2;
+}
+
+// Request message for Ai.SpeechToText.
+message SpeechToTextRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // Audio data in PCM format.
+  bytes audio = 2 [(buf.validate.field).required = true];
+
+  // Optional language code to improve transcription accuracy (e.g., "en", "es").
+  string language = 3;
+}
+
+// Response message for Ai.SpeechToText.
+message SpeechToTextResponse {
+  // The transcribed text.
+  string transcript = 1;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 2;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+}
+
+// Configuration for text to text generation.
+message TextToTextConfiguration {
+  // Maximum number of tokens to generate. Includes reasoning tokens.
+  int64 max_tokens = 1 [(buf.validate.field).int64.gte = 0];
+
+  // Sampling temperature (0.0 to 2.0).
+  double temperature = 2 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 2.0
+  }];
+
+  // Represents the level of reasoning effort for AI model responses.
+  // The reasoning effort parameter guides the model on how many reasoning tokens
+  // to generate before creating a response to the prompt. Higher effort levels
+  // result in more thorough reasoning at the cost of speed and token usage.
+  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 3;
+
+  // If true, we attempt to clean the output to extract a json object.
+  // Fails the request if a json object cannot be found.
+  bool extract_json_object = 4;
+}
+
+// Request message for Ai.TextToText.
+message TextToTextRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 3;
+
+  // For the model to use a tool.
+  string tool_choice = 4;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+}
+
+// Reason why generation stopped.
+enum TextToTextStopReason {
+  // Used to detect an unset field.
+  TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED = 0;
+
+  // The model reached a natural stopping point.
+  TEXT_TO_TEXT_STOP_REASON_END_TURN = 1;
+
+  // The model reached the maximum token limit specified in the request.
+  TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS = 2;
+
+  // The model requested to call one or more tools.
+  TEXT_TO_TEXT_STOP_REASON_TOOL_CALL = 3;
+
+  // one of your provided custom `stop_sequences` was generated
+  TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE = 4;
+
+  // The model paused its turn to allow the user to interject.
+  TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN = 5;
+
+  // The model refused to respond due to safety or policy reasons.
+  TEXT_TO_TEXT_STOP_REASON_REFUSAL = 6;
+}
+
+// Response message for Ai.TextToText.
+message TextToTextResponse {
+  // The generated message.
+  .malonaz.ai.v1.Message message = 1;
+
+  // Reason why generation stopped.
+  TextToTextStopReason stop_reason = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for Ai.TextToTextStream.
+message TextToTextStreamRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 3;
+
+  // For the model to use a tool.
+  string tool_choice = 4;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+}
+
+// Response message for Ai.TextToTextStream.
+message TextToTextStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // A chunk of the generated message content.
+    string content_chunk = 1;
+
+    // Reasoning content chunk (if model supports reasoning).
+    string reasoning_chunk = 2;
+
+    // Reason why generation stopped.
+    TextToTextStopReason stop_reason = 3;
+
+    // Tool calls requested by the assistant (sent when complete).
+    .malonaz.ai.v1.ToolCall tool_call = 4;
+
+    // Model usage event (sent last).
+    .malonaz.ai.v1.ModelUsage model_usage = 5;
+
+    // Generation metrics (sent last).
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 6;
+  }
+}
+
+// Request message for Ai.TextToSpeech.
+message TextToSpeechRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The text to convert to speech.
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+
+  // Voice identifier to use for speech generation.
+  string voice = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// Response message for Ai.TextToSpeech.
+message TextToSpeechResponse {
+  // Audio format of the audio.
+  audio.v1.Format audio_format = 1;
+
+  // Audio data chunk in PCM16 format.
+  audio.v1.Chunk audio_chunk = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for Ai.TextToSpeechStream.
+message TextToSpeechStreamRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The text to convert to speech.
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+
+  // Voice identifier to use for speech generation.
+  string voice = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// Response message for Ai.TextToSpeechStream.
+message TextToSpeechStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Audio format of the audio stream.
+    audio.v1.Format audio_format = 1;
+
+    // Audio data chunk in PCM16 format.
+    audio.v1.Chunk audio_chunk = 2;
+
+    // Model usage event (sent last).
+    .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+    // Generation metrics.
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+  }
+}

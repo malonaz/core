@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: ai/v1/message.proto
+// source: malonaz/ai/v1/message.proto
 
 package v1
 
@@ -67,11 +67,11 @@ func (x Role) String() string {
 }
 
 func (Role) Descriptor() protoreflect.EnumDescriptor {
-	return file_ai_v1_message_proto_enumTypes[0].Descriptor()
+	return file_malonaz_ai_v1_message_proto_enumTypes[0].Descriptor()
 }
 
 func (Role) Type() protoreflect.EnumType {
-	return &file_ai_v1_message_proto_enumTypes[0]
+	return &file_malonaz_ai_v1_message_proto_enumTypes[0]
 }
 
 func (x Role) Number() protoreflect.EnumNumber {
@@ -80,7 +80,7 @@ func (x Role) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Role.Descriptor instead.
 func (Role) EnumDescriptor() ([]byte, []int) {
-	return file_ai_v1_message_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
 // Represents the level of reasoning effort for AI model responses.
@@ -136,11 +136,11 @@ func (x ReasoningEffort) String() string {
 }
 
 func (ReasoningEffort) Descriptor() protoreflect.EnumDescriptor {
-	return file_ai_v1_message_proto_enumTypes[1].Descriptor()
+	return file_malonaz_ai_v1_message_proto_enumTypes[1].Descriptor()
 }
 
 func (ReasoningEffort) Type() protoreflect.EnumType {
-	return &file_ai_v1_message_proto_enumTypes[1]
+	return &file_malonaz_ai_v1_message_proto_enumTypes[1]
 }
 
 func (x ReasoningEffort) Number() protoreflect.EnumNumber {
@@ -149,14 +149,14 @@ func (x ReasoningEffort) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ReasoningEffort.Descriptor instead.
 func (ReasoningEffort) EnumDescriptor() ([]byte, []int) {
-	return file_ai_v1_message_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{1}
 }
 
 // Represents a message in a multi-turn AI conversation.
 type Message struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Role of the message sender.
-	Role Role `protobuf:"varint,1,opt,name=role,proto3,enum=malonaz.core.ai.v1.Role" json:"role,omitempty"`
+	Role Role `protobuf:"varint,1,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
 	// Content of the message.
 	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	// Thinking content.
@@ -171,7 +171,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_ai_v1_message_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -183,7 +183,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_message_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -196,7 +196,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_ai_v1_message_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Message) GetRole() Role {
@@ -234,18 +234,18 @@ func (x *Message) GetToolCallId() string {
 	return ""
 }
 
-var File_ai_v1_message_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
-const file_ai_v1_message_proto_rawDesc = "" +
+const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x13ai/v1/message.proto\x12\x12malonaz.core.ai.v1\x1a\x10ai/v1/tool.proto\x1a\x1bbuf/validate/validate.proto\"\x8d\b\n" +
-	"\aMessage\x128\n" +
-	"\x04role\x18\x01 \x01(\x0e2\x18.malonaz.core.ai.v1.RoleB\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x83\b\n" +
+	"\aMessage\x123\n" +
+	"\x04role\x18\x01 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1c\n" +
-	"\treasoning\x18\x03 \x01(\tR\treasoning\x12;\n" +
+	"\treasoning\x18\x03 \x01(\tR\treasoning\x126\n" +
 	"\n" +
-	"tool_calls\x18\x04 \x03(\v2\x1c.malonaz.core.ai.v1.ToolCallR\ttoolCalls\x12 \n" +
+	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls\x12 \n" +
 	"\ftool_call_id\x18\x05 \x01(\tR\n" +
 	"toolCallId:\xb0\x06\xbaH\xac\x06\x1a\xa1\x01\n" +
 	"\x1ftool_call_id_requires_tool_role\x123tool_call_id can only be set when role is ROLE_TOOL\x1aIhas(this.tool_call_id) && this.tool_call_id != '' ? this.role == 4 : true\x1a\x97\x01\n" +
@@ -267,28 +267,28 @@ const file_ai_v1_message_proto_rawDesc = "" +
 	"\x15REASONING_EFFORT_HIGH\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
-	file_ai_v1_message_proto_rawDescOnce sync.Once
-	file_ai_v1_message_proto_rawDescData []byte
+	file_malonaz_ai_v1_message_proto_rawDescOnce sync.Once
+	file_malonaz_ai_v1_message_proto_rawDescData []byte
 )
 
-func file_ai_v1_message_proto_rawDescGZIP() []byte {
-	file_ai_v1_message_proto_rawDescOnce.Do(func() {
-		file_ai_v1_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_v1_message_proto_rawDesc), len(file_ai_v1_message_proto_rawDesc)))
+func file_malonaz_ai_v1_message_proto_rawDescGZIP() []byte {
+	file_malonaz_ai_v1_message_proto_rawDescOnce.Do(func() {
+		file_malonaz_ai_v1_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)))
 	})
-	return file_ai_v1_message_proto_rawDescData
+	return file_malonaz_ai_v1_message_proto_rawDescData
 }
 
-var file_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_ai_v1_message_proto_goTypes = []any{
-	(Role)(0),            // 0: malonaz.core.ai.v1.Role
-	(ReasoningEffort)(0), // 1: malonaz.core.ai.v1.ReasoningEffort
-	(*Message)(nil),      // 2: malonaz.core.ai.v1.Message
-	(*ToolCall)(nil),     // 3: malonaz.core.ai.v1.ToolCall
+var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_ai_v1_message_proto_goTypes = []any{
+	(Role)(0),            // 0: malonaz.ai.v1.Role
+	(ReasoningEffort)(0), // 1: malonaz.ai.v1.ReasoningEffort
+	(*Message)(nil),      // 2: malonaz.ai.v1.Message
+	(*ToolCall)(nil),     // 3: malonaz.ai.v1.ToolCall
 }
-var file_ai_v1_message_proto_depIdxs = []int32{
-	0, // 0: malonaz.core.ai.v1.Message.role:type_name -> malonaz.core.ai.v1.Role
-	3, // 1: malonaz.core.ai.v1.Message.tool_calls:type_name -> malonaz.core.ai.v1.ToolCall
+var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
+	0, // 0: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
+	3, // 1: malonaz.ai.v1.Message.tool_calls:type_name -> malonaz.ai.v1.ToolCall
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -296,28 +296,28 @@ var file_ai_v1_message_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_ai_v1_message_proto_init() }
-func file_ai_v1_message_proto_init() {
-	if File_ai_v1_message_proto != nil {
+func init() { file_malonaz_ai_v1_message_proto_init() }
+func file_malonaz_ai_v1_message_proto_init() {
+	if File_malonaz_ai_v1_message_proto != nil {
 		return
 	}
-	file_ai_v1_tool_proto_init()
+	file_malonaz_ai_v1_tool_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_message_proto_rawDesc), len(file_ai_v1_message_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_ai_v1_message_proto_goTypes,
-		DependencyIndexes: file_ai_v1_message_proto_depIdxs,
-		EnumInfos:         file_ai_v1_message_proto_enumTypes,
-		MessageInfos:      file_ai_v1_message_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_message_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_message_proto_depIdxs,
+		EnumInfos:         file_malonaz_ai_v1_message_proto_enumTypes,
+		MessageInfos:      file_malonaz_ai_v1_message_proto_msgTypes,
 	}.Build()
-	File_ai_v1_message_proto = out.File
-	file_ai_v1_message_proto_goTypes = nil
-	file_ai_v1_message_proto_depIdxs = nil
+	File_malonaz_ai_v1_message_proto = out.File
+	file_malonaz_ai_v1_message_proto_goTypes = nil
+	file_malonaz_ai_v1_message_proto_depIdxs = nil
 }

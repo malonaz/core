@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: onyx/v1/service.proto
+// source: malonaz/onyx/v1/service.proto
 
 package v1
 
@@ -34,7 +34,7 @@ type Service struct {
 
 func (x *Service) Reset() {
 	*x = Service{}
-	mi := &file_onyx_v1_service_proto_msgTypes[0]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +46,7 @@ func (x *Service) String() string {
 func (*Service) ProtoMessage() {}
 
 func (x *Service) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_service_proto_msgTypes[0]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +59,7 @@ func (x *Service) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Service.ProtoReflect.Descriptor instead.
 func (*Service) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_service_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_onyx_v1_service_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Service) GetApiVersion() string {
@@ -102,7 +102,7 @@ type ServiceSpec struct {
 
 func (x *ServiceSpec) Reset() {
 	*x = ServiceSpec{}
-	mi := &file_onyx_v1_service_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +114,7 @@ func (x *ServiceSpec) String() string {
 func (*ServiceSpec) ProtoMessage() {}
 
 func (x *ServiceSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_service_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +127,7 @@ func (x *ServiceSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceSpec.ProtoReflect.Descriptor instead.
 func (*ServiceSpec) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_service_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_onyx_v1_service_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ServiceSpec) GetIncludeRuntime() bool {
@@ -151,45 +151,45 @@ func (x *ServiceSpec) GetDependencies() []*DependencySpec {
 	return nil
 }
 
-var File_onyx_v1_service_proto protoreflect.FileDescriptor
+var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
-const file_onyx_v1_service_proto_rawDesc = "" +
+const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15onyx/v1/service.proto\x12\x14malonaz.core.onyx.v1\x1a\x12onyx/v1/onyx.proto\"\xb3\x01\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1amalonaz/onyx/v1/onyx.proto\"\xa9\x01\n" +
 	"\aService\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\x12<\n" +
-	"\bmetadata\x18\x03 \x01(\v2 .malonaz.core.onyx.v1.ObjectMetaR\bmetadata\x125\n" +
-	"\x04spec\x18\x04 \x01(\v2!.malonaz.core.onyx.v1.ServiceSpecR\x04spec\"\xb4\x01\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x127\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x1b.malonaz.onyx.v1.ObjectMetaR\bmetadata\x120\n" +
+	"\x04spec\x18\x04 \x01(\v2\x1c.malonaz.onyx.v1.ServiceSpecR\x04spec\"\xaf\x01\n" +
 	"\vServiceSpec\x12'\n" +
 	"\x0finclude_runtime\x18\x01 \x01(\bR\x0eincludeRuntime\x122\n" +
-	"\x15export_service_fields\x18\x02 \x01(\bR\x13exportServiceFields\x12H\n" +
-	"\fdependencies\x18\x03 \x03(\v2$.malonaz.core.onyx.v1.DependencySpecR\fdependenciesB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
+	"\x15export_service_fields\x18\x02 \x01(\bR\x13exportServiceFields\x12C\n" +
+	"\fdependencies\x18\x03 \x03(\v2\x1f.malonaz.onyx.v1.DependencySpecR\fdependenciesB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
 
 var (
-	file_onyx_v1_service_proto_rawDescOnce sync.Once
-	file_onyx_v1_service_proto_rawDescData []byte
+	file_malonaz_onyx_v1_service_proto_rawDescOnce sync.Once
+	file_malonaz_onyx_v1_service_proto_rawDescData []byte
 )
 
-func file_onyx_v1_service_proto_rawDescGZIP() []byte {
-	file_onyx_v1_service_proto_rawDescOnce.Do(func() {
-		file_onyx_v1_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_onyx_v1_service_proto_rawDesc), len(file_onyx_v1_service_proto_rawDesc)))
+func file_malonaz_onyx_v1_service_proto_rawDescGZIP() []byte {
+	file_malonaz_onyx_v1_service_proto_rawDescOnce.Do(func() {
+		file_malonaz_onyx_v1_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_service_proto_rawDesc), len(file_malonaz_onyx_v1_service_proto_rawDesc)))
 	})
-	return file_onyx_v1_service_proto_rawDescData
+	return file_malonaz_onyx_v1_service_proto_rawDescData
 }
 
-var file_onyx_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_onyx_v1_service_proto_goTypes = []any{
-	(*Service)(nil),        // 0: malonaz.core.onyx.v1.Service
-	(*ServiceSpec)(nil),    // 1: malonaz.core.onyx.v1.ServiceSpec
-	(*ObjectMeta)(nil),     // 2: malonaz.core.onyx.v1.ObjectMeta
-	(*DependencySpec)(nil), // 3: malonaz.core.onyx.v1.DependencySpec
+var file_malonaz_onyx_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_onyx_v1_service_proto_goTypes = []any{
+	(*Service)(nil),        // 0: malonaz.onyx.v1.Service
+	(*ServiceSpec)(nil),    // 1: malonaz.onyx.v1.ServiceSpec
+	(*ObjectMeta)(nil),     // 2: malonaz.onyx.v1.ObjectMeta
+	(*DependencySpec)(nil), // 3: malonaz.onyx.v1.DependencySpec
 }
-var file_onyx_v1_service_proto_depIdxs = []int32{
-	2, // 0: malonaz.core.onyx.v1.Service.metadata:type_name -> malonaz.core.onyx.v1.ObjectMeta
-	1, // 1: malonaz.core.onyx.v1.Service.spec:type_name -> malonaz.core.onyx.v1.ServiceSpec
-	3, // 2: malonaz.core.onyx.v1.ServiceSpec.dependencies:type_name -> malonaz.core.onyx.v1.DependencySpec
+var file_malonaz_onyx_v1_service_proto_depIdxs = []int32{
+	2, // 0: malonaz.onyx.v1.Service.metadata:type_name -> malonaz.onyx.v1.ObjectMeta
+	1, // 1: malonaz.onyx.v1.Service.spec:type_name -> malonaz.onyx.v1.ServiceSpec
+	3, // 2: malonaz.onyx.v1.ServiceSpec.dependencies:type_name -> malonaz.onyx.v1.DependencySpec
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -197,27 +197,27 @@ var file_onyx_v1_service_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_onyx_v1_service_proto_init() }
-func file_onyx_v1_service_proto_init() {
-	if File_onyx_v1_service_proto != nil {
+func init() { file_malonaz_onyx_v1_service_proto_init() }
+func file_malonaz_onyx_v1_service_proto_init() {
+	if File_malonaz_onyx_v1_service_proto != nil {
 		return
 	}
-	file_onyx_v1_onyx_proto_init()
+	file_malonaz_onyx_v1_onyx_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_onyx_v1_service_proto_rawDesc), len(file_onyx_v1_service_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_service_proto_rawDesc), len(file_malonaz_onyx_v1_service_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_onyx_v1_service_proto_goTypes,
-		DependencyIndexes: file_onyx_v1_service_proto_depIdxs,
-		MessageInfos:      file_onyx_v1_service_proto_msgTypes,
+		GoTypes:           file_malonaz_onyx_v1_service_proto_goTypes,
+		DependencyIndexes: file_malonaz_onyx_v1_service_proto_depIdxs,
+		MessageInfos:      file_malonaz_onyx_v1_service_proto_msgTypes,
 	}.Build()
-	File_onyx_v1_service_proto = out.File
-	file_onyx_v1_service_proto_goTypes = nil
-	file_onyx_v1_service_proto_depIdxs = nil
+	File_malonaz_onyx_v1_service_proto = out.File
+	file_malonaz_onyx_v1_service_proto_goTypes = nil
+	file_malonaz_onyx_v1_service_proto_depIdxs = nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: codegen/llm/v1/llm.proto
+// source: malonaz/codegen/llm/v1/llm.proto
 
 package v1
 
@@ -33,7 +33,7 @@ type MessageOpts struct {
 
 func (x *MessageOpts) Reset() {
 	*x = MessageOpts{}
-	mi := &file_codegen_llm_v1_llm_proto_msgTypes[0]
+	mi := &file_malonaz_codegen_llm_v1_llm_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *MessageOpts) String() string {
 func (*MessageOpts) ProtoMessage() {}
 
 func (x *MessageOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_codegen_llm_v1_llm_proto_msgTypes[0]
+	mi := &file_malonaz_codegen_llm_v1_llm_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *MessageOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageOpts.ProtoReflect.Descriptor instead.
 func (*MessageOpts) Descriptor() ([]byte, []int) {
-	return file_codegen_llm_v1_llm_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_codegen_llm_v1_llm_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MessageOpts) GetDocument() bool {
@@ -79,7 +79,7 @@ type FieldOpts struct {
 
 func (x *FieldOpts) Reset() {
 	*x = FieldOpts{}
-	mi := &file_codegen_llm_v1_llm_proto_msgTypes[1]
+	mi := &file_malonaz_codegen_llm_v1_llm_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -91,7 +91,7 @@ func (x *FieldOpts) String() string {
 func (*FieldOpts) ProtoMessage() {}
 
 func (x *FieldOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_codegen_llm_v1_llm_proto_msgTypes[1]
+	mi := &file_malonaz_codegen_llm_v1_llm_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +104,7 @@ func (x *FieldOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldOpts.ProtoReflect.Descriptor instead.
 func (*FieldOpts) Descriptor() ([]byte, []int) {
-	return file_codegen_llm_v1_llm_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_codegen_llm_v1_llm_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *FieldOpts) GetSkip() bool {
@@ -114,22 +114,22 @@ func (x *FieldOpts) GetSkip() bool {
 	return false
 }
 
-var file_codegen_llm_v1_llm_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_malonaz_codegen_llm_v1_llm_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*MessageOpts)(nil),
 		Field:         93000,
-		Name:          "malonaz.core.codegen.llm.v1.opts",
+		Name:          "malonaz.codegen.llm.v1.opts",
 		Tag:           "bytes,93000,opt,name=opts",
-		Filename:      "codegen/llm/v1/llm.proto",
+		Filename:      "malonaz/codegen/llm/v1/llm.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
 		ExtensionType: (*FieldOpts)(nil),
 		Field:         93001,
-		Name:          "malonaz.core.codegen.llm.v1.field_opts",
+		Name:          "malonaz.codegen.llm.v1.field_opts",
 		Tag:           "bytes,93001,opt,name=field_opts",
-		Filename:      "codegen/llm/v1/llm.proto",
+		Filename:      "malonaz/codegen/llm/v1/llm.proto",
 	},
 }
 
@@ -137,55 +137,55 @@ var file_codegen_llm_v1_llm_proto_extTypes = []protoimpl.ExtensionInfo{
 var (
 	// If true, we generate llm document.
 	//
-	// optional malonaz.core.codegen.llm.v1.MessageOpts opts = 93000;
-	E_Opts = &file_codegen_llm_v1_llm_proto_extTypes[0]
+	// optional malonaz.codegen.llm.v1.MessageOpts opts = 93000;
+	E_Opts = &file_malonaz_codegen_llm_v1_llm_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
 	// Opts for a field.
 	//
-	// optional malonaz.core.codegen.llm.v1.FieldOpts field_opts = 93001;
-	E_FieldOpts = &file_codegen_llm_v1_llm_proto_extTypes[1]
+	// optional malonaz.codegen.llm.v1.FieldOpts field_opts = 93001;
+	E_FieldOpts = &file_malonaz_codegen_llm_v1_llm_proto_extTypes[1]
 )
 
-var File_codegen_llm_v1_llm_proto protoreflect.FileDescriptor
+var File_malonaz_codegen_llm_v1_llm_proto protoreflect.FileDescriptor
 
-const file_codegen_llm_v1_llm_proto_rawDesc = "" +
+const file_malonaz_codegen_llm_v1_llm_proto_rawDesc = "" +
 	"\n" +
-	"\x18codegen/llm/v1/llm.proto\x12\x1bmalonaz.core.codegen.llm.v1\x1a google/protobuf/descriptor.proto\")\n" +
+	" malonaz/codegen/llm/v1/llm.proto\x12\x16malonaz.codegen.llm.v1\x1a google/protobuf/descriptor.proto\")\n" +
 	"\vMessageOpts\x12\x1a\n" +
 	"\bdocument\x18\x01 \x01(\bR\bdocument\"\x1f\n" +
 	"\tFieldOpts\x12\x12\n" +
-	"\x04skip\x18\x01 \x01(\bR\x04skip:_\n" +
-	"\x04opts\x12\x1f.google.protobuf.MessageOptions\x18\xc8\xd6\x05 \x01(\v2(.malonaz.core.codegen.llm.v1.MessageOptsR\x04opts:f\n" +
+	"\x04skip\x18\x01 \x01(\bR\x04skip:Z\n" +
+	"\x04opts\x12\x1f.google.protobuf.MessageOptions\x18\xc8\xd6\x05 \x01(\v2#.malonaz.codegen.llm.v1.MessageOptsR\x04opts:a\n" +
 	"\n" +
-	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xc9\xd6\x05 \x01(\v2&.malonaz.core.codegen.llm.v1.FieldOptsR\tfieldOptsB1Z/github.com/malonaz/core/genproto/codegen/llm/v1b\x06proto3"
+	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xc9\xd6\x05 \x01(\v2!.malonaz.codegen.llm.v1.FieldOptsR\tfieldOptsB1Z/github.com/malonaz/core/genproto/codegen/llm/v1b\x06proto3"
 
 var (
-	file_codegen_llm_v1_llm_proto_rawDescOnce sync.Once
-	file_codegen_llm_v1_llm_proto_rawDescData []byte
+	file_malonaz_codegen_llm_v1_llm_proto_rawDescOnce sync.Once
+	file_malonaz_codegen_llm_v1_llm_proto_rawDescData []byte
 )
 
-func file_codegen_llm_v1_llm_proto_rawDescGZIP() []byte {
-	file_codegen_llm_v1_llm_proto_rawDescOnce.Do(func() {
-		file_codegen_llm_v1_llm_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_codegen_llm_v1_llm_proto_rawDesc), len(file_codegen_llm_v1_llm_proto_rawDesc)))
+func file_malonaz_codegen_llm_v1_llm_proto_rawDescGZIP() []byte {
+	file_malonaz_codegen_llm_v1_llm_proto_rawDescOnce.Do(func() {
+		file_malonaz_codegen_llm_v1_llm_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_codegen_llm_v1_llm_proto_rawDesc), len(file_malonaz_codegen_llm_v1_llm_proto_rawDesc)))
 	})
-	return file_codegen_llm_v1_llm_proto_rawDescData
+	return file_malonaz_codegen_llm_v1_llm_proto_rawDescData
 }
 
-var file_codegen_llm_v1_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_codegen_llm_v1_llm_proto_goTypes = []any{
-	(*MessageOpts)(nil),                 // 0: malonaz.core.codegen.llm.v1.MessageOpts
-	(*FieldOpts)(nil),                   // 1: malonaz.core.codegen.llm.v1.FieldOpts
+var file_malonaz_codegen_llm_v1_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_codegen_llm_v1_llm_proto_goTypes = []any{
+	(*MessageOpts)(nil),                 // 0: malonaz.codegen.llm.v1.MessageOpts
+	(*FieldOpts)(nil),                   // 1: malonaz.codegen.llm.v1.FieldOpts
 	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
 	(*descriptorpb.FieldOptions)(nil),   // 3: google.protobuf.FieldOptions
 }
-var file_codegen_llm_v1_llm_proto_depIdxs = []int32{
-	2, // 0: malonaz.core.codegen.llm.v1.opts:extendee -> google.protobuf.MessageOptions
-	3, // 1: malonaz.core.codegen.llm.v1.field_opts:extendee -> google.protobuf.FieldOptions
-	0, // 2: malonaz.core.codegen.llm.v1.opts:type_name -> malonaz.core.codegen.llm.v1.MessageOpts
-	1, // 3: malonaz.core.codegen.llm.v1.field_opts:type_name -> malonaz.core.codegen.llm.v1.FieldOpts
+var file_malonaz_codegen_llm_v1_llm_proto_depIdxs = []int32{
+	2, // 0: malonaz.codegen.llm.v1.opts:extendee -> google.protobuf.MessageOptions
+	3, // 1: malonaz.codegen.llm.v1.field_opts:extendee -> google.protobuf.FieldOptions
+	0, // 2: malonaz.codegen.llm.v1.opts:type_name -> malonaz.codegen.llm.v1.MessageOpts
+	1, // 3: malonaz.codegen.llm.v1.field_opts:type_name -> malonaz.codegen.llm.v1.FieldOpts
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	2, // [2:4] is the sub-list for extension type_name
@@ -193,27 +193,27 @@ var file_codegen_llm_v1_llm_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_codegen_llm_v1_llm_proto_init() }
-func file_codegen_llm_v1_llm_proto_init() {
-	if File_codegen_llm_v1_llm_proto != nil {
+func init() { file_malonaz_codegen_llm_v1_llm_proto_init() }
+func file_malonaz_codegen_llm_v1_llm_proto_init() {
+	if File_malonaz_codegen_llm_v1_llm_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_codegen_llm_v1_llm_proto_rawDesc), len(file_codegen_llm_v1_llm_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_llm_v1_llm_proto_rawDesc), len(file_malonaz_codegen_llm_v1_llm_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
-		GoTypes:           file_codegen_llm_v1_llm_proto_goTypes,
-		DependencyIndexes: file_codegen_llm_v1_llm_proto_depIdxs,
-		MessageInfos:      file_codegen_llm_v1_llm_proto_msgTypes,
-		ExtensionInfos:    file_codegen_llm_v1_llm_proto_extTypes,
+		GoTypes:           file_malonaz_codegen_llm_v1_llm_proto_goTypes,
+		DependencyIndexes: file_malonaz_codegen_llm_v1_llm_proto_depIdxs,
+		MessageInfos:      file_malonaz_codegen_llm_v1_llm_proto_msgTypes,
+		ExtensionInfos:    file_malonaz_codegen_llm_v1_llm_proto_extTypes,
 	}.Build()
-	File_codegen_llm_v1_llm_proto = out.File
-	file_codegen_llm_v1_llm_proto_goTypes = nil
-	file_codegen_llm_v1_llm_proto_depIdxs = nil
+	File_malonaz_codegen_llm_v1_llm_proto = out.File
+	file_malonaz_codegen_llm_v1_llm_proto_goTypes = nil
+	file_malonaz_codegen_llm_v1_llm_proto_depIdxs = nil
 }

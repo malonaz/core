@@ -147,7 +147,7 @@ package {{ $packageName }}
 
 {{ range $service := $file.Services }}
     {{- range $method := $service.Methods }}
-        {{ $handlerOpts := getExt $method.Desc "malonaz.core.codegen.gateway.v1.handler_opts" }}
+        {{ $handlerOpts := getExt $method.Desc "malonaz.codegen.gateway.v1.handler_opts" }}
         {{ if $handlerOpts.Custom }}{{ continue }}{{ end }}
         {{- $key := printf "%s/%s/%s" $method.Desc.Name $method.Input.GoIdent $method.Output.GoIdent -}}
         {{ $otherService := get $methodToService $key }}

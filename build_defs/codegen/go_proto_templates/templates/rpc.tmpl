@@ -23,7 +23,7 @@ pb "{{ $apiImportPath }}"
         {{- $resourceGoName := $pr.Desc.Singular | camelcase }}
         {{- $softDeletable := $rpc.Message.Desc.Fields.ByName "delete_time" }}
 
-        {{- $modelOpts := getExt $rpc.Message.Desc "malonaz.core.codegen.model.v1.model_opts" -}}
+        {{- $modelOpts := getExt $rpc.Message.Desc "malonaz.codegen.model.v1.model_opts" -}}
         {{- $dbClient := printf "%sDBClient" $modelOpts.DatabaseName -}}
         {{- $_ := fqn (printf "%s/model" ($rpc.Message.GoIdent.GoImportPath | toString | replace "\"" "")) "" -}}
 
@@ -72,7 +72,7 @@ pb "{{ $apiImportPath }}"
             {{- range $childPr := $pr.Children }}
                 {{- if $childPr.Singleton }}
 	                  {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-	                  {{- $modelOpts := (getExt $childMessage.Desc "malonaz.core.codegen.model.v1.model_opts") }}
+	                  {{- $modelOpts := (getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts") }}
                     {{- if $modelOpts.DatabaseName }}
                         {{- $singletonChildren = append $singletonChildren $childPr }}
                     {{ end }}

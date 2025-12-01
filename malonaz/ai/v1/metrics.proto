@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// Tracks metrics for an AI call.
+message GenerationMetrics {
+  // Time to first byte.
+  // If empty, indicates that this was not streamed so it's equal to ttlb.
+  google.protobuf.Duration ttfb = 1;
+  // Time to last byte.
+  google.protobuf.Duration ttlb = 2;
+}
+
+// Tracks model usage.
+message ModelUsage {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [(google.api.resource_reference).type = "ai.malonaz.com/Model"];
+  // Input token usage.
+  ResourceConsumption input_token = 2;
+  // Output token usage.
+  ResourceConsumption output_token = 3;
+  // Output reasoning token usage.
+  ResourceConsumption output_reasoning_token = 4;
+  // Cache read token usage.
+  ResourceConsumption input_cache_read_token = 5;
+  // Cache write token usage.
+  ResourceConsumption input_cache_write_token = 6;
+  // Input seconds.
+  ResourceConsumption input_second = 7;
+  // Output seconds.
+  ResourceConsumption output_second = 8;
+  // Input characters.
+  ResourceConsumption input_character = 9;
+}
+
+// Tracks a particular resource consumption.
+message ResourceConsumption {
+  // Number of units consumed.
+  int32 quantity = 1;
+  // Price in dollars for this resource consumption.
+  double price = 2;
+}

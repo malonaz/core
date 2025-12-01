@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: audio/v1/audio.proto
+// source: malonaz/audio/v1/audio.proto
 
 package v1
 
@@ -37,7 +37,7 @@ type Format struct {
 
 func (x *Format) Reset() {
 	*x = Format{}
-	mi := &file_audio_v1_audio_proto_msgTypes[0]
+	mi := &file_malonaz_audio_v1_audio_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +49,7 @@ func (x *Format) String() string {
 func (*Format) ProtoMessage() {}
 
 func (x *Format) ProtoReflect() protoreflect.Message {
-	mi := &file_audio_v1_audio_proto_msgTypes[0]
+	mi := &file_malonaz_audio_v1_audio_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *Format) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Format.ProtoReflect.Descriptor instead.
 func (*Format) Descriptor() ([]byte, []int) {
-	return file_audio_v1_audio_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_audio_v1_audio_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Format) GetSampleRate() int32 {
@@ -99,7 +99,7 @@ type Chunk struct {
 
 func (x *Chunk) Reset() {
 	*x = Chunk{}
-	mi := &file_audio_v1_audio_proto_msgTypes[1]
+	mi := &file_malonaz_audio_v1_audio_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -111,7 +111,7 @@ func (x *Chunk) String() string {
 func (*Chunk) ProtoMessage() {}
 
 func (x *Chunk) ProtoReflect() protoreflect.Message {
-	mi := &file_audio_v1_audio_proto_msgTypes[1]
+	mi := &file_malonaz_audio_v1_audio_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -124,7 +124,7 @@ func (x *Chunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Chunk.ProtoReflect.Descriptor instead.
 func (*Chunk) Descriptor() ([]byte, []int) {
-	return file_audio_v1_audio_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_audio_v1_audio_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Chunk) GetSequenceNumber() uint32 {
@@ -141,11 +141,11 @@ func (x *Chunk) GetData() []byte {
 	return nil
 }
 
-var File_audio_v1_audio_proto protoreflect.FileDescriptor
+var File_malonaz_audio_v1_audio_proto protoreflect.FileDescriptor
 
-const file_audio_v1_audio_proto_rawDesc = "" +
+const file_malonaz_audio_v1_audio_proto_rawDesc = "" +
 	"\n" +
-	"\x14audio/v1/audio.proto\x12\x15malonaz.core.audio.v1\x1a\x1bbuf/validate/validate.proto\"m\n" +
+	"\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1bbuf/validate/validate.proto\"m\n" +
 	"\x06Format\x12\x1f\n" +
 	"\vsample_rate\x18\x01 \x01(\x05R\n" +
 	"sampleRate\x12\x1a\n" +
@@ -156,23 +156,23 @@ const file_audio_v1_audio_proto_rawDesc = "" +
 	"\x04data\x18\x02 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04dataB+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3"
 
 var (
-	file_audio_v1_audio_proto_rawDescOnce sync.Once
-	file_audio_v1_audio_proto_rawDescData []byte
+	file_malonaz_audio_v1_audio_proto_rawDescOnce sync.Once
+	file_malonaz_audio_v1_audio_proto_rawDescData []byte
 )
 
-func file_audio_v1_audio_proto_rawDescGZIP() []byte {
-	file_audio_v1_audio_proto_rawDescOnce.Do(func() {
-		file_audio_v1_audio_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_audio_v1_audio_proto_rawDesc), len(file_audio_v1_audio_proto_rawDesc)))
+func file_malonaz_audio_v1_audio_proto_rawDescGZIP() []byte {
+	file_malonaz_audio_v1_audio_proto_rawDescOnce.Do(func() {
+		file_malonaz_audio_v1_audio_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_audio_v1_audio_proto_rawDesc), len(file_malonaz_audio_v1_audio_proto_rawDesc)))
 	})
-	return file_audio_v1_audio_proto_rawDescData
+	return file_malonaz_audio_v1_audio_proto_rawDescData
 }
 
-var file_audio_v1_audio_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_audio_v1_audio_proto_goTypes = []any{
-	(*Format)(nil), // 0: malonaz.core.audio.v1.Format
-	(*Chunk)(nil),  // 1: malonaz.core.audio.v1.Chunk
+var file_malonaz_audio_v1_audio_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_audio_v1_audio_proto_goTypes = []any{
+	(*Format)(nil), // 0: malonaz.audio.v1.Format
+	(*Chunk)(nil),  // 1: malonaz.audio.v1.Chunk
 }
-var file_audio_v1_audio_proto_depIdxs = []int32{
+var file_malonaz_audio_v1_audio_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -180,26 +180,26 @@ var file_audio_v1_audio_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_audio_v1_audio_proto_init() }
-func file_audio_v1_audio_proto_init() {
-	if File_audio_v1_audio_proto != nil {
+func init() { file_malonaz_audio_v1_audio_proto_init() }
+func file_malonaz_audio_v1_audio_proto_init() {
+	if File_malonaz_audio_v1_audio_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_audio_v1_audio_proto_rawDesc), len(file_audio_v1_audio_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_audio_v1_audio_proto_rawDesc), len(file_malonaz_audio_v1_audio_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_audio_v1_audio_proto_goTypes,
-		DependencyIndexes: file_audio_v1_audio_proto_depIdxs,
-		MessageInfos:      file_audio_v1_audio_proto_msgTypes,
+		GoTypes:           file_malonaz_audio_v1_audio_proto_goTypes,
+		DependencyIndexes: file_malonaz_audio_v1_audio_proto_depIdxs,
+		MessageInfos:      file_malonaz_audio_v1_audio_proto_msgTypes,
 	}.Build()
-	File_audio_v1_audio_proto = out.File
-	file_audio_v1_audio_proto_goTypes = nil
-	file_audio_v1_audio_proto_depIdxs = nil
+	File_malonaz_audio_v1_audio_proto = out.File
+	file_malonaz_audio_v1_audio_proto_goTypes = nil
+	file_malonaz_audio_v1_audio_proto_depIdxs = nil
 }

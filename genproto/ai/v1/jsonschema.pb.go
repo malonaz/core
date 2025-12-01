@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: ai/v1/jsonschema.proto
+// source: malonaz/ai/v1/jsonschema.proto
 
 package v1
 
@@ -82,7 +82,7 @@ type JsonSchema struct {
 
 func (x *JsonSchema) Reset() {
 	*x = JsonSchema{}
-	mi := &file_ai_v1_jsonschema_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_jsonschema_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *JsonSchema) String() string {
 func (*JsonSchema) ProtoMessage() {}
 
 func (x *JsonSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_jsonschema_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_jsonschema_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *JsonSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JsonSchema.ProtoReflect.Descriptor instead.
 func (*JsonSchema) Descriptor() ([]byte, []int) {
-	return file_ai_v1_jsonschema_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_jsonschema_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *JsonSchema) GetType() string {
@@ -271,20 +271,20 @@ func (x *JsonSchema) GetNot() *JsonSchema {
 	return nil
 }
 
-var File_ai_v1_jsonschema_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_jsonschema_proto protoreflect.FileDescriptor
 
-const file_ai_v1_jsonschema_proto_rawDesc = "" +
+const file_malonaz_ai_v1_jsonschema_proto_rawDesc = "" +
 	"\n" +
-	"\x16ai/v1/jsonschema.proto\x12\x12malonaz.core.ai.v1\x1a\x1bbuf/validate/validate.proto\"\xfb\a\n" +
+	"\x1emalonaz/ai/v1/jsonschema.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\"\xd8\a\n" +
 	"\n" +
 	"JsonSchema\x12P\n" +
 	"\x04type\x18\x01 \x01(\tB<\xbaH9r7R\x06objectR\x06stringR\x06numberR\aintegerR\abooleanR\x05arrayR\x04nullR\x04type\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12N\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12I\n" +
 	"\n" +
-	"properties\x18\x03 \x03(\v2..malonaz.core.ai.v1.JsonSchema.PropertiesEntryR\n" +
+	"properties\x18\x03 \x03(\v2).malonaz.ai.v1.JsonSchema.PropertiesEntryR\n" +
 	"properties\x12\x1a\n" +
-	"\brequired\x18\x04 \x03(\tR\brequired\x124\n" +
-	"\x05items\x18\x05 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05items\x12\x1b\n" +
+	"\brequired\x18\x04 \x03(\tR\brequired\x12/\n" +
+	"\x05items\x18\x05 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05items\x12\x1b\n" +
 	"\tmin_items\x18\x06 \x01(\x05R\bminItems\x12\x1b\n" +
 	"\tmax_items\x18\a \x01(\x05R\bmaxItems\x12\x12\n" +
 	"\x04enum\x18\b \x03(\tR\x04enum\x12\x1d\n" +
@@ -302,40 +302,40 @@ const file_ai_v1_jsonschema_proto_rawDesc = "" +
 	"\vmultiple_of\x18\x11 \x01(\x01R\n" +
 	"multipleOf\x12\x18\n" +
 	"\adefault\x18\x12 \x01(\tR\adefault\x12\x1a\n" +
-	"\bexamples\x18\x13 \x03(\tR\bexamples\x125\n" +
-	"\x06any_of\x18\x14 \x03(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05anyOf\x125\n" +
-	"\x06one_of\x18\x15 \x03(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05oneOf\x125\n" +
-	"\x06all_of\x18\x16 \x03(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05allOf\x120\n" +
-	"\x03not\x18\x17 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x03not\x1a]\n" +
+	"\bexamples\x18\x13 \x03(\tR\bexamples\x120\n" +
+	"\x06any_of\x18\x14 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05anyOf\x120\n" +
+	"\x06one_of\x18\x15 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05oneOf\x120\n" +
+	"\x06all_of\x18\x16 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05allOf\x12+\n" +
+	"\x03not\x18\x17 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x03not\x1aX\n" +
 	"\x0fPropertiesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x124\n" +
-	"\x05value\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05value:\x028\x01B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05value:\x028\x01B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
-	file_ai_v1_jsonschema_proto_rawDescOnce sync.Once
-	file_ai_v1_jsonschema_proto_rawDescData []byte
+	file_malonaz_ai_v1_jsonschema_proto_rawDescOnce sync.Once
+	file_malonaz_ai_v1_jsonschema_proto_rawDescData []byte
 )
 
-func file_ai_v1_jsonschema_proto_rawDescGZIP() []byte {
-	file_ai_v1_jsonschema_proto_rawDescOnce.Do(func() {
-		file_ai_v1_jsonschema_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_v1_jsonschema_proto_rawDesc), len(file_ai_v1_jsonschema_proto_rawDesc)))
+func file_malonaz_ai_v1_jsonschema_proto_rawDescGZIP() []byte {
+	file_malonaz_ai_v1_jsonschema_proto_rawDescOnce.Do(func() {
+		file_malonaz_ai_v1_jsonschema_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_jsonschema_proto_rawDesc), len(file_malonaz_ai_v1_jsonschema_proto_rawDesc)))
 	})
-	return file_ai_v1_jsonschema_proto_rawDescData
+	return file_malonaz_ai_v1_jsonschema_proto_rawDescData
 }
 
-var file_ai_v1_jsonschema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_ai_v1_jsonschema_proto_goTypes = []any{
-	(*JsonSchema)(nil), // 0: malonaz.core.ai.v1.JsonSchema
-	nil,                // 1: malonaz.core.ai.v1.JsonSchema.PropertiesEntry
+var file_malonaz_ai_v1_jsonschema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_ai_v1_jsonschema_proto_goTypes = []any{
+	(*JsonSchema)(nil), // 0: malonaz.ai.v1.JsonSchema
+	nil,                // 1: malonaz.ai.v1.JsonSchema.PropertiesEntry
 }
-var file_ai_v1_jsonschema_proto_depIdxs = []int32{
-	1, // 0: malonaz.core.ai.v1.JsonSchema.properties:type_name -> malonaz.core.ai.v1.JsonSchema.PropertiesEntry
-	0, // 1: malonaz.core.ai.v1.JsonSchema.items:type_name -> malonaz.core.ai.v1.JsonSchema
-	0, // 2: malonaz.core.ai.v1.JsonSchema.any_of:type_name -> malonaz.core.ai.v1.JsonSchema
-	0, // 3: malonaz.core.ai.v1.JsonSchema.one_of:type_name -> malonaz.core.ai.v1.JsonSchema
-	0, // 4: malonaz.core.ai.v1.JsonSchema.all_of:type_name -> malonaz.core.ai.v1.JsonSchema
-	0, // 5: malonaz.core.ai.v1.JsonSchema.not:type_name -> malonaz.core.ai.v1.JsonSchema
-	0, // 6: malonaz.core.ai.v1.JsonSchema.PropertiesEntry.value:type_name -> malonaz.core.ai.v1.JsonSchema
+var file_malonaz_ai_v1_jsonschema_proto_depIdxs = []int32{
+	1, // 0: malonaz.ai.v1.JsonSchema.properties:type_name -> malonaz.ai.v1.JsonSchema.PropertiesEntry
+	0, // 1: malonaz.ai.v1.JsonSchema.items:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 2: malonaz.ai.v1.JsonSchema.any_of:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 3: malonaz.ai.v1.JsonSchema.one_of:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 4: malonaz.ai.v1.JsonSchema.all_of:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 5: malonaz.ai.v1.JsonSchema.not:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 6: malonaz.ai.v1.JsonSchema.PropertiesEntry.value:type_name -> malonaz.ai.v1.JsonSchema
 	7, // [7:7] is the sub-list for method output_type
 	7, // [7:7] is the sub-list for method input_type
 	7, // [7:7] is the sub-list for extension type_name
@@ -343,26 +343,26 @@ var file_ai_v1_jsonschema_proto_depIdxs = []int32{
 	0, // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_ai_v1_jsonschema_proto_init() }
-func file_ai_v1_jsonschema_proto_init() {
-	if File_ai_v1_jsonschema_proto != nil {
+func init() { file_malonaz_ai_v1_jsonschema_proto_init() }
+func file_malonaz_ai_v1_jsonschema_proto_init() {
+	if File_malonaz_ai_v1_jsonschema_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_jsonschema_proto_rawDesc), len(file_ai_v1_jsonschema_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_jsonschema_proto_rawDesc), len(file_malonaz_ai_v1_jsonschema_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_ai_v1_jsonschema_proto_goTypes,
-		DependencyIndexes: file_ai_v1_jsonschema_proto_depIdxs,
-		MessageInfos:      file_ai_v1_jsonschema_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_jsonschema_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_jsonschema_proto_depIdxs,
+		MessageInfos:      file_malonaz_ai_v1_jsonschema_proto_msgTypes,
 	}.Build()
-	File_ai_v1_jsonschema_proto = out.File
-	file_ai_v1_jsonschema_proto_goTypes = nil
-	file_ai_v1_jsonschema_proto_depIdxs = nil
+	File_malonaz_ai_v1_jsonschema_proto = out.File
+	file_malonaz_ai_v1_jsonschema_proto_goTypes = nil
+	file_malonaz_ai_v1_jsonschema_proto_depIdxs = nil
 }

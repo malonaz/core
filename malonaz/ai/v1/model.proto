@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/audio/v1/audio.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Provider"
+  pattern: "providers/{provider}"
+  singular: "provider"
+  plural: "providers"
+};
+
+// Contains configuration for a  model.
+message Model {
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Model"
+    pattern: "providers/{provider}/models/{model}"
+    singular: "model"
+    plural: "models"
+  };
+
+  // Required. The resource name of the `Model`.
+  // Format: `providers/{provider}/models/{model}` with a `{model}` naming convention of:
+  //
+  // * "{base_model_id}-{version}"
+  //
+  // Examples:
+  //
+  // * `providers/google/models/gemini-1.5-flash-001`
+  string name = 1 [(buf.validate.field).required = true];
+  // The id used for this model by the provider.
+  // This is introduced to absorb bad provider model naming standards.
+  string provider_model_id = 2;
+  // The time at which this model was deprecated.
+  google.protobuf.Timestamp deprecate_time = 3;
+  // Configuration for STT model.
+  SttModelConfig stt = 4;
+  // Configuration for TTT model.
+  TttModelConfig ttt = 5;
+  // Configuration for TTS model.
+  TtsModelConfig tts = 6;
+}
+
+// Configuration for a speech to text model.
+message SttModelConfig {}
+
+// Configuration for a ttt model.
+message TttModelConfig {
+  // True if the model supports reasoning.
+  bool reasoning = 1;
+  // True if the model support tool calling.
+  bool tool_call = 2;
+}
+
+// Configuration for a tts model.
+message TtsModelConfig {
+  // Audio format of the output of this model.
+  audio.v1.Format audio_format = 1;
+}
+
+// Represents a model.
+enum ModelType {
+  // Used to detect an unset field.
+  MODEL_TYPE_UNSPECIFIED = 0;
+  // Model can be used for STT.
+  MODEL_TYPE_STT = 1;
+  // Model can be used for TTT.
+  MODEL_TYPE_TTT = 2;
+  // Model can be used for TTS.
+  MODEL_TYPE_TTS = 3;
+}
+
+/*
+   // Represents a model.
+   enum ModelX {
+     // Used to detect an unset field.
+     MODEL_UNSPECIFIED = 0;
+
+     // Gemini flash 2.0.
+     MODEL_GEMINI_FLASH_2 = 108 [(config) = {
+       provider: PROVIDER_GOOGLE
+       model_id: "gemini-flash-2"
+       model_type: MODEL_TYPE_TTT
+       ttt: {
+         reasoning: true
+         tool_call: true
+       }
+     }];
+     // Gemini flash 2.5.
+     MODEL_GEMINI_FLASH_2_5 = 109 [(config) = {
+       provider: PROVIDER_GOOGLE
+       model_id: "gemini-flash-2.5"
+       model_type: MODEL_TYPE_TTT
+       ttt: {
+         reasoning: true
+         tool_call: true
+       }
+     }];
+
+   }
+*/

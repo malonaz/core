@@ -42,7 +42,7 @@ func addToWhereClause(whereClause, newClause string) string {
 {{/* ################### TYPE DEFINITIONS ################### */}}
 {{ "" }}
 {{ range $message := $file.Messages -}}
-{{-  $modelOpts := (getExt .Desc "malonaz.core.codegen.model.v1.model_opts") -}}
+{{-  $modelOpts := (getExt .Desc "malonaz.codegen.model.v1.model_opts") -}}
 {{- if not $modelOpts.DatabaseName -}}{{ continue }}{{- end }}
 {{- $pr := parseResourceFromMessage $message }}
 
@@ -68,7 +68,7 @@ func addToWhereClause(whereClause, newClause string) string {
 {{- range $childPr := $pr.Children }}
 {{- if $childPr.Singleton }}
 	{{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-	{{- $modelOpts := (getExt $childMessage.Desc "malonaz.core.codegen.model.v1.model_opts") }}
+	{{- $modelOpts := (getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts") }}
     {{- if $modelOpts.DatabaseName }}
   {{- $singletonChildren = append $singletonChildren $childPr }}
   {{ end }}
@@ -80,7 +80,7 @@ func (db *DB) Insert{{ $message.GoIdent.GoName }}(ctx context.Context,  {{ $goNa
 	query, params := postgres.InsertQuery({{ $message.GoIdent.GoName }}InsertQuery, {{ $goName }})
 	{{ range $i, $childPr := $singletonChildren }}
 	{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-	{{- $modelOpts := (getExt $message.Desc "malonaz.core.codegen.model.v1.model_opts") }}
+	{{- $modelOpts := (getExt $message.Desc "malonaz.codegen.model.v1.model_opts") }}
 	{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
 	query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertQuery, {{  $childPr.Desc.Singular | camelcase | untitle }})
 	{{ end }}

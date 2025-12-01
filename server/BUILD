@@ -4,7 +4,7 @@ go_main_manifest(
     name = "manifest",
     deps = [
         "//go/ai/ai_service:manifest",
-        "//proto/ai/ai_service/v1",
+        "//malonaz/ai/ai_service/v1",
     ],
 )
 
@@ -24,7 +24,7 @@ go_binary(
         "//go/health",
         "//go/logging",
         "//go/prometheus",
-        "//proto/ai/ai_service/v1",
+        "//malonaz/ai/ai_service/v1",
     ],
 )
 

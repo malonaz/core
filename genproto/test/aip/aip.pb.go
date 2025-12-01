@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: test/aip/aip.proto
+// source: malonaz/test/aip/aip.proto
 
 package aip
 
@@ -57,11 +57,11 @@ func (x MyEnum) String() string {
 }
 
 func (MyEnum) Descriptor() protoreflect.EnumDescriptor {
-	return file_test_aip_aip_proto_enumTypes[0].Descriptor()
+	return file_malonaz_test_aip_aip_proto_enumTypes[0].Descriptor()
 }
 
 func (MyEnum) Type() protoreflect.EnumType {
-	return &file_test_aip_aip_proto_enumTypes[0]
+	return &file_malonaz_test_aip_aip_proto_enumTypes[0]
 }
 
 func (x MyEnum) Number() protoreflect.EnumNumber {
@@ -70,7 +70,7 @@ func (x MyEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MyEnum.Descriptor instead.
 func (MyEnum) EnumDescriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{0}
 }
 
 // A nullable enum.
@@ -102,11 +102,11 @@ func (x MyNullableEnum) String() string {
 }
 
 func (MyNullableEnum) Descriptor() protoreflect.EnumDescriptor {
-	return file_test_aip_aip_proto_enumTypes[1].Descriptor()
+	return file_malonaz_test_aip_aip_proto_enumTypes[1].Descriptor()
 }
 
 func (MyNullableEnum) Type() protoreflect.EnumType {
-	return &file_test_aip_aip_proto_enumTypes[1]
+	return &file_malonaz_test_aip_aip_proto_enumTypes[1]
 }
 
 func (x MyNullableEnum) Number() protoreflect.EnumNumber {
@@ -115,7 +115,7 @@ func (x MyNullableEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MyNullableEnum.Descriptor instead.
 func (MyNullableEnum) EnumDescriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{1}
 }
 
 // ListResourcesRequest2 tests wildcard path filtering.
@@ -133,7 +133,7 @@ type ListResourcesRequest2 struct {
 
 func (x *ListResourcesRequest2) Reset() {
 	*x = ListResourcesRequest2{}
-	mi := &file_test_aip_aip_proto_msgTypes[0]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -145,7 +145,7 @@ func (x *ListResourcesRequest2) String() string {
 func (*ListResourcesRequest2) ProtoMessage() {}
 
 func (x *ListResourcesRequest2) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[0]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -158,7 +158,7 @@ func (x *ListResourcesRequest2) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest2.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest2) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ListResourcesRequest2) GetFilter() string {
@@ -199,7 +199,7 @@ type ListResourcesRequest struct {
 
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
-	mi := &file_test_aip_aip_proto_msgTypes[1]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -211,7 +211,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[1]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +224,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ListResourcesRequest) GetFilter() string {
@@ -268,7 +268,7 @@ type PaginateOnlyRequest struct {
 
 func (x *PaginateOnlyRequest) Reset() {
 	*x = PaginateOnlyRequest{}
-	mi := &file_test_aip_aip_proto_msgTypes[2]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -280,7 +280,7 @@ func (x *PaginateOnlyRequest) String() string {
 func (*PaginateOnlyRequest) ProtoMessage() {}
 
 func (x *PaginateOnlyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[2]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -293,7 +293,7 @@ func (x *PaginateOnlyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaginateOnlyRequest.ProtoReflect.Descriptor instead.
 func (*PaginateOnlyRequest) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PaginateOnlyRequest) GetPageSize() int32 {
@@ -323,7 +323,7 @@ type PaginateWithSmallDefaultRequest struct {
 
 func (x *PaginateWithSmallDefaultRequest) Reset() {
 	*x = PaginateWithSmallDefaultRequest{}
-	mi := &file_test_aip_aip_proto_msgTypes[3]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -335,7 +335,7 @@ func (x *PaginateWithSmallDefaultRequest) String() string {
 func (*PaginateWithSmallDefaultRequest) ProtoMessage() {}
 
 func (x *PaginateWithSmallDefaultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[3]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -348,7 +348,7 @@ func (x *PaginateWithSmallDefaultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaginateWithSmallDefaultRequest.ProtoReflect.Descriptor instead.
 func (*PaginateWithSmallDefaultRequest) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{3}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PaginateWithSmallDefaultRequest) GetPageSize() int32 {
@@ -398,7 +398,7 @@ type Resource struct {
 
 func (x *Resource) Reset() {
 	*x = Resource{}
-	mi := &file_test_aip_aip_proto_msgTypes[4]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +410,7 @@ func (x *Resource) String() string {
 func (*Resource) ProtoMessage() {}
 
 func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[4]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +423,7 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{4}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Resource) GetId() string {
@@ -527,7 +527,7 @@ type NestedResource struct {
 
 func (x *NestedResource) Reset() {
 	*x = NestedResource{}
-	mi := &file_test_aip_aip_proto_msgTypes[5]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +539,7 @@ func (x *NestedResource) String() string {
 func (*NestedResource) ProtoMessage() {}
 
 func (x *NestedResource) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[5]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -552,7 +552,7 @@ func (x *NestedResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NestedResource.ProtoReflect.Descriptor instead.
 func (*NestedResource) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{5}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *NestedResource) GetField1() bool {
@@ -598,7 +598,7 @@ type DeeplyNestedResource struct {
 
 func (x *DeeplyNestedResource) Reset() {
 	*x = DeeplyNestedResource{}
-	mi := &file_test_aip_aip_proto_msgTypes[6]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +610,7 @@ func (x *DeeplyNestedResource) String() string {
 func (*DeeplyNestedResource) ProtoMessage() {}
 
 func (x *DeeplyNestedResource) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[6]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +623,7 @@ func (x *DeeplyNestedResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeeplyNestedResource.ProtoReflect.Descriptor instead.
 func (*DeeplyNestedResource) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{6}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeeplyNestedResource) GetField1() bool {
@@ -660,7 +660,7 @@ type UpdateResourceRequest struct {
 
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
-	mi := &file_test_aip_aip_proto_msgTypes[7]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -672,7 +672,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[7]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -685,7 +685,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{7}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateResourceRequest) GetResource() *Resource {
@@ -715,7 +715,7 @@ type UpdateResource2Request struct {
 
 func (x *UpdateResource2Request) Reset() {
 	*x = UpdateResource2Request{}
-	mi := &file_test_aip_aip_proto_msgTypes[8]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +727,7 @@ func (x *UpdateResource2Request) String() string {
 func (*UpdateResource2Request) ProtoMessage() {}
 
 func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
-	mi := &file_test_aip_aip_proto_msgTypes[8]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +740,7 @@ func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResource2Request.ProtoReflect.Descriptor instead.
 func (*UpdateResource2Request) Descriptor() ([]byte, []int) {
-	return file_test_aip_aip_proto_rawDescGZIP(), []int{8}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateResource2Request) GetResource() *Resource {
@@ -757,11 +757,11 @@ func (x *UpdateResource2Request) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
-var File_test_aip_aip_proto protoreflect.FileDescriptor
+var File_malonaz_test_aip_aip_proto protoreflect.FileDescriptor
 
-const file_test_aip_aip_proto_rawDesc = "" +
+const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x12test/aip/aip.proto\x12\vtest.aip.v1\x1a\x18codegen/aip/v1/aip.proto\x1a\x1ccodegen/model/v1/model.proto\x1a google/protobuf/field_mask.proto\"\x9f\x01\n" +
+	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
 	"\x15ListResourcesRequest2\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -842,20 +842,20 @@ const file_test_aip_aip_proto_rawDesc = "" +
 	"\x1cMY_NULLABLE_ENUM_UNSPECIFIED\x10\x00B+Z)github.com/malonaz/core/genproto/test/aipb\x06proto3"
 
 var (
-	file_test_aip_aip_proto_rawDescOnce sync.Once
-	file_test_aip_aip_proto_rawDescData []byte
+	file_malonaz_test_aip_aip_proto_rawDescOnce sync.Once
+	file_malonaz_test_aip_aip_proto_rawDescData []byte
 )
 
-func file_test_aip_aip_proto_rawDescGZIP() []byte {
-	file_test_aip_aip_proto_rawDescOnce.Do(func() {
-		file_test_aip_aip_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_test_aip_aip_proto_rawDesc), len(file_test_aip_aip_proto_rawDesc)))
+func file_malonaz_test_aip_aip_proto_rawDescGZIP() []byte {
+	file_malonaz_test_aip_aip_proto_rawDescOnce.Do(func() {
+		file_malonaz_test_aip_aip_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_test_aip_aip_proto_rawDesc), len(file_malonaz_test_aip_aip_proto_rawDesc)))
 	})
-	return file_test_aip_aip_proto_rawDescData
+	return file_malonaz_test_aip_aip_proto_rawDescData
 }
 
-var file_test_aip_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-var file_test_aip_aip_proto_goTypes = []any{
+var file_malonaz_test_aip_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_malonaz_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_malonaz_test_aip_aip_proto_goTypes = []any{
 	(MyEnum)(0),                             // 0: test.aip.v1.MyEnum
 	(MyNullableEnum)(0),                     // 1: test.aip.v1.MyNullableEnum
 	(*ListResourcesRequest2)(nil),           // 2: test.aip.v1.ListResourcesRequest2
@@ -869,7 +869,7 @@ var file_test_aip_aip_proto_goTypes = []any{
 	(*UpdateResource2Request)(nil),          // 10: test.aip.v1.UpdateResource2Request
 	(*fieldmaskpb.FieldMask)(nil),           // 11: google.protobuf.FieldMask
 }
-var file_test_aip_aip_proto_depIdxs = []int32{
+var file_malonaz_test_aip_aip_proto_depIdxs = []int32{
 	7,  // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
 	7,  // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
 	7,  // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
@@ -888,27 +888,27 @@ var file_test_aip_aip_proto_depIdxs = []int32{
 	0,  // [0:11] is the sub-list for field type_name
 }
 
-func init() { file_test_aip_aip_proto_init() }
-func file_test_aip_aip_proto_init() {
-	if File_test_aip_aip_proto != nil {
+func init() { file_malonaz_test_aip_aip_proto_init() }
+func file_malonaz_test_aip_aip_proto_init() {
+	if File_malonaz_test_aip_aip_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_test_aip_aip_proto_rawDesc), len(file_test_aip_aip_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_aip_aip_proto_rawDesc), len(file_malonaz_test_aip_aip_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_test_aip_aip_proto_goTypes,
-		DependencyIndexes: file_test_aip_aip_proto_depIdxs,
-		EnumInfos:         file_test_aip_aip_proto_enumTypes,
-		MessageInfos:      file_test_aip_aip_proto_msgTypes,
+		GoTypes:           file_malonaz_test_aip_aip_proto_goTypes,
+		DependencyIndexes: file_malonaz_test_aip_aip_proto_depIdxs,
+		EnumInfos:         file_malonaz_test_aip_aip_proto_enumTypes,
+		MessageInfos:      file_malonaz_test_aip_aip_proto_msgTypes,
 	}.Build()
-	File_test_aip_aip_proto = out.File
-	file_test_aip_aip_proto_goTypes = nil
-	file_test_aip_aip_proto_depIdxs = nil
+	File_malonaz_test_aip_aip_proto = out.File
+	file_malonaz_test_aip_aip_proto_goTypes = nil
+	file_malonaz_test_aip_aip_proto_depIdxs = nil
 }

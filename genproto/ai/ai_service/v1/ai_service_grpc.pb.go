@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v6.30.0
-// source: ai/ai_service/v1/ai_service.proto
+// source: malonaz/ai/ai_service/v1/ai_service.proto
 
 package v1
 
@@ -57,7 +57,7 @@ func NewAiClient(cc grpc.ClientConnInterface) AiClient {
 
 func (c *aiClient) CreateModel(ctx context.Context, in *CreateModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
 	out := new(v1.Model)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/CreateModel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/CreateModel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *aiClient) CreateModel(ctx context.Context, in *CreateModelRequest, opts
 
 func (c *aiClient) GetModel(ctx context.Context, in *GetModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
 	out := new(v1.Model)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/GetModel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/GetModel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *aiClient) GetModel(ctx context.Context, in *GetModelRequest, opts ...gr
 
 func (c *aiClient) ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error) {
 	out := new(ListModelsResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/ListModels", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/ListModels", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (c *aiClient) ListModels(ctx context.Context, in *ListModelsRequest, opts .
 
 func (c *aiClient) SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error) {
 	out := new(SpeechToTextResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/SpeechToText", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/SpeechToText", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *aiClient) SpeechToText(ctx context.Context, in *SpeechToTextRequest, op
 
 func (c *aiClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
 	out := new(TextToTextResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/TextToText", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/TextToText", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (c *aiClient) TextToText(ctx context.Context, in *TextToTextRequest, opts .
 }
 
 func (c *aiClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (Ai_TextToTextStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[0], "/malonaz.core.ai.ai_service.v1.Ai/TextToTextStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[0], "/malonaz.ai.ai_service.v1.Ai/TextToTextStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (x *aiTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
 
 func (c *aiClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error) {
 	out := new(TextToSpeechResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.core.ai.ai_service.v1.Ai/TextToSpeech", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/TextToSpeech", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *aiClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequest, op
 }
 
 func (c *aiClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (Ai_TextToSpeechStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[1], "/malonaz.core.ai.ai_service.v1.Ai/TextToSpeechStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.Ai/TextToSpeechStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func _Ai_CreateModel_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/CreateModel",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/CreateModel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).CreateModel(ctx, req.(*CreateModelRequest))
@@ -269,7 +269,7 @@ func _Ai_GetModel_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/GetModel",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/GetModel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).GetModel(ctx, req.(*GetModelRequest))
@@ -287,7 +287,7 @@ func _Ai_ListModels_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/ListModels",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/ListModels",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).ListModels(ctx, req.(*ListModelsRequest))
@@ -305,7 +305,7 @@ func _Ai_SpeechToText_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/SpeechToText",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/SpeechToText",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).SpeechToText(ctx, req.(*SpeechToTextRequest))
@@ -323,7 +323,7 @@ func _Ai_TextToText_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/TextToText",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/TextToText",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).TextToText(ctx, req.(*TextToTextRequest))
@@ -362,7 +362,7 @@ func _Ai_TextToSpeech_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.core.ai.ai_service.v1.Ai/TextToSpeech",
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/TextToSpeech",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).TextToSpeech(ctx, req.(*TextToSpeechRequest))
@@ -395,7 +395,7 @@ func (x *aiTextToSpeechStreamServer) Send(m *TextToSpeechStreamResponse) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Ai_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "malonaz.core.ai.ai_service.v1.Ai",
+	ServiceName: "malonaz.ai.ai_service.v1.Ai",
 	HandlerType: (*AiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -435,5 +435,5 @@ var Ai_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "ai/ai_service/v1/ai_service.proto",
+	Metadata: "malonaz/ai/ai_service/v1/ai_service.proto",
 }

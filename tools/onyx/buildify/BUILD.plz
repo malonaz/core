@@ -6,7 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        "//proto/onyx/v1",
+        "//malonaz/onyx/v1",
         "//tools/onyx/template",
         "//tools/onyx/types",
     ],

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: onyx/v1/onyx.proto
+// source: malonaz/onyx/v1/onyx.proto
 
 package v1
 
@@ -33,7 +33,7 @@ type ObjectMeta struct {
 
 func (x *ObjectMeta) Reset() {
 	*x = ObjectMeta{}
-	mi := &file_onyx_v1_onyx_proto_msgTypes[0]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *ObjectMeta) String() string {
 func (*ObjectMeta) ProtoMessage() {}
 
 func (x *ObjectMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_onyx_proto_msgTypes[0]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *ObjectMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ObjectMeta.ProtoReflect.Descriptor instead.
 func (*ObjectMeta) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_onyx_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_onyx_v1_onyx_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ObjectMeta) GetName() string {
@@ -98,7 +98,7 @@ type DependencySpec struct {
 
 func (x *DependencySpec) Reset() {
 	*x = DependencySpec{}
-	mi := &file_onyx_v1_onyx_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -110,7 +110,7 @@ func (x *DependencySpec) String() string {
 func (*DependencySpec) ProtoMessage() {}
 
 func (x *DependencySpec) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_onyx_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -123,7 +123,7 @@ func (x *DependencySpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DependencySpec.ProtoReflect.Descriptor instead.
 func (*DependencySpec) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_onyx_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_onyx_v1_onyx_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DependencySpec) GetName() string {
@@ -199,7 +199,7 @@ type GrpcClientDependency struct {
 
 func (x *GrpcClientDependency) Reset() {
 	*x = GrpcClientDependency{}
-	mi := &file_onyx_v1_onyx_proto_msgTypes[2]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -211,7 +211,7 @@ func (x *GrpcClientDependency) String() string {
 func (*GrpcClientDependency) ProtoMessage() {}
 
 func (x *GrpcClientDependency) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_onyx_proto_msgTypes[2]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +224,7 @@ func (x *GrpcClientDependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrpcClientDependency.ProtoReflect.Descriptor instead.
 func (*GrpcClientDependency) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_onyx_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_onyx_v1_onyx_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GrpcClientDependency) GetProto() string {
@@ -244,7 +244,7 @@ type PostgresClientDependency struct {
 
 func (x *PostgresClientDependency) Reset() {
 	*x = PostgresClientDependency{}
-	mi := &file_onyx_v1_onyx_proto_msgTypes[3]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +256,7 @@ func (x *PostgresClientDependency) String() string {
 func (*PostgresClientDependency) ProtoMessage() {}
 
 func (x *PostgresClientDependency) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_onyx_proto_msgTypes[3]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +269,7 @@ func (x *PostgresClientDependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresClientDependency.ProtoReflect.Descriptor instead.
 func (*PostgresClientDependency) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_onyx_proto_rawDescGZIP(), []int{3}
+	return file_malonaz_onyx_v1_onyx_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PostgresClientDependency) GetImplementation() string {
@@ -289,7 +289,7 @@ type PostgresDbClientDependency struct {
 
 func (x *PostgresDbClientDependency) Reset() {
 	*x = PostgresDbClientDependency{}
-	mi := &file_onyx_v1_onyx_proto_msgTypes[4]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -301,7 +301,7 @@ func (x *PostgresDbClientDependency) String() string {
 func (*PostgresDbClientDependency) ProtoMessage() {}
 
 func (x *PostgresDbClientDependency) ProtoReflect() protoreflect.Message {
-	mi := &file_onyx_v1_onyx_proto_msgTypes[4]
+	mi := &file_malonaz_onyx_v1_onyx_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -314,7 +314,7 @@ func (x *PostgresDbClientDependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresDbClientDependency.ProtoReflect.Descriptor instead.
 func (*PostgresDbClientDependency) Descriptor() ([]byte, []int) {
-	return file_onyx_v1_onyx_proto_rawDescGZIP(), []int{4}
+	return file_malonaz_onyx_v1_onyx_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PostgresDbClientDependency) GetImplementation() string {
@@ -324,28 +324,28 @@ func (x *PostgresDbClientDependency) GetImplementation() string {
 	return ""
 }
 
-var File_onyx_v1_onyx_proto protoreflect.FileDescriptor
+var File_malonaz_onyx_v1_onyx_proto protoreflect.FileDescriptor
 
-const file_onyx_v1_onyx_proto_rawDesc = "" +
+const file_malonaz_onyx_v1_onyx_proto_rawDesc = "" +
 	"\n" +
-	"\x12onyx/v1/onyx.proto\x12\x14malonaz.core.onyx.v1\"\xb6\x02\n" +
+	"\x1amalonaz/onyx/v1/onyx.proto\x12\x0fmalonaz.onyx.v1\"\xac\x02\n" +
 	"\n" +
 	"ObjectMeta\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12D\n" +
-	"\x06labels\x18\x02 \x03(\v2,.malonaz.core.onyx.v1.ObjectMeta.LabelsEntryR\x06labels\x12S\n" +
-	"\vannotations\x18\x03 \x03(\v21.malonaz.core.onyx.v1.ObjectMeta.AnnotationsEntryR\vannotations\x1a9\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12?\n" +
+	"\x06labels\x18\x02 \x03(\v2'.malonaz.onyx.v1.ObjectMeta.LabelsEntryR\x06labels\x12N\n" +
+	"\vannotations\x18\x03 \x03(\v2,.malonaz.onyx.v1.ObjectMeta.AnnotationsEntryR\vannotations\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbe\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xaf\x02\n" +
 	"\x0eDependencySpec\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12M\n" +
-	"\vgrpc_client\x18\x02 \x01(\v2*.malonaz.core.onyx.v1.GrpcClientDependencyH\x00R\n" +
-	"grpcClient\x12Y\n" +
-	"\x0fpostgres_client\x18\x03 \x01(\v2..malonaz.core.onyx.v1.PostgresClientDependencyH\x00R\x0epostgresClient\x12`\n" +
-	"\x12postgres_db_client\x18\x04 \x01(\v20.malonaz.core.onyx.v1.PostgresDbClientDependencyH\x00R\x10postgresDbClientB\f\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12H\n" +
+	"\vgrpc_client\x18\x02 \x01(\v2%.malonaz.onyx.v1.GrpcClientDependencyH\x00R\n" +
+	"grpcClient\x12T\n" +
+	"\x0fpostgres_client\x18\x03 \x01(\v2).malonaz.onyx.v1.PostgresClientDependencyH\x00R\x0epostgresClient\x12[\n" +
+	"\x12postgres_db_client\x18\x04 \x01(\v2+.malonaz.onyx.v1.PostgresDbClientDependencyH\x00R\x10postgresDbClientB\f\n" +
 	"\n" +
 	"dependency\",\n" +
 	"\x14GrpcClientDependency\x12\x14\n" +
@@ -356,33 +356,33 @@ const file_onyx_v1_onyx_proto_rawDesc = "" +
 	"\x0eimplementation\x18\x01 \x01(\tR\x0eimplementationB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
 
 var (
-	file_onyx_v1_onyx_proto_rawDescOnce sync.Once
-	file_onyx_v1_onyx_proto_rawDescData []byte
+	file_malonaz_onyx_v1_onyx_proto_rawDescOnce sync.Once
+	file_malonaz_onyx_v1_onyx_proto_rawDescData []byte
 )
 
-func file_onyx_v1_onyx_proto_rawDescGZIP() []byte {
-	file_onyx_v1_onyx_proto_rawDescOnce.Do(func() {
-		file_onyx_v1_onyx_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_onyx_v1_onyx_proto_rawDesc), len(file_onyx_v1_onyx_proto_rawDesc)))
+func file_malonaz_onyx_v1_onyx_proto_rawDescGZIP() []byte {
+	file_malonaz_onyx_v1_onyx_proto_rawDescOnce.Do(func() {
+		file_malonaz_onyx_v1_onyx_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_onyx_proto_rawDesc), len(file_malonaz_onyx_v1_onyx_proto_rawDesc)))
 	})
-	return file_onyx_v1_onyx_proto_rawDescData
+	return file_malonaz_onyx_v1_onyx_proto_rawDescData
 }
 
-var file_onyx_v1_onyx_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_onyx_v1_onyx_proto_goTypes = []any{
-	(*ObjectMeta)(nil),                 // 0: malonaz.core.onyx.v1.ObjectMeta
-	(*DependencySpec)(nil),             // 1: malonaz.core.onyx.v1.DependencySpec
-	(*GrpcClientDependency)(nil),       // 2: malonaz.core.onyx.v1.GrpcClientDependency
-	(*PostgresClientDependency)(nil),   // 3: malonaz.core.onyx.v1.PostgresClientDependency
-	(*PostgresDbClientDependency)(nil), // 4: malonaz.core.onyx.v1.PostgresDbClientDependency
-	nil,                                // 5: malonaz.core.onyx.v1.ObjectMeta.LabelsEntry
-	nil,                                // 6: malonaz.core.onyx.v1.ObjectMeta.AnnotationsEntry
+var file_malonaz_onyx_v1_onyx_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_malonaz_onyx_v1_onyx_proto_goTypes = []any{
+	(*ObjectMeta)(nil),                 // 0: malonaz.onyx.v1.ObjectMeta
+	(*DependencySpec)(nil),             // 1: malonaz.onyx.v1.DependencySpec
+	(*GrpcClientDependency)(nil),       // 2: malonaz.onyx.v1.GrpcClientDependency
+	(*PostgresClientDependency)(nil),   // 3: malonaz.onyx.v1.PostgresClientDependency
+	(*PostgresDbClientDependency)(nil), // 4: malonaz.onyx.v1.PostgresDbClientDependency
+	nil,                                // 5: malonaz.onyx.v1.ObjectMeta.LabelsEntry
+	nil,                                // 6: malonaz.onyx.v1.ObjectMeta.AnnotationsEntry
 }
-var file_onyx_v1_onyx_proto_depIdxs = []int32{
-	5, // 0: malonaz.core.onyx.v1.ObjectMeta.labels:type_name -> malonaz.core.onyx.v1.ObjectMeta.LabelsEntry
-	6, // 1: malonaz.core.onyx.v1.ObjectMeta.annotations:type_name -> malonaz.core.onyx.v1.ObjectMeta.AnnotationsEntry
-	2, // 2: malonaz.core.onyx.v1.DependencySpec.grpc_client:type_name -> malonaz.core.onyx.v1.GrpcClientDependency
-	3, // 3: malonaz.core.onyx.v1.DependencySpec.postgres_client:type_name -> malonaz.core.onyx.v1.PostgresClientDependency
-	4, // 4: malonaz.core.onyx.v1.DependencySpec.postgres_db_client:type_name -> malonaz.core.onyx.v1.PostgresDbClientDependency
+var file_malonaz_onyx_v1_onyx_proto_depIdxs = []int32{
+	5, // 0: malonaz.onyx.v1.ObjectMeta.labels:type_name -> malonaz.onyx.v1.ObjectMeta.LabelsEntry
+	6, // 1: malonaz.onyx.v1.ObjectMeta.annotations:type_name -> malonaz.onyx.v1.ObjectMeta.AnnotationsEntry
+	2, // 2: malonaz.onyx.v1.DependencySpec.grpc_client:type_name -> malonaz.onyx.v1.GrpcClientDependency
+	3, // 3: malonaz.onyx.v1.DependencySpec.postgres_client:type_name -> malonaz.onyx.v1.PostgresClientDependency
+	4, // 4: malonaz.onyx.v1.DependencySpec.postgres_db_client:type_name -> malonaz.onyx.v1.PostgresDbClientDependency
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -390,12 +390,12 @@ var file_onyx_v1_onyx_proto_depIdxs = []int32{
 	0, // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_onyx_v1_onyx_proto_init() }
-func file_onyx_v1_onyx_proto_init() {
-	if File_onyx_v1_onyx_proto != nil {
+func init() { file_malonaz_onyx_v1_onyx_proto_init() }
+func file_malonaz_onyx_v1_onyx_proto_init() {
+	if File_malonaz_onyx_v1_onyx_proto != nil {
 		return
 	}
-	file_onyx_v1_onyx_proto_msgTypes[1].OneofWrappers = []any{
+	file_malonaz_onyx_v1_onyx_proto_msgTypes[1].OneofWrappers = []any{
 		(*DependencySpec_GrpcClient)(nil),
 		(*DependencySpec_PostgresClient)(nil),
 		(*DependencySpec_PostgresDbClient)(nil),
@@ -404,17 +404,17 @@ func file_onyx_v1_onyx_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_onyx_v1_onyx_proto_rawDesc), len(file_onyx_v1_onyx_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_onyx_proto_rawDesc), len(file_malonaz_onyx_v1_onyx_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_onyx_v1_onyx_proto_goTypes,
-		DependencyIndexes: file_onyx_v1_onyx_proto_depIdxs,
-		MessageInfos:      file_onyx_v1_onyx_proto_msgTypes,
+		GoTypes:           file_malonaz_onyx_v1_onyx_proto_goTypes,
+		DependencyIndexes: file_malonaz_onyx_v1_onyx_proto_depIdxs,
+		MessageInfos:      file_malonaz_onyx_v1_onyx_proto_msgTypes,
 	}.Build()
-	File_onyx_v1_onyx_proto = out.File
-	file_onyx_v1_onyx_proto_goTypes = nil
-	file_onyx_v1_onyx_proto_depIdxs = nil
+	File_malonaz_onyx_v1_onyx_proto = out.File
+	file_malonaz_onyx_v1_onyx_proto_goTypes = nil
+	file_malonaz_onyx_v1_onyx_proto_depIdxs = nil
 }

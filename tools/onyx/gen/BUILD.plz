@@ -4,7 +4,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/flags",
-        "//proto/onyx/v1",
+        "//malonaz/onyx/v1",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:gopkg.in__yaml.v3",
     ],

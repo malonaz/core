@@ -1,8 +1,8 @@
 version: v2
 modules:
-  - path: proto
+  - path: .
     excludes:
-      - proto/onyx/
+      - malonaz/onyx/
   - path: plz-out/gen/third_party/proto
     excludes:
       - plz-out/gen/third_party/proto/proto # contains core protos downloaded by intermediary rule for 'external_github_library'.

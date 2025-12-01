@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: ai/v1/metrics.proto
+// source: malonaz/ai/v1/metrics.proto
 
 package v1
 
@@ -37,7 +37,7 @@ type GenerationMetrics struct {
 
 func (x *GenerationMetrics) Reset() {
 	*x = GenerationMetrics{}
-	mi := &file_ai_v1_metrics_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +49,7 @@ func (x *GenerationMetrics) String() string {
 func (*GenerationMetrics) ProtoMessage() {}
 
 func (x *GenerationMetrics) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_metrics_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *GenerationMetrics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerationMetrics.ProtoReflect.Descriptor instead.
 func (*GenerationMetrics) Descriptor() ([]byte, []int) {
-	return file_ai_v1_metrics_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_metrics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GenerationMetrics) GetTtfb() *durationpb.Duration {
@@ -107,7 +107,7 @@ type ModelUsage struct {
 
 func (x *ModelUsage) Reset() {
 	*x = ModelUsage{}
-	mi := &file_ai_v1_metrics_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -119,7 +119,7 @@ func (x *ModelUsage) String() string {
 func (*ModelUsage) ProtoMessage() {}
 
 func (x *ModelUsage) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_metrics_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -132,7 +132,7 @@ func (x *ModelUsage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModelUsage.ProtoReflect.Descriptor instead.
 func (*ModelUsage) Descriptor() ([]byte, []int) {
-	return file_ai_v1_metrics_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_metrics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ModelUsage) GetModel() string {
@@ -211,7 +211,7 @@ type ResourceConsumption struct {
 
 func (x *ResourceConsumption) Reset() {
 	*x = ResourceConsumption{}
-	mi := &file_ai_v1_metrics_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -223,7 +223,7 @@ func (x *ResourceConsumption) String() string {
 func (*ResourceConsumption) ProtoMessage() {}
 
 func (x *ResourceConsumption) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_v1_metrics_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_metrics_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +236,7 @@ func (x *ResourceConsumption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceConsumption.ProtoReflect.Descriptor instead.
 func (*ResourceConsumption) Descriptor() ([]byte, []int) {
-	return file_ai_v1_metrics_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_ai_v1_metrics_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ResourceConsumption) GetQuantity() int32 {
@@ -253,61 +253,61 @@ func (x *ResourceConsumption) GetPrice() float64 {
 	return 0
 }
 
-var File_ai_v1_metrics_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_metrics_proto protoreflect.FileDescriptor
 
-const file_ai_v1_metrics_proto_rawDesc = "" +
+const file_malonaz_ai_v1_metrics_proto_rawDesc = "" +
 	"\n" +
-	"\x13ai/v1/metrics.proto\x12\x12malonaz.core.ai.v1\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\"q\n" +
+	"\x1bmalonaz/ai/v1/metrics.proto\x12\rmalonaz.ai.v1\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\"q\n" +
 	"\x11GenerationMetrics\x12-\n" +
 	"\x04ttfb\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x04ttfb\x12-\n" +
-	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\xdc\x05\n" +
+	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\xb4\x05\n" +
 	"\n" +
 	"ModelUsage\x12/\n" +
 	"\x05model\x18\x01 \x01(\tB\x19\xfaA\x16\n" +
-	"\x14ai.malonaz.com/ModelR\x05model\x12H\n" +
-	"\vinput_token\x18\x02 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\n" +
-	"inputToken\x12J\n" +
-	"\foutput_token\x18\x03 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\voutputToken\x12]\n" +
-	"\x16output_reasoning_token\x18\x04 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14outputReasoningToken\x12\\\n" +
-	"\x16input_cache_read_token\x18\x05 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x13inputCacheReadToken\x12^\n" +
-	"\x17input_cache_write_token\x18\x06 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14inputCacheWriteToken\x12J\n" +
-	"\finput_second\x18\a \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\vinputSecond\x12L\n" +
-	"\routput_second\x18\b \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\foutputSecond\x12P\n" +
-	"\x0finput_character\x18\t \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x0einputCharacter\"G\n" +
+	"\x14ai.malonaz.com/ModelR\x05model\x12C\n" +
+	"\vinput_token\x18\x02 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\n" +
+	"inputToken\x12E\n" +
+	"\foutput_token\x18\x03 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\voutputToken\x12X\n" +
+	"\x16output_reasoning_token\x18\x04 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x14outputReasoningToken\x12W\n" +
+	"\x16input_cache_read_token\x18\x05 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x13inputCacheReadToken\x12Y\n" +
+	"\x17input_cache_write_token\x18\x06 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x14inputCacheWriteToken\x12E\n" +
+	"\finput_second\x18\a \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\vinputSecond\x12G\n" +
+	"\routput_second\x18\b \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\foutputSecond\x12K\n" +
+	"\x0finput_character\x18\t \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x0einputCharacter\"G\n" +
 	"\x13ResourceConsumption\x12\x1a\n" +
 	"\bquantity\x18\x01 \x01(\x05R\bquantity\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\x01R\x05priceB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
-	file_ai_v1_metrics_proto_rawDescOnce sync.Once
-	file_ai_v1_metrics_proto_rawDescData []byte
+	file_malonaz_ai_v1_metrics_proto_rawDescOnce sync.Once
+	file_malonaz_ai_v1_metrics_proto_rawDescData []byte
 )
 
-func file_ai_v1_metrics_proto_rawDescGZIP() []byte {
-	file_ai_v1_metrics_proto_rawDescOnce.Do(func() {
-		file_ai_v1_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_v1_metrics_proto_rawDesc), len(file_ai_v1_metrics_proto_rawDesc)))
+func file_malonaz_ai_v1_metrics_proto_rawDescGZIP() []byte {
+	file_malonaz_ai_v1_metrics_proto_rawDescOnce.Do(func() {
+		file_malonaz_ai_v1_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_metrics_proto_rawDesc), len(file_malonaz_ai_v1_metrics_proto_rawDesc)))
 	})
-	return file_ai_v1_metrics_proto_rawDescData
+	return file_malonaz_ai_v1_metrics_proto_rawDescData
 }
 
-var file_ai_v1_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_ai_v1_metrics_proto_goTypes = []any{
-	(*GenerationMetrics)(nil),   // 0: malonaz.core.ai.v1.GenerationMetrics
-	(*ModelUsage)(nil),          // 1: malonaz.core.ai.v1.ModelUsage
-	(*ResourceConsumption)(nil), // 2: malonaz.core.ai.v1.ResourceConsumption
+var file_malonaz_ai_v1_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_ai_v1_metrics_proto_goTypes = []any{
+	(*GenerationMetrics)(nil),   // 0: malonaz.ai.v1.GenerationMetrics
+	(*ModelUsage)(nil),          // 1: malonaz.ai.v1.ModelUsage
+	(*ResourceConsumption)(nil), // 2: malonaz.ai.v1.ResourceConsumption
 	(*durationpb.Duration)(nil), // 3: google.protobuf.Duration
 }
-var file_ai_v1_metrics_proto_depIdxs = []int32{
-	3,  // 0: malonaz.core.ai.v1.GenerationMetrics.ttfb:type_name -> google.protobuf.Duration
-	3,  // 1: malonaz.core.ai.v1.GenerationMetrics.ttlb:type_name -> google.protobuf.Duration
-	2,  // 2: malonaz.core.ai.v1.ModelUsage.input_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 3: malonaz.core.ai.v1.ModelUsage.output_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 4: malonaz.core.ai.v1.ModelUsage.output_reasoning_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 5: malonaz.core.ai.v1.ModelUsage.input_cache_read_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 6: malonaz.core.ai.v1.ModelUsage.input_cache_write_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 7: malonaz.core.ai.v1.ModelUsage.input_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 8: malonaz.core.ai.v1.ModelUsage.output_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 9: malonaz.core.ai.v1.ModelUsage.input_character:type_name -> malonaz.core.ai.v1.ResourceConsumption
+var file_malonaz_ai_v1_metrics_proto_depIdxs = []int32{
+	3,  // 0: malonaz.ai.v1.GenerationMetrics.ttfb:type_name -> google.protobuf.Duration
+	3,  // 1: malonaz.ai.v1.GenerationMetrics.ttlb:type_name -> google.protobuf.Duration
+	2,  // 2: malonaz.ai.v1.ModelUsage.input_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 3: malonaz.ai.v1.ModelUsage.output_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 4: malonaz.ai.v1.ModelUsage.output_reasoning_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 5: malonaz.ai.v1.ModelUsage.input_cache_read_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 6: malonaz.ai.v1.ModelUsage.input_cache_write_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 7: malonaz.ai.v1.ModelUsage.input_second:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 8: malonaz.ai.v1.ModelUsage.output_second:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 9: malonaz.ai.v1.ModelUsage.input_character:type_name -> malonaz.ai.v1.ResourceConsumption
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
@@ -315,26 +315,26 @@ var file_ai_v1_metrics_proto_depIdxs = []int32{
 	0,  // [0:10] is the sub-list for field type_name
 }
 
-func init() { file_ai_v1_metrics_proto_init() }
-func file_ai_v1_metrics_proto_init() {
-	if File_ai_v1_metrics_proto != nil {
+func init() { file_malonaz_ai_v1_metrics_proto_init() }
+func file_malonaz_ai_v1_metrics_proto_init() {
+	if File_malonaz_ai_v1_metrics_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_metrics_proto_rawDesc), len(file_ai_v1_metrics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_metrics_proto_rawDesc), len(file_malonaz_ai_v1_metrics_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_ai_v1_metrics_proto_goTypes,
-		DependencyIndexes: file_ai_v1_metrics_proto_depIdxs,
-		MessageInfos:      file_ai_v1_metrics_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_metrics_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_metrics_proto_depIdxs,
+		MessageInfos:      file_malonaz_ai_v1_metrics_proto_msgTypes,
 	}.Build()
-	File_ai_v1_metrics_proto = out.File
-	file_ai_v1_metrics_proto_goTypes = nil
-	file_ai_v1_metrics_proto_depIdxs = nil
+	File_malonaz_ai_v1_metrics_proto = out.File
+	file_malonaz_ai_v1_metrics_proto_goTypes = nil
+	file_malonaz_ai_v1_metrics_proto_depIdxs = nil
 }

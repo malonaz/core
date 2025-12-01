@@ -124,7 +124,7 @@ echo "└───────────────────────�
 echo ""
 
 # Make the API call and process the streaming response
-gcurl -plaintext -unix -d "$REQUEST" "$SOCKET" malonaz.core.ai.ai_service.v1.Ai/TextToTextStream | \
+gcurl -plaintext -unix -d "$REQUEST" "$SOCKET" malonaz.ai.ai_service.v1.Ai/TextToTextStream | \
 jq -r --unbuffered '
   if .contentChunk then
     "CONTENT:" + .contentChunk
