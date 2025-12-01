@@ -9,12 +9,14 @@ proto_library(
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/v1",
+        GENERATE_GO_AIP: True,
     },
     root_dir = "proto",
     visibility = ["PUBLIC"],
     deps = [
         "//genproto/audio/v1",
         "//proto/audio/v1",
+        "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",
     ],
 )

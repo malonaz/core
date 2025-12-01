@@ -38,33 +38,33 @@ type JsonSchema struct {
 	// Defines the schema for elements within an array (recursive)
 	Items *JsonSchema `protobuf:"bytes,5,opt,name=items,proto3" json:"items,omitempty"`
 	// Minimum number of items required in the array
-	MinItems *int32 `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3,oneof" json:"min_items,omitempty"`
+	MinItems int32 `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3" json:"min_items,omitempty"`
 	// Maximum number of items allowed in the array
-	MaxItems *int32 `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3,oneof" json:"max_items,omitempty"`
+	MaxItems int32 `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3" json:"max_items,omitempty"`
 	// For strings
 	// List of allowed string values (enumeration constraint)
 	Enum []string `protobuf:"bytes,8,rep,name=enum,proto3" json:"enum,omitempty"`
 	// Minimum length of the string
-	MinLength *int32 `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3,oneof" json:"min_length,omitempty"`
+	MinLength int32 `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
 	// Maximum length of the string
-	MaxLength *int32 `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3,oneof" json:"max_length,omitempty"`
+	MaxLength int32 `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3" json:"max_length,omitempty"`
 	// Regular expression pattern the string must match
-	Pattern *string `protobuf:"bytes,11,opt,name=pattern,proto3,oneof" json:"pattern,omitempty"`
+	Pattern string `protobuf:"bytes,11,opt,name=pattern,proto3" json:"pattern,omitempty"`
 	// Semantic format hint: "date-time", "email", "uri", "uuid", etc.
-	Format *string `protobuf:"bytes,12,opt,name=format,proto3,oneof" json:"format,omitempty"`
+	Format string `protobuf:"bytes,12,opt,name=format,proto3" json:"format,omitempty"`
 	// For numbers
 	// Minimum value (inclusive) for number or integer types
-	Minimum *float64 `protobuf:"fixed64,13,opt,name=minimum,proto3,oneof" json:"minimum,omitempty"`
+	Minimum float64 `protobuf:"fixed64,13,opt,name=minimum,proto3" json:"minimum,omitempty"`
 	// Maximum value (inclusive) for number or integer types
-	Maximum *float64 `protobuf:"fixed64,14,opt,name=maximum,proto3,oneof" json:"maximum,omitempty"`
+	Maximum float64 `protobuf:"fixed64,14,opt,name=maximum,proto3" json:"maximum,omitempty"`
 	// Minimum value (exclusive) for number or integer types
-	ExclusiveMinimum *float64 `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3,oneof" json:"exclusive_minimum,omitempty"`
+	ExclusiveMinimum float64 `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3" json:"exclusive_minimum,omitempty"`
 	// Maximum value (exclusive) for number or integer types
-	ExclusiveMaximum *float64 `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3,oneof" json:"exclusive_maximum,omitempty"`
+	ExclusiveMaximum float64 `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3" json:"exclusive_maximum,omitempty"`
 	// The number must be a multiple of this value
-	MultipleOf *float64 `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3,oneof" json:"multiple_of,omitempty"`
+	MultipleOf float64 `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3" json:"multiple_of,omitempty"`
 	// Default value to use when no value is provided
-	Default *string `protobuf:"bytes,18,opt,name=default,proto3,oneof" json:"default,omitempty"`
+	Default string `protobuf:"bytes,18,opt,name=default,proto3" json:"default,omitempty"`
 	// Example values that satisfy this schema (for documentation)
 	Examples []string `protobuf:"bytes,19,rep,name=examples,proto3" json:"examples,omitempty"`
 	// Advanced combinators
@@ -146,15 +146,15 @@ func (x *JsonSchema) GetItems() *JsonSchema {
 }
 
 func (x *JsonSchema) GetMinItems() int32 {
-	if x != nil && x.MinItems != nil {
-		return *x.MinItems
+	if x != nil {
+		return x.MinItems
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetMaxItems() int32 {
-	if x != nil && x.MaxItems != nil {
-		return *x.MaxItems
+	if x != nil {
+		return x.MaxItems
 	}
 	return 0
 }
@@ -167,71 +167,71 @@ func (x *JsonSchema) GetEnum() []string {
 }
 
 func (x *JsonSchema) GetMinLength() int32 {
-	if x != nil && x.MinLength != nil {
-		return *x.MinLength
+	if x != nil {
+		return x.MinLength
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetMaxLength() int32 {
-	if x != nil && x.MaxLength != nil {
-		return *x.MaxLength
+	if x != nil {
+		return x.MaxLength
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetPattern() string {
-	if x != nil && x.Pattern != nil {
-		return *x.Pattern
+	if x != nil {
+		return x.Pattern
 	}
 	return ""
 }
 
 func (x *JsonSchema) GetFormat() string {
-	if x != nil && x.Format != nil {
-		return *x.Format
+	if x != nil {
+		return x.Format
 	}
 	return ""
 }
 
 func (x *JsonSchema) GetMinimum() float64 {
-	if x != nil && x.Minimum != nil {
-		return *x.Minimum
+	if x != nil {
+		return x.Minimum
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetMaximum() float64 {
-	if x != nil && x.Maximum != nil {
-		return *x.Maximum
+	if x != nil {
+		return x.Maximum
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetExclusiveMinimum() float64 {
-	if x != nil && x.ExclusiveMinimum != nil {
-		return *x.ExclusiveMinimum
+	if x != nil {
+		return x.ExclusiveMinimum
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetExclusiveMaximum() float64 {
-	if x != nil && x.ExclusiveMaximum != nil {
-		return *x.ExclusiveMaximum
+	if x != nil {
+		return x.ExclusiveMaximum
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetMultipleOf() float64 {
-	if x != nil && x.MultipleOf != nil {
-		return *x.MultipleOf
+	if x != nil {
+		return x.MultipleOf
 	}
 	return 0
 }
 
 func (x *JsonSchema) GetDefault() string {
-	if x != nil && x.Default != nil {
-		return *x.Default
+	if x != nil {
+		return x.Default
 	}
 	return ""
 }
@@ -275,7 +275,7 @@ var File_ai_v1_jsonschema_proto protoreflect.FileDescriptor
 
 const file_ai_v1_jsonschema_proto_rawDesc = "" +
 	"\n" +
-	"\x16ai/v1/jsonschema.proto\x12\x12malonaz.core.ai.v1\x1a\x1bbuf/validate/validate.proto\"\xe8\t\n" +
+	"\x16ai/v1/jsonschema.proto\x12\x12malonaz.core.ai.v1\x1a\x1bbuf/validate/validate.proto\"\xfb\a\n" +
 	"\n" +
 	"JsonSchema\x12P\n" +
 	"\x04type\x18\x01 \x01(\tB<\xbaH9r7R\x06objectR\x06stringR\x06numberR\aintegerR\abooleanR\x05arrayR\x04nullR\x04type\x12 \n" +
@@ -284,25 +284,24 @@ const file_ai_v1_jsonschema_proto_rawDesc = "" +
 	"properties\x18\x03 \x03(\v2..malonaz.core.ai.v1.JsonSchema.PropertiesEntryR\n" +
 	"properties\x12\x1a\n" +
 	"\brequired\x18\x04 \x03(\tR\brequired\x124\n" +
-	"\x05items\x18\x05 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05items\x12 \n" +
-	"\tmin_items\x18\x06 \x01(\x05H\x00R\bminItems\x88\x01\x01\x12 \n" +
-	"\tmax_items\x18\a \x01(\x05H\x01R\bmaxItems\x88\x01\x01\x12\x12\n" +
-	"\x04enum\x18\b \x03(\tR\x04enum\x12\"\n" +
+	"\x05items\x18\x05 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05items\x12\x1b\n" +
+	"\tmin_items\x18\x06 \x01(\x05R\bminItems\x12\x1b\n" +
+	"\tmax_items\x18\a \x01(\x05R\bmaxItems\x12\x12\n" +
+	"\x04enum\x18\b \x03(\tR\x04enum\x12\x1d\n" +
 	"\n" +
-	"min_length\x18\t \x01(\x05H\x02R\tminLength\x88\x01\x01\x12\"\n" +
+	"min_length\x18\t \x01(\x05R\tminLength\x12\x1d\n" +
 	"\n" +
 	"max_length\x18\n" +
-	" \x01(\x05H\x03R\tmaxLength\x88\x01\x01\x12\x1d\n" +
-	"\apattern\x18\v \x01(\tH\x04R\apattern\x88\x01\x01\x12\x1b\n" +
-	"\x06format\x18\f \x01(\tH\x05R\x06format\x88\x01\x01\x12\x1d\n" +
-	"\aminimum\x18\r \x01(\x01H\x06R\aminimum\x88\x01\x01\x12\x1d\n" +
-	"\amaximum\x18\x0e \x01(\x01H\aR\amaximum\x88\x01\x01\x120\n" +
-	"\x11exclusive_minimum\x18\x0f \x01(\x01H\bR\x10exclusiveMinimum\x88\x01\x01\x120\n" +
-	"\x11exclusive_maximum\x18\x10 \x01(\x01H\tR\x10exclusiveMaximum\x88\x01\x01\x12$\n" +
-	"\vmultiple_of\x18\x11 \x01(\x01H\n" +
-	"R\n" +
-	"multipleOf\x88\x01\x01\x12\x1d\n" +
-	"\adefault\x18\x12 \x01(\tH\vR\adefault\x88\x01\x01\x12\x1a\n" +
+	" \x01(\x05R\tmaxLength\x12\x18\n" +
+	"\apattern\x18\v \x01(\tR\apattern\x12\x16\n" +
+	"\x06format\x18\f \x01(\tR\x06format\x12\x18\n" +
+	"\aminimum\x18\r \x01(\x01R\aminimum\x12\x18\n" +
+	"\amaximum\x18\x0e \x01(\x01R\amaximum\x12+\n" +
+	"\x11exclusive_minimum\x18\x0f \x01(\x01R\x10exclusiveMinimum\x12+\n" +
+	"\x11exclusive_maximum\x18\x10 \x01(\x01R\x10exclusiveMaximum\x12\x1f\n" +
+	"\vmultiple_of\x18\x11 \x01(\x01R\n" +
+	"multipleOf\x12\x18\n" +
+	"\adefault\x18\x12 \x01(\tR\adefault\x12\x1a\n" +
 	"\bexamples\x18\x13 \x03(\tR\bexamples\x125\n" +
 	"\x06any_of\x18\x14 \x03(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05anyOf\x125\n" +
 	"\x06one_of\x18\x15 \x03(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05oneOf\x125\n" +
@@ -310,25 +309,7 @@ const file_ai_v1_jsonschema_proto_rawDesc = "" +
 	"\x03not\x18\x17 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x03not\x1a]\n" +
 	"\x0fPropertiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x124\n" +
-	"\x05value\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05value:\x028\x01B\f\n" +
-	"\n" +
-	"_min_itemsB\f\n" +
-	"\n" +
-	"_max_itemsB\r\n" +
-	"\v_min_lengthB\r\n" +
-	"\v_max_lengthB\n" +
-	"\n" +
-	"\b_patternB\t\n" +
-	"\a_formatB\n" +
-	"\n" +
-	"\b_minimumB\n" +
-	"\n" +
-	"\b_maximumB\x14\n" +
-	"\x12_exclusive_minimumB\x14\n" +
-	"\x12_exclusive_maximumB\x0e\n" +
-	"\f_multiple_ofB\n" +
-	"\n" +
-	"\b_defaultB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x05value\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.JsonSchemaR\x05value:\x028\x01B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
 	file_ai_v1_jsonschema_proto_rawDescOnce sync.Once
@@ -367,7 +348,6 @@ func file_ai_v1_jsonschema_proto_init() {
 	if File_ai_v1_jsonschema_proto != nil {
 		return
 	}
-	file_ai_v1_jsonschema_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

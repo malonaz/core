@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -81,26 +82,25 @@ func (x *GenerationMetrics) GetTtlb() *durationpb.Duration {
 // Tracks model usage.
 type ModelUsage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Id of the provider.
-	Provider Provider `protobuf:"varint,1,opt,name=provider,proto3,enum=malonaz.core.ai.v1.Provider" json:"provider,omitempty"`
-	// Id of the model.
-	Model Model `protobuf:"varint,2,opt,name=model,proto3,enum=malonaz.core.ai.v1.Model" json:"model,omitempty"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 	// Input token usage.
-	InputToken *ResourceConsumption `protobuf:"bytes,3,opt,name=input_token,json=inputToken,proto3" json:"input_token,omitempty"`
+	InputToken *ResourceConsumption `protobuf:"bytes,2,opt,name=input_token,json=inputToken,proto3" json:"input_token,omitempty"`
 	// Output token usage.
-	OutputToken *ResourceConsumption `protobuf:"bytes,4,opt,name=output_token,json=outputToken,proto3" json:"output_token,omitempty"`
+	OutputToken *ResourceConsumption `protobuf:"bytes,3,opt,name=output_token,json=outputToken,proto3" json:"output_token,omitempty"`
 	// Output reasoning token usage.
-	OutputReasoningToken *ResourceConsumption `protobuf:"bytes,5,opt,name=output_reasoning_token,json=outputReasoningToken,proto3" json:"output_reasoning_token,omitempty"`
+	OutputReasoningToken *ResourceConsumption `protobuf:"bytes,4,opt,name=output_reasoning_token,json=outputReasoningToken,proto3" json:"output_reasoning_token,omitempty"`
 	// Cache read token usage.
-	InputCacheReadToken *ResourceConsumption `protobuf:"bytes,6,opt,name=input_cache_read_token,json=inputCacheReadToken,proto3" json:"input_cache_read_token,omitempty"`
+	InputCacheReadToken *ResourceConsumption `protobuf:"bytes,5,opt,name=input_cache_read_token,json=inputCacheReadToken,proto3" json:"input_cache_read_token,omitempty"`
 	// Cache write token usage.
-	InputCacheWriteToken *ResourceConsumption `protobuf:"bytes,7,opt,name=input_cache_write_token,json=inputCacheWriteToken,proto3" json:"input_cache_write_token,omitempty"`
+	InputCacheWriteToken *ResourceConsumption `protobuf:"bytes,6,opt,name=input_cache_write_token,json=inputCacheWriteToken,proto3" json:"input_cache_write_token,omitempty"`
 	// Input seconds.
-	InputSecond *ResourceConsumption `protobuf:"bytes,8,opt,name=input_second,json=inputSecond,proto3" json:"input_second,omitempty"`
+	InputSecond *ResourceConsumption `protobuf:"bytes,7,opt,name=input_second,json=inputSecond,proto3" json:"input_second,omitempty"`
 	// Output seconds.
-	OutputSecond *ResourceConsumption `protobuf:"bytes,9,opt,name=output_second,json=outputSecond,proto3" json:"output_second,omitempty"`
+	OutputSecond *ResourceConsumption `protobuf:"bytes,8,opt,name=output_second,json=outputSecond,proto3" json:"output_second,omitempty"`
 	// Input characters.
-	InputCharacter *ResourceConsumption `protobuf:"bytes,10,opt,name=input_character,json=inputCharacter,proto3" json:"input_character,omitempty"`
+	InputCharacter *ResourceConsumption `protobuf:"bytes,9,opt,name=input_character,json=inputCharacter,proto3" json:"input_character,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -135,18 +135,11 @@ func (*ModelUsage) Descriptor() ([]byte, []int) {
 	return file_ai_v1_metrics_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ModelUsage) GetProvider() Provider {
-	if x != nil {
-		return x.Provider
-	}
-	return Provider_PROVIDER_UNSPECIFIED
-}
-
-func (x *ModelUsage) GetModel() Model {
+func (x *ModelUsage) GetModel() string {
 	if x != nil {
 		return x.Model
 	}
-	return Model_MODEL_UNSPECIFIED
+	return ""
 }
 
 func (x *ModelUsage) GetInputToken() *ResourceConsumption {
@@ -264,24 +257,23 @@ var File_ai_v1_metrics_proto protoreflect.FileDescriptor
 
 const file_ai_v1_metrics_proto_rawDesc = "" +
 	"\n" +
-	"\x13ai/v1/metrics.proto\x12\x12malonaz.core.ai.v1\x1a\x11ai/v1/model.proto\x1a\x1egoogle/protobuf/duration.proto\"q\n" +
+	"\x13ai/v1/metrics.proto\x12\x12malonaz.core.ai.v1\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\"q\n" +
 	"\x11GenerationMetrics\x12-\n" +
 	"\x04ttfb\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x04ttfb\x12-\n" +
-	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\x96\x06\n" +
+	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\xdc\x05\n" +
 	"\n" +
-	"ModelUsage\x128\n" +
-	"\bprovider\x18\x01 \x01(\x0e2\x1c.malonaz.core.ai.v1.ProviderR\bprovider\x12/\n" +
-	"\x05model\x18\x02 \x01(\x0e2\x19.malonaz.core.ai.v1.ModelR\x05model\x12H\n" +
-	"\vinput_token\x18\x03 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\n" +
+	"ModelUsage\x12/\n" +
+	"\x05model\x18\x01 \x01(\tB\x19\xfaA\x16\n" +
+	"\x14ai.malonaz.com/ModelR\x05model\x12H\n" +
+	"\vinput_token\x18\x02 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\n" +
 	"inputToken\x12J\n" +
-	"\foutput_token\x18\x04 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\voutputToken\x12]\n" +
-	"\x16output_reasoning_token\x18\x05 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14outputReasoningToken\x12\\\n" +
-	"\x16input_cache_read_token\x18\x06 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x13inputCacheReadToken\x12^\n" +
-	"\x17input_cache_write_token\x18\a \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14inputCacheWriteToken\x12J\n" +
-	"\finput_second\x18\b \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\vinputSecond\x12L\n" +
-	"\routput_second\x18\t \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\foutputSecond\x12P\n" +
-	"\x0finput_character\x18\n" +
-	" \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x0einputCharacter\"G\n" +
+	"\foutput_token\x18\x03 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\voutputToken\x12]\n" +
+	"\x16output_reasoning_token\x18\x04 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14outputReasoningToken\x12\\\n" +
+	"\x16input_cache_read_token\x18\x05 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x13inputCacheReadToken\x12^\n" +
+	"\x17input_cache_write_token\x18\x06 \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x14inputCacheWriteToken\x12J\n" +
+	"\finput_second\x18\a \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\vinputSecond\x12L\n" +
+	"\routput_second\x18\b \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\foutputSecond\x12P\n" +
+	"\x0finput_character\x18\t \x01(\v2'.malonaz.core.ai.v1.ResourceConsumptionR\x0einputCharacter\"G\n" +
 	"\x13ResourceConsumption\x12\x1a\n" +
 	"\bquantity\x18\x01 \x01(\x05R\bquantity\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\x01R\x05priceB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
@@ -304,27 +296,23 @@ var file_ai_v1_metrics_proto_goTypes = []any{
 	(*ModelUsage)(nil),          // 1: malonaz.core.ai.v1.ModelUsage
 	(*ResourceConsumption)(nil), // 2: malonaz.core.ai.v1.ResourceConsumption
 	(*durationpb.Duration)(nil), // 3: google.protobuf.Duration
-	(Provider)(0),               // 4: malonaz.core.ai.v1.Provider
-	(Model)(0),                  // 5: malonaz.core.ai.v1.Model
 }
 var file_ai_v1_metrics_proto_depIdxs = []int32{
 	3,  // 0: malonaz.core.ai.v1.GenerationMetrics.ttfb:type_name -> google.protobuf.Duration
 	3,  // 1: malonaz.core.ai.v1.GenerationMetrics.ttlb:type_name -> google.protobuf.Duration
-	4,  // 2: malonaz.core.ai.v1.ModelUsage.provider:type_name -> malonaz.core.ai.v1.Provider
-	5,  // 3: malonaz.core.ai.v1.ModelUsage.model:type_name -> malonaz.core.ai.v1.Model
-	2,  // 4: malonaz.core.ai.v1.ModelUsage.input_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 5: malonaz.core.ai.v1.ModelUsage.output_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 6: malonaz.core.ai.v1.ModelUsage.output_reasoning_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 7: malonaz.core.ai.v1.ModelUsage.input_cache_read_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 8: malonaz.core.ai.v1.ModelUsage.input_cache_write_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 9: malonaz.core.ai.v1.ModelUsage.input_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 10: malonaz.core.ai.v1.ModelUsage.output_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	2,  // 11: malonaz.core.ai.v1.ModelUsage.input_character:type_name -> malonaz.core.ai.v1.ResourceConsumption
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	2,  // 2: malonaz.core.ai.v1.ModelUsage.input_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 3: malonaz.core.ai.v1.ModelUsage.output_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 4: malonaz.core.ai.v1.ModelUsage.output_reasoning_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 5: malonaz.core.ai.v1.ModelUsage.input_cache_read_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 6: malonaz.core.ai.v1.ModelUsage.input_cache_write_token:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 7: malonaz.core.ai.v1.ModelUsage.input_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 8: malonaz.core.ai.v1.ModelUsage.output_second:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	2,  // 9: malonaz.core.ai.v1.ModelUsage.input_character:type_name -> malonaz.core.ai.v1.ResourceConsumption
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_ai_v1_metrics_proto_init() }
@@ -332,7 +320,6 @@ func file_ai_v1_metrics_proto_init() {
 	if File_ai_v1_metrics_proto != nil {
 		return
 	}
-	file_ai_v1_model_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

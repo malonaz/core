@@ -11,15 +11,12 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/pbutil"
 )
 
 func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToTextRequest) (*aiservicepb.TextToTextResponse, error) {
-	if len(request.Messages) == 0 {
-		return nil, fmt.Errorf("messages cannot be empty")
-	}
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +39,13 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 	}
 
 	chatCompletionRequest := openai.ChatCompletionRequest{
-		Model:               modelConfig.ModelId,
+		Model:               model.ProviderModelId,
 		Messages:            messages,
 		MaxCompletionTokens: int(request.Configuration.GetMaxTokens()),
 		Temperature:         float32(request.Configuration.GetTemperature()),
-		ReasoningEffort:     providerToReasoningEffortToOpenAI[c.Provider()][request.Configuration.GetReasoningEffort()],
+		ReasoningEffort:     providerToReasoningEffortToOpenAI[c.ProviderId()][request.Configuration.GetReasoningEffort()],
 	}
-	if c.Provider() == aipb.Provider_PROVIDER_GROQ {
+	if c.ProviderId() == providerIdGroq {
 		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 			chatCompletionRequest.ReasoningFormat = "parsed"
 		}
@@ -88,10 +85,8 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 		Content:   choice.Message.Content,
 		Reasoning: choice.Message.ReasoningContent,
 	}
-	if c.Provider() == aipb.Provider_PROVIDER_GROQ {
-		if choice.Message.Reasoning != "" {
-			message.Reasoning = choice.Message.Reasoning
-		}
+	if choice.Message.Reasoning != "" {
+		message.Reasoning = choice.Message.Reasoning
 	}
 
 	// Handle tool calls in the response
@@ -111,8 +106,7 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 		Ttlb: durationpb.New(time.Since(startTime)),
 	}
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputToken: &aipb.ResourceConsumption{
 			Quantity: int32(chatCompletionResponse.Usage.PromptTokens),
 		},
@@ -193,14 +187,14 @@ func pbToolCallToOpenAI(toolCall *aipb.ToolCall) openai.ToolCall {
 	}
 }
 
-var providerToReasoningEffortToOpenAI = map[aipb.Provider]map[aipb.ReasoningEffort]string{
-	aipb.Provider_PROVIDER_OPENAI: {
+var providerToReasoningEffortToOpenAI = map[string]map[aipb.ReasoningEffort]string{
+	providerIdOpenai: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "medium",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "low",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "medium",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "high",
 	},
-	aipb.Provider_PROVIDER_GROQ: {
+	providerIdGroq: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",

@@ -12,15 +12,11 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
 func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToTextRequest) (*aiservicepb.TextToTextResponse, error) {
-	if len(request.Messages) == 0 {
-		return nil, fmt.Errorf("messages cannot be empty")
-	}
-
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +57,7 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 
 	// Build the request
 	messageParams := anthropic.MessageNewParams{
-		Model:     anthropic.Model(modelConfig.ModelId),
+		Model:     anthropic.Model(model.ProviderModelId),
 		Messages:  messages,
 		MaxTokens: request.Configuration.GetMaxTokens(),
 	}
@@ -74,7 +70,7 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 	}
 
 	// Add thinking configuration for reasoning models
-	if modelConfig.Ttt.Reasoning {
+	if model.Ttt.Reasoning {
 		budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
 		if budget > 0 {
 			messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
@@ -145,8 +141,7 @@ func (c *Client) TextToText(ctx context.Context, request *aiservicepb.TextToText
 	}
 
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputToken: &aipb.ResourceConsumption{
 			Quantity: int32(messagesResponse.Usage.InputTokens),
 		},

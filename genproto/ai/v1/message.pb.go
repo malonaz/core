@@ -83,6 +83,75 @@ func (Role) EnumDescriptor() ([]byte, []int) {
 	return file_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
+// Represents the level of reasoning effort for AI model responses.
+// The reasoning effort parameter guides the model on how many reasoning tokens
+// to generate before creating a response to the prompt. Higher effort levels
+// result in more thorough reasoning at the cost of speed and token usage.
+type ReasoningEffort int32
+
+const (
+	// Used to detect an unset field.
+	ReasoningEffort_REASONING_EFFORT_UNSPECIFIED ReasoningEffort = 0
+	// Default reasoning effort set by platform.
+	ReasoningEffort_REASONING_EFFORT_DEFAULT ReasoningEffort = 1
+	// Low reasoning effort.
+	// Favors speed and economical token usage with minimal reasoning tokens.
+	ReasoningEffort_REASONING_EFFORT_LOW ReasoningEffort = 2
+	// Medium reasoning effort (default).
+	// Provides a balance between speed and reasoning accuracy.
+	ReasoningEffort_REASONING_EFFORT_MEDIUM ReasoningEffort = 3
+	// High reasoning effort.
+	// Favors more complete and thorough reasoning, generating more reasoning
+	// tokens before responding. May result in slower responses and higher
+	// token usage.
+	ReasoningEffort_REASONING_EFFORT_HIGH ReasoningEffort = 4
+)
+
+// Enum value maps for ReasoningEffort.
+var (
+	ReasoningEffort_name = map[int32]string{
+		0: "REASONING_EFFORT_UNSPECIFIED",
+		1: "REASONING_EFFORT_DEFAULT",
+		2: "REASONING_EFFORT_LOW",
+		3: "REASONING_EFFORT_MEDIUM",
+		4: "REASONING_EFFORT_HIGH",
+	}
+	ReasoningEffort_value = map[string]int32{
+		"REASONING_EFFORT_UNSPECIFIED": 0,
+		"REASONING_EFFORT_DEFAULT":     1,
+		"REASONING_EFFORT_LOW":         2,
+		"REASONING_EFFORT_MEDIUM":      3,
+		"REASONING_EFFORT_HIGH":        4,
+	}
+)
+
+func (x ReasoningEffort) Enum() *ReasoningEffort {
+	p := new(ReasoningEffort)
+	*p = x
+	return p
+}
+
+func (x ReasoningEffort) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReasoningEffort) Descriptor() protoreflect.EnumDescriptor {
+	return file_ai_v1_message_proto_enumTypes[1].Descriptor()
+}
+
+func (ReasoningEffort) Type() protoreflect.EnumType {
+	return &file_ai_v1_message_proto_enumTypes[1]
+}
+
+func (x ReasoningEffort) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ReasoningEffort.Descriptor instead.
+func (ReasoningEffort) EnumDescriptor() ([]byte, []int) {
+	return file_ai_v1_message_proto_rawDescGZIP(), []int{1}
+}
+
 // Represents a message in a multi-turn AI conversation.
 type Message struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -189,7 +258,13 @@ const file_ai_v1_message_proto_rawDesc = "" +
 	"\vROLE_SYSTEM\x10\x01\x12\x12\n" +
 	"\x0eROLE_ASSISTANT\x10\x02\x12\r\n" +
 	"\tROLE_USER\x10\x03\x12\r\n" +
-	"\tROLE_TOOL\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\tROLE_TOOL\x10\x04*\xa3\x01\n" +
+	"\x0fReasoningEffort\x12 \n" +
+	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n" +
+	"\x14REASONING_EFFORT_LOW\x10\x02\x12\x1b\n" +
+	"\x17REASONING_EFFORT_MEDIUM\x10\x03\x12\x19\n" +
+	"\x15REASONING_EFFORT_HIGH\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
 	file_ai_v1_message_proto_rawDescOnce sync.Once
@@ -203,16 +278,17 @@ func file_ai_v1_message_proto_rawDescGZIP() []byte {
 	return file_ai_v1_message_proto_rawDescData
 }
 
-var file_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_ai_v1_message_proto_goTypes = []any{
-	(Role)(0),        // 0: malonaz.core.ai.v1.Role
-	(*Message)(nil),  // 1: malonaz.core.ai.v1.Message
-	(*ToolCall)(nil), // 2: malonaz.core.ai.v1.ToolCall
+	(Role)(0),            // 0: malonaz.core.ai.v1.Role
+	(ReasoningEffort)(0), // 1: malonaz.core.ai.v1.ReasoningEffort
+	(*Message)(nil),      // 2: malonaz.core.ai.v1.Message
+	(*ToolCall)(nil),     // 3: malonaz.core.ai.v1.ToolCall
 }
 var file_ai_v1_message_proto_depIdxs = []int32{
 	0, // 0: malonaz.core.ai.v1.Message.role:type_name -> malonaz.core.ai.v1.Role
-	2, // 1: malonaz.core.ai.v1.Message.tool_calls:type_name -> malonaz.core.ai.v1.ToolCall
+	3, // 1: malonaz.core.ai.v1.Message.tool_calls:type_name -> malonaz.core.ai.v1.ToolCall
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -231,7 +307,7 @@ func file_ai_v1_message_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_v1_message_proto_rawDesc), len(file_ai_v1_message_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,

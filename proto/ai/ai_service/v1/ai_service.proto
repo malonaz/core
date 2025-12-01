@@ -8,8 +8,10 @@ import "ai/v1/model.proto";
 import "ai/v1/tool.proto";
 import "audio/v1/audio.proto";
 import "buf/validate/validate.proto";
+import "codegen/aip/v1/aip.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
+import "google/api/resource.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
@@ -19,10 +21,34 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 service Ai {
   option (google.api.default_host) = "ai.malonaz.com";
 
+  // Create a model.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Create).
+  rpc CreateModel(CreateModelRequest) returns (ai.v1.Model) {
+    option (google.api.http) = {post: "/v1/{name=providers/*/models/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Get a model.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetModel(GetModelRequest) returns (ai.v1.Model) {
+    option (google.api.http) = {get: "/v1/{name=providers/*/models/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List models for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=providers/*/*}/models"};
+    option (google.api.method_signature) = "parent";
+  }
+
   // Converts speech audio to text using the specified model.
   rpc SpeechToText(SpeechToTextRequest) returns (SpeechToTextResponse) {
     option (google.api.http) = {
-      post: "/v1/speech-to-text"
+      post: "/v1/providers/{provider}/models/{model}/speech-to-text"
       body: "*"
     };
   }
@@ -30,7 +56,7 @@ service Ai {
   // Convert text to text using chat completion models.
   rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
     option (google.api.http) = {
-      post: "/v1/text-to-text"
+      post: "/v1/providers/{provider}/models/{model}/text-to-text"
       body: "*"
     };
   }
@@ -38,7 +64,7 @@ service Ai {
   // Converts text to text using chat completion models with streaming response.
   rpc TextToTextStream(TextToTextStreamRequest) returns (stream TextToTextStreamResponse) {
     option (google.api.http) = {
-      post: "/v1/text-to-text:stream"
+      post: "/v1/providers/{provider}/models/{model}/text-to-text:stream"
       body: "*"
     };
   }
@@ -46,7 +72,7 @@ service Ai {
   // Converts text to speech audio, returning complete audio data.
   rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
     option (google.api.http) = {
-      post: "/v1/text-to-speech"
+      post: "/v1/providers/{provider}/models/{model}/text-to-speech"
       body: "*"
     };
   }
@@ -54,19 +80,84 @@ service Ai {
   // Converts text to speech audio with streaming response.
   rpc TextToSpeechStream(TextToSpeechStreamRequest) returns (stream TextToSpeechStreamResponse) {
     option (google.api.http) = {
-      post: "/v1/text-to-speech:stream"
+      post: "/v1/providers/{provider}/models/{model}/text-to-speech:stream"
       body: "*"
     };
   }
 }
 
+// Request message for Ai.CreateModel.
+message CreateModelRequest {
+  // The resource name of the parent provider for which this model will be created.
+  // Format: providers/{provider}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/Provider"}
+  ];
+  // The model to create.
+  ai.v1.Model model = 2 [(buf.validate.field).required = true];
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  //
+  // This value should be 4-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string model_id = 3 [(buf.validate.field).required = true];
+}
+
+// Request message for Ai.GetModel.
+message GetModelRequest {
+  // The resource name of the model to retrieve.
+  // Format: providers/{provider}/models/{model}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+}
+
+// Request message for Ai.ListModels.
+message ListModelsRequest {
+  option (malonaz.core.codegen.aip.v1.pagination) = {default_page_size: 500};
+
+  // The resource name of the parent, which owns this collection of models.
+  // Format: providers/{provider}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/Provider"}
+  ];
+
+  // Requested page size. Server may return fewer models than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListModelsResponse.next_page_token][ai.ai_service.v1.ListModelsResponse.next_page_token]
+  // returned from the previous call to `ListModels` method.
+  string page_token = 3;
+}
+
+// Response message for Ai.ListModels.
+message ListModelsResponse {
+  // The list of models.
+  repeated ai.v1.Model models = 1;
+  // A token to retrieve next page of results. Pass this value in the
+  // [ListModelsRequest.page_token][ai.ai_service.v1.ListModelsRequest.page_token]
+  // field in the subsequent call to `ListModels` method to retrieve the next
+  // page of results.
+  string next_page_token = 2;
+}
+
 // Request message for Ai.SpeechToText.
 message SpeechToTextRequest {
-  // The model for this request.
-  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
-    defined_only: true
-    not_in: [0]
-  }];
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
 
   // Audio data in PCM format.
   bytes audio = 2 [(buf.validate.field).required = true];
@@ -111,11 +202,12 @@ message TextToTextConfiguration {
 
 // Request message for Ai.TextToText.
 message TextToTextRequest {
-  // The model for this request.
-  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
-    defined_only: true
-    not_in: [0]
-  }];
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
 
   // The conversation messages.
   repeated .malonaz.core.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
@@ -144,11 +236,12 @@ message TextToTextResponse {
 
 // Request message for Ai.TextToTextStream.
 message TextToTextStreamRequest {
-  // The model for this request.
-  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
-    defined_only: true
-    not_in: [0]
-  }];
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
 
   // The conversation messages.
   repeated .malonaz.core.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
@@ -188,11 +281,12 @@ message TextToTextStreamResponse {
 
 // Request message for Ai.TextToSpeech.
 message TextToSpeechRequest {
-  // The model for this request.
-  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
-    defined_only: true
-    not_in: [0]
-  }];
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
 
   // The text to convert to speech.
   string text = 2 [(buf.validate.field).string.min_len = 1];
@@ -218,11 +312,12 @@ message TextToSpeechResponse {
 
 // Request message for Ai.TextToSpeechStream.
 message TextToSpeechStreamRequest {
-  // The model for this request.
-  .malonaz.core.ai.v1.Model model = 1 [(buf.validate.field).enum = {
-    defined_only: true
-    not_in: [0]
-  }];
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
 
   // The text to convert to speech.
   string text = 2 [(buf.validate.field).string.min_len = 1];

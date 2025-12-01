@@ -71,3 +71,29 @@ message Message {
   // The ID of the tool call this is responding to.
   string tool_call_id = 5;
 }
+
+// Represents the level of reasoning effort for AI model responses.
+// The reasoning effort parameter guides the model on how many reasoning tokens
+// to generate before creating a response to the prompt. Higher effort levels
+// result in more thorough reasoning at the cost of speed and token usage.
+enum ReasoningEffort {
+  // Used to detect an unset field.
+  REASONING_EFFORT_UNSPECIFIED = 0;
+
+  // Default reasoning effort set by platform.
+  REASONING_EFFORT_DEFAULT = 1;
+
+  // Low reasoning effort.
+  // Favors speed and economical token usage with minimal reasoning tokens.
+  REASONING_EFFORT_LOW = 2;
+
+  // Medium reasoning effort (default).
+  // Provides a balance between speed and reasoning accuracy.
+  REASONING_EFFORT_MEDIUM = 3;
+
+  // High reasoning effort.
+  // Favors more complete and thorough reasoning, generating more reasoning
+  // tokens before responding. May result in slower responses and higher
+  // token usage.
+  REASONING_EFFORT_HIGH = 4;
+}

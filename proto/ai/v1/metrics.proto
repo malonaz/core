@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package malonaz.core.ai.v1;
 
-import "ai/v1/model.proto";
+import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -18,26 +18,25 @@ message GenerationMetrics {
 
 // Tracks model usage.
 message ModelUsage {
-  // Id of the provider.
-  Provider provider = 1;
-  // Id of the model.
-  Model model = 2;
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [(google.api.resource_reference).type = "ai.malonaz.com/Model"];
   // Input token usage.
-  ResourceConsumption input_token = 3;
+  ResourceConsumption input_token = 2;
   // Output token usage.
-  ResourceConsumption output_token = 4;
+  ResourceConsumption output_token = 3;
   // Output reasoning token usage.
-  ResourceConsumption output_reasoning_token = 5;
+  ResourceConsumption output_reasoning_token = 4;
   // Cache read token usage.
-  ResourceConsumption input_cache_read_token = 6;
+  ResourceConsumption input_cache_read_token = 5;
   // Cache write token usage.
-  ResourceConsumption input_cache_write_token = 7;
+  ResourceConsumption input_cache_write_token = 6;
   // Input seconds.
-  ResourceConsumption input_second = 8;
+  ResourceConsumption input_second = 7;
   // Output seconds.
-  ResourceConsumption output_second = 9;
+  ResourceConsumption output_second = 8;
   // Input characters.
-  ResourceConsumption input_character = 10;
+  ResourceConsumption input_character = 9;
 }
 
 // Tracks a particular resource consumption.

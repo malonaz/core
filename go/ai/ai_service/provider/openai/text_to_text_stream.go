@@ -10,7 +10,6 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
 func (c *Client) TextToTextStream(
@@ -18,12 +17,8 @@ func (c *Client) TextToTextStream(
 	stream aiservicepb.Ai_TextToTextStreamServer,
 ) error {
 	ctx := stream.Context()
-
-	if len(request.Messages) == 0 {
-		return fmt.Errorf("messages cannot be empty")
-	}
-
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return err
 	}
@@ -46,18 +41,18 @@ func (c *Client) TextToTextStream(
 	}
 
 	chatCompletionRequest := openai.ChatCompletionRequest{
-		Model:               modelConfig.ModelId,
+		Model:               model.ProviderModelId,
 		Messages:            messages,
 		MaxCompletionTokens: int(request.Configuration.GetMaxTokens()),
 		Temperature:         float32(request.Configuration.GetTemperature()),
-		ReasoningEffort:     providerToReasoningEffortToOpenAI[c.Provider()][request.Configuration.GetReasoningEffort()],
+		ReasoningEffort:     providerToReasoningEffortToOpenAI[c.ProviderId()][request.Configuration.GetReasoningEffort()],
 		Stream:              true,
 		StreamOptions: &openai.StreamOptions{
 			IncludeUsage: true,
 		},
 	}
 
-	if c.Provider() == aipb.Provider_PROVIDER_GROQ {
+	if c.ProviderId() == providerIdGroq {
 		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 			chatCompletionRequest.ReasoningFormat = "parsed"
 		}
@@ -148,7 +143,7 @@ func (c *Client) TextToTextStream(
 		}
 
 		// Handle Groq reasoning format
-		if c.Provider() == aipb.Provider_PROVIDER_GROQ && choice.Delta.Reasoning != "" {
+		if choice.Delta.Reasoning != "" {
 			if err := stream.Send(&aiservicepb.TextToTextStreamResponse{
 				Content: &aiservicepb.TextToTextStreamResponse_ReasoningChunk{
 					ReasoningChunk: choice.Delta.Reasoning,
@@ -163,8 +158,7 @@ func (c *Client) TextToTextStream(
 
 	// Send model usage
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputToken: &aipb.ResourceConsumption{
 			Quantity: int32(promptTokens),
 		},

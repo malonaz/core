@@ -9,7 +9,8 @@ RESET='\033[0m'
 
 # Default values
 SOCKET="/tmp/core.socket"
-MODEL="MODEL_GPT_5"
+PROVIDER="openai"
+MODEL="gpt-4o"
 SYSTEM_MESSAGE="You are a helpful assistant."
 USER_MESSAGE="Hello, how are you?"
 MAX_TOKENS=1000
@@ -21,6 +22,10 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --socket)
       SOCKET="$2"
+      shift 2
+      ;;
+    --provider)
+      PROVIDER="$2"
       shift 2
       ;;
     --model)
@@ -51,18 +56,21 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: $0 [options]"
       echo "Options:"
       echo "  --socket PATH        Unix socket path (default: /tmp/core.socket)"
-      echo "  --model MODEL        Model to use (default: MODEL_CLAUDE_SONNET_3_7)"
+      echo "  --provider PROVIDER  Provider name (default: openai)"
+      echo "  --model MODEL        Model ID (default: gpt-4o)"
       echo "  --system MESSAGE     System message (default: 'You are a helpful assistant.')"
       echo "  --message MESSAGE    User message (default: 'Hello, how are you?')"
       echo "  --max-tokens N       Max tokens to generate (default: 1000)"
-      echo "  --temperature N      Temperature 0.0-2.0 (default: 0.7)"
+      echo "  --temperature N      Temperature 0.0-2.0 (default: 1.0)"
       echo "  --reasoning EFFORT   Reasoning effort: LOW, MEDIUM, HIGH (optional)"
       echo ""
-      echo "Available models:"
-      echo "  MODEL_GPT_4O, MODEL_GPT_4_TURBO, MODEL_GPT_4_1, MODEL_GPT_5"
-      echo "  MODEL_CLAUDE_SONNET_3_7, MODEL_CLAUDE_SONNET_4"
-      echo "  MODEL_GEMINI_FLASH_2, MODEL_GEMINI_FLASH_2_5"
-      echo "  MODEL_KIMI_K2_INSTRUCT, MODEL_QWEN3_32B"
+      echo "Example providers:"
+      echo "  openai, anthropic, google"
+      echo ""
+      echo "Example models:"
+      echo "  OpenAI: gpt-4o, gpt-4-turbo, o1"
+      echo "  Anthropic: claude-sonnet-3.7, claude-sonnet-4"
+      echo "  Google: gemini-flash-2, gemini-flash-2.5"
       exit 0
       ;;
     *)
@@ -72,6 +80,9 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# Build the model resource name
+MODEL_RESOURCE_NAME="providers/${PROVIDER}/models/${MODEL}"
 
 # Build the configuration object
 CONFIG_JSON="\"max_tokens\": $MAX_TOKENS, \"temperature\": $TEMPERATURE"
@@ -84,7 +95,7 @@ fi
 # Build the JSON request
 REQUEST=$(cat <<EOF
 {
-  "model": "$MODEL",
+  "model": "$MODEL_RESOURCE_NAME",
   "messages": [
     {
       "role": "ROLE_SYSTEM",
@@ -103,6 +114,7 @@ EOF
 )
 
 echo "┌─────────────────────────────────────────────────────────"
+echo "│ Provider: $PROVIDER"
 echo "│ Model: $MODEL"
 echo "│ Message: $USER_MESSAGE"
 if [[ -n "$REASONING_EFFORT" ]]; then
@@ -119,7 +131,7 @@ jq -r --unbuffered '
   elif .reasoningChunk then
     "REASONING:" + .reasoningChunk
   elif .modelUsage then
-    "\n\n┌─────────────────────────────────────────────────────────\n│ MODEL USAGE\n├─────────────────────────────────────────────────────────\n│ Provider: \(.modelUsage.provider)\n│ Model: \(.modelUsage.model)\n│ Input tokens: \(.modelUsage.inputToken.quantity // 0)\n│ Output tokens: \(.modelUsage.outputToken.quantity // 0)\n│ Reasoning tokens: \(.modelUsage.outputReasoningToken.quantity // 0)\n│ Cache read tokens: \(.modelUsage.inputCacheReadToken.quantity // 0)\n│ Cache write tokens: \(.modelUsage.inputCacheWriteToken.quantity // 0)\n└─────────────────────────────────────────────────────────"
+    "\n\n┌─────────────────────────────────────────────────────────\n│ MODEL USAGE\n├─────────────────────────────────────────────────────────\n│ Model: \(.modelUsage.model)\n│ Input tokens: \(.modelUsage.inputToken.quantity // 0)\n│ Output tokens: \(.modelUsage.outputToken.quantity // 0)\n│ Reasoning tokens: \(.modelUsage.outputReasoningToken.quantity // 0)\n│ Cache read tokens: \(.modelUsage.inputCacheReadToken.quantity // 0)\n│ Cache write tokens: \(.modelUsage.inputCacheWriteToken.quantity // 0)\n└─────────────────────────────────────────────────────────"
   elif .generationMetrics then
     "\n┌─────────────────────────────────────────────────────────\n│ GENERATION METRICS\n├─────────────────────────────────────────────────────────\n│ Time to first byte: \(.generationMetrics.ttfb)\n│ Time to last byte: \(.generationMetrics.ttlb)\n└─────────────────────────────────────────────────────────"
   else

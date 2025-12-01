@@ -12,21 +12,18 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/audio"
 )
 
 func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechToTextRequest) (*aiservicepb.SpeechToTextResponse, error) {
-	if len(request.Audio) == 0 {
-		return nil, fmt.Errorf("audio data cannot be empty")
-	}
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return nil, err
 	}
 
 	audioRequest := openai.AudioRequest{
-		Model:    modelConfig.ModelId,
+		Model:    model.ProviderModelId,
 		FilePath: "audio.wav",
 		Reader:   bytes.NewReader(request.Audio),
 		Language: request.Language,
@@ -48,8 +45,7 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	}
 
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputSecond: &aipb.ResourceConsumption{
 			Quantity: int32(duration.Round(time.Second).Seconds()),
 		},

@@ -8,6 +8,7 @@ import (
 	"github.com/malonaz/core/go/websocket"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
@@ -21,12 +22,14 @@ type Client struct {
 	apiKey         string
 	baseURL        string
 	ttsMultiplexer *Multiplexer[*TextToSpeechRequest, *TextToSpeechResponse]
+	modelService   *provider.ModelService
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey string, modelService *provider.ModelService) *Client {
 	return &Client{
-		apiKey:  apiKey,
-		baseURL: defaultBaseURL,
+		apiKey:       apiKey,
+		baseURL:      defaultBaseURL,
+		modelService: modelService,
 	}
 }
 
@@ -64,11 +67,10 @@ func (c *Client) Start(ctx context.Context) error {
 }
 
 // Stop gracefully shuts down the WebSocket connection
-func (c *Client) Stop() error {
+func (c *Client) Stop() {
 	if c.ttsMultiplexer != nil {
 		c.ttsMultiplexer.Close()
 	}
-	return nil
 }
 
 func (c *Client) NewTextToSpeechStream() *Stream[*TextToSpeechRequest, *TextToSpeechResponse] {
@@ -76,7 +78,24 @@ func (c *Client) NewTextToSpeechStream() *Stream[*TextToSpeechRequest, *TextToSp
 }
 
 // Implements the provider.Provider interface.
-func (c *Client) Provider() aipb.Provider { return aipb.Provider_PROVIDER_CARTESIA }
+func (c *Client) ProviderId() string { return "cartesia" }
+
+// Implements the provider.Provider interface.
+func (c *Client) DefaultModels() []*aipb.Model {
+	return []*aipb.Model{
+		{
+			Name:            (&aipb.ModelResourceName{Provider: c.ProviderId(), Model: "sonic-3"}).String(),
+			ProviderModelId: "sonic-3",
+			Tts: &aipb.TtsModelConfig{
+				AudioFormat: &audiopb.Format{
+					SampleRate:    8000,
+					Channels:      1,
+					BitsPerSample: 16,
+				},
+			},
+		},
+	}
+}
 
 // Verify interface implementation
 var _ provider.TextToSpeechClient = (*Client)(nil)

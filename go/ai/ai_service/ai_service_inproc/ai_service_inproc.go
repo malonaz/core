@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai/ai_service"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 )
@@ -22,6 +23,33 @@ func New(opts *ai_service.Opts) (*Client, error) {
 		return nil, err
 	}
 	return &Client{Service: svc}, nil
+}
+
+// TextToText provides a client-facing interface for text-to-text conversion.
+func (c *Client) CreateModel(
+	ctx context.Context,
+	request *aiservicepb.CreateModelRequest,
+	_ ...grpc.CallOption,
+) (*aipb.Model, error) {
+	return c.Service.CreateModel(ctx, request)
+}
+
+// TextToText provides a client-facing interface for text-to-text conversion.
+func (c *Client) GetModel(
+	ctx context.Context,
+	request *aiservicepb.GetModelRequest,
+	_ ...grpc.CallOption,
+) (*aipb.Model, error) {
+	return c.Service.GetModel(ctx, request)
+}
+
+// TextToText provides a client-facing interface for text-to-text conversion.
+func (c *Client) ListModels(
+	ctx context.Context,
+	request *aiservicepb.ListModelsRequest,
+	_ ...grpc.CallOption,
+) (*aiservicepb.ListModelsResponse, error) {
+	return c.Service.ListModels(ctx, request)
 }
 
 // TextToTextStream provides a client-facing streaming interface.

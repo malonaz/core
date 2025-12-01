@@ -33,38 +33,38 @@ message JsonSchema {
   // Defines the schema for elements within an array (recursive)
   JsonSchema items = 5;
   // Minimum number of items required in the array
-  optional int32 min_items = 6;
+  int32 min_items = 6;
   // Maximum number of items allowed in the array
-  optional int32 max_items = 7;
+  int32 max_items = 7;
 
   // For strings
   // List of allowed string values (enumeration constraint)
   repeated string enum = 8;
   // Minimum length of the string
-  optional int32 min_length = 9;
+  int32 min_length = 9;
   // Maximum length of the string
-  optional int32 max_length = 10;
+  int32 max_length = 10;
   // Regular expression pattern the string must match
-  optional string pattern = 11;
+  string pattern = 11;
   // Semantic format hint: "date-time", "email", "uri", "uuid", etc.
-  optional string format = 12;
+  string format = 12;
 
   // For numbers
   // Minimum value (inclusive) for number or integer types
-  optional double minimum = 13;
+  double minimum = 13;
   // Maximum value (inclusive) for number or integer types
-  optional double maximum = 14;
+  double maximum = 14;
   // Minimum value (exclusive) for number or integer types
-  optional double exclusive_minimum = 15;
+  double exclusive_minimum = 15;
   // Maximum value (exclusive) for number or integer types
-  optional double exclusive_maximum = 16;
+  double exclusive_maximum = 16;
   // The number must be a multiple of this value
-  optional double multiple_of = 17;
+  double multiple_of = 17;
 
   // Common fields
 
   // Default value to use when no value is provided
-  optional string default = 18;
+  string default = 18;
   // Example values that satisfy this schema (for documentation)
   repeated string examples = 19;
 

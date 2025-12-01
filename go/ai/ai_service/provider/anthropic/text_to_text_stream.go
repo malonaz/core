@@ -9,16 +9,13 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
 func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.Ai_TextToTextStreamServer) error {
-	if len(request.Messages) == 0 {
-		return fmt.Errorf("messages cannot be empty")
-	}
 	ctx := srv.Context()
 
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return err
 	}
@@ -59,7 +56,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 
 	// Build the request
 	messageParams := anthropic.MessageNewParams{
-		Model:     anthropic.Model(modelConfig.ModelId),
+		Model:     anthropic.Model(model.ProviderModelId),
 		Messages:  messages,
 		MaxTokens: request.Configuration.GetMaxTokens(),
 	}
@@ -72,7 +69,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	// Add thinking configuration for reasoning models
-	if modelConfig.Ttt.Reasoning {
+	if model.Ttt.Reasoning {
 		budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
 		if budget > 0 {
 			messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
@@ -90,22 +87,21 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	startTime := time.Now()
-	var ttfb *time.Duration
-
-	// Track usage metrics
-	var inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens int64
 
 	// Create streaming request
 	messageStream := c.client.Messages.NewStreaming(ctx, messageParams)
+
+	// Track usage metrics
+	generationMetrics := &aipb.GenerationMetrics{}
+	var inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens int64
 
 	// Process stream events
 	for messageStream.Next() {
 		event := messageStream.Current()
 
-		// Record TTFB on first event
-		if ttfb == nil {
-			duration := time.Since(startTime)
-			ttfb = &duration
+		// Set TTFB on first response
+		if generationMetrics.Ttfb == nil {
+			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
 		}
 
 		switch variant := event.AsAny().(type) {
@@ -173,10 +169,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		return fmt.Errorf("stream error: %w", err)
 	}
 
+	generationMetrics.Ttlb = durationpb.New(time.Since(startTime))
+
 	// Send model usage metrics
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputToken: &aipb.ResourceConsumption{
 			Quantity: int32(inputTokens),
 		},
@@ -207,14 +204,6 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		},
 	}); err != nil {
 		return fmt.Errorf("failed to send model usage: %w", err)
-	}
-
-	// Send generation metrics
-	generationMetrics := &aipb.GenerationMetrics{
-		Ttlb: durationpb.New(time.Since(startTime)),
-	}
-	if ttfb != nil {
-		generationMetrics.Ttfb = durationpb.New(*ttfb)
 	}
 
 	if err := srv.Send(&aiservicepb.TextToTextStreamResponse{

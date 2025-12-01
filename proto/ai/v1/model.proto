@@ -3,29 +3,52 @@ syntax = "proto3";
 package malonaz.core.ai.v1;
 
 import "audio/v1/audio.proto";
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
-
-// Allows annotations on enums.
-extend google.protobuf.EnumValueOptions {
-  // Config for a model.
-  ModelConfig config = 6544;
-}
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Provider"
+  pattern: "providers/{provider}"
+  singular: "provider"
+  plural: "providers"
+};
 
 // Contains configuration for a  model.
-message ModelConfig {
-  // The provider for this model.
-  Provider provider = 1;
-  // Id of this model for this provider.
-  string model_id = 2;
-  // Indicates the type of a model.
-  ModelType model_type = 3;
+message Model {
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Model"
+    pattern: "providers/{provider}/models/{model}"
+    singular: "model"
+    plural: "models"
+  };
+
+  // Required. The resource name of the `Model`.
+  // Format: `providers/{provider}/models/{model}` with a `{model}` naming convention of:
+  //
+  // * "{base_model_id}-{version}"
+  //
+  // Examples:
+  //
+  // * `providers/google/models/gemini-1.5-flash-001`
+  string name = 1 [(buf.validate.field).required = true];
+  // The id used for this model by the provider.
+  // This is introduced to absorb bad provider model naming standards.
+  string provider_model_id = 2;
+  // The time at which this model was deprecated.
+  google.protobuf.Timestamp deprecate_time = 3;
+  // Configuration for STT model.
+  SttModelConfig stt = 4;
   // Configuration for TTT model.
-  TttModelConfig ttt = 4;
+  TttModelConfig ttt = 5;
   // Configuration for TTS model.
-  TtsModelConfig tts = 5;
+  TtsModelConfig tts = 6;
 }
+
+// Configuration for a speech to text model.
+message SttModelConfig {}
 
 // Configuration for a ttt model.
 message TttModelConfig {
@@ -41,24 +64,6 @@ message TtsModelConfig {
   audio.v1.Format audio_format = 1;
 }
 
-// Represents an AI model provider.
-enum Provider {
-  // Used to detect an unset field.
-  PROVIDER_UNSPECIFIED = 0;
-  // Open ai.
-  PROVIDER_OPENAI = 1;
-  // Anthropic.
-  PROVIDER_ANTHROPIC = 2;
-  // Eleven labs.
-  PROVIDER_ELEVENLABS = 3;
-  // Groq.
-  PROVIDER_GROQ = 4;
-  // Google.
-  PROVIDER_GOOGLE = 5;
-  // Cartesia.
-  PROVIDER_CARTESIA = 6;
-}
-
 // Represents a model.
 enum ModelType {
   // Used to detect an unset field.
@@ -71,212 +76,32 @@ enum ModelType {
   MODEL_TYPE_TTS = 3;
 }
 
-// Represents a model.
-enum Model {
-  // Used to detect an unset field.
-  MODEL_UNSPECIFIED = 0;
+/*
+   // Represents a model.
+   enum ModelX {
+     // Used to detect an unset field.
+     MODEL_UNSPECIFIED = 0;
 
-  // STT Models.
-  // Whisper model.
-  MODEL_WHISPER_1 = 1 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "whisper-1"
-    model_type: MODEL_TYPE_STT
-  }];
-  // Whisper large.
-  MODEL_WHISPER_LARGE_V3_TURBO = 2 [(config) = {
-    provider: PROVIDER_GROQ
-    model_id: "whisper-large-v3-turbo"
-    model_type: MODEL_TYPE_STT
-  }];
+     // Gemini flash 2.0.
+     MODEL_GEMINI_FLASH_2 = 108 [(config) = {
+       provider: PROVIDER_GOOGLE
+       model_id: "gemini-flash-2"
+       model_type: MODEL_TYPE_TTT
+       ttt: {
+         reasoning: true
+         tool_call: true
+       }
+     }];
+     // Gemini flash 2.5.
+     MODEL_GEMINI_FLASH_2_5 = 109 [(config) = {
+       provider: PROVIDER_GOOGLE
+       model_id: "gemini-flash-2.5"
+       model_type: MODEL_TYPE_TTT
+       ttt: {
+         reasoning: true
+         tool_call: true
+       }
+     }];
 
-  // TTT Models.
-  // GPT 4o.
-  MODEL_GPT_4O = 101 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-4o"
-    model_type: MODEL_TYPE_TTT
-    ttt: {tool_call: true}
-  }];
-  // GPT 4o turbo.
-  MODEL_GPT_4_TURBO = 102 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-4-turbo"
-    model_type: MODEL_TYPE_TTT
-    ttt: {tool_call: true}
-  }];
-  // GPT 4o turbo pinned version.
-  MODEL_GPT_4_TURBO_2024_04_09 = 103 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-4-turbo-2024-04-09"
-    model_type: MODEL_TYPE_TTT
-    ttt: {tool_call: true}
-  }];
-  // GPT 4.1.
-  MODEL_GPT_4_1 = 104 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-4.1"
-    model_type: MODEL_TYPE_TTT
-    ttt: {tool_call: true}
-  }];
-  // GPT 5.
-  MODEL_GPT_5 = 105 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-5"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-  // Sonnet 3.7.
-  MODEL_CLAUDE_SONNET_3_7 = 106 [(config) = {
-    provider: PROVIDER_ANTHROPIC
-    model_id: "claude-3-7-sonnet-20250219"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-  // Sonnet 4.
-  MODEL_CLAUDE_SONNET_4 = 107 [(config) = {
-    provider: PROVIDER_ANTHROPIC
-    model_id: "claude-sonnet-4"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-  // Gemini flash 2.0.
-  MODEL_GEMINI_FLASH_2 = 108 [(config) = {
-    provider: PROVIDER_GOOGLE
-    model_id: "gemini-flash-2"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-  // Gemini flash 2.5.
-  MODEL_GEMINI_FLASH_2_5 = 109 [(config) = {
-    provider: PROVIDER_GOOGLE
-    model_id: "gemini-flash-2.5"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-  // An open source model that performs well.
-  MODEL_KIMI_K2_INSTRUCT = 110 [(config) = {
-    provider: PROVIDER_GROQ
-    model_id: "moonshotai/kimi-k2-instruct-0905"
-    model_type: MODEL_TYPE_TTT
-    ttt: {tool_call: true}
-  }];
-  // An open source model that performs well.
-  MODEL_QWEN3_32B = 111 [(config) = {
-    provider: PROVIDER_GROQ
-    model_id: "qwen/qwen3-32b"
-    model_type: MODEL_TYPE_TTT
-    ttt: {
-      reasoning: true
-      tool_call: true
-    }
-  }];
-
-  // TTS Models.
-  // Fast & cheap but not that good.
-  MODEL_TTS_1 = 201 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "tts-1"
-    model_type: MODEL_TYPE_TTS
-    tts: {
-      audio_format: {
-        sample_rate: 24000
-        channels: 1
-        bits_per_sample: 16
-      }
-    }
-  }];
-  // Need to try.
-  MODEL_GPT_4O_MINI_TTS = 202 [(config) = {
-    provider: PROVIDER_OPENAI
-    model_id: "gpt-4o-mini-tts"
-    model_type: MODEL_TYPE_TTS
-    tts: {
-      audio_format: {
-        sample_rate: 24000
-        channels: 1
-        bits_per_sample: 16
-      }
-    }
-  }];
-  // Fast endpoint for eleven labs. (Currently used by Agents platform).
-  MODEL_ELEVEN_FLASH_2_5 = 203 [(config) = {
-    provider: PROVIDER_ELEVENLABS
-    model_id: "eleven_flash_v2_5"
-    model_type: MODEL_TYPE_TTS
-    tts: {
-      audio_format: {
-        sample_rate: 16000
-        channels: 1
-        bits_per_sample: 16
-      }
-    }
-  }];
-  // Very fast model by groq. Not as good as eleven labs.
-  MODEL_PLAYAI_TTS = 204 [(config) = {
-    provider: PROVIDER_GROQ
-    model_id: "playai-tts"
-    model_type: MODEL_TYPE_TTS
-    tts: {
-      audio_format: {
-        sample_rate: 48000
-        channels: 1
-        bits_per_sample: 16
-      }
-    }
-  }];
-  // Best-in-class for now.
-  MODEL_SONIC_3 = 205 [(config) = {
-    provider: PROVIDER_CARTESIA
-    model_id: "sonic-3"
-    model_type: MODEL_TYPE_TTS
-    tts: {
-      audio_format: {
-        sample_rate: 8000
-        channels: 1
-        bits_per_sample: 16
-      }
-    }
-  }];
-}
-
-// Represents the level of reasoning effort for AI model responses.
-// The reasoning effort parameter guides the model on how many reasoning tokens
-// to generate before creating a response to the prompt. Higher effort levels
-// result in more thorough reasoning at the cost of speed and token usage.
-enum ReasoningEffort {
-  // Used to detect an unset field.
-  REASONING_EFFORT_UNSPECIFIED = 0;
-
-  // Default reasoning effort set by platform.
-  REASONING_EFFORT_DEFAULT = 1;
-
-  // Low reasoning effort.
-  // Favors speed and economical token usage with minimal reasoning tokens.
-  REASONING_EFFORT_LOW = 2;
-
-  // Medium reasoning effort (default).
-  // Provides a balance between speed and reasoning accuracy.
-  REASONING_EFFORT_MEDIUM = 3;
-
-  // High reasoning effort.
-  // Favors more complete and thorough reasoning, generating more reasoning
-  // tokens before responding. May result in slower responses and higher
-  // token usage.
-  REASONING_EFFORT_HIGH = 4;
-}
+   }
+*/

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: proto/codegen/model/v1/model.proto
+// source: codegen/model/v1/model.proto
 
 package v1
 
@@ -49,7 +49,7 @@ type ModelOpts struct {
 
 func (x *ModelOpts) Reset() {
 	*x = ModelOpts{}
-	mi := &file_proto_codegen_model_v1_model_proto_msgTypes[0]
+	mi := &file_codegen_model_v1_model_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *ModelOpts) String() string {
 func (*ModelOpts) ProtoMessage() {}
 
 func (x *ModelOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_model_v1_model_proto_msgTypes[0]
+	mi := &file_codegen_model_v1_model_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *ModelOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModelOpts.ProtoReflect.Descriptor instead.
 func (*ModelOpts) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_model_v1_model_proto_rawDescGZIP(), []int{0}
+	return file_codegen_model_v1_model_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ModelOpts) GetDatabaseName() string {
@@ -149,7 +149,7 @@ type FieldOpts struct {
 
 func (x *FieldOpts) Reset() {
 	*x = FieldOpts{}
-	mi := &file_proto_codegen_model_v1_model_proto_msgTypes[1]
+	mi := &file_codegen_model_v1_model_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +161,7 @@ func (x *FieldOpts) String() string {
 func (*FieldOpts) ProtoMessage() {}
 
 func (x *FieldOpts) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_codegen_model_v1_model_proto_msgTypes[1]
+	mi := &file_codegen_model_v1_model_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +174,7 @@ func (x *FieldOpts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldOpts.ProtoReflect.Descriptor instead.
 func (*FieldOpts) Descriptor() ([]byte, []int) {
-	return file_proto_codegen_model_v1_model_proto_rawDescGZIP(), []int{1}
+	return file_codegen_model_v1_model_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *FieldOpts) GetColumnName() string {
@@ -226,14 +226,14 @@ func (x *FieldOpts) GetPgVector() bool {
 	return false
 }
 
-var file_proto_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*ModelOpts)(nil),
 		Field:         8810,
 		Name:          "malonaz.core.codegen.model.v1.model_opts",
 		Tag:           "bytes,8810,opt,name=model_opts",
-		Filename:      "proto/codegen/model/v1/model.proto",
+		Filename:      "codegen/model/v1/model.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
@@ -241,7 +241,7 @@ var file_proto_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo
 		Field:         32423,
 		Name:          "malonaz.core.codegen.model.v1.field_opts",
 		Tag:           "bytes,32423,opt,name=field_opts",
-		Filename:      "proto/codegen/model/v1/model.proto",
+		Filename:      "codegen/model/v1/model.proto",
 	},
 }
 
@@ -250,7 +250,7 @@ var (
 	// Opts for a model.
 	//
 	// optional malonaz.core.codegen.model.v1.ModelOpts model_opts = 8810;
-	E_ModelOpts = &file_proto_codegen_model_v1_model_proto_extTypes[0]
+	E_ModelOpts = &file_codegen_model_v1_model_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.FieldOptions.
@@ -258,14 +258,14 @@ var (
 	// Opts for a field.
 	//
 	// optional malonaz.core.codegen.model.v1.FieldOpts field_opts = 32423;
-	E_FieldOpts = &file_proto_codegen_model_v1_model_proto_extTypes[1]
+	E_FieldOpts = &file_codegen_model_v1_model_proto_extTypes[1]
 )
 
-var File_proto_codegen_model_v1_model_proto protoreflect.FileDescriptor
+var File_codegen_model_v1_model_proto protoreflect.FileDescriptor
 
-const file_proto_codegen_model_v1_model_proto_rawDesc = "" +
+const file_codegen_model_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\"proto/codegen/model/v1/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\x85\x02\n" +
+	"\x1ccodegen/model/v1/model.proto\x12\x1dmalonaz.core.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\x85\x02\n" +
 	"\tModelOpts\x12#\n" +
 	"\rdatabase_name\x18\x01 \x01(\tR\fdatabaseName\x12\x1d\n" +
 	"\n" +
@@ -289,25 +289,25 @@ const file_proto_codegen_model_v1_model_proto_rawDesc = "" +
 	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2(.malonaz.core.codegen.model.v1.FieldOptsR\tfieldOptsB3Z1github.com/malonaz/core/genproto/codegen/model/v1b\x06proto3"
 
 var (
-	file_proto_codegen_model_v1_model_proto_rawDescOnce sync.Once
-	file_proto_codegen_model_v1_model_proto_rawDescData []byte
+	file_codegen_model_v1_model_proto_rawDescOnce sync.Once
+	file_codegen_model_v1_model_proto_rawDescData []byte
 )
 
-func file_proto_codegen_model_v1_model_proto_rawDescGZIP() []byte {
-	file_proto_codegen_model_v1_model_proto_rawDescOnce.Do(func() {
-		file_proto_codegen_model_v1_model_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_codegen_model_v1_model_proto_rawDesc), len(file_proto_codegen_model_v1_model_proto_rawDesc)))
+func file_codegen_model_v1_model_proto_rawDescGZIP() []byte {
+	file_codegen_model_v1_model_proto_rawDescOnce.Do(func() {
+		file_codegen_model_v1_model_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_codegen_model_v1_model_proto_rawDesc), len(file_codegen_model_v1_model_proto_rawDesc)))
 	})
-	return file_proto_codegen_model_v1_model_proto_rawDescData
+	return file_codegen_model_v1_model_proto_rawDescData
 }
 
-var file_proto_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_codegen_model_v1_model_proto_goTypes = []any{
+var file_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_codegen_model_v1_model_proto_goTypes = []any{
 	(*ModelOpts)(nil),                   // 0: malonaz.core.codegen.model.v1.ModelOpts
 	(*FieldOpts)(nil),                   // 1: malonaz.core.codegen.model.v1.FieldOpts
 	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
 	(*descriptorpb.FieldOptions)(nil),   // 3: google.protobuf.FieldOptions
 }
-var file_proto_codegen_model_v1_model_proto_depIdxs = []int32{
+var file_codegen_model_v1_model_proto_depIdxs = []int32{
 	2, // 0: malonaz.core.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
 	3, // 1: malonaz.core.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
 	0, // 2: malonaz.core.codegen.model.v1.model_opts:type_name -> malonaz.core.codegen.model.v1.ModelOpts
@@ -319,27 +319,27 @@ var file_proto_codegen_model_v1_model_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_codegen_model_v1_model_proto_init() }
-func file_proto_codegen_model_v1_model_proto_init() {
-	if File_proto_codegen_model_v1_model_proto != nil {
+func init() { file_codegen_model_v1_model_proto_init() }
+func file_codegen_model_v1_model_proto_init() {
+	if File_codegen_model_v1_model_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_codegen_model_v1_model_proto_rawDesc), len(file_proto_codegen_model_v1_model_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_codegen_model_v1_model_proto_rawDesc), len(file_codegen_model_v1_model_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_codegen_model_v1_model_proto_goTypes,
-		DependencyIndexes: file_proto_codegen_model_v1_model_proto_depIdxs,
-		MessageInfos:      file_proto_codegen_model_v1_model_proto_msgTypes,
-		ExtensionInfos:    file_proto_codegen_model_v1_model_proto_extTypes,
+		GoTypes:           file_codegen_model_v1_model_proto_goTypes,
+		DependencyIndexes: file_codegen_model_v1_model_proto_depIdxs,
+		MessageInfos:      file_codegen_model_v1_model_proto_msgTypes,
+		ExtensionInfos:    file_codegen_model_v1_model_proto_extTypes,
 	}.Build()
-	File_proto_codegen_model_v1_model_proto = out.File
-	file_proto_codegen_model_v1_model_proto_goTypes = nil
-	file_proto_codegen_model_v1_model_proto_depIdxs = nil
+	File_codegen_model_v1_model_proto = out.File
+	file_codegen_model_v1_model_proto_goTypes = nil
+	file_codegen_model_v1_model_proto_depIdxs = nil
 }

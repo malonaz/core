@@ -91,6 +91,10 @@ func (r *PaginatedRequest) GetSQLPaginationClause() string {
 	return fmt.Sprintf("OFFSET %d LIMIT %d", r.pageToken.Offset, r.request.GetPageSize()+1)
 }
 
+func (r *PaginatedRequest) GetOffset() int64 {
+	return r.pageToken.Offset
+}
+
 // ///////////////////////////// UTILS //////////////////////////////
 func (p *PaginationRequestParser[T]) setPageSize(request paginationRequest, pageSize uint32) {
 	// Get the protobuf message descriptor

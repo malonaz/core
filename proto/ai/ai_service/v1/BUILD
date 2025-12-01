@@ -7,10 +7,9 @@ grpc_library(
     root_dir = "proto",
     visibility = ["PUBLIC"],
     deps = [
-        "//genproto/ai/v1",
-        "//genproto/audio/v1",
         "//proto/ai/v1",
         "//proto/audio/v1",
+        "//proto/codegen/aip/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",
     ],

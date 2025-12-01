@@ -10,6 +10,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	v11 "github.com/malonaz/core/genproto/audio/v1"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -25,11 +26,255 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Request message for Ai.CreateModel.
+type CreateModelRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the parent provider for which this model will be created.
+	// Format: providers/{provider}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The model to create.
+	Model *v1.Model `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
+	// The ID to use for the resource, which will become the final component of
+	// the resource name.
+	//
+	// This value should be 4-63 characters, and valid characters
+	// are /[a-z][0-9]-/.
+	ModelId       string `protobuf:"bytes,3,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateModelRequest) Reset() {
+	*x = CreateModelRequest{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateModelRequest) ProtoMessage() {}
+
+func (x *CreateModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateModelRequest.ProtoReflect.Descriptor instead.
+func (*CreateModelRequest) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *CreateModelRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *CreateModelRequest) GetModel() *v1.Model {
+	if x != nil {
+		return x.Model
+	}
+	return nil
+}
+
+func (x *CreateModelRequest) GetModelId() string {
+	if x != nil {
+		return x.ModelId
+	}
+	return ""
+}
+
+// Request message for Ai.GetModel.
+type GetModelRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the model to retrieve.
+	// Format: providers/{provider}/models/{model}
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetModelRequest) Reset() {
+	*x = GetModelRequest{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetModelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetModelRequest) ProtoMessage() {}
+
+func (x *GetModelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetModelRequest.ProtoReflect.Descriptor instead.
+func (*GetModelRequest) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetModelRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// Request message for Ai.ListModels.
+type ListModelsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the parent, which owns this collection of models.
+	// Format: providers/{provider}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// Requested page size. Server may return fewer models than requested.
+	// If unspecified, server will pick an appropriate default.
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A token identifying a page of results the server should return.
+	// This is the value of
+	// [ListModelsResponse.next_page_token][ai.ai_service.v1.ListModelsResponse.next_page_token]
+	// returned from the previous call to `ListModels` method.
+	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListModelsRequest) Reset() {
+	*x = ListModelsRequest{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListModelsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListModelsRequest) ProtoMessage() {}
+
+func (x *ListModelsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListModelsRequest.ProtoReflect.Descriptor instead.
+func (*ListModelsRequest) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListModelsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *ListModelsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListModelsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+// Response message for Ai.ListModels.
+type ListModelsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The list of models.
+	Models []*v1.Model `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
+	// A token to retrieve next page of results. Pass this value in the
+	// [ListModelsRequest.page_token][ai.ai_service.v1.ListModelsRequest.page_token]
+	// field in the subsequent call to `ListModels` method to retrieve the next
+	// page of results.
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListModelsResponse) Reset() {
+	*x = ListModelsResponse{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListModelsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListModelsResponse) ProtoMessage() {}
+
+func (x *ListModelsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListModelsResponse.ProtoReflect.Descriptor instead.
+func (*ListModelsResponse) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListModelsResponse) GetModels() []*v1.Model {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
+func (x *ListModelsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 // Request message for Ai.SpeechToText.
 type SpeechToTextRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The model for this request.
-	Model v1.Model `protobuf:"varint,1,opt,name=model,proto3,enum=malonaz.core.ai.v1.Model" json:"model,omitempty"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 	// Audio data in PCM format.
 	Audio []byte `protobuf:"bytes,2,opt,name=audio,proto3" json:"audio,omitempty"`
 	// Optional language code to improve transcription accuracy (e.g., "en", "es").
@@ -40,7 +285,7 @@ type SpeechToTextRequest struct {
 
 func (x *SpeechToTextRequest) Reset() {
 	*x = SpeechToTextRequest{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[0]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -52,7 +297,7 @@ func (x *SpeechToTextRequest) String() string {
 func (*SpeechToTextRequest) ProtoMessage() {}
 
 func (x *SpeechToTextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[0]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -65,14 +310,14 @@ func (x *SpeechToTextRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpeechToTextRequest.ProtoReflect.Descriptor instead.
 func (*SpeechToTextRequest) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{0}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *SpeechToTextRequest) GetModel() v1.Model {
+func (x *SpeechToTextRequest) GetModel() string {
 	if x != nil {
 		return x.Model
 	}
-	return v1.Model(0)
+	return ""
 }
 
 func (x *SpeechToTextRequest) GetAudio() []byte {
@@ -104,7 +349,7 @@ type SpeechToTextResponse struct {
 
 func (x *SpeechToTextResponse) Reset() {
 	*x = SpeechToTextResponse{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[1]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -116,7 +361,7 @@ func (x *SpeechToTextResponse) String() string {
 func (*SpeechToTextResponse) ProtoMessage() {}
 
 func (x *SpeechToTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[1]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -129,7 +374,7 @@ func (x *SpeechToTextResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpeechToTextResponse.ProtoReflect.Descriptor instead.
 func (*SpeechToTextResponse) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{1}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SpeechToTextResponse) GetTranscript() string {
@@ -149,88 +394,6 @@ func (x *SpeechToTextResponse) GetModelUsage() *v1.ModelUsage {
 func (x *SpeechToTextResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
 		return x.GenerationMetrics
-	}
-	return nil
-}
-
-// Request message for Ai.TextToText.
-type TextToTextRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The model for this request.
-	Model v1.Model `protobuf:"varint,1,opt,name=model,proto3,enum=malonaz.core.ai.v1.Model" json:"model,omitempty"`
-	// The conversation messages.
-	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
-	// Tools available for the model to call.
-	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	// For the model to use a tool.
-	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
-	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TextToTextRequest) Reset() {
-	*x = TextToTextRequest{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TextToTextRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TextToTextRequest) ProtoMessage() {}
-
-func (x *TextToTextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TextToTextRequest.ProtoReflect.Descriptor instead.
-func (*TextToTextRequest) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *TextToTextRequest) GetModel() v1.Model {
-	if x != nil {
-		return x.Model
-	}
-	return v1.Model(0)
-}
-
-func (x *TextToTextRequest) GetMessages() []*v1.Message {
-	if x != nil {
-		return x.Messages
-	}
-	return nil
-}
-
-func (x *TextToTextRequest) GetTools() []*v1.Tool {
-	if x != nil {
-		return x.Tools
-	}
-	return nil
-}
-
-func (x *TextToTextRequest) GetToolChoice() string {
-	if x != nil {
-		return x.ToolChoice
-	}
-	return ""
-}
-
-func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
-	if x != nil {
-		return x.Configuration
 	}
 	return nil
 }
@@ -256,7 +419,7 @@ type TextToTextConfiguration struct {
 
 func (x *TextToTextConfiguration) Reset() {
 	*x = TextToTextConfiguration{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[3]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +431,7 @@ func (x *TextToTextConfiguration) String() string {
 func (*TextToTextConfiguration) ProtoMessage() {}
 
 func (x *TextToTextConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[3]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -281,7 +444,7 @@ func (x *TextToTextConfiguration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToTextConfiguration.ProtoReflect.Descriptor instead.
 func (*TextToTextConfiguration) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{3}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *TextToTextConfiguration) GetMaxTokens() int64 {
@@ -312,6 +475,89 @@ func (x *TextToTextConfiguration) GetExtractJsonObject() bool {
 	return false
 }
 
+// Request message for Ai.TextToText.
+type TextToTextRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// The conversation messages.
+	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
+	// Tools available for the model to call.
+	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	// For the model to use a tool.
+	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
+	// Additional configuration.
+	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextToTextRequest) Reset() {
+	*x = TextToTextRequest{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TextToTextRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TextToTextRequest) ProtoMessage() {}
+
+func (x *TextToTextRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TextToTextRequest.ProtoReflect.Descriptor instead.
+func (*TextToTextRequest) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *TextToTextRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *TextToTextRequest) GetMessages() []*v1.Message {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *TextToTextRequest) GetTools() []*v1.Tool {
+	if x != nil {
+		return x.Tools
+	}
+	return nil
+}
+
+func (x *TextToTextRequest) GetToolChoice() string {
+	if x != nil {
+		return x.ToolChoice
+	}
+	return ""
+}
+
+func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
+	if x != nil {
+		return x.Configuration
+	}
+	return nil
+}
+
 // Response message for Ai.TextToText.
 type TextToTextResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -327,7 +573,7 @@ type TextToTextResponse struct {
 
 func (x *TextToTextResponse) Reset() {
 	*x = TextToTextResponse{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[4]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -339,7 +585,7 @@ func (x *TextToTextResponse) String() string {
 func (*TextToTextResponse) ProtoMessage() {}
 
 func (x *TextToTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[4]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -352,7 +598,7 @@ func (x *TextToTextResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToTextResponse.ProtoReflect.Descriptor instead.
 func (*TextToTextResponse) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{4}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *TextToTextResponse) GetMessage() *v1.Message {
@@ -376,11 +622,216 @@ func (x *TextToTextResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	return nil
 }
 
+// Request message for Ai.TextToTextStream.
+type TextToTextStreamRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// The conversation messages.
+	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
+	// Tools available for the model to call.
+	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	// For the model to use a tool.
+	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
+	// Additional configuration.
+	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextToTextStreamRequest) Reset() {
+	*x = TextToTextStreamRequest{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TextToTextStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TextToTextStreamRequest) ProtoMessage() {}
+
+func (x *TextToTextStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TextToTextStreamRequest.ProtoReflect.Descriptor instead.
+func (*TextToTextStreamRequest) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *TextToTextStreamRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *TextToTextStreamRequest) GetMessages() []*v1.Message {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *TextToTextStreamRequest) GetTools() []*v1.Tool {
+	if x != nil {
+		return x.Tools
+	}
+	return nil
+}
+
+func (x *TextToTextStreamRequest) GetToolChoice() string {
+	if x != nil {
+		return x.ToolChoice
+	}
+	return ""
+}
+
+func (x *TextToTextStreamRequest) GetConfiguration() *TextToTextConfiguration {
+	if x != nil {
+		return x.Configuration
+	}
+	return nil
+}
+
+// Response message for Ai.TextToTextStream.
+type TextToTextStreamResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Content of this response.
+	//
+	// Types that are valid to be assigned to Content:
+	//
+	//	*TextToTextStreamResponse_ContentChunk
+	//	*TextToTextStreamResponse_ReasoningChunk
+	//	*TextToTextStreamResponse_ModelUsage
+	//	*TextToTextStreamResponse_GenerationMetrics
+	Content       isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextToTextStreamResponse) Reset() {
+	*x = TextToTextStreamResponse{}
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TextToTextStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TextToTextStreamResponse) ProtoMessage() {}
+
+func (x *TextToTextStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TextToTextStreamResponse.ProtoReflect.Descriptor instead.
+func (*TextToTextStreamResponse) Descriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *TextToTextStreamResponse) GetContent() isTextToTextStreamResponse_Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *TextToTextStreamResponse) GetContentChunk() string {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_ContentChunk); ok {
+			return x.ContentChunk
+		}
+	}
+	return ""
+}
+
+func (x *TextToTextStreamResponse) GetReasoningChunk() string {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk); ok {
+			return x.ReasoningChunk
+		}
+	}
+	return ""
+}
+
+func (x *TextToTextStreamResponse) GetModelUsage() *v1.ModelUsage {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_ModelUsage); ok {
+			return x.ModelUsage
+		}
+	}
+	return nil
+}
+
+func (x *TextToTextStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_GenerationMetrics); ok {
+			return x.GenerationMetrics
+		}
+	}
+	return nil
+}
+
+type isTextToTextStreamResponse_Content interface {
+	isTextToTextStreamResponse_Content()
+}
+
+type TextToTextStreamResponse_ContentChunk struct {
+	// A chunk of the generated message content.
+	ContentChunk string `protobuf:"bytes,1,opt,name=content_chunk,json=contentChunk,proto3,oneof"`
+}
+
+type TextToTextStreamResponse_ReasoningChunk struct {
+	// Reasoning content chunk (if model supports reasoning).
+	ReasoningChunk string `protobuf:"bytes,2,opt,name=reasoning_chunk,json=reasoningChunk,proto3,oneof"`
+}
+
+type TextToTextStreamResponse_ModelUsage struct {
+	// Model usage event (sent last).
+	ModelUsage *v1.ModelUsage `protobuf:"bytes,4,opt,name=model_usage,json=modelUsage,proto3,oneof"`
+}
+
+type TextToTextStreamResponse_GenerationMetrics struct {
+	// Generation metrics (sent last).
+	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,5,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
+}
+
+func (*TextToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
+
+func (*TextToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
+
+func (*TextToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content() {}
+
+func (*TextToTextStreamResponse_GenerationMetrics) isTextToTextStreamResponse_Content() {}
+
 // Request message for Ai.TextToSpeech.
 type TextToSpeechRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The model for this request.
-	Model v1.Model `protobuf:"varint,1,opt,name=model,proto3,enum=malonaz.core.ai.v1.Model" json:"model,omitempty"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 	// The text to convert to speech.
 	Text string `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
 	// Voice identifier to use for speech generation.
@@ -391,7 +842,7 @@ type TextToSpeechRequest struct {
 
 func (x *TextToSpeechRequest) Reset() {
 	*x = TextToSpeechRequest{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[5]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -403,7 +854,7 @@ func (x *TextToSpeechRequest) String() string {
 func (*TextToSpeechRequest) ProtoMessage() {}
 
 func (x *TextToSpeechRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[5]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -416,14 +867,14 @@ func (x *TextToSpeechRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToSpeechRequest.ProtoReflect.Descriptor instead.
 func (*TextToSpeechRequest) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{5}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *TextToSpeechRequest) GetModel() v1.Model {
+func (x *TextToSpeechRequest) GetModel() string {
 	if x != nil {
 		return x.Model
 	}
-	return v1.Model(0)
+	return ""
 }
 
 func (x *TextToSpeechRequest) GetText() string {
@@ -457,7 +908,7 @@ type TextToSpeechResponse struct {
 
 func (x *TextToSpeechResponse) Reset() {
 	*x = TextToSpeechResponse{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[6]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -469,7 +920,7 @@ func (x *TextToSpeechResponse) String() string {
 func (*TextToSpeechResponse) ProtoMessage() {}
 
 func (x *TextToSpeechResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[6]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -482,7 +933,7 @@ func (x *TextToSpeechResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToSpeechResponse.ProtoReflect.Descriptor instead.
 func (*TextToSpeechResponse) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{6}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *TextToSpeechResponse) GetAudioFormat() *v11.Format {
@@ -516,8 +967,9 @@ func (x *TextToSpeechResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 // Request message for Ai.TextToSpeechStream.
 type TextToSpeechStreamRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The model for this request.
-	Model v1.Model `protobuf:"varint,1,opt,name=model,proto3,enum=malonaz.core.ai.v1.Model" json:"model,omitempty"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 	// The text to convert to speech.
 	Text string `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
 	// Voice identifier to use for speech generation.
@@ -528,7 +980,7 @@ type TextToSpeechStreamRequest struct {
 
 func (x *TextToSpeechStreamRequest) Reset() {
 	*x = TextToSpeechStreamRequest{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[7]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +992,7 @@ func (x *TextToSpeechStreamRequest) String() string {
 func (*TextToSpeechStreamRequest) ProtoMessage() {}
 
 func (x *TextToSpeechStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[7]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,14 +1005,14 @@ func (x *TextToSpeechStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToSpeechStreamRequest.ProtoReflect.Descriptor instead.
 func (*TextToSpeechStreamRequest) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{7}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *TextToSpeechStreamRequest) GetModel() v1.Model {
+func (x *TextToSpeechStreamRequest) GetModel() string {
 	if x != nil {
 		return x.Model
 	}
-	return v1.Model(0)
+	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetText() string {
@@ -595,7 +1047,7 @@ type TextToSpeechStreamResponse struct {
 
 func (x *TextToSpeechStreamResponse) Reset() {
 	*x = TextToSpeechStreamResponse{}
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[8]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +1059,7 @@ func (x *TextToSpeechStreamResponse) String() string {
 func (*TextToSpeechStreamResponse) ProtoMessage() {}
 
 func (x *TextToSpeechStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[8]
+	mi := &file_ai_ai_service_v1_ai_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +1072,7 @@ func (x *TextToSpeechStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextToSpeechStreamResponse.ProtoReflect.Descriptor instead.
 func (*TextToSpeechStreamResponse) Descriptor() ([]byte, []int) {
-	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{8}
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *TextToSpeechStreamResponse) GetContent() isTextToSpeechStreamResponse_Content {
@@ -702,10 +1154,28 @@ var File_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
 const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\n" +
-	"!ai/ai_service/v1/ai_service.proto\x12\x1dmalonaz.core.ai.ai_service.v1\x1a\x13ai/v1/message.proto\x1a\x13ai/v1/metrics.proto\x1a\x11ai/v1/model.proto\x1a\x10ai/v1/tool.proto\x1a\x14audio/v1/audio.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\"\x8c\x01\n" +
-	"\x13SpeechToTextRequest\x12;\n" +
-	"\x05model\x18\x01 \x01(\x0e2\x19.malonaz.core.ai.v1.ModelB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05model\x12\x1c\n" +
+	"!ai/ai_service/v1/ai_service.proto\x12\x1dmalonaz.core.ai.ai_service.v1\x1a\x13ai/v1/message.proto\x1a\x13ai/v1/metrics.proto\x1a\x11ai/v1/model.proto\x1a\x10ai/v1/tool.proto\x1a\x14audio/v1/audio.proto\x1a\x1bbuf/validate/validate.proto\x1a\x18codegen/aip/v1/aip.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\"\xac\x01\n" +
+	"\x12CreateModelRequest\x12:\n" +
+	"\x06parent\x18\x01 \x01(\tB\"\xfaA\x19\n" +
+	"\x17ai.malonaz.com/Provider\xbaH\x03\xc8\x01\x01R\x06parent\x127\n" +
+	"\x05model\x18\x02 \x01(\v2\x19.malonaz.core.ai.v1.ModelB\x06\xbaH\x03\xc8\x01\x01R\x05model\x12!\n" +
+	"\bmodel_id\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\amodelId\"F\n" +
+	"\x0fGetModelRequest\x123\n" +
+	"\x04name\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x04name\"\xa0\x01\n" +
+	"\x11ListModelsRequest\x12:\n" +
+	"\x06parent\x18\x01 \x01(\tB\"\xfaA\x19\n" +
+	"\x17ai.malonaz.com/Provider\xbaH\x03\xc8\x01\x01R\x06parent\x12'\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken:\a\x82\xf3-\x03\b\xf4\x03\"o\n" +
+	"\x12ListModelsResponse\x121\n" +
+	"\x06models\x18\x01 \x03(\v2\x19.malonaz.core.ai.v1.ModelR\x06models\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x86\x01\n" +
+	"\x13SpeechToTextRequest\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12\x1c\n" +
 	"\x05audio\x18\x02 \x01(\fB\x06\xbaH\x03\xc8\x01\x01R\x05audio\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\"\xcd\x01\n" +
 	"\x14SpeechToTextResponse\x12\x1e\n" +
@@ -714,29 +1184,44 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"transcript\x12?\n" +
 	"\vmodel_usage\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12T\n" +
-	"\x12generation_metrics\x18\x03 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\xc2\x02\n" +
-	"\x11TextToTextRequest\x12;\n" +
-	"\x05model\x18\x01 \x01(\x0e2\x19.malonaz.core.ai.v1.ModelB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05model\x12A\n" +
-	"\bmessages\x18\x02 \x03(\v2\x1b.malonaz.core.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12.\n" +
-	"\x05tools\x18\x03 \x03(\v2\x18.malonaz.core.ai.v1.ToolR\x05tools\x12\x1f\n" +
-	"\vtool_choice\x18\x04 \x01(\tR\n" +
-	"toolChoice\x12\\\n" +
-	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xfc\x01\n" +
+	"\x12generation_metrics\x18\x03 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\xfc\x01\n" +
 	"\x17TextToTextConfiguration\x12&\n" +
 	"\n" +
 	"max_tokens\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\tmaxTokens\x129\n" +
 	"\vtemperature\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\x00@)\x00\x00\x00\x00\x00\x00\x00\x00R\vtemperature\x12N\n" +
 	"\x10reasoning_effort\x18\x03 \x01(\x0e2#.malonaz.core.ai.v1.ReasoningEffortR\x0freasoningEffort\x12.\n" +
-	"\x13extract_json_object\x18\x04 \x01(\bR\x11extractJsonObject\"\xe2\x01\n" +
+	"\x13extract_json_object\x18\x04 \x01(\bR\x11extractJsonObject\"\xbc\x02\n" +
+	"\x11TextToTextRequest\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12A\n" +
+	"\bmessages\x18\x02 \x03(\v2\x1b.malonaz.core.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12.\n" +
+	"\x05tools\x18\x03 \x03(\v2\x18.malonaz.core.ai.v1.ToolR\x05tools\x12\x1f\n" +
+	"\vtool_choice\x18\x04 \x01(\tR\n" +
+	"toolChoice\x12\\\n" +
+	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xe2\x01\n" +
 	"\x12TextToTextResponse\x125\n" +
 	"\amessage\x18\x01 \x01(\v2\x1b.malonaz.core.ai.v1.MessageR\amessage\x12?\n" +
 	"\vmodel_usage\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12T\n" +
-	"\x12generation_metrics\x18\x03 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\x8e\x01\n" +
-	"\x13TextToSpeechRequest\x12;\n" +
-	"\x05model\x18\x01 \x01(\x0e2\x19.malonaz.core.ai.v1.ModelB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05model\x12\x1b\n" +
+	"\x12generation_metrics\x18\x03 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\xc2\x02\n" +
+	"\x17TextToTextStreamRequest\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12A\n" +
+	"\bmessages\x18\x02 \x03(\v2\x1b.malonaz.core.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12.\n" +
+	"\x05tools\x18\x03 \x03(\v2\x18.malonaz.core.ai.v1.ToolR\x05tools\x12\x1f\n" +
+	"\vtool_choice\x18\x04 \x01(\tR\n" +
+	"toolChoice\x12\\\n" +
+	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\x99\x02\n" +
+	"\x18TextToTextStreamResponse\x12%\n" +
+	"\rcontent_chunk\x18\x01 \x01(\tH\x00R\fcontentChunk\x12)\n" +
+	"\x0freasoning_chunk\x18\x02 \x01(\tH\x00R\x0ereasoningChunk\x12A\n" +
+	"\vmodel_usage\x18\x04 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageH\x00R\n" +
+	"modelUsage\x12V\n" +
+	"\x12generation_metrics\x18\x05 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\x88\x01\n" +
+	"\x13TextToSpeechRequest\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12\x1b\n" +
 	"\x04text\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04text\x12\x1d\n" +
 	"\x05voice\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05voice\"\xae\x02\n" +
 	"\x14TextToSpeechResponse\x12@\n" +
@@ -745,10 +1230,10 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"audioChunk\x12?\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12T\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\x94\x01\n" +
-	"\x19TextToSpeechStreamRequest\x12;\n" +
-	"\x05model\x18\x01 \x01(\x0e2\x19.malonaz.core.ai.v1.ModelB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05model\x12\x1b\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\x8e\x01\n" +
+	"\x19TextToSpeechStreamRequest\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12\x1b\n" +
 	"\x04text\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04text\x12\x1d\n" +
 	"\x05voice\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05voice\"\xce\x02\n" +
 	"\x1aTextToSpeechStreamResponse\x12B\n" +
@@ -758,13 +1243,18 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12V\n" +
 	"\x12generation_metrics\x18\x04 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x012\x8e\x05\n" +
-	"\x02Ai\x12\x96\x01\n" +
-	"\fSpeechToText\x122.malonaz.core.ai.ai_service.v1.SpeechToTextRequest\x1a3.malonaz.core.ai.ai_service.v1.SpeechToTextResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/speech-to-text\x12\x8e\x01\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x012\xac\v\n" +
+	"\x02Ai\x12\x8b\x01\n" +
+	"\vCreateModel\x121.malonaz.core.ai.ai_service.v1.CreateModelRequest\x1a\x19.malonaz.core.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\"\x1f/v1/{name=providers/*/models/*}\x12\x85\x01\n" +
+	"\bGetModel\x12..malonaz.core.ai.ai_service.v1.GetModelRequest\x1a\x19.malonaz.core.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x12\xa5\x01\n" +
 	"\n" +
-	"TextToText\x120.malonaz.core.ai.ai_service.v1.TextToTextRequest\x1a1.malonaz.core.ai.ai_service.v1.TextToTextResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/text-to-text\x12\x96\x01\n" +
-	"\fTextToSpeech\x122.malonaz.core.ai.ai_service.v1.TextToSpeechRequest\x1a3.malonaz.core.ai.ai_service.v1.TextToSpeechResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/text-to-speech\x12\xb1\x01\n" +
-	"\x12TextToSpeechStream\x128.malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest\x1a9.malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/text-to-speech:stream0\x01\x1a\x11\xcaA\x0eai.malonaz.comB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
+	"ListModels\x120.malonaz.core.ai.ai_service.v1.ListModelsRequest\x1a1.malonaz.core.ai.ai_service.v1.ListModelsResponse\"2\xdaA\x06parent\x82\xd3\xe4\x93\x02#\x12!/v1/{parent=providers/*/*}/models\x12\xba\x01\n" +
+	"\fSpeechToText\x122.malonaz.core.ai.ai_service.v1.SpeechToTextRequest\x1a3.malonaz.core.ai.ai_service.v1.SpeechToTextResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/providers/{provider}/models/{model}/speech-to-text\x12\xb2\x01\n" +
+	"\n" +
+	"TextToText\x120.malonaz.core.ai.ai_service.v1.TextToTextRequest\x1a1.malonaz.core.ai.ai_service.v1.TextToTextResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/providers/{provider}/models/{model}/text-to-text\x12\xcd\x01\n" +
+	"\x10TextToTextStream\x126.malonaz.core.ai.ai_service.v1.TextToTextStreamRequest\x1a7.malonaz.core.ai.ai_service.v1.TextToTextStreamResponse\"F\x82\xd3\xe4\x93\x02@:\x01*\";/v1/providers/{provider}/models/{model}/text-to-text:stream0\x01\x12\xba\x01\n" +
+	"\fTextToSpeech\x122.malonaz.core.ai.ai_service.v1.TextToSpeechRequest\x1a3.malonaz.core.ai.ai_service.v1.TextToSpeechResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/providers/{provider}/models/{model}/text-to-speech\x12\xd5\x01\n" +
+	"\x12TextToSpeechStream\x128.malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest\x1a9.malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse\"H\x82\xd3\xe4\x93\x02B:\x01*\"=/v1/providers/{provider}/models/{model}/text-to-speech:stream0\x01\x1a\x11\xcaA\x0eai.malonaz.comB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var (
 	file_ai_ai_service_v1_ai_service_proto_rawDescOnce sync.Once
@@ -778,61 +1268,78 @@ func file_ai_ai_service_v1_ai_service_proto_rawDescGZIP() []byte {
 	return file_ai_ai_service_v1_ai_service_proto_rawDescData
 }
 
-var file_ai_ai_service_v1_ai_service_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_ai_ai_service_v1_ai_service_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_ai_ai_service_v1_ai_service_proto_goTypes = []any{
-	(*SpeechToTextRequest)(nil),        // 0: malonaz.core.ai.ai_service.v1.SpeechToTextRequest
-	(*SpeechToTextResponse)(nil),       // 1: malonaz.core.ai.ai_service.v1.SpeechToTextResponse
-	(*TextToTextRequest)(nil),          // 2: malonaz.core.ai.ai_service.v1.TextToTextRequest
-	(*TextToTextConfiguration)(nil),    // 3: malonaz.core.ai.ai_service.v1.TextToTextConfiguration
-	(*TextToTextResponse)(nil),         // 4: malonaz.core.ai.ai_service.v1.TextToTextResponse
-	(*TextToSpeechRequest)(nil),        // 5: malonaz.core.ai.ai_service.v1.TextToSpeechRequest
-	(*TextToSpeechResponse)(nil),       // 6: malonaz.core.ai.ai_service.v1.TextToSpeechResponse
-	(*TextToSpeechStreamRequest)(nil),  // 7: malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
-	(*TextToSpeechStreamResponse)(nil), // 8: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
-	(v1.Model)(0),                      // 9: malonaz.core.ai.v1.Model
-	(*v1.ModelUsage)(nil),              // 10: malonaz.core.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),       // 11: malonaz.core.ai.v1.GenerationMetrics
-	(*v1.Message)(nil),                 // 12: malonaz.core.ai.v1.Message
-	(*v1.Tool)(nil),                    // 13: malonaz.core.ai.v1.Tool
-	(v1.ReasoningEffort)(0),            // 14: malonaz.core.ai.v1.ReasoningEffort
-	(*v11.Format)(nil),                 // 15: malonaz.core.audio.v1.Format
-	(*v11.Chunk)(nil),                  // 16: malonaz.core.audio.v1.Chunk
+	(*CreateModelRequest)(nil),         // 0: malonaz.core.ai.ai_service.v1.CreateModelRequest
+	(*GetModelRequest)(nil),            // 1: malonaz.core.ai.ai_service.v1.GetModelRequest
+	(*ListModelsRequest)(nil),          // 2: malonaz.core.ai.ai_service.v1.ListModelsRequest
+	(*ListModelsResponse)(nil),         // 3: malonaz.core.ai.ai_service.v1.ListModelsResponse
+	(*SpeechToTextRequest)(nil),        // 4: malonaz.core.ai.ai_service.v1.SpeechToTextRequest
+	(*SpeechToTextResponse)(nil),       // 5: malonaz.core.ai.ai_service.v1.SpeechToTextResponse
+	(*TextToTextConfiguration)(nil),    // 6: malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	(*TextToTextRequest)(nil),          // 7: malonaz.core.ai.ai_service.v1.TextToTextRequest
+	(*TextToTextResponse)(nil),         // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse
+	(*TextToTextStreamRequest)(nil),    // 9: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
+	(*TextToTextStreamResponse)(nil),   // 10: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
+	(*TextToSpeechRequest)(nil),        // 11: malonaz.core.ai.ai_service.v1.TextToSpeechRequest
+	(*TextToSpeechResponse)(nil),       // 12: malonaz.core.ai.ai_service.v1.TextToSpeechResponse
+	(*TextToSpeechStreamRequest)(nil),  // 13: malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
+	(*TextToSpeechStreamResponse)(nil), // 14: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
+	(*v1.Model)(nil),                   // 15: malonaz.core.ai.v1.Model
+	(*v1.ModelUsage)(nil),              // 16: malonaz.core.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),       // 17: malonaz.core.ai.v1.GenerationMetrics
+	(v1.ReasoningEffort)(0),            // 18: malonaz.core.ai.v1.ReasoningEffort
+	(*v1.Message)(nil),                 // 19: malonaz.core.ai.v1.Message
+	(*v1.Tool)(nil),                    // 20: malonaz.core.ai.v1.Tool
+	(*v11.Format)(nil),                 // 21: malonaz.core.audio.v1.Format
+	(*v11.Chunk)(nil),                  // 22: malonaz.core.audio.v1.Chunk
 }
 var file_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
-	9,  // 0: malonaz.core.ai.ai_service.v1.SpeechToTextRequest.model:type_name -> malonaz.core.ai.v1.Model
-	10, // 1: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	11, // 2: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	9,  // 3: malonaz.core.ai.ai_service.v1.TextToTextRequest.model:type_name -> malonaz.core.ai.v1.Model
-	12, // 4: malonaz.core.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.core.ai.v1.Message
-	13, // 5: malonaz.core.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.core.ai.v1.Tool
-	3,  // 6: malonaz.core.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
-	14, // 7: malonaz.core.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.core.ai.v1.ReasoningEffort
-	12, // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.core.ai.v1.Message
-	10, // 9: malonaz.core.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	11, // 10: malonaz.core.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	9,  // 11: malonaz.core.ai.ai_service.v1.TextToSpeechRequest.model:type_name -> malonaz.core.ai.v1.Model
-	15, // 12: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
-	16, // 13: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
-	10, // 14: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	11, // 15: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	9,  // 16: malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest.model:type_name -> malonaz.core.ai.v1.Model
-	15, // 17: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
-	16, // 18: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
-	10, // 19: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	11, // 20: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	0,  // 21: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:input_type -> malonaz.core.ai.ai_service.v1.SpeechToTextRequest
-	2,  // 22: malonaz.core.ai.ai_service.v1.Ai.TextToText:input_type -> malonaz.core.ai.ai_service.v1.TextToTextRequest
-	5,  // 23: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechRequest
-	7,  // 24: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
-	1,  // 25: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:output_type -> malonaz.core.ai.ai_service.v1.SpeechToTextResponse
-	4,  // 26: malonaz.core.ai.ai_service.v1.Ai.TextToText:output_type -> malonaz.core.ai.ai_service.v1.TextToTextResponse
-	6,  // 27: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechResponse
-	8,  // 28: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
-	25, // [25:29] is the sub-list for method output_type
-	21, // [21:25] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	15, // 0: malonaz.core.ai.ai_service.v1.CreateModelRequest.model:type_name -> malonaz.core.ai.v1.Model
+	15, // 1: malonaz.core.ai.ai_service.v1.ListModelsResponse.models:type_name -> malonaz.core.ai.v1.Model
+	16, // 2: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	17, // 3: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	18, // 4: malonaz.core.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.core.ai.v1.ReasoningEffort
+	19, // 5: malonaz.core.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.core.ai.v1.Message
+	20, // 6: malonaz.core.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.core.ai.v1.Tool
+	6,  // 7: malonaz.core.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	19, // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.core.ai.v1.Message
+	16, // 9: malonaz.core.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	17, // 10: malonaz.core.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	19, // 11: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.core.ai.v1.Message
+	20, // 12: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.core.ai.v1.Tool
+	6,  // 13: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	16, // 14: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	17, // 15: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	21, // 16: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
+	22, // 17: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
+	16, // 18: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	17, // 19: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	21, // 20: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
+	22, // 21: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
+	16, // 22: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	17, // 23: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	0,  // 24: malonaz.core.ai.ai_service.v1.Ai.CreateModel:input_type -> malonaz.core.ai.ai_service.v1.CreateModelRequest
+	1,  // 25: malonaz.core.ai.ai_service.v1.Ai.GetModel:input_type -> malonaz.core.ai.ai_service.v1.GetModelRequest
+	2,  // 26: malonaz.core.ai.ai_service.v1.Ai.ListModels:input_type -> malonaz.core.ai.ai_service.v1.ListModelsRequest
+	4,  // 27: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:input_type -> malonaz.core.ai.ai_service.v1.SpeechToTextRequest
+	7,  // 28: malonaz.core.ai.ai_service.v1.Ai.TextToText:input_type -> malonaz.core.ai.ai_service.v1.TextToTextRequest
+	9,  // 29: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:input_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
+	11, // 30: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechRequest
+	13, // 31: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
+	15, // 32: malonaz.core.ai.ai_service.v1.Ai.CreateModel:output_type -> malonaz.core.ai.v1.Model
+	15, // 33: malonaz.core.ai.ai_service.v1.Ai.GetModel:output_type -> malonaz.core.ai.v1.Model
+	3,  // 34: malonaz.core.ai.ai_service.v1.Ai.ListModels:output_type -> malonaz.core.ai.ai_service.v1.ListModelsResponse
+	5,  // 35: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:output_type -> malonaz.core.ai.ai_service.v1.SpeechToTextResponse
+	8,  // 36: malonaz.core.ai.ai_service.v1.Ai.TextToText:output_type -> malonaz.core.ai.ai_service.v1.TextToTextResponse
+	10, // 37: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:output_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
+	12, // 38: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechResponse
+	14, // 39: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
+	32, // [32:40] is the sub-list for method output_type
+	24, // [24:32] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_ai_ai_service_v1_ai_service_proto_init() }
@@ -840,7 +1347,13 @@ func file_ai_ai_service_v1_ai_service_proto_init() {
 	if File_ai_ai_service_v1_ai_service_proto != nil {
 		return
 	}
-	file_ai_ai_service_v1_ai_service_proto_msgTypes[8].OneofWrappers = []any{
+	file_ai_ai_service_v1_ai_service_proto_msgTypes[10].OneofWrappers = []any{
+		(*TextToTextStreamResponse_ContentChunk)(nil),
+		(*TextToTextStreamResponse_ReasoningChunk)(nil),
+		(*TextToTextStreamResponse_ModelUsage)(nil),
+		(*TextToTextStreamResponse_GenerationMetrics)(nil),
+	}
+	file_ai_ai_service_v1_ai_service_proto_msgTypes[14].OneofWrappers = []any{
 		(*TextToSpeechStreamResponse_AudioFormat)(nil),
 		(*TextToSpeechStreamResponse_AudioChunk)(nil),
 		(*TextToSpeechStreamResponse_ModelUsage)(nil),
@@ -852,7 +1365,7 @@ func file_ai_ai_service_v1_ai_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_ai_service_v1_ai_service_proto_rawDesc), len(file_ai_ai_service_v1_ai_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

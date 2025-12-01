@@ -29,90 +29,85 @@ type Opts struct {
 }
 
 type runtime struct {
+	*provider.ModelService
 	opts           *Opts
 	cartesiaClient *cartesia.Client
+	providers      []provider.Provider
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
-	runtime := &runtime{opts: opts}
+	modelService, err := provider.NewModelService()
+	if err != nil {
+		return nil, fmt.Errorf("creating new model service: %v", err)
+	}
+
 	var providers []provider.Provider
 	if opts.OpenAIApiKey != "" {
-		providers = append(providers, openai.NewClient(opts.OpenAIApiKey))
+		providers = append(providers, openai.NewClient(opts.OpenAIApiKey, modelService))
 	}
 	if opts.GroqApiKey != "" {
-		providers = append(providers, openai.NewGroqClient(opts.GroqApiKey))
+		providers = append(providers, openai.NewGroqClient(opts.GroqApiKey, modelService))
 	}
 	if opts.ElevenlabsApiKey != "" {
-		providers = append(providers, elevenlabs.NewClient(opts.ElevenlabsApiKey))
+		providers = append(providers, elevenlabs.NewClient(opts.ElevenlabsApiKey, modelService))
 	}
 	if opts.AnthropicApiKey != "" {
-		providers = append(providers, anthropic.NewClient(opts.AnthropicApiKey))
+		providers = append(providers, anthropic.NewClient(opts.AnthropicApiKey, modelService))
 	}
 	if opts.CartesiaApiKey != "" {
-		runtime.cartesiaClient = cartesia.NewClient(opts.CartesiaApiKey)
-		providers = append(providers, runtime.cartesiaClient)
+		providers = append(providers, cartesia.NewClient(opts.CartesiaApiKey, modelService))
 	}
 
-	if err := provider.RegisterProviders(providers...); err != nil {
-		return nil, err
-	}
-
-	return runtime, nil
+	return &runtime{
+		ModelService: modelService,
+		opts:         opts,
+		providers:    providers,
+	}, nil
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
-	if s.cartesiaClient != nil {
-		if err := s.cartesiaClient.Start(ctx); err != nil {
-			return nil, fmt.Errorf("starting cartesia client: %v", err)
+	for _, provider := range s.providers {
+		if err := provider.Start(ctx); err != nil {
+			return nil, fmt.Errorf("starting provider %s: %v", provider.ProviderId(), err)
+		}
+		if err := s.RegisterProvider(ctx, provider); err != nil {
+			return nil, fmt.Errorf("registering provider %s: %v", provider.ProviderId(), err)
 		}
 	}
 	return func() {
-		if s.cartesiaClient != nil {
-			s.cartesiaClient.Stop()
+		for _, provider := range s.providers {
+			provider.Stop()
 		}
 	}, nil
 }
 
 // TextToTextStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.Ai_TextToTextStreamServer) error {
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	ctx := srv.Context()
+	provider, _, err := s.GetTextToTextProvider(ctx, request.Model)
 	if err != nil {
 		return err
 	}
-	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_TTT {
-		return fmt.Errorf("model %s is not of type TTT", request.Model)
-	}
-
-	client, ok := provider.GetTextToTextClient(request.Model)
-	if !ok {
-		return fmt.Errorf("no TextToText client registered for provider %s and model %s", modelConfig.Provider, request.Model)
-	}
-
 	// Direct pass-through - provider implements exact gRPC interface
-	return client.TextToTextStream(request, srv)
+	return provider.TextToTextStream(request, srv)
 }
 
 // textToText forwards the request to the appropriate registered client.
 func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
 	if err != nil {
 		return nil, err
 	}
-	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_TTT {
-		return nil, fmt.Errorf("model %s is not of type TTT", request.Model)
+
+	// Some verification.
+	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
+		return nil, grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
-	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !modelConfig.GetTtt().GetReasoning() {
-		return nil, fmt.Errorf("model %s does not support reasoning", request.Model)
-	}
-	if len(request.Tools) > 0 && !modelConfig.GetTtt().GetToolCall() {
-		return nil, fmt.Errorf("model %s does not support tool calling", request.Model)
+	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
+		return nil, grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	client, ok := provider.GetTextToTextClient(request.Model)
-	if !ok {
-		return nil, fmt.Errorf("no TextToText client registered for provider %s and model %s", modelConfig.Provider, request.Model)
-	}
-	response, err := client.TextToText(ctx, request)
+	response, err := provider.TextToText(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -132,51 +127,28 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 
 // SpeechToText forwards the request to the appropriate registered client.
 func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequest) (*pb.SpeechToTextResponse, error) {
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	provider, _, err := s.GetSpeechToTextProvider(ctx, request.Model)
 	if err != nil {
 		return nil, err
 	}
-	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_STT {
-		return nil, fmt.Errorf("model %s is not of type STT", request.Model)
-	}
-	client, ok := provider.GetSpeechToTextClient(request.Model)
-	if !ok {
-		return nil, fmt.Errorf("no SpeechToText client registered for provider %s and model %s", modelConfig.Provider, request.Model)
-	}
-	return client.SpeechToText(ctx, request)
+	return provider.SpeechToText(ctx, request)
 }
 
 // TextToSpeechStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv pb.Ai_TextToSpeechStreamServer) error {
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	ctx := srv.Context()
+	provider, _, err := s.GetTextToSpeechProvider(ctx, request.Model)
 	if err != nil {
 		return err
 	}
-	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_TTS {
-		return fmt.Errorf("model %s is not of type TTS", request.Model)
-	}
-
-	client, ok := provider.GetTextToSpeechClient(request.Model)
-	if !ok {
-		return fmt.Errorf("no TextToSpeech client registered for provider %s and model %s", modelConfig.Provider, request.Model)
-	}
-
-	// Direct pass-through - provider implements exact gRPC interface
-	return client.TextToSpeechStream(request, srv)
+	return provider.TextToSpeechStream(request, srv)
 }
 
 // TextToSpeech collects all streamed audio chunks into a single response
 func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequest) (*pb.TextToSpeechResponse, error) {
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	provider, _, err := s.GetTextToSpeechProvider(ctx, request.Model)
 	if err != nil {
 		return nil, err
-	}
-	if modelConfig.ModelType != aipb.ModelType_MODEL_TYPE_TTS {
-		return nil, fmt.Errorf("model %s is not of type TTS", request.Model)
-	}
-	client, ok := provider.GetTextToSpeechClient(request.Model)
-	if !ok {
-		return nil, fmt.Errorf("no TextToSpeech client registered for provider %s and model %s", modelConfig.Provider, request.Model)
 	}
 
 	// Convert to streaming request
@@ -191,7 +163,7 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 		pb.TextToSpeechStreamRequest,
 		pb.TextToSpeechStreamResponse,
 		pb.Ai_TextToSpeechStreamServer,
-	](client.TextToSpeechStream)
+	](provider.TextToSpeechStream)
 
 	stream, err := serverStreamClient(ctx, streamRequest)
 	if err != nil {

@@ -14,7 +14,6 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
-	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/audio"
 )
 
@@ -34,7 +33,8 @@ func (c *Client) TextToSpeechStream(
 ) error {
 	ctx := stream.Context()
 
-	modelConfig, err := provider.GetModelConfig(request.Model)
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *Client) TextToSpeechStream(
 	// Build the request body
 	textToSpeechStreamRequest := textToSpeechStreamRequest{
 		Text:    request.Text,
-		ModelID: modelConfig.ModelId,
+		ModelID: model.ProviderModelId,
 	}
 
 	requestBody, err := json.Marshal(textToSpeechStreamRequest)
@@ -85,7 +85,7 @@ func (c *Client) TextToSpeechStream(
 	}
 
 	// Send audio format first
-	audioFormat := modelConfig.Tts.AudioFormat
+	audioFormat := model.Tts.AudioFormat
 	if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
 		Content: &aiservicepb.TextToSpeechStreamResponse_AudioFormat{
 			AudioFormat: audioFormat,
@@ -144,8 +144,7 @@ func (c *Client) TextToSpeechStream(
 
 	// Send model usage
 	modelUsage := &aipb.ModelUsage{
-		Provider: c.Provider(),
-		Model:    request.Model,
+		Model: request.Model,
 		InputCharacter: &aipb.ResourceConsumption{
 			Quantity: int32(utf8.RuneCountInString(request.Text)),
 		},
