@@ -3,7 +3,6 @@ go_library(
     srcs = ["ai_service_inproc.go"],
     visibility = ["//..."],
     deps = [
-        "//go/ai/ai_service",
         "//go/grpc/grpcinproc",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",

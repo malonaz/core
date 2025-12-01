@@ -7,22 +7,17 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai/ai_service"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 )
 
 // Client wraps the AI service for in-process calls with client-friendly methods.
 type Client struct {
-	*ai_service.Service
+	server aiservicepb.AiServer
 }
 
 // New creates a new in-process client wrapping the AI service.
-func New(opts *ai_service.Opts) (*Client, error) {
-	svc, err := ai_service.New(opts)
-	if err != nil {
-		return nil, err
-	}
-	return &Client{Service: svc}, nil
+func New(server aiservicepb.AiServer) (*Client, error) {
+	return &Client{server: server}, nil
 }
 
 // TextToText provides a client-facing interface for text-to-text conversion.
@@ -31,7 +26,7 @@ func (c *Client) CreateModel(
 	request *aiservicepb.CreateModelRequest,
 	_ ...grpc.CallOption,
 ) (*aipb.Model, error) {
-	return c.Service.CreateModel(ctx, request)
+	return c.server.CreateModel(ctx, request)
 }
 
 // TextToText provides a client-facing interface for text-to-text conversion.
@@ -40,7 +35,7 @@ func (c *Client) GetModel(
 	request *aiservicepb.GetModelRequest,
 	_ ...grpc.CallOption,
 ) (*aipb.Model, error) {
-	return c.Service.GetModel(ctx, request)
+	return c.server.GetModel(ctx, request)
 }
 
 // TextToText provides a client-facing interface for text-to-text conversion.
@@ -49,7 +44,7 @@ func (c *Client) ListModels(
 	request *aiservicepb.ListModelsRequest,
 	_ ...grpc.CallOption,
 ) (*aiservicepb.ListModelsResponse, error) {
-	return c.Service.ListModels(ctx, request)
+	return c.server.ListModels(ctx, request)
 }
 
 // TextToTextStream provides a client-facing streaming interface.
@@ -64,7 +59,7 @@ func (c *Client) TextToTextStream(
 		aiservicepb.TextToTextStreamRequest,
 		aiservicepb.TextToTextStreamResponse,
 		aiservicepb.Ai_TextToTextStreamServer,
-	](c.Service.TextToTextStream)
+	](c.server.TextToTextStream)
 
 	return serverStreamClient(ctx, request)
 }
@@ -75,7 +70,7 @@ func (c *Client) TextToText(
 	request *aiservicepb.TextToTextRequest,
 	_ ...grpc.CallOption,
 ) (*aiservicepb.TextToTextResponse, error) {
-	return c.Service.TextToText(ctx, request)
+	return c.server.TextToText(ctx, request)
 }
 
 // SpeechToText provides a client-facing interface for speech-to-text conversion.
@@ -84,7 +79,7 @@ func (c *Client) SpeechToText(
 	request *aiservicepb.SpeechToTextRequest,
 	_ ...grpc.CallOption,
 ) (*aiservicepb.SpeechToTextResponse, error) {
-	return c.Service.SpeechToText(ctx, request)
+	return c.server.SpeechToText(ctx, request)
 }
 
 // TextToSpeech provides a client-facing interface for text-to-speech conversion.
@@ -93,7 +88,7 @@ func (c *Client) TextToSpeech(
 	request *aiservicepb.TextToSpeechRequest,
 	_ ...grpc.CallOption,
 ) (*aiservicepb.TextToSpeechResponse, error) {
-	return c.Service.TextToSpeech(ctx, request)
+	return c.server.TextToSpeech(ctx, request)
 }
 
 // TextToSpeechStream provides a client-facing streaming interface.
@@ -108,7 +103,7 @@ func (c *Client) TextToSpeechStream(
 		aiservicepb.TextToSpeechStreamRequest,
 		aiservicepb.TextToSpeechStreamResponse,
 		aiservicepb.Ai_TextToSpeechStreamServer,
-	](c.Service.TextToSpeechStream)
+	](c.server.TextToSpeechStream)
 
 	return serverStreamClient(ctx, request)
 }
