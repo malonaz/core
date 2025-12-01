@@ -1,6 +1,7 @@
 go_library(
     name = "provider",
     srcs = [
+        "async_text_to_text_content_sender.go",
         "provider.go",
         "utils.go",
     ],

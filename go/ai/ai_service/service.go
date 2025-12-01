@@ -89,6 +89,9 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	if err != nil {
 		return err
 	}
+	if err := checkModelDeprecation(model); err != nil {
+		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+	}
 
 	// Some verification.
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
@@ -187,19 +190,26 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 
 // SpeechToText forwards the request to the appropriate registered client.
 func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequest) (*pb.SpeechToTextResponse, error) {
-	provider, _, err := s.GetSpeechToTextProvider(ctx, request.Model)
+	provider, model, err := s.GetSpeechToTextProvider(ctx, request.Model)
 	if err != nil {
 		return nil, err
 	}
+	if err := checkModelDeprecation(model); err != nil {
+		return nil, grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+	}
+
 	return provider.SpeechToText(ctx, request)
 }
 
 // TextToSpeechStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv pb.Ai_TextToSpeechStreamServer) error {
 	ctx := srv.Context()
-	provider, _, err := s.GetTextToSpeechProvider(ctx, request.Model)
+	provider, model, err := s.GetTextToSpeechProvider(ctx, request.Model)
 	if err != nil {
 		return err
+	}
+	if err := checkModelDeprecation(model); err != nil {
+		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 	return provider.TextToSpeechStream(request, srv)
 }

@@ -15,6 +15,7 @@ go_library(
     name = "ai_service",
     srcs = [
         "service.go",
+        "utils.go",
         ":service.tmpl.go",
     ],
     visibility = ["//..."],

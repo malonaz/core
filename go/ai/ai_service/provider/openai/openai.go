@@ -64,57 +64,134 @@ func (c *Client) DefaultModels() []*aipb.Model {
 }
 
 var providerIdToDefaultModels = map[string][]*aipb.Model{
+	//
+	// ───────────────────────────────────────────────────────────────
+	// OPENAI
+	// ───────────────────────────────────────────────────────────────
+	//
 	providerIdOpenai: {
-		// STT Models
+		// ------------------------------
+		// Text-to-Text (Core Models)
+		// ------------------------------
+
+		// Latest models.
 		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "whisper-1"}).String(),
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5.1"),
+			ProviderModelId: "gpt-5.1",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-pro"),
+			ProviderModelId: "gpt-5-pro",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  272_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-mini"),
+			ProviderModelId: "gpt-5-mini",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-nano"),
+			ProviderModelId: "gpt-5-nano",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-4.1"),
+			ProviderModelId: "gpt-4.1",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 1_047_576,
+				OutputTokenLimit:  32_768,
+				Reasoning:         false,
+				ToolCall:          true,
+			},
+		},
+
+		// Latest models (pinned).
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5.1-2025-11-13"),
+			ProviderModelId: "gpt-5.1-2025-11-13",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-mini-2025-08-07"),
+			ProviderModelId: "gpt-5-mini-2025-08-07",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-nano-2025-08-07"),
+			ProviderModelId: "gpt-5-nano-2025-08-07",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  128_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-4.1-2025-04-14"),
+			ProviderModelId: "gpt-4.1-2025-04-14",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 1_047_576,
+				OutputTokenLimit:  32_768,
+				Reasoning:         false,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-pro-2025-10-06"),
+			ProviderModelId: "gpt-5-pro-2025-10-06",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 400_000,
+				OutputTokenLimit:  272_000,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+
+		// ------------------------------
+		// Speech-to-Text
+		// ------------------------------
+		{
+			Name:            provider.NewModelName(providerIdOpenai, "whisper-1"),
 			ProviderModelId: "whisper-1",
 			Stt:             &aipb.SttModelConfig{},
 		},
-		// TTT Models
+
+		// ------------------------------
+		// Text-to-Speech
+		// ------------------------------
 		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-4o"}).String(),
-			ProviderModelId: "gpt-4o",
-			Ttt: &aipb.TttModelConfig{
-				Reasoning: false,
-				ToolCall:  true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-4-turbo"}).String(),
-			ProviderModelId: "gpt-4-turbo",
-			Ttt: &aipb.TttModelConfig{
-				Reasoning: false,
-				ToolCall:  true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-4-turbo-2024-04-09"}).String(),
-			ProviderModelId: "gpt-4-turbo-2024-04-09",
-			Ttt: &aipb.TttModelConfig{
-				Reasoning: false,
-				ToolCall:  true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-4.1"}).String(),
-			ProviderModelId: "gpt-4.1",
-			Ttt: &aipb.TttModelConfig{
-				Reasoning: false,
-				ToolCall:  true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-5"}).String(),
-			ProviderModelId: "gpt-5",
-			Ttt: &aipb.TttModelConfig{
-				Reasoning: true,
-				ToolCall:  true,
-			},
-		},
-		// TTS Models
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "tts-1"}).String(),
+			Name:            provider.NewModelName(providerIdOpenai, "tts-1"),
 			ProviderModelId: "tts-1",
 			Tts: &aipb.TtsModelConfig{
 				AudioFormat: &audiopb.Format{
@@ -125,7 +202,7 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 			},
 		},
 		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdOpenai, Model: "gpt-4o-mini-tts"}).String(),
+			Name:            provider.NewModelName(providerIdOpenai, "gpt-4o-mini-tts"),
 			ProviderModelId: "gpt-4o-mini-tts",
 			Tts: &aipb.TtsModelConfig{
 				AudioFormat: &audiopb.Format{
@@ -136,6 +213,7 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 			},
 		},
 	},
+
 	providerIdGroq: {
 		// STT Models
 		{
@@ -148,16 +226,20 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "kimi-k2-instruct-0905"}).String(),
 			ProviderModelId: "moonshotai/kimi-k2-instruct-0905",
 			Ttt: &aipb.TttModelConfig{
-				Reasoning: false,
-				ToolCall:  true,
+				ContextTokenLimit: 262_144,
+				OutputTokenLimit:  16_384,
+				Reasoning:         false,
+				ToolCall:          true,
 			},
 		},
 		{
 			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "qwen3-32b"}).String(),
 			ProviderModelId: "qwen/qwen3-32b",
 			Ttt: &aipb.TttModelConfig{
-				Reasoning: true,
-				ToolCall:  true,
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  40_960,
+				Reasoning:         true,
+				ToolCall:          true,
 			},
 		},
 		// TTS Models

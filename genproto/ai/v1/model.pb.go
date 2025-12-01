@@ -225,9 +225,13 @@ type TttModelConfig struct {
 	// True if the model supports reasoning.
 	Reasoning bool `protobuf:"varint,1,opt,name=reasoning,proto3" json:"reasoning,omitempty"`
 	// True if the model support tool calling.
-	ToolCall      bool `protobuf:"varint,2,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ToolCall bool `protobuf:"varint,2,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
+	// The maximum number of tokens in the model's context window.
+	ContextTokenLimit int32 `protobuf:"varint,3,opt,name=context_token_limit,json=contextTokenLimit,proto3" json:"context_token_limit,omitempty"`
+	// The maximum number of tokens the model can generate in a single response.
+	OutputTokenLimit int32 `protobuf:"varint,4,opt,name=output_token_limit,json=outputTokenLimit,proto3" json:"output_token_limit,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *TttModelConfig) Reset() {
@@ -272,6 +276,20 @@ func (x *TttModelConfig) GetToolCall() bool {
 		return x.ToolCall
 	}
 	return false
+}
+
+func (x *TttModelConfig) GetContextTokenLimit() int32 {
+	if x != nil {
+		return x.ContextTokenLimit
+	}
+	return 0
+}
+
+func (x *TttModelConfig) GetOutputTokenLimit() int32 {
+	if x != nil {
+		return x.OutputTokenLimit
+	}
+	return 0
 }
 
 // Configuration for a tts model.
@@ -333,10 +351,12 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x03ttt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
 	"\x03tts\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
-	"\x0eSttModelConfig\"K\n" +
+	"\x0eSttModelConfig\"\xa9\x01\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
-	"\ttool_call\x18\x02 \x01(\bR\btoolCall\"M\n" +
+	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x12.\n" +
+	"\x13context_token_limit\x18\x03 \x01(\x05R\x11contextTokenLimit\x12,\n" +
+	"\x12output_token_limit\x18\x04 \x01(\x05R\x10outputTokenLimit\"M\n" +
 	"\x0eTtsModelConfig\x12;\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat*c\n" +
 	"\tModelType\x12\x1a\n" +
