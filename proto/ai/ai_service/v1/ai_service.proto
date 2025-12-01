@@ -222,16 +222,43 @@ message TextToTextRequest {
   TextToTextConfiguration configuration = 5;
 }
 
+// Reason why generation stopped.
+enum TextToTextStopReason {
+  // Used to detect an unset field.
+  TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED = 0;
+
+  // The model reached a natural stopping point.
+  TEXT_TO_TEXT_STOP_REASON_END_TURN = 1;
+
+  // The model reached the maximum token limit specified in the request.
+  TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS = 2;
+
+  // The model requested to call one or more tools.
+  TEXT_TO_TEXT_STOP_REASON_TOOL_CALL = 3;
+
+  // one of your provided custom `stop_sequences` was generated
+  TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE = 4;
+
+  // The model paused its turn to allow the user to interject.
+  TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN = 5;
+
+  // The model refused to respond due to safety or policy reasons.
+  TEXT_TO_TEXT_STOP_REASON_REFUSAL = 6;
+}
+
 // Response message for Ai.TextToText.
 message TextToTextResponse {
   // The generated message.
   .malonaz.core.ai.v1.Message message = 1;
 
+  // Reason why generation stopped.
+  TextToTextStopReason stop_reason = 2;
+
   // Model usage metrics.
-  .malonaz.core.ai.v1.ModelUsage model_usage = 2;
+  .malonaz.core.ai.v1.ModelUsage model_usage = 3;
 
   // Generation metrics.
-  .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 3;
+  .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 4;
 }
 
 // Request message for Ai.TextToTextStream.
@@ -268,14 +295,17 @@ message TextToTextStreamResponse {
     // Reasoning content chunk (if model supports reasoning).
     string reasoning_chunk = 2;
 
+    // Reason why generation stopped.
+    TextToTextStopReason stop_reason = 3;
+
     // Tool calls requested by the assistant (sent when complete).
-    //ToolCallsEvent tool_calls = 3;
+    .malonaz.core.ai.v1.ToolCall tool_call = 4;
 
     // Model usage event (sent last).
-    .malonaz.core.ai.v1.ModelUsage model_usage = 4;
+    .malonaz.core.ai.v1.ModelUsage model_usage = 5;
 
     // Generation metrics (sent last).
-    .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 5;
+    .malonaz.core.ai.v1.GenerationMetrics generation_metrics = 6;
   }
 }
 

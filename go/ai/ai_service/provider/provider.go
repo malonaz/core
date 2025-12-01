@@ -28,7 +28,6 @@ type SpeechToTextClient interface {
 
 type TextToTextClient interface {
 	Provider
-	TextToText(context.Context, *aiservicepb.TextToTextRequest) (*aiservicepb.TextToTextResponse, error)
 	TextToTextStream(*aiservicepb.TextToTextStreamRequest, aiservicepb.Ai_TextToTextStreamServer) error
 }
 

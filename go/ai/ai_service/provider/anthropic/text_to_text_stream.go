@@ -2,13 +2,18 @@ package anthropic
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/shared/constant"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai/ai_service/provider"
+	"github.com/malonaz/core/go/grpc"
 )
 
 func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.Ai_TextToTextStreamServer) error {
@@ -91,77 +96,124 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	// Create streaming request
 	messageStream := c.client.Messages.NewStreaming(ctx, messageParams)
 
-	// Track usage metrics
-	generationMetrics := &aipb.GenerationMetrics{}
-	var inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens int64
+	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
+	defer cs.Close()
 
-	// Process stream events
-	for messageStream.Next() {
+	// Track active tool_use blocks by content block index
+	type toolUseAcc struct {
+		id   string
+		name string
+		args strings.Builder
+	}
+	toolUses := make(map[int64]*toolUseAcc)
+
+	// Process stream events (consumer)
+	var sentTtfb bool
+
+	for messageStream.Next() && cs.Err() == nil {
 		event := messageStream.Current()
 
-		// Set TTFB on first response
-		if generationMetrics.Ttfb == nil {
-			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
+		if !sentTtfb {
+			// Set TTFB on first response
+			generationMetrics := &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))}
+			cs.SendGenerationMetrics(ctx, generationMetrics)
+			sentTtfb = true
 		}
 
 		switch variant := event.AsAny().(type) {
 		case anthropic.MessageStartEvent:
-			// Track initial usage from message start
+			// Send initial usage metrics (input tokens)
+			modelUsage := &aipb.ModelUsage{
+				Model: request.Model,
+			}
 			if variant.Message.Usage.InputTokens > 0 {
-				inputTokens = variant.Message.Usage.InputTokens
+				modelUsage.InputToken = &aipb.ResourceConsumption{
+					Quantity: int32(variant.Message.Usage.InputTokens),
+				}
 			}
 			if variant.Message.Usage.CacheReadInputTokens > 0 {
-				cacheReadTokens = variant.Message.Usage.CacheReadInputTokens
+				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
+					Quantity: int32(variant.Message.Usage.CacheReadInputTokens),
+				}
 			}
 			if variant.Message.Usage.CacheCreationInputTokens > 0 {
-				cacheWriteTokens = variant.Message.Usage.CacheCreationInputTokens
+				modelUsage.InputCacheWriteToken = &aipb.ResourceConsumption{
+					Quantity: int32(variant.Message.Usage.CacheCreationInputTokens),
+				}
 			}
+			cs.SendModelUsage(ctx, modelUsage)
 
 		case anthropic.ContentBlockStartEvent:
-			// No action needed for block start
+			// If this is a tool_use block, start accumulating its arguments
+			switch contentBlockVariant := variant.ContentBlock.AsAny().(type) {
+			case anthropic.ToolUseBlock:
+				toolUses[variant.Index] = &toolUseAcc{
+					id:   contentBlockVariant.ID,
+					name: contentBlockVariant.Name,
+				}
+			case anthropic.TextBlock: // Nothing to do on these event types for now.
+			case anthropic.ThinkingBlock:
+			case anthropic.RedactedThinkingBlock:
+			case anthropic.ServerToolUseBlock:
+			case anthropic.WebSearchToolResultBlock:
+			default:
+				return grpc.Errorf(codes.Internal, "unknown variant type: %T", contentBlockVariant).Err()
+			}
 
 		case anthropic.ContentBlockDeltaEvent:
 			// Handle different types of content deltas
 			switch delta := variant.Delta.AsAny().(type) {
 			case anthropic.TextDelta:
-				if err := srv.Send(&aiservicepb.TextToTextStreamResponse{
-					Content: &aiservicepb.TextToTextStreamResponse_ContentChunk{
-						ContentChunk: delta.Text,
-					},
-				}); err != nil {
-					return fmt.Errorf("failed to send content chunk: %w", err)
-				}
+				cs.SendContentChunk(ctx, delta.Text)
 
 			case anthropic.ThinkingDelta:
-				if err := srv.Send(&aiservicepb.TextToTextStreamResponse{
-					Content: &aiservicepb.TextToTextStreamResponse_ReasoningChunk{
-						ReasoningChunk: delta.Thinking,
-					},
-				}); err != nil {
-					return fmt.Errorf("failed to send reasoning chunk: %w", err)
-				}
+				cs.SendReasoningChunk(ctx, delta.Thinking)
 
 			case anthropic.InputJSONDelta:
-				// Tool use argument deltas - we'll send complete tool calls in ContentBlockStopEvent
-				// Skip streaming partial JSON for now
+				// Accumulate tool_use input JSON by content block index
+				if acc, ok := toolUses[variant.Index]; ok {
+					acc.args.WriteString(delta.PartialJSON)
+				}
 			}
 
 		case anthropic.ContentBlockStopEvent:
-			// No action needed - tool calls are sent in MessageDeltaEvent
+			// If this content block was a tool_use, emit it now (with complete arguments)
+			if acc, ok := toolUses[variant.Index]; ok {
+				toolCall := &aipb.ToolCall{
+					Id:        acc.id,
+					Name:      acc.name,
+					Arguments: acc.args.String(),
+				}
+				cs.SendToolCall(ctx, toolCall)
+				delete(toolUses, variant.Index)
+			}
 
 		case anthropic.MessageDeltaEvent:
-			// Update output token count
+			// Output model usage.
+			modelUsage := &aipb.ModelUsage{
+				Model: request.Model,
+			}
 			if variant.Usage.OutputTokens > 0 {
-				outputTokens = variant.Usage.OutputTokens
+				modelUsage.OutputToken = &aipb.ResourceConsumption{
+					Quantity: int32(variant.Usage.OutputTokens),
+				}
 			}
+			cs.SendModelUsage(ctx, modelUsage)
 
-			// Handle stop reason if present
-			if variant.Delta.StopReason != "" {
-				// Message completed
+			// Stop reason.
+			stopReason, ok := anthropicStopReasonToPb[variant.Delta.StopReason]
+			if !ok {
+				return grpc.Errorf(codes.Internal, "unknown stop reason: %s", variant.Delta.StopReason).Err()
 			}
-
+			cs.SendStopReason(ctx, stopReason)
 		case anthropic.MessageStopEvent:
-			// Message stream ended - send final metrics
+			generationMetrics := &aipb.GenerationMetrics{
+				Ttlb: durationpb.New(time.Since(startTime)),
+			}
+			cs.SendGenerationMetrics(ctx, generationMetrics)
+
+		default:
+			return grpc.Errorf(codes.Internal, "unknown variant type: %T", variant).Err()
 		}
 	}
 
@@ -169,50 +221,70 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		return fmt.Errorf("stream error: %w", err)
 	}
 
-	generationMetrics.Ttlb = durationpb.New(time.Since(startTime))
-
-	// Send model usage metrics
-	modelUsage := &aipb.ModelUsage{
-		Model: request.Model,
-		InputToken: &aipb.ResourceConsumption{
-			Quantity: int32(inputTokens),
-		},
-		OutputToken: &aipb.ResourceConsumption{
-			Quantity: int32(outputTokens),
-		},
+	cs.Close()
+	if err := cs.Wait(ctx); err != nil {
+		return err
 	}
-
-	// Handle cache read tokens
-	if cacheReadTokens > 0 {
-		modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
-			Quantity: int32(cacheReadTokens),
-		}
-		// Back out cached tokens from input tokens
-		modelUsage.InputToken.Quantity -= int32(cacheReadTokens)
-	}
-
-	// Handle cache write tokens
-	if cacheWriteTokens > 0 {
-		modelUsage.InputCacheWriteToken = &aipb.ResourceConsumption{
-			Quantity: int32(cacheWriteTokens),
-		}
-	}
-
-	if err := srv.Send(&aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_ModelUsage{
-			ModelUsage: modelUsage,
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to send model usage: %w", err)
-	}
-
-	if err := srv.Send(&aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_GenerationMetrics{
-			GenerationMetrics: generationMetrics,
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to send generation metrics: %w", err)
-	}
-
 	return nil
+}
+
+func pbRoleToAnthropic(role aipb.Role) (anthropic.MessageParamRole, error) {
+	switch role {
+	case aipb.Role_ROLE_ASSISTANT:
+		return anthropic.MessageParamRoleAssistant, nil
+	case aipb.Role_ROLE_USER:
+		return anthropic.MessageParamRoleUser, nil
+	case aipb.Role_ROLE_TOOL:
+		// Tool results are sent as user messages in Anthropic
+		return anthropic.MessageParamRoleUser, nil
+	default:
+		return "", fmt.Errorf("unsupported role for Anthropic: %s", role)
+	}
+}
+
+func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) int64 {
+	switch reasoningEffort {
+	case aipb.ReasoningEffort_REASONING_EFFORT_LOW:
+		return 1024
+	case aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM, aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:
+		return 5000
+	case aipb.ReasoningEffort_REASONING_EFFORT_HIGH:
+		return 10000
+	default:
+		return 0
+	}
+}
+
+func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
+	// Convert protobuf Struct to input schema
+	toolParams := &anthropic.ToolParam{
+		Name:        tool.Name,
+		Description: anthropic.String(tool.Description),
+		Type:        anthropic.ToolTypeCustom,
+	}
+	if tool.JsonSchema != nil {
+		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
+			Properties: tool.JsonSchema.Properties,
+			Required:   tool.JsonSchema.Required,
+			Type:       constant.Object(tool.JsonSchema.Type),
+		}
+	} else {
+		// Anthropic requires an input schema with a type and properties set.
+		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
+			Type:       "object",
+			Properties: map[string]*aipb.JsonSchema{},
+		}
+	}
+	return anthropic.ToolUnionParam{
+		OfTool: toolParams,
+	}
+}
+
+var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.TextToTextStopReason{
+	anthropic.StopReasonEndTurn:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
+	anthropic.StopReasonMaxTokens:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
+	anthropic.StopReasonToolUse:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
+	anthropic.StopReasonStopSequence: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE,
+	anthropic.StopReasonPauseTurn:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN,
+	anthropic.StopReasonRefusal:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
 }

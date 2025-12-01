@@ -1,6 +1,9 @@
 go_library(
     name = "provider",
-    srcs = ["provider.go"],
+    srcs = [
+        "provider.go",
+        "utils.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//go/aip",

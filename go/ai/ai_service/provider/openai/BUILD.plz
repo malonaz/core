@@ -4,7 +4,6 @@ go_library(
         "openai.go",
         "speech_to_text.go",
         "text_to_speech.go",
-        "text_to_text.go",
         "text_to_text_stream.go",
     ],
     visibility = ["//..."],

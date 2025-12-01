@@ -1,0 +1,10 @@
+go_binary(
+    name = "client",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/grpc",
+        "//proto/ai/ai_service/v1",
+        "//proto/ai/v1",
+    ],
+)

@@ -45,8 +45,8 @@ func (c *Client) DefaultModels() []*aipb.Model {
 			},
 		},
 		{
-			Name:            (&aipb.ModelResourceName{Provider: c.ProviderId(), Model: "claude-sonnet-4"}).String(),
-			ProviderModelId: "claude-sonnet-4",
+			Name:            (&aipb.ModelResourceName{Provider: c.ProviderId(), Model: "claude-sonnet-4.5"}).String(),
+			ProviderModelId: "claude-sonnet-4-5-20250929",
 			Ttt: &aipb.TttModelConfig{
 				Reasoning: true,
 				ToolCall:  true,

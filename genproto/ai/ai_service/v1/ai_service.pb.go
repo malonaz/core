@@ -26,6 +26,75 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Reason why generation stopped.
+type TextToTextStopReason int32
+
+const (
+	// Used to detect an unset field.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED TextToTextStopReason = 0
+	// The model reached a natural stopping point.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN TextToTextStopReason = 1
+	// The model reached the maximum token limit specified in the request.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS TextToTextStopReason = 2
+	// The model requested to call one or more tools.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL TextToTextStopReason = 3
+	// one of your provided custom `stop_sequences` was generated
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE TextToTextStopReason = 4
+	// The model paused its turn to allow the user to interject.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN TextToTextStopReason = 5
+	// The model refused to respond due to safety or policy reasons.
+	TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL TextToTextStopReason = 6
+)
+
+// Enum value maps for TextToTextStopReason.
+var (
+	TextToTextStopReason_name = map[int32]string{
+		0: "TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED",
+		1: "TEXT_TO_TEXT_STOP_REASON_END_TURN",
+		2: "TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS",
+		3: "TEXT_TO_TEXT_STOP_REASON_TOOL_CALL",
+		4: "TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE",
+		5: "TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN",
+		6: "TEXT_TO_TEXT_STOP_REASON_REFUSAL",
+	}
+	TextToTextStopReason_value = map[string]int32{
+		"TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED":   0,
+		"TEXT_TO_TEXT_STOP_REASON_END_TURN":      1,
+		"TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS":    2,
+		"TEXT_TO_TEXT_STOP_REASON_TOOL_CALL":     3,
+		"TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE": 4,
+		"TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN":    5,
+		"TEXT_TO_TEXT_STOP_REASON_REFUSAL":       6,
+	}
+)
+
+func (x TextToTextStopReason) Enum() *TextToTextStopReason {
+	p := new(TextToTextStopReason)
+	*p = x
+	return p
+}
+
+func (x TextToTextStopReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TextToTextStopReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_ai_ai_service_v1_ai_service_proto_enumTypes[0].Descriptor()
+}
+
+func (TextToTextStopReason) Type() protoreflect.EnumType {
+	return &file_ai_ai_service_v1_ai_service_proto_enumTypes[0]
+}
+
+func (x TextToTextStopReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TextToTextStopReason.Descriptor instead.
+func (TextToTextStopReason) EnumDescriptor() ([]byte, []int) {
+	return file_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{0}
+}
+
 // Request message for Ai.CreateModel.
 type CreateModelRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -563,10 +632,12 @@ type TextToTextResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The generated message.
 	Message *v1.Message `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	// Reason why generation stopped.
+	StopReason TextToTextStopReason `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.core.ai.ai_service.v1.TextToTextStopReason" json:"stop_reason,omitempty"`
 	// Model usage metrics.
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
+	ModelUsage *v1.ModelUsage `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
 	// Generation metrics.
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,3,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
+	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -606,6 +677,13 @@ func (x *TextToTextResponse) GetMessage() *v1.Message {
 		return x.Message
 	}
 	return nil
+}
+
+func (x *TextToTextResponse) GetStopReason() TextToTextStopReason {
+	if x != nil {
+		return x.StopReason
+	}
+	return TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED
 }
 
 func (x *TextToTextResponse) GetModelUsage() *v1.ModelUsage {
@@ -714,6 +792,8 @@ type TextToTextStreamResponse struct {
 	//
 	//	*TextToTextStreamResponse_ContentChunk
 	//	*TextToTextStreamResponse_ReasoningChunk
+	//	*TextToTextStreamResponse_StopReason
+	//	*TextToTextStreamResponse_ToolCall
 	//	*TextToTextStreamResponse_ModelUsage
 	//	*TextToTextStreamResponse_GenerationMetrics
 	Content       isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
@@ -776,6 +856,24 @@ func (x *TextToTextStreamResponse) GetReasoningChunk() string {
 	return ""
 }
 
+func (x *TextToTextStreamResponse) GetStopReason() TextToTextStopReason {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_StopReason); ok {
+			return x.StopReason
+		}
+	}
+	return TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED
+}
+
+func (x *TextToTextStreamResponse) GetToolCall() *v1.ToolCall {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_ToolCall); ok {
+			return x.ToolCall
+		}
+	}
+	return nil
+}
+
 func (x *TextToTextStreamResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
 		if x, ok := x.Content.(*TextToTextStreamResponse_ModelUsage); ok {
@@ -808,19 +906,33 @@ type TextToTextStreamResponse_ReasoningChunk struct {
 	ReasoningChunk string `protobuf:"bytes,2,opt,name=reasoning_chunk,json=reasoningChunk,proto3,oneof"`
 }
 
+type TextToTextStreamResponse_StopReason struct {
+	// Reason why generation stopped.
+	StopReason TextToTextStopReason `protobuf:"varint,3,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.core.ai.ai_service.v1.TextToTextStopReason,oneof"`
+}
+
+type TextToTextStreamResponse_ToolCall struct {
+	// Tool calls requested by the assistant (sent when complete).
+	ToolCall *v1.ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3,oneof"`
+}
+
 type TextToTextStreamResponse_ModelUsage struct {
 	// Model usage event (sent last).
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,4,opt,name=model_usage,json=modelUsage,proto3,oneof"`
+	ModelUsage *v1.ModelUsage `protobuf:"bytes,5,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
 type TextToTextStreamResponse_GenerationMetrics struct {
 	// Generation metrics (sent last).
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,5,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
+	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,6,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
 func (*TextToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
+
+func (*TextToTextStreamResponse_StopReason) isTextToTextStreamResponse_Content() {}
+
+func (*TextToTextStreamResponse_ToolCall) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content() {}
 
@@ -1198,12 +1310,14 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\x05tools\x18\x03 \x03(\v2\x18.malonaz.core.ai.v1.ToolR\x05tools\x12\x1f\n" +
 	"\vtool_choice\x18\x04 \x01(\tR\n" +
 	"toolChoice\x12\\\n" +
-	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xe2\x01\n" +
+	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xb8\x02\n" +
 	"\x12TextToTextResponse\x125\n" +
-	"\amessage\x18\x01 \x01(\v2\x1b.malonaz.core.ai.v1.MessageR\amessage\x12?\n" +
-	"\vmodel_usage\x18\x02 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageR\n" +
+	"\amessage\x18\x01 \x01(\v2\x1b.malonaz.core.ai.v1.MessageR\amessage\x12T\n" +
+	"\vstop_reason\x18\x02 \x01(\x0e23.malonaz.core.ai.ai_service.v1.TextToTextStopReasonR\n" +
+	"stopReason\x12?\n" +
+	"\vmodel_usage\x18\x03 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12T\n" +
-	"\x12generation_metrics\x18\x03 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\xc2\x02\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsR\x11generationMetrics\"\xc2\x02\n" +
 	"\x17TextToTextStreamRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12A\n" +
@@ -1211,13 +1325,16 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\x05tools\x18\x03 \x03(\v2\x18.malonaz.core.ai.v1.ToolR\x05tools\x12\x1f\n" +
 	"\vtool_choice\x18\x04 \x01(\tR\n" +
 	"toolChoice\x12\\\n" +
-	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\x99\x02\n" +
+	"\rconfiguration\x18\x05 \x01(\v26.malonaz.core.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xae\x03\n" +
 	"\x18TextToTextStreamResponse\x12%\n" +
 	"\rcontent_chunk\x18\x01 \x01(\tH\x00R\fcontentChunk\x12)\n" +
-	"\x0freasoning_chunk\x18\x02 \x01(\tH\x00R\x0ereasoningChunk\x12A\n" +
-	"\vmodel_usage\x18\x04 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageH\x00R\n" +
+	"\x0freasoning_chunk\x18\x02 \x01(\tH\x00R\x0ereasoningChunk\x12V\n" +
+	"\vstop_reason\x18\x03 \x01(\x0e23.malonaz.core.ai.ai_service.v1.TextToTextStopReasonH\x00R\n" +
+	"stopReason\x12;\n" +
+	"\ttool_call\x18\x04 \x01(\v2\x1c.malonaz.core.ai.v1.ToolCallH\x00R\btoolCall\x12A\n" +
+	"\vmodel_usage\x18\x05 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12V\n" +
-	"\x12generation_metrics\x18\x05 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
+	"\x12generation_metrics\x18\x06 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01\"\x88\x01\n" +
 	"\x13TextToSpeechRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
@@ -1243,7 +1360,15 @@ const file_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x1e.malonaz.core.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12V\n" +
 	"\x12generation_metrics\x18\x04 \x01(\v2%.malonaz.core.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x012\xac\v\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01*\xb3\x02\n" +
+	"\x14TextToTextStopReason\x12(\n" +
+	"$TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED\x10\x00\x12%\n" +
+	"!TEXT_TO_TEXT_STOP_REASON_END_TURN\x10\x01\x12'\n" +
+	"#TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS\x10\x02\x12&\n" +
+	"\"TEXT_TO_TEXT_STOP_REASON_TOOL_CALL\x10\x03\x12*\n" +
+	"&TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE\x10\x04\x12'\n" +
+	"#TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN\x10\x05\x12$\n" +
+	" TEXT_TO_TEXT_STOP_REASON_REFUSAL\x10\x062\xac\v\n" +
 	"\x02Ai\x12\x8b\x01\n" +
 	"\vCreateModel\x121.malonaz.core.ai.ai_service.v1.CreateModelRequest\x1a\x19.malonaz.core.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\"\x1f/v1/{name=providers/*/models/*}\x12\x85\x01\n" +
 	"\bGetModel\x12..malonaz.core.ai.ai_service.v1.GetModelRequest\x1a\x19.malonaz.core.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x12\xa5\x01\n" +
@@ -1268,78 +1393,84 @@ func file_ai_ai_service_v1_ai_service_proto_rawDescGZIP() []byte {
 	return file_ai_ai_service_v1_ai_service_proto_rawDescData
 }
 
+var file_ai_ai_service_v1_ai_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_ai_ai_service_v1_ai_service_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_ai_ai_service_v1_ai_service_proto_goTypes = []any{
-	(*CreateModelRequest)(nil),         // 0: malonaz.core.ai.ai_service.v1.CreateModelRequest
-	(*GetModelRequest)(nil),            // 1: malonaz.core.ai.ai_service.v1.GetModelRequest
-	(*ListModelsRequest)(nil),          // 2: malonaz.core.ai.ai_service.v1.ListModelsRequest
-	(*ListModelsResponse)(nil),         // 3: malonaz.core.ai.ai_service.v1.ListModelsResponse
-	(*SpeechToTextRequest)(nil),        // 4: malonaz.core.ai.ai_service.v1.SpeechToTextRequest
-	(*SpeechToTextResponse)(nil),       // 5: malonaz.core.ai.ai_service.v1.SpeechToTextResponse
-	(*TextToTextConfiguration)(nil),    // 6: malonaz.core.ai.ai_service.v1.TextToTextConfiguration
-	(*TextToTextRequest)(nil),          // 7: malonaz.core.ai.ai_service.v1.TextToTextRequest
-	(*TextToTextResponse)(nil),         // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse
-	(*TextToTextStreamRequest)(nil),    // 9: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
-	(*TextToTextStreamResponse)(nil),   // 10: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
-	(*TextToSpeechRequest)(nil),        // 11: malonaz.core.ai.ai_service.v1.TextToSpeechRequest
-	(*TextToSpeechResponse)(nil),       // 12: malonaz.core.ai.ai_service.v1.TextToSpeechResponse
-	(*TextToSpeechStreamRequest)(nil),  // 13: malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
-	(*TextToSpeechStreamResponse)(nil), // 14: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
-	(*v1.Model)(nil),                   // 15: malonaz.core.ai.v1.Model
-	(*v1.ModelUsage)(nil),              // 16: malonaz.core.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),       // 17: malonaz.core.ai.v1.GenerationMetrics
-	(v1.ReasoningEffort)(0),            // 18: malonaz.core.ai.v1.ReasoningEffort
-	(*v1.Message)(nil),                 // 19: malonaz.core.ai.v1.Message
-	(*v1.Tool)(nil),                    // 20: malonaz.core.ai.v1.Tool
-	(*v11.Format)(nil),                 // 21: malonaz.core.audio.v1.Format
-	(*v11.Chunk)(nil),                  // 22: malonaz.core.audio.v1.Chunk
+	(TextToTextStopReason)(0),          // 0: malonaz.core.ai.ai_service.v1.TextToTextStopReason
+	(*CreateModelRequest)(nil),         // 1: malonaz.core.ai.ai_service.v1.CreateModelRequest
+	(*GetModelRequest)(nil),            // 2: malonaz.core.ai.ai_service.v1.GetModelRequest
+	(*ListModelsRequest)(nil),          // 3: malonaz.core.ai.ai_service.v1.ListModelsRequest
+	(*ListModelsResponse)(nil),         // 4: malonaz.core.ai.ai_service.v1.ListModelsResponse
+	(*SpeechToTextRequest)(nil),        // 5: malonaz.core.ai.ai_service.v1.SpeechToTextRequest
+	(*SpeechToTextResponse)(nil),       // 6: malonaz.core.ai.ai_service.v1.SpeechToTextResponse
+	(*TextToTextConfiguration)(nil),    // 7: malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	(*TextToTextRequest)(nil),          // 8: malonaz.core.ai.ai_service.v1.TextToTextRequest
+	(*TextToTextResponse)(nil),         // 9: malonaz.core.ai.ai_service.v1.TextToTextResponse
+	(*TextToTextStreamRequest)(nil),    // 10: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
+	(*TextToTextStreamResponse)(nil),   // 11: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
+	(*TextToSpeechRequest)(nil),        // 12: malonaz.core.ai.ai_service.v1.TextToSpeechRequest
+	(*TextToSpeechResponse)(nil),       // 13: malonaz.core.ai.ai_service.v1.TextToSpeechResponse
+	(*TextToSpeechStreamRequest)(nil),  // 14: malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
+	(*TextToSpeechStreamResponse)(nil), // 15: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
+	(*v1.Model)(nil),                   // 16: malonaz.core.ai.v1.Model
+	(*v1.ModelUsage)(nil),              // 17: malonaz.core.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),       // 18: malonaz.core.ai.v1.GenerationMetrics
+	(v1.ReasoningEffort)(0),            // 19: malonaz.core.ai.v1.ReasoningEffort
+	(*v1.Message)(nil),                 // 20: malonaz.core.ai.v1.Message
+	(*v1.Tool)(nil),                    // 21: malonaz.core.ai.v1.Tool
+	(*v1.ToolCall)(nil),                // 22: malonaz.core.ai.v1.ToolCall
+	(*v11.Format)(nil),                 // 23: malonaz.core.audio.v1.Format
+	(*v11.Chunk)(nil),                  // 24: malonaz.core.audio.v1.Chunk
 }
 var file_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
-	15, // 0: malonaz.core.ai.ai_service.v1.CreateModelRequest.model:type_name -> malonaz.core.ai.v1.Model
-	15, // 1: malonaz.core.ai.ai_service.v1.ListModelsResponse.models:type_name -> malonaz.core.ai.v1.Model
-	16, // 2: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	17, // 3: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	18, // 4: malonaz.core.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.core.ai.v1.ReasoningEffort
-	19, // 5: malonaz.core.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.core.ai.v1.Message
-	20, // 6: malonaz.core.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.core.ai.v1.Tool
-	6,  // 7: malonaz.core.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
-	19, // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.core.ai.v1.Message
-	16, // 9: malonaz.core.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	17, // 10: malonaz.core.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	19, // 11: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.core.ai.v1.Message
-	20, // 12: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.core.ai.v1.Tool
-	6,  // 13: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
-	16, // 14: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	17, // 15: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	21, // 16: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
-	22, // 17: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
-	16, // 18: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	17, // 19: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	21, // 20: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
-	22, // 21: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
-	16, // 22: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
-	17, // 23: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
-	0,  // 24: malonaz.core.ai.ai_service.v1.Ai.CreateModel:input_type -> malonaz.core.ai.ai_service.v1.CreateModelRequest
-	1,  // 25: malonaz.core.ai.ai_service.v1.Ai.GetModel:input_type -> malonaz.core.ai.ai_service.v1.GetModelRequest
-	2,  // 26: malonaz.core.ai.ai_service.v1.Ai.ListModels:input_type -> malonaz.core.ai.ai_service.v1.ListModelsRequest
-	4,  // 27: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:input_type -> malonaz.core.ai.ai_service.v1.SpeechToTextRequest
-	7,  // 28: malonaz.core.ai.ai_service.v1.Ai.TextToText:input_type -> malonaz.core.ai.ai_service.v1.TextToTextRequest
-	9,  // 29: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:input_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
-	11, // 30: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechRequest
-	13, // 31: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
-	15, // 32: malonaz.core.ai.ai_service.v1.Ai.CreateModel:output_type -> malonaz.core.ai.v1.Model
-	15, // 33: malonaz.core.ai.ai_service.v1.Ai.GetModel:output_type -> malonaz.core.ai.v1.Model
-	3,  // 34: malonaz.core.ai.ai_service.v1.Ai.ListModels:output_type -> malonaz.core.ai.ai_service.v1.ListModelsResponse
-	5,  // 35: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:output_type -> malonaz.core.ai.ai_service.v1.SpeechToTextResponse
-	8,  // 36: malonaz.core.ai.ai_service.v1.Ai.TextToText:output_type -> malonaz.core.ai.ai_service.v1.TextToTextResponse
-	10, // 37: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:output_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
-	12, // 38: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechResponse
-	14, // 39: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
-	32, // [32:40] is the sub-list for method output_type
-	24, // [24:32] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	16, // 0: malonaz.core.ai.ai_service.v1.CreateModelRequest.model:type_name -> malonaz.core.ai.v1.Model
+	16, // 1: malonaz.core.ai.ai_service.v1.ListModelsResponse.models:type_name -> malonaz.core.ai.v1.Model
+	17, // 2: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	18, // 3: malonaz.core.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	19, // 4: malonaz.core.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.core.ai.v1.ReasoningEffort
+	20, // 5: malonaz.core.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.core.ai.v1.Message
+	21, // 6: malonaz.core.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.core.ai.v1.Tool
+	7,  // 7: malonaz.core.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	20, // 8: malonaz.core.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.core.ai.v1.Message
+	0,  // 9: malonaz.core.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.core.ai.ai_service.v1.TextToTextStopReason
+	17, // 10: malonaz.core.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	18, // 11: malonaz.core.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	20, // 12: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.core.ai.v1.Message
+	21, // 13: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.core.ai.v1.Tool
+	7,  // 14: malonaz.core.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.core.ai.ai_service.v1.TextToTextConfiguration
+	0,  // 15: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.core.ai.ai_service.v1.TextToTextStopReason
+	22, // 16: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.tool_call:type_name -> malonaz.core.ai.v1.ToolCall
+	17, // 17: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	18, // 18: malonaz.core.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	23, // 19: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
+	24, // 20: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
+	17, // 21: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	18, // 22: malonaz.core.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	23, // 23: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.core.audio.v1.Format
+	24, // 24: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.core.audio.v1.Chunk
+	17, // 25: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.core.ai.v1.ModelUsage
+	18, // 26: malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.core.ai.v1.GenerationMetrics
+	1,  // 27: malonaz.core.ai.ai_service.v1.Ai.CreateModel:input_type -> malonaz.core.ai.ai_service.v1.CreateModelRequest
+	2,  // 28: malonaz.core.ai.ai_service.v1.Ai.GetModel:input_type -> malonaz.core.ai.ai_service.v1.GetModelRequest
+	3,  // 29: malonaz.core.ai.ai_service.v1.Ai.ListModels:input_type -> malonaz.core.ai.ai_service.v1.ListModelsRequest
+	5,  // 30: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:input_type -> malonaz.core.ai.ai_service.v1.SpeechToTextRequest
+	8,  // 31: malonaz.core.ai.ai_service.v1.Ai.TextToText:input_type -> malonaz.core.ai.ai_service.v1.TextToTextRequest
+	10, // 32: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:input_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamRequest
+	12, // 33: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechRequest
+	14, // 34: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:input_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamRequest
+	16, // 35: malonaz.core.ai.ai_service.v1.Ai.CreateModel:output_type -> malonaz.core.ai.v1.Model
+	16, // 36: malonaz.core.ai.ai_service.v1.Ai.GetModel:output_type -> malonaz.core.ai.v1.Model
+	4,  // 37: malonaz.core.ai.ai_service.v1.Ai.ListModels:output_type -> malonaz.core.ai.ai_service.v1.ListModelsResponse
+	6,  // 38: malonaz.core.ai.ai_service.v1.Ai.SpeechToText:output_type -> malonaz.core.ai.ai_service.v1.SpeechToTextResponse
+	9,  // 39: malonaz.core.ai.ai_service.v1.Ai.TextToText:output_type -> malonaz.core.ai.ai_service.v1.TextToTextResponse
+	11, // 40: malonaz.core.ai.ai_service.v1.Ai.TextToTextStream:output_type -> malonaz.core.ai.ai_service.v1.TextToTextStreamResponse
+	13, // 41: malonaz.core.ai.ai_service.v1.Ai.TextToSpeech:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechResponse
+	15, // 42: malonaz.core.ai.ai_service.v1.Ai.TextToSpeechStream:output_type -> malonaz.core.ai.ai_service.v1.TextToSpeechStreamResponse
+	35, // [35:43] is the sub-list for method output_type
+	27, // [27:35] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_ai_ai_service_v1_ai_service_proto_init() }
@@ -1350,6 +1481,8 @@ func file_ai_ai_service_v1_ai_service_proto_init() {
 	file_ai_ai_service_v1_ai_service_proto_msgTypes[10].OneofWrappers = []any{
 		(*TextToTextStreamResponse_ContentChunk)(nil),
 		(*TextToTextStreamResponse_ReasoningChunk)(nil),
+		(*TextToTextStreamResponse_StopReason)(nil),
+		(*TextToTextStreamResponse_ToolCall)(nil),
 		(*TextToTextStreamResponse_ModelUsage)(nil),
 		(*TextToTextStreamResponse_GenerationMetrics)(nil),
 	}
@@ -1364,13 +1497,14 @@ func file_ai_ai_service_v1_ai_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_ai_service_v1_ai_service_proto_rawDesc), len(file_ai_ai_service_v1_ai_service_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_ai_ai_service_v1_ai_service_proto_goTypes,
 		DependencyIndexes: file_ai_ai_service_v1_ai_service_proto_depIdxs,
+		EnumInfos:         file_ai_ai_service_v1_ai_service_proto_enumTypes,
 		MessageInfos:      file_ai_ai_service_v1_ai_service_proto_msgTypes,
 	}.Build()
 	File_ai_ai_service_v1_ai_service_proto = out.File

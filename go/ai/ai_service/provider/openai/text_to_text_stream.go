@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"time"
@@ -10,6 +11,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 func (c *Client) TextToTextStream(
@@ -201,4 +203,60 @@ func (c *Client) TextToTextStream(
 	}
 
 	return nil
+}
+
+func pbRoleToOpenAI(role aipb.Role) (string, error) {
+	switch role {
+	case aipb.Role_ROLE_SYSTEM:
+		return openai.ChatMessageRoleSystem, nil
+	case aipb.Role_ROLE_ASSISTANT:
+		return openai.ChatMessageRoleAssistant, nil
+	case aipb.Role_ROLE_USER:
+		return openai.ChatMessageRoleUser, nil
+	case aipb.Role_ROLE_TOOL:
+		return openai.ChatMessageRoleTool, nil
+	default:
+		return "", fmt.Errorf("unknown role: %s", role)
+	}
+}
+
+func pbToolToOpenAI(tool *aipb.Tool) (openai.Tool, error) {
+	bytes, err := pbutil.JSONMarshal(tool.JsonSchema)
+	if err != nil {
+		return openai.Tool{}, fmt.Errorf("marshaling tool %s: %w", tool.Name, err)
+	}
+	return openai.Tool{
+		Type: openai.ToolTypeFunction,
+		Function: &openai.FunctionDefinition{
+			Name:        tool.Name,
+			Description: tool.Description,
+			Parameters:  json.RawMessage(bytes),
+		},
+	}, nil
+}
+
+func pbToolCallToOpenAI(toolCall *aipb.ToolCall) openai.ToolCall {
+	return openai.ToolCall{
+		ID:   toolCall.Id,
+		Type: openai.ToolTypeFunction,
+		Function: openai.FunctionCall{
+			Name:      toolCall.Name,
+			Arguments: toolCall.Arguments,
+		},
+	}
+}
+
+var providerToReasoningEffortToOpenAI = map[string]map[aipb.ReasoningEffort]string{
+	providerIdOpenai: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "medium",
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "low",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "medium",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "high",
+	},
+	providerIdGroq: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
+	},
 }

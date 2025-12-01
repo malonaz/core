@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -84,33 +85,91 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 // TextToTextStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.Ai_TextToTextStreamServer) error {
 	ctx := srv.Context()
-	provider, _, err := s.GetTextToTextProvider(ctx, request.Model)
-	if err != nil {
-		return err
-	}
-	// Direct pass-through - provider implements exact gRPC interface
-	return provider.TextToTextStream(request, srv)
-}
-
-// textToText forwards the request to the appropriate registered client.
-func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
 	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Some verification.
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
-		return nil, grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
+		return grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
 	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
-		return nil, grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
+		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	response, err := provider.TextToText(ctx, request)
+	// Direct pass-through - provider implements exact gRPC interface
+	return provider.TextToTextStream(request, srv)
+}
+
+// TextToText collects all streamed text chunks into a single response
+func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
+	// Convert to streaming request
+	streamRequest := &pb.TextToTextStreamRequest{
+		Model:         request.Model,
+		Messages:      request.Messages,
+		Tools:         request.Tools,
+		ToolChoice:    request.ToolChoice,
+		Configuration: request.Configuration,
+	}
+
+	// Create a local streaming client using grpcinproc
+	serverStreamClient := grpcinproc.NewServerStreamAsClient[
+		pb.TextToTextStreamRequest,
+		pb.TextToTextStreamResponse,
+		pb.Ai_TextToTextStreamServer,
+	](s.TextToTextStream)
+
+	stream, err := serverStreamClient(ctx, streamRequest)
 	if err != nil {
 		return nil, err
 	}
+
+	// Collect all chunks into a single response
+	response := &pb.TextToTextResponse{
+		Message: &aipb.Message{
+			Role: aipb.Role_ROLE_ASSISTANT,
+		},
+	}
+
+	for {
+		event, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		switch content := event.GetContent().(type) {
+		case *pb.TextToTextStreamResponse_ContentChunk:
+			response.Message.Content += content.ContentChunk
+
+		case *pb.TextToTextStreamResponse_ReasoningChunk:
+			response.Message.Reasoning += content.ReasoningChunk
+
+		case *pb.TextToTextStreamResponse_StopReason:
+			response.StopReason = content.StopReason
+
+		case *pb.TextToTextStreamResponse_ToolCall:
+			response.Message.ToolCalls = append(response.Message.ToolCalls, content.ToolCall)
+
+		case *pb.TextToTextStreamResponse_ModelUsage:
+			if response.ModelUsage == nil {
+				response.ModelUsage = &aipb.ModelUsage{}
+			}
+			proto.Merge(response.ModelUsage, content.ModelUsage)
+
+		case *pb.TextToTextStreamResponse_GenerationMetrics:
+			if response.GenerationMetrics == nil {
+				response.GenerationMetrics = &aipb.GenerationMetrics{}
+			}
+			proto.Merge(response.GenerationMetrics, content.GenerationMetrics)
+			response.GenerationMetrics.Ttfb = nil // We do not set TTFB on unary calls.
+		}
+	}
+
+	// Apply JSON extraction if requested
 	if request.GetConfiguration().GetExtractJsonObject() {
 		jsonContent, err := ai.ExtractJSONObject(response.Message.Content)
 		if err != nil {
@@ -122,6 +181,7 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		}
 		response.Message.Content = jsonContent
 	}
+
 	return response, nil
 }
 
@@ -146,11 +206,6 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 
 // TextToSpeech collects all streamed audio chunks into a single response
 func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequest) (*pb.TextToSpeechResponse, error) {
-	provider, _, err := s.GetTextToSpeechProvider(ctx, request.Model)
-	if err != nil {
-		return nil, err
-	}
-
 	// Convert to streaming request
 	streamRequest := &pb.TextToSpeechStreamRequest{
 		Model: request.Model,
@@ -163,7 +218,7 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 		pb.TextToSpeechStreamRequest,
 		pb.TextToSpeechStreamResponse,
 		pb.Ai_TextToSpeechStreamServer,
-	](provider.TextToSpeechStream)
+	](s.TextToSpeechStream)
 
 	stream, err := serverStreamClient(ctx, streamRequest)
 	if err != nil {

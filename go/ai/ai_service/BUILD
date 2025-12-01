@@ -30,5 +30,6 @@ go_library(
         "//proto/ai/v1",
         "//proto/audio/v1",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
     ],
 )
