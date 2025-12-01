@@ -15,6 +15,7 @@ declare -a FILES=(
   "malonaz/onyx/v1/service.pb.go:onyx/v1"
   "malonaz/audio/v1/audio.pb.go:audio/v1"
   "malonaz/ai/v1/model.pb.go:ai/v1"
+  "malonaz/ai/v1/model_aip.go:ai/v1"
   "malonaz/ai/v1/message.pb.go:ai/v1"
   "malonaz/ai/v1/jsonschema.pb.go:ai/v1"
   "malonaz/ai/v1/metrics.pb.go:ai/v1"
