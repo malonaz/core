@@ -63,7 +63,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	messageParams := anthropic.MessageNewParams{
 		Model:     anthropic.Model(model.ProviderModelId),
 		Messages:  messages,
-		MaxTokens: request.Configuration.GetMaxTokens(),
+		MaxTokens: int64(request.Configuration.GetMaxTokens()),
 	}
 	if request.Configuration.GetTemperature() > 0 {
 		messageParams.Temperature = anthropic.Float(request.Configuration.GetTemperature())

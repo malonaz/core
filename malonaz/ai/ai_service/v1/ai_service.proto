@@ -181,7 +181,7 @@ message SpeechToTextResponse {
 // Configuration for text to text generation.
 message TextToTextConfiguration {
   // Maximum number of tokens to generate. Includes reasoning tokens.
-  int64 max_tokens = 1 [(buf.validate.field).int64.gte = 0];
+  int32 max_tokens = 1 [(buf.validate.field).int32.gte = 0];
 
   // Sampling temperature (0.0 to 2.0).
   double temperature = 2 [(buf.validate.field).double = {

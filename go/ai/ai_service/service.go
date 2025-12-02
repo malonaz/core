@@ -92,6 +92,12 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	if err := checkModelDeprecation(model); err != nil {
 		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
+	if request.Configuration == nil {
+		request.Configuration = &pb.TextToTextConfiguration{}
+	}
+	if request.Configuration.MaxTokens == 0 {
+		request.Configuration.MaxTokens = model.Ttt.OutputTokenLimit
+	}
 
 	// Some verification.
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {

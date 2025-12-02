@@ -233,6 +233,16 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 			},
 		},
 		{
+			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "llama-3.1-8b-instant"}).String(),
+			ProviderModelId: "llama-3.1-8b-instant",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  131_072,
+				Reasoning:         false,
+				ToolCall:          true,
+			},
+		},
+		{
 			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "qwen3-32b"}).String(),
 			ProviderModelId: "qwen/qwen3-32b",
 			Ttt: &aipb.TttModelConfig{

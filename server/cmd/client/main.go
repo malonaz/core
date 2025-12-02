@@ -87,7 +87,7 @@ func printRequestInfo() {
 
 func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 	config := &aiservicepb.TextToTextConfiguration{
-		MaxTokens:   int64(*maxTokens),
+		MaxTokens:   int32(*maxTokens),
 		Temperature: float64(*temperature),
 	}
 
