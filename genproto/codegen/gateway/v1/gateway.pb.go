@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -72,7 +73,9 @@ type HandlerOpts struct {
 	// transformation, aggregation, or integration with multiple backend services.
 	//
 	// Default: false (auto-generate standard pass-through handler)
-	Custom        bool `protobuf:"varint,1,opt,name=custom,proto3" json:"custom,omitempty"`
+	Custom bool `protobuf:"varint,1,opt,name=custom,proto3" json:"custom,omitempty"`
+	// A field mask to be applied on response objects.
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -114,6 +117,13 @@ func (x *HandlerOpts) GetCustom() bool {
 	return false
 }
 
+func (x *HandlerOpts) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 var file_malonaz_codegen_gateway_v1_gateway_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
@@ -127,8 +137,8 @@ var file_malonaz_codegen_gateway_v1_gateway_proto_extTypes = []protoimpl.Extensi
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*HandlerOpts)(nil),
 		Field:         22942,
-		Name:          "malonaz.codegen.gateway.v1.handler_opts",
-		Tag:           "bytes,22942,opt,name=handler_opts",
+		Name:          "malonaz.codegen.gateway.v1.opts",
+		Tag:           "bytes,22942,opt,name=opts",
 		Filename:      "malonaz/codegen/gateway/v1/gateway.proto",
 	},
 }
@@ -145,20 +155,22 @@ var (
 var (
 	// Opts for a handler.
 	//
-	// optional malonaz.codegen.gateway.v1.HandlerOpts handler_opts = 22942;
-	E_HandlerOpts = &file_malonaz_codegen_gateway_v1_gateway_proto_extTypes[1]
+	// optional malonaz.codegen.gateway.v1.HandlerOpts opts = 22942;
+	E_Opts = &file_malonaz_codegen_gateway_v1_gateway_proto_extTypes[1]
 )
 
 var File_malonaz_codegen_gateway_v1_gateway_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_gateway_v1_gateway_proto_rawDesc = "" +
 	"\n" +
-	"(malonaz/codegen/gateway/v1/gateway.proto\x12\x1amalonaz.codegen.gateway.v1\x1a google/protobuf/descriptor.proto\"\r\n" +
-	"\vServiceOpts\"%\n" +
+	"(malonaz/codegen/gateway/v1/gateway.proto\x12\x1amalonaz.codegen.gateway.v1\x1a google/protobuf/descriptor.proto\x1a google/protobuf/field_mask.proto\"\r\n" +
+	"\vServiceOpts\"`\n" +
 	"\vHandlerOpts\x12\x16\n" +
-	"\x06custom\x18\x01 \x01(\bR\x06custom:m\n" +
-	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2'.malonaz.codegen.gateway.v1.ServiceOptsR\vserviceOpts:l\n" +
-	"\fhandler_opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2'.malonaz.codegen.gateway.v1.HandlerOptsR\vhandlerOptsB5Z3github.com/malonaz/core/genproto/codegen/gateway/v1b\x06proto3"
+	"\x06custom\x18\x01 \x01(\bR\x06custom\x129\n" +
+	"\n" +
+	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:m\n" +
+	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2'.malonaz.codegen.gateway.v1.ServiceOptsR\vserviceOpts:]\n" +
+	"\x04opts\x12\x1e.google.protobuf.MethodOptions\x18\x9e\xb3\x01 \x01(\v2'.malonaz.codegen.gateway.v1.HandlerOptsR\x04optsB5Z3github.com/malonaz/core/genproto/codegen/gateway/v1b\x06proto3"
 
 var (
 	file_malonaz_codegen_gateway_v1_gateway_proto_rawDescOnce sync.Once
@@ -176,19 +188,21 @@ var file_malonaz_codegen_gateway_v1_gateway_proto_msgTypes = make([]protoimpl.Me
 var file_malonaz_codegen_gateway_v1_gateway_proto_goTypes = []any{
 	(*ServiceOpts)(nil),                 // 0: malonaz.codegen.gateway.v1.ServiceOpts
 	(*HandlerOpts)(nil),                 // 1: malonaz.codegen.gateway.v1.HandlerOpts
-	(*descriptorpb.ServiceOptions)(nil), // 2: google.protobuf.ServiceOptions
-	(*descriptorpb.MethodOptions)(nil),  // 3: google.protobuf.MethodOptions
+	(*fieldmaskpb.FieldMask)(nil),       // 2: google.protobuf.FieldMask
+	(*descriptorpb.ServiceOptions)(nil), // 3: google.protobuf.ServiceOptions
+	(*descriptorpb.MethodOptions)(nil),  // 4: google.protobuf.MethodOptions
 }
 var file_malonaz_codegen_gateway_v1_gateway_proto_depIdxs = []int32{
-	2, // 0: malonaz.codegen.gateway.v1.service_opts:extendee -> google.protobuf.ServiceOptions
-	3, // 1: malonaz.codegen.gateway.v1.handler_opts:extendee -> google.protobuf.MethodOptions
-	0, // 2: malonaz.codegen.gateway.v1.service_opts:type_name -> malonaz.codegen.gateway.v1.ServiceOpts
-	1, // 3: malonaz.codegen.gateway.v1.handler_opts:type_name -> malonaz.codegen.gateway.v1.HandlerOpts
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	2, // [2:4] is the sub-list for extension type_name
-	0, // [0:2] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: malonaz.codegen.gateway.v1.HandlerOpts.field_mask:type_name -> google.protobuf.FieldMask
+	3, // 1: malonaz.codegen.gateway.v1.service_opts:extendee -> google.protobuf.ServiceOptions
+	4, // 2: malonaz.codegen.gateway.v1.opts:extendee -> google.protobuf.MethodOptions
+	0, // 3: malonaz.codegen.gateway.v1.service_opts:type_name -> malonaz.codegen.gateway.v1.ServiceOpts
+	1, // 4: malonaz.codegen.gateway.v1.opts:type_name -> malonaz.codegen.gateway.v1.HandlerOpts
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	3, // [3:5] is the sub-list for extension type_name
+	1, // [1:3] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_gateway_v1_gateway_proto_init() }

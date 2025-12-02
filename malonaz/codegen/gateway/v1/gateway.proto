@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.codegen.gateway.v1;
 
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/field_mask.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/gateway/v1";
 
@@ -17,7 +18,7 @@ extend google.protobuf.ServiceOptions {
 // Allows customizing how individual RPC methods are handled by the gateway.
 extend google.protobuf.MethodOptions {
   // Opts for a handler.
-  HandlerOpts handler_opts = 22942;
+  HandlerOpts opts = 22942;
 }
 
 // ServiceOpts defines gateway-specific options for an entire gRPC service.
@@ -36,4 +37,6 @@ message HandlerOpts {
   //
   // Default: false (auto-generate standard pass-through handler)
   bool custom = 1;
+  // A field mask to be applied on response objects.
+  google.protobuf.FieldMask field_mask = 2;
 }

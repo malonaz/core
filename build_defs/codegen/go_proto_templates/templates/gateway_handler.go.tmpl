@@ -11,111 +11,118 @@
 {{- $dummy := replaceImportPath $file.GoImportPath $apiImportPath -}}
 
 {{- /* ################### HELPER TEMPLATES ################### */ -}}
+{{- define "fieldMaskOpts" -}}
+{{- $handlerOpts := . -}}
+{{- if $handlerOpts.GetFieldMask.GetPaths -}}
+ctx = {{ fqn "github.com/malonaz/core/go/grpc/interceptor" "WithFieldMask" }}(ctx, "{{ $handlerOpts.FieldMask.Paths | join "," }}")
+{{- end -}}
+{{- end -}}
+
 {{- define "pipeServerStreamFn" -}}
-    pipeFn := func() error {
-    stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(srv.Context(), request)
-    if err != nil {
+pipeFn := func() error {
+	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx, request)
+	if err != nil {
     return err
-    }
-    // No need to check the srv.Context().Done() or stream.Context().Done() as:
-    // If srv.Context() is cancelled => stream.Context() will also be cancelled.
-    // If stream.Context() is cancelled, stream.Recv() will return it.
-    for {
+	}
+	// No need to check the srv.Context().Done() or stream.Context().Done() as:
+	// If srv.Context() is cancelled => stream.Context() will also be cancelled.
+	// If stream.Context() is cancelled, stream.Recv() will return it.
+	for {
     response, err := stream.Recv()
     if err != nil {
-    if err == {{ fqn "io" "EOF" }} {
-    break
-    }
-    return err
+			if err == {{ fqn "io" "EOF" }} {
+				break
+			}
+			return err
     }
 
     if err := srv.Send(response); err != nil {
-    return err
+			return err
     }
-    }
-    return nil
-    }
+	}
+	return nil
+}
 {{- end -}}
 
 {{- define "pipeClientStreamFn" -}}
-    pipeFn := func() error {
-    stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(srv.Context())
-    if err != nil {
+pipeFn := func() error {
+	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx)
+	if err != nil {
     return err
-    }
+	}
 
-    for {
+	for {
     request, err := srv.Recv()
     if err != nil {
-    if err == {{ fqn "io" "EOF" }} {
-    break
-    }
-    return err
+			if err == {{ fqn "io" "EOF" }} {
+				break
+			}
+			return err
     }
 
     if err := stream.Send(request); err != nil {
-    return err
+			return err
     }
-    }
+	}
 
-    response, err := stream.CloseAndRecv()
-    if err != nil {
+	response, err := stream.CloseAndRecv()
+	if err != nil {
     return err
-    }
+	}
 
-    return srv.SendAndClose(response)
-    }
+	return srv.SendAndClose(response)
+}
 {{- end -}}
 
 {{- define "pipeBidiStreamFn" -}}
-    pipeFn := func() error {
-    stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(srv.Context())
-    if err != nil {
+pipeFn := func() error {
+	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx)
+	if err != nil {
     return err
-    }
+	}
 
-    // Channel to communicate errors between goroutines
-    errChan := make(chan error, 2)
+	// Channel to communicate errors between goroutines
+	errChan := make(chan error, 2)
 
-    // Handle incoming requests in a separate goroutine
-    go func() {
+	// Handle incoming requests in a separate goroutine
+	go func() {
     defer stream.CloseSend()
     for {
-    request, err := srv.Recv()
-    if err != nil {
-    errChan <- err
-    return
+			request, err := srv.Recv()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			if err := stream.Send(request); err != nil {
+				errChan <- err
+				return
+			}
     }
-    if err := stream.Send(request); err != nil {
-    errChan <- err
-    return
-    }
-    }
-    }()
+	}()
 
-    // Handle outgoing responses in a separate goroutine
-    go func() {
+	// Handle outgoing responses in a separate goroutine
+	go func() {
     for {
-    response, err := stream.Recv()
-    if err != nil {
-    errChan <- err
-    return
+			response, err := stream.Recv()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			if err := srv.Send(response); err != nil {
+				errChan <- err
+				return
+			}
     }
-    if err := srv.Send(response); err != nil {
-    errChan <- err
-    return
-    }
-    }
-    }()
+	}()
 
-    // Wait for both goroutines to complete or return the first error encountered
-    for i := 0; i < 2; i++ {
+	// Wait for both goroutines to complete or return the first error encountered
+	for i := 0; i < 2; i++ {
     if err := <-errChan; err != nil && err != {{ fqn "io" "EOF" }} {
-    return err
+			return err
     }
-    }
-    return nil
-    }
+	}
+	return nil
+}
 {{- end -}}
 
 {{- /* ################### CODE START ################### */ -}}
@@ -126,58 +133,64 @@ package {{ $packageName }}
 {{- $methodToService := dict }}
 {{- $serviceNameToFile := dict }}
 {{- range $otherFile := $.Files -}}
-    {{- range $otherService := $otherFile.Services -}}
-        {{- $_ := set $serviceNameToFile  (printf "%s" $otherService.Desc.FullName) $otherFile }}
-        {{- range $otherMethod := $otherService.Methods -}}
-            {{- $key := printf "%s/%s/%s" $otherMethod.Desc.Name $otherMethod.Input.GoIdent $otherMethod.Output.GoIdent -}}
-            {{- $_ := set $methodToService $key $otherService -}}
-        {{- end -}}
-    {{- end -}}
+{{- range $otherService := $otherFile.Services -}}
+{{- $_ := set $serviceNameToFile  (printf "%s" $otherService.Desc.FullName) $otherFile }}
+{{- range $otherMethod := $otherService.Methods -}}
+{{- $key := printf "%s/%s/%s" $otherMethod.Desc.Name $otherMethod.Input.GoIdent $otherMethod.Output.GoIdent -}}
+{{- $_ := set $methodToService $key $otherService -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{- $set := dict }}
 {{- $methodKeys := sortAlpha (keys $methodToService) }}
 {{- $services := list }}
 {{- range $key := $methodKeys }}
-    {{- $service := (get $methodToService $key) -}}
-    {{- if hasKey $set $service.GoName }}{{ continue }}{{ end -}}
-    {{- $_ := set $set $service.GoName "t" }}
-    {{- $services = append $services $service }}
+{{- $service := (get $methodToService $key) -}}
+{{- if hasKey $set $service.GoName }}{{ continue }}{{ end -}}
+{{- $_ := set $set $service.GoName "t" }}
+{{- $services = append $services $service }}
 {{- end  }}
 
 {{ range $service := $file.Services }}
-    {{- range $method := $service.Methods }}
-        {{ $handlerOpts := getExt $method.Desc "malonaz.codegen.gateway.v1.handler_opts" }}
-        {{ if $handlerOpts.Custom }}{{ continue }}{{ end }}
-        {{- $key := printf "%s/%s/%s" $method.Desc.Name $method.Input.GoIdent $method.Output.GoIdent -}}
-        {{ $otherService := get $methodToService $key }}
+{{- range $method := $service.Methods }}
+{{ $handlerOpts := getExt $method.Desc "malonaz.codegen.gateway.v1.opts" }}
+{{ if $handlerOpts.Custom }}{{ continue }}{{ end }}
+{{- $key := printf "%s/%s/%s" $method.Desc.Name $method.Input.GoIdent $method.Output.GoIdent -}}
+{{ $otherService := get $methodToService $key }}
 
-        {{- if and $method.Desc.IsStreamingServer $method.Desc.IsStreamingClient }}
-            // Bidirectional streaming
-            func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-            {{ template "pipeBidiStreamFn" ( dict "Service" $otherService "Method" $method) }}
-            return pipeFn()
-            }
+{{- if and $method.Desc.IsStreamingServer $method.Desc.IsStreamingClient }}
+// Bidirectional streaming
+func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
+	ctx := srv.Context()
+	{{ template "fieldMaskOpts" $handlerOpts }}
+	{{ template "pipeBidiStreamFn" ( dict "Service" $otherService "Method" $method) }}
+	return pipeFn()
+}
 
-        {{- else if $method.Desc.IsStreamingServer }}
-            // Server streaming
-            func (h *Service) {{ $method.GoName }}(request *{{ qualifiedGoIdent $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-            {{ template "pipeServerStreamFn" ( dict "Service" $otherService "Method" $method) }}
-            return pipeFn()
-            }
+{{- else if $method.Desc.IsStreamingServer }}
+// Server streaming
+func (h *Service) {{ $method.GoName }}(request *{{ qualifiedGoIdent $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
+	ctx := srv.Context()
+	{{ template "fieldMaskOpts" $handlerOpts }}
+	{{ template "pipeServerStreamFn" ( dict "Service" $otherService "Method" $method) }}
+	return pipeFn()
+}
 
-        {{- else if $method.Desc.IsStreamingClient }}
-            // Client streaming
-            func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-                {{ template "pipeClientStreamFn" ( dict "Service" $otherService "Method" $method) }}
-                return pipeFn()
-            }
+{{- else if $method.Desc.IsStreamingClient }}
+// Client streaming
+func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
+	ctx := srv.Context()
+	{{ template "fieldMaskOpts" $handlerOpts }}
+	return pipeFn()
+}
 
-        {{- else }}
-            // Unary
-            func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qualifiedGoIdent $method.Input.GoIdent }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
-            return h.{{ $otherService.GoName | untitle }}Client.{{ $method.GoName }}(ctx, request)
-            }
-        {{- end }}
-    {{ end }}
+{{- else }}
+// Unary
+func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qualifiedGoIdent $method.Input.GoIdent }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+	{{ template "fieldMaskOpts" $handlerOpts }}
+	return h.{{ $otherService.GoName | untitle }}Client.{{ $method.GoName }}(ctx, request)
+}
+{{- end }}
+{{ end }}
 {{ end }}
