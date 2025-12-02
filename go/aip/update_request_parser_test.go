@@ -256,3 +256,92 @@ func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
 	require.Equal(t, int64(101112), existingResource.Nested2.Field2)   // nested2.field2 should be updated
 	require.Equal(t, "updatedValue3", existingResource.Nested2.Field3) // nested2.field3 should be updated
 }
+
+func TestUpdateRequestParser_ParseWithColumnNameChange(t *testing.T) {
+	parser, err := NewUpdateRequestParser[*pb.UpdateResourceWithColumnNameRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name             string
+		fieldMaskPaths   []string
+		wantUpsertClause string
+		wantUpdateClause string
+		wantColumns      []string
+		wantErr          bool
+	}{
+		{
+			name:             "field with column name change",
+			fieldMaskPaths:   []string{"column_name_changed"},
+			wantUpsertClause: "new_name = EXCLUDED.new_name",
+			wantUpdateClause: "new_name = $1",
+			wantColumns:      []string{"new_name"},
+			wantErr:          false,
+		},
+		{
+			name:             "field with column name change and regular field",
+			fieldMaskPaths:   []string{"column_name_changed", "field1"},
+			wantUpsertClause: "new_name = EXCLUDED.new_name, field1 = EXCLUDED.field1",
+			wantUpdateClause: "new_name = $1, field1 = $2",
+			wantColumns:      []string{"new_name", "field1"},
+			wantErr:          false,
+		},
+		{
+			name:             "regular field only",
+			fieldMaskPaths:   []string{"field1"},
+			wantUpsertClause: "field1 = EXCLUDED.field1",
+			wantUpdateClause: "field1 = $1",
+			wantColumns:      []string{"field1"},
+			wantErr:          false,
+		},
+		{
+			name:           "unauthorized field",
+			fieldMaskPaths: []string{"nested"},
+			wantErr:        true,
+		},
+		// New test cases for nested_changed with column name change
+		{
+			name:             "nested field with column name change via path mapping",
+			fieldMaskPaths:   []string{"nested_changed.field2"},
+			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name",
+			wantUpdateClause: "nested_new_name = $1",
+			wantColumns:      []string{"nested_new_name"},
+			wantErr:          false,
+		},
+		{
+			name:             "nested field with column name change - full object update",
+			fieldMaskPaths:   []string{"nested_changed"},
+			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name",
+			wantUpdateClause: "nested_new_name = $1",
+			wantColumns:      []string{"nested_new_name"},
+			wantErr:          false,
+		},
+		{
+			name:             "nested field with column name change combined with regular fields",
+			fieldMaskPaths:   []string{"nested_changed.field2", "field1", "column_name_changed"},
+			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name, field1 = EXCLUDED.field1, new_name = EXCLUDED.new_name",
+			wantUpdateClause: "nested_new_name = $1, field1 = $2, new_name = $3",
+			wantColumns:      []string{"nested_new_name", "field1", "new_name"},
+			wantErr:          false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resource := &pb.Resource{}
+			updateResourceRequest := &pb.UpdateResourceWithColumnNameRequest{
+				Resource:   resource,
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateResourceRequest)
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantUpsertClause, parsedRequest.GetSQLUpsertClause())
+				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpdateClause())
+				require.Equal(t, tt.wantColumns, parsedRequest.GetSQLColumns())
+			}
+		})
+	}
+}

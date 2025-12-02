@@ -109,6 +109,11 @@ message Resource {
   MyNullableEnum nullable_enum = 10 [(malonaz.codegen.model.v1.field_opts).nullable = true];
   // A field with a column name change.
   int64 column_name_changed = 11 [(malonaz.codegen.model.v1.field_opts).column_name = "new_name"];
+  // Nested resource with a name change.
+  NestedResource nested_changed = 12 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).column_name = "nested_new_name"
+  ];
 }
 
 // NestedResource contains fields for testing nested path updates.
@@ -184,6 +189,29 @@ message UpdateResource2Request {
     authorized_paths: [
       "nested",
       "nested2"
+    ]
+  };
+
+  // Resource to update.
+  Resource resource = 1;
+  // Field mask specifying which fields to update.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// UpdateResourceWithColumnNameRequest tests column name changes in updates.
+message UpdateResourceWithColumnNameRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    path_mappings: [
+      {
+        from: "nested_changed.field2"
+        to: ["nested_changed"]
+      }
+    ]
+    authorized_paths: [
+      "column_name_changed",
+      "field1",
+      "nested_changed.field2",
+      "nested_changed"
     ]
   };
 

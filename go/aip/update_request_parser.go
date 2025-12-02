@@ -65,10 +65,11 @@ func (p *ParsedUpdateRequest) GetSQLColumns() []string {
 
 // UpdateRequestParser implements update request parsing.
 type UpdateRequestParser[T updateRequest, R proto.Message] struct {
-	validator       protovalidate.Validator
-	defaultPaths    []string
-	mappings        []*aippb.UpdatePathMapping
-	authorizedPaths []string
+	validator         protovalidate.Validator
+	defaultPaths      []string
+	mappings          []*aippb.UpdatePathMapping
+	authorizedPaths   []string
+	protoPathToColumn map[string]string
 }
 
 // MustNewUpdateRequestParser instantiates and returns a new update request parser, panicking on error.
@@ -115,11 +116,27 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 		return nil, fmt.Errorf("validating filtering paths: %w", err)
 	}
 
+	// Build tree to get column name mappings (without nested path transformation).
+	tree, err := BuildResourceTree[R](10, []string{"*"})
+	if err != nil {
+		return nil, fmt.Errorf("building resource tree: %w", err)
+	}
+
+	protoPathToColumn := make(map[string]string)
+	for node := range tree.AllowedNodes() {
+		columnName := node.Path
+		if node.ReplacementPath != "" {
+			columnName = node.ReplacementPath
+		}
+		protoPathToColumn[node.Path] = columnName
+	}
+
 	return &UpdateRequestParser[T, R]{
-		validator:       validator,
-		defaultPaths:    options.DefaultPaths,
-		mappings:        options.PathMappings,
-		authorizedPaths: options.AuthorizedPaths,
+		validator:         validator,
+		defaultPaths:      options.DefaultPaths,
+		mappings:          options.PathMappings,
+		authorizedPaths:   options.AuthorizedPaths,
+		protoPathToColumn: protoPathToColumn,
 	}, nil
 }
 
@@ -151,9 +168,11 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 			if p.match(mapping, path) {
 				// Add the mapped update mapping to the set and list.
 				for _, v := range mapping.To {
-					if _, ok := parsedUpdateRequest.updateFieldSet[v]; !ok {
-						parsedUpdateRequest.updateFieldSet[v] = struct{}{}
-						parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, v)
+					// Translate mapped path to column name if applicable.
+					columnName := p.translateToColumnName(v)
+					if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
+						parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
+						parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
 					}
 				}
 				mappingFound = true
@@ -161,15 +180,24 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 			}
 		}
 
-		// If no mapping is found, we simply add the field as is.
+		// If no mapping is found, we simply add the field (translated to column name).
 		if !mappingFound {
-			if _, ok := parsedUpdateRequest.updateFieldSet[path]; !ok {
-				parsedUpdateRequest.updateFieldSet[path] = struct{}{}
-				parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, path)
+			columnName := p.translateToColumnName(path)
+			if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
+				parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
+				parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
 			}
 		}
 	}
 	return parsedUpdateRequest, nil
+}
+
+// translateToColumnName translates a proto path to its database column name.
+func (p *UpdateRequestParser[T, R]) translateToColumnName(path string) string {
+	if columnName, ok := p.protoPathToColumn[path]; ok {
+		return columnName
+	}
+	return path
 }
 
 // Helper method to check if a fieldPath matches a from considering wildcard.
