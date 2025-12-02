@@ -1,10 +1,15 @@
 go_library(
     name = "pbutil",
-    srcs = ["pbutil.go"],
+    srcs = [
+        "marshaller.go",
+        "pbutil.go",
+        "pretty.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__mennanov__fmutils",
+        "//third_party/go:github.com__tidwall__pretty",
         "//third_party/go:go.einride.tech__aip__fieldmask",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",

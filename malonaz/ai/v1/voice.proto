@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// A multi-model voice.
+message Voice {
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Voice"
+    pattern: "voices/{voice}"
+    singular: "voice"
+    plural: "voices"
+  };
+
+  // Required. The resource name of the voice.
+  // Format: voices/{voice}
+  string name = 1;
+
+  // Human-readable display name for the voice.
+  string display_name = 2 [(buf.validate.field).required = true];
+
+  // Description of the voice characteristics (e.g., "warm female voice", "professional male narrator").
+  string description = 3 [(buf.validate.field).required = true];
+
+  // Gender of the voice.
+  VoiceGender gender = 4 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // Preview audio URL for sampling the voice.
+  string preview_url = 5;
+
+  // Provider-specific configurations for this voice across different models.
+  repeated VoiceModelConfig model_configs = 6 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// Voice config for a specific model.
+message VoiceModelConfig {
+  // The resource name of the model.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+  // The id used for this model by the provider.
+  string provider_voice_id = 2;
+}
+
+// Gender categories for voices.
+enum VoiceGender {
+  // Used to detect an unset field.
+  VOICE_GENDER_UNSPECIFIED = 0;
+  // Male gender.
+  VOICE_GENDER_MALE = 1;
+  // Female gender.
+  VOICE_GENDER_FEMALE = 2;
+}

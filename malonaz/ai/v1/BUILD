@@ -6,6 +6,7 @@ proto_library(
         "metrics.proto",
         "model.proto",
         "tool.proto",
+        "voice.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/v1",
