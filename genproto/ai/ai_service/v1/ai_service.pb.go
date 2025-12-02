@@ -471,7 +471,7 @@ func (x *SpeechToTextResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 type TextToTextConfiguration struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Maximum number of tokens to generate. Includes reasoning tokens.
-	MaxTokens int64 `protobuf:"varint,1,opt,name=max_tokens,json=maxTokens,proto3" json:"max_tokens,omitempty"`
+	MaxTokens int32 `protobuf:"varint,1,opt,name=max_tokens,json=maxTokens,proto3" json:"max_tokens,omitempty"`
 	// Sampling temperature (0.0 to 2.0).
 	Temperature float64 `protobuf:"fixed64,2,opt,name=temperature,proto3" json:"temperature,omitempty"`
 	// Represents the level of reasoning effort for AI model responses.
@@ -516,7 +516,7 @@ func (*TextToTextConfiguration) Descriptor() ([]byte, []int) {
 	return file_malonaz_ai_ai_service_v1_ai_service_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *TextToTextConfiguration) GetMaxTokens() int64 {
+func (x *TextToTextConfiguration) GetMaxTokens() int32 {
 	if x != nil {
 		return x.MaxTokens
 	}
@@ -1299,7 +1299,7 @@ const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xf7\x01\n" +
 	"\x17TextToTextConfiguration\x12&\n" +
 	"\n" +
-	"max_tokens\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\tmaxTokens\x129\n" +
+	"max_tokens\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tmaxTokens\x129\n" +
 	"\vtemperature\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\x00@)\x00\x00\x00\x00\x00\x00\x00\x00R\vtemperature\x12I\n" +
 	"\x10reasoning_effort\x18\x03 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12.\n" +
 	"\x13extract_json_object\x18\x04 \x01(\bR\x11extractJsonObject\"\xad\x02\n" +
