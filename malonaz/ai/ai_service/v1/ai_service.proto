@@ -26,8 +26,8 @@ service Ai {
   //
   // See: https://google.aip.dev/131 (Standard methods: Create).
   rpc CreateModel(CreateModelRequest) returns (ai.v1.Model) {
-    option (google.api.http) = {post: "/v1/{name=providers/*/models/*}"};
-    option (google.api.method_signature) = "name";
+    option (google.api.http) = {post: "/v1/{parent=providers/*}/models"};
+    option (google.api.method_signature) = "parent,model";
   }
 
   // Get a model.
@@ -42,24 +42,32 @@ service Ai {
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
-    option (google.api.http) = {get: "/v1/{parent=providers/*/*}/models"};
+    option (google.api.http) = {get: "/v1/{parent=providers/*}/models"};
     option (google.api.method_signature) = "parent";
   }
 
   // Create a voice.
   //
-  // See: https:/s/google.aip.dev/131 (Standard methods: Create).
+  // See: https://google.aip.dev/131 (Standard methods: Create).
   rpc CreateVoice(CreateVoiceRequest) returns (ai.v1.Voice) {
-    option (google.api.http) = {post: "/v1/{name=providers/*/voices/*}"};
-    option (google.api.method_signature) = "name";
+    option (google.api.http) = {post: "/v1/voices"};
+    option (google.api.method_signature) = "voice";
   }
 
   // Get a voice.
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetVoice(GetVoiceRequest) returns (ai.v1.Voice) {
-    option (google.api.http) = {get: "/v1/{name=providers/*/voices/*}"};
+    option (google.api.http) = {get: "/v1/{name=voices/*}"};
     option (google.api.method_signature) = "name";
+  }
+
+  // List voices for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListVoices(ListVoicesRequest) returns (ListVoicesResponse) {
+    option (google.api.http) = {get: "/v1/voices"};
+    option (google.api.method_signature) = "";
   }
 
   // Converts speech audio to text using the specified model.
@@ -187,6 +195,36 @@ message GetVoiceRequest {
     (buf.validate.field).required = true,
     (google.api.resource_reference).type = "ai.malonaz.com/Voice"
   ];
+}
+
+// Request message for Ai.ListVoices.
+message ListVoicesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 500};
+
+  // Requested page size. Server may return fewer voices than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 1 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListVoicesResponse.next_page_token][ai.ai_service.v1.ListVoicesResponse.next_page_token]
+  // returned from the previous call to `ListVoices` method.
+  string page_token = 2;
+}
+
+// Response message for Ai.ListVoices.
+message ListVoicesResponse {
+  // The list of voices.
+  repeated ai.v1.Voice voices = 1;
+
+  // A token to retrieve next page of results. Pass this value in the
+  // [ListVoicesRequest.page_token][ai.ai_service.v1.ListVoicesRequest.page_token]
+  // field in the subsequent call to `ListVoices` method to retrieve the next
+  // page of results.
+  string next_page_token = 2;
 }
 
 // Request message for Ai.SpeechToText.

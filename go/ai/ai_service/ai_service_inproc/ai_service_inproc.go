@@ -65,6 +65,15 @@ func (c *Client) GetVoice(
 	return c.server.GetVoice(ctx, request)
 }
 
+// ListVoices returns a paginated list of all voices visible to the caller.
+func (c *Client) ListVoices(
+	ctx context.Context,
+	request *aiservicepb.ListVoicesRequest,
+	_ ...grpc.CallOption,
+) (*aiservicepb.ListVoicesResponse, error) {
+	return c.server.ListVoices(ctx, request)
+}
+
 // TextToTextStream provides a client-facing streaming interface.
 // It wraps the underlying server streaming implementation using grpcinproc.
 func (c *Client) TextToTextStream(
