@@ -37,12 +37,16 @@ type AiClient interface {
 	ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https:/s/google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/131 (Standard methods: Create).
 	CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
+	// List voices for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
 	SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error)
 	// Convert text to text using chat completion models.
@@ -102,6 +106,15 @@ func (c *aiClient) CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts
 func (c *aiClient) GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error) {
 	out := new(v1.Voice)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/GetVoice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiClient) ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error) {
+	out := new(ListVoicesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/ListVoices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -217,12 +230,16 @@ type AiServer interface {
 	ListModels(context.Context, *ListModelsRequest) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https:/s/google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/131 (Standard methods: Create).
 	CreateVoice(context.Context, *CreateVoiceRequest) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error)
+	// List voices for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
 	SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error)
 	// Convert text to text using chat completion models.
@@ -253,6 +270,9 @@ func (UnimplementedAiServer) CreateVoice(context.Context, *CreateVoiceRequest) (
 }
 func (UnimplementedAiServer) GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVoice not implemented")
+}
+func (UnimplementedAiServer) ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListVoices not implemented")
 }
 func (UnimplementedAiServer) SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpeechToText not implemented")
@@ -367,6 +387,24 @@ func _Ai_GetVoice_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServer).GetVoice(ctx, req.(*GetVoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ai_ListVoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServer).ListVoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.Ai/ListVoices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServer).ListVoices(ctx, req.(*ListVoicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -493,6 +531,10 @@ var Ai_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVoice",
 			Handler:    _Ai_GetVoice_Handler,
+		},
+		{
+			MethodName: "ListVoices",
+			Handler:    _Ai_ListVoices_Handler,
 		},
 		{
 			MethodName: "SpeechToText",

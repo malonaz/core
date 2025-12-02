@@ -73,7 +73,7 @@ service Ai {
   // Converts speech audio to text using the specified model.
   rpc SpeechToText(SpeechToTextRequest) returns (SpeechToTextResponse) {
     option (google.api.http) = {
-      post: "/v1/providers/{provider}/models/{model}/speech-to-text"
+      post: "/v1/{model=providers/*/models/*}/speech-to-text"
       body: "*"
     };
   }
@@ -81,7 +81,7 @@ service Ai {
   // Convert text to text using chat completion models.
   rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
     option (google.api.http) = {
-      post: "/v1/providers/{provider}/models/{model}/text-to-text"
+      post: "/v1/{model=providers/*/models/*}/text-to-text"
       body: "*"
     };
   }
@@ -89,7 +89,7 @@ service Ai {
   // Converts text to text using chat completion models with streaming response.
   rpc TextToTextStream(TextToTextStreamRequest) returns (stream TextToTextStreamResponse) {
     option (google.api.http) = {
-      post: "/v1/providers/{provider}/models/{model}/text-to-text:stream"
+      post: "/v1/{model=providers/*/models/*}/text-to-text:stream"
       body: "*"
     };
   }
@@ -97,7 +97,7 @@ service Ai {
   // Converts text to speech audio, returning complete audio data.
   rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
     option (google.api.http) = {
-      post: "/v1/providers/{provider}/models/{model}/text-to-speech"
+      post: "/v1/{model=providers/*/models/*}/text-to-speech"
       body: "*"
     };
   }
@@ -105,7 +105,7 @@ service Ai {
   // Converts text to speech audio with streaming response.
   rpc TextToSpeechStream(TextToSpeechStreamRequest) returns (stream TextToSpeechStreamResponse) {
     option (google.api.http) = {
-      post: "/v1/providers/{provider}/models/{model}/text-to-speech:stream"
+      post: "/v1/{model=providers/*/models/*}/text-to-speech:stream"
       body: "*"
     };
   }

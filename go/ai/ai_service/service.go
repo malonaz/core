@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -19,9 +20,11 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 type Opts struct {
+	VoicesFile       string `long:"voices-file"     env:"VOICES_FILE" description:"Path to JSON file containing voices to preload"`
 	OpenAIApiKey     string `long:"openai-api-key"     env:"OPENAI_API_KEY" description:"Open AI api key"`
 	GroqApiKey       string `long:"gro-api-key"     env:"GROQ_API_KEY" description:"Groq api key"`
 	ElevenlabsApiKey string `long:"elevenlabs-api-key"     env:"ELEVENLABS_API_KEY" description:"Elevenlabs api key"`
@@ -32,7 +35,6 @@ type Opts struct {
 type runtime struct {
 	*provider.VoiceService
 	*provider.ModelService
-	opts           *Opts
 	cartesiaClient *cartesia.Client
 	providers      []provider.Provider
 }
@@ -67,7 +69,6 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	return &runtime{
 		VoiceService: voiceService,
 		ModelService: modelService,
-		opts:         opts,
 		providers:    providers,
 	}, nil
 }
@@ -81,11 +82,47 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 			return nil, fmt.Errorf("registering provider %s: %v", provider.ProviderId(), err)
 		}
 	}
+
+	// Load voices from file if specified
+	if s.opts.VoicesFile != "" {
+		if err := s.loadVoicesFromFile(ctx, s.opts.VoicesFile); err != nil {
+			return nil, fmt.Errorf("loading voices from file: %v", err)
+		}
+	}
+
 	return func() {
 		for _, provider := range s.providers {
 			provider.Stop()
 		}
 	}, nil
+}
+
+func (s *Service) loadVoicesFromFile(ctx context.Context, filepath string) error {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("opening voices file: %v", err)
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("reading voices file: %v", err)
+	}
+
+	// Unmarshal slice of CreateVoiceRequest messages
+	requests, err := pbutil.JSONUnmarshalSlice[pb.CreateVoiceRequest](pbutil.ProtoJsonUnmarshalStrictOptions, data)
+	if err != nil {
+		return fmt.Errorf("parsing voices file: %v", err)
+	}
+
+	// Create each voice
+	for i, request := range requests {
+		if _, err := s.CreateVoice(ctx, request); err != nil {
+			return fmt.Errorf("creating voice at index %d: %v", i, err)
+		}
+	}
+
+	return nil
 }
 
 // TextToTextStream implements the gRPC streaming method - direct pass-through

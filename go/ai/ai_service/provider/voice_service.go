@@ -44,6 +44,7 @@ func (s *VoiceService) CreateVoice(ctx context.Context, request *aiservicepb.Cre
 	}
 	request.Voice.Name = voiceRn.String()
 	s.voiceIdToVoice[voiceRn.Voice] = request.Voice
+	s.voicesSorted = append(s.voicesSorted, request.Voice)
 	return request.Voice, nil
 }
 

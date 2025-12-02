@@ -28,6 +28,7 @@ go_library(
         "//go/ai/ai_service/provider/openai",
         "//go/grpc",
         "//go/grpc/grpcinproc",
+        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/audio/v1",
