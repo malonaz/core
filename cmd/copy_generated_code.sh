@@ -20,6 +20,8 @@ declare -a FILES=(
   "malonaz/ai/v1/jsonschema.pb.go:ai/v1"
   "malonaz/ai/v1/metrics.pb.go:ai/v1"
   "malonaz/ai/v1/tool.pb.go:ai/v1"
+  "malonaz/ai/v1/voice.pb.go:ai/v1"
+  "malonaz/ai/v1/voice_aip.go:ai/v1"
 
   "malonaz/ai/ai_service/v1/ai_service.pb.go:ai/ai_service/v1"
   "malonaz/ai/ai_service/v1/ai_service_grpc.pb.go:ai/ai_service/v1"

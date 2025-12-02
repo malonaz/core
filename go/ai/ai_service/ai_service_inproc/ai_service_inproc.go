@@ -20,7 +20,7 @@ func New(server aiservicepb.AiServer) (*Client, error) {
 	return &Client{server: server}, nil
 }
 
-// TextToText provides a client-facing interface for text-to-text conversion.
+// CreateModel creates a new model configuration and returns the resulting resource.
 func (c *Client) CreateModel(
 	ctx context.Context,
 	request *aiservicepb.CreateModelRequest,
@@ -29,7 +29,7 @@ func (c *Client) CreateModel(
 	return c.server.CreateModel(ctx, request)
 }
 
-// TextToText provides a client-facing interface for text-to-text conversion.
+// GetModel retrieves a single model by its unique identifier.
 func (c *Client) GetModel(
 	ctx context.Context,
 	request *aiservicepb.GetModelRequest,
@@ -38,13 +38,31 @@ func (c *Client) GetModel(
 	return c.server.GetModel(ctx, request)
 }
 
-// TextToText provides a client-facing interface for text-to-text conversion.
+// ListModels returns a paginated list of all models visible to the caller.
 func (c *Client) ListModels(
 	ctx context.Context,
 	request *aiservicepb.ListModelsRequest,
 	_ ...grpc.CallOption,
 ) (*aiservicepb.ListModelsResponse, error) {
 	return c.server.ListModels(ctx, request)
+}
+
+// CreateVoice registers a new voice profile and returns the created voice resource.
+func (c *Client) CreateVoice(
+	ctx context.Context,
+	request *aiservicepb.CreateVoiceRequest,
+	_ ...grpc.CallOption,
+) (*aipb.Voice, error) {
+	return c.server.CreateVoice(ctx, request)
+}
+
+// GetVoice fetches a single voice profile by its unique identifier.
+func (c *Client) GetVoice(
+	ctx context.Context,
+	request *aiservicepb.GetVoiceRequest,
+	_ ...grpc.CallOption,
+) (*aipb.Voice, error) {
+	return c.server.GetVoice(ctx, request)
 }
 
 // TextToTextStream provides a client-facing streaming interface.

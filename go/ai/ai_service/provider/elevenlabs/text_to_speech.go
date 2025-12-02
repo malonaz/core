@@ -55,7 +55,7 @@ func (c *Client) TextToSpeechStream(
 	}
 
 	// Create the HTTP request
-	url := fmt.Sprintf("%s/text-to-speech/%s/stream", c.baseURL, request.Voice)
+	url := fmt.Sprintf("%s/text-to-speech/%s/stream", c.baseURL, request.ProviderVoiceId)
 
 	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
 	if err != nil {

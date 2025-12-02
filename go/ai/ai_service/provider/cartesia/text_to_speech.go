@@ -95,7 +95,7 @@ func (c *Client) TextToSpeechStream(
 		Transcript: request.Text,
 		Voice: VoiceSpecifier{
 			Mode: "id",
-			ID:   request.Voice,
+			ID:   request.ProviderVoiceId,
 		},
 		OutputFormat: OutputFormat{
 			Container:  "raw",

@@ -37,7 +37,7 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 	createSpeechRequest := openai.CreateSpeechRequest{
 		Model:          openai.SpeechModel(model.ProviderModelId),
 		Input:          request.Text,
-		Voice:          openai.SpeechVoice(request.Voice),
+		Voice:          openai.SpeechVoice(request.ProviderVoiceId),
 		ResponseFormat: responseFormat,
 	}
 

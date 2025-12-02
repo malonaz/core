@@ -30,6 +30,7 @@ type Opts struct {
 }
 
 type runtime struct {
+	*provider.VoiceService
 	*provider.ModelService
 	opts           *Opts
 	cartesiaClient *cartesia.Client
@@ -37,6 +38,10 @@ type runtime struct {
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
+	voiceService, err := provider.NewVoiceService()
+	if err != nil {
+		return nil, fmt.Errorf("creating new voice service: %v", err)
+	}
 	modelService, err := provider.NewModelService()
 	if err != nil {
 		return nil, fmt.Errorf("creating new model service: %v", err)
@@ -60,6 +65,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 
 	return &runtime{
+		VoiceService: voiceService,
 		ModelService: modelService,
 		opts:         opts,
 		providers:    providers,
@@ -217,6 +223,25 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 	if err := checkModelDeprecation(model); err != nil {
 		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
+
+	if request.Voice != "" {
+		getVoiceRequest := &pb.GetVoiceRequest{Name: request.Voice}
+		voice, err := s.GetVoice(ctx, getVoiceRequest)
+		if err != nil {
+			return err
+		}
+		var providerVoiceId string
+		for _, modelConfig := range voice.ModelConfigs {
+			if request.Model == modelConfig.Model {
+				providerVoiceId = modelConfig.ProviderVoiceId
+			}
+		}
+		if providerVoiceId == "" {
+			return grpc.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", request.Model, request.Voice).Err()
+		}
+		request.ProviderVoiceId = providerVoiceId
+	}
+
 	return provider.TextToSpeechStream(request, srv)
 }
 
