@@ -41,7 +41,7 @@ func (c *Client) DefaultModels() []*aipb.Model {
 		// Latest Models - Auto-updating (non-pinned)
 		{
 			Name:            provider.NewModelName(c.ProviderId(), "claude-sonnet-4.5"),
-			ProviderModelId: "claude-sonnet-4.5",
+			ProviderModelId: "claude-sonnet-4-5",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 200_000,
 				OutputTokenLimit:  64_000,
@@ -51,7 +51,7 @@ func (c *Client) DefaultModels() []*aipb.Model {
 		},
 		{
 			Name:            provider.NewModelName(c.ProviderId(), "claude-haiku-4.5"),
-			ProviderModelId: "claude-haiku-4.5",
+			ProviderModelId: "claude-haiku-4-5",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 200_000,
 				OutputTokenLimit:  64_000,
@@ -61,7 +61,7 @@ func (c *Client) DefaultModels() []*aipb.Model {
 		},
 		{
 			Name:            provider.NewModelName(c.ProviderId(), "claude-opus-4.5"),
-			ProviderModelId: "claude-opus-4.5",
+			ProviderModelId: "claude-opus-4-5",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 200_000,
 				OutputTokenLimit:  64_000,
@@ -71,7 +71,7 @@ func (c *Client) DefaultModels() []*aipb.Model {
 		},
 		{
 			Name:            provider.NewModelName(c.ProviderId(), "claude-opus-4.1"),
-			ProviderModelId: "claude-opus-4.1",
+			ProviderModelId: "claude-opus-4-1",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 200_000,
 				OutputTokenLimit:  32_000,

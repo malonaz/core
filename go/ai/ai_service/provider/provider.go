@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -140,7 +141,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	for providerId, modelIdToModel := range s.providerIdToModelIdToModel {
 		if providerRn.ContainsWildcard() || providerRn.Provider == providerId {
 			for _, model := range modelIdToModel {
-				modelsToPage = append(modelsToPage, model)
+				modelsToPage = append(modelsToPage, proto.Clone(model).(*aipb.Model))
 			}
 		}
 	}
