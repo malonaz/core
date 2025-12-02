@@ -2,6 +2,7 @@ package aip
 
 import (
 	"fmt"
+	"strings"
 
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/filtering"
@@ -54,6 +55,12 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	// Validate options
 	if err := validator.Validate(filteringOptions); err != nil {
 		return nil, fmt.Errorf("validating options: %v", err)
+	}
+
+	var zeroResource R
+	paths := strings.Join(filteringOptions.GetPaths(), ",")
+	if err := pbutil.ValidateMask(zeroResource, paths); err != nil {
+		return nil, fmt.Errorf("validating filtering paths: %w", err)
 	}
 
 	// Create a tree and explore.

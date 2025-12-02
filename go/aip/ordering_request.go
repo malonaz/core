@@ -56,6 +56,12 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
+	var zeroResource R
+	paths := strings.Join(options.GetPaths(), ",")
+	if err := pbutil.ValidateMask(zeroResource, paths); err != nil {
+		return nil, fmt.Errorf("validating filtering paths: %w", err)
+	}
+
 	// Create a tree and explore.
 	tree, err := BuildResourceTree[R](10, options.GetPaths())
 	if err != nil {
