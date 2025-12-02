@@ -32,6 +32,9 @@ declare -a FILES=(
   "malonaz/codegen/gateway/v1/gateway.pb.go:codegen/gateway/v1"
   "malonaz/codegen/aip/v1/aip.pb.go:codegen/aip/v1"
   "malonaz/codegen/llm/v1/llm.pb.go:codegen/llm/v1"
+
+ # Proto test files
+  "malonaz/test/aip/aip.pb.go:test/aip"
 )
 
 # Collect all directories we'll be writing to
