@@ -123,6 +123,12 @@ pb "{{ $apiImportPath }}"
         {{- else if $rpc.Update }}
             var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewUpdateRequestParser" }}[*pb.{{ $method.Input.GoIdent.GoName }}, *{{ qualifiedGoIdent $rpc.Message.GoIdent }}]()
             func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+            {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
+                // STEP 1: Parse request.
+                request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
+	              request.{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
+            {{- end }}
+
             // STEP 1: Parse request.
 	          parsed, err := update{{ $resourceGoName }}RequestParser.Parse(request)
 	          if err != nil {
@@ -138,9 +144,6 @@ pb "{{ $apiImportPath }}"
             updated{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "Clone" }}(existing{{ $resourceGoName }}).(*{{ qualifiedGoIdent $method.Output.GoIdent }})
 
             // STEP 3: Patch the existing resource.
-            {{ if $rpc.Message.Desc.Fields.ByName "update_time" -}}
-	              updated{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
-            {{ end }}
 	          if err := parsed.ApplyFieldMask(updated{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask: %v", err)
 	          }

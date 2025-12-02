@@ -51,12 +51,6 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 			wantUpdateClause: "nested = EXCLUDED.nested",
 			wantErr:          false,
 		},
-		{
-			name:             "map to multiple values",
-			fieldMaskPaths:   []string{"nested3"},
-			wantUpdateClause: "deleted = EXCLUDED.deleted, my_enum = EXCLUDED.my_enum",
-			wantErr:          false,
-		},
 
 		// Tests that should fail because the paths are not authorized
 		{
@@ -107,7 +101,7 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 		{
 			name:             "matching wildcard path",
 			fieldMaskPaths:   []string{"nested4.field1"},
-			wantUpdateClause: "nested4 = EXCLUDED.nested4, nested3 = EXCLUDED.nested3",
+			wantUpdateClause: "nested4 = EXCLUDED.nested4",
 			wantErr:          false,
 		},
 		{
@@ -119,7 +113,7 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 		{
 			name:             "two matching wildcard path",
 			fieldMaskPaths:   []string{"nested4.field1", "nested4.field3"},
-			wantUpdateClause: "nested4 = EXCLUDED.nested4, nested3 = EXCLUDED.nested3",
+			wantUpdateClause: "nested4 = EXCLUDED.nested4",
 		},
 	}
 
@@ -142,7 +136,7 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 	}
 }
 
-func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
+func TestUpdateRequestParser_UpdateTimestampAlwaysAuthorized(t *testing.T) {
 	parser, err := NewUpdateRequestParser[*pb.UpdateResource2Request, *pb.Resource]()
 	require.NoError(t, err)
 
@@ -154,13 +148,14 @@ func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
 	}{
 		{
 			name:             "explicit field path without default path",
-			fieldMaskPaths:   []string{"nested"},
-			wantUpdateClause: "nested = EXCLUDED.nested, field1 = EXCLUDED.field1",
+			fieldMaskPaths:   []string{"nested", "update_timestamp"},
+			wantUpdateClause: "nested = EXCLUDED.nested, update_timestamp = EXCLUDED.update_timestamp",
 			wantErr:          false,
 		},
 		{
 			name:             "explicit field path with default path",
-			wantUpdateClause: "field1 = EXCLUDED.field1",
+			fieldMaskPaths:   []string{"update_timestamp"},
+			wantUpdateClause: "update_timestamp = EXCLUDED.update_timestamp",
 			wantErr:          false,
 		},
 	}

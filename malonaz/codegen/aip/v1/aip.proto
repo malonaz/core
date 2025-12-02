@@ -54,35 +54,10 @@ message OrderingOptions {
 // Configuration options for AIP-compliant Update methods.
 // Defines which fields can be updated and how field masks are processed.
 message UpdateOptions {
-  // Fields that are automatically included in every update, even if not in the field mask.
-  // Commonly includes fields like "update_time" that should always be refreshed.
-  // These paths are added to the update operation without requiring explicit authorization.
-  repeated string default_paths = 1;
-
   // List of field paths that users are authorized to update.
   // Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
   // This provides fine-grained access control at the field level.
-  repeated string authorized_paths = 2;
-
-  // Mappings from proto field paths to database column names or JSONB paths.
-  // Allows decoupling the proto field structure from the database schema.
-  // Supports wildcards (e.g., "metadata.*" => "metadata_jsonb") for nested fields.
-  repeated UpdatePathMapping path_mappings = 3;
-}
-
-// Defines how a proto field path maps to database column(s).
-// This allows complex mappings where a single proto field may update multiple DB columns,
-// or multiple proto fields map to a single JSONB column.
-message UpdatePathMapping {
-  // The source field path from the proto field mask.
-  // Supports wildcards with ".*" suffix to match all nested fields
-  // (e.g., "metadata.*" matches "metadata.name", "metadata.tags", etc.).
-  string from = 1;
-
-  // The target database column name(s) to update.
-  // Multiple columns can be specified if one proto field affects multiple DB columns.
-  // Example: ["metadata_jsonb"] for JSONB columns, or ["field1", "field2"] for multiple columns.
-  repeated string to = 2;
+  repeated string paths = 1;
 }
 
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).

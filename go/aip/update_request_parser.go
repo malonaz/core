@@ -66,10 +66,9 @@ func (p *ParsedUpdateRequest) GetSQLColumns() []string {
 // UpdateRequestParser implements update request parsing.
 type UpdateRequestParser[T updateRequest, R proto.Message] struct {
 	validator         protovalidate.Validator
-	defaultPaths      []string
-	mappings          []*aippb.UpdatePathMapping
-	authorizedPaths   []string
+	paths             []string
 	protoPathToColumn map[string]string
+	mappings          map[string]string
 }
 
 // MustNewUpdateRequestParser instantiates and returns a new update request parser, panicking on error.
@@ -100,20 +99,14 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 
 	// Validate the paths.
 	var zeroResource R
-	var allPaths []string
-	allPaths = append(allPaths, options.GetAuthorizedPaths()...)
-	allPaths = append(allPaths, options.GetDefaultPaths()...)
-	for _, pathMapping := range options.GetPathMappings() {
-		allPaths = append(allPaths, pathMapping.From)
-		allPaths = append(allPaths, pathMapping.To...)
-	}
-
-	var sanitizedPaths []string
-	for _, path := range allPaths {
+	sanitizedPaths := make([]string, 0, len(options.GetPaths()))
+	for _, path := range options.GetPaths() {
 		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
 	}
-	if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
-		return nil, fmt.Errorf("validating filtering paths: %w", err)
+	if len(sanitizedPaths) > 0 {
+		if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
+			return nil, fmt.Errorf("validating filtering paths: %w", err)
+		}
 	}
 
 	// Build tree to get column name mappings (without nested path transformation).
@@ -122,27 +115,40 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 		return nil, fmt.Errorf("building resource tree: %w", err)
 	}
 
+	paths := options.Paths
 	protoPathToColumn := make(map[string]string)
-	for node := range tree.AllowedNodes() {
+	mappings := map[string]string{}
+	for _, node := range tree.Nodes {
+		// We always add 'update_timestamp' as an updatable field.
+		if node.Path == "update_time" {
+			paths = append(paths, node.Path)
+		}
 		columnName := node.Path
 		if node.ReplacementPath != "" {
 			columnName = node.ReplacementPath
 		}
 		protoPathToColumn[node.Path] = columnName
+
+		// Auto-generate mappings for fields stored as JSON or Proto bytes.
+		if node.AsJsonBytes || node.AsProtoBytes {
+			mappings[node.Path+".*"] = columnName
+		}
 	}
 
 	return &UpdateRequestParser[T, R]{
 		validator:         validator,
-		defaultPaths:      options.DefaultPaths,
-		mappings:          options.PathMappings,
-		authorizedPaths:   options.AuthorizedPaths,
+		paths:             paths,
 		protoPathToColumn: protoPathToColumn,
+		mappings:          mappings,
 	}, nil
 }
 
 func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, error) {
 	var resource R
 	fieldMask := request.GetUpdateMask()
+	if len(fieldMask.GetPaths()) == 0 {
+		return nil, fmt.Errorf("no mask paths specified")
+	}
 
 	// Validate the paths are valid.
 	if err := fieldmask.Validate(fieldMask, resource); err != nil {
@@ -156,24 +162,22 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 	}
 
 	// Iterate over each path in the field mask.
-	for i, path := range append(fieldMask.Paths, p.defaultPaths...) {
+	for _, path := range fieldMask.Paths {
 		// We only verify non default paths for authorization.
-		if i < len(fieldMask.Paths) && !p.isAuthorizedPath(path) {
+		if !p.isAuthorizedPath(path) {
 			return nil, fmt.Errorf("unauthorized field mask path: %s", path)
 		}
 
 		// Check against configured fields to see if there is a match.
 		mappingFound := false
-		for _, mapping := range p.mappings {
-			if p.match(mapping, path) {
+		for mappingFrom, mappingTo := range p.mappings {
+			if p.match(mappingFrom, path) {
 				// Add the mapped update mapping to the set and list.
-				for _, v := range mapping.To {
-					// Translate mapped path to column name if applicable.
-					columnName := p.translateToColumnName(v)
-					if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
-						parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
-						parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
-					}
+				// Translate mapped path to column name if applicable.
+				columnName := p.translateToColumnName(mappingTo)
+				if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
+					parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
+					parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
 				}
 				mappingFound = true
 				break
@@ -201,19 +205,19 @@ func (p *UpdateRequestParser[T, R]) translateToColumnName(path string) string {
 }
 
 // Helper method to check if a fieldPath matches a from considering wildcard.
-func (p *UpdateRequestParser[T, R]) match(mapping *aippb.UpdatePathMapping, fieldPath string) bool {
-	if strings.HasSuffix(mapping.From, ".*") {
+func (p *UpdateRequestParser[T, R]) match(mappingFrom string, fieldPath string) bool {
+	if strings.HasSuffix(mappingFrom, ".*") {
 		// If from is a wildcard pattern, strip the wildcard and compare prefixes.
-		prefix := strings.TrimSuffix(mapping.From, "*")
+		prefix := strings.TrimSuffix(mappingFrom, "*")
 		return strings.HasPrefix(fieldPath, prefix)
 	}
 	// If from is not a wildcard pattern, compare them directly.
-	return mapping.From == fieldPath
+	return mappingFrom == fieldPath
 }
 
 // Helper method to check if a fieldPath is authorized considering wildcard.
 func (p *UpdateRequestParser[T, R]) isAuthorizedPath(fieldPath string) bool {
-	for _, path := range p.authorizedPaths {
+	for _, path := range p.paths {
 		if strings.HasSuffix(path, ".*") {
 			// If authorizedPath is a wildcard pattern, strip the wildcard and compare prefixes.
 			prefix := strings.TrimSuffix(path, "*")

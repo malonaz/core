@@ -850,7 +850,7 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\b\n" +
-	"\"\xa1\x05\n" +
+	"\"\xa9\x05\n" +
 	"\bResource\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
 	"\x10create_timestamp\x18\x14 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
@@ -858,8 +858,8 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\x06field1\x18\x02 \x01(\tR\x06field1\x12;\n" +
 	"\x06nested\x18\x03 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\x06nested\x12=\n" +
 	"\anested2\x18\x04 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\anested2\x125\n" +
-	"\anested3\x18\x05 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested3\x125\n" +
-	"\anested4\x18\x06 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested4\x12,\n" +
+	"\anested3\x18\x05 \x01(\v2\x1b.test.aip.v1.NestedResourceR\anested3\x12=\n" +
+	"\anested4\x18\x06 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x18\x01R\anested4\x12,\n" +
 	"\amy_enum\x18\a \x01(\x0e2\x13.test.aip.v1.MyEnumR\x06myEnum\x12\x18\n" +
 	"\adeleted\x18\b \x01(\bR\adeleted\x12H\n" +
 	"\rnullable_enum\x18\n" +
@@ -877,25 +877,32 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\x14DeeplyNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
-	"\x06field3\x18\x03 \x01(\tR\x06field3\"\xca\x02\n" +
+	"\x06field3\x18\x03 \x01(\tR\x06field3\"\xdf\x01\n" +
 	"\x15UpdateResourceRequest\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask:\xc0\x01\xea\x9c\xc1\x03\xba\x01\x12\x06field1\x12\rnested.field2\x12\anested2\x12\x06nested\x12\x0enested4.field1\x12\x0enested4.field3\x12\anested3\x1a\x17\n" +
-	"\rnested.field2\x12\x06nested\x1a\x12\n" +
-	"\anested2\x12\anested2\x1a\x1d\n" +
-	"\tnested4.*\x12\anested4\x12\anested3\x1a\x1b\n" +
-	"\anested3\x12\adeleted\x12\amy_enum\"\xa8\x01\n" +
+	"updateMask:V\xea\x9c\xc1\x03Q\n" +
+	"\x06field1\n" +
+	"\rnested.field2\n" +
+	"\anested2\n" +
+	"\x06nested\n" +
+	"\x0enested4.field1\n" +
+	"\x0enested4.field3\n" +
+	"\anested3\"\xa0\x01\n" +
 	"\x16UpdateResource2Request\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask:\x1e\xea\x9c\xc1\x03\x19\n" +
-	"\x06field1\x12\x06nested\x12\anested2\"\x89\x02\n" +
+	"updateMask:\x16\xea\x9c\xc1\x03\x11\n" +
+	"\x06nested\n" +
+	"\anested2\"\xe0\x01\n" +
 	"#UpdateResourceWithColumnNameRequest\x121\n" +
 	"\bresource\x18\x01 \x01(\v2\x15.test.aip.v1.ResourceR\bresource\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask:r\xea\x9c\xc1\x03m\x12\x13column_name_changed\x12\x06field1\x12\x15nested_changed.field2\x12\x0enested_changed\x1a'\n" +
-	"\x15nested_changed.field2\x12\x0enested_changed*4\n" +
+	"updateMask:I\xea\x9c\xc1\x03D\n" +
+	"\x13column_name_changed\n" +
+	"\x06field1\n" +
+	"\x15nested_changed.field2\n" +
+	"\x0enested_changed*4\n" +
 	"\x06MyEnum\x12\x17\n" +
 	"\x13MY_ENUM_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rMY_ENUM_VALUE\x10\x01*2\n" +

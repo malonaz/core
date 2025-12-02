@@ -100,7 +100,7 @@ message Resource {
   // Third nested resource for multi-column mapping.
   NestedResource nested3 = 5;
   // Fourth nested resource for wildcard mapping.
-  NestedResource nested4 = 6;
+  NestedResource nested4 = 6 [(malonaz.codegen.model.v1.field_opts).as_proto_bytes = true];
   // Enum field for filter testing.
   MyEnum my_enum = 7;
   // Some boolean field.
@@ -141,31 +141,7 @@ message DeeplyNestedResource {
 // UpdateResourceRequest tests field mask with path mappings and authorization.
 message UpdateResourceRequest {
   option (malonaz.codegen.aip.v1.update) = {
-    path_mappings: [
-      {
-        from: "nested.field2"
-        to: ["nested"]
-      },
-      {
-        from: "nested2"
-        to: ["nested2"]
-      },
-      {
-        from: "nested4.*"
-        to: [
-          "nested4",
-          "nested3"
-        ]
-      },
-      {
-        from: "nested3"
-        to: [
-          "deleted",
-          "my_enum"
-        ]
-      }
-    ]
-    authorized_paths: [
+    paths: [
       "field1",
       "nested.field2",
       "nested2",
@@ -185,8 +161,7 @@ message UpdateResourceRequest {
 // UpdateResource2Request tests default paths with authorized paths.
 message UpdateResource2Request {
   option (malonaz.codegen.aip.v1.update) = {
-    default_paths: ["field1"]
-    authorized_paths: [
+    paths: [
       "nested",
       "nested2"
     ]
@@ -201,13 +176,7 @@ message UpdateResource2Request {
 // UpdateResourceWithColumnNameRequest tests column name changes in updates.
 message UpdateResourceWithColumnNameRequest {
   option (malonaz.codegen.aip.v1.update) = {
-    path_mappings: [
-      {
-        from: "nested_changed.field2"
-        to: ["nested_changed"]
-      }
-    ]
-    authorized_paths: [
+    paths: [
       "column_name_changed",
       "field1",
       "nested_changed.field2",

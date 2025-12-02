@@ -183,12 +183,14 @@ func (t *Tree) IsPathAllowed(node *Node) bool {
 
 type Node struct {
 	// Parse time.
-	Depth      int
-	ColumnName string
-	Path       string
-	Nullable   bool
-	ExprType   *v1alpha1.Type
-	EnumType   protoreflect.EnumType
+	Depth        int
+	ColumnName   string
+	Path         string
+	Nullable     bool
+	ExprType     *v1alpha1.Type
+	EnumType     protoreflect.EnumType
+	AsJsonBytes  bool
+	AsProtoBytes bool
 
 	// Replacement stuff.
 	AllowedPath           bool
@@ -258,7 +260,14 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 	}
 
 	// Create and add the node.
-	node := &Node{Depth: depth, Path: fieldPath, Nullable: fieldOpts.GetNullable(), ColumnName: fieldOpts.GetColumnName()}
+	node := &Node{
+		Depth:        depth,
+		Path:         fieldPath,
+		Nullable:     fieldOpts.GetNullable(),
+		ColumnName:   fieldOpts.GetColumnName(),
+		AsJsonBytes:  depth == 0 && fieldOpts.GetAsJsonBytes(),
+		AsProtoBytes: depth == 0 && fieldOpts.GetAsProtoBytes(),
+	}
 	t.Add(node)
 
 	switch fieldDesc.Kind() {
