@@ -14,7 +14,7 @@ import (
 )
 
 // UpdateRequest defines the interface of an AIP update request.
-type UpdateRequest interface {
+type updateRequest interface {
 	proto.Message
 	GetUpdateMask() *fieldmaskpb.FieldMask
 }
@@ -64,39 +64,74 @@ func (p *ParsedUpdateRequest) GetSQLColumns() []string {
 }
 
 // UpdateRequestParser implements update request parsing.
-type UpdateRequestParser struct {
+type UpdateRequestParser[T updateRequest, R proto.Message] struct {
 	validator       protovalidate.Validator
 	defaultPaths    []string
 	mappings        []*aippb.UpdatePathMapping
-	authorizedPaths []*aippb.AuthorizedUpdatePath
+	authorizedPaths []string
+}
+
+// MustNewUpdateRequestParser instantiates and returns a new update request parser, panicking on error.
+func MustNewUpdateRequestParser[T updateRequest, R proto.Message]() *UpdateRequestParser[T, R] {
+	parser, err := NewUpdateRequestParser[T, R]()
+	if err != nil {
+		panic(err)
+	}
+	return parser
 }
 
 // NewUpdateRequestParser instantiates and returns a new update request parser.
-func NewUpdateRequestParser(request UpdateRequest) *UpdateRequestParser {
+func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestParser[T, R], error) {
 	validator, err := protovalidate.New()
 	if err != nil {
-		panic("instantiating proto validator")
+		return nil, fmt.Errorf("instantiating proto validator: %w", err)
 	}
 
-	options := pbutil.MustGetMessageOption(request, aippb.E_Update).(*aippb.UpdateOptions)
-	if options == nil {
-		panic(fmt.Sprintf("%T must define UpdateOptions", request))
+	// Parse options.
+	var zero T
+	options, err := pbutil.GetMessageOption[*aippb.UpdateOptions](zero, aippb.E_Update)
+	if err != nil {
+		return nil, fmt.Errorf("getting update options: %w", err)
 	}
-	return &UpdateRequestParser{
+	if options == nil {
+		return nil, fmt.Errorf("%T must define UpdateOptions", zero)
+	}
+
+	// Validate the paths.
+	var zeroResource R
+	var allPaths []string
+	allPaths = append(allPaths, options.GetAuthorizedPaths()...)
+	allPaths = append(allPaths, options.GetDefaultPaths()...)
+	for _, pathMapping := range options.GetPathMappings() {
+		allPaths = append(allPaths, pathMapping.From)
+		allPaths = append(allPaths, pathMapping.To...)
+	}
+
+	var sanitizedPaths []string
+	for _, path := range allPaths {
+		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
+	}
+	if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
+		return nil, fmt.Errorf("validating filtering paths: %w", err)
+	}
+
+	return &UpdateRequestParser[T, R]{
 		validator:       validator,
 		defaultPaths:    options.DefaultPaths,
 		mappings:        options.PathMappings,
 		authorizedPaths: options.AuthorizedPaths,
-	}
+	}, nil
 }
 
-func (p *UpdateRequestParser) Parse(
-	fieldMask *fieldmaskpb.FieldMask, resource proto.Message,
-) (*ParsedUpdateRequest, error) {
+func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, error) {
+	var resource R
+	fieldMask := request.GetUpdateMask()
+
 	// Validate the paths are valid.
 	if err := fieldmask.Validate(fieldMask, resource); err != nil {
 		return nil, fmt.Errorf("invalid field mask paths: %v", err)
 	}
+
 	parsedUpdateRequest := &ParsedUpdateRequest{
 		validator:      p.validator,
 		fieldMask:      fieldMask,
@@ -138,7 +173,7 @@ func (p *UpdateRequestParser) Parse(
 }
 
 // Helper method to check if a fieldPath matches a from considering wildcard.
-func (p *UpdateRequestParser) match(mapping *aippb.UpdatePathMapping, fieldPath string) bool {
+func (p *UpdateRequestParser[T, R]) match(mapping *aippb.UpdatePathMapping, fieldPath string) bool {
 	if strings.HasSuffix(mapping.From, ".*") {
 		// If from is a wildcard pattern, strip the wildcard and compare prefixes.
 		prefix := strings.TrimSuffix(mapping.From, "*")
@@ -149,15 +184,15 @@ func (p *UpdateRequestParser) match(mapping *aippb.UpdatePathMapping, fieldPath 
 }
 
 // Helper method to check if a fieldPath is authorized considering wildcard.
-func (p *UpdateRequestParser) isAuthorizedPath(fieldPath string) bool {
-	for _, authorizedPath := range p.authorizedPaths {
-		if strings.HasSuffix(authorizedPath.Path, ".*") {
+func (p *UpdateRequestParser[T, R]) isAuthorizedPath(fieldPath string) bool {
+	for _, path := range p.authorizedPaths {
+		if strings.HasSuffix(path, ".*") {
 			// If authorizedPath is a wildcard pattern, strip the wildcard and compare prefixes.
-			prefix := strings.TrimSuffix(authorizedPath.Path, "*")
+			prefix := strings.TrimSuffix(path, "*")
 			if strings.HasPrefix(fieldPath, prefix) {
 				return true
 			}
-		} else if authorizedPath.Path == fieldPath {
+		} else if path == fieldPath {
 			return true // Exact match.
 		}
 	}

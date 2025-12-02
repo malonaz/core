@@ -121,10 +121,10 @@ pb "{{ $apiImportPath }}"
             }
 
         {{- else if $rpc.Update }}
-            var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "NewUpdateRequestParser" }}(&pb.Update{{ $resourceGoName }}Request{})
+            var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewUpdateRequestParser" }}[*pb.{{ $method.Input.GoIdent.GoName }}, *{{ qualifiedGoIdent $rpc.Message.GoIdent }}]()
             func (c *codegen) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *pb.{{ $method.Input.GoIdent.GoName }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
             // STEP 1: Parse request.
-	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request.UpdateMask, request.{{ $resourceGoName }})
+	          parsed, err := update{{ $resourceGoName }}RequestParser.Parse(request)
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err)
 	          }
@@ -141,7 +141,7 @@ pb "{{ $apiImportPath }}"
             {{ if $rpc.Message.Desc.Fields.ByName "update_time" -}}
 	              updated{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
             {{ end }}
-	          if err := parsedRequest.ApplyFieldMask(updated{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
+	          if err := parsed.ApplyFieldMask(updated{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask: %v", err)
 	          }
 
@@ -150,7 +150,7 @@ pb "{{ $apiImportPath }}"
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting pb.{{ $resourceGoName }} to model.{{ $resourceGoName }}: %v", err)
 	          }
-	          ok, err := c.{{ $dbClient }}.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
+	          ok, err := c.{{ $dbClient }}.Update{{ $resourceGoName }}(ctx, {{ $resourceGoName | untitle }}, parsed.GetSQLUpsertClause())
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | untitle }}: %v", err)
 	          }

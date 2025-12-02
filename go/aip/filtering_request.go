@@ -57,9 +57,13 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
+	// Validate the paths.
 	var zeroResource R
-	paths := strings.Join(filteringOptions.GetPaths(), ",")
-	if err := pbutil.ValidateMask(zeroResource, paths); err != nil {
+	sanitizedPaths := make([]string, 0, len(filteringOptions.GetPaths()))
+	for _, path := range filteringOptions.GetPaths() {
+		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
+	}
+	if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
 		return nil, fmt.Errorf("validating filtering paths: %w", err)
 	}
 

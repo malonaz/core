@@ -62,21 +62,12 @@ message UpdateOptions {
   // List of field paths that users are authorized to update.
   // Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
   // This provides fine-grained access control at the field level.
-  repeated AuthorizedUpdatePath authorized_paths = 2;
+  repeated string authorized_paths = 2;
 
   // Mappings from proto field paths to database column names or JSONB paths.
   // Allows decoupling the proto field structure from the database schema.
   // Supports wildcards (e.g., "metadata.*" => "metadata_jsonb") for nested fields.
   repeated UpdatePathMapping path_mappings = 3;
-}
-
-// Represents a single authorized field path for updates.
-// Used within UpdateOptions to define which fields can be modified.
-message AuthorizedUpdatePath {
-  // The field path that can be updated (e.g., "name", "metadata.description").
-  // Supports wildcards with ".*" suffix to authorize all nested fields
-  // (e.g., "metadata.*" authorizes "metadata.name", "metadata.description", etc.).
-  string path = 1;
 }
 
 // Defines how a proto field path maps to database column(s).

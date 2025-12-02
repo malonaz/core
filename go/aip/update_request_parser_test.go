@@ -11,7 +11,8 @@ import (
 )
 
 func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
-	parser := NewUpdateRequestParser(&pb.UpdateResourceRequest{})
+	parser, err := NewUpdateRequestParser[*pb.UpdateResourceRequest, *pb.Resource]()
+	require.NoError(t, err)
 
 	tests := []struct {
 		name             string
@@ -21,21 +22,21 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 	}{
 		// Tests that should succeed because the paths are authorized
 		{
-			name:             "single authorized field path",
+			name:             "single authorized field path with mapping",
 			fieldMaskPaths:   []string{"field1"},
-			wantUpdateClause: "field_one = EXCLUDED.field_one",
+			wantUpdateClause: "field1 = EXCLUDED.field1",
 			wantErr:          false,
 		},
 		{
 			name:             "single authorized nested field path",
 			fieldMaskPaths:   []string{"nested.field2"},
-			wantUpdateClause: "nested_field_two = EXCLUDED.nested_field_two",
+			wantUpdateClause: "nested = EXCLUDED.nested",
 			wantErr:          false,
 		},
 		{
 			name:             "multiple authorized field paths",
 			fieldMaskPaths:   []string{"field1", "nested.field2"},
-			wantUpdateClause: "field_one = EXCLUDED.field_one, nested_field_two = EXCLUDED.nested_field_two",
+			wantUpdateClause: "field1 = EXCLUDED.field1, nested = EXCLUDED.nested",
 			wantErr:          false,
 		},
 		{
@@ -53,7 +54,7 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 		{
 			name:             "map to multiple values",
 			fieldMaskPaths:   []string{"nested3"},
-			wantUpdateClause: "field1 = EXCLUDED.field1, field2 = EXCLUDED.field2",
+			wantUpdateClause: "deleted = EXCLUDED.deleted, my_enum = EXCLUDED.my_enum",
 			wantErr:          false,
 		},
 
@@ -74,9 +75,12 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource)
+			updateResourceRequest := &pb.UpdateResourceRequest{
+				Resource:   resource,
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateResourceRequest)
 
 			// Check for errors if expected.
 			if tt.wantErr {
@@ -91,7 +95,9 @@ func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
 }
 
 func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
-	parser := NewUpdateRequestParser(&pb.UpdateResourceRequest{})
+	parser, err := NewUpdateRequestParser[*pb.UpdateResourceRequest, *pb.Resource]()
+	require.NoError(t, err)
+
 	tests := []struct {
 		name             string
 		fieldMaskPaths   []string
@@ -101,7 +107,7 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 		{
 			name:             "matching wildcard path",
 			fieldMaskPaths:   []string{"nested4.field1"},
-			wantUpdateClause: "nested4_jsonb = EXCLUDED.nested4_jsonb",
+			wantUpdateClause: "nested4 = EXCLUDED.nested4, nested3 = EXCLUDED.nested3",
 			wantErr:          false,
 		},
 		{
@@ -113,15 +119,18 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 		{
 			name:             "two matching wildcard path",
 			fieldMaskPaths:   []string{"nested4.field1", "nested4.field3"},
-			wantUpdateClause: "nested4_jsonb = EXCLUDED.nested4_jsonb",
+			wantUpdateClause: "nested4 = EXCLUDED.nested4, nested3 = EXCLUDED.nested3",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource)
+			updateResourceRequest := &pb.UpdateResourceRequest{
+				Resource:   resource,
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateResourceRequest)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -134,7 +143,9 @@ func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
 }
 
 func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
-	parser := NewUpdateRequestParser(&pb.UpdateResource2Request{})
+	parser, err := NewUpdateRequestParser[*pb.UpdateResource2Request, *pb.Resource]()
+	require.NoError(t, err)
+
 	tests := []struct {
 		name             string
 		fieldMaskPaths   []string
@@ -156,9 +167,12 @@ func TestUpdateRequestParser_ParseWithDefaultPaths(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fieldMask := &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths}
 			resource := &pb.Resource{}
-			parsedRequest, err := parser.Parse(fieldMask, resource)
+			updateResourceRequest := &pb.UpdateResource2Request{
+				Resource:   resource,
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateResourceRequest)
 
 			if tt.wantErr {
 				require.Error(t, err)
