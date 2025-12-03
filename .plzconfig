@@ -99,13 +99,32 @@ DefaultValue = //tools/proto:protoc-gen-doc
 ConfigKey = ProtocGenOpenapi
 DefaultValue = //tools/proto:protoc-gen-openapiv2
 
+[PluginConfig "validate_schema"]
+ConfigKey = ValidateSchema
+DefaultValue = //tools/validate-schema
+
 [PluginConfig "templates_go"]
 ConfigKey = TemplatesGo
 DefaultValue = //tools/template
 
-[PluginConfig "validate_schema"]
-ConfigKey = ValidateSchema
-DefaultValue = //tools/validate-schema
+;; TEMPLATE-BASED DEPS GO HERE.
+[PluginConfig "protoc_gen_model_go_dep"]
+ConfigKey = ProtocGenModelGoDep
+DefaultValue = //tools/proto:protoc-gen-go-model-dep
+
+[PluginConfig "protoc_gen_llm_go_dep"]
+ConfigKey = ProtocGenLlmGoDep
+DefaultValue = //tools/proto:protoc-gen-go-llm-dep
+
+[PluginConfig "protoc_gen_rpc_go_dep"]
+ConfigKey = ProtocGenRpcGoDep
+DefaultValue = //tools/proto:protoc-gen-go-rpc-dep
+
+[PluginConfig "protoc_gen_postgres_go_dep"]
+ConfigKey = ProtocGenPostgresGoDep
+DefaultValue = //tools/proto:protoc-gen-go-postgres-dep
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]

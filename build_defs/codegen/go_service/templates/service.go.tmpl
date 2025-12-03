@@ -27,7 +27,7 @@ type codegen struct {
                 {{ $grpc := parseGRPC $dep.proto $dep.name}}
                 {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }} {{ $grpc.ClientInterface }}
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ ternary ($dep.name | title) $dep.name $exportFields }}DBClient *{{ plzGoImport $dep.implementation }}.DB
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore *{{ plzGoImport $dep.implementation }}.PostgresStore
             {{- else if eq $dep.type "postgres_client" }}
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
             {{- end }}
@@ -47,7 +47,7 @@ func New(
                 {{ $grpc := parseGRPC $dep.proto $dep.name }}
                 {{ $grpc.Client }} {{ $grpc.ClientInterface }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name }}DBClient *{{ plzGoImport $dep.implementation }}.DB,
+                {{ $dep.name }}PostgresStore *{{ plzGoImport $dep.implementation }}.PostgresStore,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client,
             {{- end }}
@@ -66,7 +66,7 @@ func New(
                 {{ $grpc := parseGRPC $dep.proto $dep.name }}
                 {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }}: {{ $grpc.Client }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ ternary ($dep.name | title) $dep.name $exportFields }}DBClient: {{ $dep.name }}DBClient,
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore: {{ $dep.name }}PostgresStore,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- end }}

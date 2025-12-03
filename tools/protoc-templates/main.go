@@ -21,12 +21,14 @@ import (
 
 var (
 	opts struct {
-		Debug         *bool
-		Template      *string
-		Configuration *string
-		PackageName   *string
+		Debug            *bool
+		Templates        *[]string
+		Configuration    *string
+		PackageName      *string
+		CustomImportPath *bool
 	}
 )
+
 
 type Input struct {
 	File          *protogen.File
@@ -36,19 +38,28 @@ type Input struct {
 	PackageName   string
 }
 
+
 func main() {
 	var flags flag.FlagSet
 	opts.Debug = flags.Bool("debug", false, "verbose output")
-	opts.Template = flags.String("template", "", "template file to compile")
+	templates := []string{}
+	opts.Templates = &templates
+	flags.Func("template", "template file paths (can be specified multiple times)", func(s string) error {
+		*opts.Templates = append(*opts.Templates, s)
+		return nil
+	})
 	opts.Configuration = flags.String("configuration", "", "configuration to inject in context")
 	opts.PackageName = flags.String("package-name", "", "Override the package name of the output go files")
+	opts.CustomImportPath = flags.Bool("custom-import-path", false, "Use a custom import path")
+
 	options := protogen.Options{
 		ParamFunc: flags.Set,
 	}
+
 	options.Run(func(gen *protogen.Plugin) error {
 		*opts.Debug = false
-		if *opts.Template == "" {
-			return fmt.Errorf("template parameter is required")
+		if len(*opts.Templates) == 0 {
+			return fmt.Errorf("at least one template parameter is required")
 		}
 
 		var configuration map[any]any
@@ -63,22 +74,14 @@ func main() {
 			}
 		}
 
-		// Read template content (but don't parse yet)
-		templateContent, err := readTemplateContent(*opts.Template)
-		if err != nil {
-			return fmt.Errorf("reading template %s: %w", *opts.Template, err)
-		}
-
-		// Get template name for output filename
-		templateFilename := filepath.Base(*opts.Template)
-		templateFilenameWithoutExtension := strings.TrimSuffix(templateFilename, filepath.Ext(templateFilename))
 		if err := registerAnnotations(gen.Files); err != nil {
 			return fmt.Errorf("registering annotations: %v", err)
 		}
 		if err := registerAncestors(gen.Files); err != nil {
 			return fmt.Errorf("registering ancestors: %v", err)
 		}
-		// Let's grab other files.
+
+		// Collect other files
 		otherFiles := []*protogen.File{}
 		for _, f := range gen.Files {
 			if !f.Generate {
@@ -86,44 +89,62 @@ func main() {
 			}
 		}
 
-		for _, f := range gen.Files {
-			if !f.Generate {
-				continue
-			}
-			generatedFilename := fmt.Sprintf(
-				"%s.%s.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
-			)
-			generatedFile := gen.NewGeneratedFile(generatedFilename, "")
-			scopedExecution := newScopedExecution(generatedFile)
-			funcMap := scopedExecution.FuncMap()
-
-			// Create template with custom functions first, then parse
-			tmpl, err := template.New(templateFilename).
-				Funcs(funcMap).
-				Parse(templateContent)
+		// Process each template
+		for _, templatePath := range *opts.Templates {
+			// Read template content
+			templateContent, err := readTemplateContent(templatePath)
 			if err != nil {
-				return fmt.Errorf("parsing template with functions: %w", err)
+				return fmt.Errorf("reading template %s: %w", templatePath, err)
 			}
 
-			var packageName string
-			if opts.PackageName != nil {
-				packageName = *opts.PackageName
-			}
-			input := &Input{
-				File:          f,
-				Files:         otherFiles,
-				GeneratedFile: generatedFile,
-				Configuration: configuration,
-				PackageName:   packageName,
-			}
-			if err := tmpl.Execute(generatedFile, input); err != nil {
-				return fmt.Errorf("executing template: %w", err)
+			// Get template name for output filename
+			templateFilename := filepath.Base(templatePath)
+			templateFilenameWithoutExtension := strings.TrimSuffix(templateFilename, filepath.Ext(templateFilename))
+
+			// Process each file with this template
+			for _, f := range gen.Files {
+				if !f.Generate {
+					continue
+				}
+
+				generatedFilename := fmt.Sprintf(
+					"%s_%s.pb.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
+				)
+				goImportPath := f.GoImportPath
+				generatedFile := gen.NewGeneratedFile(generatedFilename, goImportPath)
+				scopedExecution := newScopedExecution(generatedFile)
+				funcMap := scopedExecution.FuncMap()
+
+				// Create template with custom functions first, then parse
+				tmpl, err := template.New(templateFilename).
+					Funcs(funcMap).
+					Parse(templateContent)
+				if err != nil {
+					return fmt.Errorf("parsing template %s with functions: %w", templateFilename, err)
+				}
+
+				var packageName string
+				if opts.PackageName != nil {
+					packageName = *opts.PackageName
+				}
+				input := &Input{
+					File:          f,
+					Files:         otherFiles,
+					GeneratedFile: generatedFile,
+					Configuration: configuration,
+					PackageName:   packageName,
+				}
+				if err := tmpl.Execute(generatedFile, input); err != nil {
+					return fmt.Errorf("executing template %s: %w", templateFilename, err)
+				}
 			}
 		}
+
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		return nil
 	})
 }
+
 
 func readTemplateContent(templatePath string) (string, error) {
 	// Check if file exists

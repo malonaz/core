@@ -16,6 +16,11 @@ export_file(
 )
 
 export_file(
+    name = "postgres",
+    src = "postgres.tmpl",
+)
+
+export_file(
     name = "llm",
     src = "llm.tmpl",
 )

@@ -1,9 +1,22 @@
 subinclude(
     "///proto//build_defs/sdk",
-    "///go//build_defs:go"
+    "///go//build_defs:go",
+    "//build_defs/proto:go",
 )
 
 GO_PROTO_TEMPLATES_PACKAGE_NAME = "go_proto_templates_package_name"
+
+def _import_path(name, root_dir, additional_context=None):
+    pkg = package_name()
+    if basename(pkg) != name:
+        pkg += "/" + name
+    if root_dir:
+        pkg = pkg.removeprefix(root_dir + "/")
+    if additional_context and GO_IMPORT_PATH in additional_context:
+        return additional_context[GO_IMPORT_PATH]
+    if CONFIG.GO.IMPORT_PATH:
+        return join_path(CONFIG.GO.IMPORT_PATH, pkg)
+    return pkg
 
 def _go_path_mapping():
     """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
@@ -43,6 +56,7 @@ def go_proto_template_library(
         test_only:bool&testonly=False,
         root_dir:str='',
         protoc_flags:list=[],
+        is_complete:bool=False,
         additional_context:dict=None,
 ):
     """Compile a .proto file to generate code for golang.
@@ -100,6 +114,17 @@ def go_proto_template_library(
         visibility = visibility,
         pre_build = _go_path_mapping(),
     )
+
+    if is_complete:
+        go_library(
+            name = f"_{name}#go",
+            srcs = [protoc],
+            deps = deps,
+            test_only = test_only,
+            labels = labels,
+            visibility = visibility,
+            import_path = _import_path(name, root_dir, additional_context),
+        )
 
     return filegroup(
         name = name,
