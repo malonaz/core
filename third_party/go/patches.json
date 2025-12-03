@@ -1,6 +1,6 @@
 {
-  "go.einride.tech__spanner-aip": ["spanner-aip.patch"],
-  "github.com__NathanBaulch__protoc-gen-cobra": ["protoc-gen-cobra.patch"],
-  "github.com__pseudomuto__protoc-gen-doc": ["protoc-gen-doc.patch"],
-  "github.com__sashabaranov__go-openai": ["go-openai.patch"]
+  "go.einride.tech__spanner-aip": ["//third_party/go/patches:spanner-aip.patch"],
+  "github.com__NathanBaulch__protoc-gen-cobra": ["//third_party/go/patches:protoc-gen-cobra.patch"],
+  "github.com__pseudomuto__protoc-gen-doc": ["//third_party/go/patches:protoc-gen-doc.patch"],
+  "github.com__sashabaranov__go-openai": ["//third_party/go/patches:go-openai.patch"]
 }

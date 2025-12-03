@@ -328,7 +328,7 @@ go_mod_download(
     name = "github.com__NathanBaulch__protoc-gen-cobra",
     _tag = "download",
     module = "github.com/NathanBaulch/protoc-gen-cobra",
-    patch = ["protoc-gen-cobra.patch"],
+    patch = ["//third_party/go/patches:protoc-gen-cobra.patch"],
     version = "v1.2.1",
     visibility = ["PUBLIC"],
 )
@@ -2724,8 +2724,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -2733,8 +2733,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -2753,7 +2753,7 @@ go_mod_download(
     name = "github.com__pseudomuto__protoc-gen-doc",
     _tag = "download",
     module = "github.com/pseudomuto/protoc-gen-doc",
-    patch = ["protoc-gen-doc.patch"],
+    patch = ["//third_party/go/patches:protoc-gen-doc.patch"],
     version = "v1.5.2-0.20250211140318-129dc82aa469",
     visibility = ["PUBLIC"],
 )
@@ -2870,7 +2870,7 @@ go_mod_download(
     name = "github.com__sashabaranov__go-openai",
     _tag = "download",
     module = "github.com/sashabaranov/go-openai",
-    patch = ["go-openai.patch"],
+    patch = ["//third_party/go/patches:go-openai.patch"],
     version = "v1.41.2",
     visibility = ["PUBLIC"],
 )
@@ -3565,7 +3565,7 @@ go_mod_download(
     name = "go.einride.tech__spanner-aip",
     _tag = "download",
     module = "go.einride.tech/spanner-aip",
-    patch = ["spanner-aip.patch"],
+    patch = ["//third_party/go/patches:spanner-aip.patch"],
     version = "v0.67.2-0.20251120124954-1d9f5bae7b61",
     visibility = ["PUBLIC"],
 )
