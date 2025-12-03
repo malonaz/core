@@ -107,6 +107,7 @@ func (c *Client) TextToTextStream(
 	}
 	toolCalls := make(map[int]*toolCallAcc)
 
+	var stopReason aiservicepb.TextToTextStopReason
 	for cs.Err() == nil {
 		response, err := chatStream.Recv()
 		if err != nil {
@@ -188,12 +189,11 @@ func (c *Client) TextToTextStream(
 
 		// Handle finish reason / stop reason
 		if choice.FinishReason != "" {
-			stopReason, ok := openAIFinishReasonToPb[choice.FinishReason]
+			var ok bool
+			stopReason, ok = openAIFinishReasonToPb[choice.FinishReason]
 			if !ok {
 				return grpc.Errorf(codes.Internal, "unknown finish reason: %s", choice.FinishReason).Err()
 			}
-			// Send stop reason
-			cs.SendStopReason(ctx, stopReason)
 		}
 	}
 
@@ -205,6 +205,11 @@ func (c *Client) TextToTextStream(
 			Arguments: acc.args,
 		}
 		cs.SendToolCall(ctx, toolCall)
+	}
+
+	// Send stop reason
+	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
+		cs.SendStopReason(ctx, stopReason)
 	}
 
 	// Send final generation metrics
