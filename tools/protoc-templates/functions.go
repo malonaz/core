@@ -68,7 +68,7 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"replaceImportPath": se.replaceImportPath,
 		"fqn":               se.fqn,
 		"qualifiedGoIdent":  se.qualifiedGoIdent,
-		"qgi": se.qualifiedGoIdent,
+		"qgi":               se.qualifiedGoIdent,
 
 		"parseRPC":                 parseRPC,
 		"parseResource":            parseResource,

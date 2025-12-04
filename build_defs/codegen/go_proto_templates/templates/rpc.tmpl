@@ -97,7 +97,7 @@ package {{ .PackageName }}
         {{ if doOnce (printf "%s_resource_interface_def" $pr.Desc.Singular) }}
             type {{ $storeInterface }} interface {
             {{ if not $pr.Singleton }}
-                Insert{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
+                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             {{ end }}
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, upsertClause string) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
@@ -195,7 +195,7 @@ package {{ .PackageName }}
             {{- end }}
 
             // STEP 4: Insert the resource idempotently.
-            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }}Model{{ end }})
+            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }}Model{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists")
@@ -258,7 +258,7 @@ package {{ .PackageName }}
             }
 
         {{- else if $rpc.Delete }}
-            func (s *{{ $serverGoName }}) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request {{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+            func (s *{{ $serverGoName }}) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             // STEP 1: Parse resource name.
             {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(request.Name)
             if err != nil {

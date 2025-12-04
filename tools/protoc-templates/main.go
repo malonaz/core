@@ -21,21 +21,21 @@ import (
 
 var (
 	opts struct {
-		Debug            *bool
-		Templates        *[]string
-		Configuration    *string
-		ImportPath     *string
-		PackageName      *string
-		AdditionalGoImportPaths             *[]string
+		Debug                   *bool
+		Templates               *[]string
+		Configuration           *string
+		ImportPath              *string
+		PackageName             *string
+		AdditionalGoImportPaths *[]string
 	}
 )
 
 type Input struct {
-	File          *protogen.File
-	Files         []*protogen.File
-	GeneratedFile *protogen.GeneratedFile
-	Configuration map[any]any
-	PackageName   protogen.GoPackageName
+	File                    *protogen.File
+	Files                   []*protogen.File
+	GeneratedFile           *protogen.GeneratedFile
+	Configuration           map[any]any
+	PackageName             protogen.GoPackageName
 	AdditionalGoImportPaths map[string]protogen.GoImportPath
 }
 
@@ -125,7 +125,7 @@ func main() {
 					"%s_%s.pb.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
 				)
 				goImportPath := f.GoImportPath
-				if *opts.ImportPath != ""  {
+				if *opts.ImportPath != "" {
 					goImportPath = protogen.GoImportPath(*opts.ImportPath)
 				}
 				generatedFile := gen.NewGeneratedFile(generatedFilename, goImportPath)
@@ -142,14 +142,14 @@ func main() {
 
 				packageName := f.GoPackageName
 				if *opts.PackageName != "" {
-					packageName = protogen.GoPackageName(*opts.PackageName);
+					packageName = protogen.GoPackageName(*opts.PackageName)
 				}
 				input := &Input{
-					File:          f,
-					Files:         otherFiles,
-					GeneratedFile: generatedFile,
-					Configuration: configuration,
-					PackageName:   packageName,
+					File:                    f,
+					Files:                   otherFiles,
+					GeneratedFile:           generatedFile,
+					Configuration:           configuration,
+					PackageName:             packageName,
 					AdditionalGoImportPaths: keyToGoImportPath,
 				}
 				if err := tmpl.Execute(generatedFile, input); err != nil {

@@ -135,9 +135,6 @@ var (
     {{ $pr := parseResourceFromMessage $message }}
 
 		type {{ $message.GoIdent.GoName }} struct {
-    {{- if not $pr.Singleton }}
-        RequestID string `db:"request_id"`
-    {{- end }}
     {{- range $i, $id := $pr.PatternVariables }}
         {{ if and (eq $i 0) $modelOpts.IdColumnName }}
             {{ if $pr.Singleton }}{{ fail (printf "singleton resource %s declares a id_column_name" $pr.Desc.Type) }}{{ end }}
