@@ -25,7 +25,7 @@ index d9bce4d..dbfec3e 100644
  		dir.Build = build
  	}
 diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 331b925..2b66cf9 100644
+index 331b925..5bfc791 100644
 --- a/domain/wollemi/service_format.go
 +++ b/domain/wollemi/service_format.go
 @@ -8,6 +8,7 @@ import (
@@ -36,7 +36,12 @@ index 331b925..2b66cf9 100644
  
  	"github.com/tcncloud/wollemi/domain/optional"
  	"github.com/tcncloud/wollemi/ports/logging"
-@@ -31,6 +32,19 @@ func newGoFormat(paths []string) *goFormat {
+@@ -28,9 +29,24 @@ func newGoFormat(paths []string) *goFormat {
+ 		external:       map[string][]string{},
+ 		internal:       map[string]string{},
+ 		genfiles:       map[string]string{},
++		protoTemplateCodegen: map[string]struct{}{},
++		ruleToProtoTemplateCodegen: map[string][]string{},
  	}
  }
  
@@ -56,7 +61,7 @@ index 331b925..2b66cf9 100644
  // goFormat contains all the state for formatting go rules i.e. the import path to target mapping, and the rules in the
  // targeted Please packages.
  type goFormat struct {
-@@ -52,8 +66,10 @@ type goFormat struct {
+@@ -52,8 +68,13 @@ type goFormat struct {
  	// internal is a map of this projects imports paths to targets
  	internal map[string]string
  
@@ -64,11 +69,14 @@ index 331b925..2b66cf9 100644
 +	// genfiles contain a map of generated files added via wollemi_go_file() to their build targets
  	genfiles map[string]string
 +
++	// Store the protogen template codegens.
++	protoTemplateCodegen map[string]struct{}
++	ruleToProtoTemplateCodegen map[string][]string
 +	mutex sync.RWMutex
  }
  
  // getTarget gets the target for an import path or generated file
-@@ -66,6 +82,16 @@ func (this *Service) getTarget(config wollemi.Config, p string, isFile bool) str
+@@ -66,6 +87,16 @@ func (this *Service) getTarget(config wollemi.Config, p string, isFile bool) str
  }
  
  func (this *Service) getTargetInternal(config wollemi.Config, path string, isFile bool, depth int) (string, string) {
@@ -85,7 +93,7 @@ index 331b925..2b66cf9 100644
  	if target, ok := config.KnownDependency[path]; ok {
  		return target, path
  	}
-@@ -181,20 +207,11 @@ func (this *Service) parsePaths() error {
+@@ -181,20 +212,11 @@ func (this *Service) parsePaths() error {
  				} {
  				Imports:
  					for _, godep := range imports {
@@ -108,7 +116,7 @@ index 331b925..2b66cf9 100644
  						if this.isInternal(path) {
  							path = strings.TrimPrefix(path, this.gopkg+"/")
  						} else {
-@@ -316,9 +333,11 @@ func (this *Service) parsePaths() error {
+@@ -316,19 +338,87 @@ func (this *Service) parsePaths() error {
  					case kind != "go_test":
  						this.goFormat.internal[filepath.Join(this.gopkg, path)] = "//" + target
  
@@ -122,7 +130,91 @@ index 331b925..2b66cf9 100644
  					}
  				}
  			})
-@@ -392,7 +411,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
+ 		}
+ 	}
+ 
++	// AFTER the main parsing loop completes, do a second pass for proto templates
++	this.processProtoTemplateLibraries()
+ 	close(parse)
+ 	return nil
+ }
+ 
++func (this *Service) processProtoTemplateLibraries() {
++	for _, dir := range this.goFormat.directories {
++		dir.Build.GetRules(func(rule please.Rule) {
++			if rule.Kind() != "go_proto_template_library" {
++				return
++			}
++
++			target := &please.Target{
++				Name: rule.AttrString("name"),
++				Path: dir.Path,
++			}
++
++			templateAttr := rule.AttrString("template")
++			if templateAttr == "" {
++				return
++			}
++
++			templateTarget := please.Split(templateAttr)
++			templateName := templateTarget.Name
++			if templateName == "" {
++				return
++			}
++
++			srcTargets := rule.AttrStrings("srcs")
++			for _, srcTarget := range srcTargets {
++				protoTarget := please.Split(srcTarget)
++
++				// Resolve the proto rule
++				var protoRule please.Rule
++				protoPath := protoTarget.Path
++				if protoPath == "" {
++					protoPath = dir.Path
++				}
++
++				if protoDir, ok := this.goFormat.directories[protoPath]; ok && protoDir.Build != nil {
++					protoRule = protoDir.Build.GetRule(protoTarget.Name)
++				}
++
++				if protoRule == nil {
++					continue
++				}
++
++				protoFiles := protoRule.AttrStrings("srcs")
++				for _, protoFile := range protoFiles {
++					if !strings.HasSuffix(protoFile, ".proto") {
++						continue
++					}
++
++					genFile := strings.TrimSuffix(protoFile, ".proto") + "_" + templateName + ".pb.go"
++					// The generated file path should be relative to the proto_library location
++					genPath := filepath.Join(protoPath, genFile)
++
++					this.goFormat.protoTemplateCodegen[genPath] = struct{}{}
++					this.goFormat.genfiles[filepath.Join(dir.Path, genPath)] = target.String()
++					this.goFormat.ruleToProtoTemplateCodegen[target.Path + ":" + target.Name] = append(
++						this.goFormat.ruleToProtoTemplateCodegen[target.Path + ":" + target.Name],
++						genPath,
++					)
++				}
++			}
++		})
++	}
++}
++
+ // formatDirs updated the BUILD file in the directories that were in the original paths
+ func (this *Service) formatDirs() {
+ 	limiter := NewChanFunc(runtime.NumCPU()-1, 0)
+@@ -341,7 +431,6 @@ func (this *Service) formatDirs() {
+ 
+ 		log := this.log.WithField("path", filepath.Join("/", path))
+ 		dir := dir
+-
+ 		limiter.Run(func() {
+ 			this.formatDir(log, dir)
+ 
+@@ -392,7 +481,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
  	this.goFormat = newGoFormat(this.normalizePaths(paths))
  	defer this.goFormat.resolveLimiter.Close()
  
@@ -131,7 +223,15 @@ index 331b925..2b66cf9 100644
  
  	log := this.log.WithField("rewrite", this.config.Gofmt.GetRewrite())
  
-@@ -433,7 +452,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+@@ -424,7 +513,6 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+ 			if err != nil {
+ 				return nil, nil, fmt.Errorf("could not parse src file: %s", name)
+ 			}
+-
+ 			fileImports, _ = gopkg.GoFileImports[name]
+ 		}
+ 
+@@ -433,7 +521,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
  		}
  
  		for _, path := range imports {
@@ -140,15 +240,15 @@ index 331b925..2b66cf9 100644
  				continue
  			}
  
-@@ -504,6 +523,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
- 		return
- 	}
+@@ -478,7 +566,6 @@ func (this *Service) getRuleSrcs(dir *Directory, config wollemi.Config, srcFiles
  
-+
- 	config := this.filesystem.Config(dir.Path).Merge(this.config)
- 
- 	log.WithFields(logging.Fields{
-@@ -526,7 +546,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
+ 	for _, name := range srcFiles {
+ 		relpath := filepath.Join(dir.Path, name)
+-
+ 		targetPath := this.getTarget(config, relpath, true)
+ 		if targetPath == "" {
+ 			info, ok := dir.Files[name]
+@@ -526,7 +613,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
  			managed = append(managed, rule)
  		}
  
@@ -157,7 +257,7 @@ index 331b925..2b66cf9 100644
  	})
  
  	sortManagedRules(config, managed)
-@@ -632,7 +652,7 @@ ManageRules:
+@@ -632,7 +719,7 @@ ManageRules:
  				log.WithField("reason", "no source files").Warn("removed")
  
  				rule.DelAttr("srcs")
@@ -166,7 +266,7 @@ index 331b925..2b66cf9 100644
  
  				dir.Build.DelRule(rule.Name())
  
-@@ -728,7 +748,7 @@ ManageRules:
+@@ -728,7 +815,7 @@ ManageRules:
  
  			log.Debug("managed")
  
@@ -175,7 +275,7 @@ index 331b925..2b66cf9 100644
  		}
  
  		break
-@@ -890,7 +910,7 @@ CreateRules:
+@@ -890,7 +977,7 @@ CreateRules:
  			rule.SetAttr("deps", please.Strings(resolved...))
  		}
  
@@ -184,7 +284,7 @@ index 331b925..2b66cf9 100644
  
  		dir.Build.SetRule(rule)
  
-@@ -917,7 +937,7 @@ CreateRules:
+@@ -917,7 +1004,7 @@ CreateRules:
  	}
  }
  
@@ -193,7 +293,11 @@ index 331b925..2b66cf9 100644
  	var srcFiles []string
  
  	switch expr := expr.(type) {
-@@ -931,7 +951,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -927,11 +1014,10 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+ 			case *please.StringExpr:
+ 				if strings.HasPrefix(s.Value, ":") || strings.HasPrefix(s.Value, "//") {
+ 					target := please.Split(s.Value)
+-
  					if target.Path == "" || target.Path == dir.Path {
  						rule := dir.Build.GetRule(target.Name)
  						if rule != nil {
@@ -202,7 +306,7 @@ index 331b925..2b66cf9 100644
  						}
  					}
  				} else {
-@@ -941,8 +961,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -941,8 +1027,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  	case *please.BinaryExpr:
  		if expr.Op == "+" {
@@ -213,7 +317,7 @@ index 331b925..2b66cf9 100644
  		}
  	case *please.CallExpr:
  		var kind string
-@@ -953,13 +973,16 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -953,13 +1039,86 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  
  		switch kind {
@@ -221,6 +325,76 @@ index 331b925..2b66cf9 100644
 -			outs := please.Attr(expr, "outs")
 -			srcFiles = append(srcFiles, getSrcFilesFromExpr(outs, dir)...)
 -		case "go_copy":
++		case "go_proto_template_library":
++			// Build the rule key to look up in the map
++			name := please.AttrString(expr, "name")
++			if name == "" {
++				break
++			}
++
++			// The key format matches what you used in processProtoTemplateLibraries
++			ruleKey := dir.Path + ":" + name
++
++			if genFiles, ok := this.goFormat.ruleToProtoTemplateCodegen[ruleKey]; ok {
++				// Convert absolute paths to relative paths for this directory
++				srcFiles = append(srcFiles, genFiles...)
++			}
++			break
++
++			template := please.AttrString(expr, "template")
++			if template == "" {
++				break
++			}
++			target := please.Split(template)
++			templateName := target.Name
++
++			// Get the srcs which are build targets
++			srcs := please.Attr(expr, "srcs")
++			listExpr, ok := srcs.(*please.ListExpr)
++			if !ok {
++				break
++			}
++			var srcTargets []string
++			for _, item := range listExpr.List {
++				stringExpr, ok := item.(*please.StringExpr)
++				if !ok {
++					continue
++				}
++				srcTargets = append(srcTargets, stringExpr.Value)
++			}
++
++			for _, srcTarget := range srcTargets {
++				protoTarget := please.Split(srcTarget)
++
++				// Resolve the proto rule
++				var protoRule please.Rule
++				if protoTarget.Path == "" || protoTarget.Path == dir.Path {
++					protoRule = dir.Build.GetRule(protoTarget.Name)
++				} else {
++					// Handle cross-directory references if needed
++					if protoDir, ok := this.goFormat.directories[protoTarget.Path]; ok {
++						protoRule = protoDir.Build.GetRule(protoTarget.Name)
++					}
++				}
++				if protoRule == nil {
++					continue
++				}
++				// Get the proto files from the proto rule's srcs
++				protoFiles := protoRule.AttrStrings("srcs")
++
++				for _, protoFile := range protoFiles {
++					if !strings.HasSuffix(protoFile, ".proto") {
++						continue
++					}
++
++					// Convert proto file to generated go file
++					genFile := strings.TrimSuffix(protoFile, ".proto")
++					genFile = genFile + "_" + templateName + ".pb.go"
++					genPath := filepath.Join(protoTarget.Path, genFile)
++					this.goFormat.protoTemplateCodegen[filepath.Join(dir.Path, genPath)] = struct{}{}
++					srcFiles = append(srcFiles, genPath)
++				}
++			}
 +		default:
  			if name := please.AttrString(expr, "name"); name != "" {
 -				srcFiles = append(srcFiles, name+".cp.go")
@@ -235,7 +409,7 @@ index 331b925..2b66cf9 100644
  		case "glob":
  			var include []string
  			var exclude []string
-@@ -1011,7 +1034,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -1011,7 +1170,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  			}
  		case "filegroup":
  			srcs := please.Attr(expr, "srcs")
@@ -244,25 +418,30 @@ index 331b925..2b66cf9 100644
  		}
  	}
  
-@@ -1143,15 +1166,14 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
+@@ -1143,17 +1302,18 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
  	return rule
  }
  
 -func (fc *fileConsumer) Update(rule please.Rule) {
 +func (fc *fileConsumer) Update(service *Service, rule please.Rule) {
  	delete(fc.Files, rule.Name())
- 
+-
  	for file, rules := range fc.Rules {
  		fc.Rules[file], _ = deleteStrings(rules, rule.Name())
  	}
- 
--	files := getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
 -
+-	files := getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
 +	files := service.getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
+ 
  	for i := 0; i < len(files); i++ {
  		name := files[i]
++		if _, ok := service.goFormat.protoTemplateCodegen[name]; ok {
++			continue
++		}
  
-@@ -1164,15 +1186,17 @@ func (fc *fileConsumer) Update(rule please.Rule) {
+ 		switch {
+ 		case filepath.Ext(name) != ".go":
+@@ -1164,19 +1324,19 @@ func (fc *fileConsumer) Update(rule please.Rule) {
  		// Ignore please rule targets
  		default:
  			if _, ok := fc.Dir.Files[name]; !ok {
@@ -271,22 +450,25 @@ index 331b925..2b66cf9 100644
 +				if _, ok := service.goFormat.genfiles[fc.Dir.Path + "/" + name]; !ok {
 +					// This golang source file does not exist so it should be stripped
 +					// from this rule's source list.
- 
--				if i+1 < len(files) {
--					copy(files[i:], files[i+1:])
--				}
 +					if i+1 < len(files) {
 +						copy(files[i:], files[i+1:])
 +					}
  
--				files = files[:len(files)-1]
--				i--
+-				if i+1 < len(files) {
+-					copy(files[i:], files[i+1:])
 +					files = files[:len(files)-1]
 +					i--
-+				}
+ 				}
+-
+-				files = files[:len(files)-1]
+-				i--
  			}
  		}
  	}
+-
+ 	fc.Files[rule.Name()] = files
+ 
+ 	for _, file := range files {
 diff --git a/ports/wollemi/config.go b/ports/wollemi/config.go
 index bce9462..0abd722 100644
 --- a/ports/wollemi/config.go
