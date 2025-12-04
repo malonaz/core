@@ -6,8 +6,8 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/pbutil",
         "//malonaz/onyx/v1",
-        "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:gopkg.in__yaml.v3",
         "//tools/onyx/types",

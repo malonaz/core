@@ -39,7 +39,7 @@ def go_mapping_labels(name:str, srcs:list, root_dir:str):
     return [f'proto:go-map: {base_path}/{src}={destination}' for src in srcs
                if not looks_like_build_label(src)]
 
-def _import_path(name, root_dir, additional_context=None):
+def go_import_path(name, root_dir, additional_context=None):
     pkg = package_name()
     if basename(pkg) != name:
         pkg += "/" + name
@@ -182,7 +182,7 @@ def go_proto_library(
         test_only = test_only,
         labels = labels,
         visibility = visibility,
-        import_path = _import_path(name, root_dir, additional_context),
+        import_path = go_import_path(name, root_dir, additional_context),
     )
 
 def go_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],

@@ -190,7 +190,6 @@ filegroup(
 filegroup(
     name = "protoc-gen-go-model-dep",
     exported_deps = [
-
     ],
 )
 
@@ -201,14 +200,12 @@ filegroup(
     ],
 )
 
-
 # Gathers the proto go rpc dependencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-go-rpc-dep",
     exported_deps = [
     ],
 )
-
 
 # Gathers the proto go postgres dependencies - referenced in .plzconfig.
 filegroup(

@@ -15,3 +15,10 @@ type Manifest struct {
 	Filepath string
 	Message  proto.Message
 }
+
+type Rule struct {
+	Name string
+	Srcs []string
+	Deps []string
+	Outs []string
+}

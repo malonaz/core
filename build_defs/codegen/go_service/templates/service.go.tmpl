@@ -15,23 +15,27 @@ func (s *Service) start(ctx {{ goImport "context" }}.Context) (func(), error) { 
 
 type Service struct {
   *runtime
-  *codegen
-}
-
-type codegen struct {
+	{{- range $codegen := .codegens }}
+      {{- if eq $codegen.type "rpc" }}
+        // Embedded codegen.
+        *{{ plzGoImport $codegen.implementation }}.{{ $codegen.name | title }}Server
+	  {{- else }}
+      {{ fail (printf "%s unknown type" $codegen.type) }}
+	  {{- end }}
+	{{- end }}
 	log *{{ goImport "log/slog" }}.Logger
 	{{ ternary "Opts" "opts" $exportFields }} *Opts
   {{ ternary "With" "with" $exportFields }}ServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context
-        {{- range $dep := .dependencies }}
-            {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto $dep.name}}
-                {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }} {{ $grpc.ClientInterface }}
-            {{- else if eq $dep.type "postgres_db_client" }}
-                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore *{{ plzGoImport $dep.implementation }}.PostgresStore
-            {{- else if eq $dep.type "postgres_client" }}
-                {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
-            {{- end }}
-        {{- end }}
+  {{- range $dep := .dependencies }}
+    {{- if eq $dep.type "grpc_client" }}
+        {{ $grpc := parseGRPC $dep.proto $dep.name}}
+        {{ ternary ($grpc.Client | title) $grpc.Client $exportFields }} {{ $grpc.ClientInterface }}
+    {{- else if eq $dep.type "postgres_db_client" }}
+        {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore *{{ plzGoImport $dep.implementation }}.Store
+    {{- else if eq $dep.type "postgres_client" }}
+        {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
+    {{- end }}
+  {{- end }}
 }
 
 func (s *Service) WithLogger(logger *{{ goImport "log/slog" }}.Logger) *Service {
@@ -47,7 +51,7 @@ func New(
                 {{ $grpc := parseGRPC $dep.proto $dep.name }}
                 {{ $grpc.Client }} {{ $grpc.ClientInterface }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name }}PostgresStore *{{ plzGoImport $dep.implementation }}.PostgresStore,
+                {{ $dep.name }}PostgresStore *{{ plzGoImport $dep.implementation }}.Store,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client,
             {{- end }}
@@ -58,8 +62,14 @@ func New(
 	if err != nil {
 		return nil, {{ goImport "fmt" }}.Errorf("instantiating runtime: %w", err)
 	}
-	codegen := &codegen{
-		log: {{ goImport "log/slog" }}.Default(),
+	return &Service{
+    runtime: runtime,
+	{{- range $codegen := .codegens }}
+      {{- if eq $codegen.type "rpc" }}
+        {{ $codegen.name | title }}Server: {{ plzGoImport $codegen.implementation }}.New{{ $codegen.name | title }}Server({{ $codegen.name }}PostgresStore),
+	 	  {{- end }}
+	{{- end }}
+ 	  log: {{ goImport "log/slog" }}.Default(),
 		{{ ternary "Opts" "opts" $exportFields }}: opts,
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
@@ -71,11 +81,7 @@ func New(
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- end }}
         {{- end }}
-	}
-  return &Service{
-   runtime: runtime,
-   codegen: codegen,
-  }, nil
+	}, nil
 }
 
 // Start this service. Returns clean up function.

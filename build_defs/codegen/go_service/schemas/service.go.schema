@@ -17,6 +17,9 @@
         "exportServiceFields": {
             "type": "boolean"
         },
+        "codegens": {
+            "type": "array"
+        },
         "dependencies": {
             "type": "array",
             "items": {

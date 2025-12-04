@@ -24,20 +24,20 @@ var (
 		Debug            *bool
 		Templates        *[]string
 		Configuration    *string
+		ImportPath     *string
 		PackageName      *string
-		CustomImportPath *bool
+		AdditionalGoImportPaths             *[]string
 	}
 )
-
 
 type Input struct {
 	File          *protogen.File
 	Files         []*protogen.File
 	GeneratedFile *protogen.GeneratedFile
 	Configuration map[any]any
-	PackageName   string
+	PackageName   protogen.GoPackageName
+	AdditionalGoImportPaths map[string]protogen.GoImportPath
 }
-
 
 func main() {
 	var flags flag.FlagSet
@@ -49,9 +49,14 @@ func main() {
 		return nil
 	})
 	opts.Configuration = flags.String("configuration", "", "configuration to inject in context")
-	opts.PackageName = flags.String("package-name", "", "Override the package name of the output go files")
-	opts.CustomImportPath = flags.Bool("custom-import-path", false, "Use a custom import path")
-
+	opts.ImportPath = flags.String("import-path", "", "Override the import path of the generated code")
+	opts.PackageName = flags.String("package-name", "", "Override the package name of the generated code")
+	data := []string{}
+	opts.AdditionalGoImportPaths = &data
+	flags.Func("additional-go-import-paths", "Additional GoImportPaths in the form of k:v", func(s string) error {
+		*opts.AdditionalGoImportPaths = append(*opts.AdditionalGoImportPaths, s)
+		return nil
+	})
 	options := protogen.Options{
 		ParamFunc: flags.Set,
 	}
@@ -61,7 +66,16 @@ func main() {
 		if len(*opts.Templates) == 0 {
 			return fmt.Errorf("at least one template parameter is required")
 		}
-
+		keyToGoImportPath := map[string]protogen.GoImportPath{}
+		if len(*opts.AdditionalGoImportPaths) > 0 {
+			for _, data := range *opts.AdditionalGoImportPaths {
+				split := strings.Split(data, ":")
+				if len(split) != 2 {
+					return fmt.Errorf("invalid data argument: %s", data)
+				}
+				keyToGoImportPath[split[0]] = protogen.GoImportPath(split[1])
+			}
+		}
 		var configuration map[any]any
 		if *opts.Configuration != "" {
 			configData, err := os.ReadFile(*opts.Configuration)
@@ -111,6 +125,9 @@ func main() {
 					"%s_%s.pb.go", f.GeneratedFilenamePrefix, templateFilenameWithoutExtension,
 				)
 				goImportPath := f.GoImportPath
+				if *opts.ImportPath != ""  {
+					goImportPath = protogen.GoImportPath(*opts.ImportPath)
+				}
 				generatedFile := gen.NewGeneratedFile(generatedFilename, goImportPath)
 				scopedExecution := newScopedExecution(generatedFile)
 				funcMap := scopedExecution.FuncMap()
@@ -123,9 +140,9 @@ func main() {
 					return fmt.Errorf("parsing template %s with functions: %w", templateFilename, err)
 				}
 
-				var packageName string
-				if opts.PackageName != nil {
-					packageName = *opts.PackageName
+				packageName := f.GoPackageName
+				if *opts.PackageName != "" {
+					packageName = protogen.GoPackageName(*opts.PackageName);
 				}
 				input := &Input{
 					File:          f,
@@ -133,6 +150,7 @@ func main() {
 					GeneratedFile: generatedFile,
 					Configuration: configuration,
 					PackageName:   packageName,
+					AdditionalGoImportPaths: keyToGoImportPath,
 				}
 				if err := tmpl.Execute(generatedFile, input); err != nil {
 					return fmt.Errorf("executing template %s: %w", templateFilename, err)
@@ -144,7 +162,6 @@ func main() {
 		return nil
 	})
 }
-
 
 func readTemplateContent(templatePath string) (string, error) {
 	// Check if file exists

@@ -5,46 +5,7 @@ subinclude(
 )
 
 GO_PROTO_TEMPLATES_PACKAGE_NAME = "go_proto_templates_package_name"
-
-def _import_path(name, root_dir, additional_context=None):
-    pkg = package_name()
-    if basename(pkg) != name:
-        pkg += "/" + name
-    if root_dir:
-        pkg = pkg.removeprefix(root_dir + "/")
-    if additional_context and GO_IMPORT_PATH in additional_context:
-        return additional_context[GO_IMPORT_PATH]
-    if CONFIG.GO.IMPORT_PATH:
-        return join_path(CONFIG.GO.IMPORT_PATH, pkg)
-    return pkg
-
-def _go_path_mapping():
-    """Used to update the Go path mapping; by default it doesn't really import in the way we want."""
-    def _map_go_paths(rule_name):
-        labels = get_labels(rule_name, 'proto:go-map:')
-        mapping = ''
-        mapping_validate = ''
-        if len(labels) > 0:
-            mapping = 'M' + ',M'.join(labels) + ':'
-            mapping_validate = ',M' + ',M'.join(labels)
-
-        cmd = get_command(rule_name)
-        new_cmd = cmd.replace('--go_out=', f'--go_out={mapping}')
-        new_cmd = new_cmd.replace('--go-grpc_out=', f'--go-grpc_out={mapping}')
-        new_cmd = new_cmd.replace('--grpc-gateway_out=', f'--grpc-gateway_out={mapping}')
-        new_cmd = new_cmd.replace('--cobra_out=', f'--cobra_out={mapping}')
-        new_cmd = new_cmd.replace('--templates_out=', f'--templates_out={mapping}')
-        set_command(rule_name, new_cmd)
-    return _map_go_paths
-
-
-def _go_mapping_labels(name:str, srcs:list, root_dir:str):
-    base_path = get_base_path()
-    diff_pkg = basename(base_path) != name
-    if CONFIG.GO_IMPORT_PATH:
-        base_path = join_path(CONFIG.GO_IMPORT_PATH, base_path)
-    return [f'proto:go-map: {base_path}/{src}={base_path}/{name}' for src in srcs
-               if not looks_like_build_label(src)]
+GO_PROTO_TEMPLATES_GO_IMPORT_PATHS = "go_proto_templates_go_import_paths"
 
 def go_proto_template_library(
         name:str,
@@ -79,11 +40,24 @@ def go_proto_template_library(
             name = f"{name}_template",
             src = template,
         )
-
-
-    templates_opts_arg = f'--templates_opt=paths=source_relative,debug=true,template=$HOME/$(location {processed_template})'
+    # Set the package name.
+    package_name = basename(get_base_path())
     if additional_context and GO_PROTO_TEMPLATES_PACKAGE_NAME in additional_context:
-        templates_opts_arg += ',package-name=' + additional_context[GO_PROTO_TEMPLATES_PACKAGE_NAME]
+        package_name = additional_context[GO_PROTO_TEMPLATES_PACKAGE_NAME]
+
+    templates_opts_args = [
+        "paths=source_relative",
+        f"template=$HOME/$(location {processed_template})",
+        f"import-path=$PKG",
+        f"package-name={package_name}",
+    ]
+    if additional_context and GO_PROTO_TEMPLATES_GO_IMPORT_PATHS in additional_context:
+        for k, v in additional_context[GO_PROTO_TEMPLATES_GO_IMPORT_PATHS].items():
+            package, _ = decompose(v)
+            templates_opts_args += [f"additional-go-import-paths={k}:{package}"]
+
+    templates_opts_arg = '--templates_opt=' + ','.join(templates_opts_args)
+
     tools= {"protoc_templates": [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]}
     plugin_flags = [
         '--plugin=protoc-gen-templates="`which $TOOLS_PROTOC_TEMPLATES`"',
@@ -98,7 +72,7 @@ def go_proto_template_library(
         tools = tools,
         protoc_flags = protoc_flags,
         plugin_flags = plugin_flags,
-        labels = labels + _go_mapping_labels(name, srcs, root_dir),
+        labels = labels + go_mapping_labels(name, srcs, root_dir),
         test_only = test_only,
         root_dir = root_dir,
         deps = deps + [
@@ -112,7 +86,7 @@ def go_proto_template_library(
             )
         ],
         visibility = visibility,
-        pre_build = _go_path_mapping(),
+        pre_build = go_path_mapping(["templates_out"]),
     )
 
     if is_complete:
@@ -123,7 +97,7 @@ def go_proto_template_library(
             test_only = test_only,
             labels = labels,
             visibility = visibility,
-            import_path = _import_path(name, root_dir, additional_context),
+            import_path = go_import_path(name, root_dir, additional_context),
         )
 
     return filegroup(

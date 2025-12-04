@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/yaml.v3"
 
 	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/onyx/types"
 )
 
@@ -130,16 +130,6 @@ func ParseFile(opts *Opts, inputPath string) (proto.Message, error) {
 		return nil, fmt.Errorf("failed to unmarshal kind wrapper: %w", err)
 	}
 
-	// Switch on kind to determine which proto message to unmarshal into
-	switch wrapper.Kind {
-	case "Service":
-		return parseService(data)
-	default:
-		return nil, fmt.Errorf("unsupported kind: %s", wrapper.Kind)
-	}
-}
-
-func parseService(data []byte) (*onyxpb.Service, error) {
 	// Convert YAML to JSON (protojson expects JSON)
 	var yamlData interface{}
 	if err := yaml.Unmarshal(data, &yamlData); err != nil {
@@ -151,15 +141,20 @@ func parseService(data []byte) (*onyxpb.Service, error) {
 		return nil, fmt.Errorf("failed to convert to json: %w", err)
 	}
 
+	// Switch on kind to determine which proto message to unmarshal into
+	var message proto.Message
+	switch wrapper.Kind {
+	case "malonaz.onyx.v1.Service":
+		message = &onyxpb.Service{}
+	case "malonaz.onyx.v1.Model":
+		message = &onyxpb.Model{}
+	default:
+		return nil, fmt.Errorf("unsupported kind: %s", wrapper.Kind)
+	}
+
 	// Unmarshal into Service proto
-	service := &onyxpb.Service{}
-	if err := protojson.Unmarshal(jsonData, service); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal service: %w", err)
+	if err := pbutil.JSONUnmarshal(jsonData, message); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal: %w", err)
 	}
-
-	if service.Metadata == nil || service.Metadata.Name == "" {
-		return nil, fmt.Errorf("service metadata.name is required")
-	}
-
-	return service, nil
+	return message, nil
 }

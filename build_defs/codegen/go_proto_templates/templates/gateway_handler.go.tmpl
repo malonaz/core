@@ -170,7 +170,7 @@ func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $servic
 
 {{- else if $method.Desc.IsStreamingServer }}
 // Server streaming
-func (h *Service) {{ $method.GoName }}(request *{{ qualifiedGoIdent $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
+func (h *Service) {{ $method.GoName }}(request *{{ qgi $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
 	ctx := srv.Context()
 	{{ template "fieldMaskOpts" $handlerOpts }}
 	{{ template "pipeServerStreamFn" ( dict "Service" $otherService "Method" $method) }}
@@ -187,7 +187,7 @@ func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $servic
 
 {{- else }}
 // Unary
-func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qualifiedGoIdent $method.Input.GoIdent }}) (*{{ qualifiedGoIdent $method.Output.GoIdent }}, error) {
+func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
 	{{ template "fieldMaskOpts" $handlerOpts }}
 	return h.{{ $otherService.GoName | untitle }}Client.{{ $method.GoName }}(ctx, request)
 }

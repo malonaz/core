@@ -2,7 +2,7 @@ go_library(
     name = "buildify",
     srcs = [
         "buildify.go",
-        "service.go",
+        "model.go",
     ],
     visibility = ["//..."],
     deps = [
