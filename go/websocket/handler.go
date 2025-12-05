@@ -242,8 +242,8 @@ func (h *Handler[Req, Resp]) CloseError() error {
 }
 
 func (h *Handler[Req, Resp]) read(ctx context.Context) {
-	h.log.InfoContext(ctx, "starting read routine")
-	defer h.log.InfoContext(ctx, "exiting read routine")
+	h.log.DebugContext(ctx, "starting read routine")
+	defer h.log.DebugContext(ctx, "exiting read routine")
 	defer close(h.readChan)
 
 	for {
@@ -285,8 +285,8 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 }
 
 func (h *Handler[Req, Resp]) write(ctx context.Context) {
-	h.log.InfoContext(ctx, "starting write routine")
-	defer h.log.InfoContext(ctx, "exiting write routine")
+	h.log.DebugContext(ctx, "starting write routine")
+	defer h.log.DebugContext(ctx, "exiting write routine")
 	for {
 		select {
 		case <-ctx.Done():

@@ -310,8 +310,8 @@ func (c *Client[Req, Resp]) reconnect(ctx context.Context) error {
 }
 
 func (c *Client[Req, Resp]) read(ctx context.Context) {
-	c.log.InfoContext(ctx, "starting read routine")
-	defer c.log.InfoContext(ctx, "exiting read routine")
+	c.log.DebugContext(ctx, "starting read routine")
+	defer c.log.DebugContext(ctx, "exiting read routine")
 	defer close(c.readChan)
 
 	for {
@@ -326,7 +326,7 @@ func (c *Client[Req, Resp]) read(ctx context.Context) {
 		_, bytes, err := conn.ReadMessage()
 		if err != nil {
 			if c.isClosed() {
-				c.log.InfoContext(ctx, "read routine exiting due to close")
+				c.log.DebugContext(ctx, "read routine exiting due to close")
 				return
 			}
 
@@ -370,8 +370,8 @@ func (c *Client[Req, Resp]) read(ctx context.Context) {
 }
 
 func (c *Client[Req, Resp]) write(ctx context.Context) {
-	c.log.InfoContext(ctx, "starting write routine")
-	defer c.log.InfoContext(ctx, "exiting write routine")
+	c.log.DebugContext(ctx, "starting write routine")
+	defer c.log.DebugContext(ctx, "exiting write routine")
 
 	for {
 		select {
