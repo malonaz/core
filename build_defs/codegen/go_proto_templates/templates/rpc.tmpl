@@ -99,7 +99,7 @@ package {{ .PackageName }}
             {{ if not $pr.Singleton }}
                 Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             {{ end }}
-            Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, upsertClause string) (*{{ $goTypeQgi }}, error)
+            Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
                 {{- if $softDeletable }}
                     SoftDelete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeQgi }}, error)
@@ -213,6 +213,10 @@ package {{ .PackageName }}
         {{- else if $rpc.Update }}
             var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
             func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+            if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.{{ $resourceGoName }}.Name) {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard")
+            }
+
             {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
                 // STEP 0: set the update time.
                 request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
@@ -242,7 +246,7 @@ package {{ .PackageName }}
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err)
 	          }
-	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpsertClause())
+	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns())
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist")

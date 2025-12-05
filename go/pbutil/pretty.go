@@ -25,3 +25,11 @@ func MarshalPretty(m proto.Message) ([]byte, error) {
 	output := pretty.Color(pretty.Pretty(jsonBytes), pretty.TerminalStyle)
 	return output, err
 }
+
+func MustPrintPretty(m proto.Message) {
+	bytes, err := MarshalPretty(m)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(bytes))
+}

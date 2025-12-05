@@ -84,8 +84,8 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 		},
 		{
 			name:               "all allowed fields",
-			orderBy:            "id asc, create_timestamp desc, update_timestamp asc",
-			expectedOrderBySQL: "ORDER BY id, create_timestamp DESC, update_timestamp",
+			orderBy:            "id asc, create_timestamp desc, update_time asc",
+			expectedOrderBySQL: "ORDER BY id, create_timestamp DESC, update_time",
 			wantErr:            false,
 		},
 		{

@@ -147,15 +147,15 @@ func TestUpdateRequestParser_UpdateTimestampAlwaysAuthorized(t *testing.T) {
 		wantErr          bool
 	}{
 		{
-			name:             "explicit field path without default path",
-			fieldMaskPaths:   []string{"nested", "update_timestamp"},
-			wantUpdateClause: "nested = EXCLUDED.nested, update_timestamp = EXCLUDED.update_timestamp",
+			name:             "explicit field path",
+			fieldMaskPaths:   []string{"nested", "update_time"},
+			wantUpdateClause: "nested = EXCLUDED.nested, update_time = EXCLUDED.update_time",
 			wantErr:          false,
 		},
 		{
 			name:             "explicit field path with default path",
-			fieldMaskPaths:   []string{"update_timestamp"},
-			wantUpdateClause: "update_timestamp = EXCLUDED.update_timestamp",
+			fieldMaskPaths:   []string{"update_time"},
+			wantUpdateClause: "update_time = EXCLUDED.update_time",
 			wantErr:          false,
 		},
 	}

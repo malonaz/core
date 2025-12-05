@@ -56,14 +56,18 @@ var (
 	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
 	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
 	{{ $tableName := ternary $pr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+  {{- $whereConditions := list }}
 	{{- $placeholders := list }}
 	{{- range $i, $var := $pr.PatternVariables }}
 		{{ if and (eq $i 0) $modelOpts.IdColumnName }}
-			{{- $placeholders = append $placeholders (printf "id = $%d" (add $i 1)) }}
+      {{- $whereConditions = append $whereConditions (printf "%s = $%%d" $modelOpts.IdColumnName) }}
+			{{- $placeholders = append $placeholders (printf "%s = $%d" $modelOpts.IdColumnName (add $i 1)) }}
 		{{ else }}
+      {{- $whereConditions = append $whereConditions (printf "%s_id = $%%d" $var) }}
 			{{- $placeholders = append $placeholders (printf "%s_id = $%d" $var (add $i 1)) }}
 		{{ end }}
 	{{- end }}
+  {{- $whereClause := join " AND " $whereConditions }}
 	{{- $placeholderDeclarations := (join " AND " $placeholders) }}
 	{{- $columnNames := $pr.PatternVariableIDs false }}
 	{{- $identifier := "" }}
@@ -89,8 +93,13 @@ var (
 		{{- if $pr.Singleton }}
 			const {{ $message.GoIdent.GoName }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO NOTHING`
 		{{ else }}
-			var {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) ` +
-				postgres.SelectQuery("DO UPDATE SET {{ $identifier }} = EXCLUDED.{{ $identifier }} RETURNING %s", {{ $goType }}PostgresColumns)
+
+	  var (
+      {{ $message.GoIdent.GoName }}WithRequestIDPostgresColumns = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName }}WithRequestID{})
+      _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO UPDATE SET {{ $identifier }} = EXCLUDED.{{ $identifier }} RETURNING `
+		  {{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}WithRequestIDPostgresColumns)
+		  {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
+    )
 
 			func (s *Store) Insert{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
 				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
@@ -143,15 +152,15 @@ var (
 
 			type {{ $message.GoIdent.GoName }}WithRequestID struct {
 				RequestID string `db:"request_id"`
-				*{{ $goTypeFqi }}
+				{{ $goTypeFqi }}
 			}
 
-			func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+			func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
         {{ $goName }} := &{{ $message.GoIdent.GoName }}WithRequestID{
         RequestID: requestID,
-        {{ $goType }}: raw{{ $goName }},
+        {{ $goType }}: *raw{{ $goName | title }},
         }
-				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
+				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
 					{{- $modelOpts := (getExt $message.Desc "malonaz.codegen.model.v1.model_opts") }}
@@ -171,7 +180,7 @@ var (
 					if row.RequestID != requestID {
 						return nil, {{ $errAlreadyExistsFqi }}
 					}
-					return row.{{ $goType }}, nil
+					return &row.{{ $goType }}, nil
 				{{ else }}
 					// Execute within transaction if jobs are provided (or singleton).
 					var inserted *{{ $goTypeFqi }}
@@ -188,7 +197,7 @@ var (
             if row.RequestID != requestID {
 						  return {{ $errAlreadyExistsFqi }}
 					  }
-            inserted = row.{{ $goType }}
+            inserted = &row.{{ $goType }}
 						{{ range $i, $_ := $singletonChildren }}
 							if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
 								return err
@@ -207,24 +216,40 @@ var (
 	{{ end }}
 
 
-	{{/* ################### UPDATE ################### */}}
-	var update{{ $message.GoIdent.GoName }}PostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) ` +
-		postgres.SelectQuery("DO UPDATE SET #update_clause# RETURNING %s", {{ $goType }}PostgresColumns)
+{{/* ################### UPDATE ################### */}}
+var update{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET #update_clause# WHERE #where_clause# ` +
+	postgres.SelectQuery("RETURNING %s", {{ $goType }}PostgresColumns)
 
-	func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string) (*{{ $goTypeFqi }}, error) {
-		query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
-		query, params := postgres.InsertQuery(query, {{ $goName }})
+func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string) (*{{ $goTypeFqi }}, error) {
+	// Get update params from the object using the provided columns
+	updateParams := {{ fqn "github.com/malonaz/core/go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
 
-		rows, err := s.client.Query(ctx, query, params...)
-		if err != nil {
-			return nil, err
-		}
-		row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-		if err != nil {
-			return nil, err
-		}
-		return row, nil
+	query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
+  // Build WHERE clause with correct placeholders accounting for update params
+	numUpdateParams := len(updateParams)
+  whereClause := fmt.Sprintf("{{ $whereClause }}", {{- range $i, $_ := $pr.PatternVariables }}numUpdateParams+{{ add $i 1 }},{{ end }})
+  query = strings.Replace(query, "#where_clause#", whereClause, 1)
+
+	// Combine params: update params first, then WHERE clause params
+	params := append(updateParams,
+		{{- range $i, $var := $pr.PatternVariables }}
+		{{ $goName }}.{{ $var | camelcase | title }}ID,
+		{{- end }}
+	)
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, err
 	}
+	row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, {{ $errNotExistFqi }}
+		}
+		return nil, err
+	}
+	return row, nil
+}
 
 	{{/* ################### DELETE ################### */}}
 	{{- if not $modelOpts.SkipDeleteFunction -}}

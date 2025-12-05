@@ -89,7 +89,7 @@ message Resource {
   // some timestmap.
   int64 create_timestamp = 20;
   // some other timestamp.
-  int64 update_timestamp = 21;
+  int64 update_time = 21;
 
   // Simple string field.
   string field1 = 2;

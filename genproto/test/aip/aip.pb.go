@@ -373,7 +373,7 @@ type Resource struct {
 	// some timestmap.
 	CreateTimestamp int64 `protobuf:"varint,20,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
 	// some other timestamp.
-	UpdateTimestamp int64 `protobuf:"varint,21,opt,name=update_timestamp,json=updateTimestamp,proto3" json:"update_timestamp,omitempty"`
+	UpdateTime int64 `protobuf:"varint,21,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	// Simple string field.
 	Field1 string `protobuf:"bytes,2,opt,name=field1,proto3" json:"field1,omitempty"`
 	// Nested resource for path mapping tests.
@@ -442,9 +442,9 @@ func (x *Resource) GetCreateTimestamp() int64 {
 	return 0
 }
 
-func (x *Resource) GetUpdateTimestamp() int64 {
+func (x *Resource) GetUpdateTime() int64 {
 	if x != nil {
-		return x.UpdateTimestamp
+		return x.UpdateTime
 	}
 	return 0
 }
@@ -850,11 +850,12 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\b\n" +
-	"\"\xa9\x05\n" +
+	"\"\x9f\x05\n" +
 	"\bResource\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x10create_timestamp\x18\x14 \x01(\x03R\x0fcreateTimestamp\x12)\n" +
-	"\x10update_timestamp\x18\x15 \x01(\x03R\x0fupdateTimestamp\x12\x16\n" +
+	"\x10create_timestamp\x18\x14 \x01(\x03R\x0fcreateTimestamp\x12\x1f\n" +
+	"\vupdate_time\x18\x15 \x01(\x03R\n" +
+	"updateTime\x12\x16\n" +
 	"\x06field1\x18\x02 \x01(\tR\x06field1\x12;\n" +
 	"\x06nested\x18\x03 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\x06nested\x12=\n" +
 	"\anested2\x18\x04 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\anested2\x125\n" +

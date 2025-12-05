@@ -119,7 +119,7 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	protoPathToColumn := make(map[string]string)
 	mappings := map[string]string{}
 	for _, node := range tree.Nodes {
-		// We always add 'update_timestamp' as an updatable field.
+		// We always add 'update_time' as an updatable field.
 		if node.Path == "update_time" {
 			paths = append(paths, node.Path)
 		}
