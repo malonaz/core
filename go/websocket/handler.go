@@ -39,16 +39,18 @@ type Config struct {
 // Handler handles a single upgraded websocket connection
 type Handler[Req, Resp any] struct {
 	Config
-	w          http.ResponseWriter
-	r          *http.Request
-	conn       *websocket.Conn
-	readChan   chan Req
-	writeChan  chan Resp
-	errChan    chan error
-	close      chan struct{}
-	closeMutex sync.Mutex
-	closeErr   error // Store the error that caused closure
-	cancel     func()
+	w                  http.ResponseWriter
+	r                  *http.Request
+	conn               *websocket.Conn
+	readChan           chan Req
+	writeChan          chan Resp
+	errChan            chan error
+	close              chan struct{}
+	writeChanClosed    sync.Once
+	writeRoutineExited chan struct{}
+	closeMutex         sync.Mutex
+	closeErr           error // Store the error that caused closure
+	cancel             func()
 }
 
 // Option configures a Handler
@@ -143,12 +145,29 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	h.writeChan = make(chan Resp, h.writeBufSize)
 	h.errChan = make(chan error, 1) // Buffered to prevent blocking
 	h.close = make(chan struct{})
+	h.writeRoutineExited = make(chan struct{})
 
 	h.log = h.log.WithGroup("websocket_handler").With("remote_addr", h.r.RemoteAddr, "path", h.r.URL.Path)
 	h.log.InfoContext(ctx, "started")
 	go h.read(ctx)
 	go h.write(ctx)
 	return nil
+}
+
+// DrainWrites closes the write channel and waits for all buffered writes to complete.
+func (h *Handler[Req, Resp]) DrainWrites(ctx context.Context) {
+	// Close the write channel to signal no more writes will come
+	// The write goroutine will drain remaining messages and close writeRoutineExited
+	h.writeChanClosed.Do(func() {
+		close(h.writeChan)
+	})
+
+	// Wait for draining to complete
+	select {
+	case <-h.writeRoutineExited:
+	case <-ctx.Done():
+	case <-h.close:
+	}
 }
 
 // Close gracefully closes this websocket connection
@@ -287,13 +306,19 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 func (h *Handler[Req, Resp]) write(ctx context.Context) {
 	h.log.DebugContext(ctx, "starting write routine")
 	defer h.log.DebugContext(ctx, "exiting write routine")
+	defer close(h.writeRoutineExited)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-h.close:
 			return
-		case payload := <-h.writeChan:
+		case payload, ok := <-h.writeChan:
+			if !ok {
+				// Channel closed - drain complete
+				return
+			}
 			if err := h.conn.WriteJSON(payload); err != nil {
 				h.log.ErrorContext(ctx, "writing to websocket", "error", err)
 				h.closeWithError(fmt.Errorf("write error: %w", err))
