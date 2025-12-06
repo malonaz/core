@@ -9,31 +9,30 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/audio"
+	"github.com/malonaz/core/go/grpc"
 )
 
-type textToSpeechStreamRequest struct {
-	Text          string `json:"text"`
-	ModelID       string `json:"model_id"`
-	LanguageCode  string `json:"language_code,omitempty"`
-	VoiceSettings *struct {
-		Stability       float32 `json:"stability,omitempty"`
-		SimilarityBoost float32 `json:"similarity_boost,omitempty"`
-	} `json:"voice_settings,omitempty"`
+// Define protected keys that cannot be overridden by provider settings
+var protectedKeySet = map[string]struct{}{
+	"text":     {},
+	"model_id": {},
 }
 
-// TextToSpeechStream implements the exact gRPC server streaming interface
+// TextToSpeechStream implements the gRPC server streaming interface for text-to-speech conversion.
 func (c *Client) TextToSpeechStream(
 	request *aiservicepb.TextToSpeechStreamRequest,
 	stream aiservicepb.Ai_TextToSpeechStreamServer,
 ) error {
 	ctx := stream.Context()
 
+	// Get model information
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
@@ -41,18 +40,11 @@ func (c *Client) TextToSpeechStream(
 	}
 	audioFormat := model.Tts.AudioFormat
 
-	// Send generation metrics
+	// Initialize metrics tracking
 	startTime := time.Now()
 	generationMetrics := &aipb.GenerationMetrics{}
 
-	// Build the request body
-	textToSpeechStreamRequest := textToSpeechStreamRequest{
-		Text:         request.Text,
-		ModelID:      model.ProviderModelId,
-		LanguageCode: request.GetConfiguration().GetLanguageCode(),
-	}
-
-	// Use the preferred sample rate if it is supported.
+	// Use the preferred sample rate if it is supported
 	preferredSampleRate := request.GetConfiguration().GetPreferredSampleRate()
 	if preferredSampleRate > 0 {
 		for _, supportedSampleRate := range model.Tts.SupportedSampleRates {
@@ -63,9 +55,32 @@ func (c *Client) TextToSpeechStream(
 		}
 	}
 
-	requestBody, err := json.Marshal(textToSpeechStreamRequest)
+	// Build base request with non-overridable fields
+	baseRequest := map[string]interface{}{
+		"text":     request.Text,
+		"model_id": model.ProviderModelId,
+	}
+
+	// Add language code if provided (can be overridden by provider settings)
+	if languageCode := request.GetConfiguration().GetLanguageCode(); languageCode != "" {
+		baseRequest["language_code"] = languageCode
+	}
+
+	// Merge provider settings using AsMap()
+	if providerSettings := request.GetConfiguration().GetProviderSettings(); providerSettings != nil {
+		providerMap := providerSettings.AsMap()
+		for key, value := range providerMap {
+			if _, ok := protectedKeySet[key]; ok {
+				return grpc.Errorf(codes.InvalidArgument, "cannot set protected provider setting key %s", key).Err()
+			}
+			baseRequest[key] = value
+		}
+	}
+
+	// Marshal the final request body
+	requestBody, err := json.Marshal(baseRequest)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request: %w", err)
+		return grpc.Errorf(codes.InvalidArgument, "marshaling request: %v", err).Err()
 	}
 
 	// Create the HTTP request
@@ -73,9 +88,10 @@ func (c *Client) TextToSpeechStream(
 
 	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return grpc.Errorf(codes.Internal, "creating HTTP request: %v", err).Err()
 	}
 
+	// Set headers
 	httpRequest.Header.Add("Accept", "audio/mpeg")
 	httpRequest.Header.Add("Content-Type", "application/json")
 	httpRequest.Header.Add("xi-api-key", c.apiKey)
@@ -85,17 +101,18 @@ func (c *Client) TextToSpeechStream(
 	query.Add("output_format", fmt.Sprintf("pcm_%d", audioFormat.SampleRate))
 	httpRequest.URL.RawQuery = query.Encode()
 
-	// Execute the request
+	// Execute the HTTP request
 	response, err := c.client.Do(httpRequest)
 	if err != nil {
-		return fmt.Errorf("failed to execute request: %w", err)
+		return grpc.Errorf(codes.Unavailable, "executing HTTP request: %v", err).Err()
 	}
 	defer response.Body.Close()
 
-	// Check for errors
+	// Check for HTTP errors
 	if response.StatusCode != http.StatusOK {
 		responseBody, _ := io.ReadAll(response.Body)
-		return fmt.Errorf("unexpected HTTP status %d: %s", response.StatusCode, string(responseBody))
+		code := grpc.CodeFromHTTPStatus(response.StatusCode)
+		return grpc.Errorf(code, "HTTP status %d: %s", response.StatusCode, string(responseBody)).Err()
 	}
 
 	// Send audio format first
@@ -104,7 +121,7 @@ func (c *Client) TextToSpeechStream(
 			AudioFormat: audioFormat,
 		},
 	}); err != nil {
-		return err
+		return grpc.Errorf(codes.Internal, "sending audio format: %v", err).Err()
 	}
 
 	// Stream audio chunks
@@ -117,16 +134,18 @@ func (c *Client) TextToSpeechStream(
 			if err == io.EOF {
 				break
 			}
-			return fmt.Errorf("error reading response body: %w", err)
+			return grpc.Errorf(codes.Internal, "reading response body: %v", err).Err()
 		}
 		if bytesRead == 0 {
 			continue
 		}
+
+		// Record time to first byte
 		if generationMetrics.Ttfb == nil {
 			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
 		}
 
-		// Update total duration
+		// Calculate audio duration for this chunk
 		duration, err := audio.CalculatePCMDuration(
 			bytesRead,
 			audioFormat.SampleRate,
@@ -138,24 +157,25 @@ func (c *Client) TextToSpeechStream(
 		}
 		totalDuration += duration
 
-		// Send audio chunk
+		// Create and send audio chunk
 		audioChunk := &audiopb.Chunk{
 			Data: make([]byte, bytesRead),
 		}
 		copy(audioChunk.Data, buffer[:bytesRead])
 
-		response := &aiservicepb.TextToSpeechStreamResponse{
+		if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
 			Content: &aiservicepb.TextToSpeechStreamResponse_AudioChunk{
 				AudioChunk: audioChunk,
 			},
-		}
-		if err := stream.Send(response); err != nil {
-			return err
+		}); err != nil {
+			return grpc.Errorf(codes.Internal, "sending audio chunk: %v", err).Err()
 		}
 	}
+
+	// Record time to last byte
 	generationMetrics.Ttlb = durationpb.New(time.Since(startTime))
 
-	// Send model usage
+	// Send model usage metrics
 	modelUsage := &aipb.ModelUsage{
 		Model: request.Model,
 		InputCharacter: &aipb.ResourceConsumption{
@@ -170,7 +190,7 @@ func (c *Client) TextToSpeechStream(
 			ModelUsage: modelUsage,
 		},
 	}); err != nil {
-		return err
+		return grpc.Errorf(codes.Internal, "sending model usage: %v", err).Err()
 	}
 
 	// Send generation metrics
@@ -179,7 +199,7 @@ func (c *Client) TextToSpeechStream(
 			GenerationMetrics: generationMetrics,
 		},
 	}); err != nil {
-		return err
+		return grpc.Errorf(codes.Internal, "sending generation metrics: %v", err).Err()
 	}
 
 	return nil

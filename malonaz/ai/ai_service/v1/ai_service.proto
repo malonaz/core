@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/model.proto";
@@ -394,6 +395,11 @@ message TextToSpeechConfiguration {
   // Preferred sample rate.e.g., 16000, 44100, 48000
   // Best effort basis, caller should inspect the `audio_format` output.
   int32 preferred_sample_rate = 2;
+
+  // Override provider-specific request fields.
+  // See provider documentation for supported settings.
+  // Any field here gets injected into the request to the provider at the root level.
+  google.protobuf.Struct provider_settings = 3;
 }
 
 // Request message for Ai.TextToSpeech.

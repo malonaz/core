@@ -271,6 +271,7 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 		for _, modelConfig := range voice.ModelConfigs {
 			if request.Model == modelConfig.Model {
 				providerVoiceId = modelConfig.ProviderVoiceId
+				break
 			}
 		}
 		if providerVoiceId == "" {
