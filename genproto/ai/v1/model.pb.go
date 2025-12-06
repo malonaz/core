@@ -295,10 +295,12 @@ func (x *TttModelConfig) GetOutputTokenLimit() int32 {
 // Configuration for a tts model.
 type TtsModelConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Audio format of the output of this model.
-	AudioFormat   *v1.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3" json:"audio_format,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Default audio format of the output of this model.
+	AudioFormat *v1.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3" json:"audio_format,omitempty"`
+	// Supported sample rates.
+	SupportedSampleRates []int32 `protobuf:"varint,2,rep,packed,name=supported_sample_rates,json=supportedSampleRates,proto3" json:"supported_sample_rates,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *TtsModelConfig) Reset() {
@@ -338,6 +340,13 @@ func (x *TtsModelConfig) GetAudioFormat() *v1.Format {
 	return nil
 }
 
+func (x *TtsModelConfig) GetSupportedSampleRates() []int32 {
+	if x != nil {
+		return x.SupportedSampleRates
+	}
+	return nil
+}
+
 var File_malonaz_ai_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_model_proto_rawDesc = "" +
@@ -356,9 +365,10 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
 	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x12.\n" +
 	"\x13context_token_limit\x18\x03 \x01(\x05R\x11contextTokenLimit\x12,\n" +
-	"\x12output_token_limit\x18\x04 \x01(\x05R\x10outputTokenLimit\"M\n" +
+	"\x12output_token_limit\x18\x04 \x01(\x05R\x10outputTokenLimit\"\x83\x01\n" +
 	"\x0eTtsModelConfig\x12;\n" +
-	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat*c\n" +
+	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat\x124\n" +
+	"\x16supported_sample_rates\x18\x02 \x03(\x05R\x14supportedSampleRates*c\n" +
 	"\tModelType\x12\x1a\n" +
 	"\x16MODEL_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eMODEL_TYPE_STT\x10\x01\x12\x12\n" +

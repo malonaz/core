@@ -57,7 +57,7 @@ func (s *VoiceService) GetVoice(ctx context.Context, request *aiservicepb.GetVoi
 	if !ok {
 		return nil, grpc.Errorf(codes.NotFound, "unknown voice %s ", voiceRn.Voice).Err()
 	}
-	return voice, nil
+	return proto.Clone(voice).(*aipb.Voice), nil
 }
 
 var listVoicesRequestParser = aip.MustNewPaginationRequestParser[*aiservicepb.ListVoicesRequest]()

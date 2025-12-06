@@ -93,7 +93,7 @@ func (s *ModelService) GetModel(ctx context.Context, request *aiservicepb.GetMod
 	if !ok {
 		return nil, grpc.Errorf(codes.NotFound, "unknown model %s for provider %s", modelRn.Model, modelRn.Provider).Err()
 	}
-	return model, nil
+	return proto.Clone(model).(*aipb.Model), nil
 }
 
 var listModelsRequestParser = aip.MustNewPaginationRequestParser[*aiservicepb.ListModelsRequest]()

@@ -26,7 +26,7 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		Model:    model.ProviderModelId,
 		FilePath: "audio.wav",
 		Reader:   bytes.NewReader(request.Audio),
-		Language: request.Language,
+		Language: request.LanguageCode,
 		Format:   openai.AudioResponseFormatJSON,
 	}
 

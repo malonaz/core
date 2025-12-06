@@ -64,8 +64,10 @@ message TttModelConfig {
 
 // Configuration for a tts model.
 message TtsModelConfig {
-  // Audio format of the output of this model.
+  // Default audio format of the output of this model.
   audio.v1.Format audio_format = 1;
+  // Supported sample rates.
+  repeated int32 supported_sample_rates = 2;
 }
 
 // Represents a model.

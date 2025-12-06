@@ -20,9 +20,10 @@ import (
 type textToSpeechStreamRequest struct {
 	Text          string `json:"text"`
 	ModelID       string `json:"model_id"`
+	LanguageCode  string `json:"language_code,omitempty"`
 	VoiceSettings *struct {
-		Stability       float32 `json:"stability"`
-		SimilarityBoost float32 `json:"similarity_boost"`
+		Stability       float32 `json:"stability,omitempty"`
+		SimilarityBoost float32 `json:"similarity_boost,omitempty"`
 	} `json:"voice_settings,omitempty"`
 }
 
@@ -38,6 +39,7 @@ func (c *Client) TextToSpeechStream(
 	if err != nil {
 		return err
 	}
+	audioFormat := model.Tts.AudioFormat
 
 	// Send generation metrics
 	startTime := time.Now()
@@ -45,8 +47,20 @@ func (c *Client) TextToSpeechStream(
 
 	// Build the request body
 	textToSpeechStreamRequest := textToSpeechStreamRequest{
-		Text:    request.Text,
-		ModelID: model.ProviderModelId,
+		Text:         request.Text,
+		ModelID:      model.ProviderModelId,
+		LanguageCode: request.GetConfiguration().GetLanguageCode(),
+	}
+
+	// Use the preferred sample rate if it is supported.
+	preferredSampleRate := request.GetConfiguration().GetPreferredSampleRate()
+	if preferredSampleRate > 0 {
+		for _, supportedSampleRate := range model.Tts.SupportedSampleRates {
+			if supportedSampleRate == preferredSampleRate {
+				audioFormat.SampleRate = preferredSampleRate
+				break
+			}
+		}
 	}
 
 	requestBody, err := json.Marshal(textToSpeechStreamRequest)
@@ -68,7 +82,7 @@ func (c *Client) TextToSpeechStream(
 
 	// Add query parameters for PCM format
 	query := httpRequest.URL.Query()
-	query.Add("output_format", "pcm_16000") // 16kHz PCM16
+	query.Add("output_format", fmt.Sprintf("pcm_%d", audioFormat.SampleRate))
 	httpRequest.URL.RawQuery = query.Encode()
 
 	// Execute the request
@@ -85,7 +99,6 @@ func (c *Client) TextToSpeechStream(
 	}
 
 	// Send audio format first
-	audioFormat := model.Tts.AudioFormat
 	if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
 		Content: &aiservicepb.TextToSpeechStreamResponse_AudioFormat{
 			AudioFormat: audioFormat,

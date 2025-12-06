@@ -240,7 +240,7 @@ message SpeechToTextRequest {
   bytes audio = 2 [(buf.validate.field).required = true];
 
   // Optional language code to improve transcription accuracy (e.g., "en", "es").
-  string language = 3;
+  string language_code = 3;
 }
 
 // Response message for Ai.SpeechToText.
@@ -386,6 +386,16 @@ message TextToTextStreamResponse {
   }
 }
 
+// Configuration for text to speech generation.
+message TextToSpeechConfiguration {
+  // Optional language code to improve accuracy (e.g., "en", "es").
+  string language_code = 1;
+
+  // Preferred sample rate.e.g., 16000, 44100, 48000
+  // Best effort basis, caller should inspect the `audio_format` output.
+  int32 preferred_sample_rate = 2;
+}
+
 // Request message for Ai.TextToSpeech.
 message TextToSpeechRequest {
   option (buf.validate.message).cel = {
@@ -413,6 +423,9 @@ message TextToSpeechRequest {
 
   // The text to convert to speech.
   string text = 4 [(buf.validate.field).string.min_len = 1];
+
+  // Additional configuration.
+  TextToSpeechConfiguration configuration = 5;
 }
 
 // Response message for Ai.TextToSpeech.
@@ -457,6 +470,9 @@ message TextToSpeechStreamRequest {
 
   // The text to convert to speech.
   string text = 4 [(buf.validate.field).string.min_len = 1];
+
+  // Additional configuration.
+  TextToSpeechConfiguration configuration = 5;
 }
 
 // Response message for Ai.TextToSpeechStream.

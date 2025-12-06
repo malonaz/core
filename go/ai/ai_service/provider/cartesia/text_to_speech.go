@@ -82,6 +82,16 @@ func (c *Client) TextToSpeechStream(
 
 	// Build the generation request
 	audioFormat := model.Tts.AudioFormat
+	preferredSampleRate := request.GetConfiguration().GetPreferredSampleRate()
+	if preferredSampleRate > 0 {
+		for _, supportedSampleRate := range model.Tts.SupportedSampleRates {
+			if supportedSampleRate == preferredSampleRate {
+				audioFormat.SampleRate = preferredSampleRate
+				break
+			}
+		}
+	}
+
 	eg.Go(func() error {
 		return srv.Send(&aiservicepb.TextToSpeechStreamResponse{
 			Content: &aiservicepb.TextToSpeechStreamResponse_AudioFormat{
@@ -93,6 +103,7 @@ func (c *Client) TextToSpeechStream(
 	textToSpeechRequest := &TextToSpeechRequest{
 		ModelID:    model.ProviderModelId,
 		Transcript: request.Text,
+		Language:   request.GetConfiguration().GetLanguageCode(),
 		Voice: VoiceSpecifier{
 			Mode: "id",
 			ID:   request.ProviderVoiceId,

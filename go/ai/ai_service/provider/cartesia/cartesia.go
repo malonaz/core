@@ -92,6 +92,14 @@ func (c *Client) DefaultModels() []*aipb.Model {
 					Channels:      1,
 					BitsPerSample: 16,
 				},
+				SupportedSampleRates: []int32{
+					8_000,
+					16_000,
+					22_050,
+					24_000,
+					44_100,
+					48_000,
+				},
 			},
 		},
 	}
