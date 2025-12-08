@@ -1,4 +1,4 @@
-package {{ .implementation | base}}
+package {{ .implementation | base }}
 {{- $exportFields := not (empty .exportServiceFields) }}
 
 {{ if .includeRuntime }}

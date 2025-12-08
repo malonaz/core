@@ -98,7 +98,7 @@
         {{- $serviceKey := printf "service_opts_%s" $serviceManifest.name -}}
         {{- if doOnce $serviceKey }}
             {{- $serviceName := $serviceManifest.name | camelcase | title }}
-            {{ $serviceName }} *{{ plzGoImport $serviceManifest.implementation ($serviceName | lower) }}.Opts `group:"{{ $serviceName }}" namespace:"{{ $serviceManifest.name | kebabcase }}" env-namespace:"{{ $serviceManifest.name | snakecase | upper }}"`
+            {{ $serviceName }} *{{ plzGoImportAlias $serviceManifest.implementation ($serviceName | lower) }}.Opts `group:"{{ $serviceName }}" namespace:"{{ $serviceManifest.name | kebabcase }}" env-namespace:"{{ $serviceManifest.name | snakecase | upper }}"`
         {{- end }}
     {{- end }}
 

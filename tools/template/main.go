@@ -15,13 +15,14 @@ import (
 )
 
 var opts struct {
-	Logging    *logging.Opts
-	Templates  []string `long:"template" description:"The template files to use" required:"true"`
-	Data       string   `long:"data" description:"The data file to use"`
-	DataFormat string   `long:"data-format" description:"The data format to use (json or yaml)" default:"json"`
-	Output     string   `long:"output" short:"o" description:"The output file to create" required:"true"`
-	Delims     string   `long:"delims" description:"Template delimiters format (e.g., '[[.]]' or '{{.}}')" default:"{{.}}"`
-	ExtraData  []string `long:"extra-data" description:"Extra data to pass in the format: key:value"`
+	Logging      *logging.Opts
+	Templates    []string `long:"template" description:"The template files to use" required:"true"`
+	Data         string   `long:"data" description:"The data file to use"`
+	DataFormat   string   `long:"data-format" description:"The data format to use (json or yaml)" default:"json"`
+	Output       string   `long:"output" short:"o" description:"The output file to create" required:"true"`
+	Delims       string   `long:"delims" description:"Template delimiters format (e.g., '[[.]]' or '{{.}}')" default:"{{.}}"`
+	ExtraData    []string `long:"extra-data" description:"Extra data to pass in the format: key:value"`
+	GoImportPath string   `long:"go-import-path" description:"The plz go plugin importh path"`
 }
 
 func parseDelims(format string) (left, right string, err error) {
@@ -69,7 +70,7 @@ func run() error {
 		funcMap[k] = v
 	}
 	// Parse the template
-	tmpl := template.New("template").Funcs(funcMap).Delims(leftDelim, rightDelim)
+	tmpl := template.New(opts.Templates[0]).Funcs(funcMap).Delims(leftDelim, rightDelim)
 	for _, templatePath := range opts.Templates {
 		bytes, err := os.ReadFile(templatePath)
 		if err != nil {

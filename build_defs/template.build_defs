@@ -71,6 +71,8 @@ def go_template(
         f"--data-format {format}",
     ] + [f"--template $(location {t})" for t in processed_templates]
 
+    if CONFIG.GO.IMPORT_PATH:
+        args += [f"--go-import-path=" + CONFIG.GO.IMPORT_PATH]
     if data:
         args.append(f"--data $(location {data})")
     if extra_data:

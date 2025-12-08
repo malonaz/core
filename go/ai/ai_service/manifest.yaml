@@ -1,2 +1,2 @@
 name: ai-service
-implementation: github.com/malonaz/core/go/ai/ai_service
+implementation: //go/ai/ai_service

@@ -9,22 +9,47 @@ import (
 
 const coreRepo = "github.com/malonaz/core/go"
 
-var inputToGRPC = map[string]*GRPC{}
+var targetToGRPC = map[string]*GRPC{}
 
 // Contains all the information about a grpc server.
 type GRPC struct {
-	input        string
+	target       string
 	replacements map[string]string
 }
 
-func parseGRPC(input, depName string) (*GRPC, error) {
-	if grpc, ok := inputToGRPC[input]; ok {
+// Target is a proto target with a single service name.
+func parseGRPC(target, depName string) (*GRPC, error) {
+	if grpc, ok := targetToGRPC[target]; ok {
 		return grpc, nil
 	}
-	serviceName, err := grpcSvcName(input)
+	_, filenames, err := parseTarget(target)
 	if err != nil {
 		return nil, err
 	}
+
+	// Parse the service name from the files.
+	var serviceName string
+	for _, filename := range filenames {
+		bytes, err := readFile(filename)
+		if err != nil {
+			return nil, err
+		}
+		content := string(bytes)
+		// Find the service definition
+		matches := serviceRegex.FindStringSubmatch(content)
+		if len(matches) != 2 {
+			continue
+		}
+		candidateServiceName := matches[1]
+		if serviceName != "" {
+			return nil, fmt.Errorf("found multiple service definition: [%s, %s]", serviceName, candidateServiceName)
+		}
+		serviceName = candidateServiceName
+	}
+	if serviceName == "" {
+		return nil, fmt.Errorf("no service found")
+	}
+
 	displayName := serviceName
 	if depName != "" {
 		displayName = xstrings.ToPascalCase(depName)
@@ -71,10 +96,10 @@ func parseGRPC(input, depName string) (*GRPC, error) {
 		"client":        displayNameCamelCase + "Client",
 	}
 	grpc := &GRPC{
-		input:        input,
+		target:       target,
 		replacements: m,
 	}
-	inputToGRPC[input] = grpc
+	targetToGRPC[target] = grpc
 	return grpc, nil
 }
 
@@ -94,7 +119,7 @@ func (t *GRPC) getReplacements(grpcImport, protoImport bool) (map[string]string,
 		m["grpcImport"] = alias
 	}
 	if protoImport {
-		alias, err := plzGoImport(t.input, m["packageImport"])
+		alias, err := plzGoImportAlias(t.target, m["packageImport"])
 		if err != nil {
 			return nil, err
 		}

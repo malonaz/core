@@ -11,8 +11,3 @@ export_file(
     name = "service.go.tmpl",
     src = "service.go.tmpl",
 )
-
-export_file(
-    name = "k8s.yaml.tmpl",
-    src = "k8s.yaml.tmpl",
-)

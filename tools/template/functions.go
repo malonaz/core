@@ -11,17 +11,17 @@ import (
 )
 
 var (
-	protoGoPackageRegex    = regexp.MustCompile(`option\s+go_package\s*=\s*"([^";]+)(?:;[^"]*)?";`)
-	pleaseFilenameRegex    = regexp.MustCompile(`[^(]+\(([^)]+)\)`)
-	serviceRegex           = regexp.MustCompile(`service\s+([\w]+)\s+{`)
-	publisherRegex         = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
-	goPackageRegex         = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
-	doOnceCache            = map[string]bool{}
-	filepathToContent      = map[string][]byte{}
-	labelToGrpcServiceName = map[string]string{}
-	goImportPathToAlias    = map[string]string{}
-	aliasToGoImportPath    = map[string]string{}
-	customFuncMap          = template.FuncMap{
+	protoGoPackageRegex  = regexp.MustCompile(`option\s+go_package\s*=\s*"([^";]+)(?:;[^"]*)?";`)
+	pleaseFilenamesRegex = regexp.MustCompile(`\(([^)]+)\)`)
+	serviceRegex         = regexp.MustCompile(`service\s+([\w]+)\s+{`)
+	publisherRegex       = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
+	goPackageRegex       = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
+	doOnceCache          = map[string]bool{}
+	filepathToContent    = map[string][]byte{}
+	keyToGrpcServiceName = map[string]string{}
+	goImportPathToAlias  = map[string]string{}
+	aliasToGoImportPath  = map[string]string{}
+	customFuncMap        = template.FuncMap{
 		"debug": func(v any) error {
 			fmt.Printf("%+v\n", v)
 			return nil
@@ -38,10 +38,9 @@ var (
 		"parseYaml": parseYaml,
 		"parseGRPC": parseGRPC,
 
-		"plzGoImport":        plzGoImport,
-		"goImport":           goImport,
-		"protoGoImportAlias": protoGoImportAlias,
-		"grpcSvcName":        grpcSvcName,
+		"plzGoImport":      plzGoImport,
+		"plzGoImportAlias": plzGoImportAlias,
+		"goImport":         goImport,
 
 		"grpcNatsPublishers": func(filepath string) ([]string, error) {
 			sanitizedFilepath := strings.TrimPrefix(filepath, "//")
@@ -97,11 +96,7 @@ func findAvailableAlias(requestedAlias, importPath string) string {
 	}
 }
 
-func readFile(label string) ([]byte, error) {
-	filepath, err := extractFilenameFromLabel(label)
-	if err != nil {
-		return nil, fmt.Errorf("extracing filename from label: %v", err)
-	}
+func readFile(filepath string) ([]byte, error) {
 	if content, ok := filepathToContent[filepath]; ok {
 		return content, nil
 	}
@@ -113,16 +108,13 @@ func readFile(label string) ([]byte, error) {
 	return bytes, nil
 }
 
-func goImport(in ...string) (string, error) {
-	var importPath, requestedAlias string
-	if len(in) == 1 {
-		importPath = in[0]
-		requestedAlias = path.Base(importPath)
-	} else if len(in) == 2 {
-		importPath = in[0]
-		requestedAlias = in[1]
-	} else {
-		return "", fmt.Errorf("goImport: expected 1 or 2 arguments, got %d", len(in))
+func goImport(importPath string) (string, error) {
+	return goImportAlias(importPath, "")
+}
+
+func goImportAlias(importPath, alias string) (string, error) {
+	if alias == "" {
+		alias = path.Base(importPath)
 	}
 
 	// Check if we've already processed this import path
@@ -131,7 +123,7 @@ func goImport(in ...string) (string, error) {
 	}
 
 	// Find an available alias
-	finalAlias := findAvailableAlias(requestedAlias, importPath)
+	finalAlias := findAvailableAlias(alias, importPath)
 
 	// Store the mapping both ways
 	goImportPathToAlias[importPath] = finalAlias
@@ -140,61 +132,43 @@ func goImport(in ...string) (string, error) {
 	return finalAlias, nil
 }
 
+func plzGoImport(labelOrTarget string) (string, error) {
+	return plzGoImportAlias(labelOrTarget, "")
+}
+
 // Imports plz go labels like "//user/proto:api".
-func plzGoImport(in ...string) (string, error) {
-	label := in[0]
-
-	// Remove trailing (filepath) if present
-	if pleaseFilenameRegex.MatchString(label) {
-		if strings.Contains(label, ".proto") {
-			// Check if the proto file declares a 'option go_package'!
-			bytes, err := readFile(label)
-			if err != nil {
-				return "", fmt.Errorf("reading file %v", in)
-			}
-			matches := protoGoPackageRegex.FindSubmatch(bytes)
-			if len(matches) >= 2 {
-				// Extract the import path (everything before the optional semicolon)
-				importPath := string(matches[1])
-				in[0] = importPath
-				// Use goImport to handle the registration and aliasing
-				return goImport(in...)
-			}
+func plzGoImportAlias(labelOrTarget, alias string) (string, error) {
+	label := labelOrTarget
+	if strings.Contains(labelOrTarget, "(") {
+		parsedLabel, filenames, err := parseTarget(labelOrTarget)
+		if err != nil {
+			return "", err
 		}
+		label = parsedLabel
 
-		// Extract just the label part (everything before the parentheses)
-		parts := strings.Split(label, "(")
-		if len(parts) > 0 {
-			label = parts[0]
+		// If the import is a protofile, we check if it defines a 'go_package' and honor it.
+		for _, filename := range filenames {
+			if strings.Contains(filename, ".proto") {
+				// Check if the proto file declares a 'option go_package'!
+				bytes, err := readFile(filename)
+				if err != nil {
+					return "", fmt.Errorf("reading file %s", filename)
+				}
+				matches := protoGoPackageRegex.FindSubmatch(bytes)
+				if len(matches) >= 2 {
+					// Extract the import path (everything before the optional semicolon)
+					importPath := string(matches[1])
+					return goImportAlias(importPath, alias)
+				}
+			}
 		}
 	}
 
-	var importPath string
-
-	// Check if label contains a colon
-	if strings.Contains(label, ":") {
-		parts := strings.Split(label, ":")
-		if len(parts) == 2 {
-			dirPath := strings.TrimPrefix(parts[0], "//")
-			targetName := parts[1]
-
-			// Get the last directory name
-			lastDir := path.Base(dirPath)
-
-			// If target name matches last directory, don't append it
-			if lastDir == targetName {
-				importPath = dirPath
-			} else {
-				importPath = dirPath + "/" + targetName
-			}
-		}
-	} else {
-		// No colon, just trim the prefix
-		importPath = strings.TrimPrefix(label, "//")
+	importPath, _, err := parseLabel(label)
+	if err != nil {
+		return "", err
 	}
-
-	in[0] = importPath
-	return goImport(in...)
+	return goImportAlias(importPath, alias)
 }
 
 func injectGoImports(content []byte) []byte {
@@ -234,42 +208,17 @@ func injectGoImports(content []byte) []byte {
 	return result
 }
 
-func protoGoImportAlias(filepath string) (string, error) {
-	grpcSvcName, err := grpcSvcName(filepath)
+func parseYaml(target string) (map[string]any, error) {
+	_, filenames, err := parseTarget(target)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return strings.ToLower(grpcSvcName) + "pb", nil
-}
-
-func grpcSvcName(label string) (string, error) {
-	if serviceName, ok := labelToGrpcServiceName[label]; ok {
-		return serviceName, nil
+	if len(filenames) != 1 {
+		return nil, fmt.Errorf("expected 1 filename, got %d [%s]", len(filenames), filenames)
 	}
-	bytes, err := readFile(label)
-	if err != nil {
-		return "", err
-	}
-	content := string(bytes)
+	filename := filenames[0]
 
-	// Find the service definition
-
-	matches := serviceRegex.FindStringSubmatch(content)
-	if len(matches) != 2 {
-		return "", fmt.Errorf("no service found")
-	}
-
-	// Extract the service name
-	serviceName := matches[1]
-	if len(serviceName) == 0 {
-		return "", fmt.Errorf("empty service name found")
-	}
-	labelToGrpcServiceName[label] = serviceName
-	return serviceName, nil
-}
-
-func parseYaml(label string) (map[string]any, error) {
-	bytes, err := readFile(label)
+	bytes, err := readFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -280,11 +229,62 @@ func parseYaml(label string) (map[string]any, error) {
 	return data, nil
 }
 
-// Returns the filename and a boolean indicating if the pattern was found
-func extractFilenameFromLabel(input string) (string, error) {
-	matches := pleaseFilenameRegex.FindStringSubmatch(input)
-	if len(matches) >= 2 {
-		return matches[1], nil
+func parseLabel(label string) (string, string, error) {
+	if !strings.HasPrefix(label, "//") {
+		return "", "", fmt.Errorf("non-cannonical label %s", label)
 	}
-	return "", fmt.Errorf("no match found")
+	importPath := strings.TrimPrefix(label, "//")
+	packageName := path.Base(importPath)
+	// Handle canonical labels.
+	if strings.Contains(importPath, ":") {
+		parts := strings.Split(importPath, ":")
+		if len(parts) != 2 {
+			return "", "", fmt.Errorf("non-cannonical label %s", label)
+		}
+		importPath = parts[0]
+		packageName = parts[1]
+		if packageName != path.Base(importPath) { // Handles '//user/v1:diff_name'
+			importPath = importPath + "/" + packageName
+		}
+	}
+
+	if strings.HasPrefix(importPath, "third_party/go") {
+		importPath = strings.TrimPrefix(importPath, "third_party/go/")
+		importPath = strings.ReplaceAll(importPath, "__", "/")
+	} else {
+		if opts.GoImportPath != "" {
+			importPath = opts.GoImportPath + "/" + importPath
+		}
+	}
+	return importPath, packageName, nil
+}
+
+// parseTarget extracts the label and filenames from a target
+// For example: "//path:target(hello.proto world.proto)" returns:
+// - label: "//path:target"
+// - filenames: ["hello.proto", "world.proto"]
+// - error: nil
+func parseTarget(target string) (string, []string, error) {
+	// Find the opening parenthesis
+	parenIndex := strings.Index(target, "(")
+	if parenIndex == -1 {
+		return "", nil, fmt.Errorf("invalid target %s", target)
+	}
+
+	// Extract the base label (everything before the parenthesis)
+	label := target[:parenIndex]
+
+	// Extract filenames using the existing regex
+	matches := pleaseFilenamesRegex.FindStringSubmatch(target)
+	if len(matches) < 2 {
+		return "", nil, fmt.Errorf("invalid target format: could not extract filenames from parentheses")
+	}
+
+	// Split by whitespace and filter out empty strings
+	filenames := strings.Fields(matches[1])
+	if len(filenames) == 0 {
+		return "", nil, fmt.Errorf("no filenames found in parentheses")
+	}
+
+	return label, filenames, nil
 }

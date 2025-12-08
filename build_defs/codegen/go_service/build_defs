@@ -1,6 +1,5 @@
 subinclude("//build_defs:template")
 subinclude("//build_defs:docker")
-subinclude("//build_defs:k8s")
 
 _PREFIX = "" if "IS_CORE_REPO" in CONFIG else "///core"
 
@@ -71,7 +70,7 @@ def go_manifest(
         awk_commands = ["cp $SRC $OUT"]
         for i, dep in enumerate(deps):
             canonical_dep = canonicalise(dep)
-            replacement = f"{canonical_dep}($(location {dep}))"
+            replacement = f"{canonical_dep}($(locations {dep}))"
 
             # Use awk with -v to pass variables (avoids shell escaping issues)
             awk_commands.append(f'awk -v old="{dep}" -v new="{replacement}" \'{{ gsub(old, new); print }}\' $OUT > $OUT.tmp && mv $OUT.tmp $OUT')
@@ -160,35 +159,4 @@ def go_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
-    )
-
-
-def go_k8s(
-        manifest:str,
-        binary:str,
-        resources:list=[],
-        deps:list=[],
-):
-    ########################### DOCKER IMAGE ###########################
-    docker_image = distroless_go(
-        name = "docker_image",
-        binary = binary,
-        resources=resources,
-    )
-
-    ########################### K8S DEPLOYMENT ###########################
-    k8s = go_template(
-        name = "k8s_templated.yaml",
-        templates = [
-            "///core//build_defs/codegen/go_service/templates:k8s.yaml.tmpl",
-            _TEMPLATE_UTILS_GO,
-        ],
-        data = manifest,
-        format = "yaml",
-        deps = deps,
-    )
-    k8s_config(
-        name = "k8s",
-        srcs = [k8s],
-        containers = [docker_image],
     )
