@@ -26,25 +26,13 @@ const (
 // Controls database mapping and which CRUD functions are generated.
 type ModelOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Override the default database name for this model.
-	// If not set, uses a default derived from the message name.
-	DatabaseName string `protobuf:"bytes,1,opt,name=database_name,json=databaseName,proto3" json:"database_name,omitempty"`
 	// Override the default table name for this model.
 	// If not set, uses a default derived from the message name.
-	TableName string `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	TableName string `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
 	// Override the id column name. Cannot be set for singletons as they have no id.
-	IdColumnName string `protobuf:"bytes,3,opt,name=id_column_name,json=idColumnName,proto3" json:"id_column_name,omitempty"`
-	// If true, skip generating a db.Insert function for this model.
-	// Useful when insert logic is custom or handled elsewhere.
-	SkipInsertFunction bool `protobuf:"varint,4,opt,name=skip_insert_function,json=skipInsertFunction,proto3" json:"skip_insert_function,omitempty"`
-	// If true, skip generating a db.Delete function for this model.
-	// Useful when delete logic is custom or handled elsewhere.
-	SkipDeleteFunction bool `protobuf:"varint,5,opt,name=skip_delete_function,json=skipDeleteFunction,proto3" json:"skip_delete_function,omitempty"`
-	// If true, skip generating a db.Get function for this model.
-	// Useful when retrieval logic is custom or handled elsewhere.
-	SkipGetFunction bool `protobuf:"varint,6,opt,name=skip_get_function,json=skipGetFunction,proto3" json:"skip_get_function,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	IdColumnName  string `protobuf:"bytes,2,opt,name=id_column_name,json=idColumnName,proto3" json:"id_column_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ModelOpts) Reset() {
@@ -77,13 +65,6 @@ func (*ModelOpts) Descriptor() ([]byte, []int) {
 	return file_malonaz_codegen_model_v1_model_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ModelOpts) GetDatabaseName() string {
-	if x != nil {
-		return x.DatabaseName
-	}
-	return ""
-}
-
 func (x *ModelOpts) GetTableName() string {
 	if x != nil {
 		return x.TableName
@@ -96,27 +77,6 @@ func (x *ModelOpts) GetIdColumnName() string {
 		return x.IdColumnName
 	}
 	return ""
-}
-
-func (x *ModelOpts) GetSkipInsertFunction() bool {
-	if x != nil {
-		return x.SkipInsertFunction
-	}
-	return false
-}
-
-func (x *ModelOpts) GetSkipDeleteFunction() bool {
-	if x != nil {
-		return x.SkipDeleteFunction
-	}
-	return false
-}
-
-func (x *ModelOpts) GetSkipGetFunction() bool {
-	if x != nil {
-		return x.SkipGetFunction
-	}
-	return false
 }
 
 // FieldOpts defines code generation options for individual message fields.
@@ -265,15 +225,11 @@ var File_malonaz_codegen_model_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"\x85\x02\n" +
-	"\tModelOpts\x12#\n" +
-	"\rdatabase_name\x18\x01 \x01(\tR\fdatabaseName\x12\x1d\n" +
+	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"P\n" +
+	"\tModelOpts\x12\x1d\n" +
 	"\n" +
-	"table_name\x18\x02 \x01(\tR\ttableName\x12$\n" +
-	"\x0eid_column_name\x18\x03 \x01(\tR\fidColumnName\x120\n" +
-	"\x14skip_insert_function\x18\x04 \x01(\bR\x12skipInsertFunction\x120\n" +
-	"\x14skip_delete_function\x18\x05 \x01(\bR\x12skipDeleteFunction\x12*\n" +
-	"\x11skip_get_function\x18\x06 \x01(\bR\x0fskipGetFunction\"\xd9\x01\n" +
+	"table_name\x18\x01 \x01(\tR\ttableName\x12$\n" +
+	"\x0eid_column_name\x18\x02 \x01(\tR\fidColumnName\"\xd9\x01\n" +
 	"\tFieldOpts\x12\x1f\n" +
 	"\vcolumn_name\x18\x01 \x01(\tR\n" +
 	"columnName\x12\"\n" +

@@ -83,6 +83,9 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"fieldType":   fieldType,
 		"zeroValue":   zeroValue,
 		"unquote":     unquote,
+
+		// Opts functions
+		"getModelOpts": getModelOpts,
 	}
 	for k, v := range additional {
 		se.funcMap[k] = v
@@ -166,4 +169,23 @@ func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {
 		}
 	}
 	return ext, nil
+}
+
+func getModelOpts(message *protogen.Message) (*modelpb.ModelOpts, error) {
+	options := message.Desc.Options()
+	if options == nil {
+		return nil, nil
+	}
+
+	if !proto.HasExtension(options, modelpb.E_ModelOpts) {
+		return nil, nil
+	}
+
+	modelOptsExt := proto.GetExtension(options, modelpb.E_ModelOpts)
+	modelOpts, ok := modelOptsExt.(*modelpb.ModelOpts)
+	if !ok || modelOpts == nil {
+		return nil, fmt.Errorf("message %s has invalid model_opts annotation", message.Desc.FullName())
+	}
+
+	return modelOpts, nil
 }

@@ -30,16 +30,16 @@ func New(client *{{ fqn "github.com/malonaz/core/go/postgres" "Client" }}) *Stor
 {{/* ################### VAR COLUMNS ################### */}}
 var (
 	{{ range $message := $file.Messages -}}
-		{{- $modelOpts := (getExt .Desc "malonaz.codegen.model.v1.model_opts") -}}
-		{{- if not $modelOpts.DatabaseName -}}{{ continue }}{{- end }}
+		{{- $modelOpts := getModelOpts . -}}
+		{{- if not $modelOpts -}}{{ continue }}{{- end }}
 		{{ $message.GoIdent.GoName }}PostgresColumns = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
 	{{- end -}}
 )
 
 {{/* ################### TYPE DEFINITIONS ################### */}}
 {{ range $message := $file.Messages -}}
-	{{- $modelOpts := (getExt .Desc "malonaz.codegen.model.v1.model_opts") -}}
-	{{- if not $modelOpts.DatabaseName -}}{{ continue }}{{- end }}
+	{{- $modelOpts := getModelOpts . -}}
+	{{- if not $modelOpts -}}{{ continue }}{{- end }}
 	{{- $pr := parseResourceFromMessage $message }}
 
 	{{ $goType := $message.GoIdent.GoName }}
@@ -70,13 +70,12 @@ var (
 	{{ end }}
 
 	{{/* ################### INSERT ################### */}}
-	{{- if not $modelOpts.SkipInsertFunction -}}
 		{{- $singletonChildren := list }}
 		{{- range $childPr := $pr.Children }}
 			{{- if $childPr.Singleton }}
 				{{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-				{{- $modelOpts := (getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts") }}
-				{{- if $modelOpts.DatabaseName }}
+				{{- $modelOpts := getModelOpts $childMessage }}
+				{{- if $modelOpts }}
 					{{- $singletonChildren = append $singletonChildren $childPr }}
 				{{ end }}
 			{{- end }}
@@ -97,7 +96,7 @@ var (
 				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-					{{- $modelOpts := (getExt $message.Desc "malonaz.codegen.model.v1.model_opts") }}
+					{{- $modelOpts := getModelOpts $message }}
 					{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
 					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
@@ -155,7 +154,7 @@ var (
 				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-					{{- $modelOpts := (getExt $message.Desc "malonaz.codegen.model.v1.model_opts") }}
+					{{- $modelOpts := getModelOpts $message }}
 					{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
 					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
@@ -205,7 +204,6 @@ var (
 				{{ end }}
 			}
 		{{- end }}
-	{{ end }}
 
 
 {{/* ################### UPDATE ################### */}}
@@ -244,7 +242,6 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 }
 
 	{{/* ################### DELETE ################### */}}
-	{{- if not $modelOpts.SkipDeleteFunction -}}
 		{{- if $message.Desc.Fields.ByName "delete_time" }}
 			func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
 				query := `UPDATE {{ $tableName }} SET delete_time = ${{ add (len $pr.PatternVariables) 1 }} WHERE {{ $placeholderDeclarations }} AND delete_time IS NULL RETURNING %s`
@@ -275,10 +272,8 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 				return nil
 			}
 		{{ end }}
-	{{ end }}
 
 	{{/* ################### GET ################### */}}
-	{{- if not $modelOpts.SkipGetFunction -}}
 		func (s *Store) Get{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeFqi }}, error) {
 			query := `SELECT %s FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
 			query = postgres.SelectQuery(query, {{ $goType }}PostgresColumns)
@@ -295,7 +290,6 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 			}
 			return row, nil
 		}
-	{{ end }}
 
 	{{/* ################### LIST ################### */}}
 	func (s *Store) List{{ $message.GoIdent.GoName }}s(ctx context.Context, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }} string, {{ end }}{{- if $message.Desc.Fields.ByName "delete_time" }} showDeleted bool, {{- end }} whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*{{ $goTypeFqi }}, error) {

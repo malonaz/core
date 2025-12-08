@@ -6,11 +6,6 @@ export_file(
 )
 
 export_file(
-    name = "db",
-    src = "db.tmpl",
-)
-
-export_file(
     name = "rpc",
     src = "rpc.tmpl",
 )

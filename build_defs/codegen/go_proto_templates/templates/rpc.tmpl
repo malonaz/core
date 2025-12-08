@@ -74,14 +74,14 @@ package {{ .PackageName }}
         {{- range $childPr := $pr.Children }}
             {{- if $childPr.Singleton }}
 	              {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-	              {{- $modelOpts := (getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts") }}
-                {{- if $modelOpts.DatabaseName }}
+	              {{- $modelOpts := getModelOpts $childMessage }}
+                {{- if $modelOpts }}
                     {{- $singletonChildren = append $singletonChildren $childPr }}
                 {{ end }}
             {{- end }}
         {{ end }}
         {{- $softDeletable := $rpc.Message.Desc.Fields.ByName "delete_time" }}
-        {{- $modelOpts := getExt $rpc.Message.Desc "malonaz.codegen.model.v1.model_opts" -}}
+        {{- $modelOpts := getModelOpts $rpc.Message -}}
         {{ $hasRequestID := false }}
         {{- range $method := $service.Methods -}}
             {{ $rpc := parseRPC $method }}

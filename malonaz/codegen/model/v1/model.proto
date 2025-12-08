@@ -23,28 +23,12 @@ extend google.protobuf.FieldOptions {
 // ModelOpts defines code generation options for an entire message/model.
 // Controls database mapping and which CRUD functions are generated.
 message ModelOpts {
-  // Override the default database name for this model.
-  // If not set, uses a default derived from the message name.
-  string database_name = 1;
-
   // Override the default table name for this model.
   // If not set, uses a default derived from the message name.
-  string table_name = 2;
+  string table_name = 1;
 
   // Override the id column name. Cannot be set for singletons as they have no id.
-  string id_column_name = 3;
-
-  // If true, skip generating a db.Insert function for this model.
-  // Useful when insert logic is custom or handled elsewhere.
-  bool skip_insert_function = 4;
-
-  // If true, skip generating a db.Delete function for this model.
-  // Useful when delete logic is custom or handled elsewhere.
-  bool skip_delete_function = 5;
-
-  // If true, skip generating a db.Get function for this model.
-  // Useful when retrieval logic is custom or handled elsewhere.
-  bool skip_get_function = 6;
+  string id_column_name = 2;
 }
 
 // FieldOpts defines code generation options for individual message fields.
