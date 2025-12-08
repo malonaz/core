@@ -200,8 +200,6 @@ func (c *Client[Req, Resp]) closeWithError(err error) {
 			}
 		}
 		close(c.errChan)
-
-		c.log.Info("client closed")
 	}
 }
 
@@ -295,14 +293,14 @@ func (c *Client[Req, Resp]) connect(ctx context.Context) error {
 		if c.onConnectFN != nil {
 			c.onConnectFN(connectCtx)
 		}
-		c.log.InfoContext(connectCtx, "successfully connected")
+		c.log.DebugContext(connectCtx, "successfully connected")
 		return nil
 	}
 }
 
 // reconnect attempts to reconnect to the websocket server
 func (c *Client[Req, Resp]) reconnect(ctx context.Context) error {
-	c.log.WarnContext(ctx, "attempting to reconnect")
+	c.log.DebugContext(ctx, "attempting to reconnect")
 	if err := c.connect(ctx); err != nil {
 		return fmt.Errorf("reconnection failed: %w", err)
 	}
