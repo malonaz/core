@@ -11,11 +11,13 @@ import (
 )
 
 const (
-	providerIdGroq   = "groq"
-	providerIdOpenai = "openai"
+	providerIdOpenai   = "openai"
+	providerIdGroq     = "groq"
+	providerIdCerebras = "cerebras"
 
-	openAIBaseUrl = "https://api.openai.com/v1"
-	groqBaseUrl   = "https://api.groq.com/openai/v1"
+	openAIBaseUrl   = "https://api.openai.com/v1"
+	groqBaseUrl     = "https://api.groq.com/openai/v1"
+	cerebrasBaseUrl = "https://api.cerebras.ai/v1"
 )
 
 // Client implements all AI interfaces using OpenAI's API.
@@ -45,6 +47,17 @@ func NewGroqClient(apiKey string, modelService *provider.ModelService) *Client {
 	return &Client{
 		client:       openai.NewClientWithConfig(config),
 		providerId:   providerIdGroq,
+		modelService: modelService,
+	}
+}
+
+// NewClient creates a new OpenAI client.
+func NewCerebrasClient(apiKey string, modelService *provider.ModelService) *Client {
+	config := openai.DefaultConfig(apiKey)
+	config.BaseURL = cerebrasBaseUrl
+	return &Client{
+		client:       openai.NewClientWithConfig(config),
+		providerId:   providerIdCerebras,
 		modelService: modelService,
 	}
 }
@@ -262,6 +275,30 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 					Channels:      1,
 					BitsPerSample: 16,
 				},
+			},
+		},
+	},
+
+	providerIdCerebras: {
+		// TTT Models
+		{
+			Name:            (&aipb.ModelResourceName{Provider: providerIdCerebras, Model: "qwen3-235b"}).String(),
+			ProviderModelId: "qwen-3-235b-a22b-instruct-2507",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  40_960,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+		{
+			Name:            (&aipb.ModelResourceName{Provider: providerIdCerebras, Model: "glm-4.6"}).String(),
+			ProviderModelId: "zai-glm-4.6",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  40_960,
+				Reasoning:         true,
+				ToolCall:          true,
 			},
 		},
 	},

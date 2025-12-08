@@ -26,10 +26,11 @@ import (
 type Opts struct {
 	VoicesFile       string `long:"voices-file"     env:"VOICES_FILE" description:"Path to JSON file containing voices to preload"`
 	OpenAIApiKey     string `long:"openai-api-key"     env:"OPENAI_API_KEY" description:"Open AI api key"`
-	GroqApiKey       string `long:"gro-api-key"     env:"GROQ_API_KEY" description:"Groq api key"`
+	GroqApiKey       string `long:"groq-api-key"     env:"GROQ_API_KEY" description:"Groq api key"`
 	ElevenlabsApiKey string `long:"elevenlabs-api-key"     env:"ELEVENLABS_API_KEY" description:"Elevenlabs api key"`
 	AnthropicApiKey  string `long:"anthropic-api-key"     env:"ANTHROPIC_API_KEY" description:"Anthropic api key"`
 	CartesiaApiKey   string `long:"cartesia-api-key"     env:"CARTESIA_API_KEY" description:"Cartesia api key"`
+	CerebrasApiKey   string `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
 }
 
 type runtime struct {
@@ -55,6 +56,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.GroqApiKey != "" {
 		providers = append(providers, openai.NewGroqClient(opts.GroqApiKey, modelService))
+	}
+	if opts.CerebrasApiKey != "" {
+		providers = append(providers, openai.NewCerebrasClient(opts.CerebrasApiKey, modelService))
 	}
 	if opts.ElevenlabsApiKey != "" {
 		providers = append(providers, elevenlabs.NewClient(opts.ElevenlabsApiKey, modelService))
