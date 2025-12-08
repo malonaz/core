@@ -1,6 +1,7 @@
 package anthropic
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			}
 			// Add tool use content if present
 			for _, tc := range msg.ToolCalls {
-				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewToolUseBlock(tc.Id, tc.Arguments, tc.Name))
+				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewToolUseBlock(tc.Id, json.RawMessage(tc.Arguments), tc.Name))
 			}
 			messages = append(messages, anthropic.NewAssistantMessage(contentBlockParamUnions...))
 
