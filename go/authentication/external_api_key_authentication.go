@@ -21,10 +21,14 @@ type ExternalApiKeysOpts struct {
 	Config         string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
 }
 
+func WithAPIKey(ctx context.Context, headerKey, apiKey string) context.Context {
+	md := metadata.Pairs(headerKey, apiKey)
+	return metadata.NewOutgoingContext(ctx, md)
+}
+
 // WithAPIKey creates a new context with the API key set in outgoing metadata.
 func (o *ExternalApiKeysOpts) WithAPIKey(ctx context.Context, apiKey string) context.Context {
-	md := metadata.Pairs(o.MetadataHeader, apiKey)
-	return metadata.NewOutgoingContext(ctx, md)
+	return WithAPIKey(ctx, o.MetadataHeader, apiKey)
 }
 
 func (o *ExternalApiKeysOpts) ParseAPIKey(targetServiceAccountID string) (string, error) {
