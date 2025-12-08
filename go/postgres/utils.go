@@ -41,3 +41,12 @@ func GetDBColumns(object any, except ...string) []string {
 	}
 	return tags
 }
+
+func AddToWhereClause(whereClause, newClause string) string {
+	if whereClause == "" {
+		whereClause = "WHERE (" + newClause + ")"
+	} else {
+		whereClause += " AND (" + newClause + ")"
+	}
+	return whereClause
+}
