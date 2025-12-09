@@ -18,13 +18,27 @@ message Voice {
 
   // Required. The resource name of the voice.
   // Format: voices/{voice}
-  string name = 1;
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 128
+  ];
 
   // Human-readable display name for the voice.
-  string display_name = 2 [(buf.validate.field).required = true];
+  string display_name = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 128
+  ];
 
   // Description of the voice characteristics (e.g., "warm female voice", "professional male narrator").
-  string description = 3 [(buf.validate.field).required = true];
+  string description = 3 [(buf.validate.field) = {
+    required: true
+    string: {
+      min_len: 10
+      max_len: 500
+    }
+  }];
 
   // Gender of the voice.
   VoiceGender gender = 4 [(buf.validate.field).enum = {
@@ -33,10 +47,16 @@ message Voice {
   }];
 
   // Preview audio URL for sampling the voice.
-  string preview_url = 5;
+  string preview_url = 5 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      uri: true
+      max_len: 2048
+    }
+  ];
 
   // Provider-specific configurations for this voice across different models.
-  repeated VoiceModelConfig model_configs = 6 [(buf.validate.field).repeated.min_items = 1];
+  repeated VoiceModelConfig model_configs = 6 [(buf.validate.field).repeated = {min_items: 1}];
 }
 
 // Voice config for a specific model.
@@ -45,10 +65,16 @@ message VoiceModelConfig {
   // Format: providers/{provider}/models/{model}
   string model = 1 [
     (google.api.resource_reference).type = "ai.malonaz.com/Model",
-    (buf.validate.field).required = true
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 128
   ];
   // The id used for this model by the provider.
-  string provider_voice_id = 2;
+  string provider_voice_id = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 128
+  ];
 }
 
 // Gender categories for voices.

@@ -1,6 +1,9 @@
 go_library(
     name = "openai",
     srcs = [
+        "cerebras.go",
+        "google.go",
+        "groq.go",
         "openai.go",
         "speech_to_text.go",
         "text_to_speech.go",

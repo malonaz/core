@@ -30,7 +30,7 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 
 	// Try to use PCM => fallback to WAV.
 	responseFormat := openai.SpeechResponseFormatPcm
-	if !c.pcmSupport {
+	if !c.config.PcmSupport {
 		responseFormat = openai.SpeechResponseFormatWav
 	}
 
@@ -58,7 +58,7 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 	}
 
 	// Skip WAV header if needed
-	skipWavHeader := !c.pcmSupport
+	skipWavHeader := !c.config.PcmSupport
 	if skipWavHeader {
 		header := make([]byte, 44)
 		if _, err := io.ReadFull(response, header); err != nil {

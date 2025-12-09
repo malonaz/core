@@ -1,5 +1,5 @@
 go_library(
     name = "ai",
-    srcs = ["ai.go"],
+    srcs = ["utils.go"],
     visibility = ["//..."],
 )

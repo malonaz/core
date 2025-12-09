@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 
@@ -15,36 +16,43 @@ import (
 
 // Implements the voice service.
 type VoiceService struct {
+	validator      protovalidate.Validator
 	voicesSorted   []*aipb.Voice
 	voiceIdToVoice map[string]*aipb.Voice
 }
 
 func NewVoiceService() (*VoiceService, error) {
+	validator, err := protovalidate.New()
+	if err != nil {
+		return nil, err
+	}
 	return &VoiceService{
+		validator:      validator,
 		voiceIdToVoice: map[string]*aipb.Voice{},
 	}, nil
 }
 
 func (s *VoiceService) CreateVoice(ctx context.Context, request *aiservicepb.CreateVoiceRequest) (*aipb.Voice, error) {
-	defer func() {
-		slices.SortFunc(s.voicesSorted, func(a, b *aipb.Voice) int {
-			if a.Name < b.Name {
-				return -1
-			}
-			if a.Name > b.Name {
-				return 1
-			}
-			return 0
-		})
-	}()
-
 	voiceRn := &aipb.VoiceResourceName{Voice: request.VoiceId}
 	if err := voiceRn.Validate(); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "invalid voice_id: %v", err).Err()
 	}
 	request.Voice.Name = voiceRn.String()
+	if err := s.validator.Validate(request); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "validating: %v", err).Err()
+	}
+
 	s.voiceIdToVoice[voiceRn.Voice] = request.Voice
 	s.voicesSorted = append(s.voicesSorted, request.Voice)
+	slices.SortFunc(s.voicesSorted, func(a, b *aipb.Voice) int {
+		if a.Name < b.Name {
+			return -1
+		}
+		if a.Name > b.Name {
+			return 1
+		}
+		return 0
+	})
 	return request.Voice, nil
 }
 

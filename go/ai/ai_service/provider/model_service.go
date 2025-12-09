@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"slices"
 
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 
@@ -17,6 +18,8 @@ import (
 
 // Implements the model service.
 type ModelService struct {
+	// Validator.
+	validator protovalidate.Validator
 	// Tracks registered providers.
 	providerIdToProvider map[string]Provider
 	// Tracks registered models.
@@ -24,7 +27,12 @@ type ModelService struct {
 }
 
 func NewModelService() (*ModelService, error) {
+	validator, err := protovalidate.New()
+	if err != nil {
+		return nil, err
+	}
 	return &ModelService{
+		validator:                  validator,
 		providerIdToProvider:       map[string]Provider{},
 		providerIdToModelIdToModel: map[string]map[string]*aipb.Model{},
 	}, nil
@@ -62,6 +70,9 @@ func (s *ModelService) CreateModel(ctx context.Context, request *aiservicepb.Cre
 	}
 	modelRn := providerRn.ModelResourceName(request.ModelId)
 	request.Model.Name = modelRn.String()
+	if err := s.validator.Validate(request); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "validating: %v", err).Err()
+	}
 
 	// Check provider is registered.
 	if _, ok := s.providerIdToProvider[providerRn.Provider]; !ok {

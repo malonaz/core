@@ -14,56 +14,55 @@ const (
 	providerIdOpenai   = "openai"
 	providerIdGroq     = "groq"
 	providerIdCerebras = "cerebras"
-
-	openAIBaseUrl   = "https://api.openai.com/v1"
-	groqBaseUrl     = "https://api.groq.com/openai/v1"
-	cerebrasBaseUrl = "https://api.cerebras.ai/v1"
+	providerIdGoogle   = "google"
 )
+
+type config struct {
+	ID            string
+	BaseUrl       string
+	DefaultModels []*aipb.Model
+	PcmSupport    bool
+}
+
+func (c *config) clientConfig(apiKey string) openai.ClientConfig {
+	clientConfig := openai.DefaultConfig(apiKey)
+	clientConfig.BaseURL = c.BaseUrl
+	return clientConfig
+}
 
 // Client implements all AI interfaces using OpenAI's API.
 type Client struct {
+	config       *config
 	client       *openai.Client
-	providerId   string
-	pcmSupport   bool
 	modelService *provider.ModelService
 }
 
-// NewClient creates a new OpenAI client.
+func newClient(apiKey string, modelService *provider.ModelService, config *config) *Client {
+	return &Client{
+		config:       config,
+		client:       openai.NewClientWithConfig(config.clientConfig(apiKey)),
+		modelService: modelService,
+	}
+}
+
 func NewClient(apiKey string, modelService *provider.ModelService) *Client {
-	config := openai.DefaultConfig(apiKey)
-	config.BaseURL = openAIBaseUrl
-	return &Client{
-		client:       openai.NewClientWithConfig(config),
-		providerId:   providerIdOpenai,
-		pcmSupport:   true,
-		modelService: modelService,
-	}
+	return newClient(apiKey, modelService, configOpenAI)
 }
 
-// NewClient creates a new OpenAI client.
 func NewGroqClient(apiKey string, modelService *provider.ModelService) *Client {
-	config := openai.DefaultConfig(apiKey)
-	config.BaseURL = groqBaseUrl
-	return &Client{
-		client:       openai.NewClientWithConfig(config),
-		providerId:   providerIdGroq,
-		modelService: modelService,
-	}
+	return newClient(apiKey, modelService, configGroq)
 }
 
-// NewClient creates a new OpenAI client.
 func NewCerebrasClient(apiKey string, modelService *provider.ModelService) *Client {
-	config := openai.DefaultConfig(apiKey)
-	config.BaseURL = cerebrasBaseUrl
-	return &Client{
-		client:       openai.NewClientWithConfig(config),
-		providerId:   providerIdCerebras,
-		modelService: modelService,
-	}
+	return newClient(apiKey, modelService, configCerebras)
+}
+
+func NewGoogleClient(apiKey string, modelService *provider.ModelService) *Client {
+	return newClient(apiKey, modelService, configGoogle)
 }
 
 // Implements the provider.Provider interface.
-func (c *Client) ProviderId() string { return c.providerId }
+func (c *Client) ProviderId() string { return c.config.ID }
 
 // Implements the provider.Provider interface.
 func (c *Client) Start(context.Context) error { return nil }
@@ -73,16 +72,22 @@ func (c *Client) Stop() {}
 
 // Implements the provider.Provider interface.
 func (c *Client) DefaultModels() []*aipb.Model {
-	return providerIdToDefaultModels[c.ProviderId()]
+	return c.config.DefaultModels
 }
 
-var providerIdToDefaultModels = map[string][]*aipb.Model{
-	//
-	// ───────────────────────────────────────────────────────────────
-	// OPENAI
-	// ───────────────────────────────────────────────────────────────
-	//
-	providerIdOpenai: {
+// Verify interface compliance at compile time.
+var (
+	_ provider.SpeechToTextClient = (*Client)(nil)
+	_ provider.TextToSpeechClient = (*Client)(nil)
+	_ provider.TextToTextClient   = (*Client)(nil)
+)
+
+// /////////////////////////// OPEN AI CONFIG ////////////////
+var configOpenAI = &config{
+	ID:         providerIdOpenai,
+	BaseUrl:    "https://api.openai.com/v1",
+	PcmSupport: true,
+	DefaultModels: []*aipb.Model{
 		// ------------------------------
 		// Text-to-Text (Core Models)
 		// ------------------------------
@@ -91,6 +96,7 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5.1"),
 			ProviderModelId: "gpt-5.1",
+			Description:     "GPT-5.1 is our flagship model for coding and agentic tasks with configurable reasoning and non-reasoning effort.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  128_000,
@@ -98,9 +104,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-pro"),
 			ProviderModelId: "gpt-5-pro",
+			Description:     "GPT-5 pro uses more compute to think harder and provide consistently better answers. GPT-5 pro is available in the Responses API only to enable support for multi-turn model interactions before responding to API requests, and other advanced API features in the future. Since GPT-5 pro is designed to tackle tough problems, some requests may take several minutes to finish. To avoid timeouts, try using background mode. As our most advanced reasoning model, GPT-5 pro defaults to (and only supports) reasoning.effort: high. GPT-5 pro does not support code interpreter.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  272_000,
@@ -108,9 +116,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-mini"),
 			ProviderModelId: "gpt-5-mini",
+			Description:     "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  128_000,
@@ -118,9 +128,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-nano"),
 			ProviderModelId: "gpt-5-nano",
+			Description:     "GPT-5 Nano is our fastest, cheapest version of GPT-5. It's great for summarization and classification tasks.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  128_000,
@@ -128,9 +140,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-4.1"),
 			ProviderModelId: "gpt-4.1",
+			Description:     "GPT-4.1 excels at instruction following and tool calling, with broad knowledge across domains. It features a 1M token context window, and low latency without a reasoning step. Note that we recommend starting with GPT-5 for complex tasks.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 1_047_576,
 				OutputTokenLimit:  32_768,
@@ -142,6 +156,7 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 		// Latest models (pinned).
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5.1-2025-11-13"),
+			Description:     "GPT-5.1 is our flagship model for coding and agentic tasks with configurable reasoning and non-reasoning effort.",
 			ProviderModelId: "gpt-5.1-2025-11-13",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
@@ -150,9 +165,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-mini-2025-08-07"),
 			ProviderModelId: "gpt-5-mini-2025-08-07",
+			Description:     "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  128_000,
@@ -160,9 +177,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-nano-2025-08-07"),
 			ProviderModelId: "gpt-5-nano-2025-08-07",
+			Description:     "GPT-5 Nano is our fastest, cheapest version of GPT-5. It's great for summarization and classification tasks.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  128_000,
@@ -170,9 +189,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-4.1-2025-04-14"),
 			ProviderModelId: "gpt-4.1-2025-04-14",
+			Description:     "GPT-4.1 excels at instruction following and tool calling, with broad knowledge across domains. It features a 1M token context window, and low latency without a reasoning step. Note that we recommend starting with GPT-5 for complex tasks.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 1_047_576,
 				OutputTokenLimit:  32_768,
@@ -180,9 +201,11 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 				ToolCall:          true,
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-5-pro-2025-10-06"),
 			ProviderModelId: "gpt-5-pro-2025-10-06",
+			Description:     "GPT-5 pro uses more compute to think harder and provide consistently better answers. GPT-5 pro is available in the Responses API only to enable support for multi-turn model interactions before responding to API requests, and other advanced API features in the future. Since GPT-5 pro is designed to tackle tough problems, some requests may take several minutes to finish. To avoid timeouts, try using background mode. As our most advanced reasoning model, GPT-5 pro defaults to (and only supports) reasoning.effort: high. GPT-5 pro does not support code interpreter.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 400_000,
 				OutputTokenLimit:  272_000,
@@ -197,6 +220,7 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "whisper-1"),
 			ProviderModelId: "whisper-1",
+			Description:     "Whisper is a general-purpose speech recognition model, trained on a large dataset of diverse audio. You can also use it as a multitask model to perform multilingual speech recognition as well as speech translation and language identification.",
 			Stt:             &aipb.SttModelConfig{},
 		},
 
@@ -206,107 +230,29 @@ var providerIdToDefaultModels = map[string][]*aipb.Model{
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "tts-1"),
 			ProviderModelId: "tts-1",
+			Description:     "TTS is a model that converts text to natural sounding spoken text. The tts-1 model is optimized for realtime text-to-speech use cases. Use it with the Speech endpoint in the Audio API.",
 			Tts: &aipb.TtsModelConfig{
+				SupportedSampleRates: []int32{24_000},
 				AudioFormat: &audiopb.Format{
-					SampleRate:    24000,
+					SampleRate:    24_000,
 					Channels:      1,
 					BitsPerSample: 16,
 				},
 			},
 		},
+
 		{
 			Name:            provider.NewModelName(providerIdOpenai, "gpt-4o-mini-tts"),
 			ProviderModelId: "gpt-4o-mini-tts",
+			Description:     "GPT-4o mini TTS is a text-to-speech model built on GPT-4o mini, a fast and powerful language model. Use it to convert text to natural sounding spoken text. The maximum number of input tokens is 2000.",
 			Tts: &aipb.TtsModelConfig{
+				SupportedSampleRates: []int32{24_000},
 				AudioFormat: &audiopb.Format{
-					SampleRate:    24000,
+					SampleRate:    24_000,
 					Channels:      1,
 					BitsPerSample: 16,
 				},
-			},
-		},
-	},
-
-	providerIdGroq: {
-		// STT Models
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "whisper-large-v3-turbo"}).String(),
-			ProviderModelId: "whisper-large-v3-turbo",
-			Stt:             &aipb.SttModelConfig{},
-		},
-		// TTT Models
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "kimi-k2-instruct-0905"}).String(),
-			ProviderModelId: "moonshotai/kimi-k2-instruct-0905",
-			Ttt: &aipb.TttModelConfig{
-				ContextTokenLimit: 262_144,
-				OutputTokenLimit:  16_384,
-				Reasoning:         false,
-				ToolCall:          true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "llama-3.1-8b-instant"}).String(),
-			ProviderModelId: "llama-3.1-8b-instant",
-			Ttt: &aipb.TttModelConfig{
-				ContextTokenLimit: 131_072,
-				OutputTokenLimit:  131_072,
-				Reasoning:         false,
-				ToolCall:          true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "qwen3-32b"}).String(),
-			ProviderModelId: "qwen/qwen3-32b",
-			Ttt: &aipb.TttModelConfig{
-				ContextTokenLimit: 131_072,
-				OutputTokenLimit:  40_960,
-				Reasoning:         true,
-				ToolCall:          true,
-			},
-		},
-		// TTS Models
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdGroq, Model: "playai-tts"}).String(),
-			ProviderModelId: "playai-tts",
-			Tts: &aipb.TtsModelConfig{
-				AudioFormat: &audiopb.Format{
-					SampleRate:    48000,
-					Channels:      1,
-					BitsPerSample: 16,
-				},
-			},
-		},
-	},
-
-	providerIdCerebras: {
-		// TTT Models
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdCerebras, Model: "qwen3-235b"}).String(),
-			ProviderModelId: "qwen-3-235b-a22b-instruct-2507",
-			Ttt: &aipb.TttModelConfig{
-				ContextTokenLimit: 131_072,
-				OutputTokenLimit:  40_960,
-				Reasoning:         true,
-				ToolCall:          true,
-			},
-		},
-		{
-			Name:            (&aipb.ModelResourceName{Provider: providerIdCerebras, Model: "glm-4.6"}).String(),
-			ProviderModelId: "zai-glm-4.6",
-			Ttt: &aipb.TttModelConfig{
-				ContextTokenLimit: 131_072,
-				OutputTokenLimit:  40_960,
-				Reasoning:         true,
-				ToolCall:          true,
 			},
 		},
 	},
 }
-
-// Verify interface compliance at compile time.
-var (
-	_ provider.SpeechToTextClient = (*Client)(nil)
-	_ provider.TextToSpeechClient = (*Client)(nil)
-	_ provider.TextToTextClient   = (*Client)(nil)
-)
