@@ -425,6 +425,12 @@ var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]sh
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
 	},
+	providerIdCerebras: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
+	},
 }
 
 var openAIFinishReasonToPbV2 = map[string]aiservicepb.TextToTextStopReason{

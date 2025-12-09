@@ -13,10 +13,11 @@ var configCerebras = &config{
 		{
 			Name:            provider.NewModelName(providerIdCerebras, "qwen3-235b"),
 			ProviderModelId: "qwen-3-235b-a22b-instruct-2507",
+			Description:     "This non-thinking version offers powerful multilingual capabilities with significant improvements in instruction following, logical reasoning, mathematics, coding, and tool usage.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 131_072,
 				OutputTokenLimit:  40_960,
-				Reasoning:         true,
+				Reasoning:         false,
 				ToolCall:          true,
 			},
 		},
@@ -24,6 +25,7 @@ var configCerebras = &config{
 		{
 			Name:            provider.NewModelName(providerIdCerebras, "glm-4.6"),
 			ProviderModelId: "zai-glm-4.6",
+			Description:     "This model delivers strong coding performance with advanced reasoning capabilities, superior tool use, and enhanced real-world performance in agentic coding applications.",
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 131_072,
 				OutputTokenLimit:  40_960,
