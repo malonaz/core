@@ -134,6 +134,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwitkow/go-proto-validators v0.3.2 h1:qRlmpTzm2pstMKKzTdvwPCF5QfBNURSlAgN/R+qbKos=
 github.com/mwitkow/go-proto-validators v0.3.2/go.mod h1:ej0Qp0qMgHN/KtDyUt+Q1/tA7a5VarXUOUxD+oeD30w=
+github.com/openai/openai-go/v3 v3.10.0 h1:l9/stPpyf9WRtx3G+BDyIbdVPiYLk18d7lG9hVlQfOY=
+github.com/openai/openai-go/v3 v3.10.0/go.mod h1:cdufnVK14cWcT9qA1rRtrXx4FTRsgbDPW7Ia7SS5cZo=
 github.com/peterebden/buildtools v0.0.0-20201001123124-f7a36c689cc9 h1:zW3HzDo5hlCvyHQNSI6AJYauc37hzpSLopj8+Rq0+Sc=
 github.com/peterebden/buildtools v0.0.0-20201001123124-f7a36c689cc9/go.mod h1:3Qdi2UDHPoUfl30qQFKcTbtf+InJtSZcZf5yWhJT9Vc=
 github.com/pion/randutil v0.1.0 h1:CFG1UdESneORglEsnimhUjf33Rwjubwj6xfiOXBa3mA=

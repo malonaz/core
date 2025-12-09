@@ -2432,6 +2432,312 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__openai__openai-go__v3",
+    _tag = "download",
+    module = "github.com/openai/openai-go/v3",
+    version = "v3.10.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["."],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__conversations",
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apiform",
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__apiquery",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__pagination",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__packages__ssestream",
+        ":github.com__openai__openai-go__v3__realtime",
+        ":github.com__openai__openai-go__v3__responses",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+        ":github.com__openai__openai-go__v3__webhooks",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__conversations",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["conversations"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__apiquery",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__pagination",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__responses",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__apierror",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/apierror"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__apiform",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/apiform"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__openai__openai-go__v3__packages__param"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__apijson",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/apijson"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__tidwall__gjson",
+        ":github.com__tidwall__sjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__apiquery",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/apiquery"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__openai__openai-go__v3__packages__param"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__encoding__json",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/encoding/json"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__encoding__json__sentinel",
+        ":github.com__openai__openai-go__v3__internal__encoding__json__shims",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__encoding__json__sentinel",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/encoding/json/sentinel"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__openai__openai-go__v3__internal__encoding__json__shims"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__encoding__json__shims",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/encoding/json/shims"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__paramutil",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/paramutil"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__requestconfig",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/requestconfig"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal",
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apiform",
+        ":github.com__openai__openai-go__v3__internal__apiquery",
+        ":github.com__tidwall__gjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__option",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["option"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__tidwall__sjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__packages__pagination",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["packages/pagination"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__packages__param",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["packages/param"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__encoding__json",
+        ":github.com__openai__openai-go__v3__internal__encoding__json__sentinel",
+        ":github.com__tidwall__sjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__packages__respjson",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["packages/respjson"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__packages__ssestream",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["packages/ssestream"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__tidwall__gjson"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__realtime",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["realtime"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__encoding__json",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__responses",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__responses",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["responses"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__apiquery",
+        ":github.com__openai__openai-go__v3__internal__paramutil",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__pagination",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__packages__ssestream",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__shared",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["shared"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__shared__constant",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__shared__constant",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["shared/constant"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__openai__openai-go__v3__internal__encoding__json"],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__webhooks",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["webhooks"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__apierror",
+        ":github.com__openai__openai-go__v3__internal__apijson",
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+    ],
+)
+
+go_mod_download(
     name = "github.com__pion__randutil",
     _tag = "download",
     module = "github.com/pion/randutil",
@@ -2742,8 +3048,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):

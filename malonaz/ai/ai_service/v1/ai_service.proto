@@ -267,15 +267,18 @@ message TextToTextConfiguration {
     lte: 2.0
   }];
 
+  // Controls which tool(s) the model should use.
+  .malonaz.ai.v1.ToolChoice tool_choice = 3;
+
   // Represents the level of reasoning effort for AI model responses.
   // The reasoning effort parameter guides the model on how many reasoning tokens
   // to generate before creating a response to the prompt. Higher effort levels
   // result in more thorough reasoning at the cost of speed and token usage.
-  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 3;
+  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 4;
 
   // If true, we attempt to clean the output to extract a json object.
   // Fails the request if a json object cannot be found.
-  bool extract_json_object = 4;
+  bool extract_json_object = 5;
 }
 
 // Request message for Ai.TextToText.

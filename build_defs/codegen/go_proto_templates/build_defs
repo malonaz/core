@@ -51,6 +51,8 @@ def go_proto_template_library(
         f"import-path=$PKG",
         f"package-name={package_name}",
     ]
+    if CONFIG.GO.IMPORT_PATH:
+        templates_opts_args += [f"go-import-path=" + CONFIG.GO.IMPORT_PATH]
     if additional_context and GO_PROTO_TEMPLATES_GO_IMPORT_PATHS in additional_context:
         for k, v in additional_context[GO_PROTO_TEMPLATES_GO_IMPORT_PATHS].items():
             package, _ = decompose(v)

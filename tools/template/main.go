@@ -22,7 +22,7 @@ var opts struct {
 	Output       string   `long:"output" short:"o" description:"The output file to create" required:"true"`
 	Delims       string   `long:"delims" description:"Template delimiters format (e.g., '[[.]]' or '{{.}}')" default:"{{.}}"`
 	ExtraData    []string `long:"extra-data" description:"Extra data to pass in the format: key:value"`
-	GoImportPath string   `long:"go-import-path" description:"The plz go plugin importh path"`
+	GoImportPath string   `long:"go-import-path" description:"The plz go plugin import path"`
 }
 
 func parseDelims(format string) (left, right string, err error) {

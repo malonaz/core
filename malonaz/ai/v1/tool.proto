@@ -30,3 +30,38 @@ message ToolCall {
   // The arguments to call the tool with, as JSON.
   string arguments = 3;
 }
+
+// Controls which tool(s) the model should use.
+message ToolChoice {
+  option (buf.validate.message).cel = {
+    id: "ai.v1.ToolChoice.mode_not_unspecified"
+    message: "mode cannot be TOOL_CHOICE_MODE_UNSPECIFIED"
+    expression: "!has(this.mode) || this.mode != 0"
+  };
+
+  // The choice.
+  oneof choice {
+    option (buf.validate.oneof).required = true;
+
+    // Let the model decide whether to call a tool.
+    ToolChoiceMode mode = 1 [(buf.validate.field).enum.defined_only = true];
+
+    // Force the model to call a specific tool by name.
+    string tool_name = 2;
+  }
+}
+
+// Mode for tool choice.
+enum ToolChoiceMode {
+  // Used to detect an unset field.
+  TOOL_CHOICE_MODE_UNSPECIFIED = 0;
+
+  // Do not use any tool.
+  TOOL_CHOICE_MODE_NONE = 1;
+
+  // Let the model decide whether to call a tool.
+  TOOL_CHOICE_MODE_AUTO = 2;
+
+  // Require the model to call at least one tool.
+  TOOL_CHOICE_MODE_REQUIRED = 3;
+}

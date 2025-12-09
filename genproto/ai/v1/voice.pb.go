@@ -228,21 +228,27 @@ var File_malonaz_ai_v1_voice_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_voice_proto_rawDesc = "" +
 	"\n" +
-	"\x19malonaz/ai/v1/voice.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"\xdb\x02\n" +
-	"\x05Voice\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12)\n" +
-	"\fdisplay_name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdisplayName\x12(\n" +
-	"\vdescription\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x12>\n" +
+	"\x19malonaz/ai/v1/voice.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"\x88\x03\n" +
+	"\x05Voice\x12!\n" +
+	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x120\n" +
+	"\fdisplay_name\x18\x02 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\vdisplayName\x12/\n" +
+	"\vdescription\x18\x03 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\n" +
+	"\x18\xf4\x03R\vdescription\x12>\n" +
 	"\x06gender\x18\x04 \x01(\x0e2\x1a.malonaz.ai.v1.VoiceGenderB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x06gender\x12\x1f\n" +
-	"\vpreview_url\x18\x05 \x01(\tR\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x06gender\x12/\n" +
+	"\vpreview_url\x18\x05 \x01(\tB\x0e\xbaH\v\xd8\x01\x01r\x06\x18\x80\x10\x88\x01\x01R\n" +
 	"previewUrl\x12N\n" +
 	"\rmodel_configs\x18\x06 \x03(\v2\x1f.malonaz.ai.v1.VoiceModelConfigB\b\xbaH\x05\x92\x01\x02\b\x01R\fmodelConfigs:8\xeaA5\n" +
-	"\x14ai.malonaz.com/Voice\x12\x0evoices/{voice}*\x06voices2\x05voice\"u\n" +
-	"\x10VoiceModelConfig\x125\n" +
-	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12*\n" +
-	"\x11provider_voice_id\x18\x02 \x01(\tR\x0fproviderVoiceId*[\n" +
+	"\x14ai.malonaz.com/Voice\x12\x0evoices/{voice}*\x06voices2\x05voice\"\x8b\x01\n" +
+	"\x10VoiceModelConfig\x12<\n" +
+	"\x05model\x18\x01 \x01(\tB&\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x05model\x129\n" +
+	"\x11provider_voice_id\x18\x02 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x0fproviderVoiceId*[\n" +
 	"\vVoiceGender\x12\x1c\n" +
 	"\x18VOICE_GENDER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11VOICE_GENDER_MALE\x10\x01\x12\x17\n" +

@@ -3,6 +3,8 @@ package openai
 import (
 	"context"
 
+	openai2 "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	openai "github.com/sashabaranov/go-openai"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -34,6 +36,7 @@ func (c *config) clientConfig(apiKey string) openai.ClientConfig {
 type Client struct {
 	config       *config
 	client       *openai.Client
+	client2      openai2.Client
 	modelService *provider.ModelService
 }
 
@@ -41,6 +44,7 @@ func newClient(apiKey string, modelService *provider.ModelService, config *confi
 	return &Client{
 		config:       config,
 		client:       openai.NewClientWithConfig(config.clientConfig(apiKey)),
+		client2:      openai2.NewClient(option.WithAPIKey(apiKey), option.WithBaseURL(config.BaseUrl)),
 		modelService: modelService,
 	}
 }

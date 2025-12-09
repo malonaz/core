@@ -26,6 +26,7 @@ var (
 		Configuration           *string
 		ImportPath              *string
 		PackageName             *string
+		GoImportPath            *string
 		AdditionalGoImportPaths *[]string
 	}
 )
@@ -49,6 +50,7 @@ func main() {
 		return nil
 	})
 	opts.Configuration = flags.String("configuration", "", "configuration to inject in context")
+	opts.GoImportPath = flags.String("go-import-path", "", "The plz go plugin import path")
 	opts.ImportPath = flags.String("import-path", "", "Override the import path of the generated code")
 	opts.PackageName = flags.String("package-name", "", "Override the package name of the generated code")
 	data := []string{}
@@ -73,7 +75,11 @@ func main() {
 				if len(split) != 2 {
 					return fmt.Errorf("invalid data argument: %s", data)
 				}
-				keyToGoImportPath[split[0]] = protogen.GoImportPath(split[1])
+				importPath := split[1]
+				if *opts.GoImportPath != "" {
+					importPath = *opts.GoImportPath + "/" + importPath
+				}
+				keyToGoImportPath[split[0]] = protogen.GoImportPath(importPath)
 			}
 		}
 		var configuration map[any]any

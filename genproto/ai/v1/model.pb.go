@@ -26,63 +26,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Represents a model.
-type ModelType int32
-
-const (
-	// Used to detect an unset field.
-	ModelType_MODEL_TYPE_UNSPECIFIED ModelType = 0
-	// Model can be used for STT.
-	ModelType_MODEL_TYPE_STT ModelType = 1
-	// Model can be used for TTT.
-	ModelType_MODEL_TYPE_TTT ModelType = 2
-	// Model can be used for TTS.
-	ModelType_MODEL_TYPE_TTS ModelType = 3
-)
-
-// Enum value maps for ModelType.
-var (
-	ModelType_name = map[int32]string{
-		0: "MODEL_TYPE_UNSPECIFIED",
-		1: "MODEL_TYPE_STT",
-		2: "MODEL_TYPE_TTT",
-		3: "MODEL_TYPE_TTS",
-	}
-	ModelType_value = map[string]int32{
-		"MODEL_TYPE_UNSPECIFIED": 0,
-		"MODEL_TYPE_STT":         1,
-		"MODEL_TYPE_TTT":         2,
-		"MODEL_TYPE_TTS":         3,
-	}
-)
-
-func (x ModelType) Enum() *ModelType {
-	p := new(ModelType)
-	*p = x
-	return p
-}
-
-func (x ModelType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ModelType) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_model_proto_enumTypes[0].Descriptor()
-}
-
-func (ModelType) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_model_proto_enumTypes[0]
-}
-
-func (x ModelType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ModelType.Descriptor instead.
-func (ModelType) EnumDescriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{0}
-}
-
 // Contains configuration for a  model.
 type Model struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -98,14 +41,16 @@ type Model struct {
 	// The id used for this model by the provider.
 	// This is introduced to absorb bad provider model naming standards.
 	ProviderModelId string `protobuf:"bytes,2,opt,name=provider_model_id,json=providerModelId,proto3" json:"provider_model_id,omitempty"`
+	// A short description for this model.
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// The time at which this model was deprecated.
-	DeprecateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=deprecate_time,json=deprecateTime,proto3" json:"deprecate_time,omitempty"`
+	DeprecateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=deprecate_time,json=deprecateTime,proto3" json:"deprecate_time,omitempty"`
 	// Configuration for STT model.
-	Stt *SttModelConfig `protobuf:"bytes,4,opt,name=stt,proto3" json:"stt,omitempty"`
+	Stt *SttModelConfig `protobuf:"bytes,5,opt,name=stt,proto3" json:"stt,omitempty"`
 	// Configuration for TTT model.
-	Ttt *TttModelConfig `protobuf:"bytes,5,opt,name=ttt,proto3" json:"ttt,omitempty"`
+	Ttt *TttModelConfig `protobuf:"bytes,6,opt,name=ttt,proto3" json:"ttt,omitempty"`
 	// Configuration for TTS model.
-	Tts           *TtsModelConfig `protobuf:"bytes,6,opt,name=tts,proto3" json:"tts,omitempty"`
+	Tts           *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -150,6 +95,13 @@ func (x *Model) GetName() string {
 func (x *Model) GetProviderModelId() string {
 	if x != nil {
 		return x.ProviderModelId
+	}
+	return ""
+}
+
+func (x *Model) GetDescription() string {
+	if x != nil {
+		return x.Description
 	}
 	return ""
 }
@@ -351,29 +303,27 @@ var File_malonaz_ai_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xf4\x02\n" +
-	"\x05Model\x12\x1a\n" +
-	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12*\n" +
-	"\x11provider_model_id\x18\x02 \x01(\tR\x0fproviderModelId\x12A\n" +
-	"\x0edeprecate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x12/\n" +
-	"\x03stt\x18\x04 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
-	"\x03ttt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
-	"\x03tts\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
+	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xb6\x03\n" +
+	"\x05Model\x12!\n" +
+	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x129\n" +
+	"\x11provider_model_id\x18\x02 \x01(\tB\r\xbaH\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x0fproviderModelId\x12*\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\bR\vdescription\x12A\n" +
+	"\x0edeprecate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x12/\n" +
+	"\x03stt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
+	"\x03ttt\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
+	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
-	"\x0eSttModelConfig\"\xa9\x01\n" +
+	"\x0eSttModelConfig\"\xbb\x01\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
-	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x12.\n" +
-	"\x13context_token_limit\x18\x03 \x01(\x05R\x11contextTokenLimit\x12,\n" +
-	"\x12output_token_limit\x18\x04 \x01(\x05R\x10outputTokenLimit\"\x83\x01\n" +
-	"\x0eTtsModelConfig\x12;\n" +
-	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat\x124\n" +
-	"\x16supported_sample_rates\x18\x02 \x03(\x05R\x14supportedSampleRates*c\n" +
-	"\tModelType\x12\x1a\n" +
-	"\x16MODEL_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
-	"\x0eMODEL_TYPE_STT\x10\x01\x12\x12\n" +
-	"\x0eMODEL_TYPE_TTT\x10\x02\x12\x12\n" +
-	"\x0eMODEL_TYPE_TTS\x10\x03Bo\xeaAD\n" +
+	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x127\n" +
+	"\x13context_token_limit\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x125\n" +
+	"\x12output_token_limit\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x10outputTokenLimit\"\x9c\x01\n" +
+	"\x0eTtsModelConfig\x12C\n" +
+	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
+	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRatesBo\xeaAD\n" +
 	"\x17ai.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\bproviderZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
@@ -388,23 +338,21 @@ func file_malonaz_ai_v1_model_proto_rawDescGZIP() []byte {
 	return file_malonaz_ai_v1_model_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_ai_v1_model_proto_goTypes = []any{
-	(ModelType)(0),                // 0: malonaz.ai.v1.ModelType
-	(*Model)(nil),                 // 1: malonaz.ai.v1.Model
-	(*SttModelConfig)(nil),        // 2: malonaz.ai.v1.SttModelConfig
-	(*TttModelConfig)(nil),        // 3: malonaz.ai.v1.TttModelConfig
-	(*TtsModelConfig)(nil),        // 4: malonaz.ai.v1.TtsModelConfig
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*v1.Format)(nil),             // 6: malonaz.audio.v1.Format
+	(*Model)(nil),                 // 0: malonaz.ai.v1.Model
+	(*SttModelConfig)(nil),        // 1: malonaz.ai.v1.SttModelConfig
+	(*TttModelConfig)(nil),        // 2: malonaz.ai.v1.TttModelConfig
+	(*TtsModelConfig)(nil),        // 3: malonaz.ai.v1.TtsModelConfig
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*v1.Format)(nil),             // 5: malonaz.audio.v1.Format
 }
 var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
-	5, // 0: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
-	2, // 1: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
-	3, // 2: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
-	4, // 3: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
-	6, // 4: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
+	4, // 0: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
+	1, // 1: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
+	2, // 2: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
+	3, // 3: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
+	5, // 4: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -422,14 +370,13 @@ func file_malonaz_ai_v1_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_model_proto_rawDesc), len(file_malonaz_ai_v1_model_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_ai_v1_model_proto_goTypes,
 		DependencyIndexes: file_malonaz_ai_v1_model_proto_depIdxs,
-		EnumInfos:         file_malonaz_ai_v1_model_proto_enumTypes,
 		MessageInfos:      file_malonaz_ai_v1_model_proto_msgTypes,
 	}.Build()
 	File_malonaz_ai_v1_model_proto = out.File

@@ -22,6 +22,63 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Mode for tool choice.
+type ToolChoiceMode int32
+
+const (
+	// Used to detect an unset field.
+	ToolChoiceMode_TOOL_CHOICE_MODE_UNSPECIFIED ToolChoiceMode = 0
+	// Do not use any tool.
+	ToolChoiceMode_TOOL_CHOICE_MODE_NONE ToolChoiceMode = 1
+	// Let the model decide whether to call a tool.
+	ToolChoiceMode_TOOL_CHOICE_MODE_AUTO ToolChoiceMode = 2
+	// Require the model to call at least one tool.
+	ToolChoiceMode_TOOL_CHOICE_MODE_REQUIRED ToolChoiceMode = 3
+)
+
+// Enum value maps for ToolChoiceMode.
+var (
+	ToolChoiceMode_name = map[int32]string{
+		0: "TOOL_CHOICE_MODE_UNSPECIFIED",
+		1: "TOOL_CHOICE_MODE_NONE",
+		2: "TOOL_CHOICE_MODE_AUTO",
+		3: "TOOL_CHOICE_MODE_REQUIRED",
+	}
+	ToolChoiceMode_value = map[string]int32{
+		"TOOL_CHOICE_MODE_UNSPECIFIED": 0,
+		"TOOL_CHOICE_MODE_NONE":        1,
+		"TOOL_CHOICE_MODE_AUTO":        2,
+		"TOOL_CHOICE_MODE_REQUIRED":    3,
+	}
+)
+
+func (x ToolChoiceMode) Enum() *ToolChoiceMode {
+	p := new(ToolChoiceMode)
+	*p = x
+	return p
+}
+
+func (x ToolChoiceMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ToolChoiceMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_v1_tool_proto_enumTypes[0].Descriptor()
+}
+
+func (ToolChoiceMode) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_v1_tool_proto_enumTypes[0]
+}
+
+func (x ToolChoiceMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ToolChoiceMode.Descriptor instead.
+func (ToolChoiceMode) EnumDescriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{0}
+}
+
 // Represents a tool that can be called by the AI model.
 type Tool struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -150,6 +207,93 @@ func (x *ToolCall) GetArguments() string {
 	return ""
 }
 
+// Controls which tool(s) the model should use.
+type ToolChoice struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The choice.
+	//
+	// Types that are valid to be assigned to Choice:
+	//
+	//	*ToolChoice_Mode
+	//	*ToolChoice_ToolName
+	Choice        isToolChoice_Choice `protobuf_oneof:"choice"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolChoice) Reset() {
+	*x = ToolChoice{}
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolChoice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolChoice) ProtoMessage() {}
+
+func (x *ToolChoice) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolChoice.ProtoReflect.Descriptor instead.
+func (*ToolChoice) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ToolChoice) GetChoice() isToolChoice_Choice {
+	if x != nil {
+		return x.Choice
+	}
+	return nil
+}
+
+func (x *ToolChoice) GetMode() ToolChoiceMode {
+	if x != nil {
+		if x, ok := x.Choice.(*ToolChoice_Mode); ok {
+			return x.Mode
+		}
+	}
+	return ToolChoiceMode_TOOL_CHOICE_MODE_UNSPECIFIED
+}
+
+func (x *ToolChoice) GetToolName() string {
+	if x != nil {
+		if x, ok := x.Choice.(*ToolChoice_ToolName); ok {
+			return x.ToolName
+		}
+	}
+	return ""
+}
+
+type isToolChoice_Choice interface {
+	isToolChoice_Choice()
+}
+
+type ToolChoice_Mode struct {
+	// Let the model decide whether to call a tool.
+	Mode ToolChoiceMode `protobuf:"varint,1,opt,name=mode,proto3,enum=malonaz.ai.v1.ToolChoiceMode,oneof"`
+}
+
+type ToolChoice_ToolName struct {
+	// Force the model to call a specific tool by name.
+	ToolName string `protobuf:"bytes,2,opt,name=tool_name,json=toolName,proto3,oneof"`
+}
+
+func (*ToolChoice_Mode) isToolChoice_Choice() {}
+
+func (*ToolChoice_ToolName) isToolChoice_Choice() {}
+
 var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
@@ -163,7 +307,18 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12\x1c\n" +
-	"\targuments\x18\x03 \x01(\tR\targumentsB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\targuments\x18\x03 \x01(\tR\targuments\"\xf9\x01\n" +
+	"\n" +
+	"ToolChoice\x12=\n" +
+	"\x04mode\x18\x01 \x01(\x0e2\x1d.malonaz.ai.v1.ToolChoiceModeB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\x04mode\x12\x1d\n" +
+	"\ttool_name\x18\x02 \x01(\tH\x00R\btoolName:|\xbaHy\x1aw\n" +
+	"%ai.v1.ToolChoice.mode_not_unspecified\x12+mode cannot be TOOL_CHOICE_MODE_UNSPECIFIED\x1a!!has(this.mode) || this.mode != 0B\x0f\n" +
+	"\x06choice\x12\x05\xbaH\x02\b\x01*\x87\x01\n" +
+	"\x0eToolChoiceMode\x12 \n" +
+	"\x1cTOOL_CHOICE_MODE_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15TOOL_CHOICE_MODE_NONE\x10\x01\x12\x19\n" +
+	"\x15TOOL_CHOICE_MODE_AUTO\x10\x02\x12\x1d\n" +
+	"\x19TOOL_CHOICE_MODE_REQUIRED\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
 	file_malonaz_ai_v1_tool_proto_rawDescOnce sync.Once
@@ -177,19 +332,23 @@ func file_malonaz_ai_v1_tool_proto_rawDescGZIP() []byte {
 	return file_malonaz_ai_v1_tool_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
-	(*Tool)(nil),       // 0: malonaz.ai.v1.Tool
-	(*ToolCall)(nil),   // 1: malonaz.ai.v1.ToolCall
-	(*JsonSchema)(nil), // 2: malonaz.ai.v1.JsonSchema
+	(ToolChoiceMode)(0), // 0: malonaz.ai.v1.ToolChoiceMode
+	(*Tool)(nil),        // 1: malonaz.ai.v1.Tool
+	(*ToolCall)(nil),    // 2: malonaz.ai.v1.ToolCall
+	(*ToolChoice)(nil),  // 3: malonaz.ai.v1.ToolChoice
+	(*JsonSchema)(nil),  // 4: malonaz.ai.v1.JsonSchema
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	2, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
+	0, // 1: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -198,18 +357,23 @@ func file_malonaz_ai_v1_tool_proto_init() {
 		return
 	}
 	file_malonaz_ai_v1_jsonschema_proto_init()
+	file_malonaz_ai_v1_tool_proto_msgTypes[2].OneofWrappers = []any{
+		(*ToolChoice_Mode)(nil),
+		(*ToolChoice_ToolName)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_ai_v1_tool_proto_goTypes,
 		DependencyIndexes: file_malonaz_ai_v1_tool_proto_depIdxs,
+		EnumInfos:         file_malonaz_ai_v1_tool_proto_enumTypes,
 		MessageInfos:      file_malonaz_ai_v1_tool_proto_msgTypes,
 	}.Build()
 	File_malonaz_ai_v1_tool_proto = out.File

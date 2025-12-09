@@ -30,6 +30,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/malonaz/pgq v0.0.0-20251114112516-9240ed92bf50
 	github.com/mennanov/fmutils v0.3.3
+	github.com/openai/openai-go/v3 v3.10.0
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/pseudomuto/protoc-gen-doc v1.5.2-0.20250211140318-129dc82aa469
