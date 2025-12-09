@@ -44,7 +44,7 @@ index c0a3f85..e84b301 100644
 +	}
 +}
 diff --git a/cobra.go b/cobra.go
-index ae0d087..3ec8259 100644
+index ae0d087..675ad5a 100644
 --- a/cobra.go
 +++ b/cobra.go
 @@ -95,7 +95,7 @@ func _{{.Parent.GoName}}{{.GoName}}Command(cfg *client.Config) *cobra.Command {
@@ -56,16 +56,18 @@ index ae0d087..3ec8259 100644
  	{{if .Desc.IsStreamingClient}}
  				stm, err := cli.{{.GoName}}(cmd.Context())
  				if err != nil {
-@@ -239,6 +239,80 @@ func walkField(g *protogen.GeneratedFile, fld *protogen.Field, path, postSetCode
+@@ -239,6 +239,82 @@ func walkField(g *protogen.GeneratedFile, fld *protogen.Field, path, postSetCode
  	varName := "_" + strings.Join(path, "_")
  	oneof := fld.Oneof != nil && !fld.Oneof.Desc.IsSynthetic()
  
++	var oneofTarget string
 +	if f := flagFormat(g, fld); f != "" {
 +		var code []string
 +		// Fixes issues where a oneof has a enum field.
 +		specialCase := normalizeKind(fld.Desc.Kind()) == protoreflect.EnumKind && !fld.Desc.IsList()
 +		if oneof {
-+			postSetCode = append(postSetCode, fmt.Sprintf("%s.%s = %s", target, fld.Oneof.GoName, varName))
++			oneofTarget = target  // Save the parent target
++			postSetCode = append(postSetCode, fmt.Sprintf("%s.%s = %s", oneofTarget, fld.Oneof.GoName, varName))
 +			target = varName
 +			if !specialCase {
 +				code = append(code, fmt.Sprintf("%s := &%s{}", target, g.QualifiedGoIdent(fld.GoIdent)))
@@ -80,7 +82,7 @@ index ae0d087..3ec8259 100644
 +
 +			// Update the last postSetCode entry to handle the pointer
 +			postSetCode[len(postSetCode)-1] = fmt.Sprintf("%s.%s = &%s{%s: *%s}",
-+				"req", fld.Oneof.GoName, g.QualifiedGoIdent(fld.GoIdent), fld.GoName, ptrVarName)
++				oneofTarget, fld.Oneof.GoName, g.QualifiedGoIdent(fld.GoIdent), fld.GoName, ptrVarName)
 +		} else {
 +			ptr := fmt.Sprintf("&%s.%s", target, fld.GoName)
 +			code = append(code, fmt.Sprintf(f, ptr, flagName, cleanComments(fld.Comments.Leading)))
