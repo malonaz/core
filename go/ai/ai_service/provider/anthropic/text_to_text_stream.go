@@ -92,6 +92,15 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		messageParams.Tools = tools
 	}
 
+	// Add tool choice if provided
+	if request.GetConfiguration().GetToolChoice() != nil {
+		toolChoice, err := pbToolChoiceToAnthropic(request.GetConfiguration().GetToolChoice())
+		if err != nil {
+			return grpc.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
+		}
+		messageParams.ToolChoice = toolChoice
+	}
+
 	startTime := time.Now()
 
 	// Create streaming request
@@ -227,6 +236,43 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		return err
 	}
 	return nil
+}
+
+// Add this new helper function
+func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceUnionParam, error) {
+	switch choice := toolChoice.Choice.(type) {
+	case *aipb.ToolChoice_Mode:
+		switch choice.Mode {
+		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_NONE:
+			return anthropic.ToolChoiceUnionParam{
+				OfNone: &anthropic.ToolChoiceNoneParam{},
+			}, nil
+
+		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO:
+			return anthropic.ToolChoiceUnionParam{
+				OfAuto: &anthropic.ToolChoiceAutoParam{},
+			}, nil
+
+		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_REQUIRED:
+			return anthropic.ToolChoiceUnionParam{
+				OfAny: &anthropic.ToolChoiceAnyParam{},
+			}, nil
+
+		default:
+			return anthropic.ToolChoiceUnionParam{}, fmt.Errorf("unknown tool choice mode: %s", choice.Mode)
+		}
+
+	case *aipb.ToolChoice_ToolName:
+		// Specific tool name
+		return anthropic.ToolChoiceUnionParam{
+			OfTool: &anthropic.ToolChoiceToolParam{
+				Name: choice.ToolName,
+			},
+		}, nil
+
+	default:
+		return anthropic.ToolChoiceUnionParam{}, fmt.Errorf("unknown tool choice type: %T", choice)
+	}
 }
 
 func pbRoleToAnthropic(role aipb.Role) (anthropic.MessageParamRole, error) {

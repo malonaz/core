@@ -787,10 +787,8 @@ type TextToTextRequest struct {
 	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
 	// Tools available for the model to call.
 	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	// For the model to use a tool.
-	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
 	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	Configuration *TextToTextConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3" json:"configuration,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -844,13 +842,6 @@ func (x *TextToTextRequest) GetTools() []*v1.Tool {
 		return x.Tools
 	}
 	return nil
-}
-
-func (x *TextToTextRequest) GetToolChoice() string {
-	if x != nil {
-		return x.ToolChoice
-	}
-	return ""
 }
 
 func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
@@ -1656,15 +1647,13 @@ const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\vtool_choice\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolChoiceR\n" +
 	"toolChoice\x12I\n" +
 	"\x10reasoning_effort\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12.\n" +
-	"\x13extract_json_object\x18\x05 \x01(\bR\x11extractJsonObject\"\xad\x02\n" +
+	"\x13extract_json_object\x18\x05 \x01(\bR\x11extractJsonObject\"\x8c\x02\n" +
 	"\x11TextToTextRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
 	"\bmessages\x18\x02 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
-	"\vtool_choice\x18\x04 \x01(\tR\n" +
-	"toolChoice\x12W\n" +
-	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xa4\x02\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12W\n" +
+	"\rconfiguration\x18\x04 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xa4\x02\n" +
 	"\x12TextToTextResponse\x120\n" +
 	"\amessage\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageR\amessage\x12O\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonR\n" +

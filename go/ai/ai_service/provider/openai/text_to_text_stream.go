@@ -17,7 +17,7 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) TextToTextStream(
+func (c *Client) TextToTextStream2(
 	request *aiservicepb.TextToTextStreamRequest,
 	stream aiservicepb.Ai_TextToTextStreamServer,
 ) error {

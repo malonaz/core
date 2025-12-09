@@ -3,6 +3,8 @@ package openai
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/openai/openai-go/v3"
@@ -17,7 +19,7 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) TextToTextStreamOld(
+func (c *Client) TextToTextStream(
 	request *aiservicepb.TextToTextStreamRequest,
 	stream aiservicepb.Ai_TextToTextStreamServer,
 ) error {
@@ -49,8 +51,11 @@ func (c *Client) TextToTextStreamOld(
 
 	// Set max tokens if provided
 	if request.GetConfiguration().GetMaxTokens() > 0 {
-		params.MaxCompletionTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
-		params.MaxTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
+		if c.ProviderId() == providerIdOpenai {
+			params.MaxCompletionTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
+		} else {
+			params.MaxTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
+		}
 	}
 
 	// Set temperature if provided
@@ -60,9 +65,38 @@ func (c *Client) TextToTextStreamOld(
 
 	// Set reasoning effort if provided (for reasoning models)
 	if request.GetConfiguration().GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
-		reasoningEffort := pbReasoningEffortToOpenAIV2(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
+		reasoningEffort, err := pbReasoningEffortToOpenAIV2(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
+		if err != nil {
+			return grpc.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
+		}
 		if reasoningEffort != "" {
 			params.ReasoningEffort = shared.ReasoningEffort(reasoningEffort)
+		}
+	}
+
+	// Groq Reasoning.
+	if c.ProviderId() == providerIdGroq {
+		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
+			params.SetExtraFields(map[string]any{
+				"reasoning_format": "parsed",
+			})
+		}
+	}
+
+	// Google reasoning.
+	if c.ProviderId() == providerIdGoogle {
+		thinkingConfig, err := buildGoogleThinkingConfig(model, request.Configuration.GetReasoningEffort())
+		if err != nil {
+			return grpc.Errorf(codes.Internal, "building Google thinking config: %v", err).Err()
+		}
+		if thinkingConfig != nil {
+			params.SetExtraFields(map[string]any{
+				"extra_body": map[string]any{
+					"google": map[string]any{
+						"thinking_config": thinkingConfig,
+					},
+				},
+			})
 		}
 	}
 
@@ -86,14 +120,6 @@ func (c *Client) TextToTextStreamOld(
 
 		}
 		params.ToolChoice = toolChoice
-	}
-
-	if c.ProviderId() == providerIdGroq {
-		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
-			params.SetExtraFields(map[string]any{
-				"reasoning_format": "parsed",
-			})
-		}
 	}
 
 	startTime := time.Now()
@@ -163,16 +189,40 @@ func (c *Client) TextToTextStreamOld(
 
 		// Send content chunk
 		if choice.Delta.Content != "" {
-			fmt.Printf(choice.Delta.Content)
-			cs.SendContentChunk(ctx, choice.Delta.Content)
+			var sendAsReasoningChunk bool
+			// Check for extra_content field
+			if extraContentRaw := choice.Delta.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
+				var extraContent map[string]any
+				if err := json.Unmarshal([]byte(extraContentRaw), &extraContent); err != nil {
+					return grpc.Errorf(codes.Internal, "unmarshaling extra_content: %v", err).Err()
+				}
+
+				// Check if this is a Google thought/reasoning chunk
+				if c.ProviderId() == providerIdGoogle {
+					if google, ok := extraContent["google"].(map[string]any); ok {
+						if thought, ok := google["thought"].(bool); ok && thought {
+							sendAsReasoningChunk = true
+						}
+					}
+				}
+			}
+			if sendAsReasoningChunk {
+				content := strings.TrimPrefix(choice.Delta.Content, "<thought>")
+				cs.SendReasoningChunk(ctx, content)
+			} else {
+				content := strings.TrimPrefix(choice.Delta.Content, "</thought>")
+				cs.SendContentChunk(ctx, content)
+			}
 		}
 
 		if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
-			fmt.Println("hello")
-			cs.SendReasoningChunk(ctx, reasoningChunk)
+			unquoted, err := strconv.Unquote(reasoningChunk)
+			if err != nil {
+				return grpc.Errorf(codes.Internal, "unquoting chunk: %v", err).Err()
+			}
+			cs.SendReasoningChunk(ctx, unquoted)
 		}
 		if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning_content"].Raw(); reasoningChunk != "" {
-			fmt.Println("hello2")
 			cs.SendReasoningChunk(ctx, reasoningChunk)
 		}
 
@@ -343,12 +393,16 @@ func pbToolChoiceToOpenAIV2(toolChoice *aipb.ToolChoice) (openai.ChatCompletionT
 	}
 }
 
-func pbReasoningEffortToOpenAIV2(providerId string, effort aipb.ReasoningEffort) shared.ReasoningEffort {
-	mapping, ok := providerToReasoningEffortToOpenAIV2[providerId]
+func pbReasoningEffortToOpenAIV2(providerId string, effort aipb.ReasoningEffort) (shared.ReasoningEffort, error) {
+	reasoningEffortToOpenAIV2, ok := providerToReasoningEffortToOpenAIV2[providerId]
 	if !ok {
-		return ""
+		return "", fmt.Errorf("unknown provider: %s", providerId)
 	}
-	return mapping[effort]
+	reasoningEffort, ok := reasoningEffortToOpenAIV2[effort]
+	if !ok {
+		return "", fmt.Errorf("unknown reasoning effort: %s", effort)
+	}
+	return reasoningEffort, nil
 }
 
 // TODO(malon): map the new ones ( 'none', 'minimal', 'xhigh').
@@ -358,6 +412,12 @@ var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]sh
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
+	},
+	providerIdGoogle: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "", // Google has its own custom fields.
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
 	},
 	providerIdGroq: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
@@ -373,4 +433,54 @@ var openAIFinishReasonToPbV2 = map[string]aiservicepb.TextToTextStopReason{
 	"tool_calls":     aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
 	"function_call":  aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL, // Deprecated.
 	"content_filter": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+}
+
+// buildGoogleThinkingConfig constructs the Google-specific thinking configuration
+// based on the model's reasoning effort type and the requested reasoning effort level.
+func buildGoogleThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort) (map[string]any, error) {
+	if reasoningEffort == aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
+		return nil, nil
+	}
+
+	thinkingConfig := map[string]any{
+		"include_thoughts": true,
+	}
+
+	// Determine if this model uses thinking_level or thinking_budget
+	reasoningEffortType := model.GetProviderSettings().GetFields()[providerGoogleReasoningEffortType].GetStringValue()
+
+	switch reasoningEffort {
+	case aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:
+		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
+			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
+		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
+			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetMedium
+		}
+
+	case aipb.ReasoningEffort_REASONING_EFFORT_LOW:
+		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
+			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelLow
+		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
+			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetLow
+		}
+
+	case aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:
+		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
+			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
+		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
+			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetMedium
+		}
+
+	case aipb.ReasoningEffort_REASONING_EFFORT_HIGH:
+		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
+			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
+		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
+			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetHigh
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown reasoning effort: %v", reasoningEffort)
+	}
+
+	return thinkingConfig, nil
 }

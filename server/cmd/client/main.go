@@ -196,7 +196,11 @@ func runUnary(ctx context.Context, client aiservicepb.AiClient) error {
 
 	// Add tool choice if tools are enabled
 	if *useTool {
-		request.ToolChoice = "auto"
+		request.Configuration.ToolChoice = &aipb.ToolChoice{
+			Choice: &aipb.ToolChoice_Mode{
+				Mode: aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO,
+			},
+		}
 	}
 
 	// Make the unary API call

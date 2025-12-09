@@ -169,7 +169,6 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		Model:         request.Model,
 		Messages:      request.Messages,
 		Tools:         request.Tools,
-		ToolChoice:    request.ToolChoice,
 		Configuration: request.Configuration,
 	}
 

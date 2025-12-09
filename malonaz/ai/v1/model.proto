@@ -5,6 +5,7 @@ package malonaz.ai.v1;
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/audio/v1/audio.proto";
 
@@ -55,6 +56,10 @@ message Model {
   TttModelConfig ttt = 6;
   // Configuration for TTS model.
   TtsModelConfig tts = 7;
+  // Provider-specific settings and metadata.
+  // This allows flexibility for provider-specific features without
+  // modifying the core schema.
+  google.protobuf.Struct provider_settings = 8;
 }
 
 // Configuration for a speech to text model.

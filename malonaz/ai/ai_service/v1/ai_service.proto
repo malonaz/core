@@ -296,11 +296,8 @@ message TextToTextRequest {
   // Tools available for the model to call.
   repeated .malonaz.ai.v1.Tool tools = 3;
 
-  // For the model to use a tool.
-  string tool_choice = 4;
-
   // Additional configuration.
-  TextToTextConfiguration configuration = 5;
+  TextToTextConfiguration configuration = 4;
 }
 
 // Reason why generation stopped.

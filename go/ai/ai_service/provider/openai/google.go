@@ -1,8 +1,24 @@
 package openai
 
 import (
+	"google.golang.org/protobuf/types/known/structpb"
+
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
+)
+
+const (
+	providerGoogleReasoningEffortType               = "reasoning_effort_type"
+	providerGoogleReasoningEffortTypeThinkingBudget = "reasoning_effort_type_thinking_budget"
+	providerGoogleReasoningEffortTypeThinkingLevel  = "reasoning_effort_type_thinking_level"
+
+	providerGoogleThinkingLevelLow  = "low"
+	providerGoogleThinkingLevelHigh = "high"
+
+	providerGoogleThinkingBudgetMinimal = 1024
+	providerGoogleThinkingBudgetLow     = 1024
+	providerGoogleThinkingBudgetMedium  = 8192
+	providerGoogleThinkingBudgetHigh    = 24576
 )
 
 var configGoogle = &config{
@@ -20,6 +36,11 @@ var configGoogle = &config{
 				Reasoning:         true,
 				ToolCall:          true,
 			},
+			ProviderSettings: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					providerGoogleReasoningEffortType: structpb.NewStringValue(providerGoogleReasoningEffortTypeThinkingLevel),
+				},
+			},
 		},
 
 		{
@@ -31,6 +52,11 @@ var configGoogle = &config{
 				OutputTokenLimit:  65_536,
 				Reasoning:         true,
 				ToolCall:          true,
+			},
+			ProviderSettings: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					providerGoogleReasoningEffortType: structpb.NewStringValue(providerGoogleReasoningEffortTypeThinkingBudget),
+				},
 			},
 		},
 
@@ -44,6 +70,11 @@ var configGoogle = &config{
 				Reasoning:         true,
 				ToolCall:          true,
 			},
+			ProviderSettings: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					providerGoogleReasoningEffortType: structpb.NewStringValue(providerGoogleReasoningEffortTypeThinkingBudget),
+				},
+			},
 		},
 
 		{
@@ -55,6 +86,11 @@ var configGoogle = &config{
 				OutputTokenLimit:  65_536,
 				Reasoning:         true,
 				ToolCall:          true,
+			},
+			ProviderSettings: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					providerGoogleReasoningEffortType: structpb.NewStringValue(providerGoogleReasoningEffortTypeThinkingBudget),
+				},
 			},
 		},
 	},
