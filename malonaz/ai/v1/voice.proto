@@ -34,10 +34,7 @@ message Voice {
   // Description of the voice characteristics (e.g., "warm female voice", "professional male narrator").
   string description = 3 [(buf.validate.field) = {
     required: true
-    string: {
-      min_len: 10
-      max_len: 500
-    }
+    string: {max_len: 500}
   }];
 
   // Gender of the voice.

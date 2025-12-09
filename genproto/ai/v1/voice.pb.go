@@ -228,15 +228,13 @@ var File_malonaz_ai_v1_voice_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_voice_proto_rawDesc = "" +
 	"\n" +
-	"\x19malonaz/ai/v1/voice.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"\x88\x03\n" +
+	"\x19malonaz/ai/v1/voice.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"\x86\x03\n" +
 	"\x05Voice\x12!\n" +
 	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
 	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x120\n" +
 	"\fdisplay_name\x18\x02 \x01(\tB\r\xbaH\n" +
-	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\vdisplayName\x12/\n" +
-	"\vdescription\x18\x03 \x01(\tB\r\xbaH\n" +
-	"\xc8\x01\x01r\x05\x10\n" +
-	"\x18\xf4\x03R\vdescription\x12>\n" +
+	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\vdisplayName\x12-\n" +
+	"\vdescription\x18\x03 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\xf4\x03R\vdescription\x12>\n" +
 	"\x06gender\x18\x04 \x01(\x0e2\x1a.malonaz.ai.v1.VoiceGenderB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x06gender\x12/\n" +
 	"\vpreview_url\x18\x05 \x01(\tB\x0e\xbaH\v\xd8\x01\x01r\x06\x18\x80\x10\x88\x01\x01R\n" +
