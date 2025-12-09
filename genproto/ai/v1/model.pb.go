@@ -13,6 +13,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/descriptorpb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -50,9 +51,13 @@ type Model struct {
 	// Configuration for TTT model.
 	Ttt *TttModelConfig `protobuf:"bytes,6,opt,name=ttt,proto3" json:"ttt,omitempty"`
 	// Configuration for TTS model.
-	Tts           *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Tts *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
+	// Provider-specific settings and metadata.
+	// This allows flexibility for provider-specific features without
+	// modifying the core schema.
+	ProviderSettings *structpb.Struct `protobuf:"bytes,8,opt,name=provider_settings,json=providerSettings,proto3" json:"provider_settings,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Model) Reset() {
@@ -130,6 +135,13 @@ func (x *Model) GetTtt() *TttModelConfig {
 func (x *Model) GetTts() *TtsModelConfig {
 	if x != nil {
 		return x.Tts
+	}
+	return nil
+}
+
+func (x *Model) GetProviderSettings() *structpb.Struct {
+	if x != nil {
+		return x.ProviderSettings
 	}
 	return nil
 }
@@ -303,7 +315,7 @@ var File_malonaz_ai_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xb6\x03\n" +
+	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xfc\x03\n" +
 	"\x05Model\x12!\n" +
 	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
 	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x129\n" +
@@ -313,7 +325,8 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x0edeprecate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x12/\n" +
 	"\x03stt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
 	"\x03ttt\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
-	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts:M\xeaAJ\n" +
+	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12D\n" +
+	"\x11provider_settings\x18\b \x01(\v2\x17.google.protobuf.StructR\x10providerSettings:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
 	"\x0eSttModelConfig\"\xbb\x01\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
@@ -345,19 +358,21 @@ var file_malonaz_ai_v1_model_proto_goTypes = []any{
 	(*TttModelConfig)(nil),        // 2: malonaz.ai.v1.TttModelConfig
 	(*TtsModelConfig)(nil),        // 3: malonaz.ai.v1.TtsModelConfig
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*v1.Format)(nil),             // 5: malonaz.audio.v1.Format
+	(*structpb.Struct)(nil),       // 5: google.protobuf.Struct
+	(*v1.Format)(nil),             // 6: malonaz.audio.v1.Format
 }
 var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
 	4, // 0: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
 	1, // 1: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
 	2, // 2: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
 	3, // 3: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
-	5, // 4: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	5, // 4: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
+	6, // 5: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_model_proto_init() }
