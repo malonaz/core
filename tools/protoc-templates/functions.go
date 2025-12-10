@@ -7,11 +7,12 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
-	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 )
 
 var (
@@ -34,6 +35,10 @@ func newScopedExecution(generatedFile *protogen.GeneratedFile) *scopedExecution 
 
 func (se *scopedExecution) FuncMap() template.FuncMap {
 	additional := template.FuncMap{
+		"skipGeneration": func() bool {
+			se.generatedFile.Skip()
+			return true // dummy return
+		},
 		"debug": func(message string, v ...any) error {
 			if *opts.Debug {
 				fmt.Printf(message, v...)
