@@ -163,10 +163,6 @@
 // source: {{ $file.Desc.Path }}
 package {{ if .PackageName }}{{ .PackageName }}{{ else }}{{ $goImportPath | base }}{{ end }}
 
-const BaseFieldDoc =`
-- For enums, use the exact string values shown in the allowed option
-- For timestamps, use ISO 8601 format (e.g., "2024-01-15T10:30:00Z")
-`
 {{- range $message := $file.Messages -}}
     {{- $llmOpts := (getExt .Desc "malonaz.codegen.llm.v1.opts") -}}
     {{- if not $llmOpts.Document -}}{{ continue }}{{- end }}
