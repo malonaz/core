@@ -44,6 +44,18 @@ var configGroq = &config{
 		},
 
 		{
+			Name:            provider.NewModelName(providerIdGroq, "llama-4-scout-17b-16e-instruct"),
+			ProviderModelId: "meta-llama/llama-4-maverick-17b-128e-instruct",
+			Description:     "Llama 4 Scout is Meta's natively multimodal model that enables text and image understanding. With a 17 billion parameter mixture-of-experts architecture (16 experts), this model offers industry-leading performance for multimodal tasks like natural assistant-like chat, image recognition, and coding tasks. With a 128K token context window and support for 12 languages (Arabic, English, French, German, Hindi, Indonesian, Italian, Portuguese, Spanish, Tagalog, Thai, and Vietnamese), the model delivers exceptional capabilities, especially when paired with Groq for fast inference.",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  8_192,
+				Reasoning:         false,
+				ToolCall:          true,
+			},
+		},
+
+		{
 			Name:            provider.NewModelName(providerIdGroq, "llama-3.3-70b-versatile"),
 			ProviderModelId: "llama-3.3-70b-versatile",
 			Description:     "Llama 3.3 70B Versatile is Meta's advanced multilingual large language model, optimized for a wide range of natural language processing tasks. With 70 billion parameters, it offers high performance across various benchmarks while maintaining efficiency suitable for diverse applications. The model supports tool use and JSON object mode, making it ideal for complex reasoning tasks and structured output generation.",
@@ -74,6 +86,30 @@ var configGroq = &config{
 			Ttt: &aipb.TttModelConfig{
 				ContextTokenLimit: 131_072,
 				OutputTokenLimit:  40_960,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+
+		{
+			Name:            provider.NewModelName(providerIdGroq, "gpt-oss-20b"),
+			ProviderModelId: "openai/gpt-oss-20b",
+			Description:     "GPT OSS 20B is OpenAI's compact open-weight Mixture-of-Experts (MoE) model with 20 billion total parameters. Optimized for cost-efficient deployment and agentic workflows, it supports long-context reasoning, tool use, and function calling in a small memory footprint. This model offers an excellent balance of performance and efficiency, making it ideal for applications requiring capable AI at reduced computational costs.",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  65_536,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+		},
+
+		{
+			Name:            provider.NewModelName(providerIdGroq, "gpt-oss-120b"),
+			ProviderModelId: "openai/gpt-oss-120b",
+			Description:     "GPT OSS 120B is OpenAI's flagship open-weight MoE model with 120 billion total parameters. Designed for high-capability agentic use, it matches or surpasses proprietary models like OpenAI o4-mini on many benchmarks. With long-context reasoning, competitive math/coding performance, and robust health knowledge, it is ideal for advanced research, autonomous tools, and agentic applications requiring state-of-the-art performance.",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 131_072,
+				OutputTokenLimit:  65_536,
 				Reasoning:         true,
 				ToolCall:          true,
 			},
