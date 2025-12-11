@@ -10,6 +10,8 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -22,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Audio format specification for PCM.
+// Audio format specification for an audio stream.
 type Format struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// e.g., 16000, 44100, 48000
@@ -89,10 +91,17 @@ func (x *Format) GetBitsPerSample() int32 {
 // A chunk of audio data.
 type Chunk struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Specifies the sequential order of this chunk within a stream (0-indexed).
-	SequenceNumber uint32 `protobuf:"varint,1,opt,name=sequence_number,json=sequenceNumber,proto3" json:"sequence_number,omitempty"`
+	// Where this chunk sits within an audio segment. (starts at 1).
+	Index uint32 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	// Timestamp when this chunk was captured/created by the sender.
+	// This helps with synchronization and latency measurements.
+	// Only set on first chunk.
+	CaptureTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=capture_time,json=captureTime,proto3" json:"capture_time,omitempty"`
+	// Duration of audio data in this chunk.
+	// Useful for precise playback timing and buffer management.
+	Duration *durationpb.Duration `protobuf:"bytes,3,opt,name=duration,proto3" json:"duration,omitempty"`
 	// Audio data.
-	Data          []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Data          []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -127,11 +136,25 @@ func (*Chunk) Descriptor() ([]byte, []int) {
 	return file_malonaz_audio_v1_audio_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Chunk) GetSequenceNumber() uint32 {
+func (x *Chunk) GetIndex() uint32 {
 	if x != nil {
-		return x.SequenceNumber
+		return x.Index
 	}
 	return 0
+}
+
+func (x *Chunk) GetCaptureTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CaptureTime
+	}
+	return nil
+}
+
+func (x *Chunk) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
 }
 
 func (x *Chunk) GetData() []byte {
@@ -145,15 +168,19 @@ var File_malonaz_audio_v1_audio_proto protoreflect.FileDescriptor
 
 const file_malonaz_audio_v1_audio_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1bbuf/validate/validate.proto\"m\n" +
-	"\x06Format\x12\x1f\n" +
-	"\vsample_rate\x18\x01 \x01(\x05R\n" +
-	"sampleRate\x12\x1a\n" +
-	"\bchannels\x18\x02 \x01(\x05R\bchannels\x12&\n" +
-	"\x0fbits_per_sample\x18\x03 \x01(\x05R\rbitsPerSample\"M\n" +
-	"\x05Chunk\x12'\n" +
-	"\x0fsequence_number\x18\x01 \x01(\rR\x0esequenceNumber\x12\x1b\n" +
-	"\x04data\x18\x02 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04dataB+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3"
+	"\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8a\x01\n" +
+	"\x06Format\x12(\n" +
+	"\vsample_rate\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\n" +
+	"sampleRate\x12%\n" +
+	"\bchannels\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x040\x010\x02R\bchannels\x12/\n" +
+	"\x0fbits_per_sample\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\rbitsPerSample\"\xd9\x03\n" +
+	"\x05Chunk\x12\x1d\n" +
+	"\x05index\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x05index\x12=\n" +
+	"\fcapture_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vcaptureTime\x12=\n" +
+	"\bduration\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x06\xbaH\x03\xc8\x01\x01R\bduration\x12\x1b\n" +
+	"\x04data\x18\x04 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04data:\x95\x02\xbaH\x91\x02\x1a\x83\x01\n" +
+	"+chunk.capture_time_required_for_first_chunk\x12(capture_time must be set when index is 1\x1a*this.index != 1u || has(this.capture_time)\x1a\x88\x01\n" +
+	"'chunk.capture_time_only_for_first_chunk\x120capture_time must not be set when index is not 1\x1a+this.index == 1u || !has(this.capture_time)B+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3"
 
 var (
 	file_malonaz_audio_v1_audio_proto_rawDescOnce sync.Once
@@ -169,15 +196,19 @@ func file_malonaz_audio_v1_audio_proto_rawDescGZIP() []byte {
 
 var file_malonaz_audio_v1_audio_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_audio_v1_audio_proto_goTypes = []any{
-	(*Format)(nil), // 0: malonaz.audio.v1.Format
-	(*Chunk)(nil),  // 1: malonaz.audio.v1.Chunk
+	(*Format)(nil),                // 0: malonaz.audio.v1.Format
+	(*Chunk)(nil),                 // 1: malonaz.audio.v1.Chunk
+	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 3: google.protobuf.Duration
 }
 var file_malonaz_audio_v1_audio_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: malonaz.audio.v1.Chunk.capture_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.audio.v1.Chunk.duration:type_name -> google.protobuf.Duration
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_audio_v1_audio_proto_init() }

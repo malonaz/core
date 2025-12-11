@@ -11,6 +11,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -127,7 +128,7 @@ func (c *Client) TextToSpeechStream(
 	// Stream audio chunks
 	buffer := make([]byte, 4096)
 	var totalDuration time.Duration
-
+	var chunkIndex uint32
 	for {
 		bytesRead, err := response.Body.Read(buffer)
 		if err != nil {
@@ -146,7 +147,7 @@ func (c *Client) TextToSpeechStream(
 		}
 
 		// Calculate audio duration for this chunk
-		duration, err := audio.CalculatePCMDuration(
+		chunkDuration, err := audio.CalculatePCMDuration(
 			bytesRead,
 			audioFormat.SampleRate,
 			audioFormat.Channels,
@@ -155,11 +156,19 @@ func (c *Client) TextToSpeechStream(
 		if err != nil {
 			return err
 		}
-		totalDuration += duration
+		totalDuration += chunkDuration
 
 		// Create and send audio chunk
+		chunkIndex++
+		var captureTime *timestamppb.Timestamp
+		if chunkIndex == 1 {
+			captureTime = timestamppb.Now()
+		}
 		audioChunk := &audiopb.Chunk{
-			Data: make([]byte, bytesRead),
+			Index:       chunkIndex,
+			CaptureTime: captureTime,
+			Duration:    durationpb.New(chunkDuration),
+			Data:        make([]byte, bytesRead),
 		}
 		copy(audioChunk.Data, buffer[:bytesRead])
 

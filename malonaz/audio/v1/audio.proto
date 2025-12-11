@@ -3,23 +3,48 @@ syntax = "proto3";
 package malonaz.audio.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/audio/v1";
 
-// Audio format specification for PCM.
+// Audio format specification for an audio stream.
 message Format {
   // e.g., 16000, 44100, 48000
-  int32 sample_rate = 1;
+  int32 sample_rate = 1 [(buf.validate.field).int32.gt = 0];
   // 1 for mono, 2 for stereo
-  int32 channels = 2;
+  int32 channels = 2 [(buf.validate.field).int32 = {
+    in: [
+      1,
+      2
+    ]
+  }];
   // typically 16 or 24
-  int32 bits_per_sample = 3;
+  int32 bits_per_sample = 3 [(buf.validate.field).int32.gt = 0];
 }
 
 // A chunk of audio data.
 message Chunk {
-  // Specifies the sequential order of this chunk within a stream (0-indexed).
-  uint32 sequence_number = 1;
+  option (buf.validate.message).cel = {
+    id: "chunk.capture_time_required_for_first_chunk"
+    message: "capture_time must be set when index is 1"
+    expression: "this.index != 1u || has(this.capture_time)"
+  };
+  option (buf.validate.message).cel = {
+    id: "chunk.capture_time_only_for_first_chunk"
+    message: "capture_time must not be set when index is not 1"
+    expression: "this.index == 1u || !has(this.capture_time)"
+  };
+
+  // Where this chunk sits within an audio segment. (starts at 1).
+  uint32 index = 1 [(buf.validate.field).uint32.gt = 0];
+  // Timestamp when this chunk was captured/created by the sender.
+  // This helps with synchronization and latency measurements.
+  // Only set on first chunk.
+  google.protobuf.Timestamp capture_time = 2;
+  // Duration of audio data in this chunk.
+  // Useful for precise playback timing and buffer management.
+  google.protobuf.Duration duration = 3 [(buf.validate.field).required = true];
   // Audio data.
-  bytes data = 2 [(buf.validate.field).bytes.min_len = 1];
+  bytes data = 4 [(buf.validate.field).bytes.min_len = 1];
 }

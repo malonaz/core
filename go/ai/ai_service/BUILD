@@ -34,5 +34,7 @@ go_library(
         "//malonaz/audio/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

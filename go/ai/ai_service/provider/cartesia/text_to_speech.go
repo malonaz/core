@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -132,6 +133,7 @@ func (c *Client) TextToSpeechStream(
 
 	// Process responses
 	var totalDuration time.Duration
+	var chunkIndex uint32
 	var isDone bool
 	for !isDone {
 		// Handles context cancellation cleanly :).
@@ -161,7 +163,7 @@ func (c *Client) TextToSpeechStream(
 			}
 
 			// Update total duration
-			duration, err := audio.CalculatePCMDuration(
+			chunkDuration, err := audio.CalculatePCMDuration(
 				len(audioData),
 				audioFormat.SampleRate,
 				audioFormat.Channels,
@@ -170,11 +172,19 @@ func (c *Client) TextToSpeechStream(
 			if err != nil {
 				return err
 			}
-			totalDuration += duration
+			totalDuration += chunkDuration
 
 			// Send audio chunk
+			chunkIndex++
+			var captureTime *timestamppb.Timestamp
+			if chunkIndex == 1 {
+				captureTime = timestamppb.Now()
+			}
 			audioChunk := &audiopb.Chunk{
-				Data: audioData,
+				Index:       chunkIndex,
+				CaptureTime: captureTime,
+				Duration:    durationpb.New(chunkDuration),
+				Data:        audioData,
 			}
 
 			if err := srv.Send(&aiservicepb.TextToSpeechStreamResponse{

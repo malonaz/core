@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -312,8 +315,12 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 	}
 
 	// Collect all chunks into a single response
+	var totalDuration time.Duration
 	response := &pb.TextToSpeechResponse{
-		AudioChunk: &audiopb.Chunk{},
+		AudioChunk: &audiopb.Chunk{
+			Index:       1,
+			CaptureTime: timestamppb.Now(),
+		},
 	}
 
 	for {
@@ -334,6 +341,7 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 				return nil, fmt.Errorf("received audio chunk before receiving audio format")
 			}
 			response.AudioChunk.Data = append(response.AudioChunk.Data, content.AudioChunk.Data...)
+			totalDuration += content.AudioChunk.Duration.AsDuration()
 
 		case *pb.TextToSpeechStreamResponse_ModelUsage:
 			response.ModelUsage = content.ModelUsage
@@ -344,5 +352,6 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 		}
 	}
 
+	response.AudioChunk.Duration = durationpb.New(totalDuration)
 	return response, nil
 }

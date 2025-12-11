@@ -7,6 +7,7 @@ import (
 
 	openai "github.com/sashabaranov/go-openai"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -70,6 +71,7 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 	buffer := make([]byte, 4096)
 	var remainder []byte
 	var totalDuration time.Duration
+	var chunkIndex uint32
 
 	for {
 		bytesRead, err := response.Read(buffer)
@@ -90,19 +92,27 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 		totalData := append(remainder, buffer[:bytesRead]...)
 		completeBytes := (len(totalData) / 2) * 2
 		if completeBytes > 0 {
-			audioChunk := &audiopb.Chunk{
-				Data: make([]byte, completeBytes),
-			}
-			copy(audioChunk.Data, totalData[:completeBytes])
-			remainder = totalData[completeBytes:]
-
-			duration, err := audio.CalculatePCMDuration(
+			chunkDuration, err := audio.CalculatePCMDuration(
 				completeBytes, audioFormat.SampleRate, audioFormat.Channels, audioFormat.BitsPerSample,
 			)
 			if err != nil {
 				return err
 			}
-			totalDuration += duration
+			totalDuration += chunkDuration
+
+			chunkIndex++
+			var captureTime *timestamppb.Timestamp
+			if chunkIndex == 1 {
+				captureTime = timestamppb.Now()
+			}
+			audioChunk := &audiopb.Chunk{
+				Index:       chunkIndex,
+				CaptureTime: captureTime,
+				Duration:    durationpb.New(chunkDuration),
+				Data:        make([]byte, completeBytes),
+			}
+			copy(audioChunk.Data, totalData[:completeBytes])
+			remainder = totalData[completeBytes:]
 
 			if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
 				Content: &aiservicepb.TextToSpeechStreamResponse_AudioChunk{
