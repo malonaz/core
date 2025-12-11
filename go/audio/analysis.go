@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"time"
+
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 )
 
 func CalculateWAVDuration(bytes []byte) (time.Duration, error) {
@@ -28,7 +30,12 @@ func CalculateWAVDuration(bytes []byte) (time.Duration, error) {
 	bitsPerSample := int32(binary.LittleEndian.Uint16(bytes[34:36]))
 	dataSize := int(binary.LittleEndian.Uint32(bytes[40:44]))
 
-	return CalculatePCMDuration(dataSize, sampleRate, channels, bitsPerSample)
+	audioFormat := &audiopb.Format{
+		SampleRate:    sampleRate,
+		Channels:      channels,
+		BitsPerSample: bitsPerSample,
+	}
+	return CalculatePCMDuration(audioFormat, dataSize)
 }
 
 // CalculatePCMDuration calculates the duration of audio data given its parameters.
@@ -36,19 +43,19 @@ func CalculateWAVDuration(bytes []byte) (time.Duration, error) {
 // sampleRate is the number of samples per second (Hz).
 // channels is the number of audio channels (1 for mono, 2 for stereo).
 // bitsPerSample is the number of bits per sample (e.g., 16 for PCM16).
-func CalculatePCMDuration(dataSize int, sampleRate int32, channels int32, bitsPerSample int32) (time.Duration, error) {
-	if sampleRate == 0 {
+func CalculatePCMDuration(audioFormat *audiopb.Format, dataSize int) (time.Duration, error) {
+	if audioFormat.SampleRate == 0 {
 		return 0, fmt.Errorf("invalid sample rate: cannot be zero")
 	}
-	if channels == 0 {
+	if audioFormat.Channels == 0 {
 		return 0, fmt.Errorf("invalid channels: cannot be zero")
 	}
-	if bitsPerSample == 0 {
+	if audioFormat.BitsPerSample == 0 {
 		return 0, fmt.Errorf("invalid bits per sample: cannot be zero")
 	}
 
 	// Calculate byte rate: (sample rate * channels * bits per sample) / 8
-	byteRate := (sampleRate * channels * bitsPerSample) / 8
+	byteRate := (audioFormat.SampleRate * audioFormat.Channels * audioFormat.BitsPerSample) / 8
 
 	// Calculate duration in seconds
 	durationSeconds := float64(dataSize) / float64(byteRate)

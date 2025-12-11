@@ -147,12 +147,7 @@ func (c *Client) TextToSpeechStream(
 		}
 
 		// Calculate audio duration for this chunk
-		chunkDuration, err := audio.CalculatePCMDuration(
-			bytesRead,
-			audioFormat.SampleRate,
-			audioFormat.Channels,
-			audioFormat.BitsPerSample,
-		)
+		chunkDuration, err := audio.CalculatePCMDuration(audioFormat, bytesRead)
 		if err != nil {
 			return err
 		}

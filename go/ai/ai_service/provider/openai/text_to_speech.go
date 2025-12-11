@@ -92,9 +92,7 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 		totalData := append(remainder, buffer[:bytesRead]...)
 		completeBytes := (len(totalData) / 2) * 2
 		if completeBytes > 0 {
-			chunkDuration, err := audio.CalculatePCMDuration(
-				completeBytes, audioFormat.SampleRate, audioFormat.Channels, audioFormat.BitsPerSample,
-			)
+			chunkDuration, err := audio.CalculatePCMDuration(audioFormat, completeBytes)
 			if err != nil {
 				return err
 			}
