@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/AlexxIT/go2rtc/pkg/pcm"
+
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 )
 
 // WAVToPCM16 extracts raw 16-bit PCM audio data from a WAV file.
@@ -68,15 +70,13 @@ func WAVToPCM16(wavData []byte) (pcmData []byte, sampleRate int32, numChannels i
 	return pcmData, sampleRate, numChannels, nil
 }
 
-// PCM16ToWAV converts raw PCM audio to WAV format
-// pcmData: 16-bit PCM samples (little-endian)
-// sampleRate: samples per second (e.g., 8000, 16000, 24000)
-// numChannels: 1 for mono, 2 for stereo
-func PCM16ToWAV(pcmData []byte, sampleRate int32, numChannels int16) []byte {
+// PCMToWAV converts raw PCM audio to WAV format
+// pcmData: PCM samples in the format specified by audioFormat
+// audioFormat: specifies sample rate, number of channels, and bits per sample
+func PCMToWAV(pcmData []byte, audioFormat *audiopb.Format) []byte {
 	dataSize := uint32(len(pcmData))
-	bitsPerSample := int16(16)
-	byteRate := uint32(sampleRate) * uint32(numChannels) * uint32(bitsPerSample/8)
-	blockAlign := numChannels * (bitsPerSample / 8)
+	byteRate := uint32(audioFormat.SampleRate) * uint32(audioFormat.Channels) * uint32(audioFormat.BitsPerSample/8)
+	blockAlign := int16(audioFormat.Channels) * int16(audioFormat.BitsPerSample/8)
 
 	header := make([]byte, 44)
 
@@ -89,11 +89,11 @@ func PCM16ToWAV(pcmData []byte, sampleRate int32, numChannels int16) []byte {
 	copy(header[12:16], "fmt ")
 	binary.LittleEndian.PutUint32(header[16:20], 16) // Subchunk size
 	binary.LittleEndian.PutUint16(header[20:22], 1)  // Audio format (1 = PCM)
-	binary.LittleEndian.PutUint16(header[22:24], uint16(numChannels))
-	binary.LittleEndian.PutUint32(header[24:28], uint32(sampleRate))
+	binary.LittleEndian.PutUint16(header[22:24], uint16(audioFormat.Channels))
+	binary.LittleEndian.PutUint32(header[24:28], uint32(audioFormat.SampleRate))
 	binary.LittleEndian.PutUint32(header[28:32], byteRate)
 	binary.LittleEndian.PutUint16(header[32:34], uint16(blockAlign))
-	binary.LittleEndian.PutUint16(header[34:36], uint16(bitsPerSample))
+	binary.LittleEndian.PutUint16(header[34:36], uint16(audioFormat.BitsPerSample))
 
 	// data subchunk
 	copy(header[36:40], "data")

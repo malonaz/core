@@ -237,11 +237,14 @@ message SpeechToTextRequest {
     (buf.validate.field).required = true
   ];
 
-  // Audio data in PCM format.
-  bytes audio = 2 [(buf.validate.field).required = true];
+  // Audio format of the audio.
+  audio.v1.Format audio_format = 2 [(buf.validate.field).required = true];
+
+  // Audio to transcribe.
+  audio.v1.Chunk audio_chunk = 3 [(buf.validate.field).required = true];
 
   // Optional language code to improve transcription accuracy (e.g., "en", "es").
-  string language_code = 3;
+  string language_code = 4;
 }
 
 // Response message for Ai.SpeechToText.

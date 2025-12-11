@@ -22,10 +22,12 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		return nil, err
 	}
 
+	wavBytes := audio.PCMToWAV(request.AudioChunk.Data, request.AudioFormat)
+
 	audioRequest := openai.AudioRequest{
 		Model:    model.ProviderModelId,
 		FilePath: "audio.wav",
-		Reader:   bytes.NewReader(request.Audio),
+		Reader:   bytes.NewReader(wavBytes),
 		Language: request.LanguageCode,
 		Format:   openai.AudioResponseFormatJSON,
 	}
@@ -39,15 +41,10 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		Ttlb: durationpb.New(time.Since(startTime)),
 	}
 
-	duration, err := audio.CalculateWAVDuration(request.Audio)
-	if err != nil {
-		return nil, fmt.Errorf("getting wav duration: %v", err)
-	}
-
 	modelUsage := &aipb.ModelUsage{
 		Model: request.Model,
 		InputSecond: &aipb.ResourceConsumption{
-			Quantity: int32(duration.Round(time.Second).Seconds()),
+			Quantity: int32(request.AudioChunk.Duration.AsDuration().Round(time.Second).Seconds()),
 		},
 	}
 
