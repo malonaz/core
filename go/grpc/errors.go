@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -23,6 +24,23 @@ type Error struct {
 	code    codes.Code
 	message string
 	details []protoadapt.MessageV1
+}
+
+// MapContextError converts context errors to gRPC errors with debug info.
+// If err is not a context error, it panics.
+// For context.Canceled, it returns a Canceled error.
+// For context.DeadlineExceeded, it returns a DeadlineExceeded error.
+func FromContextError(err error) error {
+	var grpcErr *Error
+	switch err {
+	case context.Canceled:
+		grpcErr = Errorf(codes.Canceled, "request canceled")
+	case context.DeadlineExceeded:
+		grpcErr = Errorf(codes.DeadlineExceeded, "deadline exceeded")
+	default:
+		panic(fmt.Sprintf("unexpected error: %v", err))
+	}
+	return grpcErr.Err()
 }
 
 func Errorf(code codes.Code, message string, params ...any) *Error {
