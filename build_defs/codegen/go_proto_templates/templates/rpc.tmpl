@@ -333,6 +333,95 @@ package {{ .PackageName }}
             return {{ $resourceGoName | untitle }}, nil
             }
 
+{{- else if $rpc.BatchGet }}
+    type resourceIdentifiers struct {
+        {{- range $id := $pr.PatternVariables }}
+        {{ $id | camelcase }}Id string
+        {{- end }}
+    }
+
+func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+    {{ if $pr.Parent }}
+        // Validate parent name.
+        var {{ $pr.Parent.PatternVariableIDs true }} string
+        if request.Parent != "" {
+            if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err)
+            }
+        }
+    {{ end }}
+
+    // Validate and parse all names
+    identifiers := make([]resourceIdentifiers, 0, len(request.Names))
+
+    for _, name := range request.Names {
+        if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(name) {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name cannot contain wildcard")
+        }
+        {{ if $pr.Parent }}
+        if request.Parent != "" && !{{ fqn "go.einride.tech/aip/resourcename" "HasParent" }}(name, request.Parent) {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name %q does not have parent %q", name, request.Parent)
+        }
+        {{ end }}
+        {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(name)
+        if err != nil {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name %s: %v", name, err)
+        }
+        identifiers = append(identifiers, resourceIdentifiers{
+            {{- range $id := $pr.PatternVariables }}
+            {{ $id | camelcase }}Id: {{ $id | camelcase | untitle }}Id,
+            {{- end }}
+        })
+    }
+
+    // Build WHERE clause for batch retrieval with OR conditions for each full resource identifier
+    whereClauses := make([]string, len(identifiers))
+    whereParams := make([]any, 0, len(identifiers) * {{ len $pr.PatternVariables }})
+
+    for i, ids := range identifiers {
+        conditions := make([]string, {{ len $pr.PatternVariables }})
+        {{- range $idx, $id := $pr.PatternVariables }}
+        {{- $dbColumn := $id }}
+        {{- if and (eq $idx 0) $modelOpts.IdColumnName }}{{ $dbColumn = $modelOpts.IdColumnName }}{{ end }}
+        conditions[{{ $idx }}] = "{{ $dbColumn | snakecase }}_id = $" + {{ fqn "strconv" "Itoa" }}(len(whereParams) + 1)
+        whereParams = append(whereParams, ids.{{ $id | camelcase }}Id)
+        {{- end }}
+        whereClauses[i] = "(" + {{ fqn "strings" "Join" }}(conditions, " AND ") + ")"
+    }
+    whereClause := "WHERE " + {{ fqn "strings" "Join" }}(whereClauses, " OR ")
+
+    // Retrieve from the database
+    db{{ $modelGoName }}s, err := s.store.List{{ $pr.Desc.Plural | camelcase }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
+    if err != nil {
+        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err)
+    }
+    if len(db{{ $modelGoName }}s) != len(request.Names) {
+       return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $modelGoName }}s))
+    }
+    // Convert to proto
+    {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }} := make(map[string]*{{ qgi $rpc.Message.GoIdent }}, len(request.Names))
+    for _, db{{ $modelGoName }} := range db{{ $modelGoName }}s {
+        {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
+        if err != nil {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err)
+        }
+        {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[{{ $resourceGoName | untitle }}.Name] = {{ $resourceGoName | untitle }}
+    }
+
+    {{ $resourceGoName | untitle }}s := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len(db{{ $modelGoName }}s))
+    for _, name := range request.Names {
+       {{ $resourceGoName | untitle }}, ok := {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[name]
+       if !ok {
+          return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "could not find %q", name)
+       }
+       {{ $resourceGoName | untitle }}s = append({{ $resourceGoName | untitle }}s, {{ $resourceGoName | untitle }})
+    }
+
+    return &{{ qgi $method.Output.GoIdent }}{
+        {{ $resourceGoName }}s: {{ $resourceGoName | untitle }}s,
+    }, nil
+}
+
         {{- else if $rpc.List }}
             var {{ $method.Input.GoIdent.GoName | untitle }}Parser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewListRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
 

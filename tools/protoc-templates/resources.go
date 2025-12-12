@@ -272,7 +272,7 @@ type RPC struct {
 	StandardMethod                    *aippb.StandardMethod
 	Message                           *protogen.Message
 	ParsedResource                    *ParsedResource
-	Create, Update, Delete, Get, List bool
+	Create, Update, Delete, Get, BatchGet, List  bool
 }
 
 // Given a protogen.Method
@@ -323,10 +323,11 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 	resourceNamePlural := xstrings.ToPascalCase(parsedResource.Desc.Plural)
 	create := method.GoName == "Create"+resourceNameSingular
 	get := method.GoName == "Get"+resourceNameSingular
+	batchGet := method.GoName == "BatchGet"+resourceNamePlural
 	update := method.GoName == "Update"+resourceNameSingular
 	delete := method.GoName == "Delete"+resourceNameSingular
 	list := method.GoName == "List"+resourceNamePlural
-	if !(create || get || update || delete || list) {
+	if !(create || get || update || delete || batchGet || list) {
 		return nil, fmt.Errorf("method %s does not match any standard CRUD pattern for resource %s", method.GoName, resourceType)
 	}
 
@@ -336,6 +337,7 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 		ParsedResource: parsedResource,
 		Create:         create,
 		Get:            get,
+		BatchGet:       batchGet,
 		Update:         update,
 		Delete:         delete,
 		List:           list,

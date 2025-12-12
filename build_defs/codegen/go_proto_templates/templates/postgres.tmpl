@@ -312,7 +312,7 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 
 		{{ if $pr.Parent }}
 			{{- range $var := $pr.Parent.PatternVariables -}}
-				if {{ $var | camelcase | untitle }}Id != "-" {
+				if {{ $var | camelcase | untitle }}Id != "-" && {{ $var | camelcase | untitle }}Id != "" {
 					whereClause = {{ fqn "github.com/malonaz/core/go/postgres" "AddToWhereClause" }}(whereClause, fmt.Sprintf("{{ $var }}_id = $%d", len(params) + 1))
 					params = append(params, {{ $var | camelcase | untitle }}Id)
 				}
