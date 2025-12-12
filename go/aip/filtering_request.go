@@ -78,6 +78,9 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	isNullFunctionOverloads := getIsNullFunctionDefaultOverloads()
 
 	for node := range tree.AllowedNodes() {
+		if node.Path == "name" { // Callers can use Get/BatchGet.
+			continue
+		}
 		replacementPath := node.Path
 		if node.ReplacementPath != "" {
 			replacementPath = node.ReplacementPath
