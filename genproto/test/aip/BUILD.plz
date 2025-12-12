@@ -5,6 +5,7 @@ go_library(
     deps = [
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",

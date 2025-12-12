@@ -1,6 +1,7 @@
 package aip
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -363,4 +364,271 @@ func TestOrderingRequestParser_ColumnNameOverride(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOrderingRequestParser_NameExpansion(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name               string
+		orderBy            string
+		expectedOrderBySQL string
+		wantErr            bool
+		expectedErrMsg     string
+	}{
+		{
+			name:               "name ascending expands to composite keys",
+			orderBy:            "name asc",
+			expectedOrderBySQL: "ORDER BY organization_id, user_id, resource_id",
+		},
+		{
+			name:               "name descending expands to composite keys",
+			orderBy:            "name desc",
+			expectedOrderBySQL: "ORDER BY organization_id DESC, user_id DESC, resource_id DESC",
+		},
+		{
+			name:               "name implicit ascending",
+			orderBy:            "name",
+			expectedOrderBySQL: "ORDER BY organization_id, user_id, resource_id",
+		},
+		{
+			name:               "name with other fields before",
+			orderBy:            "create_timestamp desc, name asc",
+			expectedOrderBySQL: "ORDER BY create_timestamp DESC, organization_id, user_id, resource_id",
+		},
+		{
+			name:               "name with other fields after",
+			orderBy:            "name desc, id asc",
+			expectedOrderBySQL: "ORDER BY organization_id DESC, user_id DESC, resource_id DESC, id",
+		},
+		{
+			name:               "name between other fields",
+			orderBy:            "id asc, name desc, create_timestamp asc",
+			expectedOrderBySQL: "ORDER BY id, organization_id DESC, user_id DESC, resource_id DESC, create_timestamp",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &pb.ListResourcesRequest{
+				OrderBy: tc.orderBy,
+			}
+
+			parsedRequest, err := parser.Parse(request)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				if tc.expectedErrMsg != "" {
+					require.Contains(t, err.Error(), tc.expectedErrMsg)
+				}
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, parsedRequest)
+
+			orderBySQL := parsedRequest.GetSQLOrderByClause()
+			require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
+		})
+	}
+}
+
+/*
+func TestOrderingRequestParser_NameNotAllowed(t *testing.T) {
+	// This test requires a parser where "name" is NOT in the allowed paths.
+	// You may need to create a separate test proto/request type for this,
+	// or skip if the test proto always allows "name".
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesWithoutNameOrderingRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	request := &pb.ListResourcesWithoutNameOrderingRequest{
+		OrderBy: "name asc",
+	}
+
+	_, err = parser.Parse(request)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "ordering by path name not allowed")
+}
+*/
+
+func TestOrderingRequestParser_GetCompositeKeyFields(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	// Access the composite key fields through the expansion
+	// by checking the resulting SQL
+	request := &pb.ListResourcesRequest{
+		OrderBy: "name",
+	}
+
+	parsedRequest, err := parser.Parse(request)
+	require.NoError(t, err)
+
+	sql := parsedRequest.GetSQLOrderByClause()
+
+	// Verify all composite key fields are present in order
+	require.Contains(t, sql, "organization_id")
+	require.Contains(t, sql, "user_id")
+	require.Contains(t, sql, "resource_id")
+
+	// Verify the order is correct (organization before user before resource)
+	orgIdx := strings.Index(sql, "organization_id")
+	userIdx := strings.Index(sql, "user_id")
+	resourceIdx := strings.Index(sql, "resource_id")
+
+	require.Less(t, orgIdx, userIdx, "organization_id should come before user_id")
+	require.Less(t, userIdx, resourceIdx, "user_id should come before resource_id")
+}
+
+func TestOrderingRequestParser_NameExpansionPreservesDirection(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name     string
+		orderBy  string
+		wantDesc bool
+	}{
+		{
+			name:     "ascending direction preserved",
+			orderBy:  "name asc",
+			wantDesc: false,
+		},
+		{
+			name:     "descending direction preserved",
+			orderBy:  "name desc",
+			wantDesc: true,
+		},
+		{
+			name:     "implicit ascending",
+			orderBy:  "name",
+			wantDesc: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &pb.ListResourcesRequest{
+				OrderBy: tc.orderBy,
+			}
+
+			parsedRequest, err := parser.Parse(request)
+			require.NoError(t, err)
+
+			sql := parsedRequest.GetSQLOrderByClause()
+
+			if tc.wantDesc {
+				// All expanded fields should have DESC
+				require.Contains(t, sql, "organization_id DESC")
+				require.Contains(t, sql, "user_id DESC")
+				require.Contains(t, sql, "resource_id DESC")
+			} else {
+				// No DESC should appear (ASC is implicit and omitted)
+				require.NotContains(t, sql, "DESC")
+			}
+		})
+	}
+}
+
+func TestOrderingRequestParser_NameWithColumnOverride(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	// Test that name expansion works alongside column name overrides
+	request := &pb.ListResourcesRequest{
+		OrderBy: "name asc, column_name_changed desc",
+	}
+
+	parsedRequest, err := parser.Parse(request)
+	require.NoError(t, err)
+
+	sql := parsedRequest.GetSQLOrderByClause()
+
+	// Verify name expansion happened
+	require.Contains(t, sql, "organization_id")
+	require.Contains(t, sql, "user_id")
+	require.Contains(t, sql, "resource_id")
+
+	// Verify column override also applied
+	require.Contains(t, sql, "new_name DESC")
+}
+
+func TestOrderingRequestParser_CustomIdColumnName(t *testing.T) {
+	// Test with Book resource which has id_column_name: "id"
+	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Book]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name               string
+		orderBy            string
+		expectedOrderBySQL string
+		wantErr            bool
+	}{
+		{
+			name:               "name ascending with custom id column",
+			orderBy:            "name asc",
+			expectedOrderBySQL: "ORDER BY id",
+		},
+		{
+			name:               "name descending with custom id column",
+			orderBy:            "name desc",
+			expectedOrderBySQL: "ORDER BY id DESC",
+		},
+		{
+			name:               "name implicit ascending with custom id column",
+			orderBy:            "name",
+			expectedOrderBySQL: "ORDER BY id",
+		},
+		{
+			name:               "name with other fields",
+			orderBy:            "name desc, create_time asc",
+			expectedOrderBySQL: "ORDER BY id DESC, create_time",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &pb.ListResourcesRequest{
+				OrderBy: tc.orderBy,
+			}
+
+			parsedRequest, err := parser.Parse(request)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, parsedRequest)
+
+			orderBySQL := parsedRequest.GetSQLOrderByClause()
+			require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
+		})
+	}
+}
+
+func TestOrderingRequestParser_CustomIdColumnNameVsStandard(t *testing.T) {
+	// Compare Book (custom id) vs Resource (standard id)
+
+	// Book uses id_column_name: "id", pattern: "books/{book}"
+	bookParser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Book]()
+	require.NoError(t, err)
+
+	// Resource uses standard pattern: "organizations/{organization}/users/{user}/resources/{resource}"
+	resourceParser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	// Book should expand "name" to just "id"
+	bookRequest := &pb.ListResourcesRequest{OrderBy: "name"}
+	bookParsed, err := bookParser.Parse(bookRequest)
+	require.NoError(t, err)
+	require.Equal(t, "ORDER BY id", bookParsed.GetSQLOrderByClause())
+
+	// Resource should expand "name" to "organization_id, user_id, resource_id"
+	resourceRequest := &pb.ListResourcesRequest{OrderBy: "name"}
+	resourceParsed, err := resourceParser.Parse(resourceRequest)
+	require.NoError(t, err)
+	require.Equal(t, "ORDER BY organization_id, user_id, resource_id", resourceParsed.GetSQLOrderByClause())
 }

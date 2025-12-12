@@ -163,7 +163,6 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 
 	// Iterate over each path in the field mask.
 	for _, path := range fieldMask.Paths {
-		// We only verify non default paths for authorization.
 		if !p.isAuthorizedPath(path) {
 			return nil, fmt.Errorf("unauthorized field mask path: %s", path)
 		}
@@ -215,8 +214,17 @@ func (p *UpdateRequestParser[T, R]) match(mappingFrom string, fieldPath string) 
 	return mappingFrom == fieldPath
 }
 
+var updateRequestForbiddenPathSet = map[string]struct{}{
+	"name":        {},
+	"create_time": {},
+	"delete_time": {},
+}
+
 // Helper method to check if a fieldPath is authorized considering wildcard.
 func (p *UpdateRequestParser[T, R]) isAuthorizedPath(fieldPath string) bool {
+	if _, ok := updateRequestForbiddenPathSet[fieldPath]; ok {
+		return false
+	}
 	for _, path := range p.paths {
 		if strings.HasSuffix(path, ".*") {
 			// If authorizedPath is a wildcard pattern, strip the wildcard and compare prefixes.

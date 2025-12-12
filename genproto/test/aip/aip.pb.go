@@ -9,6 +9,7 @@ package aip
 import (
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -368,6 +369,8 @@ func (x *PaginateWithSmallDefaultRequest) GetPageToken() string {
 // Resource is a test message with nested fields.
 type Resource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name of this resource.
+	Name string `protobuf:"bytes,100,opt,name=name,proto3" json:"name,omitempty"`
 	// some id field.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// some timestmap.
@@ -426,6 +429,13 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
 	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Resource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
 }
 
 func (x *Resource) GetId() string {
@@ -519,6 +529,70 @@ func (x *Resource) GetNestedChanged() *NestedResource {
 	return nil
 }
 
+// Resource is a test message with nested fields.
+type Book struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name of this resource.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// some timestmap.
+	CreateTime int64 `protobuf:"varint,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	// some other timestamp.
+	UpdateTime    int64 `protobuf:"varint,3,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Book) Reset() {
+	*x = Book{}
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Book) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Book) ProtoMessage() {}
+
+func (x *Book) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Book.ProtoReflect.Descriptor instead.
+func (*Book) Descriptor() ([]byte, []int) {
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Book) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Book) GetCreateTime() int64 {
+	if x != nil {
+		return x.CreateTime
+	}
+	return 0
+}
+
+func (x *Book) GetUpdateTime() int64 {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return 0
+}
+
 // NestedResource contains fields for testing nested path updates.
 type NestedResource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -536,7 +610,7 @@ type NestedResource struct {
 
 func (x *NestedResource) Reset() {
 	*x = NestedResource{}
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -548,7 +622,7 @@ func (x *NestedResource) String() string {
 func (*NestedResource) ProtoMessage() {}
 
 func (x *NestedResource) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[5]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -561,7 +635,7 @@ func (x *NestedResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NestedResource.ProtoReflect.Descriptor instead.
 func (*NestedResource) Descriptor() ([]byte, []int) {
-	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{5}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *NestedResource) GetField1() bool {
@@ -607,7 +681,7 @@ type DeeplyNestedResource struct {
 
 func (x *DeeplyNestedResource) Reset() {
 	*x = DeeplyNestedResource{}
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -619,7 +693,7 @@ func (x *DeeplyNestedResource) String() string {
 func (*DeeplyNestedResource) ProtoMessage() {}
 
 func (x *DeeplyNestedResource) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[6]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -632,7 +706,7 @@ func (x *DeeplyNestedResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeeplyNestedResource.ProtoReflect.Descriptor instead.
 func (*DeeplyNestedResource) Descriptor() ([]byte, []int) {
-	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{6}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeeplyNestedResource) GetField1() bool {
@@ -669,7 +743,7 @@ type UpdateResourceRequest struct {
 
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -681,7 +755,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[7]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +768,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{7}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateResourceRequest) GetResource() *Resource {
@@ -724,7 +798,7 @@ type UpdateResource2Request struct {
 
 func (x *UpdateResource2Request) Reset() {
 	*x = UpdateResource2Request{}
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +810,7 @@ func (x *UpdateResource2Request) String() string {
 func (*UpdateResource2Request) ProtoMessage() {}
 
 func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[8]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +823,7 @@ func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResource2Request.ProtoReflect.Descriptor instead.
 func (*UpdateResource2Request) Descriptor() ([]byte, []int) {
-	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{8}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateResource2Request) GetResource() *Resource {
@@ -779,7 +853,7 @@ type UpdateResourceWithColumnNameRequest struct {
 
 func (x *UpdateResourceWithColumnNameRequest) Reset() {
 	*x = UpdateResourceWithColumnNameRequest{}
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[9]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -791,7 +865,7 @@ func (x *UpdateResourceWithColumnNameRequest) String() string {
 func (*UpdateResourceWithColumnNameRequest) ProtoMessage() {}
 
 func (x *UpdateResourceWithColumnNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_aip_aip_proto_msgTypes[9]
+	mi := &file_malonaz_test_aip_aip_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -804,7 +878,7 @@ func (x *UpdateResourceWithColumnNameRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UpdateResourceWithColumnNameRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceWithColumnNameRequest) Descriptor() ([]byte, []int) {
-	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{9}
+	return file_malonaz_test_aip_aip_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateResourceWithColumnNameRequest) GetResource() *Resource {
@@ -825,7 +899,7 @@ var File_malonaz_test_aip_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
+	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
 	"\x15ListResourcesRequest2\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -850,8 +924,9 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\b\n" +
-	"\"\x9f\x05\n" +
-	"\bResource\x12\x0e\n" +
+	"\"\xa4\x06\n" +
+	"\bResource\x12\x12\n" +
+	"\x04name\x18d \x01(\tR\x04name\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
 	"\x10create_timestamp\x18\x14 \x01(\x03R\x0fcreateTimestamp\x12\x1f\n" +
 	"\vupdate_time\x18\x15 \x01(\x03R\n" +
@@ -869,7 +944,15 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
 	"\bnew_nameR\x11columnNameChanged\x12[\n" +
 	"\x0enested_changed\x18\f \x01(\v2\x1b.test.aip.v1.NestedResourceB\x17\xba\xea\x0f\x13\n" +
-	"\x0fnested_new_name\x10\x01R\rnestedChanged\"\xa2\x01\n" +
+	"\x0fnested_new_name\x10\x01R\rnestedChanged:o\xeaAl\n" +
+	"\x15test.malonaz.com/Chat\x12>organizations/{organization}/users/{user}/resources/{resource}*\tresources2\bresource\"\x9b\x01\n" +
+	"\x04Book\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1f\n" +
+	"\vcreate_time\x18\x02 \x01(\x03R\n" +
+	"createTime\x12\x1f\n" +
+	"\vupdate_time\x18\x03 \x01(\x03R\n" +
+	"updateTime:=\xeaA2\n" +
+	"\x15test.malonaz.com/Chat\x12\fbooks/{book}*\x05books2\x04bookҦ\x04\x04\x12\x02id\"\xa2\x01\n" +
 	"\x0eNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
@@ -908,7 +991,9 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\x13MY_ENUM_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rMY_ENUM_VALUE\x10\x01*2\n" +
 	"\x0eMyNullableEnum\x12 \n" +
-	"\x1cMY_NULLABLE_ENUM_UNSPECIFIED\x10\x00B+Z)github.com/malonaz/core/genproto/test/aipb\x06proto3"
+	"\x1cMY_NULLABLE_ENUM_UNSPECIFIED\x10\x00B\xda\x01\xeaAZ\n" +
+	"\x1dtest.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\xeaAO\n" +
+	"\x15test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ)github.com/malonaz/core/genproto/test/aipb\x06proto3"
 
 var (
 	file_malonaz_test_aip_aip_proto_rawDescOnce sync.Once
@@ -923,7 +1008,7 @@ func file_malonaz_test_aip_aip_proto_rawDescGZIP() []byte {
 }
 
 var file_malonaz_test_aip_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_test_aip_aip_proto_goTypes = []any{
 	(MyEnum)(0),                                 // 0: test.aip.v1.MyEnum
 	(MyNullableEnum)(0),                         // 1: test.aip.v1.MyNullableEnum
@@ -932,28 +1017,29 @@ var file_malonaz_test_aip_aip_proto_goTypes = []any{
 	(*PaginateOnlyRequest)(nil),                 // 4: test.aip.v1.PaginateOnlyRequest
 	(*PaginateWithSmallDefaultRequest)(nil),     // 5: test.aip.v1.PaginateWithSmallDefaultRequest
 	(*Resource)(nil),                            // 6: test.aip.v1.Resource
-	(*NestedResource)(nil),                      // 7: test.aip.v1.NestedResource
-	(*DeeplyNestedResource)(nil),                // 8: test.aip.v1.DeeplyNestedResource
-	(*UpdateResourceRequest)(nil),               // 9: test.aip.v1.UpdateResourceRequest
-	(*UpdateResource2Request)(nil),              // 10: test.aip.v1.UpdateResource2Request
-	(*UpdateResourceWithColumnNameRequest)(nil), // 11: test.aip.v1.UpdateResourceWithColumnNameRequest
-	(*fieldmaskpb.FieldMask)(nil),               // 12: google.protobuf.FieldMask
+	(*Book)(nil),                                // 7: test.aip.v1.Book
+	(*NestedResource)(nil),                      // 8: test.aip.v1.NestedResource
+	(*DeeplyNestedResource)(nil),                // 9: test.aip.v1.DeeplyNestedResource
+	(*UpdateResourceRequest)(nil),               // 10: test.aip.v1.UpdateResourceRequest
+	(*UpdateResource2Request)(nil),              // 11: test.aip.v1.UpdateResource2Request
+	(*UpdateResourceWithColumnNameRequest)(nil), // 12: test.aip.v1.UpdateResourceWithColumnNameRequest
+	(*fieldmaskpb.FieldMask)(nil),               // 13: google.protobuf.FieldMask
 }
 var file_malonaz_test_aip_aip_proto_depIdxs = []int32{
-	7,  // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
-	7,  // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
-	7,  // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
-	7,  // 3: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
+	8,  // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
+	8,  // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
+	8,  // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
+	8,  // 3: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
 	0,  // 4: test.aip.v1.Resource.my_enum:type_name -> test.aip.v1.MyEnum
 	1,  // 5: test.aip.v1.Resource.nullable_enum:type_name -> test.aip.v1.MyNullableEnum
-	7,  // 6: test.aip.v1.Resource.nested_changed:type_name -> test.aip.v1.NestedResource
-	8,  // 7: test.aip.v1.NestedResource.further_nested:type_name -> test.aip.v1.DeeplyNestedResource
+	8,  // 6: test.aip.v1.Resource.nested_changed:type_name -> test.aip.v1.NestedResource
+	9,  // 7: test.aip.v1.NestedResource.further_nested:type_name -> test.aip.v1.DeeplyNestedResource
 	6,  // 8: test.aip.v1.UpdateResourceRequest.resource:type_name -> test.aip.v1.Resource
-	12, // 9: test.aip.v1.UpdateResourceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	13, // 9: test.aip.v1.UpdateResourceRequest.update_mask:type_name -> google.protobuf.FieldMask
 	6,  // 10: test.aip.v1.UpdateResource2Request.resource:type_name -> test.aip.v1.Resource
-	12, // 11: test.aip.v1.UpdateResource2Request.update_mask:type_name -> google.protobuf.FieldMask
+	13, // 11: test.aip.v1.UpdateResource2Request.update_mask:type_name -> google.protobuf.FieldMask
 	6,  // 12: test.aip.v1.UpdateResourceWithColumnNameRequest.resource:type_name -> test.aip.v1.Resource
-	12, // 13: test.aip.v1.UpdateResourceWithColumnNameRequest.update_mask:type_name -> google.protobuf.FieldMask
+	13, // 13: test.aip.v1.UpdateResourceWithColumnNameRequest.update_mask:type_name -> google.protobuf.FieldMask
 	14, // [14:14] is the sub-list for method output_type
 	14, // [14:14] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
@@ -972,7 +1058,7 @@ func file_malonaz_test_aip_aip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_aip_aip_proto_rawDesc), len(file_malonaz_test_aip_aip_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

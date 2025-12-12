@@ -106,6 +106,9 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 		}
 	}
 
+	// Expand "name" field to composite key fields before other replacements
+	orderByClause = p.expandNameField(orderByClause)
+
 	// Apply the replacement.
 	for node := range p.tree.AllowedNodes() {
 		orderByClause = node.ApplyReplacement(orderByClause)
@@ -123,6 +126,85 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 		request: request,
 		orderBy: orderBy,
 	}, nil
+}
+
+// expandNameField expands occurrences of "name" in the order by clause to the composite key fields.
+// For example, "name desc" becomes "organization_id desc, user_id desc, chat_id desc"
+// For singleton resources (where the resource itself has no ID), it expands to parent fields only.
+func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) string {
+	if p.tree.Resource == nil {
+		return orderByClause
+	}
+
+	// Check if "name" is an allowed path - if not, don't expand (let validation fail normally)
+	if !p.pathToAllow["name"] {
+		return orderByClause
+	}
+
+	// Parse the order by clause to find "name" fields
+	parts := strings.Split(orderByClause, ",")
+	var expandedParts []string
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		// Parse field and direction
+		tokens := strings.Fields(part)
+		if len(tokens) == 0 {
+			continue
+		}
+
+		fieldPath := tokens[0]
+		direction := ""
+		if len(tokens) > 1 {
+			direction = " " + tokens[1]
+		}
+
+		if fieldPath == "name" {
+			// Expand to composite key fields
+			compositeFields := p.getCompositeKeyFields()
+			for _, cf := range compositeFields {
+				expandedParts = append(expandedParts, cf+direction)
+			}
+		} else {
+			expandedParts = append(expandedParts, part)
+		}
+	}
+
+	return strings.Join(expandedParts, ", ")
+}
+
+// getCompositeKeyFields returns the list of ID column names for the resource's composite key.
+// For a resource with pattern "organizations/{organization}/users/{user}/chats/{chat}",
+// this returns ["organization_id", "user_id", "chat_id"].
+// For singleton resources, the resource's own ID is excluded.
+// If the resource has a custom id_column_name in model_opts, that is used for the resource's own ID.
+func (p *OrderingRequestParser[T, R]) getCompositeKeyFields() []string {
+	if p.tree.Resource == nil {
+		return nil
+	}
+
+	var fields []string
+	patternVars := p.tree.Resource.PatternVariables
+	singular := p.tree.Resource.Singular
+
+	for _, variable := range patternVars {
+		var columnName string
+		// Check if this is the resource's own ID (matches singular name)
+		if variable == singular && p.tree.IDColumnName != "" {
+			// Use custom id_column_name from model_opts
+			columnName = p.tree.IDColumnName
+		} else {
+			// Default: convert pattern variable to column name (e.g., "organization" -> "organization_id")
+			columnName = variable + "_id"
+		}
+		fields = append(fields, columnName)
+	}
+
+	return fields
 }
 
 // ////////////////////////////// PARSED REQUEST //////////////////////////

@@ -8,12 +8,14 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
+	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 type TreeConfig struct {
@@ -22,11 +24,13 @@ type TreeConfig struct {
 
 type Tree struct {
 	Validator      protovalidate.Validator
+	Resource       *ParsedResource
 	AllowAllPaths  bool
 	AllowedPathSet map[string]struct{}
 	MaxDepth       int
 	Nodes          []*Node
 	Config         *TreeConfig
+	IDColumnName   string
 }
 
 type TreeOption func(*TreeConfig)
@@ -54,15 +58,38 @@ func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opt
 		return nil, err
 	}
 
+	// Parse resource descriptor.
 	var resourceZero R
+	{
+		resourceMessage := resourceZero.ProtoReflect().Interface()
+		// Parse and set ResourceDescriptor at tree level
+		resourceDescriptor, err := pbutil.GetMessageOption[*annotationspb.ResourceDescriptor](
+			resourceMessage,
+			annotationspb.E_Resource,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("getting resource descriptor: %w", err)
+		}
+		resource, err := ParseResource(resourceDescriptor)
+		if err != nil {
+			return nil, fmt.Errorf("parsing resource descriptor: %w", err)
+		}
+		tree.Resource = resource
+	}
+
+	// Parse override id column annotation.
+	{
+		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
+		if err == nil && modelOpts != nil {
+			tree.IDColumnName = modelOpts.GetIdColumnName()
+		}
+	}
+
 	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
 	fields := resourceDescriptor.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
 		fieldName := field.TextName()
-		if fieldName == "name" {
-			continue
-		}
 		if err := tree.Explore(fieldName, field, 0); err != nil {
 			return nil, fmt.Errorf("exploring %s: %v", fieldName, err)
 		}

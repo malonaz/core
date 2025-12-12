@@ -2,11 +2,24 @@ syntax = "proto3";
 
 package test.aip.v1;
 
+import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/aip";
+option (google.api.resource_definition) = {
+  type: "test.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+option (google.api.resource_definition) = {
+  type: "test.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
 
 // MyEnum is a test enum for filter validation.
 enum MyEnum {
@@ -84,6 +97,14 @@ message PaginateWithSmallDefaultRequest {
 
 // Resource is a test message with nested fields.
 message Resource {
+  option (google.api.resource) = {
+    type: "test.malonaz.com/Chat"
+    pattern: "organizations/{organization}/users/{user}/resources/{resource}"
+    singular: "resource"
+    plural: "resources"
+  };
+  // Name of this resource.
+  string name = 100;
   // some id field.
   string id = 1;
   // some timestmap.
@@ -114,6 +135,24 @@ message Resource {
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).column_name = "nested_new_name"
   ];
+}
+
+// Resource is a test message with nested fields.
+message Book {
+  option (google.api.resource) = {
+    type: "test.malonaz.com/Chat"
+    pattern: "books/{book}"
+    singular: "book"
+    plural: "books"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {id_column_name: "id"};
+
+  // Name of this resource.
+  string name = 1;
+  // some timestmap.
+  int64 create_time = 2;
+  // some other timestamp.
+  int64 update_time = 3;
 }
 
 // NestedResource contains fields for testing nested path updates.
