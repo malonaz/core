@@ -87,33 +87,3 @@ message TtsModelConfig {
     (buf.validate.field).repeated.items.int32.gte = 8000
   ];
 }
-
-/*
-   // Represents a model.
-   enum ModelX {
-     // Used to detect an unset field.
-     MODEL_UNSPECIFIED = 0;
-
-     // Gemini flash 2.0.
-     MODEL_GEMINI_FLASH_2 = 108 [(config) = {
-       provider: PROVIDER_GOOGLE
-       model_id: "gemini-flash-2"
-       model_type: MODEL_TYPE_TTT
-       ttt: {
-         reasoning: true
-         tool_call: true
-       }
-     }];
-     // Gemini flash 2.5.
-     MODEL_GEMINI_FLASH_2_5 = 109 [(config) = {
-       provider: PROVIDER_GOOGLE
-       model_id: "gemini-flash-2.5"
-       model_type: MODEL_TYPE_TTT
-       ttt: {
-         reasoning: true
-         tool_call: true
-       }
-     }];
-
-   }
-*/

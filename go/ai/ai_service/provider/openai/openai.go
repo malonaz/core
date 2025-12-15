@@ -17,6 +17,7 @@ const (
 	providerIdGroq     = "groq"
 	providerIdCerebras = "cerebras"
 	providerIdGoogle   = "google"
+	providerIdXai      = "xai"
 )
 
 type config struct {
@@ -63,6 +64,10 @@ func NewCerebrasClient(apiKey string, modelService *provider.ModelService) *Clie
 
 func NewGoogleClient(apiKey string, modelService *provider.ModelService) *Client {
 	return newClient(apiKey, modelService, configGoogle)
+}
+
+func NewXaiClient(apiKey string, modelService *provider.ModelService) *Client {
+	return newClient(apiKey, modelService, configXai)
 }
 
 // Implements the provider.Provider interface.

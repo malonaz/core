@@ -35,6 +35,7 @@ type Opts struct {
 	CartesiaApiKey   string `long:"cartesia-api-key"     env:"CARTESIA_API_KEY" description:"Cartesia api key"`
 	CerebrasApiKey   string `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
 	GoogleApiKey     string `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
+	XaiApiKey        string `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
 }
 
 type runtime struct {
@@ -60,6 +61,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.GoogleApiKey != "" {
 		providers = append(providers, openai.NewGoogleClient(opts.GoogleApiKey, modelService))
+	}
+	if opts.XaiApiKey != "" {
+		providers = append(providers, openai.NewXaiClient(opts.XaiApiKey, modelService))
 	}
 	if opts.GroqApiKey != "" {
 		providers = append(providers, openai.NewGroqClient(opts.GroqApiKey, modelService))

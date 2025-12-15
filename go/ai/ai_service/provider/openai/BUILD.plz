@@ -9,6 +9,7 @@ go_library(
         "text_to_speech.go",
         "text_to_text_stream.go",
         "text_to_text_stream_v2.go",
+        "xai.go",
     ],
     visibility = ["//..."],
     deps = [

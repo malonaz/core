@@ -431,6 +431,12 @@ var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]sh
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
 	},
+	providerIdXai: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
+	},
 }
 
 var openAIFinishReasonToPbV2 = map[string]aiservicepb.TextToTextStopReason{

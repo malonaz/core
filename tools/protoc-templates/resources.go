@@ -269,10 +269,10 @@ func parseResourceFromMessage(message *protogen.Message) (*ParsedResource, error
 
 // CompiledResource.
 type RPC struct {
-	StandardMethod                    *aippb.StandardMethod
-	Message                           *protogen.Message
-	ParsedResource                    *ParsedResource
-	Create, Update, Delete, Get, BatchGet, List  bool
+	StandardMethod                              *aippb.StandardMethod
+	Message                                     *protogen.Message
+	ParsedResource                              *ParsedResource
+	Create, Update, Delete, Get, BatchGet, List bool
 }
 
 // Given a protogen.Method
