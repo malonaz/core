@@ -165,6 +165,74 @@ func (f *FilteringRequest) GetSQLWhereClause() (string, []any) {
 	return f.whereClause, f.whereParams
 }
 
+// GetDBColumnsForFieldMask returns the database column names that correspond to the given field mask paths.
+// For nested fields stored as JSONB (e.g., "nested.field2"), it returns the root column name ("nested").
+// For fields with column name overrides, it returns the overridden column name.
+// Returns an error if any path is invalid or not allowed.
+func (p *FilteringRequestParser[T, R]) GetDBColumnsForFieldMask(fieldMaskPaths []string) ([]string, error) {
+	if len(fieldMaskPaths) == 0 {
+		return nil, nil
+	}
+
+	// Build a map of proto path to node for quick lookup
+	pathToNode := make(map[string]*Node)
+	for _, node := range p.tree.Nodes {
+		pathToNode[node.Path] = node
+	}
+
+	// Track unique columns to avoid duplicates
+	columnSet := make(map[string]struct{})
+	var columns []string
+
+	for _, fieldPath := range fieldMaskPaths {
+		column, err := p.getDBColumnForPath(fieldPath, pathToNode)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, exists := columnSet[column]; !exists {
+			columnSet[column] = struct{}{}
+			columns = append(columns, column)
+		}
+	}
+
+	return columns, nil
+}
+
+// getDBColumnForPath returns the database column name for a given proto field path.
+// For nested paths like "nested.field2", it returns the root column (e.g., "nested").
+// For paths with column name overrides, it returns the overridden name.
+func (p *FilteringRequestParser[T, R]) getDBColumnForPath(fieldPath string, pathToNode map[string]*Node) (string, error) {
+	// First, check for exact match at root level (depth 0)
+	if node, ok := pathToNode[fieldPath]; ok {
+		if node.Depth == 0 {
+			return p.nodeToColumnName(node), nil
+		}
+	}
+
+	// For nested paths or paths that exist but are not at root level,
+	// find the root node (the column that stores this data)
+	parts := strings.Split(fieldPath, ".")
+	if len(parts) > 0 {
+		rootPath := parts[0]
+		if rootNode, ok := pathToNode[rootPath]; ok {
+			// The root node represents the database column
+			return p.nodeToColumnName(rootNode), nil
+		}
+	}
+
+	return "", fmt.Errorf("field path %q not found in resource schema", fieldPath)
+}
+
+// nodeToColumnName returns the database column name for a node.
+// It uses the column name override if set, otherwise the original path.
+func (p *FilteringRequestParser[T, R]) nodeToColumnName(node *Node) string {
+	if node.ColumnName != "" {
+		return node.ColumnName
+	}
+	return node.Path
+}
+
 // /////////////////////////// UTILS //////////////////////////////
 func (p *FilteringRequestParser[T, R]) setFilter(request filteringRequest, filter string) {
 	// Get the protobuf message descriptor

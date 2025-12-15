@@ -783,3 +783,93 @@ func TestFilteringRequestParser_WildcardPaths(t *testing.T) {
 		})
 	}
 }
+
+func TestFilteringRequestParser_GetDBColumnsForFieldMask(t *testing.T) {
+	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name            string
+		fieldMaskPaths  []string
+		expectedColumns []string
+		wantErr         bool
+		expectedErrMsg  string
+	}{
+		{
+			name:            "empty field mask",
+			fieldMaskPaths:  []string{},
+			expectedColumns: nil,
+			wantErr:         false,
+		},
+		{
+			name:            "single root field",
+			fieldMaskPaths:  []string{"id"},
+			expectedColumns: []string{"id"},
+			wantErr:         false,
+		},
+		{
+			name:            "field with column name override",
+			fieldMaskPaths:  []string{"column_name_changed"},
+			expectedColumns: []string{"new_name"},
+			wantErr:         false,
+		},
+		{
+			name:            "nested field maps to root column",
+			fieldMaskPaths:  []string{"nested.field2"},
+			expectedColumns: []string{"nested"},
+			wantErr:         false,
+		},
+		{
+			name:            "multiple nested fields same root",
+			fieldMaskPaths:  []string{"nested.field2", "nested.field3"},
+			expectedColumns: []string{"nested"},
+			wantErr:         false,
+		},
+		{
+			name:            "multiple different fields",
+			fieldMaskPaths:  []string{"id", "create_timestamp", "deleted"},
+			expectedColumns: []string{"id", "create_timestamp", "deleted"},
+			wantErr:         false,
+		},
+		{
+			name:            "mixed root and nested fields",
+			fieldMaskPaths:  []string{"id", "nested.field2", "nested.field3"},
+			expectedColumns: []string{"id", "nested"},
+			wantErr:         false,
+		},
+		{
+			name:            "deeply nested field",
+			fieldMaskPaths:  []string{"nested.further_nested.field3"},
+			expectedColumns: []string{"nested"},
+			wantErr:         false,
+		},
+		{
+			name:           "invalid field path",
+			fieldMaskPaths: []string{"nonexistent_field"},
+			wantErr:        true,
+			expectedErrMsg: "not found",
+		},
+		{
+			name:            "duplicate paths resolve to same column",
+			fieldMaskPaths:  []string{"nested", "nested.field2"},
+			expectedColumns: []string{"nested"},
+			wantErr:         false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			columns, err := parser.GetDBColumnsForFieldMask(tc.fieldMaskPaths)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				if tc.expectedErrMsg != "" {
+					require.Contains(t, err.Error(), tc.expectedErrMsg)
+				}
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedColumns, columns)
+			}
+		})
+	}
+}

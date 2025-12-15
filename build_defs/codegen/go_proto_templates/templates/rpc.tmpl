@@ -441,7 +441,13 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error())
 	          }
 	          whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-            var dbColumns []string
+
+            // Check for a field mask.
+            fieldMaskPaths := {{ fqn "strings" "Split" }}({{ fqn "github.com/malonaz/core/go/grpc/interceptor" "GetFieldMask" }}(ctx), ",")
+            dbColumns, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.GetDBColumnsForFieldMask(fieldMaskPaths)
+            if err != nil {
+              return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask %s", fieldMaskPaths)
+            }
 
             // Retrieve from the database.
             {{ $resourceDbName }}s, err := s.store.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)

@@ -53,6 +53,10 @@ func NewListRequestParser[T listRequest[R], R proto.Message]() (*ListRequestPars
 	}, nil
 }
 
+func (p *ListRequestParser[T, R]) GetDBColumnsForFieldMask(fieldMaskPaths []string) ([]string, error) {
+	return p.filteringParser.GetDBColumnsForFieldMask(fieldMaskPaths)
+}
+
 // ParsedListRequest embeds all the specialized parsed request types.
 type ParsedListRequest struct {
 	*FilteringRequest

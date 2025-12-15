@@ -208,3 +208,23 @@ func SanitizeEnumString(enum, prefix string) string {
 	enum = strings.ToLower(enum)
 	return enum
 }
+
+// RootFieldsFromPaths extracts the root (top-level) fields from field mask paths.
+// For example, paths like ["x.a.v", "x.b", "y.c.d", "z"] would return ["x", "y", "z"].
+func RootFieldsFromPaths(paths []string) []string {
+	seen := make(map[string]struct{})
+	var roots []string
+	for _, path := range paths {
+		// Extract the root field (everything before the first dot)
+		root := path
+		if idx := strings.Index(path, "."); idx != -1 {
+			root = path[:idx]
+		}
+		// Deduplicate
+		if _, exists := seen[root]; !exists {
+			seen[root] = struct{}{}
+			roots = append(roots, root)
+		}
+	}
+	return roots
+}
