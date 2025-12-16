@@ -46,7 +46,7 @@
 {{- end -}}
 
 {{- define "FieldMaskDoc" -}}
-    string  // Comma-separated list of field paths (e.g., "field1,field2.subfield")
+    string  // Comma-separated list of field paths *IN CAMEL CASE* (e.g., "field1,otherField.someSubField")
 {{- end -}}
 
 {{- define "PostalAddressDoc" -}}
