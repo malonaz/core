@@ -45,6 +45,10 @@
     {{- end -}}
 {{- end -}}
 
+{{- define "FieldMaskDoc" -}}
+    string  // Comma-separated list of field paths (e.g., "field1,field2.subfield")
+{{- end -}}
+
 {{- define "PostalAddressDoc" -}}
     {{- $indent := .indent -}}
     {
@@ -107,6 +111,8 @@
     {{- else if $field.Message -}}
         {{- if eq $field.Message.Desc.FullName "google.protobuf.Timestamp" -}}
             {{ template "FieldTypeDoc" $field }}
+        {{- else if eq $field.Message.Desc.FullName "google.protobuf.FieldMask" -}}
+            {{- template "FieldMaskDoc" -}}
         {{- else if eq $field.Message.Desc.FullName "google.type.PostalAddress" -}}
             {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
         {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
