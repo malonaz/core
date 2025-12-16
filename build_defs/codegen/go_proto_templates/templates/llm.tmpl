@@ -10,7 +10,7 @@
 
 {{-  define "LeadingComment" -}}
     {{-  if . -}}
-        {{ " // " }}{{ .String | replace "\n" "." | replace "//" "" | replace ".." "." | trim -}}
+        {{ " // " }}{{ .String | replace "\n" "." | replace "//" "" | replace ".." "." | replace "`" "\"" | trim -}}
     {{- end -}}
 {{- end -}}
 
