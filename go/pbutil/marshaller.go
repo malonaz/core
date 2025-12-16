@@ -31,38 +31,46 @@ func Unmarshal(b []byte, m proto.Message) error {
 	return unmarshalOptions.Unmarshal(b, m)
 }
 
-var ProtoJsonUnmarshalOptions = protojson.UnmarshalOptions{
+var JsonUnmarshalOptions = protojson.UnmarshalOptions{
 	DiscardUnknown: true,
 }
 
 func JSONUnmarshal(b []byte, m proto.Message) error {
-	return ProtoJsonUnmarshalOptions.Unmarshal(b, m)
+	return JsonUnmarshalOptions.Unmarshal(b, m)
 }
 
-var ProtoJsonUnmarshalStrictOptions = protojson.UnmarshalOptions{
+var JsonUnmarshalStrictOptions = protojson.UnmarshalOptions{
 	DiscardUnknown: false,
 }
 
 func JSONUnmarshalStrict(b []byte, m proto.Message) error {
-	return ProtoJsonUnmarshalStrictOptions.Unmarshal(b, m)
+	return JsonUnmarshalStrictOptions.Unmarshal(b, m)
 }
 
-var ProtoJsonMarshalOptions = protojson.MarshalOptions{
+var JsonMarshalOptions = protojson.MarshalOptions{
 	UseProtoNames: true,
 }
 
 func JSONMarshal(m proto.Message) ([]byte, error) {
-	return ProtoJsonMarshalOptions.Marshal(m)
+	return JsonMarshalOptions.Marshal(m)
 }
 
-var ProtoJsonMarshalPrettyOptions = protojson.MarshalOptions{
+var JsonCamelCaseMarshalOptions = protojson.MarshalOptions{
+	UseProtoNames: false,
+}
+
+func JSONCamelCaseMarshal(m proto.Message) ([]byte, error) {
+	return JsonCamelCaseMarshalOptions.Marshal(m)
+}
+
+var JsonMarshalPrettyOptions = protojson.MarshalOptions{
 	UseProtoNames: true,
 	Multiline:     true,
 	Indent:        "  ",
 }
 
 func JSONMarshalPretty(m proto.Message) ([]byte, error) {
-	return ProtoJsonMarshalPrettyOptions.Marshal(m)
+	return JsonMarshalPrettyOptions.Marshal(m)
 }
 
 ////////////////// SLICES //////////////////

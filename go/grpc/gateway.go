@@ -31,11 +31,6 @@ const (
 	grpcGatewayContextMetadataHTTPPathPatternKey = "http-path-pattern"
 )
 
-var grpcGatewayMarshalerOptions = &runtime.JSONPb{
-	MarshalOptions:   pbutil.ProtoJsonMarshalOptions,
-	UnmarshalOptions: pbutil.ProtoJsonUnmarshalOptions,
-}
-
 // RegisterHandler is syntactice sugar for a gRPC gateway handler.
 type RegisterHandler = func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)
 
@@ -130,10 +125,9 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		runtime.WithForwardResponseOption(gatewayCookie.forwardOutOption),
 		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
-		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
-		withCustomMarshaler(),
 		withHTTPPatternAnnotation(),
 	)
+	g.options = append(g.options, withCustomMarshalers()...)
 
 	// Default dial options.
 	messageSizeDialOptions := grpc.WithDefaultCallOptions(
@@ -365,8 +359,22 @@ func preflightHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
-func withCustomMarshaler() runtime.ServeMuxOption {
-	return runtime.WithMarshalerOption(runtime.MIMEWildcard, grpcGatewayMarshalerOptions)
+var grpcGatewayMarshalerOptions = &runtime.JSONPb{
+	MarshalOptions:   pbutil.JsonMarshalOptions,
+	UnmarshalOptions: pbutil.JsonUnmarshalOptions,
+}
+
+var grpcGatewayMarshalerCamelCaseOptions = &runtime.JSONPb{
+	MarshalOptions:   pbutil.JsonCamelCaseMarshalOptions,
+	UnmarshalOptions: pbutil.JsonUnmarshalOptions,
+}
+
+func withCustomMarshalers() []runtime.ServeMuxOption {
+	return []runtime.ServeMuxOption{
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, grpcGatewayMarshalerOptions),
+		runtime.WithMarshalerOption("application/json+camel", grpcGatewayMarshalerCamelCaseOptions),
+		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
+	}
 }
 
 // /////////////  FORWARD RESPONSE OPTIONS //////////////

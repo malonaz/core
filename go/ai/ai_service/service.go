@@ -125,7 +125,7 @@ func (s *Service) loadVoicesFromFile(ctx context.Context, filepath string) error
 	}
 
 	// Unmarshal slice of CreateVoiceRequest messages
-	requests, err := pbutil.JSONUnmarshalSlice[pb.CreateVoiceRequest](pbutil.ProtoJsonUnmarshalStrictOptions, data)
+	requests, err := pbutil.JSONUnmarshalSlice[pb.CreateVoiceRequest](pbutil.JsonUnmarshalStrictOptions, data)
 	if err != nil {
 		return fmt.Errorf("parsing voices file: %v", err)
 	}
