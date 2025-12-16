@@ -25,7 +25,7 @@ index d9bce4d..dbfec3e 100644
  		dir.Build = build
  	}
 diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 331b925..5bfc791 100644
+index 331b925..7c84b38 100644
 --- a/domain/wollemi/service_format.go
 +++ b/domain/wollemi/service_format.go
 @@ -8,6 +8,7 @@ import (
@@ -223,9 +223,12 @@ index 331b925..5bfc791 100644
  
  	log := this.log.WithField("rewrite", this.config.Gofmt.GetRewrite())
  
-@@ -424,7 +513,6 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+@@ -422,9 +511,8 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+ 			path := filepath.Join("plz-out/gen", dir.Path)
+ 			gopkg, err := this.golang.ImportDir(path, []string{name})
  			if err != nil {
- 				return nil, nil, fmt.Errorf("could not parse src file: %s", name)
+-				return nil, nil, fmt.Errorf("could not parse src file: %s", name)
++				continue
  			}
 -
  			fileImports, _ = gopkg.GoFileImports[name]
@@ -418,7 +421,7 @@ index 331b925..5bfc791 100644
  		}
  	}
  
-@@ -1143,17 +1302,18 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
+@@ -1143,17 +1302,19 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
  	return rule
  }
  
@@ -429,9 +432,9 @@ index 331b925..5bfc791 100644
  	for file, rules := range fc.Rules {
  		fc.Rules[file], _ = deleteStrings(rules, rule.Name())
  	}
--
--	files := getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
 +	files := service.getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
+ 
+-	files := getSrcFilesFromExpr(rule.Attr("srcs"), fc.Dir)
  
  	for i := 0; i < len(files); i++ {
  		name := files[i]
@@ -441,7 +444,7 @@ index 331b925..5bfc791 100644
  
  		switch {
  		case filepath.Ext(name) != ".go":
-@@ -1164,19 +1324,19 @@ func (fc *fileConsumer) Update(rule please.Rule) {
+@@ -1164,19 +1325,19 @@ func (fc *fileConsumer) Update(rule please.Rule) {
  		// Ignore please rule targets
  		default:
  			if _, ok := fc.Dir.Files[name]; !ok {
