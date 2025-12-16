@@ -86,11 +86,24 @@
     {{- if $field.Desc.IsList -}}
         [
         {{- if $field.Message -}}
-            {{- $nestedIndent := printf "%s  " $indent -}}
-            {{- $nestedParsed := parseLLMMessage $field.Message -}}
-            {{ $nestedIndent }}{
-            {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s    " $indent) "parsed" $nestedParsed -}}
-            {{ $nestedIndent }}}
+            {{- /* Handle special well-known types in lists */ -}}
+            {{- if eq $field.Message.Desc.FullName "google.protobuf.Timestamp" -}}
+                string (ISO 8601 timestamp)
+            {{- else if eq $field.Message.Desc.FullName "google.protobuf.FieldMask" -}}
+                string  // Comma-separated list of field paths
+            {{- else if eq $field.Message.Desc.FullName "google.type.PostalAddress" -}}
+                {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
+                {{- template "DateDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else if eq $field.Message.Desc.FullName "google.type.TimeOfDay" -}}
+                {{- template "TimeOfDayDoc" dict "indent" (printf "%s    " $indent) -}}
+            {{- else -}}
+                {{- $nestedIndent := printf "%s  " $indent -}}
+                {{- $nestedParsed := parseLLMMessage $field.Message -}}
+                {{ $nestedIndent }}{
+                {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s    " $indent) "parsed" $nestedParsed -}}
+                {{ $nestedIndent }}}
+            {{- end -}}
         {{- else -}}
             {{ template "FieldTypeDoc" $field }}
         {{- end -}}
