@@ -69,7 +69,7 @@ func parseLLMMessage(message *protogen.Message) (*ParsedLLMMessage, error) {
 	}
 
 	// If neither generate nor field_mask_paths is set, nothing to do
-	if !opts.Generate && !opts.FieldMaskPaths && len(opts.Fields) == 0 {
+	if !opts.Generate && !opts.FieldMaskPaths && len(opts.Fields) == 0 && !opts.All {
 		return nil, nil
 	}
 
