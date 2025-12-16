@@ -20,6 +20,7 @@ message Contact {
 message ChatAnalysis {
   option (malonaz.codegen.llm.v1.document) = {
     generate: true
+    field_mask_paths: true
     fields: [
       "summary",
       "classification",
@@ -60,6 +61,7 @@ message ChatAnalysis {
 // Represents structured data extracted from a chat.
 message StructuredData {
   option (malonaz.codegen.llm.v1.document) = {
+    field_mask_paths: true
     fields: [
       "rationale",
       "bool_value",

@@ -2,6 +2,7 @@ go_binary(
     name = "protoc-templates",
     srcs = [
         "functions.go",
+        "llm.go",
         "main.go",
         "resources.go",
         "types.go",

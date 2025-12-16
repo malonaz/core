@@ -25,13 +25,15 @@ const (
 // Opts for llm documentation.
 type MessageOpts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// If true, we generate a 'Doc()' function for this message.
+	// If true, we generate a `LlmDoc() string` function for this message.
 	Generate bool `protobuf:"varint,1,opt,name=generate,proto3" json:"generate,omitempty"`
+	// If true, we generate a `LlmFieldMaskPaths() []string` function for this message, containing the fields that are set to be documented.
+	FieldMaskPaths bool `protobuf:"varint,2,opt,name=field_mask_paths,json=fieldMaskPaths,proto3" json:"field_mask_paths,omitempty"`
 	// If set, we document all fields.
-	All bool `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	All bool `protobuf:"varint,3,opt,name=all,proto3" json:"all,omitempty"`
 	// List of field names to include in the generated documentation.
 	// If non-empty, generates docs for this message including only these fields.
-	Fields        []string `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"`
+	Fields        []string `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -73,6 +75,13 @@ func (x *MessageOpts) GetGenerate() bool {
 	return false
 }
 
+func (x *MessageOpts) GetFieldMaskPaths() bool {
+	if x != nil {
+		return x.FieldMaskPaths
+	}
+	return false
+}
+
 func (x *MessageOpts) GetAll() bool {
 	if x != nil {
 		return x.All
@@ -110,11 +119,12 @@ var File_malonaz_codegen_llm_v1_llm_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_llm_v1_llm_proto_rawDesc = "" +
 	"\n" +
-	" malonaz/codegen/llm/v1/llm.proto\x12\x16malonaz.codegen.llm.v1\x1a google/protobuf/descriptor.proto\"S\n" +
+	" malonaz/codegen/llm/v1/llm.proto\x12\x16malonaz.codegen.llm.v1\x1a google/protobuf/descriptor.proto\"}\n" +
 	"\vMessageOpts\x12\x1a\n" +
-	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12\x10\n" +
-	"\x03all\x18\x02 \x01(\bR\x03all\x12\x16\n" +
-	"\x06fields\x18\x03 \x03(\tR\x06fields:b\n" +
+	"\bgenerate\x18\x01 \x01(\bR\bgenerate\x12(\n" +
+	"\x10field_mask_paths\x18\x02 \x01(\bR\x0efieldMaskPaths\x12\x10\n" +
+	"\x03all\x18\x03 \x01(\bR\x03all\x12\x16\n" +
+	"\x06fields\x18\x04 \x03(\tR\x06fields:b\n" +
 	"\bdocument\x12\x1f.google.protobuf.MessageOptions\x18\xc8\xd6\x05 \x01(\v2#.malonaz.codegen.llm.v1.MessageOptsR\bdocumentB1Z/github.com/malonaz/core/genproto/codegen/llm/v1b\x06proto3"
 
 var (

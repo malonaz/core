@@ -8,27 +8,9 @@
 
 {{- /* ################### HELPERS ################### */ -}}
 
-{{- /* Helper to get all field names from a message */ -}}
-{{- define "GetAllFieldNames" -}}
-    {{- $fieldNames := list -}}
-    {{- range $field := .Fields -}}
-        {{- $fieldNames = append $fieldNames ($field.Desc.Name | toString) -}}
-    {{- end -}}
-    {{- $fieldNames | toJson -}}
-{{- end -}}
-
-{{- /* Helper to validate fields exist in a message */ -}}
-{{- define "ValidateFields" -}}
-    {{- $message := .message -}}
-    {{- $documentFields := .documentFields -}}
-    {{- $validFieldNames := list -}}
-    {{- range $field := $message.Fields -}}
-        {{- $validFieldNames = append $validFieldNames ($field.Desc.Name | toString) -}}
-    {{- end -}}
-    {{- range $specifiedField := $documentFields -}}
-        {{- if not (has $specifiedField $validFieldNames) -}}
-            {{ fail (printf "Invalid field '%s' specified in document.fields for message '%s'. Valid fields are: %v" $specifiedField $message.Desc.Name $validFieldNames) }}
-        {{- end -}}
+{{-  define "LeadingComment" -}}
+    {{-  if . -}}
+        {{ " // " }}{{ .String | replace "\n" "." | replace "//" "" | replace ".." "." | trim -}}
     {{- end -}}
 {{- end -}}
 
@@ -37,10 +19,9 @@
         string (one of:
         {{- range $i, $value := .Enum.Values -}}
             {{- if $i -}}
-                {{ " " }}("{{- $value.Desc.Name }}" {{ $value.Comments.Leading.String | trim }}),
+                {{ " " }}("{{- $value.Desc.Name }}"{{ template "LeadingComment" $value.Comments.Leading }}),
             {{- end -}}
         {{- end -}})
-
     {{- else if .Message -}}
         {{- if eq .Message.Desc.FullName "google.protobuf.Timestamp" -}}
             string (ISO 8601 timestamp)
@@ -84,7 +65,6 @@
     {{- $indent }}}
 {{- end -}}
 
-
 {{- define "TimeOfDayDoc" -}}
     {{- $indent := .indent -}}
     {
@@ -96,133 +76,107 @@
 {{- define "FieldDoc" -}}
     {{- $indent := .indent -}}
     {{- $field := .field -}}
-    {{- $documentAll := .documentAll -}}
-    {{- $documentFields := .documentFields -}}
-    {{- $fieldName := $field.Desc.Name | toString -}}
-    {{- $shouldDoc := or $documentAll (has $fieldName $documentFields) -}}
-    {{- if $shouldDoc -}}
-        {{ $indent }}"{{ $field.Desc.Name -}}":
-        {{- if $field.Desc.IsList -}}
-            [
-            {{- if $field.Message -}}
-                {{- $nestedIndent := printf "%s  " $indent -}}
-                {{- $nestedOpts := (getExt $field.Message.Desc "malonaz.codegen.llm.v1.document") -}}
-                {{- $nestedAll := $nestedOpts.All -}}
-                {{- $nestedFields := $nestedOpts.Fields -}}
-                {{- if not $nestedFields }}{{ $nestedFields = list }}{{ end -}}
-                {{- /* Validate nested message fields */ -}}
-                {{- if and (not $nestedAll) $nestedFields -}}
-                    {{- template "ValidateFields" dict "message" $field.Message "documentFields" $nestedFields -}}
-                {{- end -}}
-                {{ $nestedIndent }}{
-                {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s    " $indent) "documentAll" $nestedAll "documentFields" $nestedFields -}}
-                {{ $nestedIndent }}}
-            {{- else -}}
-                {{ template "FieldTypeDoc" $field }}
-            {{- end -}}
-            ]
-        {{- else if $field.Desc.IsMap -}}
-            {
-            {{ $indent }}  "key": {{ template "FieldTypeDoc" $field.Desc.MapKey }},
-            {{ $indent }}  "value":
-            {{- if $field.Desc.MapValue.Message -}}
-                {
-                {{- $nestedOpts := (getExt $field.Desc.MapValue.Message "malonaz.codegen.llm.v1.document") -}}
-                {{- $nestedAll := $nestedOpts.All -}}
-                {{- $nestedFields := $nestedOpts.Fields -}}
-                {{- if not $nestedFields }}{{ $nestedFields = list }}{{ end -}}
-                {{- template "MessageFieldsDoc" dict "message" $field.Desc.MapValue.Message "indent" (printf "%s    " $indent) "documentAll" $nestedAll "documentFields" $nestedFields -}}
-                {{ $indent }}  }
-            {{- else -}}
-                {{ template "FieldTypeDoc" $field.Desc.MapValue }}
-            {{- end -}}
-            {{ $indent }}}
-        {{- else if $field.Message -}}
-            {{- if eq $field.Message.Desc.FullName "google.protobuf.Timestamp" -}}
-                {{ template "FieldTypeDoc" $field }}
-            {{- else if eq $field.Message.Desc.FullName "google.type.PostalAddress" -}}
-                {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
-            {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
-                {{- template "DateDoc" dict "indent" (printf "%s    " $indent) -}}
-            {{- else if eq $field.Message.Desc.FullName "google.type.TimeOfDay" -}}
-                {{- template "TimeOfDayDoc" dict "indent" (printf "%s    " $indent) -}}
-            {{- else -}}
-                {{- $nestedOpts := (getExt $field.Message.Desc "malonaz.codegen.llm.v1.document") -}}
-                {{- $nestedAll := $nestedOpts.All -}}
-                {{- $nestedFields := $nestedOpts.Fields -}}
-                {{- if not $nestedFields }}{{ $nestedFields = list }}{{ end -}}
-                {{- /* Validate nested message fields */ -}}
-                {{- if and (not $nestedAll) $nestedFields -}}
-                    {{- template "ValidateFields" dict "message" $field.Message "documentFields" $nestedFields -}}
-                {{- end -}}
-                {
-                {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s  " $indent) "documentAll" $nestedAll "documentFields" $nestedFields -}}
-                {{ $indent }}}
-            {{- end -}}
+    {{- $parsed := .parsed -}}
+    {{- if not ($parsed.ShouldDocumentField $field) -}}{{- /* skip undocumented fields */ -}}{{ end -}}
+    {{ $indent }}"{{ $field.Desc.Name -}}":
+    {{- if $field.Desc.IsList -}}
+        [
+        {{- if $field.Message -}}
+            {{- $nestedIndent := printf "%s  " $indent -}}
+            {{- $nestedParsed := parseLLMMessage $field.Message -}}
+            {{ $nestedIndent }}{
+            {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s    " $indent) "parsed" $nestedParsed -}}
+            {{ $nestedIndent }}}
         {{- else -}}
-            {{- template "FieldTypeDoc" $field -}}
+            {{ template "FieldTypeDoc" $field }}
         {{- end -}}
-        {{- if $field.Comments.Leading -}}
-            {{ " " }}{{ $field.Comments.Leading.String | trim }}
+        ]
+    {{- else if $field.Desc.IsMap -}}
+        {
+        {{ $indent }}  "key": {{ template "FieldTypeDoc" $field.Desc.MapKey }},
+        {{ $indent }}  "value":
+        {{- if $field.Desc.MapValue.Message -}}
+            {
+            {{- $nestedParsed := parseLLMMessage $field.Desc.MapValue.Message -}}
+            {{- template "MessageFieldsDoc" dict "message" $field.Desc.MapValue.Message "indent" (printf "%s    " $indent) "parsed" $nestedParsed -}}
+            {{ $indent }}  }
+        {{- else -}}
+            {{ template "FieldTypeDoc" $field.Desc.MapValue }}
         {{- end -}}
+        {{ $indent }}}
+    {{- else if $field.Message -}}
+        {{- if eq $field.Message.Desc.FullName "google.protobuf.Timestamp" -}}
+            {{ template "FieldTypeDoc" $field }}
+        {{- else if eq $field.Message.Desc.FullName "google.type.PostalAddress" -}}
+            {{- template "PostalAddressDoc" dict "indent" (printf "%s    " $indent) -}}
+        {{- else if eq $field.Message.Desc.FullName "google.type.Date" -}}
+            {{- template "DateDoc" dict "indent" (printf "%s    " $indent) -}}
+        {{- else if eq $field.Message.Desc.FullName "google.type.TimeOfDay" -}}
+            {{- template "TimeOfDayDoc" dict "indent" (printf "%s    " $indent) -}}
+        {{- else -}}
+            {{- $nestedParsed := parseLLMMessage $field.Message -}}
+            {
+            {{- template "MessageFieldsDoc" dict "message" $field.Message "indent" (printf "%s  " $indent) "parsed" $nestedParsed -}}
+            {{ $indent }}}
+        {{- end -}}
+    {{- else -}}
+        {{- template "FieldTypeDoc" $field -}}
     {{- end -}}
+    {{ template "LeadingComment" $field.Comments.Leading }}
 {{- end -}}
 
-
 {{- define "MessageFieldsDoc" -}}
+    {{-  if .parsed -}}
+        {{- template "messageFieldsDoc" . -}}
+    {{-  else -}}
+        {{- .indent -}}// Fields not shown.
+    {{- end -}}
+{{-  end -}}
+
+{{- define "messageFieldsDoc" -}}
     {{- $message := .message -}}
     {{- $indent := .indent -}}
-    {{- $documentAll := .documentAll -}}
-    {{- $documentFields := .documentFields -}}
+    {{- $parsed := .parsed -}}
     {{- $processedOneofs := dict -}}
     {{- $firstField := true -}}
     {{- range $i, $field := $message.Fields -}}
-        {{- $fieldName := $field.Desc.Name | toString -}}
-        {{- $shouldDoc := or $documentAll (has $fieldName $documentFields) -}}
-        {{- if $shouldDoc -}}
-            {{- if $field.Oneof -}}
-                {{- $oneofName := $field.Oneof.Desc.Name | toString -}}
-                {{- if not (index $processedOneofs $oneofName) -}}
-                    {{- $_ := set $processedOneofs $oneofName true -}}
-                    {{- /* Check if any oneof field is documented */ -}}
-                    {{- $hasVisibleOneofField := false -}}
-                    {{- range $oneofField := $field.Oneof.Fields -}}
-                        {{- $oneofFieldName := $oneofField.Desc.Name | toString -}}
-                        {{- $oneofShouldDoc := or $documentAll (has $oneofFieldName $documentFields) -}}
-                        {{- if $oneofShouldDoc -}}
-                            {{- $hasVisibleOneofField = true -}}
-                        {{- end -}}
-                    {{- end -}}
-                    {{- if $hasVisibleOneofField -}}
-                        {{- if not $firstField -}},{{ end -}}
-                        {{- $firstField = false }}
-                        {{- $indent }}// ONEOF: exactly one of the following must be set: [
-                        {{- $firstOneof := true -}}
-                        {{- range $j, $oneofField := $field.Oneof.Fields -}}
-                            {{- $oneofFieldName := $oneofField.Desc.Name | toString -}}
-                            {{- $oneofShouldDoc := or $documentAll (has $oneofFieldName $documentFields) -}}
-                            {{- if $oneofShouldDoc -}}
-                                {{- if not $firstOneof -}}, {{ end -}}{{ $oneofField.Desc.Name }}
-                                {{- $firstOneof = false -}}
-                            {{- end -}}
-                        {{- end -}}]
-                        {{- $firstOneofField := true -}}
-                        {{- range $j, $oneofField := $field.Oneof.Fields -}}
-                            {{- $oneofFieldName := $oneofField.Desc.Name | toString -}}
-                            {{- $oneofShouldDoc := or $documentAll (has $oneofFieldName $documentFields) -}}
-                            {{- if $oneofShouldDoc -}}
-                                {{- if not $firstOneofField -}},{{ end -}}
-                                {{- $firstOneofField = false -}}
-                                {{ template "FieldDoc" dict "field" $oneofField "indent" $indent "documentAll" $documentAll "documentFields" $documentFields -}}
-                            {{- end -}}
-                        {{- end }}
+        {{- if not ($parsed.ShouldDocumentField $field) -}}{{ continue }}{{- end -}}
+        {{- if $field.Oneof -}}
+            {{- $oneofName := $field.Oneof.Desc.Name | toString -}}
+            {{- if not (index $processedOneofs $oneofName) -}}
+                {{- $_ := set $processedOneofs $oneofName true -}}
+                {{- /* Check if any oneof field is documented */ -}}
+                {{- $hasVisibleOneofField := false -}}
+                {{- range $oneofField := $field.Oneof.Fields -}}
+                    {{- if $parsed.ShouldDocumentField $oneofField -}}
+                        {{- $hasVisibleOneofField = true -}}
                     {{- end -}}
                 {{- end -}}
-            {{- else -}}
-                {{- if not $firstField -}},{{ end -}}
-                {{- $firstField = false -}}
-                {{- template "FieldDoc" dict "field" $field "indent" $indent "documentAll" $documentAll "documentFields" $documentFields -}}
+                {{- if $hasVisibleOneofField -}}
+                    {{- if not $firstField -}},{{ end -}}
+                    {{- $firstField = false }}
+                    {{- $indent }}// ONEOF: exactly one of the following must be set: [
+                    {{- $firstOneof := true -}}
+                    {{- range $j, $oneofField := $field.Oneof.Fields -}}
+                        {{- if $parsed.ShouldDocumentField $oneofField -}}
+                            {{- if not $firstOneof -}}, {{ end -}}{{ $oneofField.Desc.Name }}
+                            {{- $firstOneof = false -}}
+                        {{- end -}}
+                    {{- end -}}]
+                    {{- $firstOneofField := true -}}
+                    {{- range $j, $oneofField := $field.Oneof.Fields -}}
+                        {{- if $parsed.ShouldDocumentField $oneofField -}}
+                            {{- if not $firstOneofField -}},{{ end -}}
+                            {{- $firstOneofField = false -}}
+                            {{ template "FieldDoc" dict "field" $oneofField "indent" $indent "parsed" $parsed -}}
+                        {{- end -}}
+                    {{- end }}
+                {{- end -}}
             {{- end -}}
+        {{- else -}}
+            {{- if not $firstField -}},{{ end -}}
+            {{- $firstField = false -}}
+            {{- template "FieldDoc" dict "field" $field "indent" $indent "parsed" $parsed -}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
@@ -232,24 +186,21 @@
 package {{ if .PackageName }}{{ .PackageName }}{{ else }}{{ $goImportPath | base }}{{ end }}
 
 {{- range $message := $file.Messages -}}
-    {{- $documentOpts := (getExt .Desc "malonaz.codegen.llm.v1.document") -}}
-    {{- $shouldGenerate := $documentOpts.Generate -}}
-    {{- $documentAll := $documentOpts.All -}}
-    {{- $documentFields := $documentOpts.Fields -}}
-    {{- if not $documentFields }}{{ $documentFields = list }}{{ end -}}
+    {{- $parsed := parseLLMMessage $message -}}
+    {{- if not $parsed -}}{{ continue }}{{- end }}
 
-    {{- /* Skip if generate is not true */ -}}
-    {{- if not $shouldGenerate -}}{{ continue }}{{- end -}}
-
-    {{- /* Validate that all specified fields exist */ -}}
-    {{- if and (not $documentAll) (gt (len $documentFields) 0) -}}
-        {{- template "ValidateFields" dict "message" $message "documentFields" $documentFields -}}
+    {{- if $parsed.Generate }}
+        func (m *{{ $message.GoIdent.GoName }}) LlmDoc() string {
+        return `Structure for {{ $message.Desc.Name }}: {{ if $message.Comments.Leading }}{{ $message.Comments.Leading.String | trim }}{{ end }}
+        {
+        {{- template "MessageFieldsDoc" dict "message" $message "indent" "\n  " "parsed" $parsed }}
+        }`}
     {{- end }}
 
-    func (m *{{ $message.GoIdent.GoName }}) Doc() string {
-    return `Structure for {{ $message.Desc.Name }}: {{ if $message.Comments.Leading }}{{ $message.Comments.Leading.String | trim }}{{ end }}
-{
-{{- template "MessageFieldsDoc" dict "message" $message "indent" "\n  " "documentAll" $documentAll "documentFields" $documentFields }}
-    }`
-    }
+    {{- if $parsed.FieldMaskPaths }}
+        // LlmFieldMaskPaths returns the list of field paths that are documented for LLM consumption.
+        func (m *{{ $message.GoIdent.GoName }}) LlmFieldMaskPaths() string {
+        return "{{- range $i, $path := $parsed.FullFieldMaskPaths }}{{- if $i }},{{- end }}{{ $path }}{{- end }}"
+        }
+    {{- end }}
 {{ end -}}

@@ -35,6 +35,11 @@ func newScopedExecution(generatedFile *protogen.GeneratedFile) *scopedExecution 
 
 func (se *scopedExecution) FuncMap() template.FuncMap {
 	additional := template.FuncMap{
+		// LLM functions.
+		"parseLLMMessage": parseLLMMessage,
+		"getLLMOpts":      getLLMOpts,
+		"isWellKnownType": isWellKnownType,
+
 		"skipGeneration": func() bool {
 			se.generatedFile.Skip()
 			return true // dummy return
