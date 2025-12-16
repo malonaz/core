@@ -11,13 +11,28 @@ option go_package = "github.com/malonaz/core/genproto/test/llm";
 
 // Some nested field.
 message Contact {
+  option (malonaz.codegen.llm.v1.document).all = true;
   // The name of this contact.
   string name = 1;
 }
 
 // An analysis of a chat.
 message ChatAnalysis {
-  option (malonaz.codegen.llm.v1.opts).document = true;
+  option (malonaz.codegen.llm.v1.document) = {
+    generate: true
+    fields: [
+      "summary",
+      "classification",
+      "caller_name",
+      "email_address",
+      "appointment",
+      "postal_address",
+      "date",
+      "contact",
+      "reason"
+    ]
+  };
+
   // A summary of this chat.
   string summary = 1;
   // An enum classifying this chat.
@@ -35,7 +50,7 @@ message ChatAnalysis {
   // Some contact.
   Contact contact = 8;
   // Some contact.
-  Contact contact2 = 9 [(malonaz.codegen.llm.v1.field_opts).skip = true];
+  Contact contact2 = 9;
 
   // A brief 1-2 sentence summary of why they are calling.
   // Empty if call is aborted or called never speaks.
@@ -44,11 +59,20 @@ message ChatAnalysis {
 
 // Represents structured data extracted from a chat.
 message StructuredData {
+  option (malonaz.codegen.llm.v1.document) = {
+    fields: [
+      "rationale",
+      "bool_value",
+      "string_value",
+      "int_value"
+    ]
+  };
+
   // The data collection identifier
-  string id = 1 [(malonaz.codegen.llm.v1.field_opts).skip = true];
+  string id = 1;
 
   // The JSON schema used for this field
-  string json_schema = 2 [(malonaz.codegen.llm.v1.field_opts).skip = true];
+  string json_schema = 2;
 
   // Rationale for the extraction of this field.
   string rationale = 3;

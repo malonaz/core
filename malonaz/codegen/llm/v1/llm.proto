@@ -9,23 +9,16 @@ option go_package = "github.com/malonaz/core/genproto/codegen/llm/v1";
 // Extensions for message options to configure LLM documentation behavior.
 extend google.protobuf.MessageOptions {
   // If true, we generate llm document.
-  MessageOpts opts = 93000;
-}
-
-// Extension for field options to configure LLM documentation behavior.
-extend google.protobuf.FieldOptions {
-  // Opts for a field.
-  FieldOpts field_opts = 93001;
+  MessageOpts document = 93000;
 }
 
 // Opts for llm documentation.
 message MessageOpts {
-  // If set, we generate documention for this message.
-  bool document = 1;
-}
-
-// Opts for llm documentation.
-message FieldOpts {
-  // If set we do not generate documentation for this field.
-  bool skip = 1;
+  // If true, we generate a 'Doc()' function for this message.
+  bool generate = 1;
+  // If set, we document all fields.
+  bool all = 2;
+  // List of field names to include in the generated documentation.
+  // If non-empty, generates docs for this message including only these fields.
+  repeated string fields = 3;
 }
