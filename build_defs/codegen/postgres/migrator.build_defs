@@ -82,3 +82,20 @@ sed 's/^    /  /' >> $OUT
             "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
         ],
     )
+
+    # Reset.
+    go_src(
+        name = "reset.go",
+        manifest = ":manifest",
+        templates = ["///core//build_defs/codegen/postgres/templates:postgres_reset.go.tmpl"]
+    )
+    go_binary(
+        name = "reset",
+        srcs = [":reset.go"],
+        visibility = visibility,
+        deps = [
+            "//third_party/go:github.com__malonaz__core__go__flags",
+            "//third_party/go:github.com__malonaz__core__go__logging",
+            "//third_party/go:github.com__malonaz__core__go__postgres",
+        ],
+    )

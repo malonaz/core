@@ -1,0 +1,65 @@
+package main
+
+var opts struct {
+	Logging *{{ goImport "github.com/malonaz/core/go/logging" }}.Opts `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
+	{{ .name | camelcase }}Postgres *{{ goImport "github.com/malonaz/core/go/postgres" }}.Opts `group:"{{ .name | camelcase }}Postgres" namespace:"{{ .name | kebabcase }}-postgres" env-namespace:"{{ .name | snakecase | upper }}_POSTGRES"`
+}
+
+func main() {
+	ctx := {{ goImport "context" }}.Background()
+	if err := run(ctx); err != nil {
+		{{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
+		{{ goImport "os" }}.Exit(1)
+	}
+}
+
+func run(ctx {{ goImport "context" }}.Context) error {
+	if err := {{ goImport "github.com/malonaz/core/go/flags" }}.Parse(&opts); err != nil {
+		return err
+	}
+	if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
+		return err
+	}
+
+	// Initialize the postgres client.
+	postgresClient := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ .name | camelcase }}Postgres)
+	if err := postgresClient.Start(ctx); err != nil {
+		return {{ goImport "fmt" }}.Errorf("starting postgres client: %w", err)
+	}
+	defer postgresClient.Close()
+
+	// Get all table names from the public schema.
+	rows, err := postgresClient.Query(ctx, `
+		SELECT tablename
+		FROM pg_tables
+		WHERE schemaname = 'public'
+	`)
+	if err != nil {
+		return {{ goImport "fmt" }}.Errorf("querying tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return {{ goImport "fmt" }}.Errorf("scanning table name: %w", err)
+		}
+		tables = append(tables, tableName)
+	}
+	if err := rows.Err(); err != nil {
+		return {{ goImport "fmt" }}.Errorf("iterating rows: %w", err)
+	}
+
+	// Drop all tables.
+	for _, table := range tables {
+		query := {{ goImport "fmt" }}.Sprintf("DROP TABLE IF EXISTS %s CASCADE", table)
+		if _, err := postgresClient.Exec(ctx, query); err != nil {
+			return {{ goImport "fmt" }}.Errorf("dropping table %s: %w", table, err)
+		}
+		{{ goImport "log/slog" }}.InfoContext(ctx, "dropped table", "table", table)
+	}
+
+	{{ goImport "log/slog" }}.InfoContext(ctx, "reset complete", "tables_dropped", len(tables))
+	return nil
+}
