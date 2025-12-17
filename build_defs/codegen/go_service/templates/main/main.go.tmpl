@@ -194,6 +194,13 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
                 if err != nil {
                 return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
                 }
+                {
+                cleanup, err := {{ $dep.name | camelcase | untitle }}Service.Start(ctx, nil)
+                if err != nil {
+                return {{ goImport "fmt" }}.Errorf("starting {{ $dep.name }} service: %v", err)
+                }
+                defer cleanup()
+                }
             {{- end }}
         {{- end }}
     {{- end }}

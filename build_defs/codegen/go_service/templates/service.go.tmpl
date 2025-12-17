@@ -92,7 +92,10 @@ func New(
 
 // Start this service. Returns clean up function.
 func (s *Service) Start(ctx {{ goImport "context" }}.Context, withServiceAccount func({{ goImport "context" }}.Context) {{ goImport "context" }}.Context) (func(), error) {
+  if withServiceAccount != nil {
   s.{{ ternary "With" "with" $exportFields }}ServiceAccount = withServiceAccount
   ctxSA := withServiceAccount(ctx)
 	return s.start(ctxSA)
+  }
+	return s.start(ctx)
 }
