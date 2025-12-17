@@ -34,6 +34,8 @@ type Service struct {
         {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore *{{ plzGoImport $dep.implementation }}.Store
     {{- else if eq $dep.type "postgres_client" }}
         {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
+    {{- else if eq $dep.type "service" }}
+        {{ ternary ($dep.name | title) $dep.name $exportFields }}Service *{{ plzGoImport $dep.implementation }}.Service
     {{- end }}
   {{- end }}
 }
@@ -54,6 +56,8 @@ func New(
                 {{ $dep.name }}PostgresStore *{{ plzGoImport $dep.implementation }}.Store,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client,
+           {{- else if eq $dep.type "service" }}
+                {{ $dep.name }}Service *{{ plzGoImport $dep.implementation }}.Service,
             {{- end }}
         {{- end }}
 
@@ -79,6 +83,8 @@ func New(
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresStore: {{ $dep.name }}PostgresStore,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
+            {{- else if eq $dep.type "service" }}
+                {{ ternary ($dep.name | title) $dep.name $exportFields }}Service: {{ $dep.name }}Service,
             {{- end }}
         {{- end }}
 	}, nil

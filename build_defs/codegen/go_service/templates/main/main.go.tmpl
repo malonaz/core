@@ -182,6 +182,23 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
     {{- end }}
 {{- end }}
 
+{{- /* DEPENDENCIES BASE SERVICES*/ -}}
+{{- range $serviceManifest := $serviceManifests -}}
+    {{- range $dep := $serviceManifest.dependencies -}}
+        {{- if eq $dep.type "service" -}}
+            {{- $key := printf "base_service_%s" $dep.name  -}}
+            {{- if doOnce $key }}
+                {{- "\n" }}
+                // Instantiate {{ $dep.name }} service.
+	              {{ $dep.name | camelcase | untitle }}Service, err := {{ plzGoImport $dep.implementation }}.New(opts.{{ $dep.name | camelcase }}Service)
+                if err != nil {
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
+                }
+            {{- end }}
+        {{- end }}
+    {{- end }}
+{{- end }}
+
 healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health)
 var gracefulStopFns []func() error
 var stopFns []func() error
@@ -216,6 +233,8 @@ var stopFns []func() error
                 {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  }}DBClient,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ $dep.name | camelcase | untitle }}PsqlClient,
+            {{- else if eq $dep.type "service" }}
+                {{ $dep.name | camelcase | untitle }}Service,
             {{- end }}
         {{- end }}
         )

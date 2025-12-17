@@ -41,6 +41,20 @@
         {{- end -}}
     {{- end -}}
 
+    {{- /* BASE SERVICE DEPS OPTIONS */ -}}
+	  {{- range $serviceManifest := $serviceManifests -}}
+	      {{- if $serviceManifest.dependencies -}}
+	          {{- range $dep := $serviceManifest.dependencies -}}
+	              {{- if eq $dep.type "service" -}}
+                    {{- if doOnce "base_service_opts" -}}{{"\n\n// Base service opts"}}{{- end -}}
+                    {{- if doOnce (printf "base_service_opts_%s" $dep.implementation) }}
+                        {{ $dep.name | camelcase }}Service *{{ plzGoImport $dep.implementation }}.Opts `group:"{{ $dep.name | title }} Service" namespace:"{{ $dep.name | kebabcase }}-service" env-namespace:"{{ $dep.name | snakecase | upper }}_SERVICE"`
+	                  {{- end }}
+	              {{- end }}
+	          {{- end }}
+	      {{- end }}
+	  {{- end }}
+
     {{- /* POSTGRES DATABASE OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests -}}
         {{- range $dep := $serviceManifest.dependencies -}}
