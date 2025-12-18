@@ -9,8 +9,8 @@ RESET='\033[0m'
 
 # Default values
 SOCKET="/tmp/core.socket"
-PROVIDER="openai"
-MODEL="gpt-4o"
+PROVIDER="google"
+MODEL="gemini-3-flash-preview"
 SYSTEM_MESSAGE="You are a helpful assistant."
 USER_MESSAGE="Hello, how are you?"
 MAX_TOKENS=1000
