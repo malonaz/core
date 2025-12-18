@@ -44,6 +44,23 @@ var configGoogle = &config{
 		},
 
 		{
+			Name:            provider.NewModelName(providerIdGoogle, "gemini-3-flash-preview"),
+			ProviderModelId: "gemini-3-flash-preview",
+			Description:     "Our most intelligent model built for speed, combining frontier intelligence with superior search and grounding.",
+			Ttt: &aipb.TttModelConfig{
+				ContextTokenLimit: 1_048_576,
+				OutputTokenLimit:  65_536,
+				Reasoning:         true,
+				ToolCall:          true,
+			},
+			ProviderSettings: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					providerGoogleReasoningEffortType: structpb.NewStringValue(providerGoogleReasoningEffortTypeThinkingLevel),
+				},
+			},
+		},
+
+		{
 			Name:            provider.NewModelName(providerIdGoogle, "gemini-2.5-pro"),
 			ProviderModelId: "gemini-2.5-pro",
 			Description:     "Our state-of-the-art thinking model, capable of reasoning over complex problems in code, math, and STEM, as well as analyzing large datasets, codebases, and documents using long context.",
