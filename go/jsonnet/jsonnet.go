@@ -2,8 +2,6 @@ package jsonnet
 
 import (
 	"embed"
-	"fmt"
-	"os"
 
 	"github.com/google/go-jsonnet"
 )
@@ -45,9 +43,7 @@ func EvaluateSnippet(snippet string) ([]byte, error) {
 }
 
 func EvaluateFile(path string) ([]byte, error) {
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file %s: %w", path, err)
-	}
-	return EvaluateSnippet(string(bytes))
+	vm := jsonnet.MakeVM()
+	str, err := vm.EvaluateFile(path)
+	return []byte(str), err
 }

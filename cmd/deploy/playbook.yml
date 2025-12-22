@@ -1,0 +1,66 @@
+---
+- name: Deploy sgpt
+  hosts: servers
+  become: yes
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Copy binary
+      copy:
+        src: ../../plz-out/bin/server/server
+        dest: /usr/local/bin/sgpt
+        mode: '0755'
+
+    - name: Copy authentication configs
+      copy:
+        src: ../../authentication/
+        dest: /etc/sgpt/authentication/
+        mode: '0600'
+      notify: Restart sgpt
+
+    - name: Create env file
+      template:
+        src: env.j2
+        dest: /etc/sgpt.env
+        mode: '0600'
+      notify: Restart sgpt
+
+    - name: Create systemd service
+      copy:
+        dest: /etc/systemd/system/sgpt.service
+        content: |
+          [Unit]
+          Description=SGPT
+          After=network.target
+
+          [Service]
+          Type=simple
+          EnvironmentFile=/etc/sgpt.env
+          ExecStart=/usr/local/bin/sgpt \
+            --logging.format=pretty \
+            --prometheus.disable \
+            --core-grpc.disable-tls \
+            --core-grpc.port=9090 \
+            --core-grpc.enable-reflection \
+            --external-api-key-authentication.config=/etc/sgpt/authentication/external_service_accounts.json \
+            --internal-service-authentication.config=/etc/sgpt/authentication/internal_service_accounts.json \
+            --permission-authentication.config=/etc/sgpt/authentication/roles.json
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart sgpt
+
+    - name: Enable and start sgpt
+      systemd:
+        name: sgpt
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+  handlers:
+    - name: Restart sgpt
+      systemd:
+        name: sgpt
+        state: restarted

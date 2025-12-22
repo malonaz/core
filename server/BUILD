@@ -18,6 +18,7 @@ go_binary(
     srcs = [":main.go"],
     deps = [
         "//go/ai/ai_service",
+        "//go/authentication",
         "//go/certs",
         "//go/flags",
         "//go/grpc",
@@ -38,5 +39,8 @@ sh_cmd(
         "--core-grpc.disable-tls",
         "--core-grpc.socket-path=/tmp/core.socket",
         "--core-grpc.enable-reflection",
+        "--external-api-key-authentication.config=authentication/external_service_accounts.json",
+        "--internal-service-authentication.config=authentication/internal_service_accounts.json",
+        "--permission-authentication.config=authentication/roles.json",
     ]),
 )
