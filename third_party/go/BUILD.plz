@@ -749,6 +749,74 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__charmbracelet__catwalk",
+    _tag = "download",
+    module = "github.com/charmbracelet/catwalk",
+    version = "v0.11.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__charmbracelet__catwalk",
+    download = ":_github.com__charmbracelet__catwalk#download",
+    install = ["."],
+    module = "github.com/charmbracelet/catwalk",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__charmbracelet__catwalk__internal__deprecated",
+        ":github.com__charmbracelet__catwalk__internal__providers",
+        ":github.com__charmbracelet__x__etag",
+        ":github.com__prometheus__client_golang__prometheus",
+        ":github.com__prometheus__client_golang__prometheus__promauto",
+        ":github.com__prometheus__client_golang__prometheus__promhttp",
+    ],
+)
+
+go_module(
+    name = "github.com__charmbracelet__catwalk__internal__deprecated",
+    download = ":_github.com__charmbracelet__catwalk#download",
+    install = ["internal/deprecated"],
+    module = "github.com/charmbracelet/catwalk",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__charmbracelet__catwalk__pkg__catwalk"],
+)
+
+go_module(
+    name = "github.com__charmbracelet__catwalk__internal__providers",
+    download = ":_github.com__charmbracelet__catwalk#download",
+    install = ["internal/providers"],
+    module = "github.com/charmbracelet/catwalk",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__charmbracelet__catwalk__pkg__catwalk"],
+)
+
+go_module(
+    name = "github.com__charmbracelet__catwalk__pkg__catwalk",
+    download = ":_github.com__charmbracelet__catwalk#download",
+    install = ["pkg/catwalk"],
+    module = "github.com/charmbracelet/catwalk",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__charmbracelet__x__etag"],
+)
+
+go_mod_download(
+    name = "github.com__charmbracelet__x__etag",
+    _tag = "download",
+    module = "github.com/charmbracelet/x/etag",
+    version = "v0.2.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__charmbracelet__x__etag",
+    download = ":_github.com__charmbracelet__x__etag#download",
+    install = ["."],
+    module = "github.com/charmbracelet/x/etag",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__davecgh__go-spew",
     _tag = "download",
     module = "github.com/davecgh/go-spew",
@@ -3048,8 +3116,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):

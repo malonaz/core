@@ -51,7 +51,7 @@ func (c *Client) TextToTextStream(
 
 	// Set max tokens if provided
 	if request.GetConfiguration().GetMaxTokens() > 0 {
-		if c.ProviderId() == providerIdOpenai {
+		if c.ProviderId() == provider.Openai {
 			params.MaxCompletionTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
 		} else {
 			params.MaxTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
@@ -75,7 +75,7 @@ func (c *Client) TextToTextStream(
 	}
 
 	// Groq Reasoning.
-	if c.ProviderId() == providerIdGroq {
+	if c.ProviderId() == provider.Groq {
 		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 			params.SetExtraFields(map[string]any{
 				"reasoning_format": "parsed",
@@ -84,7 +84,7 @@ func (c *Client) TextToTextStream(
 	}
 
 	// Google reasoning.
-	if c.ProviderId() == providerIdGoogle {
+	if c.ProviderId() == provider.Google {
 		thinkingConfig, err := buildGoogleThinkingConfig(model, request.Configuration.GetReasoningEffort())
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "building Google thinking config: %v", err).Err()
@@ -159,26 +159,47 @@ func (c *Client) TextToTextStream(
 			modelUsage := &aipb.ModelUsage{
 				Model: request.Model,
 			}
+
+			// Input tokens (excluding cached)
 			if chunk.Usage.PromptTokens > 0 {
-				modelUsage.InputToken = &aipb.ResourceConsumption{
-					Quantity: int32(chunk.Usage.PromptTokens),
+				inputTokens := chunk.Usage.PromptTokens
+				if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
+					inputTokens -= chunk.Usage.PromptTokensDetails.CachedTokens
+				}
+				if inputTokens > 0 {
+					modelUsage.InputToken = &aipb.ResourceConsumption{
+						Quantity: int32(inputTokens),
+					}
 				}
 			}
+
+			// Output tokens (excluding reasoning)
 			if chunk.Usage.CompletionTokens > 0 {
-				modelUsage.OutputToken = &aipb.ResourceConsumption{
-					Quantity: int32(chunk.Usage.CompletionTokens),
+				outputTokens := chunk.Usage.CompletionTokens
+				if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
+					outputTokens -= chunk.Usage.CompletionTokensDetails.ReasoningTokens
+				}
+				if outputTokens > 0 {
+					modelUsage.OutputToken = &aipb.ResourceConsumption{
+						Quantity: int32(outputTokens),
+					}
 				}
 			}
+
+			// Reasoning tokens
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
 					Quantity: int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens),
 				}
 			}
+
+			// Cached tokens
 			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
 				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
 					Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens),
 				}
 			}
+
 			cs.SendModelUsage(ctx, modelUsage)
 		}
 
@@ -198,7 +219,7 @@ func (c *Client) TextToTextStream(
 				}
 
 				// Check if this is a Google thought/reasoning chunk
-				if c.ProviderId() == providerIdGoogle {
+				if c.ProviderId() == provider.Google {
 					if google, ok := extraContent["google"].(map[string]any); ok {
 						if thought, ok := google["thought"].(bool); ok && thought {
 							sendAsReasoningChunk = true
@@ -407,31 +428,31 @@ func pbReasoningEffortToOpenAIV2(providerId string, effort aipb.ReasoningEffort)
 
 // TODO(malon): map the new ones ( 'none', 'minimal', 'xhigh').
 var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]shared.ReasoningEffort{
-	providerIdOpenai: {
+	provider.Openai: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
 	},
-	providerIdGoogle: {
+	provider.Google: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "", // Google has its own custom fields.
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
 	},
-	providerIdGroq: {
+	provider.Groq: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
 	},
-	providerIdCerebras: {
+	provider.Cerebras: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
 	},
-	providerIdXai: {
+	provider.Xai: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,

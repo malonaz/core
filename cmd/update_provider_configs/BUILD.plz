@@ -1,0 +1,17 @@
+export_file(
+    name = "model.json",
+    src = "//third_party/json:litellm_models",
+)
+
+go_binary(
+    name = "update_provider_configs",
+    srcs = ["main.go"],
+    resources = [":model.json"],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/pbutil",
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__protobuf__proto",
+    ],
+)

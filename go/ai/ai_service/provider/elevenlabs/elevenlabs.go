@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	aipb "github.com/malonaz/core/genproto/ai/v1"
-	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
@@ -30,39 +28,13 @@ func NewClient(apiKey string, modelService *provider.ModelService) *Client {
 }
 
 // Implements the provider.Provider interface.
-func (c *Client) ProviderId() string { return "elevenlabs" }
+func (c *Client) ProviderId() string { return provider.Elevenlabs }
 
 // Implements the provider.Provider interface.
 func (c *Client) Start(context.Context) error { return nil }
 
 // Implements the provider.Provider interface.
 func (c *Client) Stop() {}
-
-// Implements the provider.Provider interface.
-func (c *Client) DefaultModels() []*aipb.Model {
-	return []*aipb.Model{
-		{
-			Name:            (&aipb.ModelResourceName{Provider: c.ProviderId(), Model: "flash-v2-5"}).String(),
-			ProviderModelId: "eleven_flash_v2_5",
-			Tts: &aipb.TtsModelConfig{
-				AudioFormat: &audiopb.Format{
-					SampleRate:    16000,
-					Channels:      1,
-					BitsPerSample: 16,
-				},
-				SupportedSampleRates: []int32{
-					8_000,
-					16_000,
-					22_050,
-					24_000,
-					32_000,
-					44_100,
-					48_000,
-				},
-			},
-		},
-	}
-}
 
 // Verify interface implementation
 var _ provider.TextToSpeechClient = (*Client)(nil)

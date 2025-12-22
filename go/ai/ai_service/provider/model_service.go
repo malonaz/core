@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -14,6 +15,22 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc"
+)
+
+const (
+	Cartesia   = "cartesia"
+	Elevenlabs = "elevenlabs"
+	Anthropic  = "anthropic"
+	Openai     = "openai"
+	Groq       = "groq"
+	Cerebras   = "cerebras"
+	Google     = "google"
+	Xai        = "xai"
+)
+
+var (
+	//go:embed configs/*.json
+	configsFS embed.FS
 )
 
 // Implements the model service.
@@ -43,7 +60,17 @@ func (s *ModelService) RegisterProvider(ctx context.Context, provider Provider) 
 		return fmt.Errorf("duplicate provider %s", provider.ProviderId())
 	}
 	s.providerIdToProvider[provider.ProviderId()] = provider
-	for _, model := range provider.DefaultModels() {
+
+	configPath := fmt.Sprintf("configs/%s.json", provider.ProviderId())
+	configBytes, err := configsFS.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("parsing config %s: %w", configPath, err)
+	}
+	config, err := parseModels(configBytes)
+	if err != nil {
+		return fmt.Errorf("parsing config for %s: %v", provider.ProviderId(), err)
+	}
+	for _, model := range config.Models {
 		modelRn := &aipb.ModelResourceName{}
 		if err := modelRn.UnmarshalString(model.Name); err != nil {
 			return fmt.Errorf("unmarshaling model name: %v", err)

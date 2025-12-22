@@ -1,0 +1,17 @@
+{
+  "provider_id": "elevenlabs",
+  "models": [
+    {
+      "name": "providers/elevenlabs/models/flash-v2-5",
+      "provider_model_id": "eleven_flash_v2_5",
+      "tts": {
+        "audio_format": {
+          "sample_rate": 16000,
+          "channels": 1,
+          "bits_per_sample": 16
+        },
+        "supported_sample_rates": [8000, 16000, 22050, 24000, 32000, 44100, 48000]
+      }
+    }
+  ]
+}

@@ -17,6 +17,14 @@ option (google.api.resource_definition) = {
   plural: "providers"
 };
 
+// Holds a provider config.
+message ProviderModelConfig {
+  // The id of the provider.
+  string provider_id = 1;
+  // The models of this provider.
+  repeated Model models = 2;
+}
+
 // Contains configuration for a  model.
 message Model {
   option (google.api.resource) = {
@@ -75,6 +83,22 @@ message TttModelConfig {
   int32 context_token_limit = 3 [(buf.validate.field).int32.gte = 1];
   // The maximum number of tokens the model can generate in a single response.
   int32 output_token_limit = 4 [(buf.validate.field).int32.gte = 1];
+  // Pricing for this model.
+  TttModelPricing pricing = 5;
+}
+
+// Pricing for a ttt model.
+message TttModelPricing {
+  // Price per million input tokens in dollars.
+  double input_token_price_per_million = 1;
+  // Price per million output tokens in dollars.
+  double output_token_price_per_million = 2;
+  // Price per million output reasoning tokens in dollars.
+  double output_reasoning_token_price_per_million = 3;
+  // Price per million cache read tokens in dollars.
+  double input_cache_read_token_price_per_million = 4;
+  // Price per million cache write tokens in dollars.
+  double input_cache_write_token_price_per_million = 5;
 }
 
 // Configuration for a tts model.

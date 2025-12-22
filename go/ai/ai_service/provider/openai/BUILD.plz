@@ -1,14 +1,11 @@
 go_library(
     name = "openai",
     srcs = [
-        "cerebras.go",
         "google.go",
-        "groq.go",
         "openai.go",
         "speech_to_text.go",
         "text_to_speech.go",
         "text_to_text_stream.go",
-        "xai.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -25,7 +22,6 @@ go_library(
         "//third_party/go:github.com__sashabaranov__go-openai",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

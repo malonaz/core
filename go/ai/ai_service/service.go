@@ -157,7 +157,6 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		request.Configuration.MaxTokens = model.Ttt.OutputTokenLimit
 	}
 
-	// Some verification.
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
 		return grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
@@ -165,8 +164,46 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	// Direct pass-through - provider implements exact gRPC interface
-	return provider.TextToTextStream(request, srv)
+	pricing := model.GetTtt().GetPricing()
+	wrapper := &tttStreamWrapper{
+		Ai_TextToTextStreamServer: srv,
+		pricing:                   pricing,
+	}
+	return provider.TextToTextStream(request, wrapper)
+}
+
+type tttStreamWrapper struct {
+	pb.Ai_TextToTextStreamServer
+	pricing *aipb.TttModelPricing
+}
+
+func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
+	if usage, ok := resp.GetContent().(*pb.TextToTextStreamResponse_ModelUsage); ok && w.pricing != nil {
+		computeModelUsagePrices(usage.ModelUsage, w.pricing)
+	}
+	return w.Ai_TextToTextStreamServer.Send(resp)
+}
+
+func computeModelUsagePrices(usage *aipb.ModelUsage, pricing *aipb.TttModelPricing) {
+	if usage.InputToken != nil {
+		usage.InputToken.Price = float64(usage.InputToken.Quantity) * pricing.InputTokenPricePerMillion / 1_000_000
+	}
+	if usage.OutputToken != nil {
+		usage.OutputToken.Price = float64(usage.OutputToken.Quantity) * pricing.OutputTokenPricePerMillion / 1_000_000
+	}
+	if usage.OutputReasoningToken != nil {
+		pricePerMillion := pricing.OutputReasoningTokenPricePerMillion
+		if pricePerMillion == 0 {
+			pricePerMillion = pricing.OutputTokenPricePerMillion
+		}
+		usage.OutputReasoningToken.Price = float64(usage.OutputReasoningToken.Quantity) * pricePerMillion / 1_000_000
+	}
+	if usage.InputCacheReadToken != nil {
+		usage.InputCacheReadToken.Price = float64(usage.InputCacheReadToken.Quantity) * pricing.InputCacheReadTokenPricePerMillion / 1_000_000
+	}
+	if usage.InputCacheWriteToken != nil {
+		usage.InputCacheWriteToken.Price = float64(usage.InputCacheWriteToken.Quantity) * pricing.InputCacheWriteTokenPricePerMillion / 1_000_000
+	}
 }
 
 // TextToText collects all streamed text chunks into a single response

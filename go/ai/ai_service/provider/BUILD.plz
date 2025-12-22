@@ -7,10 +7,12 @@ go_library(
         "utils.go",
         "voice_service.go",
     ],
+    resources = glob(["configs/*.json"]),
     visibility = ["//..."],
     deps = [
         "//go/aip",
         "//go/grpc",
+        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:buf.build__go__protovalidate",

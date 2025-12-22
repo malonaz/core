@@ -7,8 +7,6 @@ import (
 
 	"github.com/malonaz/core/go/websocket"
 
-	aipb "github.com/malonaz/core/genproto/ai/v1"
-	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
@@ -78,32 +76,7 @@ func (c *Client) NewTextToSpeechStream() *Stream[*TextToSpeechRequest, *TextToSp
 }
 
 // Implements the provider.Provider interface.
-func (c *Client) ProviderId() string { return "cartesia" }
-
-// Implements the provider.Provider interface.
-func (c *Client) DefaultModels() []*aipb.Model {
-	return []*aipb.Model{
-		{
-			Name:            (&aipb.ModelResourceName{Provider: c.ProviderId(), Model: "sonic-3"}).String(),
-			ProviderModelId: "sonic-3",
-			Tts: &aipb.TtsModelConfig{
-				AudioFormat: &audiopb.Format{
-					SampleRate:    8000,
-					Channels:      1,
-					BitsPerSample: 16,
-				},
-				SupportedSampleRates: []int32{
-					8_000,
-					16_000,
-					22_050,
-					24_000,
-					44_100,
-					48_000,
-				},
-			},
-		},
-	}
-}
+func (c *Client) ProviderId() string { return provider.Cartesia }
 
 // Verify interface implementation
 var _ provider.TextToSpeechClient = (*Client)(nil)

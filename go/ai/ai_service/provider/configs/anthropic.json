@@ -1,0 +1,212 @@
+{
+  "provider_id":  "anthropic",
+  "models":  [
+    {
+      "name":  "providers/anthropic/models/claude-sonnet-4.5",
+      "provider_model_id":  "claude-sonnet-4-5",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  3,
+          "output_token_price_per_million":  15,
+          "input_cache_read_token_price_per_million":  0.3,
+          "input_cache_write_token_price_per_million":  3.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-haiku-4.5",
+      "provider_model_id":  "claude-haiku-4-5",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  1,
+          "output_token_price_per_million":  5,
+          "input_cache_read_token_price_per_million":  0.09999999999999999,
+          "input_cache_write_token_price_per_million":  1.25
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-opus-4.5",
+      "provider_model_id":  "claude-opus-4-5",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  5,
+          "output_token_price_per_million":  25,
+          "input_cache_read_token_price_per_million":  0.5,
+          "input_cache_write_token_price_per_million":  6.25
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-opus-4.1",
+      "provider_model_id":  "claude-opus-4-1",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  32000,
+        "pricing":  {
+          "input_token_price_per_million":  15,
+          "output_token_price_per_million":  75,
+          "input_cache_read_token_price_per_million":  1.5,
+          "input_cache_write_token_price_per_million":  18.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-sonnet-4.5-20250929",
+      "provider_model_id":  "claude-sonnet-4-5-20250929",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  3,
+          "output_token_price_per_million":  15,
+          "input_cache_read_token_price_per_million":  0.3,
+          "input_cache_write_token_price_per_million":  3.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-haiku-4.5-20251001",
+      "provider_model_id":  "claude-haiku-4-5-20251001",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  1,
+          "output_token_price_per_million":  5,
+          "input_cache_read_token_price_per_million":  0.09999999999999999,
+          "input_cache_write_token_price_per_million":  1.25
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-opus-4.5-20251101",
+      "provider_model_id":  "claude-opus-4-5-20251101",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  5,
+          "output_token_price_per_million":  25,
+          "input_cache_read_token_price_per_million":  0.5,
+          "input_cache_write_token_price_per_million":  6.25
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-opus-4.1-20250805",
+      "provider_model_id":  "claude-opus-4-1-20250805",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  32000,
+        "pricing":  {
+          "input_token_price_per_million":  15,
+          "output_token_price_per_million":  75,
+          "input_cache_read_token_price_per_million":  1.5,
+          "input_cache_write_token_price_per_million":  18.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-sonnet-4-20250514",
+      "provider_model_id":  "claude-sonnet-4-20250514",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  3,
+          "output_token_price_per_million":  15,
+          "input_cache_read_token_price_per_million":  0.3,
+          "input_cache_write_token_price_per_million":  3.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-opus-4-20250514",
+      "provider_model_id":  "claude-opus-4-20250514",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  32000,
+        "pricing":  {
+          "input_token_price_per_million":  15,
+          "output_token_price_per_million":  75,
+          "input_cache_read_token_price_per_million":  1.5,
+          "input_cache_write_token_price_per_million":  18.75
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-3-5-haiku-20241022",
+      "provider_model_id":  "claude-3-5-haiku-20241022",
+      "ttt":  {
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  8000,
+        "pricing":  {
+          "input_token_price_per_million":  0.7999999999999999,
+          "output_token_price_per_million":  4,
+          "input_cache_read_token_price_per_million":  0.08,
+          "input_cache_write_token_price_per_million":  1
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-3-haiku-20240307",
+      "provider_model_id":  "claude-3-haiku-20240307",
+      "ttt":  {
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  4000,
+        "pricing":  {
+          "input_token_price_per_million":  0.25,
+          "output_token_price_per_million":  1.25,
+          "input_cache_read_token_price_per_million":  0.03,
+          "input_cache_write_token_price_per_million":  0.3
+        }
+      }
+    },
+    {
+      "name":  "providers/anthropic/models/claude-3-7-sonnet-20250219",
+      "provider_model_id":  "claude-3-7-sonnet-20250219",
+      "deprecate_time":  "2025-10-28T00:00:00Z",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  200000,
+        "output_token_limit":  64000,
+        "pricing":  {
+          "input_token_price_per_million":  3,
+          "output_token_price_per_million":  15,
+          "input_cache_read_token_price_per_million":  0.3,
+          "input_cache_write_token_price_per_million":  3.75
+        }
+      }
+    }
+  ]
+}

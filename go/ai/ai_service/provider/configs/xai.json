@@ -1,0 +1,52 @@
+{
+  "provider_id":  "xai",
+  "models":  [
+    {
+      "name":  "providers/xai/models/grok-4.1",
+      "provider_model_id":  "grok-4-1-fast-non-reasoning",
+      "description":  "A frontier multimodal model optimized specifically for high-performance agentic tool calling.",
+      "ttt":  {
+        "tool_call":  true,
+        "context_token_limit":  2000000,
+        "output_token_limit":  30000,
+        "pricing":  {
+          "input_token_price_per_million":  0.19999999999999998,
+          "output_token_price_per_million":  0.5,
+          "input_cache_read_token_price_per_million":  0.049999999999999996
+        }
+      }
+    },
+    {
+      "name":  "providers/xai/models/grok-4.1-reasoning",
+      "provider_model_id":  "grok-4-1-fast-reasoning",
+      "description":  "A frontier multimodal model optimized specifically for high-performance agentic tool calling, with reasoning capabilities.",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  2000000,
+        "output_token_limit":  30000,
+        "pricing":  {
+          "input_token_price_per_million":  0.19999999999999998,
+          "output_token_price_per_million":  0.5,
+          "input_cache_read_token_price_per_million":  0.049999999999999996
+        }
+      }
+    },
+    {
+      "name":  "providers/xai/models/grok-code-fast-1",
+      "provider_model_id":  "grok-code-fast-1",
+      "description":  "A speedy and economical reasoning model that excels at agentic coding.",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "context_token_limit":  256000,
+        "output_token_limit":  30000,
+        "pricing":  {
+          "input_token_price_per_million":  0.19999999999999998,
+          "output_token_price_per_million":  1.5,
+          "input_cache_read_token_price_per_million":  0.02
+        }
+      }
+    }
+  ]
+}
