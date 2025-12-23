@@ -35,6 +35,7 @@
 
           [Service]
           Type=simple
+          WorkingDirectory=/etc/ai-service
           EnvironmentFile=/etc/ai-service.env
           ExecStart=/usr/local/bin/ai-service \
             --logging.format=pretty \
@@ -42,9 +43,9 @@
             --core-grpc.disable-tls \
             --core-grpc.port=9090 \
             --core-grpc.enable-reflection \
-            --external-api-key-authentication.config=/etc/ai-service/authentication/external_service_accounts.json \
-            --internal-service-authentication.config=/etc/ai-service/authentication/internal_service_accounts.json \
-            --permission-authentication.config=/etc/ai-service/authentication/roles.json
+            --external-api-key-authentication.config=authentication/external_service_accounts.json \
+            --internal-service-authentication.config=authentication/internal_service_accounts.json \
+            --permission-authentication.config=authentication/roles.json
           Restart=always
           RestartSec=5
 
