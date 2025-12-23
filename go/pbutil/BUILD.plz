@@ -1,8 +1,10 @@
 go_library(
     name = "pbutil",
     srcs = [
+        "any.go",
+        "fieldmask.go",
         "marshaller.go",
-        "pbutil.go",
+        "options.go",
         "pretty.go",
     ],
     visibility = ["//..."],
@@ -19,5 +21,16 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["fieldmask_test.go"],
+    deps = [
+        ":pbutil",
+        "//malonaz/test/pbutil",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

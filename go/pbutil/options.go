@@ -5,15 +5,11 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
-	"github.com/mennanov/fmutils"
-	"go.einride.tech/aip/fieldmask"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 type enum interface {
@@ -113,93 +109,6 @@ func GetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) (any,
 		return nil, fmt.Errorf("extension is undefined for %v", enum.String())
 	}
 	return extension, nil
-}
-
-func ValidateMask(message proto.Message, paths string) error {
-	fieldMask := &fieldmaskpb.FieldMask{Paths: strings.Split(paths, ",")}
-	return fieldmask.Validate(fieldMask, message)
-}
-
-func ExtractConcreteMessageFromAnyMessage(anyMessage *anypb.Any) (proto.Message, error) {
-	// Get the message type
-	mt, err := protoregistry.GlobalTypes.FindMessageByURL(anyMessage.TypeUrl)
-	if err != nil {
-		return nil, fmt.Errorf("unknown type %s: %v", anyMessage.TypeUrl, err)
-	}
-	// Create a new instance of the message
-	message := mt.New().Interface()
-	// Unmarshal the Any message
-	if err := anyMessage.UnmarshalTo(message); err != nil {
-		return nil, err
-	}
-	return message, nil
-}
-
-// ApplyMaskAny handles an any message elegantly.
-func ApplyMaskAny(anyMessage *anypb.Any, paths string) error {
-	// Get the message type
-	mt, err := protoregistry.GlobalTypes.FindMessageByURL(anyMessage.TypeUrl)
-	if err != nil {
-		return fmt.Errorf("unknown type %s: %v", anyMessage.TypeUrl, err)
-	}
-	// Create a new instance of the message
-	maskedMessage := mt.New().Interface()
-	// Unmarshal the Any message
-	if err := anyMessage.UnmarshalTo(maskedMessage); err != nil {
-		return err
-	}
-	// Apply the mask.
-	if err := ApplyMask(maskedMessage, paths); err != nil {
-		return err
-	}
-	anyMessage.Reset()
-	return anyMessage.MarshalFrom(maskedMessage)
-}
-
-// ApplyMask filters a proto message with the given paths.
-// Note that the given paths are structured as follow: "a.b,a.c" etc.
-func ApplyMask(message proto.Message, paths string) error {
-	if err := ValidateMask(message, paths); err != nil {
-		return fmt.Errorf("validating field mask: %w", err)
-	}
-	mask := fmutils.NestedMaskFromPaths(strings.Split(paths, ","))
-	mask.Filter(message)
-	return nil
-}
-
-// ApplyMaskInverse prunes a proto message with the given paths.
-// Note that the given paths are structured as follow: "a.b,a.c" etc.
-func ApplyMaskInverse(message proto.Message, paths string) error {
-	if err := ValidateMask(message, paths); err != nil {
-		return fmt.Errorf("validating field mask: %w", err)
-	}
-	mask := fmutils.NestedMaskFromPaths(strings.Split(paths, ","))
-	mask.Prune(message)
-	return nil
-}
-
-type NestedFieldMask struct {
-	nm fmutils.NestedMask
-}
-
-func MustNewNestedFieldMask(message proto.Message, paths string) *NestedFieldMask {
-	nestedFieldMask, err := NewNestedFieldMask(message, paths)
-	if err != nil {
-		panic(err)
-	}
-	return nestedFieldMask
-}
-
-func NewNestedFieldMask(message proto.Message, paths string) (*NestedFieldMask, error) {
-	if err := ValidateMask(message, paths); err != nil {
-		return nil, fmt.Errorf("validating field mask: %w", err)
-	}
-	nm := fmutils.NestedMaskFromPaths(strings.Split(paths, ","))
-	return &NestedFieldMask{nm: nm}, nil
-}
-
-func (m *NestedFieldMask) ApplyInverse(message proto.Message) {
-	m.nm.Prune(message)
 }
 
 func SanitizeEnumString(enum, prefix string) string {

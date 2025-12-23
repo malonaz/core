@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package test.pbutil.v1;
+
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/aip";
+
+// Shelf represents a collection of books.
+message Shelf {
+  option (google.api.resource) = {
+    type: "test.malonaz.com/Shelf"
+    pattern: "shelves/{shelf}"
+    singular: "shelf"
+    plural: "shelves"
+  };
+
+  // Resource name of the shelf.
+  string name = 1;
+
+  // Display name of the shelf.
+  string display_name = 2;
+
+  // Creation timestamp.
+  google.protobuf.Timestamp create_time = 3;
+
+  // Last update timestamp.
+  google.protobuf.Timestamp update_time = 4;
+
+  // Type of shelf.
+  ShelfType shelf_type = 5;
+
+  // Books contained in this shelf.
+  repeated Book books = 6;
+
+  // The author.
+  Author author = 7;
+}
+
+// ShelfType defines the category of a shelf.
+enum ShelfType {
+  // Unspecified shelf type.
+  SHELF_TYPE_UNSPECIFIED = 0;
+
+  // Fiction books.
+  SHELF_TYPE_FICTION = 1;
+
+  // Non-fiction books.
+  SHELF_TYPE_NON_FICTION = 2;
+
+  // Reference materials.
+  SHELF_TYPE_REFERENCE = 3;
+}
+
+// Book represents a single book on a shelf.
+message Book {
+  option (google.api.resource) = {
+    type: "test.malonaz.com/Book"
+    pattern: "shelves/{shelf}/books/{book}"
+    singular: "book"
+    plural: "books"
+  };
+
+  // Resource name of the book.
+  string name = 1;
+
+  // Title of the book.
+  string title = 2;
+
+  // Author of the book.
+  string author = 3;
+
+  // Creation timestamp.
+  google.protobuf.Timestamp create_time = 4;
+
+  // Last update timestamp.
+  google.protobuf.Timestamp update_time = 5;
+}
+
+// Author represents a book author.
+message Author {
+  option (google.api.resource) = {
+    type: "test.malonaz.com/Author"
+    pattern: "authors/{author}"
+    singular: "author"
+    plural: "authors"
+  };
+
+  // Resource name of the author.
+  string name = 1;
+
+  // Display name of the author.
+  string display_name = 2;
+
+  // Creation timestamp.
+  google.protobuf.Timestamp create_time = 3;
+
+  // Last update timestamp.
+  google.protobuf.Timestamp update_time = 4;
+}

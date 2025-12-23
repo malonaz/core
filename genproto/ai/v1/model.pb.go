@@ -27,6 +27,61 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Holds a provider config.
+type ProviderModelConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The id of the provider.
+	ProviderId string `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	// The models of this provider.
+	Models        []*Model `protobuf:"bytes,2,rep,name=models,proto3" json:"models,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProviderModelConfig) Reset() {
+	*x = ProviderModelConfig{}
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProviderModelConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProviderModelConfig) ProtoMessage() {}
+
+func (x *ProviderModelConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProviderModelConfig.ProtoReflect.Descriptor instead.
+func (*ProviderModelConfig) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ProviderModelConfig) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *ProviderModelConfig) GetModels() []*Model {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
 // Contains configuration for a  model.
 type Model struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -62,7 +117,7 @@ type Model struct {
 
 func (x *Model) Reset() {
 	*x = Model{}
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -74,7 +129,7 @@ func (x *Model) String() string {
 func (*Model) ProtoMessage() {}
 
 func (x *Model) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[0]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -87,7 +142,7 @@ func (x *Model) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Model.ProtoReflect.Descriptor instead.
 func (*Model) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{0}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Model) GetName() string {
@@ -155,7 +210,7 @@ type SttModelConfig struct {
 
 func (x *SttModelConfig) Reset() {
 	*x = SttModelConfig{}
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -167,7 +222,7 @@ func (x *SttModelConfig) String() string {
 func (*SttModelConfig) ProtoMessage() {}
 
 func (x *SttModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[1]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -180,7 +235,7 @@ func (x *SttModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SttModelConfig.ProtoReflect.Descriptor instead.
 func (*SttModelConfig) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{2}
 }
 
 // Configuration for a ttt model.
@@ -194,13 +249,15 @@ type TttModelConfig struct {
 	ContextTokenLimit int32 `protobuf:"varint,3,opt,name=context_token_limit,json=contextTokenLimit,proto3" json:"context_token_limit,omitempty"`
 	// The maximum number of tokens the model can generate in a single response.
 	OutputTokenLimit int32 `protobuf:"varint,4,opt,name=output_token_limit,json=outputTokenLimit,proto3" json:"output_token_limit,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Pricing for this model.
+	Pricing       *TttModelPricing `protobuf:"bytes,5,opt,name=pricing,proto3" json:"pricing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TttModelConfig) Reset() {
 	*x = TttModelConfig{}
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -212,7 +269,7 @@ func (x *TttModelConfig) String() string {
 func (*TttModelConfig) ProtoMessage() {}
 
 func (x *TttModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -225,7 +282,7 @@ func (x *TttModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TttModelConfig.ProtoReflect.Descriptor instead.
 func (*TttModelConfig) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TttModelConfig) GetReasoning() bool {
@@ -256,6 +313,95 @@ func (x *TttModelConfig) GetOutputTokenLimit() int32 {
 	return 0
 }
 
+func (x *TttModelConfig) GetPricing() *TttModelPricing {
+	if x != nil {
+		return x.Pricing
+	}
+	return nil
+}
+
+// Pricing for a ttt model.
+type TttModelPricing struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Price per million input tokens in dollars.
+	InputTokenPricePerMillion float64 `protobuf:"fixed64,1,opt,name=input_token_price_per_million,json=inputTokenPricePerMillion,proto3" json:"input_token_price_per_million,omitempty"`
+	// Price per million output tokens in dollars.
+	OutputTokenPricePerMillion float64 `protobuf:"fixed64,2,opt,name=output_token_price_per_million,json=outputTokenPricePerMillion,proto3" json:"output_token_price_per_million,omitempty"`
+	// Price per million output reasoning tokens in dollars.
+	OutputReasoningTokenPricePerMillion float64 `protobuf:"fixed64,3,opt,name=output_reasoning_token_price_per_million,json=outputReasoningTokenPricePerMillion,proto3" json:"output_reasoning_token_price_per_million,omitempty"`
+	// Price per million cache read tokens in dollars.
+	InputCacheReadTokenPricePerMillion float64 `protobuf:"fixed64,4,opt,name=input_cache_read_token_price_per_million,json=inputCacheReadTokenPricePerMillion,proto3" json:"input_cache_read_token_price_per_million,omitempty"`
+	// Price per million cache write tokens in dollars.
+	InputCacheWriteTokenPricePerMillion float64 `protobuf:"fixed64,5,opt,name=input_cache_write_token_price_per_million,json=inputCacheWriteTokenPricePerMillion,proto3" json:"input_cache_write_token_price_per_million,omitempty"`
+	unknownFields                       protoimpl.UnknownFields
+	sizeCache                           protoimpl.SizeCache
+}
+
+func (x *TttModelPricing) Reset() {
+	*x = TttModelPricing{}
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TttModelPricing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TttModelPricing) ProtoMessage() {}
+
+func (x *TttModelPricing) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TttModelPricing.ProtoReflect.Descriptor instead.
+func (*TttModelPricing) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *TttModelPricing) GetInputTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.InputTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetOutputTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.OutputTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetOutputReasoningTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.OutputReasoningTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetInputCacheReadTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.InputCacheReadTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetInputCacheWriteTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.InputCacheWriteTokenPricePerMillion
+	}
+	return 0
+}
+
 // Configuration for a tts model.
 type TtsModelConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -269,7 +415,7 @@ type TtsModelConfig struct {
 
 func (x *TtsModelConfig) Reset() {
 	*x = TtsModelConfig{}
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +427,7 @@ func (x *TtsModelConfig) String() string {
 func (*TtsModelConfig) ProtoMessage() {}
 
 func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +440,7 @@ func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TtsModelConfig.ProtoReflect.Descriptor instead.
 func (*TtsModelConfig) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{3}
+	return file_malonaz_ai_v1_model_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *TtsModelConfig) GetAudioFormat() *v1.Format {
@@ -315,7 +461,11 @@ var File_malonaz_ai_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xfc\x03\n" +
+	"\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"d\n" +
+	"\x13ProviderModelConfig\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\x12,\n" +
+	"\x06models\x18\x02 \x03(\v2\x14.malonaz.ai.v1.ModelR\x06models\"\xfc\x03\n" +
 	"\x05Model\x12!\n" +
 	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
 	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x129\n" +
@@ -328,12 +478,19 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12D\n" +
 	"\x11provider_settings\x18\b \x01(\v2\x17.google.protobuf.StructR\x10providerSettings:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
-	"\x0eSttModelConfig\"\xbb\x01\n" +
+	"\x0eSttModelConfig\"\xf5\x01\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
 	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x127\n" +
 	"\x13context_token_limit\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x125\n" +
-	"\x12output_token_limit\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x10outputTokenLimit\"\x9c\x01\n" +
+	"\x12output_token_limit\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x10outputTokenLimit\x128\n" +
+	"\apricing\x18\x05 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\x9c\x03\n" +
+	"\x0fTttModelPricing\x12@\n" +
+	"\x1dinput_token_price_per_million\x18\x01 \x01(\x01R\x19inputTokenPricePerMillion\x12B\n" +
+	"\x1eoutput_token_price_per_million\x18\x02 \x01(\x01R\x1aoutputTokenPricePerMillion\x12U\n" +
+	"(output_reasoning_token_price_per_million\x18\x03 \x01(\x01R#outputReasoningTokenPricePerMillion\x12T\n" +
+	"(input_cache_read_token_price_per_million\x18\x04 \x01(\x01R\"inputCacheReadTokenPricePerMillion\x12V\n" +
+	")input_cache_write_token_price_per_million\x18\x05 \x01(\x01R#inputCacheWriteTokenPricePerMillion\"\x9c\x01\n" +
 	"\x0eTtsModelConfig\x12C\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
 	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRatesBo\xeaAD\n" +
@@ -351,28 +508,32 @@ func file_malonaz_ai_v1_model_proto_rawDescGZIP() []byte {
 	return file_malonaz_ai_v1_model_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_v1_model_proto_goTypes = []any{
-	(*Model)(nil),                 // 0: malonaz.ai.v1.Model
-	(*SttModelConfig)(nil),        // 1: malonaz.ai.v1.SttModelConfig
-	(*TttModelConfig)(nil),        // 2: malonaz.ai.v1.TttModelConfig
-	(*TtsModelConfig)(nil),        // 3: malonaz.ai.v1.TtsModelConfig
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 5: google.protobuf.Struct
-	(*v1.Format)(nil),             // 6: malonaz.audio.v1.Format
+	(*ProviderModelConfig)(nil),   // 0: malonaz.ai.v1.ProviderModelConfig
+	(*Model)(nil),                 // 1: malonaz.ai.v1.Model
+	(*SttModelConfig)(nil),        // 2: malonaz.ai.v1.SttModelConfig
+	(*TttModelConfig)(nil),        // 3: malonaz.ai.v1.TttModelConfig
+	(*TttModelPricing)(nil),       // 4: malonaz.ai.v1.TttModelPricing
+	(*TtsModelConfig)(nil),        // 5: malonaz.ai.v1.TtsModelConfig
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 7: google.protobuf.Struct
+	(*v1.Format)(nil),             // 8: malonaz.audio.v1.Format
 }
 var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
-	1, // 1: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
-	2, // 2: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
-	3, // 3: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
-	5, // 4: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
-	6, // 5: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	1, // 0: malonaz.ai.v1.ProviderModelConfig.models:type_name -> malonaz.ai.v1.Model
+	6, // 1: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
+	2, // 2: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
+	3, // 3: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
+	5, // 4: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
+	7, // 5: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
+	4, // 6: malonaz.ai.v1.TttModelConfig.pricing:type_name -> malonaz.ai.v1.TttModelPricing
+	8, // 7: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_model_proto_init() }
@@ -386,7 +547,7 @@ func file_malonaz_ai_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_model_proto_rawDesc), len(file_malonaz_ai_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

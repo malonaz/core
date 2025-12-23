@@ -35,6 +35,7 @@ declare -a FILES=(
 
  # Proto test files
   "malonaz/test/aip/aip.pb.go:test/aip"
+  "malonaz/test/pbutil/pbutil.pb.go:test/pbutil"
 )
 
 # Collect all directories we'll be writing to
