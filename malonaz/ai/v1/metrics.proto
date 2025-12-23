@@ -16,7 +16,8 @@ message GenerationMetrics {
   google.protobuf.Duration ttlb = 2;
 }
 
-// Tracks model usage.
+// Tracks model usage. When streamed out, incremental resource consumptions can be streamed out.
+// The absolute truth for a resource consumption is the last one streamed out for this resource consumption.
 message ModelUsage {
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}

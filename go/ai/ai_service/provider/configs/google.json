@@ -17,7 +17,12 @@
         }
       },
       "provider_settings": {
-        "reasoning_effort_type": "reasoning_effort_type_thinking_level"
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "low",
+        "REASONING_EFFORT_DEFAULT": "low",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "high",
+        "REASONING_EFFORT_HIGH": "high"
       }
     },
     {
@@ -37,7 +42,12 @@
         }
       },
       "provider_settings": {
-        "reasoning_effort_type": "reasoning_effort_type_thinking_level"
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "minimal",
+        "REASONING_EFFORT_DEFAULT": "medium",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high"
       }
     },
     {
@@ -56,7 +66,12 @@
         }
       },
       "provider_settings": {
-        "reasoning_effort_type": "reasoning_effort_type_thinking_budget"
+        "thinking_config_key": "thinking_budget",
+        "REASONING_EFFORT_UNSPECIFIED": 128,
+        "REASONING_EFFORT_DEFAULT": -1,
+        "REASONING_EFFORT_LOW": 1024,
+        "REASONING_EFFORT_MEDIUM": 8192,
+        "REASONING_EFFORT_HIGH": 32768
       }
     },
     {
@@ -76,7 +91,12 @@
         }
       },
       "provider_settings": {
-        "reasoning_effort_type": "reasoning_effort_type_thinking_budget"
+        "thinking_config_key": "thinking_budget",
+        "REASONING_EFFORT_UNSPECIFIED": 0,
+        "REASONING_EFFORT_DEFAULT": -1,
+        "REASONING_EFFORT_LOW": 1024,
+        "REASONING_EFFORT_MEDIUM": 8192,
+        "REASONING_EFFORT_HIGH": 24576
       }
     },
     {
@@ -96,7 +116,12 @@
         }
       },
       "provider_settings": {
-        "reasoning_effort_type": "reasoning_effort_type_thinking_budget"
+        "thinking_config_key": "thinking_budget",
+        "REASONING_EFFORT_UNSPECIFIED": 0,
+        "REASONING_EFFORT_DEFAULT": -1,
+        "REASONING_EFFORT_LOW": 1024,
+        "REASONING_EFFORT_MEDIUM": 8192,
+        "REASONING_EFFORT_HIGH": 24576
       }
     }
   ]

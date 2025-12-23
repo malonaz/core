@@ -8,14 +8,11 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
-	aipb "github.com/malonaz/core/genproto/ai/v1"
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
-	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/ai/ai_service/provider/anthropic"
 	"github.com/malonaz/core/go/ai/ai_service/provider/cartesia"
@@ -138,154 +135,6 @@ func (s *Service) loadVoicesFromFile(ctx context.Context, filepath string) error
 	}
 
 	return nil
-}
-
-// TextToTextStream implements the gRPC streaming method - direct pass-through
-func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.Ai_TextToTextStreamServer) error {
-	ctx := srv.Context()
-	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
-	if err != nil {
-		return err
-	}
-	if err := checkModelDeprecation(model); err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
-	}
-	if request.Configuration == nil {
-		request.Configuration = &pb.TextToTextConfiguration{}
-	}
-	if request.Configuration.MaxTokens == 0 {
-		request.Configuration.MaxTokens = model.Ttt.OutputTokenLimit
-	}
-
-	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
-		return grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
-	}
-	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
-		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
-	}
-
-	pricing := model.GetTtt().GetPricing()
-	wrapper := &tttStreamWrapper{
-		Ai_TextToTextStreamServer: srv,
-		pricing:                   pricing,
-	}
-	return provider.TextToTextStream(request, wrapper)
-}
-
-type tttStreamWrapper struct {
-	pb.Ai_TextToTextStreamServer
-	pricing *aipb.TttModelPricing
-}
-
-func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
-	if usage, ok := resp.GetContent().(*pb.TextToTextStreamResponse_ModelUsage); ok && w.pricing != nil {
-		computeModelUsagePrices(usage.ModelUsage, w.pricing)
-	}
-	return w.Ai_TextToTextStreamServer.Send(resp)
-}
-
-func computeModelUsagePrices(usage *aipb.ModelUsage, pricing *aipb.TttModelPricing) {
-	if usage.InputToken != nil {
-		usage.InputToken.Price = float64(usage.InputToken.Quantity) * pricing.InputTokenPricePerMillion / 1_000_000
-	}
-	if usage.OutputToken != nil {
-		usage.OutputToken.Price = float64(usage.OutputToken.Quantity) * pricing.OutputTokenPricePerMillion / 1_000_000
-	}
-	if usage.OutputReasoningToken != nil {
-		pricePerMillion := pricing.OutputReasoningTokenPricePerMillion
-		if pricePerMillion == 0 {
-			pricePerMillion = pricing.OutputTokenPricePerMillion
-		}
-		usage.OutputReasoningToken.Price = float64(usage.OutputReasoningToken.Quantity) * pricePerMillion / 1_000_000
-	}
-	if usage.InputCacheReadToken != nil {
-		usage.InputCacheReadToken.Price = float64(usage.InputCacheReadToken.Quantity) * pricing.InputCacheReadTokenPricePerMillion / 1_000_000
-	}
-	if usage.InputCacheWriteToken != nil {
-		usage.InputCacheWriteToken.Price = float64(usage.InputCacheWriteToken.Quantity) * pricing.InputCacheWriteTokenPricePerMillion / 1_000_000
-	}
-}
-
-// TextToText collects all streamed text chunks into a single response
-func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
-	// Convert to streaming request
-	streamRequest := &pb.TextToTextStreamRequest{
-		Model:         request.Model,
-		Messages:      request.Messages,
-		Tools:         request.Tools,
-		Configuration: request.Configuration,
-	}
-
-	// Create a local streaming client using grpcinproc
-	serverStreamClient := grpcinproc.NewServerStreamAsClient[
-		pb.TextToTextStreamRequest,
-		pb.TextToTextStreamResponse,
-		pb.Ai_TextToTextStreamServer,
-	](s.TextToTextStream)
-
-	stream, err := serverStreamClient(ctx, streamRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	// Collect all chunks into a single response
-	response := &pb.TextToTextResponse{
-		Message: &aipb.Message{
-			Role: aipb.Role_ROLE_ASSISTANT,
-		},
-	}
-
-	for {
-		event, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		switch content := event.GetContent().(type) {
-		case *pb.TextToTextStreamResponse_ContentChunk:
-			response.Message.Content += content.ContentChunk
-
-		case *pb.TextToTextStreamResponse_ReasoningChunk:
-			response.Message.Reasoning += content.ReasoningChunk
-
-		case *pb.TextToTextStreamResponse_StopReason:
-			response.StopReason = content.StopReason
-
-		case *pb.TextToTextStreamResponse_ToolCall:
-			response.Message.ToolCalls = append(response.Message.ToolCalls, content.ToolCall)
-
-		case *pb.TextToTextStreamResponse_ModelUsage:
-			if response.ModelUsage == nil {
-				response.ModelUsage = &aipb.ModelUsage{}
-			}
-			proto.Merge(response.ModelUsage, content.ModelUsage)
-
-		case *pb.TextToTextStreamResponse_GenerationMetrics:
-			if response.GenerationMetrics == nil {
-				response.GenerationMetrics = &aipb.GenerationMetrics{}
-			}
-			proto.Merge(response.GenerationMetrics, content.GenerationMetrics)
-			response.GenerationMetrics.Ttfb = nil // We do not set TTFB on unary calls.
-		}
-	}
-
-	// Apply JSON extraction if requested
-	if request.GetConfiguration().GetExtractJsonObject() {
-		jsonContent, err := ai.ExtractJSONObject(response.Message.Content)
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "extracting json object: %v", err).WithErrorInfo(
-				"JSON_EXTRACTION_FAILED",
-				"ai_service",
-				map[string]string{"original_content": response.Message.Content},
-			).Err()
-		}
-		response.Message.Content = jsonContent
-	}
-
-	return response, nil
 }
 
 // SpeechToText forwards the request to the appropriate registered client.

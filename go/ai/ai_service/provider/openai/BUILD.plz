@@ -1,7 +1,6 @@
 go_library(
     name = "openai",
     srcs = [
-        "google.go",
         "openai.go",
         "speech_to_text.go",
         "text_to_speech.go",
@@ -18,6 +17,7 @@ go_library(
         "//malonaz/audio/v1",
         "//third_party/go:github.com__openai__openai-go__v3",
         "//third_party/go:github.com__openai__openai-go__v3__option",
+        "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",
         "//third_party/go:github.com__openai__openai-go__v3__shared",
         "//third_party/go:github.com__sashabaranov__go-openai",
         "//third_party/go:google.golang.org__grpc__codes",

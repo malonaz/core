@@ -15,6 +15,7 @@ go_library(
     name = "ai_service",
     srcs = [
         "service.go",
+        "text_to_text.go",
         "utils.go",
         ":service.tmpl.go",
     ],

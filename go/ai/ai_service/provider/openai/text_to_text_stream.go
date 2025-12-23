@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/packages/respjson"
 	"github.com/openai/openai-go/v3/shared"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -154,13 +155,56 @@ func (c *Client) TextToTextStream(
 			sentTtfb = true
 		}
 
+		// Extract choice (if any).
+		var choice *openai.ChatCompletionChunkChoice
+		if len(chunk.Choices) != 0 {
+			choice = &chunk.Choices[0]
+		}
+
+		// Extract extra content if any.
+		if choice != nil {
+			var extraContent map[string]any
+			if extraContentRaw := choice.Delta.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
+				if err := json.Unmarshal([]byte(extraContentRaw), &extraContent); err != nil {
+					return grpc.Errorf(codes.Internal, "unmarshaling extra_content: %v", err).Err()
+				}
+			}
+
+			// Merge reasoning field into reasoning content.
+			if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
+				unquoted, err := strconv.Unquote(reasoningChunk)
+				if err != nil {
+					return grpc.Errorf(codes.Internal, "unquoting chunk: %v", err).Err()
+				}
+				choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(unquoted)
+			}
+
+			// Handle google thought format.
+			if c.ProviderId() == provider.Google {
+				if google, ok := extraContent["google"].(map[string]any); ok {
+					if thought, ok := google["thought"].(bool); ok && thought {
+						// Correct choice content.
+						content := strings.TrimPrefix(choice.Delta.Content, "<thought>")
+						choice.Delta.Content = ""
+						choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(content)
+
+						// Correct usage.
+						if false {
+							completionTokens := chunk.Usage.CompletionTokens
+							chunk.Usage.CompletionTokensDetails.ReasoningTokens = completionTokens
+						}
+					}
+				}
+			}
+		}
+
 		// Handle usage stats if present
-		if chunk.Usage.PromptTokens > 0 || chunk.Usage.CompletionTokens > 0 {
+		if chunk.Usage.PromptTokens > 0 || chunk.Usage.PromptTokensDetails.CachedTokens > 0 || chunk.Usage.CompletionTokens > 0 || chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 			modelUsage := &aipb.ModelUsage{
 				Model: request.Model,
 			}
 
-			// Input tokens (excluding cached)
+			// Input tokens (excluding cached).
 			if chunk.Usage.PromptTokens > 0 {
 				inputTokens := chunk.Usage.PromptTokens
 				if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
@@ -170,6 +214,13 @@ func (c *Client) TextToTextStream(
 					modelUsage.InputToken = &aipb.ResourceConsumption{
 						Quantity: int32(inputTokens),
 					}
+				}
+			}
+
+			// Input cached tokens.
+			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
+				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
+					Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens),
 				}
 			}
 
@@ -186,63 +237,35 @@ func (c *Client) TextToTextStream(
 				}
 			}
 
+			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 			// Reasoning tokens
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
-					Quantity: int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens),
+				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
+					return grpc.Errorf(
+						codes.Internal, "reasoning tokens doesn't match inferred value: inferred %d, got %d",
+						inferredReasoningTokens, chunk.Usage.CompletionTokensDetails.ReasoningTokens,
+					).Err()
 				}
 			}
-
-			// Cached tokens
-			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
-				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
-					Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens),
+			if inferredReasoningTokens > 0 {
+				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
+					Quantity: int32(inferredReasoningTokens),
 				}
 			}
 
 			cs.SendModelUsage(ctx, modelUsage)
 		}
 
-		if len(chunk.Choices) == 0 {
+		if choice == nil {
 			continue
 		}
-		choice := chunk.Choices[0]
 
 		// Send content chunk
 		if choice.Delta.Content != "" {
-			var sendAsReasoningChunk bool
-			// Check for extra_content field
-			if extraContentRaw := choice.Delta.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
-				var extraContent map[string]any
-				if err := json.Unmarshal([]byte(extraContentRaw), &extraContent); err != nil {
-					return grpc.Errorf(codes.Internal, "unmarshaling extra_content: %v", err).Err()
-				}
-
-				// Check if this is a Google thought/reasoning chunk
-				if c.ProviderId() == provider.Google {
-					if google, ok := extraContent["google"].(map[string]any); ok {
-						if thought, ok := google["thought"].(bool); ok && thought {
-							sendAsReasoningChunk = true
-						}
-					}
-				}
-			}
-			if sendAsReasoningChunk {
-				content := strings.TrimPrefix(choice.Delta.Content, "<thought>")
-				cs.SendReasoningChunk(ctx, content)
-			} else {
-				content := strings.TrimPrefix(choice.Delta.Content, "</thought>")
-				cs.SendContentChunk(ctx, content)
-			}
+			content := strings.TrimPrefix(choice.Delta.Content, "</thought>")
+			cs.SendContentChunk(ctx, content)
 		}
 
-		if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
-			unquoted, err := strconv.Unquote(reasoningChunk)
-			if err != nil {
-				return grpc.Errorf(codes.Internal, "unquoting chunk: %v", err).Err()
-			}
-			cs.SendReasoningChunk(ctx, unquoted)
-		}
 		if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning_content"].Raw(); reasoningChunk != "" {
 			cs.SendReasoningChunk(ctx, reasoningChunk)
 		}
@@ -471,49 +494,15 @@ var openAIFinishReasonToPbV2 = map[string]aiservicepb.TextToTextStopReason{
 // buildGoogleThinkingConfig constructs the Google-specific thinking configuration
 // based on the model's reasoning effort type and the requested reasoning effort level.
 func buildGoogleThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort) (map[string]any, error) {
-	if reasoningEffort == aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
-		return nil, nil
-	}
-
-	thinkingConfig := map[string]any{
-		"include_thoughts": true,
-	}
-
 	// Determine if this model uses thinking_level or thinking_budget
-	reasoningEffortType := model.GetProviderSettings().GetFields()[providerGoogleReasoningEffortType].GetStringValue()
-
-	switch reasoningEffort {
-	case aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:
-		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
-			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
-		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
-			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetMedium
-		}
-
-	case aipb.ReasoningEffort_REASONING_EFFORT_LOW:
-		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
-			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelLow
-		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
-			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetLow
-		}
-
-	case aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:
-		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
-			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
-		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
-			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetMedium
-		}
-
-	case aipb.ReasoningEffort_REASONING_EFFORT_HIGH:
-		if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingLevel {
-			thinkingConfig["thinking_level"] = providerGoogleThinkingLevelHigh
-		} else if reasoningEffortType == providerGoogleReasoningEffortTypeThinkingBudget {
-			thinkingConfig["thinking_budget"] = providerGoogleThinkingBudgetHigh
-		}
-
-	default:
-		return nil, fmt.Errorf("unknown reasoning effort: %v", reasoningEffort)
+	thinkingConfigKey := model.GetProviderSettings().GetFields()["thinking_config_key"].GetStringValue()
+	thinkingConfigValue := model.GetProviderSettings().GetFields()[reasoningEffort.String()].AsInterface()
+	if thinkingConfigValue == nil {
+		return nil, fmt.Errorf("invalid provider config")
 	}
 
-	return thinkingConfig, nil
+	return map[string]any{
+		"include_thoughts": true,
+		thinkingConfigKey:  thinkingConfigValue,
+	}, nil
 }
