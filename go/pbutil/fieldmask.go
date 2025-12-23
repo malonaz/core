@@ -87,6 +87,7 @@ func (m *NestedFieldMask) ApplyInverse(message proto.Message) {
 
 type FieldMaskOptions struct {
 	OnlySet bool
+	Parent  string
 }
 
 type FieldMaskOption func(*FieldMaskOptions)
@@ -94,6 +95,12 @@ type FieldMaskOption func(*FieldMaskOptions)
 func WithOnlySet() FieldMaskOption {
 	return func(o *FieldMaskOptions) {
 		o.OnlySet = true
+	}
+}
+
+func WithParent(parent string) FieldMaskOption {
+	return func(o *FieldMaskOptions) {
+		o.Parent = parent
 	}
 }
 
@@ -123,7 +130,9 @@ func generatePaths(m protoreflect.Message, prefix string, opts *FieldMaskOptions
 		if prefix != "" {
 			path = prefix + "." + path
 		}
-
+		if opts.Parent != "" {
+			path = opts.Parent + "." + path
+		}
 		if field.Kind() == protoreflect.MessageKind && !field.IsMap() && !field.IsList() {
 			initialLen := len(*paths)
 			generatePaths(m.Get(field).Message(), path, opts, paths)
