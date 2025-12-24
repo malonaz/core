@@ -67,6 +67,26 @@ def go_proto_template_library(
         templates_opts_arg,
     ]
 
+    # We support label 'srcs', which causes us issues as protoc uses `source_relative`
+    # and outputs the files in the wrong directories. We correct that here.
+    _pre_build_go_path_mapping = go_path_mapping(["templates_out"])
+    src_package_names = []
+    for src in srcs:
+        if src.startswith("//"):
+            src_package_name, _ = decompose(src)
+            src_package_names += [src_package_name]
+    src_package_names = sorted(src_package_names, key=len, reverse=True)
+
+    base_path = get_base_path()
+    def _pre_build(rule_name):
+        _pre_build_go_path_mapping(rule_name)
+        if len(src_package_names) == 0:
+            return
+        replacement = ' && '.join([f'(mv -f go/{pn}/* out_dir; true)' for pn in src_package_names])
+        new_cmd = get_command(rule_name)
+        new_cmd = new_cmd.replace(f'(mv -f go/{base_path}/* out_dir; true)', replacement)
+        set_command(rule_name, new_cmd)
+
     protoc = protoc_rule(
         name = name,
         srcs = srcs,
@@ -88,7 +108,7 @@ def go_proto_template_library(
             )
         ],
         visibility = visibility,
-        pre_build = go_path_mapping(["templates_out"]),
+        pre_build = _pre_build,
     )
 
     if is_complete:

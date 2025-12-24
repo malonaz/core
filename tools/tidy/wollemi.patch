@@ -25,7 +25,7 @@ index d9bce4d..dbfec3e 100644
  		dir.Build = build
  	}
 diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 331b925..7c84b38 100644
+index 331b925..3c66fee 100644
 --- a/domain/wollemi/service_format.go
 +++ b/domain/wollemi/service_format.go
 @@ -8,6 +8,7 @@ import (
@@ -189,7 +189,7 @@ index 331b925..7c84b38 100644
 +
 +					genFile := strings.TrimSuffix(protoFile, ".proto") + "_" + templateName + ".pb.go"
 +					// The generated file path should be relative to the proto_library location
-+					genPath := filepath.Join(protoPath, genFile)
++					genPath := genFile
 +
 +					this.goFormat.protoTemplateCodegen[genPath] = struct{}{}
 +					this.goFormat.genfiles[filepath.Join(dir.Path, genPath)] = target.String()
@@ -393,7 +393,7 @@ index 331b925..7c84b38 100644
 +					// Convert proto file to generated go file
 +					genFile := strings.TrimSuffix(protoFile, ".proto")
 +					genFile = genFile + "_" + templateName + ".pb.go"
-+					genPath := filepath.Join(protoTarget.Path, genFile)
++					genPath := genFile
 +					this.goFormat.protoTemplateCodegen[filepath.Join(dir.Path, genPath)] = struct{}{}
 +					srcFiles = append(srcFiles, genPath)
 +				}
