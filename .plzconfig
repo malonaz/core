@@ -6,7 +6,7 @@ timeout = 2000
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = 57e5fb8166d79481206340c6528756e3a28874e1
+core-revision = c1f09eeaab7ccf2fe359cfbe3b3361d7429de528
 is-core-repo = true
 
 [sandbox]
