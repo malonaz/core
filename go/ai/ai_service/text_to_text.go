@@ -2,7 +2,6 @@ package ai_service
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"google.golang.org/grpc/codes"
@@ -38,7 +37,6 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
 		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
-	fmt.Printf("\n\n\nNEW REQUEST\n")
 
 	wrapper := &tttStreamWrapper{
 		Ai_TextToTextStreamServer: srv,
@@ -57,13 +55,6 @@ type tttStreamWrapper struct {
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	if content, ok := resp.GetContent().(*pb.TextToTextStreamResponse_ModelUsage); ok {
 		modelUsage := content.ModelUsage
-
-		fmt.Printf("ModelUsage: input=%v, inputCacheRead=%v, inputCacheWrite=%v, output=%v, outputReasoning=%v\n",
-			modelUsage.GetInputToken().GetQuantity(),
-			modelUsage.GetInputCacheReadToken().GetQuantity(),
-			modelUsage.GetInputCacheWriteToken().GetQuantity(),
-			modelUsage.GetOutputToken().GetQuantity(),
-			modelUsage.GetOutputReasoningToken().GetQuantity())
 
 		// INPUT TOKENS.
 		if inputToken := modelUsage.GetInputToken(); inputToken != nil {
