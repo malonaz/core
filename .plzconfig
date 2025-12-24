@@ -6,7 +6,7 @@ timeout = 2000
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = c1f09eeaab7ccf2fe359cfbe3b3361d7429de528
+core-revision = 438c085bbe58a6f141cf7cfef622c35cf45ffc08
 is-core-repo = true
 
 [sandbox]
@@ -42,7 +42,7 @@ LanguageDef = //build_defs/proto:openapi
 
 [Plugin "core"]
 Target = //plugins:core
-;;LintCodegenStripPrefix = malonaz
+LintCodegenStripPrefix = malonaz
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLUGIN ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [PluginDefinition]
@@ -50,7 +50,7 @@ Name = core
 
 [PluginConfig "lint_codegen_strip_prefix"]
 ConfigKey = LintCodegenStripPrefix
-DefaultValue = malonaz
+DefaultValue = ""
 
 [PluginConfig "protoc_gen_go"]
 ConfigKey = ProtocGenGo
