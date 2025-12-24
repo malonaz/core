@@ -20,7 +20,7 @@ done
 
 declare -A ACTIVE_FILES
 
-targets=$(plz query alltargets --hidden --include codegen,proto,go 2>/dev/null)
+targets=$(plz query alltargets --hidden --include copy_generated_code,codegen,go 2>/dev/null)
 
 for target in $targets; do
   output=$(plz build "$target" 2>&1 | grep "plz-out/gen/" || true)
@@ -62,8 +62,5 @@ if [[ -d "$DEST_DIR" ]]; then
 
   find "$DEST_DIR" -type d -empty -delete 2>/dev/null || true
 fi
-
-echo "Linting files..."
-plz lint > /dev/null 2>&1 || true
 
 echo "✅ Regenerated all files!"

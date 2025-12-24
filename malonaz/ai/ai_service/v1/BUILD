@@ -4,6 +4,7 @@ grpc_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/ai_service/v1",
     },
+    labels = ["copy_generated_code"],
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/ai/v1",

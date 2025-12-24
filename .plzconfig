@@ -42,10 +42,15 @@ LanguageDef = //build_defs/proto:openapi
 
 [Plugin "core"]
 Target = //plugins:core
+;;LintCodegenStripPrefix = malonaz
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLUGIN ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [PluginDefinition]
 Name = core
+
+[PluginConfig "lint_codegen_strip_prefix"]
+ConfigKey = LintCodegenStripPrefix
+DefaultValue = malonaz
 
 [PluginConfig "protoc_gen_go"]
 ConfigKey = ProtocGenGo

@@ -4,6 +4,7 @@ proto_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/aip",
     },
+    labels = ["copy_generated_code"],
     test_only = True,
     visibility = ["//go/aip/..."],
     deps = [

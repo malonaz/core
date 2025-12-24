@@ -49,10 +49,17 @@ genrule(
 def echo_message(message):
     return f'echo "###### {message} ######"'
 
+lint_codegen_strip_cmd = "plz run " + ("" if "IS_CORE_REPO" in CONFIG else "///core") + "//scripts:copy_generated_code"
+
+if CONFIG.CORE.LINT_CODEGEN_STRIP_PREFIX:
+    lint_codegen_strip_cmd += f" -- --strip-prefix {CONFIG.CORE.LINT_CODEGEN_STRIP_PREFIX}"
+
 _lint_cmds = [
     "export GOROOT=\\\\$($(out_exe //tools/go:toolchain|go) env GOROOT)",
     echo_message("Building codegen"),
     "plz build --include codegen > /dev/null 2>&1 || echo 'Codegen build failed'",
+    echo_message("Copying codegen to genproto"),
+    f"{lint_codegen_strip_cmd} > /dev/null 2>&1 || echo 'Copy Codegen failed'",
     echo_message("Running wollemi"),
     "mv third_party/go/dummy/dummy.go third_party/go/dummy/dummy.ignore 2>/dev/null || true",
     "$(out_exe :wollemi) gofmt ./...",

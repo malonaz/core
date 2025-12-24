@@ -8,6 +8,7 @@ proto_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/onyx/v1",
     },
+    labels = ["copy_generated_code"],
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/proto:validate",
