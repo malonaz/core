@@ -79,7 +79,8 @@ func (x *GenerationMetrics) GetTtlb() *durationpb.Duration {
 	return nil
 }
 
-// Tracks model usage.
+// Tracks model usage. When streamed out, incremental resource consumptions can be streamed out.
+// The absolute truth for a resource consumption is the last one streamed out for this resource consumption.
 type ModelUsage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The resource name of the model used.
