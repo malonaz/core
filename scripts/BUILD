@@ -7,3 +7,8 @@ sh_binary(
     name = "bump_core_dep",
     main = "bump_core_dep.sh",
 )
+
+sh_binary(
+    name = "postgres_docker",
+    main = "postgres_docker.sh",
+)
