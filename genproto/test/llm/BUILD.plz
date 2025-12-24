@@ -1,0 +1,16 @@
+go_library(
+    name = "llm",
+    srcs = [
+        "api.pb.go",
+        "api_llm.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/codegen/llm/v1",
+        "//third_party/go:google.golang.org__genproto__googleapis__type__date",
+        "//third_party/go:google.golang.org__genproto__googleapis__type__postaladdress",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

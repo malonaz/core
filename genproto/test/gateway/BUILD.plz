@@ -1,0 +1,22 @@
+go_library(
+    name = "gateway",
+    srcs = [
+        "gateway.pb.go",
+        "gateway.pb.gw.go",
+        "gateway_grpc.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
+        "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__grpclog",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)

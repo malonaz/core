@@ -1,6 +1,7 @@
 go_library(
     name = "v1",
     srcs = [
+        "model.pb.go",
         "onyx.pb.go",
         "service.pb.go",
     ],
