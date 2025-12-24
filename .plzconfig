@@ -137,7 +137,7 @@ cmd = run //tools/tidy:lint
 
 [alias "gen"]
 desc = Copy generated code from plz-out to git
-cmd = run //scripts:copy_generated_code -- malonaz
+cmd = run //scripts:copy_generated_code -- --strip-prefix malonaz
 
 [alias "bump"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.

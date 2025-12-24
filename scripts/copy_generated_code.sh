@@ -3,7 +3,20 @@ set -euo pipefail
 
 SRC_DIR="plz-out/gen"
 DEST_DIR="genproto"
-ROOT_PREFIX="${1:-}"
+STRIP_PREFIX=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --strip-prefix)
+      STRIP_PREFIX="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
 
 declare -A ACTIVE_FILES
 
@@ -15,11 +28,12 @@ for target in $targets; do
   for file in $output; do
     [[ "$file" != plz-out/gen/* ]] && continue
 
-    if [[ -n "$ROOT_PREFIX" ]]; then
-      rel_path="${file#plz-out/gen/$ROOT_PREFIX/}"
-    else
-      rel_path="${file#plz-out/gen/}"
+    rel_path="${file#plz-out/gen/}"
+
+    if [[ -n "$STRIP_PREFIX" ]]; then
+      rel_path="${rel_path#$STRIP_PREFIX/}"
     fi
+
     dest_dir=$(dirname "$rel_path")
     filename=$(basename "$file")
     dest_file="$DEST_DIR/$dest_dir/$filename"
