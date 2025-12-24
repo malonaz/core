@@ -3,6 +3,7 @@ package jsonnet
 import (
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/google/go-jsonnet"
 )
@@ -12,19 +13,32 @@ type importer struct {
 	cache map[string]jsonnet.Contents
 }
 
-// Note that we do not allow relative import paths.
 func (i *importer) Import(importedFrom, importedPath string) (jsonnet.Contents, string, error) {
-	// Check filesystem.
-	if content, ok := i.cache[importedPath]; ok {
-		return content, importedPath, nil
+	var resolvedPath string
+	if filepath.IsAbs(importedPath) {
+		resolvedPath = importedPath
+	} else {
+		resolvedPath = filepath.Join(filepath.Dir(importedFrom), importedPath)
 	}
-	bytes, err := fs.ReadFile(i.fs, importedPath)
+	resolvedPath = filepath.Clean(resolvedPath)
+
+	if content, ok := i.cache[resolvedPath]; ok {
+		return content, resolvedPath, nil
+	}
+
+	var bytes []byte
+	var err error
+	if i.fs != nil {
+		bytes, err = fs.ReadFile(i.fs, resolvedPath)
+	} else {
+		bytes, err = os.ReadFile(resolvedPath)
+	}
 	if err != nil {
 		return jsonnet.Contents{}, "", err
 	}
 	contents := jsonnet.MakeContentsRaw(bytes)
-	i.cache[importedPath] = contents
-	return contents, importedPath, nil
+	i.cache[resolvedPath] = contents
+	return contents, resolvedPath, nil
 }
 
 func EvaluateEmbeddedFile(filename string, embedFS fs.FS) ([]byte, error) {
@@ -44,13 +58,8 @@ func EvaluateSnippet(snippet string) ([]byte, error) {
 }
 
 func EvaluateFile(path string) ([]byte, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
 	vm := jsonnet.MakeVM()
 	vm.Importer(&importer{
-		fs:    os.DirFS(cwd),
 		cache: map[string]jsonnet.Contents{},
 	})
 	str, err := vm.EvaluateFile(path)
