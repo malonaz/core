@@ -3,6 +3,7 @@ set -euo pipefail
 
 SRC_DIR="plz-out/gen"
 DEST_DIR="genproto"
+ROOT_PREFIX="${1:-}"
 
 declare -A ACTIVE_FILES
 
@@ -14,7 +15,11 @@ for target in $targets; do
   for file in $output; do
     [[ "$file" != plz-out/gen/* ]] && continue
 
-    rel_path="${file#plz-out/gen/malonaz/}"
+    if [[ -n "$ROOT_PREFIX" ]]; then
+      rel_path="${file#plz-out/gen/$ROOT_PREFIX/}"
+    else
+      rel_path="${file#plz-out/gen/}"
+    fi
     dest_dir=$(dirname "$rel_path")
     filename=$(basename "$file")
     dest_file="$DEST_DIR/$dest_dir/$filename"
@@ -32,7 +37,6 @@ if [[ -d "$DEST_DIR" ]]; then
     [[ ! -v ACTIVE_FILES["$f"] ]] && rm -f "$f" && echo "🗑 Removed stale $f"
   done < <(find "$DEST_DIR" -type f ! -name "BUILD.plz")
 
-  # Remove BUILD.plz files in directories with no active files
   while read -r build_file; do
     dir=$(dirname "$build_file")
     has_active=false
