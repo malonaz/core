@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -25,9 +26,10 @@ const (
 
 // Opts holds logging configuration options.
 type Opts struct {
-	Fields []string `long:"field" env:"FIELD" description:"Inject fields at the topline level, using k:v"`
-	Level  string   `long:"level" env:"LEVEL" description:"Log level: debug, info, warn, error" default:"info"`
-	Format string   `long:"format" env:"FORMAT" description:"Log format: json, text, raw, pretty" default:"json"`
+	Fields   []string `long:"field" env:"FIELD" description:"Inject fields at the topline level, using k:v"`
+	Level    string   `long:"level" env:"LEVEL" description:"Log level: debug, info, warn, error" default:"info"`
+	Format   string   `long:"format" env:"FORMAT" description:"Log format: json, text, raw, pretty" default:"json"`
+	FilePath string   `long:"file" env:"FILE" description:"Log to file instead of stderr"`
 }
 
 // Init initializes the default slog logger based on the provided options.
@@ -58,29 +60,34 @@ func NewLogger(opts *Opts) (*slog.Logger, error) {
 
 func getHandler(opts *Opts) (slog.Handler, error) {
 	level := parseLevel(opts.Level)
-	handlerOpts := &slog.HandlerOptions{
-		Level: level,
+	handlerOpts := &slog.HandlerOptions{Level: level}
+
+	writer := io.Writer(os.Stderr)
+	if opts.FilePath != "" {
+		file, err := os.OpenFile(opts.FilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open log file: %w", err)
+		}
+		writer = file
 	}
-	var handler slog.Handler
+
 	switch opts.Format {
 	case FormatJSON:
-		handler = slog.NewJSONHandler(os.Stderr, handlerOpts)
+		return slog.NewJSONHandler(writer, handlerOpts), nil
 	case FormatText:
-		handler = slog.NewTextHandler(os.Stderr, handlerOpts)
+		return slog.NewTextHandler(writer, handlerOpts), nil
 	case FormatRaw:
-		handler = NewRawHandler(os.Stderr, handlerOpts)
+		return NewRawHandler(writer, handlerOpts), nil
 	case FormatPretty:
-		handler = pretty.New(os.Stdout, &pretty.Options{
+		return pretty.New(writer, &pretty.Options{
 			Level:     level,
-			AddSource: true, // Show file location
-			Colorful:  true, // Enable colors. Default is true
-			Multiline: true, // Pretty print for complex data
-			//TimeFormat: pretty.DefaultTimeFormat,    // Custom format (e.g., time.Kitchen)
-		})
+			AddSource: true,
+			Colorful:  true,
+			Multiline: true,
+		}), nil
 	default:
 		return nil, fmt.Errorf("unrecognized format: %s", opts.Format)
 	}
-	return handler, nil
 }
 
 var levelToSlogLevel = map[string]slog.Level{
