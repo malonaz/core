@@ -325,104 +325,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__NathanBaulch__protoc-gen-cobra",
-    _tag = "download",
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    patch = ["//third_party/go/patches:protoc-gen-cobra.patch"],
-    version = "v1.2.1",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["."],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":google.golang.org__protobuf__compiler__protogen",
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__types__descriptorpb",
-        ":google.golang.org__protobuf__types__pluginpb",
-    ],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra__client",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["client"],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__NathanBaulch__protoc-gen-cobra__iocodec",
-        ":github.com__NathanBaulch__protoc-gen-cobra__naming",
-        ":github.com__spf13__pflag",
-        ":google.golang.org__grpc",
-        ":google.golang.org__grpc__credentials",
-        ":google.golang.org__grpc__credentials__insecure",
-    ],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra__flag",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["flag"],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__NathanBaulch__protoc-gen-cobra__naming",
-        ":github.com__NathanBaulch__protoc-gen-cobra__ptypes",
-        ":github.com__spf13__pflag",
-        ":google.golang.org__protobuf__encoding__protojson",
-        ":google.golang.org__protobuf__proto",
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__types__known__durationpb",
-        ":google.golang.org__protobuf__types__known__timestamppb",
-        ":google.golang.org__protobuf__types__known__wrapperspb",
-    ],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra__iocodec",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["iocodec"],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__NathanBaulch__protoc-gen-cobra__ptypes",
-        ":github.com__mitchellh__mapstructure",
-        ":google.golang.org__protobuf__encoding__protojson",
-        ":google.golang.org__protobuf__proto",
-        ":google.golang.org__protobuf__types__known__durationpb",
-        ":google.golang.org__protobuf__types__known__timestamppb",
-        ":google.golang.org__protobuf__types__known__wrapperspb",
-    ],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra__naming",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["naming"],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__iancoleman__strcase"],
-)
-
-go_module(
-    name = "github.com__NathanBaulch__protoc-gen-cobra__ptypes",
-    download = ":_github.com__NathanBaulch__protoc-gen-cobra#download",
-    install = ["ptypes"],
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__spf13__cast",
-        ":google.golang.org__protobuf__types__known__durationpb",
-        ":google.golang.org__protobuf__types__known__timestamppb",
-        ":google.golang.org__protobuf__types__known__wrapperspb",
-    ],
-)
-
-go_mod_download(
     name = "github.com__anthropics__anthropic-sdk-go",
     _tag = "download",
     module = "github.com/anthropics/anthropic-sdk-go",
@@ -744,74 +646,6 @@ go_module(
     download = ":_github.com__cespare__xxhash__v2#download",
     install = ["."],
     module = "github.com/cespare/xxhash/v2",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__charmbracelet__catwalk",
-    _tag = "download",
-    module = "github.com/charmbracelet/catwalk",
-    version = "v0.11.2",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__charmbracelet__catwalk",
-    download = ":_github.com__charmbracelet__catwalk#download",
-    install = ["."],
-    module = "github.com/charmbracelet/catwalk",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__charmbracelet__catwalk__internal__deprecated",
-        ":github.com__charmbracelet__catwalk__internal__providers",
-        ":github.com__charmbracelet__x__etag",
-        ":github.com__prometheus__client_golang__prometheus",
-        ":github.com__prometheus__client_golang__prometheus__promauto",
-        ":github.com__prometheus__client_golang__prometheus__promhttp",
-    ],
-)
-
-go_module(
-    name = "github.com__charmbracelet__catwalk__internal__deprecated",
-    download = ":_github.com__charmbracelet__catwalk#download",
-    install = ["internal/deprecated"],
-    module = "github.com/charmbracelet/catwalk",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__charmbracelet__catwalk__pkg__catwalk"],
-)
-
-go_module(
-    name = "github.com__charmbracelet__catwalk__internal__providers",
-    download = ":_github.com__charmbracelet__catwalk#download",
-    install = ["internal/providers"],
-    module = "github.com/charmbracelet/catwalk",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__charmbracelet__catwalk__pkg__catwalk"],
-)
-
-go_module(
-    name = "github.com__charmbracelet__catwalk__pkg__catwalk",
-    download = ":_github.com__charmbracelet__catwalk#download",
-    install = ["pkg/catwalk"],
-    module = "github.com/charmbracelet/catwalk",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__charmbracelet__x__etag"],
-)
-
-go_mod_download(
-    name = "github.com__charmbracelet__x__etag",
-    _tag = "download",
-    module = "github.com/charmbracelet/x/etag",
-    version = "v0.2.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__charmbracelet__x__etag",
-    download = ":_github.com__charmbracelet__x__etag#download",
-    install = ["."],
-    module = "github.com/charmbracelet/x/etag",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -2059,23 +1893,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__iancoleman__strcase",
-    _tag = "download",
-    module = "github.com/iancoleman/strcase",
-    version = "v0.3.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__iancoleman__strcase",
-    download = ":_github.com__iancoleman__strcase#download",
-    install = ["."],
-    module = "github.com/iancoleman/strcase",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__imdario__mergo",
     _tag = "download",
     module = "github.com/imdario/mergo",
@@ -2426,23 +2243,6 @@ go_module(
     module = "github.com/mitchellh/copystructure",
     visibility = ["PUBLIC"],
     deps = [":github.com__mitchellh__reflectwalk"],
-)
-
-go_mod_download(
-    name = "github.com__mitchellh__mapstructure",
-    _tag = "download",
-    module = "github.com/mitchellh/mapstructure",
-    version = "v1.5.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__mitchellh__mapstructure",
-    download = ":_github.com__mitchellh__mapstructure#download",
-    install = ["."],
-    module = "github.com/mitchellh/mapstructure",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(

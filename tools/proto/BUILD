@@ -110,35 +110,6 @@ filegroup(
     ],
 )
 
-# Protoc gen cobra plugin - referenced in .plzconfig.
-go_module(
-    name = "protoc-gen-cobra",
-    binary = True,
-    download = "//third_party/go:_github.com__NathanBaulch__protoc-gen-cobra#download",
-    module = "github.com/NathanBaulch/protoc-gen-cobra",
-    deps = [
-        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
-        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
-    ],
-)
-
-# Gathers the proto gen cobra dependencies - referenced in .plzconfig.
-filegroup(
-    name = "protoc-gen-cobra-dep",
-    exported_deps = [
-        "//third_party/go:github.com__NathanBaulch__protoc-gen-cobra__client",
-        "//third_party/go:github.com__NathanBaulch__protoc-gen-cobra__flag",
-        "//third_party/go:github.com__NathanBaulch__protoc-gen-cobra__iocodec",
-        "//third_party/go:github.com__spf13__cobra",
-        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
-        "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
-        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
-        "//third_party/go:google.golang.org__protobuf__types__pluginpb",
-    ],
-)
-
 # Protoc gen doc plugin - referenced in .plzconfig.
 go_module(
     name = "protoc-gen-doc",

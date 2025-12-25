@@ -2,9 +2,6 @@ package dummy
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/NathanBaulch/protoc-gen-cobra"
-	_ "github.com/NathanBaulch/protoc-gen-cobra/client"
-	_ "github.com/NathanBaulch/protoc-gen-cobra/flag"
 	_ "github.com/bazelbuild/buildtools/build"
 	_ "github.com/golang/protobuf/descriptor"
 	_ "github.com/golang/protobuf/ptypes/any"

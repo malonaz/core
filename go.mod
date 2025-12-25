@@ -9,7 +9,6 @@ require (
 	buf.build/go/protovalidate v1.0.0
 	github.com/AlexxIT/go2rtc v1.9.12
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/NathanBaulch/protoc-gen-cobra v1.2.1
 	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -78,7 +77,6 @@ require (
 	github.com/golang/glog v1.2.5 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -86,7 +84,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/joschi/pgq v0.0.6 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwitkow/go-proto-validators v0.3.2 // indirect

@@ -8,7 +8,6 @@ subinclude(
 GO_IMPORT_PATH = "go_import_path"
 GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
-GENERATE_GO_COBRA_CLI = "generate_go_cobra_cli"
 GENERATE_GO_AIP = "generate_go_aip"
 GENERATE_GO_LLM = "generate_go_llm"
 GENERATE_GO_RPC = "generate_go_rpc"
@@ -95,17 +94,6 @@ def go_proto_library(
             '--plugin=protoc-gen-go-grpc="$(which $TOOLS_PROTOC_GEN_GRPC_GO)"',
             '--go-grpc_out="$OUT_DIR"',
             '--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false',
-        ]
-
-    # PROTOC-GEN-COBRA
-    if additional_context and GENERATE_GO_COBRA_CLI in additional_context:
-        tools['protoc_gen_cobra_go'] = [CONFIG.CORE.PROTOC_GEN_COBRA_GO]
-        deps += [CONFIG.CORE.PROTOC_GEN_COBRA_GO_DEP]
-        plugin_out_keys += ['cobra_out']
-        plugin_flags += [
-            '--plugin=protoc-gen-cobra="`which $TOOLS_PROTOC_GEN_COBRA_GO`"',
-            '--cobra_out=$OUT_DIR',
-            '--cobra_opt=paths=source_relative',
         ]
 
     # PROTOC-GEN-GRPC-GATEWAY

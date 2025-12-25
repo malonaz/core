@@ -84,10 +84,6 @@ DefaultValue = //tools/proto:protoc-gen-go-aip
 ConfigKey = ProtocGenAipGoDep
 DefaultValue = //tools/proto:protoc-gen-go-aip-dep
 
-[PluginConfig "protoc_gen_cobra_go"]
-ConfigKey = ProtocGenCobraGo
-DefaultValue = //tools/proto:protoc-gen-cobra
-
 [PluginConfig "protoc_gen_cobra_go_dep"]
 ConfigKey = ProtocGenCobraGoDep
 DefaultValue = //tools/proto:protoc-gen-go-cobra-dep

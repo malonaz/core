@@ -2,7 +2,6 @@ package(default_visibility = ["PUBLIC"])
 
 _patches = [
     "go-openai.patch",
-    "protoc-gen-cobra.patch",
     "protoc-gen-doc.patch",
     "spanner-aip.patch",
 ]
