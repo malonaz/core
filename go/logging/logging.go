@@ -10,6 +10,12 @@ import (
 )
 
 const (
+	// Level types
+	LevelDebug = "debug"
+	LevelInfo  = "info"
+	LevelWarn  = "warn"
+	LevelError = "error"
+
 	// Format types
 	FormatJSON   = "json"
 	FormatText   = "text"
@@ -77,18 +83,16 @@ func getHandler(opts *Opts) (slog.Handler, error) {
 	return handler, nil
 }
 
-// parseLevel parses log level string.
+var levelToSlogLevel = map[string]slog.Level{
+	LevelDebug: slog.LevelDebug,
+	LevelInfo:  slog.LevelInfo,
+	LevelWarn:  slog.LevelWarn,
+	LevelError: slog.LevelError,
+}
+
 func parseLevel(level string) slog.Level {
-	switch strings.ToLower(level) {
-	case "debug":
-		return slog.LevelDebug
-	case "info":
-		return slog.LevelInfo
-	case "warn", "warning":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	default:
-		return slog.LevelInfo
+	if l, ok := levelToSlogLevel[level]; ok {
+		return l
 	}
+	return slog.LevelInfo
 }
