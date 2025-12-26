@@ -267,5 +267,5 @@ func extractJSONToStruct(content string) (*structpb.Struct, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pbutil.JSONUnmarshalStruct([]byte(jsonString))
+	return pbutil.NewStructFromJSON([]byte(jsonString))
 }

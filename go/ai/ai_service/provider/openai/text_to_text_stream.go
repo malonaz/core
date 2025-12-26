@@ -325,7 +325,7 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 	case *aipb.Message_Assistant:
 		content := m.Assistant.Content
 		if m.Assistant.StructuredContent != nil {
-			bytes, err := pbutil.JSONMarshalStruct(m.Assistant.StructuredContent)
+			bytes, err := pbutil.JSONMarshal(m.Assistant.StructuredContent)
 			if err != nil {
 				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling structured content: %w", err)
 			}
@@ -336,7 +336,7 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 		}
 		toolCalls := make([]openai.ChatCompletionMessageToolCallUnionParam, 0, len(m.Assistant.ToolCalls))
 		for _, tc := range m.Assistant.ToolCalls {
-			argsBytes, err := pbutil.JSONMarshalStruct(tc.Arguments)
+			argsBytes, err := pbutil.JSONMarshal(tc.Arguments)
 			if err != nil {
 				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling tool call arguments: %w", err)
 			}
@@ -376,7 +376,7 @@ func toolResultToContent(result *aipb.ToolResult) (string, error) {
 	case *aipb.ToolResult_Content:
 		return r.Content, nil
 	case *aipb.ToolResult_StructuredContent:
-		jsonBytes, err := pbutil.JSONMarshalStruct(r.StructuredContent)
+		jsonBytes, err := pbutil.JSONMarshal(r.StructuredContent)
 		if err != nil {
 			return "", err
 		}

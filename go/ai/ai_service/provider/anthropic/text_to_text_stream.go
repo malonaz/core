@@ -47,14 +47,14 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewTextBlock(m.Assistant.Content))
 			}
 			if m.Assistant.StructuredContent != nil {
-				bytes, err := pbutil.JSONMarshalStruct(m.Assistant.StructuredContent)
+				bytes, err := pbutil.JSONMarshal(m.Assistant.StructuredContent)
 				if err != nil {
 					return grpc.Errorf(codes.InvalidArgument, "message [%d]: marshaling structured content: %v", i, err).Err()
 				}
 				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewTextBlock(string(bytes)))
 			}
 			for j, tc := range m.Assistant.ToolCalls {
-				bytes, err := pbutil.JSONMarshalStruct(tc.Arguments)
+				bytes, err := pbutil.JSONMarshal(tc.Arguments)
 				if err != nil {
 					return grpc.Errorf(codes.InvalidArgument, "message [%d]: marshaling tool call [%d] arguments: %v", i, j, err).Err()
 				}
@@ -254,7 +254,7 @@ func toolResultToContent(result *aipb.ToolResult) (string, bool, error) {
 	case *aipb.ToolResult_Content:
 		return r.Content, false, nil
 	case *aipb.ToolResult_StructuredContent:
-		bytes, err := pbutil.JSONMarshalStruct(r.StructuredContent)
+		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
 		if err != nil {
 			return "", false, err
 		}

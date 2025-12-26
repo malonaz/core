@@ -82,7 +82,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 		healed = "{}"
 	}
 	var err error
-	tc.Arguments, err = pbutil.JSONUnmarshalStruct([]byte(healed))
+	tc.Arguments, err = pbutil.NewStructFromJSON([]byte(healed))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 		Name: entry.name,
 	}
 	var err error
-	tc.Arguments, err = pbutil.JSONUnmarshalStruct([]byte(entry.args.String()))
+	tc.Arguments, err = pbutil.NewStructFromJSON([]byte(entry.args.String()))
 	if err != nil {
 		return nil, err
 	}
