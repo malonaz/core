@@ -27,6 +27,12 @@ func NewToolCallAccumulator() *ToolCallAccumulator {
 	}
 }
 
+// Has begins accumulating a new tool call at the given index.
+func (a *ToolCallAccumulator) Has(index int64) bool {
+	_, ok := a.calls[index]
+	return ok
+}
+
 // Start begins accumulating a new tool call at the given index.
 func (a *ToolCallAccumulator) Start(index int64, id, name string) {
 	a.calls[index] = &toolCallEntry{id: id, name: name}

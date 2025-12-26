@@ -200,12 +200,14 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			}
 
 		case anthropic.ContentBlockStopEvent:
-			// If this content block was a tool_use, emit it now (with complete arguments)
-			toolCall, err := tca.Build(variant.Index)
-			if err != nil {
-				return grpc.Errorf(codes.Internal, "unmarshaling tool call arguments: %v", err).Err()
+			if tca.Has(variant.Index) {
+				// If this content block was a tool_use, emit it now (with complete arguments)
+				toolCall, err := tca.Build(variant.Index)
+				if err != nil {
+					return grpc.Errorf(codes.Internal, "unmarshaling tool call arguments: %v", err).Err()
+				}
+				cs.SendToolCall(ctx, toolCall)
 			}
-			cs.SendToolCall(ctx, toolCall)
 
 		case anthropic.MessageDeltaEvent:
 			// Output model usage.

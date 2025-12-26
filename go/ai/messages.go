@@ -29,22 +29,20 @@ func NewUserMessage(content string) *aiv1.Message {
 }
 
 func NewAssistantMessage(content string, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
-	return &aiv1.Message{
-		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_Assistant{
-			Assistant: &aiv1.AssistantMessage{
-				Content:   content,
-				ToolCalls: toolCalls,
-			},
-		},
-	}
+	return newAssistantMessage("", content, nil, toolCalls...)
 }
 
 func NewAssistantMessageWithStruct(structuredContent *structpb.Struct, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
+	return newAssistantMessage("", "", structuredContent, toolCalls...)
+}
+
+func newAssistantMessage(reasoning, content string, structuredContent *structpb.Struct, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
 	return &aiv1.Message{
 		CreateTime: timestamppb.Now(),
 		Message: &aiv1.Message_Assistant{
 			Assistant: &aiv1.AssistantMessage{
+				Reasoning:         reasoning,
+				Content:           content,
 				StructuredContent: structuredContent,
 				ToolCalls:         toolCalls,
 			},
