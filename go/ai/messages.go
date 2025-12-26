@@ -1,99 +1,46 @@
 package ai
 
 import (
-	aiv1 "github.com/malonaz/core/genproto/ai/v1"
-	"google.golang.org/protobuf/types/known/structpb"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func NewSystemMessage(content string) *aiv1.Message {
-	return &aiv1.Message{
+func NewSystemMessage(m *aipb.SystemMessage) *aipb.Message {
+	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_System{
-			System: &aiv1.SystemMessage{
-				Content: content,
-			},
+		Role:       aipb.Role_ROLE_SYSTEM,
+		Message: &aipb.Message_System{
+			System: m,
 		},
 	}
 }
 
-func NewUserMessage(content string) *aiv1.Message {
-	return &aiv1.Message{
+func NewUserMessage(m *aipb.UserMessage) *aipb.Message {
+	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_User{
-			User: &aiv1.UserMessage{
-				Content: content,
-			},
+		Role:       aipb.Role_ROLE_USER,
+		Message: &aipb.Message_User{
+			User: m,
 		},
 	}
 }
 
-func NewAssistantMessage(content string, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
-	return newAssistantMessage("", content, nil, toolCalls...)
-}
-
-func NewAssistantMessageWithStruct(structuredContent *structpb.Struct, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
-	return newAssistantMessage("", "", structuredContent, toolCalls...)
-}
-
-func newAssistantMessage(reasoning, content string, structuredContent *structpb.Struct, toolCalls ...*aiv1.ToolCall) *aiv1.Message {
-	return &aiv1.Message{
+func NewAssistantMessage(m *aipb.AssistantMessage) *aipb.Message {
+	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_Assistant{
-			Assistant: &aiv1.AssistantMessage{
-				Reasoning:         reasoning,
-				Content:           content,
-				StructuredContent: structuredContent,
-				ToolCalls:         toolCalls,
-			},
+		Role:       aipb.Role_ROLE_ASSISTANT,
+		Message: &aipb.Message_Assistant{
+			Assistant: m,
 		},
 	}
 }
 
-func NewToolResultMessage(toolCallID, content string) *aiv1.Message {
-	return &aiv1.Message{
+func NewToolResultMessage(m *aipb.ToolResultMessage) *aipb.Message {
+	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_Tool{
-			Tool: &aiv1.ToolResultMessage{
-				ToolCallId: toolCallID,
-				Result: &aiv1.ToolResult{
-					Result: &aiv1.ToolResult_Content{
-						Content: content,
-					},
-				},
-			},
-		},
-	}
-}
-
-func NewToolResultMessageWithStruct(toolCallID string, structuredContent *structpb.Struct) *aiv1.Message {
-	return &aiv1.Message{
-		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_Tool{
-			Tool: &aiv1.ToolResultMessage{
-				ToolCallId: toolCallID,
-				Result: &aiv1.ToolResult{
-					Result: &aiv1.ToolResult_StructuredContent{
-						StructuredContent: structuredContent,
-					},
-				},
-			},
-		},
-	}
-}
-
-func NewToolResultMessageWithError(toolCallID, err string) *aiv1.Message {
-	return &aiv1.Message{
-		CreateTime: timestamppb.Now(),
-		Message: &aiv1.Message_Tool{
-			Tool: &aiv1.ToolResultMessage{
-				ToolCallId: toolCallID,
-				Result: &aiv1.ToolResult{
-					Result: &aiv1.ToolResult_Error{
-						Error: err,
-					},
-				},
-			},
+		Role:       aipb.Role_ROLE_TOOL,
+		Message: &aipb.Message_Tool{
+			Tool: m,
 		},
 	}
 }

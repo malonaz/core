@@ -12,11 +12,23 @@ option go_package = "github.com/malonaz/core/genproto/ai/v1";
 // Wrapper message representing any message type in a multi-turn conversation.
 // Use this when building conversation histories or streaming message sequences.
 message Message {
+  option (buf.validate.message).cel = {
+    id: "role_matches_message_type"
+    message: "role must match message type"
+    expression: "(this.role == 1 && has(this.system)) || (this.role == 2 && has(this.assistant)) || (this.role == 3 && has(this.user)) || (this.role == 4 && has(this.tool))"
+  };
+
   // When this message was created.
   google.protobuf.Timestamp create_time = 1;
 
   // Arbitrary key-value metadata associated with the message.
   map<string, string> metadata = 2;
+
+  // Role of the message sender.
+  Role role = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
 
   // The specific message type. Exactly one must be set.
   oneof message {
@@ -113,4 +125,18 @@ enum ReasoningEffort {
   // Best for complex problems requiring careful analysis.
   // May result in slower responses and higher token consumption.
   REASONING_EFFORT_HIGH = 4;
+}
+
+// Represents the role of a message in a multi-turn AI conversation.
+enum Role {
+  // Used to detect an unset field.
+  ROLE_UNSPECIFIED = 0;
+  // System message.
+  ROLE_SYSTEM = 1;
+  // Assistant message.
+  ROLE_ASSISTANT = 2;
+  // User message.
+  ROLE_USER = 3;
+  // User message.
+  ROLE_TOOL = 4;
 }

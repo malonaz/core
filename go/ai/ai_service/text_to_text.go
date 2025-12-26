@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -206,10 +207,8 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	}
 
 	// Aggregate chunks to form a single response.
-	response := &pb.TextToTextResponse{}
-	var content string
-	var reasoning string
-	var toolCalls []*aipb.ToolCall
+	assistantMessage := &aipb.AssistantMessage{}
+	response := &pb.TextToTextResponse{Message: ai.NewAssistantMessage(assistantMessage)}
 
 	for {
 		event, err := stream.Recv()
@@ -222,16 +221,16 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 
 		switch c := event.GetContent().(type) {
 		case *pb.TextToTextStreamResponse_ContentChunk:
-			content += c.ContentChunk
+			assistantMessage.Content += c.ContentChunk
 
 		case *pb.TextToTextStreamResponse_ReasoningChunk:
-			reasoning += c.ReasoningChunk
+			assistantMessage.Reasoning += c.ReasoningChunk
 
 		case *pb.TextToTextStreamResponse_StopReason:
 			response.StopReason = c.StopReason
 
 		case *pb.TextToTextStreamResponse_ToolCall:
-			toolCalls = append(toolCalls, c.ToolCall)
+			assistantMessage.ToolCalls = append(assistantMessage.ToolCalls, c.ToolCall)
 
 		case *pb.TextToTextStreamResponse_ModelUsage:
 			if response.ModelUsage == nil {
@@ -249,26 +248,24 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	}
 
 	if request.GetConfiguration().GetExtractJsonObject() {
-		jsonString, err := ai.ExtractJSONString(content)
+		structuredContent, err := extractJSONToStruct(assistantMessage.Content)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "extracting json object: %v", err).WithErrorInfo(
-				"JSON_EXTRACTION_FAILED",
-				"ai_service",
-				map[string]string{"original_content": content},
+			return nil, grpc.Errorf(codes.Internal, "extracting json: %v", err).WithErrorInfo(
+				"JSON_EXTRACTION_FAILED", "ai_service",
+				map[string]string{"original_content": assistantMessage.Content},
 			).Err()
 		}
-		structuredContent, err := pbutil.JSONUnmarshalStruct([]byte(jsonString))
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "parsing json object: %v", err).WithErrorInfo(
-				"JSON_EXTRACTION_FAILED",
-				"ai_service",
-				map[string]string{"original_content": content},
-			).Err()
-		}
-		response.Message = ai.NewAssistantMessageWithStruct(structuredContent, toolCalls...)
-	} else {
-		response.Message = ai.NewAssistantMessage(content, toolCalls...)
+		assistantMessage.StructuredContent = structuredContent
+		assistantMessage.Content = ""
 	}
 
 	return response, nil
+}
+
+func extractJSONToStruct(content string) (*structpb.Struct, error) {
+	jsonString, err := ai.ExtractJSONString(content)
+	if err != nil {
+		return nil, err
+	}
+	return pbutil.JSONUnmarshalStruct([]byte(jsonString))
 }

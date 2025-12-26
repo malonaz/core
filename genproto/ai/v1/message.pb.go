@@ -95,6 +95,67 @@ func (ReasoningEffort) EnumDescriptor() ([]byte, []int) {
 	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
+// Represents the role of a message in a multi-turn AI conversation.
+type Role int32
+
+const (
+	// Used to detect an unset field.
+	Role_ROLE_UNSPECIFIED Role = 0
+	// System message.
+	Role_ROLE_SYSTEM Role = 1
+	// Assistant message.
+	Role_ROLE_ASSISTANT Role = 2
+	// User message.
+	Role_ROLE_USER Role = 3
+	// User message.
+	Role_ROLE_TOOL Role = 4
+)
+
+// Enum value maps for Role.
+var (
+	Role_name = map[int32]string{
+		0: "ROLE_UNSPECIFIED",
+		1: "ROLE_SYSTEM",
+		2: "ROLE_ASSISTANT",
+		3: "ROLE_USER",
+		4: "ROLE_TOOL",
+	}
+	Role_value = map[string]int32{
+		"ROLE_UNSPECIFIED": 0,
+		"ROLE_SYSTEM":      1,
+		"ROLE_ASSISTANT":   2,
+		"ROLE_USER":        3,
+		"ROLE_TOOL":        4,
+	}
+)
+
+func (x Role) Enum() *Role {
+	p := new(Role)
+	*p = x
+	return p
+}
+
+func (x Role) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Role) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_v1_message_proto_enumTypes[1].Descriptor()
+}
+
+func (Role) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_v1_message_proto_enumTypes[1]
+}
+
+func (x Role) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Role.Descriptor instead.
+func (Role) EnumDescriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{1}
+}
+
 // Wrapper message representing any message type in a multi-turn conversation.
 // Use this when building conversation histories or streaming message sequences.
 type Message struct {
@@ -103,6 +164,8 @@ type Message struct {
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// Arbitrary key-value metadata associated with the message.
 	Metadata map[string]string `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Role of the message sender.
+	Role Role `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
 	// The specific message type. Exactly one must be set.
 	//
 	// Types that are valid to be assigned to Message:
@@ -158,6 +221,13 @@ func (x *Message) GetMetadata() map[string]string {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *Message) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
 }
 
 func (x *Message) GetMessage() isMessage_Message {
@@ -468,11 +538,13 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xba\x03\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xd0\x05\n" +
 	"\aMessage\x12;\n" +
 	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12@\n" +
-	"\bmetadata\x18\x02 \x03(\v2$.malonaz.ai.v1.Message.MetadataEntryR\bmetadata\x126\n" +
+	"\bmetadata\x18\x02 \x03(\v2$.malonaz.ai.v1.Message.MetadataEntryR\bmetadata\x123\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x126\n" +
 	"\x06system\x18\n" +
 	" \x01(\v2\x1c.malonaz.ai.v1.SystemMessageH\x00R\x06system\x120\n" +
 	"\x04user\x18\v \x01(\v2\x1a.malonaz.ai.v1.UserMessageH\x00R\x04user\x12?\n" +
@@ -480,7 +552,8 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x04tool\x18\r \x01(\v2 .malonaz.ai.v1.ToolResultMessageH\x00R\x04tool\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x10\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xde\x01\xbaH\xda\x01\x1a\xd7\x01\n" +
+	"\x19role_matches_message_type\x12\x1crole must match message type\x1a\x9b\x01(this.role == 1 && has(this.system)) || (this.role == 2 && has(this.assistant)) || (this.role == 3 && has(this.user)) || (this.role == 4 && has(this.tool))B\x10\n" +
 	"\amessage\x12\x05\xbaH\x02\b\x01\"1\n" +
 	"\rSystemMessage\x12 \n" +
 	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"/\n" +
@@ -502,7 +575,13 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n" +
 	"\x14REASONING_EFFORT_LOW\x10\x02\x12\x1b\n" +
 	"\x17REASONING_EFFORT_MEDIUM\x10\x03\x12\x19\n" +
-	"\x15REASONING_EFFORT_HIGH\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x15REASONING_EFFORT_HIGH\x10\x04*_\n" +
+	"\x04Role\x12\x14\n" +
+	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vROLE_SYSTEM\x10\x01\x12\x12\n" +
+	"\x0eROLE_ASSISTANT\x10\x02\x12\r\n" +
+	"\tROLE_USER\x10\x03\x12\r\n" +
+	"\tROLE_TOOL\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var (
 	file_malonaz_ai_v1_message_proto_rawDescOnce sync.Once
@@ -516,36 +595,38 @@ func file_malonaz_ai_v1_message_proto_rawDescGZIP() []byte {
 	return file_malonaz_ai_v1_message_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(ReasoningEffort)(0),          // 0: malonaz.ai.v1.ReasoningEffort
-	(*Message)(nil),               // 1: malonaz.ai.v1.Message
-	(*SystemMessage)(nil),         // 2: malonaz.ai.v1.SystemMessage
-	(*UserMessage)(nil),           // 3: malonaz.ai.v1.UserMessage
-	(*AssistantMessage)(nil),      // 4: malonaz.ai.v1.AssistantMessage
-	(*ToolResultMessage)(nil),     // 5: malonaz.ai.v1.ToolResultMessage
-	nil,                           // 6: malonaz.ai.v1.Message.MetadataEntry
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
-	(*ToolCall)(nil),              // 9: malonaz.ai.v1.ToolCall
-	(*ToolResult)(nil),            // 10: malonaz.ai.v1.ToolResult
+	(Role)(0),                     // 1: malonaz.ai.v1.Role
+	(*Message)(nil),               // 2: malonaz.ai.v1.Message
+	(*SystemMessage)(nil),         // 3: malonaz.ai.v1.SystemMessage
+	(*UserMessage)(nil),           // 4: malonaz.ai.v1.UserMessage
+	(*AssistantMessage)(nil),      // 5: malonaz.ai.v1.AssistantMessage
+	(*ToolResultMessage)(nil),     // 6: malonaz.ai.v1.ToolResultMessage
+	nil,                           // 7: malonaz.ai.v1.Message.MetadataEntry
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 9: google.protobuf.Struct
+	(*ToolCall)(nil),              // 10: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 11: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
-	6,  // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
-	2,  // 2: malonaz.ai.v1.Message.system:type_name -> malonaz.ai.v1.SystemMessage
-	3,  // 3: malonaz.ai.v1.Message.user:type_name -> malonaz.ai.v1.UserMessage
-	4,  // 4: malonaz.ai.v1.Message.assistant:type_name -> malonaz.ai.v1.AssistantMessage
-	5,  // 5: malonaz.ai.v1.Message.tool:type_name -> malonaz.ai.v1.ToolResultMessage
-	8,  // 6: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
-	9,  // 7: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
-	10, // 8: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	8,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
+	7,  // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
+	1,  // 2: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
+	3,  // 3: malonaz.ai.v1.Message.system:type_name -> malonaz.ai.v1.SystemMessage
+	4,  // 4: malonaz.ai.v1.Message.user:type_name -> malonaz.ai.v1.UserMessage
+	5,  // 5: malonaz.ai.v1.Message.assistant:type_name -> malonaz.ai.v1.AssistantMessage
+	6,  // 6: malonaz.ai.v1.Message.tool:type_name -> malonaz.ai.v1.ToolResultMessage
+	9,  // 7: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
+	10, // 8: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
+	11, // 9: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -565,7 +646,7 @@ func file_malonaz_ai_v1_message_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

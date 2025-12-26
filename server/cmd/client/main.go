@@ -110,8 +110,8 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 
 func buildMessages() []*aipb.Message {
 	return []*aipb.Message{
-		ai.NewSystemMessage(*systemMessage),
-		ai.NewUserMessage(*userMessage),
+		ai.NewSystemMessage(&aipb.SystemMessage{Content: *systemMessage}),
+		ai.NewUserMessage(&aipb.UserMessage{Content: *userMessage}),
 	}
 }
 
