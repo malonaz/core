@@ -258,6 +258,13 @@ func (c *Client) TextToTextStream(
 		for _, toolCall := range choice.Delta.ToolCalls {
 			tca.StartOrUpdate(toolCall.Index, toolCall.ID, toolCall.Function.Name)
 			tca.AppendArgs(toolCall.Index, toolCall.Function.Arguments)
+			if request.GetConfiguration().GetStreamPartialToolCalls() {
+				partialToolCall, err := tca.BuildPartial(toolCall.Index)
+				if err != nil {
+					return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+				}
+				cs.SendPartialToolCall(ctx, partialToolCall)
+			}
 		}
 
 		// Send complete tool calls.

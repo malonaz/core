@@ -162,6 +162,14 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			case anthropic.ToolUseBlock:
 				// If this is a tool_use block, start accumulating its arguments
 				tca.Start(variant.Index, contentBlockVariant.ID, contentBlockVariant.Name)
+				if request.GetConfiguration().GetStreamPartialToolCalls() {
+					partialToolCall, err := tca.BuildPartial(variant.Index)
+					if err != nil {
+						return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+					}
+					cs.SendPartialToolCall(ctx, partialToolCall)
+				}
+
 			case anthropic.TextBlock:
 			case anthropic.ThinkingBlock:
 			case anthropic.RedactedThinkingBlock:
@@ -182,6 +190,13 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			case anthropic.InputJSONDelta:
 				// Accumulate tool_use input JSON by content block index.
 				tca.AppendArgs(variant.Index, delta.PartialJSON)
+				if request.GetConfiguration().GetStreamPartialToolCalls() {
+					partialToolCall, err := tca.BuildPartial(variant.Index)
+					if err != nil {
+						return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+					}
+					cs.SendPartialToolCall(ctx, partialToolCall)
+				}
 			}
 
 		case anthropic.ContentBlockStopEvent:

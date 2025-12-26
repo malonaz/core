@@ -85,8 +85,9 @@ func printRequestInfo() {
 
 func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 	config := &aiservicepb.TextToTextConfiguration{
-		MaxTokens:   int32(*maxTokens),
-		Temperature: float64(*temperature),
+		MaxTokens:              int32(*maxTokens),
+		Temperature:            float64(*temperature),
+		StreamPartialToolCalls: true,
 	}
 
 	if *reasoningEffort != "" {
@@ -209,6 +210,13 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse) {
 			panic(err)
 		}
 		fmt.Printf("\n[Tool Call: %s(%s)]\n", content.ToolCall.Name, string(bytes))
+
+	case *aiservicepb.TextToTextStreamResponse_PartialToolCall:
+		bytes, err := json.MarshalIndent(content.PartialToolCall.Arguments.AsMap(), "  ", "")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("\n[PartialTool Call: %s(%s)]\n", content.PartialToolCall.Name, string(bytes))
 
 	case *aiservicepb.TextToTextStreamResponse_StopReason:
 		fmt.Printf("\n[Stop Reason: %s]\n", content.StopReason)

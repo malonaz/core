@@ -17,6 +17,7 @@ go_library(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__karminski__streaming-json-go",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
     ],

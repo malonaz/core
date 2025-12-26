@@ -2154,6 +2154,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__karminski__streaming-json-go",
+    _tag = "download",
+    module = "github.com/karminski/streaming-json-go",
+    version = "v0.0.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__karminski__streaming-json-go",
+    download = ":_github.com__karminski__streaming-json-go#download",
+    install = ["."],
+    module = "github.com/karminski/streaming-json-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__lib__pq",
     _tag = "download",
     module = "github.com/lib/pq",

@@ -157,6 +157,7 @@
         "github.com/jackc/puddle/v2/internal/genstack": "//third_party/go:github.com__jackc__puddle__v2__internal__genstack",
         "github.com/jessevdk/go-flags": "//third_party/go:github.com__jessevdk__go-flags",
         "github.com/joschi/pgq/internal/pg": "//third_party/go:github.com__joschi__pgq__internal__pg",
+        "github.com/karminski/streaming-json-go": "//third_party/go:github.com__karminski__streaming-json-go",
         "github.com/lib/pq": "//third_party/go:github.com__lib__pq",
         "github.com/lib/pq/oid": "//third_party/go:github.com__lib__pq__oid",
         "github.com/lib/pq/scram": "//third_party/go:github.com__lib__pq__scram",

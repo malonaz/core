@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	streamingjson "github.com/karminski/streaming-json-go"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil"
 )
@@ -56,6 +57,30 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, s string) {
 	if entry, ok := a.calls[index]; ok {
 		entry.args.WriteString(s)
 	}
+}
+
+// BuildPartial returns a partial ToolCall for a given index using streaming JSON healing.
+func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) {
+	entry, ok := a.calls[index]
+	if !ok {
+		return nil, fmt.Errorf("tool call with index %d not found", index)
+	}
+	tc := &aipb.ToolCall{
+		Id:   entry.id,
+		Name: entry.name,
+	}
+	lexer := streamingjson.NewLexer()
+	lexer.AppendString(entry.args.String())
+	healed := lexer.CompleteJSON()
+	if healed == "" {
+		healed = "{}"
+	}
+	var err error
+	tc.Arguments, err = pbutil.JSONUnmarshalStruct([]byte(healed))
+	if err != nil {
+		return nil, err
+	}
+	return tc, nil
 }
 
 // Build returns the completed ToolCall proto for a given index and removes it.

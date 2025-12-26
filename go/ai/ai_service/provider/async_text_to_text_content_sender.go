@@ -113,6 +113,12 @@ func (s *AsyncTextToTextContentSender) SendToolCall(ctx context.Context, tcs ...
 	}
 }
 
+func (s *AsyncTextToTextContentSender) SendPartialToolCall(ctx context.Context, tc *aipb.ToolCall) {
+	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
+		Content: &aiservicepb.TextToTextStreamResponse_PartialToolCall{PartialToolCall: tc},
+	})
+}
+
 func (s *AsyncTextToTextContentSender) SendStopReason(ctx context.Context, r aiservicepb.TextToTextStopReason) {
 	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
 		Content: &aiservicepb.TextToTextStreamResponse_StopReason{StopReason: r},
