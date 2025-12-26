@@ -13,6 +13,16 @@
 // To make changes, edit the template file and regenerate.
 package main
 
+{{ range $server := .servers -}}
+    {{- if and (eq $server.type "grpc") $server.descriptorSet -}}
+        {{- if doOnce "embed_import" -}}
+            {{ $_ := goImportAlias "embed" "_" }}
+        {{ end }}
+        //go:embed {{ $server.descriptorSet }}
+        var {{ $server.name | camelcase | untitle }}DescriptorSetBytes []byte
+    {{ end }}
+{{- end -}}
+
 var opts struct {
 {{ template "mainOpts" . }}
 }
@@ -290,7 +300,7 @@ var stopFns []func() error
             {{ end }}
         {{- end }}
 
-	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register)
+	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, register){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
 
         grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
             {{- if eq $interceptor.type "session_local_context_injector" }}

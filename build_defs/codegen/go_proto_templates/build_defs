@@ -41,7 +41,8 @@ def go_proto_template_library(
             src = template,
         )
     # Set the package name.
-    package_name = basename(get_base_path())
+    base_path = get_base_path()
+    package_name = basename(base_path)
     if additional_context and GO_PROTO_TEMPLATES_PACKAGE_NAME in additional_context:
         package_name = additional_context[GO_PROTO_TEMPLATES_PACKAGE_NAME]
 
@@ -77,7 +78,6 @@ def go_proto_template_library(
             src_package_names += [src_package_name]
     src_package_names = sorted(src_package_names, key=len, reverse=True)
 
-    base_path = get_base_path()
     def _pre_build(rule_name):
         _pre_build_go_path_mapping(rule_name)
         if len(src_package_names) == 0:

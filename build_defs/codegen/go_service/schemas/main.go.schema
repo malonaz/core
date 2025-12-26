@@ -35,6 +35,9 @@
                         "type": "string",
                         "pattern": "^[a-zA-Z0-9-]+$"
                     },
+                    "descriptorSet": {
+                        "type": "string"
+                    },
                     "interceptors": {
                         "type": "array",
                         "items": {

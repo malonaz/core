@@ -2,6 +2,11 @@ package(default_visibility = ["PUBLIC"])
 
 subinclude("///proto//build_defs/sdk")
 
+filegroup(
+    name = "descriptor",
+    srcs = ["descriptor.build_defs"],
+)
+
 proto_build_defs(
     name = "go",
     srcs = ["go.build_defs"],

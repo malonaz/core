@@ -3,6 +3,7 @@ package pbreflection
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,6 +14,12 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+
+	aipv1 "github.com/malonaz/core/genproto/codegen/aip/v1"
+)
+
+var (
+	commentOverrideRegexp = regexp.MustCompile(`@comment\(([^)]+)\)`)
 )
 
 type ResolveSchemaOption func(*resolveSchemaOptions)
@@ -97,11 +104,35 @@ func newSchema(data *schemaData) (*Schema, error) {
 		serviceSet[svc] = struct{}{}
 	}
 
+	// Step 1: extract comments.
 	comments := make(map[string]string)
 	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		extractComments(comments, fd)
 		return true
 	})
+
+	// Step 2: Process @comment replacements.
+	for fqn, comment := range comments {
+		var replaceErr error
+		newComment := commentOverrideRegexp.ReplaceAllStringFunc(comment, func(match string) string {
+			m := commentOverrideRegexp.FindStringSubmatch(match)
+			if m == nil {
+				return match
+			}
+			if override, ok := comments[m[1]]; ok {
+				return override
+			}
+			replaceErr = fmt.Errorf("@comment(%s) in %s: target not found", m[1], fqn)
+			return match
+		})
+		if replaceErr != nil {
+			return nil, replaceErr
+		}
+		comments[fqn] = newComment
+	}
+
+	// Step 3: Augment method comments based on AIP options
+	augmentMethodComments(comments, files)
 
 	return &Schema{
 		serviceSet: serviceSet,
@@ -234,18 +265,158 @@ func extractMessageComments(comments map[string]string, locs protoreflect.Source
 func extractEnumComments(comments map[string]string, locs protoreflect.SourceLocations, enum protoreflect.EnumDescriptor) {
 	storeComment(comments, locs, enum)
 	values := enum.Values()
+	var valueNames []string
 	for i := 0; i < values.Len(); i++ {
 		storeComment(comments, locs, values.Get(i))
+		valueNames = append(valueNames, string(values.Get(i).Name()))
+	}
+	enumFQN := string(enum.FullName())
+	existing := comments[enumFQN]
+	valuesDoc := "Values: " + strings.Join(valueNames, ", ")
+	if existing != "" {
+		comments[enumFQN] = existing + "\n" + valuesDoc
+	} else {
+		comments[enumFQN] = valuesDoc
 	}
 }
 
 func storeComment(comments map[string]string, locs protoreflect.SourceLocations, desc protoreflect.Descriptor) {
 	loc := locs.ByDescriptor(desc)
-	comment := strings.TrimSpace(loc.LeadingComments)
+	comment := trimCommentLines(loc.LeadingComments)
 	if comment == "" {
-		comment = strings.TrimSpace(loc.TrailingComments)
+		comment = trimCommentLines(loc.TrailingComments)
 	}
 	if comment != "" {
 		comments[string(desc.FullName())] = comment
 	}
+}
+
+func trimCommentLines(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimSpace(line)
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
+}
+
+func augmentMethodComments(comments map[string]string, files *protoregistry.Files) {
+	messageFQNSeenSet := map[string]struct{}{}
+	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		services := fd.Services()
+		for i := 0; i < services.Len(); i++ {
+			svc := services.Get(i)
+			methods := svc.Methods()
+			for j := 0; j < methods.Len(); j++ {
+				method := methods.Get(j)
+				input := method.Input()
+				inputOpts := input.Options()
+				if inputOpts == nil {
+					continue
+				}
+				// We do not update the same message twice.
+				_, messageSeen := messageFQNSeenSet[string(input.FullName())]
+				messageFQNSeenSet[string(input.FullName())] = struct{}{}
+
+				methodFQN := string(method.FullName())
+				var methodExtras []string
+
+				// Filtering
+				if proto.HasExtension(inputOpts, aipv1.E_Filtering) {
+					if filtering := proto.GetExtension(inputOpts, aipv1.E_Filtering).(*aipv1.FilteringOptions); filtering != nil && len(filtering.Paths) > 0 {
+						methodExtras = append(methodExtras, formatFilteringDoc(filtering.Paths))
+						if !messageSeen {
+							if field := input.Fields().ByName("filter"); field != nil {
+								comments[string(field.FullName())] = fmt.Sprintf("Filter by: %s", strings.Join(filtering.Paths, ", "))
+							}
+						}
+					}
+				}
+
+				// Ordering
+				if proto.HasExtension(inputOpts, aipv1.E_Ordering) {
+					if ordering := proto.GetExtension(inputOpts, aipv1.E_Ordering).(*aipv1.OrderingOptions); ordering != nil && len(ordering.Paths) > 0 {
+						methodExtras = append(methodExtras, formatOrderingDoc(ordering.Paths, ordering.Default))
+						if !messageSeen {
+							if field := input.Fields().ByName("order_by"); field != nil {
+								comments[string(field.FullName())] = fmt.Sprintf("Order by: %s (default: %s)", strings.Join(ordering.Paths, ", "), ordering.Default)
+							}
+						}
+					}
+				}
+
+				// Pagination
+				if proto.HasExtension(inputOpts, aipv1.E_Pagination) {
+					if pagination := proto.GetExtension(inputOpts, aipv1.E_Pagination).(*aipv1.PaginationOptions); pagination != nil {
+						methodExtras = append(methodExtras, formatPaginationDoc(pagination.DefaultPageSize))
+						if !messageSeen {
+							if field := input.Fields().ByName("page_size"); field != nil {
+								comments[string(field.FullName())] = fmt.Sprintf("Page size (default: %d)", pagination.DefaultPageSize)
+							}
+						}
+					}
+				}
+
+				// Updating
+				if proto.HasExtension(inputOpts, aipv1.E_Update) {
+					if update := proto.GetExtension(inputOpts, aipv1.E_Update).(*aipv1.UpdateOptions); update != nil && len(update.Paths) > 0 {
+						methodExtras = append(methodExtras, formatUpdateDoc(update.Paths))
+						if !messageSeen {
+							if field := input.Fields().ByName("update_mask"); field != nil {
+								comments[string(field.FullName())] = fmt.Sprintf("Updatable fields: %s", strings.Join(update.Paths, ", "))
+							}
+						}
+					}
+				}
+
+				if len(methodExtras) > 0 {
+					existing := comments[methodFQN]
+					var newExtras []string
+					for _, extra := range methodExtras {
+						if !strings.Contains(existing, extra) {
+							newExtras = append(newExtras, extra)
+						}
+					}
+					if len(newExtras) > 0 {
+						if existing != "" {
+							comments[methodFQN] = existing + "\n\n" + strings.Join(newExtras, "\n\n")
+						} else {
+							comments[methodFQN] = strings.Join(newExtras, "\n\n")
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+}
+
+func formatFilteringDoc(paths []string) string {
+	var pathsStr string
+	if len(paths) == 1 && paths[0] == "*" {
+		pathsStr = "any field (except name)"
+	} else {
+		pathsStr = strings.Join(paths, ", ")
+	}
+	return fmt.Sprintf(`**Filtering (AIP-160)**
+Supports filter expressions on: %s
+Examples: 'name = "foo"', 'age > 21', 'status = "ACTIVE" AND created_time > "2024-01-01"'`, pathsStr)
+}
+
+func formatOrderingDoc(paths []string, defaultOrder string) string {
+	return fmt.Sprintf(`**Ordering (AIP-132)**
+Order by: %s
+Default: %s
+Use 'field desc' for descending order.`, strings.Join(paths, ", "), defaultOrder)
+}
+
+func formatPaginationDoc(defaultSize uint32) string {
+	return fmt.Sprintf(`**Pagination (AIP-158)**
+Default page size: %d
+Use page_token from response to fetch next page.`, defaultSize)
+}
+
+func formatUpdateDoc(paths []string) string {
+	return fmt.Sprintf(`**Field Mask (AIP-134)**
+Updatable fields: %s
+Must use the update mask to specify which fields to update.`, strings.Join(paths, ", "))
 }

@@ -41,6 +41,7 @@ var (
 		"plzGoImport":      plzGoImport,
 		"plzGoImportAlias": plzGoImportAlias,
 		"goImport":         goImport,
+		"goImportAlias":    goImportAlias,
 
 		"grpcNatsPublishers": func(filepath string) ([]string, error) {
 			sanitizedFilepath := strings.TrimPrefix(filepath, "//")

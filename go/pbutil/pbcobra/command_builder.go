@@ -3,6 +3,7 @@ package pbcobra
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/huandu/xstrings"
 	"github.com/spf13/cobra"
@@ -10,8 +11,17 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/go/pbutil/pbreflection"
+)
+
+var (
+	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
+	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 )
 
 type ResponseHandler func(m proto.Message) error
@@ -49,7 +59,8 @@ func (b *CommandBuilder) Build() []*cobra.Command {
 func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   xstrings.ToKebabCase(string(svc.Name())),
-		Short: b.commentFor(string(svc.FullName())),
+		Short: b.commentFor(string(svc.FullName()), commentFirstLine),
+		Long:  b.commentFor(string(svc.FullName()), commentMultiline),
 	}
 
 	methods := svc.Methods()
@@ -62,7 +73,8 @@ func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor)
 func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   xstrings.ToKebabCase(string(method.Name())),
-		Short: b.commentFor(string(method.FullName())),
+		Short: b.commentFor(string(method.FullName()), commentFirstLine),
+		Long:  b.commentFor(string(method.FullName()), commentMultiline),
 		Args:  cobra.NoArgs,
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveNoFileComp
@@ -84,7 +96,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 		return
 	}
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
-	help := b.commentFor(string(field.FullName()))
+	help := b.commentFor(string(field.FullName()), commentSingleLine)
 
 	if field.IsList() {
 		cmd.Flags().StringSlice(name, nil, help)
@@ -93,10 +105,23 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 
 	switch field.Kind() {
 	case protoreflect.MessageKind:
-		nestedFields := field.Message().Fields()
-		nestedPrefix := name + "-"
-		for i := 0; i < nestedFields.Len(); i++ {
-			b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1)
+		switch field.Message().FullName() {
+		case timestampFullName:
+			cmd.Flags().String(name, "", help+" (Format: RFC3339, e.g. 2006-01-02T15:04:05Z)")
+			return
+		case durationFullName:
+			cmd.Flags().String(name, "", help+" (Format: Go duration, e.g. 1h30m)")
+			return
+		case fieldMaskFullName:
+			cmd.Flags().String(name, "", help+" (comma-separated paths)")
+			return
+
+		default:
+			nestedFields := field.Message().Fields()
+			nestedPrefix := name + "-"
+			for i := 0; i < nestedFields.Len(); i++ {
+				b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1)
+			}
 		}
 	case protoreflect.StringKind:
 		cmd.Flags().String(name, "", help)
@@ -116,7 +141,14 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 		cmd.Flags().Float64(name, 0, help)
 	case protoreflect.BytesKind:
 		cmd.Flags().String(name, "", help)
+		// go/pbutil/pbcobra/command_builder.go:118-119
 	case protoreflect.EnumKind:
+		enumHelp := b.commentFor(string(field.Enum().FullName()), commentSingleLine)
+		if help != "" && enumHelp != "" {
+			help = help + " (" + enumHelp + ")"
+		} else if enumHelp != "" {
+			help = enumHelp
+		}
 		cmd.Flags().String(name, "", help)
 	}
 }
@@ -150,17 +182,77 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 	}
 
 	if field.Kind() == protoreflect.MessageKind {
-		if !b.anyNestedFlagChanged(cmd, field, name+"-") {
-			return nil
-		}
-		nestedMsg := msg.Mutable(field).Message()
-		nestedFields := field.Message().Fields()
-		for i := 0; i < nestedFields.Len(); i++ {
-			if err := b.setFieldWithPrefix(nestedMsg.(*dynamicpb.Message), nestedFields.Get(i), cmd, name+"-"); err != nil {
+		switch field.Message().FullName() {
+		case timestampFullName:
+			if !cmd.Flags().Changed(name) {
+				return nil
+			}
+			str, err := cmd.Flags().GetString(name)
+			if err != nil {
 				return err
 			}
+			t, err := time.Parse(time.RFC3339, str)
+			if err != nil {
+				return fmt.Errorf("parsing %s as timestamp: %w", name, err)
+			}
+			ts := timestamppb.New(t)
+			nested := msg.Mutable(field).Message()
+			nested.Set(nested.Descriptor().Fields().ByName("seconds"), protoreflect.ValueOfInt64(ts.Seconds))
+			nested.Set(nested.Descriptor().Fields().ByName("nanos"), protoreflect.ValueOfInt32(ts.Nanos))
+			return nil
+
+		case durationFullName:
+			if !cmd.Flags().Changed(name) {
+				return nil
+			}
+			str, err := cmd.Flags().GetString(name)
+			if err != nil {
+				return err
+			}
+			d, err := time.ParseDuration(str)
+			if err != nil {
+				return fmt.Errorf("parsing %s as duration: %w", name, err)
+			}
+			dur := durationpb.New(d)
+			nested := msg.Mutable(field).Message()
+			nested.Set(nested.Descriptor().Fields().ByName("seconds"), protoreflect.ValueOfInt64(dur.Seconds))
+			nested.Set(nested.Descriptor().Fields().ByName("nanos"), protoreflect.ValueOfInt32(dur.Nanos))
+			return nil
+
+		case fieldMaskFullName:
+			if !cmd.Flags().Changed(name) {
+				return nil
+			}
+			str, err := cmd.Flags().GetString(name)
+			if err != nil {
+				return err
+			}
+			var paths []string
+			if str != "" {
+				paths = strings.Split(str, ",")
+			}
+			fm := &fieldmaskpb.FieldMask{Paths: paths}
+			fm.Normalize()
+			nested := msg.Mutable(field).Message()
+			pathsList := nested.Mutable(nested.Descriptor().Fields().ByName("paths")).List()
+			for _, p := range fm.Paths {
+				pathsList.Append(protoreflect.ValueOfString(strings.TrimSpace(p)))
+			}
+			return nil
+
+		default:
+			if !b.anyNestedFlagChanged(cmd, field, name+"-") {
+				return nil
+			}
+			nestedMsg := msg.Mutable(field).Message()
+			nestedFields := field.Message().Fields()
+			for i := 0; i < nestedFields.Len(); i++ {
+				if err := b.setFieldWithPrefix(nestedMsg.(*dynamicpb.Message), nestedFields.Get(i), cmd, name+"-"); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
-		return nil
 	}
 
 	if !cmd.Flags().Changed(name) {
@@ -311,9 +403,30 @@ func parseScalar(field protoreflect.FieldDescriptor, s string) (protoreflect.Val
 	}
 }
 
-func (b *CommandBuilder) commentFor(fullName string) string {
-	if c, ok := b.schema.Comments[fullName]; ok {
-		return strings.ReplaceAll(c, "\n", " ")
+type commentStyle int
+
+const (
+	commentFirstLine commentStyle = iota
+	commentMultiline
+	commentSingleLine
+)
+
+func (b *CommandBuilder) commentFor(fullName string, style commentStyle) string {
+	c, ok := b.schema.Comments[fullName]
+	if !ok {
+		return ""
 	}
-	return ""
+	switch style {
+	case commentFirstLine:
+		if idx := strings.Index(c, "\n"); idx != -1 {
+			return c[:idx]
+		}
+		return c
+	case commentMultiline:
+		return c
+	case commentSingleLine:
+		return strings.ReplaceAll(c, "\n", " ")
+	default:
+		return c
+	}
 }

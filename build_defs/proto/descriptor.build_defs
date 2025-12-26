@@ -1,0 +1,51 @@
+subinclude(
+    "///proto//build_defs/sdk",
+)
+
+def proto_descriptor_set(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+):
+
+    base_path = get_base_path()
+    def _pre_build(rule_name):
+        new_cmd = get_command(rule_name)
+        new_cmd = new_cmd.replace(f'(mv -f bin/{base_path}/* out_dir; true)', f"(mv -f {name}.bin out_dir; true)")
+        set_command(rule_name, new_cmd)
+
+    # Set the package name.
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "bin",
+        tools = {},
+        protoc_flags = protoc_flags,
+        plugin_flags =  ["--include_source_info", f"--descriptor_set_out={name}.bin", "--include_imports"],
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps + [
+            filegroup(
+                name = name,
+                tag = "protoc_wkt",
+                exported_deps = [CONFIG.PROTO.PROTOC_TOOL],
+                test_only = test_only,
+                requires = ["proto"],
+            )
+        ],
+        pre_build = _pre_build,
+        visibility = visibility,
+    )
+
+    return filegroup(
+        name = name,
+        srcs = [protoc],
+        visibility = visibility,
+        test_only = test_only,
+    )

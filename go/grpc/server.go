@@ -20,10 +20,14 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
+	v1reflectiongrpc "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/types/descriptorpb"
 
 	"github.com/malonaz/core/go/certs"
 	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/prometheus"
 )
 
@@ -69,6 +73,8 @@ type Server struct {
 	prometheusServerMetrics *grpc_prometheus.ServerMetrics
 	healthServer            *health.GRPCServer
 
+	fdsBytes []byte
+
 	// The **first** interceptor is the **outermost** (executes first on request, last on response).
 	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
 	preUnaryInterceptors   []grpc.UnaryServerInterceptor
@@ -79,6 +85,11 @@ type Server struct {
 	postStreamInterceptors []grpc.StreamServerInterceptor
 
 	options []grpc.ServerOption
+}
+
+func (s *Server) WithFileDescriptorSet(bytes []byte) *Server {
+	s.fdsBytes = bytes
+	return s
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {
@@ -273,7 +284,26 @@ func (s *Server) Serve(ctx context.Context) error {
 	s.healthServer.Start(ctx)
 
 	if s.opts.EnableReflection {
-		reflection.Register(s.Raw)
+		if s.fdsBytes != nil {
+			var fds descriptorpb.FileDescriptorSet
+			if err := pbutil.Unmarshal(s.fdsBytes, &fds); err != nil {
+				return err
+			}
+			// Convert FileDescriptorSet to a resolver
+			files, err := protodesc.NewFiles(&fds)
+			if err != nil {
+				return fmt.Errorf("building file descriptor registry: %w", err)
+			}
+			reflectionServerOptions := reflection.ServerOptions{
+				Services: s.Raw,
+				//ExtensionResolver: files,
+				DescriptorResolver: files,
+			}
+			reflectionServer := reflection.NewServerV1(reflectionServerOptions)
+			v1reflectiongrpc.RegisterServerReflectionServer(s.Raw, reflectionServer)
+		} else {
+			reflection.Register(s.Raw)
+		}
 		s.log.InfoContext(ctx, "gRPC reflection enabled")
 	}
 
@@ -287,4 +317,8 @@ func (s *Server) Serve(ctx context.Context) error {
 		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}
 	return nil
+}
+
+type ReflectionRichServer struct {
+	*grpc.Server
 }
