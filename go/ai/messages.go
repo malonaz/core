@@ -2,6 +2,8 @@ package ai
 
 import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -41,6 +43,30 @@ func NewToolResultMessage(m *aipb.ToolResultMessage) *aipb.Message {
 		Role:       aipb.Role_ROLE_TOOL,
 		Message: &aipb.Message_Tool{
 			Tool: m,
+		},
+	}
+}
+
+func NewToolResult(content string) *aipb.ToolResult {
+	return &aipb.ToolResult{
+		Result: &aipb.ToolResult_Content{
+			Content: content,
+		},
+	}
+}
+
+func NewStructuredToolResult(content *structpb.Struct) *aipb.ToolResult {
+	return &aipb.ToolResult{
+		Result: &aipb.ToolResult_StructuredContent{
+			StructuredContent: content,
+		},
+	}
+}
+
+func NewErrorToolResult(err string) *aipb.ToolResult {
+	return &aipb.ToolResult{
+		Result: &aipb.ToolResult_Error{
+			Error: err,
 		},
 	}
 }
