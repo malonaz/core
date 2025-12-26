@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// ExtractJSONObject finds and extracts the first JSON object from LLM output
-func ExtractJSONObject(content string) (string, error) {
+// ExtractJSONString finds and extracts the first JSON object from LLM output
+func ExtractJSONString(content string) (string, error) {
 	// Find the first '{' and last '}'
 	start := strings.Index(content, "{")
 	if start == -1 {

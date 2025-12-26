@@ -1,5 +1,13 @@
 go_library(
     name = "ai",
-    srcs = ["utils.go"],
+    srcs = [
+        "messages.go",
+        "utils.go",
+    ],
     visibility = ["//..."],
+    deps = [
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
 )

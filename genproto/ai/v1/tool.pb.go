@@ -10,6 +10,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -150,8 +151,8 @@ type ToolCall struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// The name of the tool to call.
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// The arguments to call the tool with, as JSON.
-	Arguments     string `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	// The arguments to call the tool with.
+	Arguments     *structpb.Struct `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -200,12 +201,117 @@ func (x *ToolCall) GetName() string {
 	return ""
 }
 
-func (x *ToolCall) GetArguments() string {
+func (x *ToolCall) GetArguments() *structpb.Struct {
 	if x != nil {
 		return x.Arguments
 	}
+	return nil
+}
+
+// The result of executing a tool call.
+type ToolResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The outcome of the tool execution.
+	//
+	// Types that are valid to be assigned to Result:
+	//
+	//	*ToolResult_Content
+	//	*ToolResult_StructuredContent
+	//	*ToolResult_Error
+	Result        isToolResult_Result `protobuf_oneof:"result"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolResult) Reset() {
+	*x = ToolResult{}
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolResult) ProtoMessage() {}
+
+func (x *ToolResult) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolResult.ProtoReflect.Descriptor instead.
+func (*ToolResult) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ToolResult) GetResult() isToolResult_Result {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+func (x *ToolResult) GetContent() string {
+	if x != nil {
+		if x, ok := x.Result.(*ToolResult_Content); ok {
+			return x.Content
+		}
+	}
 	return ""
 }
+
+func (x *ToolResult) GetStructuredContent() *structpb.Struct {
+	if x != nil {
+		if x, ok := x.Result.(*ToolResult_StructuredContent); ok {
+			return x.StructuredContent
+		}
+	}
+	return nil
+}
+
+func (x *ToolResult) GetError() string {
+	if x != nil {
+		if x, ok := x.Result.(*ToolResult_Error); ok {
+			return x.Error
+		}
+	}
+	return ""
+}
+
+type isToolResult_Result interface {
+	isToolResult_Result()
+}
+
+type ToolResult_Content struct {
+	// The output returned by the tool execution.
+	// May contain structured data (e.g., JSON) or plain text depending on the tool.
+	Content string `protobuf:"bytes,1,opt,name=content,proto3,oneof"`
+}
+
+type ToolResult_StructuredContent struct {
+	// The output returned by the tool execution as structured data.
+	StructuredContent *structpb.Struct `protobuf:"bytes,2,opt,name=structured_content,json=structuredContent,proto3,oneof"`
+}
+
+type ToolResult_Error struct {
+	// Error message if the tool execution failed.
+	Error string `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
+}
+
+func (*ToolResult_Content) isToolResult_Result() {}
+
+func (*ToolResult_StructuredContent) isToolResult_Result() {}
+
+func (*ToolResult_Error) isToolResult_Result() {}
 
 // Controls which tool(s) the model should use.
 type ToolChoice struct {
@@ -223,7 +329,7 @@ type ToolChoice struct {
 
 func (x *ToolChoice) Reset() {
 	*x = ToolChoice{}
-	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +341,7 @@ func (x *ToolChoice) String() string {
 func (*ToolChoice) ProtoMessage() {}
 
 func (x *ToolChoice) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +354,7 @@ func (x *ToolChoice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolChoice.ProtoReflect.Descriptor instead.
 func (*ToolChoice) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{2}
+	return file_malonaz_ai_v1_tool_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ToolChoice) GetChoice() isToolChoice_Choice {
@@ -298,16 +404,22 @@ var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x8a\x01\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x8a\x01\n" +
 	"\x04Tool\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
 	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12:\n" +
 	"\vjson_schema\x18\x03 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\n" +
-	"jsonSchema\"\\\n" +
+	"jsonSchema\"}\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
-	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12\x1c\n" +
-	"\targuments\x18\x03 \x01(\tR\targuments\"\xf9\x01\n" +
+	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
+	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\"\x9b\x01\n" +
+	"\n" +
+	"ToolResult\x12\x1a\n" +
+	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12H\n" +
+	"\x12structured_content\x18\x02 \x01(\v2\x17.google.protobuf.StructH\x00R\x11structuredContent\x12\x16\n" +
+	"\x05error\x18\x03 \x01(\tH\x00R\x05errorB\x0f\n" +
+	"\x06result\x12\x05\xbaH\x02\b\x01\"\xf9\x01\n" +
 	"\n" +
 	"ToolChoice\x12=\n" +
 	"\x04mode\x18\x01 \x01(\x0e2\x1d.malonaz.ai.v1.ToolChoiceModeB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\x04mode\x12\x1d\n" +
@@ -333,22 +445,26 @@ func file_malonaz_ai_v1_tool_proto_rawDescGZIP() []byte {
 }
 
 var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
-	(ToolChoiceMode)(0), // 0: malonaz.ai.v1.ToolChoiceMode
-	(*Tool)(nil),        // 1: malonaz.ai.v1.Tool
-	(*ToolCall)(nil),    // 2: malonaz.ai.v1.ToolCall
-	(*ToolChoice)(nil),  // 3: malonaz.ai.v1.ToolChoice
-	(*JsonSchema)(nil),  // 4: malonaz.ai.v1.JsonSchema
+	(ToolChoiceMode)(0),     // 0: malonaz.ai.v1.ToolChoiceMode
+	(*Tool)(nil),            // 1: malonaz.ai.v1.Tool
+	(*ToolCall)(nil),        // 2: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),      // 3: malonaz.ai.v1.ToolResult
+	(*ToolChoice)(nil),      // 4: malonaz.ai.v1.ToolChoice
+	(*JsonSchema)(nil),      // 5: malonaz.ai.v1.JsonSchema
+	(*structpb.Struct)(nil), // 6: google.protobuf.Struct
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 1: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
+	6, // 1: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	6, // 2: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
+	0, // 3: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -358,6 +474,11 @@ func file_malonaz_ai_v1_tool_proto_init() {
 	}
 	file_malonaz_ai_v1_jsonschema_proto_init()
 	file_malonaz_ai_v1_tool_proto_msgTypes[2].OneofWrappers = []any{
+		(*ToolResult_Content)(nil),
+		(*ToolResult_StructuredContent)(nil),
+		(*ToolResult_Error)(nil),
+	}
+	file_malonaz_ai_v1_tool_proto_msgTypes[3].OneofWrappers = []any{
 		(*ToolChoice_Mode)(nil),
 		(*ToolChoice_ToolName)(nil),
 	}
@@ -367,7 +488,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

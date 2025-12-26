@@ -3,7 +3,6 @@ package anthropic
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -15,6 +14,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.Ai_TextToTextStreamServer) error {
@@ -26,41 +26,53 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		return err
 	}
 
-	// Extract system message if present
 	var systemBlocks []anthropic.TextBlockParam
 	messages := make([]anthropic.MessageParam, 0, len(request.Messages))
 
-	for _, msg := range request.Messages {
-		switch msg.Role {
-		case aipb.Role_ROLE_SYSTEM:
+	for i, msg := range request.Messages {
+		switch m := msg.Message.(type) {
+		case *aipb.Message_System:
 			systemBlocks = append(systemBlocks, anthropic.TextBlockParam{
-				Text: msg.Content,
+				Text: m.System.Content,
 			})
 
-		case aipb.Role_ROLE_USER:
+		case *aipb.Message_User:
 			messages = append(messages, anthropic.NewUserMessage(
-				anthropic.NewTextBlock(msg.Content),
+				anthropic.NewTextBlock(m.User.Content),
 			))
 
-		case aipb.Role_ROLE_ASSISTANT:
+		case *aipb.Message_Assistant:
 			var contentBlockParamUnions []anthropic.ContentBlockParamUnion
-			if msg.Content != "" {
-				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewTextBlock(msg.Content))
+			if m.Assistant.Content != "" {
+				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewTextBlock(m.Assistant.Content))
 			}
-			// Add tool use content if present
-			for _, tc := range msg.ToolCalls {
-				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewToolUseBlock(tc.Id, json.RawMessage(tc.Arguments), tc.Name))
+			if m.Assistant.StructuredContent != nil {
+				bytes, err := pbutil.JSONMarshalStruct(m.Assistant.StructuredContent)
+				if err != nil {
+					return grpc.Errorf(codes.InvalidArgument, "message [%d]: marshaling structured content: %v", i, err).Err()
+				}
+				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewTextBlock(string(bytes)))
+			}
+			for j, tc := range m.Assistant.ToolCalls {
+				bytes, err := pbutil.JSONMarshalStruct(tc.Arguments)
+				if err != nil {
+					return grpc.Errorf(codes.InvalidArgument, "message [%d]: marshaling tool call [%d] arguments: %v", i, j, err).Err()
+				}
+				contentBlockParamUnions = append(contentBlockParamUnions, anthropic.NewToolUseBlock(tc.Id, json.RawMessage(bytes), tc.Name))
 			}
 			messages = append(messages, anthropic.NewAssistantMessage(contentBlockParamUnions...))
 
-		case aipb.Role_ROLE_TOOL:
-			toolResultBlock := anthropic.NewToolResultBlock(msg.ToolCallId, msg.Content, false)
-			// Anthropic passes tool results with role USER.
-			messages = append(messages, anthropic.NewUserMessage(toolResultBlock))
+		case *aipb.Message_Tool:
+			content, isError, err := toolResultToContent(m.Tool.Result)
+			if err != nil {
+				return grpc.Errorf(codes.InvalidArgument, "message [%d]: converting tool result [%d] to text: %v", i, err).Err()
+			}
+			toolResultBlock := anthropic.NewToolResultBlock(m.Tool.ToolCallId, content, isError)
+			messages = append(messages, anthropic.NewUserMessage(toolResultBlock)) // Anthropic passes tool results with role user.
 		}
 	}
 
-	// Build the request
+	// Build the request.
 	messageParams := anthropic.MessageNewParams{
 		Model:     anthropic.Model(model.ProviderModelId),
 		Messages:  messages,
@@ -74,7 +86,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		messageParams.System = systemBlocks
 	}
 
-	// Add thinking configuration for reasoning models
+	// Add thinking configuration for reasoning models.
 	if model.Ttt.Reasoning {
 		budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
 		if budget > 0 {
@@ -82,7 +94,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		}
 	}
 
-	// Add tools if provided
+	// Add tools if provided.
 	if len(request.Tools) > 0 {
 		tools := make([]anthropic.ToolUnionParam, 0, len(request.Tools))
 		for _, tool := range request.Tools {
@@ -92,7 +104,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		messageParams.Tools = tools
 	}
 
-	// Add tool choice if provided
+	// Add tool choice if provided.
 	if request.GetConfiguration().GetToolChoice() != nil {
 		toolChoice, err := pbToolChoiceToAnthropic(request.GetConfiguration().GetToolChoice())
 		if err != nil {
@@ -101,23 +113,15 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		messageParams.ToolChoice = toolChoice
 	}
 
-	startTime := time.Now()
-
 	// Create streaming request
+	startTime := time.Now()
 	messageStream := c.client.Messages.NewStreaming(ctx, messageParams)
 
 	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
 	defer cs.Close()
 
 	// Track active tool_use blocks by content block index
-	type toolUseAcc struct {
-		id   string
-		name string
-		args strings.Builder
-	}
-	toolUses := make(map[int64]*toolUseAcc)
-
-	// Process stream events (consumer)
+	tca := provider.NewToolCallAccumulator()
 	var sentTtfb bool
 
 	for messageStream.Next() && cs.Err() == nil {
@@ -154,14 +158,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			cs.SendModelUsage(ctx, modelUsage)
 
 		case anthropic.ContentBlockStartEvent:
-			// If this is a tool_use block, start accumulating its arguments
 			switch contentBlockVariant := variant.ContentBlock.AsAny().(type) {
 			case anthropic.ToolUseBlock:
-				toolUses[variant.Index] = &toolUseAcc{
-					id:   contentBlockVariant.ID,
-					name: contentBlockVariant.Name,
-				}
-			case anthropic.TextBlock: // Nothing to do on these event types for now.
+				// If this is a tool_use block, start accumulating its arguments
+				tca.Start(variant.Index, contentBlockVariant.ID, contentBlockVariant.Name)
+			case anthropic.TextBlock:
 			case anthropic.ThinkingBlock:
 			case anthropic.RedactedThinkingBlock:
 			case anthropic.ServerToolUseBlock:
@@ -171,7 +172,6 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			}
 
 		case anthropic.ContentBlockDeltaEvent:
-			// Handle different types of content deltas
 			switch delta := variant.Delta.AsAny().(type) {
 			case anthropic.TextDelta:
 				cs.SendContentChunk(ctx, delta.Text)
@@ -180,23 +180,17 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				cs.SendReasoningChunk(ctx, delta.Thinking)
 
 			case anthropic.InputJSONDelta:
-				// Accumulate tool_use input JSON by content block index
-				if acc, ok := toolUses[variant.Index]; ok {
-					acc.args.WriteString(delta.PartialJSON)
-				}
+				// Accumulate tool_use input JSON by content block index.
+				tca.AppendArgs(variant.Index, delta.PartialJSON)
 			}
 
 		case anthropic.ContentBlockStopEvent:
 			// If this content block was a tool_use, emit it now (with complete arguments)
-			if acc, ok := toolUses[variant.Index]; ok {
-				toolCall := &aipb.ToolCall{
-					Id:        acc.id,
-					Name:      acc.name,
-					Arguments: acc.args.String(),
-				}
-				cs.SendToolCall(ctx, toolCall)
-				delete(toolUses, variant.Index)
+			toolCall, err := tca.Build(variant.Index)
+			if err != nil {
+				return grpc.Errorf(codes.Internal, "unmarshaling tool call arguments: %v", err).Err()
 			}
+			cs.SendToolCall(ctx, toolCall)
 
 		case anthropic.MessageDeltaEvent:
 			// Output model usage.
@@ -238,7 +232,23 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	return nil
 }
 
-// Add this new helper function
+func toolResultToContent(result *aipb.ToolResult) (string, bool, error) {
+	switch r := result.Result.(type) {
+	case *aipb.ToolResult_Content:
+		return r.Content, false, nil
+	case *aipb.ToolResult_StructuredContent:
+		bytes, err := pbutil.JSONMarshalStruct(r.StructuredContent)
+		if err != nil {
+			return "", false, err
+		}
+		return string(bytes), false, nil
+	case *aipb.ToolResult_Error:
+		return r.Error, true, nil
+	default:
+		return "", false, fmt.Errorf("unknown tool result type: %T", r)
+	}
+}
+
 func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceUnionParam, error) {
 	switch choice := toolChoice.Choice.(type) {
 	case *aipb.ToolChoice_Mode:
@@ -263,7 +273,6 @@ func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceU
 		}
 
 	case *aipb.ToolChoice_ToolName:
-		// Specific tool name
 		return anthropic.ToolChoiceUnionParam{
 			OfTool: &anthropic.ToolChoiceToolParam{
 				Name: choice.ToolName,
@@ -272,20 +281,6 @@ func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceU
 
 	default:
 		return anthropic.ToolChoiceUnionParam{}, fmt.Errorf("unknown tool choice type: %T", choice)
-	}
-}
-
-func pbRoleToAnthropic(role aipb.Role) (anthropic.MessageParamRole, error) {
-	switch role {
-	case aipb.Role_ROLE_ASSISTANT:
-		return anthropic.MessageParamRoleAssistant, nil
-	case aipb.Role_ROLE_USER:
-		return anthropic.MessageParamRoleUser, nil
-	case aipb.Role_ROLE_TOOL:
-		// Tool results are sent as user messages in Anthropic
-		return anthropic.MessageParamRoleUser, nil
-	default:
-		return "", fmt.Errorf("unsupported role for Anthropic: %s", role)
 	}
 }
 
@@ -303,7 +298,6 @@ func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) in
 }
 
 func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
-	// Convert protobuf Struct to input schema
 	toolParams := &anthropic.ToolParam{
 		Name:        tool.Name,
 		Description: anthropic.String(tool.Description),
@@ -316,7 +310,6 @@ func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
 			Type:       constant.Object(tool.JsonSchema.Type),
 		}
 	} else {
-		// Anthropic requires an input schema with a type and properties set.
 		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
 			Type:       "object",
 			Properties: map[string]*aipb.JsonSchema{},

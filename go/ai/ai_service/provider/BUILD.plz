@@ -4,6 +4,7 @@ go_library(
         "async_text_to_text_content_sender.go",
         "model_service.go",
         "provider.go",
+        "tool_accumulator.go",
         "utils.go",
         "voice_service.go",
     ],

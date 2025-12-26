@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/ai/ai_service/provider",
         "//go/grpc",
+        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go",

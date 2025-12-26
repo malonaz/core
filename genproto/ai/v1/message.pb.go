@@ -10,6 +10,8 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -22,88 +24,29 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Represents the role of a message in a multi-turn AI conversation.
-type Role int32
-
-const (
-	// Used to detect an unset field.
-	Role_ROLE_UNSPECIFIED Role = 0
-	// System message.
-	Role_ROLE_SYSTEM Role = 1
-	// Assistant message.
-	Role_ROLE_ASSISTANT Role = 2
-	// User message.
-	Role_ROLE_USER Role = 3
-	// User message.
-	Role_ROLE_TOOL Role = 4
-)
-
-// Enum value maps for Role.
-var (
-	Role_name = map[int32]string{
-		0: "ROLE_UNSPECIFIED",
-		1: "ROLE_SYSTEM",
-		2: "ROLE_ASSISTANT",
-		3: "ROLE_USER",
-		4: "ROLE_TOOL",
-	}
-	Role_value = map[string]int32{
-		"ROLE_UNSPECIFIED": 0,
-		"ROLE_SYSTEM":      1,
-		"ROLE_ASSISTANT":   2,
-		"ROLE_USER":        3,
-		"ROLE_TOOL":        4,
-	}
-)
-
-func (x Role) Enum() *Role {
-	p := new(Role)
-	*p = x
-	return p
-}
-
-func (x Role) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Role) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_message_proto_enumTypes[0].Descriptor()
-}
-
-func (Role) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_message_proto_enumTypes[0]
-}
-
-func (x Role) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Role.Descriptor instead.
-func (Role) EnumDescriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
-}
-
 // Represents the level of reasoning effort for AI model responses.
-// The reasoning effort parameter guides the model on how many reasoning tokens
-// to generate before creating a response to the prompt. Higher effort levels
-// result in more thorough reasoning at the cost of speed and token usage.
+// Controls how many internal reasoning tokens the model generates before
+// producing its final response. Higher effort yields more thorough reasoning
+// at the cost of increased latency and token usage.
 type ReasoningEffort int32
 
 const (
-	// Used to detect an unset field.
+	// Unspecified reasoning effort. Should not be used explicitly.
 	ReasoningEffort_REASONING_EFFORT_UNSPECIFIED ReasoningEffort = 0
-	// Default reasoning effort set by platform.
+	// Default reasoning effort as configured by the platform.
 	ReasoningEffort_REASONING_EFFORT_DEFAULT ReasoningEffort = 1
 	// Low reasoning effort.
-	// Favors speed and economical token usage with minimal reasoning tokens.
+	// Prioritizes speed and token efficiency with minimal internal reasoning.
+	// Best for simple, straightforward queries.
 	ReasoningEffort_REASONING_EFFORT_LOW ReasoningEffort = 2
-	// Medium reasoning effort (default).
-	// Provides a balance between speed and reasoning accuracy.
+	// Medium reasoning effort.
+	// Balances response speed with reasoning thoroughness.
+	// Suitable for most general-purpose queries.
 	ReasoningEffort_REASONING_EFFORT_MEDIUM ReasoningEffort = 3
 	// High reasoning effort.
-	// Favors more complete and thorough reasoning, generating more reasoning
-	// tokens before responding. May result in slower responses and higher
-	// token usage.
+	// Maximizes reasoning depth and accuracy by generating more thinking tokens.
+	// Best for complex problems requiring careful analysis.
+	// May result in slower responses and higher token consumption.
 	ReasoningEffort_REASONING_EFFORT_HIGH ReasoningEffort = 4
 )
 
@@ -136,11 +79,11 @@ func (x ReasoningEffort) String() string {
 }
 
 func (ReasoningEffort) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_message_proto_enumTypes[1].Descriptor()
+	return file_malonaz_ai_v1_message_proto_enumTypes[0].Descriptor()
 }
 
 func (ReasoningEffort) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_message_proto_enumTypes[1]
+	return &file_malonaz_ai_v1_message_proto_enumTypes[0]
 }
 
 func (x ReasoningEffort) Number() protoreflect.EnumNumber {
@@ -149,22 +92,26 @@ func (x ReasoningEffort) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ReasoningEffort.Descriptor instead.
 func (ReasoningEffort) EnumDescriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{1}
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
-// Represents a message in a multi-turn AI conversation.
+// Wrapper message representing any message type in a multi-turn conversation.
+// Use this when building conversation histories or streaming message sequences.
 type Message struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Role of the message sender.
-	Role Role `protobuf:"varint,1,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
-	// Content of the message.
-	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	// Thinking content.
-	Reasoning string `protobuf:"bytes,3,opt,name=reasoning,proto3" json:"reasoning,omitempty"`
-	// Tool calls requested by the assistant.
-	ToolCalls []*ToolCall `protobuf:"bytes,4,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
-	// The ID of the tool call this is responding to.
-	ToolCallId    string `protobuf:"bytes,5,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
+	// When this message was created.
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	// Arbitrary key-value metadata associated with the message.
+	Metadata map[string]string `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// The specific message type. Exactly one must be set.
+	//
+	// Types that are valid to be assigned to Message:
+	//
+	//	*Message_System
+	//	*Message_User
+	//	*Message_Assistant
+	//	*Message_Tool
+	Message       isMessage_Message `protobuf_oneof:"message"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -199,66 +146,357 @@ func (*Message) Descriptor() ([]byte, []int) {
 	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Message) GetRole() Role {
+func (x *Message) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.Role
+		return x.CreateTime
 	}
-	return Role_ROLE_UNSPECIFIED
+	return nil
 }
 
-func (x *Message) GetContent() string {
+func (x *Message) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Message) GetMessage() isMessage_Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+func (x *Message) GetSystem() *SystemMessage {
+	if x != nil {
+		if x, ok := x.Message.(*Message_System); ok {
+			return x.System
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetUser() *UserMessage {
+	if x != nil {
+		if x, ok := x.Message.(*Message_User); ok {
+			return x.User
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetAssistant() *AssistantMessage {
+	if x != nil {
+		if x, ok := x.Message.(*Message_Assistant); ok {
+			return x.Assistant
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetTool() *ToolResultMessage {
+	if x != nil {
+		if x, ok := x.Message.(*Message_Tool); ok {
+			return x.Tool
+		}
+	}
+	return nil
+}
+
+type isMessage_Message interface {
+	isMessage_Message()
+}
+
+type Message_System struct {
+	// A system instruction message.
+	System *SystemMessage `protobuf:"bytes,10,opt,name=system,proto3,oneof"`
+}
+
+type Message_User struct {
+	// A user input message.
+	User *UserMessage `protobuf:"bytes,11,opt,name=user,proto3,oneof"`
+}
+
+type Message_Assistant struct {
+	// An assistant response message.
+	Assistant *AssistantMessage `protobuf:"bytes,12,opt,name=assistant,proto3,oneof"`
+}
+
+type Message_Tool struct {
+	// A tool result message.
+	Tool *ToolResultMessage `protobuf:"bytes,13,opt,name=tool,proto3,oneof"`
+}
+
+func (*Message_System) isMessage_Message() {}
+
+func (*Message_User) isMessage_Message() {}
+
+func (*Message_Assistant) isMessage_Message() {}
+
+func (*Message_Tool) isMessage_Message() {}
+
+// System message that sets the behavior, context, and instructions for the AI.
+// Typically placed at the beginning of a conversation to establish the AI's persona,
+// constraints, and response style.
+type SystemMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The instruction content for the AI system.
+	Content       string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemMessage) Reset() {
+	*x = SystemMessage{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemMessage) ProtoMessage() {}
+
+func (x *SystemMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemMessage.ProtoReflect.Descriptor instead.
+func (*SystemMessage) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SystemMessage) GetContent() string {
 	if x != nil {
 		return x.Content
 	}
 	return ""
 }
 
-func (x *Message) GetReasoning() string {
+// User message representing input from a human participant in the conversation.
+type UserMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The text content of the user's input.
+	Content       string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserMessage) Reset() {
+	*x = UserMessage{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserMessage) ProtoMessage() {}
+
+func (x *UserMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserMessage.ProtoReflect.Descriptor instead.
+func (*UserMessage) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UserMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+// Assistant message representing a response from the AI model.
+// Must contain either text content, tool calls, or both.
+type AssistantMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Internal reasoning or chain-of-thought generated by the model.
+	// Only populated when using models that support extended thinking.
+	Reasoning string `protobuf:"bytes,1,opt,name=reasoning,proto3" json:"reasoning,omitempty"`
+	// The text content of the assistant's response.
+	// May be empty if the assistant is only making tool calls.
+	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	// Structured content extracted from the response when TextToTextConfiguration.extract_json_object is true.
+	StructuredContent *structpb.Struct `protobuf:"bytes,3,opt,name=structured_content,json=structuredContent,proto3" json:"structured_content,omitempty"`
+	// Tool invocations requested by the assistant.
+	// When present, the caller should execute these tools and return results
+	// via ToolMessage before continuing the conversation.
+	ToolCalls     []*ToolCall `protobuf:"bytes,4,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssistantMessage) Reset() {
+	*x = AssistantMessage{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssistantMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssistantMessage) ProtoMessage() {}
+
+func (x *AssistantMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssistantMessage.ProtoReflect.Descriptor instead.
+func (*AssistantMessage) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AssistantMessage) GetReasoning() string {
 	if x != nil {
 		return x.Reasoning
 	}
 	return ""
 }
 
-func (x *Message) GetToolCalls() []*ToolCall {
+func (x *AssistantMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *AssistantMessage) GetStructuredContent() *structpb.Struct {
+	if x != nil {
+		return x.StructuredContent
+	}
+	return nil
+}
+
+func (x *AssistantMessage) GetToolCalls() []*ToolCall {
 	if x != nil {
 		return x.ToolCalls
 	}
 	return nil
 }
 
-func (x *Message) GetToolCallId() string {
+// Result of a tool invocation.
+// Sent in response to an AssistantMessage that requested tool calls.
+type ToolResultMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The unique identifier of the tool call this result responds to.
+	// Must match the id field from a ToolCall in a preceding AssistantMessage.
+	ToolCallId string `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
+	// The result of a tool execution.
+	Result        *ToolResult `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolResultMessage) Reset() {
+	*x = ToolResultMessage{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolResultMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolResultMessage) ProtoMessage() {}
+
+func (x *ToolResultMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolResultMessage.ProtoReflect.Descriptor instead.
+func (*ToolResultMessage) Descriptor() ([]byte, []int) {
+	return file_malonaz_ai_v1_message_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ToolResultMessage) GetToolCallId() string {
 	if x != nil {
 		return x.ToolCallId
 	}
 	return ""
 }
 
+func (x *ToolResultMessage) GetResult() *ToolResult {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
 var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x83\b\n" +
-	"\aMessage\x123\n" +
-	"\x04role\x18\x01 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1c\n" +
-	"\treasoning\x18\x03 \x01(\tR\treasoning\x126\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xba\x03\n" +
+	"\aMessage\x12;\n" +
+	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12@\n" +
+	"\bmetadata\x18\x02 \x03(\v2$.malonaz.ai.v1.Message.MetadataEntryR\bmetadata\x126\n" +
+	"\x06system\x18\n" +
+	" \x01(\v2\x1c.malonaz.ai.v1.SystemMessageH\x00R\x06system\x120\n" +
+	"\x04user\x18\v \x01(\v2\x1a.malonaz.ai.v1.UserMessageH\x00R\x04user\x12?\n" +
+	"\tassistant\x18\f \x01(\v2\x1f.malonaz.ai.v1.AssistantMessageH\x00R\tassistant\x126\n" +
+	"\x04tool\x18\r \x01(\v2 .malonaz.ai.v1.ToolResultMessageH\x00R\x04tool\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x10\n" +
+	"\amessage\x12\x05\xbaH\x02\b\x01\"1\n" +
+	"\rSystemMessage\x12 \n" +
+	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"/\n" +
+	"\vUserMessage\x12 \n" +
+	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\xa9\x03\n" +
+	"\x10AssistantMessage\x12\x1c\n" +
+	"\treasoning\x18\x01 \x01(\tR\treasoning\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12F\n" +
+	"\x12structured_content\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x11structuredContent\x126\n" +
 	"\n" +
-	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls\x12 \n" +
-	"\ftool_call_id\x18\x05 \x01(\tR\n" +
-	"toolCallId:\xb0\x06\xbaH\xac\x06\x1a\xa1\x01\n" +
-	"\x1ftool_call_id_requires_tool_role\x123tool_call_id can only be set when role is ROLE_TOOL\x1aIhas(this.tool_call_id) && this.tool_call_id != '' ? this.role == 4 : true\x1a\x97\x01\n" +
-	"\x1ftool_role_requires_tool_call_id\x12)ROLE_TOOL requires tool_call_id to be set\x1aIthis.role == 4 ? has(this.tool_call_id) && this.tool_call_id != '' : true\x1a\xb8\x01\n" +
-	"(assistant_requires_content_or_tool_calls\x12AROLE_ASSISTANT must have either content or at least one tool_call\x1aIthis.role == 2 ? (this.content != '' || size(this.tool_calls) > 0) : true\x1a\x8e\x01\n" +
-	"!tool_calls_require_assistant_role\x126tool_calls can only be set when role is ROLE_ASSISTANT\x1a1size(this.tool_calls) > 0 ? this.role == 2 : true\x1a\x9f\x01\n" +
-	"!reasoning_requires_assistant_role\x125reasoning can only be set when role is ROLE_ASSISTANT\x1aChas(this.reasoning) && this.reasoning != '' ? this.role == 2 : true*_\n" +
-	"\x04Role\x12\x14\n" +
-	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x0f\n" +
-	"\vROLE_SYSTEM\x10\x01\x12\x12\n" +
-	"\x0eROLE_ASSISTANT\x10\x02\x12\r\n" +
-	"\tROLE_USER\x10\x03\x12\r\n" +
-	"\tROLE_TOOL\x10\x04*\xa3\x01\n" +
+	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls:\xdc\x01\xbaH\xd8\x01\x1a\xd5\x01\n" +
+	"(assistant_requires_content_or_tool_calls\x12XAssistantMessage must have either content, structured_content, or at least one tool_call\x1aOthis.content != '' || has(this.structured_content) || size(this.tool_calls) > 0\"p\n" +
+	"\x11ToolResultMessage\x12(\n" +
+	"\ftool_call_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"toolCallId\x121\n" +
+	"\x06result\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result*\xa3\x01\n" +
 	"\x0fReasoningEffort\x12 \n" +
 	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n" +
@@ -278,22 +516,36 @@ func file_malonaz_ai_v1_message_proto_rawDescGZIP() []byte {
 	return file_malonaz_ai_v1_message_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_v1_message_proto_goTypes = []any{
-	(Role)(0),            // 0: malonaz.ai.v1.Role
-	(ReasoningEffort)(0), // 1: malonaz.ai.v1.ReasoningEffort
-	(*Message)(nil),      // 2: malonaz.ai.v1.Message
-	(*ToolCall)(nil),     // 3: malonaz.ai.v1.ToolCall
+	(ReasoningEffort)(0),          // 0: malonaz.ai.v1.ReasoningEffort
+	(*Message)(nil),               // 1: malonaz.ai.v1.Message
+	(*SystemMessage)(nil),         // 2: malonaz.ai.v1.SystemMessage
+	(*UserMessage)(nil),           // 3: malonaz.ai.v1.UserMessage
+	(*AssistantMessage)(nil),      // 4: malonaz.ai.v1.AssistantMessage
+	(*ToolResultMessage)(nil),     // 5: malonaz.ai.v1.ToolResultMessage
+	nil,                           // 6: malonaz.ai.v1.Message.MetadataEntry
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
+	(*ToolCall)(nil),              // 9: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 10: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
-	0, // 0: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
-	3, // 1: malonaz.ai.v1.Message.tool_calls:type_name -> malonaz.ai.v1.ToolCall
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	7,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
+	6,  // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
+	2,  // 2: malonaz.ai.v1.Message.system:type_name -> malonaz.ai.v1.SystemMessage
+	3,  // 3: malonaz.ai.v1.Message.user:type_name -> malonaz.ai.v1.UserMessage
+	4,  // 4: malonaz.ai.v1.Message.assistant:type_name -> malonaz.ai.v1.AssistantMessage
+	5,  // 5: malonaz.ai.v1.Message.tool:type_name -> malonaz.ai.v1.ToolResultMessage
+	8,  // 6: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
+	9,  // 7: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
+	10, // 8: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -302,13 +554,19 @@ func file_malonaz_ai_v1_message_proto_init() {
 		return
 	}
 	file_malonaz_ai_v1_tool_proto_init()
+	file_malonaz_ai_v1_message_proto_msgTypes[0].OneofWrappers = []any{
+		(*Message_System)(nil),
+		(*Message_User)(nil),
+		(*Message_Assistant)(nil),
+		(*Message_Tool)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   1,
+			NumEnums:      1,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

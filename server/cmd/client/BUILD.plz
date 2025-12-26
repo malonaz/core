@@ -3,6 +3,7 @@ go_binary(
     srcs = ["main.go"],
     visibility = ["//..."],
     deps = [
+        "//go/ai",
         "//go/grpc",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",

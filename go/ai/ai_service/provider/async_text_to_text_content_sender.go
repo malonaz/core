@@ -105,10 +105,12 @@ func (s *AsyncTextToTextContentSender) SendReasoningChunk(ctx context.Context, c
 	})
 }
 
-func (s *AsyncTextToTextContentSender) SendToolCall(ctx context.Context, tc *aipb.ToolCall) {
-	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_ToolCall{ToolCall: tc},
-	})
+func (s *AsyncTextToTextContentSender) SendToolCall(ctx context.Context, tcs ...*aipb.ToolCall) {
+	for _, tc := range tcs {
+		s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
+			Content: &aiservicepb.TextToTextStreamResponse_ToolCall{ToolCall: tc},
+		})
+	}
 }
 
 func (s *AsyncTextToTextContentSender) SendStopReason(ctx context.Context, r aiservicepb.TextToTextStopReason) {

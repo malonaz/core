@@ -31,12 +31,11 @@ func (c *Client) TextToTextStream(
 		return err
 	}
 
-	// Build messages
 	messages := make([]openai.ChatCompletionMessageParamUnion, 0, len(request.Messages))
-	for _, msg := range request.Messages {
-		message, err := pbMessageToOpenAIV2(msg)
+	for i, msg := range request.Messages {
+		message, err := pbMessageToOpenAI(msg)
 		if err != nil {
-			return err
+			return grpc.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
 		}
 		messages = append(messages, message)
 	}
@@ -66,7 +65,7 @@ func (c *Client) TextToTextStream(
 
 	// Set reasoning effort if provided (for reasoning models)
 	if request.GetConfiguration().GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
-		reasoningEffort, err := pbReasoningEffortToOpenAIV2(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
+		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
 		}
@@ -104,21 +103,19 @@ func (c *Client) TextToTextStream(
 	// Add tools if provided
 	if len(request.Tools) > 0 {
 		params.Tools = make([]openai.ChatCompletionToolUnionParam, 0, len(request.Tools))
-		for _, tool := range request.Tools {
-			openaiTool, err := pbToolToOpenAIV2(tool)
+		for i, tool := range request.Tools {
+			openaiTool, err := pbToolToOpenAI(tool)
 			if err != nil {
-				return grpc.Errorf(codes.InvalidArgument, "tool: %v", err).Err()
+				return grpc.Errorf(codes.InvalidArgument, "tool [%d]: %v", i, err).Err()
 			}
 			params.Tools = append(params.Tools, openaiTool)
 		}
 	}
 
-	// Add tool choice if provided
 	if request.GetConfiguration().GetToolChoice() != nil {
-		toolChoice, err := pbToolChoiceToOpenAIV2(request.GetConfiguration().GetToolChoice())
+		toolChoice, err := pbToolChoiceToOpenAI(request.GetConfiguration().GetToolChoice())
 		if err != nil {
 			return grpc.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
-
 		}
 		params.ToolChoice = toolChoice
 	}
@@ -129,16 +126,9 @@ func (c *Client) TextToTextStream(
 	cs := provider.NewAsyncTextToTextContentSender(stream, 100)
 	defer cs.Close()
 
+	// Track active tool_use blocks by content block index
+	tca := provider.NewToolCallAccumulator()
 	var sentTtfb bool
-
-	// Track active tool calls being accumulated
-	type toolCallAcc struct {
-		id   string
-		name string
-		args string
-	}
-	toolCalls := make(map[int64]*toolCallAcc)
-
 	var stopReason aiservicepb.TextToTextStopReason
 
 	for chatStream.Next() {
@@ -174,7 +164,7 @@ func (c *Client) TextToTextStream(
 			if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
 				unquoted, err := strconv.Unquote(reasoningChunk)
 				if err != nil {
-					return grpc.Errorf(codes.Internal, "unquoting chunk: %v", err).Err()
+					return grpc.Errorf(codes.Internal, "unquoting reasoning chunk: %v", err).Err()
 				}
 				choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(unquoted)
 			}
@@ -182,17 +172,11 @@ func (c *Client) TextToTextStream(
 			// Handle google thought format.
 			if c.ProviderId() == provider.Google {
 				if google, ok := extraContent["google"].(map[string]any); ok {
+					// Correct choice content.
 					if thought, ok := google["thought"].(bool); ok && thought {
-						// Correct choice content.
 						content := strings.TrimPrefix(choice.Delta.Content, "<thought>")
 						choice.Delta.Content = ""
 						choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(content)
-
-						// Correct usage.
-						if false {
-							completionTokens := chunk.Usage.CompletionTokens
-							chunk.Usage.CompletionTokensDetails.ReasoningTokens = completionTokens
-						}
 					}
 				}
 			}
@@ -237,8 +221,8 @@ func (c *Client) TextToTextStream(
 				}
 			}
 
+			// Reasoning tokens.
 			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
-			// Reasoning tokens
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
 					return grpc.Errorf(
@@ -270,34 +254,23 @@ func (c *Client) TextToTextStream(
 			cs.SendReasoningChunk(ctx, reasoningChunk)
 		}
 
-		// Handle tool calls
+		// Handle tool calls.
 		for _, toolCall := range choice.Delta.ToolCalls {
-			idx := toolCall.Index
-			acc, exists := toolCalls[idx]
-			if !exists {
-				acc = &toolCallAcc{
-					id:   toolCall.ID,
-					name: toolCall.Function.Name,
-				}
-				toolCalls[idx] = acc
-			}
-
-			// Update ID and name if provided (they may come in first chunk)
-			if toolCall.ID != "" {
-				acc.id = toolCall.ID
-			}
-			if toolCall.Function.Name != "" {
-				acc.name = toolCall.Function.Name
-			}
-
-			// Accumulate function arguments
-			acc.args += toolCall.Function.Arguments
+			tca.StartOrUpdate(toolCall.Index, toolCall.ID, toolCall.Function.Name)
+			tca.AppendArgs(toolCall.Index, toolCall.Function.Arguments)
 		}
 
-		// Handle finish reason / stop reason
+		// Send complete tool calls.
+		toolCalls, err := tca.BuildComplete()
+		if err != nil {
+			return err
+		}
+		cs.SendToolCall(ctx, toolCalls...)
+
+		// Handle stop reason.
 		if choice.FinishReason != "" {
 			var ok bool
-			stopReason, ok = openAIFinishReasonToPbV2[string(choice.FinishReason)]
+			stopReason, ok = openAIFinishReasonToPb[string(choice.FinishReason)]
 			if !ok {
 				return grpc.Errorf(codes.Internal, "unknown finish reason: %s", choice.FinishReason).Err()
 			}
@@ -305,25 +278,22 @@ func (c *Client) TextToTextStream(
 	}
 
 	if err := chatStream.Err(); err != nil {
-		return fmt.Errorf("error reading stream: %w", err)
+		return fmt.Errorf("reading stream: %w", err)
 	}
 
-	// Send any accumulated tool calls
-	for _, acc := range toolCalls {
-		toolCall := &aipb.ToolCall{
-			Id:        acc.id,
-			Name:      acc.name,
-			Arguments: acc.args,
-		}
-		cs.SendToolCall(ctx, toolCall)
+	// Send remaining tool calls.
+	toolCalls, err := tca.BuildRemaining()
+	if err != nil {
+		return err
 	}
+	cs.SendToolCall(ctx, toolCalls...)
 
-	// Send stop reason
+	// Send stop reason.
 	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
 		cs.SendStopReason(ctx, stopReason)
 	}
 
-	// Send final generation metrics
+	// Send final generation metrics.
 	generationMetrics := &aipb.GenerationMetrics{
 		Ttlb: durationpb.New(time.Since(startTime)),
 	}
@@ -337,56 +307,89 @@ func (c *Client) TextToTextStream(
 	return nil
 }
 
-func pbMessageToOpenAIV2(msg *aipb.Message) (openai.ChatCompletionMessageParamUnion, error) {
-	switch msg.Role {
-	case aipb.Role_ROLE_SYSTEM:
-		return openai.SystemMessage(msg.Content), nil
+func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnion, error) {
+	switch m := msg.Message.(type) {
+	case *aipb.Message_System:
+		return openai.SystemMessage(m.System.Content), nil
 
-	case aipb.Role_ROLE_USER:
-		return openai.UserMessage(msg.Content), nil
+	case *aipb.Message_User:
+		return openai.UserMessage(m.User.Content), nil
 
-	case aipb.Role_ROLE_ASSISTANT:
-		params := &openai.ChatCompletionAssistantMessageParam{}
-		if msg.Content != "" {
-			params.Content = openai.ChatCompletionAssistantMessageParamContentUnion{
-				OfString: openai.String(msg.Content),
+	case *aipb.Message_Assistant:
+		content := m.Assistant.Content
+		if m.Assistant.StructuredContent != nil {
+			bytes, err := pbutil.JSONMarshalStruct(m.Assistant.StructuredContent)
+			if err != nil {
+				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling structured content: %w", err)
 			}
+			content = string(bytes)
 		}
-
-		// For assistant messages with tool calls, we need to build the full param
-		if len(msg.ToolCalls) > 0 {
-			params.ToolCalls = make([]openai.ChatCompletionMessageToolCallUnionParam, 0, len(msg.ToolCalls))
-			for _, tc := range msg.ToolCalls {
-				params.ToolCalls = append(params.ToolCalls, openai.ChatCompletionMessageToolCallUnionParam{
-					OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
-						ID: tc.Id,
-						Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
-							Name:      tc.Name,
-							Arguments: tc.Arguments,
-						},
+		if len(m.Assistant.ToolCalls) == 0 {
+			return openai.AssistantMessage(content), nil
+		}
+		toolCalls := make([]openai.ChatCompletionMessageToolCallUnionParam, 0, len(m.Assistant.ToolCalls))
+		for _, tc := range m.Assistant.ToolCalls {
+			argsBytes, err := pbutil.JSONMarshalStruct(tc.Arguments)
+			if err != nil {
+				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling tool call arguments: %w", err)
+			}
+			toolCalls = append(toolCalls, openai.ChatCompletionMessageToolCallUnionParam{
+				OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
+					ID: tc.Id,
+					Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
+						Name:      tc.Name,
+						Arguments: string(argsBytes),
 					},
-				})
-			}
+				},
+			})
 		}
-		return openai.AssistantMessage(msg.Content), nil
+		return openai.ChatCompletionMessageParamUnion{
+			OfAssistant: &openai.ChatCompletionAssistantMessageParam{
+				Content: openai.ChatCompletionAssistantMessageParamContentUnion{
+					OfString: openai.String(content),
+				},
+				ToolCalls: toolCalls,
+			},
+		}, nil
 
-	case aipb.Role_ROLE_TOOL:
-		return openai.ToolMessage(msg.Content, msg.ToolCallId), nil
+	case *aipb.Message_Tool:
+		content, err := toolResultToContent(m.Tool.Result)
+		if err != nil {
+			return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("converting tool result: %w", err)
+		}
+		return openai.ToolMessage(content, m.Tool.ToolCallId), nil
 
 	default:
-		return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown role: %s", msg.Role)
+		return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown message type: %T", m)
 	}
 }
 
-func pbToolToOpenAIV2(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, error) {
+func toolResultToContent(result *aipb.ToolResult) (string, error) {
+	switch r := result.Result.(type) {
+	case *aipb.ToolResult_Content:
+		return r.Content, nil
+	case *aipb.ToolResult_StructuredContent:
+		jsonBytes, err := pbutil.JSONMarshalStruct(r.StructuredContent)
+		if err != nil {
+			return "", err
+		}
+		return string(jsonBytes), nil
+	case *aipb.ToolResult_Error:
+		return r.Error, nil
+	default:
+		return "", fmt.Errorf("unknown tool result type: %T", r)
+	}
+}
+
+func pbToolToOpenAI(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, error) {
 	bytes, err := pbutil.JSONMarshal(tool.JsonSchema)
 	if err != nil {
-		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("marshaling tool %s: %w", tool.Name, err)
+		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("marshaling json schema: %w", err)
 	}
 
 	var parameters shared.FunctionParameters
 	if err := json.Unmarshal(bytes, &parameters); err != nil {
-		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("unmarshaling tool parameters %s: %w", tool.Name, err)
+		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("unmarshaling parameters: %w", err)
 	}
 
 	return openai.ChatCompletionToolUnionParam{
@@ -400,7 +403,7 @@ func pbToolToOpenAIV2(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, err
 	}, nil
 }
 
-func pbToolChoiceToOpenAIV2(toolChoice *aipb.ToolChoice) (openai.ChatCompletionToolChoiceOptionUnionParam, error) {
+func pbToolChoiceToOpenAI(toolChoice *aipb.ToolChoice) (openai.ChatCompletionToolChoiceOptionUnionParam, error) {
 	switch choice := toolChoice.Choice.(type) {
 	case *aipb.ToolChoice_Mode:
 		switch choice.Mode {
@@ -417,12 +420,10 @@ func pbToolChoiceToOpenAIV2(toolChoice *aipb.ToolChoice) (openai.ChatCompletionT
 				OfAuto: openai.String(string(openai.ChatCompletionToolChoiceOptionAutoRequired)),
 			}, nil
 		default:
-			// TOOL_CHOICE_MODE_UNSPECIFIED or unknown - return empty/none
 			return openai.ChatCompletionToolChoiceOptionUnionParam{}, fmt.Errorf("unknown mode: %s", choice.Mode)
 		}
 
 	case *aipb.ToolChoice_ToolName:
-		// Specific function name
 		return openai.ChatCompletionToolChoiceOptionUnionParam{
 			OfFunctionToolChoice: &openai.ChatCompletionNamedToolChoiceParam{
 				Function: openai.ChatCompletionNamedToolChoiceFunctionParam{
@@ -432,25 +433,23 @@ func pbToolChoiceToOpenAIV2(toolChoice *aipb.ToolChoice) (openai.ChatCompletionT
 		}, nil
 
 	default:
-		// No choice set
-		return openai.ChatCompletionToolChoiceOptionUnionParam{}, fmt.Errorf("unknown choice:  %T", choice)
+		return openai.ChatCompletionToolChoiceOptionUnionParam{}, fmt.Errorf("unknown choice type: %T", choice)
 	}
 }
 
-func pbReasoningEffortToOpenAIV2(providerId string, effort aipb.ReasoningEffort) (shared.ReasoningEffort, error) {
-	reasoningEffortToOpenAIV2, ok := providerToReasoningEffortToOpenAIV2[providerId]
+func pbReasoningEffortToOpenAI(providerId string, effort aipb.ReasoningEffort) (shared.ReasoningEffort, error) {
+	reasoningEffortMap, ok := providerToReasoningEffortMap[providerId]
 	if !ok {
 		return "", fmt.Errorf("unknown provider: %s", providerId)
 	}
-	reasoningEffort, ok := reasoningEffortToOpenAIV2[effort]
+	reasoningEffort, ok := reasoningEffortMap[effort]
 	if !ok {
 		return "", fmt.Errorf("unknown reasoning effort: %s", effort)
 	}
 	return reasoningEffort, nil
 }
 
-// TODO(malon): map the new ones ( 'none', 'minimal', 'xhigh').
-var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]shared.ReasoningEffort{
+var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.ReasoningEffort{
 	provider.Openai: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
@@ -458,7 +457,7 @@ var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]sh
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
 	},
 	provider.Google: {
-		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "", // Google has its own custom fields.
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
@@ -483,22 +482,22 @@ var providerToReasoningEffortToOpenAIV2 = map[string]map[aipb.ReasoningEffort]sh
 	},
 }
 
-var openAIFinishReasonToPbV2 = map[string]aiservicepb.TextToTextStopReason{
-	"stop":           aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	"length":         aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
-	"tool_calls":     aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-	"function_call":  aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL, // Deprecated.
-	"content_filter": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+var openAIFinishReasonToPb = map[string]aiservicepb.TextToTextStopReason{
+	string(openai.CompletionChoiceFinishReasonStop):          aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
+	string(openai.CompletionChoiceFinishReasonLength):        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
+	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+	"tool_calls":    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
+	"function_call": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL, // Deprecated.
 }
 
-// buildGoogleThinkingConfig constructs the Google-specific thinking configuration
-// based on the model's reasoning effort type and the requested reasoning effort level.
 func buildGoogleThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort) (map[string]any, error) {
-	// Determine if this model uses thinking_level or thinking_budget
 	thinkingConfigKey := model.GetProviderSettings().GetFields()["thinking_config_key"].GetStringValue()
+	if thinkingConfigKey == "" {
+		return nil, nil
+	}
 	thinkingConfigValue := model.GetProviderSettings().GetFields()[reasoningEffort.String()].AsInterface()
 	if thinkingConfigValue == nil {
-		return nil, fmt.Errorf("invalid provider config")
+		return nil, fmt.Errorf("missing provider config for reasoning effort %s", reasoningEffort)
 	}
 
 	return map[string]any{

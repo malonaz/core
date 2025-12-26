@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // ///////////////////////////////// MARSHALING ///////////////////////////////////
@@ -113,4 +114,16 @@ func JSONUnmarshalSlice[T any, PT interface {
 	}
 
 	return result, nil
+}
+
+func JSONMarshalStruct(s *structpb.Struct) ([]byte, error) {
+	return json.Marshal(s.AsMap())
+}
+
+func JSONUnmarshalStruct(bytes []byte) (*structpb.Struct, error) {
+	var m map[string]any
+	if err := json.Unmarshal(bytes, &m); err != nil {
+		return nil, err
+	}
+	return structpb.NewStruct(m)
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.ai.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/struct.proto";
 import "malonaz/ai/v1/jsonschema.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -27,8 +28,26 @@ message ToolCall {
   // The name of the tool to call.
   string name = 2 [(buf.validate.field).required = true];
 
-  // The arguments to call the tool with, as JSON.
-  string arguments = 3;
+  // The arguments to call the tool with.
+  google.protobuf.Struct arguments = 3 [(buf.validate.field).required = true];
+}
+
+// The result of executing a tool call.
+message ToolResult {
+  // The outcome of the tool execution.
+  oneof result {
+    option (buf.validate.oneof).required = true;
+
+    // The output returned by the tool execution.
+    // May contain structured data (e.g., JSON) or plain text depending on the tool.
+    string content = 1;
+
+    // The output returned by the tool execution as structured data.
+    google.protobuf.Struct structured_content = 2;
+
+    // Error message if the tool execution failed.
+    string error = 3;
+  }
 }
 
 // Controls which tool(s) the model should use.

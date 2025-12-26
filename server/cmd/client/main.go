@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -9,13 +10,14 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 )
 
 var (
 	socket          = flag.String("socket", "/tmp/core.socket", "Unix socket path")
-	provider        = flag.String("provider", "openai", "Provider name")
-	model           = flag.String("model", "gpt-4o", "Model ID")
+	provider        = flag.String("provider", "anthropic", "Provider name")
+	model           = flag.String("model", "claude-sonnet-4.5", "Model ID")
 	systemMessage   = flag.String("system", "You are a helpful assistant.", "System message")
 	userMessage     = flag.String("message", "Hello, how are you?", "User message")
 	maxTokens       = flag.Int("max-tokens", 10000, "Max tokens to generate")
@@ -42,14 +44,12 @@ func main() {
 func run() error {
 	ctx := context.Background()
 
-	// Create connection options
 	opts := &grpc.Opts{
 		Host:       "localhost",
 		SocketPath: *socket,
 		DisableTLS: true,
 	}
 
-	// Create gRPC connection
 	conn, err := grpc.NewConnection(opts, nil, nil)
 	if err != nil {
 		return fmt.Errorf("creating connection: %w", err)
@@ -60,10 +60,8 @@ func run() error {
 	}
 	defer conn.Close()
 
-	// Create AI service client
 	client := aiservicepb.NewAiClient(conn.Get())
 
-	// Print request info
 	printRequestInfo()
 
 	if *stream {
@@ -91,7 +89,6 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 		Temperature: float64(*temperature),
 	}
 
-	// Add reasoning effort if specified
 	if *reasoningEffort != "" {
 		var effort aipb.ReasoningEffort
 		switch *reasoningEffort {
@@ -112,14 +109,8 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 
 func buildMessages() []*aipb.Message {
 	return []*aipb.Message{
-		{
-			Role:    aipb.Role_ROLE_SYSTEM,
-			Content: *systemMessage,
-		},
-		{
-			Role:    aipb.Role_ROLE_USER,
-			Content: *userMessage,
-		},
+		ai.NewSystemMessage(*systemMessage),
+		ai.NewUserMessage(*userMessage),
 	}
 }
 
@@ -131,16 +122,13 @@ func buildTools() []*aipb.Tool {
 }
 
 func runStream(ctx context.Context, client aiservicepb.AiClient) error {
-	// Build the model resource name
 	modelResourceName := fmt.Sprintf("providers/%s/models/%s", *provider, *model)
 
-	// Build the configuration
 	config, err := buildConfig()
 	if err != nil {
 		return err
 	}
 
-	// Build the request
 	request := &aiservicepb.TextToTextStreamRequest{
 		Model:         modelResourceName,
 		Messages:      buildMessages(),
@@ -148,18 +136,15 @@ func runStream(ctx context.Context, client aiservicepb.AiClient) error {
 		Configuration: config,
 	}
 
-	// Add tool choice if tools are enabled
 	if *useTool {
 		request.ToolChoice = "auto"
 	}
 
-	// Make the streaming API call
 	stream, err := client.TextToTextStream(ctx, request)
 	if err != nil {
 		return fmt.Errorf("calling TextToTextStream: %w", err)
 	}
 
-	// Process the stream
 	for {
 		response, err := stream.Recv()
 		if err == io.EOF {
@@ -172,21 +157,18 @@ func runStream(ctx context.Context, client aiservicepb.AiClient) error {
 		handleStreamResponse(response)
 	}
 
-	fmt.Println() // Final newline
+	fmt.Println()
 	return nil
 }
 
 func runUnary(ctx context.Context, client aiservicepb.AiClient) error {
-	// Build the model resource name
 	modelResourceName := fmt.Sprintf("providers/%s/models/%s", *provider, *model)
 
-	// Build the configuration
 	config, err := buildConfig()
 	if err != nil {
 		return err
 	}
 
-	// Build the request
 	request := &aiservicepb.TextToTextRequest{
 		Model:         modelResourceName,
 		Messages:      buildMessages(),
@@ -194,7 +176,6 @@ func runUnary(ctx context.Context, client aiservicepb.AiClient) error {
 		Configuration: config,
 	}
 
-	// Add tool choice if tools are enabled
 	if *useTool {
 		request.Configuration.ToolChoice = &aipb.ToolChoice{
 			Choice: &aipb.ToolChoice_Mode{
@@ -203,16 +184,14 @@ func runUnary(ctx context.Context, client aiservicepb.AiClient) error {
 		}
 	}
 
-	// Make the unary API call
 	response, err := client.TextToText(ctx, request)
 	if err != nil {
 		return fmt.Errorf("calling TextToText: %w", err)
 	}
 
-	// Display the response
 	handleUnaryResponse(response)
 
-	fmt.Println() // Final newline
+	fmt.Println()
 	return nil
 }
 
@@ -225,7 +204,11 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse) {
 		fmt.Printf("%s%s%s", colorYellow, content.ReasoningChunk, colorReset)
 
 	case *aiservicepb.TextToTextStreamResponse_ToolCall:
-		fmt.Printf("\n[Tool Call: %s(%s)]\n", content.ToolCall.Name, content.ToolCall.Arguments)
+		bytes, err := json.MarshalIndent(content.ToolCall.Arguments.AsMap(), "  ", "")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("\n[Tool Call: %s(%s)]\n", content.ToolCall.Name, string(bytes))
 
 	case *aiservicepb.TextToTextStreamResponse_StopReason:
 		fmt.Printf("\n[Stop Reason: %s]\n", content.StopReason)
@@ -239,30 +222,31 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse) {
 }
 
 func handleUnaryResponse(response *aiservicepb.TextToTextResponse) {
-	// Print the message content
 	if response.Message != nil {
-		if response.Message.Reasoning != "" {
-			fmt.Printf("%s%s%s\n", colorYellow, response.Message.Reasoning, colorReset)
-		}
-		if response.Message.Content != "" {
-			fmt.Printf("%s%s%s\n", colorCyan, response.Message.Content, colorReset)
-		}
-		if len(response.Message.ToolCalls) > 0 {
-			for _, toolCall := range response.Message.ToolCalls {
-				fmt.Printf("\n[Tool Call: %s(%s)]\n", toolCall.Name, toolCall.Arguments)
+		switch msg := response.Message.Message.(type) {
+		case *aipb.Message_Assistant:
+			if msg.Assistant.Reasoning != "" {
+				fmt.Printf("%s%s%s\n", colorYellow, msg.Assistant.Reasoning, colorReset)
 			}
+			if msg.Assistant.Content != "" {
+				fmt.Printf("%s%s%s\n", colorCyan, msg.Assistant.Content, colorReset)
+			}
+			if len(msg.Assistant.ToolCalls) > 0 {
+				for _, toolCall := range msg.Assistant.ToolCalls {
+					fmt.Printf("\n[Tool Call: %s(%s)]\n", toolCall.Name, toolCall.Arguments)
+				}
+			}
+		default:
+			fmt.Printf("Unexpected message type: %T\n", msg)
 		}
 	}
 
-	// Print stop reason
 	fmt.Printf("\n[Stop Reason: %s]\n", response.StopReason)
 
-	// Print model usage
 	if response.ModelUsage != nil {
 		printModelUsage(response.ModelUsage)
 	}
 
-	// Print generation metrics
 	if response.GenerationMetrics != nil {
 		printGenerationMetrics(response.GenerationMetrics)
 	}

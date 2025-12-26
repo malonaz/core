@@ -2,13 +2,6 @@ name: sgpt
 servers:
   - type: grpc
     name: core
-    interceptors:
-      - type: session_local_context_injector
-      - type: external_api_key_authentication
-      - type: internal_service_authentication
-      - type: permission_authentication
-      - type: session_log_injector
-      - type: session_outgoing_context_injector
     services:
       - proto: //malonaz/ai/ai_service/v1
         manifest: //go/ai/ai_service:manifest

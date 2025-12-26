@@ -12,6 +12,7 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 // TextToTextStream implements the gRPC streaming method - direct pass-through
@@ -204,12 +205,11 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		return nil, err
 	}
 
-	// Collect all chunks into a single response
-	response := &pb.TextToTextResponse{
-		Message: &aipb.Message{
-			Role: aipb.Role_ROLE_ASSISTANT,
-		},
-	}
+	// Aggregate chunks to form a single response.
+	response := &pb.TextToTextResponse{}
+	var content string
+	var reasoning string
+	var toolCalls []*aipb.ToolCall
 
 	for {
 		event, err := stream.Recv()
@@ -220,45 +220,54 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 			return nil, err
 		}
 
-		switch content := event.GetContent().(type) {
+		switch c := event.GetContent().(type) {
 		case *pb.TextToTextStreamResponse_ContentChunk:
-			response.Message.Content += content.ContentChunk
+			content += c.ContentChunk
 
 		case *pb.TextToTextStreamResponse_ReasoningChunk:
-			response.Message.Reasoning += content.ReasoningChunk
+			reasoning += c.ReasoningChunk
 
 		case *pb.TextToTextStreamResponse_StopReason:
-			response.StopReason = content.StopReason
+			response.StopReason = c.StopReason
 
 		case *pb.TextToTextStreamResponse_ToolCall:
-			response.Message.ToolCalls = append(response.Message.ToolCalls, content.ToolCall)
+			toolCalls = append(toolCalls, c.ToolCall)
 
 		case *pb.TextToTextStreamResponse_ModelUsage:
 			if response.ModelUsage == nil {
 				response.ModelUsage = &aipb.ModelUsage{}
 			}
-			proto.Merge(response.ModelUsage, content.ModelUsage)
+			proto.Merge(response.ModelUsage, c.ModelUsage)
 
 		case *pb.TextToTextStreamResponse_GenerationMetrics:
 			if response.GenerationMetrics == nil {
 				response.GenerationMetrics = &aipb.GenerationMetrics{}
 			}
-			proto.Merge(response.GenerationMetrics, content.GenerationMetrics)
-			response.GenerationMetrics.Ttfb = nil // We do not set TTFB on unary calls.
+			proto.Merge(response.GenerationMetrics, c.GenerationMetrics)
+			response.GenerationMetrics.Ttfb = nil
 		}
 	}
 
-	// Apply JSON extraction if requested
 	if request.GetConfiguration().GetExtractJsonObject() {
-		jsonContent, err := ai.ExtractJSONObject(response.Message.Content)
+		jsonString, err := ai.ExtractJSONString(content)
 		if err != nil {
 			return nil, grpc.Errorf(codes.Internal, "extracting json object: %v", err).WithErrorInfo(
 				"JSON_EXTRACTION_FAILED",
 				"ai_service",
-				map[string]string{"original_content": response.Message.Content},
+				map[string]string{"original_content": content},
 			).Err()
 		}
-		response.Message.Content = jsonContent
+		structuredContent, err := pbutil.JSONUnmarshalStruct([]byte(jsonString))
+		if err != nil {
+			return nil, grpc.Errorf(codes.Internal, "parsing json object: %v", err).WithErrorInfo(
+				"JSON_EXTRACTION_FAILED",
+				"ai_service",
+				map[string]string{"original_content": content},
+			).Err()
+		}
+		response.Message = ai.NewAssistantMessageWithStruct(structuredContent, toolCalls...)
+	} else {
+		response.Message = ai.NewAssistantMessage(content, toolCalls...)
 	}
 
 	return response, nil
