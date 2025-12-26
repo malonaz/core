@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 var (
@@ -205,18 +205,12 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse) {
 		fmt.Printf("%s%s%s", colorYellow, content.ReasoningChunk, colorReset)
 
 	case *aiservicepb.TextToTextStreamResponse_ToolCall:
-		bytes, err := json.MarshalIndent(content.ToolCall.Arguments.AsMap(), "  ", "")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("\n[Tool Call: %s(%s)]\n", content.ToolCall.Name, string(bytes))
+		fmt.Println("Tool Call:")
+		pbutil.MustPrintPretty(content.ToolCall)
 
 	case *aiservicepb.TextToTextStreamResponse_PartialToolCall:
-		bytes, err := json.MarshalIndent(content.PartialToolCall.Arguments.AsMap(), "  ", "")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("\n[PartialTool Call: %s(%s)]\n", content.PartialToolCall.Name, string(bytes))
+		fmt.Println("Partial Tool Call:")
+		pbutil.MustPrintPretty(content.PartialToolCall)
 
 	case *aiservicepb.TextToTextStreamResponse_StopReason:
 		fmt.Printf("\n[Stop Reason: %s]\n", content.StopReason)

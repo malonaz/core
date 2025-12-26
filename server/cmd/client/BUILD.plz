@@ -5,6 +5,7 @@ go_binary(
     deps = [
         "//go/ai",
         "//go/grpc",
+        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
     ],
