@@ -398,6 +398,11 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 	}
 
 	if !cmd.Flags().Changed(name) {
+		if field.Kind() == protoreflect.StringKind {
+			if v, _ := cmd.Flags().GetString(name); v != "" {
+				msg.Set(field, protoreflect.ValueOfString(v))
+			}
+		}
 		return nil
 	}
 
