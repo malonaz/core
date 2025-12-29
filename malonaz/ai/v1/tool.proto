@@ -30,6 +30,9 @@ message ToolCall {
 
   // The arguments to call the tool with.
   google.protobuf.Struct arguments = 3 [(buf.validate.field).required = true];
+
+  // Provider specific extra fields.
+  google.protobuf.Struct extra_fields = 4;
 }
 
 // The result of executing a tool call.

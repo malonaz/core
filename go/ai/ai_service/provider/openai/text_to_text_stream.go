@@ -12,6 +12,7 @@ import (
 	"github.com/openai/openai-go/v3/shared"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -257,7 +258,17 @@ func (c *Client) TextToTextStream(
 		// Handle tool calls.
 		for _, toolCall := range choice.Delta.ToolCalls {
 			tca.StartOrUpdate(toolCall.Index, toolCall.ID, toolCall.Function.Name)
-			tca.AppendArgs(toolCall.Index, toolCall.Function.Arguments)
+
+			// Extract metadata from extra_content (e.g., Google thought_signature).
+			var extraFields *structpb.Struct
+			if extraContentRaw := toolCall.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
+				extraFields = &structpb.Struct{}
+				if err := pbutil.JSONUnmarshal([]byte(extraContentRaw), extraFields); err != nil {
+					return grpc.Errorf(codes.Internal, "marshaling extra content: %v", err).Err()
+				}
+			}
+
+			tca.AppendArgs(toolCall.Index, toolCall.Function.Arguments, extraFields)
 			if request.GetConfiguration().GetStreamPartialToolCalls() {
 				partialToolCall, err := tca.BuildPartial(toolCall.Index)
 				if err != nil {
@@ -323,6 +334,9 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 		return openai.UserMessage(m.User.Content), nil
 
 	case *aipb.Message_Assistant:
+		ofAssistant := &openai.ChatCompletionAssistantMessageParam{}
+
+		// Parse content.
 		content := m.Assistant.Content
 		if m.Assistant.StructuredContent != nil {
 			bytes, err := pbutil.JSONMarshal(m.Assistant.StructuredContent)
@@ -331,16 +345,19 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 			}
 			content = string(bytes)
 		}
-		if len(m.Assistant.ToolCalls) == 0 {
-			return openai.AssistantMessage(content), nil
+		if content != "" {
+			ofAssistant.Content = openai.ChatCompletionAssistantMessageParamContentUnion{
+				OfString: openai.String(content),
+			}
 		}
-		toolCalls := make([]openai.ChatCompletionMessageToolCallUnionParam, 0, len(m.Assistant.ToolCalls))
+
+		// Parse tool calls.
 		for _, tc := range m.Assistant.ToolCalls {
 			argsBytes, err := pbutil.JSONMarshal(tc.Arguments)
 			if err != nil {
 				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling tool call arguments: %w", err)
 			}
-			toolCalls = append(toolCalls, openai.ChatCompletionMessageToolCallUnionParam{
+			toolCall := openai.ChatCompletionMessageToolCallUnionParam{
 				OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
 					ID: tc.Id,
 					Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
@@ -348,15 +365,17 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 						Arguments: string(argsBytes),
 					},
 				},
-			})
+			}
+			if tc.ExtraFields != nil {
+				extraFields := map[string]any{"extra_content": tc.ExtraFields.AsMap()}
+				toolCall.OfFunction.SetExtraFields(extraFields)
+			}
+			ofAssistant.ToolCalls = append(ofAssistant.ToolCalls, toolCall)
 		}
+
+		// Return response.
 		return openai.ChatCompletionMessageParamUnion{
-			OfAssistant: &openai.ChatCompletionAssistantMessageParam{
-				Content: openai.ChatCompletionAssistantMessageParamContentUnion{
-					OfString: openai.String(content),
-				},
-				ToolCalls: toolCalls,
-			},
+			OfAssistant: ofAssistant,
 		}, nil
 
 	case *aipb.Message_Tool:

@@ -189,7 +189,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 
 			case anthropic.InputJSONDelta:
 				// Accumulate tool_use input JSON by content block index.
-				tca.AppendArgs(variant.Index, delta.PartialJSON)
+				tca.AppendArgs(variant.Index, delta.PartialJSON, nil)
 				if request.GetConfiguration().GetStreamPartialToolCalls() {
 					partialToolCall, err := tca.BuildPartial(variant.Index)
 					if err != nil {

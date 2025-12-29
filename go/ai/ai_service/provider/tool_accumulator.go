@@ -7,6 +7,8 @@ import (
 	streamingjson "github.com/karminski/streaming-json-go"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // ToolCallAccumulator accumulates streaming tool call chunks for multiple tool calls.
@@ -15,10 +17,11 @@ type ToolCallAccumulator struct {
 }
 
 type toolCallEntry struct {
-	id       string
-	name     string
-	args     strings.Builder
-	complete bool
+	id          string
+	name        string
+	args        strings.Builder
+	complete    bool
+	extraFields *structpb.Struct
 }
 
 func NewToolCallAccumulator() *ToolCallAccumulator {
@@ -27,7 +30,7 @@ func NewToolCallAccumulator() *ToolCallAccumulator {
 	}
 }
 
-// Has begins accumulating a new tool call at the given index.
+// Has returns whether a tool call exists at the given index.
 func (a *ToolCallAccumulator) Has(index int64) bool {
 	_, ok := a.calls[index]
 	return ok
@@ -38,7 +41,7 @@ func (a *ToolCallAccumulator) Start(index int64, id, name string) {
 	a.calls[index] = &toolCallEntry{id: id, name: name}
 }
 
-// Start begins accumulating a new tool call at the given index.
+// StartOrUpdate begins or updates a tool call at the given index.
 func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	entry, ok := a.calls[index]
 	if !ok {
@@ -53,8 +56,9 @@ func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	}
 }
 
-// AppendArgs appends to the accumulated arguments for a tool call and marks all other entries as complete.
-func (a *ToolCallAccumulator) AppendArgs(index int64, s string) {
+// AppendArgs appends to the accumulated arguments and optionally stores metadata.
+// Marks all other entries as complete.
+func (a *ToolCallAccumulator) AppendArgs(index int64, s string, extraFields *structpb.Struct) {
 	for idx, entry := range a.calls {
 		if idx != index {
 			entry.complete = true
@@ -62,6 +66,12 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, s string) {
 	}
 	if entry, ok := a.calls[index]; ok {
 		entry.args.WriteString(s)
+		if extraFields != nil {
+			if entry.extraFields == nil {
+				entry.extraFields = &structpb.Struct{}
+			}
+			proto.Merge(entry.extraFields, extraFields)
+		}
 	}
 }
 
@@ -72,8 +82,9 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 		return nil, fmt.Errorf("tool call with index %d not found", index)
 	}
 	tc := &aipb.ToolCall{
-		Id:   entry.id,
-		Name: entry.name,
+		Id:          entry.id,
+		Name:        entry.name,
+		ExtraFields: entry.extraFields,
 	}
 	lexer := streamingjson.NewLexer()
 	lexer.AppendString(entry.args.String())
@@ -96,8 +107,9 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 		return nil, fmt.Errorf("tool call with index %d not found", index)
 	}
 	tc := &aipb.ToolCall{
-		Id:   entry.id,
-		Name: entry.name,
+		Id:          entry.id,
+		Name:        entry.name,
+		ExtraFields: entry.extraFields,
 	}
 	var err error
 	tc.Arguments, err = pbutil.NewStructFromJSON([]byte(entry.args.String()))

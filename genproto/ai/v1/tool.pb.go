@@ -152,7 +152,9 @@ type ToolCall struct {
 	// The name of the tool to call.
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// The arguments to call the tool with.
-	Arguments     *structpb.Struct `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	Arguments *structpb.Struct `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	// Provider specific extra fields.
+	ExtraFields   *structpb.Struct `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3" json:"extra_fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -204,6 +206,13 @@ func (x *ToolCall) GetName() string {
 func (x *ToolCall) GetArguments() *structpb.Struct {
 	if x != nil {
 		return x.Arguments
+	}
+	return nil
+}
+
+func (x *ToolCall) GetExtraFields() *structpb.Struct {
+	if x != nil {
+		return x.ExtraFields
 	}
 	return nil
 }
@@ -409,11 +418,12 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
 	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12:\n" +
 	"\vjson_schema\x18\x03 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\n" +
-	"jsonSchema\"}\n" +
+	"jsonSchema\"\xb9\x01\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
-	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\"\x9b\x01\n" +
+	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\x12:\n" +
+	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\"\x9b\x01\n" +
 	"\n" +
 	"ToolResult\x12\x1a\n" +
 	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12H\n" +
@@ -458,13 +468,14 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
 	5, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
 	6, // 1: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	6, // 2: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
-	0, // 3: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	6, // 2: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
+	6, // 3: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
+	0, // 4: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
