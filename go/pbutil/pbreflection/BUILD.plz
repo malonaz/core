@@ -8,6 +8,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//malonaz/codegen/aip/v1",
+        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__protobuf__proto",

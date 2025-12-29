@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
@@ -204,6 +205,32 @@ func fetchFileDescriptors(stream rpb.ServerReflection_ServerReflectionInfoClient
 		fdProtos[fdProto.GetName()] = fdProto
 	}
 	return nil
+}
+
+// In schema.go, add this method to Schema:
+
+func (s *Schema) GetResource(resourceType string) *annotations.ResourceDescriptor {
+	var result *annotations.ResourceDescriptor
+	s.Files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		messages := fd.Messages()
+		for i := 0; i < messages.Len(); i++ {
+			msg := messages.Get(i)
+			opts := msg.Options()
+			if opts == nil {
+				continue
+			}
+			if !proto.HasExtension(opts, annotations.E_Resource) {
+				continue
+			}
+			res := proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+			if res.GetType() == resourceType {
+				result = res
+				return false
+			}
+		}
+		return true
+	})
+	return result
 }
 
 func (s *Schema) Services(yield func(protoreflect.ServiceDescriptor) bool) {

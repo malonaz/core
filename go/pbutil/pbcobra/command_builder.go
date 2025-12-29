@@ -2,11 +2,13 @@ package pbcobra
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/huandu/xstrings"
 	"github.com/spf13/cobra"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,6 +24,8 @@ var (
 	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
 	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
+
+	patternSegmentRegexp = regexp.MustCompile(`\{[^}]+\}`)
 )
 
 type ResponseHandler func(m proto.Message) error
@@ -71,10 +75,18 @@ func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor)
 }
 
 func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor) *cobra.Command {
+	longDesc := b.commentFor(string(method.FullName()), commentMultiline)
+	if responseDoc := b.formatResponseDoc(method.Output()); responseDoc != "" {
+		if longDesc != "" {
+			longDesc += "\n\n"
+		}
+		longDesc += responseDoc
+	}
+
 	cmd := &cobra.Command{
 		Use:   xstrings.ToKebabCase(string(method.Name())),
 		Short: b.commentFor(string(method.FullName()), commentFirstLine),
-		Long:  b.commentFor(string(method.FullName()), commentMultiline),
+		Long:  longDesc,
 		Args:  cobra.NoArgs,
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveNoFileComp
@@ -84,22 +96,108 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 		},
 	}
 
+	methodName := string(method.Name())
 	fields := method.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		b.addFlagWithPrefix(cmd, fields.Get(i), "", 0)
+		b.addFlagWithPrefix(cmd, fields.Get(i), "", 0, methodName)
 	}
 	return cmd
 }
 
-func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string, depth int) {
+func (b *CommandBuilder) formatResponseDoc(msg protoreflect.MessageDescriptor) string {
+	var sb strings.Builder
+	sb.WriteString("Response:\n")
+	b.formatMessageFields(&sb, msg, "  ", 0)
+	return sb.String()
+}
+
+func (b *CommandBuilder) formatMessageFields(sb *strings.Builder, msg protoreflect.MessageDescriptor, indent string, depth int) {
 	if depth > b.maxDepth {
 		return
 	}
+	fields := msg.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		fieldName := string(field.Name())
+		fieldType := b.fieldTypeName(field)
+		comment := b.commentFor(string(field.FullName()), commentSingleLine)
+
+		if comment != "" {
+			fmt.Fprintf(sb, "%s%s (%s): %s\n", indent, fieldName, fieldType, comment)
+		} else {
+			fmt.Fprintf(sb, "%s%s (%s)\n", indent, fieldName, fieldType)
+		}
+
+		if field.Kind() == protoreflect.MessageKind && !field.IsList() && !field.IsMap() {
+			switch field.Message().FullName() {
+			case timestampFullName, durationFullName, fieldMaskFullName:
+			default:
+				b.formatMessageFields(sb, field.Message(), indent+"  ", depth+1)
+			}
+		}
+	}
+}
+
+func (b *CommandBuilder) fieldTypeName(field protoreflect.FieldDescriptor) string {
+	var typeName string
+	switch field.Kind() {
+	case protoreflect.MessageKind:
+		typeName = string(field.Message().Name())
+	case protoreflect.EnumKind:
+		typeName = string(field.Enum().Name())
+	default:
+		typeName = field.Kind().String()
+	}
+	if field.IsList() {
+		return "[]" + typeName
+	}
+	if field.IsMap() {
+		return "map"
+	}
+	return typeName
+}
+
+// In command_builder.go, modify addFlagWithPrefix to set default for parent fields:
+
+func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) {
+	if depth > b.maxDepth {
+		return
+	}
+
+	behaviors := getFieldBehaviors(field)
+	if behaviors.outputOnly {
+		return
+	}
+
+	isCreate := strings.HasPrefix(methodName, "Create")
+	isUpdate := strings.HasPrefix(methodName, "Update")
+
+	if isCreate && behaviors.identifier {
+		return
+	}
+	if isUpdate && behaviors.immutable {
+		return
+	}
+
+	// Compute default value for parent fields with resource references
+	var defaultValue string
+	if field.Name() == "parent" && field.Kind() == protoreflect.StringKind {
+		defaultValue = b.getParentDefault(field)
+	}
+
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
 	help := b.commentFor(string(field.FullName()), commentSingleLine)
 
+	isRequired := defaultValue == "" && (behaviors.required || (isUpdate && behaviors.identifier))
+	if isRequired {
+		help = "(required) " + help
+	}
+
 	if field.IsList() {
 		cmd.Flags().StringSlice(name, nil, help)
+		if isRequired {
+			cmd.MarkFlagRequired(name)
+		}
 		return
 	}
 
@@ -108,23 +206,32 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 		switch field.Message().FullName() {
 		case timestampFullName:
 			cmd.Flags().String(name, "", help+" (Format: RFC3339, e.g. 2006-01-02T15:04:05Z)")
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
 			return
 		case durationFullName:
 			cmd.Flags().String(name, "", help+" (Format: Go duration, e.g. 1h30m)")
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
 			return
 		case fieldMaskFullName:
 			cmd.Flags().String(name, "", help+" (comma-separated paths)")
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
 			return
 
 		default:
 			nestedFields := field.Message().Fields()
 			nestedPrefix := name + "-"
 			for i := 0; i < nestedFields.Len(); i++ {
-				b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1)
+				b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1, methodName)
 			}
 		}
 	case protoreflect.StringKind:
-		cmd.Flags().String(name, "", help)
+		cmd.Flags().String(name, defaultValue, help)
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
 		cmd.Flags().Int32(name, 0, help)
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
@@ -141,7 +248,6 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 		cmd.Flags().Float64(name, 0, help)
 	case protoreflect.BytesKind:
 		cmd.Flags().String(name, "", help)
-		// go/pbutil/pbcobra/command_builder.go:118-119
 	case protoreflect.EnumKind:
 		enumHelp := b.commentFor(string(field.Enum().FullName()), commentSingleLine)
 		if help != "" && enumHelp != "" {
@@ -151,6 +257,42 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 		}
 		cmd.Flags().String(name, "", help)
 	}
+
+	if isRequired {
+		cmd.MarkFlagRequired(name)
+	}
+}
+
+type fieldBehaviors struct {
+	required   bool
+	outputOnly bool
+	immutable  bool
+	identifier bool
+}
+
+func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
+	var fb fieldBehaviors
+	opts := field.Options()
+	if opts == nil {
+		return fb
+	}
+	if !proto.HasExtension(opts, annotations.E_FieldBehavior) {
+		return fb
+	}
+	behaviors := proto.GetExtension(opts, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
+	for _, b := range behaviors {
+		switch b {
+		case annotations.FieldBehavior_REQUIRED:
+			fb.required = true
+		case annotations.FieldBehavior_OUTPUT_ONLY:
+			fb.outputOnly = true
+		case annotations.FieldBehavior_IMMUTABLE:
+			fb.immutable = true
+		case annotations.FieldBehavior_IDENTIFIER:
+			fb.identifier = true
+		}
+	}
+	return fb
 }
 
 func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.MethodDescriptor) error {
@@ -401,6 +543,26 @@ func parseScalar(field protoreflect.FieldDescriptor, s string) (protoreflect.Val
 	default:
 		return protoreflect.Value{}, fmt.Errorf("unsupported list element type: %v", field.Kind())
 	}
+}
+
+func (b *CommandBuilder) getParentDefault(field protoreflect.FieldDescriptor) string {
+	opts := field.Options()
+	if opts == nil {
+		return ""
+	}
+	if !proto.HasExtension(opts, annotations.E_ResourceReference) {
+		return ""
+	}
+	ref := proto.GetExtension(opts, annotations.E_ResourceReference).(*annotations.ResourceReference)
+	resourceType := ref.GetType()
+	if resourceType == "" {
+		return ""
+	}
+	res := b.schema.GetResource(resourceType)
+	if res == nil || len(res.GetPattern()) == 0 {
+		return ""
+	}
+	return patternSegmentRegexp.ReplaceAllString(res.GetPattern()[0], "-")
 }
 
 type commentStyle int
