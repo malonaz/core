@@ -9,7 +9,6 @@ import (
 	"github.com/huandu/xstrings"
 	"github.com/spf13/cobra"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -17,6 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
@@ -26,24 +26,50 @@ var (
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 
 	patternSegmentRegexp = regexp.MustCompile(`\{[^}]+\}`)
+
+	defaultResponseHandler = func(m proto.Message) error {
+		bytes, err := pbutil.JSONMarshalPretty(m)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(bytes))
+		return nil
+	}
+
+	defaultErrorHandler = func(err error) error {
+		return err
+	}
 )
 
-type ResponseHandler func(m proto.Message) error
+type ResponseHandler func(proto.Message) error
+type ErrorHandler func(error) error
 
 type CommandBuilder struct {
 	schema          *pbreflection.Schema
 	invoker         *pbreflection.MethodInvoker
 	responseHandler ResponseHandler
+	errorHandler    ErrorHandler
 	maxDepth        int
 }
 
-func NewCommandBuilder(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker, responseHandler ResponseHandler) *CommandBuilder {
+func NewCommandBuilder(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker) *CommandBuilder {
 	return &CommandBuilder{
 		schema:          schema,
 		invoker:         invoker,
-		responseHandler: responseHandler,
 		maxDepth:        10,
+		responseHandler: defaultResponseHandler,
+		errorHandler:    defaultErrorHandler,
 	}
+}
+
+func (b *CommandBuilder) WithResponseHandler(responseHandler ResponseHandler) *CommandBuilder {
+	b.responseHandler = responseHandler
+	return b
+}
+
+func (b *CommandBuilder) WithErrorHandler(errorHandler ErrorHandler) *CommandBuilder {
+	b.errorHandler = errorHandler
+	return b
 }
 
 func (b *CommandBuilder) WithMaxDepth(maxDepth int) *CommandBuilder {
@@ -92,7 +118,11 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return b.invokeMethod(cmd, method)
+			err := b.invokeMethod(cmd, method)
+			if err != nil {
+				return b.errorHandler(err)
+			}
+			return nil
 		},
 	}
 
@@ -445,7 +475,7 @@ func (b *CommandBuilder) setListField(msg *dynamicpb.Message, field protoreflect
 	for _, v := range vals {
 		if field.Kind() == protoreflect.MessageKind {
 			nested := dynamicpb.NewMessage(field.Message())
-			if err := protojson.Unmarshal([]byte(v), nested); err != nil {
+			if err := pbutil.JSONUnmarshal([]byte(v), nested); err != nil {
 				return fmt.Errorf("parsing %s: %w", name, err)
 			}
 			list.Append(protoreflect.ValueOfMessage(nested))

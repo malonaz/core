@@ -3,11 +3,11 @@ go_library(
     srcs = ["command_builder.go"],
     visibility = ["//..."],
     deps = [
+        "//go/pbutil",
         "//go/pbutil/pbreflection",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:github.com__spf13__cobra",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
