@@ -223,7 +223,7 @@ func (c *Client) TextToTextStream(
 			}
 
 			// Reasoning tokens.
-			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
+			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputCacheReadToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
 					return grpc.Errorf(
