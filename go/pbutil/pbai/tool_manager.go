@@ -137,9 +137,10 @@ func (m *ToolManager) enableMethods(serviceFQN string, methodNames []string) err
 }
 
 type serviceTools struct {
-	svc           protoreflect.ServiceDescriptor
-	discoveryTool *aipb.Tool
-	methodTools   []*aipb.Tool
+	svc         protoreflect.ServiceDescriptor
+	svcDoc      string
+	methodTools []*aipb.Tool
+	methodDocs  map[string]string
 }
 
 func (st *serviceTools) getTools(discovery bool, enabled map[string]struct{}) []*aipb.Tool {
@@ -148,68 +149,71 @@ func (st *serviceTools) getTools(discovery bool, enabled map[string]struct{}) []
 	}
 
 	var tools []*aipb.Tool
-	hasUnenabled := false
+	var undiscoveredNames []string
+	var undiscoveredLines []string
+
 	for _, mt := range st.methodTools {
 		methodFQN := mt.Metadata[annotationKeyMethod]
 		if _, ok := enabled[methodFQN]; ok {
 			tools = append(tools, mt)
+			continue
+		}
+		name := methodFQN[strings.LastIndex(methodFQN, ".")+1:]
+		undiscoveredNames = append(undiscoveredNames, name)
+		if doc := st.methodDocs[name]; doc != "" {
+			undiscoveredLines = append(undiscoveredLines, fmt.Sprintf("- %s: %s", name, doc))
 		} else {
-			hasUnenabled = true
+			undiscoveredLines = append(undiscoveredLines, fmt.Sprintf("- %s", name))
 		}
 	}
-	if hasUnenabled {
-		tools = append(tools, st.discoveryTool)
+
+	if len(undiscoveredNames) > 0 {
+		desc := st.svcDoc
+		if desc != "" {
+			desc += "\n\n"
+		}
+		desc += "Methods:\n" + strings.Join(undiscoveredLines, "\n")
+
+		tools = append(tools, &aipb.Tool{
+			Name:        string(st.svc.Name()) + "_Discover",
+			Description: desc,
+			JsonSchema: &aipb.JsonSchema{
+				Type: "object",
+				Properties: map[string]*aipb.JsonSchema{
+					"methods": {
+						Type:        "array",
+						Description: "Method names to enable",
+						Items:       &aipb.JsonSchema{Type: "string", Enum: undiscoveredNames},
+					},
+				},
+				Required: []string{"methods"},
+			},
+			Metadata: map[string]string{
+				annotationKeyService: string(st.svc.FullName()),
+				annotationKeyType:    toolTypeDiscovery,
+			},
+		})
 	}
+
 	return tools
 }
 
 func (m *ToolManager) buildServiceTools(svc protoreflect.ServiceDescriptor) *serviceTools {
-	st := &serviceTools{svc: svc}
+	st := &serviceTools{
+		svc:        svc,
+		svcDoc:     m.schema.Comments[string(svc.FullName())],
+		methodDocs: make(map[string]string),
+	}
 
 	methods := svc.Methods()
-	var methodLines []string
-	var methodNames []string
-
 	for i := 0; i < methods.Len(); i++ {
 		method := methods.Get(i)
 		st.methodTools = append(st.methodTools, m.buildMethodTool(method))
 
 		name := string(method.Name())
-		methodNames = append(methodNames, name)
-		doc := m.schema.Comments[string(method.FullName())]
-		if doc != "" {
-			firstLine := strings.Split(doc, "\n")[0]
-			methodLines = append(methodLines, fmt.Sprintf("- %s: %s", name, firstLine))
-		} else {
-			methodLines = append(methodLines, fmt.Sprintf("- %s", name))
+		if doc := m.schema.Comments[string(method.FullName())]; doc != "" {
+			st.methodDocs[name] = strings.Split(doc, "\n")[0]
 		}
-	}
-
-	svcDoc := m.schema.Comments[string(svc.FullName())]
-	description := svcDoc
-	if description != "" {
-		description += "\n\n"
-	}
-	description += "Methods:\n" + strings.Join(methodLines, "\n")
-
-	st.discoveryTool = &aipb.Tool{
-		Name:        string(svc.Name()) + "_Discover",
-		Description: description,
-		JsonSchema: &aipb.JsonSchema{
-			Type: "object",
-			Properties: map[string]*aipb.JsonSchema{
-				"methods": {
-					Type:        "array",
-					Description: "Method names to enable",
-					Items:       &aipb.JsonSchema{Type: "string", Enum: methodNames},
-				},
-			},
-			Required: []string{"methods"},
-		},
-		Metadata: map[string]string{
-			annotationKeyService: string(svc.FullName()),
-			annotationKeyType:    toolTypeDiscovery,
-		},
 	}
 
 	return st
