@@ -18,6 +18,10 @@ message Tool {
 
   // The json schema of the exected object to be returned.
   JsonSchema json_schema = 3;
+
+  // Metadata about this tool (this is not transmitted to the ai provider).
+  // These are applied to any tool call created by this tool.
+  map<string, string> metadata = 4;
 }
 
 // A tool call that the model wants to invoke.
@@ -33,6 +37,9 @@ message ToolCall {
 
   // Provider specific extra fields.
   google.protobuf.Struct extra_fields = 4;
+
+  // Metadata about this tool call (populated by the tool that created this tool call).
+  map<string, string> metadata = 5;
 }
 
 // The result of executing a tool call.

@@ -40,23 +40,52 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
+	toolNameToTool := make(map[string]*aipb.Tool, len(request.Tools))
+	for _, tool := range request.Tools {
+		toolNameToTool[tool.Name] = tool
+	}
 	wrapper := &tttStreamWrapper{
 		Ai_TextToTextStreamServer: srv,
 		model:                     model,
 		modelUsage:                &aipb.ModelUsage{},
+		toolNameToTool:            toolNameToTool,
 	}
 	return provider.TextToTextStream(request, wrapper)
 }
 
 type tttStreamWrapper struct {
 	pb.Ai_TextToTextStreamServer
-	model      *aipb.Model
-	modelUsage *aipb.ModelUsage
+	model          *aipb.Model
+	modelUsage     *aipb.ModelUsage
+	toolNameToTool map[string]*aipb.Tool
+}
+
+func (w *tttStreamWrapper) copyToolMetadata(toolCall *aipb.ToolCall) {
+	tool, ok := w.toolNameToTool[toolCall.Name]
+	if !ok {
+		return
+	}
+	if len(tool.GetMetadata()) == 0 {
+		return
+	}
+	if toolCall.Metadata == nil {
+		toolCall.Metadata = map[string]string{}
+	}
+	for k, v := range tool.GetMetadata() {
+		toolCall.Metadata[k] = v
+	}
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
-	if content, ok := resp.GetContent().(*pb.TextToTextStreamResponse_ModelUsage); ok {
-		modelUsage := content.ModelUsage
+	switch c := resp.GetContent().(type) {
+	case *pb.TextToTextStreamResponse_ToolCall:
+		w.copyToolMetadata(c.ToolCall)
+
+	case *pb.TextToTextStreamResponse_PartialToolCall:
+		w.copyToolMetadata(c.PartialToolCall)
+
+	case *pb.TextToTextStreamResponse_ModelUsage:
+		modelUsage := c.ModelUsage
 
 		// INPUT TOKENS.
 		if inputToken := modelUsage.GetInputToken(); inputToken != nil {
@@ -153,9 +182,9 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			modelUsage.OutputReasoningToken == nil {
 			return nil
 		}
-
 		computeModelUsagePrices(modelUsage, w.model.GetTtt().GetPricing())
 	}
+
 	return w.Ai_TextToTextStreamServer.Send(resp)
 }
 

@@ -14,6 +14,10 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
+const (
+	annotationKeyMethod = "malonaz.pbai.method"
+)
+
 var (
 	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
 	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
@@ -91,6 +95,9 @@ func (b *ToolBuilder) Build(method protoreflect.MethodDescriptor, opts ...ToolBu
 			Type:       "object",
 			Properties: properties,
 			Required:   required,
+		},
+		Metadata: map[string]string{
+			annotationKeyMethod: string(method.FullName()),
 		},
 	}
 }

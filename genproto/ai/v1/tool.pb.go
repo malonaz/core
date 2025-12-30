@@ -88,7 +88,10 @@ type Tool struct {
 	// A description of what the tool does.
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// The json schema of the exected object to be returned.
-	JsonSchema    *JsonSchema `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
+	JsonSchema *JsonSchema `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
+	// Metadata about this tool (this is not transmitted to the ai provider).
+	// These are applied to any tool call created by this tool.
+	Metadata      map[string]string `protobuf:"bytes,4,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -144,6 +147,13 @@ func (x *Tool) GetJsonSchema() *JsonSchema {
 	return nil
 }
 
+func (x *Tool) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 // A tool call that the model wants to invoke.
 type ToolCall struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -154,7 +164,9 @@ type ToolCall struct {
 	// The arguments to call the tool with.
 	Arguments *structpb.Struct `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
 	// Provider specific extra fields.
-	ExtraFields   *structpb.Struct `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3" json:"extra_fields,omitempty"`
+	ExtraFields *structpb.Struct `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3" json:"extra_fields,omitempty"`
+	// Metadata about this tool call (populated by the tool that created this tool call).
+	Metadata      map[string]string `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -213,6 +225,13 @@ func (x *ToolCall) GetArguments() *structpb.Struct {
 func (x *ToolCall) GetExtraFields() *structpb.Struct {
 	if x != nil {
 		return x.ExtraFields
+	}
+	return nil
+}
+
+func (x *ToolCall) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
 	}
 	return nil
 }
@@ -413,17 +432,25 @@ var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x8a\x01\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x86\x02\n" +
 	"\x04Tool\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
 	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12:\n" +
 	"\vjson_schema\x18\x03 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\n" +
-	"jsonSchema\"\xb9\x01\n" +
+	"jsonSchema\x12=\n" +
+	"\bmetadata\x18\x04 \x03(\v2!.malonaz.ai.v1.Tool.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb9\x02\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\x12:\n" +
-	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\"\x9b\x01\n" +
+	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12A\n" +
+	"\bmetadata\x18\x05 \x03(\v2%.malonaz.ai.v1.ToolCall.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x01\n" +
 	"\n" +
 	"ToolResult\x12\x1a\n" +
 	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12H\n" +
@@ -455,27 +482,31 @@ func file_malonaz_ai_v1_tool_proto_rawDescGZIP() []byte {
 }
 
 var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolChoiceMode)(0),     // 0: malonaz.ai.v1.ToolChoiceMode
 	(*Tool)(nil),            // 1: malonaz.ai.v1.Tool
 	(*ToolCall)(nil),        // 2: malonaz.ai.v1.ToolCall
 	(*ToolResult)(nil),      // 3: malonaz.ai.v1.ToolResult
 	(*ToolChoice)(nil),      // 4: malonaz.ai.v1.ToolChoice
-	(*JsonSchema)(nil),      // 5: malonaz.ai.v1.JsonSchema
-	(*structpb.Struct)(nil), // 6: google.protobuf.Struct
+	nil,                     // 5: malonaz.ai.v1.Tool.MetadataEntry
+	nil,                     // 6: malonaz.ai.v1.ToolCall.MetadataEntry
+	(*JsonSchema)(nil),      // 7: malonaz.ai.v1.JsonSchema
+	(*structpb.Struct)(nil), // 8: google.protobuf.Struct
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	5, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
-	6, // 1: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	6, // 2: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
-	6, // 3: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
-	0, // 4: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	7, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
+	5, // 1: malonaz.ai.v1.Tool.metadata:type_name -> malonaz.ai.v1.Tool.MetadataEntry
+	8, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	8, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
+	6, // 4: malonaz.ai.v1.ToolCall.metadata:type_name -> malonaz.ai.v1.ToolCall.MetadataEntry
+	8, // 5: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
+	0, // 6: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -499,7 +530,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
