@@ -54,16 +54,54 @@ func NewToolBuilder(schema *pbreflection.Schema) *ToolBuilder {
 	return &ToolBuilder{schema: schema}
 }
 
-func (b *ToolBuilder) BuildAll(opts ...ToolBuilderOption) []*aipb.Tool {
+func (b *ToolBuilder) BuildAll(opts ...BuildAllOption) []*aipb.Tool {
+	options := &buildAllOptions{maxDepth: 10}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	var tools []*aipb.Tool
 	b.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
+		if !options.serviceAllowed(string(svc.Name())) {
+			return true
+		}
 		methods := svc.Methods()
 		for i := 0; i < methods.Len(); i++ {
-			tools = append(tools, b.Build(methods.Get(i), opts...))
+			tools = append(tools, b.Build(methods.Get(i), WithMaxDepth(options.maxDepth)))
 		}
 		return true
 	})
 	return tools
+}
+
+type BuildAllOption func(*buildAllOptions)
+
+type buildAllOptions struct {
+	services map[string]struct{}
+	maxDepth int
+}
+
+func (o *buildAllOptions) serviceAllowed(name string) bool {
+	if o.services == nil {
+		return true
+	}
+	_, ok := o.services[name]
+	return ok
+}
+
+func WithServices(services ...string) BuildAllOption {
+	return func(o *buildAllOptions) {
+		o.services = make(map[string]struct{})
+		for _, s := range services {
+			o.services[s] = struct{}{}
+		}
+	}
+}
+
+func WithBuildAllMaxDepth(depth int) BuildAllOption {
+	return func(o *buildAllOptions) {
+		o.maxDepth = depth
+	}
 }
 
 func (b *ToolBuilder) Build(method protoreflect.MethodDescriptor, opts ...ToolBuilderOption) *aipb.Tool {
