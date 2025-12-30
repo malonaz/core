@@ -1,4 +1,3 @@
-// go/pbutil/pbai/tool_builder.go
 package pbai
 
 import (
@@ -113,100 +112,100 @@ func (b *ToolBuilder) Build(method protoreflect.MethodDescriptor, opts ...ToolBu
 	svc := method.Parent().(protoreflect.ServiceDescriptor)
 	name := string(svc.Name()) + "_" + string(method.Name())
 	description := b.schema.Comments[string(method.FullName())]
-
-	properties := make(map[string]*aipb.JsonSchema)
-	var required []string
-
 	methodName := string(method.Name())
-	fields := method.Input().Fields()
-	for i := 0; i < fields.Len(); i++ {
-		b.addFieldSchema(properties, &required, fields.Get(i), "", 0, methodName, options)
-	}
+
+	schema := b.buildMessageSchema(method.Input(), "", 0, methodName, options)
 
 	return &aipb.Tool{
 		Name:        name,
 		Description: description,
-		JsonSchema: &aipb.JsonSchema{
-			Type:       "object",
-			Properties: properties,
-			Required:   required,
-		},
+		JsonSchema:  schema,
 	}
 }
 
-func (b *ToolBuilder) addFieldSchema(properties map[string]*aipb.JsonSchema, required *[]string, field protoreflect.FieldDescriptor, prefix string, depth int, methodName string, options *toolBuilderOptions) {
+func (b *ToolBuilder) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodName string, options *toolBuilderOptions) *aipb.JsonSchema {
+	properties := make(map[string]*aipb.JsonSchema)
+	var required []string
+
+	fields := msg.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		schema, isRequired := b.buildFieldSchema(field, prefix, depth, methodName, options)
+		if schema != nil {
+			properties[string(field.Name())] = schema
+			if isRequired {
+				required = append(required, string(field.Name()))
+			}
+		}
+	}
+
+	return &aipb.JsonSchema{
+		Type:       "object",
+		Properties: properties,
+		Required:   required,
+	}
+}
+
+func (b *ToolBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string, options *toolBuilderOptions) (*aipb.JsonSchema, bool) {
 	if depth > options.maxDepth {
-		return
+		return nil, false
 	}
 
 	behaviors := getFieldBehaviors(field)
 	if behaviors.outputOnly {
-		return
+		return nil, false
 	}
 
 	isCreate := strings.HasPrefix(methodName, "Create")
 	isUpdate := strings.HasPrefix(methodName, "Update")
 	if isCreate && behaviors.identifier {
-		return
+		return nil, false
 	}
 	if isUpdate && behaviors.immutable {
-		return
+		return nil, false
 	}
 
-	name := prefix + string(field.Name())
-	if !b.fieldAllowed(name, options) {
-		return
+	path := prefix + string(field.Name())
+	if !b.fieldAllowed(path, options) {
+		return nil, false
 	}
 
 	description := b.schema.Comments[string(field.FullName())]
 	isRequired := behaviors.required || (isUpdate && behaviors.identifier)
 
 	if field.IsList() {
-		properties[name] = &aipb.JsonSchema{
+		return &aipb.JsonSchema{
 			Type:        "array",
 			Description: description,
-			Items:       b.elementSchema(field),
-		}
-		if isRequired {
-			*required = append(*required, name)
-		}
-		return
+			Items:       b.elementSchema(field, path, depth, methodName, options),
+		}, isRequired
 	}
 
 	if field.Kind() == protoreflect.MessageKind {
 		switch field.Message().FullName() {
 		case timestampFullName:
-			properties[name] = &aipb.JsonSchema{
+			return &aipb.JsonSchema{
 				Type:        "string",
 				Description: description + " (RFC3339, e.g. 2006-01-02T15:04:05Z)",
-			}
+			}, isRequired
 		case durationFullName:
-			properties[name] = &aipb.JsonSchema{
+			return &aipb.JsonSchema{
 				Type:        "string",
 				Description: description + " (e.g. 1h30m)",
-			}
+			}, isRequired
 		case fieldMaskFullName:
-			properties[name] = &aipb.JsonSchema{
+			return &aipb.JsonSchema{
 				Type:        "string",
 				Description: description + " (comma-separated paths)",
-			}
+			}, isRequired
 		default:
-			nestedFields := field.Message().Fields()
-			for i := 0; i < nestedFields.Len(); i++ {
-				b.addFieldSchema(properties, required, nestedFields.Get(i), name+".", depth+1, methodName, options)
-			}
-			return
+			schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodName, options)
+			schema.Description = description
+			return schema, isRequired
 		}
-		if isRequired {
-			*required = append(*required, name)
-		}
-		return
 	}
 
-	properties[name] = b.scalarSchema(field, description)
-	if isRequired {
-		*required = append(*required, name)
-	}
+	return b.scalarSchema(field, description), isRequired
 }
 
 func (b *ToolBuilder) fieldAllowed(name string, options *toolBuilderOptions) bool {
@@ -248,9 +247,9 @@ func (b *ToolBuilder) scalarSchema(field protoreflect.FieldDescriptor, descripti
 	return schema
 }
 
-func (b *ToolBuilder) elementSchema(field protoreflect.FieldDescriptor) *aipb.JsonSchema {
+func (b *ToolBuilder) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string, options *toolBuilderOptions) *aipb.JsonSchema {
 	if field.Kind() == protoreflect.MessageKind {
-		return &aipb.JsonSchema{Type: "object"}
+		return b.buildMessageSchema(field.Message(), prefix+".", depth+1, methodName, options)
 	}
 	return b.scalarSchema(field, "")
 }

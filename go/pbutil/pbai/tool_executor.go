@@ -44,29 +44,23 @@ func (e *ToolExecutor) Execute(ctx context.Context, toolCall *aipb.ToolCall) (pr
 	}
 
 	req := dynamicpb.NewMessage(method.Input())
-	if err := populateMessage(req, toolCall.Arguments.AsMap(), ""); err != nil {
+	if err := populateMessage(req, toolCall.Arguments.AsMap()); err != nil {
 		return nil, fmt.Errorf("populating request: %w", err)
 	}
 
 	return e.invoker.Invoke(ctx, method, req)
 }
 
-func populateMessage(msg *dynamicpb.Message, args map[string]any, prefix string) error {
+func populateMessage(msg *dynamicpb.Message, args map[string]any) error {
 	fields := msg.Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		name := prefix + string(field.Name())
-		if val, ok := args[name]; ok {
-			if err := setField(msg, field, val); err != nil {
-				return err
-			}
+		val, ok := args[string(field.Name())]
+		if !ok {
 			continue
 		}
-		if field.Kind() == protoreflect.MessageKind && !field.IsList() && !field.IsMap() {
-			nested := msg.Mutable(field).Message().(*dynamicpb.Message)
-			if err := populateMessage(nested, args, name+"."); err != nil {
-				return err
-			}
+		if err := setField(msg, field, val); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -88,6 +82,16 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 		}
 		return nil
 	}
+
+	if field.Kind() == protoreflect.MessageKind && !field.IsMap() {
+		nested, ok := val.(map[string]any)
+		if !ok {
+			return fmt.Errorf("expected object for %s", field.Name())
+		}
+		nestedMsg := msg.Mutable(field).Message().(*dynamicpb.Message)
+		return populateMessage(nestedMsg, nested)
+	}
+
 	v, err := convertValue(field, val)
 	if err != nil {
 		return err
@@ -129,6 +133,16 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 			return protoreflect.Value{}, fmt.Errorf("unknown enum value: %s", s)
 		}
 		return protoreflect.ValueOfEnum(enumVal.Number()), nil
+	case protoreflect.MessageKind:
+		nested, ok := val.(map[string]any)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected object for message field %s", field.Name())
+		}
+		nestedMsg := dynamicpb.NewMessage(field.Message())
+		if err := populateMessage(nestedMsg, nested); err != nil {
+			return protoreflect.Value{}, err
+		}
+		return protoreflect.ValueOfMessage(nestedMsg), nil
 	default:
 		return protoreflect.Value{}, fmt.Errorf("unsupported field kind: %v", field.Kind())
 	}
