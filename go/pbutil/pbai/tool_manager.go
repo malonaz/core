@@ -104,8 +104,28 @@ func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (pro
 	return m.executeMethod(ctx, toolCall)
 }
 
-func (m *ToolManager) IsDiscoveryCall(toolCall *aipb.ToolCall) bool {
-	return toolCall.Metadata != nil && toolCall.Metadata[annotationKeyType] == toolTypeDiscovery
+type DiscoveryCall struct {
+	Service string
+	Methods []string
+}
+
+func (m *ToolManager) ParseDiscoveryCall(toolCall *aipb.ToolCall) *DiscoveryCall {
+	if toolCall.Metadata == nil || toolCall.Metadata[annotationKeyType] != toolTypeDiscovery {
+		return nil
+	}
+	dc := &DiscoveryCall{
+		Service: toolCall.Metadata[annotationKeyService],
+	}
+	if args := toolCall.Arguments.AsMap(); args != nil {
+		if methodsRaw, ok := args["methods"].([]any); ok {
+			for _, v := range methodsRaw {
+				if s, ok := v.(string); ok {
+					dc.Methods = append(dc.Methods, s)
+				}
+			}
+		}
+	}
+	return dc
 }
 
 func (m *ToolManager) serviceAllowed(name string) bool {
