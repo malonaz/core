@@ -62,7 +62,7 @@ func (b *ToolBuilder) BuildAll(opts ...BuildAllOption) []*aipb.Tool {
 
 	var tools []*aipb.Tool
 	b.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
-		if !options.serviceAllowed(string(svc.Name())) {
+		if !options.serviceAllowed(string(svc.FullName())) {
 			return true
 		}
 		methods := svc.Methods()
