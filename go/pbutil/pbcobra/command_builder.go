@@ -20,6 +20,11 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
+const (
+	annotationKeyService = "pbcobra.service"
+	annotationKeyMethod  = "pbcobra.method"
+)
+
 var (
 	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
 	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
@@ -91,11 +96,16 @@ func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor)
 		Use:   xstrings.ToKebabCase(string(svc.Name())),
 		Short: b.commentFor(string(svc.FullName()), commentFirstLine),
 		Long:  b.commentFor(string(svc.FullName()), commentMultiline),
+		Annotations: map[string]string{
+			annotationKeyService: string(svc.FullName()),
+		},
 	}
 
 	methods := svc.Methods()
 	for i := 0; i < methods.Len(); i++ {
-		cmd.AddCommand(b.buildMethodCommand(methods.Get(i)))
+		methodCmd := b.buildMethodCommand(methods.Get(i))
+		methodCmd.Annotations[annotationKeyService] = string(svc.FullName())
+		cmd.AddCommand(methodCmd)
 	}
 	return cmd
 }
@@ -114,6 +124,9 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 		Short: b.commentFor(string(method.FullName()), commentFirstLine),
 		Long:  longDesc,
 		Args:  cobra.NoArgs,
+		Annotations: map[string]string{
+			annotationKeyMethod: string(method.FullName()),
+		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		},
