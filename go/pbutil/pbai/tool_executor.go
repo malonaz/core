@@ -3,10 +3,14 @@ package pbai
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -80,12 +84,7 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 	}
 
 	if field.Kind() == protoreflect.MessageKind && !field.IsMap() {
-		nested, ok := val.(map[string]any)
-		if !ok {
-			return fmt.Errorf("expected object for %s", field.Name())
-		}
-		nestedMsg := msg.Mutable(field).Message().(*dynamicpb.Message)
-		return populateMessage(nestedMsg, nested)
+		return setMessageField(msg, field, val)
 	}
 
 	v, err := convertValue(field, val)
@@ -96,43 +95,154 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 	return nil
 }
 
+func setMessageField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {
+	switch field.Message().FullName() {
+	case timestampFullName:
+		s, ok := val.(string)
+		if !ok {
+			return fmt.Errorf("expected string for timestamp field %s", field.Name())
+		}
+		t, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			return fmt.Errorf("parsing timestamp %s: %w", field.Name(), err)
+		}
+		ts := timestamppb.New(t)
+		msg.Set(field, protoreflect.ValueOfMessage(ts.ProtoReflect()))
+		return nil
+
+	case durationFullName:
+		s, ok := val.(string)
+		if !ok {
+			return fmt.Errorf("expected string for duration field %s", field.Name())
+		}
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			return fmt.Errorf("parsing duration %s: %w", field.Name(), err)
+		}
+		dp := durationpb.New(d)
+		msg.Set(field, protoreflect.ValueOfMessage(dp.ProtoReflect()))
+		return nil
+
+	case fieldMaskFullName:
+		s, ok := val.(string)
+		if !ok {
+			return fmt.Errorf("expected string for field_mask field %s", field.Name())
+		}
+		fm := &fieldmaskpb.FieldMask{}
+		if s != "" {
+			fm.Paths = splitPaths(s)
+		}
+		msg.Set(field, protoreflect.ValueOfMessage(fm.ProtoReflect()))
+		return nil
+
+	default:
+		nested, ok := val.(map[string]any)
+		if !ok {
+			return fmt.Errorf("expected object for %s", field.Name())
+		}
+		nestedMsg := msg.Mutable(field).Message().(*dynamicpb.Message)
+		return populateMessage(nestedMsg, nested)
+	}
+}
+
+func splitPaths(s string) []string {
+	var paths []string
+	for _, p := range splitComma(s) {
+		if trimmed := trimSpace(p); trimmed != "" {
+			paths = append(paths, trimmed)
+		}
+	}
+	return paths
+}
+
+func splitComma(s string) []string {
+	var result []string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == ',' {
+			result = append(result, s[start:i])
+			start = i + 1
+		}
+	}
+	result = append(result, s[start:])
+	return result
+}
+
+func trimSpace(s string) string {
+	start, end := 0, len(s)
+	for start < end && s[start] == ' ' {
+		start++
+	}
+	for end > start && s[end-1] == ' ' {
+		end--
+	}
+	return s[start:end]
+}
+
 func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Value, error) {
 	switch field.Kind() {
 	case protoreflect.StringKind:
-		s, _ := val.(string)
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfString(s), nil
 	case protoreflect.BoolKind:
-		b, _ := val.(bool)
+		b, ok := val.(bool)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected bool for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfBool(b), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfInt32(int32(f)), nil
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfInt64(int64(f)), nil
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfUint32(uint32(f)), nil
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfUint64(uint64(f)), nil
 	case protoreflect.FloatKind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfFloat32(float32(f)), nil
 	case protoreflect.DoubleKind:
-		f, _ := val.(float64)
+		f, ok := val.(float64)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		}
 		return protoreflect.ValueOfFloat64(f), nil
 	case protoreflect.EnumKind:
-		s, _ := val.(string)
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for enum field %s, got %T", field.Name(), val)
+		}
 		enumVal := field.Enum().Values().ByName(protoreflect.Name(s))
 		if enumVal == nil {
-			return protoreflect.Value{}, fmt.Errorf("unknown enum value: %s", s)
+			return protoreflect.Value{}, fmt.Errorf("unknown enum value %q for field %s", s, field.Name())
 		}
 		return protoreflect.ValueOfEnum(enumVal.Number()), nil
 	case protoreflect.MessageKind:
 		nested, ok := val.(map[string]any)
 		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected object for message field %s", field.Name())
+			return protoreflect.Value{}, fmt.Errorf("expected object for message field %s, got %T", field.Name(), val)
 		}
 		nestedMsg := dynamicpb.NewMessage(field.Message())
 		if err := populateMessage(nestedMsg, nested); err != nil {
@@ -140,6 +250,6 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 		}
 		return protoreflect.ValueOfMessage(nestedMsg), nil
 	default:
-		return protoreflect.Value{}, fmt.Errorf("unsupported field kind: %v", field.Kind())
+		return protoreflect.Value{}, fmt.Errorf("unsupported field kind %v for field %s", field.Kind(), field.Name())
 	}
 }
