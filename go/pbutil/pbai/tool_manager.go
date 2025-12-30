@@ -104,6 +104,10 @@ func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (pro
 	return m.executeMethod(ctx, toolCall)
 }
 
+func (m *ToolManager) IsDiscoveryCall(toolCall *aipb.ToolCall) bool {
+	return toolCall.Metadata != nil && toolCall.Metadata[annotationKeyType] == toolTypeDiscovery
+}
+
 func (m *ToolManager) serviceAllowed(name string) bool {
 	if m.services == nil {
 		return true
