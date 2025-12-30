@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "tool_builder.go",
         "tool_executor.go",
+        "tool_manager.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -14,6 +15,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

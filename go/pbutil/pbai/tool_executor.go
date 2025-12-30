@@ -3,6 +3,7 @@ package pbai
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -10,31 +11,52 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
-type ToolExecutor struct {
-	schema  *pbreflection.Schema
-	invoker *pbreflection.MethodInvoker
-}
-
-func NewToolExecutor(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker) *ToolExecutor {
-	return &ToolExecutor{schema: schema, invoker: invoker}
-}
-
-func (e *ToolExecutor) Execute(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
-	if toolCall.Metadata == nil {
-		return nil, fmt.Errorf("tool call %s missing metadata ", toolCall.Name)
-	}
-	methodFQN, ok := toolCall.Metadata[annotationKeyMethod]
+func (m *ToolManager) executeDiscovery(toolCall *aipb.ToolCall) (proto.Message, error) {
+	serviceFQN, ok := toolCall.Metadata[annotationKeyService]
 	if !ok {
+		return nil, fmt.Errorf("discovery tool missing service annotation")
+	}
+
+	args := toolCall.Arguments.AsMap()
+	methodsRaw, ok := args["methods"]
+	if !ok {
+		return nil, fmt.Errorf("discovery tool missing methods argument")
+	}
+
+	methodsArr, ok := methodsRaw.([]any)
+	if !ok {
+		return nil, fmt.Errorf("methods must be an array")
+	}
+
+	var methods []string
+	for _, v := range methodsArr {
+		s, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("method name must be a string")
+		}
+		methods = append(methods, s)
+	}
+
+	if err := m.enableMethods(serviceFQN, methods); err != nil {
+		return nil, err
+	}
+
+	return structpb.NewStringValue("done"), nil
+}
+
+func (m *ToolManager) executeMethod(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
+	methodFQN := toolCall.Metadata[annotationKeyMethod]
+	if methodFQN == "" {
 		return nil, fmt.Errorf("tool call %s missing method annotation", toolCall.Name)
 	}
 
-	desc, err := e.schema.Files.FindDescriptorByName(protoreflect.FullName(methodFQN))
+	desc, err := m.schema.Files.FindDescriptorByName(protoreflect.FullName(methodFQN))
 	if err != nil {
 		return nil, fmt.Errorf("method not found: %s", methodFQN)
 	}
@@ -48,7 +70,7 @@ func (e *ToolExecutor) Execute(ctx context.Context, toolCall *aipb.ToolCall) (pr
 		return nil, fmt.Errorf("populating request: %w", err)
 	}
 
-	return e.invoker.Invoke(ctx, method, req)
+	return m.invoker.Invoke(ctx, method, req)
 }
 
 func populateMessage(msg *dynamicpb.Message, args map[string]any) error {
@@ -147,36 +169,17 @@ func setMessageField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor,
 
 func splitPaths(s string) []string {
 	var paths []string
-	for _, p := range splitComma(s) {
-		if trimmed := trimSpace(p); trimmed != "" {
-			paths = append(paths, trimmed)
-		}
-	}
-	return paths
-}
-
-func splitComma(s string) []string {
-	var result []string
 	start := 0
-	for i := 0; i < len(s); i++ {
-		if s[i] == ',' {
-			result = append(result, s[start:i])
+	for i := 0; i <= len(s); i++ {
+		if i == len(s) || s[i] == ',' {
+			p := strings.TrimSpace(s[start:i])
+			if p != "" {
+				paths = append(paths, p)
+			}
 			start = i + 1
 		}
 	}
-	result = append(result, s[start:])
-	return result
-}
-
-func trimSpace(s string) string {
-	start, end := 0, len(s)
-	for start < end && s[start] == ' ' {
-		start++
-	}
-	for end > start && s[end-1] == ' ' {
-		end--
-	}
-	return s[start:end]
+	return paths
 }
 
 func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Value, error) {
