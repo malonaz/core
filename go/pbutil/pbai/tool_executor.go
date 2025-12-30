@@ -12,10 +12,6 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
-const (
-	annotationKeyMethod = "malonaz.pbai.method"
-)
-
 type ToolExecutor struct {
 	schema  *pbreflection.Schema
 	invoker *pbreflection.MethodInvoker

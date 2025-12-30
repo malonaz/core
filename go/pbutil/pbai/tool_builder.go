@@ -1,6 +1,7 @@
 package pbai
 
 import (
+	"sort"
 	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -12,6 +13,10 @@ import (
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
+)
+
+const (
+	annotationKeyMethod = "malonaz.pbai.method"
 )
 
 var (
@@ -70,6 +75,11 @@ func (b *ToolBuilder) BuildAll(opts ...BuildAllOption) []*aipb.Tool {
 		}
 		return true
 	})
+
+	sort.Slice(tools, func(i, j int) bool {
+		return tools[i].Name < tools[j].Name
+	})
+
 	return tools
 }
 
@@ -120,6 +130,9 @@ func (b *ToolBuilder) Build(method protoreflect.MethodDescriptor, opts ...ToolBu
 		Name:        name,
 		Description: description,
 		JsonSchema:  schema,
+		Metadata: map[string]string{
+			annotationKeyMethod: string(method.FullName()),
+		},
 	}
 }
 
