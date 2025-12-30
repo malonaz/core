@@ -1,14 +1,12 @@
 package pbai
 
 import (
-	"strings"
+	"context"
+	"fmt"
 
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -18,239 +16,120 @@ const (
 	annotationKeyMethod = "malonaz.pbai.method"
 )
 
-var (
-	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
-	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
-	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
-)
-
-type ToolBuilderOption func(*toolBuilderOptions)
-
-type toolBuilderOptions struct {
-	fieldMask map[string]struct{}
-	maxDepth  int
+type ToolExecutor struct {
+	schema  *pbreflection.Schema
+	invoker *pbreflection.MethodInvoker
 }
 
-func WithFieldMask(paths string) ToolBuilderOption {
-	return func(o *toolBuilderOptions) {
-		if paths == "" {
-			return
-		}
-		o.fieldMask = make(map[string]struct{})
-		for _, p := range strings.Split(paths, ",") {
-			o.fieldMask[strings.TrimSpace(p)] = struct{}{}
-		}
+func NewToolExecutor(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker) *ToolExecutor {
+	return &ToolExecutor{schema: schema, invoker: invoker}
+}
+
+func (e *ToolExecutor) Execute(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
+	if toolCall.Metadata == nil {
+		return nil, fmt.Errorf("tool call %s missing metadata ", toolCall.Name)
 	}
-}
-
-func WithMaxDepth(depth int) ToolBuilderOption {
-	return func(o *toolBuilderOptions) {
-		o.maxDepth = depth
-	}
-}
-
-type ToolBuilder struct {
-	schema *pbreflection.Schema
-}
-
-func NewToolBuilder(schema *pbreflection.Schema) *ToolBuilder {
-	return &ToolBuilder{schema: schema}
-}
-
-func (b *ToolBuilder) BuildAll(opts ...ToolBuilderOption) []*aipb.Tool {
-	var tools []*aipb.Tool
-	b.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
-		methods := svc.Methods()
-		for i := 0; i < methods.Len(); i++ {
-			tools = append(tools, b.Build(methods.Get(i), opts...))
-		}
-		return true
-	})
-	return tools
-}
-
-func (b *ToolBuilder) Build(method protoreflect.MethodDescriptor, opts ...ToolBuilderOption) *aipb.Tool {
-	options := &toolBuilderOptions{maxDepth: 10}
-	for _, opt := range opts {
-		opt(options)
+	methodFQN, ok := toolCall.Metadata[annotationKeyMethod]
+	if !ok {
+		return nil, fmt.Errorf("tool call %s missing method annotation", toolCall.Name)
 	}
 
-	svc := method.Parent().(protoreflect.ServiceDescriptor)
-	name := string(svc.Name()) + "_" + string(method.Name())
-	description := b.schema.Comments[string(method.FullName())]
+	desc, err := e.schema.Files.FindDescriptorByName(protoreflect.FullName(methodFQN))
+	if err != nil {
+		return nil, fmt.Errorf("method not found: %s", methodFQN)
+	}
+	method, ok := desc.(protoreflect.MethodDescriptor)
+	if !ok {
+		return nil, fmt.Errorf("descriptor is not a method: %s", methodFQN)
+	}
 
-	properties := make(map[string]*aipb.JsonSchema)
-	var required []string
+	req := dynamicpb.NewMessage(method.Input())
+	if err := populateMessage(req, toolCall.Arguments.AsMap(), ""); err != nil {
+		return nil, fmt.Errorf("populating request: %w", err)
+	}
 
-	methodName := string(method.Name())
-	fields := method.Input().Fields()
+	return e.invoker.Invoke(ctx, method, req)
+}
+
+func populateMessage(msg *dynamicpb.Message, args map[string]any, prefix string) error {
+	fields := msg.Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		b.addFieldSchema(properties, &required, fields.Get(i), "", 0, methodName, options)
+		field := fields.Get(i)
+		name := prefix + string(field.Name())
+		if val, ok := args[name]; ok {
+			if err := setField(msg, field, val); err != nil {
+				return err
+			}
+			continue
+		}
+		if field.Kind() == protoreflect.MessageKind && !field.IsList() && !field.IsMap() {
+			nested := msg.Mutable(field).Message().(*dynamicpb.Message)
+			if err := populateMessage(nested, args, name+"."); err != nil {
+				return err
+			}
+		}
 	}
-
-	return &aipb.Tool{
-		Name:        name,
-		Description: description,
-		JsonSchema: &aipb.JsonSchema{
-			Type:       "object",
-			Properties: properties,
-			Required:   required,
-		},
-		Metadata: map[string]string{
-			annotationKeyMethod: string(method.FullName()),
-		},
-	}
+	return nil
 }
 
-func (b *ToolBuilder) addFieldSchema(properties map[string]*aipb.JsonSchema, required *[]string, field protoreflect.FieldDescriptor, prefix string, depth int, methodName string, options *toolBuilderOptions) {
-	if depth > options.maxDepth {
-		return
-	}
-
-	behaviors := getFieldBehaviors(field)
-	if behaviors.outputOnly {
-		return
-	}
-
-	isCreate := strings.HasPrefix(methodName, "Create")
-	isUpdate := strings.HasPrefix(methodName, "Update")
-	if isCreate && behaviors.identifier {
-		return
-	}
-	if isUpdate && behaviors.immutable {
-		return
-	}
-
-	name := prefix + string(field.Name())
-	if !b.fieldAllowed(name, options) {
-		return
-	}
-
-	description := b.schema.Comments[string(field.FullName())]
-	isRequired := behaviors.required || (isUpdate && behaviors.identifier)
-
+func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {
 	if field.IsList() {
-		properties[name] = &aipb.JsonSchema{
-			Type:        "array",
-			Description: description,
-			Items:       b.elementSchema(field),
+		arr, ok := val.([]any)
+		if !ok {
+			return fmt.Errorf("expected array for %s", field.Name())
 		}
-		if isRequired {
-			*required = append(*required, name)
+		list := msg.Mutable(field).List()
+		for _, item := range arr {
+			v, err := convertValue(field, item)
+			if err != nil {
+				return err
+			}
+			list.Append(v)
 		}
-		return
+		return nil
 	}
-
-	if field.Kind() == protoreflect.MessageKind {
-		switch field.Message().FullName() {
-		case timestampFullName:
-			properties[name] = &aipb.JsonSchema{
-				Type:        "string",
-				Description: description + " (RFC3339, e.g. 2006-01-02T15:04:05Z)",
-			}
-		case durationFullName:
-			properties[name] = &aipb.JsonSchema{
-				Type:        "string",
-				Description: description + " (e.g. 1h30m)",
-			}
-		case fieldMaskFullName:
-			properties[name] = &aipb.JsonSchema{
-				Type:        "string",
-				Description: description + " (comma-separated paths)",
-			}
-		default:
-			nestedFields := field.Message().Fields()
-			for i := 0; i < nestedFields.Len(); i++ {
-				b.addFieldSchema(properties, required, nestedFields.Get(i), name+".", depth+1, methodName, options)
-			}
-			return
-		}
-		if isRequired {
-			*required = append(*required, name)
-		}
-		return
+	v, err := convertValue(field, val)
+	if err != nil {
+		return err
 	}
-
-	properties[name] = b.scalarSchema(field, description)
-	if isRequired {
-		*required = append(*required, name)
-	}
+	msg.Set(field, v)
+	return nil
 }
 
-func (b *ToolBuilder) fieldAllowed(name string, options *toolBuilderOptions) bool {
-	if options.fieldMask == nil {
-		return true
-	}
-	if _, ok := options.fieldMask[name]; ok {
-		return true
-	}
-	for masked := range options.fieldMask {
-		if strings.HasPrefix(masked, name+".") {
-			return true
-		}
-	}
-	return false
-}
-
-func (b *ToolBuilder) scalarSchema(field protoreflect.FieldDescriptor, description string) *aipb.JsonSchema {
-	schema := &aipb.JsonSchema{Description: description}
+func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Value, error) {
 	switch field.Kind() {
+	case protoreflect.StringKind:
+		s, _ := val.(string)
+		return protoreflect.ValueOfString(s), nil
 	case protoreflect.BoolKind:
-		schema.Type = "boolean"
-	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind,
-		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind,
-		protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
-		protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		schema.Type = "integer"
-	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		schema.Type = "number"
+		b, _ := val.(bool)
+		return protoreflect.ValueOfBool(b), nil
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfInt32(int32(f)), nil
+	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfInt64(int64(f)), nil
+	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfUint32(uint32(f)), nil
+	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfUint64(uint64(f)), nil
+	case protoreflect.FloatKind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfFloat32(float32(f)), nil
+	case protoreflect.DoubleKind:
+		f, _ := val.(float64)
+		return protoreflect.ValueOfFloat64(f), nil
 	case protoreflect.EnumKind:
-		schema.Type = "string"
-		values := field.Enum().Values()
-		for i := 0; i < values.Len(); i++ {
-			schema.Enum = append(schema.Enum, string(values.Get(i).Name()))
+		s, _ := val.(string)
+		enumVal := field.Enum().Values().ByName(protoreflect.Name(s))
+		if enumVal == nil {
+			return protoreflect.Value{}, fmt.Errorf("unknown enum value: %s", s)
 		}
+		return protoreflect.ValueOfEnum(enumVal.Number()), nil
 	default:
-		schema.Type = "string"
+		return protoreflect.Value{}, fmt.Errorf("unsupported field kind: %v", field.Kind())
 	}
-	return schema
-}
-
-func (b *ToolBuilder) elementSchema(field protoreflect.FieldDescriptor) *aipb.JsonSchema {
-	if field.Kind() == protoreflect.MessageKind {
-		return &aipb.JsonSchema{Type: "object"}
-	}
-	return b.scalarSchema(field, "")
-}
-
-type fieldBehaviors struct {
-	required   bool
-	outputOnly bool
-	immutable  bool
-	identifier bool
-}
-
-func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
-	var fb fieldBehaviors
-	opts := field.Options()
-	if opts == nil {
-		return fb
-	}
-	if !proto.HasExtension(opts, annotations.E_FieldBehavior) {
-		return fb
-	}
-	behaviors := proto.GetExtension(opts, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
-	for _, behavior := range behaviors {
-		switch behavior {
-		case annotations.FieldBehavior_REQUIRED:
-			fb.required = true
-		case annotations.FieldBehavior_OUTPUT_ONLY:
-			fb.outputOnly = true
-		case annotations.FieldBehavior_IMMUTABLE:
-			fb.immutable = true
-		case annotations.FieldBehavior_IDENTIFIER:
-			fb.identifier = true
-		}
-	}
-	return fb
 }
