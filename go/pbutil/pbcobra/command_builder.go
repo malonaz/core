@@ -224,7 +224,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 	}
 
 	if field.IsList() {
-		cmd.Flags().StringSlice(name, nil, help)
+		cmd.Flags().StringArray(name, nil, help)
 		if isRequired {
 			cmd.MarkFlagRequired(name)
 		}
@@ -347,9 +347,6 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
 
 	if field.IsList() {
-		if !cmd.Flags().Changed(name) {
-			return nil
-		}
 		return b.setListField(msg, field, cmd, name)
 	}
 
@@ -466,7 +463,7 @@ func (b *CommandBuilder) anyNestedFlagChanged(cmd *cobra.Command, field protoref
 }
 
 func (b *CommandBuilder) setListField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, cmd *cobra.Command, name string) error {
-	vals, err := cmd.Flags().GetStringSlice(name)
+	vals, err := cmd.Flags().GetStringArray(name)
 	if err != nil {
 		return err
 	}
