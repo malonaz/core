@@ -47,7 +47,7 @@ func (m *ToolManager) executeDiscovery(toolCall *aipb.ToolCall) (proto.Message, 
 		return nil, err
 	}
 
-	return structpb.NewStringValue("done"), nil
+	return structpb.NewStringValue("ok"), nil
 }
 
 func (m *ToolManager) executeMethod(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {

@@ -7,8 +7,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/pbutil"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -93,7 +97,26 @@ func (m *ToolManager) GetTools() []*aipb.Tool {
 	return append(discoverTools, methodTools...)
 }
 
-func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
+func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.ToolResult, error) {
+	message, err := m.ExecuteRaw(ctx, toolCall)
+	if err != nil {
+		if _, ok := status.FromError(err); ok {
+			return ai.NewErrorToolResult(err.Error()), nil
+		}
+		return nil, err
+	}
+	jsonBytes, err := pbutil.JSONMarshal(message)
+	if err != nil {
+		return nil, err
+	}
+	value := &structpb.Value{}
+	if err := pbutil.JSONUnmarshal(jsonBytes, value); err != nil {
+		return nil, err
+	}
+	return ai.NewStructuredToolResult(value), nil
+}
+
+func (m *ToolManager) ExecuteRaw(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
 	if toolCall.Metadata == nil {
 		return nil, fmt.Errorf("tool call %s missing metadata", toolCall.Name)
 	}
