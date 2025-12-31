@@ -603,9 +603,9 @@ func (b *CommandBuilder) getParentDefault(field protoreflect.FieldDescriptor) st
 	if resourceType == "" {
 		return ""
 	}
-	res := b.schema.GetResource(resourceType)
-	if res == nil || len(res.GetPattern()) == 0 {
+	resourceDesc := b.schema.GetResourceDescriptor(resourceType)
+	if len(resourceDesc.GetPattern()) == 0 {
 		return ""
 	}
-	return patternSegmentRegexp.ReplaceAllString(res.GetPattern()[0], "-")
+	return patternSegmentRegexp.ReplaceAllString(resourceDesc.GetPattern()[0], "-")
 }

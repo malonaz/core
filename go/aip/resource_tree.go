@@ -41,6 +41,40 @@ func WithTransformNestedPath() TreeOption {
 	}
 }
 
+func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, maxDepth int, allowedPaths []string, opts ...TreeOption) (*Tree, error) {
+	config := &TreeConfig{}
+	for _, opt := range opts {
+		opt(config)
+	}
+	validator, err := protovalidate.New(
+		protovalidate.WithDisableLazy(),
+		protovalidate.WithMessages(&modelpb.FieldOpts{}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tree, err := newTree(validator, maxDepth, allowedPaths)
+	if err != nil {
+		return nil, err
+	}
+	tree.Config = config
+
+	fields := msgDesc.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		if err := tree.Explore(field.TextName(), field, 0); err != nil {
+			return nil, fmt.Errorf("exploring %s: %v", field.TextName(), err)
+		}
+	}
+
+	tree.SortAsc()
+	for _, node := range tree.Nodes {
+		node.AllowedPath = tree.IsPathAllowed(node) // Set the status.
+	}
+	return tree, nil
+}
+
 // In filtering_request.go, extract tree building to a shared function
 func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
@@ -130,6 +164,14 @@ func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opt
 	}
 
 	return tree, nil
+}
+
+func (t *Tree) AllowedPaths() []string {
+	var paths []string
+	for node := range t.AllowedNodes() {
+		paths = append(paths, node.Path)
+	}
+	return paths
 }
 
 func (t *Tree) AllowedNodes() iter.Seq[*Node] {

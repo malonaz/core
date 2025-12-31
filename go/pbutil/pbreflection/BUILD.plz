@@ -7,6 +7,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip",
         "//malonaz/codegen/aip/v1",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
