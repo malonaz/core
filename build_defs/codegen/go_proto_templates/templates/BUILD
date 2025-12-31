@@ -21,6 +21,6 @@ export_file(
 )
 
 export_file(
-    name = "gateway_handler.go.tmpl",
-    src = "gateway_handler.go.tmpl",
+    name = "gateway_handler",
+    src = "gateway_handler.tmpl",
 )
