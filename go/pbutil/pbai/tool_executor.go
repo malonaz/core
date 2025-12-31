@@ -56,7 +56,7 @@ func (m *ToolManager) executeMethod(ctx context.Context, toolCall *aipb.ToolCall
 		return nil, fmt.Errorf("tool call %s missing method annotation", toolCall.Name)
 	}
 
-	desc, err := m.schema.Files.FindDescriptorByName(protoreflect.FullName(methodFQN))
+	desc, err := m.schema.FindDescriptorByName(protoreflect.FullName(methodFQN))
 	if err != nil {
 		return nil, fmt.Errorf("method not found: %s", methodFQN)
 	}

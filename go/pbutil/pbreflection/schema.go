@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/huandu/xstrings"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
@@ -17,6 +18,22 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 
 	aipv1 "github.com/malonaz/core/genproto/codegen/aip/v1"
+)
+
+type CommentStyle int
+type StandardMethodType string
+
+const (
+	CommentStyleFirstLine CommentStyle = iota
+	CommentStyleMultiline
+	CommentStyleSingleLine
+
+	StandardMethodTypeCreate   StandardMethodType = "Create"
+	StandardMethodTypeGet      StandardMethodType = "Get"
+	StandardMethodTypeBatchGet StandardMethodType = "BatchGet"
+	StandardMethodTypeUpdate   StandardMethodType = "Update"
+	StandardMethodTypeDelete   StandardMethodType = "Delete"
+	StandardMethodTypeList     StandardMethodType = "List"
 )
 
 var (
@@ -31,9 +48,10 @@ type resolveSchemaOptions struct {
 }
 
 type Schema struct {
-	serviceSet map[string]struct{}
-	Files      *protoregistry.Files
-	Comments   map[string]string
+	files           *protoregistry.Files
+	serviceSet      map[string]struct{}
+	comments        map[string]string
+	standardMethods map[string]StandardMethodType
 }
 
 func ResolveSchema(ctx context.Context, conn *grpc.ClientConn, opts ...ResolveSchemaOption) (*Schema, error) {
@@ -66,6 +84,75 @@ func ResolveSchema(ctx context.Context, conn *grpc.ClientConn, opts ...ResolveSc
 	saveToCache(cacheKey, data, options)
 
 	return newSchema(data)
+}
+
+func (s *Schema) Services(yield func(protoreflect.ServiceDescriptor) bool) {
+	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		services := fd.Services()
+		for i := 0; i < services.Len(); i++ {
+			svc := services.Get(i)
+			if _, ok := s.serviceSet[string(svc.FullName())]; ok {
+				if !yield(svc) {
+					return false
+				}
+			}
+		}
+		return true
+	})
+}
+
+func (s *Schema) GetComment(name protoreflect.FullName, style CommentStyle) string {
+	c, ok := s.comments[string(name)]
+	if !ok {
+		return ""
+	}
+	switch style {
+	case CommentStyleFirstLine:
+		if idx := strings.Index(c, "\n"); idx != -1 {
+			return c[:idx]
+		}
+		return c
+	case CommentStyleMultiline:
+		return c
+	case CommentStyleSingleLine:
+		return strings.ReplaceAll(c, "\n", " ")
+	default:
+		return c
+	}
+}
+
+func (s *Schema) FindDescriptorByName(name protoreflect.FullName) (protoreflect.Descriptor, error) {
+	return s.files.FindDescriptorByName(name)
+}
+
+// GetStandardMethodType returns the standard method type for a method, or empty string if not a standard method.
+func (s *Schema) GetStandardMethodType(methodFullName string) (StandardMethodType, bool) {
+	standardMethodType, ok := s.standardMethods[methodFullName]
+	return standardMethodType, ok
+}
+
+func (s *Schema) GetResource(resourceType string) *annotations.ResourceDescriptor {
+	var result *annotations.ResourceDescriptor
+	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		messages := fd.Messages()
+		for i := 0; i < messages.Len(); i++ {
+			msg := messages.Get(i)
+			opts := msg.Options()
+			if opts == nil {
+				continue
+			}
+			if !proto.HasExtension(opts, annotations.E_Resource) {
+				continue
+			}
+			res := proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+			if res.GetType() == resourceType {
+				result = res
+				return false
+			}
+		}
+		return true
+	})
+	return result
 }
 
 func newSchema(data *schemaData) (*Schema, error) {
@@ -135,11 +222,18 @@ func newSchema(data *schemaData) (*Schema, error) {
 	// Step 3: Augment method comments based on AIP options
 	augmentMethodComments(comments, files)
 
-	return &Schema{
-		serviceSet: serviceSet,
-		Files:      files,
-		Comments:   comments,
-	}, nil
+	schema := &Schema{
+		files:           files,
+		serviceSet:      serviceSet,
+		standardMethods: make(map[string]StandardMethodType),
+		comments:        comments,
+	}
+
+	// Step 4: build the standard method types.
+	if err := schema.buildStandardMethodTypes(); err != nil {
+		return nil, fmt.Errorf("building standard method types: %w", err)
+	}
+	return schema, nil
 }
 
 func resolve(ctx context.Context, client rpb.ServerReflectionClient) (*schemaData, error) {
@@ -207,45 +301,63 @@ func fetchFileDescriptors(stream rpb.ServerReflection_ServerReflectionInfoClient
 	return nil
 }
 
-// In schema.go, add this method to Schema:
-
-func (s *Schema) GetResource(resourceType string) *annotations.ResourceDescriptor {
-	var result *annotations.ResourceDescriptor
-	s.Files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		messages := fd.Messages()
-		for i := 0; i < messages.Len(); i++ {
-			msg := messages.Get(i)
-			opts := msg.Options()
-			if opts == nil {
-				continue
-			}
-			if !proto.HasExtension(opts, annotations.E_Resource) {
-				continue
-			}
-			res := proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
-			if res.GetType() == resourceType {
-				result = res
-				return false
-			}
-		}
-		return true
-	})
-	return result
-}
-
-func (s *Schema) Services(yield func(protoreflect.ServiceDescriptor) bool) {
-	s.Files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		services := fd.Services()
+// Call this in newSchema after building the files registry:
+func (s *Schema) buildStandardMethodTypes() error {
+	var err error
+	s.files.RangeFiles(func(fileDescriptor protoreflect.FileDescriptor) bool {
+		services := fileDescriptor.Services()
 		for i := 0; i < services.Len(); i++ {
-			svc := services.Get(i)
-			if _, ok := s.serviceSet[string(svc.FullName())]; ok {
-				if !yield(svc) {
+			service := services.Get(i)
+			methods := service.Methods()
+			for j := 0; j < methods.Len(); j++ {
+				method := methods.Get(j)
+				methodOptions := method.Options()
+				if methodOptions == nil || !proto.HasExtension(methodOptions, aipv1.E_StandardMethod) {
+					continue
+				}
+				standardMethod := proto.GetExtension(methodOptions, aipv1.E_StandardMethod).(*aipv1.StandardMethod)
+				if standardMethod.GetResource() == "" {
+					err = fmt.Errorf("method %s has incomplete standard method annotation", method.FullName())
 					return false
 				}
+				resource := s.GetResource(standardMethod.GetResource())
+				if resource == nil {
+					err = fmt.Errorf("could not find resource %s for method %s", standardMethod.GetResource(), method.FullName())
+					return false
+				}
+				if resource.GetSingular() == "" || resource.GetPlural() == "" {
+					err = fmt.Errorf("resource %s is missing singular or plural values", standardMethod.GetResource())
+					return false
+				}
+
+				methodName := string(method.Name())
+				singular := xstrings.ToPascalCase(resource.GetSingular())
+				plural := xstrings.ToPascalCase(resource.GetPlural())
+				var methodType StandardMethodType
+				switch methodName {
+				case string(StandardMethodTypeCreate) + singular:
+					methodType = StandardMethodTypeCreate
+				case string(StandardMethodTypeGet) + singular:
+					methodType = StandardMethodTypeGet
+				case string(StandardMethodTypeBatchGet) + plural:
+					methodType = StandardMethodTypeBatchGet
+				case string(StandardMethodTypeUpdate) + singular:
+					methodType = StandardMethodTypeUpdate
+				case string(StandardMethodTypeDelete) + singular:
+					methodType = StandardMethodTypeDelete
+				case string(StandardMethodTypeList) + plural:
+					methodType = StandardMethodTypeList
+				default:
+					err = fmt.Errorf("method %s has standard annotation but does not match any of the standard method types", method.FullName())
+					return false
+				}
+				s.standardMethods[string(method.FullName())] = methodType
 			}
 		}
 		return true
 	})
+
+	return err
 }
 
 func extractComments(comments map[string]string, fd protoreflect.FileDescriptor) {

@@ -15,15 +15,12 @@ import (
 )
 
 const (
-	annotationKeyMethod  = "malonaz.pbai.method"
-	annotationKeyService = "malonaz.pbai.service"
-	annotationKeyType    = "malonaz.pbai.type"
-	toolTypeDiscovery    = "discovery"
+	annotationKeyMethod              = "malonaz.pbai.method"
+	annotationKeyService             = "malonaz.pbai.service"
+	annotationKeyType                = "malonaz.pbai.type"
+	annotationValueToolTypeMethod    = "method"
+	annotationValueToolTypeDiscovery = "discovery"
 )
-
-type ToolProvider interface {
-	GetTools() []*aipb.Tool
-}
 
 type ToolManager struct {
 	schema   *pbreflection.Schema
@@ -31,9 +28,9 @@ type ToolManager struct {
 	maxDepth int
 	services map[string]struct{}
 
-	discovery bool
-	enabled   map[string]struct{}
-	mu        sync.RWMutex
+	discovery           bool
+	serviceToolManagers []*serviceToolManager
+	mu                  sync.RWMutex
 }
 
 type Option func(*ToolManager)
@@ -56,7 +53,6 @@ func WithServices(services ...string) Option {
 func WithDiscovery() Option {
 	return func(m *ToolManager) {
 		m.discovery = true
-		m.enabled = make(map[string]struct{})
 	}
 }
 
@@ -69,6 +65,14 @@ func NewToolManager(schema *pbreflection.Schema, invoker *pbreflection.MethodInv
 	for _, opt := range opts {
 		opt(m)
 	}
+
+	m.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
+		if m.serviceAllowed(string(svc.FullName())) {
+			stm := m.buildServiceToolManager(svc)
+			m.serviceToolManagers = append(m.serviceToolManagers, stm)
+		}
+		return true
+	})
 	return m
 }
 
@@ -76,20 +80,17 @@ func (m *ToolManager) GetTools() []*aipb.Tool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	var tools []*aipb.Tool
-	m.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
-		if !m.serviceAllowed(string(svc.FullName())) {
-			return true
+	// Discovered tools always get appended at the end to leverage prompt caching.
+	var discoverTools []*aipb.Tool
+	var methodTools []*aipb.Tool
+	for _, stm := range m.serviceToolManagers {
+		discoverTool, tools := stm.getTools(m.schema)
+		if discoverTool != nil {
+			discoverTools = append(discoverTools, discoverTool)
 		}
-		st := m.buildServiceTools(svc)
-		tools = append(tools, st.getTools(m.discovery, m.enabled)...)
-		return true
-	})
-
-	sort.Slice(tools, func(i, j int) bool {
-		return tools[i].Name < tools[j].Name
-	})
-	return tools
+		methodTools = append(methodTools, tools...)
+	}
+	return append(discoverTools, methodTools...)
 }
 
 func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
@@ -97,7 +98,7 @@ func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (pro
 		return nil, fmt.Errorf("tool call %s missing metadata", toolCall.Name)
 	}
 
-	if toolCall.Metadata[annotationKeyType] == toolTypeDiscovery {
+	if toolCall.Metadata[annotationKeyType] == annotationValueToolTypeDiscovery {
 		return m.executeDiscovery(toolCall)
 	}
 
@@ -110,7 +111,7 @@ type DiscoveryCall struct {
 }
 
 func (m *ToolManager) ParseDiscoveryCall(toolCall *aipb.ToolCall) *DiscoveryCall {
-	if toolCall.Metadata == nil || toolCall.Metadata[annotationKeyType] != toolTypeDiscovery {
+	if toolCall.Metadata == nil || toolCall.Metadata[annotationKeyType] != annotationValueToolTypeDiscovery {
 		return nil
 	}
 	dc := &DiscoveryCall{
@@ -140,105 +141,97 @@ func (m *ToolManager) enableMethods(serviceFQN string, methodNames []string) err
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	desc, err := m.schema.Files.FindDescriptorByName(protoreflect.FullName(serviceFQN))
-	if err != nil {
-		return fmt.Errorf("service not found: %s", serviceFQN)
-	}
-	svc, ok := desc.(protoreflect.ServiceDescriptor)
-	if !ok {
-		return fmt.Errorf("not a service: %s", serviceFQN)
-	}
-
-	methods := svc.Methods()
-	for _, name := range methodNames {
-		method := methods.ByName(protoreflect.Name(name))
-		if method == nil {
-			return fmt.Errorf("method not found: %s.%s", serviceFQN, name)
+	for _, stm := range m.serviceToolManagers {
+		if string(stm.svc.FullName()) != serviceFQN {
+			continue
 		}
-		m.enabled[string(method.FullName())] = struct{}{}
+		for _, methodName := range methodNames {
+			toolName := toolName(stm.svc.Name(), protoreflect.Name(methodName))
+			if _, ok := stm.toolNameToDiscovered[toolName]; !ok {
+				return fmt.Errorf("unknown tool %s", toolName)
+			}
+			stm.toolNameToDiscovered[toolName] = true
+		}
+		break
 	}
 	return nil
 }
 
-type serviceTools struct {
-	svc         protoreflect.ServiceDescriptor
-	svcDoc      string
-	methodTools []*aipb.Tool
-	methodDocs  map[string]string
+type serviceToolManager struct {
+	svc                  protoreflect.ServiceDescriptor
+	discoverTool         *aipb.Tool
+	tools                []*aipb.Tool
+	toolNameToDiscovered map[string]bool
 }
 
-func (st *serviceTools) getTools(discovery bool, enabled map[string]struct{}) []*aipb.Tool {
-	if !discovery {
-		return st.methodTools
-	}
-
-	var tools []*aipb.Tool
-	var undiscoveredNames []string
-	var undiscoveredLines []string
-
-	for _, mt := range st.methodTools {
-		methodFQN := mt.Metadata[annotationKeyMethod]
-		if _, ok := enabled[methodFQN]; ok {
-			tools = append(tools, mt)
-			continue
-		}
-		name := methodFQN[strings.LastIndex(methodFQN, ".")+1:]
-		undiscoveredNames = append(undiscoveredNames, name)
-		if doc := st.methodDocs[name]; doc != "" {
-			undiscoveredLines = append(undiscoveredLines, fmt.Sprintf("- %s: %s", name, doc))
-		} else {
-			undiscoveredLines = append(undiscoveredLines, fmt.Sprintf("- %s", name))
+func (stm *serviceToolManager) getTools(schema *pbreflection.Schema) (*aipb.Tool, []*aipb.Tool) {
+	// Separate tools into discovered and undiscovered tools.
+	var discoveredTools []*aipb.Tool
+	for _, tool := range stm.tools {
+		if stm.toolNameToDiscovered[tool.Name] {
+			discoveredTools = append(discoveredTools, tool)
 		}
 	}
+	return stm.discoverTool, discoveredTools
+}
 
-	if len(undiscoveredNames) > 0 {
-		desc := st.svcDoc
-		if desc != "" {
-			desc += "\n\n"
+func (m *ToolManager) buildServiceToolManager(svc protoreflect.ServiceDescriptor) *serviceToolManager {
+	stm := &serviceToolManager{
+		svc:                  svc,
+		toolNameToDiscovered: map[string]bool{},
+	}
+
+	// Build method tools.
+	methods := svc.Methods()
+	for i := 0; i < methods.Len(); i++ {
+		method := methods.Get(i)
+		tool := m.buildMethodTool(method)
+		stm.tools = append(stm.tools, tool)
+		stm.toolNameToDiscovered[tool.Name] = !m.discovery
+	}
+
+	// Always sort to be deterministic and allow for prompt caching.
+	sort.Slice(stm.tools, func(i, j int) bool {
+		return stm.tools[i].Name < stm.tools[j].Name
+	})
+
+	if m.discovery {
+		var description strings.Builder
+		description.WriteString(fmt.Sprintf("Discover methods of the %s Service.", stm.svc.Name()))
+		description.WriteString(fmt.Sprintf("\n%s Service doc: ", stm.svc.Name()))
+		description.WriteString(m.schema.GetComment(stm.svc.FullName(), pbreflection.CommentStyleMultiline))
+		description.WriteString("\nAvailable methods:")
+		var methodNames []string
+		for _, tool := range stm.tools {
+			methodFQN := tool.Metadata[annotationKeyMethod]
+			methodName := methodFQN[strings.LastIndex(methodFQN, ".")+1:]
+			methodNames = append(methodNames, methodName)
+			description.WriteString("\n- " + methodName)
+			methodComment := m.schema.GetComment(protoreflect.FullName(methodFQN), pbreflection.CommentStyleFirstLine)
+			if methodComment != "" {
+				description.WriteString(": " + methodComment)
+			}
 		}
-		desc += "Methods:\n" + strings.Join(undiscoveredLines, "\n")
-
-		tools = append(tools, &aipb.Tool{
-			Name:        string(st.svc.Name()) + "_Discover",
-			Description: desc,
+		stm.discoverTool = &aipb.Tool{
+			Name:        string(stm.svc.Name()) + "_Discover",
+			Description: description.String(),
 			JsonSchema: &aipb.JsonSchema{
 				Type: "object",
 				Properties: map[string]*aipb.JsonSchema{
 					"methods": {
 						Type:        "array",
-						Description: "Method names to enable",
-						Items:       &aipb.JsonSchema{Type: "string", Enum: undiscoveredNames},
+						Description: "Method names to discover",
+						Items:       &aipb.JsonSchema{Type: "string", Enum: methodNames},
 					},
 				},
 				Required: []string{"methods"},
 			},
 			Metadata: map[string]string{
-				annotationKeyService: string(st.svc.FullName()),
-				annotationKeyType:    toolTypeDiscovery,
+				annotationKeyType:    annotationValueToolTypeDiscovery,
+				annotationKeyService: string(stm.svc.FullName()),
 			},
-		})
-	}
-
-	return tools
-}
-
-func (m *ToolManager) buildServiceTools(svc protoreflect.ServiceDescriptor) *serviceTools {
-	st := &serviceTools{
-		svc:        svc,
-		svcDoc:     m.schema.Comments[string(svc.FullName())],
-		methodDocs: make(map[string]string),
-	}
-
-	methods := svc.Methods()
-	for i := 0; i < methods.Len(); i++ {
-		method := methods.Get(i)
-		st.methodTools = append(st.methodTools, m.buildMethodTool(method))
-
-		name := string(method.Name())
-		if doc := m.schema.Comments[string(method.FullName())]; doc != "" {
-			st.methodDocs[name] = strings.Split(doc, "\n")[0]
 		}
 	}
 
-	return st
+	return stm
 }

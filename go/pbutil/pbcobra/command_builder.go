@@ -94,8 +94,8 @@ func (b *CommandBuilder) Build() []*cobra.Command {
 func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   xstrings.ToKebabCase(string(svc.Name())),
-		Short: b.commentFor(string(svc.FullName()), commentFirstLine),
-		Long:  b.commentFor(string(svc.FullName()), commentMultiline),
+		Short: b.schema.GetComment(svc.FullName(), pbreflection.CommentStyleFirstLine),
+		Long:  b.schema.GetComment(svc.FullName(), pbreflection.CommentStyleMultiline),
 		Annotations: map[string]string{
 			annotationKeyService: string(svc.FullName()),
 		},
@@ -111,7 +111,7 @@ func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor)
 }
 
 func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor) *cobra.Command {
-	longDesc := b.commentFor(string(method.FullName()), commentMultiline)
+	longDesc := b.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
 	if responseDoc := b.formatResponseDoc(method.Output()); responseDoc != "" {
 		if longDesc != "" {
 			longDesc += "\n\n"
@@ -121,7 +121,7 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 
 	cmd := &cobra.Command{
 		Use:   xstrings.ToKebabCase(string(method.Name())),
-		Short: b.commentFor(string(method.FullName()), commentFirstLine),
+		Short: b.schema.GetComment(method.FullName(), pbreflection.CommentStyleFirstLine),
 		Long:  longDesc,
 		Args:  cobra.NoArgs,
 		Annotations: map[string]string{
@@ -163,7 +163,7 @@ func (b *CommandBuilder) formatMessageFields(sb *strings.Builder, msg protorefle
 		field := fields.Get(i)
 		fieldName := string(field.Name())
 		fieldType := b.fieldTypeName(field)
-		comment := b.commentFor(string(field.FullName()), commentSingleLine)
+		comment := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleSingleLine)
 
 		if comment != "" {
 			fmt.Fprintf(sb, "%s%s (%s): %s\n", indent, fieldName, fieldType, comment)
@@ -229,7 +229,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 	}
 
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
-	help := b.commentFor(string(field.FullName()), commentSingleLine)
+	help := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleSingleLine)
 
 	isRequired := defaultValue == "" && (behaviors.required || (isUpdate && behaviors.identifier))
 	if isRequired {
@@ -292,7 +292,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 	case protoreflect.BytesKind:
 		cmd.Flags().String(name, "", help)
 	case protoreflect.EnumKind:
-		enumHelp := b.commentFor(string(field.Enum().FullName()), commentSingleLine)
+		enumHelp := b.schema.GetComment(field.Enum().FullName(), pbreflection.CommentStyleSingleLine)
 		if help != "" && enumHelp != "" {
 			help = help + " (" + enumHelp + ")"
 		} else if enumHelp != "" {
@@ -608,32 +608,4 @@ func (b *CommandBuilder) getParentDefault(field protoreflect.FieldDescriptor) st
 		return ""
 	}
 	return patternSegmentRegexp.ReplaceAllString(res.GetPattern()[0], "-")
-}
-
-type commentStyle int
-
-const (
-	commentFirstLine commentStyle = iota
-	commentMultiline
-	commentSingleLine
-)
-
-func (b *CommandBuilder) commentFor(fullName string, style commentStyle) string {
-	c, ok := b.schema.Comments[fullName]
-	if !ok {
-		return ""
-	}
-	switch style {
-	case commentFirstLine:
-		if idx := strings.Index(c, "\n"); idx != -1 {
-			return c[:idx]
-		}
-		return c
-	case commentMultiline:
-		return c
-	case commentSingleLine:
-		return strings.ReplaceAll(c, "\n", " ")
-	default:
-		return c
-	}
 }

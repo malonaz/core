@@ -1,4 +1,3 @@
-// tool_builder.go
 package pbai
 
 import (
@@ -12,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
 var (
@@ -20,19 +20,23 @@ var (
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 )
 
+func toolName(svcName, methodName protoreflect.Name) string {
+	return string(string(svcName) + "_" + string(methodName))
+}
+
 func (m *ToolManager) buildMethodTool(method protoreflect.MethodDescriptor) *aipb.Tool {
 	svc := method.Parent().(protoreflect.ServiceDescriptor)
-	name := string(svc.Name()) + "_" + string(method.Name())
-	description := m.schema.Comments[string(method.FullName())]
+	description := m.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
 	methodName := string(method.Name())
 
 	schema := m.buildMessageSchema(method.Input(), "", 0, methodName)
 
 	return &aipb.Tool{
-		Name:        name,
+		Name:        toolName(svc.Name(), method.Name()),
 		Description: description,
 		JsonSchema:  schema,
 		Metadata: map[string]string{
+			annotationKeyType:   annotationValueToolTypeMethod,
 			annotationKeyMethod: string(method.FullName()),
 		},
 	}
@@ -81,7 +85,7 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 	}
 
 	path := prefix + string(field.Name())
-	description := m.schema.Comments[string(field.FullName())]
+	description := m.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
 	isRequired := behaviors.required || (isUpdate && behaviors.identifier)
 
 	if field.IsList() {
