@@ -53,7 +53,7 @@ message ToolResult {
     string content = 1;
 
     // The output returned by the tool execution as structured data.
-    google.protobuf.Struct structured_content = 2;
+    google.protobuf.Value structured_content = 2;
 
     // Error message if the tool execution failed.
     string error = 3;

@@ -297,7 +297,7 @@ func (x *ToolResult) GetContent() string {
 	return ""
 }
 
-func (x *ToolResult) GetStructuredContent() *structpb.Struct {
+func (x *ToolResult) GetStructuredContent() *structpb.Value {
 	if x != nil {
 		if x, ok := x.Result.(*ToolResult_StructuredContent); ok {
 			return x.StructuredContent
@@ -327,7 +327,7 @@ type ToolResult_Content struct {
 
 type ToolResult_StructuredContent struct {
 	// The output returned by the tool execution as structured data.
-	StructuredContent *structpb.Struct `protobuf:"bytes,2,opt,name=structured_content,json=structuredContent,proto3,oneof"`
+	StructuredContent *structpb.Value `protobuf:"bytes,2,opt,name=structured_content,json=structuredContent,proto3,oneof"`
 }
 
 type ToolResult_Error struct {
@@ -450,11 +450,11 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\bmetadata\x18\x05 \x03(\v2%.malonaz.ai.v1.ToolCall.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9a\x01\n" +
 	"\n" +
 	"ToolResult\x12\x1a\n" +
-	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12H\n" +
-	"\x12structured_content\x18\x02 \x01(\v2\x17.google.protobuf.StructH\x00R\x11structuredContent\x12\x16\n" +
+	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12G\n" +
+	"\x12structured_content\x18\x02 \x01(\v2\x16.google.protobuf.ValueH\x00R\x11structuredContent\x12\x16\n" +
 	"\x05error\x18\x03 \x01(\tH\x00R\x05errorB\x0f\n" +
 	"\x06result\x12\x05\xbaH\x02\b\x01\"\xf9\x01\n" +
 	"\n" +
@@ -493,6 +493,7 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	nil,                     // 6: malonaz.ai.v1.ToolCall.MetadataEntry
 	(*JsonSchema)(nil),      // 7: malonaz.ai.v1.JsonSchema
 	(*structpb.Struct)(nil), // 8: google.protobuf.Struct
+	(*structpb.Value)(nil),  // 9: google.protobuf.Value
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
 	7, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
@@ -500,7 +501,7 @@ var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
 	8, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
 	8, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
 	6, // 4: malonaz.ai.v1.ToolCall.metadata:type_name -> malonaz.ai.v1.ToolCall.MetadataEntry
-	8, // 5: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Struct
+	9, // 5: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
 	0, // 6: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
 	7, // [7:7] is the sub-list for method output_type
 	7, // [7:7] is the sub-list for method input_type

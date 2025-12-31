@@ -55,7 +55,7 @@ func NewToolResult(content string) *aipb.ToolResult {
 	}
 }
 
-func NewStructuredToolResult(content *structpb.Struct) *aipb.ToolResult {
+func NewStructuredToolResult(content *structpb.Value) *aipb.ToolResult {
 	return &aipb.ToolResult{
 		Result: &aipb.ToolResult_StructuredContent{
 			StructuredContent: content,
