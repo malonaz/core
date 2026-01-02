@@ -1,0 +1,204 @@
+package pbjson
+
+import (
+	"fmt"
+
+	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
+	"github.com/malonaz/core/go/pbutil/pbreflection"
+)
+
+var (
+	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
+	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
+)
+
+type SchemaBuilder struct {
+	schema   *pbreflection.Schema
+	maxDepth int
+}
+
+type Option func(*SchemaBuilder)
+
+func WithMaxDepth(depth int) Option {
+	return func(b *SchemaBuilder) {
+		b.maxDepth = depth
+	}
+}
+
+func NewSchemaBuilder(schema *pbreflection.Schema, opts ...Option) *SchemaBuilder {
+	b := &SchemaBuilder{schema: schema, maxDepth: 10}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
+}
+
+func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, methodType pbreflection.StandardMethodType) (*jsonpb.Schema, error) {
+	desc, err := b.schema.FindDescriptorByName(messageFullName)
+	if err != nil {
+		return nil, fmt.Errorf("message not found: %s", messageFullName)
+	}
+	msg, ok := desc.(protoreflect.MessageDescriptor)
+	if !ok {
+		return nil, fmt.Errorf("descriptor is not a message: %s", messageFullName)
+	}
+	return b.buildMessageSchema(msg, "", 0, methodType), nil
+}
+
+func (b *SchemaBuilder) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) *jsonpb.Schema {
+	properties := make(map[string]*jsonpb.Schema)
+	var required []string
+
+	fields := msg.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		schema, isRequired := b.buildFieldSchema(field, prefix, depth, methodType)
+		if schema != nil {
+			properties[string(field.Name())] = schema
+			if isRequired {
+				required = append(required, string(field.Name()))
+			}
+		}
+	}
+
+	return &jsonpb.Schema{
+		Type:        "object",
+		Description: string(msg.FullName()),
+		Properties:  properties,
+		Required:    required,
+	}
+}
+
+func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) (*jsonpb.Schema, bool) {
+	if depth > b.maxDepth {
+		return nil, false
+	}
+
+	behaviors := getFieldBehaviors(field)
+	if behaviors.outputOnly {
+		return nil, false
+	}
+	var isRequired bool
+	switch methodType {
+	case pbreflection.StandardMethodTypeCreate:
+		if behaviors.identifier {
+			return nil, false
+		}
+		isRequired = behaviors.required
+	case pbreflection.StandardMethodTypeUpdate:
+		if behaviors.immutable {
+			return nil, false
+		}
+		isRequired = behaviors.identifier // Only identifier is required on an update method.
+	default:
+		isRequired = behaviors.required
+	}
+
+	path := prefix + string(field.Name())
+	description := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
+
+	if field.IsList() {
+		return &jsonpb.Schema{
+			Type:        "array",
+			Description: description,
+			Items:       b.elementSchema(field, path, depth, methodType),
+		}, isRequired
+	}
+
+	if field.Kind() == protoreflect.MessageKind {
+		switch field.Message().FullName() {
+		case timestampFullName:
+			return &jsonpb.Schema{
+				Type:        "string",
+				Description: description + " (RFC3339, e.g. 2006-01-02T15:04:05Z)",
+			}, isRequired
+		case durationFullName:
+			return &jsonpb.Schema{
+				Type:        "string",
+				Description: description + " (e.g. 1h30m)",
+			}, isRequired
+		case fieldMaskFullName:
+			return &jsonpb.Schema{
+				Type:        "string",
+				Description: description + " (comma-separated paths)",
+			}, isRequired
+		default:
+			schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType)
+			schema.Description = description
+			return schema, isRequired
+		}
+	}
+
+	return b.scalarSchema(field, description), isRequired
+}
+
+func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
+	schema := &jsonpb.Schema{Description: description}
+	switch field.Kind() {
+	case protoreflect.BoolKind:
+		schema.Type = "boolean"
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind,
+		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind,
+		protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
+		protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		schema.Type = "integer"
+	case protoreflect.FloatKind, protoreflect.DoubleKind:
+		schema.Type = "number"
+	case protoreflect.EnumKind:
+		schema.Type = "string"
+		values := field.Enum().Values()
+		for i := 0; i < values.Len(); i++ {
+			schema.Enum = append(schema.Enum, string(values.Get(i).Name()))
+		}
+	default:
+		schema.Type = "string"
+	}
+	return schema
+}
+
+func (b *SchemaBuilder) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) *jsonpb.Schema {
+	if field.Kind() == protoreflect.MessageKind {
+		return b.buildMessageSchema(field.Message(), prefix+".", depth+1, methodType)
+	}
+	return b.scalarSchema(field, "")
+}
+
+type fieldBehaviors struct {
+	required   bool
+	outputOnly bool
+	immutable  bool
+	identifier bool
+}
+
+func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
+	var fb fieldBehaviors
+	opts := field.Options()
+	if opts == nil {
+		return fb
+	}
+	if !proto.HasExtension(opts, annotations.E_FieldBehavior) {
+		return fb
+	}
+	behaviors := proto.GetExtension(opts, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
+	for _, behavior := range behaviors {
+		switch behavior {
+		case annotations.FieldBehavior_REQUIRED:
+			fb.required = true
+		case annotations.FieldBehavior_OUTPUT_ONLY:
+			fb.outputOnly = true
+		case annotations.FieldBehavior_IMMUTABLE:
+			fb.immutable = true
+		case annotations.FieldBehavior_IDENTIFIER:
+			fb.identifier = true
+		}
+	}
+	return fb
+}

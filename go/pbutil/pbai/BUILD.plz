@@ -9,16 +9,11 @@ go_library(
     deps = [
         "//go/ai",
         "//go/pbutil",
+        "//go/pbutil/pbjson",
         "//go/pbutil/pbreflection",
         "//malonaz/ai/v1",
-        "//malonaz/json/v1",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
-        "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

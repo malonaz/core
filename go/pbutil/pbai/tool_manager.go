@@ -3,9 +3,6 @@ package pbai
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strings"
-	"sync"
 
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/pbutil"
@@ -14,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	jsonpb "github.com/malonaz/core/genproto/json/v1"
+	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
@@ -28,23 +25,16 @@ const (
 )
 
 type ToolManager struct {
-	schema   *pbreflection.Schema
-	invoker  *pbreflection.MethodInvoker
-	maxDepth int
-	services map[string]struct{}
+	schema        *pbreflection.Schema
+	invoker       *pbreflection.MethodInvoker
+	schemaBuilder *pbjson.SchemaBuilder
+	services      map[string]struct{}
 
 	discovery           bool
-	serviceToolManagers []*serviceToolManager
-	mu                  sync.RWMutex
+	discoverableToolSets []*ai.DiscoverableToolSet
 }
 
 type Option func(*ToolManager)
-
-func WithMaxDepth(depth int) Option {
-	return func(m *ToolManager) {
-		m.maxDepth = depth
-	}
-}
 
 func WithServices(services ...string) Option {
 	return func(m *ToolManager) {
@@ -61,35 +51,39 @@ func WithDiscovery() Option {
 	}
 }
 
-func NewToolManager(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker, opts ...Option) *ToolManager {
+func NewToolManager(schema *pbreflection.Schema, invoker *pbreflection.MethodInvoker, opts ...Option) (*ToolManager, error) {
 	m := &ToolManager{
-		schema:   schema,
-		invoker:  invoker,
-		maxDepth: 10,
+		schema:  schema,
+		invoker: invoker,
 	}
 	for _, opt := range opts {
 		opt(m)
 	}
+	m.schemaBuilder = pbjson.NewSchemaBuilder(schema)
 
+	var err error
 	m.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
 		if m.serviceAllowed(string(svc.FullName())) {
-			stm := m.buildServiceToolManager(svc)
-			m.serviceToolManagers = append(m.serviceToolManagers, stm)
+			var tools []*aipb.Tool
+			tools, err = m.buildServiceTools(svc)
+			if err != nil {
+				return false
+			}
+			discoverableToolSet := ai.NewDiscoverableToolSet(string(svc.Name()) + " Service", tools)
+			m.discoverableToolSets = append(m.discoverableToolSets, discoverableToolSet)
 		}
 		return true
 	})
-	return m
+
+	return m, err
 }
 
 func (m *ToolManager) GetTools() []*aipb.Tool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
 	// Discovered tools always get appended at the end to leverage prompt caching.
 	var discoverTools []*aipb.Tool
 	var methodTools []*aipb.Tool
-	for _, stm := range m.serviceToolManagers {
-		discoverTool, tools := stm.getTools(m.schema)
+	for _, discoverableToolSet := range m.discoverableToolSets {
+		discoverTool, tools := discoverableToolSet.GetTools()
 		if discoverTool != nil {
 			discoverTools = append(discoverTools, discoverTool)
 		}
@@ -115,6 +109,19 @@ func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (*ai
 }
 
 func (m *ToolManager) ExecuteRaw(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
+	// Ensure that the tool name is valid.
+	var discoverableToolSet *ai.DiscoverableToolSet
+	for _, discoverableToolSet = range m.discoverableToolSets {
+		if discoverableToolSet.HasTool(toolCall.Name) {
+			break
+		}
+	}
+	// Throw a not found error if the tool is not found.
+	if discoverableToolSet == nil {
+		return nil, status.Errorf(codes.NotFound, "unknown tool: %s", toolCall.Name)
+	}
+
+	if discoverableToolSet.DiscoveryToolName()
 	if toolCall.Annotations == nil {
 		return nil, fmt.Errorf("tool call %s missing annotations", toolCall.Name)
 	}
@@ -159,9 +166,6 @@ func (m *ToolManager) serviceAllowed(name string) bool {
 }
 
 func (m *ToolManager) enableMethods(serviceFQN string, methodNames []string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	for _, stm := range m.serviceToolManagers {
 		if string(stm.svc.FullName()) != serviceFQN {
 			continue
@@ -178,81 +182,19 @@ func (m *ToolManager) enableMethods(serviceFQN string, methodNames []string) err
 	return nil
 }
 
-type serviceToolManager struct {
-	svc                  protoreflect.ServiceDescriptor
-	discoverTool         *aipb.Tool
-	tools                []*aipb.Tool
-	toolNameToDiscovered map[string]bool
-}
-
-func (stm *serviceToolManager) getTools(schema *pbreflection.Schema) (*aipb.Tool, []*aipb.Tool) {
-	// Separate tools into discovered and undiscovered tools.
-	var discoveredTools []*aipb.Tool
-	for _, tool := range stm.tools {
-		if stm.toolNameToDiscovered[tool.Name] {
-			discoveredTools = append(discoveredTools, tool)
-		}
-	}
-	return stm.discoverTool, discoveredTools
-}
-
-func (m *ToolManager) buildServiceToolManager(svc protoreflect.ServiceDescriptor) *serviceToolManager {
-	stm := &serviceToolManager{
-		svc:                  svc,
-		toolNameToDiscovered: map[string]bool{},
-	}
+func (m *ToolManager) buildServiceTools(svc protoreflect.ServiceDescriptor) ([]*aipb.Tool, error) {
+	var tools []*aipb.Tool
 
 	// Build method tools.
 	methods := svc.Methods()
 	for i := 0; i < methods.Len(); i++ {
 		method := methods.Get(i)
-		tool := m.buildMethodTool(method)
-		stm.tools = append(stm.tools, tool)
-		stm.toolNameToDiscovered[tool.Name] = !m.discovery
+		tool, err := m.buildMethodTool(method)
+		if err != nil {
+			return nil, fmt.Errorf("building tool for method %s", method.FullName())
+		}
+		tools = append(tools, tool)
 	}
 
-	// Always sort to be deterministic and allow for prompt caching.
-	sort.Slice(stm.tools, func(i, j int) bool {
-		return stm.tools[i].Name < stm.tools[j].Name
-	})
-
-	if m.discovery {
-		var description strings.Builder
-		description.WriteString(fmt.Sprintf("Discover methods of the %s Service.", stm.svc.Name()))
-		description.WriteString(fmt.Sprintf("\n%s Service doc: ", stm.svc.Name()))
-		description.WriteString(m.schema.GetComment(stm.svc.FullName(), pbreflection.CommentStyleMultiline))
-		description.WriteString("\nAvailable methods:")
-		var methodNames []string
-		for _, tool := range stm.tools {
-			methodFQN := tool.Annotations[annotationKeyGRPCMethod]
-			methodName := methodFQN[strings.LastIndex(methodFQN, ".")+1:]
-			methodNames = append(methodNames, methodName)
-			description.WriteString("\n- " + methodName)
-			methodComment := m.schema.GetComment(protoreflect.FullName(methodFQN), pbreflection.CommentStyleFirstLine)
-			if methodComment != "" {
-				description.WriteString(": " + methodComment)
-			}
-		}
-		stm.discoverTool = &aipb.Tool{
-			Name:        string(stm.svc.Name()) + "_Discover",
-			Description: description.String(),
-			JsonSchema: &jsonpb.Schema{
-				Type: "object",
-				Properties: map[string]*jsonpb.Schema{
-					"methods": {
-						Type:        "array",
-						Description: "Method names to discover",
-						Items:       &jsonpb.Schema{Type: "string", Enum: methodNames},
-					},
-				},
-				Required: []string{"methods"},
-			},
-			Annotations: map[string]string{
-				annotationKeyToolType:    annotationValueToolTypeDiscovery,
-				annotationKeyGRPCService: string(stm.svc.FullName()),
-			},
-		}
-	}
-
-	return stm
+	return tools, nil
 }
