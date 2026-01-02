@@ -6,7 +6,9 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/pbutil",
         "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],

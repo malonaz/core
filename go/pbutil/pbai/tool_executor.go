@@ -18,7 +18,7 @@ import (
 )
 
 func (m *ToolManager) executeDiscovery(toolCall *aipb.ToolCall) (proto.Message, error) {
-	serviceFQN, ok := toolCall.Metadata[annotationKeyService]
+	serviceFQN, ok := toolCall.Annotations[annotationKeyGRPCService]
 	if !ok {
 		return nil, fmt.Errorf("discovery tool missing service annotation")
 	}
@@ -51,7 +51,7 @@ func (m *ToolManager) executeDiscovery(toolCall *aipb.ToolCall) (proto.Message, 
 }
 
 func (m *ToolManager) executeMethod(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
-	methodFQN := toolCall.Metadata[annotationKeyMethod]
+	methodFQN := toolCall.Annotations[annotationKeyGRPCMethod]
 	if methodFQN == "" {
 		return nil, fmt.Errorf("tool call %s missing method annotation", toolCall.Name)
 	}

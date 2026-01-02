@@ -4,6 +4,7 @@ package malonaz.ai.v1;
 
 import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
+import "google/rpc/status.proto";
 import "malonaz/ai/v1/jsonschema.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -19,9 +20,10 @@ message Tool {
   // The json schema of the exected object to be returned.
   JsonSchema json_schema = 3;
 
-  // Metadata about this tool (this is not transmitted to the ai provider).
-  // These are applied to any tool call created by this tool.
-  map<string, string> metadata = 4;
+  // Annotations about this tool (not transmitted to the ai provider).
+  // This should be used by tooling.
+  // All annotations are inherited by any tool call created by this tool.
+  map<string, string> annotations = 4;
 }
 
 // A tool call that the model wants to invoke.
@@ -38,8 +40,8 @@ message ToolCall {
   // Provider specific extra fields.
   google.protobuf.Struct extra_fields = 4;
 
-  // Metadata about this tool call (populated by the tool that created this tool call).
-  map<string, string> metadata = 5;
+  // Annotations populated from the tool that created this tool call.
+  map<string, string> annotations = 5;
 }
 
 // The result of executing a tool call.
@@ -55,8 +57,8 @@ message ToolResult {
     // The output returned by the tool execution as structured data.
     google.protobuf.Value structured_content = 2;
 
-    // Error message if the tool execution failed.
-    string error = 3;
+    // Error if the tool execution failed.
+    google.rpc.Status error = 3;
   }
 }
 

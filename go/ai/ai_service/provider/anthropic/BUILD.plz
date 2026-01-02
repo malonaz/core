@@ -6,6 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/ai",
         "//go/ai/ai_service/provider",
         "//go/grpc",
         "//go/pbutil",

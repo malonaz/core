@@ -16,6 +16,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
@@ -379,7 +380,7 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 		}, nil
 
 	case *aipb.Message_Tool:
-		content, err := toolResultToContent(m.Tool.Result)
+		content, _, err := ai.ParseToolResult(m.Tool.Result)
 		if err != nil {
 			return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("converting tool result: %w", err)
 		}
@@ -387,23 +388,6 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 
 	default:
 		return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown message type: %T", m)
-	}
-}
-
-func toolResultToContent(result *aipb.ToolResult) (string, error) {
-	switch r := result.Result.(type) {
-	case *aipb.ToolResult_Content:
-		return r.Content, nil
-	case *aipb.ToolResult_StructuredContent:
-		jsonBytes, err := pbutil.JSONMarshal(r.StructuredContent)
-		if err != nil {
-			return "", err
-		}
-		return string(jsonBytes), nil
-	case *aipb.ToolResult_Error:
-		return r.Error, nil
-	default:
-		return "", fmt.Errorf("unknown tool result type: %T", r)
 	}
 }
 

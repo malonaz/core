@@ -60,29 +60,29 @@ type tttStreamWrapper struct {
 	toolNameToTool map[string]*aipb.Tool
 }
 
-func (w *tttStreamWrapper) copyToolMetadata(toolCall *aipb.ToolCall) {
+func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) {
 	tool, ok := w.toolNameToTool[toolCall.Name]
 	if !ok {
 		return
 	}
-	if len(tool.GetMetadata()) == 0 {
+	if len(tool.GetAnnotations()) == 0 {
 		return
 	}
-	if toolCall.Metadata == nil {
-		toolCall.Metadata = map[string]string{}
+	if toolCall.Annotations == nil {
+		toolCall.Annotations = map[string]string{}
 	}
-	for k, v := range tool.GetMetadata() {
-		toolCall.Metadata[k] = v
+	for k, v := range tool.GetAnnotations() {
+		toolCall.Annotations[k] = v
 	}
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	switch c := resp.GetContent().(type) {
 	case *pb.TextToTextStreamResponse_ToolCall:
-		w.copyToolMetadata(c.ToolCall)
+		w.copyToolAnnotations(c.ToolCall)
 
 	case *pb.TextToTextStreamResponse_PartialToolCall:
-		w.copyToolMetadata(c.PartialToolCall)
+		w.copyToolAnnotations(c.PartialToolCall)
 
 	case *pb.TextToTextStreamResponse_ModelUsage:
 		modelUsage := c.ModelUsage

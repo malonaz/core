@@ -9,7 +9,6 @@ import (
 
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/pbutil"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -19,9 +18,10 @@ import (
 )
 
 const (
-	annotationKeyMethod              = "malonaz.pbai.method"
-	annotationKeyService             = "malonaz.pbai.service"
-	annotationKeyType                = "malonaz.pbai.type"
+	annotationKeyPrefix              = "ai.malonaz.com/"
+	annotationKeyGRPCService         = annotationKeyPrefix + "grpc-service"
+	annotationKeyGRPCMethod          = annotationKeyPrefix + "grpc-method"
+	annotationKeyToolType            = annotationKeyPrefix + "tool-type"
 	annotationValueToolTypeMethod    = "method"
 	annotationValueToolTypeDiscovery = "discovery"
 )
@@ -100,10 +100,7 @@ func (m *ToolManager) GetTools() []*aipb.Tool {
 func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.ToolResult, error) {
 	message, err := m.ExecuteRaw(ctx, toolCall)
 	if err != nil {
-		if _, ok := status.FromError(err); ok {
-			return ai.NewErrorToolResult(err.Error()), nil
-		}
-		return nil, err
+		return ai.NewErrorToolResult(err), nil
 	}
 	jsonBytes, err := pbutil.JSONMarshal(message)
 	if err != nil {
@@ -117,11 +114,11 @@ func (m *ToolManager) Execute(ctx context.Context, toolCall *aipb.ToolCall) (*ai
 }
 
 func (m *ToolManager) ExecuteRaw(ctx context.Context, toolCall *aipb.ToolCall) (proto.Message, error) {
-	if toolCall.Metadata == nil {
-		return nil, fmt.Errorf("tool call %s missing metadata", toolCall.Name)
+	if toolCall.Annotations == nil {
+		return nil, fmt.Errorf("tool call %s missing annotations", toolCall.Name)
 	}
 
-	if toolCall.Metadata[annotationKeyType] == annotationValueToolTypeDiscovery {
+	if toolCall.Annotations[annotationKeyToolType] == annotationValueToolTypeDiscovery {
 		return m.executeDiscovery(toolCall)
 	}
 
@@ -134,11 +131,11 @@ type DiscoveryCall struct {
 }
 
 func (m *ToolManager) ParseDiscoveryCall(toolCall *aipb.ToolCall) *DiscoveryCall {
-	if toolCall.Metadata == nil || toolCall.Metadata[annotationKeyType] != annotationValueToolTypeDiscovery {
+	if toolCall.Annotations == nil || toolCall.Annotations[annotationKeyToolType] != annotationValueToolTypeDiscovery {
 		return nil
 	}
 	dc := &DiscoveryCall{
-		Service: toolCall.Metadata[annotationKeyService],
+		Service: toolCall.Annotations[annotationKeyGRPCService],
 	}
 	if args := toolCall.Arguments.AsMap(); args != nil {
 		if methodsRaw, ok := args["methods"].([]any); ok {
@@ -226,7 +223,7 @@ func (m *ToolManager) buildServiceToolManager(svc protoreflect.ServiceDescriptor
 		description.WriteString("\nAvailable methods:")
 		var methodNames []string
 		for _, tool := range stm.tools {
-			methodFQN := tool.Metadata[annotationKeyMethod]
+			methodFQN := tool.Annotations[annotationKeyGRPCMethod]
 			methodName := methodFQN[strings.LastIndex(methodFQN, ".")+1:]
 			methodNames = append(methodNames, methodName)
 			description.WriteString("\n- " + methodName)
@@ -249,9 +246,9 @@ func (m *ToolManager) buildServiceToolManager(svc protoreflect.ServiceDescriptor
 				},
 				Required: []string{"methods"},
 			},
-			Metadata: map[string]string{
-				annotationKeyType:    annotationValueToolTypeDiscovery,
-				annotationKeyService: string(stm.svc.FullName()),
+			Annotations: map[string]string{
+				annotationKeyToolType:    annotationValueToolTypeDiscovery,
+				annotationKeyGRPCService: string(stm.svc.FullName()),
 			},
 		}
 	}

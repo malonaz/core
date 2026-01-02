@@ -12,6 +12,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
@@ -63,7 +64,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			messages = append(messages, anthropic.NewAssistantMessage(contentBlockParamUnions...))
 
 		case *aipb.Message_Tool:
-			content, isError, err := toolResultToContent(m.Tool.Result)
+			content, isError, err := ai.ParseToolResult(m.Tool.Result)
 			if err != nil {
 				return grpc.Errorf(codes.InvalidArgument, "message [%d]: converting tool result [%d] to text: %v", i, err).Err()
 			}
@@ -247,23 +248,6 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		return err
 	}
 	return nil
-}
-
-func toolResultToContent(result *aipb.ToolResult) (string, bool, error) {
-	switch r := result.Result.(type) {
-	case *aipb.ToolResult_Content:
-		return r.Content, false, nil
-	case *aipb.ToolResult_StructuredContent:
-		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
-		if err != nil {
-			return "", false, err
-		}
-		return string(bytes), false, nil
-	case *aipb.ToolResult_Error:
-		return r.Error, true, nil
-	default:
-		return "", false, fmt.Errorf("unknown tool result type: %T", r)
-	}
 }
 
 func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceUnionParam, error) {

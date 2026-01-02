@@ -1,10 +1,14 @@
 package ai
 
 import (
-	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"fmt"
 
+	"github.com/malonaz/core/go/pbutil"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
 func NewSystemMessage(m *aipb.SystemMessage) *aipb.Message {
@@ -63,10 +67,31 @@ func NewStructuredToolResult(content *structpb.Value) *aipb.ToolResult {
 	}
 }
 
-func NewErrorToolResult(err string) *aipb.ToolResult {
+func NewErrorToolResult(err error) *aipb.ToolResult {
 	return &aipb.ToolResult{
 		Result: &aipb.ToolResult_Error{
-			Error: err,
+			Error: status.Convert(err).Proto(),
 		},
+	}
+}
+
+func ParseToolResult(toolResult *aipb.ToolResult) (string, bool, error) {
+	switch r := toolResult.GetResult().(type) {
+	case *aipb.ToolResult_Content:
+		return r.Content, false, nil
+	case *aipb.ToolResult_StructuredContent:
+		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
+		if err != nil {
+			return "", false, err
+		}
+		return string(bytes), false, nil
+	case *aipb.ToolResult_Error:
+		bytes, err := pbutil.JSONMarshal(r.Error)
+		if err != nil {
+			return "", false, err
+		}
+		return string(bytes), false, nil
+	default:
+		return "", false, fmt.Errorf("unknown tool result type: %T", r)
 	}
 }

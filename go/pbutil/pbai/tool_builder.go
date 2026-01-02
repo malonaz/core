@@ -35,9 +35,9 @@ func (m *ToolManager) buildMethodTool(method protoreflect.MethodDescriptor) *aip
 		Name:        toolName(svc.Name(), method.Name()),
 		Description: description,
 		JsonSchema:  schema,
-		Metadata: map[string]string{
-			annotationKeyType:   annotationValueToolTypeMethod,
-			annotationKeyMethod: string(method.FullName()),
+		Annotations: map[string]string{
+			annotationKeyToolType:   annotationValueToolTypeMethod,
+			annotationKeyGRPCMethod: string(method.FullName()),
 		},
 	}
 }

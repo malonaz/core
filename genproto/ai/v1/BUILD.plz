@@ -16,6 +16,7 @@ go_library(
         "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
+        "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
