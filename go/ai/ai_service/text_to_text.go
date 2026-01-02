@@ -95,19 +95,20 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 					inputToken.Quantity+inputCacheReadToken.Quantity == existingInputToken.Quantity {
 					// Valid cache breakdown - allow the new input value to be sent
 					w.modelUsage.InputToken = inputToken
-				} else if existingInputToken.Quantity != inputToken.Quantity {
+				} else if inputToken.Quantity < existingInputToken.Quantity {
 					return grpc.Errorf(codes.Internal,
-						"received input tokens twice with different quantities: previous %d, current %d",
+						"received input tokens with smaller quantity: previous %d, current %d",
 						existingInputToken.Quantity, inputToken.Quantity,
 					).Err()
-				} else {
+				} else if inputToken.Quantity == existingInputToken.Quantity {
 					modelUsage.InputToken = nil
+				} else {
+					w.modelUsage.InputToken = inputToken
 				}
 			} else {
 				w.modelUsage.InputToken = inputToken
 			}
 		}
-
 		// INPUT CACHE READ TOKENS.
 		if inputCacheReadToken := modelUsage.GetInputCacheReadToken(); inputCacheReadToken != nil {
 			if existingInputCacheReadToken := w.modelUsage.GetInputCacheReadToken(); existingInputCacheReadToken != nil {
