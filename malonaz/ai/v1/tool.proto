@@ -5,7 +5,7 @@ package malonaz.ai.v1;
 import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
 import "google/rpc/status.proto";
-import "malonaz/ai/v1/jsonschema.proto";
+import "malonaz/json/v1/schema.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
 
@@ -18,7 +18,7 @@ message Tool {
   string description = 2 [(buf.validate.field).string.min_len = 1];
 
   // The json schema of the exected object to be returned.
-  JsonSchema json_schema = 3;
+  malonaz.json.v1.Schema json_schema = 3;
 
   // Annotations about this tool (not transmitted to the ai provider).
   // This should be used by tooling.

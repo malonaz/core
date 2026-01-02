@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
@@ -42,8 +43,8 @@ func (m *ToolManager) buildMethodTool(method protoreflect.MethodDescriptor) *aip
 	}
 }
 
-func (m *ToolManager) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodName string) *aipb.JsonSchema {
-	properties := make(map[string]*aipb.JsonSchema)
+func (m *ToolManager) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodName string) *jsonpb.Schema {
+	properties := make(map[string]*jsonpb.Schema)
 	var required []string
 
 	fields := msg.Fields()
@@ -58,14 +59,14 @@ func (m *ToolManager) buildMessageSchema(msg protoreflect.MessageDescriptor, pre
 		}
 	}
 
-	return &aipb.JsonSchema{
+	return &jsonpb.Schema{
 		Type:       "object",
 		Properties: properties,
 		Required:   required,
 	}
 }
 
-func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) (*aipb.JsonSchema, bool) {
+func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) (*jsonpb.Schema, bool) {
 	if depth > m.maxDepth {
 		return nil, false
 	}
@@ -89,7 +90,7 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 	isRequired := behaviors.required || (isUpdate && behaviors.identifier)
 
 	if field.IsList() {
-		return &aipb.JsonSchema{
+		return &jsonpb.Schema{
 			Type:        "array",
 			Description: description,
 			Items:       m.elementSchema(field, path, depth, methodName),
@@ -99,17 +100,17 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 	if field.Kind() == protoreflect.MessageKind {
 		switch field.Message().FullName() {
 		case timestampFullName:
-			return &aipb.JsonSchema{
+			return &jsonpb.Schema{
 				Type:        "string",
 				Description: description + " (RFC3339, e.g. 2006-01-02T15:04:05Z)",
 			}, isRequired
 		case durationFullName:
-			return &aipb.JsonSchema{
+			return &jsonpb.Schema{
 				Type:        "string",
 				Description: description + " (e.g. 1h30m)",
 			}, isRequired
 		case fieldMaskFullName:
-			return &aipb.JsonSchema{
+			return &jsonpb.Schema{
 				Type:        "string",
 				Description: description + " (comma-separated paths)",
 			}, isRequired
@@ -123,8 +124,8 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 	return m.scalarSchema(field, description), isRequired
 }
 
-func (m *ToolManager) scalarSchema(field protoreflect.FieldDescriptor, description string) *aipb.JsonSchema {
-	schema := &aipb.JsonSchema{Description: description}
+func (m *ToolManager) scalarSchema(field protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
+	schema := &jsonpb.Schema{Description: description}
 	switch field.Kind() {
 	case protoreflect.BoolKind:
 		schema.Type = "boolean"
@@ -147,7 +148,7 @@ func (m *ToolManager) scalarSchema(field protoreflect.FieldDescriptor, descripti
 	return schema
 }
 
-func (m *ToolManager) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) *aipb.JsonSchema {
+func (m *ToolManager) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) *jsonpb.Schema {
 	if field.Kind() == protoreflect.MessageKind {
 		return m.buildMessageSchema(field.Message(), prefix+".", depth+1, methodName)
 	}

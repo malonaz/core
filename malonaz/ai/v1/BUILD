@@ -1,7 +1,6 @@
 proto_library(
     name = "v1",
     srcs = [
-        "jsonschema.proto",
         "message.proto",
         "metrics.proto",
         "model.proto",
@@ -16,6 +15,7 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/audio/v1",
+        "//malonaz/json/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__rpc__status",
         "//third_party/proto:validate",

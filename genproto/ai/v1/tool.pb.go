@@ -8,6 +8,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v1 "github.com/malonaz/core/genproto/json/v1"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -89,7 +90,7 @@ type Tool struct {
 	// A description of what the tool does.
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// The json schema of the exected object to be returned.
-	JsonSchema *JsonSchema `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
+	JsonSchema *v1.Schema `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
 	// Annotations about this tool (not transmitted to the ai provider).
 	// This should be used by tooling.
 	// All annotations are inherited by any tool call created by this tool.
@@ -142,7 +143,7 @@ func (x *Tool) GetDescription() string {
 	return ""
 }
 
-func (x *Tool) GetJsonSchema() *JsonSchema {
+func (x *Tool) GetJsonSchema() *v1.Schema {
 	if x != nil {
 		return x.JsonSchema
 	}
@@ -434,11 +435,11 @@ var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x17google/rpc/status.proto\x1a\x1emalonaz/ai/v1/jsonschema.proto\"\x92\x02\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x17google/rpc/status.proto\x1a\x1cmalonaz/json/v1/schema.proto\"\x90\x02\n" +
 	"\x04Tool\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
-	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x12:\n" +
-	"\vjson_schema\x18\x03 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\n" +
+	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x128\n" +
+	"\vjson_schema\x18\x03 \x01(\v2\x17.malonaz.json.v1.SchemaR\n" +
 	"jsonSchema\x12F\n" +
 	"\vannotations\x18\x04 \x03(\v2$.malonaz.ai.v1.Tool.AnnotationsEntryR\vannotations\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
@@ -493,13 +494,13 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(*ToolChoice)(nil),      // 4: malonaz.ai.v1.ToolChoice
 	nil,                     // 5: malonaz.ai.v1.Tool.AnnotationsEntry
 	nil,                     // 6: malonaz.ai.v1.ToolCall.AnnotationsEntry
-	(*JsonSchema)(nil),      // 7: malonaz.ai.v1.JsonSchema
+	(*v1.Schema)(nil),       // 7: malonaz.json.v1.Schema
 	(*structpb.Struct)(nil), // 8: google.protobuf.Struct
 	(*structpb.Value)(nil),  // 9: google.protobuf.Value
 	(*status.Status)(nil),   // 10: google.rpc.Status
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.ai.v1.JsonSchema
+	7,  // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
 	5,  // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
 	8,  // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
 	8,  // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
@@ -519,7 +520,6 @@ func file_malonaz_ai_v1_tool_proto_init() {
 	if File_malonaz_ai_v1_tool_proto != nil {
 		return
 	}
-	file_malonaz_ai_v1_jsonschema_proto_init()
 	file_malonaz_ai_v1_tool_proto_msgTypes[2].OneofWrappers = []any{
 		(*ToolResult_Content)(nil),
 		(*ToolResult_StructuredContent)(nil),

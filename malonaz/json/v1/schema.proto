@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package malonaz.json.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/json/v1";
+
+// Represents a JSON Schema (recursive definition)
+message Schema {
+  // Specifies the data type: "object", "string", "number", "integer", "boolean", "array", "null"
+  string type = 1 [(buf.validate.field).string = {
+    in: [
+      "object",
+      "string",
+      "number",
+      "integer",
+      "boolean",
+      "array",
+      "null"
+    ]
+  }];
+  // Human-readable description of what this schema represents
+  string description = 2;
+
+  // For objects
+  // Defines the properties of an object type, where each property has its own schema (recursive)
+  map<string, Schema> properties = 3;
+  // List of property names that must be present in the object
+  repeated string required = 4;
+
+  // For arrays
+  // Defines the schema for elements within an array (recursive)
+  Schema items = 5;
+  // Minimum number of items required in the array
+  int32 min_items = 6;
+  // Maximum number of items allowed in the array
+  int32 max_items = 7;
+
+  // For strings
+  // List of allowed string values (enumeration constraint)
+  repeated string enum = 8;
+  // Minimum length of the string
+  int32 min_length = 9;
+  // Maximum length of the string
+  int32 max_length = 10;
+  // Regular expression pattern the string must match
+  string pattern = 11;
+  // Semantic format hint: "date-time", "email", "uri", "uuid", etc.
+  string format = 12;
+
+  // For numbers
+  // Minimum value (inclusive) for number or integer types
+  double minimum = 13;
+  // Maximum value (inclusive) for number or integer types
+  double maximum = 14;
+  // Minimum value (exclusive) for number or integer types
+  double exclusive_minimum = 15;
+  // Maximum value (exclusive) for number or integer types
+  double exclusive_maximum = 16;
+  // The number must be a multiple of this value
+  double multiple_of = 17;
+
+  // Common fields
+
+  // Default value to use when no value is provided
+  string default = 18;
+  // Example values that satisfy this schema (for documentation)
+  repeated string examples = 19;
+
+  // Advanced combinators
+  // Schema is valid if it matches ANY of the provided schemas (recursive)
+  repeated Schema any_of = 20;
+  // Schema is valid if it matches EXACTLY ONE of the provided schemas (recursive)
+  repeated Schema one_of = 21;
+  // Schema is valid if it matches ALL of the provided schemas (recursive)
+  repeated Schema all_of = 22;
+  // Schema is valid if it does NOT match the provided schema (recursive)
+  Schema not = 23;
+}

@@ -8,5 +8,6 @@ go_binary(
         "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
     ],
 )

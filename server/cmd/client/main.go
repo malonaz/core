@@ -9,6 +9,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
@@ -296,9 +297,9 @@ func buildWeatherTool() *aipb.Tool {
 	return &aipb.Tool{
 		Name:        "get_weather",
 		Description: "Get the current weather for a location",
-		JsonSchema: &aipb.JsonSchema{
+		JsonSchema: &jsonpb.Schema{
 			Type: "object",
-			Properties: map[string]*aipb.JsonSchema{
+			Properties: map[string]*jsonpb.Schema{
 				"location": {
 					Type:        "string",
 					Description: "The city and state, e.g. San Francisco, CA",

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        v6.30.0
-// source: malonaz/ai/v1/jsonschema.proto
+// source: malonaz/json/v1/schema.proto
 
 package v1
 
@@ -23,7 +23,7 @@ const (
 )
 
 // Represents a JSON Schema (recursive definition)
-type JsonSchema struct {
+type Schema struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Specifies the data type: "object", "string", "number", "integer", "boolean", "array", "null"
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
@@ -31,12 +31,12 @@ type JsonSchema struct {
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// For objects
 	// Defines the properties of an object type, where each property has its own schema (recursive)
-	Properties map[string]*JsonSchema `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Properties map[string]*Schema `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// List of property names that must be present in the object
 	Required []string `protobuf:"bytes,4,rep,name=required,proto3" json:"required,omitempty"`
 	// For arrays
 	// Defines the schema for elements within an array (recursive)
-	Items *JsonSchema `protobuf:"bytes,5,opt,name=items,proto3" json:"items,omitempty"`
+	Items *Schema `protobuf:"bytes,5,opt,name=items,proto3" json:"items,omitempty"`
 	// Minimum number of items required in the array
 	MinItems int32 `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3" json:"min_items,omitempty"`
 	// Maximum number of items allowed in the array
@@ -69,32 +69,32 @@ type JsonSchema struct {
 	Examples []string `protobuf:"bytes,19,rep,name=examples,proto3" json:"examples,omitempty"`
 	// Advanced combinators
 	// Schema is valid if it matches ANY of the provided schemas (recursive)
-	AnyOf []*JsonSchema `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3" json:"any_of,omitempty"`
+	AnyOf []*Schema `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3" json:"any_of,omitempty"`
 	// Schema is valid if it matches EXACTLY ONE of the provided schemas (recursive)
-	OneOf []*JsonSchema `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3" json:"one_of,omitempty"`
+	OneOf []*Schema `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3" json:"one_of,omitempty"`
 	// Schema is valid if it matches ALL of the provided schemas (recursive)
-	AllOf []*JsonSchema `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3" json:"all_of,omitempty"`
+	AllOf []*Schema `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3" json:"all_of,omitempty"`
 	// Schema is valid if it does NOT match the provided schema (recursive)
-	Not           *JsonSchema `protobuf:"bytes,23,opt,name=not,proto3" json:"not,omitempty"`
+	Not           *Schema `protobuf:"bytes,23,opt,name=not,proto3" json:"not,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *JsonSchema) Reset() {
-	*x = JsonSchema{}
-	mi := &file_malonaz_ai_v1_jsonschema_proto_msgTypes[0]
+func (x *Schema) Reset() {
+	*x = Schema{}
+	mi := &file_malonaz_json_v1_schema_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *JsonSchema) String() string {
+func (x *Schema) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*JsonSchema) ProtoMessage() {}
+func (*Schema) ProtoMessage() {}
 
-func (x *JsonSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_jsonschema_proto_msgTypes[0]
+func (x *Schema) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_json_v1_schema_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -105,186 +105,185 @@ func (x *JsonSchema) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use JsonSchema.ProtoReflect.Descriptor instead.
-func (*JsonSchema) Descriptor() ([]byte, []int) {
-	return file_malonaz_ai_v1_jsonschema_proto_rawDescGZIP(), []int{0}
+// Deprecated: Use Schema.ProtoReflect.Descriptor instead.
+func (*Schema) Descriptor() ([]byte, []int) {
+	return file_malonaz_json_v1_schema_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *JsonSchema) GetType() string {
+func (x *Schema) GetType() string {
 	if x != nil {
 		return x.Type
 	}
 	return ""
 }
 
-func (x *JsonSchema) GetDescription() string {
+func (x *Schema) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *JsonSchema) GetProperties() map[string]*JsonSchema {
+func (x *Schema) GetProperties() map[string]*Schema {
 	if x != nil {
 		return x.Properties
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetRequired() []string {
+func (x *Schema) GetRequired() []string {
 	if x != nil {
 		return x.Required
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetItems() *JsonSchema {
+func (x *Schema) GetItems() *Schema {
 	if x != nil {
 		return x.Items
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetMinItems() int32 {
+func (x *Schema) GetMinItems() int32 {
 	if x != nil {
 		return x.MinItems
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetMaxItems() int32 {
+func (x *Schema) GetMaxItems() int32 {
 	if x != nil {
 		return x.MaxItems
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetEnum() []string {
+func (x *Schema) GetEnum() []string {
 	if x != nil {
 		return x.Enum
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetMinLength() int32 {
+func (x *Schema) GetMinLength() int32 {
 	if x != nil {
 		return x.MinLength
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetMaxLength() int32 {
+func (x *Schema) GetMaxLength() int32 {
 	if x != nil {
 		return x.MaxLength
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetPattern() string {
+func (x *Schema) GetPattern() string {
 	if x != nil {
 		return x.Pattern
 	}
 	return ""
 }
 
-func (x *JsonSchema) GetFormat() string {
+func (x *Schema) GetFormat() string {
 	if x != nil {
 		return x.Format
 	}
 	return ""
 }
 
-func (x *JsonSchema) GetMinimum() float64 {
+func (x *Schema) GetMinimum() float64 {
 	if x != nil {
 		return x.Minimum
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetMaximum() float64 {
+func (x *Schema) GetMaximum() float64 {
 	if x != nil {
 		return x.Maximum
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetExclusiveMinimum() float64 {
+func (x *Schema) GetExclusiveMinimum() float64 {
 	if x != nil {
 		return x.ExclusiveMinimum
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetExclusiveMaximum() float64 {
+func (x *Schema) GetExclusiveMaximum() float64 {
 	if x != nil {
 		return x.ExclusiveMaximum
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetMultipleOf() float64 {
+func (x *Schema) GetMultipleOf() float64 {
 	if x != nil {
 		return x.MultipleOf
 	}
 	return 0
 }
 
-func (x *JsonSchema) GetDefault() string {
+func (x *Schema) GetDefault() string {
 	if x != nil {
 		return x.Default
 	}
 	return ""
 }
 
-func (x *JsonSchema) GetExamples() []string {
+func (x *Schema) GetExamples() []string {
 	if x != nil {
 		return x.Examples
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetAnyOf() []*JsonSchema {
+func (x *Schema) GetAnyOf() []*Schema {
 	if x != nil {
 		return x.AnyOf
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetOneOf() []*JsonSchema {
+func (x *Schema) GetOneOf() []*Schema {
 	if x != nil {
 		return x.OneOf
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetAllOf() []*JsonSchema {
+func (x *Schema) GetAllOf() []*Schema {
 	if x != nil {
 		return x.AllOf
 	}
 	return nil
 }
 
-func (x *JsonSchema) GetNot() *JsonSchema {
+func (x *Schema) GetNot() *Schema {
 	if x != nil {
 		return x.Not
 	}
 	return nil
 }
 
-var File_malonaz_ai_v1_jsonschema_proto protoreflect.FileDescriptor
+var File_malonaz_json_v1_schema_proto protoreflect.FileDescriptor
 
-const file_malonaz_ai_v1_jsonschema_proto_rawDesc = "" +
+const file_malonaz_json_v1_schema_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/ai/v1/jsonschema.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\"\xd8\a\n" +
-	"\n" +
-	"JsonSchema\x12P\n" +
+	"\x1cmalonaz/json/v1/schema.proto\x12\x0fmalonaz.json.v1\x1a\x1bbuf/validate/validate.proto\"\xc6\a\n" +
+	"\x06Schema\x12P\n" +
 	"\x04type\x18\x01 \x01(\tB<\xbaH9r7R\x06objectR\x06stringR\x06numberR\aintegerR\abooleanR\x05arrayR\x04nullR\x04type\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12I\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12G\n" +
 	"\n" +
-	"properties\x18\x03 \x03(\v2).malonaz.ai.v1.JsonSchema.PropertiesEntryR\n" +
+	"properties\x18\x03 \x03(\v2'.malonaz.json.v1.Schema.PropertiesEntryR\n" +
 	"properties\x12\x1a\n" +
-	"\brequired\x18\x04 \x03(\tR\brequired\x12/\n" +
-	"\x05items\x18\x05 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05items\x12\x1b\n" +
+	"\brequired\x18\x04 \x03(\tR\brequired\x12-\n" +
+	"\x05items\x18\x05 \x01(\v2\x17.malonaz.json.v1.SchemaR\x05items\x12\x1b\n" +
 	"\tmin_items\x18\x06 \x01(\x05R\bminItems\x12\x1b\n" +
 	"\tmax_items\x18\a \x01(\x05R\bmaxItems\x12\x12\n" +
 	"\x04enum\x18\b \x03(\tR\x04enum\x12\x1d\n" +
@@ -302,40 +301,40 @@ const file_malonaz_ai_v1_jsonschema_proto_rawDesc = "" +
 	"\vmultiple_of\x18\x11 \x01(\x01R\n" +
 	"multipleOf\x12\x18\n" +
 	"\adefault\x18\x12 \x01(\tR\adefault\x12\x1a\n" +
-	"\bexamples\x18\x13 \x03(\tR\bexamples\x120\n" +
-	"\x06any_of\x18\x14 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05anyOf\x120\n" +
-	"\x06one_of\x18\x15 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05oneOf\x120\n" +
-	"\x06all_of\x18\x16 \x03(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05allOf\x12+\n" +
-	"\x03not\x18\x17 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x03not\x1aX\n" +
+	"\bexamples\x18\x13 \x03(\tR\bexamples\x12.\n" +
+	"\x06any_of\x18\x14 \x03(\v2\x17.malonaz.json.v1.SchemaR\x05anyOf\x12.\n" +
+	"\x06one_of\x18\x15 \x03(\v2\x17.malonaz.json.v1.SchemaR\x05oneOf\x12.\n" +
+	"\x06all_of\x18\x16 \x03(\v2\x17.malonaz.json.v1.SchemaR\x05allOf\x12)\n" +
+	"\x03not\x18\x17 \x01(\v2\x17.malonaz.json.v1.SchemaR\x03not\x1aV\n" +
 	"\x0fPropertiesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.malonaz.ai.v1.JsonSchemaR\x05value:\x028\x01B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
+	"\x05value\x18\x02 \x01(\v2\x17.malonaz.json.v1.SchemaR\x05value:\x028\x01B*Z(github.com/malonaz/core/genproto/json/v1b\x06proto3"
 
 var (
-	file_malonaz_ai_v1_jsonschema_proto_rawDescOnce sync.Once
-	file_malonaz_ai_v1_jsonschema_proto_rawDescData []byte
+	file_malonaz_json_v1_schema_proto_rawDescOnce sync.Once
+	file_malonaz_json_v1_schema_proto_rawDescData []byte
 )
 
-func file_malonaz_ai_v1_jsonschema_proto_rawDescGZIP() []byte {
-	file_malonaz_ai_v1_jsonschema_proto_rawDescOnce.Do(func() {
-		file_malonaz_ai_v1_jsonschema_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_jsonschema_proto_rawDesc), len(file_malonaz_ai_v1_jsonschema_proto_rawDesc)))
+func file_malonaz_json_v1_schema_proto_rawDescGZIP() []byte {
+	file_malonaz_json_v1_schema_proto_rawDescOnce.Do(func() {
+		file_malonaz_json_v1_schema_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_malonaz_json_v1_schema_proto_rawDesc), len(file_malonaz_json_v1_schema_proto_rawDesc)))
 	})
-	return file_malonaz_ai_v1_jsonschema_proto_rawDescData
+	return file_malonaz_json_v1_schema_proto_rawDescData
 }
 
-var file_malonaz_ai_v1_jsonschema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_malonaz_ai_v1_jsonschema_proto_goTypes = []any{
-	(*JsonSchema)(nil), // 0: malonaz.ai.v1.JsonSchema
-	nil,                // 1: malonaz.ai.v1.JsonSchema.PropertiesEntry
+var file_malonaz_json_v1_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_json_v1_schema_proto_goTypes = []any{
+	(*Schema)(nil), // 0: malonaz.json.v1.Schema
+	nil,            // 1: malonaz.json.v1.Schema.PropertiesEntry
 }
-var file_malonaz_ai_v1_jsonschema_proto_depIdxs = []int32{
-	1, // 0: malonaz.ai.v1.JsonSchema.properties:type_name -> malonaz.ai.v1.JsonSchema.PropertiesEntry
-	0, // 1: malonaz.ai.v1.JsonSchema.items:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 2: malonaz.ai.v1.JsonSchema.any_of:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 3: malonaz.ai.v1.JsonSchema.one_of:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 4: malonaz.ai.v1.JsonSchema.all_of:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 5: malonaz.ai.v1.JsonSchema.not:type_name -> malonaz.ai.v1.JsonSchema
-	0, // 6: malonaz.ai.v1.JsonSchema.PropertiesEntry.value:type_name -> malonaz.ai.v1.JsonSchema
+var file_malonaz_json_v1_schema_proto_depIdxs = []int32{
+	1, // 0: malonaz.json.v1.Schema.properties:type_name -> malonaz.json.v1.Schema.PropertiesEntry
+	0, // 1: malonaz.json.v1.Schema.items:type_name -> malonaz.json.v1.Schema
+	0, // 2: malonaz.json.v1.Schema.any_of:type_name -> malonaz.json.v1.Schema
+	0, // 3: malonaz.json.v1.Schema.one_of:type_name -> malonaz.json.v1.Schema
+	0, // 4: malonaz.json.v1.Schema.all_of:type_name -> malonaz.json.v1.Schema
+	0, // 5: malonaz.json.v1.Schema.not:type_name -> malonaz.json.v1.Schema
+	0, // 6: malonaz.json.v1.Schema.PropertiesEntry.value:type_name -> malonaz.json.v1.Schema
 	7, // [7:7] is the sub-list for method output_type
 	7, // [7:7] is the sub-list for method input_type
 	7, // [7:7] is the sub-list for extension type_name
@@ -343,26 +342,26 @@ var file_malonaz_ai_v1_jsonschema_proto_depIdxs = []int32{
 	0, // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_malonaz_ai_v1_jsonschema_proto_init() }
-func file_malonaz_ai_v1_jsonschema_proto_init() {
-	if File_malonaz_ai_v1_jsonschema_proto != nil {
+func init() { file_malonaz_json_v1_schema_proto_init() }
+func file_malonaz_json_v1_schema_proto_init() {
+	if File_malonaz_json_v1_schema_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_jsonschema_proto_rawDesc), len(file_malonaz_ai_v1_jsonschema_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_json_v1_schema_proto_rawDesc), len(file_malonaz_json_v1_schema_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_malonaz_ai_v1_jsonschema_proto_goTypes,
-		DependencyIndexes: file_malonaz_ai_v1_jsonschema_proto_depIdxs,
-		MessageInfos:      file_malonaz_ai_v1_jsonschema_proto_msgTypes,
+		GoTypes:           file_malonaz_json_v1_schema_proto_goTypes,
+		DependencyIndexes: file_malonaz_json_v1_schema_proto_depIdxs,
+		MessageInfos:      file_malonaz_json_v1_schema_proto_msgTypes,
 	}.Build()
-	File_malonaz_ai_v1_jsonschema_proto = out.File
-	file_malonaz_ai_v1_jsonschema_proto_goTypes = nil
-	file_malonaz_ai_v1_jsonschema_proto_depIdxs = nil
+	File_malonaz_json_v1_schema_proto = out.File
+	file_malonaz_json_v1_schema_proto_goTypes = nil
+	file_malonaz_json_v1_schema_proto_depIdxs = nil
 }

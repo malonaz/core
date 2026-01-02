@@ -12,6 +12,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
@@ -313,7 +314,7 @@ func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
 	} else {
 		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
 			Type:       "object",
-			Properties: map[string]*aipb.JsonSchema{},
+			Properties: map[string]*jsonpb.Schema{},
 		}
 	}
 	return anthropic.ToolUnionParam{

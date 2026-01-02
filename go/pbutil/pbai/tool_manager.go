@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
@@ -235,13 +236,13 @@ func (m *ToolManager) buildServiceToolManager(svc protoreflect.ServiceDescriptor
 		stm.discoverTool = &aipb.Tool{
 			Name:        string(stm.svc.Name()) + "_Discover",
 			Description: description.String(),
-			JsonSchema: &aipb.JsonSchema{
+			JsonSchema: &jsonpb.Schema{
 				Type: "object",
-				Properties: map[string]*aipb.JsonSchema{
+				Properties: map[string]*jsonpb.Schema{
 					"methods": {
 						Type:        "array",
 						Description: "Method names to discover",
-						Items:       &aipb.JsonSchema{Type: "string", Enum: methodNames},
+						Items:       &jsonpb.Schema{Type: "string", Enum: methodNames},
 					},
 				},
 				Required: []string{"methods"},
