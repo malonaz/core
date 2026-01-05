@@ -3,7 +3,7 @@ subinclude(
     "///proto//build_defs:proto",
 )
 
-def github_proto_library(
+def _github_proto_library(
         name:str,
         repo:str,
         revision:str,
@@ -14,6 +14,7 @@ def github_proto_library(
         protoc_flags:list=[],
         root_dir:str=None,
         additional_context:dict=None,
+        grpc:bool=False,
 ):
     """
     A github proto library.
@@ -30,7 +31,8 @@ def github_proto_library(
     root_dir_sanitized = "third_party/proto"
     protoc_flag = "-I" + package_name()
 
-    return proto_library(
+    lib = grpc_library if grpc else proto_library
+    return lib(
         name = name,
         srcs = [src],
         root_dir=root_dir_sanitized,
@@ -40,77 +42,54 @@ def github_proto_library(
         visibility=visibility,
     )
 
-def buf_validate_proto_library(
-        name:str = "validate",
-        version:str = "v1.0.0",
-        visibility:list = None,
-        additional_context:dict=None,
-):
-    """Buf protovalidate library."""
-    if additional_context is None:
-        additional_context = {}
-    additional_context[GO_IMPORT_PATH] = "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-    return github_proto_library(
-        name = name,
-        dir = "proto/protovalidate/buf/validate",
-        files = ["validate.proto"],
-        repo = "bufbuild/protovalidate",
-        root_dir="proto/protovalidate",
-        revision = version,
-        visibility = visibility,
-        additional_context = additional_context,
-    )
-
-def googleapis_proto_library(
+def github_proto_library(
         name:str,
+        repo:str,
+        revision:str,
         dir:str,
         files:list,
-        revision:str,
-        deps:list = [],
-        go_import_suffix:str = None,
-        visibility:list = None,
+        deps:list=[],
+        visibility:list=None,
+        protoc_flags:list=[],
+        root_dir:str=None,
         additional_context:dict=None,
+        grpc:bool=False,
 ):
-    """Google APIs proto library."""
-    if go_import_suffix is None:
-        go_import_suffix = dir.replace("/", "/")
-    if additional_context is None:
-        additional_context = {}
-    additional_context[GO_IMPORT_PATH] = f"google.golang.org/genproto/googleapis/{go_import_suffix}"
-    return github_proto_library(
+    return _github_proto_library(
         name = name,
+        repo = repo,
+        revision = revision,
         dir = dir,
         files = files,
-        repo = "googleapis/googleapis",
-        revision = revision,
         deps = deps,
         visibility = visibility,
-        additional_context = additional_context,
+        protoc_flags = protoc_flags,
+        root_dir=root_dir,
+        additional_context=additional_context,
     )
 
-def malonaz_proto_library(
+def github_grpc_library(
         name:str,
+        repo:str,
+        revision:str,
         dir:str,
         files:list,
-        deps:list = [],
-        go_import_suffix:str = None,
-        revision:str,
-        visibility:list = None,
+        deps:list=[],
+        visibility:list=None,
+        protoc_flags:list=[],
+        root_dir:str=None,
         additional_context:dict=None,
+        grpc:bool=False,
 ):
-    """Malonaz proto library."""
-    if go_import_suffix is None:
-        go_import_suffix = dir.replace("/", "__")
-    if additional_context is None:
-        additional_context = {}
-    additional_context[GO_IMPORT_PATH] = f"github.com/malonaz/core/genproto/{go_import_suffix}"
-    return github_proto_library(
+    return _github_proto_library(
         name = name,
+        repo = repo,
         dir = dir,
         files = files,
-        repo = "malonaz/core",
-        revision = revision,
         deps = deps,
         visibility = visibility,
-        additional_context = additional_context,
+        protoc_flags = protoc_flags,
+        root_dir=root_dir,
+        additional_context=additional_context,
+        grpc = True,
     )
