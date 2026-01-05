@@ -7,7 +7,7 @@ path = /bin:/usr/bin:/usr/local/bin:/opt/toolchain/1.0/bin
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = 43290b6dcbc34e5b191cc959fccb79651adaedfc
+core-revision = b4ac9a1aaec0d7792759d9cd76db047f445b4cbe
 is-core-repo = true
 
 [sandbox]
@@ -21,7 +21,7 @@ preloadsubincludes = ///shell//build_defs:shell
 preloadSubincludes = ///python//build_defs:python
 preloadsubincludes = ///go//build_defs:go
 preloadsubincludes = ///proto//build_defs:proto
-preloadsubincludes = //build_defs/proto:utils
+preloadsubincludes = ///core//build_defs/proto:utils
 
 [Plugin "shell"]
 Target = //plugins:shell
