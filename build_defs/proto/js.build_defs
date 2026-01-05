@@ -24,15 +24,6 @@ def js_proto_library(
         '--es_opt=target=ts',
     ]
 
-    # PROTOC-GEN-GRPC
-    if additional_context and GENERATE_JS_GRPC in additional_context:
-        tools["protoc_gen_connect_es"] = [CONFIG.CORE.PROTOC_GEN_CONNECT_ES]
-        plugin_flags += [
-            '--plugin=protoc-gen-connect-es="$TOOLS_PROTOC_GEN_CONNECT_ES/node_modules/.bin/protoc-gen-connect-es"',
-            '--connect-es_out="$OUT_DIR"',
-            '--connect-es_opt=target=ts',
-        ]
-
     return protoc_rule(
         name = name,
         srcs = srcs,
@@ -49,9 +40,6 @@ def js_proto_library(
 
 def js_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
                     test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
-    if additional_context is None:
-        additional_context = {}
-    additional_context[GENERATE_JS_GRPC] = True
     return js_proto_library(
         name = name,
         srcs = srcs,

@@ -123,11 +123,6 @@ DefaultValue = //tools/proto:protoc-gen-go-postgres-dep
 ConfigKey = ProtocGenEs
 DefaultValue = //tools/proto:protoc-gen-es
 
-[PluginConfig "protoc_gen_connect_es"]
-ConfigKey = ProtocGenConnectEs
-DefaultValue = //tools/proto:protoc-gen-connect-es
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
