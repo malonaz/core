@@ -10,9 +10,9 @@ def github_proto_library(
         dir:str,
         files:list,
         deps:list=[],
-        root_dir:str=None,
         visibility:list=None,
         protoc_flags:list=[],
+        root_dir:str=None,
         additional_context:dict=None,
 ):
     """
@@ -24,13 +24,11 @@ def github_proto_library(
         files = files,
         repo = repo,
         revision = revision,
+        root_dir = root_dir,
     )
 
     root_dir_sanitized = "third_party/proto"
     protoc_flag = "-I" + package_name()
-    if root_dir:
-        root_dir_sanitized += f"/{root_dir}"
-        protoc_flag += f"/{root_dir}"
 
     return proto_library(
         name = name,
@@ -53,11 +51,11 @@ def buf_validate_proto_library(
         additional_context = {
             GO_IMPORT_PATH: "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate",
         },
-        dir = "proto/protovalidate",
-        files = ["buf/validate/validate.proto"],
+        dir = "proto/protovalidate/buf/validate",
+        files = ["validate.proto"],
         repo = "bufbuild/protovalidate",
+        root_dir="proto/protovalidate",
         revision = version,
-        root_dir = "proto/protovalidate",
         visibility = visibility,
     )
 

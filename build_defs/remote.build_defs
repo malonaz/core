@@ -31,6 +31,7 @@ def github_proto_srcs(
         revision:str,
         dir:str,
         files:list,
+        root_dir:str=None,
 ):
     """Downloads and organizes protocol buffer source files from a GitHub repository.
 
@@ -63,10 +64,11 @@ def github_proto_srcs(
             revision = revision,
         )
         new_src_name = f"_{name}#{sanitized_filename}_correct_packages"
+
         new_src = genrule(
             name = new_src_name,
             srcs = [src],
-            out = join_path(dir, f),
+            out = join_path(dir.removeprefix(root_dir + "/") if root_dir else dir, f),
             cmd = "cat $SRCS > $OUT",
         )
         srcs += [new_src]
