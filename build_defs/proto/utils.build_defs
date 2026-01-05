@@ -84,6 +84,7 @@ def github_grpc_library(
     return _github_proto_library(
         name = name,
         repo = repo,
+        revision = revision,
         dir = dir,
         files = files,
         deps = deps,
