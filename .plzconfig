@@ -3,6 +3,7 @@ version = 17.27.0
 
 [build]
 timeout = 2000
+path = /bin:/usr/bin:/usr/local/bin:/opt/toolchain/1.0/bin
 
 [buildconfig]
 ;; Tracks the core revision.
@@ -37,6 +38,7 @@ CgoEnabled = true
 [Plugin "proto"]
 Target = //plugins:proto
 LanguageDef = //build_defs/proto:go
+LanguageDef = //build_defs/proto:js
 
 [Plugin "core"]
 Target = //plugins:core
@@ -115,6 +117,15 @@ DefaultValue = //tools/proto:protoc-gen-go-rpc-dep
 ConfigKey = ProtocGenPostgresGoDep
 DefaultValue = //tools/proto:protoc-gen-go-postgres-dep
 
+
+;; JS
+[PluginConfig "protoc_gen_es"]
+ConfigKey = ProtocGenEs
+DefaultValue = //tools/proto:protoc-gen-es
+
+[PluginConfig "protoc_gen_connect_es"]
+ConfigKey = ProtocGenConnectEs
+DefaultValue = //tools/proto:protoc-gen-connect-es
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

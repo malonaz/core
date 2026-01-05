@@ -141,3 +141,23 @@ filegroup(
     exported_deps = [
     ],
 )
+
+genrule(
+    name = "protoc-gen-es",
+    srcs = ["protoc-gen-es.json"],
+    outs = ["protoc-gen-es"],
+    building_description = "fetching node modules for protoc-gen-es",
+    cmd = "mv $SRCS $PKG/package.json && yarn --cwd $PKG_DIR install && mkdir protoc-gen-es && mv $PKG_DIR/node_modules protoc-gen-es",
+    output_is_complete = True,
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "protoc-gen-connect-es",
+    srcs = ["protoc-gen-connect-es.json"],
+    outs = ["protoc-gen-connect-es"],
+    building_description = "fetching node modules for protoc-gen-connect-es",
+    cmd = "mv $SRCS $PKG/package.json && yarn --cwd $PKG_DIR install && mkdir protoc-gen-connect-es && mv $PKG_DIR/node_modules protoc-gen-connect-es",
+    output_is_complete = True,
+    visibility = ["PUBLIC"],
+)

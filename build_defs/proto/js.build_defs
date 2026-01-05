@@ -1,0 +1,97 @@
+"""Build rules for compiling protocol buffers for JavaScript/TypeScript using protoc-gen-es.
+"""
+subinclude(
+    "///proto//build_defs/sdk",
+)
+
+GENERATE_JS_GRPC = "generate_js_grpc"
+
+def js_proto_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    tools = {"protoc_gen_es": [CONFIG.CORE.PROTOC_GEN_ES]}
+    plugin_flags = [
+        '--plugin=protoc-gen-es="$TOOLS_PROTOC_GEN_ES/node_modules/.bin/protoc-gen-es"',
+        '--es_out="$OUT_DIR"',
+        '--es_opt=target=ts',
+    ]
+
+    # PROTOC-GEN-GRPC
+    if additional_context and GENERATE_JS_GRPC in additional_context:
+        tools["protoc_gen_connect_es"] = [CONFIG.CORE.PROTOC_GEN_CONNECT_ES]
+        plugin_flags += [
+            '--plugin=protoc-gen-connect-es="$TOOLS_PROTOC_GEN_CONNECT_ES/node_modules/.bin/protoc-gen-connect-es"',
+            '--connect-es_out="$OUT_DIR"',
+            '--connect-es_opt=target=ts',
+        ]
+
+    return protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "js",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+    )
+
+def js_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
+                    test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
+    if additional_context is None:
+        additional_context = {}
+    additional_context[GENERATE_JS_GRPC] = True
+    return js_proto_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        visibility = visibility,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        protoc_flags = protoc_flags,
+        additional_context = additional_context,
+    )
+
+def js_grpc_gateway_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
+                            test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
+    return js_grpc_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        visibility = visibility,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        protoc_flags = protoc_flags,
+        additional_context = additional_context,
+    )
+
+def js_grpc_gateway_language():
+    return proto_language(
+        language = "js",
+        build_def = js_grpc_gateway_library,
+    )
+
+def js_grpc_language():
+    return proto_language(
+        language = "js",
+        build_def = js_grpc_library,
+    )
+
+def js_proto_language():
+    return proto_language(
+        language = "js",
+        build_def = js_proto_library,
+    )

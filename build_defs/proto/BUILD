@@ -18,6 +18,17 @@ proto_build_defs(
     visibility = ["PUBLIC"],
 )
 
+proto_build_defs(
+    name = "js",
+    srcs = ["js.build_defs"],
+    proto_languages = {
+        "grpc_language": ["js_grpc_language"],
+        "proto_language": ["js_proto_language"],
+        "grpc_gateway_language": ["js_grpc_gateway_language"],
+    },
+    visibility = ["PUBLIC"],
+)
+
 filegroup(
     name = "utils",
     srcs = ["utils.build_defs"],

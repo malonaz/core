@@ -1,0 +1,8 @@
+{
+  "name": "protoc-gen-connect-es",
+  "version": "1.0",
+  "private": true,
+  "dependencies": {
+    "@connectrpc/protoc-gen-connect-es": "1.7.0"
+  }
+}
