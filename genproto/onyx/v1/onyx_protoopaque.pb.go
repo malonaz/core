@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/onyx/v1/onyx.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -24,12 +24,12 @@ const (
 
 // ObjectMeta contains metadata that all persisted resources must have
 type ObjectMeta struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,2,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Annotations   map[string]string      `protobuf:"bytes,3,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,2,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,3,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *ObjectMeta) Reset() {
@@ -59,35 +59,35 @@ func (x *ObjectMeta) ProtoReflect() protoreflect.Message {
 
 func (x *ObjectMeta) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *ObjectMeta) GetLabels() map[string]string {
 	if x != nil {
-		return x.Labels
+		return x.xxx_hidden_Labels
 	}
 	return nil
 }
 
 func (x *ObjectMeta) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.Annotations
+		return x.xxx_hidden_Annotations
 	}
 	return nil
 }
 
 func (x *ObjectMeta) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *ObjectMeta) SetLabels(v map[string]string) {
-	x.Labels = v
+	x.xxx_hidden_Labels = v
 }
 
 func (x *ObjectMeta) SetAnnotations(v map[string]string) {
-	x.Annotations = v
+	x.xxx_hidden_Annotations = v
 }
 
 type ObjectMeta_builder struct {
@@ -102,24 +102,19 @@ func (b0 ObjectMeta_builder) Build() *ObjectMeta {
 	m0 := &ObjectMeta{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.Labels = b.Labels
-	x.Annotations = b.Annotations
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Labels = b.Labels
+	x.xxx_hidden_Annotations = b.Annotations
 	return m0
 }
 
 // DependencySpec represents a service dependency
 type DependencySpec struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Types that are valid to be assigned to Dependency:
-	//
-	//	*DependencySpec_GrpcClient
-	//	*DependencySpec_PostgresClient
-	//	*DependencySpec_PostgresDbClient
-	Dependency    isDependencySpec_Dependency `protobuf_oneof:"dependency"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState      `protogen:"opaque.v1"`
+	xxx_hidden_Name       string                      `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Dependency isDependencySpec_Dependency `protobuf_oneof:"dependency"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *DependencySpec) Reset() {
@@ -149,21 +144,14 @@ func (x *DependencySpec) ProtoReflect() protoreflect.Message {
 
 func (x *DependencySpec) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
-func (x *DependencySpec) GetDependency() isDependencySpec_Dependency {
-	if x != nil {
-		return x.Dependency
-	}
-	return nil
-}
-
 func (x *DependencySpec) GetGrpcClient() *GrpcClientDependency {
 	if x != nil {
-		if x, ok := x.Dependency.(*DependencySpec_GrpcClient); ok {
+		if x, ok := x.xxx_hidden_Dependency.(*dependencySpec_GrpcClient); ok {
 			return x.GrpcClient
 		}
 	}
@@ -172,7 +160,7 @@ func (x *DependencySpec) GetGrpcClient() *GrpcClientDependency {
 
 func (x *DependencySpec) GetPostgresClient() *PostgresClientDependency {
 	if x != nil {
-		if x, ok := x.Dependency.(*DependencySpec_PostgresClient); ok {
+		if x, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresClient); ok {
 			return x.PostgresClient
 		}
 	}
@@ -181,7 +169,7 @@ func (x *DependencySpec) GetPostgresClient() *PostgresClientDependency {
 
 func (x *DependencySpec) GetPostgresDbClient() *PostgresDbClientDependency {
 	if x != nil {
-		if x, ok := x.Dependency.(*DependencySpec_PostgresDbClient); ok {
+		if x, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresDbClient); ok {
 			return x.PostgresDbClient
 		}
 	}
@@ -189,45 +177,45 @@ func (x *DependencySpec) GetPostgresDbClient() *PostgresDbClientDependency {
 }
 
 func (x *DependencySpec) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *DependencySpec) SetGrpcClient(v *GrpcClientDependency) {
 	if v == nil {
-		x.Dependency = nil
+		x.xxx_hidden_Dependency = nil
 		return
 	}
-	x.Dependency = &DependencySpec_GrpcClient{v}
+	x.xxx_hidden_Dependency = &dependencySpec_GrpcClient{v}
 }
 
 func (x *DependencySpec) SetPostgresClient(v *PostgresClientDependency) {
 	if v == nil {
-		x.Dependency = nil
+		x.xxx_hidden_Dependency = nil
 		return
 	}
-	x.Dependency = &DependencySpec_PostgresClient{v}
+	x.xxx_hidden_Dependency = &dependencySpec_PostgresClient{v}
 }
 
 func (x *DependencySpec) SetPostgresDbClient(v *PostgresDbClientDependency) {
 	if v == nil {
-		x.Dependency = nil
+		x.xxx_hidden_Dependency = nil
 		return
 	}
-	x.Dependency = &DependencySpec_PostgresDbClient{v}
+	x.xxx_hidden_Dependency = &dependencySpec_PostgresDbClient{v}
 }
 
 func (x *DependencySpec) HasDependency() bool {
 	if x == nil {
 		return false
 	}
-	return x.Dependency != nil
+	return x.xxx_hidden_Dependency != nil
 }
 
 func (x *DependencySpec) HasGrpcClient() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Dependency.(*DependencySpec_GrpcClient)
+	_, ok := x.xxx_hidden_Dependency.(*dependencySpec_GrpcClient)
 	return ok
 }
 
@@ -235,7 +223,7 @@ func (x *DependencySpec) HasPostgresClient() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Dependency.(*DependencySpec_PostgresClient)
+	_, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresClient)
 	return ok
 }
 
@@ -243,29 +231,29 @@ func (x *DependencySpec) HasPostgresDbClient() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Dependency.(*DependencySpec_PostgresDbClient)
+	_, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresDbClient)
 	return ok
 }
 
 func (x *DependencySpec) ClearDependency() {
-	x.Dependency = nil
+	x.xxx_hidden_Dependency = nil
 }
 
 func (x *DependencySpec) ClearGrpcClient() {
-	if _, ok := x.Dependency.(*DependencySpec_GrpcClient); ok {
-		x.Dependency = nil
+	if _, ok := x.xxx_hidden_Dependency.(*dependencySpec_GrpcClient); ok {
+		x.xxx_hidden_Dependency = nil
 	}
 }
 
 func (x *DependencySpec) ClearPostgresClient() {
-	if _, ok := x.Dependency.(*DependencySpec_PostgresClient); ok {
-		x.Dependency = nil
+	if _, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresClient); ok {
+		x.xxx_hidden_Dependency = nil
 	}
 }
 
 func (x *DependencySpec) ClearPostgresDbClient() {
-	if _, ok := x.Dependency.(*DependencySpec_PostgresDbClient); ok {
-		x.Dependency = nil
+	if _, ok := x.xxx_hidden_Dependency.(*dependencySpec_PostgresDbClient); ok {
+		x.xxx_hidden_Dependency = nil
 	}
 }
 
@@ -278,12 +266,12 @@ func (x *DependencySpec) WhichDependency() case_DependencySpec_Dependency {
 	if x == nil {
 		return DependencySpec_Dependency_not_set_case
 	}
-	switch x.Dependency.(type) {
-	case *DependencySpec_GrpcClient:
+	switch x.xxx_hidden_Dependency.(type) {
+	case *dependencySpec_GrpcClient:
 		return DependencySpec_GrpcClient_case
-	case *DependencySpec_PostgresClient:
+	case *dependencySpec_PostgresClient:
 		return DependencySpec_PostgresClient_case
-	case *DependencySpec_PostgresDbClient:
+	case *dependencySpec_PostgresDbClient:
 		return DependencySpec_PostgresDbClient_case
 	default:
 		return DependencySpec_Dependency_not_set_case
@@ -294,26 +282,26 @@ type DependencySpec_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Name string
-	// Fields of oneof Dependency:
+	// Fields of oneof xxx_hidden_Dependency:
 	GrpcClient       *GrpcClientDependency
 	PostgresClient   *PostgresClientDependency
 	PostgresDbClient *PostgresDbClientDependency
-	// -- end of Dependency
+	// -- end of xxx_hidden_Dependency
 }
 
 func (b0 DependencySpec_builder) Build() *DependencySpec {
 	m0 := &DependencySpec{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
+	x.xxx_hidden_Name = b.Name
 	if b.GrpcClient != nil {
-		x.Dependency = &DependencySpec_GrpcClient{b.GrpcClient}
+		x.xxx_hidden_Dependency = &dependencySpec_GrpcClient{b.GrpcClient}
 	}
 	if b.PostgresClient != nil {
-		x.Dependency = &DependencySpec_PostgresClient{b.PostgresClient}
+		x.xxx_hidden_Dependency = &dependencySpec_PostgresClient{b.PostgresClient}
 	}
 	if b.PostgresDbClient != nil {
-		x.Dependency = &DependencySpec_PostgresDbClient{b.PostgresDbClient}
+		x.xxx_hidden_Dependency = &dependencySpec_PostgresDbClient{b.PostgresDbClient}
 	}
 	return m0
 }
@@ -332,30 +320,30 @@ type isDependencySpec_Dependency interface {
 	isDependencySpec_Dependency()
 }
 
-type DependencySpec_GrpcClient struct {
+type dependencySpec_GrpcClient struct {
 	GrpcClient *GrpcClientDependency `protobuf:"bytes,2,opt,name=grpc_client,json=grpcClient,proto3,oneof"`
 }
 
-type DependencySpec_PostgresClient struct {
+type dependencySpec_PostgresClient struct {
 	PostgresClient *PostgresClientDependency `protobuf:"bytes,3,opt,name=postgres_client,json=postgresClient,proto3,oneof"`
 }
 
-type DependencySpec_PostgresDbClient struct {
+type dependencySpec_PostgresDbClient struct {
 	PostgresDbClient *PostgresDbClientDependency `protobuf:"bytes,4,opt,name=postgres_db_client,json=postgresDbClient,proto3,oneof"`
 }
 
-func (*DependencySpec_GrpcClient) isDependencySpec_Dependency() {}
+func (*dependencySpec_GrpcClient) isDependencySpec_Dependency() {}
 
-func (*DependencySpec_PostgresClient) isDependencySpec_Dependency() {}
+func (*dependencySpec_PostgresClient) isDependencySpec_Dependency() {}
 
-func (*DependencySpec_PostgresDbClient) isDependencySpec_Dependency() {}
+func (*dependencySpec_PostgresDbClient) isDependencySpec_Dependency() {}
 
 // GrpcClientDependency represents a gRPC client dependency
 type GrpcClientDependency struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Proto         string                 `protobuf:"bytes,1,opt,name=proto,proto3" json:"proto,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Proto string                 `protobuf:"bytes,1,opt,name=proto,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GrpcClientDependency) Reset() {
@@ -385,13 +373,13 @@ func (x *GrpcClientDependency) ProtoReflect() protoreflect.Message {
 
 func (x *GrpcClientDependency) GetProto() string {
 	if x != nil {
-		return x.Proto
+		return x.xxx_hidden_Proto
 	}
 	return ""
 }
 
 func (x *GrpcClientDependency) SetProto(v string) {
-	x.Proto = v
+	x.xxx_hidden_Proto = v
 }
 
 type GrpcClientDependency_builder struct {
@@ -404,16 +392,16 @@ func (b0 GrpcClientDependency_builder) Build() *GrpcClientDependency {
 	m0 := &GrpcClientDependency{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Proto = b.Proto
+	x.xxx_hidden_Proto = b.Proto
 	return m0
 }
 
 // PostgresClientDependency represents a Postgres client dependency
 type PostgresClientDependency struct {
-	state          protoimpl.MessageState `protogen:"hybrid.v1"`
-	Implementation string                 `protobuf:"bytes,1,opt,name=implementation,proto3" json:"implementation,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Implementation string                 `protobuf:"bytes,1,opt,name=implementation,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *PostgresClientDependency) Reset() {
@@ -443,13 +431,13 @@ func (x *PostgresClientDependency) ProtoReflect() protoreflect.Message {
 
 func (x *PostgresClientDependency) GetImplementation() string {
 	if x != nil {
-		return x.Implementation
+		return x.xxx_hidden_Implementation
 	}
 	return ""
 }
 
 func (x *PostgresClientDependency) SetImplementation(v string) {
-	x.Implementation = v
+	x.xxx_hidden_Implementation = v
 }
 
 type PostgresClientDependency_builder struct {
@@ -462,16 +450,16 @@ func (b0 PostgresClientDependency_builder) Build() *PostgresClientDependency {
 	m0 := &PostgresClientDependency{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Implementation = b.Implementation
+	x.xxx_hidden_Implementation = b.Implementation
 	return m0
 }
 
 // PostgresDbClientDependency represents a Postgres database client dependency
 type PostgresDbClientDependency struct {
-	state          protoimpl.MessageState `protogen:"hybrid.v1"`
-	Implementation string                 `protobuf:"bytes,1,opt,name=implementation,proto3" json:"implementation,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Implementation string                 `protobuf:"bytes,1,opt,name=implementation,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *PostgresDbClientDependency) Reset() {
@@ -501,13 +489,13 @@ func (x *PostgresDbClientDependency) ProtoReflect() protoreflect.Message {
 
 func (x *PostgresDbClientDependency) GetImplementation() string {
 	if x != nil {
-		return x.Implementation
+		return x.xxx_hidden_Implementation
 	}
 	return ""
 }
 
 func (x *PostgresDbClientDependency) SetImplementation(v string) {
-	x.Implementation = v
+	x.xxx_hidden_Implementation = v
 }
 
 type PostgresDbClientDependency_builder struct {
@@ -520,7 +508,7 @@ func (b0 PostgresDbClientDependency_builder) Build() *PostgresDbClientDependency
 	m0 := &PostgresDbClientDependency{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Implementation = b.Implementation
+	x.xxx_hidden_Implementation = b.Implementation
 	return m0
 }
 
@@ -584,9 +572,9 @@ func file_malonaz_onyx_v1_onyx_proto_init() {
 		return
 	}
 	file_malonaz_onyx_v1_onyx_proto_msgTypes[1].OneofWrappers = []any{
-		(*DependencySpec_GrpcClient)(nil),
-		(*DependencySpec_PostgresClient)(nil),
-		(*DependencySpec_PostgresDbClient)(nil),
+		(*dependencySpec_GrpcClient)(nil),
+		(*dependencySpec_PostgresClient)(nil),
+		(*dependencySpec_PostgresDbClient)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

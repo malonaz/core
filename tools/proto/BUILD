@@ -19,9 +19,6 @@ go_module(
 filegroup(
     name = "protoc-gen-go-dep",
     exported_deps = [
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__expr__v1alpha1",
-        "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
@@ -54,14 +51,6 @@ filegroup(
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
-    ],
-)
-
-# Protoc go validate plugin - referenced in .plzconfig.
-filegroup(
-    name = "protoc-gen-validate-go-dep",
-    exported_deps = [
-        "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
     ],
 )
 

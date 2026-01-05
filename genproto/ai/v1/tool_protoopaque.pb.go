@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/v1/tool.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -80,19 +80,13 @@ func (x ToolChoiceMode) Number() protoreflect.EnumNumber {
 
 // Represents a tool that can be called by the AI model.
 type Tool struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The name of the tool to be called.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// A description of what the tool does.
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// The json schema of the exected object to be returned.
-	JsonSchema *v1.Schema `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3" json:"json_schema,omitempty"`
-	// Annotations about this tool (not transmitted to the ai provider).
-	// This should be used by tooling.
-	// All annotations are inherited by any tool call created by this tool.
-	Annotations   map[string]string `protobuf:"bytes,4,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Description string                 `protobuf:"bytes,2,opt,name=description,proto3"`
+	xxx_hidden_JsonSchema  *v1.Schema             `protobuf:"bytes,3,opt,name=json_schema,json=jsonSchema,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,4,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Tool) Reset() {
@@ -122,57 +116,57 @@ func (x *Tool) ProtoReflect() protoreflect.Message {
 
 func (x *Tool) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Tool) GetDescription() string {
 	if x != nil {
-		return x.Description
+		return x.xxx_hidden_Description
 	}
 	return ""
 }
 
 func (x *Tool) GetJsonSchema() *v1.Schema {
 	if x != nil {
-		return x.JsonSchema
+		return x.xxx_hidden_JsonSchema
 	}
 	return nil
 }
 
 func (x *Tool) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.Annotations
+		return x.xxx_hidden_Annotations
 	}
 	return nil
 }
 
 func (x *Tool) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Tool) SetDescription(v string) {
-	x.Description = v
+	x.xxx_hidden_Description = v
 }
 
 func (x *Tool) SetJsonSchema(v *v1.Schema) {
-	x.JsonSchema = v
+	x.xxx_hidden_JsonSchema = v
 }
 
 func (x *Tool) SetAnnotations(v map[string]string) {
-	x.Annotations = v
+	x.xxx_hidden_Annotations = v
 }
 
 func (x *Tool) HasJsonSchema() bool {
 	if x == nil {
 		return false
 	}
-	return x.JsonSchema != nil
+	return x.xxx_hidden_JsonSchema != nil
 }
 
 func (x *Tool) ClearJsonSchema() {
-	x.JsonSchema = nil
+	x.xxx_hidden_JsonSchema = nil
 }
 
 type Tool_builder struct {
@@ -194,28 +188,23 @@ func (b0 Tool_builder) Build() *Tool {
 	m0 := &Tool{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.Description = b.Description
-	x.JsonSchema = b.JsonSchema
-	x.Annotations = b.Annotations
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_JsonSchema = b.JsonSchema
+	x.xxx_hidden_Annotations = b.Annotations
 	return m0
 }
 
 // A tool call that the model wants to invoke.
 type ToolCall struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The id of this tool call.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The name of the tool to call.
-	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// The arguments to call the tool with.
-	Arguments *structpb.Struct `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
-	// Provider specific extra fields.
-	ExtraFields *structpb.Struct `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3" json:"extra_fields,omitempty"`
-	// Annotations populated from the tool that created this tool call.
-	Annotations   map[string]string `protobuf:"bytes,5,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id          string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,2,opt,name=name,proto3"`
+	xxx_hidden_Arguments   *structpb.Struct       `protobuf:"bytes,3,opt,name=arguments,proto3"`
+	xxx_hidden_ExtraFields *structpb.Struct       `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,5,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *ToolCall) Reset() {
@@ -245,79 +234,79 @@ func (x *ToolCall) ProtoReflect() protoreflect.Message {
 
 func (x *ToolCall) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *ToolCall) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *ToolCall) GetArguments() *structpb.Struct {
 	if x != nil {
-		return x.Arguments
+		return x.xxx_hidden_Arguments
 	}
 	return nil
 }
 
 func (x *ToolCall) GetExtraFields() *structpb.Struct {
 	if x != nil {
-		return x.ExtraFields
+		return x.xxx_hidden_ExtraFields
 	}
 	return nil
 }
 
 func (x *ToolCall) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.Annotations
+		return x.xxx_hidden_Annotations
 	}
 	return nil
 }
 
 func (x *ToolCall) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *ToolCall) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *ToolCall) SetArguments(v *structpb.Struct) {
-	x.Arguments = v
+	x.xxx_hidden_Arguments = v
 }
 
 func (x *ToolCall) SetExtraFields(v *structpb.Struct) {
-	x.ExtraFields = v
+	x.xxx_hidden_ExtraFields = v
 }
 
 func (x *ToolCall) SetAnnotations(v map[string]string) {
-	x.Annotations = v
+	x.xxx_hidden_Annotations = v
 }
 
 func (x *ToolCall) HasArguments() bool {
 	if x == nil {
 		return false
 	}
-	return x.Arguments != nil
+	return x.xxx_hidden_Arguments != nil
 }
 
 func (x *ToolCall) HasExtraFields() bool {
 	if x == nil {
 		return false
 	}
-	return x.ExtraFields != nil
+	return x.xxx_hidden_ExtraFields != nil
 }
 
 func (x *ToolCall) ClearArguments() {
-	x.Arguments = nil
+	x.xxx_hidden_Arguments = nil
 }
 
 func (x *ToolCall) ClearExtraFields() {
-	x.ExtraFields = nil
+	x.xxx_hidden_ExtraFields = nil
 }
 
 type ToolCall_builder struct {
@@ -339,27 +328,20 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 	m0 := &ToolCall{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Name = b.Name
-	x.Arguments = b.Arguments
-	x.ExtraFields = b.ExtraFields
-	x.Annotations = b.Annotations
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Arguments = b.Arguments
+	x.xxx_hidden_ExtraFields = b.ExtraFields
+	x.xxx_hidden_Annotations = b.Annotations
 	return m0
 }
 
 // The result of executing a tool call.
 type ToolResult struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The outcome of the tool execution.
-	//
-	// Types that are valid to be assigned to Result:
-	//
-	//	*ToolResult_Content
-	//	*ToolResult_StructuredContent
-	//	*ToolResult_Error
-	Result        isToolResult_Result `protobuf_oneof:"result"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Result isToolResult_Result    `protobuf_oneof:"result"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ToolResult) Reset() {
@@ -387,16 +369,9 @@ func (x *ToolResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ToolResult) GetResult() isToolResult_Result {
-	if x != nil {
-		return x.Result
-	}
-	return nil
-}
-
 func (x *ToolResult) GetContent() string {
 	if x != nil {
-		if x, ok := x.Result.(*ToolResult_Content); ok {
+		if x, ok := x.xxx_hidden_Result.(*toolResult_Content); ok {
 			return x.Content
 		}
 	}
@@ -405,7 +380,7 @@ func (x *ToolResult) GetContent() string {
 
 func (x *ToolResult) GetStructuredContent() *structpb.Value {
 	if x != nil {
-		if x, ok := x.Result.(*ToolResult_StructuredContent); ok {
+		if x, ok := x.xxx_hidden_Result.(*toolResult_StructuredContent); ok {
 			return x.StructuredContent
 		}
 	}
@@ -414,7 +389,7 @@ func (x *ToolResult) GetStructuredContent() *structpb.Value {
 
 func (x *ToolResult) GetError() *status.Status {
 	if x != nil {
-		if x, ok := x.Result.(*ToolResult_Error); ok {
+		if x, ok := x.xxx_hidden_Result.(*toolResult_Error); ok {
 			return x.Error
 		}
 	}
@@ -422,37 +397,37 @@ func (x *ToolResult) GetError() *status.Status {
 }
 
 func (x *ToolResult) SetContent(v string) {
-	x.Result = &ToolResult_Content{v}
+	x.xxx_hidden_Result = &toolResult_Content{v}
 }
 
 func (x *ToolResult) SetStructuredContent(v *structpb.Value) {
 	if v == nil {
-		x.Result = nil
+		x.xxx_hidden_Result = nil
 		return
 	}
-	x.Result = &ToolResult_StructuredContent{v}
+	x.xxx_hidden_Result = &toolResult_StructuredContent{v}
 }
 
 func (x *ToolResult) SetError(v *status.Status) {
 	if v == nil {
-		x.Result = nil
+		x.xxx_hidden_Result = nil
 		return
 	}
-	x.Result = &ToolResult_Error{v}
+	x.xxx_hidden_Result = &toolResult_Error{v}
 }
 
 func (x *ToolResult) HasResult() bool {
 	if x == nil {
 		return false
 	}
-	return x.Result != nil
+	return x.xxx_hidden_Result != nil
 }
 
 func (x *ToolResult) HasContent() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Result.(*ToolResult_Content)
+	_, ok := x.xxx_hidden_Result.(*toolResult_Content)
 	return ok
 }
 
@@ -460,7 +435,7 @@ func (x *ToolResult) HasStructuredContent() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Result.(*ToolResult_StructuredContent)
+	_, ok := x.xxx_hidden_Result.(*toolResult_StructuredContent)
 	return ok
 }
 
@@ -468,29 +443,29 @@ func (x *ToolResult) HasError() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Result.(*ToolResult_Error)
+	_, ok := x.xxx_hidden_Result.(*toolResult_Error)
 	return ok
 }
 
 func (x *ToolResult) ClearResult() {
-	x.Result = nil
+	x.xxx_hidden_Result = nil
 }
 
 func (x *ToolResult) ClearContent() {
-	if _, ok := x.Result.(*ToolResult_Content); ok {
-		x.Result = nil
+	if _, ok := x.xxx_hidden_Result.(*toolResult_Content); ok {
+		x.xxx_hidden_Result = nil
 	}
 }
 
 func (x *ToolResult) ClearStructuredContent() {
-	if _, ok := x.Result.(*ToolResult_StructuredContent); ok {
-		x.Result = nil
+	if _, ok := x.xxx_hidden_Result.(*toolResult_StructuredContent); ok {
+		x.xxx_hidden_Result = nil
 	}
 }
 
 func (x *ToolResult) ClearError() {
-	if _, ok := x.Result.(*ToolResult_Error); ok {
-		x.Result = nil
+	if _, ok := x.xxx_hidden_Result.(*toolResult_Error); ok {
+		x.xxx_hidden_Result = nil
 	}
 }
 
@@ -503,12 +478,12 @@ func (x *ToolResult) WhichResult() case_ToolResult_Result {
 	if x == nil {
 		return ToolResult_Result_not_set_case
 	}
-	switch x.Result.(type) {
-	case *ToolResult_Content:
+	switch x.xxx_hidden_Result.(type) {
+	case *toolResult_Content:
 		return ToolResult_Content_case
-	case *ToolResult_StructuredContent:
+	case *toolResult_StructuredContent:
 		return ToolResult_StructuredContent_case
-	case *ToolResult_Error:
+	case *toolResult_Error:
 		return ToolResult_Error_case
 	default:
 		return ToolResult_Result_not_set_case
@@ -520,7 +495,7 @@ type ToolResult_builder struct {
 
 	// The outcome of the tool execution.
 
-	// Fields of oneof Result:
+	// Fields of oneof xxx_hidden_Result:
 	// The output returned by the tool execution.
 	// May contain structured data (e.g., JSON) or plain text depending on the tool.
 	Content *string
@@ -528,7 +503,7 @@ type ToolResult_builder struct {
 	StructuredContent *structpb.Value
 	// Error if the tool execution failed.
 	Error *status.Status
-	// -- end of Result
+	// -- end of xxx_hidden_Result
 }
 
 func (b0 ToolResult_builder) Build() *ToolResult {
@@ -536,13 +511,13 @@ func (b0 ToolResult_builder) Build() *ToolResult {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Content != nil {
-		x.Result = &ToolResult_Content{*b.Content}
+		x.xxx_hidden_Result = &toolResult_Content{*b.Content}
 	}
 	if b.StructuredContent != nil {
-		x.Result = &ToolResult_StructuredContent{b.StructuredContent}
+		x.xxx_hidden_Result = &toolResult_StructuredContent{b.StructuredContent}
 	}
 	if b.Error != nil {
-		x.Result = &ToolResult_Error{b.Error}
+		x.xxx_hidden_Result = &toolResult_Error{b.Error}
 	}
 	return m0
 }
@@ -561,40 +536,34 @@ type isToolResult_Result interface {
 	isToolResult_Result()
 }
 
-type ToolResult_Content struct {
+type toolResult_Content struct {
 	// The output returned by the tool execution.
 	// May contain structured data (e.g., JSON) or plain text depending on the tool.
 	Content string `protobuf:"bytes,1,opt,name=content,proto3,oneof"`
 }
 
-type ToolResult_StructuredContent struct {
+type toolResult_StructuredContent struct {
 	// The output returned by the tool execution as structured data.
 	StructuredContent *structpb.Value `protobuf:"bytes,2,opt,name=structured_content,json=structuredContent,proto3,oneof"`
 }
 
-type ToolResult_Error struct {
+type toolResult_Error struct {
 	// Error if the tool execution failed.
 	Error *status.Status `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
 }
 
-func (*ToolResult_Content) isToolResult_Result() {}
+func (*toolResult_Content) isToolResult_Result() {}
 
-func (*ToolResult_StructuredContent) isToolResult_Result() {}
+func (*toolResult_StructuredContent) isToolResult_Result() {}
 
-func (*ToolResult_Error) isToolResult_Result() {}
+func (*toolResult_Error) isToolResult_Result() {}
 
 // Controls which tool(s) the model should use.
 type ToolChoice struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The choice.
-	//
-	// Types that are valid to be assigned to Choice:
-	//
-	//	*ToolChoice_Mode
-	//	*ToolChoice_ToolName
-	Choice        isToolChoice_Choice `protobuf_oneof:"choice"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Choice isToolChoice_Choice    `protobuf_oneof:"choice"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ToolChoice) Reset() {
@@ -622,16 +591,9 @@ func (x *ToolChoice) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ToolChoice) GetChoice() isToolChoice_Choice {
-	if x != nil {
-		return x.Choice
-	}
-	return nil
-}
-
 func (x *ToolChoice) GetMode() ToolChoiceMode {
 	if x != nil {
-		if x, ok := x.Choice.(*ToolChoice_Mode); ok {
+		if x, ok := x.xxx_hidden_Choice.(*toolChoice_Mode); ok {
 			return x.Mode
 		}
 	}
@@ -640,7 +602,7 @@ func (x *ToolChoice) GetMode() ToolChoiceMode {
 
 func (x *ToolChoice) GetToolName() string {
 	if x != nil {
-		if x, ok := x.Choice.(*ToolChoice_ToolName); ok {
+		if x, ok := x.xxx_hidden_Choice.(*toolChoice_ToolName); ok {
 			return x.ToolName
 		}
 	}
@@ -648,25 +610,25 @@ func (x *ToolChoice) GetToolName() string {
 }
 
 func (x *ToolChoice) SetMode(v ToolChoiceMode) {
-	x.Choice = &ToolChoice_Mode{v}
+	x.xxx_hidden_Choice = &toolChoice_Mode{v}
 }
 
 func (x *ToolChoice) SetToolName(v string) {
-	x.Choice = &ToolChoice_ToolName{v}
+	x.xxx_hidden_Choice = &toolChoice_ToolName{v}
 }
 
 func (x *ToolChoice) HasChoice() bool {
 	if x == nil {
 		return false
 	}
-	return x.Choice != nil
+	return x.xxx_hidden_Choice != nil
 }
 
 func (x *ToolChoice) HasMode() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Choice.(*ToolChoice_Mode)
+	_, ok := x.xxx_hidden_Choice.(*toolChoice_Mode)
 	return ok
 }
 
@@ -674,23 +636,23 @@ func (x *ToolChoice) HasToolName() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Choice.(*ToolChoice_ToolName)
+	_, ok := x.xxx_hidden_Choice.(*toolChoice_ToolName)
 	return ok
 }
 
 func (x *ToolChoice) ClearChoice() {
-	x.Choice = nil
+	x.xxx_hidden_Choice = nil
 }
 
 func (x *ToolChoice) ClearMode() {
-	if _, ok := x.Choice.(*ToolChoice_Mode); ok {
-		x.Choice = nil
+	if _, ok := x.xxx_hidden_Choice.(*toolChoice_Mode); ok {
+		x.xxx_hidden_Choice = nil
 	}
 }
 
 func (x *ToolChoice) ClearToolName() {
-	if _, ok := x.Choice.(*ToolChoice_ToolName); ok {
-		x.Choice = nil
+	if _, ok := x.xxx_hidden_Choice.(*toolChoice_ToolName); ok {
+		x.xxx_hidden_Choice = nil
 	}
 }
 
@@ -702,10 +664,10 @@ func (x *ToolChoice) WhichChoice() case_ToolChoice_Choice {
 	if x == nil {
 		return ToolChoice_Choice_not_set_case
 	}
-	switch x.Choice.(type) {
-	case *ToolChoice_Mode:
+	switch x.xxx_hidden_Choice.(type) {
+	case *toolChoice_Mode:
 		return ToolChoice_Mode_case
-	case *ToolChoice_ToolName:
+	case *toolChoice_ToolName:
 		return ToolChoice_ToolName_case
 	default:
 		return ToolChoice_Choice_not_set_case
@@ -717,12 +679,12 @@ type ToolChoice_builder struct {
 
 	// The choice.
 
-	// Fields of oneof Choice:
+	// Fields of oneof xxx_hidden_Choice:
 	// Let the model decide whether to call a tool.
 	Mode *ToolChoiceMode
 	// Force the model to call a specific tool by name.
 	ToolName *string
-	// -- end of Choice
+	// -- end of xxx_hidden_Choice
 }
 
 func (b0 ToolChoice_builder) Build() *ToolChoice {
@@ -730,10 +692,10 @@ func (b0 ToolChoice_builder) Build() *ToolChoice {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Mode != nil {
-		x.Choice = &ToolChoice_Mode{*b.Mode}
+		x.xxx_hidden_Choice = &toolChoice_Mode{*b.Mode}
 	}
 	if b.ToolName != nil {
-		x.Choice = &ToolChoice_ToolName{*b.ToolName}
+		x.xxx_hidden_Choice = &toolChoice_ToolName{*b.ToolName}
 	}
 	return m0
 }
@@ -752,19 +714,19 @@ type isToolChoice_Choice interface {
 	isToolChoice_Choice()
 }
 
-type ToolChoice_Mode struct {
+type toolChoice_Mode struct {
 	// Let the model decide whether to call a tool.
 	Mode ToolChoiceMode `protobuf:"varint,1,opt,name=mode,proto3,enum=malonaz.ai.v1.ToolChoiceMode,oneof"`
 }
 
-type ToolChoice_ToolName struct {
+type toolChoice_ToolName struct {
 	// Force the model to call a specific tool by name.
 	ToolName string `protobuf:"bytes,2,opt,name=tool_name,json=toolName,proto3,oneof"`
 }
 
-func (*ToolChoice_Mode) isToolChoice_Choice() {}
+func (*toolChoice_Mode) isToolChoice_Choice() {}
 
-func (*ToolChoice_ToolName) isToolChoice_Choice() {}
+func (*toolChoice_ToolName) isToolChoice_Choice() {}
 
 var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
@@ -844,13 +806,13 @@ func file_malonaz_ai_v1_tool_proto_init() {
 		return
 	}
 	file_malonaz_ai_v1_tool_proto_msgTypes[2].OneofWrappers = []any{
-		(*ToolResult_Content)(nil),
-		(*ToolResult_StructuredContent)(nil),
-		(*ToolResult_Error)(nil),
+		(*toolResult_Content)(nil),
+		(*toolResult_StructuredContent)(nil),
+		(*toolResult_Error)(nil),
 	}
 	file_malonaz_ai_v1_tool_proto_msgTypes[3].OneofWrappers = []any{
-		(*ToolChoice_Mode)(nil),
-		(*ToolChoice_ToolName)(nil),
+		(*toolChoice_Mode)(nil),
+		(*toolChoice_ToolName)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

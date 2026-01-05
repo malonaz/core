@@ -28,13 +28,13 @@ go_library(
         "//third_party/go:go.einride.tech__spanner-aip__spanfiltering",
         "//third_party/go:go.einride.tech__spanner-aip__spanordering",
         "//third_party/go:golang.org__x__sync__errgroup",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__expr__v1alpha1",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__api__expr__v1alpha1",
     ],
 )
 

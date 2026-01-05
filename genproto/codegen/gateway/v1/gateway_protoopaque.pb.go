@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/codegen/gateway/v1/gateway.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -28,7 +28,7 @@ const (
 // Currently empty but can be extended with service-wide gateway configurations
 // such as authentication requirements, rate limiting, or routing rules.
 type ServiceOpts struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -73,19 +73,11 @@ func (b0 ServiceOpts_builder) Build() *ServiceOpts {
 // HandlerOpts defines gateway-specific options for individual RPC methods.
 // Controls how the gateway generates and handles the method implementation.
 type HandlerOpts struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// custom indicates whether this method uses a custom handler implementation.
-	// When true, the code generator will skip generating the default pass-through
-	// handler for this method, expecting the developer to provide a custom
-	// implementation. This is useful for methods that require special logic,
-	// transformation, aggregation, or integration with multiple backend services.
-	//
-	// Default: false (auto-generate standard pass-through handler)
-	Custom bool `protobuf:"varint,1,opt,name=custom,proto3" json:"custom,omitempty"`
-	// A field mask to be applied on response objects.
-	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Custom    bool                   `protobuf:"varint,1,opt,name=custom,proto3"`
+	xxx_hidden_FieldMask *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *HandlerOpts) Reset() {
@@ -115,35 +107,35 @@ func (x *HandlerOpts) ProtoReflect() protoreflect.Message {
 
 func (x *HandlerOpts) GetCustom() bool {
 	if x != nil {
-		return x.Custom
+		return x.xxx_hidden_Custom
 	}
 	return false
 }
 
 func (x *HandlerOpts) GetFieldMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.FieldMask
+		return x.xxx_hidden_FieldMask
 	}
 	return nil
 }
 
 func (x *HandlerOpts) SetCustom(v bool) {
-	x.Custom = v
+	x.xxx_hidden_Custom = v
 }
 
 func (x *HandlerOpts) SetFieldMask(v *fieldmaskpb.FieldMask) {
-	x.FieldMask = v
+	x.xxx_hidden_FieldMask = v
 }
 
 func (x *HandlerOpts) HasFieldMask() bool {
 	if x == nil {
 		return false
 	}
-	return x.FieldMask != nil
+	return x.xxx_hidden_FieldMask != nil
 }
 
 func (x *HandlerOpts) ClearFieldMask() {
-	x.FieldMask = nil
+	x.xxx_hidden_FieldMask = nil
 }
 
 type HandlerOpts_builder struct {
@@ -165,8 +157,8 @@ func (b0 HandlerOpts_builder) Build() *HandlerOpts {
 	m0 := &HandlerOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Custom = b.Custom
-	x.FieldMask = b.FieldMask
+	x.xxx_hidden_Custom = b.Custom
+	x.xxx_hidden_FieldMask = b.FieldMask
 	return m0
 }
 

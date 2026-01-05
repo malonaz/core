@@ -14,7 +14,7 @@
         }
     },
     "known_dependency": {
-        "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate": "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
+        "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate": "//third_party/proto:validate",
         "buf.build/go/protovalidate": "//third_party/go:buf.build__go__protovalidate",
         "buf.build/go/protovalidate/cel": "//third_party/go:buf.build__go__protovalidate__cel",
         "cel.dev/expr": "//third_party/go:cel.dev__expr",
@@ -316,15 +316,14 @@
         "golang.org/x/text/unicode/bidi": "//third_party/go:golang.org__x__text__unicode__bidi",
         "golang.org/x/text/unicode/norm": "//third_party/go:golang.org__x__text__unicode__norm",
         "golang.org/x/text/width": "//third_party/go:golang.org__x__text__width",
-        "google.golang.org/genproto/googleapis/api": "//third_party/go:google.golang.org__genproto__googleapis__api",
-        "google.golang.org/genproto/googleapis/api/annotations": "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/go:google.golang.org__genproto__googleapis__api__expr__v1alpha1",
+        "google.golang.org/genproto/googleapis/api": "//third_party/proto:google__api",
+        "google.golang.org/genproto/googleapis/api/annotations": "//third_party/proto:google__api__annotations",
+        "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/proto:google__api__expr__v1alpha1",
         "google.golang.org/genproto/googleapis/api/httpbody": "//third_party/go:google.golang.org__genproto__googleapis__api__httpbody",
-        "google.golang.org/genproto/googleapis/api/visibility": "//third_party/go:google.golang.org__genproto__googleapis__api__visibility",
         "google.golang.org/genproto/googleapis/rpc/errdetails": "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
-        "google.golang.org/genproto/googleapis/rpc/status": "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
-        "google.golang.org/genproto/googleapis/type/date": "//third_party/go:google.golang.org__genproto__googleapis__type__date",
-        "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/go:google.golang.org__genproto__googleapis__type__postaladdress",
+        "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
+        "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
+        "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
         "google.golang.org/genproto/protobuf/field_mask": "//third_party/go:google.golang.org__genproto__protobuf__field_mask",
         "google.golang.org/grpc": "//third_party/go:google.golang.org__grpc",
         "google.golang.org/grpc/attributes": "//third_party/go:google.golang.org__grpc__attributes",
@@ -447,5 +446,14 @@
         "gopkg.in/yaml.v3": "//third_party/go:gopkg.in__yaml.v3",
         "sigs.k8s.io/yaml": "//third_party/go:sigs.k8s.io__yaml",
         "sigs.k8s.io/yaml/goyaml.v2": "//third_party/go:sigs.k8s.io__yaml__goyaml.v2"
+    },
+    "manual_known_dependency": {
+        "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate": "//third_party/proto:validate",
+        "google.golang.org/genproto/googleapis/api": "//third_party/proto:google__api",
+        "google.golang.org/genproto/googleapis/api/annotations": "//third_party/proto:google__api__annotations",
+        "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/proto:google__api__expr__v1alpha1",
+        "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
+        "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
+        "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress"
     }
 }

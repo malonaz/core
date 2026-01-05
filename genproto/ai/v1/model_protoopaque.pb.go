@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/v1/model.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -30,13 +30,11 @@ const (
 
 // Holds a provider config.
 type ProviderModelConfig struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The id of the provider.
-	ProviderId string `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	// The models of this provider.
-	Models        []*Model `protobuf:"bytes,2,rep,name=models,proto3" json:"models,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ProviderId string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3"`
+	xxx_hidden_Models     *[]*Model              `protobuf:"bytes,2,rep,name=models,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ProviderModelConfig) Reset() {
@@ -66,24 +64,26 @@ func (x *ProviderModelConfig) ProtoReflect() protoreflect.Message {
 
 func (x *ProviderModelConfig) GetProviderId() string {
 	if x != nil {
-		return x.ProviderId
+		return x.xxx_hidden_ProviderId
 	}
 	return ""
 }
 
 func (x *ProviderModelConfig) GetModels() []*Model {
 	if x != nil {
-		return x.Models
+		if x.xxx_hidden_Models != nil {
+			return *x.xxx_hidden_Models
+		}
 	}
 	return nil
 }
 
 func (x *ProviderModelConfig) SetProviderId(v string) {
-	x.ProviderId = v
+	x.xxx_hidden_ProviderId = v
 }
 
 func (x *ProviderModelConfig) SetModels(v []*Model) {
-	x.Models = v
+	x.xxx_hidden_Models = &v
 }
 
 type ProviderModelConfig_builder struct {
@@ -99,42 +99,24 @@ func (b0 ProviderModelConfig_builder) Build() *ProviderModelConfig {
 	m0 := &ProviderModelConfig{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ProviderId = b.ProviderId
-	x.Models = b.Models
+	x.xxx_hidden_ProviderId = b.ProviderId
+	x.xxx_hidden_Models = &b.Models
 	return m0
 }
 
 // Contains configuration for a  model.
 type Model struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Required. The resource name of the `Model`.
-	// Format: `providers/{provider}/models/{model}` with a `{model}` naming convention of:
-	//
-	// * "{base_model_id}-{version}"
-	//
-	// Examples:
-	//
-	// * `providers/google/models/gemini-1.5-flash-001`
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The id used for this model by the provider.
-	// This is introduced to absorb bad provider model naming standards.
-	ProviderModelId string `protobuf:"bytes,2,opt,name=provider_model_id,json=providerModelId,proto3" json:"provider_model_id,omitempty"`
-	// A short description for this model.
-	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// The time at which this model was deprecated.
-	DeprecateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=deprecate_time,json=deprecateTime,proto3" json:"deprecate_time,omitempty"`
-	// Configuration for STT model.
-	Stt *SttModelConfig `protobuf:"bytes,5,opt,name=stt,proto3" json:"stt,omitempty"`
-	// Configuration for TTT model.
-	Ttt *TttModelConfig `protobuf:"bytes,6,opt,name=ttt,proto3" json:"ttt,omitempty"`
-	// Configuration for TTS model.
-	Tts *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
-	// Provider-specific settings and metadata.
-	// This allows flexibility for provider-specific features without
-	// modifying the core schema.
-	ProviderSettings *structpb.Struct `protobuf:"bytes,8,opt,name=provider_settings,json=providerSettings,proto3" json:"provider_settings,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name             string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_ProviderModelId  string                 `protobuf:"bytes,2,opt,name=provider_model_id,json=providerModelId,proto3"`
+	xxx_hidden_Description      string                 `protobuf:"bytes,3,opt,name=description,proto3"`
+	xxx_hidden_DeprecateTime    *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=deprecate_time,json=deprecateTime,proto3"`
+	xxx_hidden_Stt              *SttModelConfig        `protobuf:"bytes,5,opt,name=stt,proto3"`
+	xxx_hidden_Ttt              *TttModelConfig        `protobuf:"bytes,6,opt,name=ttt,proto3"`
+	xxx_hidden_Tts              *TtsModelConfig        `protobuf:"bytes,7,opt,name=tts,proto3"`
+	xxx_hidden_ProviderSettings *structpb.Struct       `protobuf:"bytes,8,opt,name=provider_settings,json=providerSettings,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *Model) Reset() {
@@ -164,145 +146,145 @@ func (x *Model) ProtoReflect() protoreflect.Message {
 
 func (x *Model) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Model) GetProviderModelId() string {
 	if x != nil {
-		return x.ProviderModelId
+		return x.xxx_hidden_ProviderModelId
 	}
 	return ""
 }
 
 func (x *Model) GetDescription() string {
 	if x != nil {
-		return x.Description
+		return x.xxx_hidden_Description
 	}
 	return ""
 }
 
 func (x *Model) GetDeprecateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.DeprecateTime
+		return x.xxx_hidden_DeprecateTime
 	}
 	return nil
 }
 
 func (x *Model) GetStt() *SttModelConfig {
 	if x != nil {
-		return x.Stt
+		return x.xxx_hidden_Stt
 	}
 	return nil
 }
 
 func (x *Model) GetTtt() *TttModelConfig {
 	if x != nil {
-		return x.Ttt
+		return x.xxx_hidden_Ttt
 	}
 	return nil
 }
 
 func (x *Model) GetTts() *TtsModelConfig {
 	if x != nil {
-		return x.Tts
+		return x.xxx_hidden_Tts
 	}
 	return nil
 }
 
 func (x *Model) GetProviderSettings() *structpb.Struct {
 	if x != nil {
-		return x.ProviderSettings
+		return x.xxx_hidden_ProviderSettings
 	}
 	return nil
 }
 
 func (x *Model) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Model) SetProviderModelId(v string) {
-	x.ProviderModelId = v
+	x.xxx_hidden_ProviderModelId = v
 }
 
 func (x *Model) SetDescription(v string) {
-	x.Description = v
+	x.xxx_hidden_Description = v
 }
 
 func (x *Model) SetDeprecateTime(v *timestamppb.Timestamp) {
-	x.DeprecateTime = v
+	x.xxx_hidden_DeprecateTime = v
 }
 
 func (x *Model) SetStt(v *SttModelConfig) {
-	x.Stt = v
+	x.xxx_hidden_Stt = v
 }
 
 func (x *Model) SetTtt(v *TttModelConfig) {
-	x.Ttt = v
+	x.xxx_hidden_Ttt = v
 }
 
 func (x *Model) SetTts(v *TtsModelConfig) {
-	x.Tts = v
+	x.xxx_hidden_Tts = v
 }
 
 func (x *Model) SetProviderSettings(v *structpb.Struct) {
-	x.ProviderSettings = v
+	x.xxx_hidden_ProviderSettings = v
 }
 
 func (x *Model) HasDeprecateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.DeprecateTime != nil
+	return x.xxx_hidden_DeprecateTime != nil
 }
 
 func (x *Model) HasStt() bool {
 	if x == nil {
 		return false
 	}
-	return x.Stt != nil
+	return x.xxx_hidden_Stt != nil
 }
 
 func (x *Model) HasTtt() bool {
 	if x == nil {
 		return false
 	}
-	return x.Ttt != nil
+	return x.xxx_hidden_Ttt != nil
 }
 
 func (x *Model) HasTts() bool {
 	if x == nil {
 		return false
 	}
-	return x.Tts != nil
+	return x.xxx_hidden_Tts != nil
 }
 
 func (x *Model) HasProviderSettings() bool {
 	if x == nil {
 		return false
 	}
-	return x.ProviderSettings != nil
+	return x.xxx_hidden_ProviderSettings != nil
 }
 
 func (x *Model) ClearDeprecateTime() {
-	x.DeprecateTime = nil
+	x.xxx_hidden_DeprecateTime = nil
 }
 
 func (x *Model) ClearStt() {
-	x.Stt = nil
+	x.xxx_hidden_Stt = nil
 }
 
 func (x *Model) ClearTtt() {
-	x.Ttt = nil
+	x.xxx_hidden_Ttt = nil
 }
 
 func (x *Model) ClearTts() {
-	x.Tts = nil
+	x.xxx_hidden_Tts = nil
 }
 
 func (x *Model) ClearProviderSettings() {
-	x.ProviderSettings = nil
+	x.xxx_hidden_ProviderSettings = nil
 }
 
 type Model_builder struct {
@@ -340,20 +322,20 @@ func (b0 Model_builder) Build() *Model {
 	m0 := &Model{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.ProviderModelId = b.ProviderModelId
-	x.Description = b.Description
-	x.DeprecateTime = b.DeprecateTime
-	x.Stt = b.Stt
-	x.Ttt = b.Ttt
-	x.Tts = b.Tts
-	x.ProviderSettings = b.ProviderSettings
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_ProviderModelId = b.ProviderModelId
+	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_DeprecateTime = b.DeprecateTime
+	x.xxx_hidden_Stt = b.Stt
+	x.xxx_hidden_Ttt = b.Ttt
+	x.xxx_hidden_Tts = b.Tts
+	x.xxx_hidden_ProviderSettings = b.ProviderSettings
 	return m0
 }
 
 // Configuration for a speech to text model.
 type SttModelConfig struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -397,19 +379,14 @@ func (b0 SttModelConfig_builder) Build() *SttModelConfig {
 
 // Configuration for a ttt model.
 type TttModelConfig struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// True if the model supports reasoning.
-	Reasoning bool `protobuf:"varint,1,opt,name=reasoning,proto3" json:"reasoning,omitempty"`
-	// True if the model support tool calling.
-	ToolCall bool `protobuf:"varint,2,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
-	// The maximum number of tokens in the model's context window.
-	ContextTokenLimit int32 `protobuf:"varint,3,opt,name=context_token_limit,json=contextTokenLimit,proto3" json:"context_token_limit,omitempty"`
-	// The maximum number of tokens the model can generate in a single response.
-	OutputTokenLimit int32 `protobuf:"varint,4,opt,name=output_token_limit,json=outputTokenLimit,proto3" json:"output_token_limit,omitempty"`
-	// Pricing for this model.
-	Pricing       *TttModelPricing `protobuf:"bytes,5,opt,name=pricing,proto3" json:"pricing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Reasoning         bool                   `protobuf:"varint,1,opt,name=reasoning,proto3"`
+	xxx_hidden_ToolCall          bool                   `protobuf:"varint,2,opt,name=tool_call,json=toolCall,proto3"`
+	xxx_hidden_ContextTokenLimit int32                  `protobuf:"varint,3,opt,name=context_token_limit,json=contextTokenLimit,proto3"`
+	xxx_hidden_OutputTokenLimit  int32                  `protobuf:"varint,4,opt,name=output_token_limit,json=outputTokenLimit,proto3"`
+	xxx_hidden_Pricing           *TttModelPricing       `protobuf:"bytes,5,opt,name=pricing,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *TttModelConfig) Reset() {
@@ -439,68 +416,68 @@ func (x *TttModelConfig) ProtoReflect() protoreflect.Message {
 
 func (x *TttModelConfig) GetReasoning() bool {
 	if x != nil {
-		return x.Reasoning
+		return x.xxx_hidden_Reasoning
 	}
 	return false
 }
 
 func (x *TttModelConfig) GetToolCall() bool {
 	if x != nil {
-		return x.ToolCall
+		return x.xxx_hidden_ToolCall
 	}
 	return false
 }
 
 func (x *TttModelConfig) GetContextTokenLimit() int32 {
 	if x != nil {
-		return x.ContextTokenLimit
+		return x.xxx_hidden_ContextTokenLimit
 	}
 	return 0
 }
 
 func (x *TttModelConfig) GetOutputTokenLimit() int32 {
 	if x != nil {
-		return x.OutputTokenLimit
+		return x.xxx_hidden_OutputTokenLimit
 	}
 	return 0
 }
 
 func (x *TttModelConfig) GetPricing() *TttModelPricing {
 	if x != nil {
-		return x.Pricing
+		return x.xxx_hidden_Pricing
 	}
 	return nil
 }
 
 func (x *TttModelConfig) SetReasoning(v bool) {
-	x.Reasoning = v
+	x.xxx_hidden_Reasoning = v
 }
 
 func (x *TttModelConfig) SetToolCall(v bool) {
-	x.ToolCall = v
+	x.xxx_hidden_ToolCall = v
 }
 
 func (x *TttModelConfig) SetContextTokenLimit(v int32) {
-	x.ContextTokenLimit = v
+	x.xxx_hidden_ContextTokenLimit = v
 }
 
 func (x *TttModelConfig) SetOutputTokenLimit(v int32) {
-	x.OutputTokenLimit = v
+	x.xxx_hidden_OutputTokenLimit = v
 }
 
 func (x *TttModelConfig) SetPricing(v *TttModelPricing) {
-	x.Pricing = v
+	x.xxx_hidden_Pricing = v
 }
 
 func (x *TttModelConfig) HasPricing() bool {
 	if x == nil {
 		return false
 	}
-	return x.Pricing != nil
+	return x.xxx_hidden_Pricing != nil
 }
 
 func (x *TttModelConfig) ClearPricing() {
-	x.Pricing = nil
+	x.xxx_hidden_Pricing = nil
 }
 
 type TttModelConfig_builder struct {
@@ -522,29 +499,24 @@ func (b0 TttModelConfig_builder) Build() *TttModelConfig {
 	m0 := &TttModelConfig{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Reasoning = b.Reasoning
-	x.ToolCall = b.ToolCall
-	x.ContextTokenLimit = b.ContextTokenLimit
-	x.OutputTokenLimit = b.OutputTokenLimit
-	x.Pricing = b.Pricing
+	x.xxx_hidden_Reasoning = b.Reasoning
+	x.xxx_hidden_ToolCall = b.ToolCall
+	x.xxx_hidden_ContextTokenLimit = b.ContextTokenLimit
+	x.xxx_hidden_OutputTokenLimit = b.OutputTokenLimit
+	x.xxx_hidden_Pricing = b.Pricing
 	return m0
 }
 
 // Pricing for a ttt model.
 type TttModelPricing struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Price per million input tokens in dollars.
-	InputTokenPricePerMillion float64 `protobuf:"fixed64,1,opt,name=input_token_price_per_million,json=inputTokenPricePerMillion,proto3" json:"input_token_price_per_million,omitempty"`
-	// Price per million output tokens in dollars.
-	OutputTokenPricePerMillion float64 `protobuf:"fixed64,2,opt,name=output_token_price_per_million,json=outputTokenPricePerMillion,proto3" json:"output_token_price_per_million,omitempty"`
-	// Price per million output reasoning tokens in dollars.
-	OutputReasoningTokenPricePerMillion float64 `protobuf:"fixed64,3,opt,name=output_reasoning_token_price_per_million,json=outputReasoningTokenPricePerMillion,proto3" json:"output_reasoning_token_price_per_million,omitempty"`
-	// Price per million cache read tokens in dollars.
-	InputCacheReadTokenPricePerMillion float64 `protobuf:"fixed64,4,opt,name=input_cache_read_token_price_per_million,json=inputCacheReadTokenPricePerMillion,proto3" json:"input_cache_read_token_price_per_million,omitempty"`
-	// Price per million cache write tokens in dollars.
-	InputCacheWriteTokenPricePerMillion float64 `protobuf:"fixed64,5,opt,name=input_cache_write_token_price_per_million,json=inputCacheWriteTokenPricePerMillion,proto3" json:"input_cache_write_token_price_per_million,omitempty"`
-	unknownFields                       protoimpl.UnknownFields
-	sizeCache                           protoimpl.SizeCache
+	state                                          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_InputTokenPricePerMillion           float64                `protobuf:"fixed64,1,opt,name=input_token_price_per_million,json=inputTokenPricePerMillion,proto3"`
+	xxx_hidden_OutputTokenPricePerMillion          float64                `protobuf:"fixed64,2,opt,name=output_token_price_per_million,json=outputTokenPricePerMillion,proto3"`
+	xxx_hidden_OutputReasoningTokenPricePerMillion float64                `protobuf:"fixed64,3,opt,name=output_reasoning_token_price_per_million,json=outputReasoningTokenPricePerMillion,proto3"`
+	xxx_hidden_InputCacheReadTokenPricePerMillion  float64                `protobuf:"fixed64,4,opt,name=input_cache_read_token_price_per_million,json=inputCacheReadTokenPricePerMillion,proto3"`
+	xxx_hidden_InputCacheWriteTokenPricePerMillion float64                `protobuf:"fixed64,5,opt,name=input_cache_write_token_price_per_million,json=inputCacheWriteTokenPricePerMillion,proto3"`
+	unknownFields                                  protoimpl.UnknownFields
+	sizeCache                                      protoimpl.SizeCache
 }
 
 func (x *TttModelPricing) Reset() {
@@ -574,57 +546,57 @@ func (x *TttModelPricing) ProtoReflect() protoreflect.Message {
 
 func (x *TttModelPricing) GetInputTokenPricePerMillion() float64 {
 	if x != nil {
-		return x.InputTokenPricePerMillion
+		return x.xxx_hidden_InputTokenPricePerMillion
 	}
 	return 0
 }
 
 func (x *TttModelPricing) GetOutputTokenPricePerMillion() float64 {
 	if x != nil {
-		return x.OutputTokenPricePerMillion
+		return x.xxx_hidden_OutputTokenPricePerMillion
 	}
 	return 0
 }
 
 func (x *TttModelPricing) GetOutputReasoningTokenPricePerMillion() float64 {
 	if x != nil {
-		return x.OutputReasoningTokenPricePerMillion
+		return x.xxx_hidden_OutputReasoningTokenPricePerMillion
 	}
 	return 0
 }
 
 func (x *TttModelPricing) GetInputCacheReadTokenPricePerMillion() float64 {
 	if x != nil {
-		return x.InputCacheReadTokenPricePerMillion
+		return x.xxx_hidden_InputCacheReadTokenPricePerMillion
 	}
 	return 0
 }
 
 func (x *TttModelPricing) GetInputCacheWriteTokenPricePerMillion() float64 {
 	if x != nil {
-		return x.InputCacheWriteTokenPricePerMillion
+		return x.xxx_hidden_InputCacheWriteTokenPricePerMillion
 	}
 	return 0
 }
 
 func (x *TttModelPricing) SetInputTokenPricePerMillion(v float64) {
-	x.InputTokenPricePerMillion = v
+	x.xxx_hidden_InputTokenPricePerMillion = v
 }
 
 func (x *TttModelPricing) SetOutputTokenPricePerMillion(v float64) {
-	x.OutputTokenPricePerMillion = v
+	x.xxx_hidden_OutputTokenPricePerMillion = v
 }
 
 func (x *TttModelPricing) SetOutputReasoningTokenPricePerMillion(v float64) {
-	x.OutputReasoningTokenPricePerMillion = v
+	x.xxx_hidden_OutputReasoningTokenPricePerMillion = v
 }
 
 func (x *TttModelPricing) SetInputCacheReadTokenPricePerMillion(v float64) {
-	x.InputCacheReadTokenPricePerMillion = v
+	x.xxx_hidden_InputCacheReadTokenPricePerMillion = v
 }
 
 func (x *TttModelPricing) SetInputCacheWriteTokenPricePerMillion(v float64) {
-	x.InputCacheWriteTokenPricePerMillion = v
+	x.xxx_hidden_InputCacheWriteTokenPricePerMillion = v
 }
 
 type TttModelPricing_builder struct {
@@ -646,23 +618,21 @@ func (b0 TttModelPricing_builder) Build() *TttModelPricing {
 	m0 := &TttModelPricing{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.InputTokenPricePerMillion = b.InputTokenPricePerMillion
-	x.OutputTokenPricePerMillion = b.OutputTokenPricePerMillion
-	x.OutputReasoningTokenPricePerMillion = b.OutputReasoningTokenPricePerMillion
-	x.InputCacheReadTokenPricePerMillion = b.InputCacheReadTokenPricePerMillion
-	x.InputCacheWriteTokenPricePerMillion = b.InputCacheWriteTokenPricePerMillion
+	x.xxx_hidden_InputTokenPricePerMillion = b.InputTokenPricePerMillion
+	x.xxx_hidden_OutputTokenPricePerMillion = b.OutputTokenPricePerMillion
+	x.xxx_hidden_OutputReasoningTokenPricePerMillion = b.OutputReasoningTokenPricePerMillion
+	x.xxx_hidden_InputCacheReadTokenPricePerMillion = b.InputCacheReadTokenPricePerMillion
+	x.xxx_hidden_InputCacheWriteTokenPricePerMillion = b.InputCacheWriteTokenPricePerMillion
 	return m0
 }
 
 // Configuration for a tts model.
 type TtsModelConfig struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Default audio format of the output of this model.
-	AudioFormat *v1.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3" json:"audio_format,omitempty"`
-	// Supported sample rates.
-	SupportedSampleRates []int32 `protobuf:"varint,2,rep,packed,name=supported_sample_rates,json=supportedSampleRates,proto3" json:"supported_sample_rates,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_AudioFormat          *v1.Format             `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3"`
+	xxx_hidden_SupportedSampleRates []int32                `protobuf:"varint,2,rep,packed,name=supported_sample_rates,json=supportedSampleRates,proto3"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *TtsModelConfig) Reset() {
@@ -692,35 +662,35 @@ func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
 
 func (x *TtsModelConfig) GetAudioFormat() *v1.Format {
 	if x != nil {
-		return x.AudioFormat
+		return x.xxx_hidden_AudioFormat
 	}
 	return nil
 }
 
 func (x *TtsModelConfig) GetSupportedSampleRates() []int32 {
 	if x != nil {
-		return x.SupportedSampleRates
+		return x.xxx_hidden_SupportedSampleRates
 	}
 	return nil
 }
 
 func (x *TtsModelConfig) SetAudioFormat(v *v1.Format) {
-	x.AudioFormat = v
+	x.xxx_hidden_AudioFormat = v
 }
 
 func (x *TtsModelConfig) SetSupportedSampleRates(v []int32) {
-	x.SupportedSampleRates = v
+	x.xxx_hidden_SupportedSampleRates = v
 }
 
 func (x *TtsModelConfig) HasAudioFormat() bool {
 	if x == nil {
 		return false
 	}
-	return x.AudioFormat != nil
+	return x.xxx_hidden_AudioFormat != nil
 }
 
 func (x *TtsModelConfig) ClearAudioFormat() {
-	x.AudioFormat = nil
+	x.xxx_hidden_AudioFormat = nil
 }
 
 type TtsModelConfig_builder struct {
@@ -736,8 +706,8 @@ func (b0 TtsModelConfig_builder) Build() *TtsModelConfig {
 	m0 := &TtsModelConfig{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.AudioFormat = b.AudioFormat
-	x.SupportedSampleRates = b.SupportedSampleRates
+	x.xxx_hidden_AudioFormat = b.AudioFormat
+	x.xxx_hidden_SupportedSampleRates = b.SupportedSampleRates
 	return m0
 }
 

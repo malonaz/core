@@ -24,7 +24,6 @@ go_library(
         "//third_party/go:github.com__prometheus__client_golang__prometheus",
         "//third_party/go:github.com__sercand__kuberesolver__v5",
         "//third_party/go:golang.org__x__net__context",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__balancer__roundrobin",
@@ -44,5 +43,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/proto:google__api__annotations",
     ],
 )

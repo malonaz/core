@@ -1,7 +1,6 @@
 package dummy
 
 import (
-	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/bazelbuild/buildtools/build"
 	_ "github.com/golang/protobuf/descriptor"
 	_ "github.com/golang/protobuf/ptypes/any"
@@ -17,10 +16,6 @@ import (
 	_ "github.com/spf13/cobra"
 	_ "go.einride.tech/aip/cmd/protoc-gen-go-aip"
 	_ "golang.org/x/mod/modfile"
-	_ "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
-	_ "google.golang.org/genproto/googleapis/api/visibility"
-	_ "google.golang.org/genproto/googleapis/type/date"
-	_ "google.golang.org/genproto/googleapis/type/postaladdress"
 	_ "google.golang.org/grpc/metadata"
 	_ "google.golang.org/grpc/status"
 	_ "google.golang.org/protobuf/compiler/protogen"

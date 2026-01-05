@@ -21,7 +21,7 @@ preloadsubincludes = ///shell//build_defs:shell
 preloadSubincludes = ///python//build_defs:python
 preloadsubincludes = ///go//build_defs:go
 preloadsubincludes = ///proto//build_defs:proto
-preloadsubincludes = ///core//build_defs/proto:utils
+preloadsubincludes = //build_defs/proto:utils
 
 [Plugin "shell"]
 Target = //plugins:shell
@@ -39,6 +39,7 @@ CgoEnabled = true
 Target = //plugins:proto
 LanguageDef = //build_defs/proto:go
 LanguageDef = //build_defs/proto:js
+ProtocTool = //tools/proto:protoc
 
 [Plugin "core"]
 Target = //plugins:core

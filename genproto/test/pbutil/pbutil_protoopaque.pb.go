@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/test/pbutil/pbutil.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package aip
 
@@ -78,23 +78,16 @@ func (x ShelfType) Number() protoreflect.EnumNumber {
 
 // Shelf represents a collection of books.
 type Shelf struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource name of the shelf.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Display name of the shelf.
-	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// Creation timestamp.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// Last update timestamp.
-	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	// Type of shelf.
-	ShelfType ShelfType `protobuf:"varint,5,opt,name=shelf_type,json=shelfType,proto3,enum=test.pbutil.v1.ShelfType" json:"shelf_type,omitempty"`
-	// Books contained in this shelf.
-	Books []*Book `protobuf:"bytes,6,rep,name=books,proto3" json:"books,omitempty"`
-	// The author.
-	Author        *Author `protobuf:"bytes,7,opt,name=author,proto3" json:"author,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3"`
+	xxx_hidden_CreateTime  *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime  *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_ShelfType   ShelfType              `protobuf:"varint,5,opt,name=shelf_type,json=shelfType,proto3,enum=test.pbutil.v1.ShelfType"`
+	xxx_hidden_Books       *[]*Book               `protobuf:"bytes,6,rep,name=books,proto3"`
+	xxx_hidden_Author      *Author                `protobuf:"bytes,7,opt,name=author,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Shelf) Reset() {
@@ -124,112 +117,114 @@ func (x *Shelf) ProtoReflect() protoreflect.Message {
 
 func (x *Shelf) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Shelf) GetDisplayName() string {
 	if x != nil {
-		return x.DisplayName
+		return x.xxx_hidden_DisplayName
 	}
 	return ""
 }
 
 func (x *Shelf) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTime
+		return x.xxx_hidden_CreateTime
 	}
 	return nil
 }
 
 func (x *Shelf) GetUpdateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.UpdateTime
+		return x.xxx_hidden_UpdateTime
 	}
 	return nil
 }
 
 func (x *Shelf) GetShelfType() ShelfType {
 	if x != nil {
-		return x.ShelfType
+		return x.xxx_hidden_ShelfType
 	}
 	return ShelfType_SHELF_TYPE_UNSPECIFIED
 }
 
 func (x *Shelf) GetBooks() []*Book {
 	if x != nil {
-		return x.Books
+		if x.xxx_hidden_Books != nil {
+			return *x.xxx_hidden_Books
+		}
 	}
 	return nil
 }
 
 func (x *Shelf) GetAuthor() *Author {
 	if x != nil {
-		return x.Author
+		return x.xxx_hidden_Author
 	}
 	return nil
 }
 
 func (x *Shelf) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Shelf) SetDisplayName(v string) {
-	x.DisplayName = v
+	x.xxx_hidden_DisplayName = v
 }
 
 func (x *Shelf) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Shelf) SetUpdateTime(v *timestamppb.Timestamp) {
-	x.UpdateTime = v
+	x.xxx_hidden_UpdateTime = v
 }
 
 func (x *Shelf) SetShelfType(v ShelfType) {
-	x.ShelfType = v
+	x.xxx_hidden_ShelfType = v
 }
 
 func (x *Shelf) SetBooks(v []*Book) {
-	x.Books = v
+	x.xxx_hidden_Books = &v
 }
 
 func (x *Shelf) SetAuthor(v *Author) {
-	x.Author = v
+	x.xxx_hidden_Author = v
 }
 
 func (x *Shelf) HasCreateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CreateTime != nil
+	return x.xxx_hidden_CreateTime != nil
 }
 
 func (x *Shelf) HasUpdateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateTime != nil
+	return x.xxx_hidden_UpdateTime != nil
 }
 
 func (x *Shelf) HasAuthor() bool {
 	if x == nil {
 		return false
 	}
-	return x.Author != nil
+	return x.xxx_hidden_Author != nil
 }
 
 func (x *Shelf) ClearCreateTime() {
-	x.CreateTime = nil
+	x.xxx_hidden_CreateTime = nil
 }
 
 func (x *Shelf) ClearUpdateTime() {
-	x.UpdateTime = nil
+	x.xxx_hidden_UpdateTime = nil
 }
 
 func (x *Shelf) ClearAuthor() {
-	x.Author = nil
+	x.xxx_hidden_Author = nil
 }
 
 type Shelf_builder struct {
@@ -255,31 +250,26 @@ func (b0 Shelf_builder) Build() *Shelf {
 	m0 := &Shelf{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.DisplayName = b.DisplayName
-	x.CreateTime = b.CreateTime
-	x.UpdateTime = b.UpdateTime
-	x.ShelfType = b.ShelfType
-	x.Books = b.Books
-	x.Author = b.Author
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_DisplayName = b.DisplayName
+	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_UpdateTime = b.UpdateTime
+	x.xxx_hidden_ShelfType = b.ShelfType
+	x.xxx_hidden_Books = &b.Books
+	x.xxx_hidden_Author = b.Author
 	return m0
 }
 
 // Book represents a single book on a shelf.
 type Book struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource name of the book.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Title of the book.
-	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	// Author of the book.
-	Author string `protobuf:"bytes,3,opt,name=author,proto3" json:"author,omitempty"`
-	// Creation timestamp.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// Last update timestamp.
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name       string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Title      string                 `protobuf:"bytes,2,opt,name=title,proto3"`
+	xxx_hidden_Author     string                 `protobuf:"bytes,3,opt,name=author,proto3"`
+	xxx_hidden_CreateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=update_time,json=updateTime,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Book) Reset() {
@@ -309,79 +299,79 @@ func (x *Book) ProtoReflect() protoreflect.Message {
 
 func (x *Book) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Book) GetTitle() string {
 	if x != nil {
-		return x.Title
+		return x.xxx_hidden_Title
 	}
 	return ""
 }
 
 func (x *Book) GetAuthor() string {
 	if x != nil {
-		return x.Author
+		return x.xxx_hidden_Author
 	}
 	return ""
 }
 
 func (x *Book) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTime
+		return x.xxx_hidden_CreateTime
 	}
 	return nil
 }
 
 func (x *Book) GetUpdateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.UpdateTime
+		return x.xxx_hidden_UpdateTime
 	}
 	return nil
 }
 
 func (x *Book) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Book) SetTitle(v string) {
-	x.Title = v
+	x.xxx_hidden_Title = v
 }
 
 func (x *Book) SetAuthor(v string) {
-	x.Author = v
+	x.xxx_hidden_Author = v
 }
 
 func (x *Book) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Book) SetUpdateTime(v *timestamppb.Timestamp) {
-	x.UpdateTime = v
+	x.xxx_hidden_UpdateTime = v
 }
 
 func (x *Book) HasCreateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CreateTime != nil
+	return x.xxx_hidden_CreateTime != nil
 }
 
 func (x *Book) HasUpdateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateTime != nil
+	return x.xxx_hidden_UpdateTime != nil
 }
 
 func (x *Book) ClearCreateTime() {
-	x.CreateTime = nil
+	x.xxx_hidden_CreateTime = nil
 }
 
 func (x *Book) ClearUpdateTime() {
-	x.UpdateTime = nil
+	x.xxx_hidden_UpdateTime = nil
 }
 
 type Book_builder struct {
@@ -403,27 +393,23 @@ func (b0 Book_builder) Build() *Book {
 	m0 := &Book{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.Title = b.Title
-	x.Author = b.Author
-	x.CreateTime = b.CreateTime
-	x.UpdateTime = b.UpdateTime
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Title = b.Title
+	x.xxx_hidden_Author = b.Author
+	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_UpdateTime = b.UpdateTime
 	return m0
 }
 
 // Author represents a book author.
 type Author struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource name of the author.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Display name of the author.
-	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// Creation timestamp.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// Last update timestamp.
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3"`
+	xxx_hidden_CreateTime  *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime  *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=update_time,json=updateTime,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Author) Reset() {
@@ -453,68 +439,68 @@ func (x *Author) ProtoReflect() protoreflect.Message {
 
 func (x *Author) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Author) GetDisplayName() string {
 	if x != nil {
-		return x.DisplayName
+		return x.xxx_hidden_DisplayName
 	}
 	return ""
 }
 
 func (x *Author) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTime
+		return x.xxx_hidden_CreateTime
 	}
 	return nil
 }
 
 func (x *Author) GetUpdateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.UpdateTime
+		return x.xxx_hidden_UpdateTime
 	}
 	return nil
 }
 
 func (x *Author) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Author) SetDisplayName(v string) {
-	x.DisplayName = v
+	x.xxx_hidden_DisplayName = v
 }
 
 func (x *Author) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Author) SetUpdateTime(v *timestamppb.Timestamp) {
-	x.UpdateTime = v
+	x.xxx_hidden_UpdateTime = v
 }
 
 func (x *Author) HasCreateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CreateTime != nil
+	return x.xxx_hidden_CreateTime != nil
 }
 
 func (x *Author) HasUpdateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateTime != nil
+	return x.xxx_hidden_UpdateTime != nil
 }
 
 func (x *Author) ClearCreateTime() {
-	x.CreateTime = nil
+	x.xxx_hidden_CreateTime = nil
 }
 
 func (x *Author) ClearUpdateTime() {
-	x.UpdateTime = nil
+	x.xxx_hidden_UpdateTime = nil
 }
 
 type Author_builder struct {
@@ -534,10 +520,10 @@ func (b0 Author_builder) Build() *Author {
 	m0 := &Author{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.DisplayName = b.DisplayName
-	x.CreateTime = b.CreateTime
-	x.UpdateTime = b.UpdateTime
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_DisplayName = b.DisplayName
+	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_UpdateTime = b.UpdateTime
 	return m0
 }
 

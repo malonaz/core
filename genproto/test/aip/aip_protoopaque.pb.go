@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/test/aip/aip.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package aip
 
@@ -112,15 +112,12 @@ func (x MyNullableEnum) Number() protoreflect.EnumNumber {
 
 // ListResourcesRequest2 tests wildcard path filtering.
 type ListResourcesRequest2 struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// A filter.
-	Filter string `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
-	// A page size.
-	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// A page token.
-	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Filter    string                 `protobuf:"bytes,1,opt,name=filter,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *ListResourcesRequest2) Reset() {
@@ -150,35 +147,35 @@ func (x *ListResourcesRequest2) ProtoReflect() protoreflect.Message {
 
 func (x *ListResourcesRequest2) GetFilter() string {
 	if x != nil {
-		return x.Filter
+		return x.xxx_hidden_Filter
 	}
 	return ""
 }
 
 func (x *ListResourcesRequest2) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *ListResourcesRequest2) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *ListResourcesRequest2) SetFilter(v string) {
-	x.Filter = v
+	x.xxx_hidden_Filter = v
 }
 
 func (x *ListResourcesRequest2) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *ListResourcesRequest2) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 type ListResourcesRequest2_builder struct {
@@ -196,25 +193,21 @@ func (b0 ListResourcesRequest2_builder) Build() *ListResourcesRequest2 {
 	m0 := &ListResourcesRequest2{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Filter = b.Filter
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
+	x.xxx_hidden_Filter = b.Filter
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
 	return m0
 }
 
 // ListResourcesRequest tests list operation with filters, ordering, and aliases.
 type ListResourcesRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Filter expression for resources.
-	Filter string `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
-	// Maximum number of resources to return.
-	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// Pagination token from previous response.
-	PageToken string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	// Ordering clause for results.
-	OrderBy       string `protobuf:"bytes,4,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Filter    string                 `protobuf:"bytes,1,opt,name=filter,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_OrderBy   string                 `protobuf:"bytes,4,opt,name=order_by,json=orderBy,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *ListResourcesRequest) Reset() {
@@ -244,46 +237,46 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 func (x *ListResourcesRequest) GetFilter() string {
 	if x != nil {
-		return x.Filter
+		return x.xxx_hidden_Filter
 	}
 	return ""
 }
 
 func (x *ListResourcesRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *ListResourcesRequest) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *ListResourcesRequest) GetOrderBy() string {
 	if x != nil {
-		return x.OrderBy
+		return x.xxx_hidden_OrderBy
 	}
 	return ""
 }
 
 func (x *ListResourcesRequest) SetFilter(v string) {
-	x.Filter = v
+	x.xxx_hidden_Filter = v
 }
 
 func (x *ListResourcesRequest) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *ListResourcesRequest) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 func (x *ListResourcesRequest) SetOrderBy(v string) {
-	x.OrderBy = v
+	x.xxx_hidden_OrderBy = v
 }
 
 type ListResourcesRequest_builder struct {
@@ -303,22 +296,20 @@ func (b0 ListResourcesRequest_builder) Build() *ListResourcesRequest {
 	m0 := &ListResourcesRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Filter = b.Filter
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
-	x.OrderBy = b.OrderBy
+	x.xxx_hidden_Filter = b.Filter
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
+	x.xxx_hidden_OrderBy = b.OrderBy
 	return m0
 }
 
 // PaginateOnlyRequest tests pagination in isolation.
 type PaginateOnlyRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Maximum number of resources to return.
-	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// Pagination token from previous response.
-	PageToken     string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *PaginateOnlyRequest) Reset() {
@@ -348,24 +339,24 @@ func (x *PaginateOnlyRequest) ProtoReflect() protoreflect.Message {
 
 func (x *PaginateOnlyRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *PaginateOnlyRequest) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *PaginateOnlyRequest) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *PaginateOnlyRequest) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 type PaginateOnlyRequest_builder struct {
@@ -381,20 +372,18 @@ func (b0 PaginateOnlyRequest_builder) Build() *PaginateOnlyRequest {
 	m0 := &PaginateOnlyRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
 	return m0
 }
 
 // PaginateWithSmallDefaultRequest tests small page sizes.
 type PaginateWithSmallDefaultRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Maximum number of resources to return.
-	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// Pagination token from previous response.
-	PageToken     string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *PaginateWithSmallDefaultRequest) Reset() {
@@ -424,24 +413,24 @@ func (x *PaginateWithSmallDefaultRequest) ProtoReflect() protoreflect.Message {
 
 func (x *PaginateWithSmallDefaultRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *PaginateWithSmallDefaultRequest) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *PaginateWithSmallDefaultRequest) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *PaginateWithSmallDefaultRequest) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 type PaginateWithSmallDefaultRequest_builder struct {
@@ -457,44 +446,30 @@ func (b0 PaginateWithSmallDefaultRequest_builder) Build() *PaginateWithSmallDefa
 	m0 := &PaginateWithSmallDefaultRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
 	return m0
 }
 
 // Resource is a test message with nested fields.
 type Resource struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Name of this resource.
-	Name string `protobuf:"bytes,100,opt,name=name,proto3" json:"name,omitempty"`
-	// some id field.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// some timestmap.
-	CreateTimestamp int64 `protobuf:"varint,20,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
-	// some other timestamp.
-	UpdateTime int64 `protobuf:"varint,21,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	// Simple string field.
-	Field1 string `protobuf:"bytes,2,opt,name=field1,proto3" json:"field1,omitempty"`
-	// Nested resource for path mapping tests.
-	Nested *NestedResource `protobuf:"bytes,3,opt,name=nested,proto3" json:"nested,omitempty"`
-	// Second nested resource for full object updates.
-	Nested2 *NestedResource `protobuf:"bytes,4,opt,name=nested2,proto3" json:"nested2,omitempty"`
-	// Third nested resource for multi-column mapping.
-	Nested3 *NestedResource `protobuf:"bytes,5,opt,name=nested3,proto3" json:"nested3,omitempty"`
-	// Fourth nested resource for wildcard mapping.
-	Nested4 *NestedResource `protobuf:"bytes,6,opt,name=nested4,proto3" json:"nested4,omitempty"`
-	// Enum field for filter testing.
-	MyEnum MyEnum `protobuf:"varint,7,opt,name=my_enum,json=myEnum,proto3,enum=test.aip.v1.MyEnum" json:"my_enum,omitempty"`
-	// Some boolean field.
-	Deleted bool `protobuf:"varint,8,opt,name=deleted,proto3" json:"deleted,omitempty"`
-	// Nullable enum.
-	NullableEnum MyNullableEnum `protobuf:"varint,10,opt,name=nullable_enum,json=nullableEnum,proto3,enum=test.aip.v1.MyNullableEnum" json:"nullable_enum,omitempty"`
-	// A field with a column name change.
-	ColumnNameChanged int64 `protobuf:"varint,11,opt,name=column_name_changed,json=columnNameChanged,proto3" json:"column_name_changed,omitempty"`
-	// Nested resource with a name change.
-	NestedChanged *NestedResource `protobuf:"bytes,12,opt,name=nested_changed,json=nestedChanged,proto3" json:"nested_changed,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name              string                 `protobuf:"bytes,100,opt,name=name,proto3"`
+	xxx_hidden_Id                string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_CreateTimestamp   int64                  `protobuf:"varint,20,opt,name=create_timestamp,json=createTimestamp,proto3"`
+	xxx_hidden_UpdateTime        int64                  `protobuf:"varint,21,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_Field1            string                 `protobuf:"bytes,2,opt,name=field1,proto3"`
+	xxx_hidden_Nested            *NestedResource        `protobuf:"bytes,3,opt,name=nested,proto3"`
+	xxx_hidden_Nested2           *NestedResource        `protobuf:"bytes,4,opt,name=nested2,proto3"`
+	xxx_hidden_Nested3           *NestedResource        `protobuf:"bytes,5,opt,name=nested3,proto3"`
+	xxx_hidden_Nested4           *NestedResource        `protobuf:"bytes,6,opt,name=nested4,proto3"`
+	xxx_hidden_MyEnum            MyEnum                 `protobuf:"varint,7,opt,name=my_enum,json=myEnum,proto3,enum=test.aip.v1.MyEnum"`
+	xxx_hidden_Deleted           bool                   `protobuf:"varint,8,opt,name=deleted,proto3"`
+	xxx_hidden_NullableEnum      MyNullableEnum         `protobuf:"varint,10,opt,name=nullable_enum,json=nullableEnum,proto3,enum=test.aip.v1.MyNullableEnum"`
+	xxx_hidden_ColumnNameChanged int64                  `protobuf:"varint,11,opt,name=column_name_changed,json=columnNameChanged,proto3"`
+	xxx_hidden_NestedChanged     *NestedResource        `protobuf:"bytes,12,opt,name=nested_changed,json=nestedChanged,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *Resource) Reset() {
@@ -524,211 +499,211 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 func (x *Resource) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Resource) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *Resource) GetCreateTimestamp() int64 {
 	if x != nil {
-		return x.CreateTimestamp
+		return x.xxx_hidden_CreateTimestamp
 	}
 	return 0
 }
 
 func (x *Resource) GetUpdateTime() int64 {
 	if x != nil {
-		return x.UpdateTime
+		return x.xxx_hidden_UpdateTime
 	}
 	return 0
 }
 
 func (x *Resource) GetField1() string {
 	if x != nil {
-		return x.Field1
+		return x.xxx_hidden_Field1
 	}
 	return ""
 }
 
 func (x *Resource) GetNested() *NestedResource {
 	if x != nil {
-		return x.Nested
+		return x.xxx_hidden_Nested
 	}
 	return nil
 }
 
 func (x *Resource) GetNested2() *NestedResource {
 	if x != nil {
-		return x.Nested2
+		return x.xxx_hidden_Nested2
 	}
 	return nil
 }
 
 func (x *Resource) GetNested3() *NestedResource {
 	if x != nil {
-		return x.Nested3
+		return x.xxx_hidden_Nested3
 	}
 	return nil
 }
 
 func (x *Resource) GetNested4() *NestedResource {
 	if x != nil {
-		return x.Nested4
+		return x.xxx_hidden_Nested4
 	}
 	return nil
 }
 
 func (x *Resource) GetMyEnum() MyEnum {
 	if x != nil {
-		return x.MyEnum
+		return x.xxx_hidden_MyEnum
 	}
 	return MyEnum_MY_ENUM_UNSPECIFIED
 }
 
 func (x *Resource) GetDeleted() bool {
 	if x != nil {
-		return x.Deleted
+		return x.xxx_hidden_Deleted
 	}
 	return false
 }
 
 func (x *Resource) GetNullableEnum() MyNullableEnum {
 	if x != nil {
-		return x.NullableEnum
+		return x.xxx_hidden_NullableEnum
 	}
 	return MyNullableEnum_MY_NULLABLE_ENUM_UNSPECIFIED
 }
 
 func (x *Resource) GetColumnNameChanged() int64 {
 	if x != nil {
-		return x.ColumnNameChanged
+		return x.xxx_hidden_ColumnNameChanged
 	}
 	return 0
 }
 
 func (x *Resource) GetNestedChanged() *NestedResource {
 	if x != nil {
-		return x.NestedChanged
+		return x.xxx_hidden_NestedChanged
 	}
 	return nil
 }
 
 func (x *Resource) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Resource) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *Resource) SetCreateTimestamp(v int64) {
-	x.CreateTimestamp = v
+	x.xxx_hidden_CreateTimestamp = v
 }
 
 func (x *Resource) SetUpdateTime(v int64) {
-	x.UpdateTime = v
+	x.xxx_hidden_UpdateTime = v
 }
 
 func (x *Resource) SetField1(v string) {
-	x.Field1 = v
+	x.xxx_hidden_Field1 = v
 }
 
 func (x *Resource) SetNested(v *NestedResource) {
-	x.Nested = v
+	x.xxx_hidden_Nested = v
 }
 
 func (x *Resource) SetNested2(v *NestedResource) {
-	x.Nested2 = v
+	x.xxx_hidden_Nested2 = v
 }
 
 func (x *Resource) SetNested3(v *NestedResource) {
-	x.Nested3 = v
+	x.xxx_hidden_Nested3 = v
 }
 
 func (x *Resource) SetNested4(v *NestedResource) {
-	x.Nested4 = v
+	x.xxx_hidden_Nested4 = v
 }
 
 func (x *Resource) SetMyEnum(v MyEnum) {
-	x.MyEnum = v
+	x.xxx_hidden_MyEnum = v
 }
 
 func (x *Resource) SetDeleted(v bool) {
-	x.Deleted = v
+	x.xxx_hidden_Deleted = v
 }
 
 func (x *Resource) SetNullableEnum(v MyNullableEnum) {
-	x.NullableEnum = v
+	x.xxx_hidden_NullableEnum = v
 }
 
 func (x *Resource) SetColumnNameChanged(v int64) {
-	x.ColumnNameChanged = v
+	x.xxx_hidden_ColumnNameChanged = v
 }
 
 func (x *Resource) SetNestedChanged(v *NestedResource) {
-	x.NestedChanged = v
+	x.xxx_hidden_NestedChanged = v
 }
 
 func (x *Resource) HasNested() bool {
 	if x == nil {
 		return false
 	}
-	return x.Nested != nil
+	return x.xxx_hidden_Nested != nil
 }
 
 func (x *Resource) HasNested2() bool {
 	if x == nil {
 		return false
 	}
-	return x.Nested2 != nil
+	return x.xxx_hidden_Nested2 != nil
 }
 
 func (x *Resource) HasNested3() bool {
 	if x == nil {
 		return false
 	}
-	return x.Nested3 != nil
+	return x.xxx_hidden_Nested3 != nil
 }
 
 func (x *Resource) HasNested4() bool {
 	if x == nil {
 		return false
 	}
-	return x.Nested4 != nil
+	return x.xxx_hidden_Nested4 != nil
 }
 
 func (x *Resource) HasNestedChanged() bool {
 	if x == nil {
 		return false
 	}
-	return x.NestedChanged != nil
+	return x.xxx_hidden_NestedChanged != nil
 }
 
 func (x *Resource) ClearNested() {
-	x.Nested = nil
+	x.xxx_hidden_Nested = nil
 }
 
 func (x *Resource) ClearNested2() {
-	x.Nested2 = nil
+	x.xxx_hidden_Nested2 = nil
 }
 
 func (x *Resource) ClearNested3() {
-	x.Nested3 = nil
+	x.xxx_hidden_Nested3 = nil
 }
 
 func (x *Resource) ClearNested4() {
-	x.Nested4 = nil
+	x.xxx_hidden_Nested4 = nil
 }
 
 func (x *Resource) ClearNestedChanged() {
-	x.NestedChanged = nil
+	x.xxx_hidden_NestedChanged = nil
 }
 
 type Resource_builder struct {
@@ -768,34 +743,31 @@ func (b0 Resource_builder) Build() *Resource {
 	m0 := &Resource{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.Id = b.Id
-	x.CreateTimestamp = b.CreateTimestamp
-	x.UpdateTime = b.UpdateTime
-	x.Field1 = b.Field1
-	x.Nested = b.Nested
-	x.Nested2 = b.Nested2
-	x.Nested3 = b.Nested3
-	x.Nested4 = b.Nested4
-	x.MyEnum = b.MyEnum
-	x.Deleted = b.Deleted
-	x.NullableEnum = b.NullableEnum
-	x.ColumnNameChanged = b.ColumnNameChanged
-	x.NestedChanged = b.NestedChanged
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_CreateTimestamp = b.CreateTimestamp
+	x.xxx_hidden_UpdateTime = b.UpdateTime
+	x.xxx_hidden_Field1 = b.Field1
+	x.xxx_hidden_Nested = b.Nested
+	x.xxx_hidden_Nested2 = b.Nested2
+	x.xxx_hidden_Nested3 = b.Nested3
+	x.xxx_hidden_Nested4 = b.Nested4
+	x.xxx_hidden_MyEnum = b.MyEnum
+	x.xxx_hidden_Deleted = b.Deleted
+	x.xxx_hidden_NullableEnum = b.NullableEnum
+	x.xxx_hidden_ColumnNameChanged = b.ColumnNameChanged
+	x.xxx_hidden_NestedChanged = b.NestedChanged
 	return m0
 }
 
 // Resource is a test message with nested fields.
 type Book struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Name of this resource.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// some timestmap.
-	CreateTime int64 `protobuf:"varint,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// some other timestamp.
-	UpdateTime    int64 `protobuf:"varint,3,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name       string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_CreateTime int64                  `protobuf:"varint,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime int64                  `protobuf:"varint,3,opt,name=update_time,json=updateTime,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Book) Reset() {
@@ -825,35 +797,35 @@ func (x *Book) ProtoReflect() protoreflect.Message {
 
 func (x *Book) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Book) GetCreateTime() int64 {
 	if x != nil {
-		return x.CreateTime
+		return x.xxx_hidden_CreateTime
 	}
 	return 0
 }
 
 func (x *Book) GetUpdateTime() int64 {
 	if x != nil {
-		return x.UpdateTime
+		return x.xxx_hidden_UpdateTime
 	}
 	return 0
 }
 
 func (x *Book) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Book) SetCreateTime(v int64) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Book) SetUpdateTime(v int64) {
-	x.UpdateTime = v
+	x.xxx_hidden_UpdateTime = v
 }
 
 type Book_builder struct {
@@ -871,25 +843,21 @@ func (b0 Book_builder) Build() *Book {
 	m0 := &Book{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.CreateTime = b.CreateTime
-	x.UpdateTime = b.UpdateTime
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_UpdateTime = b.UpdateTime
 	return m0
 }
 
 // NestedResource contains fields for testing nested path updates.
 type NestedResource struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Boolean field.
-	Field1 bool `protobuf:"varint,1,opt,name=field1,proto3" json:"field1,omitempty"`
-	// Integer field for selective updates.
-	Field2 int64 `protobuf:"varint,2,opt,name=field2,proto3" json:"field2,omitempty"`
-	// String field.
-	Field3 string `protobuf:"bytes,3,opt,name=field3,proto3" json:"field3,omitempty"`
-	// Another nested resource.
-	FurtherNested *DeeplyNestedResource `protobuf:"bytes,4,opt,name=further_nested,json=furtherNested,proto3" json:"further_nested,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Field1        bool                   `protobuf:"varint,1,opt,name=field1,proto3"`
+	xxx_hidden_Field2        int64                  `protobuf:"varint,2,opt,name=field2,proto3"`
+	xxx_hidden_Field3        string                 `protobuf:"bytes,3,opt,name=field3,proto3"`
+	xxx_hidden_FurtherNested *DeeplyNestedResource  `protobuf:"bytes,4,opt,name=further_nested,json=furtherNested,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *NestedResource) Reset() {
@@ -919,57 +887,57 @@ func (x *NestedResource) ProtoReflect() protoreflect.Message {
 
 func (x *NestedResource) GetField1() bool {
 	if x != nil {
-		return x.Field1
+		return x.xxx_hidden_Field1
 	}
 	return false
 }
 
 func (x *NestedResource) GetField2() int64 {
 	if x != nil {
-		return x.Field2
+		return x.xxx_hidden_Field2
 	}
 	return 0
 }
 
 func (x *NestedResource) GetField3() string {
 	if x != nil {
-		return x.Field3
+		return x.xxx_hidden_Field3
 	}
 	return ""
 }
 
 func (x *NestedResource) GetFurtherNested() *DeeplyNestedResource {
 	if x != nil {
-		return x.FurtherNested
+		return x.xxx_hidden_FurtherNested
 	}
 	return nil
 }
 
 func (x *NestedResource) SetField1(v bool) {
-	x.Field1 = v
+	x.xxx_hidden_Field1 = v
 }
 
 func (x *NestedResource) SetField2(v int64) {
-	x.Field2 = v
+	x.xxx_hidden_Field2 = v
 }
 
 func (x *NestedResource) SetField3(v string) {
-	x.Field3 = v
+	x.xxx_hidden_Field3 = v
 }
 
 func (x *NestedResource) SetFurtherNested(v *DeeplyNestedResource) {
-	x.FurtherNested = v
+	x.xxx_hidden_FurtherNested = v
 }
 
 func (x *NestedResource) HasFurtherNested() bool {
 	if x == nil {
 		return false
 	}
-	return x.FurtherNested != nil
+	return x.xxx_hidden_FurtherNested != nil
 }
 
 func (x *NestedResource) ClearFurtherNested() {
-	x.FurtherNested = nil
+	x.xxx_hidden_FurtherNested = nil
 }
 
 type NestedResource_builder struct {
@@ -989,24 +957,21 @@ func (b0 NestedResource_builder) Build() *NestedResource {
 	m0 := &NestedResource{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Field1 = b.Field1
-	x.Field2 = b.Field2
-	x.Field3 = b.Field3
-	x.FurtherNested = b.FurtherNested
+	x.xxx_hidden_Field1 = b.Field1
+	x.xxx_hidden_Field2 = b.Field2
+	x.xxx_hidden_Field3 = b.Field3
+	x.xxx_hidden_FurtherNested = b.FurtherNested
 	return m0
 }
 
 // Deeply nested resource.
 type DeeplyNestedResource struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Boolean field.
-	Field1 bool `protobuf:"varint,1,opt,name=field1,proto3" json:"field1,omitempty"`
-	// Integer field for selective updates.
-	Field2 int64 `protobuf:"varint,2,opt,name=field2,proto3" json:"field2,omitempty"`
-	// String field.
-	Field3        string `protobuf:"bytes,3,opt,name=field3,proto3" json:"field3,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Field1 bool                   `protobuf:"varint,1,opt,name=field1,proto3"`
+	xxx_hidden_Field2 int64                  `protobuf:"varint,2,opt,name=field2,proto3"`
+	xxx_hidden_Field3 string                 `protobuf:"bytes,3,opt,name=field3,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *DeeplyNestedResource) Reset() {
@@ -1036,35 +1001,35 @@ func (x *DeeplyNestedResource) ProtoReflect() protoreflect.Message {
 
 func (x *DeeplyNestedResource) GetField1() bool {
 	if x != nil {
-		return x.Field1
+		return x.xxx_hidden_Field1
 	}
 	return false
 }
 
 func (x *DeeplyNestedResource) GetField2() int64 {
 	if x != nil {
-		return x.Field2
+		return x.xxx_hidden_Field2
 	}
 	return 0
 }
 
 func (x *DeeplyNestedResource) GetField3() string {
 	if x != nil {
-		return x.Field3
+		return x.xxx_hidden_Field3
 	}
 	return ""
 }
 
 func (x *DeeplyNestedResource) SetField1(v bool) {
-	x.Field1 = v
+	x.xxx_hidden_Field1 = v
 }
 
 func (x *DeeplyNestedResource) SetField2(v int64) {
-	x.Field2 = v
+	x.xxx_hidden_Field2 = v
 }
 
 func (x *DeeplyNestedResource) SetField3(v string) {
-	x.Field3 = v
+	x.xxx_hidden_Field3 = v
 }
 
 type DeeplyNestedResource_builder struct {
@@ -1082,21 +1047,19 @@ func (b0 DeeplyNestedResource_builder) Build() *DeeplyNestedResource {
 	m0 := &DeeplyNestedResource{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Field1 = b.Field1
-	x.Field2 = b.Field2
-	x.Field3 = b.Field3
+	x.xxx_hidden_Field1 = b.Field1
+	x.xxx_hidden_Field2 = b.Field2
+	x.xxx_hidden_Field3 = b.Field3
 	return m0
 }
 
 // UpdateResourceRequest tests field mask with path mappings and authorization.
 type UpdateResourceRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource to update.
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	// Field mask specifying which fields to update.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Resource   *Resource              `protobuf:"bytes,1,opt,name=resource,proto3"`
+	xxx_hidden_UpdateMask *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateResourceRequest) Reset() {
@@ -1126,46 +1089,46 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateResourceRequest) GetResource() *Resource {
 	if x != nil {
-		return x.Resource
+		return x.xxx_hidden_Resource
 	}
 	return nil
 }
 
 func (x *UpdateResourceRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.UpdateMask
+		return x.xxx_hidden_UpdateMask
 	}
 	return nil
 }
 
 func (x *UpdateResourceRequest) SetResource(v *Resource) {
-	x.Resource = v
+	x.xxx_hidden_Resource = v
 }
 
 func (x *UpdateResourceRequest) SetUpdateMask(v *fieldmaskpb.FieldMask) {
-	x.UpdateMask = v
+	x.xxx_hidden_UpdateMask = v
 }
 
 func (x *UpdateResourceRequest) HasResource() bool {
 	if x == nil {
 		return false
 	}
-	return x.Resource != nil
+	return x.xxx_hidden_Resource != nil
 }
 
 func (x *UpdateResourceRequest) HasUpdateMask() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateMask != nil
+	return x.xxx_hidden_UpdateMask != nil
 }
 
 func (x *UpdateResourceRequest) ClearResource() {
-	x.Resource = nil
+	x.xxx_hidden_Resource = nil
 }
 
 func (x *UpdateResourceRequest) ClearUpdateMask() {
-	x.UpdateMask = nil
+	x.xxx_hidden_UpdateMask = nil
 }
 
 type UpdateResourceRequest_builder struct {
@@ -1181,20 +1144,18 @@ func (b0 UpdateResourceRequest_builder) Build() *UpdateResourceRequest {
 	m0 := &UpdateResourceRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Resource = b.Resource
-	x.UpdateMask = b.UpdateMask
+	x.xxx_hidden_Resource = b.Resource
+	x.xxx_hidden_UpdateMask = b.UpdateMask
 	return m0
 }
 
 // UpdateResource2Request tests default paths with authorized paths.
 type UpdateResource2Request struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource to update.
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	// Field mask specifying which fields to update.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Resource   *Resource              `protobuf:"bytes,1,opt,name=resource,proto3"`
+	xxx_hidden_UpdateMask *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateResource2Request) Reset() {
@@ -1224,46 +1185,46 @@ func (x *UpdateResource2Request) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateResource2Request) GetResource() *Resource {
 	if x != nil {
-		return x.Resource
+		return x.xxx_hidden_Resource
 	}
 	return nil
 }
 
 func (x *UpdateResource2Request) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.UpdateMask
+		return x.xxx_hidden_UpdateMask
 	}
 	return nil
 }
 
 func (x *UpdateResource2Request) SetResource(v *Resource) {
-	x.Resource = v
+	x.xxx_hidden_Resource = v
 }
 
 func (x *UpdateResource2Request) SetUpdateMask(v *fieldmaskpb.FieldMask) {
-	x.UpdateMask = v
+	x.xxx_hidden_UpdateMask = v
 }
 
 func (x *UpdateResource2Request) HasResource() bool {
 	if x == nil {
 		return false
 	}
-	return x.Resource != nil
+	return x.xxx_hidden_Resource != nil
 }
 
 func (x *UpdateResource2Request) HasUpdateMask() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateMask != nil
+	return x.xxx_hidden_UpdateMask != nil
 }
 
 func (x *UpdateResource2Request) ClearResource() {
-	x.Resource = nil
+	x.xxx_hidden_Resource = nil
 }
 
 func (x *UpdateResource2Request) ClearUpdateMask() {
-	x.UpdateMask = nil
+	x.xxx_hidden_UpdateMask = nil
 }
 
 type UpdateResource2Request_builder struct {
@@ -1279,20 +1240,18 @@ func (b0 UpdateResource2Request_builder) Build() *UpdateResource2Request {
 	m0 := &UpdateResource2Request{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Resource = b.Resource
-	x.UpdateMask = b.UpdateMask
+	x.xxx_hidden_Resource = b.Resource
+	x.xxx_hidden_UpdateMask = b.UpdateMask
 	return m0
 }
 
 // UpdateResourceWithColumnNameRequest tests column name changes in updates.
 type UpdateResourceWithColumnNameRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Resource to update.
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	// Field mask specifying which fields to update.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Resource   *Resource              `protobuf:"bytes,1,opt,name=resource,proto3"`
+	xxx_hidden_UpdateMask *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateResourceWithColumnNameRequest) Reset() {
@@ -1322,46 +1281,46 @@ func (x *UpdateResourceWithColumnNameRequest) ProtoReflect() protoreflect.Messag
 
 func (x *UpdateResourceWithColumnNameRequest) GetResource() *Resource {
 	if x != nil {
-		return x.Resource
+		return x.xxx_hidden_Resource
 	}
 	return nil
 }
 
 func (x *UpdateResourceWithColumnNameRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
-		return x.UpdateMask
+		return x.xxx_hidden_UpdateMask
 	}
 	return nil
 }
 
 func (x *UpdateResourceWithColumnNameRequest) SetResource(v *Resource) {
-	x.Resource = v
+	x.xxx_hidden_Resource = v
 }
 
 func (x *UpdateResourceWithColumnNameRequest) SetUpdateMask(v *fieldmaskpb.FieldMask) {
-	x.UpdateMask = v
+	x.xxx_hidden_UpdateMask = v
 }
 
 func (x *UpdateResourceWithColumnNameRequest) HasResource() bool {
 	if x == nil {
 		return false
 	}
-	return x.Resource != nil
+	return x.xxx_hidden_Resource != nil
 }
 
 func (x *UpdateResourceWithColumnNameRequest) HasUpdateMask() bool {
 	if x == nil {
 		return false
 	}
-	return x.UpdateMask != nil
+	return x.xxx_hidden_UpdateMask != nil
 }
 
 func (x *UpdateResourceWithColumnNameRequest) ClearResource() {
-	x.Resource = nil
+	x.xxx_hidden_Resource = nil
 }
 
 func (x *UpdateResourceWithColumnNameRequest) ClearUpdateMask() {
-	x.UpdateMask = nil
+	x.xxx_hidden_UpdateMask = nil
 }
 
 type UpdateResourceWithColumnNameRequest_builder struct {
@@ -1377,8 +1336,8 @@ func (b0 UpdateResourceWithColumnNameRequest_builder) Build() *UpdateResourceWit
 	m0 := &UpdateResourceWithColumnNameRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Resource = b.Resource
-	x.UpdateMask = b.UpdateMask
+	x.xxx_hidden_Resource = b.Resource
+	x.xxx_hidden_UpdateMask = b.UpdateMask
 	return m0
 }
 

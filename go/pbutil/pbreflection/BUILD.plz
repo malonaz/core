@@ -10,7 +10,6 @@ go_library(
         "//go/aip",
         "//malonaz/codegen/aip/v1",
         "//third_party/go:github.com__huandu__xstrings",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__protobuf__proto",
@@ -19,5 +18,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
+        "//third_party/proto:google__api__annotations",
     ],
 )

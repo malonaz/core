@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/codegen/model/v1/model.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -26,14 +26,11 @@ const (
 // ModelOpts defines code generation options for an entire message/model.
 // Controls database mapping and which CRUD functions are generated.
 type ModelOpts struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Override the default table name for this model.
-	// If not set, uses a default derived from the message name.
-	TableName string `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	// Override the id column name. Cannot be set for singletons as they have no id.
-	IdColumnName  string `protobuf:"bytes,2,opt,name=id_column_name,json=idColumnName,proto3" json:"id_column_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TableName    string                 `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3"`
+	xxx_hidden_IdColumnName string                 `protobuf:"bytes,2,opt,name=id_column_name,json=idColumnName,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *ModelOpts) Reset() {
@@ -63,24 +60,24 @@ func (x *ModelOpts) ProtoReflect() protoreflect.Message {
 
 func (x *ModelOpts) GetTableName() string {
 	if x != nil {
-		return x.TableName
+		return x.xxx_hidden_TableName
 	}
 	return ""
 }
 
 func (x *ModelOpts) GetIdColumnName() string {
 	if x != nil {
-		return x.IdColumnName
+		return x.xxx_hidden_IdColumnName
 	}
 	return ""
 }
 
 func (x *ModelOpts) SetTableName(v string) {
-	x.TableName = v
+	x.xxx_hidden_TableName = v
 }
 
 func (x *ModelOpts) SetIdColumnName(v string) {
-	x.IdColumnName = v
+	x.xxx_hidden_IdColumnName = v
 }
 
 type ModelOpts_builder struct {
@@ -97,37 +94,24 @@ func (b0 ModelOpts_builder) Build() *ModelOpts {
 	m0 := &ModelOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.TableName = b.TableName
-	x.IdColumnName = b.IdColumnName
+	x.xxx_hidden_TableName = b.TableName
+	x.xxx_hidden_IdColumnName = b.IdColumnName
 	return m0
 }
 
 // FieldOpts defines code generation options for individual message fields.
 // Controls serialization format and nullability handling.
 type FieldOpts struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Override the column name for this field.
-	ColumnName string `protobuf:"bytes,1,opt,name=column_name,json=columnName,proto3" json:"column_name,omitempty"`
-	// If true, serialize this field as JSON bytes in the database.
-	// The field will be stored as JSONB and marshaled/unmarshaled using JSON encoding.
-	AsJsonBytes bool `protobuf:"varint,2,opt,name=as_json_bytes,json=asJsonBytes,proto3" json:"as_json_bytes,omitempty"`
-	// If true, serialize this field as Protocol Buffer bytes in the database.
-	// The field will be stored as bytea and marshaled/unmarshaled using protobuf encoding.
-	AsProtoBytes bool `protobuf:"varint,3,opt,name=as_proto_bytes,json=asProtoBytes,proto3" json:"as_proto_bytes,omitempty"`
-	// If true, treat this field as nullable (use pointer type in Go).
-	// Allows distinguishing between zero values and null/unset values.
-	Nullable bool `protobuf:"varint,4,opt,name=nullable,proto3" json:"nullable,omitempty"`
-	// If true, skip this field entirely in code generation.
-	// The field will not be included in database models or conversion functions.
-	Skip bool `protobuf:"varint,5,opt,name=skip,proto3" json:"skip,omitempty"`
-	// If true, embed this field's properties directly into the parent struct.
-	// Instead of a nested field, the properties are flattened into the parent.
-	Embed bool `protobuf:"varint,6,opt,name=embed,proto3" json:"embed,omitempty"`
-	// If true, treat this field as a pgvector type for vector similarity search.
-	// The field will use the pgvector.Vector type for PostgreSQL vector operations.
-	PgVector      bool `protobuf:"varint,7,opt,name=pg_vector,json=pgVector,proto3" json:"pg_vector,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ColumnName   string                 `protobuf:"bytes,1,opt,name=column_name,json=columnName,proto3"`
+	xxx_hidden_AsJsonBytes  bool                   `protobuf:"varint,2,opt,name=as_json_bytes,json=asJsonBytes,proto3"`
+	xxx_hidden_AsProtoBytes bool                   `protobuf:"varint,3,opt,name=as_proto_bytes,json=asProtoBytes,proto3"`
+	xxx_hidden_Nullable     bool                   `protobuf:"varint,4,opt,name=nullable,proto3"`
+	xxx_hidden_Skip         bool                   `protobuf:"varint,5,opt,name=skip,proto3"`
+	xxx_hidden_Embed        bool                   `protobuf:"varint,6,opt,name=embed,proto3"`
+	xxx_hidden_PgVector     bool                   `protobuf:"varint,7,opt,name=pg_vector,json=pgVector,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *FieldOpts) Reset() {
@@ -157,79 +141,79 @@ func (x *FieldOpts) ProtoReflect() protoreflect.Message {
 
 func (x *FieldOpts) GetColumnName() string {
 	if x != nil {
-		return x.ColumnName
+		return x.xxx_hidden_ColumnName
 	}
 	return ""
 }
 
 func (x *FieldOpts) GetAsJsonBytes() bool {
 	if x != nil {
-		return x.AsJsonBytes
+		return x.xxx_hidden_AsJsonBytes
 	}
 	return false
 }
 
 func (x *FieldOpts) GetAsProtoBytes() bool {
 	if x != nil {
-		return x.AsProtoBytes
+		return x.xxx_hidden_AsProtoBytes
 	}
 	return false
 }
 
 func (x *FieldOpts) GetNullable() bool {
 	if x != nil {
-		return x.Nullable
+		return x.xxx_hidden_Nullable
 	}
 	return false
 }
 
 func (x *FieldOpts) GetSkip() bool {
 	if x != nil {
-		return x.Skip
+		return x.xxx_hidden_Skip
 	}
 	return false
 }
 
 func (x *FieldOpts) GetEmbed() bool {
 	if x != nil {
-		return x.Embed
+		return x.xxx_hidden_Embed
 	}
 	return false
 }
 
 func (x *FieldOpts) GetPgVector() bool {
 	if x != nil {
-		return x.PgVector
+		return x.xxx_hidden_PgVector
 	}
 	return false
 }
 
 func (x *FieldOpts) SetColumnName(v string) {
-	x.ColumnName = v
+	x.xxx_hidden_ColumnName = v
 }
 
 func (x *FieldOpts) SetAsJsonBytes(v bool) {
-	x.AsJsonBytes = v
+	x.xxx_hidden_AsJsonBytes = v
 }
 
 func (x *FieldOpts) SetAsProtoBytes(v bool) {
-	x.AsProtoBytes = v
+	x.xxx_hidden_AsProtoBytes = v
 }
 
 func (x *FieldOpts) SetNullable(v bool) {
-	x.Nullable = v
+	x.xxx_hidden_Nullable = v
 }
 
 func (x *FieldOpts) SetSkip(v bool) {
-	x.Skip = v
+	x.xxx_hidden_Skip = v
 }
 
 func (x *FieldOpts) SetEmbed(v bool) {
-	x.Embed = v
+	x.xxx_hidden_Embed = v
 }
 
 func (x *FieldOpts) SetPgVector(v bool) {
-	x.PgVector = v
+	x.xxx_hidden_PgVector = v
 }
 
 type FieldOpts_builder struct {
@@ -261,13 +245,13 @@ func (b0 FieldOpts_builder) Build() *FieldOpts {
 	m0 := &FieldOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ColumnName = b.ColumnName
-	x.AsJsonBytes = b.AsJsonBytes
-	x.AsProtoBytes = b.AsProtoBytes
-	x.Nullable = b.Nullable
-	x.Skip = b.Skip
-	x.Embed = b.Embed
-	x.PgVector = b.PgVector
+	x.xxx_hidden_ColumnName = b.ColumnName
+	x.xxx_hidden_AsJsonBytes = b.AsJsonBytes
+	x.xxx_hidden_AsProtoBytes = b.AsProtoBytes
+	x.xxx_hidden_Nullable = b.Nullable
+	x.xxx_hidden_Skip = b.Skip
+	x.xxx_hidden_Embed = b.Embed
+	x.xxx_hidden_PgVector = b.PgVector
 	return m0
 }
 

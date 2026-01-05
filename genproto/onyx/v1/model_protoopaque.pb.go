@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/onyx/v1/model.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -24,13 +24,13 @@ const (
 
 // Service represents a service configuration
 type Model struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ObjectMeta            `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *ModelSpec             `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ApiVersion string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3"`
+	xxx_hidden_Kind       string                 `protobuf:"bytes,2,opt,name=kind,proto3"`
+	xxx_hidden_Metadata   *ObjectMeta            `protobuf:"bytes,3,opt,name=metadata,proto3"`
+	xxx_hidden_Spec       *ModelSpec             `protobuf:"bytes,4,opt,name=spec,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Model) Reset() {
@@ -60,68 +60,68 @@ func (x *Model) ProtoReflect() protoreflect.Message {
 
 func (x *Model) GetApiVersion() string {
 	if x != nil {
-		return x.ApiVersion
+		return x.xxx_hidden_ApiVersion
 	}
 	return ""
 }
 
 func (x *Model) GetKind() string {
 	if x != nil {
-		return x.Kind
+		return x.xxx_hidden_Kind
 	}
 	return ""
 }
 
 func (x *Model) GetMetadata() *ObjectMeta {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return nil
 }
 
 func (x *Model) GetSpec() *ModelSpec {
 	if x != nil {
-		return x.Spec
+		return x.xxx_hidden_Spec
 	}
 	return nil
 }
 
 func (x *Model) SetApiVersion(v string) {
-	x.ApiVersion = v
+	x.xxx_hidden_ApiVersion = v
 }
 
 func (x *Model) SetKind(v string) {
-	x.Kind = v
+	x.xxx_hidden_Kind = v
 }
 
 func (x *Model) SetMetadata(v *ObjectMeta) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Model) SetSpec(v *ModelSpec) {
-	x.Spec = v
+	x.xxx_hidden_Spec = v
 }
 
 func (x *Model) HasMetadata() bool {
 	if x == nil {
 		return false
 	}
-	return x.Metadata != nil
+	return x.xxx_hidden_Metadata != nil
 }
 
 func (x *Model) HasSpec() bool {
 	if x == nil {
 		return false
 	}
-	return x.Spec != nil
+	return x.xxx_hidden_Spec != nil
 }
 
 func (x *Model) ClearMetadata() {
-	x.Metadata = nil
+	x.xxx_hidden_Metadata = nil
 }
 
 func (x *Model) ClearSpec() {
-	x.Spec = nil
+	x.xxx_hidden_Spec = nil
 }
 
 type Model_builder struct {
@@ -137,19 +137,19 @@ func (b0 Model_builder) Build() *Model {
 	m0 := &Model{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ApiVersion = b.ApiVersion
-	x.Kind = b.Kind
-	x.Metadata = b.Metadata
-	x.Spec = b.Spec
+	x.xxx_hidden_ApiVersion = b.ApiVersion
+	x.xxx_hidden_Kind = b.Kind
+	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Spec = b.Spec
 	return m0
 }
 
 // ServiceSpec represents the configuration for a Go service
 type ModelSpec struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Target        string                 `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Target string                 `protobuf:"bytes,1,opt,name=target,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ModelSpec) Reset() {
@@ -179,13 +179,13 @@ func (x *ModelSpec) ProtoReflect() protoreflect.Message {
 
 func (x *ModelSpec) GetTarget() string {
 	if x != nil {
-		return x.Target
+		return x.xxx_hidden_Target
 	}
 	return ""
 }
 
 func (x *ModelSpec) SetTarget(v string) {
-	x.Target = v
+	x.xxx_hidden_Target = v
 }
 
 type ModelSpec_builder struct {
@@ -198,7 +198,7 @@ func (b0 ModelSpec_builder) Build() *ModelSpec {
 	m0 := &ModelSpec{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Target = b.Target
+	x.xxx_hidden_Target = b.Target
 	return m0
 }
 

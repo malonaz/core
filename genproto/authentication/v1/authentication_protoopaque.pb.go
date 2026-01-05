@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/authentication/v1/authentication.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -74,12 +74,10 @@ func (x ServiceAccountType) Number() protoreflect.EnumNumber {
 
 // Configuration for roles.
 type RoleConfiguration struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// List of all roles defined in the system, including their permissions
-	// and inheritance relationships.
-	Roles         []*Role `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Roles *[]*Role               `protobuf:"bytes,1,rep,name=roles,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *RoleConfiguration) Reset() {
@@ -109,13 +107,15 @@ func (x *RoleConfiguration) ProtoReflect() protoreflect.Message {
 
 func (x *RoleConfiguration) GetRoles() []*Role {
 	if x != nil {
-		return x.Roles
+		if x.xxx_hidden_Roles != nil {
+			return *x.xxx_hidden_Roles
+		}
 	}
 	return nil
 }
 
 func (x *RoleConfiguration) SetRoles(v []*Role) {
-	x.Roles = v
+	x.xxx_hidden_Roles = &v
 }
 
 type RoleConfiguration_builder struct {
@@ -130,18 +130,16 @@ func (b0 RoleConfiguration_builder) Build() *RoleConfiguration {
 	m0 := &RoleConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Roles = b.Roles
+	x.xxx_hidden_Roles = &b.Roles
 	return m0
 }
 
 // Configuration for service accounts.
 type ServiceAccountConfiguration struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// List of all service accounts configured in the system, each with their
-	// assigned roles for programmatic access.
-	ServiceAccounts []*ServiceAccount `protobuf:"bytes,1,rep,name=service_accounts,json=serviceAccounts,proto3" json:"service_accounts,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ServiceAccounts *[]*ServiceAccount     `protobuf:"bytes,1,rep,name=service_accounts,json=serviceAccounts,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *ServiceAccountConfiguration) Reset() {
@@ -171,13 +169,15 @@ func (x *ServiceAccountConfiguration) ProtoReflect() protoreflect.Message {
 
 func (x *ServiceAccountConfiguration) GetServiceAccounts() []*ServiceAccount {
 	if x != nil {
-		return x.ServiceAccounts
+		if x.xxx_hidden_ServiceAccounts != nil {
+			return *x.xxx_hidden_ServiceAccounts
+		}
 	}
 	return nil
 }
 
 func (x *ServiceAccountConfiguration) SetServiceAccounts(v []*ServiceAccount) {
-	x.ServiceAccounts = v
+	x.xxx_hidden_ServiceAccounts = &v
 }
 
 type ServiceAccountConfiguration_builder struct {
@@ -192,23 +192,19 @@ func (b0 ServiceAccountConfiguration_builder) Build() *ServiceAccountConfigurati
 	m0 := &ServiceAccountConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ServiceAccounts = b.ServiceAccounts
+	x.xxx_hidden_ServiceAccounts = &b.ServiceAccounts
 	return m0
 }
 
 // ServiceAccount represents a non-human identity used for programmatic access
 // to the system, such as API clients, background jobs, or inter-service communication.
 type ServiceAccount struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Unique identifier for this service account.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The type of sercice account this is.
-	Type ServiceAccountType `protobuf:"varint,2,opt,name=type,proto3,enum=malonaz.authentication.v1.ServiceAccountType" json:"type,omitempty"`
-	// List of role IDs assigned to this service account, determining what
-	// permissions and access it has within the system.
-	RoleIds       []string `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id      string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_Type    ServiceAccountType     `protobuf:"varint,2,opt,name=type,proto3,enum=malonaz.authentication.v1.ServiceAccountType"`
+	xxx_hidden_RoleIds []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ServiceAccount) Reset() {
@@ -238,35 +234,35 @@ func (x *ServiceAccount) ProtoReflect() protoreflect.Message {
 
 func (x *ServiceAccount) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *ServiceAccount) GetType() ServiceAccountType {
 	if x != nil {
-		return x.Type
+		return x.xxx_hidden_Type
 	}
 	return ServiceAccountType_SERVICE_ACCOUNT_TYPE_UNSPECIFIED
 }
 
 func (x *ServiceAccount) GetRoleIds() []string {
 	if x != nil {
-		return x.RoleIds
+		return x.xxx_hidden_RoleIds
 	}
 	return nil
 }
 
 func (x *ServiceAccount) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *ServiceAccount) SetType(v ServiceAccountType) {
-	x.Type = v
+	x.xxx_hidden_Type = v
 }
 
 func (x *ServiceAccount) SetRoleIds(v []string) {
-	x.RoleIds = v
+	x.xxx_hidden_RoleIds = v
 }
 
 type ServiceAccount_builder struct {
@@ -285,30 +281,22 @@ func (b0 ServiceAccount_builder) Build() *ServiceAccount {
 	m0 := &ServiceAccount{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Type = b.Type
-	x.RoleIds = b.RoleIds
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Type = b.Type
+	x.xxx_hidden_RoleIds = b.RoleIds
 	return m0
 }
 
 // Role defines a set of permissions and capabilities that can be assigned to
 // users or service accounts. Roles support inheritance for hierarchical permission management.
 type Role struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Unique identifier for this role.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// List of permission strings this role grants. Permissions typically correspond
-	// to RPC method names (e.g., "/api.v1.UserService/GetUser").
-	Permissions []string `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
-	// Optional list of role IDs from which this role inherits permissions.
-	// Enables hierarchical role definitions where a role can include all
-	// permissions from parent roles.
-	InheritedRoleIds []string `protobuf:"bytes,3,rep,name=inherited_role_ids,json=inheritedRoleIds,proto3" json:"inherited_role_ids,omitempty"`
-	// Optional scope or context for this role, enabling organization-specific
-	// or domain-specific role definitions (e.g., "org:123" for organization-level roles).
-	Scope         string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id               string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_Permissions      []string               `protobuf:"bytes,2,rep,name=permissions,proto3"`
+	xxx_hidden_InheritedRoleIds []string               `protobuf:"bytes,3,rep,name=inherited_role_ids,json=inheritedRoleIds,proto3"`
+	xxx_hidden_Scope            string                 `protobuf:"bytes,4,opt,name=scope,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *Role) Reset() {
@@ -338,46 +326,46 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 func (x *Role) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *Role) GetPermissions() []string {
 	if x != nil {
-		return x.Permissions
+		return x.xxx_hidden_Permissions
 	}
 	return nil
 }
 
 func (x *Role) GetInheritedRoleIds() []string {
 	if x != nil {
-		return x.InheritedRoleIds
+		return x.xxx_hidden_InheritedRoleIds
 	}
 	return nil
 }
 
 func (x *Role) GetScope() string {
 	if x != nil {
-		return x.Scope
+		return x.xxx_hidden_Scope
 	}
 	return ""
 }
 
 func (x *Role) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *Role) SetPermissions(v []string) {
-	x.Permissions = v
+	x.xxx_hidden_Permissions = v
 }
 
 func (x *Role) SetInheritedRoleIds(v []string) {
-	x.InheritedRoleIds = v
+	x.xxx_hidden_InheritedRoleIds = v
 }
 
 func (x *Role) SetScope(v string) {
-	x.Scope = v
+	x.xxx_hidden_Scope = v
 }
 
 type Role_builder struct {
@@ -401,22 +389,20 @@ func (b0 Role_builder) Build() *Role {
 	m0 := &Role{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Permissions = b.Permissions
-	x.InheritedRoleIds = b.InheritedRoleIds
-	x.Scope = b.Scope
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Permissions = b.Permissions
+	x.xxx_hidden_InheritedRoleIds = b.InheritedRoleIds
+	x.xxx_hidden_Scope = b.Scope
 	return m0
 }
 
 // Wraps around a session to include signature.
 type SignedSession struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The session that is signed.
-	Session *Session `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
-	// Cryptographic signature of the session data to ensure integrity and prevent tampering.
-	Signature     []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Session   *Session               `protobuf:"bytes,1,opt,name=session,proto3"`
+	xxx_hidden_Signature []byte                 `protobuf:"bytes,2,opt,name=signature,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *SignedSession) Reset() {
@@ -446,38 +432,38 @@ func (x *SignedSession) ProtoReflect() protoreflect.Message {
 
 func (x *SignedSession) GetSession() *Session {
 	if x != nil {
-		return x.Session
+		return x.xxx_hidden_Session
 	}
 	return nil
 }
 
 func (x *SignedSession) GetSignature() []byte {
 	if x != nil {
-		return x.Signature
+		return x.xxx_hidden_Signature
 	}
 	return nil
 }
 
 func (x *SignedSession) SetSession(v *Session) {
-	x.Session = v
+	x.xxx_hidden_Session = v
 }
 
 func (x *SignedSession) SetSignature(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.Signature = v
+	x.xxx_hidden_Signature = v
 }
 
 func (x *SignedSession) HasSession() bool {
 	if x == nil {
 		return false
 	}
-	return x.Session != nil
+	return x.xxx_hidden_Session != nil
 }
 
 func (x *SignedSession) ClearSession() {
-	x.Session = nil
+	x.xxx_hidden_Session = nil
 }
 
 type SignedSession_builder struct {
@@ -493,39 +479,23 @@ func (b0 SignedSession_builder) Build() *SignedSession {
 	m0 := &SignedSession{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Session = b.Session
-	x.Signature = b.Signature
+	x.xxx_hidden_Session = b.Session
+	x.xxx_hidden_Signature = b.Signature
 	return m0
 }
 
 // Session represents an authenticated session for either a user or service account,
 // containing identity information, permissions, and metadata about the session.
 type Session struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Unique identifier for this session instance.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Time at which this session was created.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// Identity that owns this session (mutually exclusive)
-	//
-	// Types that are valid to be assigned to Identity:
-	//
-	//	*Session_UserIdentity
-	//	*Session_ServiceAccountIdentity
-	Identity isSession_Identity `protobuf_oneof:"identity"`
-	// The role ids available to this session.
-	RoleIds []string `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	// An authorized session does not get checked again method permissions.
-	// We only check at edges entry point.
-	// For example, let's look at an external call:
-	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
-	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
-	Authorized bool `protobuf:"varint,6,opt,name=authorized,proto3" json:"authorized,omitempty"`
-	// Additional metadata about the session, including client information
-	// and context for logging and auditing purposes.
-	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id         string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_Identity   isSession_Identity     `protobuf_oneof:"identity"`
+	xxx_hidden_RoleIds    []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3"`
+	xxx_hidden_Authorized bool                   `protobuf:"varint,6,opt,name=authorized,proto3"`
+	xxx_hidden_Metadata   *SessionMetadata       `protobuf:"bytes,7,opt,name=metadata,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
@@ -555,28 +525,21 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 func (x *Session) GetId() string {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return ""
 }
 
 func (x *Session) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTime
-	}
-	return nil
-}
-
-func (x *Session) GetIdentity() isSession_Identity {
-	if x != nil {
-		return x.Identity
+		return x.xxx_hidden_CreateTime
 	}
 	return nil
 }
 
 func (x *Session) GetUserIdentity() *UserIdentity {
 	if x != nil {
-		if x, ok := x.Identity.(*Session_UserIdentity); ok {
+		if x, ok := x.xxx_hidden_Identity.(*session_UserIdentity); ok {
 			return x.UserIdentity
 		}
 	}
@@ -585,7 +548,7 @@ func (x *Session) GetUserIdentity() *UserIdentity {
 
 func (x *Session) GetServiceAccountIdentity() *ServiceAccountIdentity {
 	if x != nil {
-		if x, ok := x.Identity.(*Session_ServiceAccountIdentity); ok {
+		if x, ok := x.xxx_hidden_Identity.(*session_ServiceAccountIdentity); ok {
 			return x.ServiceAccountIdentity
 		}
 	}
@@ -594,80 +557,80 @@ func (x *Session) GetServiceAccountIdentity() *ServiceAccountIdentity {
 
 func (x *Session) GetRoleIds() []string {
 	if x != nil {
-		return x.RoleIds
+		return x.xxx_hidden_RoleIds
 	}
 	return nil
 }
 
 func (x *Session) GetAuthorized() bool {
 	if x != nil {
-		return x.Authorized
+		return x.xxx_hidden_Authorized
 	}
 	return false
 }
 
 func (x *Session) GetMetadata() *SessionMetadata {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return nil
 }
 
 func (x *Session) SetId(v string) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *Session) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Session) SetUserIdentity(v *UserIdentity) {
 	if v == nil {
-		x.Identity = nil
+		x.xxx_hidden_Identity = nil
 		return
 	}
-	x.Identity = &Session_UserIdentity{v}
+	x.xxx_hidden_Identity = &session_UserIdentity{v}
 }
 
 func (x *Session) SetServiceAccountIdentity(v *ServiceAccountIdentity) {
 	if v == nil {
-		x.Identity = nil
+		x.xxx_hidden_Identity = nil
 		return
 	}
-	x.Identity = &Session_ServiceAccountIdentity{v}
+	x.xxx_hidden_Identity = &session_ServiceAccountIdentity{v}
 }
 
 func (x *Session) SetRoleIds(v []string) {
-	x.RoleIds = v
+	x.xxx_hidden_RoleIds = v
 }
 
 func (x *Session) SetAuthorized(v bool) {
-	x.Authorized = v
+	x.xxx_hidden_Authorized = v
 }
 
 func (x *Session) SetMetadata(v *SessionMetadata) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Session) HasCreateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CreateTime != nil
+	return x.xxx_hidden_CreateTime != nil
 }
 
 func (x *Session) HasIdentity() bool {
 	if x == nil {
 		return false
 	}
-	return x.Identity != nil
+	return x.xxx_hidden_Identity != nil
 }
 
 func (x *Session) HasUserIdentity() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Identity.(*Session_UserIdentity)
+	_, ok := x.xxx_hidden_Identity.(*session_UserIdentity)
 	return ok
 }
 
@@ -675,7 +638,7 @@ func (x *Session) HasServiceAccountIdentity() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Identity.(*Session_ServiceAccountIdentity)
+	_, ok := x.xxx_hidden_Identity.(*session_ServiceAccountIdentity)
 	return ok
 }
 
@@ -683,31 +646,31 @@ func (x *Session) HasMetadata() bool {
 	if x == nil {
 		return false
 	}
-	return x.Metadata != nil
+	return x.xxx_hidden_Metadata != nil
 }
 
 func (x *Session) ClearCreateTime() {
-	x.CreateTime = nil
+	x.xxx_hidden_CreateTime = nil
 }
 
 func (x *Session) ClearIdentity() {
-	x.Identity = nil
+	x.xxx_hidden_Identity = nil
 }
 
 func (x *Session) ClearUserIdentity() {
-	if _, ok := x.Identity.(*Session_UserIdentity); ok {
-		x.Identity = nil
+	if _, ok := x.xxx_hidden_Identity.(*session_UserIdentity); ok {
+		x.xxx_hidden_Identity = nil
 	}
 }
 
 func (x *Session) ClearServiceAccountIdentity() {
-	if _, ok := x.Identity.(*Session_ServiceAccountIdentity); ok {
-		x.Identity = nil
+	if _, ok := x.xxx_hidden_Identity.(*session_ServiceAccountIdentity); ok {
+		x.xxx_hidden_Identity = nil
 	}
 }
 
 func (x *Session) ClearMetadata() {
-	x.Metadata = nil
+	x.xxx_hidden_Metadata = nil
 }
 
 const Session_Identity_not_set_case case_Session_Identity = 0
@@ -718,10 +681,10 @@ func (x *Session) WhichIdentity() case_Session_Identity {
 	if x == nil {
 		return Session_Identity_not_set_case
 	}
-	switch x.Identity.(type) {
-	case *Session_UserIdentity:
+	switch x.xxx_hidden_Identity.(type) {
+	case *session_UserIdentity:
 		return Session_UserIdentity_case
-	case *Session_ServiceAccountIdentity:
+	case *session_ServiceAccountIdentity:
 		return Session_ServiceAccountIdentity_case
 	default:
 		return Session_Identity_not_set_case
@@ -737,12 +700,12 @@ type Session_builder struct {
 	CreateTime *timestamppb.Timestamp
 	// Identity that owns this session (mutually exclusive)
 
-	// Fields of oneof Identity:
+	// Fields of oneof xxx_hidden_Identity:
 	// Human user identity
 	UserIdentity *UserIdentity
 	// Service account identity for programmatic access
 	ServiceAccountIdentity *ServiceAccountIdentity
-	// -- end of Identity
+	// -- end of xxx_hidden_Identity
 	// The role ids available to this session.
 	RoleIds []string
 	// An authorized session does not get checked again method permissions.
@@ -760,17 +723,17 @@ func (b0 Session_builder) Build() *Session {
 	m0 := &Session{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.CreateTime = b.CreateTime
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_CreateTime = b.CreateTime
 	if b.UserIdentity != nil {
-		x.Identity = &Session_UserIdentity{b.UserIdentity}
+		x.xxx_hidden_Identity = &session_UserIdentity{b.UserIdentity}
 	}
 	if b.ServiceAccountIdentity != nil {
-		x.Identity = &Session_ServiceAccountIdentity{b.ServiceAccountIdentity}
+		x.xxx_hidden_Identity = &session_ServiceAccountIdentity{b.ServiceAccountIdentity}
 	}
-	x.RoleIds = b.RoleIds
-	x.Authorized = b.Authorized
-	x.Metadata = b.Metadata
+	x.xxx_hidden_RoleIds = b.RoleIds
+	x.xxx_hidden_Authorized = b.Authorized
+	x.xxx_hidden_Metadata = b.Metadata
 	return m0
 }
 
@@ -788,29 +751,27 @@ type isSession_Identity interface {
 	isSession_Identity()
 }
 
-type Session_UserIdentity struct {
+type session_UserIdentity struct {
 	// Human user identity
 	UserIdentity *UserIdentity `protobuf:"bytes,3,opt,name=user_identity,json=userIdentity,proto3,oneof"`
 }
 
-type Session_ServiceAccountIdentity struct {
+type session_ServiceAccountIdentity struct {
 	// Service account identity for programmatic access
 	ServiceAccountIdentity *ServiceAccountIdentity `protobuf:"bytes,4,opt,name=service_account_identity,json=serviceAccountIdentity,proto3,oneof"`
 }
 
-func (*Session_UserIdentity) isSession_Identity() {}
+func (*session_UserIdentity) isSession_Identity() {}
 
-func (*Session_ServiceAccountIdentity) isSession_Identity() {}
+func (*session_ServiceAccountIdentity) isSession_Identity() {}
 
 // Identity of a human user
 type UserIdentity struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The id of the organization the user belongs to.
-	OrganizationId string `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	// A unique idenfier for this user.
-	UserId        string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_OrganizationId string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3"`
+	xxx_hidden_UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *UserIdentity) Reset() {
@@ -840,24 +801,24 @@ func (x *UserIdentity) ProtoReflect() protoreflect.Message {
 
 func (x *UserIdentity) GetOrganizationId() string {
 	if x != nil {
-		return x.OrganizationId
+		return x.xxx_hidden_OrganizationId
 	}
 	return ""
 }
 
 func (x *UserIdentity) GetUserId() string {
 	if x != nil {
-		return x.UserId
+		return x.xxx_hidden_UserId
 	}
 	return ""
 }
 
 func (x *UserIdentity) SetOrganizationId(v string) {
-	x.OrganizationId = v
+	x.xxx_hidden_OrganizationId = v
 }
 
 func (x *UserIdentity) SetUserId(v string) {
-	x.UserId = v
+	x.xxx_hidden_UserId = v
 }
 
 type UserIdentity_builder struct {
@@ -873,18 +834,17 @@ func (b0 UserIdentity_builder) Build() *UserIdentity {
 	m0 := &UserIdentity{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.OrganizationId = b.OrganizationId
-	x.UserId = b.UserId
+	x.xxx_hidden_OrganizationId = b.OrganizationId
+	x.xxx_hidden_UserId = b.UserId
 	return m0
 }
 
 // Identity of a service account
 type ServiceAccountIdentity struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The service account behind this identity.
-	ServiceAccount *ServiceAccount `protobuf:"bytes,1,opt,name=service_account,json=serviceAccount,proto3" json:"service_account,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ServiceAccount *ServiceAccount        `protobuf:"bytes,1,opt,name=service_account,json=serviceAccount,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *ServiceAccountIdentity) Reset() {
@@ -914,24 +874,24 @@ func (x *ServiceAccountIdentity) ProtoReflect() protoreflect.Message {
 
 func (x *ServiceAccountIdentity) GetServiceAccount() *ServiceAccount {
 	if x != nil {
-		return x.ServiceAccount
+		return x.xxx_hidden_ServiceAccount
 	}
 	return nil
 }
 
 func (x *ServiceAccountIdentity) SetServiceAccount(v *ServiceAccount) {
-	x.ServiceAccount = v
+	x.xxx_hidden_ServiceAccount = v
 }
 
 func (x *ServiceAccountIdentity) HasServiceAccount() bool {
 	if x == nil {
 		return false
 	}
-	return x.ServiceAccount != nil
+	return x.xxx_hidden_ServiceAccount != nil
 }
 
 func (x *ServiceAccountIdentity) ClearServiceAccount() {
-	x.ServiceAccount = nil
+	x.xxx_hidden_ServiceAccount = nil
 }
 
 type ServiceAccountIdentity_builder struct {
@@ -945,28 +905,20 @@ func (b0 ServiceAccountIdentity_builder) Build() *ServiceAccountIdentity {
 	m0 := &ServiceAccountIdentity{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ServiceAccount = b.ServiceAccount
+	x.xxx_hidden_ServiceAccount = b.ServiceAccount
 	return m0
 }
 
 // SessionMetadata contains contextual information about a session, useful for
 // logging, auditing, security monitoring, and debugging.
 type SessionMetadata struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// IP address of the client that created or is using this session,
-	// useful for security monitoring and geographic access tracking.
-	IpAddress string `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
-	// Semantic version of the client application making requests with this session,
-	// enabling version-specific behavior and compatibility tracking.
-	ClientVersion *ClientVersion `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3" json:"client_version,omitempty"`
-	// User-Agent string from the client, providing information about the
-	// client software, operating system, and browser (if applicable).
-	UserAgent string `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
-	// Extensible key-value store for additional custom metadata that may be
-	// needed for specific use cases or integrations.
-	KeyToValue    map[string]string `protobuf:"bytes,4,rep,name=key_to_value,json=keyToValue,proto3" json:"key_to_value,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_IpAddress     string                 `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3"`
+	xxx_hidden_ClientVersion *ClientVersion         `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3"`
+	xxx_hidden_UserAgent     string                 `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3"`
+	xxx_hidden_KeyToValue    map[string]string      `protobuf:"bytes,4,rep,name=key_to_value,json=keyToValue,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *SessionMetadata) Reset() {
@@ -996,57 +948,57 @@ func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
 
 func (x *SessionMetadata) GetIpAddress() string {
 	if x != nil {
-		return x.IpAddress
+		return x.xxx_hidden_IpAddress
 	}
 	return ""
 }
 
 func (x *SessionMetadata) GetClientVersion() *ClientVersion {
 	if x != nil {
-		return x.ClientVersion
+		return x.xxx_hidden_ClientVersion
 	}
 	return nil
 }
 
 func (x *SessionMetadata) GetUserAgent() string {
 	if x != nil {
-		return x.UserAgent
+		return x.xxx_hidden_UserAgent
 	}
 	return ""
 }
 
 func (x *SessionMetadata) GetKeyToValue() map[string]string {
 	if x != nil {
-		return x.KeyToValue
+		return x.xxx_hidden_KeyToValue
 	}
 	return nil
 }
 
 func (x *SessionMetadata) SetIpAddress(v string) {
-	x.IpAddress = v
+	x.xxx_hidden_IpAddress = v
 }
 
 func (x *SessionMetadata) SetClientVersion(v *ClientVersion) {
-	x.ClientVersion = v
+	x.xxx_hidden_ClientVersion = v
 }
 
 func (x *SessionMetadata) SetUserAgent(v string) {
-	x.UserAgent = v
+	x.xxx_hidden_UserAgent = v
 }
 
 func (x *SessionMetadata) SetKeyToValue(v map[string]string) {
-	x.KeyToValue = v
+	x.xxx_hidden_KeyToValue = v
 }
 
 func (x *SessionMetadata) HasClientVersion() bool {
 	if x == nil {
 		return false
 	}
-	return x.ClientVersion != nil
+	return x.xxx_hidden_ClientVersion != nil
 }
 
 func (x *SessionMetadata) ClearClientVersion() {
-	x.ClientVersion = nil
+	x.xxx_hidden_ClientVersion = nil
 }
 
 type SessionMetadata_builder struct {
@@ -1070,25 +1022,22 @@ func (b0 SessionMetadata_builder) Build() *SessionMetadata {
 	m0 := &SessionMetadata{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.IpAddress = b.IpAddress
-	x.ClientVersion = b.ClientVersion
-	x.UserAgent = b.UserAgent
-	x.KeyToValue = b.KeyToValue
+	x.xxx_hidden_IpAddress = b.IpAddress
+	x.xxx_hidden_ClientVersion = b.ClientVersion
+	x.xxx_hidden_UserAgent = b.UserAgent
+	x.xxx_hidden_KeyToValue = b.KeyToValue
 	return m0
 }
 
 // ClientVersion represents a semantic version (semver) of the client application,
 // following the major.minor.patch versioning scheme.
 type ClientVersion struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Major version number, incremented for incompatible API changes.
-	Major int32 `protobuf:"varint,1,opt,name=major,proto3" json:"major,omitempty"`
-	// Minor version number, incremented for backwards-compatible functionality additions.
-	Minor int32 `protobuf:"varint,2,opt,name=minor,proto3" json:"minor,omitempty"`
-	// Patch version number, incremented for backwards-compatible bug fixes.
-	Patch         int32 `protobuf:"varint,3,opt,name=patch,proto3" json:"patch,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Major int32                  `protobuf:"varint,1,opt,name=major,proto3"`
+	xxx_hidden_Minor int32                  `protobuf:"varint,2,opt,name=minor,proto3"`
+	xxx_hidden_Patch int32                  `protobuf:"varint,3,opt,name=patch,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ClientVersion) Reset() {
@@ -1118,35 +1067,35 @@ func (x *ClientVersion) ProtoReflect() protoreflect.Message {
 
 func (x *ClientVersion) GetMajor() int32 {
 	if x != nil {
-		return x.Major
+		return x.xxx_hidden_Major
 	}
 	return 0
 }
 
 func (x *ClientVersion) GetMinor() int32 {
 	if x != nil {
-		return x.Minor
+		return x.xxx_hidden_Minor
 	}
 	return 0
 }
 
 func (x *ClientVersion) GetPatch() int32 {
 	if x != nil {
-		return x.Patch
+		return x.xxx_hidden_Patch
 	}
 	return 0
 }
 
 func (x *ClientVersion) SetMajor(v int32) {
-	x.Major = v
+	x.xxx_hidden_Major = v
 }
 
 func (x *ClientVersion) SetMinor(v int32) {
-	x.Minor = v
+	x.xxx_hidden_Minor = v
 }
 
 func (x *ClientVersion) SetPatch(v int32) {
-	x.Patch = v
+	x.xxx_hidden_Patch = v
 }
 
 type ClientVersion_builder struct {
@@ -1164,9 +1113,9 @@ func (b0 ClientVersion_builder) Build() *ClientVersion {
 	m0 := &ClientVersion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Major = b.Major
-	x.Minor = b.Minor
-	x.Patch = b.Patch
+	x.xxx_hidden_Major = b.Major
+	x.xxx_hidden_Minor = b.Minor
+	x.xxx_hidden_Patch = b.Patch
 	return m0
 }
 
@@ -1272,8 +1221,8 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 		return
 	}
 	file_malonaz_authentication_v1_authentication_proto_msgTypes[5].OneofWrappers = []any{
-		(*Session_UserIdentity)(nil),
-		(*Session_ServiceAccountIdentity)(nil),
+		(*session_UserIdentity)(nil),
+		(*session_ServiceAccountIdentity)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

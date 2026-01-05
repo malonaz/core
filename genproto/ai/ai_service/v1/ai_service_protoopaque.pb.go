@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/ai_service/v1/ai_service.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -94,20 +94,12 @@ func (x TextToTextStopReason) Number() protoreflect.EnumNumber {
 
 // Request message for Ai.CreateModel.
 type CreateModelRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the parent provider for which this model will be created.
-	// Format: providers/{provider}
-	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// The model to create.
-	Model *v1.Model `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
-	// The ID to use for the resource, which will become the final component of
-	// the resource name.
-	//
-	// This value should be 4-63 characters, and valid characters
-	// are /[a-z][0-9]-/.
-	ModelId       string `protobuf:"bytes,3,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent  string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Model   *v1.Model              `protobuf:"bytes,2,opt,name=model,proto3"`
+	xxx_hidden_ModelId string                 `protobuf:"bytes,3,opt,name=model_id,json=modelId,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CreateModelRequest) Reset() {
@@ -137,46 +129,46 @@ func (x *CreateModelRequest) ProtoReflect() protoreflect.Message {
 
 func (x *CreateModelRequest) GetParent() string {
 	if x != nil {
-		return x.Parent
+		return x.xxx_hidden_Parent
 	}
 	return ""
 }
 
 func (x *CreateModelRequest) GetModel() *v1.Model {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return nil
 }
 
 func (x *CreateModelRequest) GetModelId() string {
 	if x != nil {
-		return x.ModelId
+		return x.xxx_hidden_ModelId
 	}
 	return ""
 }
 
 func (x *CreateModelRequest) SetParent(v string) {
-	x.Parent = v
+	x.xxx_hidden_Parent = v
 }
 
 func (x *CreateModelRequest) SetModel(v *v1.Model) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *CreateModelRequest) SetModelId(v string) {
-	x.ModelId = v
+	x.xxx_hidden_ModelId = v
 }
 
 func (x *CreateModelRequest) HasModel() bool {
 	if x == nil {
 		return false
 	}
-	return x.Model != nil
+	return x.xxx_hidden_Model != nil
 }
 
 func (x *CreateModelRequest) ClearModel() {
-	x.Model = nil
+	x.xxx_hidden_Model = nil
 }
 
 type CreateModelRequest_builder struct {
@@ -199,20 +191,18 @@ func (b0 CreateModelRequest_builder) Build() *CreateModelRequest {
 	m0 := &CreateModelRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Parent = b.Parent
-	x.Model = b.Model
-	x.ModelId = b.ModelId
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_ModelId = b.ModelId
 	return m0
 }
 
 // Request message for Ai.GetModel.
 type GetModelRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model to retrieve.
-	// Format: providers/{provider}/models/{model}
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GetModelRequest) Reset() {
@@ -242,13 +232,13 @@ func (x *GetModelRequest) ProtoReflect() protoreflect.Message {
 
 func (x *GetModelRequest) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *GetModelRequest) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 type GetModelRequest_builder struct {
@@ -263,26 +253,18 @@ func (b0 GetModelRequest_builder) Build() *GetModelRequest {
 	m0 := &GetModelRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
+	x.xxx_hidden_Name = b.Name
 	return m0
 }
 
 // Request message for Ai.ListModels.
 type ListModelsRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the parent, which owns this collection of models.
-	// Format: providers/{provider}
-	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// Requested page size. Server may return fewer models than requested.
-	// If unspecified, server will pick an appropriate default.
-	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListModelsResponse.next_page_token][ai.ai_service.v1.ListModelsResponse.next_page_token]
-	// returned from the previous call to `ListModels` method.
-	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *ListModelsRequest) Reset() {
@@ -312,35 +294,35 @@ func (x *ListModelsRequest) ProtoReflect() protoreflect.Message {
 
 func (x *ListModelsRequest) GetParent() string {
 	if x != nil {
-		return x.Parent
+		return x.xxx_hidden_Parent
 	}
 	return ""
 }
 
 func (x *ListModelsRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *ListModelsRequest) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *ListModelsRequest) SetParent(v string) {
-	x.Parent = v
+	x.xxx_hidden_Parent = v
 }
 
 func (x *ListModelsRequest) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *ListModelsRequest) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 type ListModelsRequest_builder struct {
@@ -363,24 +345,19 @@ func (b0 ListModelsRequest_builder) Build() *ListModelsRequest {
 	m0 := &ListModelsRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Parent = b.Parent
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
 	return m0
 }
 
 // Response message for Ai.ListModels.
 type ListModelsResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The list of models.
-	Models []*v1.Model `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
-	// A token to retrieve next page of results. Pass this value in the
-	// [ListModelsRequest.page_token][ai.ai_service.v1.ListModelsRequest.page_token]
-	// field in the subsequent call to `ListModels` method to retrieve the next
-	// page of results.
-	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Models        *[]*v1.Model           `protobuf:"bytes,1,rep,name=models,proto3"`
+	xxx_hidden_NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ListModelsResponse) Reset() {
@@ -410,24 +387,26 @@ func (x *ListModelsResponse) ProtoReflect() protoreflect.Message {
 
 func (x *ListModelsResponse) GetModels() []*v1.Model {
 	if x != nil {
-		return x.Models
+		if x.xxx_hidden_Models != nil {
+			return *x.xxx_hidden_Models
+		}
 	}
 	return nil
 }
 
 func (x *ListModelsResponse) GetNextPageToken() string {
 	if x != nil {
-		return x.NextPageToken
+		return x.xxx_hidden_NextPageToken
 	}
 	return ""
 }
 
 func (x *ListModelsResponse) SetModels(v []*v1.Model) {
-	x.Models = v
+	x.xxx_hidden_Models = &v
 }
 
 func (x *ListModelsResponse) SetNextPageToken(v string) {
-	x.NextPageToken = v
+	x.xxx_hidden_NextPageToken = v
 }
 
 type ListModelsResponse_builder struct {
@@ -446,24 +425,18 @@ func (b0 ListModelsResponse_builder) Build() *ListModelsResponse {
 	m0 := &ListModelsResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Models = b.Models
-	x.NextPageToken = b.NextPageToken
+	x.xxx_hidden_Models = &b.Models
+	x.xxx_hidden_NextPageToken = b.NextPageToken
 	return m0
 }
 
 // Request message for Ai.CreateVoice.
 type CreateVoiceRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The voice to create.
-	Voice *v1.Voice `protobuf:"bytes,1,opt,name=voice,proto3" json:"voice,omitempty"`
-	// The ID to use for the resource, which will become the final component of
-	// the resource name.
-	//
-	// This value should be 4-63 characters, and valid characters
-	// are /[a-z][0-9]-/.
-	VoiceId       string `protobuf:"bytes,2,opt,name=voice_id,json=voiceId,proto3" json:"voice_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Voice   *v1.Voice              `protobuf:"bytes,1,opt,name=voice,proto3"`
+	xxx_hidden_VoiceId string                 `protobuf:"bytes,2,opt,name=voice_id,json=voiceId,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CreateVoiceRequest) Reset() {
@@ -493,35 +466,35 @@ func (x *CreateVoiceRequest) ProtoReflect() protoreflect.Message {
 
 func (x *CreateVoiceRequest) GetVoice() *v1.Voice {
 	if x != nil {
-		return x.Voice
+		return x.xxx_hidden_Voice
 	}
 	return nil
 }
 
 func (x *CreateVoiceRequest) GetVoiceId() string {
 	if x != nil {
-		return x.VoiceId
+		return x.xxx_hidden_VoiceId
 	}
 	return ""
 }
 
 func (x *CreateVoiceRequest) SetVoice(v *v1.Voice) {
-	x.Voice = v
+	x.xxx_hidden_Voice = v
 }
 
 func (x *CreateVoiceRequest) SetVoiceId(v string) {
-	x.VoiceId = v
+	x.xxx_hidden_VoiceId = v
 }
 
 func (x *CreateVoiceRequest) HasVoice() bool {
 	if x == nil {
 		return false
 	}
-	return x.Voice != nil
+	return x.xxx_hidden_Voice != nil
 }
 
 func (x *CreateVoiceRequest) ClearVoice() {
-	x.Voice = nil
+	x.xxx_hidden_Voice = nil
 }
 
 type CreateVoiceRequest_builder struct {
@@ -541,19 +514,17 @@ func (b0 CreateVoiceRequest_builder) Build() *CreateVoiceRequest {
 	m0 := &CreateVoiceRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Voice = b.Voice
-	x.VoiceId = b.VoiceId
+	x.xxx_hidden_Voice = b.Voice
+	x.xxx_hidden_VoiceId = b.VoiceId
 	return m0
 }
 
 // Request message for Ai.GetVoice.
 type GetVoiceRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the voice to retrieve.
-	// Format: providers/{provider}/voices/{voice}
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GetVoiceRequest) Reset() {
@@ -583,13 +554,13 @@ func (x *GetVoiceRequest) ProtoReflect() protoreflect.Message {
 
 func (x *GetVoiceRequest) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *GetVoiceRequest) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 type GetVoiceRequest_builder struct {
@@ -604,23 +575,17 @@ func (b0 GetVoiceRequest_builder) Build() *GetVoiceRequest {
 	m0 := &GetVoiceRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
+	x.xxx_hidden_Name = b.Name
 	return m0
 }
 
 // Request message for Ai.ListVoices.
 type ListVoicesRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Requested page size. Server may return fewer voices than requested.
-	// If unspecified, server will pick an appropriate default.
-	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListVoicesResponse.next_page_token][ai.ai_service.v1.ListVoicesResponse.next_page_token]
-	// returned from the previous call to `ListVoices` method.
-	PageToken     string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *ListVoicesRequest) Reset() {
@@ -650,24 +615,24 @@ func (x *ListVoicesRequest) ProtoReflect() protoreflect.Message {
 
 func (x *ListVoicesRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageSize
+		return x.xxx_hidden_PageSize
 	}
 	return 0
 }
 
 func (x *ListVoicesRequest) GetPageToken() string {
 	if x != nil {
-		return x.PageToken
+		return x.xxx_hidden_PageToken
 	}
 	return ""
 }
 
 func (x *ListVoicesRequest) SetPageSize(v int32) {
-	x.PageSize = v
+	x.xxx_hidden_PageSize = v
 }
 
 func (x *ListVoicesRequest) SetPageToken(v string) {
-	x.PageToken = v
+	x.xxx_hidden_PageToken = v
 }
 
 type ListVoicesRequest_builder struct {
@@ -687,23 +652,18 @@ func (b0 ListVoicesRequest_builder) Build() *ListVoicesRequest {
 	m0 := &ListVoicesRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.PageSize = b.PageSize
-	x.PageToken = b.PageToken
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
 	return m0
 }
 
 // Response message for Ai.ListVoices.
 type ListVoicesResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The list of voices.
-	Voices []*v1.Voice `protobuf:"bytes,1,rep,name=voices,proto3" json:"voices,omitempty"`
-	// A token to retrieve next page of results. Pass this value in the
-	// [ListVoicesRequest.page_token][ai.ai_service.v1.ListVoicesRequest.page_token]
-	// field in the subsequent call to `ListVoices` method to retrieve the next
-	// page of results.
-	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Voices        *[]*v1.Voice           `protobuf:"bytes,1,rep,name=voices,proto3"`
+	xxx_hidden_NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ListVoicesResponse) Reset() {
@@ -733,24 +693,26 @@ func (x *ListVoicesResponse) ProtoReflect() protoreflect.Message {
 
 func (x *ListVoicesResponse) GetVoices() []*v1.Voice {
 	if x != nil {
-		return x.Voices
+		if x.xxx_hidden_Voices != nil {
+			return *x.xxx_hidden_Voices
+		}
 	}
 	return nil
 }
 
 func (x *ListVoicesResponse) GetNextPageToken() string {
 	if x != nil {
-		return x.NextPageToken
+		return x.xxx_hidden_NextPageToken
 	}
 	return ""
 }
 
 func (x *ListVoicesResponse) SetVoices(v []*v1.Voice) {
-	x.Voices = v
+	x.xxx_hidden_Voices = &v
 }
 
 func (x *ListVoicesResponse) SetNextPageToken(v string) {
-	x.NextPageToken = v
+	x.xxx_hidden_NextPageToken = v
 }
 
 type ListVoicesResponse_builder struct {
@@ -769,25 +731,20 @@ func (b0 ListVoicesResponse_builder) Build() *ListVoicesResponse {
 	m0 := &ListVoicesResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Voices = b.Voices
-	x.NextPageToken = b.NextPageToken
+	x.xxx_hidden_Voices = &b.Voices
+	x.xxx_hidden_NextPageToken = b.NextPageToken
 	return m0
 }
 
 // Request message for Ai.SpeechToText.
 type SpeechToTextRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model used.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// Audio format of the audio.
-	AudioFormat *v11.Format `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3" json:"audio_format,omitempty"`
-	// Audio to transcribe.
-	AudioChunk *v11.Chunk `protobuf:"bytes,3,opt,name=audio_chunk,json=audioChunk,proto3" json:"audio_chunk,omitempty"`
-	// Optional language code to improve transcription accuracy (e.g., "en", "es").
-	LanguageCode  string `protobuf:"bytes,4,opt,name=language_code,json=languageCode,proto3" json:"language_code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Model        string                 `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_AudioFormat  *v11.Format            `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3"`
+	xxx_hidden_AudioChunk   *v11.Chunk             `protobuf:"bytes,3,opt,name=audio_chunk,json=audioChunk,proto3"`
+	xxx_hidden_LanguageCode string                 `protobuf:"bytes,4,opt,name=language_code,json=languageCode,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *SpeechToTextRequest) Reset() {
@@ -817,68 +774,68 @@ func (x *SpeechToTextRequest) ProtoReflect() protoreflect.Message {
 
 func (x *SpeechToTextRequest) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *SpeechToTextRequest) GetAudioFormat() *v11.Format {
 	if x != nil {
-		return x.AudioFormat
+		return x.xxx_hidden_AudioFormat
 	}
 	return nil
 }
 
 func (x *SpeechToTextRequest) GetAudioChunk() *v11.Chunk {
 	if x != nil {
-		return x.AudioChunk
+		return x.xxx_hidden_AudioChunk
 	}
 	return nil
 }
 
 func (x *SpeechToTextRequest) GetLanguageCode() string {
 	if x != nil {
-		return x.LanguageCode
+		return x.xxx_hidden_LanguageCode
 	}
 	return ""
 }
 
 func (x *SpeechToTextRequest) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *SpeechToTextRequest) SetAudioFormat(v *v11.Format) {
-	x.AudioFormat = v
+	x.xxx_hidden_AudioFormat = v
 }
 
 func (x *SpeechToTextRequest) SetAudioChunk(v *v11.Chunk) {
-	x.AudioChunk = v
+	x.xxx_hidden_AudioChunk = v
 }
 
 func (x *SpeechToTextRequest) SetLanguageCode(v string) {
-	x.LanguageCode = v
+	x.xxx_hidden_LanguageCode = v
 }
 
 func (x *SpeechToTextRequest) HasAudioFormat() bool {
 	if x == nil {
 		return false
 	}
-	return x.AudioFormat != nil
+	return x.xxx_hidden_AudioFormat != nil
 }
 
 func (x *SpeechToTextRequest) HasAudioChunk() bool {
 	if x == nil {
 		return false
 	}
-	return x.AudioChunk != nil
+	return x.xxx_hidden_AudioChunk != nil
 }
 
 func (x *SpeechToTextRequest) ClearAudioFormat() {
-	x.AudioFormat = nil
+	x.xxx_hidden_AudioFormat = nil
 }
 
 func (x *SpeechToTextRequest) ClearAudioChunk() {
-	x.AudioChunk = nil
+	x.xxx_hidden_AudioChunk = nil
 }
 
 type SpeechToTextRequest_builder struct {
@@ -899,24 +856,21 @@ func (b0 SpeechToTextRequest_builder) Build() *SpeechToTextRequest {
 	m0 := &SpeechToTextRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.AudioFormat = b.AudioFormat
-	x.AudioChunk = b.AudioChunk
-	x.LanguageCode = b.LanguageCode
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_AudioFormat = b.AudioFormat
+	x.xxx_hidden_AudioChunk = b.AudioChunk
+	x.xxx_hidden_LanguageCode = b.LanguageCode
 	return m0
 }
 
 // Response message for Ai.SpeechToText.
 type SpeechToTextResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The transcribed text.
-	Transcript string `protobuf:"bytes,1,opt,name=transcript,proto3" json:"transcript,omitempty"`
-	// Model usage metrics.
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
-	// Generation metrics.
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,3,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Transcript        string                 `protobuf:"bytes,1,opt,name=transcript,proto3"`
+	xxx_hidden_ModelUsage        *v1.ModelUsage         `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3"`
+	xxx_hidden_GenerationMetrics *v1.GenerationMetrics  `protobuf:"bytes,3,opt,name=generation_metrics,json=generationMetrics,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *SpeechToTextResponse) Reset() {
@@ -946,57 +900,57 @@ func (x *SpeechToTextResponse) ProtoReflect() protoreflect.Message {
 
 func (x *SpeechToTextResponse) GetTranscript() string {
 	if x != nil {
-		return x.Transcript
+		return x.xxx_hidden_Transcript
 	}
 	return ""
 }
 
 func (x *SpeechToTextResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		return x.ModelUsage
+		return x.xxx_hidden_ModelUsage
 	}
 	return nil
 }
 
 func (x *SpeechToTextResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		return x.GenerationMetrics
+		return x.xxx_hidden_GenerationMetrics
 	}
 	return nil
 }
 
 func (x *SpeechToTextResponse) SetTranscript(v string) {
-	x.Transcript = v
+	x.xxx_hidden_Transcript = v
 }
 
 func (x *SpeechToTextResponse) SetModelUsage(v *v1.ModelUsage) {
-	x.ModelUsage = v
+	x.xxx_hidden_ModelUsage = v
 }
 
 func (x *SpeechToTextResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
-	x.GenerationMetrics = v
+	x.xxx_hidden_GenerationMetrics = v
 }
 
 func (x *SpeechToTextResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	return x.ModelUsage != nil
+	return x.xxx_hidden_ModelUsage != nil
 }
 
 func (x *SpeechToTextResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	return x.GenerationMetrics != nil
+	return x.xxx_hidden_GenerationMetrics != nil
 }
 
 func (x *SpeechToTextResponse) ClearModelUsage() {
-	x.ModelUsage = nil
+	x.xxx_hidden_ModelUsage = nil
 }
 
 func (x *SpeechToTextResponse) ClearGenerationMetrics() {
-	x.GenerationMetrics = nil
+	x.xxx_hidden_GenerationMetrics = nil
 }
 
 type SpeechToTextResponse_builder struct {
@@ -1014,33 +968,23 @@ func (b0 SpeechToTextResponse_builder) Build() *SpeechToTextResponse {
 	m0 := &SpeechToTextResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Transcript = b.Transcript
-	x.ModelUsage = b.ModelUsage
-	x.GenerationMetrics = b.GenerationMetrics
+	x.xxx_hidden_Transcript = b.Transcript
+	x.xxx_hidden_ModelUsage = b.ModelUsage
+	x.xxx_hidden_GenerationMetrics = b.GenerationMetrics
 	return m0
 }
 
 // Configuration for text to text generation.
 type TextToTextConfiguration struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Maximum number of tokens to generate. Includes reasoning tokens.
-	MaxTokens int32 `protobuf:"varint,1,opt,name=max_tokens,json=maxTokens,proto3" json:"max_tokens,omitempty"`
-	// Sampling temperature (0.0 to 2.0).
-	Temperature float64 `protobuf:"fixed64,2,opt,name=temperature,proto3" json:"temperature,omitempty"`
-	// Controls which tool(s) the model should use.
-	ToolChoice *v1.ToolChoice `protobuf:"bytes,3,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
-	// Represents the level of reasoning effort for AI model responses.
-	// The reasoning effort parameter guides the model on how many reasoning tokens
-	// to generate before creating a response to the prompt. Higher effort levels
-	// result in more thorough reasoning at the cost of speed and token usage.
-	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,4,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
-	// If true, we attempt to clean the output to extract a json object.
-	// Fails the request if a json object cannot be found.
-	ExtractJsonObject bool `protobuf:"varint,5,opt,name=extract_json_object,json=extractJsonObject,proto3" json:"extract_json_object,omitempty"`
-	// If true, we stream partial tool calls.
-	StreamPartialToolCalls bool `protobuf:"varint,6,opt,name=stream_partial_tool_calls,json=streamPartialToolCalls,proto3" json:"stream_partial_tool_calls,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_MaxTokens              int32                  `protobuf:"varint,1,opt,name=max_tokens,json=maxTokens,proto3"`
+	xxx_hidden_Temperature            float64                `protobuf:"fixed64,2,opt,name=temperature,proto3"`
+	xxx_hidden_ToolChoice             *v1.ToolChoice         `protobuf:"bytes,3,opt,name=tool_choice,json=toolChoice,proto3"`
+	xxx_hidden_ReasoningEffort        v1.ReasoningEffort     `protobuf:"varint,4,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort"`
+	xxx_hidden_ExtractJsonObject      bool                   `protobuf:"varint,5,opt,name=extract_json_object,json=extractJsonObject,proto3"`
+	xxx_hidden_StreamPartialToolCalls bool                   `protobuf:"varint,6,opt,name=stream_partial_tool_calls,json=streamPartialToolCalls,proto3"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
 }
 
 func (x *TextToTextConfiguration) Reset() {
@@ -1070,79 +1014,79 @@ func (x *TextToTextConfiguration) ProtoReflect() protoreflect.Message {
 
 func (x *TextToTextConfiguration) GetMaxTokens() int32 {
 	if x != nil {
-		return x.MaxTokens
+		return x.xxx_hidden_MaxTokens
 	}
 	return 0
 }
 
 func (x *TextToTextConfiguration) GetTemperature() float64 {
 	if x != nil {
-		return x.Temperature
+		return x.xxx_hidden_Temperature
 	}
 	return 0
 }
 
 func (x *TextToTextConfiguration) GetToolChoice() *v1.ToolChoice {
 	if x != nil {
-		return x.ToolChoice
+		return x.xxx_hidden_ToolChoice
 	}
 	return nil
 }
 
 func (x *TextToTextConfiguration) GetReasoningEffort() v1.ReasoningEffort {
 	if x != nil {
-		return x.ReasoningEffort
+		return x.xxx_hidden_ReasoningEffort
 	}
 	return v1.ReasoningEffort(0)
 }
 
 func (x *TextToTextConfiguration) GetExtractJsonObject() bool {
 	if x != nil {
-		return x.ExtractJsonObject
+		return x.xxx_hidden_ExtractJsonObject
 	}
 	return false
 }
 
 func (x *TextToTextConfiguration) GetStreamPartialToolCalls() bool {
 	if x != nil {
-		return x.StreamPartialToolCalls
+		return x.xxx_hidden_StreamPartialToolCalls
 	}
 	return false
 }
 
 func (x *TextToTextConfiguration) SetMaxTokens(v int32) {
-	x.MaxTokens = v
+	x.xxx_hidden_MaxTokens = v
 }
 
 func (x *TextToTextConfiguration) SetTemperature(v float64) {
-	x.Temperature = v
+	x.xxx_hidden_Temperature = v
 }
 
 func (x *TextToTextConfiguration) SetToolChoice(v *v1.ToolChoice) {
-	x.ToolChoice = v
+	x.xxx_hidden_ToolChoice = v
 }
 
 func (x *TextToTextConfiguration) SetReasoningEffort(v v1.ReasoningEffort) {
-	x.ReasoningEffort = v
+	x.xxx_hidden_ReasoningEffort = v
 }
 
 func (x *TextToTextConfiguration) SetExtractJsonObject(v bool) {
-	x.ExtractJsonObject = v
+	x.xxx_hidden_ExtractJsonObject = v
 }
 
 func (x *TextToTextConfiguration) SetStreamPartialToolCalls(v bool) {
-	x.StreamPartialToolCalls = v
+	x.xxx_hidden_StreamPartialToolCalls = v
 }
 
 func (x *TextToTextConfiguration) HasToolChoice() bool {
 	if x == nil {
 		return false
 	}
-	return x.ToolChoice != nil
+	return x.xxx_hidden_ToolChoice != nil
 }
 
 func (x *TextToTextConfiguration) ClearToolChoice() {
-	x.ToolChoice = nil
+	x.xxx_hidden_ToolChoice = nil
 }
 
 type TextToTextConfiguration_builder struct {
@@ -1170,29 +1114,24 @@ func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
 	m0 := &TextToTextConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.MaxTokens = b.MaxTokens
-	x.Temperature = b.Temperature
-	x.ToolChoice = b.ToolChoice
-	x.ReasoningEffort = b.ReasoningEffort
-	x.ExtractJsonObject = b.ExtractJsonObject
-	x.StreamPartialToolCalls = b.StreamPartialToolCalls
+	x.xxx_hidden_MaxTokens = b.MaxTokens
+	x.xxx_hidden_Temperature = b.Temperature
+	x.xxx_hidden_ToolChoice = b.ToolChoice
+	x.xxx_hidden_ReasoningEffort = b.ReasoningEffort
+	x.xxx_hidden_ExtractJsonObject = b.ExtractJsonObject
+	x.xxx_hidden_StreamPartialToolCalls = b.StreamPartialToolCalls
 	return m0
 }
 
 // Request message for Ai.TextToText.
 type TextToTextRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model used.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The conversation messages.
-	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
-	// Tools available for the model to call.
-	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3" json:"configuration,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState   `protogen:"opaque.v1"`
+	xxx_hidden_Model         string                   `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_Messages      *[]*v1.Message           `protobuf:"bytes,2,rep,name=messages,proto3"`
+	xxx_hidden_Tools         *[]*v1.Tool              `protobuf:"bytes,3,rep,name=tools,proto3"`
+	xxx_hidden_Configuration *TextToTextConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *TextToTextRequest) Reset() {
@@ -1222,57 +1161,61 @@ func (x *TextToTextRequest) ProtoReflect() protoreflect.Message {
 
 func (x *TextToTextRequest) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *TextToTextRequest) GetMessages() []*v1.Message {
 	if x != nil {
-		return x.Messages
+		if x.xxx_hidden_Messages != nil {
+			return *x.xxx_hidden_Messages
+		}
 	}
 	return nil
 }
 
 func (x *TextToTextRequest) GetTools() []*v1.Tool {
 	if x != nil {
-		return x.Tools
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
 	}
 	return nil
 }
 
 func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
 	if x != nil {
-		return x.Configuration
+		return x.xxx_hidden_Configuration
 	}
 	return nil
 }
 
 func (x *TextToTextRequest) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *TextToTextRequest) SetMessages(v []*v1.Message) {
-	x.Messages = v
+	x.xxx_hidden_Messages = &v
 }
 
 func (x *TextToTextRequest) SetTools(v []*v1.Tool) {
-	x.Tools = v
+	x.xxx_hidden_Tools = &v
 }
 
 func (x *TextToTextRequest) SetConfiguration(v *TextToTextConfiguration) {
-	x.Configuration = v
+	x.xxx_hidden_Configuration = v
 }
 
 func (x *TextToTextRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.Configuration != nil
+	return x.xxx_hidden_Configuration != nil
 }
 
 func (x *TextToTextRequest) ClearConfiguration() {
-	x.Configuration = nil
+	x.xxx_hidden_Configuration = nil
 }
 
 type TextToTextRequest_builder struct {
@@ -1293,26 +1236,22 @@ func (b0 TextToTextRequest_builder) Build() *TextToTextRequest {
 	m0 := &TextToTextRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.Messages = b.Messages
-	x.Tools = b.Tools
-	x.Configuration = b.Configuration
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_Messages = &b.Messages
+	x.xxx_hidden_Tools = &b.Tools
+	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
 
 // Response message for Ai.TextToText.
 type TextToTextResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The generated message.
-	Message *v1.Message `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	// Reason why generation stopped.
-	StopReason TextToTextStopReason `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.TextToTextStopReason" json:"stop_reason,omitempty"`
-	// Model usage metrics.
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
-	// Generation metrics.
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Message           *v1.Message            `protobuf:"bytes,1,opt,name=message,proto3"`
+	xxx_hidden_StopReason        TextToTextStopReason   `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.TextToTextStopReason"`
+	xxx_hidden_ModelUsage        *v1.ModelUsage         `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3"`
+	xxx_hidden_GenerationMetrics *v1.GenerationMetrics  `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *TextToTextResponse) Reset() {
@@ -1342,79 +1281,79 @@ func (x *TextToTextResponse) ProtoReflect() protoreflect.Message {
 
 func (x *TextToTextResponse) GetMessage() *v1.Message {
 	if x != nil {
-		return x.Message
+		return x.xxx_hidden_Message
 	}
 	return nil
 }
 
 func (x *TextToTextResponse) GetStopReason() TextToTextStopReason {
 	if x != nil {
-		return x.StopReason
+		return x.xxx_hidden_StopReason
 	}
 	return TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED
 }
 
 func (x *TextToTextResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		return x.ModelUsage
+		return x.xxx_hidden_ModelUsage
 	}
 	return nil
 }
 
 func (x *TextToTextResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		return x.GenerationMetrics
+		return x.xxx_hidden_GenerationMetrics
 	}
 	return nil
 }
 
 func (x *TextToTextResponse) SetMessage(v *v1.Message) {
-	x.Message = v
+	x.xxx_hidden_Message = v
 }
 
 func (x *TextToTextResponse) SetStopReason(v TextToTextStopReason) {
-	x.StopReason = v
+	x.xxx_hidden_StopReason = v
 }
 
 func (x *TextToTextResponse) SetModelUsage(v *v1.ModelUsage) {
-	x.ModelUsage = v
+	x.xxx_hidden_ModelUsage = v
 }
 
 func (x *TextToTextResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
-	x.GenerationMetrics = v
+	x.xxx_hidden_GenerationMetrics = v
 }
 
 func (x *TextToTextResponse) HasMessage() bool {
 	if x == nil {
 		return false
 	}
-	return x.Message != nil
+	return x.xxx_hidden_Message != nil
 }
 
 func (x *TextToTextResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	return x.ModelUsage != nil
+	return x.xxx_hidden_ModelUsage != nil
 }
 
 func (x *TextToTextResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	return x.GenerationMetrics != nil
+	return x.xxx_hidden_GenerationMetrics != nil
 }
 
 func (x *TextToTextResponse) ClearMessage() {
-	x.Message = nil
+	x.xxx_hidden_Message = nil
 }
 
 func (x *TextToTextResponse) ClearModelUsage() {
-	x.ModelUsage = nil
+	x.xxx_hidden_ModelUsage = nil
 }
 
 func (x *TextToTextResponse) ClearGenerationMetrics() {
-	x.GenerationMetrics = nil
+	x.xxx_hidden_GenerationMetrics = nil
 }
 
 type TextToTextResponse_builder struct {
@@ -1434,29 +1373,23 @@ func (b0 TextToTextResponse_builder) Build() *TextToTextResponse {
 	m0 := &TextToTextResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Message = b.Message
-	x.StopReason = b.StopReason
-	x.ModelUsage = b.ModelUsage
-	x.GenerationMetrics = b.GenerationMetrics
+	x.xxx_hidden_Message = b.Message
+	x.xxx_hidden_StopReason = b.StopReason
+	x.xxx_hidden_ModelUsage = b.ModelUsage
+	x.xxx_hidden_GenerationMetrics = b.GenerationMetrics
 	return m0
 }
 
 // Request message for Ai.TextToTextStream.
 type TextToTextStreamRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model used.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The conversation messages.
-	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
-	// Tools available for the model to call.
-	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	// For the model to use a tool.
-	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
-	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState   `protogen:"opaque.v1"`
+	xxx_hidden_Model         string                   `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_Messages      *[]*v1.Message           `protobuf:"bytes,2,rep,name=messages,proto3"`
+	xxx_hidden_Tools         *[]*v1.Tool              `protobuf:"bytes,3,rep,name=tools,proto3"`
+	xxx_hidden_ToolChoice    string                   `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3"`
+	xxx_hidden_Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *TextToTextStreamRequest) Reset() {
@@ -1486,68 +1419,72 @@ func (x *TextToTextStreamRequest) ProtoReflect() protoreflect.Message {
 
 func (x *TextToTextStreamRequest) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *TextToTextStreamRequest) GetMessages() []*v1.Message {
 	if x != nil {
-		return x.Messages
+		if x.xxx_hidden_Messages != nil {
+			return *x.xxx_hidden_Messages
+		}
 	}
 	return nil
 }
 
 func (x *TextToTextStreamRequest) GetTools() []*v1.Tool {
 	if x != nil {
-		return x.Tools
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
 	}
 	return nil
 }
 
 func (x *TextToTextStreamRequest) GetToolChoice() string {
 	if x != nil {
-		return x.ToolChoice
+		return x.xxx_hidden_ToolChoice
 	}
 	return ""
 }
 
 func (x *TextToTextStreamRequest) GetConfiguration() *TextToTextConfiguration {
 	if x != nil {
-		return x.Configuration
+		return x.xxx_hidden_Configuration
 	}
 	return nil
 }
 
 func (x *TextToTextStreamRequest) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *TextToTextStreamRequest) SetMessages(v []*v1.Message) {
-	x.Messages = v
+	x.xxx_hidden_Messages = &v
 }
 
 func (x *TextToTextStreamRequest) SetTools(v []*v1.Tool) {
-	x.Tools = v
+	x.xxx_hidden_Tools = &v
 }
 
 func (x *TextToTextStreamRequest) SetToolChoice(v string) {
-	x.ToolChoice = v
+	x.xxx_hidden_ToolChoice = v
 }
 
 func (x *TextToTextStreamRequest) SetConfiguration(v *TextToTextConfiguration) {
-	x.Configuration = v
+	x.xxx_hidden_Configuration = v
 }
 
 func (x *TextToTextStreamRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.Configuration != nil
+	return x.xxx_hidden_Configuration != nil
 }
 
 func (x *TextToTextStreamRequest) ClearConfiguration() {
-	x.Configuration = nil
+	x.xxx_hidden_Configuration = nil
 }
 
 type TextToTextStreamRequest_builder struct {
@@ -1570,31 +1507,20 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	m0 := &TextToTextStreamRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.Messages = b.Messages
-	x.Tools = b.Tools
-	x.ToolChoice = b.ToolChoice
-	x.Configuration = b.Configuration
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_Messages = &b.Messages
+	x.xxx_hidden_Tools = &b.Tools
+	x.xxx_hidden_ToolChoice = b.ToolChoice
+	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
 
 // Response message for Ai.TextToTextStream.
 type TextToTextStreamResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Content of this response.
-	//
-	// Types that are valid to be assigned to Content:
-	//
-	//	*TextToTextStreamResponse_ContentChunk
-	//	*TextToTextStreamResponse_ReasoningChunk
-	//	*TextToTextStreamResponse_StopReason
-	//	*TextToTextStreamResponse_ToolCall
-	//	*TextToTextStreamResponse_PartialToolCall
-	//	*TextToTextStreamResponse_ModelUsage
-	//	*TextToTextStreamResponse_GenerationMetrics
-	Content       isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState             `protogen:"opaque.v1"`
+	xxx_hidden_Content isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *TextToTextStreamResponse) Reset() {
@@ -1622,16 +1548,9 @@ func (x *TextToTextStreamResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TextToTextStreamResponse) GetContent() isTextToTextStreamResponse_Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
 func (x *TextToTextStreamResponse) GetContentChunk() string {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ContentChunk); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ContentChunk); ok {
 			return x.ContentChunk
 		}
 	}
@@ -1640,7 +1559,7 @@ func (x *TextToTextStreamResponse) GetContentChunk() string {
 
 func (x *TextToTextStreamResponse) GetReasoningChunk() string {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ReasoningChunk); ok {
 			return x.ReasoningChunk
 		}
 	}
@@ -1649,7 +1568,7 @@ func (x *TextToTextStreamResponse) GetReasoningChunk() string {
 
 func (x *TextToTextStreamResponse) GetStopReason() TextToTextStopReason {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_StopReason); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_StopReason); ok {
 			return x.StopReason
 		}
 	}
@@ -1658,7 +1577,7 @@ func (x *TextToTextStreamResponse) GetStopReason() TextToTextStopReason {
 
 func (x *TextToTextStreamResponse) GetToolCall() *v1.ToolCall {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ToolCall); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ToolCall); ok {
 			return x.ToolCall
 		}
 	}
@@ -1667,7 +1586,7 @@ func (x *TextToTextStreamResponse) GetToolCall() *v1.ToolCall {
 
 func (x *TextToTextStreamResponse) GetPartialToolCall() *v1.ToolCall {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_PartialToolCall); ok {
 			return x.PartialToolCall
 		}
 	}
@@ -1676,7 +1595,7 @@ func (x *TextToTextStreamResponse) GetPartialToolCall() *v1.ToolCall {
 
 func (x *TextToTextStreamResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ModelUsage); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ModelUsage); ok {
 			return x.ModelUsage
 		}
 	}
@@ -1685,7 +1604,7 @@ func (x *TextToTextStreamResponse) GetModelUsage() *v1.ModelUsage {
 
 func (x *TextToTextStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_GenerationMetrics); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_GenerationMetrics); ok {
 			return x.GenerationMetrics
 		}
 	}
@@ -1693,61 +1612,61 @@ func (x *TextToTextStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics 
 }
 
 func (x *TextToTextStreamResponse) SetContentChunk(v string) {
-	x.Content = &TextToTextStreamResponse_ContentChunk{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_ContentChunk{v}
 }
 
 func (x *TextToTextStreamResponse) SetReasoningChunk(v string) {
-	x.Content = &TextToTextStreamResponse_ReasoningChunk{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_ReasoningChunk{v}
 }
 
 func (x *TextToTextStreamResponse) SetStopReason(v TextToTextStopReason) {
-	x.Content = &TextToTextStreamResponse_StopReason{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_StopReason{v}
 }
 
 func (x *TextToTextStreamResponse) SetToolCall(v *v1.ToolCall) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToTextStreamResponse_ToolCall{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_ToolCall{v}
 }
 
 func (x *TextToTextStreamResponse) SetPartialToolCall(v *v1.ToolCall) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToTextStreamResponse_PartialToolCall{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_PartialToolCall{v}
 }
 
 func (x *TextToTextStreamResponse) SetModelUsage(v *v1.ModelUsage) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToTextStreamResponse_ModelUsage{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_ModelUsage{v}
 }
 
 func (x *TextToTextStreamResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToTextStreamResponse_GenerationMetrics{v}
+	x.xxx_hidden_Content = &textToTextStreamResponse_GenerationMetrics{v}
 }
 
 func (x *TextToTextStreamResponse) HasContent() bool {
 	if x == nil {
 		return false
 	}
-	return x.Content != nil
+	return x.xxx_hidden_Content != nil
 }
 
 func (x *TextToTextStreamResponse) HasContentChunk() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ContentChunk)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ContentChunk)
 	return ok
 }
 
@@ -1755,7 +1674,7 @@ func (x *TextToTextStreamResponse) HasReasoningChunk() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ReasoningChunk)
 	return ok
 }
 
@@ -1763,7 +1682,7 @@ func (x *TextToTextStreamResponse) HasStopReason() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_StopReason)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_StopReason)
 	return ok
 }
 
@@ -1771,7 +1690,7 @@ func (x *TextToTextStreamResponse) HasToolCall() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ToolCall)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ToolCall)
 	return ok
 }
 
@@ -1779,7 +1698,7 @@ func (x *TextToTextStreamResponse) HasPartialToolCall() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_PartialToolCall)
 	return ok
 }
 
@@ -1787,7 +1706,7 @@ func (x *TextToTextStreamResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ModelUsage)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ModelUsage)
 	return ok
 }
 
@@ -1795,53 +1714,53 @@ func (x *TextToTextStreamResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_GenerationMetrics)
+	_, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_GenerationMetrics)
 	return ok
 }
 
 func (x *TextToTextStreamResponse) ClearContent() {
-	x.Content = nil
+	x.xxx_hidden_Content = nil
 }
 
 func (x *TextToTextStreamResponse) ClearContentChunk() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ContentChunk); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ContentChunk); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearReasoningChunk() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ReasoningChunk); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearStopReason() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_StopReason); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_StopReason); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearToolCall() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ToolCall); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ToolCall); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearPartialToolCall() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_PartialToolCall); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearModelUsage() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ModelUsage); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_ModelUsage); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearGenerationMetrics() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_GenerationMetrics); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToTextStreamResponse_GenerationMetrics); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
@@ -1858,20 +1777,20 @@ func (x *TextToTextStreamResponse) WhichContent() case_TextToTextStreamResponse_
 	if x == nil {
 		return TextToTextStreamResponse_Content_not_set_case
 	}
-	switch x.Content.(type) {
-	case *TextToTextStreamResponse_ContentChunk:
+	switch x.xxx_hidden_Content.(type) {
+	case *textToTextStreamResponse_ContentChunk:
 		return TextToTextStreamResponse_ContentChunk_case
-	case *TextToTextStreamResponse_ReasoningChunk:
+	case *textToTextStreamResponse_ReasoningChunk:
 		return TextToTextStreamResponse_ReasoningChunk_case
-	case *TextToTextStreamResponse_StopReason:
+	case *textToTextStreamResponse_StopReason:
 		return TextToTextStreamResponse_StopReason_case
-	case *TextToTextStreamResponse_ToolCall:
+	case *textToTextStreamResponse_ToolCall:
 		return TextToTextStreamResponse_ToolCall_case
-	case *TextToTextStreamResponse_PartialToolCall:
+	case *textToTextStreamResponse_PartialToolCall:
 		return TextToTextStreamResponse_PartialToolCall_case
-	case *TextToTextStreamResponse_ModelUsage:
+	case *textToTextStreamResponse_ModelUsage:
 		return TextToTextStreamResponse_ModelUsage_case
-	case *TextToTextStreamResponse_GenerationMetrics:
+	case *textToTextStreamResponse_GenerationMetrics:
 		return TextToTextStreamResponse_GenerationMetrics_case
 	default:
 		return TextToTextStreamResponse_Content_not_set_case
@@ -1883,7 +1802,7 @@ type TextToTextStreamResponse_builder struct {
 
 	// Content of this response.
 
-	// Fields of oneof Content:
+	// Fields of oneof xxx_hidden_Content:
 	// A chunk of the generated message content.
 	ContentChunk *string
 	// Reasoning content chunk (if model supports reasoning).
@@ -1898,7 +1817,7 @@ type TextToTextStreamResponse_builder struct {
 	ModelUsage *v1.ModelUsage
 	// Generation metrics (sent last).
 	GenerationMetrics *v1.GenerationMetrics
-	// -- end of Content
+	// -- end of xxx_hidden_Content
 }
 
 func (b0 TextToTextStreamResponse_builder) Build() *TextToTextStreamResponse {
@@ -1906,25 +1825,25 @@ func (b0 TextToTextStreamResponse_builder) Build() *TextToTextStreamResponse {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.ContentChunk != nil {
-		x.Content = &TextToTextStreamResponse_ContentChunk{*b.ContentChunk}
+		x.xxx_hidden_Content = &textToTextStreamResponse_ContentChunk{*b.ContentChunk}
 	}
 	if b.ReasoningChunk != nil {
-		x.Content = &TextToTextStreamResponse_ReasoningChunk{*b.ReasoningChunk}
+		x.xxx_hidden_Content = &textToTextStreamResponse_ReasoningChunk{*b.ReasoningChunk}
 	}
 	if b.StopReason != nil {
-		x.Content = &TextToTextStreamResponse_StopReason{*b.StopReason}
+		x.xxx_hidden_Content = &textToTextStreamResponse_StopReason{*b.StopReason}
 	}
 	if b.ToolCall != nil {
-		x.Content = &TextToTextStreamResponse_ToolCall{b.ToolCall}
+		x.xxx_hidden_Content = &textToTextStreamResponse_ToolCall{b.ToolCall}
 	}
 	if b.PartialToolCall != nil {
-		x.Content = &TextToTextStreamResponse_PartialToolCall{b.PartialToolCall}
+		x.xxx_hidden_Content = &textToTextStreamResponse_PartialToolCall{b.PartialToolCall}
 	}
 	if b.ModelUsage != nil {
-		x.Content = &TextToTextStreamResponse_ModelUsage{b.ModelUsage}
+		x.xxx_hidden_Content = &textToTextStreamResponse_ModelUsage{b.ModelUsage}
 	}
 	if b.GenerationMetrics != nil {
-		x.Content = &TextToTextStreamResponse_GenerationMetrics{b.GenerationMetrics}
+		x.xxx_hidden_Content = &textToTextStreamResponse_GenerationMetrics{b.GenerationMetrics}
 	}
 	return m0
 }
@@ -1943,69 +1862,63 @@ type isTextToTextStreamResponse_Content interface {
 	isTextToTextStreamResponse_Content()
 }
 
-type TextToTextStreamResponse_ContentChunk struct {
+type textToTextStreamResponse_ContentChunk struct {
 	// A chunk of the generated message content.
 	ContentChunk string `protobuf:"bytes,1,opt,name=content_chunk,json=contentChunk,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_ReasoningChunk struct {
+type textToTextStreamResponse_ReasoningChunk struct {
 	// Reasoning content chunk (if model supports reasoning).
 	ReasoningChunk string `protobuf:"bytes,2,opt,name=reasoning_chunk,json=reasoningChunk,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_StopReason struct {
+type textToTextStreamResponse_StopReason struct {
 	// Reason why generation stopped.
 	StopReason TextToTextStopReason `protobuf:"varint,3,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.TextToTextStopReason,oneof"`
 }
 
-type TextToTextStreamResponse_ToolCall struct {
+type textToTextStreamResponse_ToolCall struct {
 	// Tool calls requested by the assistant (sent when complete).
 	ToolCall *v1.ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_PartialToolCall struct {
+type textToTextStreamResponse_PartialToolCall struct {
 	// Tool calls requested by the assistant (sent when complete).
 	PartialToolCall *v1.ToolCall `protobuf:"bytes,5,opt,name=partial_tool_call,json=partialToolCall,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_ModelUsage struct {
+type textToTextStreamResponse_ModelUsage struct {
 	// Model usage event (sent last).
 	ModelUsage *v1.ModelUsage `protobuf:"bytes,6,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_GenerationMetrics struct {
+type textToTextStreamResponse_GenerationMetrics struct {
 	// Generation metrics (sent last).
 	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,7,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
-func (*TextToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_StopReason) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_StopReason) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_ToolCall) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_ToolCall) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_PartialToolCall) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_PartialToolCall) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content() {}
 
-func (*TextToTextStreamResponse_GenerationMetrics) isTextToTextStreamResponse_Content() {}
+func (*textToTextStreamResponse_GenerationMetrics) isTextToTextStreamResponse_Content() {}
 
 // Configuration for text to speech generation.
 type TextToSpeechConfiguration struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Optional language code to improve accuracy (e.g., "en", "es").
-	LanguageCode string `protobuf:"bytes,1,opt,name=language_code,json=languageCode,proto3" json:"language_code,omitempty"`
-	// Preferred sample rate.e.g., 16000, 44100, 48000
-	// Best effort basis, caller should inspect the `audio_format` output.
-	PreferredSampleRate int32 `protobuf:"varint,2,opt,name=preferred_sample_rate,json=preferredSampleRate,proto3" json:"preferred_sample_rate,omitempty"`
-	// Override provider-specific request fields.
-	// See provider documentation for supported settings.
-	// Any field here gets injected into the request to the provider at the root level.
-	ProviderSettings *structpb.Struct `protobuf:"bytes,3,opt,name=provider_settings,json=providerSettings,proto3" json:"provider_settings,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_LanguageCode        string                 `protobuf:"bytes,1,opt,name=language_code,json=languageCode,proto3"`
+	xxx_hidden_PreferredSampleRate int32                  `protobuf:"varint,2,opt,name=preferred_sample_rate,json=preferredSampleRate,proto3"`
+	xxx_hidden_ProviderSettings    *structpb.Struct       `protobuf:"bytes,3,opt,name=provider_settings,json=providerSettings,proto3"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *TextToSpeechConfiguration) Reset() {
@@ -2035,46 +1948,46 @@ func (x *TextToSpeechConfiguration) ProtoReflect() protoreflect.Message {
 
 func (x *TextToSpeechConfiguration) GetLanguageCode() string {
 	if x != nil {
-		return x.LanguageCode
+		return x.xxx_hidden_LanguageCode
 	}
 	return ""
 }
 
 func (x *TextToSpeechConfiguration) GetPreferredSampleRate() int32 {
 	if x != nil {
-		return x.PreferredSampleRate
+		return x.xxx_hidden_PreferredSampleRate
 	}
 	return 0
 }
 
 func (x *TextToSpeechConfiguration) GetProviderSettings() *structpb.Struct {
 	if x != nil {
-		return x.ProviderSettings
+		return x.xxx_hidden_ProviderSettings
 	}
 	return nil
 }
 
 func (x *TextToSpeechConfiguration) SetLanguageCode(v string) {
-	x.LanguageCode = v
+	x.xxx_hidden_LanguageCode = v
 }
 
 func (x *TextToSpeechConfiguration) SetPreferredSampleRate(v int32) {
-	x.PreferredSampleRate = v
+	x.xxx_hidden_PreferredSampleRate = v
 }
 
 func (x *TextToSpeechConfiguration) SetProviderSettings(v *structpb.Struct) {
-	x.ProviderSettings = v
+	x.xxx_hidden_ProviderSettings = v
 }
 
 func (x *TextToSpeechConfiguration) HasProviderSettings() bool {
 	if x == nil {
 		return false
 	}
-	return x.ProviderSettings != nil
+	return x.xxx_hidden_ProviderSettings != nil
 }
 
 func (x *TextToSpeechConfiguration) ClearProviderSettings() {
-	x.ProviderSettings = nil
+	x.xxx_hidden_ProviderSettings = nil
 }
 
 type TextToSpeechConfiguration_builder struct {
@@ -2095,29 +2008,22 @@ func (b0 TextToSpeechConfiguration_builder) Build() *TextToSpeechConfiguration {
 	m0 := &TextToSpeechConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.LanguageCode = b.LanguageCode
-	x.PreferredSampleRate = b.PreferredSampleRate
-	x.ProviderSettings = b.ProviderSettings
+	x.xxx_hidden_LanguageCode = b.LanguageCode
+	x.xxx_hidden_PreferredSampleRate = b.PreferredSampleRate
+	x.xxx_hidden_ProviderSettings = b.ProviderSettings
 	return m0
 }
 
 // Request message for Ai.TextToSpeech.
 type TextToSpeechRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model used.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The resource name of the voice to use.
-	// Format: voices/{voice}
-	Voice string `protobuf:"bytes,2,opt,name=voice,proto3" json:"voice,omitempty"`
-	// The provider voice id.
-	ProviderVoiceId string `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3" json:"provider_voice_id,omitempty"`
-	// The text to convert to speech.
-	Text string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
-	// Additional configuration.
-	Configuration *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
+	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_Voice           string                     `protobuf:"bytes,2,opt,name=voice,proto3"`
+	xxx_hidden_ProviderVoiceId string                     `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3"`
+	xxx_hidden_Text            string                     `protobuf:"bytes,4,opt,name=text,proto3"`
+	xxx_hidden_Configuration   *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *TextToSpeechRequest) Reset() {
@@ -2147,68 +2053,68 @@ func (x *TextToSpeechRequest) ProtoReflect() protoreflect.Message {
 
 func (x *TextToSpeechRequest) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *TextToSpeechRequest) GetVoice() string {
 	if x != nil {
-		return x.Voice
+		return x.xxx_hidden_Voice
 	}
 	return ""
 }
 
 func (x *TextToSpeechRequest) GetProviderVoiceId() string {
 	if x != nil {
-		return x.ProviderVoiceId
+		return x.xxx_hidden_ProviderVoiceId
 	}
 	return ""
 }
 
 func (x *TextToSpeechRequest) GetText() string {
 	if x != nil {
-		return x.Text
+		return x.xxx_hidden_Text
 	}
 	return ""
 }
 
 func (x *TextToSpeechRequest) GetConfiguration() *TextToSpeechConfiguration {
 	if x != nil {
-		return x.Configuration
+		return x.xxx_hidden_Configuration
 	}
 	return nil
 }
 
 func (x *TextToSpeechRequest) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *TextToSpeechRequest) SetVoice(v string) {
-	x.Voice = v
+	x.xxx_hidden_Voice = v
 }
 
 func (x *TextToSpeechRequest) SetProviderVoiceId(v string) {
-	x.ProviderVoiceId = v
+	x.xxx_hidden_ProviderVoiceId = v
 }
 
 func (x *TextToSpeechRequest) SetText(v string) {
-	x.Text = v
+	x.xxx_hidden_Text = v
 }
 
 func (x *TextToSpeechRequest) SetConfiguration(v *TextToSpeechConfiguration) {
-	x.Configuration = v
+	x.xxx_hidden_Configuration = v
 }
 
 func (x *TextToSpeechRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.Configuration != nil
+	return x.xxx_hidden_Configuration != nil
 }
 
 func (x *TextToSpeechRequest) ClearConfiguration() {
-	x.Configuration = nil
+	x.xxx_hidden_Configuration = nil
 }
 
 type TextToSpeechRequest_builder struct {
@@ -2232,27 +2138,23 @@ func (b0 TextToSpeechRequest_builder) Build() *TextToSpeechRequest {
 	m0 := &TextToSpeechRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.Voice = b.Voice
-	x.ProviderVoiceId = b.ProviderVoiceId
-	x.Text = b.Text
-	x.Configuration = b.Configuration
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_Voice = b.Voice
+	x.xxx_hidden_ProviderVoiceId = b.ProviderVoiceId
+	x.xxx_hidden_Text = b.Text
+	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
 
 // Response message for Ai.TextToSpeech.
 type TextToSpeechResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Audio format of the audio.
-	AudioFormat *v11.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3" json:"audio_format,omitempty"`
-	// Audio data chunk in PCM16 format.
-	AudioChunk *v11.Chunk `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3" json:"audio_chunk,omitempty"`
-	// Model usage metrics.
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
-	// Generation metrics.
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_AudioFormat       *v11.Format            `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3"`
+	xxx_hidden_AudioChunk        *v11.Chunk             `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3"`
+	xxx_hidden_ModelUsage        *v1.ModelUsage         `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3"`
+	xxx_hidden_GenerationMetrics *v1.GenerationMetrics  `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *TextToSpeechResponse) Reset() {
@@ -2282,90 +2184,90 @@ func (x *TextToSpeechResponse) ProtoReflect() protoreflect.Message {
 
 func (x *TextToSpeechResponse) GetAudioFormat() *v11.Format {
 	if x != nil {
-		return x.AudioFormat
+		return x.xxx_hidden_AudioFormat
 	}
 	return nil
 }
 
 func (x *TextToSpeechResponse) GetAudioChunk() *v11.Chunk {
 	if x != nil {
-		return x.AudioChunk
+		return x.xxx_hidden_AudioChunk
 	}
 	return nil
 }
 
 func (x *TextToSpeechResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		return x.ModelUsage
+		return x.xxx_hidden_ModelUsage
 	}
 	return nil
 }
 
 func (x *TextToSpeechResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		return x.GenerationMetrics
+		return x.xxx_hidden_GenerationMetrics
 	}
 	return nil
 }
 
 func (x *TextToSpeechResponse) SetAudioFormat(v *v11.Format) {
-	x.AudioFormat = v
+	x.xxx_hidden_AudioFormat = v
 }
 
 func (x *TextToSpeechResponse) SetAudioChunk(v *v11.Chunk) {
-	x.AudioChunk = v
+	x.xxx_hidden_AudioChunk = v
 }
 
 func (x *TextToSpeechResponse) SetModelUsage(v *v1.ModelUsage) {
-	x.ModelUsage = v
+	x.xxx_hidden_ModelUsage = v
 }
 
 func (x *TextToSpeechResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
-	x.GenerationMetrics = v
+	x.xxx_hidden_GenerationMetrics = v
 }
 
 func (x *TextToSpeechResponse) HasAudioFormat() bool {
 	if x == nil {
 		return false
 	}
-	return x.AudioFormat != nil
+	return x.xxx_hidden_AudioFormat != nil
 }
 
 func (x *TextToSpeechResponse) HasAudioChunk() bool {
 	if x == nil {
 		return false
 	}
-	return x.AudioChunk != nil
+	return x.xxx_hidden_AudioChunk != nil
 }
 
 func (x *TextToSpeechResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	return x.ModelUsage != nil
+	return x.xxx_hidden_ModelUsage != nil
 }
 
 func (x *TextToSpeechResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	return x.GenerationMetrics != nil
+	return x.xxx_hidden_GenerationMetrics != nil
 }
 
 func (x *TextToSpeechResponse) ClearAudioFormat() {
-	x.AudioFormat = nil
+	x.xxx_hidden_AudioFormat = nil
 }
 
 func (x *TextToSpeechResponse) ClearAudioChunk() {
-	x.AudioChunk = nil
+	x.xxx_hidden_AudioChunk = nil
 }
 
 func (x *TextToSpeechResponse) ClearModelUsage() {
-	x.ModelUsage = nil
+	x.xxx_hidden_ModelUsage = nil
 }
 
 func (x *TextToSpeechResponse) ClearGenerationMetrics() {
-	x.GenerationMetrics = nil
+	x.xxx_hidden_GenerationMetrics = nil
 }
 
 type TextToSpeechResponse_builder struct {
@@ -2385,30 +2287,23 @@ func (b0 TextToSpeechResponse_builder) Build() *TextToSpeechResponse {
 	m0 := &TextToSpeechResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.AudioFormat = b.AudioFormat
-	x.AudioChunk = b.AudioChunk
-	x.ModelUsage = b.ModelUsage
-	x.GenerationMetrics = b.GenerationMetrics
+	x.xxx_hidden_AudioFormat = b.AudioFormat
+	x.xxx_hidden_AudioChunk = b.AudioChunk
+	x.xxx_hidden_ModelUsage = b.ModelUsage
+	x.xxx_hidden_GenerationMetrics = b.GenerationMetrics
 	return m0
 }
 
 // Request message for Ai.TextToSpeechStream.
 type TextToSpeechStreamRequest struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model to use.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The resource name of the voice to use.
-	// Format: voices/{voice}
-	Voice string `protobuf:"bytes,2,opt,name=voice,proto3" json:"voice,omitempty"`
-	// The provider voice id.
-	ProviderVoiceId string `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3" json:"provider_voice_id,omitempty"`
-	// The text to convert to speech.
-	Text string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
-	// Additional configuration.
-	Configuration *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
+	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_Voice           string                     `protobuf:"bytes,2,opt,name=voice,proto3"`
+	xxx_hidden_ProviderVoiceId string                     `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3"`
+	xxx_hidden_Text            string                     `protobuf:"bytes,4,opt,name=text,proto3"`
+	xxx_hidden_Configuration   *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *TextToSpeechStreamRequest) Reset() {
@@ -2438,68 +2333,68 @@ func (x *TextToSpeechStreamRequest) ProtoReflect() protoreflect.Message {
 
 func (x *TextToSpeechStreamRequest) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetVoice() string {
 	if x != nil {
-		return x.Voice
+		return x.xxx_hidden_Voice
 	}
 	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetProviderVoiceId() string {
 	if x != nil {
-		return x.ProviderVoiceId
+		return x.xxx_hidden_ProviderVoiceId
 	}
 	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetText() string {
 	if x != nil {
-		return x.Text
+		return x.xxx_hidden_Text
 	}
 	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetConfiguration() *TextToSpeechConfiguration {
 	if x != nil {
-		return x.Configuration
+		return x.xxx_hidden_Configuration
 	}
 	return nil
 }
 
 func (x *TextToSpeechStreamRequest) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *TextToSpeechStreamRequest) SetVoice(v string) {
-	x.Voice = v
+	x.xxx_hidden_Voice = v
 }
 
 func (x *TextToSpeechStreamRequest) SetProviderVoiceId(v string) {
-	x.ProviderVoiceId = v
+	x.xxx_hidden_ProviderVoiceId = v
 }
 
 func (x *TextToSpeechStreamRequest) SetText(v string) {
-	x.Text = v
+	x.xxx_hidden_Text = v
 }
 
 func (x *TextToSpeechStreamRequest) SetConfiguration(v *TextToSpeechConfiguration) {
-	x.Configuration = v
+	x.xxx_hidden_Configuration = v
 }
 
 func (x *TextToSpeechStreamRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.Configuration != nil
+	return x.xxx_hidden_Configuration != nil
 }
 
 func (x *TextToSpeechStreamRequest) ClearConfiguration() {
-	x.Configuration = nil
+	x.xxx_hidden_Configuration = nil
 }
 
 type TextToSpeechStreamRequest_builder struct {
@@ -2523,28 +2418,20 @@ func (b0 TextToSpeechStreamRequest_builder) Build() *TextToSpeechStreamRequest {
 	m0 := &TextToSpeechStreamRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.Voice = b.Voice
-	x.ProviderVoiceId = b.ProviderVoiceId
-	x.Text = b.Text
-	x.Configuration = b.Configuration
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_Voice = b.Voice
+	x.xxx_hidden_ProviderVoiceId = b.ProviderVoiceId
+	x.xxx_hidden_Text = b.Text
+	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
 
 // Response message for Ai.TextToSpeechStream.
 type TextToSpeechStreamResponse struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Content of this response.
-	//
-	// Types that are valid to be assigned to Content:
-	//
-	//	*TextToSpeechStreamResponse_AudioFormat
-	//	*TextToSpeechStreamResponse_AudioChunk
-	//	*TextToSpeechStreamResponse_ModelUsage
-	//	*TextToSpeechStreamResponse_GenerationMetrics
-	Content       isTextToSpeechStreamResponse_Content `protobuf_oneof:"content"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState               `protogen:"opaque.v1"`
+	xxx_hidden_Content isTextToSpeechStreamResponse_Content `protobuf_oneof:"content"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *TextToSpeechStreamResponse) Reset() {
@@ -2572,16 +2459,9 @@ func (x *TextToSpeechStreamResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TextToSpeechStreamResponse) GetContent() isTextToSpeechStreamResponse_Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
 func (x *TextToSpeechStreamResponse) GetAudioFormat() *v11.Format {
 	if x != nil {
-		if x, ok := x.Content.(*TextToSpeechStreamResponse_AudioFormat); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioFormat); ok {
 			return x.AudioFormat
 		}
 	}
@@ -2590,7 +2470,7 @@ func (x *TextToSpeechStreamResponse) GetAudioFormat() *v11.Format {
 
 func (x *TextToSpeechStreamResponse) GetAudioChunk() *v11.Chunk {
 	if x != nil {
-		if x, ok := x.Content.(*TextToSpeechStreamResponse_AudioChunk); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioChunk); ok {
 			return x.AudioChunk
 		}
 	}
@@ -2599,7 +2479,7 @@ func (x *TextToSpeechStreamResponse) GetAudioChunk() *v11.Chunk {
 
 func (x *TextToSpeechStreamResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		if x, ok := x.Content.(*TextToSpeechStreamResponse_ModelUsage); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_ModelUsage); ok {
 			return x.ModelUsage
 		}
 	}
@@ -2608,7 +2488,7 @@ func (x *TextToSpeechStreamResponse) GetModelUsage() *v1.ModelUsage {
 
 func (x *TextToSpeechStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		if x, ok := x.Content.(*TextToSpeechStreamResponse_GenerationMetrics); ok {
+		if x, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_GenerationMetrics); ok {
 			return x.GenerationMetrics
 		}
 	}
@@ -2617,48 +2497,48 @@ func (x *TextToSpeechStreamResponse) GetGenerationMetrics() *v1.GenerationMetric
 
 func (x *TextToSpeechStreamResponse) SetAudioFormat(v *v11.Format) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToSpeechStreamResponse_AudioFormat{v}
+	x.xxx_hidden_Content = &textToSpeechStreamResponse_AudioFormat{v}
 }
 
 func (x *TextToSpeechStreamResponse) SetAudioChunk(v *v11.Chunk) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToSpeechStreamResponse_AudioChunk{v}
+	x.xxx_hidden_Content = &textToSpeechStreamResponse_AudioChunk{v}
 }
 
 func (x *TextToSpeechStreamResponse) SetModelUsage(v *v1.ModelUsage) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToSpeechStreamResponse_ModelUsage{v}
+	x.xxx_hidden_Content = &textToSpeechStreamResponse_ModelUsage{v}
 }
 
 func (x *TextToSpeechStreamResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
 	if v == nil {
-		x.Content = nil
+		x.xxx_hidden_Content = nil
 		return
 	}
-	x.Content = &TextToSpeechStreamResponse_GenerationMetrics{v}
+	x.xxx_hidden_Content = &textToSpeechStreamResponse_GenerationMetrics{v}
 }
 
 func (x *TextToSpeechStreamResponse) HasContent() bool {
 	if x == nil {
 		return false
 	}
-	return x.Content != nil
+	return x.xxx_hidden_Content != nil
 }
 
 func (x *TextToSpeechStreamResponse) HasAudioFormat() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToSpeechStreamResponse_AudioFormat)
+	_, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioFormat)
 	return ok
 }
 
@@ -2666,7 +2546,7 @@ func (x *TextToSpeechStreamResponse) HasAudioChunk() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToSpeechStreamResponse_AudioChunk)
+	_, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioChunk)
 	return ok
 }
 
@@ -2674,7 +2554,7 @@ func (x *TextToSpeechStreamResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToSpeechStreamResponse_ModelUsage)
+	_, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_ModelUsage)
 	return ok
 }
 
@@ -2682,35 +2562,35 @@ func (x *TextToSpeechStreamResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToSpeechStreamResponse_GenerationMetrics)
+	_, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_GenerationMetrics)
 	return ok
 }
 
 func (x *TextToSpeechStreamResponse) ClearContent() {
-	x.Content = nil
+	x.xxx_hidden_Content = nil
 }
 
 func (x *TextToSpeechStreamResponse) ClearAudioFormat() {
-	if _, ok := x.Content.(*TextToSpeechStreamResponse_AudioFormat); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioFormat); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToSpeechStreamResponse) ClearAudioChunk() {
-	if _, ok := x.Content.(*TextToSpeechStreamResponse_AudioChunk); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_AudioChunk); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToSpeechStreamResponse) ClearModelUsage() {
-	if _, ok := x.Content.(*TextToSpeechStreamResponse_ModelUsage); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_ModelUsage); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
 func (x *TextToSpeechStreamResponse) ClearGenerationMetrics() {
-	if _, ok := x.Content.(*TextToSpeechStreamResponse_GenerationMetrics); ok {
-		x.Content = nil
+	if _, ok := x.xxx_hidden_Content.(*textToSpeechStreamResponse_GenerationMetrics); ok {
+		x.xxx_hidden_Content = nil
 	}
 }
 
@@ -2724,14 +2604,14 @@ func (x *TextToSpeechStreamResponse) WhichContent() case_TextToSpeechStreamRespo
 	if x == nil {
 		return TextToSpeechStreamResponse_Content_not_set_case
 	}
-	switch x.Content.(type) {
-	case *TextToSpeechStreamResponse_AudioFormat:
+	switch x.xxx_hidden_Content.(type) {
+	case *textToSpeechStreamResponse_AudioFormat:
 		return TextToSpeechStreamResponse_AudioFormat_case
-	case *TextToSpeechStreamResponse_AudioChunk:
+	case *textToSpeechStreamResponse_AudioChunk:
 		return TextToSpeechStreamResponse_AudioChunk_case
-	case *TextToSpeechStreamResponse_ModelUsage:
+	case *textToSpeechStreamResponse_ModelUsage:
 		return TextToSpeechStreamResponse_ModelUsage_case
-	case *TextToSpeechStreamResponse_GenerationMetrics:
+	case *textToSpeechStreamResponse_GenerationMetrics:
 		return TextToSpeechStreamResponse_GenerationMetrics_case
 	default:
 		return TextToSpeechStreamResponse_Content_not_set_case
@@ -2743,7 +2623,7 @@ type TextToSpeechStreamResponse_builder struct {
 
 	// Content of this response.
 
-	// Fields of oneof Content:
+	// Fields of oneof xxx_hidden_Content:
 	// Audio format of the audio stream.
 	AudioFormat *v11.Format
 	// Audio data chunk in PCM16 format.
@@ -2752,7 +2632,7 @@ type TextToSpeechStreamResponse_builder struct {
 	ModelUsage *v1.ModelUsage
 	// Generation metrics.
 	GenerationMetrics *v1.GenerationMetrics
-	// -- end of Content
+	// -- end of xxx_hidden_Content
 }
 
 func (b0 TextToSpeechStreamResponse_builder) Build() *TextToSpeechStreamResponse {
@@ -2760,16 +2640,16 @@ func (b0 TextToSpeechStreamResponse_builder) Build() *TextToSpeechStreamResponse
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.AudioFormat != nil {
-		x.Content = &TextToSpeechStreamResponse_AudioFormat{b.AudioFormat}
+		x.xxx_hidden_Content = &textToSpeechStreamResponse_AudioFormat{b.AudioFormat}
 	}
 	if b.AudioChunk != nil {
-		x.Content = &TextToSpeechStreamResponse_AudioChunk{b.AudioChunk}
+		x.xxx_hidden_Content = &textToSpeechStreamResponse_AudioChunk{b.AudioChunk}
 	}
 	if b.ModelUsage != nil {
-		x.Content = &TextToSpeechStreamResponse_ModelUsage{b.ModelUsage}
+		x.xxx_hidden_Content = &textToSpeechStreamResponse_ModelUsage{b.ModelUsage}
 	}
 	if b.GenerationMetrics != nil {
-		x.Content = &TextToSpeechStreamResponse_GenerationMetrics{b.GenerationMetrics}
+		x.xxx_hidden_Content = &textToSpeechStreamResponse_GenerationMetrics{b.GenerationMetrics}
 	}
 	return m0
 }
@@ -2788,33 +2668,33 @@ type isTextToSpeechStreamResponse_Content interface {
 	isTextToSpeechStreamResponse_Content()
 }
 
-type TextToSpeechStreamResponse_AudioFormat struct {
+type textToSpeechStreamResponse_AudioFormat struct {
 	// Audio format of the audio stream.
 	AudioFormat *v11.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3,oneof"`
 }
 
-type TextToSpeechStreamResponse_AudioChunk struct {
+type textToSpeechStreamResponse_AudioChunk struct {
 	// Audio data chunk in PCM16 format.
 	AudioChunk *v11.Chunk `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3,oneof"`
 }
 
-type TextToSpeechStreamResponse_ModelUsage struct {
+type textToSpeechStreamResponse_ModelUsage struct {
 	// Model usage event (sent last).
 	ModelUsage *v1.ModelUsage `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
-type TextToSpeechStreamResponse_GenerationMetrics struct {
+type textToSpeechStreamResponse_GenerationMetrics struct {
 	// Generation metrics.
 	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
-func (*TextToSpeechStreamResponse_AudioFormat) isTextToSpeechStreamResponse_Content() {}
+func (*textToSpeechStreamResponse_AudioFormat) isTextToSpeechStreamResponse_Content() {}
 
-func (*TextToSpeechStreamResponse_AudioChunk) isTextToSpeechStreamResponse_Content() {}
+func (*textToSpeechStreamResponse_AudioChunk) isTextToSpeechStreamResponse_Content() {}
 
-func (*TextToSpeechStreamResponse_ModelUsage) isTextToSpeechStreamResponse_Content() {}
+func (*textToSpeechStreamResponse_ModelUsage) isTextToSpeechStreamResponse_Content() {}
 
-func (*TextToSpeechStreamResponse_GenerationMetrics) isTextToSpeechStreamResponse_Content() {}
+func (*textToSpeechStreamResponse_GenerationMetrics) isTextToSpeechStreamResponse_Content() {}
 
 var File_malonaz_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
@@ -3080,19 +2960,19 @@ func file_malonaz_ai_ai_service_v1_ai_service_proto_init() {
 		return
 	}
 	file_malonaz_ai_ai_service_v1_ai_service_proto_msgTypes[14].OneofWrappers = []any{
-		(*TextToTextStreamResponse_ContentChunk)(nil),
-		(*TextToTextStreamResponse_ReasoningChunk)(nil),
-		(*TextToTextStreamResponse_StopReason)(nil),
-		(*TextToTextStreamResponse_ToolCall)(nil),
-		(*TextToTextStreamResponse_PartialToolCall)(nil),
-		(*TextToTextStreamResponse_ModelUsage)(nil),
-		(*TextToTextStreamResponse_GenerationMetrics)(nil),
+		(*textToTextStreamResponse_ContentChunk)(nil),
+		(*textToTextStreamResponse_ReasoningChunk)(nil),
+		(*textToTextStreamResponse_StopReason)(nil),
+		(*textToTextStreamResponse_ToolCall)(nil),
+		(*textToTextStreamResponse_PartialToolCall)(nil),
+		(*textToTextStreamResponse_ModelUsage)(nil),
+		(*textToTextStreamResponse_GenerationMetrics)(nil),
 	}
 	file_malonaz_ai_ai_service_v1_ai_service_proto_msgTypes[19].OneofWrappers = []any{
-		(*TextToSpeechStreamResponse_AudioFormat)(nil),
-		(*TextToSpeechStreamResponse_AudioChunk)(nil),
-		(*TextToSpeechStreamResponse_ModelUsage)(nil),
-		(*TextToSpeechStreamResponse_GenerationMetrics)(nil),
+		(*textToSpeechStreamResponse_AudioFormat)(nil),
+		(*textToSpeechStreamResponse_AudioChunk)(nil),
+		(*textToSpeechStreamResponse_ModelUsage)(nil),
+		(*textToSpeechStreamResponse_GenerationMetrics)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

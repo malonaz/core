@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/v1/voice.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -74,22 +74,15 @@ func (x VoiceGender) Number() protoreflect.EnumNumber {
 
 // A multi-model voice.
 type Voice struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Required. The resource name of the voice.
-	// Format: voices/{voice}
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Human-readable display name for the voice.
-	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// Description of the voice characteristics (e.g., "warm female voice", "professional male narrator").
-	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// Gender of the voice.
-	Gender VoiceGender `protobuf:"varint,4,opt,name=gender,proto3,enum=malonaz.ai.v1.VoiceGender" json:"gender,omitempty"`
-	// Preview audio URL for sampling the voice.
-	PreviewUrl string `protobuf:"bytes,5,opt,name=preview_url,json=previewUrl,proto3" json:"preview_url,omitempty"`
-	// Provider-specific configurations for this voice across different models.
-	ModelConfigs  []*VoiceModelConfig `protobuf:"bytes,6,rep,name=model_configs,json=modelConfigs,proto3" json:"model_configs,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_DisplayName  string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3"`
+	xxx_hidden_Description  string                 `protobuf:"bytes,3,opt,name=description,proto3"`
+	xxx_hidden_Gender       VoiceGender            `protobuf:"varint,4,opt,name=gender,proto3,enum=malonaz.ai.v1.VoiceGender"`
+	xxx_hidden_PreviewUrl   string                 `protobuf:"bytes,5,opt,name=preview_url,json=previewUrl,proto3"`
+	xxx_hidden_ModelConfigs *[]*VoiceModelConfig   `protobuf:"bytes,6,rep,name=model_configs,json=modelConfigs,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Voice) Reset() {
@@ -119,68 +112,70 @@ func (x *Voice) ProtoReflect() protoreflect.Message {
 
 func (x *Voice) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *Voice) GetDisplayName() string {
 	if x != nil {
-		return x.DisplayName
+		return x.xxx_hidden_DisplayName
 	}
 	return ""
 }
 
 func (x *Voice) GetDescription() string {
 	if x != nil {
-		return x.Description
+		return x.xxx_hidden_Description
 	}
 	return ""
 }
 
 func (x *Voice) GetGender() VoiceGender {
 	if x != nil {
-		return x.Gender
+		return x.xxx_hidden_Gender
 	}
 	return VoiceGender_VOICE_GENDER_UNSPECIFIED
 }
 
 func (x *Voice) GetPreviewUrl() string {
 	if x != nil {
-		return x.PreviewUrl
+		return x.xxx_hidden_PreviewUrl
 	}
 	return ""
 }
 
 func (x *Voice) GetModelConfigs() []*VoiceModelConfig {
 	if x != nil {
-		return x.ModelConfigs
+		if x.xxx_hidden_ModelConfigs != nil {
+			return *x.xxx_hidden_ModelConfigs
+		}
 	}
 	return nil
 }
 
 func (x *Voice) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *Voice) SetDisplayName(v string) {
-	x.DisplayName = v
+	x.xxx_hidden_DisplayName = v
 }
 
 func (x *Voice) SetDescription(v string) {
-	x.Description = v
+	x.xxx_hidden_Description = v
 }
 
 func (x *Voice) SetGender(v VoiceGender) {
-	x.Gender = v
+	x.xxx_hidden_Gender = v
 }
 
 func (x *Voice) SetPreviewUrl(v string) {
-	x.PreviewUrl = v
+	x.xxx_hidden_PreviewUrl = v
 }
 
 func (x *Voice) SetModelConfigs(v []*VoiceModelConfig) {
-	x.ModelConfigs = v
+	x.xxx_hidden_ModelConfigs = &v
 }
 
 type Voice_builder struct {
@@ -205,25 +200,22 @@ func (b0 Voice_builder) Build() *Voice {
 	m0 := &Voice{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.DisplayName = b.DisplayName
-	x.Description = b.Description
-	x.Gender = b.Gender
-	x.PreviewUrl = b.PreviewUrl
-	x.ModelConfigs = b.ModelConfigs
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_DisplayName = b.DisplayName
+	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_Gender = b.Gender
+	x.xxx_hidden_PreviewUrl = b.PreviewUrl
+	x.xxx_hidden_ModelConfigs = &b.ModelConfigs
 	return m0
 }
 
 // Voice config for a specific model.
 type VoiceModelConfig struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The id used for this model by the provider.
-	ProviderVoiceId string `protobuf:"bytes,2,opt,name=provider_voice_id,json=providerVoiceId,proto3" json:"provider_voice_id,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Model           string                 `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_ProviderVoiceId string                 `protobuf:"bytes,2,opt,name=provider_voice_id,json=providerVoiceId,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *VoiceModelConfig) Reset() {
@@ -253,24 +245,24 @@ func (x *VoiceModelConfig) ProtoReflect() protoreflect.Message {
 
 func (x *VoiceModelConfig) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *VoiceModelConfig) GetProviderVoiceId() string {
 	if x != nil {
-		return x.ProviderVoiceId
+		return x.xxx_hidden_ProviderVoiceId
 	}
 	return ""
 }
 
 func (x *VoiceModelConfig) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *VoiceModelConfig) SetProviderVoiceId(v string) {
-	x.ProviderVoiceId = v
+	x.xxx_hidden_ProviderVoiceId = v
 }
 
 type VoiceModelConfig_builder struct {
@@ -287,8 +279,8 @@ func (b0 VoiceModelConfig_builder) Build() *VoiceModelConfig {
 	m0 := &VoiceModelConfig{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.ProviderVoiceId = b.ProviderVoiceId
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_ProviderVoiceId = b.ProviderVoiceId
 	return m0
 }
 

@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/audio/v1/audio.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -27,15 +27,12 @@ const (
 
 // Audio format specification for an audio stream.
 type Format struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// e.g., 16000, 44100, 48000
-	SampleRate int32 `protobuf:"varint,1,opt,name=sample_rate,json=sampleRate,proto3" json:"sample_rate,omitempty"`
-	// 1 for mono, 2 for stereo
-	Channels int32 `protobuf:"varint,2,opt,name=channels,proto3" json:"channels,omitempty"`
-	// typically 16 or 24
-	BitsPerSample int32 `protobuf:"varint,3,opt,name=bits_per_sample,json=bitsPerSample,proto3" json:"bits_per_sample,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_SampleRate    int32                  `protobuf:"varint,1,opt,name=sample_rate,json=sampleRate,proto3"`
+	xxx_hidden_Channels      int32                  `protobuf:"varint,2,opt,name=channels,proto3"`
+	xxx_hidden_BitsPerSample int32                  `protobuf:"varint,3,opt,name=bits_per_sample,json=bitsPerSample,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *Format) Reset() {
@@ -65,35 +62,35 @@ func (x *Format) ProtoReflect() protoreflect.Message {
 
 func (x *Format) GetSampleRate() int32 {
 	if x != nil {
-		return x.SampleRate
+		return x.xxx_hidden_SampleRate
 	}
 	return 0
 }
 
 func (x *Format) GetChannels() int32 {
 	if x != nil {
-		return x.Channels
+		return x.xxx_hidden_Channels
 	}
 	return 0
 }
 
 func (x *Format) GetBitsPerSample() int32 {
 	if x != nil {
-		return x.BitsPerSample
+		return x.xxx_hidden_BitsPerSample
 	}
 	return 0
 }
 
 func (x *Format) SetSampleRate(v int32) {
-	x.SampleRate = v
+	x.xxx_hidden_SampleRate = v
 }
 
 func (x *Format) SetChannels(v int32) {
-	x.Channels = v
+	x.xxx_hidden_Channels = v
 }
 
 func (x *Format) SetBitsPerSample(v int32) {
-	x.BitsPerSample = v
+	x.xxx_hidden_BitsPerSample = v
 }
 
 type Format_builder struct {
@@ -111,28 +108,21 @@ func (b0 Format_builder) Build() *Format {
 	m0 := &Format{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.SampleRate = b.SampleRate
-	x.Channels = b.Channels
-	x.BitsPerSample = b.BitsPerSample
+	x.xxx_hidden_SampleRate = b.SampleRate
+	x.xxx_hidden_Channels = b.Channels
+	x.xxx_hidden_BitsPerSample = b.BitsPerSample
 	return m0
 }
 
 // A chunk of audio data.
 type Chunk struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Where this chunk sits within an audio segment. (starts at 1).
-	Index uint32 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
-	// Timestamp when this chunk was captured/created by the sender.
-	// This helps with synchronization and latency measurements.
-	// Only set on first chunk.
-	CaptureTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=capture_time,json=captureTime,proto3" json:"capture_time,omitempty"`
-	// Duration of audio data in this chunk.
-	// Useful for precise playback timing and buffer management.
-	Duration *durationpb.Duration `protobuf:"bytes,3,opt,name=duration,proto3" json:"duration,omitempty"`
-	// Audio data.
-	Data          []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Index       uint32                 `protobuf:"varint,1,opt,name=index,proto3"`
+	xxx_hidden_CaptureTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=capture_time,json=captureTime,proto3"`
+	xxx_hidden_Duration    *durationpb.Duration   `protobuf:"bytes,3,opt,name=duration,proto3"`
+	xxx_hidden_Data        []byte                 `protobuf:"bytes,4,opt,name=data,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Chunk) Reset() {
@@ -162,71 +152,71 @@ func (x *Chunk) ProtoReflect() protoreflect.Message {
 
 func (x *Chunk) GetIndex() uint32 {
 	if x != nil {
-		return x.Index
+		return x.xxx_hidden_Index
 	}
 	return 0
 }
 
 func (x *Chunk) GetCaptureTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CaptureTime
+		return x.xxx_hidden_CaptureTime
 	}
 	return nil
 }
 
 func (x *Chunk) GetDuration() *durationpb.Duration {
 	if x != nil {
-		return x.Duration
+		return x.xxx_hidden_Duration
 	}
 	return nil
 }
 
 func (x *Chunk) GetData() []byte {
 	if x != nil {
-		return x.Data
+		return x.xxx_hidden_Data
 	}
 	return nil
 }
 
 func (x *Chunk) SetIndex(v uint32) {
-	x.Index = v
+	x.xxx_hidden_Index = v
 }
 
 func (x *Chunk) SetCaptureTime(v *timestamppb.Timestamp) {
-	x.CaptureTime = v
+	x.xxx_hidden_CaptureTime = v
 }
 
 func (x *Chunk) SetDuration(v *durationpb.Duration) {
-	x.Duration = v
+	x.xxx_hidden_Duration = v
 }
 
 func (x *Chunk) SetData(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.Data = v
+	x.xxx_hidden_Data = v
 }
 
 func (x *Chunk) HasCaptureTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CaptureTime != nil
+	return x.xxx_hidden_CaptureTime != nil
 }
 
 func (x *Chunk) HasDuration() bool {
 	if x == nil {
 		return false
 	}
-	return x.Duration != nil
+	return x.xxx_hidden_Duration != nil
 }
 
 func (x *Chunk) ClearCaptureTime() {
-	x.CaptureTime = nil
+	x.xxx_hidden_CaptureTime = nil
 }
 
 func (x *Chunk) ClearDuration() {
-	x.Duration = nil
+	x.xxx_hidden_Duration = nil
 }
 
 type Chunk_builder struct {
@@ -249,10 +239,10 @@ func (b0 Chunk_builder) Build() *Chunk {
 	m0 := &Chunk{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Index = b.Index
-	x.CaptureTime = b.CaptureTime
-	x.Duration = b.Duration
-	x.Data = b.Data
+	x.xxx_hidden_Index = b.Index
+	x.xxx_hidden_CaptureTime = b.CaptureTime
+	x.xxx_hidden_Duration = b.Duration
+	x.xxx_hidden_Data = b.Data
 	return m0
 }
 

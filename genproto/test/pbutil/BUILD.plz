@@ -3,9 +3,9 @@ go_library(
     srcs = ["pbutil.pb.go"],
     visibility = ["//..."],
     deps = [
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__api__annotations",
     ],
 )

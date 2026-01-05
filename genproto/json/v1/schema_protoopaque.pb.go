@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/json/v1/schema.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -25,60 +25,32 @@ const (
 
 // Represents a JSON Schema (recursive definition)
 type Schema struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Specifies the data type: "object", "string", "number", "integer", "boolean", "array", "null"
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	// Human-readable description of what this schema represents
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// For objects
-	// Defines the properties of an object type, where each property has its own schema (recursive)
-	Properties map[string]*Schema `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// List of property names that must be present in the object
-	Required []string `protobuf:"bytes,4,rep,name=required,proto3" json:"required,omitempty"`
-	// For arrays
-	// Defines the schema for elements within an array (recursive)
-	Items *Schema `protobuf:"bytes,5,opt,name=items,proto3" json:"items,omitempty"`
-	// Minimum number of items required in the array
-	MinItems int32 `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3" json:"min_items,omitempty"`
-	// Maximum number of items allowed in the array
-	MaxItems int32 `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3" json:"max_items,omitempty"`
-	// For strings
-	// List of allowed string values (enumeration constraint)
-	Enum []string `protobuf:"bytes,8,rep,name=enum,proto3" json:"enum,omitempty"`
-	// Minimum length of the string
-	MinLength int32 `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
-	// Maximum length of the string
-	MaxLength int32 `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3" json:"max_length,omitempty"`
-	// Regular expression pattern the string must match
-	Pattern string `protobuf:"bytes,11,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	// Semantic format hint: "date-time", "email", "uri", "uuid", etc.
-	Format string `protobuf:"bytes,12,opt,name=format,proto3" json:"format,omitempty"`
-	// For numbers
-	// Minimum value (inclusive) for number or integer types
-	Minimum float64 `protobuf:"fixed64,13,opt,name=minimum,proto3" json:"minimum,omitempty"`
-	// Maximum value (inclusive) for number or integer types
-	Maximum float64 `protobuf:"fixed64,14,opt,name=maximum,proto3" json:"maximum,omitempty"`
-	// Minimum value (exclusive) for number or integer types
-	ExclusiveMinimum float64 `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3" json:"exclusive_minimum,omitempty"`
-	// Maximum value (exclusive) for number or integer types
-	ExclusiveMaximum float64 `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3" json:"exclusive_maximum,omitempty"`
-	// The number must be a multiple of this value
-	MultipleOf float64 `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3" json:"multiple_of,omitempty"`
-	// Default value to use when no value is provided
-	Default string `protobuf:"bytes,18,opt,name=default,proto3" json:"default,omitempty"`
-	// Example values that satisfy this schema (for documentation)
-	Examples []string `protobuf:"bytes,19,rep,name=examples,proto3" json:"examples,omitempty"`
-	// Advanced combinators
-	// Schema is valid if it matches ANY of the provided schemas (recursive)
-	AnyOf []*Schema `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3" json:"any_of,omitempty"`
-	// Schema is valid if it matches EXACTLY ONE of the provided schemas (recursive)
-	OneOf []*Schema `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3" json:"one_of,omitempty"`
-	// Schema is valid if it matches ALL of the provided schemas (recursive)
-	AllOf []*Schema `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3" json:"all_of,omitempty"`
-	// Schema is valid if it does NOT match the provided schema (recursive)
-	Not           *Schema `protobuf:"bytes,23,opt,name=not,proto3" json:"not,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Type             string                 `protobuf:"bytes,1,opt,name=type,proto3"`
+	xxx_hidden_Description      string                 `protobuf:"bytes,2,opt,name=description,proto3"`
+	xxx_hidden_Properties       map[string]*Schema     `protobuf:"bytes,3,rep,name=properties,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Required         []string               `protobuf:"bytes,4,rep,name=required,proto3"`
+	xxx_hidden_Items            *Schema                `protobuf:"bytes,5,opt,name=items,proto3"`
+	xxx_hidden_MinItems         int32                  `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3"`
+	xxx_hidden_MaxItems         int32                  `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3"`
+	xxx_hidden_Enum             []string               `protobuf:"bytes,8,rep,name=enum,proto3"`
+	xxx_hidden_MinLength        int32                  `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3"`
+	xxx_hidden_MaxLength        int32                  `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3"`
+	xxx_hidden_Pattern          string                 `protobuf:"bytes,11,opt,name=pattern,proto3"`
+	xxx_hidden_Format           string                 `protobuf:"bytes,12,opt,name=format,proto3"`
+	xxx_hidden_Minimum          float64                `protobuf:"fixed64,13,opt,name=minimum,proto3"`
+	xxx_hidden_Maximum          float64                `protobuf:"fixed64,14,opt,name=maximum,proto3"`
+	xxx_hidden_ExclusiveMinimum float64                `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3"`
+	xxx_hidden_ExclusiveMaximum float64                `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3"`
+	xxx_hidden_MultipleOf       float64                `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3"`
+	xxx_hidden_Default          string                 `protobuf:"bytes,18,opt,name=default,proto3"`
+	xxx_hidden_Examples         []string               `protobuf:"bytes,19,rep,name=examples,proto3"`
+	xxx_hidden_AnyOf            *[]*Schema             `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3"`
+	xxx_hidden_OneOf            *[]*Schema             `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3"`
+	xxx_hidden_AllOf            *[]*Schema             `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3"`
+	xxx_hidden_Not              *Schema                `protobuf:"bytes,23,opt,name=not,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *Schema) Reset() {
@@ -108,277 +80,283 @@ func (x *Schema) ProtoReflect() protoreflect.Message {
 
 func (x *Schema) GetType() string {
 	if x != nil {
-		return x.Type
+		return x.xxx_hidden_Type
 	}
 	return ""
 }
 
 func (x *Schema) GetDescription() string {
 	if x != nil {
-		return x.Description
+		return x.xxx_hidden_Description
 	}
 	return ""
 }
 
 func (x *Schema) GetProperties() map[string]*Schema {
 	if x != nil {
-		return x.Properties
+		return x.xxx_hidden_Properties
 	}
 	return nil
 }
 
 func (x *Schema) GetRequired() []string {
 	if x != nil {
-		return x.Required
+		return x.xxx_hidden_Required
 	}
 	return nil
 }
 
 func (x *Schema) GetItems() *Schema {
 	if x != nil {
-		return x.Items
+		return x.xxx_hidden_Items
 	}
 	return nil
 }
 
 func (x *Schema) GetMinItems() int32 {
 	if x != nil {
-		return x.MinItems
+		return x.xxx_hidden_MinItems
 	}
 	return 0
 }
 
 func (x *Schema) GetMaxItems() int32 {
 	if x != nil {
-		return x.MaxItems
+		return x.xxx_hidden_MaxItems
 	}
 	return 0
 }
 
 func (x *Schema) GetEnum() []string {
 	if x != nil {
-		return x.Enum
+		return x.xxx_hidden_Enum
 	}
 	return nil
 }
 
 func (x *Schema) GetMinLength() int32 {
 	if x != nil {
-		return x.MinLength
+		return x.xxx_hidden_MinLength
 	}
 	return 0
 }
 
 func (x *Schema) GetMaxLength() int32 {
 	if x != nil {
-		return x.MaxLength
+		return x.xxx_hidden_MaxLength
 	}
 	return 0
 }
 
 func (x *Schema) GetPattern() string {
 	if x != nil {
-		return x.Pattern
+		return x.xxx_hidden_Pattern
 	}
 	return ""
 }
 
 func (x *Schema) GetFormat() string {
 	if x != nil {
-		return x.Format
+		return x.xxx_hidden_Format
 	}
 	return ""
 }
 
 func (x *Schema) GetMinimum() float64 {
 	if x != nil {
-		return x.Minimum
+		return x.xxx_hidden_Minimum
 	}
 	return 0
 }
 
 func (x *Schema) GetMaximum() float64 {
 	if x != nil {
-		return x.Maximum
+		return x.xxx_hidden_Maximum
 	}
 	return 0
 }
 
 func (x *Schema) GetExclusiveMinimum() float64 {
 	if x != nil {
-		return x.ExclusiveMinimum
+		return x.xxx_hidden_ExclusiveMinimum
 	}
 	return 0
 }
 
 func (x *Schema) GetExclusiveMaximum() float64 {
 	if x != nil {
-		return x.ExclusiveMaximum
+		return x.xxx_hidden_ExclusiveMaximum
 	}
 	return 0
 }
 
 func (x *Schema) GetMultipleOf() float64 {
 	if x != nil {
-		return x.MultipleOf
+		return x.xxx_hidden_MultipleOf
 	}
 	return 0
 }
 
 func (x *Schema) GetDefault() string {
 	if x != nil {
-		return x.Default
+		return x.xxx_hidden_Default
 	}
 	return ""
 }
 
 func (x *Schema) GetExamples() []string {
 	if x != nil {
-		return x.Examples
+		return x.xxx_hidden_Examples
 	}
 	return nil
 }
 
 func (x *Schema) GetAnyOf() []*Schema {
 	if x != nil {
-		return x.AnyOf
+		if x.xxx_hidden_AnyOf != nil {
+			return *x.xxx_hidden_AnyOf
+		}
 	}
 	return nil
 }
 
 func (x *Schema) GetOneOf() []*Schema {
 	if x != nil {
-		return x.OneOf
+		if x.xxx_hidden_OneOf != nil {
+			return *x.xxx_hidden_OneOf
+		}
 	}
 	return nil
 }
 
 func (x *Schema) GetAllOf() []*Schema {
 	if x != nil {
-		return x.AllOf
+		if x.xxx_hidden_AllOf != nil {
+			return *x.xxx_hidden_AllOf
+		}
 	}
 	return nil
 }
 
 func (x *Schema) GetNot() *Schema {
 	if x != nil {
-		return x.Not
+		return x.xxx_hidden_Not
 	}
 	return nil
 }
 
 func (x *Schema) SetType(v string) {
-	x.Type = v
+	x.xxx_hidden_Type = v
 }
 
 func (x *Schema) SetDescription(v string) {
-	x.Description = v
+	x.xxx_hidden_Description = v
 }
 
 func (x *Schema) SetProperties(v map[string]*Schema) {
-	x.Properties = v
+	x.xxx_hidden_Properties = v
 }
 
 func (x *Schema) SetRequired(v []string) {
-	x.Required = v
+	x.xxx_hidden_Required = v
 }
 
 func (x *Schema) SetItems(v *Schema) {
-	x.Items = v
+	x.xxx_hidden_Items = v
 }
 
 func (x *Schema) SetMinItems(v int32) {
-	x.MinItems = v
+	x.xxx_hidden_MinItems = v
 }
 
 func (x *Schema) SetMaxItems(v int32) {
-	x.MaxItems = v
+	x.xxx_hidden_MaxItems = v
 }
 
 func (x *Schema) SetEnum(v []string) {
-	x.Enum = v
+	x.xxx_hidden_Enum = v
 }
 
 func (x *Schema) SetMinLength(v int32) {
-	x.MinLength = v
+	x.xxx_hidden_MinLength = v
 }
 
 func (x *Schema) SetMaxLength(v int32) {
-	x.MaxLength = v
+	x.xxx_hidden_MaxLength = v
 }
 
 func (x *Schema) SetPattern(v string) {
-	x.Pattern = v
+	x.xxx_hidden_Pattern = v
 }
 
 func (x *Schema) SetFormat(v string) {
-	x.Format = v
+	x.xxx_hidden_Format = v
 }
 
 func (x *Schema) SetMinimum(v float64) {
-	x.Minimum = v
+	x.xxx_hidden_Minimum = v
 }
 
 func (x *Schema) SetMaximum(v float64) {
-	x.Maximum = v
+	x.xxx_hidden_Maximum = v
 }
 
 func (x *Schema) SetExclusiveMinimum(v float64) {
-	x.ExclusiveMinimum = v
+	x.xxx_hidden_ExclusiveMinimum = v
 }
 
 func (x *Schema) SetExclusiveMaximum(v float64) {
-	x.ExclusiveMaximum = v
+	x.xxx_hidden_ExclusiveMaximum = v
 }
 
 func (x *Schema) SetMultipleOf(v float64) {
-	x.MultipleOf = v
+	x.xxx_hidden_MultipleOf = v
 }
 
 func (x *Schema) SetDefault(v string) {
-	x.Default = v
+	x.xxx_hidden_Default = v
 }
 
 func (x *Schema) SetExamples(v []string) {
-	x.Examples = v
+	x.xxx_hidden_Examples = v
 }
 
 func (x *Schema) SetAnyOf(v []*Schema) {
-	x.AnyOf = v
+	x.xxx_hidden_AnyOf = &v
 }
 
 func (x *Schema) SetOneOf(v []*Schema) {
-	x.OneOf = v
+	x.xxx_hidden_OneOf = &v
 }
 
 func (x *Schema) SetAllOf(v []*Schema) {
-	x.AllOf = v
+	x.xxx_hidden_AllOf = &v
 }
 
 func (x *Schema) SetNot(v *Schema) {
-	x.Not = v
+	x.xxx_hidden_Not = v
 }
 
 func (x *Schema) HasItems() bool {
 	if x == nil {
 		return false
 	}
-	return x.Items != nil
+	return x.xxx_hidden_Items != nil
 }
 
 func (x *Schema) HasNot() bool {
 	if x == nil {
 		return false
 	}
-	return x.Not != nil
+	return x.xxx_hidden_Not != nil
 }
 
 func (x *Schema) ClearItems() {
-	x.Items = nil
+	x.xxx_hidden_Items = nil
 }
 
 func (x *Schema) ClearNot() {
-	x.Not = nil
+	x.xxx_hidden_Not = nil
 }
 
 type Schema_builder struct {
@@ -441,29 +419,29 @@ func (b0 Schema_builder) Build() *Schema {
 	m0 := &Schema{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Type = b.Type
-	x.Description = b.Description
-	x.Properties = b.Properties
-	x.Required = b.Required
-	x.Items = b.Items
-	x.MinItems = b.MinItems
-	x.MaxItems = b.MaxItems
-	x.Enum = b.Enum
-	x.MinLength = b.MinLength
-	x.MaxLength = b.MaxLength
-	x.Pattern = b.Pattern
-	x.Format = b.Format
-	x.Minimum = b.Minimum
-	x.Maximum = b.Maximum
-	x.ExclusiveMinimum = b.ExclusiveMinimum
-	x.ExclusiveMaximum = b.ExclusiveMaximum
-	x.MultipleOf = b.MultipleOf
-	x.Default = b.Default
-	x.Examples = b.Examples
-	x.AnyOf = b.AnyOf
-	x.OneOf = b.OneOf
-	x.AllOf = b.AllOf
-	x.Not = b.Not
+	x.xxx_hidden_Type = b.Type
+	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_Properties = b.Properties
+	x.xxx_hidden_Required = b.Required
+	x.xxx_hidden_Items = b.Items
+	x.xxx_hidden_MinItems = b.MinItems
+	x.xxx_hidden_MaxItems = b.MaxItems
+	x.xxx_hidden_Enum = b.Enum
+	x.xxx_hidden_MinLength = b.MinLength
+	x.xxx_hidden_MaxLength = b.MaxLength
+	x.xxx_hidden_Pattern = b.Pattern
+	x.xxx_hidden_Format = b.Format
+	x.xxx_hidden_Minimum = b.Minimum
+	x.xxx_hidden_Maximum = b.Maximum
+	x.xxx_hidden_ExclusiveMinimum = b.ExclusiveMinimum
+	x.xxx_hidden_ExclusiveMaximum = b.ExclusiveMaximum
+	x.xxx_hidden_MultipleOf = b.MultipleOf
+	x.xxx_hidden_Default = b.Default
+	x.xxx_hidden_Examples = b.Examples
+	x.xxx_hidden_AnyOf = &b.AnyOf
+	x.xxx_hidden_OneOf = &b.OneOf
+	x.xxx_hidden_AllOf = &b.AllOf
+	x.xxx_hidden_Not = b.Not
 	return m0
 }
 

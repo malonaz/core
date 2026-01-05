@@ -1,68 +1,67 @@
 package(default_visibility = ["PUBLIC"])
 
-######################### BUF ########################
-external_github_proto_library(
-    name = "validate",
-    dir = "buf/validate",
-    files = [
-        "proto/protovalidate/buf/validate/validate.proto",
-    ],
-    go_dep = "//third_party/go:buf.build__gen__go__bufbuild__protovalidate__protocolbuffers__go__buf__validate",
-    repo = "bufbuild/protovalidate",
-    revision = "v1.0.0",
+buf_validate_proto_library(version = "v1.0.0")
+
+GOOGLEAPI_REVISION = "9a477cd3c26a704130e2a2fb44a40281d9312e4c"
+
+googleapis_proto_library(
+    name = "google__api",
+    dir = "google/api",
+    files = ["launch_stage.proto"],
+    go_import_suffix = "api",
+    revision = GOOGLEAPI_REVISION,
 )
 
-######################### GOOGLEAPIS ########################
-GOOGLEAPI_REVISION = "5e5d500bc4f8c4d5591cd1fda817556b3fe663a7"
-
-external_github_proto_library(
+googleapis_proto_library(
     name = "google__api__annotations",
+    dir = "google/api",
     files = [
-        "google/api/annotations.proto",
-        "google/api/client.proto",
-        "google/api/field_behavior.proto",
-        "google/api/http.proto",
-        "google/api/resource.proto",
+        "annotations.proto",
+        "client.proto",
+        "field_behavior.proto",
+        "http.proto",
+        "resource.proto",
     ],
-    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-    repo = "googleapis/googleapis",
+    go_import_suffix = "api/annotations",
     revision = GOOGLEAPI_REVISION,
+    deps = [":google__api"],
 )
 
-external_github_proto_library(
+googleapis_proto_library(
     name = "google__api__expr__v1alpha1",
+    dir = "google/api/expr/v1alpha1",
     files = [
-        "google/api/expr/v1alpha1/checked.proto",
-        "google/api/expr/v1alpha1/eval.proto",
-        "google/api/expr/v1alpha1/explain.proto",
-        "google/api/expr/v1alpha1/syntax.proto",
-        "google/api/expr/v1alpha1/value.proto",
+        "checked.proto",
+        "eval.proto",
+        "explain.proto",
+        "syntax.proto",
+        "value.proto",
     ],
-    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__api__expr__v1alpha1",
-    repo = "googleapis/googleapis",
+    go_import_suffix = "api/expr/v1alpha1",
     revision = GOOGLEAPI_REVISION,
+    deps = [":google__rpc__status"],
 )
 
-external_github_proto_library(
+googleapis_proto_library(
     name = "google__rpc__status",
-    files = ["google/rpc/status.proto"],
-    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
-    repo = "googleapis/googleapis",
+    dir = "google/rpc",
+    files = ["status.proto"],
+    go_import_suffix = "rpc/status",
     revision = GOOGLEAPI_REVISION,
 )
 
-external_github_proto_library(
+googleapis_proto_library(
     name = "google__type__postaladdress",
-    files = ["google/type/postal_address.proto"],
-    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__type__postaladdress",
-    repo = "googleapis/googleapis",
+    dir = "google/type",
+    files = ["postal_address.proto"],
+    go_import_suffix = "type/postaladdress",
     revision = GOOGLEAPI_REVISION,
 )
 
-external_github_proto_library(
+googleapis_proto_library(
     name = "google__type__date",
-    files = ["google/type/date.proto"],
-    go_dep = "//third_party/go:google.golang.org__genproto__googleapis__type__date",
-    repo = "googleapis/googleapis",
+    dir = "google/type",
+    files = ["date.proto"],
+    go_import_suffix = "type/date",
     revision = GOOGLEAPI_REVISION,
 )

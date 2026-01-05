@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/v1/metrics.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -26,14 +26,11 @@ const (
 
 // Tracks metrics for an AI call.
 type GenerationMetrics struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Time to first byte.
-	// If empty, indicates that this was not streamed so it's equal to ttlb.
-	Ttfb *durationpb.Duration `protobuf:"bytes,1,opt,name=ttfb,proto3" json:"ttfb,omitempty"`
-	// Time to last byte.
-	Ttlb          *durationpb.Duration `protobuf:"bytes,2,opt,name=ttlb,proto3" json:"ttlb,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Ttfb *durationpb.Duration   `protobuf:"bytes,1,opt,name=ttfb,proto3"`
+	xxx_hidden_Ttlb *durationpb.Duration   `protobuf:"bytes,2,opt,name=ttlb,proto3"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GenerationMetrics) Reset() {
@@ -63,46 +60,46 @@ func (x *GenerationMetrics) ProtoReflect() protoreflect.Message {
 
 func (x *GenerationMetrics) GetTtfb() *durationpb.Duration {
 	if x != nil {
-		return x.Ttfb
+		return x.xxx_hidden_Ttfb
 	}
 	return nil
 }
 
 func (x *GenerationMetrics) GetTtlb() *durationpb.Duration {
 	if x != nil {
-		return x.Ttlb
+		return x.xxx_hidden_Ttlb
 	}
 	return nil
 }
 
 func (x *GenerationMetrics) SetTtfb(v *durationpb.Duration) {
-	x.Ttfb = v
+	x.xxx_hidden_Ttfb = v
 }
 
 func (x *GenerationMetrics) SetTtlb(v *durationpb.Duration) {
-	x.Ttlb = v
+	x.xxx_hidden_Ttlb = v
 }
 
 func (x *GenerationMetrics) HasTtfb() bool {
 	if x == nil {
 		return false
 	}
-	return x.Ttfb != nil
+	return x.xxx_hidden_Ttfb != nil
 }
 
 func (x *GenerationMetrics) HasTtlb() bool {
 	if x == nil {
 		return false
 	}
-	return x.Ttlb != nil
+	return x.xxx_hidden_Ttlb != nil
 }
 
 func (x *GenerationMetrics) ClearTtfb() {
-	x.Ttfb = nil
+	x.xxx_hidden_Ttfb = nil
 }
 
 func (x *GenerationMetrics) ClearTtlb() {
-	x.Ttlb = nil
+	x.xxx_hidden_Ttlb = nil
 }
 
 type GenerationMetrics_builder struct {
@@ -119,36 +116,26 @@ func (b0 GenerationMetrics_builder) Build() *GenerationMetrics {
 	m0 := &GenerationMetrics{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Ttfb = b.Ttfb
-	x.Ttlb = b.Ttlb
+	x.xxx_hidden_Ttfb = b.Ttfb
+	x.xxx_hidden_Ttlb = b.Ttlb
 	return m0
 }
 
 // Tracks model usage. When streamed out, incremental resource consumptions can be streamed out.
 // The absolute truth for a resource consumption is the last one streamed out for this resource consumption.
 type ModelUsage struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the model used.
-	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// Input token usage.
-	InputToken *ResourceConsumption `protobuf:"bytes,2,opt,name=input_token,json=inputToken,proto3" json:"input_token,omitempty"`
-	// Output token usage.
-	OutputToken *ResourceConsumption `protobuf:"bytes,3,opt,name=output_token,json=outputToken,proto3" json:"output_token,omitempty"`
-	// Output reasoning token usage.
-	OutputReasoningToken *ResourceConsumption `protobuf:"bytes,4,opt,name=output_reasoning_token,json=outputReasoningToken,proto3" json:"output_reasoning_token,omitempty"`
-	// Cache read token usage.
-	InputCacheReadToken *ResourceConsumption `protobuf:"bytes,5,opt,name=input_cache_read_token,json=inputCacheReadToken,proto3" json:"input_cache_read_token,omitempty"`
-	// Cache write token usage.
-	InputCacheWriteToken *ResourceConsumption `protobuf:"bytes,6,opt,name=input_cache_write_token,json=inputCacheWriteToken,proto3" json:"input_cache_write_token,omitempty"`
-	// Input seconds.
-	InputSecond *ResourceConsumption `protobuf:"bytes,7,opt,name=input_second,json=inputSecond,proto3" json:"input_second,omitempty"`
-	// Output seconds.
-	OutputSecond *ResourceConsumption `protobuf:"bytes,8,opt,name=output_second,json=outputSecond,proto3" json:"output_second,omitempty"`
-	// Input characters.
-	InputCharacter *ResourceConsumption `protobuf:"bytes,9,opt,name=input_character,json=inputCharacter,proto3" json:"input_character,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Model                string                 `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_InputToken           *ResourceConsumption   `protobuf:"bytes,2,opt,name=input_token,json=inputToken,proto3"`
+	xxx_hidden_OutputToken          *ResourceConsumption   `protobuf:"bytes,3,opt,name=output_token,json=outputToken,proto3"`
+	xxx_hidden_OutputReasoningToken *ResourceConsumption   `protobuf:"bytes,4,opt,name=output_reasoning_token,json=outputReasoningToken,proto3"`
+	xxx_hidden_InputCacheReadToken  *ResourceConsumption   `protobuf:"bytes,5,opt,name=input_cache_read_token,json=inputCacheReadToken,proto3"`
+	xxx_hidden_InputCacheWriteToken *ResourceConsumption   `protobuf:"bytes,6,opt,name=input_cache_write_token,json=inputCacheWriteToken,proto3"`
+	xxx_hidden_InputSecond          *ResourceConsumption   `protobuf:"bytes,7,opt,name=input_second,json=inputSecond,proto3"`
+	xxx_hidden_OutputSecond         *ResourceConsumption   `protobuf:"bytes,8,opt,name=output_second,json=outputSecond,proto3"`
+	xxx_hidden_InputCharacter       *ResourceConsumption   `protobuf:"bytes,9,opt,name=input_character,json=inputCharacter,proto3"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *ModelUsage) Reset() {
@@ -178,189 +165,189 @@ func (x *ModelUsage) ProtoReflect() protoreflect.Message {
 
 func (x *ModelUsage) GetModel() string {
 	if x != nil {
-		return x.Model
+		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
 func (x *ModelUsage) GetInputToken() *ResourceConsumption {
 	if x != nil {
-		return x.InputToken
+		return x.xxx_hidden_InputToken
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetOutputToken() *ResourceConsumption {
 	if x != nil {
-		return x.OutputToken
+		return x.xxx_hidden_OutputToken
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetOutputReasoningToken() *ResourceConsumption {
 	if x != nil {
-		return x.OutputReasoningToken
+		return x.xxx_hidden_OutputReasoningToken
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetInputCacheReadToken() *ResourceConsumption {
 	if x != nil {
-		return x.InputCacheReadToken
+		return x.xxx_hidden_InputCacheReadToken
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetInputCacheWriteToken() *ResourceConsumption {
 	if x != nil {
-		return x.InputCacheWriteToken
+		return x.xxx_hidden_InputCacheWriteToken
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetInputSecond() *ResourceConsumption {
 	if x != nil {
-		return x.InputSecond
+		return x.xxx_hidden_InputSecond
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetOutputSecond() *ResourceConsumption {
 	if x != nil {
-		return x.OutputSecond
+		return x.xxx_hidden_OutputSecond
 	}
 	return nil
 }
 
 func (x *ModelUsage) GetInputCharacter() *ResourceConsumption {
 	if x != nil {
-		return x.InputCharacter
+		return x.xxx_hidden_InputCharacter
 	}
 	return nil
 }
 
 func (x *ModelUsage) SetModel(v string) {
-	x.Model = v
+	x.xxx_hidden_Model = v
 }
 
 func (x *ModelUsage) SetInputToken(v *ResourceConsumption) {
-	x.InputToken = v
+	x.xxx_hidden_InputToken = v
 }
 
 func (x *ModelUsage) SetOutputToken(v *ResourceConsumption) {
-	x.OutputToken = v
+	x.xxx_hidden_OutputToken = v
 }
 
 func (x *ModelUsage) SetOutputReasoningToken(v *ResourceConsumption) {
-	x.OutputReasoningToken = v
+	x.xxx_hidden_OutputReasoningToken = v
 }
 
 func (x *ModelUsage) SetInputCacheReadToken(v *ResourceConsumption) {
-	x.InputCacheReadToken = v
+	x.xxx_hidden_InputCacheReadToken = v
 }
 
 func (x *ModelUsage) SetInputCacheWriteToken(v *ResourceConsumption) {
-	x.InputCacheWriteToken = v
+	x.xxx_hidden_InputCacheWriteToken = v
 }
 
 func (x *ModelUsage) SetInputSecond(v *ResourceConsumption) {
-	x.InputSecond = v
+	x.xxx_hidden_InputSecond = v
 }
 
 func (x *ModelUsage) SetOutputSecond(v *ResourceConsumption) {
-	x.OutputSecond = v
+	x.xxx_hidden_OutputSecond = v
 }
 
 func (x *ModelUsage) SetInputCharacter(v *ResourceConsumption) {
-	x.InputCharacter = v
+	x.xxx_hidden_InputCharacter = v
 }
 
 func (x *ModelUsage) HasInputToken() bool {
 	if x == nil {
 		return false
 	}
-	return x.InputToken != nil
+	return x.xxx_hidden_InputToken != nil
 }
 
 func (x *ModelUsage) HasOutputToken() bool {
 	if x == nil {
 		return false
 	}
-	return x.OutputToken != nil
+	return x.xxx_hidden_OutputToken != nil
 }
 
 func (x *ModelUsage) HasOutputReasoningToken() bool {
 	if x == nil {
 		return false
 	}
-	return x.OutputReasoningToken != nil
+	return x.xxx_hidden_OutputReasoningToken != nil
 }
 
 func (x *ModelUsage) HasInputCacheReadToken() bool {
 	if x == nil {
 		return false
 	}
-	return x.InputCacheReadToken != nil
+	return x.xxx_hidden_InputCacheReadToken != nil
 }
 
 func (x *ModelUsage) HasInputCacheWriteToken() bool {
 	if x == nil {
 		return false
 	}
-	return x.InputCacheWriteToken != nil
+	return x.xxx_hidden_InputCacheWriteToken != nil
 }
 
 func (x *ModelUsage) HasInputSecond() bool {
 	if x == nil {
 		return false
 	}
-	return x.InputSecond != nil
+	return x.xxx_hidden_InputSecond != nil
 }
 
 func (x *ModelUsage) HasOutputSecond() bool {
 	if x == nil {
 		return false
 	}
-	return x.OutputSecond != nil
+	return x.xxx_hidden_OutputSecond != nil
 }
 
 func (x *ModelUsage) HasInputCharacter() bool {
 	if x == nil {
 		return false
 	}
-	return x.InputCharacter != nil
+	return x.xxx_hidden_InputCharacter != nil
 }
 
 func (x *ModelUsage) ClearInputToken() {
-	x.InputToken = nil
+	x.xxx_hidden_InputToken = nil
 }
 
 func (x *ModelUsage) ClearOutputToken() {
-	x.OutputToken = nil
+	x.xxx_hidden_OutputToken = nil
 }
 
 func (x *ModelUsage) ClearOutputReasoningToken() {
-	x.OutputReasoningToken = nil
+	x.xxx_hidden_OutputReasoningToken = nil
 }
 
 func (x *ModelUsage) ClearInputCacheReadToken() {
-	x.InputCacheReadToken = nil
+	x.xxx_hidden_InputCacheReadToken = nil
 }
 
 func (x *ModelUsage) ClearInputCacheWriteToken() {
-	x.InputCacheWriteToken = nil
+	x.xxx_hidden_InputCacheWriteToken = nil
 }
 
 func (x *ModelUsage) ClearInputSecond() {
-	x.InputSecond = nil
+	x.xxx_hidden_InputSecond = nil
 }
 
 func (x *ModelUsage) ClearOutputSecond() {
-	x.OutputSecond = nil
+	x.xxx_hidden_OutputSecond = nil
 }
 
 func (x *ModelUsage) ClearInputCharacter() {
-	x.InputCharacter = nil
+	x.xxx_hidden_InputCharacter = nil
 }
 
 type ModelUsage_builder struct {
@@ -391,27 +378,25 @@ func (b0 ModelUsage_builder) Build() *ModelUsage {
 	m0 := &ModelUsage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Model = b.Model
-	x.InputToken = b.InputToken
-	x.OutputToken = b.OutputToken
-	x.OutputReasoningToken = b.OutputReasoningToken
-	x.InputCacheReadToken = b.InputCacheReadToken
-	x.InputCacheWriteToken = b.InputCacheWriteToken
-	x.InputSecond = b.InputSecond
-	x.OutputSecond = b.OutputSecond
-	x.InputCharacter = b.InputCharacter
+	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_InputToken = b.InputToken
+	x.xxx_hidden_OutputToken = b.OutputToken
+	x.xxx_hidden_OutputReasoningToken = b.OutputReasoningToken
+	x.xxx_hidden_InputCacheReadToken = b.InputCacheReadToken
+	x.xxx_hidden_InputCacheWriteToken = b.InputCacheWriteToken
+	x.xxx_hidden_InputSecond = b.InputSecond
+	x.xxx_hidden_OutputSecond = b.OutputSecond
+	x.xxx_hidden_InputCharacter = b.InputCharacter
 	return m0
 }
 
 // Tracks a particular resource consumption.
 type ResourceConsumption struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Number of units consumed.
-	Quantity int32 `protobuf:"varint,1,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	// Price in dollars for this resource consumption.
-	Price         float64 `protobuf:"fixed64,2,opt,name=price,proto3" json:"price,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Quantity int32                  `protobuf:"varint,1,opt,name=quantity,proto3"`
+	xxx_hidden_Price    float64                `protobuf:"fixed64,2,opt,name=price,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *ResourceConsumption) Reset() {
@@ -441,24 +426,24 @@ func (x *ResourceConsumption) ProtoReflect() protoreflect.Message {
 
 func (x *ResourceConsumption) GetQuantity() int32 {
 	if x != nil {
-		return x.Quantity
+		return x.xxx_hidden_Quantity
 	}
 	return 0
 }
 
 func (x *ResourceConsumption) GetPrice() float64 {
 	if x != nil {
-		return x.Price
+		return x.xxx_hidden_Price
 	}
 	return 0
 }
 
 func (x *ResourceConsumption) SetQuantity(v int32) {
-	x.Quantity = v
+	x.xxx_hidden_Quantity = v
 }
 
 func (x *ResourceConsumption) SetPrice(v float64) {
-	x.Price = v
+	x.xxx_hidden_Price = v
 }
 
 type ResourceConsumption_builder struct {
@@ -474,8 +459,8 @@ func (b0 ResourceConsumption_builder) Build() *ResourceConsumption {
 	m0 := &ResourceConsumption{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Quantity = b.Quantity
-	x.Price = b.Price
+	x.xxx_hidden_Quantity = b.Quantity
+	x.xxx_hidden_Price = b.Price
 	return m0
 }
 

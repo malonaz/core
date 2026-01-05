@@ -1,19 +1,22 @@
 diff --git a/cmd/godeps/generate_builtin.go b/cmd/godeps/generate_builtin.go
-index 6216332..7930dfe 100644
+index 6216332..5132e11 100644
 --- a/cmd/godeps/generate_builtin.go
 +++ b/cmd/godeps/generate_builtin.go
-@@ -11,7 +11,9 @@ import (
+@@ -11,10 +11,11 @@ import (
  	"github.com/sagikazarmark/please-go-modules/pkg/depgraph"
  )
  
 -func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noExpand bool) (*buildify.File, bool, map[string]string) {
 +func generateBuiltinBuildFiles(
-+  moduleList []depgraph.Module, ruleDir string, noExpand bool, moduleNameToPatches map[string][]string,
-+) (*buildify.File, bool, map[string]string) {
++  moduleList []depgraph.Module, ruleDir string, noExpand bool, moduleNameToPatches map[string][]string, knownDeps map[string]string,
++) (*buildify.File, bool) {
  	file := newFile("", subinclude)
  	var generateOsConfig bool
- 	knownDeps := make(map[string]string)
-@@ -57,9 +59,33 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+-	knownDeps := make(map[string]string)
+ 
+ 	packageToModule := map[string]string{}
+ 
+@@ -57,16 +58,40 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
  						Op:  "=",
  						RHS: &buildify.StringExpr{Value: module.Version},
  					},
@@ -47,11 +50,95 @@ index 6216332..7930dfe 100644
  			file.Stmt = append(file.Stmt, rule)
  
  			for _, pkg := range module.Packages {
+ 				name := sanitizeName(pkg.ImportPath)
+ 				downloadRule := ":_" + sanitizeName(module.Path) + "#download"
+ 
+-				depExpr := platformDepExpr("", pkg.Imports.Common, toPlatformSelectSet("", pkg.Imports.PerPlatform))
++				depExpr := platformDepExpr("", pkg.Imports.Common, toPlatformSelectSet("", pkg.Imports.PerPlatform), knownDeps)
+ 				if depExpr == nil {
+ 					depExpr = &buildify.ListExpr{}
+ 				}
+@@ -162,10 +187,12 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+ 
+ 				file.Stmt = append(file.Stmt, stmt)
+ 
+-				if ruleDir != "" {
+-					knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s:%s", ruleDir, name)
+-				} else {
+-					knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s", name)
++				if _, ok := knownDeps[pkg.ImportPath]; !ok {
++					if ruleDir != "" {
++						knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s:%s", ruleDir, name)
++					} else {
++						knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s", name)
++					}
+ 				}
+ 			}
+ 		} else {
+@@ -294,10 +321,12 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+ 					}
+ 				}
+ 
+-				if ruleDir != "" {
+-					knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s:%s", ruleDir, name)
+-				} else {
+-					knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s", name)
++				if _, ok := knownDeps[pkg.ImportPath]; !ok {
++					if ruleDir != "" {
++						knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s:%s", ruleDir, name)
++					} else {
++						knownDeps[pkg.ImportPath] = fmt.Sprintf("//%s", name)
++					}
+ 				}
+ 			}
+ 
+@@ -329,7 +358,7 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+ 				RHS: installExpr,
+ 			})
+ 
+-			depExpr := platformDepExpr("", commonDeps, toPlatformSelectSet("", perPlatformDeps))
++			depExpr := platformDepExpr("", commonDeps, toPlatformSelectSet("", perPlatformDeps), knownDeps)
+ 			if depExpr == nil {
+ 				depExpr = &buildify.ListExpr{}
+ 			}
+@@ -378,7 +407,7 @@ func generateBuiltinBuildFiles(moduleList []depgraph.Module, ruleDir string, noE
+ 		}
+ 	}
+ 
+-	return file, generateOsConfig, knownDeps
++	return file, generateOsConfig
+ }
+ 
+ func sanitizeName(name string) string {
 diff --git a/cmd/godeps/main.go b/cmd/godeps/main.go
-index 415d199..b652cbe 100644
+index 415d199..80f50bd 100644
 --- a/cmd/godeps/main.go
 +++ b/cmd/godeps/main.go
-@@ -89,11 +89,25 @@ func main() {
+@@ -46,6 +46,23 @@ func main() {
+ 		)
+ 	}
+ 
++	var wollemiConfig map[string]any
++	knownDependencies := map[string]string{}
++	if *wollemi {
++		bytes, err := os.ReadFile(".wollemi.json")
++		if err != nil {
++			panic(err)
++		}
++		if err := json.Unmarshal(bytes, &wollemiConfig); err != nil {
++			panic(err)
++		}
++		if manualKnownDependency, ok := wollemiConfig["manual_known_dependency"]; ok {
++			for k, v := range manualKnownDependency.(map[string]any) {
++				knownDependencies[k] = v.(string)
++			}
++		}
++	}
++
+ 	rootModule, err := golist.CurrentModule()
+ 	if err != nil {
+ 		panic(err)
+@@ -89,11 +106,24 @@ func main() {
  		ruleDir = path.Join(*base, *dir)
  	}
  
@@ -71,31 +158,91 @@ index 415d199..b652cbe 100644
 +
  	var buildFiles map[string]*buildify.File
  	var filePaths []string
- 	var knownDependencies map[string]string
+-	var knownDependencies map[string]string
  
 -	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand)
-+	file, generateOsConfig, knownDeps := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand, moduleNameToPatches)
++	file, generateOsConfig := generateBuiltinBuildFiles(moduleList, ruleDir, *noExpand, moduleNameToPatches, knownDependencies)
  
  	if generateOsConfig {
  		file.Stmt = append(generateOsConfigExprs(""), file.Stmt...)
-@@ -168,9 +182,15 @@ func main() {
+@@ -103,7 +133,6 @@ func main() {
+ 		"": file,
+ 	}
+ 	filePaths = []string{""}
+-	knownDependencies = knownDeps
+ 
+ 	sort.Strings(filePaths)
+ 
+@@ -167,10 +196,8 @@ func main() {
+ 			}
  		}
  
- 		if *wollemi && len(knownDependencies) > 0 {
+-		if *wollemi && len(knownDependencies) > 0 {
 -			wollemiConfig := map[string]interface{}{
 -				"known_dependency": knownDependencies,
-+			bytes, err := os.ReadFile(".wollemi.json")
-+			if err != nil {
-+				panic(err)
-+			}
-+			wollemiConfig := map[string]interface{}{}
-+			if err := json.Unmarshal(bytes, &wollemiConfig); err != nil {
-+				panic(err)
- 			}
+-			}
++		if wollemiConfig != nil {
 +			wollemiConfig["known_dependency"] = knownDependencies
  
  			file, err := os.OpenFile(".wollemi.json", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
  			if err != nil {
+@@ -349,34 +376,30 @@ func platformExpr(common []string, platform map[string][]string, formatter func(
+ 	return platformList(newCommon, newPlatform)
+ }
+ 
+-func platformDepExpr(ruleDir string, common []string, platform map[string][]string) buildify.Expr {
+-	newCommon := make([]string, 0, len(common))
+-
+-	for _, v := range common {
+-		newCommon = append(newCommon, formatDepPath(ruleDir, v))
+-	}
+-
+-	newPlatform := make(map[string][]string, len(platform))
+-
+-	for platform, list := range platform {
+-		newList := make([]string, 0, len(list))
+-
+-		for _, v := range list {
+-			newList = append(newList, formatDepPath(ruleDir, v))
+-		}
+-
+-		newPlatform[platform] = newList
+-	}
+-
+-	return platformList(newCommon, newPlatform)
++func formatDepPath(ruleDir string, depPath string, knownDeps map[string]string) string {
++  if dep, ok := knownDeps[depPath]; ok {
++    return dep
++  }
++  if ruleDir == "" {
++    return ":" + strings.Replace(depPath, "/", "__", -1)
++  }
++  return fmt.Sprintf("//%s", path.Join(ruleDir, depPath))
+ }
+ 
+-func formatDepPath(ruleDir string, depPath string) string {
+-	if ruleDir == "" {
+-		return ":" + strings.Replace(depPath, "/", "__", -1)
+-	}
+-
+-	return fmt.Sprintf("//%s", path.Join(ruleDir, depPath))
++func platformDepExpr(ruleDir string, common []string, platform map[string][]string, knownDeps map[string]string) buildify.Expr {
++  newCommon := make([]string, 0, len(common))
++  for _, v := range common {
++    newCommon = append(newCommon, formatDepPath(ruleDir, v, knownDeps))
++  }
++  newPlatform := make(map[string][]string, len(platform))
++  for platform, list := range platform {
++    newList := make([]string, 0, len(list))
++    for _, v := range list {
++      newList = append(newList, formatDepPath(ruleDir, v, knownDeps))
++    }
++    newPlatform[platform] = newList
++  }
++  return platformList(newCommon, newPlatform)
+ }
+ 
+ func platformCgocFlagsExpr(common []string, platform map[string][]string, pkg depgraph.Package2, mod depgraph.Module) buildify.Expr {
 diff --git a/cmd/godeps/platform.go b/cmd/godeps/platform.go
 index b15b04e..532304c 100644
 --- a/cmd/godeps/platform.go

@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/grpc/v1/grpc.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -27,40 +27,17 @@ const (
 // This message is used to serialize/deserialize cookies when passing them
 // through gRPC metadata between clients, servers, and gateways.
 type HttpCookie struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// name is the unique identifier for the cookie. It serves as the key
-	// to retrieve the cookie's value from the cookie store.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// value is the actual data stored in the cookie. This is associated
-	// with the cookie's name and represents the information being persisted.
-	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	// path specifies the URL path scope for which the cookie is valid.
-	// Only requests to URLs matching this path will include the cookie.
-	// For example, "/api" means the cookie is only sent for paths starting with /api.
-	Path string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	// domain determines which domain(s) can access the cookie.
-	// This controls the scope of websites that will receive the cookie in requests.
-	// For example, ".example.com" allows all subdomains of example.com to access it.
-	Domain string `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"`
-	// expires is the Unix timestamp (in microseconds) indicating when the cookie
-	// will expire. After this time, the browser will automatically delete the cookie.
-	Expires uint64 `protobuf:"varint,5,opt,name=expires,proto3" json:"expires,omitempty"`
-	// max_age specifies the cookie's lifetime in seconds, providing an alternative
-	// to the expires attribute with the following semantics:
-	// - MaxAge = 0: No 'Max-Age' attribute is specified
-	// - MaxAge < 0: Delete the cookie immediately (equivalent to 'Max-Age: 0')
-	// - MaxAge > 0: The cookie expires after the specified number of seconds
-	MaxAge int64 `protobuf:"varint,6,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
-	// http_only is a security flag that, when true, prevents client-side scripts
-	// (e.g., JavaScript) from accessing the cookie. This provides protection
-	// against Cross-Site Scripting (XSS) attacks.
-	HttpOnly bool `protobuf:"varint,7,opt,name=http_only,json=httpOnly,proto3" json:"http_only,omitempty"`
-	// secure is a security flag that, when true, ensures the cookie is only
-	// transmitted over secure HTTPS connections. This protects the cookie's
-	// data from being intercepted during transmission over unencrypted connections.
-	Secure        bool `protobuf:"varint,8,opt,name=secure,proto3" json:"secure,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name     string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Value    string                 `protobuf:"bytes,2,opt,name=value,proto3"`
+	xxx_hidden_Path     string                 `protobuf:"bytes,3,opt,name=path,proto3"`
+	xxx_hidden_Domain   string                 `protobuf:"bytes,4,opt,name=domain,proto3"`
+	xxx_hidden_Expires  uint64                 `protobuf:"varint,5,opt,name=expires,proto3"`
+	xxx_hidden_MaxAge   int64                  `protobuf:"varint,6,opt,name=max_age,json=maxAge,proto3"`
+	xxx_hidden_HttpOnly bool                   `protobuf:"varint,7,opt,name=http_only,json=httpOnly,proto3"`
+	xxx_hidden_Secure   bool                   `protobuf:"varint,8,opt,name=secure,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *HttpCookie) Reset() {
@@ -90,90 +67,90 @@ func (x *HttpCookie) ProtoReflect() protoreflect.Message {
 
 func (x *HttpCookie) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.xxx_hidden_Name
 	}
 	return ""
 }
 
 func (x *HttpCookie) GetValue() string {
 	if x != nil {
-		return x.Value
+		return x.xxx_hidden_Value
 	}
 	return ""
 }
 
 func (x *HttpCookie) GetPath() string {
 	if x != nil {
-		return x.Path
+		return x.xxx_hidden_Path
 	}
 	return ""
 }
 
 func (x *HttpCookie) GetDomain() string {
 	if x != nil {
-		return x.Domain
+		return x.xxx_hidden_Domain
 	}
 	return ""
 }
 
 func (x *HttpCookie) GetExpires() uint64 {
 	if x != nil {
-		return x.Expires
+		return x.xxx_hidden_Expires
 	}
 	return 0
 }
 
 func (x *HttpCookie) GetMaxAge() int64 {
 	if x != nil {
-		return x.MaxAge
+		return x.xxx_hidden_MaxAge
 	}
 	return 0
 }
 
 func (x *HttpCookie) GetHttpOnly() bool {
 	if x != nil {
-		return x.HttpOnly
+		return x.xxx_hidden_HttpOnly
 	}
 	return false
 }
 
 func (x *HttpCookie) GetSecure() bool {
 	if x != nil {
-		return x.Secure
+		return x.xxx_hidden_Secure
 	}
 	return false
 }
 
 func (x *HttpCookie) SetName(v string) {
-	x.Name = v
+	x.xxx_hidden_Name = v
 }
 
 func (x *HttpCookie) SetValue(v string) {
-	x.Value = v
+	x.xxx_hidden_Value = v
 }
 
 func (x *HttpCookie) SetPath(v string) {
-	x.Path = v
+	x.xxx_hidden_Path = v
 }
 
 func (x *HttpCookie) SetDomain(v string) {
-	x.Domain = v
+	x.xxx_hidden_Domain = v
 }
 
 func (x *HttpCookie) SetExpires(v uint64) {
-	x.Expires = v
+	x.xxx_hidden_Expires = v
 }
 
 func (x *HttpCookie) SetMaxAge(v int64) {
-	x.MaxAge = v
+	x.xxx_hidden_MaxAge = v
 }
 
 func (x *HttpCookie) SetHttpOnly(v bool) {
-	x.HttpOnly = v
+	x.xxx_hidden_HttpOnly = v
 }
 
 func (x *HttpCookie) SetSecure(v bool) {
-	x.Secure = v
+	x.xxx_hidden_Secure = v
 }
 
 type HttpCookie_builder struct {
@@ -216,14 +193,14 @@ func (b0 HttpCookie_builder) Build() *HttpCookie {
 	m0 := &HttpCookie{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Name = b.Name
-	x.Value = b.Value
-	x.Path = b.Path
-	x.Domain = b.Domain
-	x.Expires = b.Expires
-	x.MaxAge = b.MaxAge
-	x.HttpOnly = b.HttpOnly
-	x.Secure = b.Secure
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Value = b.Value
+	x.xxx_hidden_Path = b.Path
+	x.xxx_hidden_Domain = b.Domain
+	x.xxx_hidden_Expires = b.Expires
+	x.xxx_hidden_MaxAge = b.MaxAge
+	x.xxx_hidden_HttpOnly = b.HttpOnly
+	x.xxx_hidden_Secure = b.Secure
 	return m0
 }
 
@@ -231,13 +208,10 @@ func (b0 HttpCookie_builder) Build() *HttpCookie {
 // handle a specific RPC method, allowing customization of gateway behavior
 // on a per-method basis.
 type GatewayOptions struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// custom_mime specifies a custom MIME type to use for this method's
-	// HTTP requests/responses. This overrides the default content type
-	// and allows handling of non-standard formats (e.g., "application/raw-webhook").
-	CustomMime    string `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3" json:"custom_mime,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_CustomMime string                 `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *GatewayOptions) Reset() {
@@ -267,13 +241,13 @@ func (x *GatewayOptions) ProtoReflect() protoreflect.Message {
 
 func (x *GatewayOptions) GetCustomMime() string {
 	if x != nil {
-		return x.CustomMime
+		return x.xxx_hidden_CustomMime
 	}
 	return ""
 }
 
 func (x *GatewayOptions) SetCustomMime(v string) {
-	x.CustomMime = v
+	x.xxx_hidden_CustomMime = v
 }
 
 type GatewayOptions_builder struct {
@@ -289,7 +263,7 @@ func (b0 GatewayOptions_builder) Build() *GatewayOptions {
 	m0 := &GatewayOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.CustomMime = b.CustomMime
+	x.xxx_hidden_CustomMime = b.CustomMime
 	return m0
 }
 

@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/ai/v1/message.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -150,24 +150,13 @@ func (x Role) Number() protoreflect.EnumNumber {
 // Wrapper message representing any message type in a multi-turn conversation.
 // Use this when building conversation histories or streaming message sequences.
 type Message struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// When this message was created.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// Arbitrary key-value metadata associated with the message.
-	Metadata map[string]string `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Role of the message sender.
-	Role Role `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
-	// The specific message type. Exactly one must be set.
-	//
-	// Types that are valid to be assigned to Message:
-	//
-	//	*Message_System
-	//	*Message_User
-	//	*Message_Assistant
-	//	*Message_Tool
-	Message       isMessage_Message `protobuf_oneof:"message"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_Metadata   map[string]string      `protobuf:"bytes,2,rep,name=metadata,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Role       Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
+	xxx_hidden_Message    isMessage_Message      `protobuf_oneof:"message"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Message) Reset() {
@@ -197,35 +186,28 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 func (x *Message) GetCreateTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.CreateTime
+		return x.xxx_hidden_CreateTime
 	}
 	return nil
 }
 
 func (x *Message) GetMetadata() map[string]string {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return nil
 }
 
 func (x *Message) GetRole() Role {
 	if x != nil {
-		return x.Role
+		return x.xxx_hidden_Role
 	}
 	return Role_ROLE_UNSPECIFIED
 }
 
-func (x *Message) GetMessage() isMessage_Message {
-	if x != nil {
-		return x.Message
-	}
-	return nil
-}
-
 func (x *Message) GetSystem() *SystemMessage {
 	if x != nil {
-		if x, ok := x.Message.(*Message_System); ok {
+		if x, ok := x.xxx_hidden_Message.(*message_System); ok {
 			return x.System
 		}
 	}
@@ -234,7 +216,7 @@ func (x *Message) GetSystem() *SystemMessage {
 
 func (x *Message) GetUser() *UserMessage {
 	if x != nil {
-		if x, ok := x.Message.(*Message_User); ok {
+		if x, ok := x.xxx_hidden_Message.(*message_User); ok {
 			return x.User
 		}
 	}
@@ -243,7 +225,7 @@ func (x *Message) GetUser() *UserMessage {
 
 func (x *Message) GetAssistant() *AssistantMessage {
 	if x != nil {
-		if x, ok := x.Message.(*Message_Assistant); ok {
+		if x, ok := x.xxx_hidden_Message.(*message_Assistant); ok {
 			return x.Assistant
 		}
 	}
@@ -252,7 +234,7 @@ func (x *Message) GetAssistant() *AssistantMessage {
 
 func (x *Message) GetTool() *ToolResultMessage {
 	if x != nil {
-		if x, ok := x.Message.(*Message_Tool); ok {
+		if x, ok := x.xxx_hidden_Message.(*message_Tool); ok {
 			return x.Tool
 		}
 	}
@@ -260,68 +242,68 @@ func (x *Message) GetTool() *ToolResultMessage {
 }
 
 func (x *Message) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
+	x.xxx_hidden_CreateTime = v
 }
 
 func (x *Message) SetMetadata(v map[string]string) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Message) SetRole(v Role) {
-	x.Role = v
+	x.xxx_hidden_Role = v
 }
 
 func (x *Message) SetSystem(v *SystemMessage) {
 	if v == nil {
-		x.Message = nil
+		x.xxx_hidden_Message = nil
 		return
 	}
-	x.Message = &Message_System{v}
+	x.xxx_hidden_Message = &message_System{v}
 }
 
 func (x *Message) SetUser(v *UserMessage) {
 	if v == nil {
-		x.Message = nil
+		x.xxx_hidden_Message = nil
 		return
 	}
-	x.Message = &Message_User{v}
+	x.xxx_hidden_Message = &message_User{v}
 }
 
 func (x *Message) SetAssistant(v *AssistantMessage) {
 	if v == nil {
-		x.Message = nil
+		x.xxx_hidden_Message = nil
 		return
 	}
-	x.Message = &Message_Assistant{v}
+	x.xxx_hidden_Message = &message_Assistant{v}
 }
 
 func (x *Message) SetTool(v *ToolResultMessage) {
 	if v == nil {
-		x.Message = nil
+		x.xxx_hidden_Message = nil
 		return
 	}
-	x.Message = &Message_Tool{v}
+	x.xxx_hidden_Message = &message_Tool{v}
 }
 
 func (x *Message) HasCreateTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.CreateTime != nil
+	return x.xxx_hidden_CreateTime != nil
 }
 
 func (x *Message) HasMessage() bool {
 	if x == nil {
 		return false
 	}
-	return x.Message != nil
+	return x.xxx_hidden_Message != nil
 }
 
 func (x *Message) HasSystem() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Message.(*Message_System)
+	_, ok := x.xxx_hidden_Message.(*message_System)
 	return ok
 }
 
@@ -329,7 +311,7 @@ func (x *Message) HasUser() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Message.(*Message_User)
+	_, ok := x.xxx_hidden_Message.(*message_User)
 	return ok
 }
 
@@ -337,7 +319,7 @@ func (x *Message) HasAssistant() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Message.(*Message_Assistant)
+	_, ok := x.xxx_hidden_Message.(*message_Assistant)
 	return ok
 }
 
@@ -345,39 +327,39 @@ func (x *Message) HasTool() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Message.(*Message_Tool)
+	_, ok := x.xxx_hidden_Message.(*message_Tool)
 	return ok
 }
 
 func (x *Message) ClearCreateTime() {
-	x.CreateTime = nil
+	x.xxx_hidden_CreateTime = nil
 }
 
 func (x *Message) ClearMessage() {
-	x.Message = nil
+	x.xxx_hidden_Message = nil
 }
 
 func (x *Message) ClearSystem() {
-	if _, ok := x.Message.(*Message_System); ok {
-		x.Message = nil
+	if _, ok := x.xxx_hidden_Message.(*message_System); ok {
+		x.xxx_hidden_Message = nil
 	}
 }
 
 func (x *Message) ClearUser() {
-	if _, ok := x.Message.(*Message_User); ok {
-		x.Message = nil
+	if _, ok := x.xxx_hidden_Message.(*message_User); ok {
+		x.xxx_hidden_Message = nil
 	}
 }
 
 func (x *Message) ClearAssistant() {
-	if _, ok := x.Message.(*Message_Assistant); ok {
-		x.Message = nil
+	if _, ok := x.xxx_hidden_Message.(*message_Assistant); ok {
+		x.xxx_hidden_Message = nil
 	}
 }
 
 func (x *Message) ClearTool() {
-	if _, ok := x.Message.(*Message_Tool); ok {
-		x.Message = nil
+	if _, ok := x.xxx_hidden_Message.(*message_Tool); ok {
+		x.xxx_hidden_Message = nil
 	}
 }
 
@@ -391,14 +373,14 @@ func (x *Message) WhichMessage() case_Message_Message {
 	if x == nil {
 		return Message_Message_not_set_case
 	}
-	switch x.Message.(type) {
-	case *Message_System:
+	switch x.xxx_hidden_Message.(type) {
+	case *message_System:
 		return Message_System_case
-	case *Message_User:
+	case *message_User:
 		return Message_User_case
-	case *Message_Assistant:
+	case *message_Assistant:
 		return Message_Assistant_case
-	case *Message_Tool:
+	case *message_Tool:
 		return Message_Tool_case
 	default:
 		return Message_Message_not_set_case
@@ -416,7 +398,7 @@ type Message_builder struct {
 	Role Role
 	// The specific message type. Exactly one must be set.
 
-	// Fields of oneof Message:
+	// Fields of oneof xxx_hidden_Message:
 	// A system instruction message.
 	System *SystemMessage
 	// A user input message.
@@ -425,27 +407,27 @@ type Message_builder struct {
 	Assistant *AssistantMessage
 	// A tool result message.
 	Tool *ToolResultMessage
-	// -- end of Message
+	// -- end of xxx_hidden_Message
 }
 
 func (b0 Message_builder) Build() *Message {
 	m0 := &Message{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.CreateTime = b.CreateTime
-	x.Metadata = b.Metadata
-	x.Role = b.Role
+	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Role = b.Role
 	if b.System != nil {
-		x.Message = &Message_System{b.System}
+		x.xxx_hidden_Message = &message_System{b.System}
 	}
 	if b.User != nil {
-		x.Message = &Message_User{b.User}
+		x.xxx_hidden_Message = &message_User{b.User}
 	}
 	if b.Assistant != nil {
-		x.Message = &Message_Assistant{b.Assistant}
+		x.xxx_hidden_Message = &message_Assistant{b.Assistant}
 	}
 	if b.Tool != nil {
-		x.Message = &Message_Tool{b.Tool}
+		x.xxx_hidden_Message = &message_Tool{b.Tool}
 	}
 	return m0
 }
@@ -464,43 +446,42 @@ type isMessage_Message interface {
 	isMessage_Message()
 }
 
-type Message_System struct {
+type message_System struct {
 	// A system instruction message.
 	System *SystemMessage `protobuf:"bytes,10,opt,name=system,proto3,oneof"`
 }
 
-type Message_User struct {
+type message_User struct {
 	// A user input message.
 	User *UserMessage `protobuf:"bytes,11,opt,name=user,proto3,oneof"`
 }
 
-type Message_Assistant struct {
+type message_Assistant struct {
 	// An assistant response message.
 	Assistant *AssistantMessage `protobuf:"bytes,12,opt,name=assistant,proto3,oneof"`
 }
 
-type Message_Tool struct {
+type message_Tool struct {
 	// A tool result message.
 	Tool *ToolResultMessage `protobuf:"bytes,13,opt,name=tool,proto3,oneof"`
 }
 
-func (*Message_System) isMessage_Message() {}
+func (*message_System) isMessage_Message() {}
 
-func (*Message_User) isMessage_Message() {}
+func (*message_User) isMessage_Message() {}
 
-func (*Message_Assistant) isMessage_Message() {}
+func (*message_Assistant) isMessage_Message() {}
 
-func (*Message_Tool) isMessage_Message() {}
+func (*message_Tool) isMessage_Message() {}
 
 // System message that sets the behavior, context, and instructions for the AI.
 // Typically placed at the beginning of a conversation to establish the AI's persona,
 // constraints, and response style.
 type SystemMessage struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The instruction content for the AI system.
-	Content       string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Content string                 `protobuf:"bytes,1,opt,name=content,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SystemMessage) Reset() {
@@ -530,13 +511,13 @@ func (x *SystemMessage) ProtoReflect() protoreflect.Message {
 
 func (x *SystemMessage) GetContent() string {
 	if x != nil {
-		return x.Content
+		return x.xxx_hidden_Content
 	}
 	return ""
 }
 
 func (x *SystemMessage) SetContent(v string) {
-	x.Content = v
+	x.xxx_hidden_Content = v
 }
 
 type SystemMessage_builder struct {
@@ -550,17 +531,16 @@ func (b0 SystemMessage_builder) Build() *SystemMessage {
 	m0 := &SystemMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Content = b.Content
+	x.xxx_hidden_Content = b.Content
 	return m0
 }
 
 // User message representing input from a human participant in the conversation.
 type UserMessage struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The text content of the user's input.
-	Content       string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Content string                 `protobuf:"bytes,1,opt,name=content,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UserMessage) Reset() {
@@ -590,13 +570,13 @@ func (x *UserMessage) ProtoReflect() protoreflect.Message {
 
 func (x *UserMessage) GetContent() string {
 	if x != nil {
-		return x.Content
+		return x.xxx_hidden_Content
 	}
 	return ""
 }
 
 func (x *UserMessage) SetContent(v string) {
-	x.Content = v
+	x.xxx_hidden_Content = v
 }
 
 type UserMessage_builder struct {
@@ -610,28 +590,20 @@ func (b0 UserMessage_builder) Build() *UserMessage {
 	m0 := &UserMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Content = b.Content
+	x.xxx_hidden_Content = b.Content
 	return m0
 }
 
 // Assistant message representing a response from the AI model.
 // Must contain either text content, tool calls, or both.
 type AssistantMessage struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Internal reasoning or chain-of-thought generated by the model.
-	// Only populated when using models that support extended thinking.
-	Reasoning string `protobuf:"bytes,1,opt,name=reasoning,proto3" json:"reasoning,omitempty"`
-	// The text content of the assistant's response.
-	// May be empty if the assistant is only making tool calls.
-	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	// Structured content extracted from the response when TextToTextConfiguration.extract_json_object is true.
-	StructuredContent *structpb.Struct `protobuf:"bytes,3,opt,name=structured_content,json=structuredContent,proto3" json:"structured_content,omitempty"`
-	// Tool invocations requested by the assistant.
-	// When present, the caller should execute these tools and return results
-	// via ToolMessage before continuing the conversation.
-	ToolCalls     []*ToolCall `protobuf:"bytes,4,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Reasoning         string                 `protobuf:"bytes,1,opt,name=reasoning,proto3"`
+	xxx_hidden_Content           string                 `protobuf:"bytes,2,opt,name=content,proto3"`
+	xxx_hidden_StructuredContent *structpb.Struct       `protobuf:"bytes,3,opt,name=structured_content,json=structuredContent,proto3"`
+	xxx_hidden_ToolCalls         *[]*ToolCall           `protobuf:"bytes,4,rep,name=tool_calls,json=toolCalls,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *AssistantMessage) Reset() {
@@ -661,57 +633,59 @@ func (x *AssistantMessage) ProtoReflect() protoreflect.Message {
 
 func (x *AssistantMessage) GetReasoning() string {
 	if x != nil {
-		return x.Reasoning
+		return x.xxx_hidden_Reasoning
 	}
 	return ""
 }
 
 func (x *AssistantMessage) GetContent() string {
 	if x != nil {
-		return x.Content
+		return x.xxx_hidden_Content
 	}
 	return ""
 }
 
 func (x *AssistantMessage) GetStructuredContent() *structpb.Struct {
 	if x != nil {
-		return x.StructuredContent
+		return x.xxx_hidden_StructuredContent
 	}
 	return nil
 }
 
 func (x *AssistantMessage) GetToolCalls() []*ToolCall {
 	if x != nil {
-		return x.ToolCalls
+		if x.xxx_hidden_ToolCalls != nil {
+			return *x.xxx_hidden_ToolCalls
+		}
 	}
 	return nil
 }
 
 func (x *AssistantMessage) SetReasoning(v string) {
-	x.Reasoning = v
+	x.xxx_hidden_Reasoning = v
 }
 
 func (x *AssistantMessage) SetContent(v string) {
-	x.Content = v
+	x.xxx_hidden_Content = v
 }
 
 func (x *AssistantMessage) SetStructuredContent(v *structpb.Struct) {
-	x.StructuredContent = v
+	x.xxx_hidden_StructuredContent = v
 }
 
 func (x *AssistantMessage) SetToolCalls(v []*ToolCall) {
-	x.ToolCalls = v
+	x.xxx_hidden_ToolCalls = &v
 }
 
 func (x *AssistantMessage) HasStructuredContent() bool {
 	if x == nil {
 		return false
 	}
-	return x.StructuredContent != nil
+	return x.xxx_hidden_StructuredContent != nil
 }
 
 func (x *AssistantMessage) ClearStructuredContent() {
-	x.StructuredContent = nil
+	x.xxx_hidden_StructuredContent = nil
 }
 
 type AssistantMessage_builder struct {
@@ -735,24 +709,21 @@ func (b0 AssistantMessage_builder) Build() *AssistantMessage {
 	m0 := &AssistantMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Reasoning = b.Reasoning
-	x.Content = b.Content
-	x.StructuredContent = b.StructuredContent
-	x.ToolCalls = b.ToolCalls
+	x.xxx_hidden_Reasoning = b.Reasoning
+	x.xxx_hidden_Content = b.Content
+	x.xxx_hidden_StructuredContent = b.StructuredContent
+	x.xxx_hidden_ToolCalls = &b.ToolCalls
 	return m0
 }
 
 // Result of a tool invocation.
 // Sent in response to an AssistantMessage that requested tool calls.
 type ToolResultMessage struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The unique identifier of the tool call this result responds to.
-	// Must match the id field from a ToolCall in a preceding AssistantMessage.
-	ToolCallId string `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
-	// The result of a tool execution.
-	Result        *ToolResult `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ToolCallId string                 `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3"`
+	xxx_hidden_Result     *ToolResult            `protobuf:"bytes,2,opt,name=result,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ToolResultMessage) Reset() {
@@ -782,35 +753,35 @@ func (x *ToolResultMessage) ProtoReflect() protoreflect.Message {
 
 func (x *ToolResultMessage) GetToolCallId() string {
 	if x != nil {
-		return x.ToolCallId
+		return x.xxx_hidden_ToolCallId
 	}
 	return ""
 }
 
 func (x *ToolResultMessage) GetResult() *ToolResult {
 	if x != nil {
-		return x.Result
+		return x.xxx_hidden_Result
 	}
 	return nil
 }
 
 func (x *ToolResultMessage) SetToolCallId(v string) {
-	x.ToolCallId = v
+	x.xxx_hidden_ToolCallId = v
 }
 
 func (x *ToolResultMessage) SetResult(v *ToolResult) {
-	x.Result = v
+	x.xxx_hidden_Result = v
 }
 
 func (x *ToolResultMessage) HasResult() bool {
 	if x == nil {
 		return false
 	}
-	return x.Result != nil
+	return x.xxx_hidden_Result != nil
 }
 
 func (x *ToolResultMessage) ClearResult() {
-	x.Result = nil
+	x.xxx_hidden_Result = nil
 }
 
 type ToolResultMessage_builder struct {
@@ -827,8 +798,8 @@ func (b0 ToolResultMessage_builder) Build() *ToolResultMessage {
 	m0 := &ToolResultMessage{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ToolCallId = b.ToolCallId
-	x.Result = b.Result
+	x.xxx_hidden_ToolCallId = b.ToolCallId
+	x.xxx_hidden_Result = b.Result
 	return m0
 }
 
@@ -922,10 +893,10 @@ func file_malonaz_ai_v1_message_proto_init() {
 	}
 	file_malonaz_ai_v1_tool_proto_init()
 	file_malonaz_ai_v1_message_proto_msgTypes[0].OneofWrappers = []any{
-		(*Message_System)(nil),
-		(*Message_User)(nil),
-		(*Message_Assistant)(nil),
-		(*Message_Tool)(nil),
+		(*message_System)(nil),
+		(*message_User)(nil),
+		(*message_Assistant)(nil),
+		(*message_Tool)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

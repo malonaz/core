@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/codegen/llm/v1/llm.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -25,18 +25,13 @@ const (
 
 // Opts for llm documentation.
 type MessageOpts struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// If true, we generate a `LlmDoc() string` function for this message.
-	Generate bool `protobuf:"varint,1,opt,name=generate,proto3" json:"generate,omitempty"`
-	// If true, we generate a `LlmFieldMaskPaths() []string` function for this message, containing the fields that are set to be documented.
-	FieldMaskPaths bool `protobuf:"varint,2,opt,name=field_mask_paths,json=fieldMaskPaths,proto3" json:"field_mask_paths,omitempty"`
-	// If set, we document all fields.
-	All bool `protobuf:"varint,3,opt,name=all,proto3" json:"all,omitempty"`
-	// List of field names to include in the generated documentation.
-	// If non-empty, generates docs for this message including only these fields.
-	Fields        []string `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Generate       bool                   `protobuf:"varint,1,opt,name=generate,proto3"`
+	xxx_hidden_FieldMaskPaths bool                   `protobuf:"varint,2,opt,name=field_mask_paths,json=fieldMaskPaths,proto3"`
+	xxx_hidden_All            bool                   `protobuf:"varint,3,opt,name=all,proto3"`
+	xxx_hidden_Fields         []string               `protobuf:"bytes,4,rep,name=fields,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *MessageOpts) Reset() {
@@ -66,46 +61,46 @@ func (x *MessageOpts) ProtoReflect() protoreflect.Message {
 
 func (x *MessageOpts) GetGenerate() bool {
 	if x != nil {
-		return x.Generate
+		return x.xxx_hidden_Generate
 	}
 	return false
 }
 
 func (x *MessageOpts) GetFieldMaskPaths() bool {
 	if x != nil {
-		return x.FieldMaskPaths
+		return x.xxx_hidden_FieldMaskPaths
 	}
 	return false
 }
 
 func (x *MessageOpts) GetAll() bool {
 	if x != nil {
-		return x.All
+		return x.xxx_hidden_All
 	}
 	return false
 }
 
 func (x *MessageOpts) GetFields() []string {
 	if x != nil {
-		return x.Fields
+		return x.xxx_hidden_Fields
 	}
 	return nil
 }
 
 func (x *MessageOpts) SetGenerate(v bool) {
-	x.Generate = v
+	x.xxx_hidden_Generate = v
 }
 
 func (x *MessageOpts) SetFieldMaskPaths(v bool) {
-	x.FieldMaskPaths = v
+	x.xxx_hidden_FieldMaskPaths = v
 }
 
 func (x *MessageOpts) SetAll(v bool) {
-	x.All = v
+	x.xxx_hidden_All = v
 }
 
 func (x *MessageOpts) SetFields(v []string) {
-	x.Fields = v
+	x.xxx_hidden_Fields = v
 }
 
 type MessageOpts_builder struct {
@@ -126,10 +121,10 @@ func (b0 MessageOpts_builder) Build() *MessageOpts {
 	m0 := &MessageOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Generate = b.Generate
-	x.FieldMaskPaths = b.FieldMaskPaths
-	x.All = b.All
-	x.Fields = b.Fields
+	x.xxx_hidden_Generate = b.Generate
+	x.xxx_hidden_FieldMaskPaths = b.FieldMaskPaths
+	x.xxx_hidden_All = b.All
+	x.xxx_hidden_Fields = b.Fields
 	return m0
 }
 

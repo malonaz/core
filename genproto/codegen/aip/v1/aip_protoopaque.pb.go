@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/codegen/aip/v1/aip.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -26,12 +26,10 @@ const (
 
 // Options for filtering.
 type FilteringOptions struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// List of fields that can be used in the filter expression.
-	// Can use * or some.path.* wildcards.
-	Paths         []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Paths []string               `protobuf:"bytes,1,rep,name=paths,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FilteringOptions) Reset() {
@@ -61,13 +59,13 @@ func (x *FilteringOptions) ProtoReflect() protoreflect.Message {
 
 func (x *FilteringOptions) GetPaths() []string {
 	if x != nil {
-		return x.Paths
+		return x.xxx_hidden_Paths
 	}
 	return nil
 }
 
 func (x *FilteringOptions) SetPaths(v []string) {
-	x.Paths = v
+	x.xxx_hidden_Paths = v
 }
 
 type FilteringOptions_builder struct {
@@ -82,17 +80,16 @@ func (b0 FilteringOptions_builder) Build() *FilteringOptions {
 	m0 := &FilteringOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Paths = b.Paths
+	x.xxx_hidden_Paths = b.Paths
 	return m0
 }
 
 // Options for pagination.
 type PaginationOptions struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The default number of items to return per page.
-	DefaultPageSize uint32 `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3" json:"default_page_size,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_DefaultPageSize uint32                 `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *PaginationOptions) Reset() {
@@ -122,13 +119,13 @@ func (x *PaginationOptions) ProtoReflect() protoreflect.Message {
 
 func (x *PaginationOptions) GetDefaultPageSize() uint32 {
 	if x != nil {
-		return x.DefaultPageSize
+		return x.xxx_hidden_DefaultPageSize
 	}
 	return 0
 }
 
 func (x *PaginationOptions) SetDefaultPageSize(v uint32) {
-	x.DefaultPageSize = v
+	x.xxx_hidden_DefaultPageSize = v
 }
 
 type PaginationOptions_builder struct {
@@ -142,20 +139,17 @@ func (b0 PaginationOptions_builder) Build() *PaginationOptions {
 	m0 := &PaginationOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.DefaultPageSize = b.DefaultPageSize
+	x.xxx_hidden_DefaultPageSize = b.DefaultPageSize
 	return m0
 }
 
 // Options for ordering.
 type OrderingOptions struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// List of fields that can be used in the filter expression.
-	// Can use * or some.path.* wildcards.
-	Paths []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
-	// The default ordering by option.
-	Default       string `protobuf:"bytes,2,opt,name=default,proto3" json:"default,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Paths   []string               `protobuf:"bytes,1,rep,name=paths,proto3"`
+	xxx_hidden_Default string                 `protobuf:"bytes,2,opt,name=default,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *OrderingOptions) Reset() {
@@ -185,24 +179,24 @@ func (x *OrderingOptions) ProtoReflect() protoreflect.Message {
 
 func (x *OrderingOptions) GetPaths() []string {
 	if x != nil {
-		return x.Paths
+		return x.xxx_hidden_Paths
 	}
 	return nil
 }
 
 func (x *OrderingOptions) GetDefault() string {
 	if x != nil {
-		return x.Default
+		return x.xxx_hidden_Default
 	}
 	return ""
 }
 
 func (x *OrderingOptions) SetPaths(v []string) {
-	x.Paths = v
+	x.xxx_hidden_Paths = v
 }
 
 func (x *OrderingOptions) SetDefault(v string) {
-	x.Default = v
+	x.xxx_hidden_Default = v
 }
 
 type OrderingOptions_builder struct {
@@ -219,21 +213,18 @@ func (b0 OrderingOptions_builder) Build() *OrderingOptions {
 	m0 := &OrderingOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Paths = b.Paths
-	x.Default = b.Default
+	x.xxx_hidden_Paths = b.Paths
+	x.xxx_hidden_Default = b.Default
 	return m0
 }
 
 // Configuration options for AIP-compliant Update methods.
 // Defines which fields can be updated and how field masks are processed.
 type UpdateOptions struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// List of field paths that users are authorized to update.
-	// Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
-	// This provides fine-grained access control at the field level.
-	Paths         []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Paths []string               `protobuf:"bytes,1,rep,name=paths,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UpdateOptions) Reset() {
@@ -263,13 +254,13 @@ func (x *UpdateOptions) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateOptions) GetPaths() []string {
 	if x != nil {
-		return x.Paths
+		return x.xxx_hidden_Paths
 	}
 	return nil
 }
 
 func (x *UpdateOptions) SetPaths(v []string) {
-	x.Paths = v
+	x.xxx_hidden_Paths = v
 }
 
 type UpdateOptions_builder struct {
@@ -285,23 +276,18 @@ func (b0 UpdateOptions_builder) Build() *UpdateOptions {
 	m0 := &UpdateOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Paths = b.Paths
+	x.xxx_hidden_Paths = b.Paths
 	return m0
 }
 
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
 // The protoc-templates plugin uses this to generate appropriate server and client code.
 type StandardMethod struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource type this method operates on (e.g., "example.com/User").
-	// Must match a resource type defined in google.api.resource annotations.
-	// Used to determine request/response message types and validate method naming.
-	Resource string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	// Emit an event for this action, using github.com/malonaz/pgq.
-	// Only supported on CREATE, UPDATE & DELETE methods.
-	EmitEvent     bool `protobuf:"varint,2,opt,name=emit_event,json=emitEvent,proto3" json:"emit_event,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Resource  string                 `protobuf:"bytes,1,opt,name=resource,proto3"`
+	xxx_hidden_EmitEvent bool                   `protobuf:"varint,2,opt,name=emit_event,json=emitEvent,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *StandardMethod) Reset() {
@@ -331,24 +317,24 @@ func (x *StandardMethod) ProtoReflect() protoreflect.Message {
 
 func (x *StandardMethod) GetResource() string {
 	if x != nil {
-		return x.Resource
+		return x.xxx_hidden_Resource
 	}
 	return ""
 }
 
 func (x *StandardMethod) GetEmitEvent() bool {
 	if x != nil {
-		return x.EmitEvent
+		return x.xxx_hidden_EmitEvent
 	}
 	return false
 }
 
 func (x *StandardMethod) SetResource(v string) {
-	x.Resource = v
+	x.xxx_hidden_Resource = v
 }
 
 func (x *StandardMethod) SetEmitEvent(v bool) {
-	x.EmitEvent = v
+	x.xxx_hidden_EmitEvent = v
 }
 
 type StandardMethod_builder struct {
@@ -367,8 +353,8 @@ func (b0 StandardMethod_builder) Build() *StandardMethod {
 	m0 := &StandardMethod{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Resource = b.Resource
-	x.EmitEvent = b.EmitEvent
+	x.xxx_hidden_Resource = b.Resource
+	x.xxx_hidden_EmitEvent = b.EmitEvent
 	return m0
 }
 

@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: malonaz/onyx/v1/service.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package v1
 
@@ -24,13 +24,13 @@ const (
 
 // Service represents a service configuration
 type Service struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ObjectMeta            `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *ServiceSpec           `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ApiVersion string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3"`
+	xxx_hidden_Kind       string                 `protobuf:"bytes,2,opt,name=kind,proto3"`
+	xxx_hidden_Metadata   *ObjectMeta            `protobuf:"bytes,3,opt,name=metadata,proto3"`
+	xxx_hidden_Spec       *ServiceSpec           `protobuf:"bytes,4,opt,name=spec,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Service) Reset() {
@@ -60,68 +60,68 @@ func (x *Service) ProtoReflect() protoreflect.Message {
 
 func (x *Service) GetApiVersion() string {
 	if x != nil {
-		return x.ApiVersion
+		return x.xxx_hidden_ApiVersion
 	}
 	return ""
 }
 
 func (x *Service) GetKind() string {
 	if x != nil {
-		return x.Kind
+		return x.xxx_hidden_Kind
 	}
 	return ""
 }
 
 func (x *Service) GetMetadata() *ObjectMeta {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return nil
 }
 
 func (x *Service) GetSpec() *ServiceSpec {
 	if x != nil {
-		return x.Spec
+		return x.xxx_hidden_Spec
 	}
 	return nil
 }
 
 func (x *Service) SetApiVersion(v string) {
-	x.ApiVersion = v
+	x.xxx_hidden_ApiVersion = v
 }
 
 func (x *Service) SetKind(v string) {
-	x.Kind = v
+	x.xxx_hidden_Kind = v
 }
 
 func (x *Service) SetMetadata(v *ObjectMeta) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Service) SetSpec(v *ServiceSpec) {
-	x.Spec = v
+	x.xxx_hidden_Spec = v
 }
 
 func (x *Service) HasMetadata() bool {
 	if x == nil {
 		return false
 	}
-	return x.Metadata != nil
+	return x.xxx_hidden_Metadata != nil
 }
 
 func (x *Service) HasSpec() bool {
 	if x == nil {
 		return false
 	}
-	return x.Spec != nil
+	return x.xxx_hidden_Spec != nil
 }
 
 func (x *Service) ClearMetadata() {
-	x.Metadata = nil
+	x.xxx_hidden_Metadata = nil
 }
 
 func (x *Service) ClearSpec() {
-	x.Spec = nil
+	x.xxx_hidden_Spec = nil
 }
 
 type Service_builder struct {
@@ -137,21 +137,21 @@ func (b0 Service_builder) Build() *Service {
 	m0 := &Service{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.ApiVersion = b.ApiVersion
-	x.Kind = b.Kind
-	x.Metadata = b.Metadata
-	x.Spec = b.Spec
+	x.xxx_hidden_ApiVersion = b.ApiVersion
+	x.xxx_hidden_Kind = b.Kind
+	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Spec = b.Spec
 	return m0
 }
 
 // ServiceSpec represents the configuration for a Go service
 type ServiceSpec struct {
-	state               protoimpl.MessageState `protogen:"hybrid.v1"`
-	IncludeRuntime      bool                   `protobuf:"varint,1,opt,name=include_runtime,json=includeRuntime,proto3" json:"include_runtime,omitempty"`
-	ExportServiceFields bool                   `protobuf:"varint,2,opt,name=export_service_fields,json=exportServiceFields,proto3" json:"export_service_fields,omitempty"`
-	Dependencies        []*DependencySpec      `protobuf:"bytes,3,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_IncludeRuntime      bool                   `protobuf:"varint,1,opt,name=include_runtime,json=includeRuntime,proto3"`
+	xxx_hidden_ExportServiceFields bool                   `protobuf:"varint,2,opt,name=export_service_fields,json=exportServiceFields,proto3"`
+	xxx_hidden_Dependencies        *[]*DependencySpec     `protobuf:"bytes,3,rep,name=dependencies,proto3"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *ServiceSpec) Reset() {
@@ -181,35 +181,37 @@ func (x *ServiceSpec) ProtoReflect() protoreflect.Message {
 
 func (x *ServiceSpec) GetIncludeRuntime() bool {
 	if x != nil {
-		return x.IncludeRuntime
+		return x.xxx_hidden_IncludeRuntime
 	}
 	return false
 }
 
 func (x *ServiceSpec) GetExportServiceFields() bool {
 	if x != nil {
-		return x.ExportServiceFields
+		return x.xxx_hidden_ExportServiceFields
 	}
 	return false
 }
 
 func (x *ServiceSpec) GetDependencies() []*DependencySpec {
 	if x != nil {
-		return x.Dependencies
+		if x.xxx_hidden_Dependencies != nil {
+			return *x.xxx_hidden_Dependencies
+		}
 	}
 	return nil
 }
 
 func (x *ServiceSpec) SetIncludeRuntime(v bool) {
-	x.IncludeRuntime = v
+	x.xxx_hidden_IncludeRuntime = v
 }
 
 func (x *ServiceSpec) SetExportServiceFields(v bool) {
-	x.ExportServiceFields = v
+	x.xxx_hidden_ExportServiceFields = v
 }
 
 func (x *ServiceSpec) SetDependencies(v []*DependencySpec) {
-	x.Dependencies = v
+	x.xxx_hidden_Dependencies = &v
 }
 
 type ServiceSpec_builder struct {
@@ -224,9 +226,9 @@ func (b0 ServiceSpec_builder) Build() *ServiceSpec {
 	m0 := &ServiceSpec{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.IncludeRuntime = b.IncludeRuntime
-	x.ExportServiceFields = b.ExportServiceFields
-	x.Dependencies = b.Dependencies
+	x.xxx_hidden_IncludeRuntime = b.IncludeRuntime
+	x.xxx_hidden_ExportServiceFields = b.ExportServiceFields
+	x.xxx_hidden_Dependencies = &b.Dependencies
 	return m0
 }
 
