@@ -10,6 +10,7 @@ def github_proto_library(
         dir:str,
         files:list,
         deps:list=[],
+        root_dir:str=None,
         visibility:list=None,
         protoc_flags:list=[],
         additional_context:dict=None,
@@ -25,10 +26,17 @@ def github_proto_library(
         revision = revision,
     )
 
+    root_dir_sanitized = "third_party/proto"
+    protoc_flag = "-I" + package_name()
+    if root_dir:
+        root_dir_sanitized += f"/{root_dir}"
+        protoc_flag += f"/{root_dir}"
+
     return proto_library(
         name = name,
         srcs = [src],
-        protoc_flags = protoc_flags + ["-I" + package_name()],
+        root_dir=root_dir_sanitized,
+        protoc_flags = protoc_flags + [protoc_flag],
         additional_context = additional_context,
         deps = deps,
         visibility=visibility,
