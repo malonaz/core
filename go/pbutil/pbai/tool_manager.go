@@ -182,6 +182,10 @@ func (m *ToolManager) getDiscoverableToolSet(toolCall *aipb.ToolCall) (*ai.Disco
 	return nil, status.Errorf(codes.NotFound, "unknown tool: %s", toolCall.Name)
 }
 
+func toolName(serviceName, methodName protoreflect.Name) string {
+	return string(string(serviceName) + "_" + string(methodName))
+}
+
 func (m *ToolManager) buildMethodTool(service protoreflect.ServiceDescriptor, method protoreflect.MethodDescriptor) (*aipb.Tool, error) {
 	description := m.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
 
@@ -192,7 +196,7 @@ func (m *ToolManager) buildMethodTool(service protoreflect.ServiceDescriptor, me
 	}
 
 	return &aipb.Tool{
-		Name:        string(method.Name()),
+		Name:        toolName(service.Name(), method.Name()),
 		Description: description,
 		JsonSchema:  schema,
 		Annotations: map[string]string{
