@@ -57,7 +57,7 @@ def github_proto_srcs(
         sanitized_filename = f.replace("/", "_")
         src = github_file(
             name = f"_{name}#{sanitized_filename}",
-            out = f,
+            out = f"_{name}#{sanitized_filename}.proto",
             file = join_path(dir, f),
             repo = repo,
             revision = revision,
