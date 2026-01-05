@@ -325,6 +325,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__ajstarks__svgo",
+    _tag = "download",
+    module = "github.com/ajstarks/svgo",
+    version = "v0.0.0-20211024235047-1546f124cd8b",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__ajstarks__svgo",
+    download = ":_github.com__ajstarks__svgo#download",
+    install = ["."],
+    module = "github.com/ajstarks/svgo",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__anthropics__anthropic-sdk-go",
     _tag = "download",
     module = "github.com/anthropics/anthropic-sdk-go",
@@ -857,6 +874,50 @@ go_module(
     module = "github.com/gogo/protobuf",
     visibility = ["PUBLIC"],
     deps = [":github.com__gogo__protobuf__proto"],
+)
+
+go_mod_download(
+    name = "github.com__golang__freetype",
+    _tag = "download",
+    module = "github.com/golang/freetype",
+    version = "v0.0.0-20170609003504-e2365dfdc4a0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__golang__freetype",
+    download = ":_github.com__golang__freetype#download",
+    install = ["."],
+    module = "github.com/golang/freetype",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__freetype__raster",
+        ":github.com__golang__freetype__truetype",
+        ":golang.org__x__image__font",
+        ":golang.org__x__image__math__fixed",
+    ],
+)
+
+go_module(
+    name = "github.com__golang__freetype__raster",
+    download = ":_github.com__golang__freetype#download",
+    install = ["raster"],
+    module = "github.com/golang/freetype",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__image__math__fixed"],
+)
+
+go_module(
+    name = "github.com__golang__freetype__truetype",
+    download = ":_github.com__golang__freetype#download",
+    install = ["truetype"],
+    module = "github.com/golang/freetype",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__freetype__raster",
+        ":golang.org__x__image__font",
+        ":golang.org__x__image__math__fixed",
+    ],
 )
 
 go_mod_download(
@@ -2915,8 +2976,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -2933,8 +2994,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -3876,10 +3937,36 @@ go_module(
 )
 
 go_mod_download(
+    name = "golang.org__x__image",
+    _tag = "download",
+    module = "golang.org/x/image",
+    version = "v0.34.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "golang.org__x__image__font",
+    download = ":_golang.org__x__image#download",
+    install = ["font"],
+    module = "golang.org/x/image",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__image__math__fixed"],
+)
+
+go_module(
+    name = "golang.org__x__image__math__fixed",
+    download = ":_golang.org__x__image#download",
+    install = ["math/fixed"],
+    module = "golang.org/x/image",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "golang.org__x__mod",
     _tag = "download",
     module = "golang.org/x/mod",
-    version = "v0.29.0",
+    version = "v0.30.0",
     visibility = ["PUBLIC"],
 )
 
@@ -4022,7 +4109,7 @@ go_mod_download(
     name = "golang.org__x__sync",
     _tag = "download",
     module = "golang.org/x/sync",
-    version = "v0.18.0",
+    version = "v0.19.0",
     visibility = ["PUBLIC"],
 )
 
@@ -4074,7 +4161,7 @@ go_mod_download(
     name = "golang.org__x__text",
     _tag = "download",
     module = "golang.org/x/text",
-    version = "v0.30.0",
+    version = "v0.32.0",
     visibility = ["PUBLIC"],
 )
 

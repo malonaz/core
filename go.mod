@@ -9,10 +9,12 @@ require (
 	buf.build/go/protovalidate v1.0.0
 	github.com/AlexxIT/go2rtc v1.9.12
 	github.com/Masterminds/sprig/v3 v3.3.0
+	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-jsonnet v0.21.0
@@ -45,9 +47,10 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.einride.tech/aip v0.73.0
 	go.einride.tech/spanner-aip v0.67.2-0.20251120124954-1d9f5bae7b61
-	golang.org/x/mod v0.29.0
+	golang.org/x/image v0.34.0
+	golang.org/x/mod v0.30.0
 	golang.org/x/net v0.46.0
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c
@@ -113,7 +116,7 @@ require (
 	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )

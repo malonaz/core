@@ -1,0 +1,23 @@
+go_binary(
+    name = "generate-logo",
+    srcs = [
+        "favicon.go",
+        "main.go",
+        "png.go",
+        "svg.go",
+        "utils.go",
+    ],
+    resources = [
+        # https://github.com/matomo-org/travis-scripts/blob/master/fonts/Arial_Bold.ttf
+        "Arial_Bold.ttf",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/flags",
+        "//go/logging",
+        "//third_party/go:github.com__ajstarks__svgo",
+        "//third_party/go:github.com__golang__freetype",
+        "//third_party/go:github.com__golang__freetype__truetype",
+        "//third_party/go:golang.org__x__image__font",
+    ],
+)
