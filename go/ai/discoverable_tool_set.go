@@ -135,9 +135,10 @@ func (ts *DiscoverableToolSet) ProcessDiscoveryToolCall(toolCall *aipb.ToolCall)
 			return nil, status.Errorf(codes.NotFound, "unknown tool %s", toolName)
 		}
 		if discoverTime.IsZero() {
-			return nil, status.Errorf(codes.FailedPrecondition, "You must discover a tool before using it")
+			// We allow re-discovery of tools as it's less expensive than to return an error informing
+			// the LLM that they've already discovered this tool.
+			ts.toolNameToDiscoverTime[toolName] = time.Now()
 		}
-		ts.toolNameToDiscoverTime[toolName] = time.Now()
 		discoveryCall.ToolNames = append(discoveryCall.ToolNames, toolName)
 	}
 
@@ -146,7 +147,7 @@ func (ts *DiscoverableToolSet) ProcessDiscoveryToolCall(toolCall *aipb.ToolCall)
 }
 
 func (ts *DiscoverableToolSet) GetTools() (*aipb.Tool, []*aipb.Tool) {
-	tools := []*aipb.Tool{ts.discoveryTool}
+	var tools []*aipb.Tool
 	for _, tool := range ts.tools {
 		if !ts.toolNameToDiscoverTime[tool.Name].IsZero() {
 			tools = append(tools, tool)
