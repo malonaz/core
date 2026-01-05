@@ -20,6 +20,7 @@ const (
 )
 
 type DiscoverableToolSet struct {
+	name                   string
 	discoveryTool          *aipb.Tool
 	tools                  []*aipb.Tool
 	toolNameToDiscoverTime map[string]time.Time
@@ -27,6 +28,7 @@ type DiscoverableToolSet struct {
 
 func NewDiscoverableToolSet(name string, tools []*aipb.Tool) *DiscoverableToolSet {
 	ts := &DiscoverableToolSet{
+		name:                   name,
 		tools:                  tools,
 		toolNameToDiscoverTime: make(map[string]time.Time, len(tools)),
 	}
@@ -100,7 +102,8 @@ func (ts *DiscoverableToolSet) IsDiscoveryTool(toolName string) bool {
 }
 
 type DiscoveryCall struct {
-	ToolNames []string
+	ToolSetName string
+	ToolNames   []string
 }
 
 func (ts *DiscoverableToolSet) ProcessDiscoveryToolCall(toolCall *aipb.ToolCall) (*DiscoveryCall, error) {
@@ -119,7 +122,9 @@ func (ts *DiscoverableToolSet) ProcessDiscoveryToolCall(toolCall *aipb.ToolCall)
 		return nil, status.Errorf(codes.InvalidArgument, "tools must be an array")
 	}
 
-	discoveryCall := &DiscoveryCall{}
+	discoveryCall := &DiscoveryCall{
+		ToolSetName: ts.name,
+	}
 	for _, v := range toolsArr {
 		toolName, ok := v.(string)
 		if !ok {
