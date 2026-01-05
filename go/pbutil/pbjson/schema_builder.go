@@ -1,7 +1,7 @@
-package pbai
+package pbjson
 
 import (
-	"strings"
+	"fmt"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -10,9 +10,12 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
+)
+
+const (
+	defaultMaxDepth = 10
 )
 
 var (
@@ -21,36 +24,47 @@ var (
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 )
 
-func toolName(svcName, methodName protoreflect.Name) string {
-	return string(string(svcName) + "_" + string(methodName))
+type SchemaBuilder struct {
+	schema   *pbreflection.Schema
+	maxDepth int
 }
 
-func (m *ToolManager) buildMethodTool(method protoreflect.MethodDescriptor) *aipb.Tool {
-	svc := method.Parent().(protoreflect.ServiceDescriptor)
-	description := m.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
-	methodName := string(method.Name())
+type Option func(*SchemaBuilder)
 
-	schema := m.buildMessageSchema(method.Input(), "", 0, methodName)
-
-	return &aipb.Tool{
-		Name:        toolName(svc.Name(), method.Name()),
-		Description: description,
-		JsonSchema:  schema,
-		Annotations: map[string]string{
-			annotationKeyToolType:   annotationValueToolTypeMethod,
-			annotationKeyGRPCMethod: string(method.FullName()),
-		},
+func WithMaxDepth(depth int) Option {
+	return func(b *SchemaBuilder) {
+		b.maxDepth = depth
 	}
 }
 
-func (m *ToolManager) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodName string) *jsonpb.Schema {
+func NewSchemaBuilder(schema *pbreflection.Schema, opts ...Option) *SchemaBuilder {
+	b := &SchemaBuilder{schema: schema, maxDepth: defaultMaxDepth}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
+}
+
+func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, methodType pbreflection.StandardMethodType) (*jsonpb.Schema, error) {
+	desc, err := b.schema.FindDescriptorByName(messageFullName)
+	if err != nil {
+		return nil, fmt.Errorf("message not found: %s", messageFullName)
+	}
+	msg, ok := desc.(protoreflect.MessageDescriptor)
+	if !ok {
+		return nil, fmt.Errorf("descriptor is not a message: %s", messageFullName)
+	}
+	return b.buildMessageSchema(msg, "", 0, methodType), nil
+}
+
+func (b *SchemaBuilder) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) *jsonpb.Schema {
 	properties := make(map[string]*jsonpb.Schema)
 	var required []string
 
 	fields := msg.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		schema, isRequired := m.buildFieldSchema(field, prefix, depth, methodName)
+		schema, isRequired := b.buildFieldSchema(field, prefix, depth, methodType)
 		if schema != nil {
 			properties[string(field.Name())] = schema
 			if isRequired {
@@ -60,14 +74,15 @@ func (m *ToolManager) buildMessageSchema(msg protoreflect.MessageDescriptor, pre
 	}
 
 	return &jsonpb.Schema{
-		Type:       "object",
-		Properties: properties,
-		Required:   required,
+		Type:        "object",
+		Description: string(msg.FullName()),
+		Properties:  properties,
+		Required:    required,
 	}
 }
 
-func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) (*jsonpb.Schema, bool) {
-	if depth > m.maxDepth {
+func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) (*jsonpb.Schema, bool) {
+	if depth > b.maxDepth {
 		return nil, false
 	}
 
@@ -75,25 +90,30 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 	if behaviors.outputOnly {
 		return nil, false
 	}
-
-	isCreate := strings.HasPrefix(methodName, "Create")
-	isUpdate := strings.HasPrefix(methodName, "Update")
-	if isCreate && behaviors.identifier {
-		return nil, false
-	}
-	if isUpdate && behaviors.immutable {
-		return nil, false
+	var isRequired bool
+	switch methodType {
+	case pbreflection.StandardMethodTypeCreate:
+		if behaviors.identifier {
+			return nil, false
+		}
+		isRequired = behaviors.required
+	case pbreflection.StandardMethodTypeUpdate:
+		if behaviors.immutable {
+			return nil, false
+		}
+		isRequired = behaviors.identifier // Only identifier is required on an update method.
+	default:
+		isRequired = behaviors.required
 	}
 
 	path := prefix + string(field.Name())
-	description := m.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
-	isRequired := behaviors.required || (isUpdate && behaviors.identifier)
+	description := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
 
 	if field.IsList() {
 		return &jsonpb.Schema{
 			Type:        "array",
 			Description: description,
-			Items:       m.elementSchema(field, path, depth, methodName),
+			Items:       b.elementSchema(field, path, depth, methodType),
 		}, isRequired
 	}
 
@@ -115,16 +135,16 @@ func (m *ToolManager) buildFieldSchema(field protoreflect.FieldDescriptor, prefi
 				Description: description + " (comma-separated paths)",
 			}, isRequired
 		default:
-			schema := m.buildMessageSchema(field.Message(), path+".", depth+1, methodName)
+			schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType)
 			schema.Description = description
 			return schema, isRequired
 		}
 	}
 
-	return m.scalarSchema(field, description), isRequired
+	return b.scalarSchema(field, description), isRequired
 }
 
-func (m *ToolManager) scalarSchema(field protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
+func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
 	schema := &jsonpb.Schema{Description: description}
 	switch field.Kind() {
 	case protoreflect.BoolKind:
@@ -148,11 +168,11 @@ func (m *ToolManager) scalarSchema(field protoreflect.FieldDescriptor, descripti
 	return schema
 }
 
-func (m *ToolManager) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) *jsonpb.Schema {
+func (b *SchemaBuilder) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType) *jsonpb.Schema {
 	if field.Kind() == protoreflect.MessageKind {
-		return m.buildMessageSchema(field.Message(), prefix+".", depth+1, methodName)
+		return b.buildMessageSchema(field.Message(), prefix+".", depth+1, methodType)
 	}
-	return m.scalarSchema(field, "")
+	return b.scalarSchema(field, "")
 }
 
 type fieldBehaviors struct {

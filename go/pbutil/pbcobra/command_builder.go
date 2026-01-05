@@ -21,6 +21,8 @@ import (
 )
 
 const (
+	defaultMaxDepth = 10
+
 	annotationKeyService = "pbcobra.service"
 	annotationKeyMethod  = "pbcobra.method"
 )
@@ -61,7 +63,7 @@ func NewCommandBuilder(schema *pbreflection.Schema, invoker *pbreflection.Method
 	return &CommandBuilder{
 		schema:          schema,
 		invoker:         invoker,
-		maxDepth:        10,
+		maxDepth:        defaultMaxDepth,
 		responseHandler: defaultResponseHandler,
 		errorHandler:    defaultErrorHandler,
 	}

@@ -29,12 +29,13 @@ const (
 	CommentStyleMultiline
 	CommentStyleSingleLine
 
-	StandardMethodTypeCreate   StandardMethodType = "Create"
-	StandardMethodTypeGet      StandardMethodType = "Get"
-	StandardMethodTypeBatchGet StandardMethodType = "BatchGet"
-	StandardMethodTypeUpdate   StandardMethodType = "Update"
-	StandardMethodTypeDelete   StandardMethodType = "Delete"
-	StandardMethodTypeList     StandardMethodType = "List"
+	StandardMethodTypeUnspecified StandardMethodType = ""
+	StandardMethodTypeCreate      StandardMethodType = "Create"
+	StandardMethodTypeGet         StandardMethodType = "Get"
+	StandardMethodTypeBatchGet    StandardMethodType = "BatchGet"
+	StandardMethodTypeUpdate      StandardMethodType = "Update"
+	StandardMethodTypeDelete      StandardMethodType = "Delete"
+	StandardMethodTypeList        StandardMethodType = "List"
 )
 
 var (
@@ -130,9 +131,12 @@ func (s *Schema) FindDescriptorByName(name protoreflect.FullName) (protoreflect.
 }
 
 // GetStandardMethodType returns the standard method type for a method, or empty string if not a standard method.
-func (s *Schema) GetStandardMethodType(methodFullName string) (StandardMethodType, bool) {
-	standardMethodType, ok := s.methodFullNameToStandardMethodType[protoreflect.FullName(methodFullName)]
-	return standardMethodType, ok
+func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) StandardMethodType {
+	standardMethodType, ok := s.methodFullNameToStandardMethodType[methodFullName]
+	if !ok {
+		return StandardMethodTypeUnspecified
+	}
+	return standardMethodType
 }
 
 func (s *Schema) GetResourceDescriptor(resourceType string) *annotations.ResourceDescriptor {

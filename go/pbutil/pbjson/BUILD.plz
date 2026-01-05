@@ -1,12 +1,13 @@
 go_library(
-    name = "pbcobra",
-    srcs = ["command_builder.go"],
+    name = "pbjson",
+    srcs = [
+        "message_builder.go",
+        "schema_builder.go",
+    ],
     visibility = ["//..."],
     deps = [
-        "//go/pbutil",
         "//go/pbutil/pbreflection",
-        "//third_party/go:github.com__huandu__xstrings",
-        "//third_party/go:github.com__spf13__cobra",
+        "//malonaz/json/v1",
         "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

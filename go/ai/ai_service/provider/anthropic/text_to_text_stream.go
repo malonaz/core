@@ -300,25 +300,27 @@ func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) in
 }
 
 func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
-	toolParams := &anthropic.ToolParam{
-		Name:        tool.Name,
-		Description: anthropic.String(tool.Description),
-		Type:        anthropic.ToolTypeCustom,
+	inputSchema := anthropic.ToolInputSchemaParam{
+		Type:       "object",
+		Properties: map[string]*jsonpb.Schema{},
 	}
-	if tool.JsonSchema != nil {
-		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
-			Properties: tool.JsonSchema.Properties,
-			Required:   tool.JsonSchema.Required,
-			Type:       constant.Object(tool.JsonSchema.Type),
-		}
-	} else {
-		toolParams.InputSchema = anthropic.ToolInputSchemaParam{
-			Type:       "object",
-			Properties: map[string]*jsonpb.Schema{},
+	description := tool.GetDescription()
+	if tool.GetJsonSchema() != nil {
+		inputSchema.Type = constant.Object(tool.JsonSchema.Type)
+		inputSchema.Properties = tool.GetJsonSchema().GetProperties()
+		inputSchema.Required = tool.GetJsonSchema().GetRequired()
+		if desc := tool.GetJsonSchema().GetDescription(); desc != "" {
+			description += ". Schema description: " + desc
 		}
 	}
+
 	return anthropic.ToolUnionParam{
-		OfTool: toolParams,
+		OfTool: &anthropic.ToolParam{
+			Name:        tool.Name,
+			Description: anthropic.String(description),
+			Type:        anthropic.ToolTypeCustom,
+			InputSchema: inputSchema,
+		},
 	}
 }
 
