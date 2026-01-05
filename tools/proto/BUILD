@@ -75,29 +75,6 @@ go_module(
     deps = ["//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-grpc-gateway"],
 )
 
-# Protoc go grpc plugin - referenced in .plzconfig.
-go_module(
-    name = "protoc-gen-openapiv2",
-    binary = True,
-    download = "//third_party/go:_github.com__grpc-ecosystem__grpc-gateway__v2#download",
-    install = ["protoc-gen-openapiv2"],
-    module = "github.com/grpc-ecosystem/grpc-gateway/v2",
-    deps = [
-        "//third_party/go:github.com__golang__glog",
-        "//third_party/go:github.com__golang__protobuf__descriptor",
-        "//third_party/go:github.com__golang__protobuf__ptypes__any",
-        "//third_party/go:golang.org__x__text__cases",
-        "//third_party/go:golang.org__x__text__language",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__visibility",
-        "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
-        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
-        "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
-        "//third_party/go:gopkg.in__yaml.v3",
-    ],
-)
-
 # Gathers the proto go validate depdencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-go-grpc-gateway-dep",
@@ -107,26 +84,6 @@ filegroup(
         "//third_party/go:google.golang.org__grpc__grpclog",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",
-    ],
-)
-
-# Protoc gen doc plugin - referenced in .plzconfig.
-go_module(
-    name = "protoc-gen-doc",
-    binary = True,
-    download = "//third_party/go:_github.com__pseudomuto__protoc-gen-doc#download",
-    install = ["cmd/protoc-gen-doc"],
-    module = "github.com/pseudomuto/protoc-gen-doc",
-    deps = [
-        "//third_party/go:github.com__Masterminds__sprig",
-        "//third_party/go:github.com__envoyproxy__protoc-gen-validate__validate",
-        "//third_party/go:github.com__golang__protobuf__proto",
-        "//third_party/go:github.com__golang__protobuf__protoc-gen-go__descriptor",
-        "//third_party/go:github.com__golang__protobuf__protoc-gen-go__plugin",
-        "//third_party/go:github.com__mwitkow__go-proto-validators",
-        "//third_party/go:github.com__pseudomuto__protoc-gen-doc__extensions",
-        "//third_party/go:github.com__pseudomuto__protokit",
-        "//third_party/go:google.golang.org__genproto__googleapis__api__annotations",
     ],
 )
 

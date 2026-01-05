@@ -6,7 +6,7 @@ timeout = 2000
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = 438c085bbe58a6f141cf7cfef622c35cf45ffc08
+core-revision = 43290b6dcbc34e5b191cc959fccb79651adaedfc
 is-core-repo = true
 
 [sandbox]
@@ -37,8 +37,6 @@ CgoEnabled = true
 [Plugin "proto"]
 Target = //plugins:proto
 LanguageDef = //build_defs/proto:go
-LanguageDef = //build_defs/proto:doc
-LanguageDef = //build_defs/proto:openapi
 
 [Plugin "core"]
 Target = //plugins:core
@@ -91,14 +89,6 @@ DefaultValue = //tools/proto:protoc-gen-go-cobra-dep
 [PluginConfig "protoc_gen_templates_go"]
 ConfigKey = ProtocGenTemplatesGo
 DefaultValue = //tools/protoc-templates
-
-[PluginConfig "protoc_gen_doc"]
-ConfigKey = ProtocGenDoc
-DefaultValue = //tools/proto:protoc-gen-doc
-
-[PluginConfig "protoc_gen_openapi"]
-ConfigKey = ProtocGenOpenapi
-DefaultValue = //tools/proto:protoc-gen-openapiv2
 
 [PluginConfig "validate_schema"]
 ConfigKey = ValidateSchema
