@@ -9,7 +9,6 @@ import (
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/grpc"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -46,6 +45,7 @@ var (
 type ResolveSchemaOption func(*resolveSchemaOptions)
 
 type resolveSchemaOptions struct {
+	cacheKey string
 	cacheDir string
 	cacheTTL time.Duration
 }
@@ -59,34 +59,28 @@ type Schema struct {
 	methodFullNameToResourceMessageDescriptor map[protoreflect.FullName]protoreflect.MessageDescriptor
 }
 
-func ResolveSchema(ctx context.Context, conn *grpc.ClientConn, opts ...ResolveSchemaOption) (*Schema, error) {
+func ResolveSchema(ctx context.Context, reflectionClient rpb.ServerReflectionClient, opts ...ResolveSchemaOption) (*Schema, error) {
 	options := &resolveSchemaOptions{}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	rpcClient := rpb.NewServerReflectionClient(conn)
-
-	if options.cacheTTL <= 0 {
-		data, err := resolve(ctx, rpcClient)
-		if err != nil {
-			return nil, err
+	// Try cache.
+	if options.cacheKey != "" {
+		if data := loadFromCache(options); data != nil {
+			return newSchema(data)
 		}
-		return newSchema(data)
 	}
 
-	cacheKey := cacheKeyFor(conn.Target())
-
-	if data := loadFromCache(cacheKey, options); data != nil {
-		return newSchema(data)
-	}
-
-	data, err := resolve(ctx, rpcClient)
+	// Fallback to resolution.
+	data, err := resolve(ctx, reflectionClient)
 	if err != nil {
 		return nil, err
 	}
 
-	saveToCache(cacheKey, data, options)
+	if options.cacheKey != "" {
+		saveToCache(data, options)
+	}
 
 	return newSchema(data)
 }

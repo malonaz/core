@@ -1,8 +1,6 @@
 package pbreflection
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -65,8 +63,15 @@ func (d *schemaData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func WithCacheDir(dir string) ResolveSchemaOption {
+func WithCache(key string) ResolveSchemaOption {
 	return func(o *resolveSchemaOptions) {
+		o.cacheKey = key
+	}
+}
+
+func WithCacheDir(key string, dir string) ResolveSchemaOption {
+	return func(o *resolveSchemaOptions) {
+		o.cacheKey = key
 		o.cacheDir = dir
 	}
 }
@@ -77,31 +82,26 @@ func WithCacheTTL(duration time.Duration) ResolveSchemaOption {
 	}
 }
 
-func cacheKeyFor(target string) string {
-	h := sha256.Sum256([]byte(target))
-	return hex.EncodeToString(h[:])
-}
-
-func loadFromCache(key string, opts *resolveSchemaOptions) *schemaData {
+func loadFromCache(opts *resolveSchemaOptions) *schemaData {
 	if opts.cacheDir != "" {
-		if data := loadFromFileCache(key, opts); data != nil {
+		if data := loadFromFileCache(opts); data != nil {
 			return data
 		}
 	}
-	return loadFromMemCache(key)
+	return loadFromMemCache(opts)
 }
 
-func loadFromMemCache(key string) *schemaData {
+func loadFromMemCache(opts *resolveSchemaOptions) *schemaData {
 	memCacheMu.RLock()
 	defer memCacheMu.RUnlock()
-	if entry, ok := memCache[key]; ok && time.Now().Before(entry.expiresAt) {
+	if entry, ok := memCache[opts.cacheKey]; ok && time.Now().Before(entry.expiresAt) {
 		return entry.data
 	}
 	return nil
 }
 
-func loadFromFileCache(key string, opts *resolveSchemaOptions) *schemaData {
-	path := filepath.Join(opts.cacheDir, key+".json")
+func loadFromFileCache(opts *resolveSchemaOptions) *schemaData {
+	path := filepath.Join(opts.cacheDir, opts.cacheKey+".json")
 	info, err := os.Stat(path)
 	if err != nil || time.Since(info.ModTime()) > opts.cacheTTL {
 		return nil
@@ -117,20 +117,20 @@ func loadFromFileCache(key string, opts *resolveSchemaOptions) *schemaData {
 	return &data
 }
 
-func saveToCache(key string, data *schemaData, opts *resolveSchemaOptions) {
+func saveToCache(data *schemaData, opts *resolveSchemaOptions) {
 	if opts.cacheDir != "" {
-		saveToFileCache(key, data, opts)
+		saveToFileCache(data, opts)
 	}
-	saveToMemCache(key, data, opts)
+	saveToMemCache(data, opts)
 }
 
-func saveToMemCache(key string, data *schemaData, opts *resolveSchemaOptions) {
+func saveToMemCache(data *schemaData, opts *resolveSchemaOptions) {
 	memCacheMu.Lock()
 	defer memCacheMu.Unlock()
-	memCache[key] = &cacheEntry{data: data, expiresAt: time.Now().Add(opts.cacheTTL)}
+	memCache[opts.cacheKey] = &cacheEntry{data: data, expiresAt: time.Now().Add(opts.cacheTTL)}
 }
 
-func saveToFileCache(key string, data *schemaData, opts *resolveSchemaOptions) {
+func saveToFileCache(data *schemaData, opts *resolveSchemaOptions) {
 	if err := os.MkdirAll(opts.cacheDir, 0755); err != nil {
 		return
 	}
@@ -138,5 +138,5 @@ func saveToFileCache(key string, data *schemaData, opts *resolveSchemaOptions) {
 	if err != nil {
 		return
 	}
-	_ = os.WriteFile(filepath.Join(opts.cacheDir, key+".json"), b, 0644)
+	_ = os.WriteFile(filepath.Join(opts.cacheDir, opts.cacheKey+".json"), b, 0644)
 }
