@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
-	v1reflectiongrpc "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	grpc_reflection_v1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/types/descriptorpb"
 
@@ -300,10 +300,12 @@ func (s *Server) Serve(ctx context.Context) error {
 				DescriptorResolver: files,
 			}
 			reflectionServer := reflection.NewServerV1(reflectionServerOptions)
-			v1reflectiongrpc.RegisterServerReflectionServer(s.Raw, reflectionServer)
+			grpc_reflection_v1.RegisterServerReflectionServer(s.Raw, reflectionServer)
+
 		} else {
 			reflection.Register(s.Raw)
 		}
+		s.GetHealthServer().RegisterService(grpc_reflection_v1.ServerReflection_ServiceDesc.ServiceName)
 		s.log.InfoContext(ctx, "gRPC reflection enabled")
 	}
 
