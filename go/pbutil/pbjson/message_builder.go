@@ -14,6 +14,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args map[string]any) (*dynamicpb.Message, error) {
+	desc, err := b.schema.FindDescriptorByName(messageFullName)
+	if err != nil {
+		return nil, fmt.Errorf("message not found: %s", messageFullName)
+	}
+	msgDesc, ok := desc.(protoreflect.MessageDescriptor)
+	if !ok {
+		return nil, fmt.Errorf("descriptor is not a message: %s", messageFullName)
+	}
+	return BuildMessage(msgDesc, args)
+}
+
 func BuildMessage(desc protoreflect.MessageDescriptor, args map[string]any) (*dynamicpb.Message, error) {
 	msg := dynamicpb.NewMessage(desc)
 	if err := populateMessage(msg, args); err != nil {
