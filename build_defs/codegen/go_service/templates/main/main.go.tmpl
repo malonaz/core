@@ -400,6 +400,14 @@ var stopFns []func() error
         healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
         runServer(ctx, "{{ $server.name }}", httpServer.Serve)
     {{- end }}
+
+{{- if eq $server.type "grpcwebproxy" }}
+    grpcWebProxyServer := {{ goImport "github.com/malonaz/core/go/grpc/grpcwebproxy"}}.NewServer(opts.{{ $server.name | camelcase }}GRPCWebProxy, opts.Certs, opts.Prometheus)
+    gracefulStopFns = append(gracefulStopFns, grpcWebProxyServer.GracefulStop)
+    stopFns = append(stopFns, grpcWebProxyServer.Stop)
+    healthServer.RegisterService("{{ $server.name }}", grpcWebProxyServer.HealthCheckFn())
+    runServer(ctx, "{{ $server.name }}", grpcWebProxyServer.Serve)
+{{- end }}
     }
 {{- end }}
 

@@ -98,6 +98,14 @@
         {{- end -}}
     {{- end }}
 
+    {{- /* GRPC WEB PROXY SERVER OPTIONS */ -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpcwebproxy" -}}
+            {{- if doOnce "grpcwebproxy_server_option_comment" }}{{ "\n\n// gRPC Web Proxy server options" }}{{ end }}
+            {{ $server.name | camelcase }}GRPCWebProxy *{{ goImport (printf "%s/grpc/grpcwebproxy" $core) }}.Opts `group:"{{ $server.name | camelcase }} GRPC Web Proxy" namespace:"{{ $server.name | kebabcase }}-grpcwebproxy" env-namespace:"{{ $server.name | snakecase | upper }}_GRPCWEBPROXY"`
+        {{- end -}}
+    {{- end }}
+
     {{- /* SERVER OPTIONS */ -}}
     {{- range $server := .servers -}}
         {{- if eq $server.type "http" -}}

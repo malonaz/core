@@ -25,7 +25,7 @@
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["type", "name", "services"],
+                "required": ["type", "name"],
                 "additionalProperties": false,
                 "properties": {
                     "type": {
