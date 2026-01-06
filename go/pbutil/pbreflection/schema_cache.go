@@ -1,6 +1,8 @@
 package pbreflection
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -64,8 +66,10 @@ func (d *schemaData) UnmarshalJSON(data []byte) error {
 }
 
 func WithCache(key string) ResolveSchemaOption {
+	hash := sha256.Sum256([]byte("your string"))
+	hashStr := hex.EncodeToString(hash[:])
 	return func(o *resolveSchemaOptions) {
-		o.cacheKey = key
+		o.cacheKey = hashStr
 	}
 }
 
