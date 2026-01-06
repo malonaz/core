@@ -999,22 +999,6 @@ go_module(
 )
 
 go_module(
-    name = "github.com__golang__protobuf__jsonpb",
-    download = ":_github.com__golang__protobuf#download",
-    install = ["jsonpb"],
-    module = "github.com/golang/protobuf",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__golang__protobuf__proto",
-        ":google.golang.org__protobuf__encoding__protojson",
-        ":google.golang.org__protobuf__proto",
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__reflect__protoregistry",
-        ":google.golang.org__protobuf__runtime__protoimpl",
-    ],
-)
-
-go_module(
     name = "github.com__golang__protobuf__proto",
     download = ":_github.com__golang__protobuf#download",
     install = ["proto"],
@@ -1640,63 +1624,6 @@ go_module(
     deps = [":google.golang.org__grpc"],
 )
 
-go_module(
-    name = "github.com__grpc-ecosystem__go-grpc-middleware__logging",
-    download = ":_github.com__grpc-ecosystem__go-grpc-middleware#download",
-    install = ["logging"],
-    module = "github.com/grpc-ecosystem/go-grpc-middleware",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":google.golang.org__grpc__codes",
-        ":google.golang.org__grpc__status",
-        "//third_party/go:github.com__golang__protobuf__proto",
-    ],
-)
-
-go_module(
-    name = "github.com__grpc-ecosystem__go-grpc-middleware__logging__logrus",
-    download = ":_github.com__grpc-ecosystem__go-grpc-middleware#download",
-    install = ["logging/logrus"],
-    module = "github.com/grpc-ecosystem/go-grpc-middleware",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__grpc-ecosystem__go-grpc-middleware__logging__logrus__ctxlogrus",
-        ":github.com__sirupsen__logrus",
-        ":google.golang.org__grpc",
-        ":google.golang.org__grpc__codes",
-        ":google.golang.org__grpc__grpclog",
-        "//third_party/go:github.com__golang__protobuf__jsonpb",
-        "//third_party/go:github.com__golang__protobuf__proto",
-        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware",
-        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__logging",
-    ],
-)
-
-go_module(
-    name = "github.com__grpc-ecosystem__go-grpc-middleware__logging__logrus__ctxlogrus",
-    download = ":_github.com__grpc-ecosystem__go-grpc-middleware#download",
-    install = ["logging/logrus/ctxlogrus"],
-    module = "github.com/grpc-ecosystem/go-grpc-middleware",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__grpc-ecosystem__go-grpc-middleware__tags",
-        ":github.com__sirupsen__logrus",
-    ],
-)
-
-go_module(
-    name = "github.com__grpc-ecosystem__go-grpc-middleware__tags",
-    download = ":_github.com__grpc-ecosystem__go-grpc-middleware#download",
-    install = ["tags"],
-    module = "github.com/grpc-ecosystem/go-grpc-middleware",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":google.golang.org__grpc",
-        ":google.golang.org__grpc__peer",
-        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware",
-    ],
-)
-
 go_mod_download(
     name = "github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
     _tag = "download",
@@ -1825,29 +1752,6 @@ go_module(
     module = "github.com/grpc-ecosystem/go-grpc-middleware/v2",
     visibility = ["PUBLIC"],
     deps = [":google.golang.org__grpc__metadata"],
-)
-
-go_mod_download(
-    name = "github.com__grpc-ecosystem__go-grpc-prometheus",
-    _tag = "download",
-    module = "github.com/grpc-ecosystem/go-grpc-prometheus",
-    version = "v1.2.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__grpc-ecosystem__go-grpc-prometheus",
-    download = ":_github.com__grpc-ecosystem__go-grpc-prometheus#download",
-    install = ["."],
-    module = "github.com/grpc-ecosystem/go-grpc-prometheus",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__prometheus__client_golang__prometheus",
-        ":golang.org__x__net__context",
-        ":google.golang.org__grpc",
-        ":google.golang.org__grpc__codes",
-        ":google.golang.org__grpc__status",
-    ],
 )
 
 go_mod_download(
@@ -2577,15 +2481,6 @@ go_module(
         ":golang.org__x__net__trace",
         "//third_party/go:github.com__jpillora__backoff",
     ],
-)
-
-go_module(
-    name = "github.com__mwitkow__go-conntrack__connhelpers",
-    download = ":_github.com__mwitkow__go-conntrack#download",
-    install = ["connhelpers"],
-    module = "github.com/mwitkow/go-conntrack",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -4662,6 +4557,30 @@ go_mod_download(
     module = "google.golang.org/genproto",
     version = "v0.0.0-20250603155806-513f23925822",
     visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__date",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/date"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__timeofday",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/timeofday"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
 )
 
 go_module(

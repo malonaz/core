@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -102,6 +104,32 @@ func setMessageField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor,
 			fm.Paths = splitPaths(s)
 		}
 		msg.Set(field, protoreflect.ValueOfMessage(fm.ProtoReflect()))
+		return nil
+
+	case dateFullName:
+		s, ok := val.(string)
+		if !ok {
+			return fmt.Errorf("expected string for date field %s", field.Name())
+		}
+		t, err := time.Parse("2006-01-02", s)
+		if err != nil {
+			return fmt.Errorf("parsing date %s: %w", field.Name(), err)
+		}
+		d := &date.Date{Year: int32(t.Year()), Month: int32(t.Month()), Day: int32(t.Day())}
+		msg.Set(field, protoreflect.ValueOfMessage(d.ProtoReflect()))
+		return nil
+
+	case timeOfDayFullName:
+		s, ok := val.(string)
+		if !ok {
+			return fmt.Errorf("expected string for time_of_day field %s", field.Name())
+		}
+		t, err := time.Parse("15:04:05", s)
+		if err != nil {
+			return fmt.Errorf("parsing time_of_day %s: %w", field.Name(), err)
+		}
+		tod := &timeofday.TimeOfDay{Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second())}
+		msg.Set(field, protoreflect.ValueOfMessage(tod.ProtoReflect()))
 		return nil
 
 	default:

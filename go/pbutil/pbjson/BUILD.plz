@@ -16,5 +16,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__type__date",
+        "//third_party/proto:google__type__timeofday",
     ],
 )

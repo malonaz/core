@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -25,6 +27,8 @@ var (
 	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
 	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
+	dateFullName      = (&date.Date{}).ProtoReflect().Descriptor().FullName()
+	timeOfDayFullName = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
 )
 
 type SchemaBuilder struct {
@@ -173,6 +177,16 @@ func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, pre
 			return &jsonpb.Schema{
 				Type:        "string",
 				Description: description + " (comma-separated paths)",
+			}, isRequired
+		case dateFullName:
+			return &jsonpb.Schema{
+				Type:        "string",
+				Description: description + " (YYYY-MM-DD, e.g. 2006-01-02)",
+			}, isRequired
+		case timeOfDayFullName:
+			return &jsonpb.Schema{
+				Type:        "string",
+				Description: description + " (HH:MM:SS, e.g. 15:04:05)",
 			}, isRequired
 		default:
 			schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType, allowedPaths)
