@@ -251,8 +251,12 @@ func isPathAllowed(path string, allowedPaths map[string]bool) bool {
 	if allowedPaths[path] {
 		return true
 	}
-	// Check if any allowed path is a prefix of this path (allows children)
 	for allowed := range allowedPaths {
+		// Check if this path is a parent of an allowed path
+		if strings.HasPrefix(allowed, path+".") {
+			return true
+		}
+		// Check if path is a descendant of an allowed path (allows all children)
 		if strings.HasPrefix(path, allowed+".") {
 			return true
 		}
