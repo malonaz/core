@@ -6,6 +6,7 @@ go_library(
         "marshaller.go",
         "options.go",
         "pretty.go",
+        "struct.go",
     ],
     visibility = ["//..."],
     deps = [
