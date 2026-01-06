@@ -251,11 +251,9 @@ func isPathAllowed(path string, allowedPaths map[string]bool) bool {
 	if allowedPaths[path] {
 		return true
 	}
-	// Check for wildcard matches (e.g., "foo.*" allows "foo.bar", "foo.baz.qux")
-	parts := strings.Split(path, ".")
-	for i := range parts {
-		prefix := strings.Join(parts[:i+1], ".") + ".*"
-		if allowedPaths[prefix] {
+	// Check if any allowed path is a prefix of this path (allows children)
+	for allowed := range allowedPaths {
+		if strings.HasPrefix(path, allowed+".") {
 			return true
 		}
 	}
