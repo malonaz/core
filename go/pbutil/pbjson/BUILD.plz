@@ -6,6 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/pbutil",
         "//go/pbutil/pbreflection",
         "//malonaz/json/v1",
         "//third_party/go:google.golang.org__protobuf__proto",
