@@ -110,7 +110,7 @@ func (b *SchemaBuilder) buildMessageSchema(msg protoreflect.MessageDescriptor, p
 
 	return &jsonpb.Schema{
 		Type:        "object",
-		Description: string(msg.FullName()),
+		Description: b.schema.GetComment(msg.FullName(), pbreflection.CommentStyleMultiline),
 		Properties:  properties,
 		Required:    required,
 	}
