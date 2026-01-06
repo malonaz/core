@@ -5,14 +5,10 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func ParseFromStruct[T any, PT interface {
-	*T
-	proto.Message
-}](s *structpb.Struct) (PT, error) {
-	m := PT(new(T))
+func UnmarshalFromStruct(m proto.Message, s *structpb.Struct) error {
 	b, err := s.MarshalJSON()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return m, JSONUnmarshal(b, m)
+	return JSONUnmarshal(b, m)
 }
