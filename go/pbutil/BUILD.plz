@@ -6,7 +6,6 @@ go_library(
         "marshaller.go",
         "options.go",
         "pretty.go",
-        "struct.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -20,6 +19,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",

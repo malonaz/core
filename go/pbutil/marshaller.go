@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -122,4 +123,20 @@ func NewStructFromJSON(bytes []byte) (*structpb.Struct, error) {
 		return nil, err
 	}
 	return structpb.NewStruct(m)
+}
+
+func UnmarshalFromStruct(m proto.Message, s *structpb.Struct) error {
+	b, err := s.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	return JSONUnmarshal(b, m)
+}
+
+func UnmarshalFromDynamic(m proto.Message, s *dynamicpb.Message) error {
+	b, err := JSONMarshal(s)
+	if err != nil {
+		return err
+	}
+	return JSONUnmarshal(b, m)
 }
