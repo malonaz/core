@@ -133,8 +133,8 @@ func UnmarshalFromStruct(m proto.Message, s *structpb.Struct) error {
 	return JSONUnmarshal(b, m)
 }
 
-func UnmarshalFromDynamic(m proto.Message, s *dynamicpb.Message) error {
-	b, err := JSONMarshal(s)
+func UnmarshalFromDynamic(m proto.Message, d *dynamicpb.Message) error {
+	b, err := JSONMarshal(d)
 	if err != nil {
 		return err
 	}
