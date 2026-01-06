@@ -79,89 +79,12 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 }
 
 func setMessageField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {
-	switch field.Message().FullName() {
-	case timestampFullName:
-		s, ok := val.(string)
-		if !ok {
-			return fmt.Errorf("expected string for timestamp field %s", field.Name())
-		}
-		t, err := time.Parse(time.RFC3339, s)
-		if err != nil {
-			return fmt.Errorf("parsing timestamp %s: %w", field.Name(), err)
-		}
-		ts := timestamppb.New(t)
-		msg.Set(field, protoreflect.ValueOfMessage(ts.ProtoReflect()))
-		return nil
-
-	case durationFullName:
-		s, ok := val.(string)
-		if !ok {
-			return fmt.Errorf("expected string for duration field %s", field.Name())
-		}
-		d, err := time.ParseDuration(s)
-		if err != nil {
-			return fmt.Errorf("parsing duration %s: %w", field.Name(), err)
-		}
-		dp := durationpb.New(d)
-		msg.Set(field, protoreflect.ValueOfMessage(dp.ProtoReflect()))
-		return nil
-
-	case fieldMaskFullName:
-		s, ok := val.(string)
-		if !ok {
-			return fmt.Errorf("expected string for field_mask field %s", field.Name())
-		}
-		fm := &fieldmaskpb.FieldMask{}
-		if s != "" {
-			fm.Paths = splitPaths(s)
-		}
-		msg.Set(field, protoreflect.ValueOfMessage(fm.ProtoReflect()))
-		return nil
-
-	case dateFullName:
-		s, ok := val.(string)
-		if !ok {
-			return fmt.Errorf("expected string for date field %s", field.Name())
-		}
-		t, err := time.Parse("2006-01-02", s)
-		if err != nil {
-			return fmt.Errorf("parsing date %s: %w", field.Name(), err)
-		}
-		d := &date.Date{Year: int32(t.Year()), Month: int32(t.Month()), Day: int32(t.Day())}
-		msg.Set(field, protoreflect.ValueOfMessage(d.ProtoReflect()))
-		return nil
-
-	case timeOfDayFullName:
-		s, ok := val.(string)
-		if !ok {
-			return fmt.Errorf("expected string for time_of_day field %s", field.Name())
-		}
-		t, err := time.Parse("15:04:05", s)
-		if err != nil {
-			return fmt.Errorf("parsing time_of_day %s: %w", field.Name(), err)
-		}
-		tod := &timeofday.TimeOfDay{Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second())}
-		msg.Set(field, protoreflect.ValueOfMessage(tod.ProtoReflect()))
-		return nil
-
-	default:
-		nested, ok := val.(map[string]any)
-		if !ok {
-			return fmt.Errorf("expected object for %s", field.Name())
-		}
-		nestedMsg := msg.Mutable(field).Message().(*dynamicpb.Message)
-		return populateMessage(nestedMsg, nested)
+	v, err := convertMessageValue(field.Message(), val)
+	if err != nil {
+		return fmt.Errorf("field %s: %w", field.Name(), err)
 	}
-}
-
-func splitPaths(s string) []string {
-	var paths []string
-	for _, p := range strings.Split(s, ",") {
-		if p = strings.TrimSpace(p); p != "" {
-			paths = append(paths, p)
-		}
-	}
-	return paths
+	msg.Set(field, v)
+	return nil
 }
 
 func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Value, error) {
@@ -225,16 +148,92 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 		}
 		return protoreflect.ValueOfEnum(enumVal.Number()), nil
 	case protoreflect.MessageKind:
+		return convertMessageValue(field.Message(), val)
+	default:
+		return protoreflect.Value{}, fmt.Errorf("unsupported field kind %v for field %s", field.Kind(), field.Name())
+	}
+}
+
+func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (protoreflect.Value, error) {
+	switch msgDesc.FullName() {
+	case timestampFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for timestamp, got %T", val)
+		}
+		t, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("parsing timestamp: %w", err)
+		}
+		return protoreflect.ValueOfMessage(timestamppb.New(t).ProtoReflect()), nil
+
+	case durationFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for duration, got %T", val)
+		}
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("parsing duration: %w", err)
+		}
+		return protoreflect.ValueOfMessage(durationpb.New(d).ProtoReflect()), nil
+
+	case fieldMaskFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for field_mask, got %T", val)
+		}
+		fm := &fieldmaskpb.FieldMask{}
+		if s != "" {
+			fm.Paths = splitPaths(s)
+		}
+		return protoreflect.ValueOfMessage(fm.ProtoReflect()), nil
+
+	case dateFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for date, got %T", val)
+		}
+		t, err := time.Parse("2006-01-02", s)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("parsing date: %w", err)
+		}
+		return protoreflect.ValueOfMessage((&date.Date{
+			Year: int32(t.Year()), Month: int32(t.Month()), Day: int32(t.Day()),
+		}).ProtoReflect()), nil
+
+	case timeOfDayFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for time_of_day, got %T", val)
+		}
+		t, err := time.Parse("15:04:05", s)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("parsing time_of_day: %w", err)
+		}
+		return protoreflect.ValueOfMessage((&timeofday.TimeOfDay{
+			Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second()),
+		}).ProtoReflect()), nil
+
+	default:
 		nested, ok := val.(map[string]any)
 		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected object for message field %s, got %T", field.Name(), val)
+			return protoreflect.Value{}, fmt.Errorf("expected object for message, got %T", val)
 		}
-		nestedMsg := dynamicpb.NewMessage(field.Message())
+		nestedMsg := dynamicpb.NewMessage(msgDesc)
 		if err := populateMessage(nestedMsg, nested); err != nil {
 			return protoreflect.Value{}, err
 		}
 		return protoreflect.ValueOfMessage(nestedMsg), nil
-	default:
-		return protoreflect.Value{}, fmt.Errorf("unsupported field kind %v for field %s", field.Kind(), field.Name())
 	}
+}
+
+func splitPaths(s string) []string {
+	var paths []string
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			paths = append(paths, p)
+		}
+	}
+	return paths
 }

@@ -96,7 +96,22 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 	return b.buildMessageSchema(msg, "", 0, methodType, allowedPaths), nil
 }
 
-func (b *SchemaBuilder) buildMessageSchema(msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) *jsonpb.Schema {
+func (b *SchemaBuilder) buildMessageSchema(
+	msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool,
+) *jsonpb.Schema {
+	switch msg.FullName() {
+	case timestampFullName:
+		return &jsonpb.Schema{Type: "string", Description: "RFC3339, e.g. 2006-01-02T15:04:05Z"}
+	case durationFullName:
+		return &jsonpb.Schema{Type: "string", Description: "e.g. 1h30m"}
+	case fieldMaskFullName:
+		return &jsonpb.Schema{Type: "string", Description: "comma-separated paths"}
+	case dateFullName:
+		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}
+	case timeOfDayFullName:
+		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}
+	}
+
 	properties := make(map[string]*jsonpb.Schema)
 	var required []string
 
@@ -162,37 +177,11 @@ func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, pre
 	}
 
 	if field.Kind() == protoreflect.MessageKind {
-		switch field.Message().FullName() {
-		case timestampFullName:
-			return &jsonpb.Schema{
-				Type:        "string",
-				Description: description + " (RFC3339, e.g. 2006-01-02T15:04:05Z)",
-			}, isRequired
-		case durationFullName:
-			return &jsonpb.Schema{
-				Type:        "string",
-				Description: description + " (e.g. 1h30m)",
-			}, isRequired
-		case fieldMaskFullName:
-			return &jsonpb.Schema{
-				Type:        "string",
-				Description: description + " (comma-separated paths)",
-			}, isRequired
-		case dateFullName:
-			return &jsonpb.Schema{
-				Type:        "string",
-				Description: description + " (YYYY-MM-DD, e.g. 2006-01-02)",
-			}, isRequired
-		case timeOfDayFullName:
-			return &jsonpb.Schema{
-				Type:        "string",
-				Description: description + " (HH:MM:SS, e.g. 15:04:05)",
-			}, isRequired
-		default:
-			schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType, allowedPaths)
-			schema.Description = description
-			return schema, isRequired
+		schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType, allowedPaths)
+		if description != "" {
+			schema.Description = description + " (" + schema.Description + ")"
 		}
+		return schema, isRequired
 	}
 
 	return b.scalarSchema(field, description), isRequired
