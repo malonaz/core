@@ -75,8 +75,7 @@ func (m *FieldMask) WithParent(parent string) *FieldMask {
 	for i, p := range paths {
 		newPaths[i] = parent + "." + p
 	}
-	*m = *FromPaths(newPaths...)
-	return m
+	return FromPaths(newPaths...)
 }
 
 func (m *FieldMask) IsWildcardPath() bool {
