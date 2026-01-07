@@ -99,6 +99,13 @@ func (m *FieldMask) Validate(message proto.Message) error {
 	return fieldmask.Validate(m.pb, message)
 }
 
+func (m *FieldMask) MustValidate(message proto.Message) *FieldMask {
+	if err := m.Validate(message); err != nil {
+		panic(err)
+	}
+	return m
+}
+
 // Update updates fields in dst with values from src according to the provided field mask.
 // Nested messages are recursively updated in the same manner.
 // Repeated fields and maps are copied by reference from src to dst.
