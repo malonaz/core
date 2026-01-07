@@ -4,7 +4,7 @@ subinclude(
     "///proto//build_defs/sdk",
 )
 
-GENERATE_JS_GRPC = "generate_js_grpc"
+GENERATE_JS_CONNECT_QUERY = "generate_js_connect_query"
 
 def js_proto_library(
         name:str,
@@ -23,6 +23,14 @@ def js_proto_library(
         '--es_out="$OUT_DIR"',
         '--es_opt=target=ts',
     ]
+
+    if additional_context and GENERATE_JS_CONNECT_QUERY in additional_context:
+        tools["protoc_gen_connect_query"] = [CONFIG.CORE.PROTOC_GEN_CONNECT_QUERY]
+        plugin_flags += [
+            '--plugin=protoc-gen-connect-query="$TOOLS_PROTOC_GEN_CONNECT_QUERY/node_modules/.bin/protoc-gen-connect-query"',
+            '--connect-query_out="$OUT_DIR"',
+            '--connect-query_opt=target=ts',
+        ]
 
     return protoc_rule(
         name = name,

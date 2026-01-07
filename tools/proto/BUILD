@@ -124,12 +124,23 @@ filegroup(
     ],
 )
 
+# JS RULES.
 genrule(
     name = "protoc-gen-es",
     srcs = ["protoc-gen-es.json"],
     outs = ["protoc-gen-es"],
     building_description = "fetching node modules for protoc-gen-es",
     cmd = "mv $SRCS $PKG/package.json && yarn --cwd $PKG_DIR install && mkdir protoc-gen-es && mv $PKG_DIR/node_modules protoc-gen-es",
+    output_is_complete = True,
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "protoc-gen-connect-query",
+    srcs = ["protoc-gen-connect-query.json"],
+    outs = ["protoc-gen-connect-query"],
+    building_description = "fetching node modules for protoc-gen-connect-query",
+    cmd = "mv $SRCS $PKG/package.json && yarn --cwd $PKG_DIR install && mkdir protoc-gen-connect-query && mv $PKG_DIR/node_modules protoc-gen-connect-query",
     output_is_complete = True,
     visibility = ["PUBLIC"],
 )

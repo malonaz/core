@@ -1,0 +1,8 @@
+{
+  "name": "protoc-gen-connect-query",
+  "version": "1.0",
+  "private": true,
+  "dependencies": {
+    "@connectrpc/protoc-gen-connect-query": "2.2.0"
+  }
+}
