@@ -9,7 +9,6 @@ GO_IMPORT_PATH = "go_import_path"
 GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_AIP = "generate_go_aip"
-GENERATE_GO_LLM = "generate_go_llm"
 GENERATE_GO_RPC = "generate_go_rpc"
 GENERATE_GO_MODEL = "generate_go_model"
 GENERATE_GO_POSTGRES = "generate_go_postgres"
@@ -119,11 +118,6 @@ def go_proto_library(
         ]
 
     protoc_go_templates = []
-
-    if additional_context and GENERATE_GO_LLM in additional_context:
-        protoc_go_templates += ["///core//build_defs/codegen/go_proto_templates/templates:llm"]
-        deps += [CONFIG.CORE.PROTOC_GEN_LLM_GO_DEP]
-
 
     if additional_context and GENERATE_GO_RPC in additional_context:
         protoc_go_templates += ["///core//build_defs/codegen/go_proto_templates/templates:rpc"]

@@ -110,13 +110,6 @@ filegroup(
     ],
 )
 
-# Gathers the proto go llm dependencies - referenced in .plzconfig.
-filegroup(
-    name = "protoc-gen-go-llm-dep",
-    exported_deps = [
-    ],
-)
-
 # Gathers the proto go rpc dependencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-go-rpc-dep",

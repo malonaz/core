@@ -16,11 +16,6 @@ export_file(
 )
 
 export_file(
-    name = "llm",
-    src = "llm.tmpl",
-)
-
-export_file(
     name = "gateway_handler",
     src = "gateway_handler.tmpl",
 )
