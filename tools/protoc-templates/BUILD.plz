@@ -2,7 +2,6 @@ go_binary(
     name = "protoc-templates",
     srcs = [
         "functions.go",
-        "llm.go",
         "main.go",
         "resources.go",
         "types.go",
@@ -11,7 +10,6 @@ go_binary(
     deps = [
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/gateway/v1",
-        "//malonaz/codegen/llm/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/go:github.com__Masterminds__sprig__v3",
         "//third_party/go:github.com__huandu__xstrings",
