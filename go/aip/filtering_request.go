@@ -14,6 +14,7 @@ import (
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
 // //////////////////////////// INTERFACE //////////////////////////
@@ -63,8 +64,8 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	for _, path := range filteringOptions.GetPaths() {
 		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
 	}
-	if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
-		return nil, fmt.Errorf("validating filtering paths: %w", err)
+	if err := pbfieldmask.FromPaths(sanitizedPaths...).Validate(zeroResource); err != nil {
+		return nil, fmt.Errorf("validating paths: %w", err)
 	}
 
 	// Create a tree and explore.

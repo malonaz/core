@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
 const (
@@ -31,8 +31,8 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 		if len(values) == 0 {
 			return handler(ctx, req)
 		}
-		fieldMaskPaths := values[0]
-		if fieldMaskPaths == "*" {
+		fieldMask := pbfieldmask.FromString(values[0])
+		if fieldMask.IsWildcardPath() {
 			return handler(ctx, req)
 		}
 
@@ -45,9 +45,7 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 		if !ok {
 			return nil, status.Errorf(codes.Internal, "response is not a protobuf message: %T", response)
 		}
-		if err := pbutil.ApplyMask(message, fieldMaskPaths); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, err.Error())
-		}
+		fieldMask.Apply(message)
 		return response, nil
 	}
 }
@@ -60,15 +58,18 @@ func StreamServerFieldMask() grpc.StreamServerInterceptor {
 			return handler(srv, stream)
 		}
 		values := md.Get(metadataKeyFieldMask)
-		if len(values) == 0 || values[0] == "*" {
+		if len(values) == 0 {
 			return handler(srv, stream)
 		}
-		fieldMaskPaths := values[0]
+		fieldMask := pbfieldmask.FromString(values[0])
+		if fieldMask.IsWildcardPath() {
+			return handler(srv, stream)
+		}
 
 		// Wrap the stream to intercept SendMsg
 		wrappedStream := &fieldMaskServerStream{
-			ServerStream:   stream,
-			fieldMaskPaths: fieldMaskPaths,
+			ServerStream: stream,
+			fieldMask:    fieldMask,
 		}
 		return handler(srv, wrappedStream)
 	}
@@ -76,7 +77,7 @@ func StreamServerFieldMask() grpc.StreamServerInterceptor {
 
 type fieldMaskServerStream struct {
 	grpc.ServerStream
-	fieldMaskPaths string
+	fieldMask *pbfieldmask.FieldMask
 }
 
 func (s *fieldMaskServerStream) SendMsg(m any) error {
@@ -84,10 +85,6 @@ func (s *fieldMaskServerStream) SendMsg(m any) error {
 	if !ok {
 		return status.Errorf(codes.Internal, "message is not a protobuf message: %T", m)
 	}
-
-	if err := pbutil.ApplyMask(message, s.fieldMaskPaths); err != nil {
-		return status.Errorf(codes.InvalidArgument, err.Error())
-	}
-
+	s.fieldMask.Apply(message)
 	return s.ServerStream.SendMsg(m)
 }

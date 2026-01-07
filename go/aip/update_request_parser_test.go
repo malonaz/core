@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	pb "github.com/malonaz/core/genproto/test/aip"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
 func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
@@ -209,10 +210,9 @@ func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
 	}
 
 	// Test updating specific nested fields
-	fieldMaskSpecificNestedFields := &fieldmaskpb.FieldMask{Paths: []string{"field1", "nested.field3"}}
 	parsedRequestSpecificNestedFields := &ParsedUpdateRequest{
 		validator: validator,
-		fieldMask: fieldMaskSpecificNestedFields,
+		fieldMask: pbfieldmask.FromPaths("field1", "nested.field3"),
 	}
 	parsedRequestSpecificNestedFields.ApplyFieldMask(existingResource, newResource)
 
@@ -237,10 +237,9 @@ func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
 	}
 
 	// Test replacing the entire nested field
-	fieldMaskEntireNestedField := &fieldmaskpb.FieldMask{Paths: []string{"nested2"}}
 	parsedRequestEntireNestedField := &ParsedUpdateRequest{
 		validator: validator,
-		fieldMask: fieldMaskEntireNestedField,
+		fieldMask: pbfieldmask.FromPaths("nested2"),
 	}
 	parsedRequestEntireNestedField.ApplyFieldMask(existingResource, newResource)
 
@@ -313,9 +312,9 @@ func TestUpdateRequestParser_ParseWithColumnNameChange(t *testing.T) {
 		{
 			name:             "nested field with column name change combined with regular fields",
 			fieldMaskPaths:   []string{"nested_changed.field2", "field1", "column_name_changed"},
-			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name, field1 = EXCLUDED.field1, new_name = EXCLUDED.new_name",
-			wantUpdateClause: "nested_new_name = $1, field1 = $2, new_name = $3",
-			wantColumns:      []string{"nested_new_name", "field1", "new_name"},
+			wantUpsertClause: "new_name = EXCLUDED.new_name, field1 = EXCLUDED.field1, nested_new_name = EXCLUDED.nested_new_name",
+			wantUpdateClause: "new_name = $1, field1 = $2, nested_new_name = $3",
+			wantColumns:      []string{"new_name", "field1", "nested_new_name"},
 			wantErr:          false,
 		},
 	}

@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
-	"go.einride.tech/aip/fieldmask"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
 // UpdateRequest defines the interface of an AIP update request.
@@ -22,7 +22,7 @@ type updateRequest interface {
 // ParsedUpdateRequest is a request that is parsed.
 type ParsedUpdateRequest struct {
 	validator      protovalidate.Validator
-	fieldMask      *fieldmaskpb.FieldMask
+	fieldMask      *pbfieldmask.FieldMask
 	updateFieldSet map[string]struct{}
 	updateFields   []string
 }
@@ -30,7 +30,7 @@ type ParsedUpdateRequest struct {
 // ApplyFieldMask applies the field mask and validates the newly formed resource using protovalidate.
 // Existing resource should be used to update.
 func (p *ParsedUpdateRequest) ApplyFieldMask(existingResource, newResource proto.Message) error {
-	fieldmask.Update(p.fieldMask, existingResource, newResource)
+	p.fieldMask.Update(existingResource, newResource)
 	if err := p.validator.Validate(existingResource); err != nil {
 		return fmt.Errorf("validating updated resource: %w", err)
 	}
@@ -104,8 +104,8 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
 	}
 	if len(sanitizedPaths) > 0 {
-		if err := pbutil.ValidateMask(zeroResource, strings.Join(sanitizedPaths, ",")); err != nil {
-			return nil, fmt.Errorf("validating filtering paths: %w", err)
+		if err := pbfieldmask.FromPaths(sanitizedPaths...).Validate(zeroResource); err != nil {
+			return nil, fmt.Errorf("validating paths: %w", err)
 		}
 	}
 
@@ -145,13 +145,13 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 
 func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, error) {
 	var resource R
-	fieldMask := request.GetUpdateMask()
+	fieldMask := pbfieldmask.FromFieldMask(request.GetUpdateMask())
 	if len(fieldMask.GetPaths()) == 0 {
 		return nil, fmt.Errorf("no mask paths specified")
 	}
 
 	// Validate the paths are valid.
-	if err := fieldmask.Validate(fieldMask, resource); err != nil {
+	if err := fieldMask.Validate(resource); err != nil {
 		return nil, fmt.Errorf("invalid field mask paths: %v", err)
 	}
 
@@ -162,7 +162,7 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 	}
 
 	// Iterate over each path in the field mask.
-	for _, path := range fieldMask.Paths {
+	for _, path := range fieldMask.GetPaths() {
 		if !p.isAuthorizedPath(path) {
 			return nil, fmt.Errorf("unauthorized field mask path: %s", path)
 		}

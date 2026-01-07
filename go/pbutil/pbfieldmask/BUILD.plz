@@ -1,0 +1,27 @@
+go_library(
+    name = "pbfieldmask",
+    srcs = ["pbfieldmask.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__mennanov__fmutils",
+        "//third_party/go:go.einride.tech__aip__fieldmask",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["pbfieldmask_test.go"],
+    deps = [
+        ":pbfieldmask",
+        "//malonaz/test/pbutil",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

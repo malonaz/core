@@ -12,6 +12,7 @@ import (
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
 // ////////////////////////////// INTERFACE //////////////////////////
@@ -57,9 +58,8 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 	}
 
 	var zeroResource R
-	paths := strings.Join(options.GetPaths(), ",")
-	if err := pbutil.ValidateMask(zeroResource, paths); err != nil {
-		return nil, fmt.Errorf("validating filtering paths: %w", err)
+	if err := pbfieldmask.FromPaths(options.GetPaths()...).Validate(zeroResource); err != nil {
+		return nil, fmt.Errorf("validating paths: %w", err)
 	}
 
 	// Create a tree and explore.

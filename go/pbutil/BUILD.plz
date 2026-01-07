@@ -2,7 +2,6 @@ go_library(
     name = "pbutil",
     srcs = [
         "any.go",
-        "fieldmask.go",
         "marshaller.go",
         "options.go",
         "pretty.go",
@@ -10,9 +9,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//third_party/go:buf.build__go__protovalidate",
-        "//third_party/go:github.com__mennanov__fmutils",
         "//third_party/go:github.com__tidwall__pretty",
-        "//third_party/go:go.einride.tech__aip__fieldmask",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
@@ -21,18 +18,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
-        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
-    ],
-)
-
-go_test(
-    name = "test",
-    srcs = ["fieldmask_test.go"],
-    deps = [
-        ":pbutil",
-        "//malonaz/test/pbutil",
-        "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

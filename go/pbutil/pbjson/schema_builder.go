@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
-	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
@@ -84,11 +84,11 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 	// Validate the field mask.
 	allowedPaths := make(map[string]bool)
 	if len(so.fieldMask.GetPaths()) > 0 {
-		paths := strings.Join(so.fieldMask.GetPaths(), ",")
-		if err := pbutil.ValidateMask(dynamicpb.NewMessage(msg), paths); err != nil {
+		fieldMask := pbfieldmask.FromFieldMask(so.fieldMask)
+		if err := fieldMask.Validate(dynamicpb.NewMessage(msg)); err != nil {
 			return nil, fmt.Errorf("invalid field mask: %w", err)
 		}
-		for _, path := range so.fieldMask.GetPaths() {
+		for _, path := range fieldMask.GetPaths() {
 			allowedPaths[path] = true
 		}
 	}

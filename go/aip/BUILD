@@ -15,12 +15,12 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/pbutil",
+        "//go/pbutil/pbfieldmask",
         "//go/uuid",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__huandu__xstrings",
-        "//third_party/go:go.einride.tech__aip__fieldmask",
         "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:go.einride.tech__aip__pagination",
@@ -48,6 +48,7 @@ go_test(
     ],
     deps = [
         ":aip",
+        "//go/pbutil/pbfieldmask",
         "//malonaz/test/aip",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__stretchr__testify__require",
