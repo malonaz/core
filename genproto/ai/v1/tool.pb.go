@@ -770,10 +770,10 @@ var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x17google/rpc/status.proto\x1a\x1cmalonaz/json/v1/schema.proto\"\x90\x02\n" +
-	"\x04Tool\x12\x1b\n" +
-	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12)\n" +
-	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\x128\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x17google/rpc/status.proto\x1a\x1cmalonaz/json/v1/schema.proto\"\x8e\x02\n" +
+	"\x04Tool\x12\x1a\n" +
+	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
+	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x128\n" +
 	"\vjson_schema\x18\x03 \x01(\v2\x17.malonaz.json.v1.SchemaR\n" +
 	"jsonSchema\x12F\n" +
 	"\vannotations\x18\x04 \x03(\v2$.malonaz.ai.v1.Tool.AnnotationsEntryR\vannotations\x1a>\n" +

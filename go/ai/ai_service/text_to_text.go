@@ -13,7 +13,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 // TextToTextStream implements the gRPC streaming method - direct pass-through
@@ -297,5 +296,6 @@ func extractJSONToStruct(content string) (*structpb.Struct, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pbutil.NewStructFromJSON([]byte(jsonString))
+	s := &structpb.Struct{}
+	return s, s.UnmarshalJSON([]byte(jsonString))
 }

@@ -6,7 +6,6 @@ import (
 
 	streamingjson "github.com/karminski/streaming-json-go"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/pbutil"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -85,6 +84,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 		Id:          entry.id,
 		Name:        entry.name,
 		ExtraFields: entry.extraFields,
+		Arguments:   &structpb.Struct{},
 	}
 	lexer := streamingjson.NewLexer()
 	lexer.AppendString(entry.args.String())
@@ -92,12 +92,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 	if healed == "" {
 		healed = "{}"
 	}
-	var err error
-	tc.Arguments, err = pbutil.NewStructFromJSON([]byte(healed))
-	if err != nil {
-		return nil, err
-	}
-	return tc, nil
+	return tc, tc.Arguments.UnmarshalJSON([]byte(healed))
 }
 
 // Build returns the completed ToolCall proto for a given index and removes it.
@@ -110,10 +105,9 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 		Id:          entry.id,
 		Name:        entry.name,
 		ExtraFields: entry.extraFields,
+		Arguments:   &structpb.Struct{},
 	}
-	var err error
-	tc.Arguments, err = pbutil.NewStructFromJSON([]byte(entry.args.String()))
-	if err != nil {
+	if err := tc.Arguments.UnmarshalJSON([]byte(entry.args.String())); err != nil {
 		return nil, err
 	}
 	delete(a.calls, index)

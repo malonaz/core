@@ -117,14 +117,6 @@ func JSONUnmarshalSlice[T any, PT interface {
 	return result, nil
 }
 
-func NewStructFromJSON(bytes []byte) (*structpb.Struct, error) {
-	var m map[string]any
-	if err := json.Unmarshal(bytes, &m); err != nil {
-		return nil, err
-	}
-	return structpb.NewStruct(m)
-}
-
 func UnmarshalFromStruct(m proto.Message, s *structpb.Struct) error {
 	b, err := s.MarshalJSON()
 	if err != nil {
