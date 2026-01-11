@@ -24,7 +24,7 @@ import (
 
 func (c *Client) TextToTextStream(
 	request *aiservicepb.TextToTextStreamRequest,
-	stream aiservicepb.Ai_TextToTextStreamServer,
+	stream aiservicepb.AiService_TextToTextStreamServer,
 ) error {
 	ctx := stream.Context()
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}

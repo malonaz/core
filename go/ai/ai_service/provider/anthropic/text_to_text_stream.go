@@ -19,7 +19,7 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.Ai_TextToTextStreamServer) error {
+func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.AiService_TextToTextStreamServer) error {
 	ctx := srv.Context()
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}

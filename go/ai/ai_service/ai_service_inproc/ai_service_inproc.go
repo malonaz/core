@@ -12,11 +12,11 @@ import (
 
 // Client wraps the AI service for in-process calls with client-friendly methods.
 type Client struct {
-	server aiservicepb.AiServer
+	server aiservicepb.AiServiceServer
 }
 
 // New creates a new in-process client wrapping the AI service.
-func New(server aiservicepb.AiServer) (*Client, error) {
+func New(server aiservicepb.AiServiceServer) (*Client, error) {
 	return &Client{server: server}, nil
 }
 
@@ -80,12 +80,12 @@ func (c *Client) TextToTextStream(
 	ctx context.Context,
 	request *aiservicepb.TextToTextStreamRequest,
 	_ ...grpc.CallOption,
-) (aiservicepb.Ai_TextToTextStreamClient, error) {
+) (aiservicepb.AiService_TextToTextStreamClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
 		aiservicepb.TextToTextStreamRequest,
 		aiservicepb.TextToTextStreamResponse,
-		aiservicepb.Ai_TextToTextStreamServer,
+		aiservicepb.AiService_TextToTextStreamServer,
 	](c.server.TextToTextStream)
 
 	return serverStreamClient(ctx, request)
@@ -124,12 +124,12 @@ func (c *Client) TextToSpeechStream(
 	ctx context.Context,
 	request *aiservicepb.TextToSpeechStreamRequest,
 	_ ...grpc.CallOption,
-) (aiservicepb.Ai_TextToSpeechStreamClient, error) {
+) (aiservicepb.AiService_TextToSpeechStreamClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
 		aiservicepb.TextToSpeechStreamRequest,
 		aiservicepb.TextToSpeechStreamResponse,
-		aiservicepb.Ai_TextToSpeechStreamServer,
+		aiservicepb.AiService_TextToSpeechStreamServer,
 	](c.server.TextToSpeechStream)
 
 	return serverStreamClient(ctx, request)
@@ -137,5 +137,5 @@ func (c *Client) TextToSpeechStream(
 
 // Verify interface compliance at compile time.
 var (
-	_ aiservicepb.AiClient = (*Client)(nil)
+	_ aiservicepb.AiServiceClient = (*Client)(nil)
 )

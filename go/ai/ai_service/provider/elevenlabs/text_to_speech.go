@@ -29,7 +29,7 @@ var protectedKeySet = map[string]struct{}{
 // TextToSpeechStream implements the gRPC server streaming interface for text-to-speech conversion.
 func (c *Client) TextToSpeechStream(
 	request *aiservicepb.TextToSpeechStreamRequest,
-	stream aiservicepb.Ai_TextToSpeechStreamServer,
+	stream aiservicepb.AiService_TextToSpeechStreamServer,
 ) error {
 	ctx := stream.Context()
 

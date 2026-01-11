@@ -2832,8 +2832,8 @@ const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\"TEXT_TO_TEXT_STOP_REASON_TOOL_CALL\x10\x03\x12*\n" +
 	"&TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE\x10\x04\x12'\n" +
 	"#TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN\x10\x05\x12$\n" +
-	" TEXT_TO_TEXT_STOP_REASON_REFUSAL\x10\x062\x9e\r\n" +
-	"\x02Ai\x12\x89\x01\n" +
+	" TEXT_TO_TEXT_STOP_REASON_REFUSAL\x10\x062\xa5\r\n" +
+	"\tAiService\x12\x89\x01\n" +
 	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12{\n" +
 	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x12\x99\x01\n" +
 	"\n" +
@@ -2925,28 +2925,28 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
 	24, // 33: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
 	25, // 34: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
 	26, // 35: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	1,  // 36: malonaz.ai.ai_service.v1.Ai.CreateModel:input_type -> malonaz.ai.ai_service.v1.CreateModelRequest
-	2,  // 37: malonaz.ai.ai_service.v1.Ai.GetModel:input_type -> malonaz.ai.ai_service.v1.GetModelRequest
-	3,  // 38: malonaz.ai.ai_service.v1.Ai.ListModels:input_type -> malonaz.ai.ai_service.v1.ListModelsRequest
-	5,  // 39: malonaz.ai.ai_service.v1.Ai.CreateVoice:input_type -> malonaz.ai.ai_service.v1.CreateVoiceRequest
-	6,  // 40: malonaz.ai.ai_service.v1.Ai.GetVoice:input_type -> malonaz.ai.ai_service.v1.GetVoiceRequest
-	7,  // 41: malonaz.ai.ai_service.v1.Ai.ListVoices:input_type -> malonaz.ai.ai_service.v1.ListVoicesRequest
-	9,  // 42: malonaz.ai.ai_service.v1.Ai.SpeechToText:input_type -> malonaz.ai.ai_service.v1.SpeechToTextRequest
-	12, // 43: malonaz.ai.ai_service.v1.Ai.TextToText:input_type -> malonaz.ai.ai_service.v1.TextToTextRequest
-	14, // 44: malonaz.ai.ai_service.v1.Ai.TextToTextStream:input_type -> malonaz.ai.ai_service.v1.TextToTextStreamRequest
-	17, // 45: malonaz.ai.ai_service.v1.Ai.TextToSpeech:input_type -> malonaz.ai.ai_service.v1.TextToSpeechRequest
-	19, // 46: malonaz.ai.ai_service.v1.Ai.TextToSpeechStream:input_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
-	21, // 47: malonaz.ai.ai_service.v1.Ai.CreateModel:output_type -> malonaz.ai.v1.Model
-	21, // 48: malonaz.ai.ai_service.v1.Ai.GetModel:output_type -> malonaz.ai.v1.Model
-	4,  // 49: malonaz.ai.ai_service.v1.Ai.ListModels:output_type -> malonaz.ai.ai_service.v1.ListModelsResponse
-	22, // 50: malonaz.ai.ai_service.v1.Ai.CreateVoice:output_type -> malonaz.ai.v1.Voice
-	22, // 51: malonaz.ai.ai_service.v1.Ai.GetVoice:output_type -> malonaz.ai.v1.Voice
-	8,  // 52: malonaz.ai.ai_service.v1.Ai.ListVoices:output_type -> malonaz.ai.ai_service.v1.ListVoicesResponse
-	10, // 53: malonaz.ai.ai_service.v1.Ai.SpeechToText:output_type -> malonaz.ai.ai_service.v1.SpeechToTextResponse
-	13, // 54: malonaz.ai.ai_service.v1.Ai.TextToText:output_type -> malonaz.ai.ai_service.v1.TextToTextResponse
-	15, // 55: malonaz.ai.ai_service.v1.Ai.TextToTextStream:output_type -> malonaz.ai.ai_service.v1.TextToTextStreamResponse
-	18, // 56: malonaz.ai.ai_service.v1.Ai.TextToSpeech:output_type -> malonaz.ai.ai_service.v1.TextToSpeechResponse
-	20, // 57: malonaz.ai.ai_service.v1.Ai.TextToSpeechStream:output_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
+	1,  // 36: malonaz.ai.ai_service.v1.AiService.CreateModel:input_type -> malonaz.ai.ai_service.v1.CreateModelRequest
+	2,  // 37: malonaz.ai.ai_service.v1.AiService.GetModel:input_type -> malonaz.ai.ai_service.v1.GetModelRequest
+	3,  // 38: malonaz.ai.ai_service.v1.AiService.ListModels:input_type -> malonaz.ai.ai_service.v1.ListModelsRequest
+	5,  // 39: malonaz.ai.ai_service.v1.AiService.CreateVoice:input_type -> malonaz.ai.ai_service.v1.CreateVoiceRequest
+	6,  // 40: malonaz.ai.ai_service.v1.AiService.GetVoice:input_type -> malonaz.ai.ai_service.v1.GetVoiceRequest
+	7,  // 41: malonaz.ai.ai_service.v1.AiService.ListVoices:input_type -> malonaz.ai.ai_service.v1.ListVoicesRequest
+	9,  // 42: malonaz.ai.ai_service.v1.AiService.SpeechToText:input_type -> malonaz.ai.ai_service.v1.SpeechToTextRequest
+	12, // 43: malonaz.ai.ai_service.v1.AiService.TextToText:input_type -> malonaz.ai.ai_service.v1.TextToTextRequest
+	14, // 44: malonaz.ai.ai_service.v1.AiService.TextToTextStream:input_type -> malonaz.ai.ai_service.v1.TextToTextStreamRequest
+	17, // 45: malonaz.ai.ai_service.v1.AiService.TextToSpeech:input_type -> malonaz.ai.ai_service.v1.TextToSpeechRequest
+	19, // 46: malonaz.ai.ai_service.v1.AiService.TextToSpeechStream:input_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
+	21, // 47: malonaz.ai.ai_service.v1.AiService.CreateModel:output_type -> malonaz.ai.v1.Model
+	21, // 48: malonaz.ai.ai_service.v1.AiService.GetModel:output_type -> malonaz.ai.v1.Model
+	4,  // 49: malonaz.ai.ai_service.v1.AiService.ListModels:output_type -> malonaz.ai.ai_service.v1.ListModelsResponse
+	22, // 50: malonaz.ai.ai_service.v1.AiService.CreateVoice:output_type -> malonaz.ai.v1.Voice
+	22, // 51: malonaz.ai.ai_service.v1.AiService.GetVoice:output_type -> malonaz.ai.v1.Voice
+	8,  // 52: malonaz.ai.ai_service.v1.AiService.ListVoices:output_type -> malonaz.ai.ai_service.v1.ListVoicesResponse
+	10, // 53: malonaz.ai.ai_service.v1.AiService.SpeechToText:output_type -> malonaz.ai.ai_service.v1.SpeechToTextResponse
+	13, // 54: malonaz.ai.ai_service.v1.AiService.TextToText:output_type -> malonaz.ai.ai_service.v1.TextToTextResponse
+	15, // 55: malonaz.ai.ai_service.v1.AiService.TextToTextStream:output_type -> malonaz.ai.ai_service.v1.TextToTextStreamResponse
+	18, // 56: malonaz.ai.ai_service.v1.AiService.TextToSpeech:output_type -> malonaz.ai.ai_service.v1.TextToSpeechResponse
+	20, // 57: malonaz.ai.ai_service.v1.AiService.TextToSpeechStream:output_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
 	47, // [47:58] is the sub-list for method output_type
 	36, // [36:47] is the sub-list for method input_type
 	36, // [36:36] is the sub-list for extension type_name

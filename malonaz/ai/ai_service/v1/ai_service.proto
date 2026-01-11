@@ -20,7 +20,7 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 // This API represents an AI service.
 //
 // It handles TextToText, SpeechToText & TextToSpeech generation.
-service Ai {
+service AiService {
   option (google.api.default_host) = "ai.malonaz.com";
 
   // Create a model.

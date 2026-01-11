@@ -61,7 +61,7 @@ func run() error {
 	}
 	defer conn.Close()
 
-	client := aiservicepb.NewAiClient(conn.Get())
+	client := aiservicepb.NewAiServiceClient(conn.Get())
 
 	printRequestInfo()
 
@@ -123,7 +123,7 @@ func buildTools() []*aipb.Tool {
 	return []*aipb.Tool{buildWeatherTool()}
 }
 
-func runStream(ctx context.Context, client aiservicepb.AiClient) error {
+func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 	modelResourceName := fmt.Sprintf("providers/%s/models/%s", *provider, *model)
 
 	config, err := buildConfig()
@@ -163,7 +163,7 @@ func runStream(ctx context.Context, client aiservicepb.AiClient) error {
 	return nil
 }
 
-func runUnary(ctx context.Context, client aiservicepb.AiClient) error {
+func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {
 	modelResourceName := fmt.Sprintf("providers/%s/models/%s", *provider, *model)
 
 	config, err := buildConfig()

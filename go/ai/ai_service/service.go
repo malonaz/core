@@ -151,7 +151,7 @@ func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequ
 }
 
 // TextToSpeechStream implements the gRPC streaming method - direct pass-through
-func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv pb.Ai_TextToSpeechStreamServer) error {
+func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv pb.AiService_TextToSpeechStreamServer) error {
 	ctx := srv.Context()
 	provider, model, err := s.GetTextToSpeechProvider(ctx, request.Model)
 	if err != nil {
@@ -196,7 +196,7 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
 		pb.TextToSpeechStreamRequest,
 		pb.TextToSpeechStreamResponse,
-		pb.Ai_TextToSpeechStreamServer,
+		pb.AiService_TextToSpeechStreamServer,
 	](s.TextToSpeechStream)
 
 	stream, err := serverStreamClient(ctx, streamRequest)

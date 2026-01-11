@@ -19,11 +19,11 @@ type SpeechToTextClient interface {
 
 type TextToTextClient interface {
 	Provider
-	TextToTextStream(*aiservicepb.TextToTextStreamRequest, aiservicepb.Ai_TextToTextStreamServer) error
+	TextToTextStream(*aiservicepb.TextToTextStreamRequest, aiservicepb.AiService_TextToTextStreamServer) error
 }
 
 // TextToSpeechClient uses the exact gRPC server streaming interface
 type TextToSpeechClient interface {
 	Provider
-	TextToSpeechStream(*aiservicepb.TextToSpeechStreamRequest, aiservicepb.Ai_TextToSpeechStreamServer) error
+	TextToSpeechStream(*aiservicepb.TextToSpeechStreamRequest, aiservicepb.AiService_TextToSpeechStreamServer) error
 }

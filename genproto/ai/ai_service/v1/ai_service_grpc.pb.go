@@ -19,10 +19,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AiClient is the client API for Ai service.
+// AiServiceClient is the client API for AiService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AiClient interface {
+type AiServiceClient interface {
 	// Create a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Create).
@@ -52,99 +52,99 @@ type AiClient interface {
 	// Convert text to text using chat completion models.
 	TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error)
 	// Converts text to text using chat completion models with streaming response.
-	TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (Ai_TextToTextStreamClient, error)
+	TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error)
 	// Converts text to speech audio, returning complete audio data.
 	TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error)
 	// Converts text to speech audio with streaming response.
-	TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (Ai_TextToSpeechStreamClient, error)
+	TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error)
 }
 
-type aiClient struct {
+type aiServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAiClient(cc grpc.ClientConnInterface) AiClient {
-	return &aiClient{cc}
+func NewAiServiceClient(cc grpc.ClientConnInterface) AiServiceClient {
+	return &aiServiceClient{cc}
 }
 
-func (c *aiClient) CreateModel(ctx context.Context, in *CreateModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
+func (c *aiServiceClient) CreateModel(ctx context.Context, in *CreateModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
 	out := new(v1.Model)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/CreateModel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/CreateModel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) GetModel(ctx context.Context, in *GetModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
+func (c *aiServiceClient) GetModel(ctx context.Context, in *GetModelRequest, opts ...grpc.CallOption) (*v1.Model, error) {
 	out := new(v1.Model)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/GetModel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GetModel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error) {
+func (c *aiServiceClient) ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error) {
 	out := new(ListModelsResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/ListModels", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/ListModels", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error) {
+func (c *aiServiceClient) CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error) {
 	out := new(v1.Voice)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/CreateVoice", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/CreateVoice", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error) {
+func (c *aiServiceClient) GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error) {
 	out := new(v1.Voice)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/GetVoice", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GetVoice", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error) {
+func (c *aiServiceClient) ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error) {
 	out := new(ListVoicesResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/ListVoices", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/ListVoices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error) {
+func (c *aiServiceClient) SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error) {
 	out := new(SpeechToTextResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/SpeechToText", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/SpeechToText", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
+func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
 	out := new(TextToTextResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/TextToText", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToText", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (Ai_TextToTextStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[0], "/malonaz.ai.ai_service.v1.Ai/TextToTextStream", opts...)
+func (c *aiServiceClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[0], "/malonaz.ai.ai_service.v1.AiService/TextToTextStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &aiTextToTextStreamClient{stream}
+	x := &aiServiceTextToTextStreamClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -154,16 +154,16 @@ func (c *aiClient) TextToTextStream(ctx context.Context, in *TextToTextStreamReq
 	return x, nil
 }
 
-type Ai_TextToTextStreamClient interface {
+type AiService_TextToTextStreamClient interface {
 	Recv() (*TextToTextStreamResponse, error)
 	grpc.ClientStream
 }
 
-type aiTextToTextStreamClient struct {
+type aiServiceTextToTextStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *aiTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
+func (x *aiServiceTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
 	m := new(TextToTextStreamResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -171,21 +171,21 @@ func (x *aiTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
 	return m, nil
 }
 
-func (c *aiClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error) {
+func (c *aiServiceClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error) {
 	out := new(TextToSpeechResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.Ai/TextToSpeech", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToSpeech", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aiClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (Ai_TextToSpeechStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Ai_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.Ai/TextToSpeechStream", opts...)
+func (c *aiServiceClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &aiTextToSpeechStreamClient{stream}
+	x := &aiServiceTextToSpeechStreamClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -195,16 +195,16 @@ func (c *aiClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStrea
 	return x, nil
 }
 
-type Ai_TextToSpeechStreamClient interface {
+type AiService_TextToSpeechStreamClient interface {
 	Recv() (*TextToSpeechStreamResponse, error)
 	grpc.ClientStream
 }
 
-type aiTextToSpeechStreamClient struct {
+type aiServiceTextToSpeechStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *aiTextToSpeechStreamClient) Recv() (*TextToSpeechStreamResponse, error) {
+func (x *aiServiceTextToSpeechStreamClient) Recv() (*TextToSpeechStreamResponse, error) {
 	m := new(TextToSpeechStreamResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -212,10 +212,10 @@ func (x *aiTextToSpeechStreamClient) Recv() (*TextToSpeechStreamResponse, error)
 	return m, nil
 }
 
-// AiServer is the server API for Ai service.
-// All implementations should embed UnimplementedAiServer
+// AiServiceServer is the server API for AiService service.
+// All implementations should embed UnimplementedAiServiceServer
 // for forward compatibility
-type AiServer interface {
+type AiServiceServer interface {
 	// Create a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Create).
@@ -245,319 +245,319 @@ type AiServer interface {
 	// Convert text to text using chat completion models.
 	TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error)
 	// Converts text to text using chat completion models with streaming response.
-	TextToTextStream(*TextToTextStreamRequest, Ai_TextToTextStreamServer) error
+	TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error
 	// Converts text to speech audio, returning complete audio data.
 	TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error)
 	// Converts text to speech audio with streaming response.
-	TextToSpeechStream(*TextToSpeechStreamRequest, Ai_TextToSpeechStreamServer) error
+	TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error
 }
 
-// UnimplementedAiServer should be embedded to have forward compatible implementations.
-type UnimplementedAiServer struct {
+// UnimplementedAiServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedAiServiceServer struct {
 }
 
-func (UnimplementedAiServer) CreateModel(context.Context, *CreateModelRequest) (*v1.Model, error) {
+func (UnimplementedAiServiceServer) CreateModel(context.Context, *CreateModelRequest) (*v1.Model, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateModel not implemented")
 }
-func (UnimplementedAiServer) GetModel(context.Context, *GetModelRequest) (*v1.Model, error) {
+func (UnimplementedAiServiceServer) GetModel(context.Context, *GetModelRequest) (*v1.Model, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetModel not implemented")
 }
-func (UnimplementedAiServer) ListModels(context.Context, *ListModelsRequest) (*ListModelsResponse, error) {
+func (UnimplementedAiServiceServer) ListModels(context.Context, *ListModelsRequest) (*ListModelsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListModels not implemented")
 }
-func (UnimplementedAiServer) CreateVoice(context.Context, *CreateVoiceRequest) (*v1.Voice, error) {
+func (UnimplementedAiServiceServer) CreateVoice(context.Context, *CreateVoiceRequest) (*v1.Voice, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVoice not implemented")
 }
-func (UnimplementedAiServer) GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error) {
+func (UnimplementedAiServiceServer) GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVoice not implemented")
 }
-func (UnimplementedAiServer) ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error) {
+func (UnimplementedAiServiceServer) ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListVoices not implemented")
 }
-func (UnimplementedAiServer) SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error) {
+func (UnimplementedAiServiceServer) SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpeechToText not implemented")
 }
-func (UnimplementedAiServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
+func (UnimplementedAiServiceServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TextToText not implemented")
 }
-func (UnimplementedAiServer) TextToTextStream(*TextToTextStreamRequest, Ai_TextToTextStreamServer) error {
+func (UnimplementedAiServiceServer) TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TextToTextStream not implemented")
 }
-func (UnimplementedAiServer) TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error) {
+func (UnimplementedAiServiceServer) TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TextToSpeech not implemented")
 }
-func (UnimplementedAiServer) TextToSpeechStream(*TextToSpeechStreamRequest, Ai_TextToSpeechStreamServer) error {
+func (UnimplementedAiServiceServer) TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TextToSpeechStream not implemented")
 }
 
-// UnsafeAiServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AiServer will
+// UnsafeAiServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AiServiceServer will
 // result in compilation errors.
-type UnsafeAiServer interface {
-	mustEmbedUnimplementedAiServer()
+type UnsafeAiServiceServer interface {
+	mustEmbedUnimplementedAiServiceServer()
 }
 
-func RegisterAiServer(s grpc.ServiceRegistrar, srv AiServer) {
-	s.RegisterService(&Ai_ServiceDesc, srv)
+func RegisterAiServiceServer(s grpc.ServiceRegistrar, srv AiServiceServer) {
+	s.RegisterService(&AiService_ServiceDesc, srv)
 }
 
-func _Ai_CreateModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_CreateModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateModelRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).CreateModel(ctx, in)
+		return srv.(AiServiceServer).CreateModel(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/CreateModel",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/CreateModel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).CreateModel(ctx, req.(*CreateModelRequest))
+		return srv.(AiServiceServer).CreateModel(ctx, req.(*CreateModelRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_GetModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_GetModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetModelRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).GetModel(ctx, in)
+		return srv.(AiServiceServer).GetModel(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/GetModel",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GetModel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).GetModel(ctx, req.(*GetModelRequest))
+		return srv.(AiServiceServer).GetModel(ctx, req.(*GetModelRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_ListModels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_ListModels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListModelsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).ListModels(ctx, in)
+		return srv.(AiServiceServer).ListModels(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/ListModels",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/ListModels",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).ListModels(ctx, req.(*ListModelsRequest))
+		return srv.(AiServiceServer).ListModels(ctx, req.(*ListModelsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_CreateVoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_CreateVoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateVoiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).CreateVoice(ctx, in)
+		return srv.(AiServiceServer).CreateVoice(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/CreateVoice",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/CreateVoice",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).CreateVoice(ctx, req.(*CreateVoiceRequest))
+		return srv.(AiServiceServer).CreateVoice(ctx, req.(*CreateVoiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_GetVoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_GetVoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetVoiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).GetVoice(ctx, in)
+		return srv.(AiServiceServer).GetVoice(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/GetVoice",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GetVoice",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).GetVoice(ctx, req.(*GetVoiceRequest))
+		return srv.(AiServiceServer).GetVoice(ctx, req.(*GetVoiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_ListVoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_ListVoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListVoicesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).ListVoices(ctx, in)
+		return srv.(AiServiceServer).ListVoices(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/ListVoices",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/ListVoices",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).ListVoices(ctx, req.(*ListVoicesRequest))
+		return srv.(AiServiceServer).ListVoices(ctx, req.(*ListVoicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_SpeechToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_SpeechToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SpeechToTextRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).SpeechToText(ctx, in)
+		return srv.(AiServiceServer).SpeechToText(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/SpeechToText",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/SpeechToText",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).SpeechToText(ctx, req.(*SpeechToTextRequest))
+		return srv.(AiServiceServer).SpeechToText(ctx, req.(*SpeechToTextRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextToTextRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).TextToText(ctx, in)
+		return srv.(AiServiceServer).TextToText(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/TextToText",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/TextToText",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).TextToText(ctx, req.(*TextToTextRequest))
+		return srv.(AiServiceServer).TextToText(ctx, req.(*TextToTextRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_TextToTextStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _AiService_TextToTextStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TextToTextStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AiServer).TextToTextStream(m, &aiTextToTextStreamServer{stream})
+	return srv.(AiServiceServer).TextToTextStream(m, &aiServiceTextToTextStreamServer{stream})
 }
 
-type Ai_TextToTextStreamServer interface {
+type AiService_TextToTextStreamServer interface {
 	Send(*TextToTextStreamResponse) error
 	grpc.ServerStream
 }
 
-type aiTextToTextStreamServer struct {
+type aiServiceTextToTextStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *aiTextToTextStreamServer) Send(m *TextToTextStreamResponse) error {
+func (x *aiServiceTextToTextStreamServer) Send(m *TextToTextStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Ai_TextToSpeech_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AiService_TextToSpeech_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextToSpeechRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServer).TextToSpeech(ctx, in)
+		return srv.(AiServiceServer).TextToSpeech(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.Ai/TextToSpeech",
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/TextToSpeech",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServer).TextToSpeech(ctx, req.(*TextToSpeechRequest))
+		return srv.(AiServiceServer).TextToSpeech(ctx, req.(*TextToSpeechRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Ai_TextToSpeechStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _AiService_TextToSpeechStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TextToSpeechStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AiServer).TextToSpeechStream(m, &aiTextToSpeechStreamServer{stream})
+	return srv.(AiServiceServer).TextToSpeechStream(m, &aiServiceTextToSpeechStreamServer{stream})
 }
 
-type Ai_TextToSpeechStreamServer interface {
+type AiService_TextToSpeechStreamServer interface {
 	Send(*TextToSpeechStreamResponse) error
 	grpc.ServerStream
 }
 
-type aiTextToSpeechStreamServer struct {
+type aiServiceTextToSpeechStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *aiTextToSpeechStreamServer) Send(m *TextToSpeechStreamResponse) error {
+func (x *aiServiceTextToSpeechStreamServer) Send(m *TextToSpeechStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-// Ai_ServiceDesc is the grpc.ServiceDesc for Ai service.
+// AiService_ServiceDesc is the grpc.ServiceDesc for AiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Ai_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "malonaz.ai.ai_service.v1.Ai",
-	HandlerType: (*AiServer)(nil),
+var AiService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "malonaz.ai.ai_service.v1.AiService",
+	HandlerType: (*AiServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateModel",
-			Handler:    _Ai_CreateModel_Handler,
+			Handler:    _AiService_CreateModel_Handler,
 		},
 		{
 			MethodName: "GetModel",
-			Handler:    _Ai_GetModel_Handler,
+			Handler:    _AiService_GetModel_Handler,
 		},
 		{
 			MethodName: "ListModels",
-			Handler:    _Ai_ListModels_Handler,
+			Handler:    _AiService_ListModels_Handler,
 		},
 		{
 			MethodName: "CreateVoice",
-			Handler:    _Ai_CreateVoice_Handler,
+			Handler:    _AiService_CreateVoice_Handler,
 		},
 		{
 			MethodName: "GetVoice",
-			Handler:    _Ai_GetVoice_Handler,
+			Handler:    _AiService_GetVoice_Handler,
 		},
 		{
 			MethodName: "ListVoices",
-			Handler:    _Ai_ListVoices_Handler,
+			Handler:    _AiService_ListVoices_Handler,
 		},
 		{
 			MethodName: "SpeechToText",
-			Handler:    _Ai_SpeechToText_Handler,
+			Handler:    _AiService_SpeechToText_Handler,
 		},
 		{
 			MethodName: "TextToText",
-			Handler:    _Ai_TextToText_Handler,
+			Handler:    _AiService_TextToText_Handler,
 		},
 		{
 			MethodName: "TextToSpeech",
-			Handler:    _Ai_TextToSpeech_Handler,
+			Handler:    _AiService_TextToSpeech_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "TextToTextStream",
-			Handler:       _Ai_TextToTextStream_Handler,
+			Handler:       _AiService_TextToTextStream_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "TextToSpeechStream",
-			Handler:       _Ai_TextToSpeechStream_Handler,
+			Handler:       _AiService_TextToSpeechStream_Handler,
 			ServerStreams: true,
 		},
 	},

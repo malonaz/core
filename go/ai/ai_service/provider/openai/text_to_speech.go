@@ -17,7 +17,7 @@ import (
 )
 
 // TextToSpeechStream implements the exact gRPC server streaming interface
-func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamRequest, stream aiservicepb.Ai_TextToSpeechStreamServer) error {
+func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamRequest, stream aiservicepb.AiService_TextToSpeechStreamServer) error {
 	ctx := stream.Context()
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)

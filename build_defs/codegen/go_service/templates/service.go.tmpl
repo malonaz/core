@@ -18,7 +18,7 @@ type Service struct {
 	{{- range $codegen := .codegens }}
       {{- if eq $codegen.type "rpc" }}
         // Embedded codegen.
-        *{{ plzGoImport $codegen.implementation }}.{{ $codegen.name | title }}Server
+        *{{ plzGoImport $codegen.implementation }}.{{ $codegen.name | camelcase }}Server
 	  {{- else }}
       {{ fail (printf "%s unknown type" $codegen.type) }}
 	  {{- end }}
@@ -70,7 +70,7 @@ func New(
     runtime: runtime,
 	{{- range $codegen := .codegens }}
       {{- if eq $codegen.type "rpc" }}
-        {{ $codegen.name | title }}Server: {{ plzGoImport $codegen.implementation }}.New{{ $codegen.name | title }}Server({{ $codegen.name }}PostgresStore),
+        {{ $codegen.name | camelcase }}Server: {{ plzGoImport $codegen.implementation }}.New{{ $codegen.name | camelcase }}Server({{ $codegen.store | camelcase | untitle }}PostgresStore),
 	 	  {{- end }}
 	{{- end }}
  	  log: {{ goImport "log/slog" }}.Default(),

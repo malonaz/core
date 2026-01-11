@@ -16,7 +16,7 @@ import (
 )
 
 // TextToTextStream implements the gRPC streaming method - direct pass-through
-func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.Ai_TextToTextStreamServer) error {
+func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
 	ctx := srv.Context()
 	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
 	if err != nil {
@@ -44,16 +44,16 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		toolNameToTool[tool.Name] = tool
 	}
 	wrapper := &tttStreamWrapper{
-		Ai_TextToTextStreamServer: srv,
-		model:                     model,
-		modelUsage:                &aipb.ModelUsage{},
-		toolNameToTool:            toolNameToTool,
+		AiService_TextToTextStreamServer: srv,
+		model:                            model,
+		modelUsage:                       &aipb.ModelUsage{},
+		toolNameToTool:                   toolNameToTool,
 	}
 	return provider.TextToTextStream(request, wrapper)
 }
 
 type tttStreamWrapper struct {
-	pb.Ai_TextToTextStreamServer
+	pb.AiService_TextToTextStreamServer
 	model          *aipb.Model
 	modelUsage     *aipb.ModelUsage
 	toolNameToTool map[string]*aipb.Tool
@@ -185,7 +185,7 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		computeModelUsagePrices(modelUsage, w.model.GetTtt().GetPricing())
 	}
 
-	return w.Ai_TextToTextStreamServer.Send(resp)
+	return w.AiService_TextToTextStreamServer.Send(resp)
 }
 
 func computeModelUsagePrices(usage *aipb.ModelUsage, pricing *aipb.TttModelPricing) {
@@ -227,7 +227,7 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
 		pb.TextToTextStreamRequest,
 		pb.TextToTextStreamResponse,
-		pb.Ai_TextToTextStreamServer,
+		pb.AiService_TextToTextStreamServer,
 	](s.TextToTextStream)
 
 	stream, err := serverStreamClient(ctx, streamRequest)

@@ -67,7 +67,7 @@ type WordTimestamps struct {
 // TextToSpeechStream implements the exact gRPC server streaming interface using WebSocket
 func (c *Client) TextToSpeechStream(
 	request *aiservicepb.TextToSpeechStreamRequest,
-	srv aiservicepb.Ai_TextToSpeechStreamServer,
+	srv aiservicepb.AiService_TextToSpeechStreamServer,
 ) error {
 	ctx := srv.Context()
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}

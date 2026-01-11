@@ -10,7 +10,7 @@ import (
 )
 
 type AsyncTextToTextContentSender struct {
-	srv  aiservicepb.Ai_TextToTextStreamServer
+	srv  aiservicepb.AiService_TextToTextStreamServer
 	ch   chan *aiservicepb.TextToTextStreamResponse
 	done chan struct{}
 
@@ -19,7 +19,7 @@ type AsyncTextToTextContentSender struct {
 }
 
 // bufferSize is the channel capacity; use a size that fits your burst profile.
-func NewAsyncTextToTextContentSender(srv aiservicepb.Ai_TextToTextStreamServer, bufferSize int) *AsyncTextToTextContentSender {
+func NewAsyncTextToTextContentSender(srv aiservicepb.AiService_TextToTextStreamServer, bufferSize int) *AsyncTextToTextContentSender {
 	if bufferSize <= 0 {
 		bufferSize = 64
 	}
