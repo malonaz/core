@@ -15,12 +15,14 @@ import (
 )
 
 type PermissionAuthenticationInterceptorOpts struct {
-	Config string `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
+	Config        string   `long:"config" env:"CONFIG" description:"Path to the authentication configuration file" required:"true"`
+	IgnoreMethods []string `long:"skip-methods" description:"some methods to skip permission checks for"`
 }
 
 type PermissionAuthenticationInterceptor struct {
 	sessionManager        *SessionManager
 	permissionToRoleIDSet map[string]map[string]struct{}
+	ignoreMethodSet       map[string]struct{}
 }
 
 var (
@@ -61,9 +63,16 @@ func NewPermissionAuthenticationInterceptor(
 		}
 	}
 
+	// Build skip methods set
+	ignoreMethodSet := make(map[string]struct{}, len(opts.IgnoreMethods))
+	for _, method := range opts.IgnoreMethods {
+		ignoreMethodSet[method] = struct{}{}
+	}
+
 	return &PermissionAuthenticationInterceptor{
 		sessionManager:        sessionManager,
 		permissionToRoleIDSet: permissionToRoleIDSet,
+		ignoreMethodSet:       ignoreMethodSet,
 	}, nil
 }
 
@@ -100,6 +109,10 @@ func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authentica
 }
 
 func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
+	if _, ok := i.ignoreMethodSet[fullMethod]; ok {
+		return ctx, nil
+	}
+
 	// Grab the session and verify its signature.
 	signedSession, err := i.sessionManager.getSignedSessionFromLocalContext(ctx)
 	if err != nil {

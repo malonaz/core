@@ -189,6 +189,9 @@ func (s *SessionManager) StreamServerOutgoingContextInjectorInterceptor() grpc.S
 func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ctx context.Context) (context.Context, error) {
 	signedSession, err := s.getSignedSessionFromLocalContext(ctx)
 	if err != nil {
+		if errors.Is(err, ErrSignedSessionNotFound) {
+			return ctx, nil // No session to propagate, continue with original context
+		}
 		return nil, status.Errorf(codes.Internal, "getting signed session from local context: %v", err)
 	}
 
@@ -205,6 +208,9 @@ func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ct
 func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) error {
 	signedSession, err := s.getSignedSessionFromLocalContext(ctx)
 	if err != nil {
+		if errors.Is(err, ErrSignedSessionNotFound) {
+			return nil // No session to log, skip gracefully
+		}
 		return status.Errorf(codes.Internal, "getting signed session from local context: %v", err)
 	}
 
