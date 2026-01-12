@@ -371,7 +371,9 @@ var grpcGatewayMarshalerCamelCaseOptions = &runtime.JSONPb{
 
 func withCustomMarshalers() []runtime.ServeMuxOption {
 	return []runtime.ServeMuxOption{
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, grpcGatewayMarshalerOptions),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: grpcGatewayMarshalerOptions,
+		}),
 		runtime.WithMarshalerOption("application/json+camel", grpcGatewayMarshalerCamelCaseOptions),
 		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
 	}
