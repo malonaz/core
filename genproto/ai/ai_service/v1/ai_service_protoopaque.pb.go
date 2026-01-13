@@ -92,7 +92,7 @@ func (x TextToTextStopReason) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Request message for Ai.CreateModel.
+// Request message for AiService.CreateModel.
 type CreateModelRequest struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Parent  string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
@@ -197,7 +197,7 @@ func (b0 CreateModelRequest_builder) Build() *CreateModelRequest {
 	return m0
 }
 
-// Request message for Ai.GetModel.
+// Request message for AiService.GetModel.
 type GetModelRequest struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -257,7 +257,7 @@ func (b0 GetModelRequest_builder) Build() *GetModelRequest {
 	return m0
 }
 
-// Request message for Ai.ListModels.
+// Request message for AiService.ListModels.
 type ListModelsRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
@@ -351,7 +351,7 @@ func (b0 ListModelsRequest_builder) Build() *ListModelsRequest {
 	return m0
 }
 
-// Response message for Ai.ListModels.
+// Response message for AiService.ListModels.
 type ListModelsResponse struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Models        *[]*v1.Model           `protobuf:"bytes,1,rep,name=models,proto3"`
@@ -430,7 +430,7 @@ func (b0 ListModelsResponse_builder) Build() *ListModelsResponse {
 	return m0
 }
 
-// Request message for Ai.CreateVoice.
+// Request message for AiService.CreateVoice.
 type CreateVoiceRequest struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Voice   *v1.Voice              `protobuf:"bytes,1,opt,name=voice,proto3"`
@@ -519,7 +519,7 @@ func (b0 CreateVoiceRequest_builder) Build() *CreateVoiceRequest {
 	return m0
 }
 
-// Request message for Ai.GetVoice.
+// Request message for AiService.GetVoice.
 type GetVoiceRequest struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -579,7 +579,7 @@ func (b0 GetVoiceRequest_builder) Build() *GetVoiceRequest {
 	return m0
 }
 
-// Request message for Ai.ListVoices.
+// Request message for AiService.ListVoices.
 type ListVoicesRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_PageSize  int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3"`
@@ -657,7 +657,7 @@ func (b0 ListVoicesRequest_builder) Build() *ListVoicesRequest {
 	return m0
 }
 
-// Response message for Ai.ListVoices.
+// Response message for AiService.ListVoices.
 type ListVoicesResponse struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Voices        *[]*v1.Voice           `protobuf:"bytes,1,rep,name=voices,proto3"`
@@ -736,7 +736,7 @@ func (b0 ListVoicesResponse_builder) Build() *ListVoicesResponse {
 	return m0
 }
 
-// Request message for Ai.SpeechToText.
+// Request message for AiService.SpeechToText.
 type SpeechToTextRequest struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Model        string                 `protobuf:"bytes,1,opt,name=model,proto3"`
@@ -863,7 +863,7 @@ func (b0 SpeechToTextRequest_builder) Build() *SpeechToTextRequest {
 	return m0
 }
 
-// Response message for Ai.SpeechToText.
+// Response message for AiService.SpeechToText.
 type SpeechToTextResponse struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Transcript        string                 `protobuf:"bytes,1,opt,name=transcript,proto3"`
@@ -1123,7 +1123,7 @@ func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
 	return m0
 }
 
-// Request message for Ai.TextToText.
+// Request message for AiService.TextToText.
 type TextToTextRequest struct {
 	state                    protoimpl.MessageState   `protogen:"opaque.v1"`
 	xxx_hidden_Model         string                   `protobuf:"bytes,1,opt,name=model,proto3"`
@@ -1243,7 +1243,7 @@ func (b0 TextToTextRequest_builder) Build() *TextToTextRequest {
 	return m0
 }
 
-// Response message for Ai.TextToText.
+// Response message for AiService.TextToText.
 type TextToTextResponse struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Message           *v1.Message            `protobuf:"bytes,1,opt,name=message,proto3"`
@@ -1380,7 +1380,7 @@ func (b0 TextToTextResponse_builder) Build() *TextToTextResponse {
 	return m0
 }
 
-// Request message for Ai.TextToTextStream.
+// Request message for AiService.TextToTextStream.
 type TextToTextStreamRequest struct {
 	state                    protoimpl.MessageState   `protogen:"opaque.v1"`
 	xxx_hidden_Model         string                   `protobuf:"bytes,1,opt,name=model,proto3"`
@@ -1515,7 +1515,7 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	return m0
 }
 
-// Response message for Ai.TextToTextStream.
+// Response message for AiService.TextToTextStream.
 type TextToTextStreamResponse struct {
 	state              protoimpl.MessageState             `protogen:"opaque.v1"`
 	xxx_hidden_Content isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
@@ -2014,7 +2014,7 @@ func (b0 TextToSpeechConfiguration_builder) Build() *TextToSpeechConfiguration {
 	return m0
 }
 
-// Request message for Ai.TextToSpeech.
+// Request message for AiService.TextToSpeech.
 type TextToSpeechRequest struct {
 	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
 	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
@@ -2146,7 +2146,7 @@ func (b0 TextToSpeechRequest_builder) Build() *TextToSpeechRequest {
 	return m0
 }
 
-// Response message for Ai.TextToSpeech.
+// Response message for AiService.TextToSpeech.
 type TextToSpeechResponse struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_AudioFormat       *v11.Format            `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3"`
@@ -2294,7 +2294,7 @@ func (b0 TextToSpeechResponse_builder) Build() *TextToSpeechResponse {
 	return m0
 }
 
-// Request message for Ai.TextToSpeechStream.
+// Request message for AiService.TextToSpeechStream.
 type TextToSpeechStreamRequest struct {
 	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
 	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
@@ -2426,7 +2426,7 @@ func (b0 TextToSpeechStreamRequest_builder) Build() *TextToSpeechStreamRequest {
 	return m0
 }
 
-// Response message for Ai.TextToSpeechStream.
+// Response message for AiService.TextToSpeechStream.
 type TextToSpeechStreamResponse struct {
 	state              protoimpl.MessageState               `protogen:"opaque.v1"`
 	xxx_hidden_Content isTextToSpeechStreamResponse_Content `protobuf_oneof:"content"`

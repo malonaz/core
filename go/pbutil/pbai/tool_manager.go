@@ -60,11 +60,10 @@ func NewToolManager(schema *pbreflection.Schema, opts ...Option) (*ToolManager, 
 	}
 
 	m := &ToolManager{
-		schema: schema,
-		config: config,
+		schema:        schema,
+		config:        config,
+		schemaBuilder: pbjson.NewSchemaBuilder(schema),
 	}
-
-	m.schemaBuilder = pbjson.NewSchemaBuilder(schema, pbjson.WithMaxDepth(config.maxDepth))
 
 	var err error
 	m.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
@@ -190,7 +189,7 @@ func (m *ToolManager) buildMethodTool(service protoreflect.ServiceDescriptor, me
 	description := m.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
 
 	standardMethodType := m.schema.GetStandardMethodType(method.FullName())
-	schema, err := m.schemaBuilder.BuildSchema(method.Input().FullName(), standardMethodType)
+	schema, err := m.schemaBuilder.BuildSchema(method.Input().FullName(), standardMethodType, pbjson.WithMaxDepth(m.config.maxDepth))
 	if err != nil {
 		return nil, fmt.Errorf("building schema for: %v", method.Input().FullName())
 	}

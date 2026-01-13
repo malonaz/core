@@ -17,6 +17,8 @@ const (
 	annotationKeyPrefix              = "ai.malonaz.com/"
 	annotationKeyToolType            = annotationKeyPrefix + "tool-type"
 	annotationValueToolTypeDiscovery = "discovery"
+	annotationKeyGRPCService         = annotationKeyPrefix + "grpc-service"
+	annotationKeyGRPCMethod          = annotationKeyPrefix + "grpc-method"
 )
 
 type DiscoverableToolSet struct {

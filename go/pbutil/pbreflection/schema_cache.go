@@ -18,8 +18,9 @@ var (
 	memCacheMu sync.RWMutex
 )
 
+// schema_cache.go - change cacheEntry
 type cacheEntry struct {
-	data      *schemaData
+	schema    *Schema
 	expiresAt time.Time
 }
 
@@ -65,43 +66,24 @@ func (d *schemaData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func WithCache(key string) ResolveSchemaOption {
-	hash := sha256.Sum256([]byte("your string"))
-	hashStr := hex.EncodeToString(hash[:])
+func hashKey(key string) string {
+	hash := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(hash[:])
+}
+
+func WithMemCache(key string, ttl time.Duration) ResolveSchemaOption {
 	return func(o *resolveSchemaOptions) {
-		o.cacheKey = hashStr
+		o.cacheKey = hashKey(key)
+		o.cacheTTL = ttl
 	}
 }
 
-func WithCacheDir(key string, dir string) ResolveSchemaOption {
+func WithDiskCache(key, dir string, ttl time.Duration) ResolveSchemaOption {
 	return func(o *resolveSchemaOptions) {
-		o.cacheKey = key
+		o.cacheKey = hashKey(key)
+		o.cacheTTL = ttl
 		o.cacheDir = dir
 	}
-}
-
-func WithCacheTTL(duration time.Duration) ResolveSchemaOption {
-	return func(o *resolveSchemaOptions) {
-		o.cacheTTL = duration
-	}
-}
-
-func loadFromCache(opts *resolveSchemaOptions) *schemaData {
-	if opts.cacheDir != "" {
-		if data := loadFromFileCache(opts); data != nil {
-			return data
-		}
-	}
-	return loadFromMemCache(opts)
-}
-
-func loadFromMemCache(opts *resolveSchemaOptions) *schemaData {
-	memCacheMu.RLock()
-	defer memCacheMu.RUnlock()
-	if entry, ok := memCache[opts.cacheKey]; ok && time.Now().Before(entry.expiresAt) {
-		return entry.data
-	}
-	return nil
 }
 
 func loadFromFileCache(opts *resolveSchemaOptions) *schemaData {
@@ -121,17 +103,21 @@ func loadFromFileCache(opts *resolveSchemaOptions) *schemaData {
 	return &data
 }
 
-func saveToCache(data *schemaData, opts *resolveSchemaOptions) {
-	if opts.cacheDir != "" {
-		saveToFileCache(data, opts)
+// schema_cache.go - update loadFromMemCache signature
+func loadFromMemCache(opts *resolveSchemaOptions) *Schema {
+	memCacheMu.RLock()
+	defer memCacheMu.RUnlock()
+	if entry, ok := memCache[opts.cacheKey]; ok && time.Now().Before(entry.expiresAt) {
+		return entry.schema
 	}
-	saveToMemCache(data, opts)
+	return nil
 }
 
-func saveToMemCache(data *schemaData, opts *resolveSchemaOptions) {
+// schema_cache.go - update saveToMemCache signature
+func saveToMemCache(schema *Schema, opts *resolveSchemaOptions) {
 	memCacheMu.Lock()
 	defer memCacheMu.Unlock()
-	memCache[opts.cacheKey] = &cacheEntry{data: data, expiresAt: time.Now().Add(opts.cacheTTL)}
+	memCache[opts.cacheKey] = &cacheEntry{schema: schema, expiresAt: time.Now().Add(opts.cacheTTL)}
 }
 
 func saveToFileCache(data *schemaData, opts *resolveSchemaOptions) {

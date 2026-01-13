@@ -93,3 +93,16 @@ github_proto_library(
     repo = "googleapis/googleapis",
     revision = GOOGLEAPI_REVISION,
 )
+
+####################### GRPC ############################
+github_grpc_library(
+    name = "grpc__reflection__v1",
+    additional_context = {GO_IMPORT_PATH: "google.golang.org/grpc/reflection/grpc_reflection_v1"},
+    dir = "src/proto/grpc/reflection/v1",
+    files = ["reflection.proto"],
+    repo = "grpc/grpc",
+    revision = "6dda6eae2eb13464f70bdd5ac2c17e9e65e4a8e7",
+    root_dir = "src/proto",
+    deps = [
+    ],
+)

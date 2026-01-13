@@ -92,7 +92,7 @@ func (x TextToTextStopReason) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Request message for Ai.CreateModel.
+// Request message for AiService.CreateModel.
 type CreateModelRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the parent provider for which this model will be created.
@@ -205,7 +205,7 @@ func (b0 CreateModelRequest_builder) Build() *CreateModelRequest {
 	return m0
 }
 
-// Request message for Ai.GetModel.
+// Request message for AiService.GetModel.
 type GetModelRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model to retrieve.
@@ -267,7 +267,7 @@ func (b0 GetModelRequest_builder) Build() *GetModelRequest {
 	return m0
 }
 
-// Request message for Ai.ListModels.
+// Request message for AiService.ListModels.
 type ListModelsRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the parent, which owns this collection of models.
@@ -369,7 +369,7 @@ func (b0 ListModelsRequest_builder) Build() *ListModelsRequest {
 	return m0
 }
 
-// Response message for Ai.ListModels.
+// Response message for AiService.ListModels.
 type ListModelsResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The list of models.
@@ -451,7 +451,7 @@ func (b0 ListModelsResponse_builder) Build() *ListModelsResponse {
 	return m0
 }
 
-// Request message for Ai.CreateVoice.
+// Request message for AiService.CreateVoice.
 type CreateVoiceRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The voice to create.
@@ -546,7 +546,7 @@ func (b0 CreateVoiceRequest_builder) Build() *CreateVoiceRequest {
 	return m0
 }
 
-// Request message for Ai.GetVoice.
+// Request message for AiService.GetVoice.
 type GetVoiceRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the voice to retrieve.
@@ -608,7 +608,7 @@ func (b0 GetVoiceRequest_builder) Build() *GetVoiceRequest {
 	return m0
 }
 
-// Request message for Ai.ListVoices.
+// Request message for AiService.ListVoices.
 type ListVoicesRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Requested page size. Server may return fewer voices than requested.
@@ -692,7 +692,7 @@ func (b0 ListVoicesRequest_builder) Build() *ListVoicesRequest {
 	return m0
 }
 
-// Response message for Ai.ListVoices.
+// Response message for AiService.ListVoices.
 type ListVoicesResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The list of voices.
@@ -774,7 +774,7 @@ func (b0 ListVoicesResponse_builder) Build() *ListVoicesResponse {
 	return m0
 }
 
-// Request message for Ai.SpeechToText.
+// Request message for AiService.SpeechToText.
 type SpeechToTextRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model used.
@@ -906,7 +906,7 @@ func (b0 SpeechToTextRequest_builder) Build() *SpeechToTextRequest {
 	return m0
 }
 
-// Response message for Ai.SpeechToText.
+// Response message for AiService.SpeechToText.
 type SpeechToTextResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The transcribed text.
@@ -1179,7 +1179,7 @@ func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
 	return m0
 }
 
-// Request message for Ai.TextToText.
+// Request message for AiService.TextToText.
 type TextToTextRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model used.
@@ -1300,7 +1300,7 @@ func (b0 TextToTextRequest_builder) Build() *TextToTextRequest {
 	return m0
 }
 
-// Response message for Ai.TextToText.
+// Response message for AiService.TextToText.
 type TextToTextResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The generated message.
@@ -1441,7 +1441,7 @@ func (b0 TextToTextResponse_builder) Build() *TextToTextResponse {
 	return m0
 }
 
-// Request message for Ai.TextToTextStream.
+// Request message for AiService.TextToTextStream.
 type TextToTextStreamRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model used.
@@ -1578,7 +1578,7 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	return m0
 }
 
-// Response message for Ai.TextToTextStream.
+// Response message for AiService.TextToTextStream.
 type TextToTextStreamResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Content of this response.
@@ -2101,7 +2101,7 @@ func (b0 TextToSpeechConfiguration_builder) Build() *TextToSpeechConfiguration {
 	return m0
 }
 
-// Request message for Ai.TextToSpeech.
+// Request message for AiService.TextToSpeech.
 type TextToSpeechRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model used.
@@ -2240,7 +2240,7 @@ func (b0 TextToSpeechRequest_builder) Build() *TextToSpeechRequest {
 	return m0
 }
 
-// Response message for Ai.TextToSpeech.
+// Response message for AiService.TextToSpeech.
 type TextToSpeechResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Audio format of the audio.
@@ -2392,7 +2392,7 @@ func (b0 TextToSpeechResponse_builder) Build() *TextToSpeechResponse {
 	return m0
 }
 
-// Request message for Ai.TextToSpeechStream.
+// Request message for AiService.TextToSpeechStream.
 type TextToSpeechStreamRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model to use.
@@ -2531,7 +2531,7 @@ func (b0 TextToSpeechStreamRequest_builder) Build() *TextToSpeechStreamRequest {
 	return m0
 }
 
-// Response message for Ai.TextToSpeechStream.
+// Response message for AiService.TextToSpeechStream.
 type TextToSpeechStreamResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Content of this response.

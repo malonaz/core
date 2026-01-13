@@ -1,0 +1,10 @@
+name: ai-engine
+includeRuntime: true
+implementation: //go/ai/ai_engine
+dependencies:
+  - type: grpc_client
+    name: server-reflection
+    proto: //third_party/proto:grpc__reflection__v1
+  - type: grpc_client
+    name: ai-service
+    proto: //malonaz/ai/ai_service/v1

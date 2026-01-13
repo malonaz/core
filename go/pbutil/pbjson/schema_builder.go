@@ -32,31 +32,25 @@ var (
 )
 
 type SchemaBuilder struct {
-	schema   *pbreflection.Schema
-	maxDepth int
+	schema *pbreflection.Schema
 }
 
-type Option func(*SchemaBuilder)
-
-func WithMaxDepth(depth int) Option {
-	return func(b *SchemaBuilder) {
-		b.maxDepth = depth
-	}
-}
-
-func NewSchemaBuilder(schema *pbreflection.Schema, opts ...Option) *SchemaBuilder {
-	b := &SchemaBuilder{schema: schema, maxDepth: defaultMaxDepth}
-	for _, opt := range opts {
-		opt(b)
-	}
-	return b
+func NewSchemaBuilder(schema *pbreflection.Schema) *SchemaBuilder {
+	return &SchemaBuilder{schema: schema}
 }
 
 type schemaOptions struct {
+	maxDepth  int
 	fieldMask *fieldmaskpb.FieldMask
 }
 
 type SchemaOption func(*schemaOptions)
+
+func WithMaxDepth(maxDepth int) SchemaOption {
+	return func(o *schemaOptions) {
+		o.maxDepth = maxDepth
+	}
+}
 
 func WithFieldMaskPaths(paths ...string) SchemaOption {
 	return func(o *schemaOptions) {
@@ -67,9 +61,9 @@ func WithFieldMaskPaths(paths ...string) SchemaOption {
 }
 
 func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, methodType pbreflection.StandardMethodType, opts ...SchemaOption) (*jsonpb.Schema, error) {
-	var so schemaOptions
+	so := &schemaOptions{maxDepth: defaultMaxDepth}
 	for _, opt := range opts {
-		opt(&so)
+		opt(so)
 	}
 
 	desc, err := b.schema.FindDescriptorByName(messageFullName)
@@ -93,11 +87,11 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 		}
 	}
 
-	return b.buildMessageSchema(msg, "", 0, methodType, allowedPaths), nil
+	return b.buildMessageSchema(so, msg, "", 0, methodType, allowedPaths), nil
 }
 
 func (b *SchemaBuilder) buildMessageSchema(
-	msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool,
+	so *schemaOptions, msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool,
 ) *jsonpb.Schema {
 	switch msg.FullName() {
 	case timestampFullName:
@@ -118,7 +112,7 @@ func (b *SchemaBuilder) buildMessageSchema(
 	fields := msg.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		schema, isRequired := b.buildFieldSchema(field, prefix, depth, methodType, allowedPaths)
+		schema, isRequired := b.buildFieldSchema(so, field, prefix, depth, methodType, allowedPaths)
 		if schema != nil {
 			properties[string(field.Name())] = schema
 			if isRequired {
@@ -135,8 +129,8 @@ func (b *SchemaBuilder) buildMessageSchema(
 	}
 }
 
-func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, bool) {
-	if depth > b.maxDepth {
+func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, bool) {
+	if depth > so.maxDepth {
 		return nil, false
 	}
 
@@ -172,12 +166,12 @@ func (b *SchemaBuilder) buildFieldSchema(field protoreflect.FieldDescriptor, pre
 		return &jsonpb.Schema{
 			Type:        "array",
 			Description: description,
-			Items:       b.elementSchema(field, path, depth, methodType, allowedPaths),
+			Items:       b.elementSchema(so, field, path, depth, methodType, allowedPaths),
 		}, isRequired
 	}
 
 	if field.Kind() == protoreflect.MessageKind {
-		schema := b.buildMessageSchema(field.Message(), path+".", depth+1, methodType, allowedPaths)
+		schema := b.buildMessageSchema(so, field.Message(), path+".", depth+1, methodType, allowedPaths)
 		if description != "" {
 			schema.Description = description + " (" + schema.Description + ")"
 		}
@@ -211,9 +205,9 @@ func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, descrip
 	return schema
 }
 
-func (b *SchemaBuilder) elementSchema(field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) *jsonpb.Schema {
+func (b *SchemaBuilder) elementSchema(so *schemaOptions, field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) *jsonpb.Schema {
 	if field.Kind() == protoreflect.MessageKind {
-		return b.buildMessageSchema(field.Message(), prefix+".", depth+1, methodType, allowedPaths)
+		return b.buildMessageSchema(so, field.Message(), prefix+".", depth+1, methodType, allowedPaths)
 	}
 	return b.scalarSchema(field, "")
 }

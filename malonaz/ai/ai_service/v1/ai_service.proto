@@ -112,7 +112,7 @@ service AiService {
   }
 }
 
-// Request message for Ai.CreateModel.
+// Request message for AiService.CreateModel.
 message CreateModelRequest {
   // The resource name of the parent provider for which this model will be created.
   // Format: providers/{provider}
@@ -130,7 +130,7 @@ message CreateModelRequest {
   string model_id = 3 [(buf.validate.field).required = true];
 }
 
-// Request message for Ai.GetModel.
+// Request message for AiService.GetModel.
 message GetModelRequest {
   // The resource name of the model to retrieve.
   // Format: providers/{provider}/models/{model}
@@ -140,7 +140,7 @@ message GetModelRequest {
   ];
 }
 
-// Request message for Ai.ListModels.
+// Request message for AiService.ListModels.
 message ListModelsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 500};
 
@@ -165,7 +165,7 @@ message ListModelsRequest {
   string page_token = 3;
 }
 
-// Response message for Ai.ListModels.
+// Response message for AiService.ListModels.
 message ListModelsResponse {
   // The list of models.
   repeated ai.v1.Model models = 1;
@@ -176,7 +176,7 @@ message ListModelsResponse {
   string next_page_token = 2;
 }
 
-// Request message for Ai.CreateVoice.
+// Request message for AiService.CreateVoice.
 message CreateVoiceRequest {
   // The voice to create.
   ai.v1.Voice voice = 1 [(buf.validate.field).required = true];
@@ -188,7 +188,7 @@ message CreateVoiceRequest {
   string voice_id = 2 [(buf.validate.field).required = true];
 }
 
-// Request message for Ai.GetVoice.
+// Request message for AiService.GetVoice.
 message GetVoiceRequest {
   // The resource name of the voice to retrieve.
   // Format: providers/{provider}/voices/{voice}
@@ -198,7 +198,7 @@ message GetVoiceRequest {
   ];
 }
 
-// Request message for Ai.ListVoices.
+// Request message for AiService.ListVoices.
 message ListVoicesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 500};
 
@@ -216,7 +216,7 @@ message ListVoicesRequest {
   string page_token = 2;
 }
 
-// Response message for Ai.ListVoices.
+// Response message for AiService.ListVoices.
 message ListVoicesResponse {
   // The list of voices.
   repeated ai.v1.Voice voices = 1;
@@ -228,7 +228,7 @@ message ListVoicesResponse {
   string next_page_token = 2;
 }
 
-// Request message for Ai.SpeechToText.
+// Request message for AiService.SpeechToText.
 message SpeechToTextRequest {
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
@@ -247,7 +247,7 @@ message SpeechToTextRequest {
   string language_code = 4;
 }
 
-// Response message for Ai.SpeechToText.
+// Response message for AiService.SpeechToText.
 message SpeechToTextResponse {
   // The transcribed text.
   string transcript = 1;
@@ -287,7 +287,7 @@ message TextToTextConfiguration {
   bool stream_partial_tool_calls = 6;
 }
 
-// Request message for Ai.TextToText.
+// Request message for AiService.TextToText.
 message TextToTextRequest {
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
@@ -330,7 +330,7 @@ enum TextToTextStopReason {
   TEXT_TO_TEXT_STOP_REASON_REFUSAL = 6;
 }
 
-// Response message for Ai.TextToText.
+// Response message for AiService.TextToText.
 message TextToTextResponse {
   // The generated message.
   .malonaz.ai.v1.Message message = 1;
@@ -345,7 +345,7 @@ message TextToTextResponse {
   .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
 }
 
-// Request message for Ai.TextToTextStream.
+// Request message for AiService.TextToTextStream.
 message TextToTextStreamRequest {
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
@@ -367,7 +367,7 @@ message TextToTextStreamRequest {
   TextToTextConfiguration configuration = 5;
 }
 
-// Response message for Ai.TextToTextStream.
+// Response message for AiService.TextToTextStream.
 message TextToTextStreamResponse {
   // Content of this response.
   oneof content {
@@ -411,7 +411,7 @@ message TextToSpeechConfiguration {
   google.protobuf.Struct provider_settings = 3;
 }
 
-// Request message for Ai.TextToSpeech.
+// Request message for AiService.TextToSpeech.
 message TextToSpeechRequest {
   option (buf.validate.message).cel = {
     id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
@@ -443,7 +443,7 @@ message TextToSpeechRequest {
   TextToSpeechConfiguration configuration = 5;
 }
 
-// Response message for Ai.TextToSpeech.
+// Response message for AiService.TextToSpeech.
 message TextToSpeechResponse {
   // Audio format of the audio.
   audio.v1.Format audio_format = 1;
@@ -458,7 +458,7 @@ message TextToSpeechResponse {
   .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
 }
 
-// Request message for Ai.TextToSpeechStream.
+// Request message for AiService.TextToSpeechStream.
 message TextToSpeechStreamRequest {
   option (buf.validate.message).cel = {
     id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
@@ -490,7 +490,7 @@ message TextToSpeechStreamRequest {
   TextToSpeechConfiguration configuration = 5;
 }
 
-// Response message for Ai.TextToSpeechStream.
+// Response message for AiService.TextToSpeechStream.
 message TextToSpeechStreamResponse {
   // Content of this response.
   oneof content {

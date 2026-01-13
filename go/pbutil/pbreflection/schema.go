@@ -50,6 +50,14 @@ type resolveSchemaOptions struct {
 	cacheTTL time.Duration
 }
 
+func (o *resolveSchemaOptions) memCache() bool {
+	return o.cacheKey != "" && o.cacheDir == ""
+}
+
+func (o *resolveSchemaOptions) dirCache() bool {
+	return o.cacheKey != "" && o.cacheDir != ""
+}
+
 type Schema struct {
 	files                                     *protoregistry.Files
 	serviceSet                                map[string]struct{}
@@ -65,24 +73,40 @@ func ResolveSchema(ctx context.Context, reflectionClient rpb.ServerReflectionCli
 		opt(options)
 	}
 
-	// Try cache.
-	if options.cacheKey != "" {
-		if data := loadFromCache(options); data != nil {
-			return newSchema(data)
+	// Try mem cache first (returns Schema directly).
+	if options.memCache() {
+		if schema := loadFromMemCache(options); schema != nil {
+			return schema, nil
 		}
 	}
 
+	// Try disk cache.
+	var data *schemaData
+	if options.dirCache() {
+		data = loadFromFileCache(options)
+	}
+
 	// Fallback to resolution.
-	data, err := resolve(ctx, reflectionClient)
+	if data == nil {
+		var err error
+		data, err = resolve(ctx, reflectionClient)
+		if err != nil {
+			return nil, err
+		}
+		if options.dirCache() {
+			saveToFileCache(data, options)
+		}
+	}
+
+	schema, err := newSchema(data)
 	if err != nil {
 		return nil, err
 	}
 
-	if options.cacheKey != "" {
-		saveToCache(data, options)
+	if options.memCache() {
+		saveToMemCache(schema, options)
 	}
-
-	return newSchema(data)
+	return schema, nil
 }
 
 func (s *Schema) Services(yield func(protoreflect.ServiceDescriptor) bool) {
