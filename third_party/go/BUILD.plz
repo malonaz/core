@@ -3126,8 +3126,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):

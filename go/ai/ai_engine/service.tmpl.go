@@ -1,16 +1,32 @@
-package ai_service
+package ai_engine
 
 import (
 	"context"
 	"fmt"
+	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	serverreflectionpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"log/slog"
 )
+
+type Opts struct{}
+
+type runtime struct{}
+
+func newRuntime(opts *Opts) (*runtime, error) {
+	return &runtime{}, nil
+}
+
+func (s *Service) start(ctx context.Context) (func(), error) { return func() {}, nil }
 
 type Service struct {
 	*runtime
 	log                *slog.Logger
 	opts               *Opts
 	withServiceAccount func(context.Context) context.Context
+
+	serverReflectionClient serverreflectionpb.ServerReflectionClient
+
+	aiServiceClient aiservicepb.AiServiceClient
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -22,6 +38,10 @@ func (s *Service) WithLogger(logger *slog.Logger) *Service {
 func New(
 	opts *Opts,
 
+	serverReflectionClient serverreflectionpb.ServerReflectionClient,
+
+	aiServiceClient aiservicepb.AiServiceClient,
+
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
@@ -31,6 +51,10 @@ func New(
 		runtime: runtime,
 		log:     slog.Default(),
 		opts:    opts,
+
+		serverReflectionClient: serverReflectionClient,
+
+		aiServiceClient: aiServiceClient,
 	}, nil
 }
 

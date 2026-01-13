@@ -14,6 +14,7 @@ go_service_src(
     manifest = ":manifest",
 )
 
+#wollemi:keep
 go_library(
     name = "ai_engine",
     srcs = [
