@@ -1,5 +1,5 @@
 name: ai-engine
-includeRuntime: true
+includeRuntime: false
 implementation: //go/ai/ai_engine
 dependencies:
   - type: grpc_client

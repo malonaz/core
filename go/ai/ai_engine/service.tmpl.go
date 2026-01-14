@@ -8,16 +8,6 @@ import (
 	"log/slog"
 )
 
-type Opts struct{}
-
-type runtime struct{}
-
-func newRuntime(opts *Opts) (*runtime, error) {
-	return &runtime{}, nil
-}
-
-func (s *Service) start(ctx context.Context) (func(), error) { return func() {}, nil }
-
 type Service struct {
 	*runtime
 	log                *slog.Logger

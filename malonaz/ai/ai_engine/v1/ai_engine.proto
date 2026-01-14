@@ -39,7 +39,7 @@ message CreateToolRequest {
 // Request message for Engine.ParseToolCall.
 message ParseToolCallRequest {
   // The tool call to parse.
-  ai.v1.ToolCall tool_call = 1;
+  ai.v1.ToolCall tool_call = 1 [(buf.validate.field).required = true];
 }
 
 // Request message for Engine.GenerateMessage.

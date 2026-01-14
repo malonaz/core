@@ -24,6 +24,18 @@ var (
 	annotationKeyMessageFullName = annotationKeyPrefix + "message-full-name"
 )
 
+type Opts struct {
+	DefaultModel string `long:"default-model" env:"DEFAULT_MODEL" description:"The default model to use" required:"true"`
+}
+
+type runtime struct{}
+
+func newRuntime(opts *Opts) (*runtime, error) {
+	return &runtime{}, nil
+}
+
+func (s *Service) start(ctx context.Context) (func(), error) { return func() {}, nil }
+
 func (s *Service) getSchema(ctx context.Context) (*pbreflection.Schema, error) {
 	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient, pbreflection.WithMemCache("schema", time.Hour))
 }
@@ -128,9 +140,13 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		return nil, err
 	}
 
+	model := request.GetModel()
+	if model == "" {
+		model = s.opts.DefaultModel
+	}
 	// Submit text to text request.
 	textToTextRequest := &aiservicepb.TextToTextRequest{
-		Model: request.GetModel(),
+		Model: model,
 		Messages: []*aipb.Message{
 			ai.NewSystemMessage(&aipb.SystemMessage{Content: fmt.Sprintf("Use the `%s` tool to generate a JSON payload based on the data given to you by the user", tool.GetName())}),
 			ai.NewUserMessage(&aipb.UserMessage{Content: request.GetPrompt()}),

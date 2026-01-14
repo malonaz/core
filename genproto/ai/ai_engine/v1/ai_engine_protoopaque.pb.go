@@ -498,9 +498,9 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x11CreateToolRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x129\n" +
 	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"L\n" +
-	"\x14ParseToolCallRequest\x124\n" +
-	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallR\btoolCall\"\x85\x02\n" +
+	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"T\n" +
+	"\x14ParseToolCallRequest\x12<\n" +
+	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\"\x85\x02\n" +
 	"\x16GenerateMessageRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12/\n" +
 	"\x05model\x18\x02 \x01(\tB\x19\xfaA\x16\n" +
