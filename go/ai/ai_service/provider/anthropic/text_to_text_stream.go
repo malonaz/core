@@ -65,11 +65,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			messages = append(messages, anthropic.NewAssistantMessage(contentBlockParamUnions...))
 
 		case *aipb.Message_Tool:
-			content, isError, err := ai.ParseToolResult(m.Tool.Result)
+			content, err := ai.ParseToolResult(m.Tool.Result)
 			if err != nil {
 				return grpc.Errorf(codes.InvalidArgument, "message [%d]: converting tool result [%d] to text: %v", i, err).Err()
 			}
-			toolResultBlock := anthropic.NewToolResultBlock(m.Tool.ToolCallId, content, isError)
+			toolResultBlock := anthropic.NewToolResultBlock(m.Tool.ToolCallId, content, m.Tool.Result.GetError() != nil)
 			messages = append(messages, anthropic.NewUserMessage(toolResultBlock)) // Anthropic passes tool results with role user.
 		}
 	}

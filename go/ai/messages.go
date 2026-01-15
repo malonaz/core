@@ -75,23 +75,23 @@ func NewErrorToolResult(err error) *aipb.ToolResult {
 	}
 }
 
-func ParseToolResult(toolResult *aipb.ToolResult) (string, bool, error) {
+func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 	switch r := toolResult.GetResult().(type) {
 	case *aipb.ToolResult_Content:
-		return r.Content, false, nil
+		return r.Content, nil
 	case *aipb.ToolResult_StructuredContent:
 		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
 		if err != nil {
-			return "", false, err
+			return "", err
 		}
-		return string(bytes), false, nil
+		return string(bytes), nil
 	case *aipb.ToolResult_Error:
 		bytes, err := pbutil.JSONMarshal(r.Error)
 		if err != nil {
-			return "", false, err
+			return "", err
 		}
-		return string(bytes), false, nil
+		return string(bytes), nil
 	default:
-		return "", false, fmt.Errorf("unknown tool result type: %T", r)
+		return "", fmt.Errorf("unknown tool result type: %T", r)
 	}
 }
