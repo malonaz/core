@@ -599,7 +599,7 @@ func (*ParseToolCallResponse_RpcRequest) isParseToolCallResponse_Result() {}
 // Request message for AiEngine.CreateDiscoveryTool.
 type CreateDiscoveryToolRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Name for the discovery tool (used as prefix, e.g., "{name}_Discover").
+	// The name of this discovery tool.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Description of what this tool set represents.
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
@@ -670,7 +670,7 @@ func (x *CreateDiscoveryToolRequest) SetTools(v []*v1.Tool) {
 type CreateDiscoveryToolRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Name for the discovery tool (used as prefix, e.g., "{name}_Discover").
+	// The name of this discovery tool.
 	Name string
 	// Description of what this tool set represents.
 	Description string
@@ -956,12 +956,14 @@ func (*DescriptorReference_Method) isDescriptorReference_FullName() {}
 // Represents a discoverable set of tools.
 type ToolSet struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Name of this tool set.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The tool used to discover the tools in this set.
-	DiscoveryTool *v1.Tool `protobuf:"bytes,1,opt,name=discovery_tool,json=discoveryTool,proto3" json:"discovery_tool,omitempty"`
+	DiscoveryTool *v1.Tool `protobuf:"bytes,2,opt,name=discovery_tool,json=discoveryTool,proto3" json:"discovery_tool,omitempty"`
 	// The tools available in this set.
-	Tools []*v1.Tool `protobuf:"bytes,2,rep,name=tools,proto3" json:"tools,omitempty"`
+	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
 	// Tracks the times at which tools were discovered.
-	ToolNameToDiscoverTimestamp map[string]int64 `protobuf:"bytes,3,rep,name=tool_name_to_discover_timestamp,json=toolNameToDiscoverTimestamp,proto3" json:"tool_name_to_discover_timestamp,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	ToolNameToDiscoverTimestamp map[string]int64 `protobuf:"bytes,4,rep,name=tool_name_to_discover_timestamp,json=toolNameToDiscoverTimestamp,proto3" json:"tool_name_to_discover_timestamp,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -991,6 +993,13 @@ func (x *ToolSet) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *ToolSet) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 func (x *ToolSet) GetDiscoveryTool() *v1.Tool {
 	if x != nil {
 		return x.DiscoveryTool
@@ -1010,6 +1019,10 @@ func (x *ToolSet) GetToolNameToDiscoverTimestamp() map[string]int64 {
 		return x.ToolNameToDiscoverTimestamp
 	}
 	return nil
+}
+
+func (x *ToolSet) SetName(v string) {
+	x.Name = v
 }
 
 func (x *ToolSet) SetDiscoveryTool(v *v1.Tool) {
@@ -1038,6 +1051,8 @@ func (x *ToolSet) ClearDiscoveryTool() {
 type ToolSet_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Name of this tool set.
+	Name string
 	// The tool used to discover the tools in this set.
 	DiscoveryTool *v1.Tool
 	// The tools available in this set.
@@ -1050,6 +1065,7 @@ func (b0 ToolSet_builder) Build() *ToolSet {
 	m0 := &ToolSet{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Name = b.Name
 	x.DiscoveryTool = b.DiscoveryTool
 	x.Tools = b.Tools
 	x.ToolNameToDiscoverTimestamp = b.ToolNameToDiscoverTimestamp
@@ -1270,11 +1286,12 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
-	"\tfull_name\x12\x05\xbaH\x02\b\x01\"\xda\x02\n" +
-	"\aToolSet\x12B\n" +
-	"\x0ediscovery_tool\x18\x01 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
-	"\x05tools\x18\x02 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12\x87\x01\n" +
-	"\x1ftool_name_to_discover_timestamp\x18\x03 \x03(\v2A.malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntryR\x1btoolNameToDiscoverTimestamp\x1aN\n" +
+	"\tfull_name\x12\x05\xbaH\x02\b\x01\"\xee\x02\n" +
+	"\aToolSet\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12B\n" +
+	"\x0ediscovery_tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12\x87\x01\n" +
+	"\x1ftool_name_to_discover_timestamp\x18\x04 \x03(\v2A.malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntryR\x1btoolNameToDiscoverTimestamp\x1aN\n" +
 	" ToolNameToDiscoverTimestampEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"Y\n" +

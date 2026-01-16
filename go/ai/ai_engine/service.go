@@ -131,9 +131,6 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 				toolNames = append(toolNames, s)
 			}
 		}
-		discoverToolsRequest := &pb.DiscoverToolsRequest{
-			ToolNames: toolNames,
-		}
 
 		// Find the tool set.
 		var targetToolSet *pb.ToolSet
@@ -160,7 +157,10 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 
 		return &pb.ParseToolCallResponse{
 			Result: &pb.ParseToolCallResponse_DiscoverToolsRequest{
-				DiscoverToolsRequest: discoverToolsRequest,
+				DiscoverToolsRequest: &pb.DiscoverToolsRequest{
+					ToolSetName: targetToolSet.GetName(),
+					ToolNames:   toolNames,
+				},
 			},
 		}, nil
 	}
@@ -279,8 +279,7 @@ func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDis
 		desc.WriteString(request.Description)
 		desc.WriteString("\n\n")
 	}
-	desc.WriteString("Discover tools from " + request.Name + ".")
-	desc.WriteString("\nAvailable tools:")
+	desc.WriteString("Discover the following tools:")
 	for _, tool := range request.Tools {
 		desc.WriteString("\n- " + tool.Name)
 		if tool.Description != "" {
@@ -291,7 +290,7 @@ func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDis
 
 	// Build the tool.
 	return &aipb.Tool{
-		Name:        request.Name + "_Discover",
+		Name:        request.Name,
 		Description: desc.String(),
 		JsonSchema: &jsonpb.Schema{
 			Type: "object",
@@ -354,19 +353,19 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	}
 
 	// Build the discover tool.
-	serviceName := string(serviceDescriptor.Name())
 	serviceComment := schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-
-	discoveryTool, err := s.CreateDiscoveryTool(ctx, &pb.CreateDiscoveryToolRequest{
-		Name:        serviceName,
+	createDiscoveryToolRequest := &pb.CreateDiscoveryToolRequest{
+		Name:        string(serviceDescriptor.Name()) + "_Discover",
 		Description: serviceComment,
 		Tools:       tools,
-	})
+	}
+	discoveryTool, err := s.CreateDiscoveryTool(ctx, createDiscoveryToolRequest)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "creating discovery tool: %v", err).Err()
 	}
 
 	return &pb.ToolSet{
+		Name:                        string(serviceDescriptor.FullName()),
 		DiscoveryTool:               discoveryTool,
 		Tools:                       tools,
 		ToolNameToDiscoverTimestamp: toolNameToDiscoverTimestamp,

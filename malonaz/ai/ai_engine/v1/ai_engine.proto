@@ -90,7 +90,7 @@ message ParseToolCallResponse {
 
 // Request message for AiEngine.CreateDiscoveryTool.
 message CreateDiscoveryToolRequest {
-  // Name for the discovery tool (used as prefix, e.g., "{name}_Discover").
+  // The name of this discovery tool.
   string name = 1 [(buf.validate.field).required = true];
 
   // Description of what this tool set represents.
@@ -126,14 +126,17 @@ message DescriptorReference {
 
 // Represents a discoverable set of tools.
 message ToolSet {
+  // Name of this tool set.
+  string name = 1;
+
   // The tool used to discover the tools in this set.
-  ai.v1.Tool discovery_tool = 1 [(buf.validate.field).required = true];
+  ai.v1.Tool discovery_tool = 2 [(buf.validate.field).required = true];
 
   // The tools available in this set.
-  repeated ai.v1.Tool tools = 2 [(buf.validate.field).required = true];
+  repeated ai.v1.Tool tools = 3 [(buf.validate.field).required = true];
 
   // Tracks the times at which tools were discovered.
-  map<string, int64> tool_name_to_discover_timestamp = 3;
+  map<string, int64> tool_name_to_discover_timestamp = 4;
 }
 
 // Represents a discover tools request.
