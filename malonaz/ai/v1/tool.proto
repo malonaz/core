@@ -11,13 +11,13 @@ option go_package = "github.com/malonaz/core/genproto/ai/v1";
 
 // Represents a tool that can be called by the AI model.
 message Tool {
-  // The name of the tool to be called.
+  // A unique name for this tool.
   string name = 1 [(buf.validate.field).required = true];
 
   // A description of what the tool does.
   string description = 2 [(buf.validate.field).required = true];
 
-  // The json schema of the exected object to be returned.
+  // The json schema of the expected object to be returned.
   malonaz.json.v1.Schema json_schema = 3;
 
   // Annotations about this tool (not transmitted to the ai provider).

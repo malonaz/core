@@ -16,6 +16,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -27,173 +28,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Request message for AiService.CreateTool
-type CreateToolRequest struct {
-	state                          protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_DescriptorReference *DescriptorReference   `protobuf:"bytes,1,opt,name=descriptor_reference,json=descriptorReference,proto3"`
-	xxx_hidden_FieldMask           *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
-}
-
-func (x *CreateToolRequest) Reset() {
-	*x = CreateToolRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateToolRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateToolRequest) ProtoMessage() {}
-
-func (x *CreateToolRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *CreateToolRequest) GetDescriptorReference() *DescriptorReference {
-	if x != nil {
-		return x.xxx_hidden_DescriptorReference
-	}
-	return nil
-}
-
-func (x *CreateToolRequest) GetFieldMask() *fieldmaskpb.FieldMask {
-	if x != nil {
-		return x.xxx_hidden_FieldMask
-	}
-	return nil
-}
-
-func (x *CreateToolRequest) SetDescriptorReference(v *DescriptorReference) {
-	x.xxx_hidden_DescriptorReference = v
-}
-
-func (x *CreateToolRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
-	x.xxx_hidden_FieldMask = v
-}
-
-func (x *CreateToolRequest) HasDescriptorReference() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_DescriptorReference != nil
-}
-
-func (x *CreateToolRequest) HasFieldMask() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_FieldMask != nil
-}
-
-func (x *CreateToolRequest) ClearDescriptorReference() {
-	x.xxx_hidden_DescriptorReference = nil
-}
-
-func (x *CreateToolRequest) ClearFieldMask() {
-	x.xxx_hidden_FieldMask = nil
-}
-
-type CreateToolRequest_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The descriptor reference for which to create a tool.
-	DescriptorReference *DescriptorReference
-	// Optional field to specify which fields you wish to generate.
-	FieldMask *fieldmaskpb.FieldMask
-}
-
-func (b0 CreateToolRequest_builder) Build() *CreateToolRequest {
-	m0 := &CreateToolRequest{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_DescriptorReference = b.DescriptorReference
-	x.xxx_hidden_FieldMask = b.FieldMask
-	return m0
-}
-
-// Request message for Engine.ParseToolCall.
-type ParseToolCallRequest struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ToolCall *v1.ToolCall           `protobuf:"bytes,1,opt,name=tool_call,json=toolCall,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
-func (x *ParseToolCallRequest) Reset() {
-	*x = ParseToolCallRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ParseToolCallRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ParseToolCallRequest) ProtoMessage() {}
-
-func (x *ParseToolCallRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ParseToolCallRequest) GetToolCall() *v1.ToolCall {
-	if x != nil {
-		return x.xxx_hidden_ToolCall
-	}
-	return nil
-}
-
-func (x *ParseToolCallRequest) SetToolCall(v *v1.ToolCall) {
-	x.xxx_hidden_ToolCall = v
-}
-
-func (x *ParseToolCallRequest) HasToolCall() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_ToolCall != nil
-}
-
-func (x *ParseToolCallRequest) ClearToolCall() {
-	x.xxx_hidden_ToolCall = nil
-}
-
-type ParseToolCallRequest_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The tool call to parse.
-	ToolCall *v1.ToolCall
-}
-
-func (b0 ParseToolCallRequest_builder) Build() *ParseToolCallRequest {
-	m0 := &ParseToolCallRequest{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_ToolCall = b.ToolCall
-	return m0
-}
-
-// Request message for Engine.GenerateMessage.
+// Request message for AiEngine.GenerateMessage.
 type GenerateMessageRequest struct {
 	state                          protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_DescriptorReference *DescriptorReference   `protobuf:"bytes,1,opt,name=descriptor_reference,json=descriptorReference,proto3"`
@@ -206,7 +41,7 @@ type GenerateMessageRequest struct {
 
 func (x *GenerateMessageRequest) Reset() {
 	*x = GenerateMessageRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -218,7 +53,7 @@ func (x *GenerateMessageRequest) String() string {
 func (*GenerateMessageRequest) ProtoMessage() {}
 
 func (x *GenerateMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,6 +155,588 @@ func (b0 GenerateMessageRequest_builder) Build() *GenerateMessageRequest {
 	return m0
 }
 
+// Request message for AiEngine.CreateTool
+type CreateToolRequest struct {
+	state                          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_DescriptorReference *DescriptorReference   `protobuf:"bytes,1,opt,name=descriptor_reference,json=descriptorReference,proto3"`
+	xxx_hidden_FieldMask           *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
+}
+
+func (x *CreateToolRequest) Reset() {
+	*x = CreateToolRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateToolRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateToolRequest) ProtoMessage() {}
+
+func (x *CreateToolRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CreateToolRequest) GetDescriptorReference() *DescriptorReference {
+	if x != nil {
+		return x.xxx_hidden_DescriptorReference
+	}
+	return nil
+}
+
+func (x *CreateToolRequest) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.xxx_hidden_FieldMask
+	}
+	return nil
+}
+
+func (x *CreateToolRequest) SetDescriptorReference(v *DescriptorReference) {
+	x.xxx_hidden_DescriptorReference = v
+}
+
+func (x *CreateToolRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
+	x.xxx_hidden_FieldMask = v
+}
+
+func (x *CreateToolRequest) HasDescriptorReference() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_DescriptorReference != nil
+}
+
+func (x *CreateToolRequest) HasFieldMask() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_FieldMask != nil
+}
+
+func (x *CreateToolRequest) ClearDescriptorReference() {
+	x.xxx_hidden_DescriptorReference = nil
+}
+
+func (x *CreateToolRequest) ClearFieldMask() {
+	x.xxx_hidden_FieldMask = nil
+}
+
+type CreateToolRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The descriptor reference for which to create a tool.
+	DescriptorReference *DescriptorReference
+	// Optional field to specify which fields you wish to generate.
+	FieldMask *fieldmaskpb.FieldMask
+}
+
+func (b0 CreateToolRequest_builder) Build() *CreateToolRequest {
+	m0 := &CreateToolRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_DescriptorReference = b.DescriptorReference
+	x.xxx_hidden_FieldMask = b.FieldMask
+	return m0
+}
+
+// Request message for AiEngine.ParseToolCall.
+type ParseToolCallRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ToolCall *v1.ToolCall           `protobuf:"bytes,1,opt,name=tool_call,json=toolCall,proto3"`
+	xxx_hidden_ToolSets *[]*ToolSet            `protobuf:"bytes,2,rep,name=tool_sets,json=toolSets,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *ParseToolCallRequest) Reset() {
+	*x = ParseToolCallRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ParseToolCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ParseToolCallRequest) ProtoMessage() {}
+
+func (x *ParseToolCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ParseToolCallRequest) GetToolCall() *v1.ToolCall {
+	if x != nil {
+		return x.xxx_hidden_ToolCall
+	}
+	return nil
+}
+
+func (x *ParseToolCallRequest) GetToolSets() []*ToolSet {
+	if x != nil {
+		if x.xxx_hidden_ToolSets != nil {
+			return *x.xxx_hidden_ToolSets
+		}
+	}
+	return nil
+}
+
+func (x *ParseToolCallRequest) SetToolCall(v *v1.ToolCall) {
+	x.xxx_hidden_ToolCall = v
+}
+
+func (x *ParseToolCallRequest) SetToolSets(v []*ToolSet) {
+	x.xxx_hidden_ToolSets = &v
+}
+
+func (x *ParseToolCallRequest) HasToolCall() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ToolCall != nil
+}
+
+func (x *ParseToolCallRequest) ClearToolCall() {
+	x.xxx_hidden_ToolCall = nil
+}
+
+type ParseToolCallRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The tool call to parse.
+	ToolCall *v1.ToolCall
+	// Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
+	// in order to ensure the call is valid.
+	// if `DiscoverToolsRequest`:
+	//   - targets a non existent tool => NotFound
+	//   - targets an already discovered tool => AlreadyExists
+	//
+	// if `RpcRequest`:
+	//   - targets a non-discovered method => FailedPrecondition.
+	ToolSets []*ToolSet
+}
+
+func (b0 ParseToolCallRequest_builder) Build() *ParseToolCallRequest {
+	m0 := &ParseToolCallRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ToolCall = b.ToolCall
+	x.xxx_hidden_ToolSets = &b.ToolSets
+	return m0
+}
+
+// Response message for AiEngine.ParseToolCall.
+type ParseToolCallResponse struct {
+	state             protoimpl.MessageState         `protogen:"opaque.v1"`
+	xxx_hidden_Result isParseToolCallResponse_Result `protobuf_oneof:"result"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ParseToolCallResponse) Reset() {
+	*x = ParseToolCallResponse{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ParseToolCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ParseToolCallResponse) ProtoMessage() {}
+
+func (x *ParseToolCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ParseToolCallResponse) GetMessage() *structpb.Struct {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Result.(*parseToolCallResponse_Message); ok {
+			return x.Message
+		}
+	}
+	return nil
+}
+
+func (x *ParseToolCallResponse) GetDiscoverToolsRequest() *DiscoverToolsRequest {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Result.(*parseToolCallResponse_DiscoverToolsRequest); ok {
+			return x.DiscoverToolsRequest
+		}
+	}
+	return nil
+}
+
+func (x *ParseToolCallResponse) GetRpcRequest() *RpcRequest {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Result.(*parseToolCallResponse_RpcRequest); ok {
+			return x.RpcRequest
+		}
+	}
+	return nil
+}
+
+func (x *ParseToolCallResponse) SetMessage(v *structpb.Struct) {
+	if v == nil {
+		x.xxx_hidden_Result = nil
+		return
+	}
+	x.xxx_hidden_Result = &parseToolCallResponse_Message{v}
+}
+
+func (x *ParseToolCallResponse) SetDiscoverToolsRequest(v *DiscoverToolsRequest) {
+	if v == nil {
+		x.xxx_hidden_Result = nil
+		return
+	}
+	x.xxx_hidden_Result = &parseToolCallResponse_DiscoverToolsRequest{v}
+}
+
+func (x *ParseToolCallResponse) SetRpcRequest(v *RpcRequest) {
+	if v == nil {
+		x.xxx_hidden_Result = nil
+		return
+	}
+	x.xxx_hidden_Result = &parseToolCallResponse_RpcRequest{v}
+}
+
+func (x *ParseToolCallResponse) HasResult() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Result != nil
+}
+
+func (x *ParseToolCallResponse) HasMessage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Result.(*parseToolCallResponse_Message)
+	return ok
+}
+
+func (x *ParseToolCallResponse) HasDiscoverToolsRequest() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Result.(*parseToolCallResponse_DiscoverToolsRequest)
+	return ok
+}
+
+func (x *ParseToolCallResponse) HasRpcRequest() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Result.(*parseToolCallResponse_RpcRequest)
+	return ok
+}
+
+func (x *ParseToolCallResponse) ClearResult() {
+	x.xxx_hidden_Result = nil
+}
+
+func (x *ParseToolCallResponse) ClearMessage() {
+	if _, ok := x.xxx_hidden_Result.(*parseToolCallResponse_Message); ok {
+		x.xxx_hidden_Result = nil
+	}
+}
+
+func (x *ParseToolCallResponse) ClearDiscoverToolsRequest() {
+	if _, ok := x.xxx_hidden_Result.(*parseToolCallResponse_DiscoverToolsRequest); ok {
+		x.xxx_hidden_Result = nil
+	}
+}
+
+func (x *ParseToolCallResponse) ClearRpcRequest() {
+	if _, ok := x.xxx_hidden_Result.(*parseToolCallResponse_RpcRequest); ok {
+		x.xxx_hidden_Result = nil
+	}
+}
+
+const ParseToolCallResponse_Result_not_set_case case_ParseToolCallResponse_Result = 0
+const ParseToolCallResponse_Message_case case_ParseToolCallResponse_Result = 1
+const ParseToolCallResponse_DiscoverToolsRequest_case case_ParseToolCallResponse_Result = 2
+const ParseToolCallResponse_RpcRequest_case case_ParseToolCallResponse_Result = 3
+
+func (x *ParseToolCallResponse) WhichResult() case_ParseToolCallResponse_Result {
+	if x == nil {
+		return ParseToolCallResponse_Result_not_set_case
+	}
+	switch x.xxx_hidden_Result.(type) {
+	case *parseToolCallResponse_Message:
+		return ParseToolCallResponse_Message_case
+	case *parseToolCallResponse_DiscoverToolsRequest:
+		return ParseToolCallResponse_DiscoverToolsRequest_case
+	case *parseToolCallResponse_RpcRequest:
+		return ParseToolCallResponse_RpcRequest_case
+	default:
+		return ParseToolCallResponse_Result_not_set_case
+	}
+}
+
+type ParseToolCallResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parsed result based on the tool call type.
+
+	// Fields of oneof xxx_hidden_Result:
+	// A generic parsed message when the tool generates a protobuf message.
+	Message *structpb.Struct
+	// A request to discover additional tools from a tool set.
+	DiscoverToolsRequest *DiscoverToolsRequest
+	// A request to execute an RPC method.
+	RpcRequest *RpcRequest
+	// -- end of xxx_hidden_Result
+}
+
+func (b0 ParseToolCallResponse_builder) Build() *ParseToolCallResponse {
+	m0 := &ParseToolCallResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Message != nil {
+		x.xxx_hidden_Result = &parseToolCallResponse_Message{b.Message}
+	}
+	if b.DiscoverToolsRequest != nil {
+		x.xxx_hidden_Result = &parseToolCallResponse_DiscoverToolsRequest{b.DiscoverToolsRequest}
+	}
+	if b.RpcRequest != nil {
+		x.xxx_hidden_Result = &parseToolCallResponse_RpcRequest{b.RpcRequest}
+	}
+	return m0
+}
+
+type case_ParseToolCallResponse_Result protoreflect.FieldNumber
+
+func (x case_ParseToolCallResponse_Result) String() string {
+	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isParseToolCallResponse_Result interface {
+	isParseToolCallResponse_Result()
+}
+
+type parseToolCallResponse_Message struct {
+	// A generic parsed message when the tool generates a protobuf message.
+	Message *structpb.Struct `protobuf:"bytes,1,opt,name=message,proto3,oneof"`
+}
+
+type parseToolCallResponse_DiscoverToolsRequest struct {
+	// A request to discover additional tools from a tool set.
+	DiscoverToolsRequest *DiscoverToolsRequest `protobuf:"bytes,2,opt,name=discover_tools_request,json=discoverToolsRequest,proto3,oneof"`
+}
+
+type parseToolCallResponse_RpcRequest struct {
+	// A request to execute an RPC method.
+	RpcRequest *RpcRequest `protobuf:"bytes,3,opt,name=rpc_request,json=rpcRequest,proto3,oneof"`
+}
+
+func (*parseToolCallResponse_Message) isParseToolCallResponse_Result() {}
+
+func (*parseToolCallResponse_DiscoverToolsRequest) isParseToolCallResponse_Result() {}
+
+func (*parseToolCallResponse_RpcRequest) isParseToolCallResponse_Result() {}
+
+// Request message for AiEngine.CreateDiscoveryTool.
+type CreateDiscoveryToolRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Description string                 `protobuf:"bytes,2,opt,name=description,proto3"`
+	xxx_hidden_Tools       *[]*v1.Tool            `protobuf:"bytes,3,rep,name=tools,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *CreateDiscoveryToolRequest) Reset() {
+	*x = CreateDiscoveryToolRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateDiscoveryToolRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDiscoveryToolRequest) ProtoMessage() {}
+
+func (x *CreateDiscoveryToolRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CreateDiscoveryToolRequest) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *CreateDiscoveryToolRequest) GetDescription() string {
+	if x != nil {
+		return x.xxx_hidden_Description
+	}
+	return ""
+}
+
+func (x *CreateDiscoveryToolRequest) GetTools() []*v1.Tool {
+	if x != nil {
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
+	}
+	return nil
+}
+
+func (x *CreateDiscoveryToolRequest) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *CreateDiscoveryToolRequest) SetDescription(v string) {
+	x.xxx_hidden_Description = v
+}
+
+func (x *CreateDiscoveryToolRequest) SetTools(v []*v1.Tool) {
+	x.xxx_hidden_Tools = &v
+}
+
+type CreateDiscoveryToolRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Name for the discovery tool (used as prefix, e.g., "{name}_Discover").
+	Name string
+	// Description of what this tool set represents.
+	Description string
+	// The tools that can be discovered.
+	Tools []*v1.Tool
+}
+
+func (b0 CreateDiscoveryToolRequest_builder) Build() *CreateDiscoveryToolRequest {
+	m0 := &CreateDiscoveryToolRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_Tools = &b.Tools
+	return m0
+}
+
+// Request message for AiEngine.CreateServiceToolSet.
+type CreateServiceToolSetRequest struct {
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ServiceFullName string                 `protobuf:"bytes,1,opt,name=service_full_name,json=serviceFullName,proto3"`
+	xxx_hidden_MethodFullNames []string               `protobuf:"bytes,2,rep,name=method_full_names,json=methodFullNames,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *CreateServiceToolSetRequest) Reset() {
+	*x = CreateServiceToolSetRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateServiceToolSetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateServiceToolSetRequest) ProtoMessage() {}
+
+func (x *CreateServiceToolSetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CreateServiceToolSetRequest) GetServiceFullName() string {
+	if x != nil {
+		return x.xxx_hidden_ServiceFullName
+	}
+	return ""
+}
+
+func (x *CreateServiceToolSetRequest) GetMethodFullNames() []string {
+	if x != nil {
+		return x.xxx_hidden_MethodFullNames
+	}
+	return nil
+}
+
+func (x *CreateServiceToolSetRequest) SetServiceFullName(v string) {
+	x.xxx_hidden_ServiceFullName = v
+}
+
+func (x *CreateServiceToolSetRequest) SetMethodFullNames(v []string) {
+	x.xxx_hidden_MethodFullNames = v
+}
+
+type CreateServiceToolSetRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The fully qualified name of the gRPC service.
+	// Example: "malonaz.ai.ai_engine.v1.AiEngine"
+	ServiceFullName string
+	// Optional list of method fully qualified names to include.
+	// If empty, all methods from the service are included.
+	// Example: ["malonaz.ai.ai_engine.v1.AiEngine.CreateTool"]
+	MethodFullNames []string
+}
+
+func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetRequest {
+	m0 := &CreateServiceToolSetRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ServiceFullName = b.ServiceFullName
+	x.xxx_hidden_MethodFullNames = b.MethodFullNames
+	return m0
+}
+
 // A reference to a protobuf descriptor.
 type DescriptorReference struct {
 	state               protoimpl.MessageState         `protogen:"opaque.v1"`
@@ -330,7 +747,7 @@ type DescriptorReference struct {
 
 func (x *DescriptorReference) Reset() {
 	*x = DescriptorReference{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -342,7 +759,7 @@ func (x *DescriptorReference) String() string {
 func (*DescriptorReference) ProtoMessage() {}
 
 func (x *DescriptorReference) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -465,7 +882,7 @@ func (b0 DescriptorReference_builder) Build() *DescriptorReference {
 type case_DescriptorReference_FullName protoreflect.FieldNumber
 
 func (x case_DescriptorReference_FullName) String() string {
-	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3].Descriptor()
+	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -490,62 +907,392 @@ func (*descriptorReference_Message) isDescriptorReference_FullName() {}
 
 func (*descriptorReference_Method) isDescriptorReference_FullName() {}
 
+// Represents a discoverable set of tools.
+type ToolSet struct {
+	state                             protoimpl.MessageState            `protogen:"opaque.v1"`
+	xxx_hidden_DiscoveryTool          *v1.Tool                          `protobuf:"bytes,1,opt,name=discovery_tool,json=discoveryTool,proto3"`
+	xxx_hidden_Tools                  *[]*v1.Tool                       `protobuf:"bytes,2,rep,name=tools,proto3"`
+	xxx_hidden_ToolNameToDiscoverTime map[string]*timestamppb.Timestamp `protobuf:"bytes,3,rep,name=tool_name_to_discover_time,json=toolNameToDiscoverTime,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
+}
+
+func (x *ToolSet) Reset() {
+	*x = ToolSet{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolSet) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolSet) ProtoMessage() {}
+
+func (x *ToolSet) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ToolSet) GetDiscoveryTool() *v1.Tool {
+	if x != nil {
+		return x.xxx_hidden_DiscoveryTool
+	}
+	return nil
+}
+
+func (x *ToolSet) GetTools() []*v1.Tool {
+	if x != nil {
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
+	}
+	return nil
+}
+
+func (x *ToolSet) GetToolNameToDiscoverTime() map[string]*timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_ToolNameToDiscoverTime
+	}
+	return nil
+}
+
+func (x *ToolSet) SetDiscoveryTool(v *v1.Tool) {
+	x.xxx_hidden_DiscoveryTool = v
+}
+
+func (x *ToolSet) SetTools(v []*v1.Tool) {
+	x.xxx_hidden_Tools = &v
+}
+
+func (x *ToolSet) SetToolNameToDiscoverTime(v map[string]*timestamppb.Timestamp) {
+	x.xxx_hidden_ToolNameToDiscoverTime = v
+}
+
+func (x *ToolSet) HasDiscoveryTool() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_DiscoveryTool != nil
+}
+
+func (x *ToolSet) ClearDiscoveryTool() {
+	x.xxx_hidden_DiscoveryTool = nil
+}
+
+type ToolSet_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The tool used to discover the tools in this set.
+	DiscoveryTool *v1.Tool
+	// The tools available in this set.
+	Tools []*v1.Tool
+	// Tracks the times at which tools were discovered.
+	ToolNameToDiscoverTime map[string]*timestamppb.Timestamp
+}
+
+func (b0 ToolSet_builder) Build() *ToolSet {
+	m0 := &ToolSet{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_DiscoveryTool = b.DiscoveryTool
+	x.xxx_hidden_Tools = &b.Tools
+	x.xxx_hidden_ToolNameToDiscoverTime = b.ToolNameToDiscoverTime
+	return m0
+}
+
+// Represents a discover tools request.
+type DiscoverToolsRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ToolSetName string                 `protobuf:"bytes,1,opt,name=tool_set_name,json=toolSetName,proto3"`
+	xxx_hidden_ToolNames   []string               `protobuf:"bytes,2,rep,name=tool_names,json=toolNames,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *DiscoverToolsRequest) Reset() {
+	*x = DiscoverToolsRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiscoverToolsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiscoverToolsRequest) ProtoMessage() {}
+
+func (x *DiscoverToolsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *DiscoverToolsRequest) GetToolSetName() string {
+	if x != nil {
+		return x.xxx_hidden_ToolSetName
+	}
+	return ""
+}
+
+func (x *DiscoverToolsRequest) GetToolNames() []string {
+	if x != nil {
+		return x.xxx_hidden_ToolNames
+	}
+	return nil
+}
+
+func (x *DiscoverToolsRequest) SetToolSetName(v string) {
+	x.xxx_hidden_ToolSetName = v
+}
+
+func (x *DiscoverToolsRequest) SetToolNames(v []string) {
+	x.xxx_hidden_ToolNames = v
+}
+
+type DiscoverToolsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Name of the tool set.
+	ToolSetName string
+	// The names of the tools to be discovered.
+	ToolNames []string
+}
+
+func (b0 DiscoverToolsRequest_builder) Build() *DiscoverToolsRequest {
+	m0 := &DiscoverToolsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ToolSetName = b.ToolSetName
+	x.xxx_hidden_ToolNames = b.ToolNames
+	return m0
+}
+
+// Represents a request to execute a RPC request.
+type RpcRequest struct {
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ServiceFullName string                 `protobuf:"bytes,1,opt,name=service_full_name,json=serviceFullName,proto3"`
+	xxx_hidden_MethodFullName  string                 `protobuf:"bytes,2,opt,name=method_full_name,json=methodFullName,proto3"`
+	xxx_hidden_Request         *structpb.Struct       `protobuf:"bytes,3,opt,name=request,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *RpcRequest) Reset() {
+	*x = RpcRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RpcRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RpcRequest) ProtoMessage() {}
+
+func (x *RpcRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RpcRequest) GetServiceFullName() string {
+	if x != nil {
+		return x.xxx_hidden_ServiceFullName
+	}
+	return ""
+}
+
+func (x *RpcRequest) GetMethodFullName() string {
+	if x != nil {
+		return x.xxx_hidden_MethodFullName
+	}
+	return ""
+}
+
+func (x *RpcRequest) GetRequest() *structpb.Struct {
+	if x != nil {
+		return x.xxx_hidden_Request
+	}
+	return nil
+}
+
+func (x *RpcRequest) SetServiceFullName(v string) {
+	x.xxx_hidden_ServiceFullName = v
+}
+
+func (x *RpcRequest) SetMethodFullName(v string) {
+	x.xxx_hidden_MethodFullName = v
+}
+
+func (x *RpcRequest) SetRequest(v *structpb.Struct) {
+	x.xxx_hidden_Request = v
+}
+
+func (x *RpcRequest) HasRequest() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Request != nil
+}
+
+func (x *RpcRequest) ClearRequest() {
+	x.xxx_hidden_Request = nil
+}
+
+type RpcRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The full name of the service.
+	ServiceFullName string
+	// The full name of the method.
+	MethodFullName string
+	// The request object.
+	Request *structpb.Struct
+}
+
+func (b0 RpcRequest_builder) Build() *RpcRequest {
+	m0 := &RpcRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ServiceFullName = b.ServiceFullName
+	x.xxx_hidden_MethodFullName = b.MethodFullName
+	x.xxx_hidden_Request = b.Request
+	return m0
+}
+
 var File_malonaz_ai_ai_engine_v1_ai_engine_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xb7\x01\n" +
-	"\x11CreateToolRequest\x12g\n" +
-	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x129\n" +
-	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"T\n" +
-	"\x14ParseToolCallRequest\x12<\n" +
-	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\"\x85\x02\n" +
+	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x85\x02\n" +
 	"\x16GenerateMessageRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12/\n" +
 	"\x05model\x18\x02 \x01(\tB\x19\xfaA\x16\n" +
 	"\x14ai.malonaz.com/ModelR\x05model\x12\x16\n" +
 	"\x06prompt\x18\x03 \x01(\tR\x06prompt\x129\n" +
 	"\n" +
-	"field_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"_\n" +
+	"field_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb7\x01\n" +
+	"\x11CreateToolRequest\x12g\n" +
+	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x129\n" +
+	"\n" +
+	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\x93\x01\n" +
+	"\x14ParseToolCallRequest\x12<\n" +
+	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x12=\n" +
+	"\ttool_sets\x18\x02 \x03(\v2 .malonaz.ai.ai_engine.v1.ToolSetR\btoolSets\"\x85\x02\n" +
+	"\x15ParseToolCallResponse\x123\n" +
+	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12e\n" +
+	"\x16discover_tools_request\x18\x02 \x01(\v2-.malonaz.ai.ai_engine.v1.DiscoverToolsRequestH\x00R\x14discoverToolsRequest\x12F\n" +
+	"\vrpc_request\x18\x03 \x01(\v2#.malonaz.ai.ai_engine.v1.RpcRequestH\x00R\n" +
+	"rpcRequestB\b\n" +
+	"\x06result\"\x95\x01\n" +
+	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
+	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
+	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x121\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"}\n" +
+	"\x1bCreateServiceToolSetRequest\x122\n" +
+	"\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceFullName\x12*\n" +
+	"\x11method_full_names\x18\x02 \x03(\tR\x0fmethodFullNames\"_\n" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
-	"\tfull_name\x12\x05\xbaH\x02\b\x012\xa2\x02\n" +
-	"\bAiEngine\x12M\n" +
+	"\tfull_name\x12\x05\xbaH\x02\b\x01\"\xe1\x02\n" +
+	"\aToolSet\x12B\n" +
+	"\x0ediscovery_tool\x18\x01 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
+	"\x05tools\x18\x02 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12x\n" +
+	"\x1atool_name_to_discover_time\x18\x03 \x03(\v2<.malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntryR\x16toolNameToDiscoverTime\x1ae\n" +
+	"\x1bToolNameToDiscoverTimeEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x05value:\x028\x01\"Y\n" +
+	"\x14DiscoverToolsRequest\x12\"\n" +
+	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
-	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12W\n" +
-	"\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a\x17.google.protobuf.Struct\x12[\n" +
-	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
+	"tool_names\x18\x02 \x03(\tR\ttoolNames\"\x95\x01\n" +
+	"\n" +
+	"RpcRequest\x12*\n" +
+	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
+	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
+	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest2\x8a\x04\n" +
+	"\bAiEngine\x12[\n" +
+	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
+	"\n" +
+	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n" +
+	"\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\x12_\n" +
+	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n" +
+	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a .malonaz.ai.ai_engine.v1.ToolSet\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
 
-var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
-	(*CreateToolRequest)(nil),      // 0: malonaz.ai.ai_engine.v1.CreateToolRequest
-	(*ParseToolCallRequest)(nil),   // 1: malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	(*GenerateMessageRequest)(nil), // 2: malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	(*DescriptorReference)(nil),    // 3: malonaz.ai.ai_engine.v1.DescriptorReference
-	(*fieldmaskpb.FieldMask)(nil),  // 4: google.protobuf.FieldMask
-	(*v1.ToolCall)(nil),            // 5: malonaz.ai.v1.ToolCall
-	(*v1.Tool)(nil),                // 6: malonaz.ai.v1.Tool
-	(*structpb.Struct)(nil),        // 7: google.protobuf.Struct
+	(*GenerateMessageRequest)(nil),      // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	(*CreateToolRequest)(nil),           // 1: malonaz.ai.ai_engine.v1.CreateToolRequest
+	(*ParseToolCallRequest)(nil),        // 2: malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	(*ParseToolCallResponse)(nil),       // 3: malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	(*CreateDiscoveryToolRequest)(nil),  // 4: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	(*CreateServiceToolSetRequest)(nil), // 5: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	(*DescriptorReference)(nil),         // 6: malonaz.ai.ai_engine.v1.DescriptorReference
+	(*ToolSet)(nil),                     // 7: malonaz.ai.ai_engine.v1.ToolSet
+	(*DiscoverToolsRequest)(nil),        // 8: malonaz.ai.ai_engine.v1.DiscoverToolsRequest
+	(*RpcRequest)(nil),                  // 9: malonaz.ai.ai_engine.v1.RpcRequest
+	nil,                                 // 10: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry
+	(*fieldmaskpb.FieldMask)(nil),       // 11: google.protobuf.FieldMask
+	(*v1.ToolCall)(nil),                 // 12: malonaz.ai.v1.ToolCall
+	(*structpb.Struct)(nil),             // 13: google.protobuf.Struct
+	(*v1.Tool)(nil),                     // 14: malonaz.ai.v1.Tool
+	(*timestamppb.Timestamp)(nil),       // 15: google.protobuf.Timestamp
 }
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
-	3, // 0: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
-	4, // 1: malonaz.ai.ai_engine.v1.CreateToolRequest.field_mask:type_name -> google.protobuf.FieldMask
-	5, // 2: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	3, // 3: malonaz.ai.ai_engine.v1.GenerateMessageRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
-	4, // 4: malonaz.ai.ai_engine.v1.GenerateMessageRequest.field_mask:type_name -> google.protobuf.FieldMask
-	0, // 5: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	1, // 6: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	2, // 7: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	6, // 8: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	7, // 9: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> google.protobuf.Struct
-	7, // 10: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
-	8, // [8:11] is the sub-list for method output_type
-	5, // [5:8] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	6,  // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
+	11, // 1: malonaz.ai.ai_engine.v1.GenerateMessageRequest.field_mask:type_name -> google.protobuf.FieldMask
+	6,  // 2: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
+	11, // 3: malonaz.ai.ai_engine.v1.CreateToolRequest.field_mask:type_name -> google.protobuf.FieldMask
+	12, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	7,  // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.ai_engine.v1.ToolSet
+	13, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
+	8,  // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discover_tools_request:type_name -> malonaz.ai.ai_engine.v1.DiscoverToolsRequest
+	9,  // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc_request:type_name -> malonaz.ai.ai_engine.v1.RpcRequest
+	14, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
+	14, // 10: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	14, // 11: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	10, // 12: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_time:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry
+	13, // 13: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
+	15, // 14: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry.value:type_name -> google.protobuf.Timestamp
+	0,  // 15: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	1,  // 16: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	2,  // 17: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	4,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	5,  // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	13, // 20: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
+	14, // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	3,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	14, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	7,  // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
@@ -554,6 +1301,11 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 		return
 	}
 	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3].OneofWrappers = []any{
+		(*parseToolCallResponse_Message)(nil),
+		(*parseToolCallResponse_DiscoverToolsRequest)(nil),
+		(*parseToolCallResponse_RpcRequest)(nil),
+	}
+	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6].OneofWrappers = []any{
 		(*descriptorReference_Message)(nil),
 		(*descriptorReference_Method)(nil),
 	}
@@ -563,7 +1315,7 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc), len(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

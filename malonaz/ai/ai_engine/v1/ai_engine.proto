@@ -7,6 +7,7 @@ import "google/api/client.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "malonaz/ai/v1/tool.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_engine/v1";
@@ -17,32 +18,25 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_engine/v1";
 service AiEngine {
   option (google.api.default_host) = "ai.malonaz.com";
 
+  // Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
+  rpc GenerateMessage(GenerateMessageRequest) returns (google.protobuf.Struct);
+
   // Create a tool to generate a message.
   rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool);
 
   // Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
-  rpc ParseToolCall(ParseToolCallRequest) returns (google.protobuf.Struct);
+  rpc ParseToolCall(ParseToolCallRequest) returns (ParseToolCallResponse);
 
-  // Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-  rpc GenerateMessage(GenerateMessageRequest) returns (google.protobuf.Struct);
+  // Creates a discovery tool for a set of tools.
+  rpc CreateDiscoveryTool(CreateDiscoveryToolRequest) returns (ai.v1.Tool);
+
+  // Creates a discoverable tool set for a gRPC service.
+  // The tool set includes a discovery tool that lists available method tools,
+  // and individual tools for each method in the service.
+  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ToolSet);
 }
 
-// Request message for AiService.CreateTool
-message CreateToolRequest {
-  // The descriptor reference for which to create a tool.
-  DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
-
-  // Optional field to specify which fields you wish to generate.
-  google.protobuf.FieldMask field_mask = 2;
-}
-
-// Request message for Engine.ParseToolCall.
-message ParseToolCallRequest {
-  // The tool call to parse.
-  ai.v1.ToolCall tool_call = 1 [(buf.validate.field).required = true];
-}
-
-// Request message for Engine.GenerateMessage.
+// Request message for AiEngine.GenerateMessage.
 message GenerateMessageRequest {
   // The descriptor reference for the message to generate.
   DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
@@ -58,6 +52,67 @@ message GenerateMessageRequest {
   google.protobuf.FieldMask field_mask = 4;
 }
 
+// Request message for AiEngine.CreateTool
+message CreateToolRequest {
+  // The descriptor reference for which to create a tool.
+  DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
+
+  // Optional field to specify which fields you wish to generate.
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+// Request message for AiEngine.ParseToolCall.
+message ParseToolCallRequest {
+  // The tool call to parse.
+  ai.v1.ToolCall tool_call = 1 [(buf.validate.field).required = true];
+
+  // Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
+  // in order to ensure the call is valid.
+  // if `DiscoverToolsRequest`:
+  //  - targets a non existent tool => NotFound
+  //  - targets an already discovered tool => AlreadyExists
+  // if `RpcRequest`:
+  //  - targets a non-discovered method => FailedPrecondition.
+  repeated ToolSet tool_sets = 2;
+}
+
+// Response message for AiEngine.ParseToolCall.
+message ParseToolCallResponse {
+  // The parsed result based on the tool call type.
+  oneof result {
+    // A generic parsed message when the tool generates a protobuf message.
+    google.protobuf.Struct message = 1;
+    // A request to discover additional tools from a tool set.
+    DiscoverToolsRequest discover_tools_request = 2;
+    // A request to execute an RPC method.
+    RpcRequest rpc_request = 3;
+  }
+}
+
+// Request message for AiEngine.CreateDiscoveryTool.
+message CreateDiscoveryToolRequest {
+  // Name for the discovery tool (used as prefix, e.g., "{name}_Discover").
+  string name = 1 [(buf.validate.field).required = true];
+
+  // Description of what this tool set represents.
+  string description = 2 [(buf.validate.field).required = true];
+
+  // The tools that can be discovered.
+  repeated ai.v1.Tool tools = 3 [(buf.validate.field).required = true];
+}
+
+// Request message for AiEngine.CreateServiceToolSet.
+message CreateServiceToolSetRequest {
+  // The fully qualified name of the gRPC service.
+  // Example: "malonaz.ai.ai_engine.v1.AiEngine"
+  string service_full_name = 1 [(buf.validate.field).required = true];
+
+  // Optional list of method fully qualified names to include.
+  // If empty, all methods from the service are included.
+  // Example: ["malonaz.ai.ai_engine.v1.AiEngine.CreateTool"]
+  repeated string method_full_names = 2;
+}
+
 // A reference to a protobuf descriptor.
 message DescriptorReference {
   // The descriptor full name.
@@ -68,4 +123,34 @@ message DescriptorReference {
     // The fully qualified name of the method.
     string method = 2;
   }
+}
+
+// Represents a discoverable set of tools.
+message ToolSet {
+  // The tool used to discover the tools in this set.
+  ai.v1.Tool discovery_tool = 1 [(buf.validate.field).required = true];
+
+  // The tools available in this set.
+  repeated ai.v1.Tool tools = 2 [(buf.validate.field).required = true];
+
+  // Tracks the times at which tools were discovered.
+  map<string, google.protobuf.Timestamp> tool_name_to_discover_time = 3;
+}
+
+// Represents a discover tools request.
+message DiscoverToolsRequest {
+  // Name of the tool set.
+  string tool_set_name = 1;
+  // The names of the tools to be discovered.
+  repeated string tool_names = 2;
+}
+
+// Represents a request to execute a RPC request.
+message RpcRequest {
+  // The full name of the service.
+  string service_full_name = 1;
+  // The full name of the method.
+  string method_full_name = 2;
+  // The request object.
+  google.protobuf.Struct request = 3;
 }

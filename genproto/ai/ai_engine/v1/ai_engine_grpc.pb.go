@@ -24,12 +24,18 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AiEngineClient interface {
+	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
+	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*structpb.Struct, error)
 	// Create a tool to generate a message.
 	CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
 	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
-	ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*structpb.Struct, error)
-	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*structpb.Struct, error)
+	ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*ParseToolCallResponse, error)
+	// Creates a discovery tool for a set of tools.
+	CreateDiscoveryTool(ctx context.Context, in *CreateDiscoveryToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
+	// Creates a discoverable tool set for a gRPC service.
+	// The tool set includes a discovery tool that lists available method tools,
+	// and individual tools for each method in the service.
+	CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*ToolSet, error)
 }
 
 type aiEngineClient struct {
@@ -38,24 +44,6 @@ type aiEngineClient struct {
 
 func NewAiEngineClient(cc grpc.ClientConnInterface) AiEngineClient {
 	return &aiEngineClient{cc}
-}
-
-func (c *aiEngineClient) CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error) {
-	out := new(v1.Tool)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/CreateTool", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aiEngineClient) ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*structpb.Struct, error) {
-	out := new(structpb.Struct)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/ParseToolCall", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *aiEngineClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*structpb.Struct, error) {
@@ -67,30 +55,78 @@ func (c *aiEngineClient) GenerateMessage(ctx context.Context, in *GenerateMessag
 	return out, nil
 }
 
+func (c *aiEngineClient) CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error) {
+	out := new(v1.Tool)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/CreateTool", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiEngineClient) ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*ParseToolCallResponse, error) {
+	out := new(ParseToolCallResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/ParseToolCall", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiEngineClient) CreateDiscoveryTool(ctx context.Context, in *CreateDiscoveryToolRequest, opts ...grpc.CallOption) (*v1.Tool, error) {
+	out := new(v1.Tool)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/CreateDiscoveryTool", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*ToolSet, error) {
+	out := new(ToolSet)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/CreateServiceToolSet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AiEngineServer is the server API for AiEngine service.
 // All implementations should embed UnimplementedAiEngineServer
 // for forward compatibility
 type AiEngineServer interface {
+	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
+	GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error)
 	// Create a tool to generate a message.
 	CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error)
 	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
-	ParseToolCall(context.Context, *ParseToolCallRequest) (*structpb.Struct, error)
-	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error)
+	ParseToolCall(context.Context, *ParseToolCallRequest) (*ParseToolCallResponse, error)
+	// Creates a discovery tool for a set of tools.
+	CreateDiscoveryTool(context.Context, *CreateDiscoveryToolRequest) (*v1.Tool, error)
+	// Creates a discoverable tool set for a gRPC service.
+	// The tool set includes a discovery tool that lists available method tools,
+	// and individual tools for each method in the service.
+	CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*ToolSet, error)
 }
 
 // UnimplementedAiEngineServer should be embedded to have forward compatible implementations.
 type UnimplementedAiEngineServer struct {
 }
 
+func (UnimplementedAiEngineServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
+}
 func (UnimplementedAiEngineServer) CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTool not implemented")
 }
-func (UnimplementedAiEngineServer) ParseToolCall(context.Context, *ParseToolCallRequest) (*structpb.Struct, error) {
+func (UnimplementedAiEngineServer) ParseToolCall(context.Context, *ParseToolCallRequest) (*ParseToolCallResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseToolCall not implemented")
 }
-func (UnimplementedAiEngineServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
+func (UnimplementedAiEngineServer) CreateDiscoveryTool(context.Context, *CreateDiscoveryToolRequest) (*v1.Tool, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDiscoveryTool not implemented")
+}
+func (UnimplementedAiEngineServer) CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*ToolSet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceToolSet not implemented")
 }
 
 // UnsafeAiEngineServer may be embedded to opt out of forward compatibility for this service.
@@ -102,6 +138,24 @@ type UnsafeAiEngineServer interface {
 
 func RegisterAiEngineServer(s grpc.ServiceRegistrar, srv AiEngineServer) {
 	s.RegisterService(&AiEngine_ServiceDesc, srv)
+}
+
+func _AiEngine_GenerateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiEngineServer).GenerateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiEngineServer).GenerateMessage(ctx, req.(*GenerateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _AiEngine_CreateTool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -140,20 +194,38 @@ func _AiEngine_ParseToolCall_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AiEngine_GenerateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GenerateMessageRequest)
+func _AiEngine_CreateDiscoveryTool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDiscoveryToolRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiEngineServer).GenerateMessage(ctx, in)
+		return srv.(AiEngineServer).CreateDiscoveryTool(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage",
+		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/CreateDiscoveryTool",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiEngineServer).GenerateMessage(ctx, req.(*GenerateMessageRequest))
+		return srv.(AiEngineServer).CreateDiscoveryTool(ctx, req.(*CreateDiscoveryToolRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiEngine_CreateServiceToolSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceToolSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiEngineServer).CreateServiceToolSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/CreateServiceToolSet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiEngineServer).CreateServiceToolSet(ctx, req.(*CreateServiceToolSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -166,6 +238,10 @@ var AiEngine_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AiEngineServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GenerateMessage",
+			Handler:    _AiEngine_GenerateMessage_Handler,
+		},
+		{
 			MethodName: "CreateTool",
 			Handler:    _AiEngine_CreateTool_Handler,
 		},
@@ -174,8 +250,12 @@ var AiEngine_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiEngine_ParseToolCall_Handler,
 		},
 		{
-			MethodName: "GenerateMessage",
-			Handler:    _AiEngine_GenerateMessage_Handler,
+			MethodName: "CreateDiscoveryTool",
+			Handler:    _AiEngine_CreateDiscoveryTool_Handler,
+		},
+		{
+			MethodName: "CreateServiceToolSet",
+			Handler:    _AiEngine_CreateServiceToolSet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

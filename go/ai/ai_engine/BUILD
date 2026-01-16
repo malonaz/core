@@ -31,9 +31,11 @@ go_library(
         "//malonaz/ai/ai_engine/v1",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

@@ -172,11 +172,11 @@ func (x *Tool) ClearJsonSchema() {
 type Tool_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The name of the tool to be called.
+	// A unique name for this tool.
 	Name string
 	// A description of what the tool does.
 	Description string
-	// The json schema of the exected object to be returned.
+	// The json schema of the expected object to be returned.
 	JsonSchema *v1.Schema
 	// Annotations about this tool (not transmitted to the ai provider).
 	// This should be used by tooling.
