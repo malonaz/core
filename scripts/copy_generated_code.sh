@@ -22,6 +22,11 @@ declare -A ACTIVE_FILES
 
 targets=$(plz query alltargets --hidden --include copy_generated_code,codegen,go 2>/dev/null)
 
+if [[ -z "$targets" ]]; then
+  echo "No targets found, skipping"
+  exit 0
+fi
+
 for target in $targets; do
   output=$(plz build "$target" 2>&1 | grep "plz-out/gen/" || true)
 
