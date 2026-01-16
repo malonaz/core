@@ -663,7 +663,7 @@ func (b0 CreateDiscoveryToolRequest_builder) Build() *CreateDiscoveryToolRequest
 type CreateServiceToolSetRequest struct {
 	state                      protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_ServiceFullName string                 `protobuf:"bytes,1,opt,name=service_full_name,json=serviceFullName,proto3"`
-	xxx_hidden_MethodFullNames []string               `protobuf:"bytes,2,rep,name=method_full_names,json=methodFullNames,proto3"`
+	xxx_hidden_MethodNames     []string               `protobuf:"bytes,2,rep,name=method_names,json=methodNames,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -700,9 +700,9 @@ func (x *CreateServiceToolSetRequest) GetServiceFullName() string {
 	return ""
 }
 
-func (x *CreateServiceToolSetRequest) GetMethodFullNames() []string {
+func (x *CreateServiceToolSetRequest) GetMethodNames() []string {
 	if x != nil {
-		return x.xxx_hidden_MethodFullNames
+		return x.xxx_hidden_MethodNames
 	}
 	return nil
 }
@@ -711,8 +711,8 @@ func (x *CreateServiceToolSetRequest) SetServiceFullName(v string) {
 	x.xxx_hidden_ServiceFullName = v
 }
 
-func (x *CreateServiceToolSetRequest) SetMethodFullNames(v []string) {
-	x.xxx_hidden_MethodFullNames = v
+func (x *CreateServiceToolSetRequest) SetMethodNames(v []string) {
+	x.xxx_hidden_MethodNames = v
 }
 
 type CreateServiceToolSetRequest_builder struct {
@@ -721,10 +721,10 @@ type CreateServiceToolSetRequest_builder struct {
 	// The fully qualified name of the gRPC service.
 	// Example: "malonaz.ai.ai_engine.v1.AiEngine"
 	ServiceFullName string
-	// Optional list of method fully qualified names to include.
+	// Optional list of method names to include.
 	// If empty, all methods from the service are included.
-	// Example: ["malonaz.ai.ai_engine.v1.AiEngine.CreateTool"]
-	MethodFullNames []string
+	// Example: ["CreateTool"]
+	MethodNames []string
 }
 
 func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetRequest {
@@ -732,7 +732,7 @@ func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetReque
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_ServiceFullName = b.ServiceFullName
-	x.xxx_hidden_MethodFullNames = b.MethodFullNames
+	x.xxx_hidden_MethodNames = b.MethodNames
 	return m0
 }
 
@@ -1225,10 +1225,10 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
 	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"}\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"t\n" +
 	"\x1bCreateServiceToolSetRequest\x122\n" +
-	"\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceFullName\x12*\n" +
-	"\x11method_full_names\x18\x02 \x03(\tR\x0fmethodFullNames\"_\n" +
+	"\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceFullName\x12!\n" +
+	"\fmethod_names\x18\x02 \x03(\tR\vmethodNames\"_\n" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +

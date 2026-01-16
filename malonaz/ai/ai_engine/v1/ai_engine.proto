@@ -106,10 +106,10 @@ message CreateServiceToolSetRequest {
   // Example: "malonaz.ai.ai_engine.v1.AiEngine"
   string service_full_name = 1 [(buf.validate.field).required = true];
 
-  // Optional list of method fully qualified names to include.
+  // Optional list of method names to include.
   // If empty, all methods from the service are included.
-  // Example: ["malonaz.ai.ai_engine.v1.AiEngine.CreateTool"]
-  repeated string method_full_names = 2;
+  // Example: ["CreateTool"]
+  repeated string method_names = 2;
 }
 
 // A reference to a protobuf descriptor.

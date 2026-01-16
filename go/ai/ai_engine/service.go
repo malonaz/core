@@ -328,25 +328,25 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	}
 
 	// Fill method names if not provided.
-	if len(request.MethodFullNames) == 0 {
+	if len(request.MethodNames) == 0 {
 		methods := serviceDescriptor.Methods()
 		for i := 0; i < methods.Len(); i++ {
-			request.MethodFullNames = append(request.MethodFullNames, string(methods.Get(i).FullName()))
+			request.MethodNames = append(request.MethodNames, string(methods.Get(i).Name()))
 		}
 	}
 
 	// Create the method tools.
 	var tools []*aipb.Tool
 	toolNameToDiscoverTimestamp := map[string]int64{}
-	for _, methodFullName := range request.MethodFullNames {
+	for _, methodName := range request.MethodNames {
 		createToolRequest := &pb.CreateToolRequest{
 			DescriptorReference: &pb.DescriptorReference{
-				FullName: &pb.DescriptorReference_Method{Method: methodFullName},
+				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
 			},
 		}
 		tool, err := s.CreateTool(ctx, createToolRequest)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "creating tool for method %s: %v", methodFullName, err).Err()
+			return nil, grpc.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
 		toolNameToDiscoverTimestamp[tool.Name] = 0
