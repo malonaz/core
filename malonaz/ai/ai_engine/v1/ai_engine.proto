@@ -7,7 +7,6 @@ import "google/api/client.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
-import "google/protobuf/timestamp.proto";
 import "malonaz/ai/v1/tool.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_engine/v1";
@@ -134,7 +133,7 @@ message ToolSet {
   repeated ai.v1.Tool tools = 2 [(buf.validate.field).required = true];
 
   // Tracks the times at which tools were discovered.
-  map<string, google.protobuf.Timestamp> tool_name_to_discover_time = 3;
+  map<string, int64> tool_name_to_discover_timestamp = 3;
 }
 
 // Represents a discover tools request.

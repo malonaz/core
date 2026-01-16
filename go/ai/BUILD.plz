@@ -1,7 +1,6 @@
 go_library(
     name = "ai",
     srcs = [
-        "discoverable_tool_set.go",
         "messages.go",
         "utils.go",
     ],
@@ -9,8 +8,6 @@ go_library(
     deps = [
         "//go/pbutil",
         "//malonaz/ai/v1",
-        "//malonaz/json/v1",
-        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",

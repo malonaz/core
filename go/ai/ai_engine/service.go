@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
@@ -150,11 +149,11 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 
 		// Validate the tool names.
 		for _, toolName := range toolNames {
-			discoverTime, ok := targetToolSet.ToolNameToDiscoverTime[toolName]
+			discoverTimestamp, ok := targetToolSet.ToolNameToDiscoverTimestamp[toolName]
 			if !ok {
 				return nil, grpc.Errorf(codes.NotFound, "tool %q not found in tool set", toolName).Err()
 			}
-			if discoverTime != nil {
+			if discoverTimestamp > 0 {
 				return nil, grpc.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).Err()
 			}
 		}
@@ -173,8 +172,8 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		// Validate the request.
 		var found bool
 		for _, toolSet := range request.GetToolSets() {
-			if discoverTime, ok := toolSet.GetToolNameToDiscoverTime()[toolCallName]; ok {
-				if discoverTime == nil {
+			if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCallName]; ok {
+				if discoverTimestamp == 0 {
 					return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCallName).Err()
 				}
 				found = true
@@ -210,18 +209,6 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	return &pb.ParseToolCallResponse{
 		Result: &pb.ParseToolCallResponse_Message{Message: message},
 	}, nil
-}
-
-func validateRPCCall(toolSets []*pb.ToolSet, toolName string) error {
-	if len(toolSets) == 0 {
-		return nil
-	}
-	for _, ts := range toolSets {
-		if _, discovered := ts.GetToolNameToDiscoverTime()[toolName]; discovered {
-			return nil
-		}
-	}
-	return grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolName).Err()
 }
 
 func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*structpb.Struct, error) {
@@ -351,7 +338,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 
 	// Create the method tools.
 	var tools []*aipb.Tool
-	toolNameToDiscoverTime := map[string]*timestamppb.Timestamp{}
+	toolNameToDiscoverTimestamp := map[string]int64{}
 	for _, methodFullName := range request.MethodFullNames {
 		createToolRequest := &pb.CreateToolRequest{
 			DescriptorReference: &pb.DescriptorReference{
@@ -363,7 +350,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			return nil, grpc.Errorf(codes.Internal, "creating tool for method %s: %v", methodFullName, err).Err()
 		}
 		tools = append(tools, tool)
-		toolNameToDiscoverTime[tool.Name] = nil
+		toolNameToDiscoverTimestamp[tool.Name] = 0
 	}
 
 	// Build the discover tool.
@@ -380,9 +367,9 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	}
 
 	return &pb.ToolSet{
-		DiscoveryTool:          discoveryTool,
-		Tools:                  tools,
-		ToolNameToDiscoverTime: toolNameToDiscoverTime,
+		DiscoveryTool:               discoveryTool,
+		Tools:                       tools,
+		ToolNameToDiscoverTimestamp: toolNameToDiscoverTimestamp,
 	}, nil
 }
 

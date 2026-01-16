@@ -16,7 +16,6 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -909,12 +908,12 @@ func (*descriptorReference_Method) isDescriptorReference_FullName() {}
 
 // Represents a discoverable set of tools.
 type ToolSet struct {
-	state                             protoimpl.MessageState            `protogen:"opaque.v1"`
-	xxx_hidden_DiscoveryTool          *v1.Tool                          `protobuf:"bytes,1,opt,name=discovery_tool,json=discoveryTool,proto3"`
-	xxx_hidden_Tools                  *[]*v1.Tool                       `protobuf:"bytes,2,rep,name=tools,proto3"`
-	xxx_hidden_ToolNameToDiscoverTime map[string]*timestamppb.Timestamp `protobuf:"bytes,3,rep,name=tool_name_to_discover_time,json=toolNameToDiscoverTime,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields                     protoimpl.UnknownFields
-	sizeCache                         protoimpl.SizeCache
+	state                                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_DiscoveryTool               *v1.Tool               `protobuf:"bytes,1,opt,name=discovery_tool,json=discoveryTool,proto3"`
+	xxx_hidden_Tools                       *[]*v1.Tool            `protobuf:"bytes,2,rep,name=tools,proto3"`
+	xxx_hidden_ToolNameToDiscoverTimestamp map[string]int64       `protobuf:"bytes,3,rep,name=tool_name_to_discover_timestamp,json=toolNameToDiscoverTimestamp,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields                          protoimpl.UnknownFields
+	sizeCache                              protoimpl.SizeCache
 }
 
 func (x *ToolSet) Reset() {
@@ -958,9 +957,9 @@ func (x *ToolSet) GetTools() []*v1.Tool {
 	return nil
 }
 
-func (x *ToolSet) GetToolNameToDiscoverTime() map[string]*timestamppb.Timestamp {
+func (x *ToolSet) GetToolNameToDiscoverTimestamp() map[string]int64 {
 	if x != nil {
-		return x.xxx_hidden_ToolNameToDiscoverTime
+		return x.xxx_hidden_ToolNameToDiscoverTimestamp
 	}
 	return nil
 }
@@ -973,8 +972,8 @@ func (x *ToolSet) SetTools(v []*v1.Tool) {
 	x.xxx_hidden_Tools = &v
 }
 
-func (x *ToolSet) SetToolNameToDiscoverTime(v map[string]*timestamppb.Timestamp) {
-	x.xxx_hidden_ToolNameToDiscoverTime = v
+func (x *ToolSet) SetToolNameToDiscoverTimestamp(v map[string]int64) {
+	x.xxx_hidden_ToolNameToDiscoverTimestamp = v
 }
 
 func (x *ToolSet) HasDiscoveryTool() bool {
@@ -996,7 +995,7 @@ type ToolSet_builder struct {
 	// The tools available in this set.
 	Tools []*v1.Tool
 	// Tracks the times at which tools were discovered.
-	ToolNameToDiscoverTime map[string]*timestamppb.Timestamp
+	ToolNameToDiscoverTimestamp map[string]int64
 }
 
 func (b0 ToolSet_builder) Build() *ToolSet {
@@ -1005,7 +1004,7 @@ func (b0 ToolSet_builder) Build() *ToolSet {
 	_, _ = b, x
 	x.xxx_hidden_DiscoveryTool = b.DiscoveryTool
 	x.xxx_hidden_Tools = &b.Tools
-	x.xxx_hidden_ToolNameToDiscoverTime = b.ToolNameToDiscoverTime
+	x.xxx_hidden_ToolNameToDiscoverTimestamp = b.ToolNameToDiscoverTimestamp
 	return m0
 }
 
@@ -1187,7 +1186,7 @@ var File_malonaz_ai_ai_engine_v1_ai_engine_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x85\x02\n" +
+	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x85\x02\n" +
 	"\x16GenerateMessageRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12/\n" +
 	"\x05model\x18\x02 \x01(\tB\x19\xfaA\x16\n" +
@@ -1218,14 +1217,14 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
-	"\tfull_name\x12\x05\xbaH\x02\b\x01\"\xe1\x02\n" +
+	"\tfull_name\x12\x05\xbaH\x02\b\x01\"\xda\x02\n" +
 	"\aToolSet\x12B\n" +
 	"\x0ediscovery_tool\x18\x01 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
-	"\x05tools\x18\x02 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12x\n" +
-	"\x1atool_name_to_discover_time\x18\x03 \x03(\v2<.malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntryR\x16toolNameToDiscoverTime\x1ae\n" +
-	"\x1bToolNameToDiscoverTimeEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x05value:\x028\x01\"Y\n" +
+	"\x05tools\x18\x02 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12\x87\x01\n" +
+	"\x1ftool_name_to_discover_timestamp\x18\x03 \x03(\v2A.malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntryR\x1btoolNameToDiscoverTimestamp\x1aN\n" +
+	" ToolNameToDiscoverTimestampEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"Y\n" +
 	"\x14DiscoverToolsRequest\x12\"\n" +
 	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
@@ -1255,12 +1254,11 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*ToolSet)(nil),                     // 7: malonaz.ai.ai_engine.v1.ToolSet
 	(*DiscoverToolsRequest)(nil),        // 8: malonaz.ai.ai_engine.v1.DiscoverToolsRequest
 	(*RpcRequest)(nil),                  // 9: malonaz.ai.ai_engine.v1.RpcRequest
-	nil,                                 // 10: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry
+	nil,                                 // 10: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
 	(*fieldmaskpb.FieldMask)(nil),       // 11: google.protobuf.FieldMask
 	(*v1.ToolCall)(nil),                 // 12: malonaz.ai.v1.ToolCall
 	(*structpb.Struct)(nil),             // 13: google.protobuf.Struct
 	(*v1.Tool)(nil),                     // 14: malonaz.ai.v1.Tool
-	(*timestamppb.Timestamp)(nil),       // 15: google.protobuf.Timestamp
 }
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	6,  // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
@@ -1275,24 +1273,23 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	14, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
 	14, // 10: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
 	14, // 11: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	10, // 12: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_time:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry
+	10, // 12: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
 	13, // 13: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
-	15, // 14: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimeEntry.value:type_name -> google.protobuf.Timestamp
-	0,  // 15: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	1,  // 16: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	2,  // 17: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	4,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	5,  // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	13, // 20: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
-	14, // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	3,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	14, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
-	7,  // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
-	20, // [20:25] is the sub-list for method output_type
-	15, // [15:20] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	0,  // 14: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	1,  // 15: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	2,  // 16: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	4,  // 17: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	5,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	13, // 19: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
+	14, // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	3,  // 21: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	14, // 22: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	7,  // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
+	19, // [19:24] is the sub-list for method output_type
+	14, // [14:19] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
