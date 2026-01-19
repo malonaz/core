@@ -59,15 +59,16 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	schemaBuilder := pbjson.NewSchemaBuilder(schema)
 
 	// Get the message descriptor.
+	var descriptorFullName protoreflect.FullName
 	var messageDescriptor protoreflect.MessageDescriptor
 	var toolName, toolDescription string
-	var standardMethodType pbreflection.StandardMethodType
 	var annotations = map[string]string{}
 	var schemaOptions []pbjson.SchemaOption
 
 	switch target := request.GetDescriptorReference().GetFullName().(type) {
 	case *pb.DescriptorReference_Method:
-		descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(target.Method))
+		descriptorFullName = protoreflect.FullName(target.Method)
+		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, "finding method descriptor (%s): %v", target.Method, err).Err()
 		}
@@ -78,7 +79,6 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		messageDescriptor = methodDescriptor.Input()
 		toolName = string(methodDescriptor.Name())
 		toolDescription = schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-		standardMethodType = schema.GetStandardMethodType(methodDescriptor.FullName())
 		annotations[annotationKeyGRPCService] = string(methodDescriptor.Parent().FullName())
 		annotations[annotationKeyGRPCMethod] = string(methodDescriptor.FullName())
 		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
@@ -87,7 +87,8 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		schemaOptions = append(schemaOptions, pbjson.WithResponseFieldMask())
 
 	case *pb.DescriptorReference_Message:
-		descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(target.Message))
+		descriptorFullName = protoreflect.FullName(target.Message)
+		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", target.Message, err).Err()
 		}
@@ -98,7 +99,6 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		}
 		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
 		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
-		standardMethodType = pbreflection.StandardMethodTypeUnspecified
 	default:
 		return nil, grpc.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
 	}
@@ -109,7 +109,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	if len(request.GetFieldMask().GetPaths()) > 0 {
 		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(request.GetFieldMask().GetPaths()...))
 	}
-	jsonSchema, err := schemaBuilder.BuildSchema(messageDescriptor.FullName(), standardMethodType, schemaOptions...)
+	jsonSchema, err := schemaBuilder.BuildSchema(descriptorFullName, schemaOptions...)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "building schema: %v", err).Err()
 	}

@@ -67,22 +67,33 @@ func WithFieldMaskPaths(paths ...string) SchemaOption {
 	}
 }
 
-func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, methodType pbreflection.StandardMethodType, opts ...SchemaOption) (*jsonpb.Schema, error) {
+func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, opts ...SchemaOption) (*jsonpb.Schema, error) {
 	so := &schemaOptions{maxDepth: defaultMaxDepth}
 	for _, opt := range opts {
 		opt(so)
 	}
 
-	desc, err := b.schema.FindDescriptorByName(messageFullName)
+	desc, err := b.schema.FindDescriptorByName(descriptorFullName)
 	if err != nil {
-		return nil, fmt.Errorf("message not found: %s", messageFullName)
-	}
-	msg, ok := desc.(protoreflect.MessageDescriptor)
-	if !ok {
-		return nil, fmt.Errorf("descriptor is not a message: %s", messageFullName)
+		return nil, fmt.Errorf("descriptor not found: %s", descriptorFullName)
 	}
 
-	// Validate the field mask.
+	var msg protoreflect.MessageDescriptor
+	var standardMethodType pbreflection.StandardMethodType
+	var responseDesc string
+
+	switch d := desc.(type) {
+	case protoreflect.MessageDescriptor:
+		msg = d
+		standardMethodType = pbreflection.StandardMethodTypeUnspecified
+	case protoreflect.MethodDescriptor:
+		msg = d.Input()
+		standardMethodType = b.schema.GetStandardMethodType(d.FullName())
+		responseDesc = b.buildResponseDescription(so, d.Output())
+	default:
+		return nil, fmt.Errorf("descriptor is not a message or method: %s", descriptorFullName)
+	}
+
 	allowedPaths := make(map[string]bool)
 	if len(so.fieldMask.GetPaths()) > 0 {
 		fieldMask := pbfieldmask.FromFieldMask(so.fieldMask)
@@ -94,14 +105,75 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 		}
 	}
 
-	schema := b.buildMessageSchema(so, msg, "", 0, methodType, allowedPaths)
+	schema := b.buildMessageSchema(so, msg, "", 0, standardMethodType, allowedPaths)
 	if so.responseFieldMask {
 		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
 			Type:        "string",
 			Description: "comma-separated field mask paths to include in the response",
 		}
 	}
+	if responseDesc != "" {
+		if schema.Description != "" {
+			schema.Description += "\n\n"
+		}
+		schema.Description += responseDesc
+	}
 	return schema, nil
+}
+
+func (b *SchemaBuilder) buildResponseDescription(so *schemaOptions, msg protoreflect.MessageDescriptor) string {
+	var sb strings.Builder
+	sb.WriteString("Response format:\n")
+	b.writeMessageFields(&sb, msg, "", 0, so.maxDepth)
+	return sb.String()
+}
+
+func (b *SchemaBuilder) writeMessageFields(sb *strings.Builder, msg protoreflect.MessageDescriptor, indent string, depth, maxDepth int) {
+	if depth > maxDepth {
+		return
+	}
+	fields := msg.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		sb.WriteString(indent)
+		sb.WriteString("- ")
+		sb.WriteString(string(field.Name()))
+		sb.WriteString(" (")
+		sb.WriteString(fieldTypeString(field))
+		sb.WriteString(")")
+		if comment := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleSingleLine); comment != "" {
+			sb.WriteString(": ")
+			sb.WriteString(comment)
+		}
+		sb.WriteString("\n")
+		if field.Kind() == protoreflect.MessageKind && !isWellKnownType(field.Message().FullName()) {
+			b.writeMessageFields(sb, field.Message(), indent+"  ", depth+1, maxDepth)
+		}
+	}
+}
+
+func fieldTypeString(field protoreflect.FieldDescriptor) string {
+	var t string
+	switch field.Kind() {
+	case protoreflect.MessageKind:
+		t = string(field.Message().Name())
+	case protoreflect.EnumKind:
+		t = string(field.Enum().Name())
+	default:
+		t = field.Kind().String()
+	}
+	if field.IsList() {
+		return "[]" + t
+	}
+	return t
+}
+
+func isWellKnownType(name protoreflect.FullName) bool {
+	switch name {
+	case timestampFullName, durationFullName, fieldMaskFullName, dateFullName, timeOfDayFullName:
+		return true
+	}
+	return false
 }
 
 func (b *SchemaBuilder) buildMessageSchema(
