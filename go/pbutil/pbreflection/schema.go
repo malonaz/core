@@ -272,6 +272,13 @@ func newSchema(data *schemaData) (*Schema, error) {
 			if m == nil {
 				return match
 			}
+			targetFQN := protoreflect.FullName(m[1])
+
+			// Propagate standard method type from referenced method.
+			if methodType := schema.methodFullNameToStandardMethodType[targetFQN]; methodType != StandardMethodTypeUnspecified {
+				schema.methodFullNameToStandardMethodType[protoreflect.FullName(fqn)] = methodType
+			}
+
 			if override, ok := schema.comments[m[1]]; ok {
 				return override
 			}

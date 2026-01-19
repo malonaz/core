@@ -40,11 +40,18 @@ func NewSchemaBuilder(schema *pbreflection.Schema) *SchemaBuilder {
 }
 
 type schemaOptions struct {
-	maxDepth  int
-	fieldMask *fieldmaskpb.FieldMask
+	maxDepth          int
+	fieldMask         *fieldmaskpb.FieldMask
+	responseFieldMask bool
 }
 
 type SchemaOption func(*schemaOptions)
+
+func WithResponseFieldMask() SchemaOption {
+	return func(o *schemaOptions) {
+		o.responseFieldMask = true
+	}
+}
 
 func WithMaxDepth(maxDepth int) SchemaOption {
 	return func(o *schemaOptions) {
@@ -88,7 +95,7 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 	}
 
 	schema := b.buildMessageSchema(so, msg, "", 0, methodType, allowedPaths)
-	if methodType != pbreflection.StandardMethodTypeUnspecified {
+	if so.responseFieldMask {
 		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
 			Type:        "string",
 			Description: "comma-separated field mask paths to include in the response",

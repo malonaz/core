@@ -63,6 +63,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	var toolName, toolDescription string
 	var standardMethodType pbreflection.StandardMethodType
 	var annotations = map[string]string{}
+	var schemaOptions []pbjson.SchemaOption
 
 	switch target := request.GetDescriptorReference().GetFullName().(type) {
 	case *pb.DescriptorReference_Method:
@@ -83,6 +84,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
 			annotations[annotationKeyNoSideEffect] = "true"
 		}
+		schemaOptions = append(schemaOptions, pbjson.WithResponseFieldMask())
 
 	case *pb.DescriptorReference_Message:
 		descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(target.Message))
@@ -104,8 +106,10 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	// Set the proto message annotation.
 	annotations[annotationKeyProtoMessage] = string(messageDescriptor.FullName())
 
-	withFieldMask := pbjson.WithFieldMaskPaths(request.GetFieldMask().GetPaths()...)
-	jsonSchema, err := schemaBuilder.BuildSchema(messageDescriptor.FullName(), standardMethodType, withFieldMask)
+	if len(request.GetFieldMask().GetPaths()) > 0 {
+		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(request.GetFieldMask().GetPaths()...))
+	}
+	jsonSchema, err := schemaBuilder.BuildSchema(messageDescriptor.FullName(), standardMethodType, schemaOptions...)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "building schema: %v", err).Err()
 	}

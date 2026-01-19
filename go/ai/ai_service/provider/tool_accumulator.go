@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"fmt"
 	"strings"
 
 	streamingjson "github.com/karminski/streaming-json-go"
@@ -45,7 +44,6 @@ func (a *ToolCallAccumulator) Start(index int64, id, name string) {
 
 // StartOrUpdate begins or updates a tool call at the given index.
 func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
-	fmt.Printf("HELLO %d %s\n", index, name)
 	entry, ok := a.calls[index]
 	if !ok {
 		entry = &toolCallEntry{id: id, name: name}
@@ -62,7 +60,6 @@ func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 // AppendArgs appends to the accumulated arguments and optionally stores metadata.
 // Marks all other entries as complete.
 func (a *ToolCallAccumulator) AppendArgs(index int64, s string, extraFields *structpb.Struct) {
-	fmt.Printf("HELLO %d %s %v\n", index, s, extraFields)
 	for idx, entry := range a.calls {
 		if idx != index {
 			entry.complete = true
