@@ -87,7 +87,14 @@ func (b *SchemaBuilder) BuildSchema(messageFullName protoreflect.FullName, metho
 		}
 	}
 
-	return b.buildMessageSchema(so, msg, "", 0, methodType, allowedPaths), nil
+	schema := b.buildMessageSchema(so, msg, "", 0, methodType, allowedPaths)
+	if methodType != pbreflection.StandardMethodTypeUnspecified {
+		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
+			Type:        "string",
+			Description: "comma-separated field mask paths to include in the response",
+		}
+	}
+	return schema, nil
 }
 
 func (b *SchemaBuilder) buildMessageSchema(
@@ -249,11 +256,9 @@ func isPathAllowed(path string, allowedPaths map[string]bool) bool {
 		return true
 	}
 	for allowed := range allowedPaths {
-		// Check if this path is a parent of an allowed path
 		if strings.HasPrefix(allowed, path+".") {
 			return true
 		}
-		// Check if path is a descendant of an allowed path (allows all children)
 		if strings.HasPrefix(path, allowed+".") {
 			return true
 		}

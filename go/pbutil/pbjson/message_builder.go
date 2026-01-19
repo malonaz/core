@@ -12,7 +12,11 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
+
+const responseFieldMaskKey = "@response_field_mask"
 
 func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args map[string]any) (*dynamicpb.Message, error) {
 	desc, err := b.schema.FindDescriptorByName(messageFullName)
@@ -32,6 +36,18 @@ func BuildMessage(desc protoreflect.MessageDescriptor, args map[string]any) (*dy
 		return nil, err
 	}
 	return msg, nil
+}
+
+func GetResponseFieldMask(args map[string]any) (*fieldmaskpb.FieldMask, bool) {
+	val, ok := args[responseFieldMaskKey]
+	if !ok {
+		return nil, false
+	}
+	s, ok := val.(string)
+	if !ok || s == "" {
+		return nil, false
+	}
+	return pbfieldmask.FromString(s).Proto(), true
 }
 
 func populateMessage(msg *dynamicpb.Message, args map[string]any) error {

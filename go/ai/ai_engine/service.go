@@ -190,17 +190,20 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		}
 
 		// Parse the request message.
-		request, err := s.parseToolCallMessage(ctx, request.GetToolCall())
+		toolCall := request.GetToolCall()
+		request, err := s.parseToolCallMessage(ctx, toolCall)
 		if err != nil {
 			return nil, err
 		}
 
+		fieldMask, _ := pbjson.GetResponseFieldMask(toolCall.GetArguments().AsMap())
 		return &pb.ParseToolCallResponse{
 			Result: &pb.ParseToolCallResponse_RpcRequest{
 				RpcRequest: &pb.RpcRequest{
 					ServiceFullName: serviceFullName,
 					MethodFullName:  methodFullName,
 					Request:         request,
+					FieldMask:       fieldMask,
 				},
 			},
 		}, nil

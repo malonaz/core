@@ -1156,7 +1156,9 @@ type RpcRequest struct {
 	// The full name of the method.
 	MethodFullName string `protobuf:"bytes,2,opt,name=method_full_name,json=methodFullName,proto3" json:"method_full_name,omitempty"`
 	// The request object.
-	Request       *structpb.Struct `protobuf:"bytes,3,opt,name=request,proto3" json:"request,omitempty"`
+	Request *structpb.Struct `protobuf:"bytes,3,opt,name=request,proto3" json:"request,omitempty"`
+	// Optional field to specify which fields we should include in the tool result response.
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,4,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1207,6 +1209,13 @@ func (x *RpcRequest) GetRequest() *structpb.Struct {
 	return nil
 }
 
+func (x *RpcRequest) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 func (x *RpcRequest) SetServiceFullName(v string) {
 	x.ServiceFullName = v
 }
@@ -1219,6 +1228,10 @@ func (x *RpcRequest) SetRequest(v *structpb.Struct) {
 	x.Request = v
 }
 
+func (x *RpcRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
+	x.FieldMask = v
+}
+
 func (x *RpcRequest) HasRequest() bool {
 	if x == nil {
 		return false
@@ -1226,8 +1239,19 @@ func (x *RpcRequest) HasRequest() bool {
 	return x.Request != nil
 }
 
+func (x *RpcRequest) HasFieldMask() bool {
+	if x == nil {
+		return false
+	}
+	return x.FieldMask != nil
+}
+
 func (x *RpcRequest) ClearRequest() {
 	x.Request = nil
+}
+
+func (x *RpcRequest) ClearFieldMask() {
+	x.FieldMask = nil
 }
 
 type RpcRequest_builder struct {
@@ -1239,6 +1263,8 @@ type RpcRequest_builder struct {
 	MethodFullName string
 	// The request object.
 	Request *structpb.Struct
+	// Optional field to specify which fields we should include in the tool result response.
+	FieldMask *fieldmaskpb.FieldMask
 }
 
 func (b0 RpcRequest_builder) Build() *RpcRequest {
@@ -1248,6 +1274,7 @@ func (b0 RpcRequest_builder) Build() *RpcRequest {
 	x.ServiceFullName = b.ServiceFullName
 	x.MethodFullName = b.MethodFullName
 	x.Request = b.Request
+	x.FieldMask = b.FieldMask
 	return m0
 }
 
@@ -1298,12 +1325,14 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x14DiscoverToolsRequest\x12\"\n" +
 	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
-	"tool_names\x18\x02 \x03(\tR\ttoolNames\"\x95\x01\n" +
+	"tool_names\x18\x02 \x03(\tR\ttoolNames\"\xd0\x01\n" +
 	"\n" +
 	"RpcRequest\x12*\n" +
 	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
 	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
-	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest2\x8a\x04\n" +
+	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest\x129\n" +
+	"\n" +
+	"field_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask2\x8a\x04\n" +
 	"\bAiEngine\x12[\n" +
 	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
 	"\n" +
@@ -1345,21 +1374,22 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	14, // 11: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
 	10, // 12: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
 	13, // 13: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
-	0,  // 14: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	1,  // 15: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	2,  // 16: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	4,  // 17: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	5,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	13, // 19: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
-	14, // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	3,  // 21: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	14, // 22: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
-	7,  // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
-	19, // [19:24] is the sub-list for method output_type
-	14, // [14:19] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	11, // 14: malonaz.ai.ai_engine.v1.RpcRequest.field_mask:type_name -> google.protobuf.FieldMask
+	0,  // 15: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	1,  // 16: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	2,  // 17: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	4,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	5,  // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	13, // 20: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
+	14, // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	3,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	14, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	7,  // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
