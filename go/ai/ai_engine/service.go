@@ -8,6 +8,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
@@ -28,6 +29,7 @@ var (
 	annotationKeyGRPCMethod   = annotationKeyPrefix + "grpc-method"
 	annotationKeyProtoMessage = annotationKeyPrefix + "proto-message"
 	annotationKeyToolType     = annotationKeyPrefix + "tool-type"
+	annotationKeyNoSideEffect = annotationKeyPrefix + "no-side-effect"
 
 	// Annotation values.
 	annotationValueToolTypeDiscover = "discover"
@@ -78,6 +80,9 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		standardMethodType = schema.GetStandardMethodType(methodDescriptor.FullName())
 		annotations[annotationKeyGRPCService] = string(methodDescriptor.Parent().FullName())
 		annotations[annotationKeyGRPCMethod] = string(methodDescriptor.FullName())
+		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
+			annotations[annotationKeyNoSideEffect] = "true"
+		}
 
 	case *pb.DescriptorReference_Message:
 		descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(target.Message))
@@ -304,8 +309,8 @@ func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDis
 			Required: []string{"tools"},
 		},
 		Annotations: map[string]string{
-			annotationKeyToolType: annotationValueToolTypeDiscover,
-			annotationKeyToolType: annotationValueToolTypeDiscover,
+			annotationKeyToolType:     annotationValueToolTypeDiscover,
+			annotationKeyNoSideEffect: "true",
 		},
 	}, nil
 }
