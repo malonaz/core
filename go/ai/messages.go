@@ -82,13 +82,13 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 	case *aipb.ToolResult_StructuredContent:
 		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("marshaling tool result structured content: %v", err)
 		}
 		return string(bytes), nil
 	case *aipb.ToolResult_Error:
 		bytes, err := pbutil.JSONMarshal(r.Error)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("marshaling tool result error content: %v", err)
 		}
 		return string(bytes), nil
 	default:
