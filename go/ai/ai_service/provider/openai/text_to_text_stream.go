@@ -130,6 +130,10 @@ func (c *Client) TextToTextStream(
 
 	// Track active tool_use blocks by content block index
 	tca := provider.NewToolCallAccumulator()
+	indexRemap := make(map[int64]int64) // provider index -> our index
+	lastIDAtIndex := make(map[int64]string)
+	var nextIndex int64
+
 	var sentTtfb bool
 	var stopReason aiservicepb.TextToTextStopReason
 
@@ -258,7 +262,26 @@ func (c *Client) TextToTextStream(
 
 		// Handle tool calls.
 		for _, toolCall := range choice.Delta.ToolCalls {
-			tca.StartOrUpdate(toolCall.Index, toolCall.ID, toolCall.Function.Name)
+			providerIdx := toolCall.Index
+			// Detect index reuse by checking if ID changed
+			if toolCall.ID != "" {
+				if lastID, seen := lastIDAtIndex[providerIdx]; seen && lastID != toolCall.ID {
+					// New tool call reusing same index - assign new internal index
+					nextIndex++
+					indexRemap[providerIdx] = nextIndex
+				}
+				lastIDAtIndex[providerIdx] = toolCall.ID
+			}
+			idx, ok := indexRemap[providerIdx]
+			if !ok {
+				idx = providerIdx
+				indexRemap[providerIdx] = idx
+				if idx >= nextIndex {
+					nextIndex = idx + 1
+				}
+			}
+
+			tca.StartOrUpdate(idx, toolCall.ID, toolCall.Function.Name)
 
 			// Extract metadata from extra_content (e.g., Google thought_signature).
 			var extraFields *structpb.Struct
@@ -269,9 +292,9 @@ func (c *Client) TextToTextStream(
 				}
 			}
 
-			tca.AppendArgs(toolCall.Index, toolCall.Function.Arguments, extraFields)
+			tca.AppendArgs(idx, toolCall.Function.Arguments, extraFields)
 			if request.GetConfiguration().GetStreamPartialToolCalls() {
-				partialToolCall, err := tca.BuildPartial(toolCall.Index)
+				partialToolCall, err := tca.BuildPartial(idx)
 				if err != nil {
 					return err
 				}
