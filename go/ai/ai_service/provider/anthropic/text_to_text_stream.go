@@ -167,7 +167,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				if request.GetConfiguration().GetStreamPartialToolCalls() {
 					partialToolCall, err := tca.BuildPartial(variant.Index)
 					if err != nil {
-						return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+						return err
 					}
 					cs.SendPartialToolCall(ctx, partialToolCall)
 				}
@@ -195,7 +195,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				if request.GetConfiguration().GetStreamPartialToolCalls() {
 					partialToolCall, err := tca.BuildPartial(variant.Index)
 					if err != nil {
-						return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+						return err
 					}
 					cs.SendPartialToolCall(ctx, partialToolCall)
 				}
@@ -206,7 +206,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				// If this content block was a tool_use, emit it now (with complete arguments)
 				toolCall, err := tca.Build(variant.Index)
 				if err != nil {
-					return grpc.Errorf(codes.Internal, "unmarshaling tool call arguments: %v", err).Err()
+					return err
 				}
 				cs.SendToolCall(ctx, toolCall)
 			}

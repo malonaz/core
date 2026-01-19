@@ -273,7 +273,7 @@ func (c *Client) TextToTextStream(
 			if request.GetConfiguration().GetStreamPartialToolCalls() {
 				partialToolCall, err := tca.BuildPartial(toolCall.Index)
 				if err != nil {
-					return grpc.Errorf(codes.Internal, "building partial tool call: %v", err).Err()
+					return err
 				}
 				cs.SendPartialToolCall(ctx, partialToolCall)
 			}

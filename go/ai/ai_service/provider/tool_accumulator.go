@@ -1,13 +1,15 @@
 package provider
 
 import (
-	"fmt"
 	"strings"
 
 	streamingjson "github.com/karminski/streaming-json-go"
-	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/grpc"
 )
 
 // ToolCallAccumulator accumulates streaming tool call chunks for multiple tool calls.
@@ -78,7 +80,7 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, s string, extraFields *str
 func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) {
 	entry, ok := a.calls[index]
 	if !ok {
-		return nil, fmt.Errorf("tool call with index %d not found", index)
+		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
 		Id:          entry.id,
@@ -92,14 +94,18 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 	if healed == "" {
 		healed = "{}"
 	}
-	return tc, tc.Arguments.UnmarshalJSON([]byte(healed))
+	if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
+		return nil, grpc.Errorf(codes.Internal, "failed to unmarshal healed tool call arguments").
+			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": healed}).Err()
+	}
+	return tc, nil
 }
 
 // Build returns the completed ToolCall proto for a given index and removes it.
 func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 	entry, ok := a.calls[index]
 	if !ok {
-		return nil, fmt.Errorf("tool call with index %d not found", index)
+		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
 		Id:          entry.id,
@@ -107,8 +113,10 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 		ExtraFields: entry.extraFields,
 		Arguments:   &structpb.Struct{},
 	}
-	if err := tc.Arguments.UnmarshalJSON([]byte(entry.args.String())); err != nil {
-		return nil, err
+	rawJSON := entry.args.String()
+	if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
+		return nil, grpc.Errorf(codes.Internal, "failed to unmarshal tool call arguments").
+			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": rawJSON}).Err()
 	}
 	delete(a.calls, index)
 	return tc, nil
