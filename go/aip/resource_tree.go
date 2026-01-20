@@ -327,7 +327,7 @@ func (n *Node) ApplyReplacement(clause string) string {
 }
 
 func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor, depth int) error {
-	if depth == t.Config.maxDepth+1 { // Exact check as sanity check that we are traversing correctly.
+	if depth == t.Config.maxDepth { // Exact check as sanity check that we are traversing correctly.
 		return nil
 	}
 
