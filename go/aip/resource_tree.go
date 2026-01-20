@@ -271,19 +271,25 @@ func (t *Tree) IsPathAllowed(node *Node) bool {
 
 type Node struct {
 	// Parse time.
-	Depth        int
-	ColumnName   string
-	Path         string
-	Nullable     bool
-	ExprType     *v1alpha1.Type
-	EnumType     protoreflect.EnumType
-	AsJsonBytes  bool
-	AsProtoBytes bool
+	Depth            int
+	ColumnName       string
+	Path             string
+	Nullable         bool
+	ExprType         *v1alpha1.Type
+	EnumType         protoreflect.EnumType
+	AsJsonBytes      bool
+	AsProtoBytes     bool
+	FieldBehaviorSet map[annotationspb.FieldBehavior]struct{}
 
 	// Replacement stuff.
 	AllowedPath           bool
 	ReplacementPath       string
 	ReplacementPathRegexp *regexp.Regexp
+}
+
+func (n *Node) HasFieldBehavior(fb annotationspb.FieldBehavior) bool {
+	_, ok := n.FieldBehaviorSet[fb]
+	return ok
 }
 
 func (n *Node) RootNodePath() string {
@@ -357,6 +363,14 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		AsProtoBytes: depth == 0 && fieldOpts.GetAsProtoBytes(),
 	}
 	t.Add(node)
+
+	if proto.HasExtension(options, annotationspb.E_FieldBehavior) {
+		behaviors := proto.GetExtension(options, annotationspb.E_FieldBehavior).([]annotationspb.FieldBehavior)
+		node.FieldBehaviorSet = make(map[annotationspb.FieldBehavior]struct{}, len(behaviors))
+		for _, fb := range behaviors {
+			node.FieldBehaviorSet[fb] = struct{}{}
+		}
+	}
 
 	switch fieldDesc.Kind() {
 	case protoreflect.BoolKind:

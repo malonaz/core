@@ -540,7 +540,7 @@ func (s *Schema) augmentMethodComments() error {
 				}
 
 				// We do not update the same message twice.
-				_, isStandardMethod := s.methodFullNameToStandardMethodType[method.FullName()]
+				standardMethodType := s.GetStandardMethodType(method.FullName())
 				_, messageSeen := messageFQNSeenSet[string(input.FullName())]
 				messageFQNSeenSet[string(input.FullName())] = struct{}{}
 
@@ -570,7 +570,7 @@ func (s *Schema) augmentMethodComments() error {
 						methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, filtering.Paths))
 						if !messageSeen {
 							paths := filtering.GetPaths()
-							if isStandardMethod {
+							if standardMethodType != StandardMethodTypeUnspecified {
 								resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
 								if !ok {
 									err = fmt.Errorf("could not find resource message descriptor for method %s", method.FullName())

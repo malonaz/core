@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
+	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -122,6 +123,11 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 		// We always add 'update_time' as an updatable field.
 		if node.Path == "update_time" {
 			paths = append(paths, node.Path)
+		}
+		if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) ||
+			node.HasFieldBehavior(annotationspb.FieldBehavior_IMMUTABLE) ||
+			node.HasFieldBehavior(annotationspb.FieldBehavior_OUTPUT_ONLY) {
+			continue
 		}
 		columnName := node.Path
 		if node.ReplacementPath != "" {

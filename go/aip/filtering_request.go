@@ -7,6 +7,7 @@ import (
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/filtering"
 	"go.einride.tech/spanner-aip/spanfiltering"
+	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -79,9 +80,10 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	isNullFunctionOverloads := getIsNullFunctionDefaultOverloads()
 
 	for node := range tree.AllowedNodes() {
-		if node.Path == "name" { // Callers can use Get/BatchGet.
+		if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) || node.HasFieldBehavior(annotationspb.FieldBehavior_INPUT_ONLY) {
 			continue
 		}
+
 		replacementPath := node.Path
 		if node.ReplacementPath != "" {
 			replacementPath = node.ReplacementPath
