@@ -13,8 +13,6 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/pbutil/pbfieldmask",
-        "//malonaz/codegen/aip/v1",
-        "//malonaz/codegen/gateway/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
@@ -22,7 +20,6 @@ go_library(
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__retry",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",
-        "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
