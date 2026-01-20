@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	gatewaypb "github.com/malonaz/core/genproto/codegen/gateway/v1"
 	"github.com/malonaz/core/go/aip"
 )
 
@@ -150,11 +151,24 @@ func (s *Schema) FindDescriptorByName(name protoreflect.FullName) (protoreflect.
 
 // GetStandardMethodType returns the standard method type for a method, or empty string if not a standard method.
 func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) StandardMethodType {
-	standardMethodType, ok := s.methodFullNameToStandardMethodType[methodFullName]
+	// Check for proxy annotation.
+	desc, err := s.files.FindDescriptorByName(methodFullName)
+	if err != nil {
+		return StandardMethodTypeUnspecified
+	}
+	method, ok := desc.(protoreflect.MethodDescriptor)
 	if !ok {
 		return StandardMethodTypeUnspecified
 	}
-	return standardMethodType
+	methodOpts := method.Options()
+	if methodOpts == nil || !proto.HasExtension(methodOpts, gatewaypb.E_Opts) {
+		return s.methodFullNameToStandardMethodType[methodFullName]
+	}
+	opts := proto.GetExtension(methodOpts, gatewaypb.E_Opts).(*gatewaypb.HandlerOpts)
+	if opts.GetProxy() == "" {
+		return StandardMethodTypeUnspecified
+	}
+	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())]
 }
 
 func (s *Schema) GetResourceDescriptor(resourceType string) *annotations.ResourceDescriptor {
