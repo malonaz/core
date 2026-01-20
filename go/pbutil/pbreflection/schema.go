@@ -171,6 +171,18 @@ func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) Sta
 	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())]
 }
 
+func (s *Schema) GetStandardMethodResourceDescriptor(methodFullName protoreflect.FullName) *annotations.ResourceDescriptor {
+	msg := s.methodFullNameToResourceMessageDescriptor[methodFullName]
+	if msg == nil {
+		return nil
+	}
+	opts := msg.Options()
+	if opts == nil || !proto.HasExtension(opts, annotations.E_Resource) {
+		return nil
+	}
+	return proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+}
+
 func (s *Schema) GetResourceDescriptor(resourceType string) *annotations.ResourceDescriptor {
 	var result *annotations.ResourceDescriptor
 	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
