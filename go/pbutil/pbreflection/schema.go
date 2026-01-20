@@ -639,54 +639,64 @@ func (s *Schema) augmentMethodComments() error {
 
 func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []string) string {
 	var examples []string
-	var hasString, hasBool, hasEnum, hasTimestamp, hasNested bool
 
-	pathSet := make(map[string]struct{})
-	for _, p := range paths {
-		pathSet[p] = struct{}{}
-	}
+	if resourceMsg != nil {
+		var hasString, hasBool, hasEnum, hasTimestamp bool
 
-	fields := resourceMsg.Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		name := string(field.Name())
-		if _, ok := pathSet[name]; !ok {
-			continue
+		pathSet := make(map[string]struct{})
+		for _, p := range paths {
+			pathSet[p] = struct{}{}
 		}
 
-		switch field.Kind() {
-		case protoreflect.StringKind:
-			if !hasString {
-				examples = append(examples, fmt.Sprintf(`%s = "example"`, name))
-				hasString = true
+		fields := resourceMsg.Fields()
+		for i := 0; i < fields.Len(); i++ {
+			field := fields.Get(i)
+			name := string(field.Name())
+			if _, ok := pathSet[name]; !ok {
+				continue
 			}
-		case protoreflect.BoolKind:
-			if !hasBool {
-				examples = append(examples, name)
-				hasBool = true
-			}
-		case protoreflect.EnumKind:
-			if !hasEnum {
-				enumVals := field.Enum().Values()
-				if enumVals.Len() > 1 {
-					examples = append(examples, fmt.Sprintf(`%s = %s`, name, enumVals.Get(1).Name()))
+
+			switch field.Kind() {
+			case protoreflect.StringKind:
+				if !hasString {
+					examples = append(examples, fmt.Sprintf(`%s = "example"`, name))
+					hasString = true
 				}
-				hasEnum = true
-			}
-		case protoreflect.MessageKind:
-			if field.Message().FullName() == "google.protobuf.Timestamp" && !hasTimestamp {
-				examples = append(examples, fmt.Sprintf(`%s > "2024-01-01T00:00:00Z"`, name))
-				hasTimestamp = true
+			case protoreflect.BoolKind:
+				if !hasBool {
+					examples = append(examples, name)
+					hasBool = true
+				}
+			case protoreflect.EnumKind:
+				if !hasEnum {
+					enumVals := field.Enum().Values()
+					if enumVals.Len() > 1 {
+						examples = append(examples, fmt.Sprintf(`%s = %s`, name, enumVals.Get(1).Name()))
+					}
+					hasEnum = true
+				}
+			case protoreflect.MessageKind:
+				if field.Message().FullName() == "google.protobuf.Timestamp" && !hasTimestamp {
+					examples = append(examples, fmt.Sprintf(`%s > "2024-01-01T00:00:00Z"`, name))
+					hasTimestamp = true
+				}
 			}
 		}
 	}
 
+	var hasNested bool
 	for _, p := range paths {
 		if strings.Contains(p, ".") && !hasNested {
 			examples = append(examples, fmt.Sprintf(`%s = "value"`, p))
 			hasNested = true
 			break
 		}
+	}
+
+	if len(examples) == 0 {
+		return fmt.Sprintf(`**Filtering (AIP-160)**
+Filterable fields: %s
+Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false)`, strings.Join(paths, ", "))
 	}
 
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
