@@ -172,6 +172,20 @@ func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) Sta
 }
 
 func (s *Schema) GetStandardMethodResourceDescriptor(methodFullName protoreflect.FullName) *annotations.ResourceDescriptor {
+	// Check for proxy annotation.
+	desc, err := s.files.FindDescriptorByName(methodFullName)
+	if err == nil {
+		if method, ok := desc.(protoreflect.MethodDescriptor); ok {
+			methodOpts := method.Options()
+			if methodOpts != nil && proto.HasExtension(methodOpts, gatewaypb.E_Opts) {
+				opts := proto.GetExtension(methodOpts, gatewaypb.E_Opts).(*gatewaypb.HandlerOpts)
+				if opts.GetProxy() != "" {
+					methodFullName = protoreflect.FullName(opts.GetProxy())
+				}
+			}
+		}
+	}
+
 	msg := s.methodFullNameToResourceMessageDescriptor[methodFullName]
 	if msg == nil {
 		return nil

@@ -114,7 +114,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 			resourceDescriptor := b.schema.GetStandardMethodResourceDescriptor(descriptorFullName)
 			desc = fmt.Sprintf("comma-separated field mask paths relative to each %s in the response. Example: use 'name,email' not '%s.name,%s.email'", resourceDescriptor.GetSingular(), resourceDescriptor.GetPlural(), resourceDescriptor.GetPlural())
 		default:
-			desc = "comma-separated field mask paths relative to the response object. Example: 'user.name,user.email' or 'results,total_count'"
+			desc = "comma-separated field mask paths relative to the response object."
 		}
 		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
 			Type:        "string",
