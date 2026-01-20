@@ -24,15 +24,17 @@ import (
 
 var (
 	// Annotation keys.
-	annotationKeyPrefix       = "ai-engine.malonaz.com/"
-	annotationKeyGRPCService  = annotationKeyPrefix + "grpc-service"
-	annotationKeyGRPCMethod   = annotationKeyPrefix + "grpc-method"
-	annotationKeyProtoMessage = annotationKeyPrefix + "proto-message"
-	annotationKeyToolType     = annotationKeyPrefix + "tool-type"
-	annotationKeyNoSideEffect = annotationKeyPrefix + "no-side-effect"
+	annotationKeyPrefix           = "ai-engine.malonaz.com/"
+	annotationKeyGRPCService      = annotationKeyPrefix + "grpc-service"
+	annotationKeyGRPCMethod       = annotationKeyPrefix + "grpc-method"
+	annotationKeyProtoMessage     = annotationKeyPrefix + "proto-message"
+	annotationKeyToolType         = annotationKeyPrefix + "tool-type"
+	annotationKeyNoSideEffect     = annotationKeyPrefix + "no-side-effect"
+	annotationKeyDiscoverableTool = annotationKeyPrefix + "discoverable-tool"
 
 	// Annotation values.
-	annotationValueToolTypeDiscover = "discover"
+	annotationValueToolTypeDiscover        = "discover"
+	annotationValueToolTypeGenerateMessage = "generate-message"
 )
 
 type Opts struct {
@@ -128,9 +130,10 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	if len(annotations) == 0 {
 		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
+	toolType := annotations[annotationKeyToolType]
 
 	// CASE 1: DISCOVERY TOOL CALL.
-	if annotations[annotationKeyToolType] == annotationValueToolTypeDiscover {
+	if toolType == annotationValueToolTypeDiscover {
 		// Parse the request.
 		args := request.GetToolCall().GetArguments().AsMap()
 		toolNamesRaw, _ := args["tools"].([]any)
@@ -179,18 +182,20 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		serviceFullName := annotations[annotationKeyGRPCService]
 
 		// Validate the request.
-		var found bool
-		for _, toolSet := range request.GetToolSets() {
-			if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCallName]; ok {
-				if discoverTimestamp == 0 {
-					return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCallName).Err()
+		if _, ok := annotations[annotationKeyDiscoverableTool]; ok {
+			var found bool
+			for _, toolSet := range request.GetToolSets() {
+				if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCallName]; ok {
+					if discoverTimestamp == 0 {
+						return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCallName).Err()
+					}
+					found = true
+					break
 				}
-				found = true
-				break
 			}
-		}
-		if !found {
-			return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCallName).Err()
+			if !found {
+				return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCallName).Err()
+			}
 		}
 
 		// Parse the request message.
@@ -233,6 +238,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	if err != nil {
 		return nil, err
 	}
+	tool.Annotations[annotationKeyToolType] = annotationValueToolTypeGenerateMessage
 
 	model := request.GetModel()
 	if model == "" {
@@ -271,11 +277,15 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	if err != nil {
 		return nil, err
 	}
-	message := parseToolCallResponse.GetMessage()
-	if message == nil {
-		return nil, grpc.Errorf(codes.Internal, "expected message, got %T", parseToolCallResponse.GetResult()).Err()
+
+	switch result := parseToolCallResponse.GetResult().(type) {
+	case *pb.ParseToolCallResponse_RpcRequest:
+		return result.RpcRequest.GetRequest(), nil
+	case *pb.ParseToolCallResponse_Message:
+		return result.Message, nil
+	default:
+		return nil, grpc.Errorf(codes.Internal, "unexpected result type: %T", result).Err()
 	}
-	return message, nil
 }
 
 func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDiscoveryToolRequest) (*aipb.Tool, error) {
@@ -361,6 +371,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			return nil, grpc.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
+		tool.Annotations[annotationKeyDiscoverableTool] = "true"
 		toolNameToDiscoverTimestamp[tool.Name] = 0
 	}
 
