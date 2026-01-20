@@ -744,12 +744,14 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	if len(examples) == 0 {
 		return fmt.Sprintf(`**Filtering (AIP-160)**
 Filterable fields: %s
+Wildcards: leading '*' (e.g. field="*suffix") and trailing '*' (e.g. field="prefix*") supported.
 Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, strings.Join(paths, ", "))
 	}
 
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
 	return fmt.Sprintf(`**Filtering (AIP-160)**
 %s
+Wildcards: leading '*' (e.g. field="*suffix") and trailing '*' (e.g. field="prefix*") supported.
 Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, exampleStr)
 }
 
