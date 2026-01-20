@@ -108,9 +108,16 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 
 	schema := b.buildMessageSchema(so, msg, "", 0, standardMethodType, allowedPaths)
 	if so.responseFieldMask {
+		var desc string
+		switch methodType := b.schema.GetStandardMethodType(descriptorFullName); methodType {
+		case pbreflection.StandardMethodTypeList, pbreflection.StandardMethodTypeBatchGet:
+			desc = "comma-separated field mask paths relative to the resource"
+		default:
+			desc = "comma-separated field mask paths relative to the response object"
+		}
 		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
 			Type:        "string",
-			Description: "comma-separated field mask paths to include in the response. For List/BatchGet endpoints, the paths are relative to the resource. Otherwise, relative to the response object.",
+			Description: desc,
 		}
 		schema.Required = append(schema.Required, responseFieldMaskKey)
 	}
