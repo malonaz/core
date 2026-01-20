@@ -15,12 +15,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
 const (
-	defaultMaxDepth = 10
+	defaultMaxDepth = 5
 )
 
 var (
@@ -122,58 +123,12 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 }
 
 func (b *SchemaBuilder) buildResponseDescription(so *schemaOptions, msg protoreflect.MessageDescriptor) string {
-	var sb strings.Builder
-	sb.WriteString("Response format:\n")
-	b.writeMessageFields(&sb, msg, "", 0, so.maxDepth)
-	return sb.String()
-}
-
-func (b *SchemaBuilder) writeMessageFields(sb *strings.Builder, msg protoreflect.MessageDescriptor, indent string, depth, maxDepth int) {
-	if depth > maxDepth {
-		return
+	schema := b.buildMessageSchema(so, msg, "", 0, pbreflection.StandardMethodTypeUnspecified, nil)
+	data, err := pbutil.JSONMarshal(schema)
+	if err != nil {
+		return ""
 	}
-	fields := msg.Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		sb.WriteString(indent)
-		sb.WriteString("- ")
-		sb.WriteString(string(field.Name()))
-		sb.WriteString(" (")
-		sb.WriteString(fieldTypeString(field))
-		sb.WriteString(")")
-		if comment := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleSingleLine); comment != "" {
-			sb.WriteString(": ")
-			sb.WriteString(comment)
-		}
-		sb.WriteString("\n")
-		if field.Kind() == protoreflect.MessageKind && !isWellKnownType(field.Message().FullName()) {
-			b.writeMessageFields(sb, field.Message(), indent+"  ", depth+1, maxDepth)
-		}
-	}
-}
-
-func fieldTypeString(field protoreflect.FieldDescriptor) string {
-	var t string
-	switch field.Kind() {
-	case protoreflect.MessageKind:
-		t = string(field.Message().Name())
-	case protoreflect.EnumKind:
-		t = string(field.Enum().Name())
-	default:
-		t = field.Kind().String()
-	}
-	if field.IsList() {
-		return "[]" + t
-	}
-	return t
-}
-
-func isWellKnownType(name protoreflect.FullName) bool {
-	switch name {
-	case timestampFullName, durationFullName, fieldMaskFullName, dateFullName, timeOfDayFullName:
-		return true
-	}
-	return false
+	return "Response JSON schema:\n" + string(data)
 }
 
 func (b *SchemaBuilder) buildMessageSchema(

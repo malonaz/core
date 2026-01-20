@@ -552,7 +552,8 @@ func (s *Schema) augmentMethodComments() error {
 				// Filtering
 				if proto.HasExtension(inputOpts, aippb.E_Filtering) {
 					if filtering := proto.GetExtension(inputOpts, aippb.E_Filtering).(*aippb.FilteringOptions); filtering != nil && len(filtering.Paths) > 0 {
-						methodExtras = append(methodExtras, formatFilteringDoc())
+						resourceMsg := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
+						methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, filtering.Paths))
 						if !messageSeen {
 							paths := filtering.GetPaths()
 							if isStandardMethod {
@@ -562,7 +563,7 @@ func (s *Schema) augmentMethodComments() error {
 									return false
 								}
 								var tree *aip.Tree
-								tree, err = aip.BuildResourceTreeFromDescriptor(resourceMessageDescriptor, 10, filtering.Paths, aip.WithTransformNestedPath())
+								tree, err = aip.BuildResourceTreeFromDescriptor(resourceMessageDescriptor, 5, filtering.Paths, aip.WithTransformNestedPath())
 								if err != nil {
 									return false
 								}
@@ -636,11 +637,62 @@ func (s *Schema) augmentMethodComments() error {
 	return err
 }
 
-func formatFilteringDoc() string {
+func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []string) string {
+	var examples []string
+	var hasString, hasBool, hasEnum, hasTimestamp, hasNested bool
+
+	pathSet := make(map[string]struct{})
+	for _, p := range paths {
+		pathSet[p] = struct{}{}
+	}
+
+	fields := resourceMsg.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		name := string(field.Name())
+		if _, ok := pathSet[name]; !ok {
+			continue
+		}
+
+		switch field.Kind() {
+		case protoreflect.StringKind:
+			if !hasString {
+				examples = append(examples, fmt.Sprintf(`%s = "example"`, name))
+				hasString = true
+			}
+		case protoreflect.BoolKind:
+			if !hasBool {
+				examples = append(examples, name)
+				hasBool = true
+			}
+		case protoreflect.EnumKind:
+			if !hasEnum {
+				enumVals := field.Enum().Values()
+				if enumVals.Len() > 1 {
+					examples = append(examples, fmt.Sprintf(`%s = %s`, name, enumVals.Get(1).Name()))
+				}
+				hasEnum = true
+			}
+		case protoreflect.MessageKind:
+			if field.Message().FullName() == "google.protobuf.Timestamp" && !hasTimestamp {
+				examples = append(examples, fmt.Sprintf(`%s > "2024-01-01T00:00:00Z"`, name))
+				hasTimestamp = true
+			}
+		}
+	}
+
+	for _, p := range paths {
+		if strings.Contains(p, ".") && !hasNested {
+			examples = append(examples, fmt.Sprintf(`%s = "value"`, p))
+			hasNested = true
+			break
+		}
+	}
+
+	exampleStr := "Examples: " + strings.Join(examples, ", ")
 	return fmt.Sprintf(`**Filtering (AIP-160)**
-Supports filter expressions on.
-Examples: 'name = "foo"', 'age > 21', 'status = "ACTIVE" AND created_time > "2024-01-01 AND NOT hidden"'
-**Important** boolean fields are checked using "hidden", "NOT hidden", "active OR hidden" etc`)
+%s
+Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false)`, exampleStr)
 }
 
 func formatOrderingDoc(paths []string, defaultOrder string) string {
