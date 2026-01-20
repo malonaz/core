@@ -2,13 +2,19 @@ package interceptor
 
 import (
 	"context"
+	"strings"
 
+	"github.com/huandu/xstrings"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 
+	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
@@ -22,7 +28,6 @@ func WithFieldMask(ctx context.Context, paths string) context.Context {
 
 func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		// Early return.
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return handler(ctx, req)
@@ -36,7 +41,6 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		// Convert response to proto message.
 		response, err := handler(ctx, req)
 		if err != nil {
 			return nil, err
@@ -45,14 +49,18 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 		if !ok {
 			return nil, status.Errorf(codes.Internal, "response is not a protobuf message: %T", response)
 		}
-		fieldMask.Apply(message)
+
+		if collectionField := getListCollectionField(info.FullMethod, message); collectionField.IsValid() {
+			applyFieldMaskToRepeatedField(collectionField, fieldMask)
+		} else {
+			fieldMask.Apply(message)
+		}
 		return response, nil
 	}
 }
 
 func StreamServerFieldMask() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		// Extract field mask from metadata
 		md, ok := metadata.FromIncomingContext(stream.Context())
 		if !ok {
 			return handler(srv, stream)
@@ -66,7 +74,6 @@ func StreamServerFieldMask() grpc.StreamServerInterceptor {
 			return handler(srv, stream)
 		}
 
-		// Wrap the stream to intercept SendMsg
 		wrappedStream := &fieldMaskServerStream{
 			ServerStream: stream,
 			fieldMask:    fieldMask,
@@ -87,4 +94,70 @@ func (s *fieldMaskServerStream) SendMsg(m any) error {
 	}
 	s.fieldMask.Apply(message)
 	return s.ServerStream.SendMsg(m)
+}
+
+func getListCollectionField(fullMethod string, response proto.Message) protoreflect.Value {
+	parts := strings.Split(fullMethod, "/")
+	if len(parts) < 2 {
+		return protoreflect.Value{}
+	}
+	serviceName := parts[len(parts)-2]
+	methodName := parts[len(parts)-1]
+
+	serviceDesc, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
+	if err != nil {
+		return protoreflect.Value{}
+	}
+	svc, ok := serviceDesc.(protoreflect.ServiceDescriptor)
+	if !ok {
+		return protoreflect.Value{}
+	}
+	methodDesc := svc.Methods().ByName(protoreflect.Name(methodName))
+	if methodDesc == nil {
+		return protoreflect.Value{}
+	}
+
+	opts := methodDesc.Options()
+	if !proto.HasExtension(opts, aippb.E_StandardMethod) {
+		return protoreflect.Value{}
+	}
+	standardMethod := proto.GetExtension(opts, aippb.E_StandardMethod).(*aippb.StandardMethod)
+	if standardMethod == nil || standardMethod.Resource == "" {
+		return protoreflect.Value{}
+	}
+
+	if !(strings.HasPrefix(methodName, "List") || strings.HasPrefix(methodName, "BatchGet")) {
+		return protoreflect.Value{}
+	}
+
+	msgReflect := response.ProtoReflect()
+	fields := msgReflect.Descriptor().Fields()
+	for i := 0; i < fields.Len(); i++ {
+		fd := fields.Get(i)
+		if !fd.IsList() || fd.Kind() != protoreflect.MessageKind {
+			continue
+		}
+		itemMsgDesc := fd.Message()
+		itemOpts := itemMsgDesc.Options()
+		if !proto.HasExtension(itemOpts, annotations.E_Resource) {
+			continue
+		}
+		resource := proto.GetExtension(itemOpts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+		resourcePlural := xstrings.ToPascalCase(resource.GetPlural())
+		if resource.GetType() == standardMethod.Resource {
+			if methodName == "List"+resourcePlural || methodName == "BatchGet"+resourcePlural {
+				return msgReflect.Get(fd)
+			}
+		}
+	}
+
+	return protoreflect.Value{}
+}
+
+func applyFieldMaskToRepeatedField(listValue protoreflect.Value, fieldMask *pbfieldmask.FieldMask) {
+	list := listValue.List()
+	for i := 0; i < list.Len(); i++ {
+		item := list.Get(i).Message().Interface()
+		fieldMask.Apply(item)
+	}
 }
