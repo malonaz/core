@@ -19,7 +19,7 @@ index 5770db6..b7e33d4 100644
  	t.Init(filter)
  	return t.Transpile()
 diff --git a/spanfiltering/transpiler.go b/spanfiltering/transpiler.go
-index 1be28fc..d4dd8fa 100644
+index 1be28fc..b9049aa 100644
 --- a/spanfiltering/transpiler.go
 +++ b/spanfiltering/transpiler.go
 @@ -3,8 +3,8 @@ package spanfiltering
@@ -95,17 +95,77 @@ index 1be28fc..d4dd8fa 100644
  	default:
  		return nil, fmt.Errorf("unsupported function call: %s", e.GetCallExpr().GetFunction())
  	}
-@@ -236,6 +245,110 @@ func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr
+@@ -198,42 +207,156 @@ func (t *Transpiler) transpileComparisonCallExpr(
  	}, nil
  }
  
+-func (t *Transpiler) isSubstringMatchExpr(
++func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
++  if len(e.GetCallExpr().GetArgs()) != 2 {
++    return false
++  }
++  lhs := e.GetCallExpr().GetArgs()[0]
++  if lhs.GetIdentExpr() == nil &&
++    (lhs.GetCallExpr() == nil || lhs.GetCallExpr().GetFunction() != FunctionJSONB) {
++    return false
++  }
++  rhs := e.GetCallExpr().GetArgs()[1]
++  if rhs.GetConstExpr() == nil {
++    return false
++  }
++  rhsStringExpr, ok := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue)
++  if !ok {
++    return false
++  }
++  return strings.HasPrefix(rhsStringExpr.StringValue, "*") || strings.HasSuffix(rhsStringExpr.StringValue, "*")
++}
++
++func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr, error) {
++  lhs := e.GetCallExpr().GetArgs()[0]
++  rhs := e.GetCallExpr().GetArgs()[1]
++  rhsString := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue).StringValue
++  if strings.Contains(strings.TrimSuffix(strings.TrimPrefix(rhsString, "*"), "*"), "*") {
++    return nil, fmt.Errorf("wildcard only supported in leading or trailing positions")
++  }
++
++  var lhsExpr spansql.Expr
++  if lhs.GetCallExpr() != nil && lhs.GetCallExpr().GetFunction() == FunctionJSONB {
++    var err error
++    lhsExpr, err = t.transpileJSONBCallExpr(lhs)
++    if err != nil {
++      return nil, err
++    }
++  } else if lhs.GetIdentExpr() != nil {
++    lhsExpr = spansql.ID(lhs.GetIdentExpr().GetName())
++  } else {
++    return nil, fmt.Errorf("unsupported LHS for substring match")
++  }
++
++  return spansql.ComparisonOp{
++    Op:  spansql.Like,
++    LHS: lhsExpr,
++    RHS: t.param(strings.ReplaceAll(rhsString, "*", "%")),
++  }, nil
++}
++
 +type NullComparison struct {field string}
 +func (c *NullComparison) SQL() string {
 +	return fmt.Sprintf("(%s IS NULL)", c.field)
 +}
 +
 +func (t *Transpiler) transpileIsNullCallExpr(
-+	e *expr.Expr,
+ 	e *expr.Expr,
+-) bool {
+-	if len(e.GetCallExpr().GetArgs()) != 2 {
+-		return false
+-	}
+-	lhs := e.GetCallExpr().GetArgs()[0]
+-	if lhs.GetIdentExpr() == nil {
+-		return false
+-	}
+-	rhs := e.GetCallExpr().GetArgs()[1]
+-	if rhs.GetConstExpr() == nil {
+-		return false
 +) (spansql.BoolExpr, error) {
 +	callExpr := e.GetCallExpr()
 +	if len(callExpr.Args) != 1 {
@@ -114,28 +174,44 @@ index 1be28fc..d4dd8fa 100644
 +			callExpr.GetFunction(),
 +			len(callExpr.Args),
 +		)
-+	}
+ 	}
+-	rhsStringExpr, ok := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue)
+-	if !ok {
+-		return false
 +	lhs, err := t.transpileExpr(callExpr.Args[0])
 +	if err != nil {
 +		return nil, err
-+	}
+ 	}
+-	return strings.HasPrefix(rhsStringExpr.StringValue, "*") || strings.HasSuffix(rhsStringExpr.StringValue, "*")
 +	return spansql.IsOp{
 +		LHS: lhs,
 +		RHS: spansql.NullLiteral(0),
 +	}, nil
-+}
-+
+ }
+ 
+-func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr, error) {
+-	lhs := e.GetCallExpr().GetArgs()[0]
+-	rhs := e.GetCallExpr().GetArgs()[1]
+-	rhsString := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue).StringValue
+-	if strings.Contains(strings.TrimSuffix(strings.TrimPrefix(rhsString, "*"), "*"), "*") {
 +func (t *Transpiler) transpileJSONBCallExpr(
 +	e *expr.Expr,
 +) (spansql.Expr, error) {
 +	callExpr := e.GetCallExpr()
 +	if len(callExpr.Args) != 1 {
-+		return nil, fmt.Errorf(
+ 		return nil, fmt.Errorf(
+-			"unsupported argument to `%s`: wildcard only supported in leading or trailing positions",
+-			e.GetCallExpr().GetFunction(),
 +			"unexpected number of arguments to `%s`: %d",
 +			callExpr.GetFunction(),
 +			len(callExpr.Args),
-+		)
-+	}
+ 		)
+ 	}
+-	return spansql.ComparisonOp{
+-		Op:  spansql.Like,
+-		LHS: spansql.ID(lhs.GetIdentExpr().GetName()),
+-		RHS: t.param(strings.ReplaceAll(rhsString, "*", "%")),
+-	}, nil
 +	// Extract the field expression, which is assumed to be a JSON string literal.
 +	jsonPathExpr, err := t.transpileExpr(callExpr.Args[0])
 +	if err != nil {
@@ -201,12 +277,10 @@ index 1be28fc..d4dd8fa 100644
 +	}
 +
 +	return spansql.Param(sb.String()), nil
-+}
-+
+ }
+ 
  func (t *Transpiler) transpileBinaryLogicalCallExpr(
- 	e *expr.Expr,
- 	op spansql.LogicalOperator,
-@@ -334,12 +447,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
+@@ -334,12 +457,12 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
  
  func (t *Transpiler) param(param interface{}) spansql.Param {
  	p := t.nextParam()
