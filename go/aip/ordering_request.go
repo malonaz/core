@@ -63,7 +63,7 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 	}
 
 	// Create a tree and explore.
-	tree, err := BuildResourceTree[R](10, options.GetPaths())
+	tree, err := BuildResourceTree[R](WithAllowedPaths(options.GetPaths()))
 	if err != nil {
 		return nil, err
 	}

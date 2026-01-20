@@ -110,7 +110,7 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	}
 
 	// Build tree to get column name mappings (without nested path transformation).
-	tree, err := BuildResourceTree[R](10, []string{"*"})
+	tree, err := BuildResourceTree[R](WithAllowedPaths([]string{"*"}))
 	if err != nil {
 		return nil, fmt.Errorf("building resource tree: %w", err)
 	}

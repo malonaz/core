@@ -563,7 +563,12 @@ func (s *Schema) augmentMethodComments() error {
 									return false
 								}
 								var tree *aip.Tree
-								tree, err = aip.BuildResourceTreeFromDescriptor(resourceMessageDescriptor, 5, filtering.Paths, aip.WithTransformNestedPath())
+								tree, err = aip.BuildResourceTreeFromDescriptor(
+									resourceMessageDescriptor,
+									aip.WithAllowedPaths(filtering.Paths),
+									aip.WithTransformNestedPath(),
+									aip.WithMaxDepth(3),
+								)
 								if err != nil {
 									return false
 								}

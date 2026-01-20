@@ -18,18 +18,23 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
+const (
+	defaultMaxDepth = 10
+)
+
 type TreeConfig struct {
-	TransformNestedPath bool
+	maxDepth            int
+	transformNestedPath bool
+	allowedPaths        []string
 }
 
 type Tree struct {
+	Config         *TreeConfig
 	Validator      protovalidate.Validator
 	Resource       *ParsedResource
 	AllowAllPaths  bool
 	AllowedPathSet map[string]struct{}
-	MaxDepth       int
 	Nodes          []*Node
-	Config         *TreeConfig
 	IDColumnName   string
 }
 
@@ -37,11 +42,23 @@ type TreeOption func(*TreeConfig)
 
 func WithTransformNestedPath() TreeOption {
 	return func(tc *TreeConfig) {
-		tc.TransformNestedPath = true
+		tc.transformNestedPath = true
 	}
 }
 
-func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, maxDepth int, allowedPaths []string, opts ...TreeOption) (*Tree, error) {
+func WithMaxDepth(maxDepth int) TreeOption {
+	return func(tc *TreeConfig) {
+		tc.maxDepth = maxDepth
+	}
+}
+
+func WithAllowedPaths(paths []string) TreeOption {
+	return func(tc *TreeConfig) {
+		tc.allowedPaths = paths
+	}
+}
+
+func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
 	for _, opt := range opts {
 		opt(config)
@@ -54,11 +71,10 @@ func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, max
 		return nil, err
 	}
 
-	tree, err := newTree(validator, maxDepth, allowedPaths)
+	tree, err := newTree(config, validator)
 	if err != nil {
 		return nil, err
 	}
-	tree.Config = config
 
 	fields := msgDesc.Fields()
 	for i := 0; i < fields.Len(); i++ {
@@ -76,7 +92,7 @@ func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, max
 }
 
 // In filtering_request.go, extract tree building to a shared function
-func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opts ...TreeOption) (*Tree, error) {
+func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
 	for _, opt := range opts {
 		opt(config)
@@ -87,7 +103,7 @@ func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opt
 	)
 
 	// Move the tree building logic here
-	tree, err := newTree(validator, maxDepth, allowedPaths)
+	tree, err := newTree(config, validator)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +168,7 @@ func BuildResourceTree[R proto.Message](maxDepth int, allowedPaths []string, opt
 			if rootNodeReplacement, ok := fieldPathToReplacement[rootNodePath]; ok {
 				replacementPath = strings.Replace(replacementPath, rootNodePath, rootNodeReplacement, 1) // 1 to only make one replacement.
 			}
-			if config.TransformNestedPath {
+			if config.transformNestedPath {
 				replacementPath = strings.ReplaceAll(replacementPath, ".", "@")
 			}
 		}
@@ -186,24 +202,27 @@ func (t *Tree) AllowedNodes() iter.Seq[*Node] {
 	}
 }
 
-func newTree(validator protovalidate.Validator, maxDepth int, allowedPaths []string) (*Tree, error) {
+func newTree(config *TreeConfig, validator protovalidate.Validator) (*Tree, error) {
+	if config.maxDepth == 0 {
+		config.maxDepth = defaultMaxDepth
+	}
 	var allowAllPaths bool
-	allowedPathSet := make(map[string]struct{}, len(allowedPaths))
-	for _, allowedPath := range allowedPaths {
+	allowedPathSet := make(map[string]struct{}, len(config.allowedPaths))
+	for _, allowedPath := range config.allowedPaths {
 		allowedPathSet[allowedPath] = struct{}{}
 		if allowedPath == "*" {
 			allowAllPaths = true
 		}
 	}
-	if allowAllPaths && len(allowedPaths) != 1 {
+	if allowAllPaths && len(config.allowedPaths) != 1 {
 		return nil, fmt.Errorf("cannot use '*' in combination with other paths")
 	}
 
 	return &Tree{
+		Config:         config,
 		Validator:      validator,
 		AllowAllPaths:  allowAllPaths,
 		AllowedPathSet: allowedPathSet,
-		MaxDepth:       10,
 	}, nil
 }
 
@@ -308,7 +327,7 @@ func (n *Node) ApplyReplacement(clause string) string {
 }
 
 func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor, depth int) error {
-	if depth == t.MaxDepth+1 { // Exact check as sanity check that we are traversing correctly.
+	if depth == t.Config.maxDepth+1 { // Exact check as sanity check that we are traversing correctly.
 		return nil
 	}
 
