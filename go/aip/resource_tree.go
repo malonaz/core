@@ -182,15 +182,39 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	return tree, nil
 }
 
-func (t *Tree) AllowedPaths() []string {
-	var paths []string
-	for node := range t.AllowedNodes() {
-		paths = append(paths, node.Path)
-	}
-	return paths
+func (t *Tree) OrderableNodes() iter.Seq[*Node] {
+	return t.FilterableNodes()
 }
 
-func (t *Tree) AllowedNodes() iter.Seq[*Node] {
+func (t *Tree) FilterableNodes() iter.Seq[*Node] {
+	return func(yield func(*Node) bool) {
+		for node := range t.allowedNodes() {
+			if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) || node.HasFieldBehavior(annotationspb.FieldBehavior_INPUT_ONLY) {
+				continue
+			}
+			if !yield(node) {
+				return
+			}
+		}
+	}
+}
+
+func (t *Tree) UpdatableNodes() iter.Seq[*Node] {
+	return func(yield func(*Node) bool) {
+		for node := range t.allowedNodes() {
+			if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) ||
+				node.HasFieldBehavior(annotationspb.FieldBehavior_OUTPUT_ONLY) ||
+				node.HasFieldBehavior(annotationspb.FieldBehavior_IMMUTABLE) {
+				continue
+			}
+			if !yield(node) {
+				return
+			}
+		}
+	}
+}
+
+func (t *Tree) allowedNodes() iter.Seq[*Node] {
 	return func(yield func(*Node) bool) {
 		for _, node := range t.Nodes {
 			if node.AllowedPath {

@@ -110,7 +110,7 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 	orderByClause = p.expandNameField(orderByClause)
 
 	// Apply the replacement.
-	for node := range p.tree.AllowedNodes() {
+	for node := range p.tree.OrderableNodes() {
 		orderByClause = node.ApplyReplacement(orderByClause)
 	}
 	orderByClause = strings.ReplaceAll(orderByClause, "@", ".")

@@ -7,7 +7,6 @@ import (
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/filtering"
 	"go.einride.tech/spanner-aip/spanfiltering"
-	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -79,11 +78,7 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	var declarationOptions []filtering.DeclarationOption
 	isNullFunctionOverloads := getIsNullFunctionDefaultOverloads()
 
-	for node := range tree.AllowedNodes() {
-		if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) || node.HasFieldBehavior(annotationspb.FieldBehavior_INPUT_ONLY) {
-			continue
-		}
-
+	for node := range tree.FilterableNodes() {
 		replacementPath := node.Path
 		if node.ReplacementPath != "" {
 			replacementPath = node.ReplacementPath
@@ -131,7 +126,7 @@ func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, erro
 	// We need to replace those with `JSONB(hello@hi@now)`
 	// We must be careful to ensure that if there's a `hello.hi` declared and a `hello.hi.now` declared.
 	// We don't do `JSONB(hello.hi).now` / this would be problematic.
-	for node := range p.tree.AllowedNodes() {
+	for node := range p.tree.FilterableNodes() {
 		filterClause = node.ApplyReplacement(filterClause)
 	}
 	p.setFilter(request, filterClause)

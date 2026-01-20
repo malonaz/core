@@ -586,7 +586,10 @@ func (s *Schema) augmentMethodComments() error {
 								if err != nil {
 									return false
 								}
-								paths = tree.AllowedPaths()
+								paths = nil
+								for node := range tree.FilterableNodes() {
+									paths = append(paths, node.Path)
+								}
 							}
 
 							if field := input.Fields().ByName("filter"); field != nil {
