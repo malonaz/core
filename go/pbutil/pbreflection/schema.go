@@ -592,10 +592,9 @@ func (s *Schema) augmentMethodComments() error {
 				// Filtering
 				if proto.HasExtension(inputOpts, aippb.E_Filtering) {
 					if filtering := proto.GetExtension(inputOpts, aippb.E_Filtering).(*aippb.FilteringOptions); filtering != nil && len(filtering.Paths) > 0 {
+						paths := filtering.GetPaths()
 						resourceMsg := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
-						methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, filtering.Paths))
 						if !messageSeen {
-							paths := filtering.GetPaths()
 							if standardMethodType != StandardMethodTypeUnspecified {
 								resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
 								if !ok {
@@ -622,6 +621,7 @@ func (s *Schema) augmentMethodComments() error {
 								s.comments[string(field.FullName())] = fmt.Sprintf("Filter by: %s", strings.Join(paths, ", "))
 							}
 						}
+						methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, paths))
 					}
 				}
 
@@ -744,13 +744,13 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	if len(examples) == 0 {
 		return fmt.Sprintf(`**Filtering (AIP-160)**
 Filterable fields: %s
-Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false)`, strings.Join(paths, ", "))
+Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, strings.Join(paths, ", "))
 	}
 
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
 	return fmt.Sprintf(`**Filtering (AIP-160)**
 %s
-Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false)`, exampleStr)
+Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, exampleStr)
 }
 
 func formatOrderingDoc(paths []string, defaultOrder string) string {
