@@ -1,6 +1,5 @@
 {{- /* ################### TOPLINE VARIABLES ################### */ -}}
 {{ $file := .File }}
-{{ $files := .Files }}
 {{ $generatedFile := .GeneratedFile }}
 
 {{- $l := splitList "." (toString $file.Desc.FullName) -}}
@@ -16,108 +15,101 @@ ctx = {{ fqn "github.com/malonaz/core/go/grpc/interceptor" "WithFieldMask" }}(ct
 
 {{- define "pipeServerStreamFn" -}}
 pipeFn := func() error {
-	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx, request)
-	if err != nil {
+  stream, err := h.{{ untitle .ProxyService }}Client.{{ .ProxyMethod }}(ctx, request)
+  if err != nil {
     return err
-	}
-	// No need to check the srv.Context().Done() or stream.Context().Done() as:
-	// If srv.Context() is cancelled => stream.Context() will also be cancelled.
-	// If stream.Context() is cancelled, stream.Recv() will return it.
-	for {
+  }
+  for {
     response, err := stream.Recv()
     if err != nil {
-			if err == {{ fqn "io" "EOF" }} {
-				break
-			}
-			return err
+      if err == {{ fqn "io" "EOF" }} {
+        break
+      }
+      return err
     }
 
     if err := srv.Send(response); err != nil {
-			return err
+      return err
     }
-	}
-	return nil
+  }
+  return nil
 }
 {{- end -}}
 
 {{- define "pipeClientStreamFn" -}}
 pipeFn := func() error {
-	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx)
-	if err != nil {
+  stream, err := h.{{ untitle .ProxyService }}Client.{{ .ProxyMethod }}(ctx)
+  if err != nil {
     return err
-	}
+  }
 
-	for {
+  for {
     request, err := srv.Recv()
     if err != nil {
-			if err == {{ fqn "io" "EOF" }} {
-				break
-			}
-			return err
+      if err == {{ fqn "io" "EOF" }} {
+        break
+      }
+      return err
     }
 
     if err := stream.Send(request); err != nil {
-			return err
+      return err
     }
-	}
+  }
 
-	response, err := stream.CloseAndRecv()
-	if err != nil {
+  response, err := stream.CloseAndRecv()
+  if err != nil {
     return err
-	}
+  }
 
-	return srv.SendAndClose(response)
+  return srv.SendAndClose(response)
 }
 {{- end -}}
 
 {{- define "pipeBidiStreamFn" -}}
 pipeFn := func() error {
-	stream, err := h.{{ untitle .Service.GoName }}Client.{{ .Method.GoName }}(ctx)
-	if err != nil {
+  stream, err := h.{{ untitle .ProxyService }}Client.{{ .ProxyMethod }}(ctx)
+  if err != nil {
     return err
-	}
+  }
 
-	// Channel to communicate errors between goroutines
-	errChan := make(chan error, 2)
+  errChan := make(chan error, 2)
 
-	// Handle incoming requests in a separate goroutine
-	go func() {
+  go func() {
     defer stream.CloseSend()
     for {
-			request, err := srv.Recv()
-			if err != nil {
-				errChan <- err
-				return
-			}
-			if err := stream.Send(request); err != nil {
-				errChan <- err
-				return
-			}
+      request, err := srv.Recv()
+      if err != nil {
+        errChan <- err
+        return
+      }
+      if err := stream.Send(request); err != nil {
+        errChan <- err
+        return
+      }
     }
-	}()
+  }()
 
-	// Handle outgoing responses in a separate goroutine
-	go func() {
+  go func() {
     for {
-			response, err := stream.Recv()
-			if err != nil {
-				errChan <- err
-				return
-			}
-			if err := srv.Send(response); err != nil {
-				errChan <- err
-				return
-			}
+      response, err := stream.Recv()
+      if err != nil {
+        errChan <- err
+        return
+      }
+      if err := srv.Send(response); err != nil {
+        errChan <- err
+        return
+      }
     }
-	}()
+  }()
 
-	// Wait for both goroutines to complete or return the first error encountered
-	for i := 0; i < 2; i++ {
+  for i := 0; i < 2; i++ {
     if err := <-errChan; err != nil && err != {{ fqn "io" "EOF" }} {
-			return err
+      return err
     }
-	}
-	return nil
+  }
+  return nil
 }
 {{- end -}}
 
@@ -126,66 +118,42 @@ pipeFn := func() error {
 // source: {{ $file.Desc.Path }}
 package {{ .PackageName }}
 
-{{- $methodToService := dict }}
-{{- $serviceNameToFile := dict }}
-{{- range $otherFile := $.Files -}}
-{{- range $otherService := $otherFile.Services -}}
-{{- $_ := set $serviceNameToFile  (printf "%s" $otherService.Desc.FullName) $otherFile }}
-{{- range $otherMethod := $otherService.Methods -}}
-{{- $key := printf "%s/%s/%s" $otherMethod.Desc.Name $otherMethod.Input.GoIdent $otherMethod.Output.GoIdent -}}
-{{- $_ := set $methodToService $key $otherService -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{- $set := dict }}
-{{- $methodKeys := sortAlpha (keys $methodToService) }}
-{{- $services := list }}
-{{- range $key := $methodKeys }}
-{{- $service := (get $methodToService $key) -}}
-{{- if hasKey $set $service.GoName }}{{ continue }}{{ end -}}
-{{- $_ := set $set $service.GoName "t" }}
-{{- $services = append $services $service }}
-{{- end  }}
-
 {{ range $service := $file.Services }}
 {{- range $method := $service.Methods }}
 {{ $handlerOpts := getExt $method.Desc "malonaz.codegen.gateway.v1.opts" }}
-{{ if $handlerOpts.Custom }}{{ continue }}{{ end }}
-{{- $key := printf "%s/%s/%s" $method.Desc.Name $method.Input.GoIdent $method.Output.GoIdent -}}
-{{ $otherService := get $methodToService $key }}
+{{ if not $handlerOpts.Proxy }}{{ continue }}{{ end }}
+{{- $proxyParts := splitList "." $handlerOpts.Proxy -}}
+{{- $proxyMethod := index $proxyParts (sub (len $proxyParts) 1) -}}
+{{- $proxyService := index $proxyParts (sub (len $proxyParts) 2) -}}
 
 {{- if and $method.Desc.IsStreamingServer $method.Desc.IsStreamingClient }}
-// Bidirectional streaming
 func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-	ctx := srv.Context()
-	{{ template "fieldMaskOpts" $handlerOpts }}
-	{{ template "pipeBidiStreamFn" ( dict "Service" $otherService "Method" $method) }}
-	return pipeFn()
+  ctx := srv.Context()
+  {{ template "fieldMaskOpts" $handlerOpts }}
+  {{ template "pipeBidiStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
+  return pipeFn()
 }
 
 {{- else if $method.Desc.IsStreamingServer }}
-// Server streaming
 func (h *Service) {{ $method.GoName }}(request *{{ qgi $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-	ctx := srv.Context()
-	{{ template "fieldMaskOpts" $handlerOpts }}
-	{{ template "pipeServerStreamFn" ( dict "Service" $otherService "Method" $method) }}
-	return pipeFn()
+  ctx := srv.Context()
+  {{ template "fieldMaskOpts" $handlerOpts }}
+  {{ template "pipeServerStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
+  return pipeFn()
 }
 
 {{- else if $method.Desc.IsStreamingClient }}
-// Client streaming
 func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
-	ctx := srv.Context()
-	{{ template "fieldMaskOpts" $handlerOpts }}
-	return pipeFn()
+  ctx := srv.Context()
+  {{ template "fieldMaskOpts" $handlerOpts }}
+  {{ template "pipeClientStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
+  return pipeFn()
 }
 
 {{- else }}
-// Unary
 func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
-	{{ template "fieldMaskOpts" $handlerOpts }}
-	return h.{{ $otherService.GoName | untitle }}Client.{{ $method.GoName }}(ctx, request)
+  {{ template "fieldMaskOpts" $handlerOpts }}
+  return h.{{ $proxyService | untitle }}Client.{{ $proxyMethod }}(ctx, request)
 }
 {{- end }}
 {{ end }}

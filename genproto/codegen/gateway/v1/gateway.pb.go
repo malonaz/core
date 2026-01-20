@@ -74,14 +74,13 @@ func (b0 ServiceOpts_builder) Build() *ServiceOpts {
 // Controls how the gateway generates and handles the method implementation.
 type HandlerOpts struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// custom indicates whether this method uses a custom handler implementation.
-	// When true, the code generator will skip generating the default pass-through
+	// Proxy can be set to a fully qualified method name to indicate that this method simply forwards the request to
+	// a backend grpc endpoint. When set, the code generator generates the pass through handler.
+	// When unset, the code generator will skip generating the default pass-through
 	// handler for this method, expecting the developer to provide a custom
 	// implementation. This is useful for methods that require special logic,
 	// transformation, aggregation, or integration with multiple backend services.
-	//
-	// Default: false (auto-generate standard pass-through handler)
-	Custom bool `protobuf:"varint,1,opt,name=custom,proto3" json:"custom,omitempty"`
+	Proxy string `protobuf:"bytes,1,opt,name=proxy,proto3" json:"proxy,omitempty"`
 	// A field mask to be applied on response objects.
 	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -113,11 +112,11 @@ func (x *HandlerOpts) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *HandlerOpts) GetCustom() bool {
+func (x *HandlerOpts) GetProxy() string {
 	if x != nil {
-		return x.Custom
+		return x.Proxy
 	}
-	return false
+	return ""
 }
 
 func (x *HandlerOpts) GetFieldMask() *fieldmaskpb.FieldMask {
@@ -127,8 +126,8 @@ func (x *HandlerOpts) GetFieldMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
-func (x *HandlerOpts) SetCustom(v bool) {
-	x.Custom = v
+func (x *HandlerOpts) SetProxy(v string) {
+	x.Proxy = v
 }
 
 func (x *HandlerOpts) SetFieldMask(v *fieldmaskpb.FieldMask) {
@@ -149,14 +148,13 @@ func (x *HandlerOpts) ClearFieldMask() {
 type HandlerOpts_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// custom indicates whether this method uses a custom handler implementation.
-	// When true, the code generator will skip generating the default pass-through
+	// Proxy can be set to a fully qualified method name to indicate that this method simply forwards the request to
+	// a backend grpc endpoint. When set, the code generator generates the pass through handler.
+	// When unset, the code generator will skip generating the default pass-through
 	// handler for this method, expecting the developer to provide a custom
 	// implementation. This is useful for methods that require special logic,
 	// transformation, aggregation, or integration with multiple backend services.
-	//
-	// Default: false (auto-generate standard pass-through handler)
-	Custom bool
+	Proxy string
 	// A field mask to be applied on response objects.
 	FieldMask *fieldmaskpb.FieldMask
 }
@@ -165,7 +163,7 @@ func (b0 HandlerOpts_builder) Build() *HandlerOpts {
 	m0 := &HandlerOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Custom = b.Custom
+	x.Proxy = b.Proxy
 	x.FieldMask = b.FieldMask
 	return m0
 }
@@ -210,9 +208,9 @@ var File_malonaz_codegen_gateway_v1_gateway_proto protoreflect.FileDescriptor
 const file_malonaz_codegen_gateway_v1_gateway_proto_rawDesc = "" +
 	"\n" +
 	"(malonaz/codegen/gateway/v1/gateway.proto\x12\x1amalonaz.codegen.gateway.v1\x1a google/protobuf/descriptor.proto\x1a google/protobuf/field_mask.proto\"\r\n" +
-	"\vServiceOpts\"`\n" +
-	"\vHandlerOpts\x12\x16\n" +
-	"\x06custom\x18\x01 \x01(\bR\x06custom\x129\n" +
+	"\vServiceOpts\"^\n" +
+	"\vHandlerOpts\x12\x14\n" +
+	"\x05proxy\x18\x01 \x01(\tR\x05proxy\x129\n" +
 	"\n" +
 	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask:m\n" +
 	"\fservice_opts\x12\x1f.google.protobuf.ServiceOptions\x18\xd3\xec\x06 \x01(\v2'.malonaz.codegen.gateway.v1.ServiceOptsR\vserviceOpts:]\n" +

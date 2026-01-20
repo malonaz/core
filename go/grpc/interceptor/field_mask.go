@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	gatewaypb "github.com/malonaz/core/genproto/codegen/gateway/v1"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
@@ -97,6 +98,80 @@ func (s *fieldMaskServerStream) SendMsg(m any) error {
 }
 
 func getListCollectionField(fullMethod string, response proto.Message) protoreflect.Value {
+	parts := strings.Split(fullMethod, "/")
+	if len(parts) < 2 {
+		return protoreflect.Value{}
+	}
+	serviceName := parts[len(parts)-2]
+	methodName := parts[len(parts)-1]
+
+	serviceDesc, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
+	if err != nil {
+		return protoreflect.Value{}
+	}
+	svc, ok := serviceDesc.(protoreflect.ServiceDescriptor)
+	if !ok {
+		return protoreflect.Value{}
+	}
+	methodDesc := svc.Methods().ByName(protoreflect.Name(methodName))
+	if methodDesc == nil {
+		return protoreflect.Value{}
+	}
+
+	targetMethodDesc := methodDesc
+	opts := methodDesc.Options()
+	if proto.HasExtension(opts, gatewaypb.E_Opts) {
+		handlerOpts := proto.GetExtension(opts, gatewaypb.E_Opts).(*gatewaypb.HandlerOpts)
+		if handlerOpts.GetProxy() != "" {
+			resolved, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(handlerOpts.Proxy))
+			if err == nil {
+				if methodDesc, ok := resolved.(protoreflect.MethodDescriptor); ok {
+					targetMethodDesc = methodDesc
+					methodName = string(methodDesc.Name())
+				}
+			}
+		}
+	}
+
+	targetOpts := targetMethodDesc.Options()
+	if !proto.HasExtension(targetOpts, aippb.E_StandardMethod) {
+		return protoreflect.Value{}
+	}
+	standardMethod := proto.GetExtension(targetOpts, aippb.E_StandardMethod).(*aippb.StandardMethod)
+	if standardMethod == nil || standardMethod.Resource == "" {
+		return protoreflect.Value{}
+	}
+
+	if !(strings.HasPrefix(methodName, "List") || strings.HasPrefix(methodName, "BatchGet")) {
+		return protoreflect.Value{}
+	}
+
+	msgReflect := response.ProtoReflect()
+	fields := msgReflect.Descriptor().Fields()
+	for i := 0; i < fields.Len(); i++ {
+		fd := fields.Get(i)
+		if !fd.IsList() || fd.Kind() != protoreflect.MessageKind {
+			continue
+		}
+		itemMsgDesc := fd.Message()
+		itemOpts := itemMsgDesc.Options()
+		if !proto.HasExtension(itemOpts, annotations.E_Resource) {
+			continue
+		}
+		resource := proto.GetExtension(itemOpts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+		resourcePlural := xstrings.ToPascalCase(resource.GetPlural())
+		if resource.GetType() == standardMethod.Resource {
+			expectedList := "List" + resourcePlural
+			expectedBatchGet := "BatchGet" + resourcePlural
+			if methodName == expectedList || methodName == expectedBatchGet {
+				return msgReflect.Get(fd)
+			}
+		}
+	}
+	return protoreflect.Value{}
+}
+
+func getListCollectionFieldOld(fullMethod string, response proto.Message) protoreflect.Value {
 	parts := strings.Split(fullMethod, "/")
 	if len(parts) < 2 {
 		return protoreflect.Value{}

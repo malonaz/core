@@ -29,14 +29,13 @@ message ServiceOpts {}
 // HandlerOpts defines gateway-specific options for individual RPC methods.
 // Controls how the gateway generates and handles the method implementation.
 message HandlerOpts {
-  // custom indicates whether this method uses a custom handler implementation.
-  // When true, the code generator will skip generating the default pass-through
+  // Proxy can be set to a fully qualified method name to indicate that this method simply forwards the request to
+  // a backend grpc endpoint. When set, the code generator generates the pass through handler.
+  // When unset, the code generator will skip generating the default pass-through
   // handler for this method, expecting the developer to provide a custom
   // implementation. This is useful for methods that require special logic,
   // transformation, aggregation, or integration with multiple backend services.
-  //
-  // Default: false (auto-generate standard pass-through handler)
-  bool custom = 1;
+  string proxy = 1;
   // A field mask to be applied on response objects.
   google.protobuf.FieldMask field_mask = 2;
 }
