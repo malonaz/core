@@ -110,8 +110,9 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	if so.responseFieldMask {
 		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
 			Type:        "string",
-			Description: "comma-separated field mask paths to include in the response",
+			Description: "comma-separated field mask paths to include in the response. For List/BatchGet endpoints, the paths are relative to the resource. Otherwise, relative to the response object.",
 		}
+		schema.Required = append(schema.Required, responseFieldMaskKey)
 	}
 	if responseDesc != "" {
 		if schema.Description != "" {
