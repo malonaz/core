@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/audio/v1/audio.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.SpeechToText.
+message SpeechToTextRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // Audio format of the audio.
+  audio.v1.Format audio_format = 2 [(buf.validate.field).required = true];
+
+  // Audio to transcribe.
+  audio.v1.Chunk audio_chunk = 3 [(buf.validate.field).required = true];
+
+  // Optional language code to improve transcription accuracy (e.g., "en", "es").
+  string language_code = 4;
+}
+
+// Response message for AiService.SpeechToText.
+message SpeechToTextResponse {
+  // The transcribed text.
+  string transcript = 1;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 2;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+}
+
+// Request message for AiService.SpeechToTextStream.
+message SpeechToTextStreamRequest {
+  // Content of this request.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Configuration for the stream. Must be sent first.
+    SpeechToTextStreamConfiguration configuration = 1;
+
+    // Audio data chunk.
+    audio.v1.Chunk audio_chunk = 2;
+  }
+}
+
+// Configuration for speech to text streaming. Sent as the first message.
+message SpeechToTextStreamConfiguration {
+  option (buf.validate.message).cel = {
+    id: "eager_lte_eot"
+    message: "eager_end_of_turn_confidence_threshold must be <= end_of_turn_confidence_threshold"
+    expression: "this.eager_end_of_turn_confidence_threshold <= this.end_of_turn_confidence_threshold"
+  };
+
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // Audio format of the audio stream.
+  audio.v1.Format audio_format = 2 [(buf.validate.field).required = true];
+
+  // End of turn confidence threshold.
+  double end_of_turn_confidence_threshold = 3 [(buf.validate.field).double = {
+    gte: 0
+    lte: 1
+  }];
+
+  // Eager end of turn confidence threshold (must be <= `end_of_turn_threshold`).
+  double eager_end_of_turn_confidence_threshold = 4 [(buf.validate.field).double = {
+    gte: 0
+    lte: 1
+  }];
+
+  // Maximum silence duration before forcing an end of turn, regardless of confidence, after a turn has started.
+  // - Use 3000-4000 for rapid-response environments.
+  // - Use 7000-1000 for users with frequent pauses.
+  google.protobuf.Duration end_of_turn_timeout = 5 [(buf.validate.field).duration = {
+    gte: {seconds: 0}
+    lte: {seconds: 10}
+  }];
+
+  // Optional language code to improve transcription accuracy (e.g., "en", "es").
+  string language_code = 6;
+}
+
+// Response message for AiService.SpeechToTextStream.
+message SpeechToTextStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Indicates the user has started speaking a new turn.
+    SpeechToTextStreamTurnEvent turn_start = 1;
+
+    // Provides a partial transcript update during an ongoing turn.
+    SpeechToTextStreamTurnEvent turn_update = 2;
+
+    // Indicates the model predicts the turn is likely ending (tentative, may be resumed).
+    SpeechToTextStreamTurnEvent turn_eager_end = 3;
+
+    // Indicates a previously signaled eager end of turn was incorrect and the turn continues.
+    SpeechToTextStreamTurnEvent turn_resumed = 4;
+
+    // Indicates the user's turn has definitively ended with a final transcript.
+    SpeechToTextStreamTurnEvent turn_end = 5;
+
+    // Model usage metrics (sent at the end of the stream).
+    .malonaz.ai.v1.ModelUsage model_usage = 6;
+
+    // Generation metrics (sent at the end of the stream).
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 7;
+  }
+}
+
+// Holds transcript events.
+message SpeechToTextStreamTurnEvent {
+  // Index of the turn this event belongs to, starts at zero.
+  int32 turn_index = 1;
+
+  // Transcript for this turn so far.
+  string transcript = 2;
+
+  // Confidence score (0.0 to 1.0) that this turn has ended.
+  double end_of_turn_confidence = 3;
+}

@@ -1,0 +1,11 @@
+{
+  "provider_id": "deepgram",
+  "models": [
+    {
+      "name": "providers/deepgram/models/flux-general-en",
+      "provider_model_id": "flux-general-en",
+      "description": "English-only real-time streaming speech-to-text with voice activity detection and end-of-turn prediction.",
+      "stt": {}
+    }
+  ]
+}

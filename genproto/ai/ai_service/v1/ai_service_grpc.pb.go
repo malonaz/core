@@ -49,6 +49,8 @@ type AiServiceClient interface {
 	ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
 	SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error)
+	// Converts speech audio to text with streaming response.
+	SpeechToTextStream(ctx context.Context, opts ...grpc.CallOption) (AiService_SpeechToTextStreamClient, error)
 	// Convert text to text using chat completion models.
 	TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error)
 	// Converts text to text using chat completion models with streaming response.
@@ -130,6 +132,37 @@ func (c *aiServiceClient) SpeechToText(ctx context.Context, in *SpeechToTextRequ
 	return out, nil
 }
 
+func (c *aiServiceClient) SpeechToTextStream(ctx context.Context, opts ...grpc.CallOption) (AiService_SpeechToTextStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[0], "/malonaz.ai.ai_service.v1.AiService/SpeechToTextStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aiServiceSpeechToTextStreamClient{stream}
+	return x, nil
+}
+
+type AiService_SpeechToTextStreamClient interface {
+	Send(*SpeechToTextStreamRequest) error
+	Recv() (*SpeechToTextStreamResponse, error)
+	grpc.ClientStream
+}
+
+type aiServiceSpeechToTextStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *aiServiceSpeechToTextStreamClient) Send(m *SpeechToTextStreamRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *aiServiceSpeechToTextStreamClient) Recv() (*SpeechToTextStreamResponse, error) {
+	m := new(SpeechToTextStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
 	out := new(TextToTextResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToText", in, out, opts...)
@@ -140,7 +173,7 @@ func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest,
 }
 
 func (c *aiServiceClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[0], "/malonaz.ai.ai_service.v1.AiService/TextToTextStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.AiService/TextToTextStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +214,7 @@ func (c *aiServiceClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequ
 }
 
 func (c *aiServiceClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -242,6 +275,8 @@ type AiServiceServer interface {
 	ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
 	SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error)
+	// Converts speech audio to text with streaming response.
+	SpeechToTextStream(AiService_SpeechToTextStreamServer) error
 	// Convert text to text using chat completion models.
 	TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error)
 	// Converts text to text using chat completion models with streaming response.
@@ -276,6 +311,9 @@ func (UnimplementedAiServiceServer) ListVoices(context.Context, *ListVoicesReque
 }
 func (UnimplementedAiServiceServer) SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpeechToText not implemented")
+}
+func (UnimplementedAiServiceServer) SpeechToTextStream(AiService_SpeechToTextStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method SpeechToTextStream not implemented")
 }
 func (UnimplementedAiServiceServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TextToText not implemented")
@@ -427,6 +465,32 @@ func _AiService_SpeechToText_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_SpeechToTextStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AiServiceServer).SpeechToTextStream(&aiServiceSpeechToTextStreamServer{stream})
+}
+
+type AiService_SpeechToTextStreamServer interface {
+	Send(*SpeechToTextStreamResponse) error
+	Recv() (*SpeechToTextStreamRequest, error)
+	grpc.ServerStream
+}
+
+type aiServiceSpeechToTextStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *aiServiceSpeechToTextStreamServer) Send(m *SpeechToTextStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *aiServiceSpeechToTextStreamServer) Recv() (*SpeechToTextStreamRequest, error) {
+	m := new(SpeechToTextStreamRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func _AiService_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextToTextRequest)
 	if err := dec(in); err != nil {
@@ -550,6 +614,12 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SpeechToTextStream",
+			Handler:       _AiService_SpeechToTextStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
 		{
 			StreamName:    "TextToTextStream",
 			Handler:       _AiService_TextToTextStream_Handler,

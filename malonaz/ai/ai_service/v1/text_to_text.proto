@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/ai/v1/tool.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Configuration for text to text generation.
+message TextToTextConfiguration {
+  // Maximum number of tokens to generate. Includes reasoning tokens.
+  int32 max_tokens = 1 [(buf.validate.field).int32.gte = 0];
+
+  // Sampling temperature (0.0 to 2.0).
+  double temperature = 2 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 2.0
+  }];
+
+  // Controls which tool(s) the model should use.
+  .malonaz.ai.v1.ToolChoice tool_choice = 3;
+
+  // Represents the level of reasoning effort for AI model responses.
+  // The reasoning effort parameter guides the model on how many reasoning tokens
+  // to generate before creating a response to the prompt. Higher effort levels
+  // result in more thorough reasoning at the cost of speed and token usage.
+  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 4;
+
+  // If true, we attempt to clean the output to extract a json object.
+  // Fails the request if a json object cannot be found.
+  bool extract_json_object = 5;
+
+  // If true, we stream partial tool calls.
+  bool stream_partial_tool_calls = 6;
+}
+
+// Request message for AiService.TextToText.
+message TextToTextRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 3;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 4;
+}
+
+// Reason why generation stopped.
+enum TextToTextStopReason {
+  // Used to detect an unset field.
+  TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED = 0;
+
+  // The model reached a natural stopping point.
+  TEXT_TO_TEXT_STOP_REASON_END_TURN = 1;
+
+  // The model reached the maximum token limit specified in the request.
+  TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS = 2;
+
+  // The model requested to call one or more tools.
+  TEXT_TO_TEXT_STOP_REASON_TOOL_CALL = 3;
+
+  // one of your provided custom `stop_sequences` was generated
+  TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE = 4;
+
+  // The model paused its turn to allow the user to interject.
+  TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN = 5;
+
+  // The model refused to respond due to safety or policy reasons.
+  TEXT_TO_TEXT_STOP_REASON_REFUSAL = 6;
+}
+
+// Response message for AiService.TextToText.
+message TextToTextResponse {
+  // The generated message.
+  .malonaz.ai.v1.Message message = 1;
+
+  // Reason why generation stopped.
+  TextToTextStopReason stop_reason = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for AiService.TextToTextStream.
+message TextToTextStreamRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 3;
+
+  // For the model to use a tool.
+  string tool_choice = 4;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+}
+
+// Response message for AiService.TextToTextStream.
+message TextToTextStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // A chunk of the generated message content.
+    string content_chunk = 1;
+
+    // Reasoning content chunk (if model supports reasoning).
+    string reasoning_chunk = 2;
+
+    // Reason why generation stopped.
+    TextToTextStopReason stop_reason = 3;
+
+    // Tool calls requested by the assistant (sent when complete).
+    .malonaz.ai.v1.ToolCall tool_call = 4;
+
+    // Tool calls requested by the assistant (sent when complete).
+    .malonaz.ai.v1.ToolCall partial_tool_call = 5;
+
+    // Model usage event (sent last).
+    .malonaz.ai.v1.ModelUsage model_usage = 6;
+
+    // Generation metrics (sent last).
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 7;
+  }
+}

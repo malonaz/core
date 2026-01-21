@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/audio/v1/audio.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Configuration for text to speech generation.
+message TextToSpeechConfiguration {
+  // Optional language code to improve accuracy (e.g., "en", "es").
+  string language_code = 1;
+
+  // Preferred sample rate.e.g., 16000, 44100, 48000
+  // Best effort basis, caller should inspect the `audio_format` output.
+  int32 preferred_sample_rate = 2;
+
+  // Override provider-specific request fields.
+  // See provider documentation for supported settings.
+  // Any field here gets injected into the request to the provider at the root level.
+  google.protobuf.Struct provider_settings = 3;
+}
+
+// Request message for AiService.TextToSpeech.
+message TextToSpeechRequest {
+  option (buf.validate.message).cel = {
+    id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
+    message: "exactly one of `voice` or `provider_voice_id` must be set"
+    expression: "this.voice != '' || this.provider_voice_id != ''"
+  };
+
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The resource name of the voice to use.
+  // Format: voices/{voice}
+  string voice = 2 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Voice",
+    (buf.validate.field).required = true
+  ];
+
+  // The provider voice id.
+  string provider_voice_id = 3;
+
+  // The text to convert to speech.
+  string text = 4 [(buf.validate.field).string.min_len = 1];
+
+  // Additional configuration.
+  TextToSpeechConfiguration configuration = 5;
+}
+
+// Response message for AiService.TextToSpeech.
+message TextToSpeechResponse {
+  // Audio format of the audio.
+  audio.v1.Format audio_format = 1;
+
+  // Audio data chunk in PCM16 format.
+  audio.v1.Chunk audio_chunk = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for AiService.TextToSpeechStream.
+message TextToSpeechStreamRequest {
+  option (buf.validate.message).cel = {
+    id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
+    message: "exactly one of `voice` or `provider_voice_id` must be set"
+    expression: "this.voice != '' || this.provider_voice_id != ''"
+  };
+
+  // The resource name of the model to use.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The resource name of the voice to use.
+  // Format: voices/{voice}
+  string voice = 2 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Voice",
+    (buf.validate.field).required = true
+  ];
+
+  // The provider voice id.
+  string provider_voice_id = 3;
+
+  // The text to convert to speech.
+  string text = 4 [(buf.validate.field).string.min_len = 1];
+
+  // Additional configuration.
+  TextToSpeechConfiguration configuration = 5;
+}
+
+// Response message for AiService.TextToSpeechStream.
+message TextToSpeechStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Audio format of the audio stream.
+    audio.v1.Format audio_format = 1;
+
+    // Audio data chunk in PCM16 format.
+    audio.v1.Chunk audio_chunk = 2;
+
+    // Model usage event (sent last).
+    .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+    // Generation metrics.
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+  }
+}

@@ -13,12 +13,14 @@ require (
 	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/coder/websocket v1.8.14
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-jsonnet v0.21.0
 	github.com/google/uuid v1.6.0
+	github.com/gordonklaus/portaudio v0.0.0-20250206071425-98a94950218b
 	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0

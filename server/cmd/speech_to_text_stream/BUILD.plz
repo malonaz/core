@@ -1,0 +1,14 @@
+go_binary(
+    name = "speech_to_text_stream",
+    srcs = ["main.go"],
+    static = False,
+    visibility = ["//..."],
+    deps = [
+        "//go/grpc",
+        "//go/pbutil",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/audio/v1",
+        "//third_party/go:github.com__gordonklaus__portaudio",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+    ],
+)

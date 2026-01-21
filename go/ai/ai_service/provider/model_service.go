@@ -26,6 +26,7 @@ const (
 	Cerebras   = "cerebras"
 	Google     = "google"
 	Xai        = "xai"
+	Deepgram   = "deepgram"
 )
 
 var (
@@ -263,6 +264,30 @@ func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName st
 		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support speech to text", provider.ProviderId()).Err()
 	}
 	return speechToTextClient, model, nil
+}
+
+func (s *ModelService) GetSpeechToTextStreamProvider(ctx context.Context, modelName string) (SpeechToTextStreamClient, *aipb.Model, error) {
+	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
+	model, err := s.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	if model.Stt == nil {
+		return nil, nil, grpc.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
+	}
+	modelRn := &aipb.ModelResourceName{}
+	if err := modelRn.UnmarshalString(modelName); err != nil {
+		return nil, nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+	}
+	provider, ok := s.providerIdToProvider[modelRn.Provider]
+	if !ok {
+		return nil, nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+	}
+	speechToTextStreamClient, ok := provider.(SpeechToTextStreamClient)
+	if !ok {
+		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support speech to text streaming", provider.ProviderId()).Err()
+	}
+	return speechToTextStreamClient, model, nil
 }
 
 func (s *ModelService) GetTextToSpeechProvider(ctx context.Context, modelName string) (TextToSpeechClient, *aipb.Model, error) {

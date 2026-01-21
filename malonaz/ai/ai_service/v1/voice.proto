@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/v1/voice.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.CreateVoice.
+message CreateVoiceRequest {
+  // The voice to create.
+  ai.v1.Voice voice = 1 [(buf.validate.field).required = true];
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  //
+  // This value should be 4-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string voice_id = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.GetVoice.
+message GetVoiceRequest {
+  // The resource name of the voice to retrieve.
+  // Format: providers/{provider}/voices/{voice}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Voice"
+  ];
+}
+
+// Request message for AiService.ListVoices.
+message ListVoicesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 500};
+
+  // Requested page size. Server may return fewer voices than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 1 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListVoicesResponse.next_page_token][ai.ai_service.v1.ListVoicesResponse.next_page_token]
+  // returned from the previous call to `ListVoices` method.
+  string page_token = 2;
+}
+
+// Response message for AiService.ListVoices.
+message ListVoicesResponse {
+  // The list of voices.
+  repeated ai.v1.Voice voices = 1;
+
+  // A token to retrieve next page of results. Pass this value in the
+  // [ListVoicesRequest.page_token][ai.ai_service.v1.ListVoicesRequest.page_token]
+  // field in the subsequent call to `ListVoices` method to retrieve the next
+  // page of results.
+  string next_page_token = 2;
+}

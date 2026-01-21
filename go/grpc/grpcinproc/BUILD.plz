@@ -1,6 +1,7 @@
 go_library(
     name = "grpcinproc",
     srcs = [
+        "bidi_stream.go",
         "doc.go",
         "server_stream.go",
     ],

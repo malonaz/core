@@ -668,6 +668,44 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__coder__websocket",
+    _tag = "download",
+    module = "github.com/coder/websocket",
+    version = "v1.8.14",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__coder__websocket",
+    download = ":_github.com__coder__websocket#download",
+    install = ["."],
+    module = "github.com/coder/websocket",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__coder__websocket__internal__errd",
+        ":github.com__coder__websocket__internal__util",
+    ],
+)
+
+go_module(
+    name = "github.com__coder__websocket__internal__errd",
+    download = ":_github.com__coder__websocket#download",
+    install = ["internal/errd"],
+    module = "github.com/coder/websocket",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__coder__websocket__internal__util",
+    download = ":_github.com__coder__websocket#download",
+    install = ["internal/util"],
+    module = "github.com/coder/websocket",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__davecgh__go-spew",
     _tag = "download",
     module = "github.com/davecgh/go-spew",
@@ -1586,6 +1624,23 @@ go_module(
     download = ":_github.com__google__uuid#download",
     install = ["."],
     module = "github.com/google/uuid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__gordonklaus__portaudio",
+    _tag = "download",
+    module = "github.com/gordonklaus/portaudio",
+    version = "v0.0.0-20250206071425-98a94950218b",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__gordonklaus__portaudio",
+    download = ":_github.com__gordonklaus__portaudio#download",
+    install = ["."],
+    module = "github.com/gordonklaus/portaudio",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -3126,8 +3181,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):

@@ -135,6 +135,20 @@ func (c *Client) TextToSpeechStream(
 	return serverStreamClient(ctx, request)
 }
 
+// SpeechToTextStream provides a client-facing streaming interface.
+// It wraps the underlying server streaming implementation using grpcinproc.
+// SpeechToTextStream provides a client-facing bidirectional streaming interface.
+func (c *Client) SpeechToTextStream(
+	ctx context.Context,
+	_ ...grpc.CallOption,
+) (aiservicepb.AiService_SpeechToTextStreamClient, error) {
+	return grpcinproc.NewBidiStreamAsClient[
+		aiservicepb.SpeechToTextStreamRequest,
+		aiservicepb.SpeechToTextStreamResponse,
+		aiservicepb.AiService_SpeechToTextStreamServer,
+	](c.server.SpeechToTextStream)(ctx)
+}
+
 // Verify interface compliance at compile time.
 var (
 	_ aiservicepb.AiServiceClient = (*Client)(nil)

@@ -1,6 +1,13 @@
 grpc_library(
     name = "v1",
-    srcs = ["ai_service.proto"],
+    srcs = [
+        "ai_service.proto",
+        "model.proto",
+        "speech_to_text.proto",
+        "text_to_speech.proto",
+        "text_to_text.proto",
+        "voice.proto",
+    ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/ai_service/v1",
     },

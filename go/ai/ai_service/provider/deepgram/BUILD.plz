@@ -1,0 +1,16 @@
+go_library(
+    name = "deepgram",
+    srcs = [
+        "deepgram.go",
+        "speech_to_text_stream.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/grpc",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/audio/v1",
+        "//third_party/go:github.com__coder__websocket",
+        "//third_party/go:google.golang.org__grpc__codes",
+    ],
+)

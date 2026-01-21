@@ -47,6 +47,12 @@
           "input_cache_read_token_price_per_million":  0.02
         }
       }
+    },
+    {
+      "name":  "providers/xai/models/stt-streaming",
+      "provider_model_id":  "undefined",
+      "description":  "A live transcription model with VAD.",
+      "stt":  {}
     }
   ]
 }

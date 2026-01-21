@@ -16,8 +16,10 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/ai/ai_service/provider/anthropic"
 	"github.com/malonaz/core/go/ai/ai_service/provider/cartesia"
+	"github.com/malonaz/core/go/ai/ai_service/provider/deepgram"
 	"github.com/malonaz/core/go/ai/ai_service/provider/elevenlabs"
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
+	"github.com/malonaz/core/go/ai/ai_service/provider/xai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 	"github.com/malonaz/core/go/pbutil"
@@ -33,6 +35,7 @@ type Opts struct {
 	CerebrasApiKey   string `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
 	GoogleApiKey     string `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
 	XaiApiKey        string `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
+	DeepgramApiKey   string `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
 }
 
 type runtime struct {
@@ -60,7 +63,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		providers = append(providers, openai.NewGoogleClient(opts.GoogleApiKey, modelService))
 	}
 	if opts.XaiApiKey != "" {
-		providers = append(providers, openai.NewXaiClient(opts.XaiApiKey, modelService))
+		providers = append(providers, xai.NewClient(opts.XaiApiKey, modelService))
 	}
 	if opts.GroqApiKey != "" {
 		providers = append(providers, openai.NewGroqClient(opts.GroqApiKey, modelService))
@@ -76,6 +79,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.CartesiaApiKey != "" {
 		providers = append(providers, cartesia.NewClient(opts.CartesiaApiKey, modelService))
+	}
+	if opts.DeepgramApiKey != "" {
+		providers = append(providers, deepgram.NewClient(opts.DeepgramApiKey, modelService))
 	}
 
 	return &runtime{
@@ -244,4 +250,47 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 
 	response.AudioChunk.Duration = durationpb.New(totalDuration)
 	return response, nil
+}
+
+// SpeechToTextStream forwards the bidirectional stream to the appropriate provider.
+func (s *Service) SpeechToTextStream(server pb.AiService_SpeechToTextStreamServer) error {
+	ctx := server.Context()
+
+	// Receive the first event which must be the configuration
+	event, err := server.Recv()
+	if err != nil {
+		return err
+	}
+	configuration := event.GetConfiguration()
+	if configuration == nil {
+		return grpc.Errorf(codes.InvalidArgument, "first message must be configuration").Err()
+	}
+
+	// Retrieve the provider.
+	provider, model, err := s.GetSpeechToTextStreamProvider(ctx, configuration.Model)
+	if err != nil {
+		return err
+	}
+	if err := checkModelDeprecation(model); err != nil {
+		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+	}
+	wrappedServer := &speechToTextStreamServerWrapper{
+		AiService_SpeechToTextStreamServer: server,
+		firstEvent:                         event,
+	}
+	return provider.SpeechToTextStream(wrappedServer)
+}
+
+type speechToTextStreamServerWrapper struct {
+	pb.AiService_SpeechToTextStreamServer
+	firstEvent     *pb.SpeechToTextStreamRequest
+	firstEventSent bool
+}
+
+func (w *speechToTextStreamServerWrapper) Recv() (*pb.SpeechToTextStreamRequest, error) {
+	if !w.firstEventSent {
+		w.firstEventSent = true
+		return w.firstEvent, nil
+	}
+	return w.AiService_SpeechToTextStreamServer.Recv()
 }
