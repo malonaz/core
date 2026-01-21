@@ -25,32 +25,33 @@ const (
 
 // Represents a JSON Schema (recursive definition)
 type Schema struct {
-	state                       protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Type             string                 `protobuf:"bytes,1,opt,name=type,proto3"`
-	xxx_hidden_Description      string                 `protobuf:"bytes,2,opt,name=description,proto3"`
-	xxx_hidden_Properties       map[string]*Schema     `protobuf:"bytes,3,rep,name=properties,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Required         []string               `protobuf:"bytes,4,rep,name=required,proto3"`
-	xxx_hidden_Items            *Schema                `protobuf:"bytes,5,opt,name=items,proto3"`
-	xxx_hidden_MinItems         int32                  `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3"`
-	xxx_hidden_MaxItems         int32                  `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3"`
-	xxx_hidden_Enum             []string               `protobuf:"bytes,8,rep,name=enum,proto3"`
-	xxx_hidden_MinLength        int32                  `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3"`
-	xxx_hidden_MaxLength        int32                  `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3"`
-	xxx_hidden_Pattern          string                 `protobuf:"bytes,11,opt,name=pattern,proto3"`
-	xxx_hidden_Format           string                 `protobuf:"bytes,12,opt,name=format,proto3"`
-	xxx_hidden_Minimum          float64                `protobuf:"fixed64,13,opt,name=minimum,proto3"`
-	xxx_hidden_Maximum          float64                `protobuf:"fixed64,14,opt,name=maximum,proto3"`
-	xxx_hidden_ExclusiveMinimum float64                `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3"`
-	xxx_hidden_ExclusiveMaximum float64                `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3"`
-	xxx_hidden_MultipleOf       float64                `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3"`
-	xxx_hidden_Default          string                 `protobuf:"bytes,18,opt,name=default,proto3"`
-	xxx_hidden_Examples         []string               `protobuf:"bytes,19,rep,name=examples,proto3"`
-	xxx_hidden_AnyOf            *[]*Schema             `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3"`
-	xxx_hidden_OneOf            *[]*Schema             `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3"`
-	xxx_hidden_AllOf            *[]*Schema             `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3"`
-	xxx_hidden_Not              *Schema                `protobuf:"bytes,23,opt,name=not,proto3"`
-	unknownFields               protoimpl.UnknownFields
-	sizeCache                   protoimpl.SizeCache
+	state                           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Type                 string                 `protobuf:"bytes,1,opt,name=type,proto3"`
+	xxx_hidden_Description          string                 `protobuf:"bytes,2,opt,name=description,proto3"`
+	xxx_hidden_Properties           map[string]*Schema     `protobuf:"bytes,3,rep,name=properties,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_AdditionalProperties *Schema                `protobuf:"bytes,24,opt,name=additional_properties,json=additionalProperties,proto3"`
+	xxx_hidden_Required             []string               `protobuf:"bytes,4,rep,name=required,proto3"`
+	xxx_hidden_Items                *Schema                `protobuf:"bytes,5,opt,name=items,proto3"`
+	xxx_hidden_MinItems             int32                  `protobuf:"varint,6,opt,name=min_items,json=minItems,proto3"`
+	xxx_hidden_MaxItems             int32                  `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3"`
+	xxx_hidden_Enum                 []string               `protobuf:"bytes,8,rep,name=enum,proto3"`
+	xxx_hidden_MinLength            int32                  `protobuf:"varint,9,opt,name=min_length,json=minLength,proto3"`
+	xxx_hidden_MaxLength            int32                  `protobuf:"varint,10,opt,name=max_length,json=maxLength,proto3"`
+	xxx_hidden_Pattern              string                 `protobuf:"bytes,11,opt,name=pattern,proto3"`
+	xxx_hidden_Format               string                 `protobuf:"bytes,12,opt,name=format,proto3"`
+	xxx_hidden_Minimum              float64                `protobuf:"fixed64,13,opt,name=minimum,proto3"`
+	xxx_hidden_Maximum              float64                `protobuf:"fixed64,14,opt,name=maximum,proto3"`
+	xxx_hidden_ExclusiveMinimum     float64                `protobuf:"fixed64,15,opt,name=exclusive_minimum,json=exclusiveMinimum,proto3"`
+	xxx_hidden_ExclusiveMaximum     float64                `protobuf:"fixed64,16,opt,name=exclusive_maximum,json=exclusiveMaximum,proto3"`
+	xxx_hidden_MultipleOf           float64                `protobuf:"fixed64,17,opt,name=multiple_of,json=multipleOf,proto3"`
+	xxx_hidden_Default              string                 `protobuf:"bytes,18,opt,name=default,proto3"`
+	xxx_hidden_Examples             []string               `protobuf:"bytes,19,rep,name=examples,proto3"`
+	xxx_hidden_AnyOf                *[]*Schema             `protobuf:"bytes,20,rep,name=any_of,json=anyOf,proto3"`
+	xxx_hidden_OneOf                *[]*Schema             `protobuf:"bytes,21,rep,name=one_of,json=oneOf,proto3"`
+	xxx_hidden_AllOf                *[]*Schema             `protobuf:"bytes,22,rep,name=all_of,json=allOf,proto3"`
+	xxx_hidden_Not                  *Schema                `protobuf:"bytes,23,opt,name=not,proto3"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *Schema) Reset() {
@@ -95,6 +96,13 @@ func (x *Schema) GetDescription() string {
 func (x *Schema) GetProperties() map[string]*Schema {
 	if x != nil {
 		return x.xxx_hidden_Properties
+	}
+	return nil
+}
+
+func (x *Schema) GetAdditionalProperties() *Schema {
+	if x != nil {
+		return x.xxx_hidden_AdditionalProperties
 	}
 	return nil
 }
@@ -257,6 +265,10 @@ func (x *Schema) SetProperties(v map[string]*Schema) {
 	x.xxx_hidden_Properties = v
 }
 
+func (x *Schema) SetAdditionalProperties(v *Schema) {
+	x.xxx_hidden_AdditionalProperties = v
+}
+
 func (x *Schema) SetRequired(v []string) {
 	x.xxx_hidden_Required = v
 }
@@ -337,6 +349,13 @@ func (x *Schema) SetNot(v *Schema) {
 	x.xxx_hidden_Not = v
 }
 
+func (x *Schema) HasAdditionalProperties() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_AdditionalProperties != nil
+}
+
 func (x *Schema) HasItems() bool {
 	if x == nil {
 		return false
@@ -349,6 +368,10 @@ func (x *Schema) HasNot() bool {
 		return false
 	}
 	return x.xxx_hidden_Not != nil
+}
+
+func (x *Schema) ClearAdditionalProperties() {
+	x.xxx_hidden_AdditionalProperties = nil
 }
 
 func (x *Schema) ClearItems() {
@@ -369,6 +392,8 @@ type Schema_builder struct {
 	// For objects
 	// Defines the properties of an object type, where each property has its own schema (recursive)
 	Properties map[string]*Schema
+	// Schema for additional properties (used for map types)
+	AdditionalProperties *Schema
 	// List of property names that must be present in the object
 	Required []string
 	// For arrays
@@ -422,6 +447,7 @@ func (b0 Schema_builder) Build() *Schema {
 	x.xxx_hidden_Type = b.Type
 	x.xxx_hidden_Description = b.Description
 	x.xxx_hidden_Properties = b.Properties
+	x.xxx_hidden_AdditionalProperties = b.AdditionalProperties
 	x.xxx_hidden_Required = b.Required
 	x.xxx_hidden_Items = b.Items
 	x.xxx_hidden_MinItems = b.MinItems
@@ -449,13 +475,14 @@ var File_malonaz_json_v1_schema_proto protoreflect.FileDescriptor
 
 const file_malonaz_json_v1_schema_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmalonaz/json/v1/schema.proto\x12\x0fmalonaz.json.v1\x1a\x1bbuf/validate/validate.proto\"\xc6\a\n" +
+	"\x1cmalonaz/json/v1/schema.proto\x12\x0fmalonaz.json.v1\x1a\x1bbuf/validate/validate.proto\"\x94\b\n" +
 	"\x06Schema\x12P\n" +
 	"\x04type\x18\x01 \x01(\tB<\xbaH9r7R\x06objectR\x06stringR\x06numberR\aintegerR\abooleanR\x05arrayR\x04nullR\x04type\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12G\n" +
 	"\n" +
 	"properties\x18\x03 \x03(\v2'.malonaz.json.v1.Schema.PropertiesEntryR\n" +
-	"properties\x12\x1a\n" +
+	"properties\x12L\n" +
+	"\x15additional_properties\x18\x18 \x01(\v2\x17.malonaz.json.v1.SchemaR\x14additionalProperties\x12\x1a\n" +
 	"\brequired\x18\x04 \x03(\tR\brequired\x12-\n" +
 	"\x05items\x18\x05 \x01(\v2\x17.malonaz.json.v1.SchemaR\x05items\x12\x1b\n" +
 	"\tmin_items\x18\x06 \x01(\x05R\bminItems\x12\x1b\n" +
@@ -491,17 +518,18 @@ var file_malonaz_json_v1_schema_proto_goTypes = []any{
 }
 var file_malonaz_json_v1_schema_proto_depIdxs = []int32{
 	1, // 0: malonaz.json.v1.Schema.properties:type_name -> malonaz.json.v1.Schema.PropertiesEntry
-	0, // 1: malonaz.json.v1.Schema.items:type_name -> malonaz.json.v1.Schema
-	0, // 2: malonaz.json.v1.Schema.any_of:type_name -> malonaz.json.v1.Schema
-	0, // 3: malonaz.json.v1.Schema.one_of:type_name -> malonaz.json.v1.Schema
-	0, // 4: malonaz.json.v1.Schema.all_of:type_name -> malonaz.json.v1.Schema
-	0, // 5: malonaz.json.v1.Schema.not:type_name -> malonaz.json.v1.Schema
-	0, // 6: malonaz.json.v1.Schema.PropertiesEntry.value:type_name -> malonaz.json.v1.Schema
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	0, // 1: malonaz.json.v1.Schema.additional_properties:type_name -> malonaz.json.v1.Schema
+	0, // 2: malonaz.json.v1.Schema.items:type_name -> malonaz.json.v1.Schema
+	0, // 3: malonaz.json.v1.Schema.any_of:type_name -> malonaz.json.v1.Schema
+	0, // 4: malonaz.json.v1.Schema.one_of:type_name -> malonaz.json.v1.Schema
+	0, // 5: malonaz.json.v1.Schema.all_of:type_name -> malonaz.json.v1.Schema
+	0, // 6: malonaz.json.v1.Schema.not:type_name -> malonaz.json.v1.Schema
+	0, // 7: malonaz.json.v1.Schema.PropertiesEntry.value:type_name -> malonaz.json.v1.Schema
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_json_v1_schema_proto_init() }

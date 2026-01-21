@@ -33,6 +33,8 @@ type Schema struct {
 	// For objects
 	// Defines the properties of an object type, where each property has its own schema (recursive)
 	Properties map[string]*Schema `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Schema for additional properties (used for map types)
+	AdditionalProperties *Schema `protobuf:"bytes,24,opt,name=additional_properties,json=additionalProperties,proto3" json:"additional_properties,omitempty"`
 	// List of property names that must be present in the object
 	Required []string `protobuf:"bytes,4,rep,name=required,proto3" json:"required,omitempty"`
 	// For arrays
@@ -123,6 +125,13 @@ func (x *Schema) GetDescription() string {
 func (x *Schema) GetProperties() map[string]*Schema {
 	if x != nil {
 		return x.Properties
+	}
+	return nil
+}
+
+func (x *Schema) GetAdditionalProperties() *Schema {
+	if x != nil {
+		return x.AdditionalProperties
 	}
 	return nil
 }
@@ -279,6 +288,10 @@ func (x *Schema) SetProperties(v map[string]*Schema) {
 	x.Properties = v
 }
 
+func (x *Schema) SetAdditionalProperties(v *Schema) {
+	x.AdditionalProperties = v
+}
+
 func (x *Schema) SetRequired(v []string) {
 	x.Required = v
 }
@@ -359,6 +372,13 @@ func (x *Schema) SetNot(v *Schema) {
 	x.Not = v
 }
 
+func (x *Schema) HasAdditionalProperties() bool {
+	if x == nil {
+		return false
+	}
+	return x.AdditionalProperties != nil
+}
+
 func (x *Schema) HasItems() bool {
 	if x == nil {
 		return false
@@ -371,6 +391,10 @@ func (x *Schema) HasNot() bool {
 		return false
 	}
 	return x.Not != nil
+}
+
+func (x *Schema) ClearAdditionalProperties() {
+	x.AdditionalProperties = nil
 }
 
 func (x *Schema) ClearItems() {
@@ -391,6 +415,8 @@ type Schema_builder struct {
 	// For objects
 	// Defines the properties of an object type, where each property has its own schema (recursive)
 	Properties map[string]*Schema
+	// Schema for additional properties (used for map types)
+	AdditionalProperties *Schema
 	// List of property names that must be present in the object
 	Required []string
 	// For arrays
@@ -444,6 +470,7 @@ func (b0 Schema_builder) Build() *Schema {
 	x.Type = b.Type
 	x.Description = b.Description
 	x.Properties = b.Properties
+	x.AdditionalProperties = b.AdditionalProperties
 	x.Required = b.Required
 	x.Items = b.Items
 	x.MinItems = b.MinItems
@@ -471,13 +498,14 @@ var File_malonaz_json_v1_schema_proto protoreflect.FileDescriptor
 
 const file_malonaz_json_v1_schema_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmalonaz/json/v1/schema.proto\x12\x0fmalonaz.json.v1\x1a\x1bbuf/validate/validate.proto\"\xc6\a\n" +
+	"\x1cmalonaz/json/v1/schema.proto\x12\x0fmalonaz.json.v1\x1a\x1bbuf/validate/validate.proto\"\x94\b\n" +
 	"\x06Schema\x12P\n" +
 	"\x04type\x18\x01 \x01(\tB<\xbaH9r7R\x06objectR\x06stringR\x06numberR\aintegerR\abooleanR\x05arrayR\x04nullR\x04type\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12G\n" +
 	"\n" +
 	"properties\x18\x03 \x03(\v2'.malonaz.json.v1.Schema.PropertiesEntryR\n" +
-	"properties\x12\x1a\n" +
+	"properties\x12L\n" +
+	"\x15additional_properties\x18\x18 \x01(\v2\x17.malonaz.json.v1.SchemaR\x14additionalProperties\x12\x1a\n" +
 	"\brequired\x18\x04 \x03(\tR\brequired\x12-\n" +
 	"\x05items\x18\x05 \x01(\v2\x17.malonaz.json.v1.SchemaR\x05items\x12\x1b\n" +
 	"\tmin_items\x18\x06 \x01(\x05R\bminItems\x12\x1b\n" +
@@ -513,17 +541,18 @@ var file_malonaz_json_v1_schema_proto_goTypes = []any{
 }
 var file_malonaz_json_v1_schema_proto_depIdxs = []int32{
 	1, // 0: malonaz.json.v1.Schema.properties:type_name -> malonaz.json.v1.Schema.PropertiesEntry
-	0, // 1: malonaz.json.v1.Schema.items:type_name -> malonaz.json.v1.Schema
-	0, // 2: malonaz.json.v1.Schema.any_of:type_name -> malonaz.json.v1.Schema
-	0, // 3: malonaz.json.v1.Schema.one_of:type_name -> malonaz.json.v1.Schema
-	0, // 4: malonaz.json.v1.Schema.all_of:type_name -> malonaz.json.v1.Schema
-	0, // 5: malonaz.json.v1.Schema.not:type_name -> malonaz.json.v1.Schema
-	0, // 6: malonaz.json.v1.Schema.PropertiesEntry.value:type_name -> malonaz.json.v1.Schema
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	0, // 1: malonaz.json.v1.Schema.additional_properties:type_name -> malonaz.json.v1.Schema
+	0, // 2: malonaz.json.v1.Schema.items:type_name -> malonaz.json.v1.Schema
+	0, // 3: malonaz.json.v1.Schema.any_of:type_name -> malonaz.json.v1.Schema
+	0, // 4: malonaz.json.v1.Schema.one_of:type_name -> malonaz.json.v1.Schema
+	0, // 5: malonaz.json.v1.Schema.all_of:type_name -> malonaz.json.v1.Schema
+	0, // 6: malonaz.json.v1.Schema.not:type_name -> malonaz.json.v1.Schema
+	0, // 7: malonaz.json.v1.Schema.PropertiesEntry.value:type_name -> malonaz.json.v1.Schema
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_json_v1_schema_proto_init() }

@@ -66,6 +66,10 @@ func populateMessage(msg *dynamicpb.Message, args map[string]any) error {
 }
 
 func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {
+	if field.IsMap() {
+		return setMapField(msg, field, val)
+	}
+
 	if field.IsList() {
 		arr, ok := val.([]any)
 		if !ok {
@@ -82,7 +86,7 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 		return nil
 	}
 
-	if field.Kind() == protoreflect.MessageKind && !field.IsMap() {
+	if field.Kind() == protoreflect.MessageKind {
 		return setMessageField(msg, field, val)
 	}
 
@@ -92,6 +96,74 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 	}
 	msg.Set(field, v)
 	return nil
+}
+
+func setMapField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {
+	m, ok := val.(map[string]any)
+	if !ok {
+		return fmt.Errorf("expected object for map field %s, got %T", field.Name(), val)
+	}
+
+	mapVal := msg.Mutable(field).Map()
+	keyField := field.MapKey()
+	valueField := field.MapValue()
+
+	for k, v := range m {
+		keyVal, err := convertMapKey(keyField, k)
+		if err != nil {
+			return fmt.Errorf("map field %s key: %w", field.Name(), err)
+		}
+
+		valueVal, err := convertValue(valueField, v)
+		if err != nil {
+			return fmt.Errorf("map field %s value: %w", field.Name(), err)
+		}
+
+		mapVal.Set(keyVal.MapKey(), valueVal)
+	}
+	return nil
+}
+
+func convertMapKey(field protoreflect.FieldDescriptor, key string) (protoreflect.Value, error) {
+	switch field.Kind() {
+	case protoreflect.StringKind:
+		return protoreflect.ValueOfString(key), nil
+	case protoreflect.BoolKind:
+		switch key {
+		case "true":
+			return protoreflect.ValueOfBool(true), nil
+		case "false":
+			return protoreflect.ValueOfBool(false), nil
+		default:
+			return protoreflect.Value{}, fmt.Errorf("invalid bool key: %s", key)
+		}
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
+		var i int32
+		if _, err := fmt.Sscanf(key, "%d", &i); err != nil {
+			return protoreflect.Value{}, fmt.Errorf("invalid int32 key: %s", key)
+		}
+		return protoreflect.ValueOfInt32(i), nil
+	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
+		var i int64
+		if _, err := fmt.Sscanf(key, "%d", &i); err != nil {
+			return protoreflect.Value{}, fmt.Errorf("invalid int64 key: %s", key)
+		}
+		return protoreflect.ValueOfInt64(i), nil
+	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
+		var i uint32
+		if _, err := fmt.Sscanf(key, "%d", &i); err != nil {
+			return protoreflect.Value{}, fmt.Errorf("invalid uint32 key: %s", key)
+		}
+		return protoreflect.ValueOfUint32(i), nil
+	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		var i uint64
+		if _, err := fmt.Sscanf(key, "%d", &i); err != nil {
+			return protoreflect.Value{}, fmt.Errorf("invalid uint64 key: %s", key)
+		}
+		return protoreflect.ValueOfUint64(i), nil
+	default:
+		return protoreflect.Value{}, fmt.Errorf("unsupported map key kind: %v", field.Kind())
+	}
 }
 
 func setMessageField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val any) error {

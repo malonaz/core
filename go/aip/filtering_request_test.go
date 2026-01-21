@@ -195,21 +195,21 @@ func TestFilteringRequestParser_Parse(t *testing.T) {
 		{
 			name:           "JSONB single key",
 			filter:         `nested.field2 = 24`,
-			expectedClause: "WHERE (((nested->>'field2')::bigint) = @1)",
+			expectedClause: "WHERE ((nested->>'field2')::bigint = @1)",
 			expectedParams: []any{int64(24)},
 			wantErr:        false,
 		},
 		{
 			name:           "JSONB nested keys",
 			filter:         `nested.further_nested.field3 = 'value'`,
-			expectedClause: "WHERE ((nested->'further_nested'->>'field3') = $1)",
+			expectedClause: "WHERE (nested->'further_nested'->>'field3' = $1)",
 			expectedParams: []any{"value"},
 			wantErr:        false,
 		},
 		{
 			name:           "JSONB with comparison operators",
 			filter:         `nested.field2 > 3`,
-			expectedClause: "WHERE (((nested->>'field2')::bigint) > @1)",
+			expectedClause: "WHERE ((nested->>'field2')::bigint > @1)",
 			expectedParams: []any{int64(3)},
 			wantErr:        false,
 		},
@@ -241,7 +241,7 @@ func TestFilteringRequestParser_Parse(t *testing.T) {
 		{
 			name:           "complex filter with ISNULL and JSONB",
 			filter:         `NOT ISNULL(id) AND nested.field3 = 'value'`,
-			expectedClause: "WHERE ((NOT (id IS NULL)) AND ((nested->>'field3') = $1))",
+			expectedClause: "WHERE ((NOT (id IS NULL)) AND (nested->>'field3' = $1))",
 			expectedParams: []any{"value"},
 			wantErr:        false,
 		},
@@ -405,19 +405,19 @@ func TestFilteringRequestParser_SpecialFunctions(t *testing.T) {
 		{
 			name:           "JSONB single level",
 			filter:         `nested.field3 = 'value'`,
-			expectedClause: "WHERE ((nested->>'field3') = $1)",
+			expectedClause: "WHERE (nested->>'field3' = $1)",
 			expectedParams: []any{"value"},
 		},
 		{
 			name:           "JSONB double nested",
 			filter:         `nested.further_nested.field2 = 2`,
-			expectedClause: "WHERE (((nested->'further_nested'->>'field2')::bigint) = @1)",
+			expectedClause: "WHERE ((nested->'further_nested'->>'field2')::bigint = @1)",
 			expectedParams: []any{int64(2)},
 		},
 		{
 			name:           "combined ISNULL and JSONB",
 			filter:         `NOT ISNULL(id) AND nested.field3 = 'test'`,
-			expectedClause: "WHERE ((NOT (id IS NULL)) AND ((nested->>'field3') = $1))",
+			expectedClause: "WHERE ((NOT (id IS NULL)) AND (nested->>'field3' = $1))",
 			expectedParams: []any{"test"},
 		},
 	}
@@ -469,29 +469,6 @@ func TestApplyReplacement(t *testing.T) {
 			expected:    "cnt > 5 AND cnt < 10",
 		},
 
-		// Nested field paths (with JSONB wrapping)
-		{
-			name:        "single level nested field",
-			clause:      "user.name = 'John'",
-			field:       "user.name",
-			replacement: "user@name",
-			expected:    "JSONB(user@name) = 'John'",
-		},
-		{
-			name:        "double nested field",
-			clause:      "user.address.city = 'NYC'",
-			field:       "user.address.city",
-			replacement: "user@address@city",
-			expected:    "JSONB(user@address@city) = 'NYC'",
-		},
-		{
-			name:        "nested field multiple occurrences",
-			clause:      "data.value > 5 AND data.value < 10",
-			field:       "data.value",
-			replacement: "data@value",
-			expected:    "JSONB(data@value) > 5 AND JSONB(data@value) < 10",
-		},
-
 		// Critical case: preventing partial matches
 		{
 			name:        "short field doesn't match longer path",
@@ -507,13 +484,6 @@ func TestApplyReplacement(t *testing.T) {
 			replacement: "hello@my",
 			expected:    "hello.my.path = 1", // NO replacement - followed by dot
 		},
-		{
-			name:        "full field matches exact path",
-			clause:      "hello.my.path = 1",
-			field:       "hello.my.path",
-			replacement: "hello@my@path",
-			expected:    "JSONB(hello@my@path) = 1", // YES - exact match
-		},
 
 		// Multiple different fields in one clause
 		{
@@ -522,13 +492,6 @@ func TestApplyReplacement(t *testing.T) {
 			field:       "hello",
 			replacement: "h",
 			expected:    "hello.my.path = 1 AND hello.my = 2 AND h = 3",
-		},
-		{
-			name:        "nested field with shorter field present",
-			clause:      "user.address = 'NYC' AND user = 'guest'",
-			field:       "user.address",
-			replacement: "user@address",
-			expected:    "JSONB(user@address) = 'NYC' AND user = 'guest'",
 		},
 
 		// Word boundary checks
@@ -561,13 +524,6 @@ func TestApplyReplacement(t *testing.T) {
 			field:       "count",
 			replacement: "cnt",
 			expected:    "(cnt > 5 OR cnt < 2) AND total = 10",
-		},
-		{
-			name:        "nested field in complex expression",
-			clause:      "NOT ISNULL(user.name) AND user.age > 18",
-			field:       "user.name",
-			replacement: "user@name",
-			expected:    "NOT ISNULL(JSONB(user@name)) AND user.age > 18",
 		},
 		{
 			name:        "field with no spaces",
@@ -607,15 +563,6 @@ func TestApplyReplacement(t *testing.T) {
 			expected:    "value = cnt",
 		},
 
-		// Special characters in field names (escaped by QuoteMeta)
-		{
-			name:        "field with dots treated as literal",
-			clause:      "a.b.c = 1 AND axbxc = 2",
-			field:       "a.b.c",
-			replacement: "a@b@c",
-			expected:    "JSONB(a@b@c) = 1 AND axbxc = 2", // Only matches literal dots
-		},
-
 		// Root field with column name override (no @)
 		{
 			name:        "root field with column override",
@@ -623,22 +570,6 @@ func TestApplyReplacement(t *testing.T) {
 			field:       "name",
 			replacement: "id",
 			expected:    "id = 'John'", // No JSONB wrapping - no @ present
-		},
-
-		// Mixed scenarios
-		{
-			name:        "complex real-world example",
-			clause:      "user.address.city = 'NYC' AND user.address = 'valid' AND user = 'guest' AND username = 'admin'",
-			field:       "user.address",
-			replacement: "user@address",
-			expected:    "user.address.city = 'NYC' AND JSONB(user@address) = 'valid' AND user = 'guest' AND username = 'admin'",
-		},
-		{
-			name:        "nested fields with similar names",
-			clause:      "data.field = 1 AND data.field_extra = 2 AND data_field = 3",
-			field:       "data.field",
-			replacement: "data@field",
-			expected:    "JSONB(data@field) = 1 AND data.field_extra = 2 AND data_field = 3",
 		},
 	}
 
@@ -679,21 +610,21 @@ func TestFilteringRequestParser_WildcardPaths(t *testing.T) {
 		{
 			name:           "wildcard allows nested.field1",
 			filter:         `nested.field1`,
-			expectedClause: "WHERE ((nested->>'field1')::boolean)",
+			expectedClause: "WHERE (nested->>'field1')::boolean",
 			expectedParams: []any{},
 			wantErr:        false,
 		},
 		{
 			name:           "wildcard allows nested.field2",
 			filter:         `nested.field2 = 42`,
-			expectedClause: "WHERE (((nested->>'field2')::bigint) = $1)",
+			expectedClause: "WHERE ((nested->>'field2')::bigint = $1)",
 			expectedParams: []any{int64(42)},
 			wantErr:        false,
 		},
 		{
 			name:           "wildcard allows nested.field3",
 			filter:         `nested.field3 = "value"`,
-			expectedClause: "WHERE ((nested->>'field3') = $1)",
+			expectedClause: "WHERE (nested->>'field3' = $1)",
 			expectedParams: []any{"value"},
 			wantErr:        false,
 		},
@@ -702,21 +633,21 @@ func TestFilteringRequestParser_WildcardPaths(t *testing.T) {
 		{
 			name:           "second level wildcard allows field1",
 			filter:         `NOT nested2.further_nested.field1`,
-			expectedClause: "WHERE (NOT ((nested2->'further_nested'->>'field1')::boolean))",
+			expectedClause: "WHERE (NOT (nested2->'further_nested'->>'field1')::boolean)",
 			expectedParams: []any{},
 			wantErr:        false,
 		},
 		{
 			name:           "second level wildcard allows field2",
 			filter:         `nested2.further_nested.field2 = 99`,
-			expectedClause: "WHERE (((nested2->'further_nested'->>'field2')::bigint) = $1)",
+			expectedClause: "WHERE ((nested2->'further_nested'->>'field2')::bigint = $1)",
 			expectedParams: []any{int64(99)},
 			wantErr:        false,
 		},
 		{
 			name:           "second level wildcard allows field3",
 			filter:         `nested2.further_nested.field3 = "test"`,
-			expectedClause: "WHERE ((nested2->'further_nested'->>'field3') = $1)",
+			expectedClause: "WHERE (nested2->'further_nested'->>'field3' = $1)",
 			expectedParams: []any{"test"},
 			wantErr:        false,
 		},
@@ -742,21 +673,21 @@ func TestFilteringRequestParser_WildcardPaths(t *testing.T) {
 		{
 			name:           "multiple wildcard fields combined",
 			filter:         `id = "test" AND nested.field1 AND nested2.further_nested.field2 = 5`,
-			expectedClause: "WHERE (((id = @1) AND ((nested->>'field1')::boolean)) AND (((nested2->'further_nested'->>'field2')::bigint) = @2))",
+			expectedClause: "WHERE (((id = @1) AND (nested->>'field1')::boolean) AND ((nested2->'further_nested'->>'field2')::bigint = @2))",
 			expectedParams: []any{"test", int64(5)},
 			wantErr:        false,
 		},
 		{
 			name:           "OR with wildcard fields",
 			filter:         `nested.field2 = 1 OR nested.field2 = 2`,
-			expectedClause: "WHERE ((((nested->>'field2')::bigint) = @1) OR (((nested->>'field2')::bigint) = @2))",
+			expectedClause: "WHERE (((nested->>'field2')::bigint = @1) OR ((nested->>'field2')::bigint = @2))",
 			expectedParams: []any{int64(1), int64(2)},
 			wantErr:        false,
 		},
 		{
 			name:           "ISNULL on wildcard field",
 			filter:         `ISNULL(nested.field3)`,
-			expectedClause: "WHERE ((nested->>'field3') IS NULL)",
+			expectedClause: "WHERE (nested->>'field3' IS NULL)",
 			expectedParams: []any{},
 			wantErr:        false,
 		},
