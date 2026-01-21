@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	"github.com/malonaz/core/go/audio"
 	"github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 const websocketEndpoint = "wss://api.x.ai/v1/realtime/audio/transcriptions"
@@ -94,7 +94,6 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		return grpc.Errorf(codes.InvalidArgument, "first event must contain configuration").Err()
 	}
 
-	pbutil.MustPrintPretty(configuration)
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
 	if _, err := c.modelService.GetModel(ctx, getModelRequest); err != nil {
 		return err
@@ -108,11 +107,19 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	}
 	defer connection.Close()
 
+	resampleAudio := func(input []byte) []byte { return input }
+	var sampleRateHertz = int(configuration.AudioFormat.SampleRate)
+	if sampleRateHertz == 8_000 {
+		sampleRateHertz = 16_000
+		resampleAudio = func(input []byte) []byte {
+			return audio.ResamplePCM16(input, 8_000, 16_000)
+		}
+	}
 	configMsg := websocketConfigMessage{
 		Type: "config",
 		Data: websocketConfigData{
 			Encoding:             "linear16",
-			SampleRateHertz:      int(configuration.AudioFormat.SampleRate),
+			SampleRateHertz:      sampleRateHertz,
 			EnableInterimResults: true,
 		},
 	}
@@ -199,9 +206,10 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 				return grpc.Errorf(codes.Internal, "receiving audio: %v", err).Err()
 			}
 			if chunk := message.GetAudioChunk(); chunk != nil {
+				audio := resampleAudio(chunk.Data)
 				audioMsg := websocketAudioMessage{
 					Type: "audio",
-					Data: websocketAudioData{Audio: base64.StdEncoding.EncodeToString(chunk.Data)},
+					Data: websocketAudioData{Audio: base64.StdEncoding.EncodeToString(audio)},
 				}
 				if err := connection.WriteJSON(audioMsg); err != nil {
 					return grpc.Errorf(codes.Internal, "sending audio: %v", err).Err()

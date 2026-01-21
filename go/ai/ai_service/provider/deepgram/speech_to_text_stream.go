@@ -18,11 +18,11 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	// Grab the configuration event and validate it.
 	event, err := srv.Recv()
 	if err != nil {
-		return fmt.Errorf("receiving config: %w", err)
+		return grpc.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return fmt.Errorf("first message must be configuration")
+		return grpc.Errorf(codes.FailedPrecondition, "first message must be configuration", err).Err()
 	}
 
 	if configuration.EndOfTurnConfidenceThreshold > 0 {
@@ -38,7 +38,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
 	if err != nil {
-		return err
+		return grpc.Errorf(codes.FailedPrecondition, "invalid audio format: %v", err).Err()
 	}
 
 	var eotTimeoutMs int
@@ -55,7 +55,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {
-		return fmt.Errorf("connecting to deepgram: %w", err)
+		return grpc.Errorf(codes.Internal, "connecting to deepgram: %v", err).Err()
 	}
 	defer conn.Close()
 
