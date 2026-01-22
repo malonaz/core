@@ -1,3 +1,4 @@
+// go/aip/resource_tree.go
 package aip
 
 import (
@@ -275,6 +276,8 @@ type Node struct {
 	AsJsonBytes      bool
 	AsProtoBytes     bool
 	FieldBehaviorSet map[annotationspb.FieldBehavior]struct{}
+	IsRepeated       bool
+	IsMap            bool
 
 	AllowedPath           bool
 	ReplacementPath       string
@@ -328,6 +331,8 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		return nil
 	}
 
+	isRepeated := fieldDesc.Cardinality() == protoreflect.Repeated && !fieldDesc.IsMap()
+
 	node := &Node{
 		Depth:        depth,
 		Path:         fieldPath,
@@ -335,6 +340,8 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		ColumnName:   fieldOpts.GetColumnName(),
 		AsJsonBytes:  depth == 0 && fieldOpts.GetAsJsonBytes(),
 		AsProtoBytes: depth == 0 && fieldOpts.GetAsProtoBytes(),
+		IsRepeated:   isRepeated,
+		IsMap:        fieldDesc.IsMap(),
 	}
 	t.Add(node)
 
@@ -346,19 +353,33 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		}
 	}
 
+	// Helper to wrap type in list if repeated
+	wrapIfRepeated := func(elemType *v1alpha1.Type) *v1alpha1.Type {
+		if isRepeated {
+			return &v1alpha1.Type{
+				TypeKind: &v1alpha1.Type_ListType_{
+					ListType: &v1alpha1.Type_ListType{
+						ElemType: elemType,
+					},
+				},
+			}
+		}
+		return elemType
+	}
+
 	switch fieldDesc.Kind() {
 	case protoreflect.BoolKind:
-		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_BOOL}}
+		node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_BOOL}})
 
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind,
 		protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_INT64}}
+		node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_INT64}})
 
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_DOUBLE}}
+		node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_DOUBLE}})
 
 	case protoreflect.StringKind:
-		node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_STRING}}
+		node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_STRING}})
 
 	case protoreflect.EnumKind:
 		enumType, err := protoregistry.GlobalTypes.FindEnumByName(fieldDesc.Enum().FullName())
@@ -389,14 +410,15 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 			msgFullName := fieldDesc.Message().FullName()
 			switch msgFullName {
 			case "google.protobuf.Timestamp":
-				node.ExprType = &v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}}
+				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}})
 			default:
 				if fieldOpts.GetAsJsonBytes() || depth > 0 {
-					node.ExprType = &v1alpha1.Type{
+					elemType := &v1alpha1.Type{
 						TypeKind: &v1alpha1.Type_MessageType{
 							MessageType: string(msgFullName),
 						},
 					}
+					node.ExprType = wrapIfRepeated(elemType)
 					nestedFieldsDescriptor := fieldDesc.Message().Fields()
 					for i := 0; i < nestedFieldsDescriptor.Len(); i++ {
 						nestedFieldDesc := nestedFieldsDescriptor.Get(i)

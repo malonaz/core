@@ -1,3 +1,4 @@
+// go/aip/filtering_request.go
 package aip
 
 import (
@@ -6,7 +7,6 @@ import (
 
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/filtering"
-	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -69,7 +69,12 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	}
 
 	var declarationOptions []filtering.DeclarationOption
-	isNullFunctionOverloads := getIsNullFunctionDefaultOverloads()
+
+	// Declare boolean constants
+	declarationOptions = append(declarationOptions,
+		filtering.DeclareIdent("true", filtering.TypeBool),
+		filtering.DeclareIdent("false", filtering.TypeBool),
+	)
 
 	for node := range tree.FilterableNodes() {
 		replacementPath := node.Path
@@ -79,22 +84,35 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 
 		if node.ExprType != nil {
 			declarationOptions = append(declarationOptions, filtering.DeclareIdent(replacementPath, node.ExprType))
+			// Add has overload for presence check (field:*)
+			declarationOptions = append(declarationOptions,
+				filtering.DeclareFunction(filtering.FunctionHas,
+					filtering.NewFunctionOverload(
+						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, replacementPath),
+						filtering.TypeBool,
+						node.ExprType,
+						filtering.TypeString,
+					),
+				),
+			)
 		}
 		if node.EnumType != nil {
 			declarationOptions = append(declarationOptions, filtering.DeclareEnumIdent(replacementPath, node.EnumType))
-			if node.Nullable || node.Depth > 0 {
-				enumIdentType := filtering.TypeEnum(node.EnumType)
-				isNullOverload := filtering.NewFunctionOverload(
-					postgres.FunctionIsNull+"_"+enumIdentType.GetMessageType(), filtering.TypeBool, enumIdentType,
-				)
-				isNullFunctionOverloads = append(isNullFunctionOverloads, isNullOverload)
-			}
+			// Add has overload for enum presence check
+			declarationOptions = append(declarationOptions,
+				filtering.DeclareFunction(filtering.FunctionHas,
+					filtering.NewFunctionOverload(
+						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, replacementPath),
+						filtering.TypeBool,
+						filtering.TypeEnum(node.EnumType),
+						filtering.TypeString,
+					),
+				),
+			)
 		}
 	}
 
 	declarationOptions = append(declarationOptions, filtering.DeclareStandardFunctions())
-	isNullDeclarationOption := filtering.DeclareFunction(postgres.FunctionIsNull, isNullFunctionOverloads...)
-	declarationOptions = append(declarationOptions, isNullDeclarationOption)
 
 	declarations, err := filtering.NewDeclarations(declarationOptions...)
 	if err != nil {
@@ -145,22 +163,9 @@ func (f *FilteringRequest) GetSQLWhereClause() (string, []any) {
 	return f.whereClause, f.whereParams
 }
 
-func getIsNullFunctionDefaultOverloads() []*v1alpha1.Decl_FunctionDecl_Overload {
-	return []*v1alpha1.Decl_FunctionDecl_Overload{
-		filtering.NewFunctionOverload(postgres.FunctionIsNull+"_string", filtering.TypeBool, filtering.TypeString),
-		filtering.NewFunctionOverload(postgres.FunctionIsNull+"_enum", filtering.TypeBool, filtering.TypeString),
-		filtering.NewFunctionOverload(postgres.FunctionIsNull+"_bool", filtering.TypeBool, filtering.TypeBool),
-		filtering.NewFunctionOverload(postgres.FunctionIsNull+"_int", filtering.TypeBool, filtering.TypeInt),
-		filtering.NewFunctionOverload(postgres.FunctionIsNull+"_float", filtering.TypeBool, filtering.TypeFloat),
-	}
-}
-
 func (p *FilteringRequestParser[T, R]) setFilter(request filteringRequest, filter string) {
-	// Get the protobuf message descriptor
 	msgReflect := request.ProtoReflect()
-	// Get the field descriptor for "filter"
 	fields := msgReflect.Descriptor().Fields()
 	filterField := fields.ByName("filter")
-	// Set the filter value
 	msgReflect.Set(filterField, protoreflect.ValueOfString(filter))
 }

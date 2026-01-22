@@ -4,6 +4,7 @@ package test.aip.v1;
 
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -108,9 +109,21 @@ message Resource {
   // some id field.
   string id = 1;
   // some timestmap.
-  int64 create_timestamp = 20;
+  google.protobuf.Timestamp create_timestamp = 20;
   // some other timestamp.
-  int64 update_time = 21;
+  google.protobuf.Timestamp update_time = 21;
+
+  // Repeated string field for has operator testing.
+  repeated string tags = 13;
+
+  // Repeated message field for nested has operator testing.
+  repeated NestedResource items = 14 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+
+  // Map field for key existence and value checking.
+  map<string, string> labels = 15;
+
+  // Map with int values for type testing.
+  map<string, int64> counts = 16;
 
   // Simple string field.
   string field1 = 2;
@@ -165,6 +178,8 @@ message NestedResource {
   string field3 = 3;
   // Another nested resource.
   DeeplyNestedResource further_nested = 4;
+  // Enum field for testing enum in JSONB.
+  MyEnum state = 5;
 }
 
 // Deeply nested resource.

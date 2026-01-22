@@ -3,7 +3,6 @@ go_library(
     srcs = ["postgres.go"],
     visibility = ["//..."],
     deps = [
-        "//third_party/go:cloud.google.com__go__spanner__spansql",
         "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",

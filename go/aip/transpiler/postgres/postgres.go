@@ -1,3 +1,4 @@
+// go/aip/transpiler/postgres/postgres.go
 package postgres
 
 import (
@@ -6,21 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/spanner/spansql"
 	"go.einride.tech/aip/filtering"
 	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-const (
-	FunctionIsNull       = "ISNULL"
-	jsonbPathPlaceholder = "__jsonb_path__"
-)
-
-// TranspileFilter transpiles a parsed AIP filter expression to a spansql.BoolExpr, and
-// parameters used in the expression.
-// The parameter map is nil if the expression does not contain any parameters.
 func TranspileFilter(filter filtering.Filter) (string, []interface{}, error) {
 	t := &Transpiler{
 		filter: filter,
@@ -28,6 +20,91 @@ func TranspileFilter(filter filtering.Filter) (string, []interface{}, error) {
 	}
 	return t.Transpile()
 }
+
+type sqlExpr interface {
+	SQL() string
+}
+
+type boolExpr interface {
+	sqlExpr
+	isBoolExpr()
+}
+
+type rawSQL string
+
+func (r rawSQL) SQL() string { return string(r) }
+func (r rawSQL) isBoolExpr() {}
+
+type ident string
+
+func (i ident) SQL() string { return string(i) }
+func (i ident) isBoolExpr() {}
+
+type param string
+
+func (p param) SQL() string { return "@" + string(p) }
+func (p param) isBoolExpr() {}
+
+type paren struct {
+	expr sqlExpr
+}
+
+func (p paren) SQL() string { return "(" + p.expr.SQL() + ")" }
+func (p paren) isBoolExpr() {}
+
+type comparisonOp struct {
+	lhs sqlExpr
+	op  string
+	rhs sqlExpr
+}
+
+func (c comparisonOp) SQL() string {
+	return c.lhs.SQL() + " " + c.op + " " + c.rhs.SQL()
+}
+func (c comparisonOp) isBoolExpr() {}
+
+type logicalOp struct {
+	op  string
+	lhs boolExpr
+	rhs boolExpr
+}
+
+func (l logicalOp) SQL() string {
+	if l.lhs == nil {
+		return l.op + " " + l.rhs.SQL()
+	}
+	return l.lhs.SQL() + " " + l.op + " " + l.rhs.SQL()
+}
+func (l logicalOp) isBoolExpr() {}
+
+type isOp struct {
+	lhs    sqlExpr
+	negate bool
+}
+
+func (i isOp) SQL() string {
+	if i.negate {
+		return i.lhs.SQL() + " IS NOT NULL"
+	}
+	return i.lhs.SQL() + " IS NULL"
+}
+func (i isOp) isBoolExpr() {}
+
+const (
+	opEq   = "="
+	opNe   = "!="
+	opLt   = "<"
+	opLe   = "<="
+	opGt   = ">"
+	opGe   = ">="
+	opLike = "LIKE"
+)
+
+const (
+	opAnd = "AND"
+	opOr  = "OR"
+	opNot = "NOT"
+)
 
 type Transpiler struct {
 	filter       filtering.Filter
@@ -43,23 +120,22 @@ func (t *Transpiler) Transpile() (string, []interface{}, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	resultBoolExpr, ok := resultExpr.(spansql.BoolExpr)
+	resultBoolExpr, ok := resultExpr.(boolExpr)
 	if !ok {
 		return "", nil, fmt.Errorf("not a bool expr")
 	}
 	sql := "WHERE " + strings.ReplaceAll(resultBoolExpr.SQL(), "@_param_", "$")
-	sql = strings.ReplaceAll(sql, "@"+jsonbPathPlaceholder, "")
 	return sql, t.params, nil
 }
 
-func (t *Transpiler) transpileExpr(e *expr.Expr) (spansql.Expr, error) {
+func (t *Transpiler) transpileExpr(e *expr.Expr) (sqlExpr, error) {
 	switch e.GetExprKind().(type) {
 	case *expr.Expr_CallExpr:
 		result, err := t.transpileCallExpr(e)
 		if err != nil {
 			return nil, err
 		}
-		return spansql.Paren{Expr: result}, nil
+		return paren{expr: result}, nil
 	case *expr.Expr_IdentExpr:
 		return t.transpileIdentExpr(e)
 	case *expr.Expr_SelectExpr:
@@ -71,7 +147,7 @@ func (t *Transpiler) transpileExpr(e *expr.Expr) (spansql.Expr, error) {
 	}
 }
 
-func (t *Transpiler) transpileConstExpr(e *expr.Expr) (spansql.Expr, error) {
+func (t *Transpiler) transpileConstExpr(e *expr.Expr) (sqlExpr, error) {
 	switch kind := e.GetConstExpr().GetConstantKind().(type) {
 	case *expr.Constant_BoolValue:
 		return t.param(kind.BoolValue), nil
@@ -88,7 +164,7 @@ func (t *Transpiler) transpileConstExpr(e *expr.Expr) (spansql.Expr, error) {
 	}
 }
 
-func (t *Transpiler) transpileCallExpr(e *expr.Expr) (spansql.Expr, error) {
+func (t *Transpiler) transpileCallExpr(e *expr.Expr) (boolExpr, error) {
 	switch e.GetCallExpr().GetFunction() {
 	case filtering.FunctionHas:
 		return t.transpileHasCallExpr(e)
@@ -96,33 +172,31 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (spansql.Expr, error) {
 		if t.isSubstringMatchExpr(e) {
 			return t.transpileSubstringMatchExpr(e)
 		}
-		return t.transpileComparisonCallExpr(e, spansql.Eq)
+		return t.transpileComparisonCallExpr(e, opEq)
 	case filtering.FunctionNotEquals:
-		return t.transpileComparisonCallExpr(e, spansql.Ne)
+		return t.transpileComparisonCallExpr(e, opNe)
 	case filtering.FunctionLessThan:
-		return t.transpileComparisonCallExpr(e, spansql.Lt)
+		return t.transpileComparisonCallExpr(e, opLt)
 	case filtering.FunctionLessEquals:
-		return t.transpileComparisonCallExpr(e, spansql.Le)
+		return t.transpileComparisonCallExpr(e, opLe)
 	case filtering.FunctionGreaterThan:
-		return t.transpileComparisonCallExpr(e, spansql.Gt)
+		return t.transpileComparisonCallExpr(e, opGt)
 	case filtering.FunctionGreaterEquals:
-		return t.transpileComparisonCallExpr(e, spansql.Ge)
+		return t.transpileComparisonCallExpr(e, opGe)
 	case filtering.FunctionAnd:
-		return t.transpileBinaryLogicalCallExpr(e, spansql.And)
+		return t.transpileBinaryLogicalCallExpr(e, opAnd)
 	case filtering.FunctionOr:
-		return t.transpileBinaryLogicalCallExpr(e, spansql.Or)
+		return t.transpileBinaryLogicalCallExpr(e, opOr)
 	case filtering.FunctionNot:
 		return t.transpileNotCallExpr(e)
 	case filtering.FunctionTimestamp:
-		return t.transpileTimestampCallExpr(e)
-	case FunctionIsNull:
-		return t.transpileIsNullCallExpr(e)
+		return nil, fmt.Errorf("timestamp function must be used in comparison context")
 	default:
 		return nil, fmt.Errorf("unsupported function call: %s", e.GetCallExpr().GetFunction())
 	}
 }
 
-func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (spansql.Expr, error) {
+func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (sqlExpr, error) {
 	identExpr := e.GetIdentExpr()
 	identType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
 	if !ok {
@@ -135,30 +209,27 @@ func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (spansql.Expr, error) {
 			}
 		}
 	}
-	return spansql.ID(identExpr.GetName()), nil
+	return ident(identExpr.GetName()), nil
 }
 
-func (t *Transpiler) transpileSelectExpr(e *expr.Expr) (spansql.Expr, error) {
-	var path []string
-	var root string
-	current := e
-	for {
-		selectExpr := current.GetSelectExpr()
-		if selectExpr == nil {
-			return nil, fmt.Errorf("expected SelectExpr in chain")
-		}
-		path = append([]string{selectExpr.GetField()}, path...)
-		operand := selectExpr.GetOperand()
-		if identExpr := operand.GetIdentExpr(); identExpr != nil {
-			root = identExpr.GetName()
-			break
-		}
-		if operand.GetSelectExpr() != nil {
-			current = operand
-			continue
-		}
-		return nil, fmt.Errorf("unsupported select expr operand type")
+func (t *Transpiler) transpileIdentExprForJSONB(e *expr.Expr) (sqlExpr, error) {
+	identExpr := e.GetIdentExpr()
+	identType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
+	if !ok {
+		return nil, fmt.Errorf("unknown type of ident expr %d", e.GetId())
 	}
+	if messageType := identType.GetMessageType(); messageType != "" {
+		if enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(messageType)); err == nil {
+			if enumValue := enumType.Descriptor().Values().ByName(protoreflect.Name(identExpr.GetName())); enumValue != nil {
+				return t.param(identExpr.GetName()), nil
+			}
+		}
+	}
+	return ident(identExpr.GetName()), nil
+}
+
+func (t *Transpiler) transpileSelectExpr(e *expr.Expr) (sqlExpr, error) {
+	path, root := t.extractSelectPath(e)
 
 	exprType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
 	if !ok {
@@ -168,7 +239,7 @@ func (t *Transpiler) transpileSelectExpr(e *expr.Expr) (spansql.Expr, error) {
 	return t.buildJSONBPathExpr(root, path, exprType), nil
 }
 
-func (t *Transpiler) buildJSONBPathExpr(root string, path []string, exprType *expr.Type) spansql.Param {
+func (t *Transpiler) buildJSONBPathExpr(root string, path []string, exprType *expr.Type) rawSQL {
 	var sb strings.Builder
 
 	needsCast := true
@@ -188,18 +259,16 @@ func (t *Transpiler) buildJSONBPathExpr(root string, path []string, exprType *ex
 		needsCast = false
 	}
 
-	sb.WriteString(jsonbPathPlaceholder)
 	if needsCast {
 		sb.WriteString("(")
 	}
 	sb.WriteString(root)
 	for i, p := range path {
 		if i < len(path)-1 {
-			sb.WriteString("->")
+			sb.WriteString("->'")
 		} else {
-			sb.WriteString("->>")
+			sb.WriteString("->>'")
 		}
-		sb.WriteString("'")
 		sb.WriteString(p)
 		sb.WriteString("'")
 	}
@@ -208,10 +277,25 @@ func (t *Transpiler) buildJSONBPathExpr(root string, path []string, exprType *ex
 		sb.WriteString(castType)
 	}
 
-	return spansql.Param(sb.String())
+	return rawSQL(sb.String())
 }
 
-func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (spansql.BoolExpr, error) {
+func (t *Transpiler) buildJSONBPathExprRaw(root string, path []string) string {
+	var sb strings.Builder
+	sb.WriteString(root)
+	for i, p := range path {
+		if i < len(path)-1 {
+			sb.WriteString("->'")
+		} else {
+			sb.WriteString("->>'")
+		}
+		sb.WriteString(p)
+		sb.WriteString("'")
+	}
+	return sb.String()
+}
+
+func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (boolExpr, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 1 {
 		return nil, fmt.Errorf("unexpected number of arguments to `%s` expression: %d", filtering.FunctionNot, len(callExpr.GetArgs()))
@@ -220,27 +304,46 @@ func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (spansql.BoolExpr, error
 	if err != nil {
 		return nil, err
 	}
-	rhsBoolExpr, ok := rhsExpr.(spansql.BoolExpr)
+	rhsBoolExpr, ok := rhsExpr.(boolExpr)
 	if !ok {
 		return nil, fmt.Errorf("unexpected argument to `%s`: not a bool expr", filtering.FunctionNot)
 	}
-	return spansql.LogicalOp{Op: spansql.Not, RHS: rhsBoolExpr}, nil
+	return logicalOp{op: opNot, rhs: rhsBoolExpr}, nil
 }
 
-func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op spansql.ComparisonOperator) (spansql.BoolExpr, error) {
+func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolExpr, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 2 {
 		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
 	}
-	lhsExpr, err := t.transpileExpr(callExpr.GetArgs()[0])
+
+	lhs := callExpr.GetArgs()[0]
+	rhs := callExpr.GetArgs()[1]
+
+	lhsExpr, err := t.transpileExpr(lhs)
 	if err != nil {
 		return nil, err
 	}
-	rhsExpr, err := t.transpileExpr(callExpr.GetArgs()[1])
+
+	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionTimestamp {
+		rhsExpr, err := t.transpileTimestampCallExpr(rhs)
+		if err != nil {
+			return nil, err
+		}
+		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
+	}
+
+	var rhsExpr sqlExpr
+	if lhs.GetSelectExpr() != nil && rhs.GetIdentExpr() != nil {
+		rhsExpr, err = t.transpileIdentExprForJSONB(rhs)
+	} else {
+		rhsExpr, err = t.transpileExpr(rhs)
+	}
 	if err != nil {
 		return nil, err
 	}
-	return spansql.ComparisonOp{Op: op, LHS: lhsExpr, RHS: rhsExpr}, nil
+
+	return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
 }
 
 func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
@@ -262,15 +365,27 @@ func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
 	return strings.HasPrefix(rhsStringExpr.StringValue, "*") || strings.HasSuffix(rhsStringExpr.StringValue, "*")
 }
 
-func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr, error) {
+func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (boolExpr, error) {
 	lhs := e.GetCallExpr().GetArgs()[0]
 	rhs := e.GetCallExpr().GetArgs()[1]
 	rhsString := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue).StringValue
-	if strings.Contains(strings.TrimSuffix(strings.TrimPrefix(rhsString, "*"), "*"), "*") {
+
+	hasLeading := strings.HasPrefix(rhsString, "*")
+	hasTrailing := strings.HasSuffix(rhsString, "*")
+
+	trimmed := rhsString
+	if hasLeading {
+		trimmed = trimmed[1:]
+	}
+	if hasTrailing {
+		trimmed = trimmed[:len(trimmed)-1]
+	}
+
+	if strings.Contains(trimmed, "*") {
 		return nil, fmt.Errorf("wildcard only supported in leading or trailing positions")
 	}
 
-	var lhsExpr spansql.Expr
+	var lhsExpr sqlExpr
 	var err error
 	if lhs.GetSelectExpr() != nil {
 		lhsExpr, err = t.transpileSelectExpr(lhs)
@@ -278,55 +393,21 @@ func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (spansql.BoolExpr
 			return nil, err
 		}
 	} else if lhs.GetIdentExpr() != nil {
-		lhsExpr = spansql.ID(lhs.GetIdentExpr().GetName())
+		lhsExpr = ident(lhs.GetIdentExpr().GetName())
 	} else {
 		return nil, fmt.Errorf("unsupported LHS for substring match")
 	}
 
-	return spansql.ComparisonOp{
-		Op:  spansql.Like,
-		LHS: lhsExpr,
-		RHS: t.param(strings.ReplaceAll(rhsString, "*", "%")),
+	likePattern := strings.ReplaceAll(rhsString, "*", "%")
+
+	return comparisonOp{
+		lhs: lhsExpr,
+		op:  opLike,
+		rhs: t.param(likePattern),
 	}, nil
 }
 
-func (t *Transpiler) transpileIsNullCallExpr(e *expr.Expr) (spansql.BoolExpr, error) {
-	callExpr := e.GetCallExpr()
-	if len(callExpr.Args) != 1 {
-		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.Args))
-	}
-	lhs, err := t.transpileExpr(callExpr.Args[0])
-	if err != nil {
-		return nil, err
-	}
-	return spansql.IsOp{LHS: lhs, RHS: spansql.NullLiteral(0)}, nil
-}
-
-func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op spansql.LogicalOperator) (spansql.BoolExpr, error) {
-	callExpr := e.GetCallExpr()
-	if len(callExpr.GetArgs()) != 2 {
-		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
-	}
-	lhsExpr, err := t.transpileExpr(callExpr.GetArgs()[0])
-	if err != nil {
-		return nil, err
-	}
-	rhsExpr, err := t.transpileExpr(callExpr.GetArgs()[1])
-	if err != nil {
-		return nil, err
-	}
-	lhsBoolExpr, ok := lhsExpr.(spansql.BoolExpr)
-	if !ok {
-		return nil, fmt.Errorf("unexpected arguments to `%s`: lhs not a bool expr", callExpr.GetFunction())
-	}
-	rhsBoolExpr, ok := rhsExpr.(spansql.BoolExpr)
-	if !ok {
-		return nil, fmt.Errorf("unexpected arguments to `%s` rhs not a bool expr", callExpr.GetFunction())
-	}
-	return spansql.LogicalOp{Op: op, LHS: lhsBoolExpr, RHS: rhsBoolExpr}, nil
-}
-
-func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (spansql.BoolExpr, error) {
+func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (boolExpr, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 2 {
 		return nil, fmt.Errorf("unexpected number of arguments to `:` expression: %d", len(callExpr.GetArgs()))
@@ -339,98 +420,81 @@ func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (spansql.BoolExpr, error
 		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
 	}
 
-	// Handle wildcard existence check (field:*)
 	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
 		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok && strVal.StringValue == "*" {
 			lhs, err := t.transpileExpr(lhsExpr)
 			if err != nil {
 				return nil, err
 			}
-			return spansql.IsOp{LHS: lhs, Neg: true, RHS: spansql.NullLiteral(0)}, nil
+			return isOp{lhs: lhs, negate: true}, nil
 		}
 	}
 
-	// Handle repeated fields
 	if listType := lhsType.GetListType(); listType != nil {
 		return t.transpileHasOnRepeated(lhsExpr, rhsExpr, listType)
 	}
 
-	// Handle map field key existence check (m:foo)
 	if lhsType.GetMapType() != nil {
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		rhs, err := t.transpileExpr(rhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return spansql.Paren{Expr: spansql.ID(fmt.Sprintf("%s ? %s", lhs.SQL(), rhs.SQL()))}, nil
+		return t.transpileHasOnMap(lhsExpr, rhsExpr)
 	}
 
-	// Handle message field value check (m.foo:42)
-	if lhsType.GetMessageType() != "" {
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
+	if lhsExpr.GetSelectExpr() != nil {
+		if t.traversesThroughRepeatedField(lhsExpr) {
+			return t.transpileHasOnRepeatedNested(lhsExpr, rhsExpr)
 		}
-		rhs, err := t.transpileExpr(rhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return spansql.ComparisonOp{Op: spansql.Eq, LHS: lhs, RHS: rhs}, nil
+		return t.transpileHasOnSelect(lhsExpr, rhsExpr)
 	}
 
 	return nil, fmt.Errorf("unsupported type for `:` operator")
 }
 
-func (t *Transpiler) transpileHasCallExprOld(e *expr.Expr) (spansql.BoolExpr, error) {
-	callExpr := e.GetCallExpr()
-	if len(callExpr.GetArgs()) != 2 {
-		return nil, fmt.Errorf("unexpected number of arguments to `:` expression: %d", len(callExpr.GetArgs()))
-	}
-	lhsExpr := callExpr.GetArgs()[0]
-	rhsExpr := callExpr.GetArgs()[1]
-
-	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhsExpr.GetId()]
-	if !ok {
-		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
-	}
-
-	// Handle wildcard existence check (field:*)
-	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
-		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok && strVal.StringValue == "*" {
-			lhs, err := t.transpileExpr(lhsExpr)
-			if err != nil {
-				return nil, err
-			}
-			return spansql.IsOp{LHS: lhs, Neg: true, RHS: spansql.NullLiteral(0)}, nil
+func (t *Transpiler) traversesThroughRepeatedField(e *expr.Expr) bool {
+	current := e
+	for {
+		selectExpr := current.GetSelectExpr()
+		if selectExpr == nil {
+			return false
 		}
-	}
-
-	// Handle repeated fields
-	if listType := lhsType.GetListType(); listType != nil {
-		return t.transpileHasOnRepeated(lhsExpr, rhsExpr, listType)
-	}
-
-	// Handle map/message field value check (m.foo:42)
-	if lhsType.GetMapType() != nil || lhsType.GetMessageType() != "" {
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
+		operand := selectExpr.GetOperand()
+		operandType, ok := t.filter.CheckedExpr.GetTypeMap()[operand.GetId()]
+		if ok && operandType.GetListType() != nil {
+			return true
 		}
-		rhs, err := t.transpileExpr(rhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return spansql.ComparisonOp{Op: spansql.Eq, LHS: lhs, RHS: rhs}, nil
+		current = operand
 	}
-
-	return nil, fmt.Errorf("unsupported type for `:` operator")
 }
 
-func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (spansql.BoolExpr, error) {
-	// Simple case: repeated primitive with ident (r:42)
+func (t *Transpiler) transpileHasOnMap(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
+	lhs, err := t.transpileExpr(lhsExpr)
+	if err != nil {
+		return nil, err
+	}
+	rhs, err := t.transpileExpr(rhsExpr)
+	if err != nil {
+		return nil, err
+	}
+	return rawSQL(fmt.Sprintf("%s ? %s", lhs.SQL(), rhs.SQL())), nil
+}
+
+func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
+	lhs, err := t.transpileExpr(lhsExpr)
+	if err != nil {
+		return nil, err
+	}
+
+	var rhs sqlExpr
+	if rhsExpr.GetIdentExpr() != nil {
+		rhs, err = t.transpileIdentExprForJSONB(rhsExpr)
+	} else {
+		rhs, err = t.transpileExpr(rhsExpr)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return comparisonOp{lhs: lhs, op: opEq, rhs: rhs}, nil
+}
+
+func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (boolExpr, error) {
 	if lhsExpr.GetIdentExpr() != nil && listType.GetElemType().GetPrimitive() != expr.Type_PRIMITIVE_TYPE_UNSPECIFIED {
 		lhs, err := t.transpileExpr(lhsExpr)
 		if err != nil {
@@ -440,10 +504,9 @@ func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listTyp
 		if err != nil {
 			return nil, err
 		}
-		return spansql.InOp{Unnest: true, LHS: rhs, RHS: []spansql.Expr{lhs}}, nil
+		return rawSQL(fmt.Sprintf("%s = ANY(%s)", rhs.SQL(), lhs.SQL())), nil
 	}
 
-	// Nested case: r.foo:42 - SelectExpr on repeated message
 	if lhsExpr.GetSelectExpr() != nil {
 		return t.transpileHasOnRepeatedNested(lhsExpr, rhsExpr)
 	}
@@ -451,7 +514,7 @@ func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listTyp
 	return nil, fmt.Errorf("unsupported repeated field type for `:` operator")
 }
 
-func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (spansql.BoolExpr, error) {
+func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
 	var fieldPath []string
 	var repeatedField string
 	current := lhsExpr
@@ -491,22 +554,12 @@ func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (
 		return nil, err
 	}
 
-	var elemPath strings.Builder
-	elemPath.WriteString("_elem")
-	for i, p := range fieldPath {
-		if i < len(fieldPath)-1 {
-			elemPath.WriteString("->'")
-		} else {
-			elemPath.WriteString("->>'")
-		}
-		elemPath.WriteString(p)
-		elemPath.WriteString("'")
-	}
+	elemPath := t.buildJSONBPathExprRaw("_elem", fieldPath)
 
 	existsSQL := fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s = %s)",
-		repeatedField, elemPath.String(), rhs.SQL())
+		repeatedField, elemPath, rhs.SQL())
 
-	return spansql.Paren{Expr: spansql.ID(existsSQL)}, nil
+	return rawSQL(existsSQL), nil
 }
 
 func (t *Transpiler) extractSelectPath(e *expr.Expr) (path []string, root string) {
@@ -527,7 +580,31 @@ func (t *Transpiler) extractSelectPath(e *expr.Expr) (path []string, root string
 	return
 }
 
-func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, error) {
+func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op string) (boolExpr, error) {
+	callExpr := e.GetCallExpr()
+	if len(callExpr.GetArgs()) != 2 {
+		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
+	}
+	lhsExpr, err := t.transpileExpr(callExpr.GetArgs()[0])
+	if err != nil {
+		return nil, err
+	}
+	rhsExpr, err := t.transpileExpr(callExpr.GetArgs()[1])
+	if err != nil {
+		return nil, err
+	}
+	lhsBoolExpr, ok := lhsExpr.(boolExpr)
+	if !ok {
+		return nil, fmt.Errorf("unexpected arguments to `%s`: lhs not a bool expr", callExpr.GetFunction())
+	}
+	rhsBoolExpr, ok := rhsExpr.(boolExpr)
+	if !ok {
+		return nil, fmt.Errorf("unexpected arguments to `%s` rhs not a bool expr", callExpr.GetFunction())
+	}
+	return logicalOp{op: op, lhs: lhsBoolExpr, rhs: rhsBoolExpr}, nil
+}
+
+func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (sqlExpr, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 1 {
 		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
@@ -547,14 +624,13 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (spansql.Expr, err
 	return t.param(timeArg), nil
 }
 
-func (t *Transpiler) param(param interface{}) spansql.Param {
+func (t *Transpiler) param(value interface{}) param {
 	p := t.nextParam()
-	t.params = append(t.params, param)
-	return spansql.Param(p)
+	t.params = append(t.params, value)
+	return param(p)
 }
 
 func (t *Transpiler) nextParam() string {
-	param := "_param_" + strconv.Itoa(t.paramCounter+1)
 	t.paramCounter++
-	return param
+	return "_param_" + strconv.Itoa(t.paramCounter)
 }
