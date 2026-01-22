@@ -52,7 +52,6 @@ require (
 	github.com/tidwall/pretty v1.2.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.einride.tech/aip v0.73.0
-	go.einride.tech/spanner-aip v0.67.2-0.20251120124954-1d9f5bae7b61
 	golang.org/x/image v0.34.0
 	golang.org/x/mod v0.30.0
 	golang.org/x/net v0.46.0
@@ -68,8 +67,6 @@ require (
 
 require (
 	cel.dev/expr v0.24.0 // indirect
-	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/spanner v1.86.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect

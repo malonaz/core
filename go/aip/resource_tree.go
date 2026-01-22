@@ -311,7 +311,6 @@ func getReplacementPathRegexp(path string) *regexp.Regexp {
 	return regexp.MustCompile(`\b` + regexp.QuoteMeta(path) + `\b(?:[^.]|$)`)
 }
 
-
 // ApplyReplacement replaces all occurrences of a field path in the clause with its replacement.
 // The field is treated as an atomic unit - dots are literal separators, not regex wildcards.
 // A field matches only when:

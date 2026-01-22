@@ -126,40 +126,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "cloud.google.com__go",
-    _tag = "download",
-    module = "cloud.google.com/go",
-    version = "v0.123.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "cloud.google.com__go__civil",
-    download = ":_cloud.google.com__go#download",
-    install = ["civil"],
-    module = "cloud.google.com/go",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "cloud.google.com__go__spanner",
-    _tag = "download",
-    module = "cloud.google.com/go/spanner",
-    version = "v1.86.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "cloud.google.com__go__spanner__spansql",
-    download = ":_cloud.google.com__go__spanner#download",
-    install = ["spansql"],
-    module = "cloud.google.com/go/spanner",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:cloud.google.com__go__civil"],
-)
-
-go_mod_download(
     name = "dario.cat__mergo",
     _tag = "download",
     module = "dario.cat/mergo",
@@ -3190,8 +3156,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -4033,42 +3999,6 @@ go_module(
     module = "go.einride.tech/aip",
     visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_mod_download(
-    name = "go.einride.tech__spanner-aip",
-    _tag = "download",
-    module = "go.einride.tech/spanner-aip",
-    patch = ["//third_party/go/patches:spanner-aip.patch"],
-    version = "v0.67.2-0.20251120124954-1d9f5bae7b61",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "go.einride.tech__spanner-aip__spanfiltering",
-    download = ":_go.einride.tech__spanner-aip#download",
-    install = ["spanfiltering"],
-    module = "go.einride.tech/spanner-aip",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__reflect__protoregistry",
-        "//third_party/go:cloud.google.com__go__spanner__spansql",
-        "//third_party/go:go.einride.tech__aip__filtering",
-        "//third_party/proto:google__api__expr__v1alpha1",
-    ],
-)
-
-go_module(
-    name = "go.einride.tech__spanner-aip__spanordering",
-    download = ":_go.einride.tech__spanner-aip#download",
-    install = ["spanordering"],
-    module = "go.einride.tech/spanner-aip",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//third_party/go:cloud.google.com__go__spanner__spansql",
-        "//third_party/go:go.einride.tech__aip__ordering",
-    ],
 )
 
 go_mod_download(

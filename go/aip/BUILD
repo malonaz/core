@@ -26,7 +26,6 @@ go_library(
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:go.einride.tech__aip__pagination",
         "//third_party/go:go.einride.tech__aip__resourcename",
-        "//third_party/go:go.einride.tech__spanner-aip__spanordering",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__proto",

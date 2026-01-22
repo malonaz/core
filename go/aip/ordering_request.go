@@ -6,11 +6,11 @@ import (
 
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/ordering"
-	"go.einride.tech/spanner-aip/spanordering"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	"github.com/malonaz/core/go/aip/transpiler/postgres"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
@@ -214,7 +214,7 @@ type OrderingRequest struct {
 }
 
 func (p *OrderingRequest) GetSQLOrderByClause() string {
-	return spanordering.TranspileOrderBy(p.orderBy)
+	return postgres.TranspileOrderBy(p.orderBy)
 }
 
 // ///////////////////////////// UTILS //////////////////////////////
