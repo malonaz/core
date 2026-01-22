@@ -26,6 +26,9 @@ message Schema {
   // For objects
   // Defines the properties of an object type, where each property has its own schema (recursive)
   map<string, Schema> properties = 3;
+  // Schema for additional properties (used for map types)
+  Schema additional_properties = 24;
+
   // List of property names that must be present in the object
   repeated string required = 4;
 

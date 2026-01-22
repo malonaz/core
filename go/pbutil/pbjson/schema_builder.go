@@ -205,6 +205,14 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, field protoreflect.F
 
 	description := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
 
+	if field.IsMap() {
+		return &jsonpb.Schema{
+			Type:                 "object",
+			Description:          description,
+			AdditionalProperties: b.elementSchema(so, field.MapValue(), path, depth, methodType, allowedPaths),
+		}, isRequired
+	}
+
 	if field.IsList() {
 		return &jsonpb.Schema{
 			Type:        "array",

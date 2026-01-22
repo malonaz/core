@@ -1,0 +1,11 @@
+go_library(
+    name = "postgres",
+    srcs = ["postgres.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:go.einride.tech__aip__filtering",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/proto:google__api__expr__v1alpha1",
+    ],
+)

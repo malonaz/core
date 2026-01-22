@@ -605,7 +605,6 @@ func (s *Schema) augmentMethodComments() error {
 								tree, err = aip.BuildResourceTreeFromDescriptor(
 									resourceMessageDescriptor,
 									aip.WithAllowedPaths(filtering.Paths),
-									aip.WithTransformNestedPath(),
 									aip.WithMaxDepth(3),
 								)
 								if err != nil {

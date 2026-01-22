@@ -15,6 +15,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -470,9 +471,17 @@ type Resource struct {
 	// some id field.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// some timestmap.
-	CreateTimestamp int64 `protobuf:"varint,20,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
+	CreateTimestamp *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=create_timestamp,json=createTimestamp,proto3" json:"create_timestamp,omitempty"`
 	// some other timestamp.
-	UpdateTime int64 `protobuf:"varint,21,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// Repeated string field for has operator testing.
+	Tags []string `protobuf:"bytes,13,rep,name=tags,proto3" json:"tags,omitempty"`
+	// Repeated message field for nested has operator testing.
+	Items []*NestedResource `protobuf:"bytes,14,rep,name=items,proto3" json:"items,omitempty"`
+	// Map field for key existence and value checking.
+	Labels map[string]string `protobuf:"bytes,15,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Map with int values for type testing.
+	Counts map[string]int64 `protobuf:"bytes,16,rep,name=counts,proto3" json:"counts,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	// Simple string field.
 	Field1 string `protobuf:"bytes,2,opt,name=field1,proto3" json:"field1,omitempty"`
 	// Nested resource for path mapping tests.
@@ -536,18 +545,46 @@ func (x *Resource) GetId() string {
 	return ""
 }
 
-func (x *Resource) GetCreateTimestamp() int64 {
+func (x *Resource) GetCreateTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreateTimestamp
 	}
-	return 0
+	return nil
 }
 
-func (x *Resource) GetUpdateTime() int64 {
+func (x *Resource) GetUpdateTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdateTime
 	}
-	return 0
+	return nil
+}
+
+func (x *Resource) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *Resource) GetItems() []*NestedResource {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *Resource) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *Resource) GetCounts() map[string]int64 {
+	if x != nil {
+		return x.Counts
+	}
+	return nil
 }
 
 func (x *Resource) GetField1() string {
@@ -628,12 +665,28 @@ func (x *Resource) SetId(v string) {
 	x.Id = v
 }
 
-func (x *Resource) SetCreateTimestamp(v int64) {
+func (x *Resource) SetCreateTimestamp(v *timestamppb.Timestamp) {
 	x.CreateTimestamp = v
 }
 
-func (x *Resource) SetUpdateTime(v int64) {
+func (x *Resource) SetUpdateTime(v *timestamppb.Timestamp) {
 	x.UpdateTime = v
+}
+
+func (x *Resource) SetTags(v []string) {
+	x.Tags = v
+}
+
+func (x *Resource) SetItems(v []*NestedResource) {
+	x.Items = v
+}
+
+func (x *Resource) SetLabels(v map[string]string) {
+	x.Labels = v
+}
+
+func (x *Resource) SetCounts(v map[string]int64) {
+	x.Counts = v
 }
 
 func (x *Resource) SetField1(v string) {
@@ -676,6 +729,20 @@ func (x *Resource) SetNestedChanged(v *NestedResource) {
 	x.NestedChanged = v
 }
 
+func (x *Resource) HasCreateTimestamp() bool {
+	if x == nil {
+		return false
+	}
+	return x.CreateTimestamp != nil
+}
+
+func (x *Resource) HasUpdateTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.UpdateTime != nil
+}
+
 func (x *Resource) HasNested() bool {
 	if x == nil {
 		return false
@@ -711,6 +778,14 @@ func (x *Resource) HasNestedChanged() bool {
 	return x.NestedChanged != nil
 }
 
+func (x *Resource) ClearCreateTimestamp() {
+	x.CreateTimestamp = nil
+}
+
+func (x *Resource) ClearUpdateTime() {
+	x.UpdateTime = nil
+}
+
 func (x *Resource) ClearNested() {
 	x.Nested = nil
 }
@@ -739,9 +814,17 @@ type Resource_builder struct {
 	// some id field.
 	Id string
 	// some timestmap.
-	CreateTimestamp int64
+	CreateTimestamp *timestamppb.Timestamp
 	// some other timestamp.
-	UpdateTime int64
+	UpdateTime *timestamppb.Timestamp
+	// Repeated string field for has operator testing.
+	Tags []string
+	// Repeated message field for nested has operator testing.
+	Items []*NestedResource
+	// Map field for key existence and value checking.
+	Labels map[string]string
+	// Map with int values for type testing.
+	Counts map[string]int64
 	// Simple string field.
 	Field1 string
 	// Nested resource for path mapping tests.
@@ -772,6 +855,10 @@ func (b0 Resource_builder) Build() *Resource {
 	x.Id = b.Id
 	x.CreateTimestamp = b.CreateTimestamp
 	x.UpdateTime = b.UpdateTime
+	x.Tags = b.Tags
+	x.Items = b.Items
+	x.Labels = b.Labels
+	x.Counts = b.Counts
 	x.Field1 = b.Field1
 	x.Nested = b.Nested
 	x.Nested2 = b.Nested2
@@ -888,6 +975,8 @@ type NestedResource struct {
 	Field3 string `protobuf:"bytes,3,opt,name=field3,proto3" json:"field3,omitempty"`
 	// Another nested resource.
 	FurtherNested *DeeplyNestedResource `protobuf:"bytes,4,opt,name=further_nested,json=furtherNested,proto3" json:"further_nested,omitempty"`
+	// Enum field for testing enum in JSONB.
+	State         MyEnum `protobuf:"varint,5,opt,name=state,proto3,enum=test.aip.v1.MyEnum" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -945,6 +1034,13 @@ func (x *NestedResource) GetFurtherNested() *DeeplyNestedResource {
 	return nil
 }
 
+func (x *NestedResource) GetState() MyEnum {
+	if x != nil {
+		return x.State
+	}
+	return MyEnum_MY_ENUM_UNSPECIFIED
+}
+
 func (x *NestedResource) SetField1(v bool) {
 	x.Field1 = v
 }
@@ -959,6 +1055,10 @@ func (x *NestedResource) SetField3(v string) {
 
 func (x *NestedResource) SetFurtherNested(v *DeeplyNestedResource) {
 	x.FurtherNested = v
+}
+
+func (x *NestedResource) SetState(v MyEnum) {
+	x.State = v
 }
 
 func (x *NestedResource) HasFurtherNested() bool {
@@ -983,6 +1083,8 @@ type NestedResource_builder struct {
 	Field3 string
 	// Another nested resource.
 	FurtherNested *DeeplyNestedResource
+	// Enum field for testing enum in JSONB.
+	State MyEnum
 }
 
 func (b0 NestedResource_builder) Build() *NestedResource {
@@ -993,6 +1095,7 @@ func (b0 NestedResource_builder) Build() *NestedResource {
 	x.Field2 = b.Field2
 	x.Field3 = b.Field3
 	x.FurtherNested = b.FurtherNested
+	x.State = b.State
 	return m0
 }
 
@@ -1386,7 +1489,7 @@ var File_malonaz_test_aip_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
+	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
 	"\x15ListResourcesRequest2\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -1411,13 +1514,17 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\b\n" +
-	"\"\xa4\x06\n" +
+	"\"\x97\t\n" +
 	"\bResource\x12\x12\n" +
 	"\x04name\x18d \x01(\tR\x04name\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x10create_timestamp\x18\x14 \x01(\x03R\x0fcreateTimestamp\x12\x1f\n" +
-	"\vupdate_time\x18\x15 \x01(\x03R\n" +
-	"updateTime\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12E\n" +
+	"\x10create_timestamp\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampR\x0fcreateTimestamp\x12;\n" +
+	"\vupdate_time\x18\x15 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x12\x12\n" +
+	"\x04tags\x18\r \x03(\tR\x04tags\x129\n" +
+	"\x05items\x18\x0e \x03(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\x05items\x129\n" +
+	"\x06labels\x18\x0f \x03(\v2!.test.aip.v1.Resource.LabelsEntryR\x06labels\x129\n" +
+	"\x06counts\x18\x10 \x03(\v2!.test.aip.v1.Resource.CountsEntryR\x06counts\x12\x16\n" +
 	"\x06field1\x18\x02 \x01(\tR\x06field1\x12;\n" +
 	"\x06nested\x18\x03 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\x06nested\x12=\n" +
 	"\anested2\x18\x04 \x01(\v2\x1b.test.aip.v1.NestedResourceB\x06\xba\xea\x0f\x02\x10\x01R\anested2\x125\n" +
@@ -1431,7 +1538,13 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
 	"\bnew_nameR\x11columnNameChanged\x12[\n" +
 	"\x0enested_changed\x18\f \x01(\v2\x1b.test.aip.v1.NestedResourceB\x17\xba\xea\x0f\x13\n" +
-	"\x0fnested_new_name\x10\x01R\rnestedChanged:o\xeaAl\n" +
+	"\x0fnested_new_name\x10\x01R\rnestedChanged\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
+	"\vCountsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01:o\xeaAl\n" +
 	"\x15test.malonaz.com/Chat\x12>organizations/{organization}/users/{user}/resources/{resource}*\tresources2\bresource\"\x9b\x01\n" +
 	"\x04Book\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1f\n" +
@@ -1439,12 +1552,13 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"createTime\x12\x1f\n" +
 	"\vupdate_time\x18\x03 \x01(\x03R\n" +
 	"updateTime:=\xeaA2\n" +
-	"\x15test.malonaz.com/Chat\x12\fbooks/{book}*\x05books2\x04bookҦ\x04\x04\x12\x02id\"\xa2\x01\n" +
+	"\x15test.malonaz.com/Chat\x12\fbooks/{book}*\x05books2\x04bookҦ\x04\x04\x12\x02id\"\xcd\x01\n" +
 	"\x0eNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
 	"\x06field3\x18\x03 \x01(\tR\x06field3\x12H\n" +
-	"\x0efurther_nested\x18\x04 \x01(\v2!.test.aip.v1.DeeplyNestedResourceR\rfurtherNested\"^\n" +
+	"\x0efurther_nested\x18\x04 \x01(\v2!.test.aip.v1.DeeplyNestedResourceR\rfurtherNested\x12)\n" +
+	"\x05state\x18\x05 \x01(\x0e2\x13.test.aip.v1.MyEnumR\x05state\"^\n" +
 	"\x14DeeplyNestedResource\x12\x16\n" +
 	"\x06field1\x18\x01 \x01(\bR\x06field1\x12\x16\n" +
 	"\x06field2\x18\x02 \x01(\x03R\x06field2\x12\x16\n" +
@@ -1483,7 +1597,7 @@ const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\x15test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ)github.com/malonaz/core/genproto/test/aipb\x06proto3"
 
 var file_malonaz_test_aip_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_test_aip_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_malonaz_test_aip_aip_proto_goTypes = []any{
 	(MyEnum)(0),                                 // 0: test.aip.v1.MyEnum
 	(MyNullableEnum)(0),                         // 1: test.aip.v1.MyNullableEnum
@@ -1498,28 +1612,37 @@ var file_malonaz_test_aip_aip_proto_goTypes = []any{
 	(*UpdateResourceRequest)(nil),               // 10: test.aip.v1.UpdateResourceRequest
 	(*UpdateResource2Request)(nil),              // 11: test.aip.v1.UpdateResource2Request
 	(*UpdateResourceWithColumnNameRequest)(nil), // 12: test.aip.v1.UpdateResourceWithColumnNameRequest
-	(*fieldmaskpb.FieldMask)(nil),               // 13: google.protobuf.FieldMask
+	nil,                           // 13: test.aip.v1.Resource.LabelsEntry
+	nil,                           // 14: test.aip.v1.Resource.CountsEntry
+	(*timestamppb.Timestamp)(nil), // 15: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil), // 16: google.protobuf.FieldMask
 }
 var file_malonaz_test_aip_aip_proto_depIdxs = []int32{
-	8,  // 0: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
-	8,  // 1: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
-	8,  // 2: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
-	8,  // 3: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
-	0,  // 4: test.aip.v1.Resource.my_enum:type_name -> test.aip.v1.MyEnum
-	1,  // 5: test.aip.v1.Resource.nullable_enum:type_name -> test.aip.v1.MyNullableEnum
-	8,  // 6: test.aip.v1.Resource.nested_changed:type_name -> test.aip.v1.NestedResource
-	9,  // 7: test.aip.v1.NestedResource.further_nested:type_name -> test.aip.v1.DeeplyNestedResource
-	6,  // 8: test.aip.v1.UpdateResourceRequest.resource:type_name -> test.aip.v1.Resource
-	13, // 9: test.aip.v1.UpdateResourceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	6,  // 10: test.aip.v1.UpdateResource2Request.resource:type_name -> test.aip.v1.Resource
-	13, // 11: test.aip.v1.UpdateResource2Request.update_mask:type_name -> google.protobuf.FieldMask
-	6,  // 12: test.aip.v1.UpdateResourceWithColumnNameRequest.resource:type_name -> test.aip.v1.Resource
-	13, // 13: test.aip.v1.UpdateResourceWithColumnNameRequest.update_mask:type_name -> google.protobuf.FieldMask
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	15, // 0: test.aip.v1.Resource.create_timestamp:type_name -> google.protobuf.Timestamp
+	15, // 1: test.aip.v1.Resource.update_time:type_name -> google.protobuf.Timestamp
+	8,  // 2: test.aip.v1.Resource.items:type_name -> test.aip.v1.NestedResource
+	13, // 3: test.aip.v1.Resource.labels:type_name -> test.aip.v1.Resource.LabelsEntry
+	14, // 4: test.aip.v1.Resource.counts:type_name -> test.aip.v1.Resource.CountsEntry
+	8,  // 5: test.aip.v1.Resource.nested:type_name -> test.aip.v1.NestedResource
+	8,  // 6: test.aip.v1.Resource.nested2:type_name -> test.aip.v1.NestedResource
+	8,  // 7: test.aip.v1.Resource.nested3:type_name -> test.aip.v1.NestedResource
+	8,  // 8: test.aip.v1.Resource.nested4:type_name -> test.aip.v1.NestedResource
+	0,  // 9: test.aip.v1.Resource.my_enum:type_name -> test.aip.v1.MyEnum
+	1,  // 10: test.aip.v1.Resource.nullable_enum:type_name -> test.aip.v1.MyNullableEnum
+	8,  // 11: test.aip.v1.Resource.nested_changed:type_name -> test.aip.v1.NestedResource
+	9,  // 12: test.aip.v1.NestedResource.further_nested:type_name -> test.aip.v1.DeeplyNestedResource
+	0,  // 13: test.aip.v1.NestedResource.state:type_name -> test.aip.v1.MyEnum
+	6,  // 14: test.aip.v1.UpdateResourceRequest.resource:type_name -> test.aip.v1.Resource
+	16, // 15: test.aip.v1.UpdateResourceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	6,  // 16: test.aip.v1.UpdateResource2Request.resource:type_name -> test.aip.v1.Resource
+	16, // 17: test.aip.v1.UpdateResource2Request.update_mask:type_name -> google.protobuf.FieldMask
+	6,  // 18: test.aip.v1.UpdateResourceWithColumnNameRequest.resource:type_name -> test.aip.v1.Resource
+	16, // 19: test.aip.v1.UpdateResourceWithColumnNameRequest.update_mask:type_name -> google.protobuf.FieldMask
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_aip_aip_proto_init() }
@@ -1533,7 +1656,7 @@ func file_malonaz_test_aip_aip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_aip_aip_proto_rawDesc), len(file_malonaz_test_aip_aip_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
