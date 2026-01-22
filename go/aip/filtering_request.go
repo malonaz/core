@@ -128,9 +128,16 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 
 func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, error) {
 	filterClause := request.GetFilter()
-	// Handle id column changes here.
+	repeatedFields := make(map[string]bool)
 	for node := range p.tree.FilterableNodes() {
 		filterClause = node.ApplyReplacement(filterClause)
+		if node.IsRepeated && node.Depth == 0 {
+			fieldName := node.Path
+			if node.ReplacementPath != "" {
+				fieldName = node.ReplacementPath
+			}
+			repeatedFields[fieldName] = true
+		}
 	}
 	p.setFilter(request, filterClause)
 
@@ -139,7 +146,7 @@ func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, erro
 		return nil, fmt.Errorf("parsing filter: %w", err)
 	}
 
-	whereClause, whereParams, err := postgres.TranspileFilter(filter)
+	whereClause, whereParams, err := postgres.TranspileFilter(filter, repeatedFields)
 	if err != nil {
 		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
 	}

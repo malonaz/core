@@ -1445,7 +1445,7 @@ var File_malonaz_test_aip_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_aip_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9f\x01\n" +
+	"\x1amalonaz/test/aip/aip.proto\x12\vtest.aip.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9f\x01\n" +
 	"\x15ListResourcesRequest2\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +

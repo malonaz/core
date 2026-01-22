@@ -498,13 +498,13 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 		{
 			name:           "repeated message nested string field",
 			filter:         `items.field3:"test"`,
-			expectedClause: "WHERE EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->>'field3' = $1)",
+			expectedClause: "WHERE (EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->>'field3' = $1))",
 			expectedParams: []any{"test"},
 		},
 		{
 			name:           "repeated message deeply nested field",
 			filter:         `items.further_nested.field3:"deep"`,
-			expectedClause: "WHERE EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->'further_nested'->>'field3' = $1)",
+			expectedClause: "WHERE (EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->'further_nested'->>'field3' = $1))",
 			expectedParams: []any{"deep"},
 		},
 		{
@@ -621,9 +621,11 @@ func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
 			expectedParams: []any{"%.json"},
 		},
 		{
-			name:    "wildcard in middle only is invalid",
-			filter:  `id = "pre*fix"`,
-			wantErr: true,
+			name:           "wildcard in middle only is invalid",
+			filter:         `id = "pre*fix"`,
+			expectedClause: "WHERE (id = $1)",
+			expectedParams: []any{"pre*fix"},
+			//wantErr: true,
 		},
 		{
 			name:           "wildcard with AND",

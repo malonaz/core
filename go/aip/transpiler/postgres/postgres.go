@@ -1,4 +1,3 @@
-// go/aip/transpiler/postgres/postgres.go
 package postgres
 
 import (
@@ -13,10 +12,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-func TranspileFilter(filter filtering.Filter) (string, []interface{}, error) {
+func TranspileFilter(filter filtering.Filter, repeatedFields map[string]bool) (string, []interface{}, error) {
 	t := &Transpiler{
-		filter: filter,
-		params: []interface{}{},
+		filter:         filter,
+		params:         []interface{}{},
+		repeatedFields: repeatedFields,
 	}
 	return t.Transpile()
 }
@@ -107,9 +107,10 @@ const (
 )
 
 type Transpiler struct {
-	filter       filtering.Filter
-	params       []interface{}
-	paramCounter int
+	filter         filtering.Filter
+	params         []interface{}
+	paramCounter   int
+	repeatedFields map[string]bool
 }
 
 func (t *Transpiler) Transpile() (string, []interface{}, error) {
@@ -460,6 +461,11 @@ func (t *Transpiler) traversesThroughRepeatedField(e *expr.Expr) bool {
 		if ok && operandType.GetListType() != nil {
 			return true
 		}
+		if identExpr := operand.GetIdentExpr(); identExpr != nil {
+			if t.repeatedFields != nil && t.repeatedFields[identExpr.GetName()] {
+				return true
+			}
+		}
 		current = operand
 	}
 }
@@ -528,7 +534,14 @@ func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (
 		operand := selectExpr.GetOperand()
 
 		operandType, ok := t.filter.CheckedExpr.GetTypeMap()[operand.GetId()]
-		if ok && operandType.GetListType() != nil {
+		isRepeated := ok && operandType.GetListType() != nil
+		if !isRepeated {
+			if identExpr := operand.GetIdentExpr(); identExpr != nil {
+				isRepeated = t.repeatedFields != nil && t.repeatedFields[identExpr.GetName()]
+			}
+		}
+
+		if isRepeated {
 			if identExpr := operand.GetIdentExpr(); identExpr != nil {
 				repeatedField = identExpr.GetName()
 				break
