@@ -150,7 +150,7 @@ func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, erro
 	if err != nil {
 		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
 	}
-
+	fmt.Println(whereClause, whereParams)
 	return &FilteringRequest{
 		request:     request,
 		filter:      filter,
