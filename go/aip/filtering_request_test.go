@@ -279,6 +279,15 @@ func TestFilteringRequestParser_Parse(t *testing.T) {
 			wantErr:              true,
 			expectedErrorMessage: "parsing filter",
 		},
+
+		// Column name change.
+		{
+			name:           "filter by nested field with column name override",
+			filter:         `nested_changed.field2 = 42`,
+			expectedClause: "WHERE ((nested_new_name->>'field2')::bigint = $1)",
+			expectedParams: []any{int64(42)},
+			wantErr:        false,
+		},
 	}
 
 	for _, tc := range tests {
