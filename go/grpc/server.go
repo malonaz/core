@@ -11,9 +11,7 @@ import (
 	"time"
 
 	"buf.build/go/protovalidate"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
-	prom "github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	_ "google.golang.org/grpc/encoding/gzip" // Enable compression.
@@ -37,10 +35,6 @@ const (
 )
 
 var (
-	prometheusDefaultHistogramBuckets = []float64{
-		0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120,
-	}
-
 	serverKeepAliveEnforcementPolicy = keepalive.EnforcementPolicy{
 		MinTime:             5 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
 		PermitWithoutStream: true,            // Allow pings even when there are no active streams
@@ -64,14 +58,13 @@ type ServerOptions struct {
 
 // Server is a gRPC server.
 type Server struct {
-	log                     *slog.Logger
-	opts                    *Opts
-	certsOpts               *certs.Opts
-	prometheusOpts          *prometheus.Opts
-	register                func(*Server)
-	Raw                     *grpc.Server
-	prometheusServerMetrics *grpc_prometheus.ServerMetrics
-	healthServer            *health.GRPCServer
+	log            *slog.Logger
+	opts           *Opts
+	certsOpts      *certs.Opts
+	prometheusOpts *prometheus.Opts
+	register       func(*Server)
+	Raw            *grpc.Server
+	healthServer   *health.GRPCServer
 
 	fdsBytes []byte
 
@@ -181,20 +174,6 @@ func (s *Server) Serve(ctx context.Context) error {
 		s.log.WarnContext(ctx, "starting without TLS")
 	}
 
-	// Instantiate prometheus interceptors if relevant.
-	var prometheusUnaryInterceptor grpc.UnaryServerInterceptor
-	var prometheusStreamInterceptor grpc.StreamServerInterceptor
-	if s.prometheusOpts.Enabled() {
-		metrics := grpc_prometheus.NewServerMetrics(
-			grpc_prometheus.WithServerHandlingTimeHistogram(
-				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
-			),
-		)
-		s.prometheusServerMetrics = metrics
-		prometheusUnaryInterceptor = metrics.UnaryServerInterceptor()
-		prometheusStreamInterceptor = metrics.StreamServerInterceptor()
-	}
-
 	// Instantiate validator.
 	validator, err := protovalidate.New()
 	if err != nil {
@@ -209,8 +188,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_interceptor.StreamServerDebugInfoScrubber())
 	// PRE (3): Prometheus first.
 	if s.prometheusOpts.Enabled() {
-		s.preUnaryInterceptors = append(s.preUnaryInterceptors, prometheusUnaryInterceptor)
-		s.preStreamInterceptors = append(s.preStreamInterceptors, prometheusStreamInterceptor)
+		prometheusServerMetrics := getPrometheusServerMetrics()
+		s.preUnaryInterceptors = append(s.preUnaryInterceptors, prometheusServerMetrics.UnaryServerInterceptor())
+		s.preStreamInterceptors = append(s.preStreamInterceptors, prometheusServerMetrics.StreamServerInterceptor())
 	}
 	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_interceptor.UnaryServerHeaderPropagation())
@@ -310,8 +290,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 
 	if s.prometheusOpts.Enabled() {
-		s.prometheusServerMetrics.InitializeMetrics(s.Raw)
-		prom.DefaultRegisterer.MustRegister(s.prometheusServerMetrics)
+		getPrometheusServerMetrics().InitializeMetrics(s.Raw)
 	}
 
 	s.log.InfoContext(ctx, "serving")

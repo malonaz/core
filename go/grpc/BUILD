@@ -7,6 +7,7 @@ go_library(
         "errors.go",
         "gateway.go",
         "opts.go",
+        "prometheus.go",
         "server.go",
     ],
     visibility = ["PUBLIC"],
