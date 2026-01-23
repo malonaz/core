@@ -872,6 +872,691 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__go-logr__logr",
+    _tag = "download",
+    module = "github.com/go-logr/logr",
+    version = "v1.4.3",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-logr__logr",
+    download = ":_github.com__go-logr__logr#download",
+    install = ["."],
+    module = "github.com/go-logr/logr",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-logr__logr__funcr",
+    download = ":_github.com__go-logr__logr#download",
+    install = ["funcr"],
+    module = "github.com/go-logr/logr",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__go-logr__logr"],
+)
+
+go_mod_download(
+    name = "github.com__go-logr__stdr",
+    _tag = "download",
+    module = "github.com/go-logr/stdr",
+    version = "v1.2.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-logr__stdr",
+    download = ":_github.com__go-logr__stdr#download",
+    install = ["."],
+    module = "github.com/go-logr/stdr",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__go-logr__logr",
+        "//third_party/go:github.com__go-logr__logr__funcr",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__analysis",
+    _tag = "download",
+    module = "github.com/go-openapi/analysis",
+    version = "v0.23.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["."],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__analysis__internal__debug",
+        ":github.com__go-openapi__analysis__internal__flatten__normalize",
+        ":github.com__go-openapi__analysis__internal__flatten__operations",
+        ":github.com__go-openapi__analysis__internal__flatten__replace",
+        ":github.com__go-openapi__analysis__internal__flatten__schutils",
+        ":github.com__go-openapi__analysis__internal__flatten__sortref",
+        ":github.com__go-openapi__jsonpointer",
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__strfmt",
+        ":github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__debug",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/debug"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__flatten__normalize",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/flatten/normalize"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__go-openapi__spec"],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__flatten__operations",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/flatten/operations"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__jsonpointer",
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__flatten__replace",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/flatten/replace"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__jsonpointer",
+        ":github.com__go-openapi__spec",
+        "//third_party/go:github.com__go-openapi__analysis__internal__debug",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__flatten__schutils",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/flatten/schutils"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__analysis__internal__flatten__sortref",
+    download = ":_github.com__go-openapi__analysis#download",
+    install = ["internal/flatten/sortref"],
+    module = "github.com/go-openapi/analysis",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__jsonpointer",
+        ":github.com__go-openapi__spec",
+        "//third_party/go:github.com__go-openapi__analysis__internal__flatten__normalize",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__errors",
+    _tag = "download",
+    module = "github.com/go-openapi/errors",
+    version = "v0.22.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__errors",
+    download = ":_github.com__go-openapi__errors#download",
+    install = ["."],
+    module = "github.com/go-openapi/errors",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__jsonpointer",
+    _tag = "download",
+    module = "github.com/go-openapi/jsonpointer",
+    version = "v0.21.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__jsonpointer",
+    download = ":_github.com__go-openapi__jsonpointer#download",
+    install = ["."],
+    module = "github.com/go-openapi/jsonpointer",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__go-openapi__swag"],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__jsonreference",
+    _tag = "download",
+    module = "github.com/go-openapi/jsonreference",
+    version = "v0.21.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__jsonreference",
+    download = ":_github.com__go-openapi__jsonreference#download",
+    install = ["."],
+    module = "github.com/go-openapi/jsonreference",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__jsonreference__internal",
+        "//third_party/go:github.com__go-openapi__jsonpointer",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__jsonreference__internal",
+    download = ":_github.com__go-openapi__jsonreference#download",
+    install = ["internal"],
+    module = "github.com/go-openapi/jsonreference",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__loads",
+    _tag = "download",
+    module = "github.com/go-openapi/loads",
+    version = "v0.22.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__loads",
+    download = ":_github.com__go-openapi__loads#download",
+    install = ["."],
+    module = "github.com/go-openapi/loads",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__swag",
+        "//third_party/go:github.com__go-openapi__analysis",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__runtime",
+    _tag = "download",
+    module = "github.com/go-openapi/runtime",
+    version = "v0.28.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["."],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__strfmt",
+        ":github.com__go-openapi__swag",
+        ":golang.org__x__sync__errgroup",
+        "//third_party/go:github.com__go-openapi__errors",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__client",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["client"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__runtime__logger",
+        ":github.com__go-openapi__runtime__middleware",
+        ":github.com__go-openapi__runtime__yamlpc",
+        ":github.com__go-openapi__strfmt",
+        ":github.com__opentracing__opentracing-go",
+        ":github.com__opentracing__opentracing-go__ext",
+        ":github.com__opentracing__opentracing-go__log",
+        ":go.opentelemetry.io__otel",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__propagation",
+        ":go.opentelemetry.io__otel__semconv__v1.17.0",
+        ":go.opentelemetry.io__otel__semconv__v1.17.0__httpconv",
+        ":go.opentelemetry.io__otel__trace",
+        "//third_party/go:github.com__go-openapi__runtime",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__logger",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["logger"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__middleware",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["middleware"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__runtime__middleware__denco",
+        ":github.com__go-openapi__runtime__middleware__header",
+        ":github.com__go-openapi__runtime__middleware__untyped",
+        ":github.com__go-openapi__runtime__security",
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__strfmt",
+        ":github.com__go-openapi__swag",
+        ":github.com__go-openapi__validate",
+        "//third_party/go:github.com__go-openapi__analysis",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__loads",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__logger",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__middleware__denco",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["middleware/denco"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__middleware__header",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["middleware/header"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__middleware__untyped",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["middleware/untyped"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__spec",
+        ":github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__analysis",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__loads",
+        "//third_party/go:github.com__go-openapi__runtime",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__security",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["security"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__runtime__yamlpc",
+    download = ":_github.com__go-openapi__runtime#download",
+    install = ["yamlpc"],
+    module = "github.com/go-openapi/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":gopkg.in__yaml.v3",
+        "//third_party/go:github.com__go-openapi__runtime",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__spec",
+    _tag = "download",
+    module = "github.com/go-openapi/spec",
+    version = "v0.21.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__spec",
+    download = ":_github.com__go-openapi__spec#download",
+    install = ["."],
+    module = "github.com/go-openapi/spec",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__swag",
+        "//third_party/go:github.com__go-openapi__jsonpointer",
+        "//third_party/go:github.com__go-openapi__jsonreference",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__strfmt",
+    _tag = "download",
+    module = "github.com/go-openapi/strfmt",
+    version = "v0.25.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__strfmt",
+    download = ":_github.com__go-openapi__strfmt#download",
+    install = ["."],
+    module = "github.com/go-openapi/strfmt",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-viper__mapstructure__v2",
+        ":github.com__google__uuid",
+        ":github.com__oklog__ulid",
+        ":go.mongodb.org__mongo-driver__bson",
+        ":go.mongodb.org__mongo-driver__bson__bsontype",
+        ":go.mongodb.org__mongo-driver__bson__primitive",
+        ":golang.org__x__net__idna",
+        "//third_party/go:github.com__go-openapi__errors",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag",
+    _tag = "download",
+    module = "github.com/go-openapi/swag",
+    version = "v0.24.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag",
+    download = ":_github.com__go-openapi__swag#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__swag__cmdutils",
+        ":github.com__go-openapi__swag__conv",
+        ":github.com__go-openapi__swag__fileutils",
+        ":github.com__go-openapi__swag__jsonname",
+        ":github.com__go-openapi__swag__jsonutils",
+        ":github.com__go-openapi__swag__loading",
+        ":github.com__go-openapi__swag__mangling",
+        ":github.com__go-openapi__swag__netutils",
+        ":github.com__go-openapi__swag__stringutils",
+        ":github.com__go-openapi__swag__typeutils",
+        ":github.com__go-openapi__swag__yamlutils",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__cmdutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/cmdutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__cmdutils",
+    download = ":_github.com__go-openapi__swag__cmdutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/cmdutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__conv",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/conv",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__conv",
+    download = ":_github.com__go-openapi__swag__conv#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/conv",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__fileutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/fileutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__fileutils",
+    download = ":_github.com__go-openapi__swag__fileutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/fileutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__jsonname",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/jsonname",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__jsonname",
+    download = ":_github.com__go-openapi__swag__jsonname#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/jsonname",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__jsonutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/jsonutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__jsonutils",
+    download = ":_github.com__go-openapi__swag__jsonutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/jsonutils",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__mailru__easyjson",
+        ":github.com__mailru__easyjson__jlexer",
+        ":github.com__mailru__easyjson__jwriter",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__loading",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/loading",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__loading",
+    download = ":_github.com__go-openapi__swag__loading#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/loading",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__go-openapi__swag__yamlutils"],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__mangling",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/mangling",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__mangling",
+    download = ":_github.com__go-openapi__swag__mangling#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/mangling",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__netutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/netutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__netutils",
+    download = ":_github.com__go-openapi__swag__netutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/netutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__stringutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/stringutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__stringutils",
+    download = ":_github.com__go-openapi__swag__stringutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/stringutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__typeutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/typeutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__typeutils",
+    download = ":_github.com__go-openapi__swag__typeutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/typeutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__swag__yamlutils",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/yamlutils",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__yamlutils",
+    download = ":_github.com__go-openapi__swag__yamlutils#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/yamlutils",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":gopkg.in__yaml.v3",
+        "//third_party/go:github.com__go-openapi__swag__jsonutils",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-openapi__validate",
+    _tag = "download",
+    module = "github.com/go-openapi/validate",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__validate",
+    download = ":_github.com__go-openapi__validate#download",
+    install = ["."],
+    module = "github.com/go-openapi/validate",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__go-openapi__analysis",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__jsonpointer",
+        "//third_party/go:github.com__go-openapi__loads",
+        "//third_party/go:github.com__go-openapi__spec",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__go-viper__mapstructure__v2",
+    _tag = "download",
+    module = "github.com/go-viper/mapstructure/v2",
+    version = "v2.4.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-viper__mapstructure__v2",
+    download = ":_github.com__go-viper__mapstructure__v2#download",
+    install = ["."],
+    module = "github.com/go-viper/mapstructure/v2",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__go-viper__mapstructure__v2__internal__errors"],
+)
+
+go_module(
+    name = "github.com__go-viper__mapstructure__v2__internal__errors",
+    download = ":_github.com__go-viper__mapstructure__v2#download",
+    install = ["internal/errors"],
+    module = "github.com/go-viper/mapstructure/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__gogo__protobuf",
     _tag = "download",
     module = "github.com/gogo/protobuf",
@@ -1629,6 +2314,683 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__grafana__grafana-openapi-client-go",
+    _tag = "download",
+    module = "github.com/grafana/grafana-openapi-client-go",
+    version = "v0.0.0-20251202103709-7ef691d4df1d",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__client__access_control",
+        ":github.com__grafana__grafana-openapi-client-go__client__access_control_provisioning",
+        ":github.com__grafana__grafana-openapi-client-go__client__admin",
+        ":github.com__grafana__grafana-openapi-client-go__client__admin_ldap",
+        ":github.com__grafana__grafana-openapi-client-go__client__admin_provisioning",
+        ":github.com__grafana__grafana-openapi-client-go__client__admin_users",
+        ":github.com__grafana__grafana-openapi-client-go__client__annotations",
+        ":github.com__grafana__grafana-openapi-client-go__client__convert_prometheus",
+        ":github.com__grafana__grafana-openapi-client-go__client__dashboards",
+        ":github.com__grafana__grafana-openapi-client-go__client__datasources",
+        ":github.com__grafana__grafana-openapi-client-go__client__devices",
+        ":github.com__grafana__grafana-openapi-client-go__client__enterprise",
+        ":github.com__grafana__grafana-openapi-client-go__client__folders",
+        ":github.com__grafana__grafana-openapi-client-go__client__group_attribute_sync",
+        ":github.com__grafana__grafana-openapi-client-go__client__health",
+        ":github.com__grafana__grafana-openapi-client-go__client__ldap_debug",
+        ":github.com__grafana__grafana-openapi-client-go__client__library_elements",
+        ":github.com__grafana__grafana-openapi-client-go__client__licensing",
+        ":github.com__grafana__grafana-openapi-client-go__client__migrations",
+        ":github.com__grafana__grafana-openapi-client-go__client__org",
+        ":github.com__grafana__grafana-openapi-client-go__client__orgs",
+        ":github.com__grafana__grafana-openapi-client-go__client__playlists",
+        ":github.com__grafana__grafana-openapi-client-go__client__provisioning",
+        ":github.com__grafana__grafana-openapi-client-go__client__query_history",
+        ":github.com__grafana__grafana-openapi-client-go__client__quota",
+        ":github.com__grafana__grafana-openapi-client-go__client__recording_rules",
+        ":github.com__grafana__grafana-openapi-client-go__client__reports",
+        ":github.com__grafana__grafana-openapi-client-go__client__saml",
+        ":github.com__grafana__grafana-openapi-client-go__client__search",
+        ":github.com__grafana__grafana-openapi-client-go__client__service_accounts",
+        ":github.com__grafana__grafana-openapi-client-go__client__signed_in_user",
+        ":github.com__grafana__grafana-openapi-client-go__client__signing_keys",
+        ":github.com__grafana__grafana-openapi-client-go__client__snapshots",
+        ":github.com__grafana__grafana-openapi-client-go__client__sso_settings",
+        ":github.com__grafana__grafana-openapi-client-go__client__sync_team_groups",
+        ":github.com__grafana__grafana-openapi-client-go__client__teams",
+        ":github.com__grafana__grafana-openapi-client-go__client__user",
+        ":github.com__grafana__grafana-openapi-client-go__client__users",
+        ":github.com__grafana__grafana-openapi-client-go__pkg__transport",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__access_control",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/access_control"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__access_control_provisioning",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/access_control_provisioning"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__admin",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/admin"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__admin_ldap",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/admin_ldap"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__admin_provisioning",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/admin_provisioning"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__admin_users",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/admin_users"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__annotations",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/annotations"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__convert_prometheus",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/convert_prometheus"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__dashboards",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/dashboards"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__datasources",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/datasources"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__devices",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/devices"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__enterprise",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/enterprise"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__folders",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/folders"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__group_attribute_sync",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/group_attribute_sync"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__health",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/health"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__ldap_debug",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/ldap_debug"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__library_elements",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/library_elements"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__licensing",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/licensing"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__migrations",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/migrations"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__org",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/org"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__orgs",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/orgs"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__playlists",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/playlists"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__provisioning",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/provisioning"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__query_history",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/query_history"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__quota",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/quota"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__recording_rules",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/recording_rules"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__reports",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/reports"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__saml",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/saml"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__search",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/search"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__service_accounts",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/service_accounts"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__signed_in_user",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/signed_in_user"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__signing_keys",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/signing_keys"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__snapshots",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/snapshots"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__sso_settings",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/sso_settings"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__sync_team_groups",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/sync_team_groups"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__teams",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/teams"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__user",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/user"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__client__users",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["client/users"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__runtime",
+        "//third_party/go:github.com__go-openapi__runtime__client",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__models",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["models"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__go-openapi__errors",
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__go-openapi__swag",
+        "//third_party/go:github.com__go-openapi__validate",
+    ],
+)
+
+go_module(
+    name = "github.com__grafana__grafana-openapi-client-go__pkg__transport",
+    download = ":_github.com__grafana__grafana-openapi-client-go#download",
+    install = ["pkg/transport"],
+    module = "github.com/grafana/grafana-openapi-client-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__grpc-ecosystem__go-grpc-middleware",
     _tag = "download",
     module = "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -2298,6 +3660,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__josharian__intern",
+    _tag = "download",
+    module = "github.com/josharian/intern",
+    version = "v1.0.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__josharian__intern",
+    download = ":_github.com__josharian__intern#download",
+    install = ["."],
+    module = "github.com/josharian/intern",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__jpillora__backoff",
     _tag = "download",
     module = "github.com/jpillora/backoff",
@@ -2393,6 +3772,53 @@ go_module(
     module = "github.com/lib/pq",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__mailru__easyjson",
+    _tag = "download",
+    module = "github.com/mailru/easyjson",
+    version = "v0.9.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__mailru__easyjson",
+    download = ":_github.com__mailru__easyjson#download",
+    install = ["."],
+    module = "github.com/mailru/easyjson",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__mailru__easyjson__jlexer",
+        ":github.com__mailru__easyjson__jwriter",
+    ],
+)
+
+go_module(
+    name = "github.com__mailru__easyjson__buffer",
+    download = ":_github.com__mailru__easyjson#download",
+    install = ["buffer"],
+    module = "github.com/mailru/easyjson",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__mailru__easyjson__jlexer",
+    download = ":_github.com__mailru__easyjson#download",
+    install = ["jlexer"],
+    module = "github.com/mailru/easyjson",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__josharian__intern"],
+)
+
+go_module(
+    name = "github.com__mailru__easyjson__jwriter",
+    download = ":_github.com__mailru__easyjson#download",
+    install = ["jwriter"],
+    module = "github.com/mailru/easyjson",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__mailru__easyjson__buffer"],
 )
 
 go_mod_download(
@@ -2546,6 +3972,23 @@ go_module(
         ":google.golang.org__protobuf__proto",
         ":google.golang.org__protobuf__types__known__emptypb",
     ],
+)
+
+go_mod_download(
+    name = "github.com__oklog__ulid",
+    _tag = "download",
+    module = "github.com/oklog/ulid",
+    version = "v1.3.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__oklog__ulid",
+    download = ":_github.com__oklog__ulid#download",
+    install = ["."],
+    module = "github.com/oklog/ulid",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -2855,6 +4298,44 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__opentracing__opentracing-go",
+    _tag = "download",
+    module = "github.com/opentracing/opentracing-go",
+    version = "v1.2.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__opentracing__opentracing-go",
+    download = ":_github.com__opentracing__opentracing-go#download",
+    install = ["."],
+    module = "github.com/opentracing/opentracing-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__opentracing__opentracing-go__log"],
+)
+
+go_module(
+    name = "github.com__opentracing__opentracing-go__ext",
+    download = ":_github.com__opentracing__opentracing-go#download",
+    install = ["ext"],
+    module = "github.com/opentracing/opentracing-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__opentracing__opentracing-go__log",
+        "//third_party/go:github.com__opentracing__opentracing-go",
+    ],
+)
+
+go_module(
+    name = "github.com__opentracing__opentracing-go__log",
+    download = ":_github.com__opentracing__opentracing-go#download",
+    install = ["log"],
+    module = "github.com/opentracing/opentracing-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__pion__randutil",
     _tag = "download",
     module = "github.com/pion/randutil",
@@ -3156,8 +4637,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -3999,6 +5480,366 @@ go_module(
     module = "go.einride.tech/aip",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "go.mongodb.org__mongo-driver",
+    _tag = "download",
+    module = "go.mongodb.org/mongo-driver",
+    version = "v1.17.6",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.mongodb.org__mongo-driver__bson__bsoncodec",
+        ":go.mongodb.org__mongo-driver__bson__bsonrw",
+        ":go.mongodb.org__mongo-driver__bson__bsontype",
+        ":go.mongodb.org__mongo-driver__bson__primitive",
+        ":go.mongodb.org__mongo-driver__x__bsonx__bsoncore",
+    ],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson__bsoncodec",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson/bsoncodec"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.mongodb.org__mongo-driver__bson__bsonoptions",
+        ":go.mongodb.org__mongo-driver__bson__bsonrw",
+        ":go.mongodb.org__mongo-driver__bson__bsontype",
+        ":go.mongodb.org__mongo-driver__bson__primitive",
+        ":go.mongodb.org__mongo-driver__x__bsonx__bsoncore",
+    ],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson__bsonoptions",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson/bsonoptions"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson__bsonrw",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson/bsonrw"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.mongodb.org__mongo-driver__bson__bsontype",
+        ":go.mongodb.org__mongo-driver__bson__primitive",
+        ":go.mongodb.org__mongo-driver__x__bsonx__bsoncore",
+    ],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson__bsontype",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson/bsontype"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__bson__primitive",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["bson/primitive"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.mongodb.org__mongo-driver__x__bsonx__bsoncore",
+    download = ":_go.mongodb.org__mongo-driver#download",
+    install = ["x/bsonx/bsoncore"],
+    module = "go.mongodb.org/mongo-driver",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.mongodb.org__mongo-driver__bson__bsontype",
+        "//third_party/go:go.mongodb.org__mongo-driver__bson__primitive",
+    ],
+)
+
+go_mod_download(
+    name = "go.opentelemetry.io__auto__sdk",
+    _tag = "download",
+    module = "go.opentelemetry.io/auto/sdk",
+    version = "v1.1.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__auto__sdk",
+    download = ":_go.opentelemetry.io__auto__sdk#download",
+    install = ["."],
+    module = "go.opentelemetry.io/auto/sdk",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__auto__sdk__internal__telemetry",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__semconv__v1.26.0",
+        ":go.opentelemetry.io__otel__trace",
+        ":go.opentelemetry.io__otel__trace__noop",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__auto__sdk__internal__telemetry",
+    download = ":_go.opentelemetry.io__auto__sdk#download",
+    install = ["internal/telemetry"],
+    module = "go.opentelemetry.io/auto/sdk",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "go.opentelemetry.io__otel",
+    _tag = "download",
+    module = "go.opentelemetry.io/otel",
+    version = "v1.38.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["."],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__internal__global",
+        ":go.opentelemetry.io__otel__metric",
+        ":go.opentelemetry.io__otel__propagation",
+        ":go.opentelemetry.io__otel__trace",
+        "//third_party/go:github.com__go-logr__logr",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__attribute",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["attribute"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [":go.opentelemetry.io__otel__attribute__internal"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__attribute__internal",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["attribute/internal"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__baggage",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["baggage"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [":go.opentelemetry.io__otel__internal__baggage"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__codes",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["codes"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__internal__baggage",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["internal/baggage"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__internal__global",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["internal/global"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__metric",
+        ":go.opentelemetry.io__otel__metric__embedded",
+        ":go.opentelemetry.io__otel__propagation",
+        ":go.opentelemetry.io__otel__trace",
+        ":go.opentelemetry.io__otel__trace__embedded",
+        "//third_party/go:github.com__go-logr__logr",
+        "//third_party/go:github.com__go-logr__stdr",
+        "//third_party/go:go.opentelemetry.io__auto__sdk",
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+        "//third_party/go:go.opentelemetry.io__otel__codes",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__propagation",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["propagation"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__trace",
+        "//third_party/go:go.opentelemetry.io__otel__baggage",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__internal__v2",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/internal/v2"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+        "//third_party/go:go.opentelemetry.io__otel__codes",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.17.0",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.17.0"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.17.0__httpconv",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.17.0/httpconv"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+        "//third_party/go:go.opentelemetry.io__otel__codes",
+        "//third_party/go:go.opentelemetry.io__otel__semconv__internal__v2",
+        "//third_party/go:go.opentelemetry.io__otel__semconv__v1.17.0",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.26.0",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.26.0"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.37.0",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.37.0"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
+)
+
+go_mod_download(
+    name = "go.opentelemetry.io__otel__metric",
+    _tag = "download",
+    module = "go.opentelemetry.io/otel/metric",
+    version = "v1.38.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__metric",
+    download = ":_go.opentelemetry.io__otel__metric#download",
+    install = ["."],
+    module = "go.opentelemetry.io/otel/metric",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__metric__embedded",
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__metric__embedded",
+    download = ":_go.opentelemetry.io__otel__metric#download",
+    install = ["embedded"],
+    module = "go.opentelemetry.io/otel/metric",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "go.opentelemetry.io__otel__trace",
+    _tag = "download",
+    module = "go.opentelemetry.io/otel/trace",
+    version = "v1.38.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__trace",
+    download = ":_go.opentelemetry.io__otel__trace#download",
+    install = ["."],
+    module = "go.opentelemetry.io/otel/trace",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__trace__embedded",
+        ":go.opentelemetry.io__otel__trace__internal__telemetry",
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+        "//third_party/go:go.opentelemetry.io__otel__codes",
+        "//third_party/go:go.opentelemetry.io__otel__semconv__v1.37.0",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__trace__embedded",
+    download = ":_go.opentelemetry.io__otel__trace#download",
+    install = ["embedded"],
+    module = "go.opentelemetry.io/otel/trace",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__trace__internal__telemetry",
+    download = ":_go.opentelemetry.io__otel__trace#download",
+    install = ["internal/telemetry"],
+    module = "go.opentelemetry.io/otel/trace",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__trace__noop",
+    download = ":_go.opentelemetry.io__otel__trace#download",
+    install = ["noop"],
+    module = "go.opentelemetry.io/otel/trace",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.opentelemetry.io__otel__attribute",
+        "//third_party/go:go.opentelemetry.io__otel__codes",
+        "//third_party/go:go.opentelemetry.io__otel__trace",
+        "//third_party/go:go.opentelemetry.io__otel__trace__embedded",
+    ],
 )
 
 go_mod_download(

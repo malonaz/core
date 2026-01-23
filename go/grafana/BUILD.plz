@@ -1,0 +1,11 @@
+go_library(
+    name = "grafana",
+    srcs = ["grafana.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__go-openapi__strfmt",
+        "//third_party/go:github.com__grafana__grafana-openapi-client-go__client",
+        "//third_party/go:github.com__grafana__grafana-openapi-client-go__client__folders",
+        "//third_party/go:github.com__grafana__grafana-openapi-client-go__models",
+    ],
+)
