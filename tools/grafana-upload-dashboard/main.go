@@ -57,6 +57,6 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", opts.Grafana.APIURL+response.Payload.ImportedURL)
+	slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", client.BaseURL()+response.Payload.ImportedURL)
 	return nil
 }
