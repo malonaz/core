@@ -9,3 +9,7 @@ def go_copy(
         out=name,
         requires=["go"],
     )
+
+def with_plugin_support(tool:str):
+    _PREFIX = "" if "IS_CORE_REPO" in CONFIG else "///core"
+    return _PREFIX + tool

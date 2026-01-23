@@ -1,0 +1,32 @@
+subinclude("//build_defs:utils")
+subinclude("///shell//build_defs:shell")
+
+def golang_grafana_dashboard(name:str, binary:str, folder:str, deps:list=[], visibility:list=[]):
+    json = genrule(
+        name = f"{name}_json",
+        srcs = [binary],
+        outs = [f"{name}.json"],
+        cmd = "$SRCS > $OUT",
+        labels = ["grafana-dashboard"],
+    )
+    return grafana_dashboard(
+        name = name,
+        src = json,
+        folder = folder,
+        deps = deps,
+        visibility = visibility,
+    )
+
+def grafana_dashboard(name:str, src:str, folder:str, deps:list=[], visibility:list=[]):
+    grafana_upload_dashboard_tool = with_plugin_support("//tools/grafana-upload-dashboard")
+    return sh_cmd(
+        labels = ["grafana-dashboard-upload"],
+        name = f"{name}_push",
+        srcs = [src, grafana_upload_dashboard_tool],
+        expand_env_vars = False,
+        cmd = ' '.join([
+            f"$(out_location {grafana_upload_dashboard_tool})",
+            f"--folder {folder}",
+            f"--dashboard-filepath $(out_location {src})",
+        ]),
+    )

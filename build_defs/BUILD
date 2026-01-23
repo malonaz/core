@@ -11,6 +11,11 @@ filegroup(
 )
 
 filegroup(
+    name = "grafana",
+    srcs = ["grafana.build_defs"],
+)
+
+filegroup(
     name = "k8s",
     srcs = ["k8s.build_defs"],
 )
