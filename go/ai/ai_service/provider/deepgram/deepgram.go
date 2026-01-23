@@ -110,7 +110,6 @@ func (lc *ListenConnection) ReceiveMessage(ctx context.Context) (*ServerMessage,
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(data))
 	var msg ServerMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return nil, err
