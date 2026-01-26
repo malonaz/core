@@ -2,7 +2,9 @@ package xai
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -39,7 +41,7 @@ type websocketResponse struct {
 	Data struct {
 		Type string `json:"type"`
 		Data struct {
-			EventType  string `json:"event_type,omitempty"`
+			Event      string `json:"event,omitempty"`
 			Transcript string `json:"transcript,omitempty"`
 			IsFinal    bool   `json:"is_final,omitempty"`
 		} `json:"data"`
@@ -108,7 +110,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	defer connection.Close()
 
 	resampleAudio := func(input []byte) []byte { return input }
-	var sampleRateHertz = int(configuration.AudioFormat.SampleRate)
+	sampleRateHertz := int(configuration.AudioFormat.SampleRate)
 	if sampleRateHertz == 8_000 {
 		sampleRateHertz = 16_000
 		resampleAudio = func(input []byte) []byte {
@@ -130,14 +132,27 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	errChan := make(chan error, 2)
 	state := &turnState{}
 
+	sendTurnStart := func() error {
+		return srv.Send(&aiservicepb.SpeechToTextStreamResponse{
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
+				TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{TurnIndex: state.index},
+			},
+		})
+	}
+
 	readResponses := func() error {
 		for {
-			var response websocketResponse
-			if err := connection.ReadJSON(&response); err != nil {
+			_, rawMsg, err := connection.ReadMessage()
+			if err != nil {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 					return nil
 				}
 				return grpc.Errorf(codes.Internal, "reading websocket response: %w", err).Err()
+			}
+
+			var response websocketResponse
+			if err := json.Unmarshal(rawMsg, &response); err != nil {
+				return grpc.Errorf(codes.Internal, "unmarshaling websocket response: %w", err).Err()
 			}
 
 			if response.Error != "" {
@@ -146,16 +161,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 			switch response.Data.Type {
 			case "voice_activity":
-				switch response.Data.Data.EventType {
-				case "start":
-					state.startTurn()
-					if err := srv.Send(&aiservicepb.SpeechToTextStreamResponse{
-						Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
-							TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{TurnIndex: state.index},
-						},
-					}); err != nil {
-						return grpc.Errorf(codes.Internal, "sending turn start: %v", err).Err()
-					}
+				switch response.Data.Data.Event {
 				case "end":
 					transcript, wasInTurn := state.endTurn()
 					if wasInTurn {
@@ -170,10 +176,19 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 							return grpc.Errorf(codes.Internal, "sending turn end: %v", err).Err()
 						}
 					}
+
+				default:
+					slog.WarnContext(ctx, "unknown event type %s", string(rawMsg))
 				}
 
-			case "speech_recognized":
+			case "transcript":
 				transcript := response.Data.Data.Transcript
+				if !state.inTurn {
+					state.startTurn()
+					if err := sendTurnStart(); err != nil {
+						return grpc.Errorf(codes.Internal, "sending turn start: %v", err).Err()
+					}
+				}
 				if response.Data.Data.IsFinal {
 					state.addFinal(transcript)
 				} else if transcript != "" {
@@ -188,6 +203,9 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 						return grpc.Errorf(codes.Internal, "sending turn update: %v", err).Err()
 					}
 				}
+
+			default:
+				slog.WarnContext(ctx, "unknown event type %s", string(rawMsg))
 			}
 		}
 	}
@@ -206,10 +224,9 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 				return grpc.Errorf(codes.Internal, "receiving audio: %v", err).Err()
 			}
 			if chunk := message.GetAudioChunk(); chunk != nil {
-				audio := resampleAudio(chunk.Data)
 				audioMsg := websocketAudioMessage{
 					Type: "audio",
-					Data: websocketAudioData{Audio: base64.StdEncoding.EncodeToString(audio)},
+					Data: websocketAudioData{Audio: base64.StdEncoding.EncodeToString(resampleAudio(chunk.Data))},
 				}
 				if err := connection.WriteJSON(audioMsg); err != nil {
 					return grpc.Errorf(codes.Internal, "sending audio: %v", err).Err()
