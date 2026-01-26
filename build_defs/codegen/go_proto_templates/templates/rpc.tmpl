@@ -292,7 +292,7 @@ package {{ .PackageName }}
 
             {{ else }}
                 // STEP 2: Hard delete the resource.
-                if err := s.store.Delete{{ $resourceGoName }}(ctx{{ range $id := $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}); err != nil {
+                if err := s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}); err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
                 if request.AllowMissing {
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
