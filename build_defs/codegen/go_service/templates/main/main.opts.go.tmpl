@@ -83,6 +83,15 @@
 	      {{- end }}
 	  {{- end }}
 
+
+    {{- /* PROCESSOR OPTIONS */ -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "processor" -}}
+            {{- if doOnce "processor_option_comment" }}{{ "\n\n// Processor options" }}{{ end }}
+            {{ $server.name | camelcase }}Processor *{{ plzGoImport $server.implementation }}.Opts `group:"{{ $server.name | camelcase }} Processor" namespace:"{{ $server.name | kebabcase }}-processor" env-namespace:"{{ $server.name | snakecase | upper }}_PROCESSOR"`
+        {{- end -}}
+    {{- end }}
+
     {{- /* GRPC SERVER OPTIONS */ -}}
     {{- range $server := .servers -}}
         {{- if eq $server.type "grpc" -}}

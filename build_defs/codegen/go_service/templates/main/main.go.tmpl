@@ -266,6 +266,15 @@ var stopFns []func() error
         defer {{ $serviceName }}Cleanup()
     {{- end }}
 
+{{- if eq $server.type "processor" }}
+    processor := {{ plzGoImport $server.implementation }}.New(opts.{{ $server.name | camelcase }}Processor)
+    cleanup, err := processor.Start(ctx)
+    if err != nil {
+        return fmt.Errorf("starting {{ $server.name }} processor: %w", err)
+    }
+    defer cleanup()
+{{- end }}
+
     {{- if eq $server.type "grpc" }}
         register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
         {{- range $service := $server.services }}
