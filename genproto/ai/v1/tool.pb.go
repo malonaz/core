@@ -350,6 +350,10 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 // The result of executing a tool call.
 type ToolResult struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Name of the tool that created this result.
+	ToolName string `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	// ID of the tool call this message is responding to.
+	ToolCallId string `protobuf:"bytes,2,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
 	// The outcome of the tool execution.
 	//
 	// Types that are valid to be assigned to Result:
@@ -387,6 +391,20 @@ func (x *ToolResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *ToolResult) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
+func (x *ToolResult) GetToolCallId() string {
+	if x != nil {
+		return x.ToolCallId
+	}
+	return ""
+}
+
 func (x *ToolResult) GetResult() isToolResult_Result {
 	if x != nil {
 		return x.Result
@@ -419,6 +437,14 @@ func (x *ToolResult) GetError() *status.Status {
 		}
 	}
 	return nil
+}
+
+func (x *ToolResult) SetToolName(v string) {
+	x.ToolName = v
+}
+
+func (x *ToolResult) SetToolCallId(v string) {
+	x.ToolCallId = v
 }
 
 func (x *ToolResult) SetContent(v string) {
@@ -495,9 +521,9 @@ func (x *ToolResult) ClearError() {
 }
 
 const ToolResult_Result_not_set_case case_ToolResult_Result = 0
-const ToolResult_Content_case case_ToolResult_Result = 1
-const ToolResult_StructuredContent_case case_ToolResult_Result = 2
-const ToolResult_Error_case case_ToolResult_Result = 3
+const ToolResult_Content_case case_ToolResult_Result = 3
+const ToolResult_StructuredContent_case case_ToolResult_Result = 4
+const ToolResult_Error_case case_ToolResult_Result = 5
 
 func (x *ToolResult) WhichResult() case_ToolResult_Result {
 	if x == nil {
@@ -518,6 +544,10 @@ func (x *ToolResult) WhichResult() case_ToolResult_Result {
 type ToolResult_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Name of the tool that created this result.
+	ToolName string
+	// ID of the tool call this message is responding to.
+	ToolCallId string
 	// The outcome of the tool execution.
 
 	// Fields of oneof Result:
@@ -535,6 +565,8 @@ func (b0 ToolResult_builder) Build() *ToolResult {
 	m0 := &ToolResult{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.ToolName = b.ToolName
+	x.ToolCallId = b.ToolCallId
 	if b.Content != nil {
 		x.Result = &ToolResult_Content{*b.Content}
 	}
@@ -564,17 +596,17 @@ type isToolResult_Result interface {
 type ToolResult_Content struct {
 	// The output returned by the tool execution.
 	// May contain structured data (e.g., JSON) or plain text depending on the tool.
-	Content string `protobuf:"bytes,1,opt,name=content,proto3,oneof"`
+	Content string `protobuf:"bytes,3,opt,name=content,proto3,oneof"`
 }
 
 type ToolResult_StructuredContent struct {
 	// The output returned by the tool execution as structured data.
-	StructuredContent *structpb.Value `protobuf:"bytes,2,opt,name=structured_content,json=structuredContent,proto3,oneof"`
+	StructuredContent *structpb.Value `protobuf:"bytes,4,opt,name=structured_content,json=structuredContent,proto3,oneof"`
 }
 
 type ToolResult_Error struct {
 	// Error if the tool execution failed.
-	Error *status.Status `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
+	Error *status.Status `protobuf:"bytes,5,opt,name=error,proto3,oneof"`
 }
 
 func (*ToolResult_Content) isToolResult_Result() {}
@@ -788,12 +820,15 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vannotations\x18\x05 \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryR\vannotations\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xae\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xed\x01\n" +
 	"\n" +
-	"ToolResult\x12\x1a\n" +
-	"\acontent\x18\x01 \x01(\tH\x00R\acontent\x12G\n" +
-	"\x12structured_content\x18\x02 \x01(\v2\x16.google.protobuf.ValueH\x00R\x11structuredContent\x12*\n" +
-	"\x05error\x18\x03 \x01(\v2\x12.google.rpc.StatusH\x00R\x05errorB\x0f\n" +
+	"ToolResult\x12\x1b\n" +
+	"\ttool_name\x18\x01 \x01(\tR\btoolName\x12 \n" +
+	"\ftool_call_id\x18\x02 \x01(\tR\n" +
+	"toolCallId\x12\x1a\n" +
+	"\acontent\x18\x03 \x01(\tH\x00R\acontent\x12G\n" +
+	"\x12structured_content\x18\x04 \x01(\v2\x16.google.protobuf.ValueH\x00R\x11structuredContent\x12*\n" +
+	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusH\x00R\x05errorB\x0f\n" +
 	"\x06result\x12\x05\xbaH\x02\b\x01\"\xf9\x01\n" +
 	"\n" +
 	"ToolChoice\x12=\n" +

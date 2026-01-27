@@ -6,7 +6,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -77,11 +76,13 @@ func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) {
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	switch c := resp.GetContent().(type) {
-	case *pb.TextToTextStreamResponse_ToolCall:
-		w.copyToolAnnotations(c.ToolCall)
-
-	case *pb.TextToTextStreamResponse_PartialToolCall:
-		w.copyToolAnnotations(c.PartialToolCall)
+	case *pb.TextToTextStreamResponse_Block:
+		if c.Block.GetToolCall() != nil {
+			w.copyToolAnnotations(c.Block.GetToolCall())
+		}
+		if c.Block.GetPartialToolCall() != nil {
+			w.copyToolAnnotations(c.Block.GetPartialToolCall())
+		}
 
 	case *pb.TextToTextStreamResponse_ModelUsage:
 		modelUsage := c.ModelUsage
@@ -229,8 +230,9 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	}
 
 	// Aggregate chunks to form a single response.
-	assistantMessage := &aipb.AssistantMessage{}
-	response := &pb.TextToTextResponse{Message: ai.NewAssistantMessage(assistantMessage)}
+	blockIndexToBlock := map[int64]*aipb.Block{}
+	message := ai.NewAssistantMessage()
+	response := &pb.TextToTextResponse{Message: message}
 
 	for {
 		event, err := stream.Recv()
@@ -242,17 +244,55 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		}
 
 		switch c := event.GetContent().(type) {
-		case *pb.TextToTextStreamResponse_ContentChunk:
-			assistantMessage.Content += c.ContentChunk
-
-		case *pb.TextToTextStreamResponse_ReasoningChunk:
-			assistantMessage.Reasoning += c.ReasoningChunk
+		case *pb.TextToTextStreamResponse_Block:
+			block, ok := blockIndexToBlock[c.Block.Index]
+			if !ok {
+				block = &aipb.Block{Index: c.Block.Index}
+				blockIndexToBlock[c.Block.Index] = block
+				message.Blocks = append(message.Blocks, block)
+			}
+			if c.Block.Signature != "" {
+				block.Signature = c.Block.Signature
+			}
+			switch content := c.Block.Content.(type) {
+			case *aipb.Block_Text:
+				if block.Content == nil {
+					block.Content = &aipb.Block_Text{}
+				}
+				existing, ok := block.Content.(*aipb.Block_Text)
+				if !ok {
+					return nil, grpc.Errorf(codes.Internal, "block %d: received text content but block has type %T", c.Block.Index, block.Content).Err()
+				}
+				existing.Text += content.Text
+			case *aipb.Block_Thought:
+				if block.Content == nil {
+					block.Content = &aipb.Block_Thought{}
+				}
+				existing, ok := block.Content.(*aipb.Block_Thought)
+				if !ok {
+					return nil, grpc.Errorf(codes.Internal, "block %d: received thought content but block has type %T", c.Block.Index, block.Content).Err()
+				}
+				existing.Thought += content.Thought
+			case *aipb.Block_ToolCall:
+				if block.Content != nil {
+					if _, ok := block.Content.(*aipb.Block_ToolCall); !ok {
+						return nil, grpc.Errorf(codes.Internal, "block %d: received tool_call content but block has type %T", c.Block.Index, block.Content).Err()
+					}
+				}
+				block.Content = content
+			case *aipb.Block_Image:
+				if block.Content != nil {
+					if _, ok := block.Content.(*aipb.Block_Image); !ok {
+						return nil, grpc.Errorf(codes.Internal, "block %d: received image content but block has type %T", c.Block.Index, block.Content).Err()
+					}
+				}
+				block.Content = content
+			case *aipb.Block_PartialToolCall:
+				// Skip partial tool calls in aggregation
+			}
 
 		case *pb.TextToTextStreamResponse_StopReason:
 			response.StopReason = c.StopReason
-
-		case *pb.TextToTextStreamResponse_ToolCall:
-			assistantMessage.ToolCalls = append(assistantMessage.ToolCalls, c.ToolCall)
 
 		case *pb.TextToTextStreamResponse_ModelUsage:
 			if response.ModelUsage == nil {
@@ -269,26 +309,5 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		}
 	}
 
-	if request.GetConfiguration().GetExtractJsonObject() {
-		structuredContent, err := extractJSONToStruct(assistantMessage.Content)
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "extracting json: %v", err).WithErrorInfo(
-				"JSON_EXTRACTION_FAILED", "ai_service",
-				map[string]string{"original_content": assistantMessage.Content},
-			).Err()
-		}
-		assistantMessage.StructuredContent = structuredContent
-		assistantMessage.Content = ""
-	}
-
 	return response, nil
-}
-
-func extractJSONToStruct(content string) (*structpb.Struct, error) {
-	jsonString, err := ai.ExtractJSONString(content)
-	if err != nil {
-		return nil, err
-	}
-	s := &structpb.Struct{}
-	return s, s.UnmarshalJSON([]byte(jsonString))
 }

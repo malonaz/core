@@ -11,61 +11,82 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
-func NewSystemMessage(m *aipb.SystemMessage) *aipb.Message {
+func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
 	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
-		Role:       aipb.Role_ROLE_SYSTEM,
-		Message: &aipb.Message_System{
-			System: m,
-		},
+		Role:       role,
+		Blocks:     blocks,
 	}
 }
 
-func NewAssistantMessage(m *aipb.AssistantMessage) *aipb.Message {
-	return &aipb.Message{
-		CreateTime: timestamppb.Now(),
-		Role:       aipb.Role_ROLE_ASSISTANT,
-		Message: &aipb.Message_Assistant{
-			Assistant: m,
-		},
+func NewSystemMessage(blocks ...*aipb.Block) *aipb.Message {
+	return newMessage(aipb.Role_ROLE_SYSTEM, blocks...)
+}
+
+func NewAssistantMessage(blocks ...*aipb.Block) *aipb.Message {
+	return newMessage(aipb.Role_ROLE_ASSISTANT, blocks...)
+}
+
+func NewUserMessage(blocks ...*aipb.Block) *aipb.Message {
+	return newMessage(aipb.Role_ROLE_USER, blocks...)
+}
+
+func NewToolMessage(blocks ...*aipb.Block) *aipb.Message {
+	return newMessage(aipb.Role_ROLE_TOOL, blocks...)
+}
+
+func NewTextBlock(text string) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_Text{Text: text}}
+}
+
+func NewThoughtBlock(thought string) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_Thought{Thought: thought}}
+}
+
+func NewToolCallBlock(toolCall *aipb.ToolCall) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_ToolCall{ToolCall: toolCall}}
+}
+
+func NewToolResultBlock(toolResult *aipb.ToolResult) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_ToolResult{ToolResult: toolResult}}
+}
+
+func NewImageBlock(image *aipb.Image) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_Image{Image: image}}
+}
+
+func NewImageFromURL(url string) *aipb.Image {
+	return &aipb.Image{Source: &aipb.Image_Url{Url: url}}
+}
+
+func NewImageFromData(data []byte, mediaType string) *aipb.Image {
+	return &aipb.Image{
+		Source:    &aipb.Image_Data{Data: data},
+		MediaType: mediaType,
 	}
 }
 
-func NewToolResultMessage(toolName, toolCallID string, toolResult *aipb.ToolResult) *aipb.Message {
-	return &aipb.Message{
-		CreateTime: timestamppb.Now(),
-		Role:       aipb.Role_ROLE_TOOL,
-		Message: &aipb.Message_Tool{
-			Tool: &aipb.ToolResultMessage{
-				ToolCallId: toolCallID,
-				ToolName:   toolName,
-				Result:     toolResult,
-			},
-		},
-	}
-}
-
-func NewToolResult(content string) *aipb.ToolResult {
+func NewToolResult(toolName, toolCallID, content string) *aipb.ToolResult {
 	return &aipb.ToolResult{
-		Result: &aipb.ToolResult_Content{
-			Content: content,
-		},
+		ToolName:   toolName,
+		ToolCallId: toolCallID,
+		Result:     &aipb.ToolResult_Content{Content: content},
 	}
 }
 
-func NewStructuredToolResult(content *structpb.Value) *aipb.ToolResult {
+func NewStructuredToolResult(toolName, toolCallID string, content *structpb.Value) *aipb.ToolResult {
 	return &aipb.ToolResult{
-		Result: &aipb.ToolResult_StructuredContent{
-			StructuredContent: content,
-		},
+		ToolName:   toolName,
+		ToolCallId: toolCallID,
+		Result:     &aipb.ToolResult_StructuredContent{StructuredContent: content},
 	}
 }
 
-func NewErrorToolResult(err error) *aipb.ToolResult {
+func NewErrorToolResult(toolName, toolCallID string, err error) *aipb.ToolResult {
 	return &aipb.ToolResult{
-		Result: &aipb.ToolResult_Error{
-			Error: status.Convert(err).Proto(),
-		},
+		ToolName:   toolName,
+		ToolCallId: toolCallID,
+		Result:     &aipb.ToolResult_Error{Error: status.Convert(err).Proto()},
 	}
 }
 
@@ -87,42 +108,5 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 		return string(bytes), nil
 	default:
 		return "", fmt.Errorf("unknown tool result type: %T", r)
-	}
-}
-
-func NewUserMessage(contentBlocks ...*aipb.ContentBlock) *aipb.Message {
-	return &aipb.Message{
-		CreateTime: timestamppb.Now(),
-		Role:       aipb.Role_ROLE_USER,
-		Message: &aipb.Message_User{
-			User: &aipb.UserMessage{
-				ContentBlocks: contentBlocks,
-			},
-		},
-	}
-}
-
-func NewTextBlock(text string) *aipb.ContentBlock {
-	return &aipb.ContentBlock{Content: &aipb.ContentBlock_Text{Text: text}}
-}
-
-func NewImageBlockFromURL(url string) *aipb.ContentBlock {
-	return &aipb.ContentBlock{
-		Content: &aipb.ContentBlock_Image{
-			Image: &aipb.Image{
-				Source: &aipb.Image_Url{Url: url},
-			},
-		},
-	}
-}
-
-func NewImageBlockFromData(data []byte, mediaType string) *aipb.ContentBlock {
-	return &aipb.ContentBlock{
-		Content: &aipb.ContentBlock_Image{
-			Image: &aipb.Image{
-				Source:    &aipb.Image_Data{Data: data},
-				MediaType: mediaType,
-			},
-		},
 	}
 }

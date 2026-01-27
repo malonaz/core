@@ -248,7 +248,9 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	textToTextRequest := &aiservicepb.TextToTextRequest{
 		Model: model,
 		Messages: []*aipb.Message{
-			ai.NewSystemMessage(&aipb.SystemMessage{Content: fmt.Sprintf("Use the `%s` tool to generate a JSON payload based on the data given to you by the user", tool.GetName())}),
+			ai.NewSystemMessage(ai.NewTextBlock(
+				fmt.Sprintf("Use the `%s` tool to generate a JSON payload based on the data given to you by the user", tool.GetName()),
+			)),
 			ai.NewUserMessage(ai.NewTextBlock(request.GetPrompt())),
 		},
 		Configuration: &aiservicepb.TextToTextConfiguration{
@@ -266,7 +268,12 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	}
 
 	// Parse tool call.
-	toolCalls := textToTextResponse.GetMessage().GetAssistant().GetToolCalls()
+	var toolCalls []*aipb.ToolCall
+	for _, block := range textToTextResponse.GetMessage().GetBlocks() {
+		if toolCall := block.GetToolCall(); toolCall != nil {
+			toolCalls = append(toolCalls, toolCall)
+		}
+	}
 	if len(toolCalls) != 1 {
 		return nil, grpc.Errorf(codes.Internal, "expected 1 tool call, got %d", len(toolCalls)).Err()
 	}

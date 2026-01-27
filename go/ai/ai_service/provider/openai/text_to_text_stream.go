@@ -13,7 +13,6 @@ import (
 	"github.com/openai/openai-go/v3/shared"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -21,6 +20,11 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
+)
+
+const (
+	blockTypeText    = "text"
+	blockTypeThought = "thought"
 )
 
 func (c *Client) TextToTextStream(
@@ -34,16 +38,15 @@ func (c *Client) TextToTextStream(
 		return err
 	}
 
-	messages := make([]openai.ChatCompletionMessageParamUnion, 0, len(request.Messages))
+	var messages []openai.ChatCompletionMessageParamUnion
 	for i, msg := range request.Messages {
-		message, err := pbMessageToOpenAI(msg)
+		converted, err := pbMessageToOpenAI(msg)
 		if err != nil {
 			return grpc.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
 		}
-		messages = append(messages, message)
+		messages = append(messages, converted...)
 	}
 
-	// Build the request params
 	params := openai.ChatCompletionNewParams{
 		Model:    shared.ChatModel(model.ProviderModelId),
 		Messages: messages,
@@ -52,7 +55,6 @@ func (c *Client) TextToTextStream(
 		},
 	}
 
-	// Set max tokens if provided
 	if request.GetConfiguration().GetMaxTokens() > 0 {
 		if c.ProviderId() == provider.Openai {
 			params.MaxCompletionTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
@@ -61,12 +63,10 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
-	// Set temperature if provided
 	if request.GetConfiguration().GetTemperature() > 0 {
 		params.Temperature = openai.Float(request.GetConfiguration().GetTemperature())
 	}
 
-	// Set reasoning effort if provided (for reasoning models)
 	if request.GetConfiguration().GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
 		if err != nil {
@@ -77,7 +77,6 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
-	// Groq Reasoning.
 	if c.ProviderId() == provider.Groq {
 		if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 			params.SetExtraFields(map[string]any{
@@ -86,24 +85,6 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
-	// Google reasoning.
-	if c.ProviderId() == provider.Google {
-		thinkingConfig, err := buildGoogleThinkingConfig(model, request.Configuration.GetReasoningEffort())
-		if err != nil {
-			return grpc.Errorf(codes.Internal, "building Google thinking config: %v", err).Err()
-		}
-		if thinkingConfig != nil {
-			params.SetExtraFields(map[string]any{
-				"extra_body": map[string]any{
-					"google": map[string]any{
-						"thinking_config": thinkingConfig,
-					},
-				},
-			})
-		}
-	}
-
-	// Add tools if provided
 	if len(request.Tools) > 0 {
 		params.Tools = make([]openai.ChatCompletionToolUnionParam, 0, len(request.Tools))
 		for i, tool := range request.Tools {
@@ -129,11 +110,12 @@ func (c *Client) TextToTextStream(
 	cs := provider.NewAsyncTextToTextContentSender(stream, 100)
 	defer cs.Close()
 
-	// Track active tool_use blocks by content block index
 	tca := provider.NewToolCallAccumulator()
-	indexRemap := make(map[int64]int64) // provider index -> our index
-	lastIDAtIndex := make(map[int64]string)
-	var nextIndex int64
+
+	// Dynamic block indexing.
+	var currentBlockIndex int64 = -1
+	var currentBlockType string
+	var toolCallIDSet = map[string]struct{}{}
 
 	var sentTtfb bool
 	var stopReason aiservicepb.TextToTextStopReason
@@ -145,29 +127,17 @@ func (c *Client) TextToTextStream(
 
 		chunk := chatStream.Current()
 
-		// Set TTFB on first response
 		if !sentTtfb {
-			generationMetrics := &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))}
-			cs.SendGenerationMetrics(ctx, generationMetrics)
+			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
 			sentTtfb = true
 		}
 
-		// Extract choice (if any).
 		var choice *openai.ChatCompletionChunkChoice
 		if len(chunk.Choices) != 0 {
 			choice = &chunk.Choices[0]
 		}
 
-		// Extract extra content if any.
 		if choice != nil {
-			var extraContent map[string]any
-			if extraContentRaw := choice.Delta.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
-				if err := json.Unmarshal([]byte(extraContentRaw), &extraContent); err != nil {
-					return grpc.Errorf(codes.Internal, "unmarshaling extra_content: %v", err).Err()
-				}
-			}
-
-			// Merge reasoning field into reasoning content.
 			if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
 				unquoted, err := strconv.Unquote(reasoningChunk)
 				if err != nil {
@@ -175,60 +145,35 @@ func (c *Client) TextToTextStream(
 				}
 				choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(unquoted)
 			}
-
-			// Handle google thought format.
-			if c.ProviderId() == provider.Google {
-				if google, ok := extraContent["google"].(map[string]any); ok {
-					// Correct choice content.
-					if thought, ok := google["thought"].(bool); ok && thought {
-						content := strings.TrimPrefix(choice.Delta.Content, "<thought>")
-						choice.Delta.Content = ""
-						choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(content)
-					}
-				}
-			}
 		}
 
-		// Handle usage stats if present
 		if chunk.Usage.PromptTokens > 0 || chunk.Usage.PromptTokensDetails.CachedTokens > 0 || chunk.Usage.CompletionTokens > 0 || chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-			modelUsage := &aipb.ModelUsage{
-				Model: request.Model,
-			}
+			modelUsage := &aipb.ModelUsage{Model: request.Model}
 
-			// Input tokens (excluding cached).
 			if chunk.Usage.PromptTokens > 0 {
 				inputTokens := chunk.Usage.PromptTokens
 				if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
 					inputTokens -= chunk.Usage.PromptTokensDetails.CachedTokens
 				}
 				if inputTokens > 0 {
-					modelUsage.InputToken = &aipb.ResourceConsumption{
-						Quantity: int32(inputTokens),
-					}
+					modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(inputTokens)}
 				}
 			}
 
-			// Input cached tokens.
 			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
-				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
-					Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens),
-				}
+				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens)}
 			}
 
-			// Output tokens (excluding reasoning)
 			if chunk.Usage.CompletionTokens > 0 {
 				outputTokens := chunk.Usage.CompletionTokens
 				if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 					outputTokens -= chunk.Usage.CompletionTokensDetails.ReasoningTokens
 				}
 				if outputTokens > 0 {
-					modelUsage.OutputToken = &aipb.ResourceConsumption{
-						Quantity: int32(outputTokens),
-					}
+					modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(outputTokens)}
 				}
 			}
 
-			// Reasoning tokens.
 			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputCacheReadToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
@@ -239,9 +184,7 @@ func (c *Client) TextToTextStream(
 				}
 			}
 			if inferredReasoningTokens > 0 {
-				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
-					Quantity: int32(inferredReasoningTokens),
-				}
+				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{Quantity: inferredReasoningTokens}
 			}
 
 			cs.SendModelUsage(ctx, modelUsage)
@@ -251,66 +194,50 @@ func (c *Client) TextToTextStream(
 			continue
 		}
 
-		// Send content chunk
 		if choice.Delta.Content != "" {
-			content := strings.TrimPrefix(choice.Delta.Content, "</thought>")
-			cs.SendContentChunk(ctx, content)
+			if currentBlockType != blockTypeText {
+				currentBlockIndex++
+				currentBlockType = blockTypeText
+			}
+			cs.SendBlocks(ctx, &aipb.Block{
+				Index:   currentBlockIndex,
+				Content: &aipb.Block_Text{Text: choice.Delta.Content},
+			})
 		}
 
 		if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning_content"].Raw(); reasoningChunk != "" {
-			cs.SendReasoningChunk(ctx, reasoningChunk)
+			if currentBlockType != blockTypeThought {
+				currentBlockIndex++
+				currentBlockType = blockTypeThought
+			}
+			cs.SendBlocks(ctx, &aipb.Block{
+				Index:   currentBlockIndex,
+				Content: &aipb.Block_Thought{Thought: reasoningChunk},
+			})
 		}
 
-		// Handle tool calls.
 		for _, toolCall := range choice.Delta.ToolCalls {
-			providerIdx := toolCall.Index
-			// Detect index reuse by checking if ID changed
-			if toolCall.ID != "" {
-				if lastID, seen := lastIDAtIndex[providerIdx]; seen && lastID != toolCall.ID {
-					// New tool call reusing same index - assign new internal index
-					nextIndex++
-					indexRemap[providerIdx] = nextIndex
-				}
-				lastIDAtIndex[providerIdx] = toolCall.ID
+			if _, ok := toolCallIDSet[toolCall.ID]; !ok {
+				currentBlockIndex++
+				toolCallIDSet[toolCall.ID] = struct{}{}
 			}
-			idx, ok := indexRemap[providerIdx]
-			if !ok {
-				idx = providerIdx
-				indexRemap[providerIdx] = idx
-				if idx >= nextIndex {
-					nextIndex = idx + 1
-				}
-			}
-
-			tca.StartOrUpdate(idx, toolCall.ID, toolCall.Function.Name)
-
-			// Extract metadata from extra_content (e.g., Google thought_signature).
-			var extraFields *structpb.Struct
-			if extraContentRaw := toolCall.JSON.ExtraFields["extra_content"].Raw(); extraContentRaw != "" {
-				extraFields = &structpb.Struct{}
-				if err := pbutil.JSONUnmarshal([]byte(extraContentRaw), extraFields); err != nil {
-					return grpc.Errorf(codes.Internal, "marshaling extra content: %v", err).Err()
-				}
-			}
-
-			tca.AppendArgs(idx, toolCall.Function.Arguments, extraFields)
+			tca.StartOrUpdate(currentBlockIndex, toolCall.ID, toolCall.Function.Name)
+			tca.AppendArgs(currentBlockIndex, toolCall.Function.Arguments)
 			if request.GetConfiguration().GetStreamPartialToolCalls() {
-				partialToolCall, err := tca.BuildPartial(idx)
+				block, err := tca.BuildPartial(currentBlockIndex)
 				if err != nil {
 					return err
 				}
-				cs.SendPartialToolCall(ctx, partialToolCall)
+				cs.SendBlocks(ctx, block)
 			}
 		}
 
-		// Send complete tool calls.
-		toolCalls, err := tca.BuildComplete()
+		toolCallBlocks, err := tca.BuildComplete()
 		if err != nil {
 			return err
 		}
-		cs.SendToolCall(ctx, toolCalls...)
+		cs.SendBlocks(ctx, toolCallBlocks...)
 
-		// Handle stop reason.
 		if choice.FinishReason != "" {
 			var ok bool
 			stopReason, ok = openAIFinishReasonToPb[string(choice.FinishReason)]
@@ -324,23 +251,17 @@ func (c *Client) TextToTextStream(
 		return fmt.Errorf("reading stream: %w", err)
 	}
 
-	// Send remaining tool calls.
-	toolCalls, err := tca.BuildRemaining()
+	remainingToolCallBlocks, err := tca.BuildRemaining()
 	if err != nil {
 		return err
 	}
-	cs.SendToolCall(ctx, toolCalls...)
+	cs.SendBlocks(ctx, remainingToolCallBlocks...)
 
-	// Send stop reason.
 	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
 		cs.SendStopReason(ctx, stopReason)
 	}
 
-	// Send final generation metrics.
-	generationMetrics := &aipb.GenerationMetrics{
-		Ttlb: durationpb.New(time.Since(startTime)),
-	}
-	cs.SendGenerationMetrics(ctx, generationMetrics)
+	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
 	cs.Close()
 	if err := cs.Wait(ctx); err != nil {
@@ -350,98 +271,111 @@ func (c *Client) TextToTextStream(
 	return nil
 }
 
-func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnion, error) {
-	switch m := msg.Message.(type) {
-	case *aipb.Message_System:
-		return openai.SystemMessage(m.System.Content), nil
+func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUnion, error) {
+	switch msg.Role {
+	case aipb.Role_ROLE_SYSTEM:
+		var texts []string
+		for i, block := range msg.Blocks {
+			switch content := block.Content.(type) {
+			case *aipb.Block_Text:
+				texts = append(texts, content.Text)
+			default:
+				return nil, fmt.Errorf("block [%d]: unexpected block type %T for SYSTEM role", i, content)
+			}
+		}
+		return []openai.ChatCompletionMessageParamUnion{openai.SystemMessage(strings.Join(texts, "\n"))}, nil
 
-	case *aipb.Message_User:
+	case aipb.Role_ROLE_USER:
 		var contentParts []openai.ChatCompletionContentPartUnionParam
-		for _, contentBlock := range m.User.ContentBlocks {
-			switch c := contentBlock.GetContent().(type) {
-			case *aipb.ContentBlock_Text:
-				contentParts = append(contentParts, openai.TextContentPart(c.Text))
-			case *aipb.ContentBlock_Image:
+		for i, block := range msg.Blocks {
+			switch content := block.Content.(type) {
+			case *aipb.Block_Text:
+				contentParts = append(contentParts, openai.TextContentPart(content.Text))
+			case *aipb.Block_Image:
+				img := content.Image
 				var url string
-				switch s := c.Image.GetSource().(type) {
+				switch s := img.Source.(type) {
 				case *aipb.Image_Url:
 					url = s.Url
 				case *aipb.Image_Data:
-					url = fmt.Sprintf("data:%s;base64,%s", c.Image.MediaType, base64.StdEncoding.EncodeToString(s.Data))
+					url = fmt.Sprintf("data:%s;base64,%s", img.MediaType, base64.StdEncoding.EncodeToString(s.Data))
 				default:
-					return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown image block type %T", s)
+					return nil, fmt.Errorf("block [%d]: unknown image source type %T", i, s)
 				}
-
-				detail, ok := imageQualityToOpenAI[c.Image.Quality]
+				detail, ok := imageQualityToOpenAI[img.Quality]
 				if !ok {
-					return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown image quality: %s", c.Image.Quality)
+					return nil, fmt.Errorf("block [%d]: unknown image quality: %s", i, img.Quality)
 				}
-				contentPart := openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+				contentParts = append(contentParts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
 					URL:    url,
 					Detail: detail,
-				})
-				contentParts = append(contentParts, contentPart)
-
+				}))
 			default:
-				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown content block type %T", c)
+				return nil, fmt.Errorf("block [%d]: unexpected block type %T for USER role", i, content)
 			}
 		}
-		return openai.UserMessage(contentParts), nil
+		return []openai.ChatCompletionMessageParamUnion{openai.UserMessage(contentParts)}, nil
 
-	case *aipb.Message_Assistant:
+	case aipb.Role_ROLE_ASSISTANT:
 		ofAssistant := &openai.ChatCompletionAssistantMessageParam{}
-
-		// Parse content.
-		content := m.Assistant.Content
-		if m.Assistant.StructuredContent != nil {
-			bytes, err := pbutil.JSONMarshal(m.Assistant.StructuredContent)
-			if err != nil {
-				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling structured content: %w", err)
-			}
-			content = string(bytes)
-		}
-		if content != "" {
-			ofAssistant.Content = openai.ChatCompletionAssistantMessageParamContentUnion{
-				OfString: openai.String(content),
-			}
-		}
-
-		// Parse tool calls.
-		for _, tc := range m.Assistant.ToolCalls {
-			argsBytes, err := pbutil.JSONMarshal(tc.Arguments)
-			if err != nil {
-				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("marshaling tool call arguments: %w", err)
-			}
-			toolCall := openai.ChatCompletionMessageToolCallUnionParam{
-				OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
-					ID: tc.Id,
-					Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
-						Name:      tc.Name,
-						Arguments: string(argsBytes),
+		var textParts []string
+		for i, block := range msg.Blocks {
+			switch content := block.Content.(type) {
+			case *aipb.Block_Text:
+				textParts = append(textParts, content.Text)
+			case *aipb.Block_Thought:
+				// OpenAI doesn't support thought blocks in input
+			case *aipb.Block_ToolCall:
+				tc := content.ToolCall
+				argsBytes, err := pbutil.JSONMarshal(tc.Arguments)
+				if err != nil {
+					return nil, fmt.Errorf("block [%d]: marshaling tool call arguments: %w", i, err)
+				}
+				toolCall := openai.ChatCompletionMessageToolCallUnionParam{
+					OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
+						ID: tc.Id,
+						Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
+							Name:      tc.Name,
+							Arguments: string(argsBytes),
+						},
 					},
-				},
+				}
+				if tc.ExtraFields != nil {
+					toolCall.OfFunction.SetExtraFields(map[string]any{"extra_content": tc.ExtraFields.AsMap()})
+				}
+				ofAssistant.ToolCalls = append(ofAssistant.ToolCalls, toolCall)
+			case *aipb.Block_Image:
+				return nil, fmt.Errorf("block [%d]: images not supported in assistant messages", i)
+			default:
+				return nil, fmt.Errorf("block [%d]: unexpected block type %T for ASSISTANT role", i, content)
 			}
-			if tc.ExtraFields != nil {
-				extraFields := map[string]any{"extra_content": tc.ExtraFields.AsMap()}
-				toolCall.OfFunction.SetExtraFields(extraFields)
+		}
+		if len(textParts) > 0 {
+			ofAssistant.Content = openai.ChatCompletionAssistantMessageParamContentUnion{
+				OfString: openai.String(strings.Join(textParts, "")),
 			}
-			ofAssistant.ToolCalls = append(ofAssistant.ToolCalls, toolCall)
 		}
+		return []openai.ChatCompletionMessageParamUnion{{OfAssistant: ofAssistant}}, nil
 
-		// Return response.
-		return openai.ChatCompletionMessageParamUnion{
-			OfAssistant: ofAssistant,
-		}, nil
-
-	case *aipb.Message_Tool:
-		content, err := ai.ParseToolResult(m.Tool.Result)
-		if err != nil {
-			return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("converting tool result: %w", err)
+	case aipb.Role_ROLE_TOOL:
+		var messages []openai.ChatCompletionMessageParamUnion
+		for i, block := range msg.Blocks {
+			switch content := block.Content.(type) {
+			case *aipb.Block_ToolResult:
+				tr := content.ToolResult
+				text, err := ai.ParseToolResult(tr)
+				if err != nil {
+					return nil, fmt.Errorf("block [%d]: converting tool result: %w", i, err)
+				}
+				messages = append(messages, openai.ToolMessage(text, tr.ToolCallId))
+			default:
+				return nil, fmt.Errorf("block [%d]: unexpected block type %T for TOOL role", i, content)
+			}
 		}
-		return openai.ToolMessage(content, m.Tool.ToolCallId), nil
+		return messages, nil
 
 	default:
-		return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown message type: %T", m)
+		return nil, fmt.Errorf("unexpected role: %v", msg.Role)
 	}
 }
 
@@ -486,7 +420,6 @@ func pbToolChoiceToOpenAI(toolChoice *aipb.ToolChoice) (openai.ChatCompletionToo
 		default:
 			return openai.ChatCompletionToolChoiceOptionUnionParam{}, fmt.Errorf("unknown mode: %s", choice.Mode)
 		}
-
 	case *aipb.ToolChoice_ToolName:
 		return openai.ChatCompletionToolChoiceOptionUnionParam{
 			OfFunctionToolChoice: &openai.ChatCompletionNamedToolChoiceParam{
@@ -495,7 +428,6 @@ func pbToolChoiceToOpenAI(toolChoice *aipb.ToolChoice) (openai.ChatCompletionToo
 				},
 			},
 		}, nil
-
 	default:
 		return openai.ChatCompletionToolChoiceOptionUnionParam{}, fmt.Errorf("unknown choice type: %T", choice)
 	}
@@ -519,12 +451,6 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
-	},
-	provider.Google: {
-		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
-		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
-		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
-		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
 	},
 	provider.Groq: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
@@ -551,23 +477,7 @@ var openAIFinishReasonToPb = map[string]aiservicepb.TextToTextStopReason{
 	string(openai.CompletionChoiceFinishReasonLength):        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
 	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
 	"tool_calls":    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-	"function_call": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL, // Deprecated.
-}
-
-func buildGoogleThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort) (map[string]any, error) {
-	thinkingConfigKey := model.GetProviderSettings().GetFields()["thinking_config_key"].GetStringValue()
-	if thinkingConfigKey == "" {
-		return nil, nil
-	}
-	thinkingConfigValue := model.GetProviderSettings().GetFields()[reasoningEffort.String()].AsInterface()
-	if thinkingConfigValue == nil {
-		return nil, fmt.Errorf("missing provider config for reasoning effort %s", reasoningEffort)
-	}
-
-	return map[string]any{
-		"include_thoughts": true,
-		thinkingConfigKey:  thinkingConfigValue,
-	}, nil
+	"function_call": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
 }
 
 var imageQualityToOpenAI = map[aipb.ImageQuality]string{

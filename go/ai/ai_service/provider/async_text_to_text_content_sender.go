@@ -14,11 +14,10 @@ type AsyncTextToTextContentSender struct {
 	ch   chan *aiservicepb.TextToTextStreamResponse
 	done chan struct{}
 
-	err  atomic.Value // error
+	err  atomic.Value
 	once sync.Once
 }
 
-// bufferSize is the channel capacity; use a size that fits your burst profile.
 func NewAsyncTextToTextContentSender(srv aiservicepb.AiService_TextToTextStreamServer, bufferSize int) *AsyncTextToTextContentSender {
 	if bufferSize <= 0 {
 		bufferSize = 64
@@ -78,45 +77,17 @@ func (s *AsyncTextToTextContentSender) enqueue(ctx context.Context, resp *aiserv
 	}
 	select {
 	case <-ctx.Done():
-		return
 	case <-s.srv.Context().Done():
-		return
 	case s.ch <- resp:
-		return
 	}
 }
 
-// Typed helpers
-func (s *AsyncTextToTextContentSender) SendGenerationMetrics(ctx context.Context, m *aipb.GenerationMetrics) {
-	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_GenerationMetrics{GenerationMetrics: m},
-	})
-}
-
-func (s *AsyncTextToTextContentSender) SendContentChunk(ctx context.Context, chunk string) {
-	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_ContentChunk{ContentChunk: chunk},
-	})
-}
-
-func (s *AsyncTextToTextContentSender) SendReasoningChunk(ctx context.Context, chunk string) {
-	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_ReasoningChunk{ReasoningChunk: chunk},
-	})
-}
-
-func (s *AsyncTextToTextContentSender) SendToolCall(ctx context.Context, tcs ...*aipb.ToolCall) {
-	for _, tc := range tcs {
+func (s *AsyncTextToTextContentSender) SendBlocks(ctx context.Context, blocks ...*aipb.Block) {
+	for _, block := range blocks {
 		s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-			Content: &aiservicepb.TextToTextStreamResponse_ToolCall{ToolCall: tc},
+			Content: &aiservicepb.TextToTextStreamResponse_Block{Block: block},
 		})
 	}
-}
-
-func (s *AsyncTextToTextContentSender) SendPartialToolCall(ctx context.Context, tc *aipb.ToolCall) {
-	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_PartialToolCall{PartialToolCall: tc},
-	})
 }
 
 func (s *AsyncTextToTextContentSender) SendStopReason(ctx context.Context, r aiservicepb.TextToTextStopReason) {
@@ -131,8 +102,8 @@ func (s *AsyncTextToTextContentSender) SendModelUsage(ctx context.Context, u *ai
 	})
 }
 
-func (s *AsyncTextToTextContentSender) SendGeneratedImage(ctx context.Context, img *aipb.Image) {
+func (s *AsyncTextToTextContentSender) SendGenerationMetrics(ctx context.Context, m *aipb.GenerationMetrics) {
 	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
-		Content: &aiservicepb.TextToTextStreamResponse_Image{Image: img},
+		Content: &aiservicepb.TextToTextStreamResponse_GenerationMetrics{GenerationMetrics: m},
 	})
 }

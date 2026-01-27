@@ -1,7 +1,6 @@
 package google
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,14 +9,19 @@ import (
 	"google.golang.org/genai"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/pbutil"
+)
+
+const (
+	blockTypeText     = "text"
+	blockTypeThought  = "thought"
+	blockTypeImage    = "image"
+	blockTypeToolCall = "tool_call"
 )
 
 func (c *Client) TextToTextStream(
@@ -95,7 +99,10 @@ func (c *Client) TextToTextStream(
 
 	var sentTtfb bool
 	var stopReason aiservicepb.TextToTextStopReason
-	var toolCallIndex int64
+
+	// Dynamic block indexing.
+	var currentBlockIndex int64 = -1
+	var currentBlockType string
 
 	for resp, err := range iter {
 		if err != nil {
@@ -119,8 +126,69 @@ func (c *Client) TextToTextStream(
 			}
 
 			for _, part := range candidate.Content.Parts {
-				if err := processPart(ctx, cs, tca, part, request.GetConfiguration().GetStreamPartialToolCalls(), &toolCallIndex); err != nil {
-					return err
+				// Handle thought signature for any part type.
+				var signature string
+				if len(part.ThoughtSignature) > 0 {
+					signature = base64.StdEncoding.EncodeToString(part.ThoughtSignature)
+				}
+
+				if part.Text != "" {
+					if part.Thought {
+						if currentBlockType != blockTypeThought {
+							currentBlockIndex++
+							currentBlockType = blockTypeThought
+						}
+						cs.SendBlocks(ctx, &aipb.Block{
+							Index:     currentBlockIndex,
+							Content:   &aipb.Block_Thought{Thought: part.Text},
+							Signature: signature,
+						})
+					} else {
+						if currentBlockType != blockTypeText {
+							currentBlockIndex++
+							currentBlockType = blockTypeText
+						}
+						cs.SendBlocks(ctx, &aipb.Block{
+							Index:     currentBlockIndex,
+							Content:   &aipb.Block_Text{Text: part.Text},
+							Signature: signature,
+						})
+					}
+				}
+
+				if part.InlineData != nil {
+					currentBlockIndex++
+					currentBlockType = blockTypeImage
+					cs.SendBlocks(ctx, &aipb.Block{
+						Index: currentBlockIndex,
+						Content: &aipb.Block_Image{Image: &aipb.Image{
+							Source:    &aipb.Image_Data{Data: part.InlineData.Data},
+							MediaType: part.InlineData.MIMEType,
+						}},
+						Signature: signature,
+					})
+				}
+
+				if part.FunctionCall != nil {
+					currentBlockIndex++
+					currentBlockType = blockTypeToolCall
+
+					argsJSON, err := json.Marshal(part.FunctionCall.Args)
+					if err != nil {
+						return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+					}
+
+					toolCallID := fmt.Sprintf("call_%s_%d", part.FunctionCall.Name, time.Now().UnixNano())
+
+					tca.Start(currentBlockIndex, toolCallID, part.FunctionCall.Name)
+					tca.AppendArgs(currentBlockIndex, string(argsJSON))
+
+					block, err := tca.Build(currentBlockIndex)
+					if err != nil {
+						return err
+					}
+					block.Signature = signature
+					cs.SendBlocks(ctx, block)
 				}
 			}
 
@@ -145,7 +213,7 @@ func (c *Client) TextToTextStream(
 	if err != nil {
 		return err
 	}
-	cs.SendToolCall(ctx, toolCalls...)
+	cs.SendBlocks(ctx, toolCalls...)
 
 	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
 		cs.SendStopReason(ctx, stopReason)
@@ -159,76 +227,27 @@ func (c *Client) TextToTextStream(
 	return cs.Wait(ctx)
 }
 
-func processPart(
-	ctx context.Context,
-	cs *provider.AsyncTextToTextContentSender,
-	tca *provider.ToolCallAccumulator,
-	part *genai.Part,
-	streamPartialToolCalls bool,
-	toolCallIndex *int64,
-) error {
-	if part.Text != "" {
-		if part.Thought {
-			cs.SendReasoningChunk(ctx, part.Text)
-		} else {
-			cs.SendContentChunk(ctx, part.Text)
-		}
-	}
-
-	// In processPart, handle InlineData:
-	if part.InlineData != nil {
-		cs.SendGeneratedImage(ctx, &aipb.Image{
-			Source:    &aipb.Image_Data{Data: part.InlineData.Data},
-			MediaType: part.InlineData.MIMEType,
-		})
-	}
-
-	if part.FunctionCall != nil {
-		argsJSON, err := json.Marshal(part.FunctionCall.Args)
-		if err != nil {
-			return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
-		}
-
-		var extraFields *structpb.Struct
-		if len(part.ThoughtSignature) > 0 {
-			extraFields = &structpb.Struct{
-				Fields: map[string]*structpb.Value{
-					"thought_signature": structpb.NewStringValue(base64.StdEncoding.EncodeToString(part.ThoughtSignature)),
-				},
-			}
-		}
-
-		toolCallID := fmt.Sprintf("call_%s_%d", part.FunctionCall.Name, time.Now().UnixNano())
-
-		idx := *toolCallIndex
-		*toolCallIndex++
-		tca.Start(idx, toolCallID, part.FunctionCall.Name)
-		tca.AppendArgs(idx, string(argsJSON), extraFields)
-
-		toolCall, err := tca.Build(idx)
-		if err != nil {
-			return err
-		}
-		cs.SendToolCall(ctx, toolCall)
-	}
-
-	return nil
-}
-
 func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 	var contents []*genai.Content
 	var systemInstruction string
 
 	for i, msg := range messages {
-		switch m := msg.Message.(type) {
-		case *aipb.Message_System:
-			if systemInstruction != "" {
-				systemInstruction += "\n\n"
+		switch msg.Role {
+		case aipb.Role_ROLE_SYSTEM:
+			for j, block := range msg.Blocks {
+				switch content := block.Content.(type) {
+				case *aipb.Block_Text:
+					if systemInstruction != "" {
+						systemInstruction += "\n\n"
+					}
+					systemInstruction += content.Text
+				default:
+					return nil, "", fmt.Errorf("message [%d] block [%d]: unexpected block type %T for SYSTEM role", i, j, content)
+				}
 			}
-			systemInstruction += m.System.Content
 
-		case *aipb.Message_User:
-			parts, err := buildUserParts(m.User.ContentBlocks)
+		case aipb.Role_ROLE_USER:
+			parts, err := buildUserParts(msg.Blocks)
 			if err != nil {
 				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
 			}
@@ -237,8 +256,8 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 				Parts: parts,
 			})
 
-		case *aipb.Message_Assistant:
-			parts, err := buildAssistantParts(m.Assistant)
+		case aipb.Role_ROLE_ASSISTANT:
+			parts, err := buildAssistantParts(msg.Blocks)
 			if err != nil {
 				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
 			}
@@ -247,38 +266,45 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 				Parts: parts,
 			})
 
-		case *aipb.Message_Tool:
-			content, err := buildToolResultContent(m.Tool)
-			if err != nil {
-				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
+		case aipb.Role_ROLE_TOOL:
+			for j, block := range msg.Blocks {
+				switch content := block.Content.(type) {
+				case *aipb.Block_ToolResult:
+					toolContent, err := buildToolResultContent(content.ToolResult)
+					if err != nil {
+						return nil, "", fmt.Errorf("message [%d] block [%d]: %w", i, j, err)
+					}
+					contents = append(contents, toolContent)
+				default:
+					return nil, "", fmt.Errorf("message [%d] block [%d]: unexpected block type %T for TOOL role", i, j, content)
+				}
 			}
-			contents = append(contents, content)
 
 		default:
-			return nil, "", fmt.Errorf("message [%d]: unknown message type %T", i, m)
+			return nil, "", fmt.Errorf("message [%d]: unexpected role %v", i, msg.Role)
 		}
 	}
 
 	return contents, systemInstruction, nil
 }
 
-func buildUserParts(blocks []*aipb.ContentBlock) ([]*genai.Part, error) {
+func buildUserParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 	parts := make([]*genai.Part, 0, len(blocks))
 
 	for j, block := range blocks {
-		switch content := block.GetContent().(type) {
-		case *aipb.ContentBlock_Text:
+		switch content := block.Content.(type) {
+		case *aipb.Block_Text:
 			parts = append(parts, &genai.Part{Text: content.Text})
 
-		case *aipb.ContentBlock_Image:
+		case *aipb.Block_Image:
 			part, err := buildImagePart(content.Image)
 			if err != nil {
-				return nil, fmt.Errorf("content block [%d]: %w", j, err)
+				return nil, fmt.Errorf("block [%d]: %w", j, err)
 			}
 			parts = append(parts, part)
 
 		default:
-			return nil, fmt.Errorf("content block [%d]: unknown type %T", j, content)
+			return nil, fmt.Errorf("block [%d]: unexpected block type %T for USER role", j, content)
 		}
 	}
 
@@ -286,7 +312,7 @@ func buildUserParts(blocks []*aipb.ContentBlock) ([]*genai.Part, error) {
 }
 
 func buildImagePart(img *aipb.Image) (*genai.Part, error) {
-	switch source := img.GetSource().(type) {
+	switch source := img.Source.(type) {
 	case *aipb.Image_Data:
 		if img.MediaType == "" {
 			return nil, fmt.Errorf("media_type required for image data")
@@ -319,83 +345,75 @@ func buildImagePart(img *aipb.Image) (*genai.Part, error) {
 	}
 }
 
-func buildAssistantParts(assistant *aipb.AssistantMessage) ([]*genai.Part, error) {
+func buildAssistantParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 	var parts []*genai.Part
 
-	if assistant.Reasoning != "" {
-		parts = append(parts, &genai.Part{
-			Text:    assistant.Reasoning,
-			Thought: true,
-		})
-	}
-
-	if assistant.Content != "" {
-		parts = append(parts, &genai.Part{Text: assistant.Content})
-	}
-
-	if assistant.StructuredContent != nil {
-		bytes, err := pbutil.JSONMarshal(assistant.StructuredContent)
-		if err != nil {
-			return nil, fmt.Errorf("marshaling structured content: %w", err)
-		}
-		parts = append(parts, &genai.Part{Text: string(bytes)})
-	}
-
-	for _, image := range assistant.Images {
-		imagePart, err := buildImagePart(image)
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "building image part: %v", err).Err()
-		}
-		parts = append(parts, imagePart)
-	}
-	if assistant.StructuredContent != nil {
-		bytes, err := pbutil.JSONMarshal(assistant.StructuredContent)
-		if err != nil {
-			return nil, fmt.Errorf("marshaling structured content: %w", err)
-		}
-		parts = append(parts, &genai.Part{Text: string(bytes)})
-	}
-
-	for j, tc := range assistant.ToolCalls {
-		part := &genai.Part{
-			FunctionCall: &genai.FunctionCall{
-				Name: tc.Name,
-				Args: tc.Arguments.AsMap(),
-			},
-		}
-
-		if tc.ExtraFields != nil {
-			if sig, ok := tc.ExtraFields.Fields["thought_signature"]; ok {
-				decoded, err := base64.StdEncoding.DecodeString(sig.GetStringValue())
-				if err != nil {
-					return nil, fmt.Errorf("decoding thought signature: %v", sig)
-				}
-				part.ThoughtSignature = []byte(decoded)
+	for j, block := range blocks {
+		// Decode thought signature if present.
+		var thoughtSignature []byte
+		if block.Signature != "" {
+			decoded, err := base64.StdEncoding.DecodeString(block.Signature)
+			if err != nil {
+				return nil, fmt.Errorf("block [%d]: decoding thought signature: %w", j, err)
 			}
+			thoughtSignature = decoded
 		}
 
-		if part.FunctionCall.Name == "" {
-			return nil, fmt.Errorf("tool call [%d]: missing name", j)
-		}
+		switch content := block.Content.(type) {
+		case *aipb.Block_Thought:
+			parts = append(parts, &genai.Part{
+				Text:             content.Thought,
+				Thought:          true,
+				ThoughtSignature: thoughtSignature,
+			})
 
-		parts = append(parts, part)
+		case *aipb.Block_Text:
+			parts = append(parts, &genai.Part{
+				Text:             content.Text,
+				ThoughtSignature: thoughtSignature,
+			})
+
+		case *aipb.Block_ToolCall:
+			tc := content.ToolCall
+			if tc.Name == "" {
+				return nil, fmt.Errorf("block [%d]: tool call missing name", j)
+			}
+			parts = append(parts, &genai.Part{
+				FunctionCall: &genai.FunctionCall{
+					Name: tc.Name,
+					Args: tc.Arguments.AsMap(),
+				},
+				ThoughtSignature: thoughtSignature,
+			})
+
+		case *aipb.Block_Image:
+			imagePart, err := buildImagePart(content.Image)
+			if err != nil {
+				return nil, fmt.Errorf("block [%d]: building image part: %w", j, err)
+			}
+			imagePart.ThoughtSignature = thoughtSignature
+			parts = append(parts, imagePart)
+
+		default:
+			return nil, fmt.Errorf("block [%d]: unexpected block type %T for ASSISTANT role", j, content)
+		}
 	}
 
 	return parts, nil
 }
 
-func buildToolResultContent(tool *aipb.ToolResultMessage) (*genai.Content, error) {
-	content, err := ai.ParseToolResult(tool.Result)
+func buildToolResultContent(tr *aipb.ToolResult) (*genai.Content, error) {
+	content, err := ai.ParseToolResult(tr)
 	if err != nil {
 		return nil, fmt.Errorf("parsing tool result: %w", err)
 	}
 	key := "output"
-	if tool.Result.GetError() != nil {
+	if tr.GetError() != nil {
 		key = "error"
 	}
 	functionResponse := &genai.FunctionResponse{
-		ID:       tool.ToolCallId,
-		Name:     tool.ToolName,
+		ID:       tr.ToolCallId,
+		Name:     tr.ToolName,
 		Response: map[string]any{key: content},
 	}
 
@@ -501,10 +519,6 @@ func buildThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort
 }
 
 func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsageMetadata) *aipb.ModelUsage {
-	if usage == nil {
-		return nil
-	}
-
 	modelUsage := &aipb.ModelUsage{
 		Model: modelName,
 	}
@@ -528,14 +542,8 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 	}
 
 	if usage.CandidatesTokenCount > 0 {
-		outputTokens := usage.CandidatesTokenCount
-		if usage.ThoughtsTokenCount > 0 {
-			outputTokens -= usage.ThoughtsTokenCount
-		}
-		if outputTokens > 0 {
-			modelUsage.OutputToken = &aipb.ResourceConsumption{
-				Quantity: int32(outputTokens),
-			}
+		modelUsage.OutputToken = &aipb.ResourceConsumption{
+			Quantity: int32(usage.CandidatesTokenCount),
 		}
 	}
 
@@ -546,13 +554,6 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 	}
 
 	return modelUsage
-}
-
-var reasoningEffortToBudget = map[aipb.ReasoningEffort]int{
-	aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: 4096,
-	aipb.ReasoningEffort_REASONING_EFFORT_LOW:     1024,
-	aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  4096,
-	aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    16384,
 }
 
 var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{

@@ -5,7 +5,6 @@ import (
 
 	streamingjson "github.com/karminski/streaming-json-go"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -18,11 +17,10 @@ type ToolCallAccumulator struct {
 }
 
 type toolCallEntry struct {
-	id          string
-	name        string
-	args        strings.Builder
-	complete    bool
-	extraFields *structpb.Struct
+	id       string
+	name     string
+	args     strings.Builder
+	complete bool
 }
 
 func NewToolCallAccumulator() *ToolCallAccumulator {
@@ -59,34 +57,29 @@ func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 
 // AppendArgs appends to the accumulated arguments and optionally stores metadata.
 // Marks all other entries as complete.
-func (a *ToolCallAccumulator) AppendArgs(index int64, s string, extraFields *structpb.Struct) {
+func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 	for idx, entry := range a.calls {
 		if idx != index {
 			entry.complete = true
 		}
 	}
 	if entry, ok := a.calls[index]; ok {
-		entry.args.WriteString(s)
-		if extraFields != nil {
-			if entry.extraFields == nil {
-				entry.extraFields = &structpb.Struct{}
-			}
-			proto.Merge(entry.extraFields, extraFields)
+		if args != "" {
+			entry.args.WriteString(args)
 		}
 	}
 }
 
 // BuildPartial returns a partial ToolCall for a given index using streaming JSON healing.
-func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) {
+func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
 		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
-		Id:          entry.id,
-		Name:        entry.name,
-		ExtraFields: entry.extraFields,
-		Arguments:   &structpb.Struct{},
+		Id:        entry.id,
+		Name:      entry.name,
+		Arguments: &structpb.Struct{},
 	}
 	lexer := streamingjson.NewLexer()
 	lexer.AppendString(entry.args.String())
@@ -98,20 +91,24 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.ToolCall, error) 
 		return nil, grpc.Errorf(codes.Internal, "failed to unmarshal healed tool call arguments").
 			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": healed}).Err()
 	}
-	return tc, nil
+	return &aipb.Block{
+		Index: index,
+		Content: &aipb.Block_PartialToolCall{
+			PartialToolCall: tc,
+		},
+	}, nil
 }
 
 // Build returns the completed ToolCall proto for a given index and removes it.
-func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
+func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
 		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
-		Id:          entry.id,
-		Name:        entry.name,
-		ExtraFields: entry.extraFields,
-		Arguments:   &structpb.Struct{},
+		Id:        entry.id,
+		Name:      entry.name,
+		Arguments: &structpb.Struct{},
 	}
 	rawJSON := entry.args.String()
 	if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
@@ -119,34 +116,39 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.ToolCall, error) {
 			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": rawJSON}).Err()
 	}
 	delete(a.calls, index)
-	return tc, nil
+	return &aipb.Block{
+		Index: index,
+		Content: &aipb.Block_ToolCall{
+			ToolCall: tc,
+		},
+	}, nil
 }
 
 // BuildComplete returns all completed tool calls and removes them from the accumulator.
-func (a *ToolCallAccumulator) BuildComplete() ([]*aipb.ToolCall, error) {
-	var result []*aipb.ToolCall
+func (a *ToolCallAccumulator) BuildComplete() ([]*aipb.Block, error) {
+	var blocks []*aipb.Block
 	for index, entry := range a.calls {
 		if !entry.complete {
 			continue
 		}
-		tc, err := a.Build(index)
+		block, err := a.Build(index)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, tc)
+		blocks = append(blocks, block)
 	}
-	return result, nil
+	return blocks, nil
 }
 
 // BuildRemaining returns all remaining tool calls and removes them from the accumulator.
-func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.ToolCall, error) {
-	var result []*aipb.ToolCall
+func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.Block, error) {
+	var blocks []*aipb.Block
 	for index := range a.calls {
-		tc, err := a.Build(index)
+		block, err := a.Build(index)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, tc)
+		blocks = append(blocks, block)
 	}
-	return result, nil
+	return blocks, nil
 }

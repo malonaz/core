@@ -160,28 +160,16 @@ message TextToTextStreamResponse {
   oneof content {
     option (buf.validate.oneof).required = true;
 
-    // A chunk of the generated message content.
-    string content_chunk = 1;
-
-    // Reasoning content chunk (if model supports reasoning).
-    string reasoning_chunk = 2;
+    // A generated block.
+    .malonaz.ai.v1.Block block = 1;
 
     // Reason why generation stopped.
-    TextToTextStopReason stop_reason = 3;
-
-    // Tool calls requested by the assistant (sent when complete).
-    .malonaz.ai.v1.ToolCall tool_call = 4;
-
-    // Tool calls requested by the assistant (sent when complete).
-    .malonaz.ai.v1.ToolCall partial_tool_call = 5;
+    TextToTextStopReason stop_reason = 2;
 
     // Model usage event (sent last).
-    .malonaz.ai.v1.ModelUsage model_usage = 6;
+    .malonaz.ai.v1.ModelUsage model_usage = 3;
 
     // Generation metrics (sent last).
-    .malonaz.ai.v1.GenerationMetrics generation_metrics = 7;
-
-    // Images generated.
-    .malonaz.ai.v1.Image image = 8;
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
   }
 }

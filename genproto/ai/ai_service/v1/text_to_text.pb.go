@@ -762,14 +762,10 @@ type TextToTextStreamResponse struct {
 	//
 	// Types that are valid to be assigned to Content:
 	//
-	//	*TextToTextStreamResponse_ContentChunk
-	//	*TextToTextStreamResponse_ReasoningChunk
+	//	*TextToTextStreamResponse_Block
 	//	*TextToTextStreamResponse_StopReason
-	//	*TextToTextStreamResponse_ToolCall
-	//	*TextToTextStreamResponse_PartialToolCall
 	//	*TextToTextStreamResponse_ModelUsage
 	//	*TextToTextStreamResponse_GenerationMetrics
-	//	*TextToTextStreamResponse_Image
 	Content       isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -807,22 +803,13 @@ func (x *TextToTextStreamResponse) GetContent() isTextToTextStreamResponse_Conte
 	return nil
 }
 
-func (x *TextToTextStreamResponse) GetContentChunk() string {
+func (x *TextToTextStreamResponse) GetBlock() *v1.Block {
 	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ContentChunk); ok {
-			return x.ContentChunk
+		if x, ok := x.Content.(*TextToTextStreamResponse_Block); ok {
+			return x.Block
 		}
 	}
-	return ""
-}
-
-func (x *TextToTextStreamResponse) GetReasoningChunk() string {
-	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk); ok {
-			return x.ReasoningChunk
-		}
-	}
-	return ""
+	return nil
 }
 
 func (x *TextToTextStreamResponse) GetStopReason() TextToTextStopReason {
@@ -832,24 +819,6 @@ func (x *TextToTextStreamResponse) GetStopReason() TextToTextStopReason {
 		}
 	}
 	return TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED
-}
-
-func (x *TextToTextStreamResponse) GetToolCall() *v1.ToolCall {
-	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_ToolCall); ok {
-			return x.ToolCall
-		}
-	}
-	return nil
-}
-
-func (x *TextToTextStreamResponse) GetPartialToolCall() *v1.ToolCall {
-	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall); ok {
-			return x.PartialToolCall
-		}
-	}
-	return nil
 }
 
 func (x *TextToTextStreamResponse) GetModelUsage() *v1.ModelUsage {
@@ -870,41 +839,16 @@ func (x *TextToTextStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics 
 	return nil
 }
 
-func (x *TextToTextStreamResponse) GetImage() *v1.Image {
-	if x != nil {
-		if x, ok := x.Content.(*TextToTextStreamResponse_Image); ok {
-			return x.Image
-		}
+func (x *TextToTextStreamResponse) SetBlock(v *v1.Block) {
+	if v == nil {
+		x.Content = nil
+		return
 	}
-	return nil
-}
-
-func (x *TextToTextStreamResponse) SetContentChunk(v string) {
-	x.Content = &TextToTextStreamResponse_ContentChunk{v}
-}
-
-func (x *TextToTextStreamResponse) SetReasoningChunk(v string) {
-	x.Content = &TextToTextStreamResponse_ReasoningChunk{v}
+	x.Content = &TextToTextStreamResponse_Block{v}
 }
 
 func (x *TextToTextStreamResponse) SetStopReason(v TextToTextStopReason) {
 	x.Content = &TextToTextStreamResponse_StopReason{v}
-}
-
-func (x *TextToTextStreamResponse) SetToolCall(v *v1.ToolCall) {
-	if v == nil {
-		x.Content = nil
-		return
-	}
-	x.Content = &TextToTextStreamResponse_ToolCall{v}
-}
-
-func (x *TextToTextStreamResponse) SetPartialToolCall(v *v1.ToolCall) {
-	if v == nil {
-		x.Content = nil
-		return
-	}
-	x.Content = &TextToTextStreamResponse_PartialToolCall{v}
 }
 
 func (x *TextToTextStreamResponse) SetModelUsage(v *v1.ModelUsage) {
@@ -923,14 +867,6 @@ func (x *TextToTextStreamResponse) SetGenerationMetrics(v *v1.GenerationMetrics)
 	x.Content = &TextToTextStreamResponse_GenerationMetrics{v}
 }
 
-func (x *TextToTextStreamResponse) SetImage(v *v1.Image) {
-	if v == nil {
-		x.Content = nil
-		return
-	}
-	x.Content = &TextToTextStreamResponse_Image{v}
-}
-
 func (x *TextToTextStreamResponse) HasContent() bool {
 	if x == nil {
 		return false
@@ -938,19 +874,11 @@ func (x *TextToTextStreamResponse) HasContent() bool {
 	return x.Content != nil
 }
 
-func (x *TextToTextStreamResponse) HasContentChunk() bool {
+func (x *TextToTextStreamResponse) HasBlock() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ContentChunk)
-	return ok
-}
-
-func (x *TextToTextStreamResponse) HasReasoningChunk() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk)
+	_, ok := x.Content.(*TextToTextStreamResponse_Block)
 	return ok
 }
 
@@ -959,22 +887,6 @@ func (x *TextToTextStreamResponse) HasStopReason() bool {
 		return false
 	}
 	_, ok := x.Content.(*TextToTextStreamResponse_StopReason)
-	return ok
-}
-
-func (x *TextToTextStreamResponse) HasToolCall() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Content.(*TextToTextStreamResponse_ToolCall)
-	return ok
-}
-
-func (x *TextToTextStreamResponse) HasPartialToolCall() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall)
 	return ok
 }
 
@@ -994,44 +906,18 @@ func (x *TextToTextStreamResponse) HasGenerationMetrics() bool {
 	return ok
 }
 
-func (x *TextToTextStreamResponse) HasImage() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Content.(*TextToTextStreamResponse_Image)
-	return ok
-}
-
 func (x *TextToTextStreamResponse) ClearContent() {
 	x.Content = nil
 }
 
-func (x *TextToTextStreamResponse) ClearContentChunk() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ContentChunk); ok {
-		x.Content = nil
-	}
-}
-
-func (x *TextToTextStreamResponse) ClearReasoningChunk() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ReasoningChunk); ok {
+func (x *TextToTextStreamResponse) ClearBlock() {
+	if _, ok := x.Content.(*TextToTextStreamResponse_Block); ok {
 		x.Content = nil
 	}
 }
 
 func (x *TextToTextStreamResponse) ClearStopReason() {
 	if _, ok := x.Content.(*TextToTextStreamResponse_StopReason); ok {
-		x.Content = nil
-	}
-}
-
-func (x *TextToTextStreamResponse) ClearToolCall() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_ToolCall); ok {
-		x.Content = nil
-	}
-}
-
-func (x *TextToTextStreamResponse) ClearPartialToolCall() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_PartialToolCall); ok {
 		x.Content = nil
 	}
 }
@@ -1048,43 +934,25 @@ func (x *TextToTextStreamResponse) ClearGenerationMetrics() {
 	}
 }
 
-func (x *TextToTextStreamResponse) ClearImage() {
-	if _, ok := x.Content.(*TextToTextStreamResponse_Image); ok {
-		x.Content = nil
-	}
-}
-
 const TextToTextStreamResponse_Content_not_set_case case_TextToTextStreamResponse_Content = 0
-const TextToTextStreamResponse_ContentChunk_case case_TextToTextStreamResponse_Content = 1
-const TextToTextStreamResponse_ReasoningChunk_case case_TextToTextStreamResponse_Content = 2
-const TextToTextStreamResponse_StopReason_case case_TextToTextStreamResponse_Content = 3
-const TextToTextStreamResponse_ToolCall_case case_TextToTextStreamResponse_Content = 4
-const TextToTextStreamResponse_PartialToolCall_case case_TextToTextStreamResponse_Content = 5
-const TextToTextStreamResponse_ModelUsage_case case_TextToTextStreamResponse_Content = 6
-const TextToTextStreamResponse_GenerationMetrics_case case_TextToTextStreamResponse_Content = 7
-const TextToTextStreamResponse_Image_case case_TextToTextStreamResponse_Content = 8
+const TextToTextStreamResponse_Block_case case_TextToTextStreamResponse_Content = 1
+const TextToTextStreamResponse_StopReason_case case_TextToTextStreamResponse_Content = 2
+const TextToTextStreamResponse_ModelUsage_case case_TextToTextStreamResponse_Content = 3
+const TextToTextStreamResponse_GenerationMetrics_case case_TextToTextStreamResponse_Content = 4
 
 func (x *TextToTextStreamResponse) WhichContent() case_TextToTextStreamResponse_Content {
 	if x == nil {
 		return TextToTextStreamResponse_Content_not_set_case
 	}
 	switch x.Content.(type) {
-	case *TextToTextStreamResponse_ContentChunk:
-		return TextToTextStreamResponse_ContentChunk_case
-	case *TextToTextStreamResponse_ReasoningChunk:
-		return TextToTextStreamResponse_ReasoningChunk_case
+	case *TextToTextStreamResponse_Block:
+		return TextToTextStreamResponse_Block_case
 	case *TextToTextStreamResponse_StopReason:
 		return TextToTextStreamResponse_StopReason_case
-	case *TextToTextStreamResponse_ToolCall:
-		return TextToTextStreamResponse_ToolCall_case
-	case *TextToTextStreamResponse_PartialToolCall:
-		return TextToTextStreamResponse_PartialToolCall_case
 	case *TextToTextStreamResponse_ModelUsage:
 		return TextToTextStreamResponse_ModelUsage_case
 	case *TextToTextStreamResponse_GenerationMetrics:
 		return TextToTextStreamResponse_GenerationMetrics_case
-	case *TextToTextStreamResponse_Image:
-		return TextToTextStreamResponse_Image_case
 	default:
 		return TextToTextStreamResponse_Content_not_set_case
 	}
@@ -1096,22 +964,14 @@ type TextToTextStreamResponse_builder struct {
 	// Content of this response.
 
 	// Fields of oneof Content:
-	// A chunk of the generated message content.
-	ContentChunk *string
-	// Reasoning content chunk (if model supports reasoning).
-	ReasoningChunk *string
+	// A generated block.
+	Block *v1.Block
 	// Reason why generation stopped.
 	StopReason *TextToTextStopReason
-	// Tool calls requested by the assistant (sent when complete).
-	ToolCall *v1.ToolCall
-	// Tool calls requested by the assistant (sent when complete).
-	PartialToolCall *v1.ToolCall
 	// Model usage event (sent last).
 	ModelUsage *v1.ModelUsage
 	// Generation metrics (sent last).
 	GenerationMetrics *v1.GenerationMetrics
-	// Images generated.
-	Image *v1.Image
 	// -- end of Content
 }
 
@@ -1119,29 +979,17 @@ func (b0 TextToTextStreamResponse_builder) Build() *TextToTextStreamResponse {
 	m0 := &TextToTextStreamResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.ContentChunk != nil {
-		x.Content = &TextToTextStreamResponse_ContentChunk{*b.ContentChunk}
-	}
-	if b.ReasoningChunk != nil {
-		x.Content = &TextToTextStreamResponse_ReasoningChunk{*b.ReasoningChunk}
+	if b.Block != nil {
+		x.Content = &TextToTextStreamResponse_Block{b.Block}
 	}
 	if b.StopReason != nil {
 		x.Content = &TextToTextStreamResponse_StopReason{*b.StopReason}
-	}
-	if b.ToolCall != nil {
-		x.Content = &TextToTextStreamResponse_ToolCall{b.ToolCall}
-	}
-	if b.PartialToolCall != nil {
-		x.Content = &TextToTextStreamResponse_PartialToolCall{b.PartialToolCall}
 	}
 	if b.ModelUsage != nil {
 		x.Content = &TextToTextStreamResponse_ModelUsage{b.ModelUsage}
 	}
 	if b.GenerationMetrics != nil {
 		x.Content = &TextToTextStreamResponse_GenerationMetrics{b.GenerationMetrics}
-	}
-	if b.Image != nil {
-		x.Content = &TextToTextStreamResponse_Image{b.Image}
 	}
 	return m0
 }
@@ -1160,61 +1008,33 @@ type isTextToTextStreamResponse_Content interface {
 	isTextToTextStreamResponse_Content()
 }
 
-type TextToTextStreamResponse_ContentChunk struct {
-	// A chunk of the generated message content.
-	ContentChunk string `protobuf:"bytes,1,opt,name=content_chunk,json=contentChunk,proto3,oneof"`
-}
-
-type TextToTextStreamResponse_ReasoningChunk struct {
-	// Reasoning content chunk (if model supports reasoning).
-	ReasoningChunk string `protobuf:"bytes,2,opt,name=reasoning_chunk,json=reasoningChunk,proto3,oneof"`
+type TextToTextStreamResponse_Block struct {
+	// A generated block.
+	Block *v1.Block `protobuf:"bytes,1,opt,name=block,proto3,oneof"`
 }
 
 type TextToTextStreamResponse_StopReason struct {
 	// Reason why generation stopped.
-	StopReason TextToTextStopReason `protobuf:"varint,3,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.TextToTextStopReason,oneof"`
-}
-
-type TextToTextStreamResponse_ToolCall struct {
-	// Tool calls requested by the assistant (sent when complete).
-	ToolCall *v1.ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3,oneof"`
-}
-
-type TextToTextStreamResponse_PartialToolCall struct {
-	// Tool calls requested by the assistant (sent when complete).
-	PartialToolCall *v1.ToolCall `protobuf:"bytes,5,opt,name=partial_tool_call,json=partialToolCall,proto3,oneof"`
+	StopReason TextToTextStopReason `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.TextToTextStopReason,oneof"`
 }
 
 type TextToTextStreamResponse_ModelUsage struct {
 	// Model usage event (sent last).
-	ModelUsage *v1.ModelUsage `protobuf:"bytes,6,opt,name=model_usage,json=modelUsage,proto3,oneof"`
+	ModelUsage *v1.ModelUsage `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
 type TextToTextStreamResponse_GenerationMetrics struct {
 	// Generation metrics (sent last).
-	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,7,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
+	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
-type TextToTextStreamResponse_Image struct {
-	// Images generated.
-	Image *v1.Image `protobuf:"bytes,8,opt,name=image,proto3,oneof"`
-}
-
-func (*TextToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
-
-func (*TextToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
+func (*TextToTextStreamResponse_Block) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_StopReason) isTextToTextStreamResponse_Content() {}
-
-func (*TextToTextStreamResponse_ToolCall) isTextToTextStreamResponse_Content() {}
-
-func (*TextToTextStreamResponse_PartialToolCall) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_GenerationMetrics) isTextToTextStreamResponse_Content() {}
-
-func (*TextToTextStreamResponse_Image) isTextToTextStreamResponse_Content() {}
 
 var File_malonaz_ai_ai_service_v1_text_to_text_proto protoreflect.FileDescriptor
 
@@ -1255,18 +1075,14 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
 	"\vtool_choice\x18\x04 \x01(\tR\n" +
 	"toolChoice\x12W\n" +
-	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\x8f\x04\n" +
-	"\x18TextToTextStreamResponse\x12%\n" +
-	"\rcontent_chunk\x18\x01 \x01(\tH\x00R\fcontentChunk\x12)\n" +
-	"\x0freasoning_chunk\x18\x02 \x01(\tH\x00R\x0ereasoningChunk\x12Q\n" +
-	"\vstop_reason\x18\x03 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonH\x00R\n" +
-	"stopReason\x126\n" +
-	"\ttool_call\x18\x04 \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\btoolCall\x12E\n" +
-	"\x11partial_tool_call\x18\x05 \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\x0fpartialToolCall\x12<\n" +
-	"\vmodel_usage\x18\x06 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
+	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xbe\x02\n" +
+	"\x18TextToTextStreamResponse\x12,\n" +
+	"\x05block\x18\x01 \x01(\v2\x14.malonaz.ai.v1.BlockH\x00R\x05block\x12Q\n" +
+	"\vstop_reason\x18\x02 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonH\x00R\n" +
+	"stopReason\x12<\n" +
+	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12Q\n" +
-	"\x12generation_metrics\x18\a \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetrics\x12,\n" +
-	"\x05image\x18\b \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05imageB\x10\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01*\xb3\x02\n" +
 	"\x14TextToTextStopReason\x12(\n" +
 	"$TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED\x10\x00\x12%\n" +
@@ -1293,8 +1109,7 @@ var file_malonaz_ai_ai_service_v1_text_to_text_proto_goTypes = []any{
 	(*v1.Tool)(nil),                  // 10: malonaz.ai.v1.Tool
 	(*v1.ModelUsage)(nil),            // 11: malonaz.ai.v1.ModelUsage
 	(*v1.GenerationMetrics)(nil),     // 12: malonaz.ai.v1.GenerationMetrics
-	(*v1.ToolCall)(nil),              // 13: malonaz.ai.v1.ToolCall
-	(*v1.Image)(nil),                 // 14: malonaz.ai.v1.Image
+	(*v1.Block)(nil),                 // 13: malonaz.ai.v1.Block
 }
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
 	7,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
@@ -1310,17 +1125,15 @@ var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
 	9,  // 10: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
 	10, // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
 	1,  // 12: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	0,  // 13: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	13, // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	13, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
-	11, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	12, // 17: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	14, // 18: malonaz.ai.ai_service.v1.TextToTextStreamResponse.image:type_name -> malonaz.ai.v1.Image
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	13, // 13: malonaz.ai.ai_service.v1.TextToTextStreamResponse.block:type_name -> malonaz.ai.v1.Block
+	0,  // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	11, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	12, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_text_to_text_proto_init() }
@@ -1329,14 +1142,10 @@ func file_malonaz_ai_ai_service_v1_text_to_text_proto_init() {
 		return
 	}
 	file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[5].OneofWrappers = []any{
-		(*TextToTextStreamResponse_ContentChunk)(nil),
-		(*TextToTextStreamResponse_ReasoningChunk)(nil),
+		(*TextToTextStreamResponse_Block)(nil),
 		(*TextToTextStreamResponse_StopReason)(nil),
-		(*TextToTextStreamResponse_ToolCall)(nil),
-		(*TextToTextStreamResponse_PartialToolCall)(nil),
 		(*TextToTextStreamResponse_ModelUsage)(nil),
 		(*TextToTextStreamResponse_GenerationMetrics)(nil),
-		(*TextToTextStreamResponse_Image)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
