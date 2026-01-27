@@ -11,6 +11,16 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
+type BlockType int
+
+const (
+	BlockTypeText BlockType = iota
+	BlockTypeThought
+	BlockTypeToolCall
+	BlockTypeToolResult
+	BlockTypeImage
+)
+
 func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
 	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
@@ -111,52 +121,30 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 	}
 }
 
-func GetToolCalls(message *aipb.Message) []*aipb.ToolCall {
-	var toolCalls []*aipb.ToolCall
-	for _, block := range message.GetBlocks() {
-		if tc := block.GetToolCall(); tc != nil {
-			toolCalls = append(toolCalls, tc)
-		}
+func GetBlocks(message *aipb.Message, blockTypes ...BlockType) []*aipb.Block {
+	typeSet := make(map[BlockType]struct{}, len(blockTypes))
+	for _, bt := range blockTypes {
+		typeSet[bt] = struct{}{}
 	}
-	return toolCalls
-}
 
-func GetTexts(message *aipb.Message) []string {
-	var parts []string
+	var blocks []*aipb.Block
 	for _, block := range message.GetBlocks() {
-		if text := block.GetText(); text != "" {
-			parts = append(parts, text)
+		var bt BlockType
+		switch block.Content.(type) {
+		case *aipb.Block_Text:
+			bt = BlockTypeText
+		case *aipb.Block_Thought:
+			bt = BlockTypeThought
+		case *aipb.Block_ToolCall:
+			bt = BlockTypeToolCall
+		case *aipb.Block_ToolResult:
+			bt = BlockTypeToolResult
+		case *aipb.Block_Image:
+			bt = BlockTypeImage
+		}
+		if _, ok := typeSet[bt]; ok {
+			blocks = append(blocks, block)
 		}
 	}
-	return parts
-}
-
-func GetThoughts(message *aipb.Message) []string {
-	var parts []string
-	for _, block := range message.GetBlocks() {
-		if thought := block.GetThought(); thought != "" {
-			parts = append(parts, thought)
-		}
-	}
-	return parts
-}
-
-func GetToolResults(message *aipb.Message) []*aipb.ToolResult {
-	var results []*aipb.ToolResult
-	for _, block := range message.GetBlocks() {
-		if tr := block.GetToolResult(); tr != nil {
-			results = append(results, tr)
-		}
-	}
-	return results
-}
-
-func GetImages(message *aipb.Message) []*aipb.Image {
-	var images []*aipb.Image
-	for _, block := range message.GetBlocks() {
-		if img := block.GetImage(); img != nil {
-			images = append(images, img)
-		}
-	}
-	return images
+	return blocks
 }
