@@ -56,12 +56,6 @@ message SystemMessage {
   string content = 1 [(buf.validate.field).required = true];
 }
 
-// User message representing input from a human participant in the conversation.
-message UserMessage {
-  // The text content of the user's input.
-  string content = 1 [(buf.validate.field).required = true];
-}
-
 // Assistant message representing a response from the AI model.
 // Must contain either text content, tool calls, or both.
 message AssistantMessage {
@@ -97,6 +91,55 @@ message ToolResultMessage {
 
   // The result of a tool execution.
   ToolResult result = 2;
+}
+
+// User message representing input from a human participant in the conversation.
+message UserMessage {
+  // The content blocks of the user's input.
+  // Supports mixed content types (text, images) in a single message.
+  repeated ContentBlock content_blocks = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A block of content within a message.
+message ContentBlock {
+  // The content type.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Text content.
+    string text = 1;
+
+    // Image content.
+    ImageBlock image = 2;
+  }
+}
+
+// An image block within a message.
+message ImageBlock {
+  option (buf.validate.message).cel = {
+    id: "image_block_requires_media_type_for_data"
+    message: "media_type is required when using data"
+    expression: "!has(this.data) || this.media_type != ''"
+  };
+
+  // The image source.
+  oneof source {
+    option (buf.validate.oneof).required = true;
+
+    // Raw image bytes.
+    bytes data = 1;
+
+    // URL to the image. Supports both HTTPS URLs and data URLs
+    // (e.g., "data:image/png;base64,...").
+    string url = 2;
+  }
+
+  // MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
+  // Required when using `data`, optional when using `url`.
+  string media_type = 3;
+
+  // Quality of the image.
+  ImageQuality quality = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 // Represents the level of reasoning effort for AI model responses.
@@ -139,4 +182,16 @@ enum Role {
   ROLE_USER = 3;
   // User message.
   ROLE_TOOL = 4;
+}
+
+// Controls the fidelity level for image processing in vision requests.
+enum ImageQuality {
+  // Unspecified quality. The provider will use its default setting.
+  IMAGE_QUALITY_UNSPECIFIED = 0;
+  // Automatic quality selection based on image size and content.
+  IMAGE_QUALITY_AUTO = 1;
+  // Low fidelity processing for faster, cheaper responses.
+  IMAGE_QUALITY_LOW = 2;
+  // High fidelity processing for detailed image analysis.
+  IMAGE_QUALITY_HIGH = 3;
 }

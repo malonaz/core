@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -26,6 +27,8 @@ var (
 	reasoningEffort = flag.String("reasoning", "", "Reasoning effort: LOW, MEDIUM, HIGH")
 	useTool         = flag.Bool("use-tool", false, "Enable tool calling with a sample weather tool")
 	stream          = flag.Bool("stream", false, "Use streaming API")
+	imagePath       = flag.String("image", "", "Path to an image file to include in the message")
+	imageURL        = flag.String("image-url", "", "URL of an image to include in the message")
 )
 
 const (
@@ -79,6 +82,12 @@ func printRequestInfo() {
 	if *reasoningEffort != "" {
 		fmt.Printf("│ Reasoning: REASONING_EFFORT_%s\n", *reasoningEffort)
 	}
+	if *imagePath != "" {
+		fmt.Printf("│ Image: %s\n", *imagePath)
+	}
+	if *imageURL != "" {
+		fmt.Printf("│ Image URL: %s\n", *imageURL)
+	}
 	fmt.Printf("│ Stream: %v\n", *stream)
 	fmt.Println("└─────────────────────────────────────────────────────────")
 	fmt.Println()
@@ -109,10 +118,61 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 	return config, nil
 }
 
-func buildMessages() []*aipb.Message {
+func buildMessages() ([]*aipb.Message, error) {
+	contentBlocks := []*aipb.ContentBlock{ai.NewTextBlock(*userMessage)}
+
+	if *imagePath != "" {
+		imageBlock, err := buildImageBlockFromFile(*imagePath)
+		if err != nil {
+			return nil, fmt.Errorf("building image block from file: %w", err)
+		}
+		contentBlocks = append(contentBlocks, imageBlock)
+	}
+
+	if *imageURL != "" {
+		contentBlocks = append(contentBlocks, &aipb.ContentBlock{
+			Content: &aipb.ContentBlock_Image{
+				Image: &aipb.ImageBlock{
+					Source: &aipb.ImageBlock_Url{Url: *imageURL},
+				},
+			},
+		})
+	}
+
 	return []*aipb.Message{
 		ai.NewSystemMessage(&aipb.SystemMessage{Content: *systemMessage}),
-		ai.NewUserMessage(&aipb.UserMessage{Content: *userMessage}),
+		ai.NewUserMessage(contentBlocks...),
+	}, nil
+}
+
+func buildImageBlockFromFile(path string) (*aipb.ContentBlock, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading image file: %w", err)
+	}
+
+	mediaType := detectMediaType(path)
+
+	return &aipb.ContentBlock{
+		Content: &aipb.ContentBlock_Image{
+			Image: &aipb.ImageBlock{
+				Source:    &aipb.ImageBlock_Data{Data: data},
+				MediaType: mediaType,
+			},
+		},
+	}, nil
+}
+
+func detectMediaType(path string) string {
+	switch {
+	case len(path) > 4 && path[len(path)-4:] == ".png":
+		return "image/png"
+	case len(path) > 4 && path[len(path)-4:] == ".gif":
+		return "image/gif"
+	case len(path) > 5 && path[len(path)-5:] == ".webp":
+		return "image/webp"
+	default:
+		return "image/jpeg"
 	}
 }
 
@@ -131,9 +191,14 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return err
 	}
 
+	messages, err := buildMessages()
+	if err != nil {
+		return err
+	}
+
 	request := &aiservicepb.TextToTextStreamRequest{
 		Model:         modelResourceName,
-		Messages:      buildMessages(),
+		Messages:      messages,
 		Tools:         buildTools(),
 		Configuration: config,
 	}
@@ -171,9 +236,14 @@ func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return err
 	}
 
+	messages, err := buildMessages()
+	if err != nil {
+		return err
+	}
+
 	request := &aiservicepb.TextToTextRequest{
 		Model:         modelResourceName,
-		Messages:      buildMessages(),
+		Messages:      messages,
 		Tools:         buildTools(),
 		Configuration: config,
 	}

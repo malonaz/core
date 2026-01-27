@@ -147,6 +147,58 @@ func (x Role) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
+// Controls the fidelity level for image processing in vision requests.
+type ImageQuality int32
+
+const (
+	// Unspecified quality. The provider will use its default setting.
+	ImageQuality_IMAGE_QUALITY_UNSPECIFIED ImageQuality = 0
+	// Automatic quality selection based on image size and content.
+	ImageQuality_IMAGE_QUALITY_AUTO ImageQuality = 1
+	// Low fidelity processing for faster, cheaper responses.
+	ImageQuality_IMAGE_QUALITY_LOW ImageQuality = 2
+	// High fidelity processing for detailed image analysis.
+	ImageQuality_IMAGE_QUALITY_HIGH ImageQuality = 3
+)
+
+// Enum value maps for ImageQuality.
+var (
+	ImageQuality_name = map[int32]string{
+		0: "IMAGE_QUALITY_UNSPECIFIED",
+		1: "IMAGE_QUALITY_AUTO",
+		2: "IMAGE_QUALITY_LOW",
+		3: "IMAGE_QUALITY_HIGH",
+	}
+	ImageQuality_value = map[string]int32{
+		"IMAGE_QUALITY_UNSPECIFIED": 0,
+		"IMAGE_QUALITY_AUTO":        1,
+		"IMAGE_QUALITY_LOW":         2,
+		"IMAGE_QUALITY_HIGH":        3,
+	}
+)
+
+func (x ImageQuality) Enum() *ImageQuality {
+	p := new(ImageQuality)
+	*p = x
+	return p
+}
+
+func (x ImageQuality) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImageQuality) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_v1_message_proto_enumTypes[2].Descriptor()
+}
+
+func (ImageQuality) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_v1_message_proto_enumTypes[2]
+}
+
+func (x ImageQuality) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // Wrapper message representing any message type in a multi-turn conversation.
 // Use this when building conversation histories or streaming message sequences.
 type Message struct {
@@ -535,65 +587,6 @@ func (b0 SystemMessage_builder) Build() *SystemMessage {
 	return m0
 }
 
-// User message representing input from a human participant in the conversation.
-type UserMessage struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Content string                 `protobuf:"bytes,1,opt,name=content,proto3"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *UserMessage) Reset() {
-	*x = UserMessage{}
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UserMessage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UserMessage) ProtoMessage() {}
-
-func (x *UserMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *UserMessage) GetContent() string {
-	if x != nil {
-		return x.xxx_hidden_Content
-	}
-	return ""
-}
-
-func (x *UserMessage) SetContent(v string) {
-	x.xxx_hidden_Content = v
-}
-
-type UserMessage_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The text content of the user's input.
-	Content string
-}
-
-func (b0 UserMessage_builder) Build() *UserMessage {
-	m0 := &UserMessage{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Content = b.Content
-	return m0
-}
-
 // Assistant message representing a response from the AI model.
 // Must contain either text content, tool calls, or both.
 type AssistantMessage struct {
@@ -608,7 +601,7 @@ type AssistantMessage struct {
 
 func (x *AssistantMessage) Reset() {
 	*x = AssistantMessage{}
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +613,7 @@ func (x *AssistantMessage) String() string {
 func (*AssistantMessage) ProtoMessage() {}
 
 func (x *AssistantMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -728,7 +721,7 @@ type ToolResultMessage struct {
 
 func (x *ToolResultMessage) Reset() {
 	*x = ToolResultMessage{}
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -740,7 +733,7 @@ func (x *ToolResultMessage) String() string {
 func (*ToolResultMessage) ProtoMessage() {}
 
 func (x *ToolResultMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -803,6 +796,448 @@ func (b0 ToolResultMessage_builder) Build() *ToolResultMessage {
 	return m0
 }
 
+// User message representing input from a human participant in the conversation.
+type UserMessage struct {
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ContentBlocks *[]*ContentBlock       `protobuf:"bytes,1,rep,name=content_blocks,json=contentBlocks,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *UserMessage) Reset() {
+	*x = UserMessage{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserMessage) ProtoMessage() {}
+
+func (x *UserMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UserMessage) GetContentBlocks() []*ContentBlock {
+	if x != nil {
+		if x.xxx_hidden_ContentBlocks != nil {
+			return *x.xxx_hidden_ContentBlocks
+		}
+	}
+	return nil
+}
+
+func (x *UserMessage) SetContentBlocks(v []*ContentBlock) {
+	x.xxx_hidden_ContentBlocks = &v
+}
+
+type UserMessage_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The content blocks of the user's input.
+	// Supports mixed content types (text, images) in a single message.
+	ContentBlocks []*ContentBlock
+}
+
+func (b0 UserMessage_builder) Build() *UserMessage {
+	m0 := &UserMessage{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ContentBlocks = &b.ContentBlocks
+	return m0
+}
+
+// A block of content within a message.
+type ContentBlock struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Content isContentBlock_Content `protobuf_oneof:"content"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ContentBlock) Reset() {
+	*x = ContentBlock{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentBlock) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentBlock) ProtoMessage() {}
+
+func (x *ContentBlock) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ContentBlock) GetText() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Content.(*contentBlock_Text); ok {
+			return x.Text
+		}
+	}
+	return ""
+}
+
+func (x *ContentBlock) GetImage() *ImageBlock {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Content.(*contentBlock_Image); ok {
+			return x.Image
+		}
+	}
+	return nil
+}
+
+func (x *ContentBlock) SetText(v string) {
+	x.xxx_hidden_Content = &contentBlock_Text{v}
+}
+
+func (x *ContentBlock) SetImage(v *ImageBlock) {
+	if v == nil {
+		x.xxx_hidden_Content = nil
+		return
+	}
+	x.xxx_hidden_Content = &contentBlock_Image{v}
+}
+
+func (x *ContentBlock) HasContent() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Content != nil
+}
+
+func (x *ContentBlock) HasText() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Content.(*contentBlock_Text)
+	return ok
+}
+
+func (x *ContentBlock) HasImage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Content.(*contentBlock_Image)
+	return ok
+}
+
+func (x *ContentBlock) ClearContent() {
+	x.xxx_hidden_Content = nil
+}
+
+func (x *ContentBlock) ClearText() {
+	if _, ok := x.xxx_hidden_Content.(*contentBlock_Text); ok {
+		x.xxx_hidden_Content = nil
+	}
+}
+
+func (x *ContentBlock) ClearImage() {
+	if _, ok := x.xxx_hidden_Content.(*contentBlock_Image); ok {
+		x.xxx_hidden_Content = nil
+	}
+}
+
+const ContentBlock_Content_not_set_case case_ContentBlock_Content = 0
+const ContentBlock_Text_case case_ContentBlock_Content = 1
+const ContentBlock_Image_case case_ContentBlock_Content = 2
+
+func (x *ContentBlock) WhichContent() case_ContentBlock_Content {
+	if x == nil {
+		return ContentBlock_Content_not_set_case
+	}
+	switch x.xxx_hidden_Content.(type) {
+	case *contentBlock_Text:
+		return ContentBlock_Text_case
+	case *contentBlock_Image:
+		return ContentBlock_Image_case
+	default:
+		return ContentBlock_Content_not_set_case
+	}
+}
+
+type ContentBlock_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The content type.
+
+	// Fields of oneof xxx_hidden_Content:
+	// Text content.
+	Text *string
+	// Image content.
+	Image *ImageBlock
+	// -- end of xxx_hidden_Content
+}
+
+func (b0 ContentBlock_builder) Build() *ContentBlock {
+	m0 := &ContentBlock{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Text != nil {
+		x.xxx_hidden_Content = &contentBlock_Text{*b.Text}
+	}
+	if b.Image != nil {
+		x.xxx_hidden_Content = &contentBlock_Image{b.Image}
+	}
+	return m0
+}
+
+type case_ContentBlock_Content protoreflect.FieldNumber
+
+func (x case_ContentBlock_Content) String() string {
+	md := file_malonaz_ai_v1_message_proto_msgTypes[5].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isContentBlock_Content interface {
+	isContentBlock_Content()
+}
+
+type contentBlock_Text struct {
+	// Text content.
+	Text string `protobuf:"bytes,1,opt,name=text,proto3,oneof"`
+}
+
+type contentBlock_Image struct {
+	// Image content.
+	Image *ImageBlock `protobuf:"bytes,2,opt,name=image,proto3,oneof"`
+}
+
+func (*contentBlock_Text) isContentBlock_Content() {}
+
+func (*contentBlock_Image) isContentBlock_Content() {}
+
+// An image block within a message.
+type ImageBlock struct {
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Source    isImageBlock_Source    `protobuf_oneof:"source"`
+	xxx_hidden_MediaType string                 `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3"`
+	xxx_hidden_Quality   ImageQuality           `protobuf:"varint,4,opt,name=quality,proto3,enum=malonaz.ai.v1.ImageQuality"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ImageBlock) Reset() {
+	*x = ImageBlock{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImageBlock) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageBlock) ProtoMessage() {}
+
+func (x *ImageBlock) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImageBlock) GetData() []byte {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*imageBlock_Data); ok {
+			return x.Data
+		}
+	}
+	return nil
+}
+
+func (x *ImageBlock) GetUrl() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*imageBlock_Url); ok {
+			return x.Url
+		}
+	}
+	return ""
+}
+
+func (x *ImageBlock) GetMediaType() string {
+	if x != nil {
+		return x.xxx_hidden_MediaType
+	}
+	return ""
+}
+
+func (x *ImageBlock) GetQuality() ImageQuality {
+	if x != nil {
+		return x.xxx_hidden_Quality
+	}
+	return ImageQuality_IMAGE_QUALITY_UNSPECIFIED
+}
+
+func (x *ImageBlock) SetData(v []byte) {
+	if v == nil {
+		v = []byte{}
+	}
+	x.xxx_hidden_Source = &imageBlock_Data{v}
+}
+
+func (x *ImageBlock) SetUrl(v string) {
+	x.xxx_hidden_Source = &imageBlock_Url{v}
+}
+
+func (x *ImageBlock) SetMediaType(v string) {
+	x.xxx_hidden_MediaType = v
+}
+
+func (x *ImageBlock) SetQuality(v ImageQuality) {
+	x.xxx_hidden_Quality = v
+}
+
+func (x *ImageBlock) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Source != nil
+}
+
+func (x *ImageBlock) HasData() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*imageBlock_Data)
+	return ok
+}
+
+func (x *ImageBlock) HasUrl() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*imageBlock_Url)
+	return ok
+}
+
+func (x *ImageBlock) ClearSource() {
+	x.xxx_hidden_Source = nil
+}
+
+func (x *ImageBlock) ClearData() {
+	if _, ok := x.xxx_hidden_Source.(*imageBlock_Data); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+func (x *ImageBlock) ClearUrl() {
+	if _, ok := x.xxx_hidden_Source.(*imageBlock_Url); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+const ImageBlock_Source_not_set_case case_ImageBlock_Source = 0
+const ImageBlock_Data_case case_ImageBlock_Source = 1
+const ImageBlock_Url_case case_ImageBlock_Source = 2
+
+func (x *ImageBlock) WhichSource() case_ImageBlock_Source {
+	if x == nil {
+		return ImageBlock_Source_not_set_case
+	}
+	switch x.xxx_hidden_Source.(type) {
+	case *imageBlock_Data:
+		return ImageBlock_Data_case
+	case *imageBlock_Url:
+		return ImageBlock_Url_case
+	default:
+		return ImageBlock_Source_not_set_case
+	}
+}
+
+type ImageBlock_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The image source.
+
+	// Fields of oneof xxx_hidden_Source:
+	// Raw image bytes.
+	Data []byte
+	// URL to the image. Supports both HTTPS URLs and data URLs
+	// (e.g., "data:image/png;base64,...").
+	Url *string
+	// -- end of xxx_hidden_Source
+	// MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
+	// Required when using `data`, optional when using `url`.
+	MediaType string
+	// Quality of the image.
+	Quality ImageQuality
+}
+
+func (b0 ImageBlock_builder) Build() *ImageBlock {
+	m0 := &ImageBlock{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Data != nil {
+		x.xxx_hidden_Source = &imageBlock_Data{b.Data}
+	}
+	if b.Url != nil {
+		x.xxx_hidden_Source = &imageBlock_Url{*b.Url}
+	}
+	x.xxx_hidden_MediaType = b.MediaType
+	x.xxx_hidden_Quality = b.Quality
+	return m0
+}
+
+type case_ImageBlock_Source protoreflect.FieldNumber
+
+func (x case_ImageBlock_Source) String() string {
+	md := file_malonaz_ai_v1_message_proto_msgTypes[6].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isImageBlock_Source interface {
+	isImageBlock_Source()
+}
+
+type imageBlock_Data struct {
+	// Raw image bytes.
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3,oneof"`
+}
+
+type imageBlock_Url struct {
+	// URL to the image. Supports both HTTPS URLs and data URLs
+	// (e.g., "data:image/png;base64,...").
+	Url string `protobuf:"bytes,2,opt,name=url,proto3,oneof"`
+}
+
+func (*imageBlock_Data) isImageBlock_Source() {}
+
+func (*imageBlock_Url) isImageBlock_Source() {}
+
 var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
@@ -825,8 +1260,6 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x19role_matches_message_type\x12\x1crole must match message type\x1a\x9b\x01(this.role == 1 && has(this.system)) || (this.role == 2 && has(this.assistant)) || (this.role == 3 && has(this.user)) || (this.role == 4 && has(this.tool))B\x10\n" +
 	"\amessage\x12\x05\xbaH\x02\b\x01\"1\n" +
 	"\rSystemMessage\x12 \n" +
-	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"/\n" +
-	"\vUserMessage\x12 \n" +
 	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\xa9\x03\n" +
 	"\x10AssistantMessage\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\tR\treasoning\x12\x18\n" +
@@ -838,7 +1271,22 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x11ToolResultMessage\x12(\n" +
 	"\ftool_call_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"toolCallId\x121\n" +
-	"\x06result\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result*\xa3\x01\n" +
+	"\x06result\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result\"[\n" +
+	"\vUserMessage\x12L\n" +
+	"\x0econtent_blocks\x18\x01 \x03(\v2\x1b.malonaz.ai.v1.ContentBlockB\b\xbaH\x05\x92\x01\x02\b\x01R\rcontentBlocks\"i\n" +
+	"\fContentBlock\x12\x14\n" +
+	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x121\n" +
+	"\x05image\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ImageBlockH\x00R\x05imageB\x10\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xab\x02\n" +
+	"\n" +
+	"ImageBlock\x12\x14\n" +
+	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
+	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x03 \x01(\tR\tmediaType\x12?\n" +
+	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:\x81\x01\xbaH~\x1a|\n" +
+	"(image_block_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01*\xa3\x01\n" +
 	"\x0fReasoningEffort\x12 \n" +
 	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n" +
@@ -850,40 +1298,51 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\vROLE_SYSTEM\x10\x01\x12\x12\n" +
 	"\x0eROLE_ASSISTANT\x10\x02\x12\r\n" +
 	"\tROLE_USER\x10\x03\x12\r\n" +
-	"\tROLE_TOOL\x10\x04B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\tROLE_TOOL\x10\x04*t\n" +
+	"\fImageQuality\x12\x1d\n" +
+	"\x19IMAGE_QUALITY_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12IMAGE_QUALITY_AUTO\x10\x01\x12\x15\n" +
+	"\x11IMAGE_QUALITY_LOW\x10\x02\x12\x16\n" +
+	"\x12IMAGE_QUALITY_HIGH\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(ReasoningEffort)(0),          // 0: malonaz.ai.v1.ReasoningEffort
 	(Role)(0),                     // 1: malonaz.ai.v1.Role
-	(*Message)(nil),               // 2: malonaz.ai.v1.Message
-	(*SystemMessage)(nil),         // 3: malonaz.ai.v1.SystemMessage
-	(*UserMessage)(nil),           // 4: malonaz.ai.v1.UserMessage
+	(ImageQuality)(0),             // 2: malonaz.ai.v1.ImageQuality
+	(*Message)(nil),               // 3: malonaz.ai.v1.Message
+	(*SystemMessage)(nil),         // 4: malonaz.ai.v1.SystemMessage
 	(*AssistantMessage)(nil),      // 5: malonaz.ai.v1.AssistantMessage
 	(*ToolResultMessage)(nil),     // 6: malonaz.ai.v1.ToolResultMessage
-	nil,                           // 7: malonaz.ai.v1.Message.MetadataEntry
-	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 9: google.protobuf.Struct
-	(*ToolCall)(nil),              // 10: malonaz.ai.v1.ToolCall
-	(*ToolResult)(nil),            // 11: malonaz.ai.v1.ToolResult
+	(*UserMessage)(nil),           // 7: malonaz.ai.v1.UserMessage
+	(*ContentBlock)(nil),          // 8: malonaz.ai.v1.ContentBlock
+	(*ImageBlock)(nil),            // 9: malonaz.ai.v1.ImageBlock
+	nil,                           // 10: malonaz.ai.v1.Message.MetadataEntry
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
+	(*ToolCall)(nil),              // 13: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 14: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
-	8,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
-	7,  // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
+	11, // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
+	10, // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
 	1,  // 2: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
-	3,  // 3: malonaz.ai.v1.Message.system:type_name -> malonaz.ai.v1.SystemMessage
-	4,  // 4: malonaz.ai.v1.Message.user:type_name -> malonaz.ai.v1.UserMessage
+	4,  // 3: malonaz.ai.v1.Message.system:type_name -> malonaz.ai.v1.SystemMessage
+	7,  // 4: malonaz.ai.v1.Message.user:type_name -> malonaz.ai.v1.UserMessage
 	5,  // 5: malonaz.ai.v1.Message.assistant:type_name -> malonaz.ai.v1.AssistantMessage
 	6,  // 6: malonaz.ai.v1.Message.tool:type_name -> malonaz.ai.v1.ToolResultMessage
-	9,  // 7: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
-	10, // 8: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
-	11, // 9: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	12, // 7: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
+	13, // 8: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
+	14, // 9: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
+	8,  // 10: malonaz.ai.v1.UserMessage.content_blocks:type_name -> malonaz.ai.v1.ContentBlock
+	9,  // 11: malonaz.ai.v1.ContentBlock.image:type_name -> malonaz.ai.v1.ImageBlock
+	2,  // 12: malonaz.ai.v1.ImageBlock.quality:type_name -> malonaz.ai.v1.ImageQuality
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -898,13 +1357,21 @@ func file_malonaz_ai_v1_message_proto_init() {
 		(*message_Assistant)(nil),
 		(*message_Tool)(nil),
 	}
+	file_malonaz_ai_v1_message_proto_msgTypes[5].OneofWrappers = []any{
+		(*contentBlock_Text)(nil),
+		(*contentBlock_Image)(nil),
+	}
+	file_malonaz_ai_v1_message_proto_msgTypes[6].OneofWrappers = []any{
+		(*imageBlock_Data)(nil),
+		(*imageBlock_Url)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   6,
+			NumEnums:      3,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

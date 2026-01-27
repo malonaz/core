@@ -1,6 +1,7 @@
 package anthropic
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -39,9 +40,35 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			})
 
 		case *aipb.Message_User:
-			messages = append(messages, anthropic.NewUserMessage(
-				anthropic.NewTextBlock(m.User.Content),
-			))
+			var contentBlocks []anthropic.ContentBlockParamUnion
+			for _, contentBlock := range m.User.ContentBlocks {
+				switch c := contentBlock.GetContent().(type) {
+				case *aipb.ContentBlock_Text:
+					contentBlocks = append(contentBlocks, anthropic.NewTextBlock(c.Text))
+				case *aipb.ContentBlock_Image:
+					switch s := c.Image.GetSource().(type) {
+					case *aipb.ImageBlock_Url:
+						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.URLImageSourceParam{
+							URL: s.Url,
+						}))
+					case *aipb.ImageBlock_Data:
+						mediaType := anthropic.Base64ImageSourceMediaType(c.Image.MediaType)
+						if _, ok := imageSourceMediaTypeSet[mediaType]; !ok {
+							return grpc.Errorf(codes.InvalidArgument, "unsupported media type %s", c.Image.MediaType).Err()
+						}
+						base64ImageSourceParam := anthropic.Base64ImageSourceParam{
+							Data:      base64.StdEncoding.EncodeToString(s.Data),
+							MediaType: mediaType,
+						}
+						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(base64ImageSourceParam))
+					default:
+						return grpc.Errorf(codes.Unimplemented, "unknown image block type %T", s).Err()
+					}
+				default:
+					return grpc.Errorf(codes.Unimplemented, "unknown content block type %T", c).Err()
+				}
+			}
+			messages = append(messages, anthropic.NewUserMessage(contentBlocks...))
 
 		case *aipb.Message_Assistant:
 			var contentBlockParamUnions []anthropic.ContentBlockParamUnion
@@ -331,4 +358,11 @@ var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.TextToTextSto
 	anthropic.StopReasonStopSequence: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE,
 	anthropic.StopReasonPauseTurn:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN,
 	anthropic.StopReasonRefusal:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+}
+
+var imageSourceMediaTypeSet = map[anthropic.Base64ImageSourceMediaType]struct{}{
+	anthropic.Base64ImageSourceMediaTypeImageJPEG: {},
+	anthropic.Base64ImageSourceMediaTypeImagePNG:  {},
+	anthropic.Base64ImageSourceMediaTypeImageGIF:  {},
+	anthropic.Base64ImageSourceMediaTypeImageWebP: {},
 }

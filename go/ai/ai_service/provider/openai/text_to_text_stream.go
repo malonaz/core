@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -355,7 +356,37 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 		return openai.SystemMessage(m.System.Content), nil
 
 	case *aipb.Message_User:
-		return openai.UserMessage(m.User.Content), nil
+		var contentParts []openai.ChatCompletionContentPartUnionParam
+		for _, contentBlock := range m.User.ContentBlocks {
+			switch c := contentBlock.GetContent().(type) {
+			case *aipb.ContentBlock_Text:
+				contentParts = append(contentParts, openai.TextContentPart(c.Text))
+			case *aipb.ContentBlock_Image:
+				var url string
+				switch s := c.Image.GetSource().(type) {
+				case *aipb.ImageBlock_Url:
+					url = s.Url
+				case *aipb.ImageBlock_Data:
+					url = fmt.Sprintf("data:%s;base64,%s", c.Image.MediaType, base64.StdEncoding.EncodeToString(s.Data))
+				default:
+					return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown image block type %T", s)
+				}
+
+				detail, ok := imageQualityToOpenAI[c.Image.Quality]
+				if !ok {
+					return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown image quality: %s", c.Image.Quality)
+				}
+				contentPart := openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+					URL:    url,
+					Detail: detail,
+				})
+				contentParts = append(contentParts, contentPart)
+
+			default:
+				return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown content block type %T", c)
+			}
+		}
+		return openai.UserMessage(contentParts), nil
 
 	case *aipb.Message_Assistant:
 		ofAssistant := &openai.ChatCompletionAssistantMessageParam{}
@@ -537,4 +568,11 @@ func buildGoogleThinkingConfig(model *aipb.Model, reasoningEffort aipb.Reasoning
 		"include_thoughts": true,
 		thinkingConfigKey:  thinkingConfigValue,
 	}, nil
+}
+
+var imageQualityToOpenAI = map[aipb.ImageQuality]string{
+	aipb.ImageQuality_IMAGE_QUALITY_UNSPECIFIED: "auto",
+	aipb.ImageQuality_IMAGE_QUALITY_AUTO:        "auto",
+	aipb.ImageQuality_IMAGE_QUALITY_LOW:         "low",
+	aipb.ImageQuality_IMAGE_QUALITY_HIGH:        "high",
 }

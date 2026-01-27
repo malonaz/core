@@ -249,7 +249,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		Model: model,
 		Messages: []*aipb.Message{
 			ai.NewSystemMessage(&aipb.SystemMessage{Content: fmt.Sprintf("Use the `%s` tool to generate a JSON payload based on the data given to you by the user", tool.GetName())}),
-			ai.NewUserMessage(&aipb.UserMessage{Content: request.GetPrompt()}),
+			ai.NewUserMessage(ai.NewTextBlock(request.GetPrompt())),
 		},
 		Configuration: &aiservicepb.TextToTextConfiguration{
 			ToolChoice: &aipb.ToolChoice{

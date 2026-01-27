@@ -1,3 +1,4 @@
+// go/ai/messages.go
 package ai
 
 import (
@@ -17,16 +18,6 @@ func NewSystemMessage(m *aipb.SystemMessage) *aipb.Message {
 		Role:       aipb.Role_ROLE_SYSTEM,
 		Message: &aipb.Message_System{
 			System: m,
-		},
-	}
-}
-
-func NewUserMessage(m *aipb.UserMessage) *aipb.Message {
-	return &aipb.Message{
-		CreateTime: timestamppb.Now(),
-		Role:       aipb.Role_ROLE_USER,
-		Message: &aipb.Message_User{
-			User: m,
 		},
 	}
 }
@@ -93,5 +84,42 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 		return string(bytes), nil
 	default:
 		return "", fmt.Errorf("unknown tool result type: %T", r)
+	}
+}
+
+func NewUserMessage(contentBlocks ...*aipb.ContentBlock) *aipb.Message {
+	return &aipb.Message{
+		CreateTime: timestamppb.Now(),
+		Role:       aipb.Role_ROLE_USER,
+		Message: &aipb.Message_User{
+			User: &aipb.UserMessage{
+				ContentBlocks: contentBlocks,
+			},
+		},
+	}
+}
+
+func NewTextBlock(text string) *aipb.ContentBlock {
+	return &aipb.ContentBlock{Content: &aipb.ContentBlock_Text{Text: text}}
+}
+
+func NewImageBlockFromURL(url string) *aipb.ContentBlock {
+	return &aipb.ContentBlock{
+		Content: &aipb.ContentBlock_Image{
+			Image: &aipb.ImageBlock{
+				Source: &aipb.ImageBlock_Url{Url: url},
+			},
+		},
+	}
+}
+
+func NewImageBlockFromData(data []byte, mediaType string) *aipb.ContentBlock {
+	return &aipb.ContentBlock{
+		Content: &aipb.ContentBlock_Image{
+			Image: &aipb.ImageBlock{
+				Source:    &aipb.ImageBlock_Data{Data: data},
+				MediaType: mediaType,
+			},
+		},
 	}
 }
