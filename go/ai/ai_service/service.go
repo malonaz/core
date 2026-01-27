@@ -18,6 +18,7 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/cartesia"
 	"github.com/malonaz/core/go/ai/ai_service/provider/deepgram"
 	"github.com/malonaz/core/go/ai/ai_service/provider/elevenlabs"
+	"github.com/malonaz/core/go/ai/ai_service/provider/google"
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
 	"github.com/malonaz/core/go/ai/ai_service/provider/xai"
 	"github.com/malonaz/core/go/grpc"
@@ -60,7 +61,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		providers = append(providers, openai.NewClient(opts.OpenAIApiKey, modelService))
 	}
 	if opts.GoogleApiKey != "" {
-		providers = append(providers, openai.NewGoogleClient(opts.GoogleApiKey, modelService))
+		providers = append(providers, google.NewClient(opts.GoogleApiKey, modelService))
 	}
 	if opts.XaiApiKey != "" {
 		providers = append(providers, xai.NewClient(opts.XaiApiKey, modelService))

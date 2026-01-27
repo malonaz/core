@@ -741,6 +741,8 @@ type ToolResultMessage struct {
 	// The unique identifier of the tool call this result responds to.
 	// Must match the id field from a ToolCall in a preceding AssistantMessage.
 	ToolCallId string `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
+	// The name of the tool that created this result.
+	ToolName string `protobuf:"bytes,3,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
 	// The result of a tool execution.
 	Result        *ToolResult `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -779,6 +781,13 @@ func (x *ToolResultMessage) GetToolCallId() string {
 	return ""
 }
 
+func (x *ToolResultMessage) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
 func (x *ToolResultMessage) GetResult() *ToolResult {
 	if x != nil {
 		return x.Result
@@ -788,6 +797,10 @@ func (x *ToolResultMessage) GetResult() *ToolResult {
 
 func (x *ToolResultMessage) SetToolCallId(v string) {
 	x.ToolCallId = v
+}
+
+func (x *ToolResultMessage) SetToolName(v string) {
+	x.ToolName = v
 }
 
 func (x *ToolResultMessage) SetResult(v *ToolResult) {
@@ -811,6 +824,8 @@ type ToolResultMessage_builder struct {
 	// The unique identifier of the tool call this result responds to.
 	// Must match the id field from a ToolCall in a preceding AssistantMessage.
 	ToolCallId string
+	// The name of the tool that created this result.
+	ToolName string
 	// The result of a tool execution.
 	Result *ToolResult
 }
@@ -820,6 +835,7 @@ func (b0 ToolResultMessage_builder) Build() *ToolResultMessage {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.ToolCallId = b.ToolCallId
+	x.ToolName = b.ToolName
 	x.Result = b.Result
 	return m0
 }
@@ -1324,10 +1340,11 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x12structured_content\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x11structuredContent\x126\n" +
 	"\n" +
 	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls:\xdc\x01\xbaH\xd8\x01\x1a\xd5\x01\n" +
-	"(assistant_requires_content_or_tool_calls\x12XAssistantMessage must have either content, structured_content, or at least one tool_call\x1aOthis.content != '' || has(this.structured_content) || size(this.tool_calls) > 0\"p\n" +
+	"(assistant_requires_content_or_tool_calls\x12XAssistantMessage must have either content, structured_content, or at least one tool_call\x1aOthis.content != '' || has(this.structured_content) || size(this.tool_calls) > 0\"\x95\x01\n" +
 	"\x11ToolResultMessage\x12(\n" +
 	"\ftool_call_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"toolCallId\x121\n" +
+	"toolCallId\x12#\n" +
+	"\ttool_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\btoolName\x121\n" +
 	"\x06result\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result\"[\n" +
 	"\vUserMessage\x12L\n" +
 	"\x0econtent_blocks\x18\x01 \x03(\v2\x1b.malonaz.ai.v1.ContentBlockB\b\xbaH\x05\x92\x01\x02\b\x01R\rcontentBlocks\"i\n" +

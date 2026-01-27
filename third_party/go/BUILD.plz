@@ -126,6 +126,221 @@ go_module(
 )
 
 go_mod_download(
+    name = "cloud.google.com__go",
+    _tag = "download",
+    module = "cloud.google.com/go",
+    version = "v0.116.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__civil",
+    download = ":_cloud.google.com__go#download",
+    install = ["civil"],
+    module = "cloud.google.com/go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "cloud.google.com__go__auth",
+    _tag = "download",
+    module = "cloud.google.com/go/auth",
+    version = "v0.9.3",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["."],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal",
+        ":cloud.google.com__go__auth__internal__jwt",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__credentials__internal__externalaccount",
+        ":cloud.google.com__go__auth__credentials__internal__externalaccountuser",
+        ":cloud.google.com__go__auth__credentials__internal__gdch",
+        ":cloud.google.com__go__auth__credentials__internal__impersonate",
+        ":cloud.google.com__go__auth__internal",
+        ":cloud.google.com__go__auth__internal__credsfile",
+        ":cloud.google.com__go__auth__internal__jwt",
+        ":cloud.google.com__go__compute__metadata",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials__internal__externalaccount",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials/internal/externalaccount"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__credentials__internal__impersonate",
+        ":cloud.google.com__go__auth__credentials__internal__stsexchange",
+        ":cloud.google.com__go__auth__internal",
+        ":cloud.google.com__go__auth__internal__credsfile",
+        ":cloud.google.com__go__auth__internal__transport__cert",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials__internal__externalaccountuser",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials/internal/externalaccountuser"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__credentials__internal__stsexchange",
+        ":cloud.google.com__go__auth__internal",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials__internal__gdch",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials/internal/gdch"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal",
+        ":cloud.google.com__go__auth__internal__credsfile",
+        ":cloud.google.com__go__auth__internal__jwt",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials__internal__impersonate",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials/internal/impersonate"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__credentials__internal__stsexchange",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["credentials/internal/stsexchange"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal",
+        "//third_party/go:cloud.google.com__go__auth",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__httptransport",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["httptransport"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal",
+        ":cloud.google.com__go__auth__internal__transport",
+        ":cloud.google.com__go__auth__internal__transport__cert",
+        ":go.opencensus.io__plugin__ochttp",
+        ":go.opencensus.io__trace",
+        ":go.opencensus.io__trace__propagation",
+        ":golang.org__x__net__http2",
+        "//third_party/go:cloud.google.com__go__auth",
+        "//third_party/go:cloud.google.com__go__auth__credentials",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__internal",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["internal"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [":cloud.google.com__go__compute__metadata"],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__internal__credsfile",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["internal/credsfile"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__internal__jwt",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["internal/jwt"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__internal__transport",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["internal/transport"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cloud.google.com__go__auth__internal__transport__cert",
+        ":cloud.google.com__go__compute__metadata",
+        ":github.com__google__s2a-go",
+        ":github.com__google__s2a-go__fallback",
+        ":google.golang.org__grpc__credentials",
+        "//third_party/go:cloud.google.com__go__auth__credentials",
+        "//third_party/go:cloud.google.com__go__auth__internal",
+    ],
+)
+
+go_module(
+    name = "cloud.google.com__go__auth__internal__transport__cert",
+    download = ":_cloud.google.com__go__auth#download",
+    install = ["internal/transport/cert"],
+    module = "cloud.google.com/go/auth",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__googleapis__enterprise-certificate-proxy__client",
+        ":github.com__googleapis__enterprise-certificate-proxy__client__util",
+    ],
+)
+
+go_mod_download(
+    name = "cloud.google.com__go__compute__metadata",
+    _tag = "download",
+    module = "cloud.google.com/go/compute/metadata",
+    version = "v0.7.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__compute__metadata",
+    download = ":_cloud.google.com__go__compute__metadata#download",
+    install = ["."],
+    module = "cloud.google.com/go/compute/metadata",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "dario.cat__mergo",
     _tag = "download",
     module = "dario.cat/mergo",
@@ -1665,6 +1880,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__golang__groupcache",
+    _tag = "download",
+    module = "github.com/golang/groupcache",
+    version = "v0.0.0-20210331224755-41bb18bfe9da",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__golang__groupcache__lru",
+    download = ":_github.com__golang__groupcache#download",
+    install = ["lru"],
+    module = "github.com/golang/groupcache",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__golang__protobuf",
     _tag = "download",
     module = "github.com/golang/protobuf",
@@ -2263,6 +2495,317 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__google__s2a-go",
+    _tag = "download",
+    module = "github.com/google/s2a-go",
+    version = "v0.1.8",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__google__s2a-go",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["."],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__fallback",
+        ":github.com__google__s2a-go__internal__handshaker",
+        ":github.com__google__s2a-go__internal__handshaker__service",
+        ":github.com__google__s2a-go__internal__proto__common_go_proto",
+        ":github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+        ":github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+        ":github.com__google__s2a-go__internal__tokenmanager",
+        ":github.com__google__s2a-go__internal__v2",
+        ":github.com__google__s2a-go__retry",
+        ":github.com__google__s2a-go__stream",
+        ":google.golang.org__grpc__credentials",
+        ":google.golang.org__grpc__grpclog",
+        ":google.golang.org__grpc__peer",
+        ":google.golang.org__protobuf__proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__fallback",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["fallback"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc__credentials",
+        ":google.golang.org__grpc__grpclog",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__authinfo",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/authinfo"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__internal__proto__common_go_proto",
+        ":github.com__google__s2a-go__internal__proto__s2a_context_go_proto",
+        ":github.com__google__s2a-go__internal__proto__s2a_go_proto",
+        ":google.golang.org__grpc__credentials",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__handshaker",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/handshaker"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__internal__proto__common_go_proto",
+        ":github.com__google__s2a-go__internal__proto__s2a_go_proto",
+        ":github.com__google__s2a-go__internal__record",
+        ":github.com__google__s2a-go__internal__tokenmanager",
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__credentials",
+        ":google.golang.org__grpc__grpclog",
+        "//third_party/go:github.com__google__s2a-go__internal__authinfo",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__handshaker__service",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/handshaker/service"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__credentials",
+        ":google.golang.org__grpc__credentials__insecure",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__common_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/common_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__s2a_context_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/s2a_context_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__common_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__s2a_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/s2a_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__status",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__common_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/v2/common_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__v2__s2a_context_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/v2/s2a_context_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/proto/v2/s2a_go_proto"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__status",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_context_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__record",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/record"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__internal__record__internal__halfconn",
+        ":github.com__google__s2a-go__internal__tokenmanager",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__grpclog",
+        "//third_party/go:github.com__google__s2a-go__internal__handshaker__service",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__s2a_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__record__internal__aeadcrypter",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/record/internal/aeadcrypter"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__crypto__chacha20poly1305"],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__record__internal__halfconn",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/record/internal/halfconn"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__crypto__cryptobyte",
+        ":golang.org__x__crypto__hkdf",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__record__internal__aeadcrypter",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__tokenmanager",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/tokenmanager"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__google__s2a-go__internal__proto__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__v2",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/v2"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__internal__v2__tlsconfigstore",
+        ":github.com__google__s2a-go__retry",
+        ":github.com__google__s2a-go__stream",
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__credentials",
+        ":google.golang.org__grpc__grpclog",
+        ":google.golang.org__protobuf__proto",
+        "//third_party/go:github.com__google__s2a-go__fallback",
+        "//third_party/go:github.com__google__s2a-go__internal__handshaker__service",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__tokenmanager",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__v2__certverifier",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/v2/certverifier"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__stream",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__grpclog",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__v2__remotesigner",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/v2/remotesigner"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__stream",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__grpclog",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__internal__v2__tlsconfigstore",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["internal/v2/tlsconfigstore"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__s2a-go__stream",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__grpclog",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__common_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_go_proto",
+        "//third_party/go:github.com__google__s2a-go__internal__tokenmanager",
+        "//third_party/go:github.com__google__s2a-go__internal__v2__certverifier",
+        "//third_party/go:github.com__google__s2a-go__internal__v2__remotesigner",
+    ],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__retry",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["retry"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = [":google.golang.org__grpc__grpclog"],
+)
+
+go_module(
+    name = "github.com__google__s2a-go__stream",
+    download = ":_github.com__google__s2a-go#download",
+    install = ["stream"],
+    module = "github.com/google/s2a-go",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__google__s2a-go__internal__proto__v2__s2a_go_proto"],
+)
+
+go_mod_download(
     name = "github.com__google__uuid",
     _tag = "download",
     module = "github.com/google/uuid",
@@ -2275,6 +2818,32 @@ go_module(
     download = ":_github.com__google__uuid#download",
     install = ["."],
     module = "github.com/google/uuid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__googleapis__enterprise-certificate-proxy",
+    _tag = "download",
+    module = "github.com/googleapis/enterprise-certificate-proxy",
+    version = "v0.3.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__googleapis__enterprise-certificate-proxy__client",
+    download = ":_github.com__googleapis__enterprise-certificate-proxy#download",
+    install = ["client"],
+    module = "github.com/googleapis/enterprise-certificate-proxy",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__googleapis__enterprise-certificate-proxy__client__util"],
+)
+
+go_module(
+    name = "github.com__googleapis__enterprise-certificate-proxy__client__util",
+    download = ":_github.com__googleapis__enterprise-certificate-proxy#download",
+    install = ["client/util"],
+    module = "github.com/googleapis/enterprise-certificate-proxy",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -4628,8 +5197,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -4646,8 +5215,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -5573,6 +6142,185 @@ go_module(
 )
 
 go_mod_download(
+    name = "go.opencensus.io",
+    _tag = "download",
+    module = "go.opencensus.io",
+    version = "v0.24.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opencensus.io",
+    download = ":_go.opencensus.io#download",
+    install = ["."],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opencensus.io__internal",
+    download = ":_go.opencensus.io#download",
+    install = ["internal"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opencensus.io"],
+)
+
+go_module(
+    name = "go.opencensus.io__internal__tagencoding",
+    download = ":_go.opencensus.io#download",
+    install = ["internal/tagencoding"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opencensus.io__metric__metricdata",
+    download = ":_go.opencensus.io#download",
+    install = ["metric/metricdata"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [":go.opencensus.io__resource"],
+)
+
+go_module(
+    name = "go.opencensus.io__metric__metricproducer",
+    download = ":_go.opencensus.io#download",
+    install = ["metric/metricproducer"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opencensus.io__metric__metricdata"],
+)
+
+go_module(
+    name = "go.opencensus.io__plugin__ochttp",
+    download = ":_go.opencensus.io#download",
+    install = ["plugin/ochttp"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opencensus.io__plugin__ochttp__propagation__b3",
+        ":go.opencensus.io__stats",
+        ":go.opencensus.io__stats__view",
+        ":go.opencensus.io__tag",
+        ":go.opencensus.io__trace",
+        ":go.opencensus.io__trace__propagation",
+    ],
+)
+
+go_module(
+    name = "go.opencensus.io__plugin__ochttp__propagation__b3",
+    download = ":_go.opencensus.io#download",
+    install = ["plugin/ochttp/propagation/b3"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opencensus.io__trace",
+        ":go.opencensus.io__trace__propagation",
+    ],
+)
+
+go_module(
+    name = "go.opencensus.io__resource",
+    download = ":_go.opencensus.io#download",
+    install = ["resource"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opencensus.io__stats",
+    download = ":_go.opencensus.io#download",
+    install = ["stats"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opencensus.io__stats__internal",
+        ":go.opencensus.io__tag",
+        "//third_party/go:go.opencensus.io__metric__metricdata",
+    ],
+)
+
+go_module(
+    name = "go.opencensus.io__stats__internal",
+    download = ":_go.opencensus.io#download",
+    install = ["stats/internal"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [":go.opencensus.io__tag"],
+)
+
+go_module(
+    name = "go.opencensus.io__stats__view",
+    download = ":_go.opencensus.io#download",
+    install = ["stats/view"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opencensus.io__tag",
+        "//third_party/go:go.opencensus.io__internal__tagencoding",
+        "//third_party/go:go.opencensus.io__metric__metricdata",
+        "//third_party/go:go.opencensus.io__metric__metricproducer",
+        "//third_party/go:go.opencensus.io__resource",
+        "//third_party/go:go.opencensus.io__stats",
+        "//third_party/go:go.opencensus.io__stats__internal",
+    ],
+)
+
+go_module(
+    name = "go.opencensus.io__tag",
+    download = ":_go.opencensus.io#download",
+    install = ["tag"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opencensus.io__trace",
+    download = ":_go.opencensus.io#download",
+    install = ["trace"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opencensus.io__trace__internal",
+        ":go.opencensus.io__trace__tracestate",
+        "//third_party/go:github.com__golang__groupcache__lru",
+        "//third_party/go:go.opencensus.io__internal",
+    ],
+)
+
+go_module(
+    name = "go.opencensus.io__trace__internal",
+    download = ":_go.opencensus.io#download",
+    install = ["trace/internal"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opencensus.io__trace__propagation",
+    download = ":_go.opencensus.io#download",
+    install = ["trace/propagation"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opencensus.io__trace"],
+)
+
+go_module(
+    name = "go.opencensus.io__trace__tracestate",
+    download = ":_go.opencensus.io#download",
+    install = ["trace/tracestate"],
+    module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "go.opentelemetry.io__auto__sdk",
     _tag = "download",
     module = "go.opentelemetry.io/auto/sdk",
@@ -5880,6 +6628,79 @@ go_module(
     name = "golang.org__x__crypto__blowfish",
     download = ":_golang.org__x__crypto#download",
     install = ["blowfish"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__chacha20",
+    download = ":_golang.org__x__crypto#download",
+    install = ["chacha20"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__crypto__internal__alias"],
+)
+
+go_module(
+    name = "golang.org__x__crypto__chacha20poly1305",
+    download = ":_golang.org__x__crypto#download",
+    install = ["chacha20poly1305"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:golang.org__x__crypto__chacha20",
+        ":golang.org__x__crypto__internal__alias",
+        ":golang.org__x__crypto__internal__poly1305",
+    ] + select({
+        ":__config_darwin_amd64": [":golang.org__x__sys__cpu"],
+        ":__config_darwin_arm64": [],
+        ":__config_linux_amd64": [":golang.org__x__sys__cpu"],
+        ":__config_linux_arm64": [],
+        "default": [],
+    }),
+)
+
+go_module(
+    name = "golang.org__x__crypto__cryptobyte",
+    download = ":_golang.org__x__crypto#download",
+    install = ["cryptobyte"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__crypto__cryptobyte__asn1"],
+)
+
+go_module(
+    name = "golang.org__x__crypto__cryptobyte__asn1",
+    download = ":_golang.org__x__crypto#download",
+    install = ["cryptobyte/asn1"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__hkdf",
+    download = ":_golang.org__x__crypto#download",
+    install = ["hkdf"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__internal__alias",
+    download = ":_golang.org__x__crypto#download",
+    install = ["internal/alias"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__internal__poly1305",
+    download = ":_golang.org__x__crypto#download",
+    install = ["internal/poly1305"],
     module = "golang.org/x/crypto",
     visibility = ["PUBLIC"],
     deps = [],
@@ -6375,6 +7196,30 @@ go_module(
     module = "golang.org/x/text",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go:golang.org__x__text__transform"],
+)
+
+go_mod_download(
+    name = "google.golang.org__genai",
+    _tag = "download",
+    module = "google.golang.org/genai",
+    version = "v1.43.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "google.golang.org__genai",
+    download = ":_google.golang.org__genai#download",
+    install = ["."],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:cloud.google.com__go__auth",
+        "//third_party/go:cloud.google.com__go__auth__credentials",
+        "//third_party/go:cloud.google.com__go__auth__httptransport",
+        "//third_party/go:cloud.google.com__go__civil",
+        "//third_party/go:github.com__google__go-cmp__cmp",
+        "//third_party/go:github.com__gorilla__websocket",
+    ],
 )
 
 go_mod_download(

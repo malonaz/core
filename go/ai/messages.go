@@ -1,4 +1,3 @@
-// go/ai/messages.go
 package ai
 
 import (
@@ -32,12 +31,16 @@ func NewAssistantMessage(m *aipb.AssistantMessage) *aipb.Message {
 	}
 }
 
-func NewToolResultMessage(m *aipb.ToolResultMessage) *aipb.Message {
+func NewToolResultMessage(toolName, toolCallID string, toolResult *aipb.ToolResult) *aipb.Message {
 	return &aipb.Message{
 		CreateTime: timestamppb.Now(),
 		Role:       aipb.Role_ROLE_TOOL,
 		Message: &aipb.Message_Tool{
-			Tool: m,
+			Tool: &aipb.ToolResultMessage{
+				ToolCallId: toolCallID,
+				ToolName:   toolName,
+				Result:     toolResult,
+			},
 		},
 	}
 }

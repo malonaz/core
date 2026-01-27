@@ -27,6 +27,7 @@ go_library(
         "//go/ai/ai_service/provider/cartesia",
         "//go/ai/ai_service/provider/deepgram",
         "//go/ai/ai_service/provider/elevenlabs",
+        "//go/ai/ai_service/provider/google",
         "//go/ai/ai_service/provider/openai",
         "//go/ai/ai_service/provider/xai",
         "//go/grpc",

@@ -18,11 +18,11 @@
       },
       "provider_settings": {
         "thinking_config_key": "thinking_level",
-        "REASONING_EFFORT_UNSPECIFIED": "low",
-        "REASONING_EFFORT_DEFAULT": "low",
-        "REASONING_EFFORT_LOW": "low",
-        "REASONING_EFFORT_MEDIUM": "high",
-        "REASONING_EFFORT_HIGH": "high"
+        "REASONING_EFFORT_UNSPECIFIED": "LOW",
+        "REASONING_EFFORT_DEFAULT": "LOW",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "HIGH",
+        "REASONING_EFFORT_HIGH": "HIGH"
       }
     },
     {
@@ -43,11 +43,11 @@
       },
       "provider_settings": {
         "thinking_config_key": "thinking_level",
-        "REASONING_EFFORT_UNSPECIFIED": "minimal",
-        "REASONING_EFFORT_DEFAULT": "medium",
-        "REASONING_EFFORT_LOW": "low",
-        "REASONING_EFFORT_MEDIUM": "medium",
-        "REASONING_EFFORT_HIGH": "high"
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH"
       }
     },
     {

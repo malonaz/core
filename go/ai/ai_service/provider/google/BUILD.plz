@@ -1,0 +1,20 @@
+go_library(
+    name = "google",
+    srcs = [
+        "google.go",
+        "text_to_text_stream.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai",
+        "//go/ai/ai_service/provider",
+        "//go/grpc",
+        "//go/pbutil",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__genai",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)

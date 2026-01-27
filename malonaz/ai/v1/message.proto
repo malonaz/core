@@ -89,6 +89,9 @@ message ToolResultMessage {
   // Must match the id field from a ToolCall in a preceding AssistantMessage.
   string tool_call_id = 1 [(buf.validate.field).required = true];
 
+  // The name of the tool that created this result.
+  string tool_name = 3 [(buf.validate.field).required = true];
+
   // The result of a tool execution.
   ToolResult result = 2;
 }
