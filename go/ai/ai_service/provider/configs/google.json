@@ -26,6 +26,30 @@
       }
     },
     {
+      "name": "providers/google/models/gemini-3-pro-image-preview",
+      "provider_model_id": "gemini-3-pro-image-preview",
+      "description": "Gemini 3 Pro with native image generation capabilities, supporting multimodal input/output with text and images.",
+      "ttt": {
+        "reasoning": false,
+        "tool_call": false,
+        "context_token_limit": 65536,
+        "output_token_limit": 32768,
+        "pricing": {
+          "input_token_price_per_million": 2,
+          "output_token_price_per_million": 12,
+          "input_cache_read_token_price_per_million": 0.19999999999999998
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "LOW",
+        "REASONING_EFFORT_DEFAULT": "LOW",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "HIGH",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+    {
       "name": "providers/google/models/gemini-3-flash-preview",
       "provider_model_id": "gemini-3-flash-preview",
       "description": "Our most intelligent model built for speed, combining frontier intelligence with superior search and grounding.",

@@ -595,6 +595,7 @@ type AssistantMessage struct {
 	xxx_hidden_Content           string                 `protobuf:"bytes,2,opt,name=content,proto3"`
 	xxx_hidden_StructuredContent *structpb.Struct       `protobuf:"bytes,3,opt,name=structured_content,json=structuredContent,proto3"`
 	xxx_hidden_ToolCalls         *[]*ToolCall           `protobuf:"bytes,4,rep,name=tool_calls,json=toolCalls,proto3"`
+	xxx_hidden_Images            *[]*Image              `protobuf:"bytes,5,rep,name=images,proto3"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -654,6 +655,15 @@ func (x *AssistantMessage) GetToolCalls() []*ToolCall {
 	return nil
 }
 
+func (x *AssistantMessage) GetImages() []*Image {
+	if x != nil {
+		if x.xxx_hidden_Images != nil {
+			return *x.xxx_hidden_Images
+		}
+	}
+	return nil
+}
+
 func (x *AssistantMessage) SetReasoning(v string) {
 	x.xxx_hidden_Reasoning = v
 }
@@ -668,6 +678,10 @@ func (x *AssistantMessage) SetStructuredContent(v *structpb.Struct) {
 
 func (x *AssistantMessage) SetToolCalls(v []*ToolCall) {
 	x.xxx_hidden_ToolCalls = &v
+}
+
+func (x *AssistantMessage) SetImages(v []*Image) {
+	x.xxx_hidden_Images = &v
 }
 
 func (x *AssistantMessage) HasStructuredContent() bool {
@@ -696,6 +710,8 @@ type AssistantMessage_builder struct {
 	// When present, the caller should execute these tools and return results
 	// via ToolMessage before continuing the conversation.
 	ToolCalls []*ToolCall
+	// Generated images.
+	Images []*Image
 }
 
 func (b0 AssistantMessage_builder) Build() *AssistantMessage {
@@ -706,6 +722,7 @@ func (b0 AssistantMessage_builder) Build() *AssistantMessage {
 	x.xxx_hidden_Content = b.Content
 	x.xxx_hidden_StructuredContent = b.StructuredContent
 	x.xxx_hidden_ToolCalls = &b.ToolCalls
+	x.xxx_hidden_Images = &b.Images
 	return m0
 }
 
@@ -915,7 +932,7 @@ func (x *ContentBlock) GetText() string {
 	return ""
 }
 
-func (x *ContentBlock) GetImage() *ImageBlock {
+func (x *ContentBlock) GetImage() *Image {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Content.(*contentBlock_Image); ok {
 			return x.Image
@@ -928,7 +945,7 @@ func (x *ContentBlock) SetText(v string) {
 	x.xxx_hidden_Content = &contentBlock_Text{v}
 }
 
-func (x *ContentBlock) SetImage(v *ImageBlock) {
+func (x *ContentBlock) SetImage(v *Image) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
@@ -1002,7 +1019,7 @@ type ContentBlock_builder struct {
 	// Text content.
 	Text *string
 	// Image content.
-	Image *ImageBlock
+	Image *Image
 	// -- end of xxx_hidden_Content
 }
 
@@ -1040,37 +1057,37 @@ type contentBlock_Text struct {
 
 type contentBlock_Image struct {
 	// Image content.
-	Image *ImageBlock `protobuf:"bytes,2,opt,name=image,proto3,oneof"`
+	Image *Image `protobuf:"bytes,2,opt,name=image,proto3,oneof"`
 }
 
 func (*contentBlock_Text) isContentBlock_Content() {}
 
 func (*contentBlock_Image) isContentBlock_Content() {}
 
-// An image block within a message.
-type ImageBlock struct {
+// An image block.
+type Image struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Source    isImageBlock_Source    `protobuf_oneof:"source"`
+	xxx_hidden_Source    isImage_Source         `protobuf_oneof:"source"`
 	xxx_hidden_MediaType string                 `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3"`
 	xxx_hidden_Quality   ImageQuality           `protobuf:"varint,4,opt,name=quality,proto3,enum=malonaz.ai.v1.ImageQuality"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
 
-func (x *ImageBlock) Reset() {
-	*x = ImageBlock{}
+func (x *Image) Reset() {
+	*x = Image{}
 	mi := &file_malonaz_ai_v1_message_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ImageBlock) String() string {
+func (x *Image) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ImageBlock) ProtoMessage() {}
+func (*Image) ProtoMessage() {}
 
-func (x *ImageBlock) ProtoReflect() protoreflect.Message {
+func (x *Image) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_v1_message_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1082,115 +1099,115 @@ func (x *ImageBlock) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ImageBlock) GetData() []byte {
+func (x *Image) GetData() []byte {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Source.(*imageBlock_Data); ok {
+		if x, ok := x.xxx_hidden_Source.(*image_Data); ok {
 			return x.Data
 		}
 	}
 	return nil
 }
 
-func (x *ImageBlock) GetUrl() string {
+func (x *Image) GetUrl() string {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Source.(*imageBlock_Url); ok {
+		if x, ok := x.xxx_hidden_Source.(*image_Url); ok {
 			return x.Url
 		}
 	}
 	return ""
 }
 
-func (x *ImageBlock) GetMediaType() string {
+func (x *Image) GetMediaType() string {
 	if x != nil {
 		return x.xxx_hidden_MediaType
 	}
 	return ""
 }
 
-func (x *ImageBlock) GetQuality() ImageQuality {
+func (x *Image) GetQuality() ImageQuality {
 	if x != nil {
 		return x.xxx_hidden_Quality
 	}
 	return ImageQuality_IMAGE_QUALITY_UNSPECIFIED
 }
 
-func (x *ImageBlock) SetData(v []byte) {
+func (x *Image) SetData(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.xxx_hidden_Source = &imageBlock_Data{v}
+	x.xxx_hidden_Source = &image_Data{v}
 }
 
-func (x *ImageBlock) SetUrl(v string) {
-	x.xxx_hidden_Source = &imageBlock_Url{v}
+func (x *Image) SetUrl(v string) {
+	x.xxx_hidden_Source = &image_Url{v}
 }
 
-func (x *ImageBlock) SetMediaType(v string) {
+func (x *Image) SetMediaType(v string) {
 	x.xxx_hidden_MediaType = v
 }
 
-func (x *ImageBlock) SetQuality(v ImageQuality) {
+func (x *Image) SetQuality(v ImageQuality) {
 	x.xxx_hidden_Quality = v
 }
 
-func (x *ImageBlock) HasSource() bool {
+func (x *Image) HasSource() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Source != nil
 }
 
-func (x *ImageBlock) HasData() bool {
+func (x *Image) HasData() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Source.(*imageBlock_Data)
+	_, ok := x.xxx_hidden_Source.(*image_Data)
 	return ok
 }
 
-func (x *ImageBlock) HasUrl() bool {
+func (x *Image) HasUrl() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Source.(*imageBlock_Url)
+	_, ok := x.xxx_hidden_Source.(*image_Url)
 	return ok
 }
 
-func (x *ImageBlock) ClearSource() {
+func (x *Image) ClearSource() {
 	x.xxx_hidden_Source = nil
 }
 
-func (x *ImageBlock) ClearData() {
-	if _, ok := x.xxx_hidden_Source.(*imageBlock_Data); ok {
+func (x *Image) ClearData() {
+	if _, ok := x.xxx_hidden_Source.(*image_Data); ok {
 		x.xxx_hidden_Source = nil
 	}
 }
 
-func (x *ImageBlock) ClearUrl() {
-	if _, ok := x.xxx_hidden_Source.(*imageBlock_Url); ok {
+func (x *Image) ClearUrl() {
+	if _, ok := x.xxx_hidden_Source.(*image_Url); ok {
 		x.xxx_hidden_Source = nil
 	}
 }
 
-const ImageBlock_Source_not_set_case case_ImageBlock_Source = 0
-const ImageBlock_Data_case case_ImageBlock_Source = 1
-const ImageBlock_Url_case case_ImageBlock_Source = 2
+const Image_Source_not_set_case case_Image_Source = 0
+const Image_Data_case case_Image_Source = 1
+const Image_Url_case case_Image_Source = 2
 
-func (x *ImageBlock) WhichSource() case_ImageBlock_Source {
+func (x *Image) WhichSource() case_Image_Source {
 	if x == nil {
-		return ImageBlock_Source_not_set_case
+		return Image_Source_not_set_case
 	}
 	switch x.xxx_hidden_Source.(type) {
-	case *imageBlock_Data:
-		return ImageBlock_Data_case
-	case *imageBlock_Url:
-		return ImageBlock_Url_case
+	case *image_Data:
+		return Image_Data_case
+	case *image_Url:
+		return Image_Url_case
 	default:
-		return ImageBlock_Source_not_set_case
+		return Image_Source_not_set_case
 	}
 }
 
-type ImageBlock_builder struct {
+type Image_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The image source.
@@ -1209,24 +1226,24 @@ type ImageBlock_builder struct {
 	Quality ImageQuality
 }
 
-func (b0 ImageBlock_builder) Build() *ImageBlock {
-	m0 := &ImageBlock{}
+func (b0 Image_builder) Build() *Image {
+	m0 := &Image{}
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Data != nil {
-		x.xxx_hidden_Source = &imageBlock_Data{b.Data}
+		x.xxx_hidden_Source = &image_Data{b.Data}
 	}
 	if b.Url != nil {
-		x.xxx_hidden_Source = &imageBlock_Url{*b.Url}
+		x.xxx_hidden_Source = &image_Url{*b.Url}
 	}
 	x.xxx_hidden_MediaType = b.MediaType
 	x.xxx_hidden_Quality = b.Quality
 	return m0
 }
 
-type case_ImageBlock_Source protoreflect.FieldNumber
+type case_Image_Source protoreflect.FieldNumber
 
-func (x case_ImageBlock_Source) String() string {
+func (x case_Image_Source) String() string {
 	md := file_malonaz_ai_v1_message_proto_msgTypes[6].Descriptor()
 	if x == 0 {
 		return "not set"
@@ -1234,24 +1251,24 @@ func (x case_ImageBlock_Source) String() string {
 	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
 }
 
-type isImageBlock_Source interface {
-	isImageBlock_Source()
+type isImage_Source interface {
+	isImage_Source()
 }
 
-type imageBlock_Data struct {
+type image_Data struct {
 	// Raw image bytes.
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3,oneof"`
 }
 
-type imageBlock_Url struct {
+type image_Url struct {
 	// URL to the image. Supports both HTTPS URLs and data URLs
 	// (e.g., "data:image/png;base64,...").
 	Url string `protobuf:"bytes,2,opt,name=url,proto3,oneof"`
 }
 
-func (*imageBlock_Data) isImageBlock_Source() {}
+func (*image_Data) isImage_Source() {}
 
-func (*imageBlock_Url) isImageBlock_Source() {}
+func (*image_Url) isImage_Source() {}
 
 var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
@@ -1275,33 +1292,33 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x19role_matches_message_type\x12\x1crole must match message type\x1a\x9b\x01(this.role == 1 && has(this.system)) || (this.role == 2 && has(this.assistant)) || (this.role == 3 && has(this.user)) || (this.role == 4 && has(this.tool))B\x10\n" +
 	"\amessage\x12\x05\xbaH\x02\b\x01\"1\n" +
 	"\rSystemMessage\x12 \n" +
-	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\xa9\x03\n" +
+	"\acontent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\xf6\x03\n" +
 	"\x10AssistantMessage\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\tR\treasoning\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12F\n" +
 	"\x12structured_content\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x11structuredContent\x126\n" +
 	"\n" +
-	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls:\xdc\x01\xbaH\xd8\x01\x1a\xd5\x01\n" +
-	"(assistant_requires_content_or_tool_calls\x12XAssistantMessage must have either content, structured_content, or at least one tool_call\x1aOthis.content != '' || has(this.structured_content) || size(this.tool_calls) > 0\"\x95\x01\n" +
+	"tool_calls\x18\x04 \x03(\v2\x17.malonaz.ai.v1.ToolCallR\ttoolCalls\x12,\n" +
+	"\x06images\x18\x05 \x03(\v2\x14.malonaz.ai.v1.ImageR\x06images:\xfb\x01\xbaH\xf7\x01\x1a\xf4\x01\n" +
+	"(assistant_requires_content_or_tool_calls\x12^AssistantMessage must have either content, structured_content, tool_calls, or generated_images\x1ahthis.content != '' || has(this.structured_content) || size(this.tool_calls) > 0 || size(this.images) > 0\"\x95\x01\n" +
 	"\x11ToolResultMessage\x12(\n" +
 	"\ftool_call_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"toolCallId\x12#\n" +
 	"\ttool_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\btoolName\x121\n" +
 	"\x06result\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result\"[\n" +
 	"\vUserMessage\x12L\n" +
-	"\x0econtent_blocks\x18\x01 \x03(\v2\x1b.malonaz.ai.v1.ContentBlockB\b\xbaH\x05\x92\x01\x02\b\x01R\rcontentBlocks\"i\n" +
+	"\x0econtent_blocks\x18\x01 \x03(\v2\x1b.malonaz.ai.v1.ContentBlockB\b\xbaH\x05\x92\x01\x02\b\x01R\rcontentBlocks\"d\n" +
 	"\fContentBlock\x12\x14\n" +
-	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x121\n" +
-	"\x05image\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ImageBlockH\x00R\x05imageB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\xab\x02\n" +
-	"\n" +
-	"ImageBlock\x12\x14\n" +
+	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x12,\n" +
+	"\x05image\x18\x02 \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05imageB\x10\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\x9f\x02\n" +
+	"\x05Image\x12\x14\n" +
 	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
 	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x03 \x01(\tR\tmediaType\x12?\n" +
-	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:\x81\x01\xbaH~\x1a|\n" +
-	"(image_block_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
+	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:{\xbaHx\x1av\n" +
+	"\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
 	"\x06source\x12\x05\xbaH\x02\b\x01*\xa3\x01\n" +
 	"\x0fReasoningEffort\x12 \n" +
 	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
@@ -1333,7 +1350,7 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(*ToolResultMessage)(nil),     // 6: malonaz.ai.v1.ToolResultMessage
 	(*UserMessage)(nil),           // 7: malonaz.ai.v1.UserMessage
 	(*ContentBlock)(nil),          // 8: malonaz.ai.v1.ContentBlock
-	(*ImageBlock)(nil),            // 9: malonaz.ai.v1.ImageBlock
+	(*Image)(nil),                 // 9: malonaz.ai.v1.Image
 	nil,                           // 10: malonaz.ai.v1.Message.MetadataEntry
 	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
@@ -1350,15 +1367,16 @@ var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
 	6,  // 6: malonaz.ai.v1.Message.tool:type_name -> malonaz.ai.v1.ToolResultMessage
 	12, // 7: malonaz.ai.v1.AssistantMessage.structured_content:type_name -> google.protobuf.Struct
 	13, // 8: malonaz.ai.v1.AssistantMessage.tool_calls:type_name -> malonaz.ai.v1.ToolCall
-	14, // 9: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
-	8,  // 10: malonaz.ai.v1.UserMessage.content_blocks:type_name -> malonaz.ai.v1.ContentBlock
-	9,  // 11: malonaz.ai.v1.ContentBlock.image:type_name -> malonaz.ai.v1.ImageBlock
-	2,  // 12: malonaz.ai.v1.ImageBlock.quality:type_name -> malonaz.ai.v1.ImageQuality
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	9,  // 9: malonaz.ai.v1.AssistantMessage.images:type_name -> malonaz.ai.v1.Image
+	14, // 10: malonaz.ai.v1.ToolResultMessage.result:type_name -> malonaz.ai.v1.ToolResult
+	8,  // 11: malonaz.ai.v1.UserMessage.content_blocks:type_name -> malonaz.ai.v1.ContentBlock
+	9,  // 12: malonaz.ai.v1.ContentBlock.image:type_name -> malonaz.ai.v1.Image
+	2,  // 13: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -1378,8 +1396,8 @@ func file_malonaz_ai_v1_message_proto_init() {
 		(*contentBlock_Image)(nil),
 	}
 	file_malonaz_ai_v1_message_proto_msgTypes[6].OneofWrappers = []any{
-		(*imageBlock_Data)(nil),
-		(*imageBlock_Url)(nil),
+		(*image_Data)(nil),
+		(*image_Url)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

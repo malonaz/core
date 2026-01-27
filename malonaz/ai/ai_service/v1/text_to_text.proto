@@ -36,6 +36,42 @@ message TextToTextConfiguration {
 
   // If true, we stream partial tool calls.
   bool stream_partial_tool_calls = 6;
+
+  // Image generation configuration.
+  ImageGenerationConfig image_config = 7;
+}
+
+// Configuration for image generation in text-to-text requests.
+// Used with models that support native image generation (e.g., Gemini 2.5 Flash Image, Gemini 3 Pro Image).
+message ImageGenerationConfig {
+  // Aspect ratio of generated images.
+  // Defaults to matching input image size, or "1:1" if no input image.
+  string aspect_ratio = 1 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9"
+    ]
+  }];
+
+  // Resolution of generated images. Only supported by Gemini 3 Pro Image.
+  // Defaults to "1K".
+  string image_size = 2 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1K",
+      "2K",
+      "4K"
+    ]
+  }];
 }
 
 // Request message for AiService.TextToText.
@@ -144,5 +180,8 @@ message TextToTextStreamResponse {
 
     // Generation metrics (sent last).
     .malonaz.ai.v1.GenerationMetrics generation_metrics = 7;
+
+    // Images generated.
+    .malonaz.ai.v1.Image image = 8;
   }
 }

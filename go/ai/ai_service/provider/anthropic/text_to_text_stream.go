@@ -47,11 +47,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					contentBlocks = append(contentBlocks, anthropic.NewTextBlock(c.Text))
 				case *aipb.ContentBlock_Image:
 					switch s := c.Image.GetSource().(type) {
-					case *aipb.ImageBlock_Url:
+					case *aipb.Image_Url:
 						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.URLImageSourceParam{
 							URL: s.Url,
 						}))
-					case *aipb.ImageBlock_Data:
+					case *aipb.Image_Data:
 						mediaType := anthropic.Base64ImageSourceMediaType(c.Image.MediaType)
 						if _, ok := imageSourceMediaTypeSet[mediaType]; !ok {
 							return grpc.Errorf(codes.InvalidArgument, "unsupported media type %s", c.Image.MediaType).Err()

@@ -109,8 +109,8 @@ func NewTextBlock(text string) *aipb.ContentBlock {
 func NewImageBlockFromURL(url string) *aipb.ContentBlock {
 	return &aipb.ContentBlock{
 		Content: &aipb.ContentBlock_Image{
-			Image: &aipb.ImageBlock{
-				Source: &aipb.ImageBlock_Url{Url: url},
+			Image: &aipb.Image{
+				Source: &aipb.Image_Url{Url: url},
 			},
 		},
 	}
@@ -119,8 +119,8 @@ func NewImageBlockFromURL(url string) *aipb.ContentBlock {
 func NewImageBlockFromData(data []byte, mediaType string) *aipb.ContentBlock {
 	return &aipb.ContentBlock{
 		Content: &aipb.ContentBlock_Image{
-			Image: &aipb.ImageBlock{
-				Source:    &aipb.ImageBlock_Data{Data: data},
+			Image: &aipb.Image{
+				Source:    &aipb.Image_Data{Data: data},
 				MediaType: mediaType,
 			},
 		},

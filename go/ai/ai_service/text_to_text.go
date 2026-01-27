@@ -160,12 +160,6 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		// OUTPUT REASONING TOKENS.
 		if outputReasoningToken := modelUsage.GetOutputReasoningToken(); outputReasoningToken != nil {
 			if existingOutputReasoningToken := w.modelUsage.GetOutputReasoningToken(); existingOutputReasoningToken != nil {
-				if outputReasoningToken.Quantity < existingOutputReasoningToken.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received output reasoning tokens with smaller quantity: previous %d, current %d",
-						existingOutputReasoningToken.Quantity, outputReasoningToken.Quantity,
-					).Err()
-				}
 				if outputReasoningToken.Quantity == existingOutputReasoningToken.Quantity {
 					modelUsage.OutputReasoningToken = nil
 				} else {
@@ -175,7 +169,6 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 				w.modelUsage.OutputReasoningToken = outputReasoningToken
 			}
 		}
-
 		// Skip sending empty model usage responses
 		if modelUsage.InputToken == nil && modelUsage.InputCacheReadToken == nil &&
 			modelUsage.InputCacheWriteToken == nil && modelUsage.OutputToken == nil &&

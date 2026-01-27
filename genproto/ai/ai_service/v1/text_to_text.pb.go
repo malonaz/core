@@ -108,8 +108,10 @@ type TextToTextConfiguration struct {
 	ExtractJsonObject bool `protobuf:"varint,5,opt,name=extract_json_object,json=extractJsonObject,proto3" json:"extract_json_object,omitempty"`
 	// If true, we stream partial tool calls.
 	StreamPartialToolCalls bool `protobuf:"varint,6,opt,name=stream_partial_tool_calls,json=streamPartialToolCalls,proto3" json:"stream_partial_tool_calls,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// Image generation configuration.
+	ImageConfig   *ImageGenerationConfig `protobuf:"bytes,7,opt,name=image_config,json=imageConfig,proto3" json:"image_config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TextToTextConfiguration) Reset() {
@@ -179,6 +181,13 @@ func (x *TextToTextConfiguration) GetStreamPartialToolCalls() bool {
 	return false
 }
 
+func (x *TextToTextConfiguration) GetImageConfig() *ImageGenerationConfig {
+	if x != nil {
+		return x.ImageConfig
+	}
+	return nil
+}
+
 func (x *TextToTextConfiguration) SetMaxTokens(v int32) {
 	x.MaxTokens = v
 }
@@ -203,6 +212,10 @@ func (x *TextToTextConfiguration) SetStreamPartialToolCalls(v bool) {
 	x.StreamPartialToolCalls = v
 }
 
+func (x *TextToTextConfiguration) SetImageConfig(v *ImageGenerationConfig) {
+	x.ImageConfig = v
+}
+
 func (x *TextToTextConfiguration) HasToolChoice() bool {
 	if x == nil {
 		return false
@@ -210,8 +223,19 @@ func (x *TextToTextConfiguration) HasToolChoice() bool {
 	return x.ToolChoice != nil
 }
 
+func (x *TextToTextConfiguration) HasImageConfig() bool {
+	if x == nil {
+		return false
+	}
+	return x.ImageConfig != nil
+}
+
 func (x *TextToTextConfiguration) ClearToolChoice() {
 	x.ToolChoice = nil
+}
+
+func (x *TextToTextConfiguration) ClearImageConfig() {
+	x.ImageConfig = nil
 }
 
 type TextToTextConfiguration_builder struct {
@@ -233,6 +257,8 @@ type TextToTextConfiguration_builder struct {
 	ExtractJsonObject bool
 	// If true, we stream partial tool calls.
 	StreamPartialToolCalls bool
+	// Image generation configuration.
+	ImageConfig *ImageGenerationConfig
 }
 
 func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
@@ -245,6 +271,88 @@ func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
 	x.ReasoningEffort = b.ReasoningEffort
 	x.ExtractJsonObject = b.ExtractJsonObject
 	x.StreamPartialToolCalls = b.StreamPartialToolCalls
+	x.ImageConfig = b.ImageConfig
+	return m0
+}
+
+// Configuration for image generation in text-to-text requests.
+// Used with models that support native image generation (e.g., Gemini 2.5 Flash Image, Gemini 3 Pro Image).
+type ImageGenerationConfig struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Aspect ratio of generated images.
+	// Defaults to matching input image size, or "1:1" if no input image.
+	AspectRatio string `protobuf:"bytes,1,opt,name=aspect_ratio,json=aspectRatio,proto3" json:"aspect_ratio,omitempty"`
+	// Resolution of generated images. Only supported by Gemini 3 Pro Image.
+	// Defaults to "1K".
+	ImageSize     string `protobuf:"bytes,2,opt,name=image_size,json=imageSize,proto3" json:"image_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImageGenerationConfig) Reset() {
+	*x = ImageGenerationConfig{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImageGenerationConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageGenerationConfig) ProtoMessage() {}
+
+func (x *ImageGenerationConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImageGenerationConfig) GetAspectRatio() string {
+	if x != nil {
+		return x.AspectRatio
+	}
+	return ""
+}
+
+func (x *ImageGenerationConfig) GetImageSize() string {
+	if x != nil {
+		return x.ImageSize
+	}
+	return ""
+}
+
+func (x *ImageGenerationConfig) SetAspectRatio(v string) {
+	x.AspectRatio = v
+}
+
+func (x *ImageGenerationConfig) SetImageSize(v string) {
+	x.ImageSize = v
+}
+
+type ImageGenerationConfig_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Aspect ratio of generated images.
+	// Defaults to matching input image size, or "1:1" if no input image.
+	AspectRatio string
+	// Resolution of generated images. Only supported by Gemini 3 Pro Image.
+	// Defaults to "1K".
+	ImageSize string
+}
+
+func (b0 ImageGenerationConfig_builder) Build() *ImageGenerationConfig {
+	m0 := &ImageGenerationConfig{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.AspectRatio = b.AspectRatio
+	x.ImageSize = b.ImageSize
 	return m0
 }
 
@@ -266,7 +374,7 @@ type TextToTextRequest struct {
 
 func (x *TextToTextRequest) Reset() {
 	*x = TextToTextRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -278,7 +386,7 @@ func (x *TextToTextRequest) String() string {
 func (*TextToTextRequest) ProtoMessage() {}
 
 func (x *TextToTextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -386,7 +494,7 @@ type TextToTextResponse struct {
 
 func (x *TextToTextResponse) Reset() {
 	*x = TextToTextResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +506,7 @@ func (x *TextToTextResponse) String() string {
 func (*TextToTextResponse) ProtoMessage() {}
 
 func (x *TextToTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -530,7 +638,7 @@ type TextToTextStreamRequest struct {
 
 func (x *TextToTextStreamRequest) Reset() {
 	*x = TextToTextStreamRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -542,7 +650,7 @@ func (x *TextToTextStreamRequest) String() string {
 func (*TextToTextStreamRequest) ProtoMessage() {}
 
 func (x *TextToTextStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -661,6 +769,7 @@ type TextToTextStreamResponse struct {
 	//	*TextToTextStreamResponse_PartialToolCall
 	//	*TextToTextStreamResponse_ModelUsage
 	//	*TextToTextStreamResponse_GenerationMetrics
+	//	*TextToTextStreamResponse_Image
 	Content       isTextToTextStreamResponse_Content `protobuf_oneof:"content"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -668,7 +777,7 @@ type TextToTextStreamResponse struct {
 
 func (x *TextToTextStreamResponse) Reset() {
 	*x = TextToTextStreamResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -680,7 +789,7 @@ func (x *TextToTextStreamResponse) String() string {
 func (*TextToTextStreamResponse) ProtoMessage() {}
 
 func (x *TextToTextStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -761,6 +870,15 @@ func (x *TextToTextStreamResponse) GetGenerationMetrics() *v1.GenerationMetrics 
 	return nil
 }
 
+func (x *TextToTextStreamResponse) GetImage() *v1.Image {
+	if x != nil {
+		if x, ok := x.Content.(*TextToTextStreamResponse_Image); ok {
+			return x.Image
+		}
+	}
+	return nil
+}
+
 func (x *TextToTextStreamResponse) SetContentChunk(v string) {
 	x.Content = &TextToTextStreamResponse_ContentChunk{v}
 }
@@ -803,6 +921,14 @@ func (x *TextToTextStreamResponse) SetGenerationMetrics(v *v1.GenerationMetrics)
 		return
 	}
 	x.Content = &TextToTextStreamResponse_GenerationMetrics{v}
+}
+
+func (x *TextToTextStreamResponse) SetImage(v *v1.Image) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &TextToTextStreamResponse_Image{v}
 }
 
 func (x *TextToTextStreamResponse) HasContent() bool {
@@ -868,6 +994,14 @@ func (x *TextToTextStreamResponse) HasGenerationMetrics() bool {
 	return ok
 }
 
+func (x *TextToTextStreamResponse) HasImage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*TextToTextStreamResponse_Image)
+	return ok
+}
+
 func (x *TextToTextStreamResponse) ClearContent() {
 	x.Content = nil
 }
@@ -914,6 +1048,12 @@ func (x *TextToTextStreamResponse) ClearGenerationMetrics() {
 	}
 }
 
+func (x *TextToTextStreamResponse) ClearImage() {
+	if _, ok := x.Content.(*TextToTextStreamResponse_Image); ok {
+		x.Content = nil
+	}
+}
+
 const TextToTextStreamResponse_Content_not_set_case case_TextToTextStreamResponse_Content = 0
 const TextToTextStreamResponse_ContentChunk_case case_TextToTextStreamResponse_Content = 1
 const TextToTextStreamResponse_ReasoningChunk_case case_TextToTextStreamResponse_Content = 2
@@ -922,6 +1062,7 @@ const TextToTextStreamResponse_ToolCall_case case_TextToTextStreamResponse_Conte
 const TextToTextStreamResponse_PartialToolCall_case case_TextToTextStreamResponse_Content = 5
 const TextToTextStreamResponse_ModelUsage_case case_TextToTextStreamResponse_Content = 6
 const TextToTextStreamResponse_GenerationMetrics_case case_TextToTextStreamResponse_Content = 7
+const TextToTextStreamResponse_Image_case case_TextToTextStreamResponse_Content = 8
 
 func (x *TextToTextStreamResponse) WhichContent() case_TextToTextStreamResponse_Content {
 	if x == nil {
@@ -942,6 +1083,8 @@ func (x *TextToTextStreamResponse) WhichContent() case_TextToTextStreamResponse_
 		return TextToTextStreamResponse_ModelUsage_case
 	case *TextToTextStreamResponse_GenerationMetrics:
 		return TextToTextStreamResponse_GenerationMetrics_case
+	case *TextToTextStreamResponse_Image:
+		return TextToTextStreamResponse_Image_case
 	default:
 		return TextToTextStreamResponse_Content_not_set_case
 	}
@@ -967,6 +1110,8 @@ type TextToTextStreamResponse_builder struct {
 	ModelUsage *v1.ModelUsage
 	// Generation metrics (sent last).
 	GenerationMetrics *v1.GenerationMetrics
+	// Images generated.
+	Image *v1.Image
 	// -- end of Content
 }
 
@@ -995,13 +1140,16 @@ func (b0 TextToTextStreamResponse_builder) Build() *TextToTextStreamResponse {
 	if b.GenerationMetrics != nil {
 		x.Content = &TextToTextStreamResponse_GenerationMetrics{b.GenerationMetrics}
 	}
+	if b.Image != nil {
+		x.Content = &TextToTextStreamResponse_Image{b.Image}
+	}
 	return m0
 }
 
 type case_TextToTextStreamResponse_Content protoreflect.FieldNumber
 
 func (x case_TextToTextStreamResponse_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[5].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1047,6 +1195,11 @@ type TextToTextStreamResponse_GenerationMetrics struct {
 	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,7,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
+type TextToTextStreamResponse_Image struct {
+	// Images generated.
+	Image *v1.Image `protobuf:"bytes,8,opt,name=image,proto3,oneof"`
+}
+
 func (*TextToTextStreamResponse_ContentChunk) isTextToTextStreamResponse_Content() {}
 
 func (*TextToTextStreamResponse_ReasoningChunk) isTextToTextStreamResponse_Content() {}
@@ -1061,11 +1214,13 @@ func (*TextToTextStreamResponse_ModelUsage) isTextToTextStreamResponse_Content()
 
 func (*TextToTextStreamResponse_GenerationMetrics) isTextToTextStreamResponse_Content() {}
 
+func (*TextToTextStreamResponse_Image) isTextToTextStreamResponse_Content() {}
+
 var File_malonaz_ai_ai_service_v1_text_to_text_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\n" +
-	"+malonaz/ai/ai_service/v1/text_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xee\x02\n" +
+	"+malonaz/ai/ai_service/v1/text_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xc2\x03\n" +
 	"\x17TextToTextConfiguration\x12&\n" +
 	"\n" +
 	"max_tokens\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tmaxTokens\x129\n" +
@@ -1074,7 +1229,12 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"toolChoice\x12I\n" +
 	"\x10reasoning_effort\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12.\n" +
 	"\x13extract_json_object\x18\x05 \x01(\bR\x11extractJsonObject\x129\n" +
-	"\x19stream_partial_tool_calls\x18\x06 \x01(\bR\x16streamPartialToolCalls\"\x8c\x02\n" +
+	"\x19stream_partial_tool_calls\x18\x06 \x01(\bR\x16streamPartialToolCalls\x12R\n" +
+	"\fimage_config\x18\a \x01(\v2/.malonaz.ai.ai_service.v1.ImageGenerationConfigR\vimageConfig\"\xac\x01\n" +
+	"\x15ImageGenerationConfig\x12_\n" +
+	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
+	"\n" +
+	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\x8c\x02\n" +
 	"\x11TextToTextRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
@@ -1095,7 +1255,7 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
 	"\vtool_choice\x18\x04 \x01(\tR\n" +
 	"toolChoice\x12W\n" +
-	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xe1\x03\n" +
+	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\x8f\x04\n" +
 	"\x18TextToTextStreamResponse\x12%\n" +
 	"\rcontent_chunk\x18\x01 \x01(\tH\x00R\fcontentChunk\x12)\n" +
 	"\x0freasoning_chunk\x18\x02 \x01(\tH\x00R\x0ereasoningChunk\x12Q\n" +
@@ -1105,7 +1265,8 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x11partial_tool_call\x18\x05 \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\x0fpartialToolCall\x12<\n" +
 	"\vmodel_usage\x18\x06 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12Q\n" +
-	"\x12generation_metrics\x18\a \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
+	"\x12generation_metrics\x18\a \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetrics\x12,\n" +
+	"\x05image\x18\b \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05imageB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01*\xb3\x02\n" +
 	"\x14TextToTextStopReason\x12(\n" +
 	"$TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED\x10\x00\x12%\n" +
@@ -1117,45 +1278,49 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	" TEXT_TO_TEXT_STOP_REASON_REFUSAL\x10\x06B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_goTypes = []any{
 	(TextToTextStopReason)(0),        // 0: malonaz.ai.ai_service.v1.TextToTextStopReason
 	(*TextToTextConfiguration)(nil),  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration
-	(*TextToTextRequest)(nil),        // 2: malonaz.ai.ai_service.v1.TextToTextRequest
-	(*TextToTextResponse)(nil),       // 3: malonaz.ai.ai_service.v1.TextToTextResponse
-	(*TextToTextStreamRequest)(nil),  // 4: malonaz.ai.ai_service.v1.TextToTextStreamRequest
-	(*TextToTextStreamResponse)(nil), // 5: malonaz.ai.ai_service.v1.TextToTextStreamResponse
-	(*v1.ToolChoice)(nil),            // 6: malonaz.ai.v1.ToolChoice
-	(v1.ReasoningEffort)(0),          // 7: malonaz.ai.v1.ReasoningEffort
-	(*v1.Message)(nil),               // 8: malonaz.ai.v1.Message
-	(*v1.Tool)(nil),                  // 9: malonaz.ai.v1.Tool
-	(*v1.ModelUsage)(nil),            // 10: malonaz.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),     // 11: malonaz.ai.v1.GenerationMetrics
-	(*v1.ToolCall)(nil),              // 12: malonaz.ai.v1.ToolCall
+	(*ImageGenerationConfig)(nil),    // 2: malonaz.ai.ai_service.v1.ImageGenerationConfig
+	(*TextToTextRequest)(nil),        // 3: malonaz.ai.ai_service.v1.TextToTextRequest
+	(*TextToTextResponse)(nil),       // 4: malonaz.ai.ai_service.v1.TextToTextResponse
+	(*TextToTextStreamRequest)(nil),  // 5: malonaz.ai.ai_service.v1.TextToTextStreamRequest
+	(*TextToTextStreamResponse)(nil), // 6: malonaz.ai.ai_service.v1.TextToTextStreamResponse
+	(*v1.ToolChoice)(nil),            // 7: malonaz.ai.v1.ToolChoice
+	(v1.ReasoningEffort)(0),          // 8: malonaz.ai.v1.ReasoningEffort
+	(*v1.Message)(nil),               // 9: malonaz.ai.v1.Message
+	(*v1.Tool)(nil),                  // 10: malonaz.ai.v1.Tool
+	(*v1.ModelUsage)(nil),            // 11: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),     // 12: malonaz.ai.v1.GenerationMetrics
+	(*v1.ToolCall)(nil),              // 13: malonaz.ai.v1.ToolCall
+	(*v1.Image)(nil),                 // 14: malonaz.ai.v1.Image
 }
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
-	6,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
-	7,  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	8,  // 2: malonaz.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.ai.v1.Message
-	9,  // 3: malonaz.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.ai.v1.Tool
-	1,  // 4: malonaz.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	8,  // 5: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
-	0,  // 6: malonaz.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	10, // 7: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	11, // 8: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	8,  // 9: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
-	9,  // 10: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
-	1,  // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	0,  // 12: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	12, // 13: malonaz.ai.ai_service.v1.TextToTextStreamResponse.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	12, // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
-	10, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	11, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	7,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
+	8,  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	2,  // 2: malonaz.ai.ai_service.v1.TextToTextConfiguration.image_config:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfig
+	9,  // 3: malonaz.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.ai.v1.Message
+	10, // 4: malonaz.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.ai.v1.Tool
+	1,  // 5: malonaz.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
+	9,  // 6: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
+	0,  // 7: malonaz.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	11, // 8: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	12, // 9: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	9,  // 10: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
+	10, // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
+	1,  // 12: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
+	0,  // 13: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	13, // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	13, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
+	11, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	12, // 17: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	14, // 18: malonaz.ai.ai_service.v1.TextToTextStreamResponse.image:type_name -> malonaz.ai.v1.Image
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_text_to_text_proto_init() }
@@ -1163,7 +1328,7 @@ func file_malonaz_ai_ai_service_v1_text_to_text_proto_init() {
 	if File_malonaz_ai_ai_service_v1_text_to_text_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[4].OneofWrappers = []any{
+	file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes[5].OneofWrappers = []any{
 		(*TextToTextStreamResponse_ContentChunk)(nil),
 		(*TextToTextStreamResponse_ReasoningChunk)(nil),
 		(*TextToTextStreamResponse_StopReason)(nil),
@@ -1171,6 +1336,7 @@ func file_malonaz_ai_ai_service_v1_text_to_text_proto_init() {
 		(*TextToTextStreamResponse_PartialToolCall)(nil),
 		(*TextToTextStreamResponse_ModelUsage)(nil),
 		(*TextToTextStreamResponse_GenerationMetrics)(nil),
+		(*TextToTextStreamResponse_Image)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1178,7 +1344,7 @@ func file_malonaz_ai_ai_service_v1_text_to_text_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -130,3 +130,9 @@ func (s *AsyncTextToTextContentSender) SendModelUsage(ctx context.Context, u *ai
 		Content: &aiservicepb.TextToTextStreamResponse_ModelUsage{ModelUsage: u},
 	})
 }
+
+func (s *AsyncTextToTextContentSender) SendGeneratedImage(ctx context.Context, img *aipb.Image) {
+	s.enqueue(ctx, &aiservicepb.TextToTextStreamResponse{
+		Content: &aiservicepb.TextToTextStreamResponse_Image{Image: img},
+	})
+}

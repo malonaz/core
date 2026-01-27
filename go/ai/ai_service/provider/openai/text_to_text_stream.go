@@ -364,9 +364,9 @@ func pbMessageToOpenAI(msg *aipb.Message) (openai.ChatCompletionMessageParamUnio
 			case *aipb.ContentBlock_Image:
 				var url string
 				switch s := c.Image.GetSource().(type) {
-				case *aipb.ImageBlock_Url:
+				case *aipb.Image_Url:
 					url = s.Url
-				case *aipb.ImageBlock_Data:
+				case *aipb.Image_Data:
 					url = fmt.Sprintf("data:%s;base64,%s", c.Image.MediaType, base64.StdEncoding.EncodeToString(s.Data))
 				default:
 					return openai.ChatCompletionMessageParamUnion{}, fmt.Errorf("unknown image block type %T", s)

@@ -44,6 +44,14 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
+	if imageConfig := request.GetConfiguration().GetImageConfig(); imageConfig != nil {
+		config.ResponseModalities = []string{string(genai.MediaModalityText), string(genai.MediaModalityImage)}
+		config.ImageConfig = &genai.ImageConfig{
+			AspectRatio: imageConfig.GetAspectRatio(),
+			ImageSize:   imageConfig.GetImageSize(),
+		}
+	}
+
 	if request.GetConfiguration().GetMaxTokens() > 0 {
 		config.MaxOutputTokens = int32(request.GetConfiguration().GetMaxTokens())
 	}
@@ -167,6 +175,14 @@ func processPart(
 		}
 	}
 
+	// In processPart, handle InlineData:
+	if part.InlineData != nil {
+		cs.SendGeneratedImage(ctx, &aipb.Image{
+			Source:    &aipb.Image_Data{Data: part.InlineData.Data},
+			MediaType: part.InlineData.MIMEType,
+		})
+	}
+
 	if part.FunctionCall != nil {
 		argsJSON, err := json.Marshal(part.FunctionCall.Args)
 		if err != nil {
@@ -269,9 +285,9 @@ func buildUserParts(blocks []*aipb.ContentBlock) ([]*genai.Part, error) {
 	return parts, nil
 }
 
-func buildImagePart(img *aipb.ImageBlock) (*genai.Part, error) {
+func buildImagePart(img *aipb.Image) (*genai.Part, error) {
 	switch source := img.GetSource().(type) {
-	case *aipb.ImageBlock_Data:
+	case *aipb.Image_Data:
 		if img.MediaType == "" {
 			return nil, fmt.Errorf("media_type required for image data")
 		}
@@ -282,7 +298,7 @@ func buildImagePart(img *aipb.ImageBlock) (*genai.Part, error) {
 			},
 		}, nil
 
-	case *aipb.ImageBlock_Url:
+	case *aipb.Image_Url:
 		if len(source.Url) > 5 && source.Url[:5] == "data:" {
 			return &genai.Part{
 				InlineData: &genai.Blob{
@@ -317,6 +333,21 @@ func buildAssistantParts(assistant *aipb.AssistantMessage) ([]*genai.Part, error
 		parts = append(parts, &genai.Part{Text: assistant.Content})
 	}
 
+	if assistant.StructuredContent != nil {
+		bytes, err := pbutil.JSONMarshal(assistant.StructuredContent)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling structured content: %w", err)
+		}
+		parts = append(parts, &genai.Part{Text: string(bytes)})
+	}
+
+	for _, image := range assistant.Images {
+		imagePart, err := buildImagePart(image)
+		if err != nil {
+			return nil, grpc.Errorf(codes.Internal, "building image part: %v", err).Err()
+		}
+		parts = append(parts, imagePart)
+	}
 	if assistant.StructuredContent != nil {
 		bytes, err := pbutil.JSONMarshal(assistant.StructuredContent)
 		if err != nil {
