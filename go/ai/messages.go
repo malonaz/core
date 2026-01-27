@@ -110,3 +110,53 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 		return "", fmt.Errorf("unknown tool result type: %T", r)
 	}
 }
+
+func GetToolCalls(message *aipb.Message) []*aipb.ToolCall {
+	var toolCalls []*aipb.ToolCall
+	for _, block := range message.GetBlocks() {
+		if tc := block.GetToolCall(); tc != nil {
+			toolCalls = append(toolCalls, tc)
+		}
+	}
+	return toolCalls
+}
+
+func GetTexts(message *aipb.Message) []string {
+	var parts []string
+	for _, block := range message.GetBlocks() {
+		if text := block.GetText(); text != "" {
+			parts = append(parts, text)
+		}
+	}
+	return parts
+}
+
+func GetThoughts(message *aipb.Message) []string {
+	var parts []string
+	for _, block := range message.GetBlocks() {
+		if thought := block.GetThought(); thought != "" {
+			parts = append(parts, thought)
+		}
+	}
+	return parts
+}
+
+func GetToolResults(message *aipb.Message) []*aipb.ToolResult {
+	var results []*aipb.ToolResult
+	for _, block := range message.GetBlocks() {
+		if tr := block.GetToolResult(); tr != nil {
+			results = append(results, tr)
+		}
+	}
+	return results
+}
+
+func GetImages(message *aipb.Message) []*aipb.Image {
+	var images []*aipb.Image
+	for _, block := range message.GetBlocks() {
+		if img := block.GetImage(); img != nil {
+			images = append(images, img)
+		}
+	}
+	return images
+}
