@@ -172,20 +172,6 @@ var (
 					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
 
-				{{ if eq (len $singletonChildren) 0 }}
-					rows, err := s.client.Query(ctx, query, params...)
-					if err != nil {
-						return nil, err
-					}
-					row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $message.GoIdent.GoName }}WithRequestID])
-					if err != nil {
-						return nil, err
-					}
-					if row.RequestID != requestID {
-						return nil, {{ $errAlreadyExistsFqi }}
-					}
-					return &row.{{ $goType }}, nil
-				{{ else }}
 					// Execute within transaction if jobs are provided (or singleton).
 					var inserted *{{ $goTypeFqi }}
 					transactionFN := func(tx postgres.Tx) error {
@@ -214,7 +200,6 @@ var (
 						return nil, err
 					}
 					return inserted, nil
-				{{ end }}
 			}
 		{{- end }}
 
