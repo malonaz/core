@@ -159,48 +159,66 @@ var (
 				{{ $goTypeFqi }}
 			}
 
-			func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
-        {{ $goName }} := &{{ $message.GoIdent.GoName }}WithRequestID{
+var {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns) + ` FROM {{ $tableName }} WHERE request_id = $1`
+
+func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+    {{ $goName }} := &{{ $message.GoIdent.GoName }}WithRequestID{
         RequestID: requestID,
         {{ $goType }}: *raw{{ $goName | title }},
+    }
+    query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
+    {{ range $i, $childPr := $singletonChildren }}
+        {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
+        {{- $modelOpts := getModelOpts $message }}
+        {{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+        query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+    {{ end }}
+
+    var inserted *{{ $goTypeFqi }}
+    transactionFN := func(tx postgres.Tx) error {
+        inserted = nil
+
+        // Check for existing request_id (idempotent retry)
+        rows, err := tx.Query(ctx, {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery, requestID)
+        if err != nil {
+            return err
         }
-				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
-				{{ range $i, $childPr := $singletonChildren }}
-					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-					{{- $modelOpts := getModelOpts $message }}
-					{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
-					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
-				{{ end }}
+        existing, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+        if err == nil {
+            inserted = existing
+            return nil
+        }
+        if err != pgx.ErrNoRows {
+            return err
+        }
 
-					// Execute within transaction if jobs are provided (or singleton).
-					var inserted *{{ $goTypeFqi }}
-					transactionFN := func(tx postgres.Tx) error {
-						inserted = nil
-						rows, err := tx.Query(ctx, query, params...)
-						if err != nil {
-							return err
-						}
-						row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $message.GoIdent.GoName }}WithRequestID])
-						if err != nil {
-							return err
-						}
-            if row.RequestID != requestID {
-						  return {{ $errAlreadyExistsFqi }}
-					  }
-            inserted = &row.{{ $goType }}
-						{{ range $i, $_ := $singletonChildren }}
-							if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
-								return err
-							}
-						{{ end }}
-						return nil
-					}
+        // Insert new row
+        rows, err = tx.Query(ctx, query, params...)
+        if err != nil {
+            return err
+        }
+        row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $message.GoIdent.GoName }}WithRequestID])
+        if err != nil {
+            return err
+        }
+        if row.RequestID != requestID {
+            return {{ $errAlreadyExistsFqi }}
+        }
+        inserted = &row.{{ $goType }}
 
-					if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-						return nil, err
-					}
-					return inserted, nil
-			}
+        {{ range $i, $_ := $singletonChildren }}
+            if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
+                return err
+            }
+        {{ end }}
+        return nil
+    }
+
+    if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+        return nil, err
+    }
+    return inserted, nil
+    }
 		{{- end }}
 
 
