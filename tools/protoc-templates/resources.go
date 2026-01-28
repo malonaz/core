@@ -206,7 +206,7 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 		if sc.Segment().IsVariable() {
 			patternVariable := string(sc.Segment().Literal())
 			patternVariables = append(patternVariables, patternVariable)
-			if patternVariable == resourceDescriptor.Singular {
+			if xstrings.ToCamelCase(patternVariable) == resourceDescriptor.Singular {
 				singleton = false
 			} else {
 				hasParent = true
