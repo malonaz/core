@@ -27,7 +27,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-
 {{ if doOnce "store_def" }}
 // Store is this service's db layer.
 type Store struct {
@@ -60,6 +59,7 @@ var (
 	{{ $goTypeFqi := $message.GoIdent.GoName | $modelGpi.Ident | qgi }}
 	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
 	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
+  {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
 	{{ $tableName := ternary $pr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
   {{- $whereConditions := list }}
 	{{- $placeholders := list }}
@@ -255,24 +255,33 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 }
 
 	{{/* ################### DELETE ################### */}}
-		{{- if $message.Desc.Fields.ByName "delete_time" }}
-			func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
-				query := `UPDATE {{ $tableName }} SET delete_time = ${{ add (len $pr.PatternVariables) 1 }} WHERE {{ $placeholderDeclarations }} AND delete_time IS NULL RETURNING %s`
-				query = postgres.SelectQuery(query, {{ $goType }}PostgresColumns)
-				rows, err := s.client.Query(ctx, query, {{ $pr.PatternVariableIDs true }}, deleteTime)
-				if err != nil {
-					return nil, fmt.Errorf("soft deleting {{ $goName }}: %w", err)
-				}
-				row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-				if err != nil {
-					if err == pgx.ErrNoRows {
-						return nil, {{ $errNotExistFqi }}
-					}
-					return nil, err
-				}
-				return row, nil
-			}
-		{{ else }}
+      {{- if $message.Desc.Fields.ByName "delete_time" }}
+      var softDelete{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET delete_time = COALESCE(delete_time, ${{ add (len $pr.PatternVariables) 1 }}) WHERE {{ $placeholderDeclarations }} RETURNING (delete_time < ${{ add (len $pr.PatternVariables) 1 }}) AS was_already_deleted, ` +
+        postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
+
+      type softDelete{{ $message.GoIdent.GoName }}Result struct {
+        WasAlreadyDeleted bool `db:"was_already_deleted"`
+        {{ $goTypeFqi }}
+      }
+
+      func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
+        rows, err := s.client.Query(ctx, softDelete{{ $message.GoIdent.GoName }}PostgresQuery, {{ $pr.PatternVariableIDs true }}, deleteTime)
+        if err != nil {
+          return nil, fmt.Errorf("soft deleting {{ $goName }}: %w", err)
+        }
+        row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[softDelete{{ $message.GoIdent.GoName }}Result])
+        if err != nil {
+          if err == pgx.ErrNoRows {
+            return nil, {{ $errNotExistFqi }}
+          }
+          return nil, err
+        }
+        if row.WasAlreadyDeleted {
+          return nil, {{ $errAlreadyDeletedFqi }}
+        }
+        return &row.{{ $goType }}, nil
+      }
+    {{ else }}
 			func (s *Store) Delete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) error {
 				query := `DELETE FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
 				result, err := s.client.Exec(ctx, query, {{ $pr.PatternVariableIDs true }})

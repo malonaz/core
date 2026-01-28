@@ -70,6 +70,7 @@ package {{ .PackageName }}
         {{ $goType := $rpc.Message.GoIdent.GoName }}
         {{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
         {{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
+        {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
         {{- $singletonChildren := list }}
         {{- range $childPr := $pr.Children }}
             {{- if $childPr.Singleton }}
@@ -277,10 +278,10 @@ package {{ .PackageName }}
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist")
                 }
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err)
+                if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) && !request.AllowMissing {
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted")
                 }
-                if !db{{ $modelGoName }}.DeleteTime.Equal(deleteTime) && !request.AllowMissing {
-                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} is already soft deleted")
+                return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err)
                 }
 
                 // STEP 3: Convert to protobuf and return.
