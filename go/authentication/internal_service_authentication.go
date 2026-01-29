@@ -61,8 +61,7 @@ func (o *InternalServiceAuthenticationInterceptorOpts) WithServiceAccount(
 	authValue := serviceAccountID + "/" + o.InternalServiceSecret
 
 	return func(ctx context.Context) context.Context {
-		md := metadata.Pairs(o.MetadataHeader, authValue)
-		return metadata.NewOutgoingContext(ctx, md)
+		return metadata.AppendToOutgoingContext(ctx, o.MetadataHeader, authValue)
 	}, nil
 }
 

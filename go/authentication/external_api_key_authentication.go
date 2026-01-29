@@ -22,8 +22,7 @@ type ExternalApiKeysOpts struct {
 }
 
 func WithAPIKey(ctx context.Context, headerKey, apiKey string) context.Context {
-	md := metadata.Pairs(headerKey, apiKey)
-	return metadata.NewOutgoingContext(ctx, md)
+	return metadata.AppendToOutgoingContext(ctx, headerKey, apiKey)
 }
 
 // WithAPIKey creates a new context with the API key set in outgoing metadata.

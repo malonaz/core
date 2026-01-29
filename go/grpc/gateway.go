@@ -125,7 +125,6 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		runtime.WithForwardResponseOption(gatewayCookie.forwardOutOption),
 		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
-		withHTTPPatternAnnotation(),
 	)
 	g.options = append(g.options, withCustomMarshalers()...)
 
@@ -303,22 +302,6 @@ func GetHTTPPathPatternFromContext(ctx context.Context) (string, bool) {
 		return "", false
 	}
 	return values[0], true
-}
-
-// SetHTTPPathPatternFromContext sets the http path pattern in the context metadata.
-func SetHTTPPathPatternFromContext(ctx context.Context, path string) context.Context {
-	md := metadata.MD{grpcGatewayContextMetadataHTTPPathPatternKey: []string{path}} // /v1/example/login
-	return metadata.NewOutgoingContext(ctx, md)
-}
-
-func withHTTPPatternAnnotation() runtime.ServeMuxOption {
-	return runtime.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
-		md := make(map[string]string)
-		if pattern, ok := runtime.HTTPPathPattern(ctx); ok {
-			md[grpcGatewayContextMetadataHTTPPathPatternKey] = pattern // /v1/example/login
-		}
-		return metadata.New(md)
-	})
 }
 
 // allowCORS allows Cross Origin Resource Sharing from any origin.
