@@ -203,7 +203,6 @@ func (b *CommandBuilder) fieldTypeName(field protoreflect.FieldDescriptor) strin
 }
 
 // In command_builder.go, modify addFlagWithPrefix to set default for parent fields:
-
 func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) {
 	if depth > b.maxDepth {
 		return
@@ -269,12 +268,19 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 			return
 
 		default:
+			// Add flag to explicitly instantiate this message
+			cmd.Flags().Bool(name, false, help)
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
+
 			nestedFields := field.Message().Fields()
 			nestedPrefix := name + "-"
 			for i := 0; i < nestedFields.Len(); i++ {
 				b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1, methodName)
 			}
 		}
+
 	case protoreflect.StringKind:
 		cmd.Flags().String(name, defaultValue, help)
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
@@ -425,9 +431,14 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 			return nil
 
 		default:
-			if !b.anyNestedFlagChanged(cmd, field, name+"-") {
+			// Check if explicitly instantiated via bool flag or has nested fields set
+			explicitlySet, _ := cmd.Flags().GetBool(name)
+			hasNestedChanges := b.anyNestedFlagChanged(cmd, field, name+"-")
+
+			if !explicitlySet && !hasNestedChanges {
 				return nil
 			}
+
 			nestedMsg := msg.Mutable(field).Message()
 			nestedFields := field.Message().Fields()
 			for i := 0; i < nestedFields.Len(); i++ {
