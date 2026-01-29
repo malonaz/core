@@ -358,6 +358,7 @@ func withCustomMarshalers() []runtime.ServeMuxOption {
 			Marshaler: grpcGatewayMarshalerOptions,
 		}),
 		runtime.WithMarshalerOption("application/json+camel", grpcGatewayMarshalerCamelCaseOptions),
+		runtime.WithMarshalerOption("application/x-www-form-urlencoded", &urlEncodedMarshaler{}),
 		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
 	}
 }
@@ -403,7 +404,7 @@ type rawJSONPb struct {
 }
 
 func (*rawJSONPb) NewDecoder(r io.Reader) runtime.Decoder {
-	return runtime.DecoderFunc(func(v interface{}) error {
+	return runtime.DecoderFunc(func(v any) error {
 		rawData, err := io.ReadAll(r)
 		if err != nil {
 			return err
