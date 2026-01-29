@@ -60,7 +60,7 @@ var (
 	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
 	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
   {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
-	{{ $tableName := ternary $pr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+	{{ $tableName := ternary ($pr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
   {{- $whereConditions := list }}
 	{{- $placeholders := list }}
 	{{- range $i, $var := $pr.PatternVariables }}
@@ -110,7 +110,7 @@ var (
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
 					{{- $modelOpts := getModelOpts $message }}
-					{{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
 					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
 
@@ -170,7 +170,7 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
     {{ range $i, $childPr := $singletonChildren }}
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
         {{- $modelOpts := getModelOpts $message }}
-        {{ $tableName := ternary $childPr.Desc.Singular $modelOpts.TableName (empty $modelOpts.TableName) }}
+        {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
         query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | camelcase }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
     {{ end }}
 
