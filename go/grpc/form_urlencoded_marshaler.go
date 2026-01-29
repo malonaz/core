@@ -11,13 +11,13 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type urlEncodedMarshaler struct {
 	runtime.Marshaler
 }
 
-// ContentType means the content type of the response
 func (u urlEncodedMarshaler) ContentType(_ any) string {
 	return "application/json"
 }
@@ -26,7 +26,6 @@ func (u urlEncodedMarshaler) Marshal(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-// NewDecoder indicates how to decode the request
 func (u urlEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 	return runtime.DecoderFunc(func(p any) error {
 		msg, ok := p.(proto.Message)
@@ -34,22 +33,31 @@ func (u urlEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 			return fmt.Errorf("not proto message")
 		}
 
-		formData, err := ioutil.ReadAll(r)
+		// Read the request body.
+		bytes, err := ioutil.ReadAll(r)
 		if err != nil {
 			return err
 		}
 
-		values, err := url.ParseQuery(string(formData))
+		// Parse the form query.
+		formData := string(bytes)
+		values, err := url.ParseQuery(formData)
 		if err != nil {
 			return err
 		}
 
-		// Convert PascalCase keys to snake_case
+		// Inject it into the raw form field, if it exists.
+		if fd := msg.ProtoReflect().Descriptor().Fields().ByName("raw_form_urlencoded"); fd != nil && fd.Kind() == protoreflect.StringKind {
+			msg.ProtoReflect().Set(fd, protoreflect.ValueOfString(formData))
+		}
+
+		// We normalize to match to proto text fields.
 		normalizedValues := url.Values{}
 		for key, vals := range values {
 			normalizedValues[xstrings.ToSnakeCase(key)] = vals
 		}
 
+		// Populate the message.
 		filter := &utilities.DoubleArray{}
 		if err := runtime.PopulateQueryParameters(msg, normalizedValues, filter); err != nil {
 			return err
