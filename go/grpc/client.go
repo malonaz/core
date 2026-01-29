@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"buf.build/go/protovalidate"
@@ -198,10 +199,13 @@ func (c *Connection) HealthCheckFn(service string) health.Check {
 	}
 }
 
+var kuberesolverMutex sync.Mutex // kuberesolver's Register function is not thread safe.
 // withDNSBalancer returns gRPC DialOption that does client-side load balancing based on DNS.
 func WithDNSBalancer() grpc.DialOption {
 	// Must set the grpc server address resolver to dns.
+	kuberesolverMutex.Lock()
 	kuberesolver.RegisterInCluster()
+	kuberesolverMutex.Unlock()
 	serviceConfig := fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, roundrobin.Name)
 	return grpc.WithDefaultServiceConfig(serviceConfig)
 }
