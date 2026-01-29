@@ -76,10 +76,10 @@ var (
 	{{- $placeholderDeclarations := (join " AND " $placeholders) }}
 	{{- $columnNames := $pr.PatternVariableIDs false }}
 	{{- $identifier := "" }}
-	{{- if not $pr.Singleton }} {{ $identifier = printf "%s_id" $pr.PatternVariable }}{{ end }}
+	{{- if not $pr.Singleton }} {{ $identifier = $pr.PatternVariableID false }}{{ end }}
 	{{ if $modelOpts.IdColumnName }}
 		{{ $identifier = $modelOpts.IdColumnName }}
-		{{ $columnNames = $columnNames | replace (printf "%s_id" $pr.PatternVariable) $modelOpts.IdColumnName }}
+		{{ $columnNames = $columnNames | replace ($pr.PatternVariableID false) $modelOpts.IdColumnName }}
 	{{ end }}
 
 	{{/* ################### INSERT ################### */}}

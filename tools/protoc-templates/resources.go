@@ -149,6 +149,18 @@ func (pr *ParsedResource) PatternVariable() (string, error) {
 	return pr.Desc.Singular, nil
 }
 
+func (pr *ParsedResource) PatternVariableID(goStyle bool) (string, error) {
+	val, err := pr.PatternVariable()
+	if err != nil {
+		return "", err
+	}
+	val += "Id"
+	if goStyle {
+		return val, nil
+	}
+	return xstrings.ToSnakeCase(val), nil
+}
+
 func (pr *ParsedResource) PatternVariableIDs(goStyle bool) string {
 	vals := make([]string, 0, len(pr.PatternVariables))
 	for _, v := range pr.PatternVariables {

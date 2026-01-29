@@ -135,9 +135,9 @@ package {{ .PackageName }}
                 request.RequestId = {{ fqn "github.com/malonaz/core/go/uuid" "MustNewV7" }}().String()
                 }
             {{ end }}
-            {{ $pr.PatternVariable | camelcase | untitle }}Id := request.{{ $resourceGoName }}Id
-            if {{ $pr.PatternVariable | camelcase | untitle }}Id == "" {
-            {{ $pr.PatternVariable | camelcase | untitle }}Id = {{ fqn "github.com/malonaz/core/go/uuid" "MustNewV7" }}().String()
+            {{ $pr.PatternVariableID true }} := request.{{ $resourceGoName }}Id
+            if {{ $pr.PatternVariableID true }} == "" {
+            {{ $pr.PatternVariableID true }} = {{ fqn "github.com/malonaz/core/go/uuid" "MustNewV7" }}().String()
             }
 
             {{ if $pr.Parent }}
