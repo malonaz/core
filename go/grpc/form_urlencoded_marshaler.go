@@ -9,6 +9,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -43,7 +44,16 @@ func (u urlEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 			return err
 		}
 
+		// Convert PascalCase keys to snake_case
+		normalizedValues := url.Values{}
+		for key, vals := range values {
+			normalizedValues[xstrings.ToSnakeCase(key)] = vals
+		}
+
 		filter := &utilities.DoubleArray{}
-		return runtime.PopulateQueryParameters(msg, values, filter)
+		if err := runtime.PopulateQueryParameters(msg, normalizedValues, filter); err != nil {
+			return err
+		}
+		return nil
 	})
 }

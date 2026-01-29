@@ -24,6 +24,7 @@ go_library(
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__recovery",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
+        "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:github.com__prometheus__client_golang__prometheus",
         "//third_party/go:github.com__sercand__kuberesolver__v5",
         "//third_party/go:golang.org__x__net__context",

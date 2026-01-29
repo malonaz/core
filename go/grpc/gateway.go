@@ -64,6 +64,10 @@ type Gateway struct {
 
 	// Raw routes.
 	routeToGatewayOptions map[string]*grpcpb.GatewayOptions
+
+	// Allowed headers.
+	allowedOutgoingHeaderSet map[string]struct{}
+	allowedIncomingHeaderSet map[string]struct{}
 }
 
 func (g *Gateway) WithLogger(logger *slog.Logger) *Gateway {
@@ -73,13 +77,23 @@ func (g *Gateway) WithLogger(logger *slog.Logger) *Gateway {
 
 // NewGateway creates and returns a new Gateway.
 func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+	allowedOutgoingHeaderSet := make(map[string]struct{}, len(opts.AllowedOutgoingHeaders))
+	for _, h := range opts.AllowedOutgoingHeaders {
+		allowedOutgoingHeaderSet[textproto.CanonicalMIMEHeaderKey(h)] = struct{}{}
+	}
+	allowedIncomingHeaderSet := make(map[string]struct{}, len(opts.AllowedIncomingHeaders))
+	for _, h := range opts.AllowedIncomingHeaders {
+		allowedIncomingHeaderSet[textproto.CanonicalMIMEHeaderKey(h)] = struct{}{}
+	}
 	return &Gateway{
-		log:              slog.Default(),
-		opts:             opts,
-		grpcOpts:         grpcOpts,
-		certsOpts:        certsOpts,
-		prometheusOpts:   prometheusOpts,
-		registerHandlers: registerHandlers,
+		log:                      slog.Default(),
+		opts:                     opts,
+		grpcOpts:                 grpcOpts,
+		certsOpts:                certsOpts,
+		prometheusOpts:           prometheusOpts,
+		registerHandlers:         registerHandlers,
+		allowedOutgoingHeaderSet: allowedOutgoingHeaderSet,
+		allowedIncomingHeaderSet: allowedIncomingHeaderSet,
 	}
 }
 
@@ -120,8 +134,8 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	// Some default options.
 	g.options = append(
 		g.options,
-		runtime.WithOutgoingHeaderMatcher(outgoingHeaderMatcher),
-		runtime.WithIncomingHeaderMatcher(incomingHeaderMatcher),
+		runtime.WithOutgoingHeaderMatcher(g.outgoingHeaderMatcher),
+		runtime.WithIncomingHeaderMatcher(g.incomingHeaderMatcher),
 		runtime.WithForwardResponseOption(gatewayCookie.forwardOutOption),
 		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
@@ -259,18 +273,15 @@ func (g *Gateway) GracefulStop() error {
 // /////////////////////////////////////////////////////////////////////////////////////////
 // //////////////////////////// VARIOUS GATEWAY OPTIONS BELOW //////////////////////////////
 // /////////////////////////////////////////////////////////////////////////////////////////
-func outgoingHeaderMatcher(key string) (string, bool) {
-	// This is the default in runtime.go.
-	// This is important to prevent grpc headers from clashing with http internal headers.
-	// We use response forwarders to clean this up.
+func (g *Gateway) outgoingHeaderMatcher(key string) (string, bool) {
+	if _, ok := g.allowedOutgoingHeaderSet[textproto.CanonicalMIMEHeaderKey(key)]; ok {
+		return key, true
+	}
+	// Default: prefix with Grpc-Metadata- to prevent clashing with http internal headers.
 	return runtime.MetadataHeaderPrefix + key, true
 }
 
-var allowedIncomingHeaders = map[string]struct{}{
-	textproto.CanonicalMIMEHeaderKey("X-Telegram-Bot-Api-Secret-Token"): {},
-}
-
-func incomingHeaderMatcher(key string) (string, bool) {
+func (g *Gateway) incomingHeaderMatcher(key string) (string, bool) {
 	// Fallback to the default matcher.
 	replacement, ok := runtime.DefaultHeaderMatcher(key)
 	if ok {
@@ -278,30 +289,11 @@ func incomingHeaderMatcher(key string) (string, bool) {
 	}
 
 	canonicalKey := textproto.CanonicalMIMEHeaderKey(key)
-	// If default matcher rejects, we check if we allow it.
-	if _, ok := allowedIncomingHeaders[canonicalKey]; ok {
-		// Note that this is what the default behaviour of the gRPC library does (where all headers are allowed).
-		return runtime.MetadataHeaderPrefix + canonicalKey, true
+	if _, ok := g.allowedIncomingHeaderSet[canonicalKey]; ok {
+		return canonicalKey, true
 	}
-	// Otherwise reject.
-	return "", false
-}
 
-// GetHTTPPathPatternFromContext returns the http path pattern if it exists.
-// This can only be used in grpc gateway handlers, where the pattern is injected into the context's grpc.MD.
-func GetHTTPPathPatternFromContext(ctx context.Context) (string, bool) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", false
-	}
-	values, ok := md[grpcGatewayContextMetadataHTTPPathPatternKey]
-	if !ok {
-		return "", false
-	}
-	if len(values) == 0 {
-		return "", false
-	}
-	return values[0], true
+	return "", false
 }
 
 // allowCORS allows Cross Origin Resource Sharing from any origin.
