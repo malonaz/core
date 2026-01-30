@@ -11,7 +11,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type urlEncodedMarshaler struct {
@@ -44,11 +43,6 @@ func (u urlEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 		values, err := url.ParseQuery(formData)
 		if err != nil {
 			return err
-		}
-
-		// Inject it into the raw form field, if it exists.
-		if fd := msg.ProtoReflect().Descriptor().Fields().ByName("raw_form_urlencoded"); fd != nil && fd.Kind() == protoreflect.StringKind {
-			msg.ProtoReflect().Set(fd, protoreflect.ValueOfString(formData))
 		}
 
 		// We normalize to match to proto text fields.

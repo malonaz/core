@@ -79,4 +79,6 @@ message GatewayOptions {
   string custom_mime = 1;
   // If true, pass the original url in the grpc metadata using the key `X-Original-Url`.
   bool require_original_url = 2;
+  // If true, pass the request body in the grpc metadata using the key `X-Request-Body-Bin`.
+  bool require_request_body = 3;
 }

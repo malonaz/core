@@ -1,6 +1,8 @@
 package grpc
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log/slog"
@@ -31,6 +33,7 @@ const (
 	HeaderXForwardedProto = "X-Forwarded-Proto"
 	HeaderXForwardedHost  = "X-Forwarded-Host"
 	HeaderXOriginalURL    = "X-Original-Url"
+	HeaderXRequestBody    = "X-Request-Body-Bin"
 )
 
 // RegisterHandler is syntactice sugar for a gRPC gateway handler.
@@ -331,8 +334,14 @@ func handleGatewayOptions(routeToGatewayOptions map[string]*grpcpb.GatewayOption
 				if host == "" {
 					host = r.Host
 				}
-				// We only propagate it once.
 				r.Header.Set(runtime.MetadataHeaderPrefix+HeaderXOriginalURL, scheme+"://"+host+r.URL.String())
+			}
+			if gatewayOptions.RequireRequestBody && r.Body != nil {
+				body, err := io.ReadAll(r.Body)
+				if err == nil {
+					r.Header.Set(runtime.MetadataHeaderPrefix+HeaderXRequestBody, base64.StdEncoding.EncodeToString(body))
+					r.Body = io.NopCloser(bytes.NewReader(body))
+				}
 			}
 		}
 		h.ServeHTTP(w, r)
