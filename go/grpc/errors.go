@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/protoadapt"
@@ -95,17 +96,24 @@ func (e *Error) WithErrorInfo(reason, domain string, metadata map[string]string)
 	return e
 }
 
-func (e *Error) Err() error {
+func (e *Error) Status() *status.Status {
 	st := status.New(e.code, e.message)
 
 	if len(e.details) > 0 {
 		var err error
 		st, err = st.WithDetails(e.details...)
 		if err != nil {
-			// Fallback to status without details if adding details fails
-			return status.New(e.code, fmt.Sprintf("%s (failed to add details: %v)", e.message, err)).Err()
+			return status.New(e.code, fmt.Sprintf("%s (failed to add details: %v)", e.message, err))
 		}
 	}
 
-	return st.Err()
+	return st
+}
+
+func (e *Error) Proto() *spb.Status {
+	return e.Status().Proto()
+}
+
+func (e *Error) Err() error {
+	return e.Status().Err()
 }
