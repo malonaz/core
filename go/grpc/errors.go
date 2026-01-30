@@ -117,3 +117,23 @@ func (e *Error) Proto() *spb.Status {
 func (e *Error) Err() error {
 	return e.Status().Err()
 }
+
+func FromError(err error) *Error {
+	st, ok := status.FromError(err)
+	if !ok {
+		return &Error{code: codes.Unknown, message: err.Error()}
+	}
+
+	e := &Error{
+		code:    st.Code(),
+		message: st.Message(),
+	}
+
+	for _, detail := range st.Details() {
+		if msg, ok := detail.(protoadapt.MessageV1); ok {
+			e.details = append(e.details, msg)
+		}
+	}
+
+	return e
+}
