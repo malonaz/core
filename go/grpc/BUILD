@@ -47,6 +47,5 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
-        "//third_party/proto:google__api__annotations",
     ],
 )

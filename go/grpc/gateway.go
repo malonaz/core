@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"log/slog"
@@ -15,7 +14,6 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/net/context"
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -67,8 +65,8 @@ type Gateway struct {
 	unaryInterceptors  []grpc.UnaryClientInterceptor
 	streamInterceptors []grpc.StreamClientInterceptor
 
-	// Raw routes.
-	routeToGatewayOptions map[string]*grpcpb.GatewayOptions
+	// Gateway options.
+	rpcMethodToGatewayOptions map[string]*grpcpb.GatewayOptions
 
 	// Allowed headers.
 	allowedOutgoingHeaderSet map[string]struct{}
@@ -144,6 +142,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		runtime.WithForwardResponseOption(gatewayCookie.forwardOutOption),
 		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
+		runtime.WithMetadata(g.gatewayOptionsMetadata),
 	)
 	g.options = append(g.options, withCustomMarshalers()...)
 
@@ -193,7 +192,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	}
 
 	var protoRegistryRangeFileErr error
-	g.routeToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
+	g.rpcMethodToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
 	protoregistry.GlobalFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		services := fd.Services()
 		for i := 0; i < services.Len(); i++ {
@@ -204,29 +203,11 @@ func (g *Gateway) Serve(ctx context.Context) error {
 				if !proto.HasExtension(method.Options(), grpcpb.E_GatewayOptions) {
 					continue
 				}
-				if !proto.HasExtension(method.Options(), annotations.E_Http) {
-					continue
-				}
-				httpRule := proto.GetExtension(method.Options(), annotations.E_Http).(*annotations.HttpRule)
+				methodName := fmt.Sprintf("/%s/%s", service.FullName(), method.Name())
+
 				gatewayOptions := proto.GetExtension(method.Options(), grpcpb.E_GatewayOptions).(*grpcpb.GatewayOptions)
-				var pathFound bool
-				// Register primary pattern
-				if path := extractPath(httpRule); path != "" {
-					pathFound = true
-					g.routeToGatewayOptions[path] = gatewayOptions
-					g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
-				}
-				// Register additional bindings
-				for _, binding := range httpRule.AdditionalBindings {
-					if path := extractPath(binding); path != "" {
-						pathFound = true
-						g.routeToGatewayOptions[path] = gatewayOptions
-						g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
-					}
-				}
-				if !pathFound {
-					protoRegistryRangeFileErr = fmt.Errorf("no path defined in %v", httpRule)
-					return false
+				if gatewayOptions != nil {
+					g.rpcMethodToGatewayOptions[methodName] = gatewayOptions
 				}
 			}
 		}
@@ -237,7 +218,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	}
 
 	url := fmt.Sprintf(":%d", g.opts.Port)
-	handler := handleGatewayOptions(g.routeToGatewayOptions, allowCORS(mux))
+	handler := allowCORS(mux)
 	g.httpServer = &http.Server{Addr: url, Handler: handler}
 	g.log.InfoContext(ctx, "serving")
 	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
@@ -316,33 +297,48 @@ func allowCORS(h http.Handler) http.Handler {
 	})
 }
 
-func handleGatewayOptions(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, h http.Handler) http.Handler {
+func (g *Gateway) gatewayOptionsMetadata(ctx context.Context, r *http.Request) metadata.MD {
+	// Get the rpc method.
+	rpcMethod, ok := runtime.RPCMethod(ctx)
+	if !ok {
+		return nil
+	}
+
+	// Get the gateway options.
+	gatewayOptions, ok := g.rpcMethodToGatewayOptions[rpcMethod]
+	if !ok {
+		return nil
+	}
+
+	// Process the options.
+	md := metadata.MD{}
+	if gatewayOptions.GetRequireOriginalUrl() {
+		scheme := r.Header.Get(HeaderXForwardedProto)
+		if scheme == "" {
+			scheme = "http"
+			if r.TLS != nil {
+				scheme = "https"
+			}
+		}
+		host := r.Header.Get(HeaderXForwardedHost)
+		if host == "" {
+			host = r.Host
+		}
+		md.Set(HeaderXOriginalURL, scheme+"://"+host+r.URL.String())
+	}
+	if gatewayOptions.GetRequireRequestBody() && r.Body != nil {
+		body, _ := io.ReadAll(r.Body)
+		md.Set(HeaderXRequestBody, string(body))
+		r.Body = io.NopCloser(bytes.NewReader(body))
+	}
+	return md
+}
+
+func customMimeWrapper(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if gatewayOptions, ok := routeToGatewayOptions[r.URL.Path]; ok {
-			if gatewayOptions.CustomMime != "" {
-				r.Header.Set("Content-Type", gatewayOptions.CustomMime)
-			}
-			if gatewayOptions.RequireOriginalUrl {
-				scheme := r.Header.Get(HeaderXForwardedProto)
-				if scheme == "" {
-					scheme = "http"
-					if r.TLS != nil {
-						scheme = "https"
-					}
-				}
-				host := r.Header.Get(HeaderXForwardedHost)
-				if host == "" {
-					host = r.Host
-				}
-				r.Header.Set(runtime.MetadataHeaderPrefix+HeaderXOriginalURL, scheme+"://"+host+r.URL.String())
-			}
-			if gatewayOptions.RequireRequestBody && r.Body != nil {
-				body, err := io.ReadAll(r.Body)
-				if err == nil {
-					r.Header.Set(runtime.MetadataHeaderPrefix+HeaderXRequestBody, base64.StdEncoding.EncodeToString(body))
-					r.Body = io.NopCloser(bytes.NewReader(body))
-				}
-			}
+		gatewayOptions := routeToGatewayOptions[r.URL.Path]
+		if gatewayOptions.GetCustomMime() != "" {
+			r.Header.Set("Content-Type", gatewayOptions.CustomMime)
 		}
 		h.ServeHTTP(w, r)
 	})
@@ -440,22 +436,4 @@ func (*rawJSONPb) NewDecoder(r io.Reader) runtime.Decoder {
 		rv.Set(reflect.ValueOf(rawData))
 		return nil
 	})
-}
-
-func extractPath(rule *annotations.HttpRule) string {
-	switch pattern := rule.Pattern.(type) {
-	case *annotations.HttpRule_Get:
-		return pattern.Get
-	case *annotations.HttpRule_Post:
-		return pattern.Post
-	case *annotations.HttpRule_Put:
-		return pattern.Put
-	case *annotations.HttpRule_Delete:
-		return pattern.Delete
-	case *annotations.HttpRule_Patch:
-		return pattern.Patch
-	case *annotations.HttpRule_Custom:
-		return pattern.Custom.Path
-	}
-	return ""
 }
