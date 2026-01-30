@@ -73,27 +73,28 @@ func (x ServiceAccountType) Number() protoreflect.EnumNumber {
 }
 
 // Configuration for roles.
-type RoleConfiguration struct {
-	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Roles *[]*Role               `protobuf:"bytes,1,rep,name=roles,proto3"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+type PermissionConfiguration struct {
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Roles         *[]*Role               `protobuf:"bytes,1,rep,name=roles,proto3"`
+	xxx_hidden_PublicMethods []string               `protobuf:"bytes,2,rep,name=public_methods,json=publicMethods,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
-func (x *RoleConfiguration) Reset() {
-	*x = RoleConfiguration{}
+func (x *PermissionConfiguration) Reset() {
+	*x = PermissionConfiguration{}
 	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RoleConfiguration) String() string {
+func (x *PermissionConfiguration) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RoleConfiguration) ProtoMessage() {}
+func (*PermissionConfiguration) ProtoMessage() {}
 
-func (x *RoleConfiguration) ProtoReflect() protoreflect.Message {
+func (x *PermissionConfiguration) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -105,7 +106,7 @@ func (x *RoleConfiguration) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *RoleConfiguration) GetRoles() []*Role {
+func (x *PermissionConfiguration) GetRoles() []*Role {
 	if x != nil {
 		if x.xxx_hidden_Roles != nil {
 			return *x.xxx_hidden_Roles
@@ -114,23 +115,38 @@ func (x *RoleConfiguration) GetRoles() []*Role {
 	return nil
 }
 
-func (x *RoleConfiguration) SetRoles(v []*Role) {
+func (x *PermissionConfiguration) GetPublicMethods() []string {
+	if x != nil {
+		return x.xxx_hidden_PublicMethods
+	}
+	return nil
+}
+
+func (x *PermissionConfiguration) SetRoles(v []*Role) {
 	x.xxx_hidden_Roles = &v
 }
 
-type RoleConfiguration_builder struct {
+func (x *PermissionConfiguration) SetPublicMethods(v []string) {
+	x.xxx_hidden_PublicMethods = v
+}
+
+type PermissionConfiguration_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// List of all roles defined in the system, including their permissions
 	// and inheritance relationships.
 	Roles []*Role
+	// List of RPC methods that can be accessed without authentication
+	// (e.g., "/api.v1.AuthService/Login").
+	PublicMethods []string
 }
 
-func (b0 RoleConfiguration_builder) Build() *RoleConfiguration {
-	m0 := &RoleConfiguration{}
+func (b0 PermissionConfiguration_builder) Build() *PermissionConfiguration {
+	m0 := &PermissionConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Roles = &b.Roles
+	x.xxx_hidden_PublicMethods = b.PublicMethods
 	return m0
 }
 
@@ -1123,9 +1139,10 @@ var File_malonaz_authentication_v1_authentication_proto protoreflect.FileDescrip
 
 const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\n" +
-	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"J\n" +
-	"\x11RoleConfiguration\x125\n" +
-	"\x05roles\x18\x01 \x03(\v2\x1f.malonaz.authentication.v1.RoleR\x05roles\"s\n" +
+	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"w\n" +
+	"\x17PermissionConfiguration\x125\n" +
+	"\x05roles\x18\x01 \x03(\v2\x1f.malonaz.authentication.v1.RoleR\x05roles\x12%\n" +
+	"\x0epublic_methods\x18\x02 \x03(\tR\rpublicMethods\"s\n" +
 	"\x1bServiceAccountConfiguration\x12T\n" +
 	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountR\x0fserviceAccounts\"\x92\x01\n" +
 	"\x0eServiceAccount\x12\x16\n" +
@@ -1183,7 +1200,7 @@ var file_malonaz_authentication_v1_authentication_proto_enumTypes = make([]proto
 var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(ServiceAccountType)(0),             // 0: malonaz.authentication.v1.ServiceAccountType
-	(*RoleConfiguration)(nil),           // 1: malonaz.authentication.v1.RoleConfiguration
+	(*PermissionConfiguration)(nil),     // 1: malonaz.authentication.v1.PermissionConfiguration
 	(*ServiceAccountConfiguration)(nil), // 2: malonaz.authentication.v1.ServiceAccountConfiguration
 	(*ServiceAccount)(nil),              // 3: malonaz.authentication.v1.ServiceAccount
 	(*Role)(nil),                        // 4: malonaz.authentication.v1.Role
@@ -1197,7 +1214,7 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),       // 12: google.protobuf.Timestamp
 }
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
-	4,  // 0: malonaz.authentication.v1.RoleConfiguration.roles:type_name -> malonaz.authentication.v1.Role
+	4,  // 0: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
 	3,  // 1: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	0,  // 2: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
 	6,  // 3: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session

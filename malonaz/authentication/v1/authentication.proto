@@ -8,10 +8,14 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/malonaz/core/genproto/authentication/v1";
 
 // Configuration for roles.
-message RoleConfiguration {
+message PermissionConfiguration {
   // List of all roles defined in the system, including their permissions
   // and inheritance relationships.
   repeated Role roles = 1;
+
+  // List of RPC methods that can be accessed without authentication
+  // (e.g., "/api.v1.AuthService/Login").
+  repeated string public_methods = 2;
 }
 
 // Configuration for service accounts.
