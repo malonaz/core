@@ -77,4 +77,6 @@ message GatewayOptions {
   // HTTP requests/responses. This overrides the default content type
   // and allows handling of non-standard formats (e.g., "application/raw-webhook").
   string custom_mime = 1;
+  // If true, pass the original url in the grpc metadata using the key `X-Original-Url`.
+  bool require_original_url = 2;
 }

@@ -28,7 +28,9 @@ import (
 )
 
 const (
-	grpcGatewayContextMetadataHTTPPathPatternKey = "http-path-pattern"
+	HeaderXForwardedProto = "X-Forwarded-Proto"
+	HeaderXForwardedHost  = "X-Forwarded-Host"
+	HeaderXOriginalURL    = "X-Original-Url"
 )
 
 // RegisterHandler is syntactice sugar for a gRPC gateway handler.
@@ -204,27 +206,25 @@ func (g *Gateway) Serve(ctx context.Context) error {
 				}
 				httpRule := proto.GetExtension(method.Options(), annotations.E_Http).(*annotations.HttpRule)
 				gatewayOptions := proto.GetExtension(method.Options(), grpcpb.E_GatewayOptions).(*grpcpb.GatewayOptions)
-				var path string
-				switch pattern := httpRule.Pattern.(type) {
-				case *annotations.HttpRule_Get:
-					path = pattern.Get
-				case *annotations.HttpRule_Post:
-					path = pattern.Post
-				case *annotations.HttpRule_Put:
-					path = pattern.Put
-				case *annotations.HttpRule_Delete:
-					path = pattern.Delete
-				case *annotations.HttpRule_Patch:
-					path = pattern.Patch
-				case *annotations.HttpRule_Custom:
-					path = pattern.Custom.Path
+				var pathFound bool
+				// Register primary pattern
+				if path := extractPath(httpRule); path != "" {
+					pathFound = true
+					g.routeToGatewayOptions[path] = gatewayOptions
+					g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
 				}
-				if path == "" {
+				// Register additional bindings
+				for _, binding := range httpRule.AdditionalBindings {
+					if path := extractPath(binding); path != "" {
+						pathFound = true
+						g.routeToGatewayOptions[path] = gatewayOptions
+						g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
+					}
+				}
+				if !pathFound {
 					protoRegistryRangeFileErr = fmt.Errorf("no path defined in %v", httpRule)
 					return false
 				}
-				g.routeToGatewayOptions[path] = gatewayOptions
-				g.log.InfoContext(ctx, "registered options", "path", path, "option", gatewayOptions)
 			}
 		}
 		return true
@@ -234,7 +234,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	}
 
 	url := fmt.Sprintf(":%d", g.opts.Port)
-	handler := customMimeWrapper(g.routeToGatewayOptions, allowCORS(mux))
+	handler := handleGatewayOptions(g.routeToGatewayOptions, allowCORS(mux))
 	g.httpServer = &http.Server{Addr: url, Handler: handler}
 	g.log.InfoContext(ctx, "serving")
 	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
@@ -313,11 +313,27 @@ func allowCORS(h http.Handler) http.Handler {
 	})
 }
 
-func customMimeWrapper(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, h http.Handler) http.Handler {
+func handleGatewayOptions(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gatewayOptions, ok := routeToGatewayOptions[r.URL.Path]
-		if ok && gatewayOptions.CustomMime != "" {
-			r.Header.Set("Content-Type", gatewayOptions.CustomMime)
+		if gatewayOptions, ok := routeToGatewayOptions[r.URL.Path]; ok {
+			if gatewayOptions.CustomMime != "" {
+				r.Header.Set("Content-Type", gatewayOptions.CustomMime)
+			}
+			if gatewayOptions.RequireOriginalUrl {
+				scheme := r.Header.Get(HeaderXForwardedProto)
+				if scheme == "" {
+					scheme = "http"
+					if r.TLS != nil {
+						scheme = "https"
+					}
+				}
+				host := r.Header.Get(HeaderXForwardedHost)
+				if host == "" {
+					host = r.Host
+				}
+				// We only propagate it once.
+				r.Header.Set(runtime.MetadataHeaderPrefix+HeaderXOriginalURL, scheme+"://"+host+r.URL.String())
+			}
 		}
 		h.ServeHTTP(w, r)
 	})
@@ -415,4 +431,22 @@ func (*rawJSONPb) NewDecoder(r io.Reader) runtime.Decoder {
 		rv.Set(reflect.ValueOf(rawData))
 		return nil
 	})
+}
+
+func extractPath(rule *annotations.HttpRule) string {
+	switch pattern := rule.Pattern.(type) {
+	case *annotations.HttpRule_Get:
+		return pattern.Get
+	case *annotations.HttpRule_Post:
+		return pattern.Post
+	case *annotations.HttpRule_Put:
+		return pattern.Put
+	case *annotations.HttpRule_Delete:
+		return pattern.Delete
+	case *annotations.HttpRule_Patch:
+		return pattern.Patch
+	case *annotations.HttpRule_Custom:
+		return pattern.Custom.Path
+	}
+	return ""
 }

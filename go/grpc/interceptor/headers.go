@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
@@ -10,16 +11,42 @@ import (
 )
 
 const (
-	// Header key for the propagation header.
 	propagateHeadersMetadataKey = "x-propagate-headers"
 )
 
-// Use this method if you want to add a header to be propagated down the chain of calls.
-func AppendToOutgoingContextWithPropagation(ctx context.Context, key, value string) context.Context {
+type propagateOptions struct {
+	hops int
+}
+
+type PropagateOption func(*propagateOptions)
+
+func WithHops(n int) PropagateOption {
+	return func(o *propagateOptions) {
+		o.hops = n
+	}
+}
+
+func AppendToOutgoingContextWithPropagation(ctx context.Context, key, value string, opts ...PropagateOption) context.Context {
+	o := &propagateOptions{}
+	for _, opt := range opts {
+		opt(o)
+	}
+
+	canonicalKey := strings.ToLower(key)
+
+	if o.hops == 1 {
+		return metadata.AppendToOutgoingContext(ctx, key, value)
+	}
+
+	propagateValue := canonicalKey
+	if o.hops > 1 {
+		propagateValue = canonicalKey + ":" + strconv.Itoa(o.hops-1)
+	}
+
 	return metadata.AppendToOutgoingContext(
 		ctx,
 		key, value,
-		propagateHeadersMetadataKey, strings.ToLower(key), // Metadata library will canonicalize the key so we do too here.
+		propagateHeadersMetadataKey, propagateValue,
 	)
 }
 
@@ -33,18 +60,37 @@ func propagateHeadersToOutgoingContext(ctx context.Context) context.Context {
 		return ctx
 	}
 
-	propagateKeySet := make(map[string]struct{}, len(propagateKeys))
-	for _, key := range propagateKeys {
-		propagateKeySet[key] = struct{}{}
+	type keyHops struct {
+		key     string
+		hops    int
+		limited bool
+	}
+	propagateKeySet := make(map[string]keyHops, len(propagateKeys))
+	for _, entry := range propagateKeys {
+		key := entry
+		hops := 0
+		limited := false
+		if idx := strings.LastIndex(entry, ":"); idx != -1 {
+			if h, err := strconv.Atoi(entry[idx+1:]); err == nil {
+				key, hops, limited = entry[:idx], h, true
+			}
+		}
+		propagateKeySet[key] = keyHops{key: key, hops: hops, limited: limited}
 	}
 
-	// Collect headers to propagate
 	var kvPairs []string
 	for k, v := range md {
-		if _, ok := propagateKeySet[k]; ok || k == propagateHeadersMetadataKey {
-			for _, val := range v {
-				kvPairs = append(kvPairs, k, val)
-			}
+		kh, ok := propagateKeySet[k]
+		if !ok {
+			continue
+		}
+		for _, val := range v {
+			kvPairs = append(kvPairs, k, val)
+		}
+		if !kh.limited {
+			kvPairs = append(kvPairs, propagateHeadersMetadataKey, kh.key)
+		} else if kh.hops > 1 {
+			kvPairs = append(kvPairs, propagateHeadersMetadataKey, kh.key+":"+strconv.Itoa(kh.hops-1))
 		}
 	}
 	if len(kvPairs) == 0 {
@@ -61,7 +107,6 @@ func UnaryServerHeaderPropagation() grpc.UnaryServerInterceptor {
 	}
 }
 
-// StreamServerContextPropagation propagates incoming context to downstream calls.
 func StreamServerHeaderPropagation() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := propagateHeadersToOutgoingContext(stream.Context())

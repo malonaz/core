@@ -208,10 +208,11 @@ func (b0 HttpCookie_builder) Build() *HttpCookie {
 // handle a specific RPC method, allowing customization of gateway behavior
 // on a per-method basis.
 type GatewayOptions struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CustomMime string                 `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_CustomMime         string                 `protobuf:"bytes,1,opt,name=custom_mime,json=customMime,proto3"`
+	xxx_hidden_RequireOriginalUrl bool                   `protobuf:"varint,2,opt,name=require_original_url,json=requireOriginalUrl,proto3"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *GatewayOptions) Reset() {
@@ -246,8 +247,19 @@ func (x *GatewayOptions) GetCustomMime() string {
 	return ""
 }
 
+func (x *GatewayOptions) GetRequireOriginalUrl() bool {
+	if x != nil {
+		return x.xxx_hidden_RequireOriginalUrl
+	}
+	return false
+}
+
 func (x *GatewayOptions) SetCustomMime(v string) {
 	x.xxx_hidden_CustomMime = v
+}
+
+func (x *GatewayOptions) SetRequireOriginalUrl(v bool) {
+	x.xxx_hidden_RequireOriginalUrl = v
 }
 
 type GatewayOptions_builder struct {
@@ -257,6 +269,8 @@ type GatewayOptions_builder struct {
 	// HTTP requests/responses. This overrides the default content type
 	// and allows handling of non-standard formats (e.g., "application/raw-webhook").
 	CustomMime string
+	// If true, pass the original url in the grpc metadata using the key `X-Original-Url`.
+	RequireOriginalUrl bool
 }
 
 func (b0 GatewayOptions_builder) Build() *GatewayOptions {
@@ -264,6 +278,7 @@ func (b0 GatewayOptions_builder) Build() *GatewayOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_CustomMime = b.CustomMime
+	x.xxx_hidden_RequireOriginalUrl = b.RequireOriginalUrl
 	return m0
 }
 
@@ -331,10 +346,11 @@ const file_malonaz_grpc_v1_grpc_proto_rawDesc = "" +
 	"\aexpires\x18\x05 \x01(\x04R\aexpires\x12\x17\n" +
 	"\amax_age\x18\x06 \x01(\x03R\x06maxAge\x12\x1b\n" +
 	"\thttp_only\x18\a \x01(\bR\bhttpOnly\x12\x16\n" +
-	"\x06secure\x18\b \x01(\bR\x06secure\"1\n" +
+	"\x06secure\x18\b \x01(\bR\x06secure\"c\n" +
 	"\x0eGatewayOptions\x12\x1f\n" +
 	"\vcustom_mime\x18\x01 \x01(\tR\n" +
-	"customMime:D\n" +
+	"customMime\x120\n" +
+	"\x14require_original_url\x18\x02 \x01(\bR\x12requireOriginalUrl:D\n" +
 	"\vtrailer_key\x12!.google.protobuf.EnumValueOptions\x18ɵ\x01 \x01(\tR\n" +
 	"trailerKey:F\n" +
 	"\fmetadata_key\x12!.google.protobuf.EnumValueOptions\x18ʵ\x01 \x01(\tR\vmetadataKey:j\n" +
