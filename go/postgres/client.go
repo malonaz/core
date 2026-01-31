@@ -23,13 +23,13 @@ const (
 
 // Opts is the Client config containing the host, port, user and password.
 type Opts struct {
-	Host     string `long:"host"     env:"HOST"     default:"database" description:"Postgres host"`
-	Port     int    `long:"port"     env:"PORT"     default:"5432"     description:"Postgres port"`
-	User     string `long:"user"     env:"USER"     default:"postgres" description:"Postgres username"`
-	Password string `long:"password" env:"PASSWORD" default:"postgres" description:"Postgres password"`
-	Database string `long:"database" env:"DATABASE" default:"postgres" description:"Postgres database"`
-	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"       description:"Max number of connections"`
-	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"  description:"Postgres SSL mode"`
+	Host     string `long:"host"     env:"HOST"     default:"localhost" description:"Postgres host"`
+	Port     int    `long:"port"     env:"PORT"     default:"5432"      description:"Postgres port"`
+	User     string `long:"user"     env:"USER"     default:"postgres"  description:"Postgres username"`
+	Password string `long:"password" env:"PASSWORD" default:"postgres"  description:"Postgres password"`
+	Database string `long:"database" env:"DATABASE" default:"postgres"  description:"Postgres database"`
+	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"        description:"Max number of connections"`
+	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"   description:"Postgres SSL mode"`
 }
 
 func (o *Opts) Endpoint() string {
