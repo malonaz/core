@@ -18,18 +18,16 @@ import (
 const (
 	NovaMessageTypeResults       = "Results"
 	NovaMessageTypeSpeechStarted = "SpeechStarted"
-	NovaMessageTypeUtteranceEnd  = "UtteranceEnd"
 	NovaMessageTypeMetadata      = "Metadata"
 	NovaMessageTypeError         = "Error"
 )
 
 type NovaListenOptions struct {
-	Model          string
-	Language       string
-	Encoding       string
-	SampleRate     int
-	UtteranceEndMs int
-	EndpointingMs  int
+	Model         string
+	Language      string
+	Encoding      string
+	SampleRate    int
+	EndpointingMs int
 }
 
 type NovaListenConnection struct {
@@ -97,9 +95,7 @@ func (c *Client) ListenNova(ctx context.Context, opts *NovaListenOptions) (*Nova
 	params.Set("language", opts.Language)
 	params.Set("interim_results", "true")
 	params.Set("vad_events", "true")
-	if opts.UtteranceEndMs > 0 {
-		params.Set("utterance_end_ms", fmt.Sprintf("%d", opts.UtteranceEndMs))
-	}
+	params.Set("smart_format", "true")
 	if opts.EndpointingMs > 0 {
 		params.Set("endpointing", fmt.Sprintf("%d", opts.EndpointingMs))
 	}
@@ -168,25 +164,17 @@ func (c *Client) speechToTextStreamNova(
 		return grpc.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
-	var utteranceEndMs int
-	if d := vadConfiguration.GetSilenceThreshold(); d != nil {
-		utteranceEndMs = int(d.AsDuration().Milliseconds())
-		if utteranceEndMs < 1000 {
-			utteranceEndMs = 1000
-		}
-	}
 	var endpointingMs int
 	if d := vadConfiguration.GetMinSilenceDuration(); d != nil {
 		endpointingMs = int(d.AsDuration().Milliseconds())
 	}
 
 	conn, err := c.ListenNova(ctx, &NovaListenOptions{
-		Model:          model.ProviderModelId,
-		Language:       configuration.LanguageCode,
-		Encoding:       encoding,
-		SampleRate:     int(configuration.AudioFormat.SampleRate),
-		UtteranceEndMs: utteranceEndMs,
-		EndpointingMs:  endpointingMs,
+		Model:         model.ProviderModelId,
+		Language:      configuration.LanguageCode,
+		Encoding:      encoding,
+		SampleRate:    int(configuration.AudioFormat.SampleRate),
+		EndpointingMs: endpointingMs,
 	})
 	if err != nil {
 		return grpc.Errorf(codes.Internal, "connecting to deepgram nova: %v", err).Err()
@@ -227,27 +215,11 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 			return err
 		}
 
-		var resp *aiservicepb.SpeechToTextStreamResponse
 		switch msg.Type {
 		case NovaMessageTypeError:
 			return msg.AsError()
 		case NovaMessageTypeMetadata, NovaMessageTypeSpeechStarted:
 			continue
-		case NovaMessageTypeUtteranceEnd:
-			if !turnStarted {
-				continue
-			}
-			resp = &aiservicepb.SpeechToTextStreamResponse{
-				Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
-					TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
-						TurnIndex:  turnIndex,
-						Transcript: lastTranscript,
-					},
-				},
-			}
-			turnIndex++
-			turnStarted = false
-			lastTranscript = ""
 		case NovaMessageTypeResults:
 			var transcript string
 			if msg.Channel != nil && len(msg.Channel.Alternatives) > 0 {
@@ -261,8 +233,10 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 				lastTranscript = transcript
 			}
 
+			// Turn hasn't started.
 			if !turnStarted {
-				resp = &aiservicepb.SpeechToTextStreamResponse{
+				// Start the turn.
+				resp := &aiservicepb.SpeechToTextStreamResponse{
 					Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
 						TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
 							TurnIndex:  turnIndex,
@@ -271,21 +245,56 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 					},
 				}
 				turnStarted = true
-			} else {
-				resp = &aiservicepb.SpeechToTextStreamResponse{
-					Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
-						TurnUpdate: &aiservicepb.SpeechToTextStreamTurnEvent{
-							TurnIndex:  turnIndex,
-							Transcript: transcript,
-						},
-					},
+				if err := srv.Send(resp); err != nil {
+					return err
 				}
-			}
-		}
 
-		if resp != nil {
-			if err := srv.Send(resp); err != nil {
-				return err
+				// Short answers can be directly passed as 'finalized' so we handle that here.
+				if msg.SpeechFinal {
+					resp := &aiservicepb.SpeechToTextStreamResponse{
+						Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
+							TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
+								TurnIndex:  turnIndex,
+								Transcript: lastTranscript,
+							},
+						},
+					}
+					turnIndex++
+					turnStarted = false
+					lastTranscript = ""
+					if err := srv.Send(resp); err != nil {
+						return err
+					}
+				}
+			} else { // We are in the middle of a turn.
+				if msg.SpeechFinal {
+					resp := &aiservicepb.SpeechToTextStreamResponse{
+						Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
+							TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
+								TurnIndex:  turnIndex,
+								Transcript: lastTranscript,
+							},
+						},
+					}
+					turnIndex++
+					turnStarted = false
+					lastTranscript = ""
+					if err := srv.Send(resp); err != nil {
+						return err
+					}
+				} else {
+					resp := &aiservicepb.SpeechToTextStreamResponse{
+						Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
+							TurnUpdate: &aiservicepb.SpeechToTextStreamTurnEvent{
+								TurnIndex:  turnIndex,
+								Transcript: transcript,
+							},
+						},
+					}
+					if err := srv.Send(resp); err != nil {
+						return err
+					}
+				}
 			}
 		}
 	}

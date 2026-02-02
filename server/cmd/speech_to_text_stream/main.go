@@ -34,7 +34,7 @@ var (
 			SilenceThreshold:   durationpb.New(500 * time.Millisecond),
 			VadThreshold:       0.5,
 			MinSpeechDuration:  durationpb.New(100 * time.Millisecond),
-			MinSilenceDuration: durationpb.New(200 * time.Millisecond),
+			MinSilenceDuration: durationpb.New(500 * time.Millisecond),
 		},
 	}
 
