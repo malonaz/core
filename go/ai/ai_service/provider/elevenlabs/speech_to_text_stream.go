@@ -164,6 +164,9 @@ func (c *Client) sendSTTEvents(ctx context.Context, srv aiservicepb.AiService_Sp
 				return err
 			}
 		case msgTypeCommittedTranscript, msgTypeCommittedTranscriptTimestamps:
+			if msg.Text == "" {
+				continue
+			}
 			if err := srv.Send(&aiservicepb.SpeechToTextStreamResponse{
 				Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
 					TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
