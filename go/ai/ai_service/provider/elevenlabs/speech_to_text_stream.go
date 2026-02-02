@@ -144,14 +144,36 @@ func (c *Client) sendSTTChunk(ctx context.Context, conn *websocket.Conn, data []
 
 func (c *Client) sendSTTEvents(ctx context.Context, srv aiservicepb.AiService_SpeechToTextStreamServer, conn *websocket.Conn) error {
 	var turnIndex int32
+	var turnStarted bool
+
 	for {
 		msg, err := c.receiveSTTMessage(ctx, conn)
 		if err != nil {
 			return err
 		}
-		switch msg.MessageType {
-		case msgTypeInputError:
+		if msg.MessageType == msgTypeInputError {
 			return grpc.Errorf(codes.Internal, "elevenlabs error [%s]: %s", msg.Code, msg.Message).Err()
+		}
+
+		if !turnStarted {
+			if err := srv.Send(&aiservicepb.SpeechToTextStreamResponse{
+				Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
+					TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
+						TurnIndex:  turnIndex,
+						Transcript: msg.Text,
+					},
+				},
+			}); err != nil {
+				return err
+			}
+			turnStarted = true
+		}
+
+		if msg.Text == "" {
+			continue
+		}
+
+		switch msg.MessageType {
 		case msgTypePartialTranscript:
 			if err := srv.Send(&aiservicepb.SpeechToTextStreamResponse{
 				Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
@@ -163,10 +185,8 @@ func (c *Client) sendSTTEvents(ctx context.Context, srv aiservicepb.AiService_Sp
 			}); err != nil {
 				return err
 			}
+
 		case msgTypeCommittedTranscript, msgTypeCommittedTranscriptTimestamps:
-			if msg.Text == "" {
-				continue
-			}
 			if err := srv.Send(&aiservicepb.SpeechToTextStreamResponse{
 				Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
 					TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
@@ -177,7 +197,10 @@ func (c *Client) sendSTTEvents(ctx context.Context, srv aiservicepb.AiService_Sp
 			}); err != nil {
 				return err
 			}
+
+			// Reset turn.
 			turnIndex++
+			turnStarted = false
 		}
 	}
 }
@@ -187,6 +210,7 @@ func (c *Client) receiveSTTMessage(ctx context.Context, conn *websocket.Conn) (*
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(data))
 	var msg sttMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return nil, err

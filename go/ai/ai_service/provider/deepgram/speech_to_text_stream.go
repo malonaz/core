@@ -30,6 +30,9 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	if err != nil {
 		return err
 	}
+	if model.ProviderModelId == "nova-3" {
+		return c.speechToTextStreamNova(srv, configuration)
+	}
 
 	endOfTurnConfiguration := configuration.GetEndOfTurn()
 	if endOfTurnConfiguration == nil {
