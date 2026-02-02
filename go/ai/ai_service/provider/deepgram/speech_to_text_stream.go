@@ -52,7 +52,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
 	if err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, "invalid audio format: %v", err).Err()
+		return grpc.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
 	var eotTimeoutMs int

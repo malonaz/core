@@ -166,16 +166,17 @@ func (c *Client) speechToTextStreamNova(
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
 	if err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, "invalid audio format: %v", err).Err()
+		return grpc.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
-	var utteranceEndMs, endpointingMs int
+	var utteranceEndMs int
 	if d := vadConfiguration.GetSilenceThreshold(); d != nil {
 		utteranceEndMs = int(d.AsDuration().Milliseconds())
 		if utteranceEndMs < 1000 {
 			utteranceEndMs = 1000
 		}
 	}
+	var endpointingMs int
 	if d := vadConfiguration.GetMinSilenceDuration(); d != nil {
 		endpointingMs = int(d.AsDuration().Milliseconds())
 	}
@@ -218,6 +219,7 @@ func (c *Client) recvAudioNova(ctx context.Context, srv aiservicepb.AiService_Sp
 
 func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_SpeechToTextStreamServer, conn *NovaListenConnection) error {
 	var turnIndex int32
+	var turnStarted bool
 
 	for {
 		msg, err := conn.ReceiveMessage(ctx)
@@ -232,6 +234,7 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 		case NovaMessageTypeMetadata:
 			continue
 		case NovaMessageTypeSpeechStarted:
+			continue
 			resp = &aiservicepb.SpeechToTextStreamResponse{
 				Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
 					TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
@@ -258,7 +261,17 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 				continue
 			}
 
-			if msg.IsFinal {
+			if !turnStarted {
+				resp = &aiservicepb.SpeechToTextStreamResponse{
+					Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
+						TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
+							TurnIndex:  turnIndex,
+							Transcript: transcript,
+						},
+					},
+				}
+				turnStarted = true
+			} else if msg.IsFinal {
 				resp = &aiservicepb.SpeechToTextStreamResponse{
 					Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
 						TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
@@ -268,6 +281,7 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 					},
 				}
 				turnIndex++
+				turnStarted = false
 			} else {
 				resp = &aiservicepb.SpeechToTextStreamResponse{
 					Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
