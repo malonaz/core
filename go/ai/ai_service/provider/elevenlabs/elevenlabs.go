@@ -37,4 +37,7 @@ func (c *Client) Start(context.Context) error { return nil }
 func (c *Client) Stop() {}
 
 // Verify interface implementation
-var _ provider.TextToSpeechClient = (*Client)(nil)
+var (
+	_ provider.TextToSpeechClient       = (*Client)(nil)
+	_ provider.SpeechToTextStreamClient = (*Client)(nil)
+)

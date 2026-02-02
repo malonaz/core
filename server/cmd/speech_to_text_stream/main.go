@@ -21,12 +21,30 @@ import (
 )
 
 var (
-	socket     = flag.String("socket", "/tmp/core.socket", "Unix socket path")
-	provider   = flag.String("provider", "xai", "Provider name")
-	model      = flag.String("model", "stt-streaming", "Model ID")
-	sampleRate = flag.Int("sample-rate", 16000, "Audio sample rate in Hz")
-	channels   = flag.Int("channels", 1, "Number of audio channels")
-	chunkSize  = flag.Int("chunk-size", 1024, "Audio chunk size in frames")
+	socket         = flag.String("socket", "/tmp/core.socket", "Unix socket path")
+	provider       = flag.String("provider", "xai", "Provider name")
+	model          = flag.String("model", "stt-streaming", "Model ID")
+	sampleRate     = flag.Int("sample-rate", 16000, "Audio sample rate in Hz")
+	channels       = flag.Int("channels", 1, "Number of audio channels")
+	chunkSize      = flag.Int("chunk-size", 1024, "Audio chunk size in frames")
+	commitStrategy = flag.String("commit-stategy", "end_of_turn", "([end_of_turn, vad])")
+
+	commitStrategyVAD = &aiservicepb.SpeechToTextStreamConfiguration_Vad{
+		Vad: &aiservicepb.SpeechToTextStreamCommitStrategyVad{
+			SilenceThreshold:   durationpb.New(500 * time.Millisecond),
+			VadThreshold:       0.5,
+			MinSpeechDuration:  durationpb.New(100 * time.Millisecond),
+			MinSilenceDuration: durationpb.New(200 * time.Millisecond),
+		},
+	}
+
+	commitStrategyEndOfTurn = &aiservicepb.SpeechToTextStreamConfiguration_EndOfTurn{
+		EndOfTurn: &aiservicepb.SpeechToTextStreamCommitStrategyEndOfTurn{
+			ConfidenceThreshold:      0.8,
+			EagerConfidenceThreshold: 0.5,
+			Timeout:                  durationpb.New(3 * time.Second),
+		},
+	}
 )
 
 func main() {
@@ -82,6 +100,15 @@ func run() error {
 			},
 		},
 	}
+	switch *commitStrategy {
+	case "end_of_turn":
+		config.GetConfiguration().CommitStrategy = commitStrategyEndOfTurn
+	case "vad":
+		config.GetConfiguration().CommitStrategy = commitStrategyVAD
+	default:
+		return fmt.Errorf("unknown commit strategy: %s", *commitStrategy)
+	}
+
 	if err := stream.Send(config); err != nil {
 		return fmt.Errorf("sending config: %w", err)
 	}

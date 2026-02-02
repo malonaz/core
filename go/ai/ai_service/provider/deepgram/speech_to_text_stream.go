@@ -25,13 +25,24 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		return grpc.Errorf(codes.FailedPrecondition, "first message must be configuration", err).Err()
 	}
 
-	if configuration.EndOfTurnConfidenceThreshold > 0 {
-		if configuration.EndOfTurnConfidenceThreshold < 0.5 || configuration.EndOfTurnConfidenceThreshold > 0.9 {
+	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return err
+	}
+
+	endOfTurnConfiguration := configuration.GetEndOfTurn()
+	if endOfTurnConfiguration == nil {
+		return grpc.Errorf(codes.InvalidArgument, "only supports end_of_turn commit strategy", err).Err()
+	}
+
+	if endOfTurnConfiguration.ConfidenceThreshold > 0 {
+		if endOfTurnConfiguration.ConfidenceThreshold < 0.5 || endOfTurnConfiguration.ConfidenceThreshold > 0.9 {
 			return grpc.Errorf(codes.InvalidArgument, "end_of_turn_confidence_threshold must be between 0.5 and 0.9").Err()
 		}
 	}
-	if configuration.EagerEndOfTurnConfidenceThreshold > 0 {
-		if configuration.EagerEndOfTurnConfidenceThreshold < 0.3 || configuration.EagerEndOfTurnConfidenceThreshold > 0.9 {
+	if endOfTurnConfiguration.EagerConfidenceThreshold > 0 {
+		if endOfTurnConfiguration.EagerConfidenceThreshold < 0.3 || endOfTurnConfiguration.EagerConfidenceThreshold > 0.9 {
 			return grpc.Errorf(codes.InvalidArgument, "eager_end_of_turn_confidence_threshold must be between 0.3 and 0.9").Err()
 		}
 	}
@@ -42,16 +53,16 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	}
 
 	var eotTimeoutMs int
-	if d := configuration.GetEndOfTurnTimeout(); d != nil {
+	if d := endOfTurnConfiguration.GetTimeout(); d != nil {
 		eotTimeoutMs = int(d.AsDuration().Milliseconds())
 	}
 
 	conn, err := c.Listen(ctx, &ListenOptions{
-		Model:             ModelFluxGeneralEN,
+		Model:             model.ProviderModelId,
 		Encoding:          encoding,
 		SampleRate:        int(configuration.AudioFormat.SampleRate),
-		EotThreshold:      configuration.EndOfTurnConfidenceThreshold,
-		EagerEotThreshold: configuration.EagerEndOfTurnConfidenceThreshold,
+		EotThreshold:      endOfTurnConfiguration.ConfidenceThreshold,
+		EagerEotThreshold: endOfTurnConfiguration.EagerConfidenceThreshold,
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {

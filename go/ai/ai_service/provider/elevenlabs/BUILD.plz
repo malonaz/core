@@ -2,6 +2,7 @@ go_library(
     name = "elevenlabs",
     srcs = [
         "elevenlabs.go",
+        "speech_to_text_stream.go",
         "text_to_speech.go",
     ],
     visibility = ["//..."],
@@ -12,6 +13,7 @@ go_library(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/audio/v1",
+        "//third_party/go:github.com__coder__websocket",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",

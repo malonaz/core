@@ -57,12 +57,6 @@ message SpeechToTextStreamRequest {
 
 // Configuration for speech to text streaming. Sent as the first message.
 message SpeechToTextStreamConfiguration {
-  option (buf.validate.message).cel = {
-    id: "eager_lte_eot"
-    message: "eager_end_of_turn_confidence_threshold must be <= end_of_turn_confidence_threshold"
-    expression: "this.eager_end_of_turn_confidence_threshold <= this.end_of_turn_confidence_threshold"
-  };
-
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
   string model = 1 [
@@ -73,28 +67,68 @@ message SpeechToTextStreamConfiguration {
   // Audio format of the audio stream.
   audio.v1.Format audio_format = 2 [(buf.validate.field).required = true];
 
-  // End of turn confidence threshold.
-  double end_of_turn_confidence_threshold = 3 [(buf.validate.field).double = {
+  // Optional language code to improve transcription accuracy (e.g., "en", "es").
+  string language_code = 3;
+
+  // Strategy for committing transcript segments.
+  oneof commit_strategy {
+    option (buf.validate.oneof).required = true;
+    // End of turn configuration.
+    SpeechToTextStreamCommitStrategyEndOfTurn end_of_turn = 4;
+    // Vad configuration.
+    SpeechToTextStreamCommitStrategyVad vad = 5;
+  }
+}
+
+// Configuration for end-of-turn detection.
+message SpeechToTextStreamCommitStrategyEndOfTurn {
+  option (buf.validate.message).cel = {
+    id: "eager_lte_eot"
+    message: "eager_confidence_threshold must be <= confidence_threshold"
+    expression: "this.eager_confidence_threshold <= this.confidence_threshold"
+  };
+
+  // Confidence threshold for ending a turn.
+  double confidence_threshold = 1 [(buf.validate.field).double = {
     gte: 0
     lte: 1
   }];
 
-  // Eager end of turn confidence threshold (must be <= `end_of_turn_threshold`).
-  double eager_end_of_turn_confidence_threshold = 4 [(buf.validate.field).double = {
+  // Eager confidence threshold (must be <= confidence_threshold).
+  double eager_confidence_threshold = 2 [(buf.validate.field).double = {
     gte: 0
     lte: 1
   }];
 
-  // Maximum silence duration before forcing an end of turn, regardless of confidence, after a turn has started.
-  // - Use 3000-4000 for rapid-response environments.
-  // - Use 7000-1000 for users with frequent pauses.
-  google.protobuf.Duration end_of_turn_timeout = 5 [(buf.validate.field).duration = {
+  // Maximum silence duration before forcing end of turn after speech starts.
+  google.protobuf.Duration timeout = 3 [(buf.validate.field).duration = {
     gte: {seconds: 0}
     lte: {seconds: 10}
   }];
+}
 
-  // Optional language code to improve transcription accuracy (e.g., "en", "es").
-  string language_code = 6;
+// Configuration for vad.
+message SpeechToTextStreamCommitStrategyVad {
+  // Silence duration before committing transcript. Must be between 0.3s and 3.0s.
+  google.protobuf.Duration silence_threshold = 1 [(buf.validate.field).duration = {
+    gte: {nanos: 300000000}
+    lte: {seconds: 3}
+  }];
+  // Voice activity detection sensitivity. Must be between 0.1 and 0.9.
+  double vad_threshold = 2 [(buf.validate.field).double = {
+    gte: 0.1
+    lte: 0.9
+  }];
+  // Minimum speech duration to consider valid. Must be between 50ms and 2000ms.
+  google.protobuf.Duration min_speech_duration = 3 [(buf.validate.field).duration = {
+    gte: {nanos: 50000000}
+    lte: {seconds: 2}
+  }];
+  // Minimum silence duration before speech is considered ended. Must be between 50ms and 2000ms.
+  google.protobuf.Duration min_silence_duration = 4 [(buf.validate.field).duration = {
+    gte: {nanos: 50000000}
+    lte: {seconds: 2}
+  }];
 }
 
 // Response message for AiService.SpeechToTextStream.
