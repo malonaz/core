@@ -133,7 +133,6 @@ func (lc *NovaListenConnection) ReceiveMessage(ctx context.Context) (*NovaServer
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(data))
 	var msg NovaServerMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return nil, err
@@ -220,6 +219,7 @@ func (c *Client) recvAudioNova(ctx context.Context, srv aiservicepb.AiService_Sp
 func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_SpeechToTextStreamServer, conn *NovaListenConnection) error {
 	var turnIndex int32
 	var turnStarted bool
+	var lastTranscript string
 
 	for {
 		msg, err := conn.ReceiveMessage(ctx)
@@ -231,27 +231,23 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 		switch msg.Type {
 		case NovaMessageTypeError:
 			return msg.AsError()
-		case NovaMessageTypeMetadata:
+		case NovaMessageTypeMetadata, NovaMessageTypeSpeechStarted:
 			continue
-		case NovaMessageTypeSpeechStarted:
-			continue
-			resp = &aiservicepb.SpeechToTextStreamResponse{
-				Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
-					TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
-						TurnIndex: turnIndex,
-					},
-				},
-			}
 		case NovaMessageTypeUtteranceEnd:
-			continue
+			if !turnStarted {
+				continue
+			}
 			resp = &aiservicepb.SpeechToTextStreamResponse{
 				Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
 					TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
-						TurnIndex: turnIndex,
+						TurnIndex:  turnIndex,
+						Transcript: lastTranscript,
 					},
 				},
 			}
 			turnIndex++
+			turnStarted = false
+			lastTranscript = ""
 		case NovaMessageTypeResults:
 			var transcript string
 			if msg.Channel != nil && len(msg.Channel.Alternatives) > 0 {
@@ -259,6 +255,10 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 			}
 			if transcript == "" {
 				continue
+			}
+			transcript = concat(lastTranscript, transcript)
+			if msg.IsFinal {
+				lastTranscript = transcript
 			}
 
 			if !turnStarted {
@@ -271,17 +271,6 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 					},
 				}
 				turnStarted = true
-			} else if msg.IsFinal {
-				resp = &aiservicepb.SpeechToTextStreamResponse{
-					Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
-						TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
-							TurnIndex:  turnIndex,
-							Transcript: transcript,
-						},
-					},
-				}
-				turnIndex++
-				turnStarted = false
 			} else {
 				resp = &aiservicepb.SpeechToTextStreamResponse{
 					Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
@@ -300,4 +289,11 @@ func (c *Client) sendEventsNova(ctx context.Context, srv aiservicepb.AiService_S
 			}
 		}
 	}
+}
+
+func concat(existing, new string) string {
+	if existing == "" {
+		return new
+	}
+	return existing + " " + new
 }
