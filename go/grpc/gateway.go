@@ -370,9 +370,15 @@ func withCustomMarshalers() []runtime.ServeMuxOption {
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
 			Marshaler: grpcGatewayMarshalerOptions,
 		}),
-		runtime.WithMarshalerOption("application/json+camel", grpcGatewayMarshalerCamelCaseOptions),
-		runtime.WithMarshalerOption("application/x-www-form-urlencoded", &urlEncodedMarshaler{}),
-		runtime.WithMarshalerOption("application/raw-webhook", &rawJSONPb{grpcGatewayMarshalerOptions}),
+		runtime.WithMarshalerOption("application/json+camel", &runtime.HTTPBodyMarshaler{
+			Marshaler: grpcGatewayMarshalerCamelCaseOptions,
+		}),
+		runtime.WithMarshalerOption("application/x-www-form-urlencoded", &runtime.HTTPBodyMarshaler{
+			Marshaler: &urlEncodedMarshaler{},
+		}),
+		runtime.WithMarshalerOption("application/raw-webhook", &runtime.HTTPBodyMarshaler{
+			Marshaler: &rawJSONPb{grpcGatewayMarshalerOptions},
+		}),
 	}
 }
 
