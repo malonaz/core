@@ -13,10 +13,10 @@ import (
 // Opts holds HTTP server options.
 type Opts struct {
 	Health              *health.GRPCOpts `group:"Health" namespace:"health" env-namespace:"HEALTH"`
-	Port                int              `long:"port" description:"Port to serve HTTP on" default:"8080"`
-	ReadTimeout         time.Duration    `long:"read-timeout" description:"HTTP read timeout" default:"30s"`
-	WriteTimeout        time.Duration    `long:"write-timeout" description:"HTTP write timeout" default:"30s"`
-	IdleTimeout         time.Duration    `long:"idle-timeout" description:"HTTP idle timeout" default:"120s"`
+	Port                int              `long:"port" env:"PORT" description:"Port to serve HTTP on" default:"8080"`
+	ReadTimeout         time.Duration    `long:"read-timeout" env:"READ_TIMEOUT" description:"HTTP read timeout" default:"30s"`
+	WriteTimeout        time.Duration    `long:"write-timeout" env:"WRITE_TIMEOUT" description:"HTTP write timeout" default:"30s"`
+	IdleTimeout         time.Duration    `long:"idle-timeout" env:"IDLE_TIMEOUT"  description:"HTTP idle timeout" default:"120s"`
 	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
 }
 
