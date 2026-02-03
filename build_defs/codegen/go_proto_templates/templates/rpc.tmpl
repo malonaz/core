@@ -98,7 +98,7 @@ package {{ .PackageName }}
         {{ if doOnce (printf "%s_resource_interface_def" $pr.Desc.Singular) }}
             type {{ $storeInterface }} interface {
             {{ if not $pr.Singleton }}
-                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | camelcase | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
+                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | goName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             {{ end }}
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
@@ -173,7 +173,7 @@ package {{ .PackageName }}
             {{- range $child := $singletonChildren }}
                 // Instantiate child singleton resource: {{ $child.Type }}
                 {{- $childMessage := getMessageUsingResourceType $child.Desc.Type }}
-                {{- $childResourceGoName := $child.Desc.Singular | camelcase -}}
+                {{- $childResourceGoName := $child.Desc.Singular | goName -}}
                 {{- if not $childMessage }}
                     {{- fail (printf "could not find message for child resource type %s" $child.Desc.Type) }}
                 {{- end }}
@@ -196,7 +196,7 @@ package {{ .PackageName }}
             {{- end }}
 
             // STEP 4: Insert the resource idempotently.
-            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }}Model{{ end }})
+            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | goName | untitle }}Model{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists")
