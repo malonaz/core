@@ -16,6 +16,7 @@ go_binary(
         "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__internal__strs",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",

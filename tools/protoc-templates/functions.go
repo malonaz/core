@@ -8,6 +8,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/internal/strs"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -35,6 +36,7 @@ func newScopedExecution(generatedFile *protogen.GeneratedFile) *scopedExecution 
 
 func (se *scopedExecution) FuncMap() template.FuncMap {
 	additional := template.FuncMap{
+		"goName": strs.GoCamelCase,
 		"skipGeneration": func() bool {
 			se.generatedFile.Skip()
 			return true // dummy return
