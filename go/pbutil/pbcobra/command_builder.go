@@ -351,7 +351,7 @@ func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.Me
 
 	fields := method.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		if err := b.setFieldWithPrefix(req, fields.Get(i), cmd, ""); err != nil {
+		if err := b.setFieldWithPrefix(req, fields.Get(i), cmd, "", 0); err != nil {
 			return err
 		}
 	}
@@ -364,7 +364,10 @@ func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.Me
 	return b.responseHandler(resp)
 }
 
-func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, cmd *cobra.Command, prefix string) error {
+func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, cmd *cobra.Command, prefix string, depth int) error {
+	if depth > b.maxDepth {
+		return nil
+	}
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
 
 	if field.IsList() {
@@ -433,7 +436,7 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 		default:
 			// Check if explicitly instantiated via bool flag or has nested fields set
 			explicitlySet, _ := cmd.Flags().GetBool(name)
-			hasNestedChanges := b.anyNestedFlagChanged(cmd, field, name+"-")
+			hasNestedChanges := b.anyNestedFlagChanged(cmd, field, name+"-", depth)
 
 			if !explicitlySet && !hasNestedChanges {
 				return nil
@@ -442,7 +445,7 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 			nestedMsg := msg.Mutable(field).Message()
 			nestedFields := field.Message().Fields()
 			for i := 0; i < nestedFields.Len(); i++ {
-				if err := b.setFieldWithPrefix(nestedMsg.(*dynamicpb.Message), nestedFields.Get(i), cmd, name+"-"); err != nil {
+				if err := b.setFieldWithPrefix(nestedMsg.(*dynamicpb.Message), nestedFields.Get(i), cmd, name+"-", depth+1); err != nil {
 					return err
 				}
 			}
@@ -469,7 +472,10 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 	return nil
 }
 
-func (b *CommandBuilder) anyNestedFlagChanged(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string) bool {
+func (b *CommandBuilder) anyNestedFlagChanged(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string, depth int) bool {
+	if depth > b.maxDepth {
+		return false
+	}
 	if field.Kind() != protoreflect.MessageKind {
 		return cmd.Flags().Changed(prefix[:len(prefix)-1])
 	}
@@ -478,7 +484,7 @@ func (b *CommandBuilder) anyNestedFlagChanged(cmd *cobra.Command, field protoref
 		f := nestedFields.Get(i)
 		name := prefix + xstrings.ToKebabCase(string(f.Name()))
 		if f.Kind() == protoreflect.MessageKind {
-			if b.anyNestedFlagChanged(cmd, f, name+"-") {
+			if b.anyNestedFlagChanged(cmd, f, name+"-", depth+1) {
 				return true
 			}
 		} else if cmd.Flags().Changed(name) {
