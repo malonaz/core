@@ -60,7 +60,7 @@ var (
 	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
 	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
   {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
-	{{ $tableName := ternary ($pr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
+	{{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.TableName (empty $modelOpts.TableName) }}
   {{- $whereConditions := list }}
 	{{- $placeholders := list }}
 	{{- range $i, $var := $pr.PatternVariables }}

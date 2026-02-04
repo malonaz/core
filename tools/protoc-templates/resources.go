@@ -192,6 +192,14 @@ func (pr *ParsedResource) PluralGoName() string {
 	return strs.GoCamelCase(pr.Desc.Plural)
 }
 
+func (pr *ParsedResource) SingularSnakeCase() string {
+	return strs.JSONSnakeCase(pr.Desc.Singular)
+}
+
+func (pr *ParsedResource) PluralSnakeCase() string {
+	return strs.JSONSnakeCase(pr.Desc.Plural)
+}
+
 var parsedResourceTypeToParsedResource = map[string]*ParsedResource{}
 
 func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*ParsedResource, error) {

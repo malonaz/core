@@ -121,9 +121,10 @@ var (
 {{ range $message := $file.Messages -}}
     {{-  $modelOpts := getModelOpts . -}}
     {{- if not $modelOpts -}}{{ continue }}{{- end }}
-    Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $message.GoIdent.GoName | snakecase }} already exists")
-    Err{{ $message.GoIdent.GoName }}NotExist = {{ fqn "errors" "New" }}("{{ $message.GoIdent.GoName | snakecase }} does not exist")
-    Err{{ $message.GoIdent.GoName }}AlreadyDeleted = {{ fqn "errors" "New" }}("{{ $message.GoIdent.GoName | snakecase }} already deleted")
+    {{ $pr := parseResourceFromMessage $message }}
+    Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already exists")
+    Err{{ $message.GoIdent.GoName }}NotExist = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} does not exist")
+    Err{{ $message.GoIdent.GoName }}AlreadyDeleted = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already deleted")
 {{- end -}}
 )
 
