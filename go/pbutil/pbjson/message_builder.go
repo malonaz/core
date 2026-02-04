@@ -16,7 +16,7 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
-const responseFieldMaskKey = "@response_field_mask"
+const responseFieldMaskKey = "response_field_mask"
 
 func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args map[string]any) (*dynamicpb.Message, error) {
 	desc, err := b.schema.FindDescriptorByName(messageFullName)
