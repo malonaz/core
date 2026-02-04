@@ -136,7 +136,7 @@ package {{ .PackageName }}
             {{ end }}
             {{ $pr.PatternVariableID true }} := request.{{ $resourceGoName }}Id
             if {{ $pr.PatternVariableID true }} == "" {
-            {{ $pr.PatternVariableID true }} = {{ fqn "github.com/malonaz/core/go/uuid" "MustNewV7" }}().String()
+            {{ $pr.PatternVariableID true }} = {{ fqn "github.com/malonaz/core/go/aip" "NewSystemGeneratedBase32ResourceID" }}()
             }
 
             {{ if $pr.Parent }}

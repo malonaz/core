@@ -7,6 +7,7 @@ go_library(
         "paginate.go",
         "pagination_request.go",
         "resource.go",
+        "resource_id.go",
         "resource_tree.go",
         "search_request_parser.go",
         "update_request_parser.go",
