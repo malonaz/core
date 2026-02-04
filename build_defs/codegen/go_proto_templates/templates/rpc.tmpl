@@ -14,7 +14,6 @@ package {{ .PackageName }}
         {{- $rpc := parseRPC $method }}
         {{- if $rpc }}
             {{- $pr := $rpc.ParsedResource }}
-            {{- $resourceKey := printf "%s" ($pr.Desc.Singular | camelcase) }}
             {{- $found := false }}
             {{- range $existingResource := $resourceList }}
                 {{- if eq $existingResource.Desc.Singular $pr.Desc.Singular }}
@@ -35,20 +34,20 @@ package {{ .PackageName }}
 {{- range $serviceName, $resources := $serviceInterfaces }}
     type {{ $serviceName | untitle }}Store interface {
     {{- range $pr := $resources }}
-        {{ $serviceName | untitle }}_{{ $pr.Desc.Singular | camelcase }}Store
+        {{ $serviceName | untitle }}_{{ $pr.SingularGoName }}Store
     {{- end }}
     }
 
     type {{ $serviceName }}Server struct {
     {{- range $pr := $resources }}
-        *{{ $serviceName | untitle }}_{{ $pr.Desc.Singular | camelcase }}Server
+        *{{ $serviceName | untitle }}_{{ $pr.SingularGoName }}Server
     {{- end }}
     }
 
     func New{{ $serviceName }}Server(store {{ $serviceName | untitle }}Store) *{{ $serviceName }}Server {
     return &{{ $serviceName }}Server{
     {{- range $pr := $resources }}
-        new{{ $serviceName }}_{{ $pr.Desc.Singular | camelcase }}Server(store),
+        new{{ $serviceName }}_{{ $pr.SingularGoName }}Server(store),
     {{- end }}
     }
     }
@@ -61,8 +60,8 @@ package {{ .PackageName }}
         {{ $rpc := parseRPC $method }}
         {{ if not $rpc }}{{ continue }}{{ end }}
         {{ $pr := $rpc.ParsedResource }}
-        {{ $storeInterface := printf "%s_%sStore" ($service.Desc.Name | toString | camelcase | untitle) ($pr.Desc.Singular | camelcase) }}
-        {{- $resourceGoName := $pr.Desc.Singular | camelcase }}
+        {{ $storeInterface := printf "%s_%sStore" ($service.Desc.Name | toString | camelcase | untitle) $pr.SingularGoName }}
+        {{- $resourceGoName := $pr.SingularGoName }}
         {{- $modelGoName := printf "%sModel" $resourceGoName }}
         {{ $goTypeQgi := $rpc.Message.GoIdent.GoName | $modelGpi.Ident | qgi }}
         {{ $parseFromPb := (printf "%sFromPb" $rpc.Message.GoIdent.GoName) | $modelGpi.Ident | qgi }}
@@ -98,7 +97,7 @@ package {{ .PackageName }}
         {{ if doOnce (printf "%s_resource_interface_def" $pr.Desc.Singular) }}
             type {{ $storeInterface }} interface {
             {{ if not $pr.Singleton }}
-                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | camelcase | untitle }} *{{ $child.Desc.Singular | goName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
+                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             {{ end }}
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
@@ -109,7 +108,7 @@ package {{ .PackageName }}
                 {{- end }}
             {{ end }}
             Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeQgi }}, error)
-            List{{ $pr.Desc.Plural | camelcase }}(ctx {{ fqn "context" "Context" }}, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }} string,{{ end }} {{ if $softDeletable }}showDeleted bool, {{ end }}whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*{{ $goTypeQgi }}, error)
+            List{{ $pr.PluralGoName }}(ctx {{ fqn "context" "Context" }}, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }} string,{{ end }} {{ if $softDeletable }}showDeleted bool, {{ end }}whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*{{ $goTypeQgi }}, error)
             }
 
             // Server implements the RPC interface.
@@ -170,22 +169,22 @@ package {{ .PackageName }}
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err)
 	          }
 
-            {{- range $child := $singletonChildren }}
-                // Instantiate child singleton resource: {{ $child.Type }}
-                {{- $childMessage := getMessageUsingResourceType $child.Desc.Type }}
-                {{- $childResourceGoName := $child.Desc.Singular | goName -}}
+            {{- range $childPr := $singletonChildren }}
+                // Instantiate child singleton resource: {{ $childPr.Type }}
+                {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
+                {{- $childResourceGoName := $childPr.SingularGoName -}}
                 {{- if not $childMessage }}
-                    {{- fail (printf "could not find message for child resource type %s" $child.Desc.Type) }}
+                    {{- fail (printf "could not find message for child resource type %s" $childPr.Desc.Type) }}
                 {{- end }}
                 {{ $childResourceGoName | untitle }} := &{{ qgi $childMessage.GoIdent }}{
-                Name: {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $child.Pattern }}", {{ $child.PatternVariableIDs true }}),
+                Name: {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $childPr.Pattern }}", {{ $childPr.PatternVariableIDs true }}),
                 CreateTime: request.{{ $resourceGoName }}.CreateTime,
                 UpdateTime: request.{{ $resourceGoName }}.UpdateTime,
                 }
                 {{ $parseFromPb := (printf "%sFromPb" $childMessage.GoIdent.GoName) | $modelGpi.Ident | qgi }}
                 {{ $childResourceGoName | untitle }}Model, err := {{ $parseFromPb }}({{ $childResourceGoName | untitle }})
                 if err != nil {
-		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $child.Desc.Singular }} from pb to model: %v", err)
+		            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childPr.Desc.Singular }} from pb to model: %v", err)
 	              }
             {{ end }}
 
@@ -196,7 +195,7 @@ package {{ .PackageName }}
             {{- end }}
 
             // STEP 4: Insert the resource idempotently.
-            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $child := $singletonChildren }}, {{ $child.Desc.Singular | goName | untitle }}Model{{ end }})
+            db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }}Model{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists")
@@ -392,7 +391,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     whereClause := "WHERE " + {{ fqn "strings" "Join" }}(whereClauses, " OR ")
 
     // Retrieve from the database
-    db{{ $modelGoName }}s, err := s.store.List{{ $pr.Desc.Plural | camelcase }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
+    db{{ $modelGoName }}s, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
     if err != nil {
         return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err)
     }

@@ -5,13 +5,15 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/internal/strs"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 )
 
 var (
@@ -182,6 +184,14 @@ func (pr *ParsedResource) PatternVariableIDPtrs() string {
 	return strings.Join(vals, ", ")
 }
 
+func (pr *ParsedResource) SingularGoName() string {
+	return strs.GoCamelCase(pr.Desc.Singular)
+}
+
+func (pr *ParsedResource) PluralGoName() string {
+	return strs.GoCamelCase(pr.Desc.Plural)
+}
+
 var parsedResourceTypeToParsedResource = map[string]*ParsedResource{}
 
 func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*ParsedResource, error) {
@@ -331,8 +341,8 @@ func parseRPC(method *protogen.Method) (*RPC, error) {
 	}
 
 	// 4. Determine the method type based on the method name
-	resourceNameSingular := xstrings.ToPascalCase(parsedResource.Desc.Singular)
-	resourceNamePlural := xstrings.ToPascalCase(parsedResource.Desc.Plural)
+	resourceNameSingular := parsedResource.SingularGoName()
+	resourceNamePlural := parsedResource.PluralGoName()
 	create := method.GoName == "Create"+resourceNameSingular
 	get := method.GoName == "Get"+resourceNameSingular
 	batchGet := method.GoName == "BatchGet"+resourceNamePlural

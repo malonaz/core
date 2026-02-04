@@ -105,13 +105,13 @@ var (
 		  {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
     )
 
-			func (s *Store) Insert{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | goName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+			func (s *Store) Insert{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
 				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
 					{{- $modelOpts := getModelOpts $message }}
 					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
-					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | goName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
 
 				{{ if eq (len $singletonChildren) 0 }}
@@ -161,7 +161,7 @@ var (
 
 var {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns) + ` FROM {{ $tableName }} WHERE request_id = $1`
 
-func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.Desc.Singular | goName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
     {{ $goName }} := &{{ $message.GoIdent.GoName }}WithRequestID{
         RequestID: requestID,
         {{ $goType }}: *raw{{ $goName | title }},
@@ -171,7 +171,7 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
         {{- $modelOpts := getModelOpts $message }}
         {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
-        query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.Desc.Singular | goName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+        query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
     {{ end }}
 
     var inserted *{{ $goTypeFqi }}
