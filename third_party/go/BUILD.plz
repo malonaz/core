@@ -327,7 +327,7 @@ go_mod_download(
     name = "cloud.google.com__go__compute__metadata",
     _tag = "download",
     module = "cloud.google.com/go/compute/metadata",
-    version = "v0.7.0",
+    version = "v0.9.0",
     visibility = ["PUBLIC"],
 )
 
@@ -964,7 +964,7 @@ go_mod_download(
     name = "github.com__go-jose__go-jose__v4",
     _tag = "download",
     module = "github.com/go-jose/go-jose/v4",
-    version = "v4.1.1",
+    version = "v4.1.3",
     visibility = ["PUBLIC"],
 )
 
@@ -1839,44 +1839,6 @@ go_module(
         ":golang.org__x__image__math__fixed",
         "//third_party/go:github.com__golang__freetype__raster",
     ],
-)
-
-go_mod_download(
-    name = "github.com__golang__glog",
-    _tag = "download",
-    module = "github.com/golang/glog",
-    version = "v1.2.5",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__golang__glog",
-    download = ":_github.com__golang__glog#download",
-    install = ["."],
-    module = "github.com/golang/glog",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__golang__glog__internal__logsink",
-        ":github.com__golang__glog__internal__stackdump",
-    ],
-)
-
-go_module(
-    name = "github.com__golang__glog__internal__logsink",
-    download = ":_github.com__golang__glog#download",
-    install = ["internal/logsink"],
-    module = "github.com/golang/glog",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__golang__glog__internal__stackdump"],
-)
-
-go_module(
-    name = "github.com__golang__glog__internal__stackdump",
-    download = ":_github.com__golang__glog#download",
-    install = ["internal/stackdump"],
-    module = "github.com/golang/glog",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -3710,7 +3672,7 @@ go_mod_download(
     name = "github.com__grpc-ecosystem__grpc-gateway__v2",
     _tag = "download",
     module = "github.com/grpc-ecosystem/grpc-gateway/v2",
-    version = "v2.11.3",
+    version = "v2.27.7",
     visibility = ["PUBLIC"],
 )
 
@@ -3732,6 +3694,7 @@ go_module(
     deps = [
         ":google.golang.org__protobuf__compiler__protogen",
         ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__types__descriptorpb",
         ":google.golang.org__protobuf__types__pluginpb",
     ],
 )
@@ -3747,15 +3710,15 @@ go_module(
         ":github.com__grpc-ecosystem__grpc-gateway__v2__internal__descriptor__openapiconfig",
         ":github.com__grpc-ecosystem__grpc-gateway__v2__internal__httprule",
         ":github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-openapiv2__options",
+        ":go.yaml.in__yaml__v3",
         ":golang.org__x__text__cases",
         ":golang.org__x__text__language",
+        ":google.golang.org__grpc__grpclog",
         ":google.golang.org__protobuf__compiler__protogen",
         ":google.golang.org__protobuf__encoding__protojson",
         ":google.golang.org__protobuf__proto",
         ":google.golang.org__protobuf__types__descriptorpb",
         ":google.golang.org__protobuf__types__pluginpb",
-        ":gopkg.in__yaml.v3",
-        "//third_party/go:github.com__golang__glog",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__casing",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__codegenerator",
         "//third_party/proto:google__api__annotations",
@@ -3814,8 +3777,8 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-grpc-gateway__internal__gengateway",
+        ":google.golang.org__grpc__grpclog",
         ":google.golang.org__protobuf__compiler__protogen",
-        "//third_party/go:github.com__golang__glog",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__codegenerator",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__descriptor",
     ],
@@ -3829,9 +3792,10 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
+        ":google.golang.org__grpc__grpclog",
         ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__types__descriptorpb",
         ":google.golang.org__protobuf__types__pluginpb",
-        "//third_party/go:github.com__golang__glog",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__casing",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__descriptor",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__internal__generator",
@@ -3861,7 +3825,7 @@ go_module(
     deps = [
         ":github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
         ":google.golang.org__genproto__googleapis__api__httpbody",
-        ":google.golang.org__genproto__protobuf__field_mask",
+        ":google.golang.org__grpc",
         ":google.golang.org__grpc__codes",
         ":google.golang.org__grpc__grpclog",
         ":google.golang.org__grpc__health__grpc_health_v1",
@@ -3872,6 +3836,7 @@ go_module(
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__reflect__protoregistry",
         ":google.golang.org__protobuf__types__known__durationpb",
+        ":google.golang.org__protobuf__types__known__fieldmaskpb",
         ":google.golang.org__protobuf__types__known__structpb",
         ":google.golang.org__protobuf__types__known__timestamppb",
         ":google.golang.org__protobuf__types__known__wrapperspb",
@@ -5206,8 +5171,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -5558,7 +5523,7 @@ go_mod_download(
     name = "github.com__spiffe__go-spiffe__v2",
     _tag = "download",
     module = "github.com/spiffe/go-spiffe/v2",
-    version = "v2.5.0",
+    version = "v2.6.0",
     visibility = ["PUBLIC"],
 )
 
@@ -5571,7 +5536,6 @@ go_module(
     deps = [
         ":github.com__spiffe__go-spiffe__v2__internal__jwtutil",
         ":github.com__spiffe__go-spiffe__v2__spiffeid",
-        ":github.com__zeebo__errs",
         "//third_party/go:github.com__go-jose__go-jose__v4",
     ],
 )
@@ -5587,7 +5551,6 @@ go_module(
         ":github.com__spiffe__go-spiffe__v2__internal__jwtutil",
         ":github.com__spiffe__go-spiffe__v2__internal__x509util",
         ":github.com__spiffe__go-spiffe__v2__spiffeid",
-        ":github.com__zeebo__errs",
         "//third_party/go:github.com__go-jose__go-jose__v4",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__bundle__jwtbundle",
     ],
@@ -5603,7 +5566,6 @@ go_module(
         ":github.com__spiffe__go-spiffe__v2__internal__pemutil",
         ":github.com__spiffe__go-spiffe__v2__internal__x509util",
         ":github.com__spiffe__go-spiffe__v2__spiffeid",
-        ":github.com__zeebo__errs",
     ],
 )
 
@@ -5697,7 +5659,6 @@ go_module(
     module = "github.com/spiffe/go-spiffe/v2",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__zeebo__errs",
         "//third_party/go:github.com__go-jose__go-jose__v4",
         "//third_party/go:github.com__go-jose__go-jose__v4__jwt",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__bundle__jwtbundle",
@@ -5712,7 +5673,6 @@ go_module(
     module = "github.com/spiffe/go-spiffe/v2",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__zeebo__errs",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__bundle__x509bundle",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__internal__pemutil",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__internal__x509util",
@@ -5727,7 +5687,6 @@ go_module(
     module = "github.com/spiffe/go-spiffe/v2",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__zeebo__errs",
         ":google.golang.org__grpc",
         ":google.golang.org__grpc__codes",
         ":google.golang.org__grpc__credentials__insecure",
@@ -5920,23 +5879,6 @@ go_module(
     module = "github.com/xeipuuv/gojsonschema",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go:github.com__xeipuuv__gojsonreference"],
-)
-
-go_mod_download(
-    name = "github.com__zeebo__errs",
-    _tag = "download",
-    module = "github.com/zeebo/errs",
-    version = "v1.4.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__zeebo__errs",
-    download = ":_github.com__zeebo__errs#download",
-    install = ["."],
-    module = "github.com/zeebo/errs",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -6324,7 +6266,7 @@ go_mod_download(
     name = "go.opentelemetry.io__auto__sdk",
     _tag = "download",
     module = "go.opentelemetry.io/auto/sdk",
-    version = "v1.1.0",
+    version = "v1.2.1",
     visibility = ["PUBLIC"],
 )
 
@@ -6338,7 +6280,7 @@ go_module(
         ":go.opentelemetry.io__auto__sdk__internal__telemetry",
         ":go.opentelemetry.io__otel__attribute",
         ":go.opentelemetry.io__otel__codes",
-        ":go.opentelemetry.io__otel__semconv__v1.26.0",
+        ":go.opentelemetry.io__otel__semconv__v1.37.0",
         ":go.opentelemetry.io__otel__trace",
         ":go.opentelemetry.io__otel__trace__noop",
     ],
@@ -6489,15 +6431,6 @@ go_module(
 )
 
 go_module(
-    name = "go.opentelemetry.io__otel__semconv__v1.26.0",
-    download = ":_go.opentelemetry.io__otel#download",
-    install = ["semconv/v1.26.0"],
-    module = "go.opentelemetry.io/otel",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
-)
-
-go_module(
     name = "go.opentelemetry.io__otel__semconv__v1.37.0",
     download = ":_go.opentelemetry.io__otel#download",
     install = ["semconv/v1.37.0"],
@@ -6608,10 +6541,27 @@ go_module(
 )
 
 go_mod_download(
+    name = "go.yaml.in__yaml__v3",
+    _tag = "download",
+    module = "go.yaml.in/yaml/v3",
+    version = "v3.0.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.yaml.in__yaml__v3",
+    download = ":_go.yaml.in__yaml__v3#download",
+    install = ["."],
+    module = "go.yaml.in/yaml/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "golang.org__x__crypto",
     _tag = "download",
     module = "golang.org/x/crypto",
-    version = "v0.43.0",
+    version = "v0.44.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6780,7 +6730,7 @@ go_mod_download(
     name = "golang.org__x__mod",
     _tag = "download",
     module = "golang.org/x/mod",
-    version = "v0.30.0",
+    version = "v0.31.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6831,7 +6781,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.46.0",
+    version = "v0.47.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6949,7 +6899,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.37.0",
+    version = "v0.38.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6975,7 +6925,7 @@ go_mod_download(
     name = "golang.org__x__text",
     _tag = "download",
     module = "golang.org/x/text",
-    version = "v0.32.0",
+    version = "v0.33.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7254,20 +7204,11 @@ go_module(
     ],
 )
 
-go_module(
-    name = "google.golang.org__genproto__protobuf__field_mask",
-    download = ":_google.golang.org__genproto#download",
-    install = ["protobuf/field_mask"],
-    module = "google.golang.org/genproto",
-    visibility = ["PUBLIC"],
-    deps = [":google.golang.org__protobuf__types__known__fieldmaskpb"],
-)
-
 go_mod_download(
     name = "google.golang.org__genproto__googleapis__api",
     _tag = "download",
     module = "google.golang.org/genproto/googleapis/api",
-    version = "v0.0.0-20250818200422-3122310a409c",
+    version = "v0.0.0-20260128011058-8636f8732409",
     visibility = ["PUBLIC"],
 )
 
@@ -7333,7 +7274,7 @@ go_mod_download(
     name = "google.golang.org__genproto__googleapis__rpc",
     _tag = "download",
     module = "google.golang.org/genproto/googleapis/rpc",
-    version = "v0.0.0-20250818200422-3122310a409c",
+    version = "v0.0.0-20260128011058-8636f8732409",
     visibility = ["PUBLIC"],
 )
 
@@ -7367,7 +7308,7 @@ go_mod_download(
     name = "google.golang.org__grpc",
     _tag = "download",
     module = "google.golang.org/grpc",
-    version = "v1.75.1",
+    version = "v1.78.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7507,10 +7448,9 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":google.golang.org__grpc__balancer__pickfirst__internal",
-        ":google.golang.org__grpc__balancer__pickfirst__pickfirstleaf",
         ":google.golang.org__grpc__connectivity",
+        ":google.golang.org__grpc__experimental__stats",
         ":google.golang.org__grpc__grpclog",
-        ":google.golang.org__grpc__internal__envconfig",
         ":google.golang.org__grpc__internal__grpclog",
         ":google.golang.org__grpc__internal__pretty",
         ":google.golang.org__grpc__resolver",
@@ -7529,26 +7469,6 @@ go_module(
 )
 
 go_module(
-    name = "google.golang.org__grpc__balancer__pickfirst__pickfirstleaf",
-    download = ":_google.golang.org__grpc#download",
-    install = ["balancer/pickfirst/pickfirstleaf"],
-    module = "google.golang.org/grpc",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":google.golang.org__grpc__connectivity",
-        ":google.golang.org__grpc__experimental__stats",
-        ":google.golang.org__grpc__grpclog",
-        ":google.golang.org__grpc__internal__envconfig",
-        ":google.golang.org__grpc__internal__grpclog",
-        ":google.golang.org__grpc__internal__pretty",
-        ":google.golang.org__grpc__resolver",
-        ":google.golang.org__grpc__serviceconfig",
-        "//third_party/go:google.golang.org__grpc__balancer",
-        "//third_party/go:google.golang.org__grpc__balancer__pickfirst__internal",
-    ],
-)
-
-go_module(
     name = "google.golang.org__grpc__balancer__roundrobin",
     download = ":_google.golang.org__grpc#download",
     install = ["balancer/roundrobin"],
@@ -7559,7 +7479,7 @@ go_module(
         ":google.golang.org__grpc__internal__grpclog",
         "//third_party/go:google.golang.org__grpc__balancer",
         "//third_party/go:google.golang.org__grpc__balancer__endpointsharding",
-        "//third_party/go:google.golang.org__grpc__balancer__pickfirst__pickfirstleaf",
+        "//third_party/go:google.golang.org__grpc__balancer__pickfirst",
     ],
 )
 
@@ -7635,6 +7555,7 @@ go_module(
     module = "google.golang.org/grpc",
     visibility = ["PUBLIC"],
     deps = [
+        ":google.golang.org__grpc__encoding__internal",
         ":google.golang.org__grpc__internal__grpcutil",
         ":google.golang.org__grpc__mem",
     ],
@@ -7647,6 +7568,15 @@ go_module(
     module = "google.golang.org/grpc",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go:google.golang.org__grpc__encoding"],
+)
+
+go_module(
+    name = "google.golang.org__grpc__encoding__internal",
+    download = ":_google.golang.org__grpc#download",
+    install = ["encoding/internal"],
+    module = "google.golang.org/grpc",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_module(
@@ -7933,6 +7863,7 @@ go_module(
         ":google.golang.org__grpc__resolver",
         ":google.golang.org__grpc__serviceconfig",
         "//third_party/go:google.golang.org__grpc__grpclog",
+        "//third_party/go:google.golang.org__grpc__internal__envconfig",
         "//third_party/go:google.golang.org__grpc__internal__proxyattributes",
     ],
 )
@@ -8071,6 +8002,7 @@ go_module(
         "//third_party/go:google.golang.org__grpc__internal__metadata",
         "//third_party/go:google.golang.org__grpc__internal__pretty",
         "//third_party/go:google.golang.org__grpc__internal__proxyattributes",
+        "//third_party/go:google.golang.org__grpc__internal__stats",
         "//third_party/go:google.golang.org__grpc__internal__status",
         "//third_party/go:google.golang.org__grpc__internal__syscall",
     ],
@@ -8258,7 +8190,7 @@ go_mod_download(
     name = "google.golang.org__protobuf",
     _tag = "download",
     module = "google.golang.org/protobuf",
-    version = "v1.36.9",
+    version = "v1.36.11",
     visibility = ["PUBLIC"],
 )
 
