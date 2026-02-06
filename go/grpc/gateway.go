@@ -204,6 +204,9 @@ func (g *Gateway) Serve(ctx context.Context) error {
 					continue
 				}
 				methodName := fmt.Sprintf("/%s/%s", service.FullName(), method.Name())
+				// NOTE: We use lower case because grpc-gateway uses some internal `casing` lib that we want to avoid importing.
+				// We then do the same thing in `gatewayOptionsMetadata` on `rpcMethod, ok := runtime.RPCMethod(ctx)`.
+				methodName = strings.ToLower(methodName)
 
 				gatewayOptions := proto.GetExtension(method.Options(), grpcpb.E_GatewayOptions).(*grpcpb.GatewayOptions)
 				if gatewayOptions != nil {
@@ -303,6 +306,8 @@ func (g *Gateway) gatewayOptionsMetadata(ctx context.Context, r *http.Request) m
 	if !ok {
 		return nil
 	}
+	// NOTE: We use lower case because grpc-gateway uses some internal `casing` lib that we want to avoid importing.
+	rpcMethod = strings.ToLower(rpcMethod)
 
 	// Get the gateway options.
 	gatewayOptions, ok := g.rpcMethodToGatewayOptions[rpcMethod]
