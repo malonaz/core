@@ -97,7 +97,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 
 	allowedPaths := make(map[string]bool)
 	if len(so.fieldMask.GetPaths()) > 0 {
-		fieldMask := pbfieldmask.FromFieldMask(so.fieldMask)
+		fieldMask := pbfieldmask.New(so.fieldMask)
 		if err := fieldMask.Validate(dynamicpb.NewMessage(msg)); err != nil {
 			return nil, fmt.Errorf("invalid field mask: %w", err)
 		}

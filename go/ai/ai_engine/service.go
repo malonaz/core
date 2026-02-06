@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
@@ -18,23 +19,26 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
 
 var (
 	// Annotation keys.
-	annotationKeyPrefix           = "ai-engine.malonaz.com/"
-	annotationKeyGRPCService      = annotationKeyPrefix + "grpc-service"
-	annotationKeyGRPCMethod       = annotationKeyPrefix + "grpc-method"
-	annotationKeyProtoMessage     = annotationKeyPrefix + "proto-message"
-	annotationKeyToolType         = annotationKeyPrefix + "tool-type"
-	annotationKeyNoSideEffect     = annotationKeyPrefix + "no-side-effect"
-	annotationKeyDiscoverableTool = annotationKeyPrefix + "discoverable-tool"
+	annotationKeyPrefix              = "ai-engine.malonaz.com/"
+	annotationKeyGRPCService         = annotationKeyPrefix + "grpc-service"
+	annotationKeyGRPCMethod          = annotationKeyPrefix + "grpc-method"
+	annotationKeyProtoMessage        = annotationKeyPrefix + "proto-message"
+	annotationKeyToolType            = annotationKeyPrefix + "tool-type"
+	annotationKeyNoSideEffect        = annotationKeyPrefix + "no-side-effect"
+	annotationKeyDiscoverableTool    = annotationKeyPrefix + "discoverable-tool"
+	annotationKeyGenerationFieldMask = annotationKeyPrefix + "generation-field-mask"
 
 	// Annotation values.
-	annotationValueToolTypeDiscover        = "discover"
-	annotationValueToolTypeGenerateMessage = "generate-message"
+	annotationValueToolTypeDiscovery          = "discovery"
+	annotationValueToolTypeGenerateMessage    = "generate-message"
+	annotationValueToolTypeGenerateRPCRequest = "generate-rpc-request"
 )
 
 type Opts struct {
@@ -81,6 +85,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		messageDescriptor = methodDescriptor.Input()
 		toolName = string(methodDescriptor.Name())
 		toolDescription = schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
+		annotations[annotationKeyToolType] = annotationValueToolTypeGenerateRPCRequest
 		annotations[annotationKeyGRPCService] = string(methodDescriptor.Parent().FullName())
 		annotations[annotationKeyGRPCMethod] = string(methodDescriptor.FullName())
 		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
@@ -101,6 +106,8 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		}
 		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
 		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
+		annotations[annotationKeyToolType] = annotationValueToolTypeGenerateMessage
+
 	default:
 		return nil, grpc.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
 	}
@@ -109,7 +116,13 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	annotations[annotationKeyProtoMessage] = string(messageDescriptor.FullName())
 
 	if len(request.GetFieldMask().GetPaths()) > 0 {
-		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(request.GetFieldMask().GetPaths()...))
+		fieldMask := pbfieldmask.New(request.GetFieldMask())
+		message := dynamicpb.NewMessage(messageDescriptor)
+		if err := fieldMask.Validate(message); err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
+		}
+		annotations[annotationKeyGenerationFieldMask] = fieldMask.String()
+		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(fieldMask.GetPaths()...))
 	}
 	jsonSchema, err := schemaBuilder.BuildSchema(descriptorFullName, schemaOptions...)
 	if err != nil {
@@ -130,10 +143,9 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	if len(annotations) == 0 {
 		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
-	toolType := annotations[annotationKeyToolType]
 
-	// CASE 1: DISCOVERY TOOL CALL.
-	if toolType == annotationValueToolTypeDiscover {
+	switch toolType := annotations[annotationKeyToolType]; toolType {
+	case annotationValueToolTypeDiscovery: // CASE 1: DISCOVERY TOOL CALL.
 		// Parse the request.
 		args := request.GetToolCall().GetArguments().AsMap()
 		toolNamesRaw, _ := args["tools"].([]any)
@@ -175,13 +187,18 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 				},
 			},
 		}, nil
-	}
 
-	// CASE 2: GRPC METHOD TOOL CALL.
-	if methodFullName, ok := annotations[annotationKeyGRPCMethod]; ok {
-		serviceFullName := annotations[annotationKeyGRPCService]
+	case annotationValueToolTypeGenerateRPCRequest: // CASE 2: GRPC METHOD TOOL CALL.
+		methodFullName, ok := annotations[annotationKeyGRPCMethod]
+		if !ok {
+			return nil, grpc.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCMethod).Err()
+		}
+		serviceFullName, ok := annotations[annotationKeyGRPCService]
+		if !ok {
+			return nil, grpc.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCService).Err()
+		}
 
-		// Validate the request.
+		// If it's a discoverable tool, verify it has been discovered.
 		if _, ok := annotations[annotationKeyDiscoverableTool]; ok {
 			var found bool
 			for _, toolSet := range request.GetToolSets() {
@@ -204,28 +221,33 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		if err != nil {
 			return nil, err
 		}
-
+		// Parse the field mask (if it exists).
 		fieldMask, _ := pbjson.GetResponseFieldMask(toolCall.GetArguments().AsMap())
+
 		return &pb.ParseToolCallResponse{
 			Result: &pb.ParseToolCallResponse_RpcRequest{
 				RpcRequest: &pb.RpcRequest{
 					ServiceFullName: serviceFullName,
 					MethodFullName:  methodFullName,
 					Request:         request,
-					FieldMask:       fieldMask,
+					ReadMask:        fieldMask,
 				},
 			},
 		}, nil
-	}
 
-	// CASE 3: GENERATE MESSAGE TOOL CALL.
-	message, err := s.parseToolCallMessage(ctx, request.GetToolCall())
-	if err != nil {
-		return nil, err
+	case annotationValueToolTypeGenerateMessage:
+		// CASE 3: GENERATE MESSAGE TOOL CALL.
+		message, err := s.parseToolCallMessage(ctx, request.GetToolCall())
+		if err != nil {
+			return nil, err
+		}
+		return &pb.ParseToolCallResponse{
+			Result: &pb.ParseToolCallResponse_Message{Message: message},
+		}, nil
+
+	default:
+		return nil, grpc.Errorf(codes.InvalidArgument, "unknown tool type %s", toolType).Err()
 	}
-	return &pb.ParseToolCallResponse{
-		Result: &pb.ParseToolCallResponse_Message{Message: message},
-	}, nil
 }
 
 func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*structpb.Struct, error) {
@@ -333,7 +355,7 @@ func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDis
 			Required: []string{"tools"},
 		},
 		Annotations: map[string]string{
-			annotationKeyToolType:     annotationValueToolTypeDiscover,
+			annotationKeyToolType:     annotationValueToolTypeDiscovery,
 			annotationKeyNoSideEffect: "true",
 		},
 	}, nil
@@ -403,7 +425,12 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 }
 
 func (s *Service) parseToolCallMessage(ctx context.Context, toolCall *aipb.ToolCall) (*structpb.Struct, error) {
-	messageFullName, ok := toolCall.GetAnnotations()[annotationKeyProtoMessage]
+	annotations := toolCall.GetAnnotations()
+	if len(annotations) == 0 {
+		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
+	}
+
+	messageFullName, ok := annotations[annotationKeyProtoMessage]
 	if !ok {
 		return nil, grpc.Errorf(codes.InvalidArgument, "missing %s annotation", annotationKeyProtoMessage).Err()
 	}
@@ -416,6 +443,15 @@ func (s *Service) parseToolCallMessage(ctx context.Context, toolCall *aipb.ToolC
 	dynamicMessage, err := schemaBuilder.BuildMessage(protoreflect.FullName(messageFullName), toolCall.GetArguments().AsMap())
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "building message: %v", err).Err()
+	}
+
+	// Apply the generation field mask. (LLMs sometimes generate additional fields).
+	if generationFieldMask, ok := annotations[annotationKeyGenerationFieldMask]; ok {
+		fieldMask := pbfieldmask.FromString(generationFieldMask)
+		if err := fieldMask.Validate(dynamicMessage); err != nil {
+			return nil, grpc.Errorf(codes.Internal, "validating generation field mask: %v", err).Err()
+		}
+		fieldMask.Apply(dynamicMessage)
 	}
 
 	message := &structpb.Struct{}

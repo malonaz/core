@@ -12,9 +12,9 @@ import (
 	pb "github.com/malonaz/core/genproto/test/pbutil"
 )
 
-func TestFromFieldMask(t *testing.T) {
+func TestNew(t *testing.T) {
 	fm := &fieldmaskpb.FieldMask{Paths: []string{"display_name", "name"}}
-	m := FromFieldMask(fm)
+	m := New(fm)
 	require.ElementsMatch(t, []string{"display_name", "name"}, m.GetPaths())
 }
 

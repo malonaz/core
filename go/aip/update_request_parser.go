@@ -151,7 +151,7 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 
 func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, error) {
 	var resource R
-	fieldMask := pbfieldmask.FromFieldMask(request.GetUpdateMask())
+	fieldMask := pbfieldmask.New(request.GetUpdateMask())
 	if len(fieldMask.GetPaths()) == 0 {
 		return nil, fmt.Errorf("no mask paths specified")
 	}

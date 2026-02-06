@@ -22,7 +22,7 @@ type FieldMask struct {
 	nestedOnce sync.Once
 }
 
-func FromFieldMask(fm *fieldmaskpb.FieldMask) *FieldMask {
+func New(fm *fieldmaskpb.FieldMask) *FieldMask {
 	fm.Normalize()
 	return &FieldMask{
 		pb: fm,
@@ -30,7 +30,7 @@ func FromFieldMask(fm *fieldmaskpb.FieldMask) *FieldMask {
 }
 
 func FromPaths(paths ...string) *FieldMask {
-	return FromFieldMask(&fieldmaskpb.FieldMask{Paths: paths})
+	return New(&fieldmaskpb.FieldMask{Paths: paths})
 }
 
 func FromString(s string) *FieldMask {

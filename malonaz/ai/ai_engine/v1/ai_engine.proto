@@ -156,5 +156,5 @@ message RpcRequest {
   // The request object.
   google.protobuf.Struct request = 3;
   // Optional field to specify which fields we should include in the tool result response.
-  google.protobuf.FieldMask field_mask = 4;
+  google.protobuf.FieldMask read_mask = 4;
 }
