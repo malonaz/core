@@ -121,14 +121,14 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 	}
 }
 
-func GetBlocks(message *aipb.Message, blockTypes ...BlockType) []*aipb.Block {
+func FilterBlocks(blocks []*aipb.Block, blockTypes ...BlockType) []*aipb.Block {
 	typeSet := make(map[BlockType]struct{}, len(blockTypes))
 	for _, bt := range blockTypes {
 		typeSet[bt] = struct{}{}
 	}
 
-	var blocks []*aipb.Block
-	for _, block := range message.GetBlocks() {
+	var filteredBlocks []*aipb.Block
+	for _, block := range blocks {
 		var bt BlockType
 		switch block.Content.(type) {
 		case *aipb.Block_Text:
@@ -143,8 +143,8 @@ func GetBlocks(message *aipb.Message, blockTypes ...BlockType) []*aipb.Block {
 			bt = BlockTypeImage
 		}
 		if _, ok := typeSet[bt]; ok {
-			blocks = append(blocks, block)
+			filteredBlocks = append(filteredBlocks, block)
 		}
 	}
-	return blocks
+	return filteredBlocks
 }
