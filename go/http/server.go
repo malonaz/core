@@ -77,7 +77,13 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 
 	// Start HTTP server
-	s.log.InfoContext(ctx, "starting HTTP server", "port", s.opts.Port)
+	s.log.InfoContext(ctx, "starting HTTP server",
+		"port", s.opts.Port,
+		"read_timeout", s.opts.ReadTimeout,
+		"write_timeout", s.opts.WriteTimeout,
+		"idle_timeout", s.opts.IdleTimeout,
+		"graceful_stop_timeout", s.opts.GracefulStopTimeout,
+	)
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("HTTP server exited unexpectedly: %w", err)
 	}
