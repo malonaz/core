@@ -1,7 +1,7 @@
 name: tsunade
 servers:
   - type: grpc
-    name: ai-service
+    name: tsunade-external
     interceptors:
       - type: session_local_context_injector
       - type: external_api_key_authentication

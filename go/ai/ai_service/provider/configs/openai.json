@@ -2,6 +2,22 @@
   "provider_id":  "openai",
   "models":  [
     {
+      "name": "providers/openai/models/gpt-5.2",
+      "provider_model_id": "gpt-5.2",
+      "description": "GPT-5.2 is our flagship model for coding and agentic tasks across industries. Reasoning.effort supports: none (default), low, medium, high and xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 400000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 1.75,
+          "output_token_price_per_million": 14,
+          "input_cache_read_token_price_per_million": 0.175
+        }
+      }
+    },
+    {
       "name":  "providers/openai/models/gpt-5.1",
       "provider_model_id":  "gpt-5.1",
       "description":  "GPT-5.1 is our flagship model for coding and agentic tasks with configurable reasoning and non-reasoning effort.",

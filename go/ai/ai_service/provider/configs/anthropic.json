@@ -2,6 +2,22 @@
   "provider_id":  "anthropic",
   "models":  [
     {
+      "name": "providers/anthropic/models/claude-opus-4.6",
+      "provider_model_id": "claude-opus-4-6",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 200000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 5,
+          "output_token_price_per_million": 25,
+          "input_cache_read_token_price_per_million": 0.5,
+          "input_cache_write_token_price_per_million": 6.25
+        }
+      }
+    },
+    {
       "name":  "providers/anthropic/models/claude-sonnet-4.5",
       "provider_model_id":  "claude-sonnet-4-5",
       "ttt":  {
