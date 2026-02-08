@@ -1,5 +1,5 @@
 go_binary(
-    name = "speech_to_text_stream",
+    name = "speech-to-text-stream",
     srcs = ["main.go"],
     static = False,
     visibility = ["//..."],

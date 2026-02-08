@@ -14,10 +14,11 @@ go_main_src(
 )
 
 go_binary(
-    name = "server",
+    name = "ai-service",
     srcs = [":main.go"],
     deps = [
         "//go/ai/ai_service",
+        "//go/authentication",
         "//go/certs",
         "//go/flags",
         "//go/grpc",
@@ -31,12 +32,12 @@ go_binary(
 sh_cmd(
     name = "local",
     cmd = " ".join([
-        "plz run //server --",
+        "plz run //cmd/ai-service --",
         "--logging.format=pretty",
         "--prometheus.disable",
         # Servers.
-        "--core-grpc.disable-tls",
-        "--core-grpc.socket-path=/tmp/core.socket",
-        "--core-grpc.enable-reflection",
+        "--ai-service-grpc.disable-tls",
+        "--ai-service-grpc.socket-path=/tmp/ai-service.socket",
+        "--ai-service-grpc.enable-reflection",
     ]),
 )

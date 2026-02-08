@@ -1,0 +1,17 @@
+{
+  "roles": [
+    {
+      "id": "ai:text_to_text",
+      "permissions": [
+        "/malonaz.ai.ai_service.v1.AiService/TextToText",
+        "/malonaz.ai.ai_service.v1.AiService/TextToTextStream",
+      ],
+    },
+    {
+      "id": "ai:model:reader",
+      "permissions": [
+        "/malonaz.ai.ai_service.v1.AiService/ListModels",
+      ],
+    },
+  ],
+}
