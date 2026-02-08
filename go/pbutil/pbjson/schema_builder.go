@@ -164,7 +164,7 @@ func (b *SchemaBuilder) buildMessageSchema(
 	fields := msg.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		schema, isRequired := b.buildFieldSchema(so, field, prefix, depth, methodType, allowedPaths)
+		schema, isRequired := b.buildFieldSchema(so, field, prefix, depth+1, methodType, allowedPaths)
 		if schema != nil {
 			properties[string(field.Name())] = schema
 			if isRequired {
@@ -267,7 +267,7 @@ func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, descrip
 
 func (b *SchemaBuilder) elementSchema(so *schemaOptions, field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) *jsonpb.Schema {
 	if field.Kind() == protoreflect.MessageKind {
-		return b.buildMessageSchema(so, field.Message(), prefix+".", depth+1, methodType, allowedPaths)
+		return b.buildMessageSchema(so, field.Message(), prefix+".", depth, methodType, allowedPaths)
 	}
 	return b.scalarSchema(field, "")
 }
