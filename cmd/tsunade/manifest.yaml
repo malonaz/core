@@ -1,4 +1,4 @@
-name: ai-service
+name: tsunade
 servers:
   - type: grpc
     name: ai-service
