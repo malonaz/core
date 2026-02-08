@@ -91,7 +91,12 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
 			annotations[annotationKeyNoSideEffect] = "true"
 		}
-		schemaOptions = append(schemaOptions, pbjson.WithResponseFieldMask())
+		if request.GetSchemaConfiguration().GetWithResponseReadMask() {
+			schemaOptions = append(schemaOptions, pbjson.WithResponseReadMask())
+		}
+		if request.GetSchemaConfiguration().GetWithResponseSchema() {
+			schemaOptions = append(schemaOptions, pbjson.WithResponseSchema())
+		}
 
 	case *pb.DescriptorReference_Message:
 		descriptorFullName = protoreflect.FullName(target.Message)
@@ -115,8 +120,8 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	// Set the proto message annotation.
 	annotations[annotationKeyProtoMessage] = string(messageDescriptor.FullName())
 
-	if len(request.GetFieldMask().GetPaths()) > 0 {
-		fieldMask := pbfieldmask.New(request.GetFieldMask())
+	if len(request.GetSchemaConfiguration().GetFieldMask().GetPaths()) > 0 {
+		fieldMask := pbfieldmask.New(request.GetSchemaConfiguration().GetFieldMask())
 		message := dynamicpb.NewMessage(messageDescriptor)
 		if err := fieldMask.Validate(message); err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
@@ -254,7 +259,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	// Step 1: Create the tool
 	createToolRequest := &pb.CreateToolRequest{
 		DescriptorReference: request.DescriptorReference,
-		FieldMask:           request.FieldMask,
+		SchemaConfiguration: request.SchemaConfiguration,
 	}
 	tool, err := s.CreateTool(ctx, createToolRequest)
 	if err != nil {
@@ -394,6 +399,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			DescriptorReference: &pb.DescriptorReference{
 				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
 			},
+			SchemaConfiguration: request.SchemaConfiguration,
 		}
 		tool, err := s.CreateTool(ctx, createToolRequest)
 		if err != nil {

@@ -41,16 +41,24 @@ func NewSchemaBuilder(schema *pbreflection.Schema) *SchemaBuilder {
 }
 
 type schemaOptions struct {
-	maxDepth          int
-	fieldMask         *fieldmaskpb.FieldMask
-	responseFieldMask bool
+	maxDepth             int
+	fieldMask            *fieldmaskpb.FieldMask
+	withResponseReadMask bool
+	withResponseSchema   bool
 }
 
 type SchemaOption func(*schemaOptions)
 
-func WithResponseFieldMask() SchemaOption {
+// Include a response schema in the tool description.
+func WithResponseSchema() SchemaOption {
 	return func(o *schemaOptions) {
-		o.responseFieldMask = true
+		o.withResponseSchema = true
+	}
+}
+
+func WithResponseReadMask() SchemaOption {
+	return func(o *schemaOptions) {
+		o.withResponseReadMask = true
 	}
 }
 
@@ -90,7 +98,9 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	case protoreflect.MethodDescriptor:
 		msg = d.Input()
 		standardMethodType = b.schema.GetStandardMethodType(d.FullName())
-		responseDesc = b.buildResponseDescription(so, d.Output())
+		if so.withResponseSchema {
+			responseDesc = b.buildResponseDescription(so, d.Output())
+		}
 	default:
 		return nil, fmt.Errorf("descriptor is not a message or method: %s", descriptorFullName)
 	}
@@ -107,12 +117,12 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	}
 
 	schema := b.buildMessageSchema(so, msg, "", 0, standardMethodType, allowedPaths)
-	if so.responseFieldMask {
-		schema.Properties[responseFieldMaskKey] = &jsonpb.Schema{
+	if so.withResponseReadMask {
+		schema.Properties[responseReadMaskKey] = &jsonpb.Schema{
 			Type:        "string",
-			Description: "comma-separated field mask paths relative to the response object.",
+			Description: "Google AIP field mask: comma-separated snake_case paths to include in the response (e.g. 'field_one,field_two.nested_field'). Only specified fields are returned. Nested fields use dot notation. Omit to return all fields.",
 		}
-		schema.Required = append(schema.Required, responseFieldMaskKey)
+		schema.Required = append(schema.Required, responseReadMaskKey)
 	}
 
 	if responseDesc != "" {

@@ -37,6 +37,12 @@ service AiEngine {
 
 // Request message for AiEngine.GenerateMessage.
 message GenerateMessageRequest {
+  option (buf.validate.message).cel = {
+    id: "schema_config_requires_method"
+    message: "with_response_read_mask and with_response_schema require method descriptor"
+    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
+  };
+
   // The descriptor reference for the message to generate.
   DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
 
@@ -47,17 +53,23 @@ message GenerateMessageRequest {
   // The prompt to feed the AI.
   string prompt = 3;
 
-  // Optional field to specify which fields you wish to generate.
-  google.protobuf.FieldMask field_mask = 4;
+  // Configuration for the schema.
+  SchemaConfiguration schema_configuration = 4;
 }
 
 // Request message for AiEngine.CreateTool
 message CreateToolRequest {
+  option (buf.validate.message).cel = {
+    id: "schema_config_requires_method"
+    message: "with_response_read_mask and with_response_schema require method descriptor"
+    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
+  };
+
   // The descriptor reference for which to create a tool.
   DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
 
-  // Optional field to specify which fields you wish to generate.
-  google.protobuf.FieldMask field_mask = 2;
+  // Configuration for the schema.
+  SchemaConfiguration schema_configuration = 2;
 }
 
 // Request message for AiEngine.ParseToolCall.
@@ -110,6 +122,9 @@ message CreateServiceToolSetRequest {
   // If empty, all methods from the service are included.
   // Example: ["CreateTool"]
   repeated string method_names = 2;
+
+  // Configuration for the schema (applies to all tools created).
+  SchemaConfiguration schema_configuration = 3;
 }
 
 // A reference to a protobuf descriptor.
@@ -157,4 +172,19 @@ message RpcRequest {
   google.protobuf.Struct request = 3;
   // Optional field to specify which fields we should include in the tool result response.
   google.protobuf.FieldMask read_mask = 4;
+}
+
+// Configuration for a tool schema.
+message SchemaConfiguration {
+  // Control which field are included in the tool schema.
+  google.protobuf.FieldMask field_mask = 1;
+
+  // (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
+  // return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
+  // rather than being returned tool results with fields it does not need.
+  bool with_response_read_mask = 2;
+
+  // (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
+  // This can be quite verbose so use with care.
+  bool with_response_schema = 3;
 }

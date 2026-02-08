@@ -37,10 +37,10 @@ type GenerateMessageRequest struct {
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The prompt to feed the AI.
 	Prompt string `protobuf:"bytes,3,opt,name=prompt,proto3" json:"prompt,omitempty"`
-	// Optional field to specify which fields you wish to generate.
-	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,4,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Configuration for the schema.
+	SchemaConfiguration *SchemaConfiguration `protobuf:"bytes,4,opt,name=schema_configuration,json=schemaConfiguration,proto3" json:"schema_configuration,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *GenerateMessageRequest) Reset() {
@@ -89,9 +89,9 @@ func (x *GenerateMessageRequest) GetPrompt() string {
 	return ""
 }
 
-func (x *GenerateMessageRequest) GetFieldMask() *fieldmaskpb.FieldMask {
+func (x *GenerateMessageRequest) GetSchemaConfiguration() *SchemaConfiguration {
 	if x != nil {
-		return x.FieldMask
+		return x.SchemaConfiguration
 	}
 	return nil
 }
@@ -108,8 +108,8 @@ func (x *GenerateMessageRequest) SetPrompt(v string) {
 	x.Prompt = v
 }
 
-func (x *GenerateMessageRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
-	x.FieldMask = v
+func (x *GenerateMessageRequest) SetSchemaConfiguration(v *SchemaConfiguration) {
+	x.SchemaConfiguration = v
 }
 
 func (x *GenerateMessageRequest) HasDescriptorReference() bool {
@@ -119,19 +119,19 @@ func (x *GenerateMessageRequest) HasDescriptorReference() bool {
 	return x.DescriptorReference != nil
 }
 
-func (x *GenerateMessageRequest) HasFieldMask() bool {
+func (x *GenerateMessageRequest) HasSchemaConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.FieldMask != nil
+	return x.SchemaConfiguration != nil
 }
 
 func (x *GenerateMessageRequest) ClearDescriptorReference() {
 	x.DescriptorReference = nil
 }
 
-func (x *GenerateMessageRequest) ClearFieldMask() {
-	x.FieldMask = nil
+func (x *GenerateMessageRequest) ClearSchemaConfiguration() {
+	x.SchemaConfiguration = nil
 }
 
 type GenerateMessageRequest_builder struct {
@@ -144,8 +144,8 @@ type GenerateMessageRequest_builder struct {
 	Model string
 	// The prompt to feed the AI.
 	Prompt string
-	// Optional field to specify which fields you wish to generate.
-	FieldMask *fieldmaskpb.FieldMask
+	// Configuration for the schema.
+	SchemaConfiguration *SchemaConfiguration
 }
 
 func (b0 GenerateMessageRequest_builder) Build() *GenerateMessageRequest {
@@ -155,7 +155,7 @@ func (b0 GenerateMessageRequest_builder) Build() *GenerateMessageRequest {
 	x.DescriptorReference = b.DescriptorReference
 	x.Model = b.Model
 	x.Prompt = b.Prompt
-	x.FieldMask = b.FieldMask
+	x.SchemaConfiguration = b.SchemaConfiguration
 	return m0
 }
 
@@ -164,10 +164,10 @@ type CreateToolRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The descriptor reference for which to create a tool.
 	DescriptorReference *DescriptorReference `protobuf:"bytes,1,opt,name=descriptor_reference,json=descriptorReference,proto3" json:"descriptor_reference,omitempty"`
-	// Optional field to specify which fields you wish to generate.
-	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Configuration for the schema.
+	SchemaConfiguration *SchemaConfiguration `protobuf:"bytes,2,opt,name=schema_configuration,json=schemaConfiguration,proto3" json:"schema_configuration,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateToolRequest) Reset() {
@@ -202,9 +202,9 @@ func (x *CreateToolRequest) GetDescriptorReference() *DescriptorReference {
 	return nil
 }
 
-func (x *CreateToolRequest) GetFieldMask() *fieldmaskpb.FieldMask {
+func (x *CreateToolRequest) GetSchemaConfiguration() *SchemaConfiguration {
 	if x != nil {
-		return x.FieldMask
+		return x.SchemaConfiguration
 	}
 	return nil
 }
@@ -213,8 +213,8 @@ func (x *CreateToolRequest) SetDescriptorReference(v *DescriptorReference) {
 	x.DescriptorReference = v
 }
 
-func (x *CreateToolRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
-	x.FieldMask = v
+func (x *CreateToolRequest) SetSchemaConfiguration(v *SchemaConfiguration) {
+	x.SchemaConfiguration = v
 }
 
 func (x *CreateToolRequest) HasDescriptorReference() bool {
@@ -224,19 +224,19 @@ func (x *CreateToolRequest) HasDescriptorReference() bool {
 	return x.DescriptorReference != nil
 }
 
-func (x *CreateToolRequest) HasFieldMask() bool {
+func (x *CreateToolRequest) HasSchemaConfiguration() bool {
 	if x == nil {
 		return false
 	}
-	return x.FieldMask != nil
+	return x.SchemaConfiguration != nil
 }
 
 func (x *CreateToolRequest) ClearDescriptorReference() {
 	x.DescriptorReference = nil
 }
 
-func (x *CreateToolRequest) ClearFieldMask() {
-	x.FieldMask = nil
+func (x *CreateToolRequest) ClearSchemaConfiguration() {
+	x.SchemaConfiguration = nil
 }
 
 type CreateToolRequest_builder struct {
@@ -244,8 +244,8 @@ type CreateToolRequest_builder struct {
 
 	// The descriptor reference for which to create a tool.
 	DescriptorReference *DescriptorReference
-	// Optional field to specify which fields you wish to generate.
-	FieldMask *fieldmaskpb.FieldMask
+	// Configuration for the schema.
+	SchemaConfiguration *SchemaConfiguration
 }
 
 func (b0 CreateToolRequest_builder) Build() *CreateToolRequest {
@@ -253,7 +253,7 @@ func (b0 CreateToolRequest_builder) Build() *CreateToolRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.DescriptorReference = b.DescriptorReference
-	x.FieldMask = b.FieldMask
+	x.SchemaConfiguration = b.SchemaConfiguration
 	return m0
 }
 
@@ -697,9 +697,11 @@ type CreateServiceToolSetRequest struct {
 	// Optional list of method names to include.
 	// If empty, all methods from the service are included.
 	// Example: ["CreateTool"]
-	MethodNames   []string `protobuf:"bytes,2,rep,name=method_names,json=methodNames,proto3" json:"method_names,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MethodNames []string `protobuf:"bytes,2,rep,name=method_names,json=methodNames,proto3" json:"method_names,omitempty"`
+	// Configuration for the schema (applies to all tools created).
+	SchemaConfiguration *SchemaConfiguration `protobuf:"bytes,3,opt,name=schema_configuration,json=schemaConfiguration,proto3" json:"schema_configuration,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateServiceToolSetRequest) Reset() {
@@ -741,12 +743,34 @@ func (x *CreateServiceToolSetRequest) GetMethodNames() []string {
 	return nil
 }
 
+func (x *CreateServiceToolSetRequest) GetSchemaConfiguration() *SchemaConfiguration {
+	if x != nil {
+		return x.SchemaConfiguration
+	}
+	return nil
+}
+
 func (x *CreateServiceToolSetRequest) SetServiceFullName(v string) {
 	x.ServiceFullName = v
 }
 
 func (x *CreateServiceToolSetRequest) SetMethodNames(v []string) {
 	x.MethodNames = v
+}
+
+func (x *CreateServiceToolSetRequest) SetSchemaConfiguration(v *SchemaConfiguration) {
+	x.SchemaConfiguration = v
+}
+
+func (x *CreateServiceToolSetRequest) HasSchemaConfiguration() bool {
+	if x == nil {
+		return false
+	}
+	return x.SchemaConfiguration != nil
+}
+
+func (x *CreateServiceToolSetRequest) ClearSchemaConfiguration() {
+	x.SchemaConfiguration = nil
 }
 
 type CreateServiceToolSetRequest_builder struct {
@@ -759,6 +783,8 @@ type CreateServiceToolSetRequest_builder struct {
 	// If empty, all methods from the service are included.
 	// Example: ["CreateTool"]
 	MethodNames []string
+	// Configuration for the schema (applies to all tools created).
+	SchemaConfiguration *SchemaConfiguration
 }
 
 func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetRequest {
@@ -767,6 +793,7 @@ func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetReque
 	_, _ = b, x
 	x.ServiceFullName = b.ServiceFullName
 	x.MethodNames = b.MethodNames
+	x.SchemaConfiguration = b.SchemaConfiguration
 	return m0
 }
 
@@ -1278,22 +1305,131 @@ func (b0 RpcRequest_builder) Build() *RpcRequest {
 	return m0
 }
 
+// Configuration for a tool schema.
+type SchemaConfiguration struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Control which field are included in the tool schema.
+	FieldMask *fieldmaskpb.FieldMask `protobuf:"bytes,1,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
+	// (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
+	// return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
+	// rather than being returned tool results with fields it does not need.
+	WithResponseReadMask bool `protobuf:"varint,2,opt,name=with_response_read_mask,json=withResponseReadMask,proto3" json:"with_response_read_mask,omitempty"`
+	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
+	// This can be quite verbose so use with care.
+	WithResponseSchema bool `protobuf:"varint,3,opt,name=with_response_schema,json=withResponseSchema,proto3" json:"with_response_schema,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SchemaConfiguration) Reset() {
+	*x = SchemaConfiguration{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SchemaConfiguration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SchemaConfiguration) ProtoMessage() {}
+
+func (x *SchemaConfiguration) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SchemaConfiguration) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+func (x *SchemaConfiguration) GetWithResponseReadMask() bool {
+	if x != nil {
+		return x.WithResponseReadMask
+	}
+	return false
+}
+
+func (x *SchemaConfiguration) GetWithResponseSchema() bool {
+	if x != nil {
+		return x.WithResponseSchema
+	}
+	return false
+}
+
+func (x *SchemaConfiguration) SetFieldMask(v *fieldmaskpb.FieldMask) {
+	x.FieldMask = v
+}
+
+func (x *SchemaConfiguration) SetWithResponseReadMask(v bool) {
+	x.WithResponseReadMask = v
+}
+
+func (x *SchemaConfiguration) SetWithResponseSchema(v bool) {
+	x.WithResponseSchema = v
+}
+
+func (x *SchemaConfiguration) HasFieldMask() bool {
+	if x == nil {
+		return false
+	}
+	return x.FieldMask != nil
+}
+
+func (x *SchemaConfiguration) ClearFieldMask() {
+	x.FieldMask = nil
+}
+
+type SchemaConfiguration_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Control which field are included in the tool schema.
+	FieldMask *fieldmaskpb.FieldMask
+	// (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
+	// return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
+	// rather than being returned tool results with fields it does not need.
+	WithResponseReadMask bool
+	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
+	// This can be quite verbose so use with care.
+	WithResponseSchema bool
+}
+
+func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
+	m0 := &SchemaConfiguration{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.FieldMask = b.FieldMask
+	x.WithResponseReadMask = b.WithResponseReadMask
+	x.WithResponseSchema = b.WithResponseSchema
+	return m0
+}
+
 var File_malonaz_ai_ai_engine_v1_ai_engine_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x85\x02\n" +
+	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xfc\x04\n" +
 	"\x16GenerateMessageRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12/\n" +
 	"\x05model\x18\x02 \x01(\tB\x19\xfaA\x16\n" +
 	"\x14ai.malonaz.com/ModelR\x05model\x12\x16\n" +
-	"\x06prompt\x18\x03 \x01(\tR\x06prompt\x129\n" +
-	"\n" +
-	"field_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb7\x01\n" +
+	"\x06prompt\x18\x03 \x01(\tR\x06prompt\x12_\n" +
+	"\x14schema_configuration\x18\x04 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xce\x02\xbaH\xca\x02\x1a\xc7\x02\n" +
+	"\x1dschema_config_requires_method\x12Jwith_response_read_mask and with_response_schema require method descriptor\x1a\xd9\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\xae\x04\n" +
 	"\x11CreateToolRequest\x12g\n" +
-	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x129\n" +
-	"\n" +
-	"field_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\x93\x01\n" +
+	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12_\n" +
+	"\x14schema_configuration\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xce\x02\xbaH\xca\x02\x1a\xc7\x02\n" +
+	"\x1dschema_config_requires_method\x12Jwith_response_read_mask and with_response_schema require method descriptor\x1a\xd9\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\x93\x01\n" +
 	"\x14ParseToolCallRequest\x12<\n" +
 	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x12=\n" +
 	"\ttool_sets\x18\x02 \x03(\v2 .malonaz.ai.ai_engine.v1.ToolSetR\btoolSets\"\x85\x02\n" +
@@ -1306,10 +1442,11 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
 	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"t\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\xd5\x01\n" +
 	"\x1bCreateServiceToolSetRequest\x122\n" +
 	"\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceFullName\x12!\n" +
-	"\fmethod_names\x18\x02 \x03(\tR\vmethodNames\"_\n" +
+	"\fmethod_names\x18\x02 \x03(\tR\vmethodNames\x12_\n" +
+	"\x14schema_configuration\x18\x03 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration\"_\n" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
@@ -1331,7 +1468,12 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
 	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
 	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest\x127\n" +
-	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask2\x8a\x04\n" +
+	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask\"\xb9\x01\n" +
+	"\x13SchemaConfiguration\x129\n" +
+	"\n" +
+	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x125\n" +
+	"\x17with_response_read_mask\x18\x02 \x01(\bR\x14withResponseReadMask\x120\n" +
+	"\x14with_response_schema\x18\x03 \x01(\bR\x12withResponseSchema2\x8a\x04\n" +
 	"\bAiEngine\x12[\n" +
 	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
 	"\n" +
@@ -1340,7 +1482,7 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n" +
 	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a .malonaz.ai.ai_engine.v1.ToolSet\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
 
-var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*GenerateMessageRequest)(nil),      // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest
 	(*CreateToolRequest)(nil),           // 1: malonaz.ai.ai_engine.v1.CreateToolRequest
@@ -1352,43 +1494,46 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*ToolSet)(nil),                     // 7: malonaz.ai.ai_engine.v1.ToolSet
 	(*DiscoverToolsRequest)(nil),        // 8: malonaz.ai.ai_engine.v1.DiscoverToolsRequest
 	(*RpcRequest)(nil),                  // 9: malonaz.ai.ai_engine.v1.RpcRequest
-	nil,                                 // 10: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	(*fieldmaskpb.FieldMask)(nil),       // 11: google.protobuf.FieldMask
+	(*SchemaConfiguration)(nil),         // 10: malonaz.ai.ai_engine.v1.SchemaConfiguration
+	nil,                                 // 11: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
 	(*v1.ToolCall)(nil),                 // 12: malonaz.ai.v1.ToolCall
 	(*structpb.Struct)(nil),             // 13: google.protobuf.Struct
 	(*v1.Tool)(nil),                     // 14: malonaz.ai.v1.Tool
+	(*fieldmaskpb.FieldMask)(nil),       // 15: google.protobuf.FieldMask
 }
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	6,  // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
-	11, // 1: malonaz.ai.ai_engine.v1.GenerateMessageRequest.field_mask:type_name -> google.protobuf.FieldMask
+	10, // 1: malonaz.ai.ai_engine.v1.GenerateMessageRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
 	6,  // 2: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
-	11, // 3: malonaz.ai.ai_engine.v1.CreateToolRequest.field_mask:type_name -> google.protobuf.FieldMask
+	10, // 3: malonaz.ai.ai_engine.v1.CreateToolRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
 	12, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
 	7,  // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.ai_engine.v1.ToolSet
 	13, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
 	8,  // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discover_tools_request:type_name -> malonaz.ai.ai_engine.v1.DiscoverToolsRequest
 	9,  // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc_request:type_name -> malonaz.ai.ai_engine.v1.RpcRequest
 	14, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
-	14, // 10: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
-	14, // 11: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	10, // 12: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	13, // 13: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
-	11, // 14: malonaz.ai.ai_engine.v1.RpcRequest.read_mask:type_name -> google.protobuf.FieldMask
-	0,  // 15: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	1,  // 16: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	2,  // 17: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	4,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	5,  // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	13, // 20: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
-	14, // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	3,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	14, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
-	7,  // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
-	20, // [20:25] is the sub-list for method output_type
-	15, // [15:20] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	10, // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
+	14, // 11: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	14, // 12: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	11, // 13: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
+	13, // 14: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
+	15, // 15: malonaz.ai.ai_engine.v1.RpcRequest.read_mask:type_name -> google.protobuf.FieldMask
+	15, // 16: malonaz.ai.ai_engine.v1.SchemaConfiguration.field_mask:type_name -> google.protobuf.FieldMask
+	0,  // 17: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	1,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	2,  // 19: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	4,  // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	5,  // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	13, // 22: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
+	14, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	3,  // 24: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	14, // 25: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	7,  // 26: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
+	22, // [22:27] is the sub-list for method output_type
+	17, // [17:22] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
@@ -1411,7 +1556,7 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc), len(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
