@@ -39,6 +39,8 @@ var (
 	annotationValueToolTypeDiscovery          = "discovery"
 	annotationValueToolTypeGenerateMessage    = "generate-message"
 	annotationValueToolTypeGenerateRPCRequest = "generate-rpc-request"
+
+	defaultMaxDepth = 5
 )
 
 type Opts struct {
@@ -70,6 +72,13 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	var toolName, toolDescription string
 	var annotations = map[string]string{}
 	var schemaOptions []pbjson.SchemaOption
+
+	// Set max depth.
+	var maxDepth = defaultMaxDepth
+	if request.GetSchemaConfiguration().GetWithMaxDepth() > 0 {
+		maxDepth = int(request.GetSchemaConfiguration().GetWithMaxDepth())
+	}
+	schemaOptions = append(schemaOptions, pbjson.WithMaxDepth(maxDepth))
 
 	switch target := request.GetDescriptorReference().GetFullName().(type) {
 	case *pb.DescriptorReference_Method:

@@ -179,12 +179,18 @@ message SchemaConfiguration {
   // Control which field are included in the tool schema.
   google.protobuf.FieldMask field_mask = 1;
 
+  // Set a max depth for the schema (defaults to 5).
+  int32 with_max_depth = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 10
+  }];
+
   // (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
   // return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
   // rather than being returned tool results with fields it does not need.
-  bool with_response_read_mask = 2;
+  bool with_response_read_mask = 3;
 
   // (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
   // This can be quite verbose so use with care.
-  bool with_response_schema = 3;
+  bool with_response_schema = 4;
 }

@@ -1310,13 +1310,15 @@ type SchemaConfiguration struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Control which field are included in the tool schema.
 	FieldMask *fieldmaskpb.FieldMask `protobuf:"bytes,1,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
+	// Set a max depth for the schema (defaults to 5).
+	WithMaxDepth int32 `protobuf:"varint,2,opt,name=with_max_depth,json=withMaxDepth,proto3" json:"with_max_depth,omitempty"`
 	// (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
 	// return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
 	// rather than being returned tool results with fields it does not need.
-	WithResponseReadMask bool `protobuf:"varint,2,opt,name=with_response_read_mask,json=withResponseReadMask,proto3" json:"with_response_read_mask,omitempty"`
+	WithResponseReadMask bool `protobuf:"varint,3,opt,name=with_response_read_mask,json=withResponseReadMask,proto3" json:"with_response_read_mask,omitempty"`
 	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
 	// This can be quite verbose so use with care.
-	WithResponseSchema bool `protobuf:"varint,3,opt,name=with_response_schema,json=withResponseSchema,proto3" json:"with_response_schema,omitempty"`
+	WithResponseSchema bool `protobuf:"varint,4,opt,name=with_response_schema,json=withResponseSchema,proto3" json:"with_response_schema,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1353,6 +1355,13 @@ func (x *SchemaConfiguration) GetFieldMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
+func (x *SchemaConfiguration) GetWithMaxDepth() int32 {
+	if x != nil {
+		return x.WithMaxDepth
+	}
+	return 0
+}
+
 func (x *SchemaConfiguration) GetWithResponseReadMask() bool {
 	if x != nil {
 		return x.WithResponseReadMask
@@ -1369,6 +1378,10 @@ func (x *SchemaConfiguration) GetWithResponseSchema() bool {
 
 func (x *SchemaConfiguration) SetFieldMask(v *fieldmaskpb.FieldMask) {
 	x.FieldMask = v
+}
+
+func (x *SchemaConfiguration) SetWithMaxDepth(v int32) {
+	x.WithMaxDepth = v
 }
 
 func (x *SchemaConfiguration) SetWithResponseReadMask(v bool) {
@@ -1395,6 +1408,8 @@ type SchemaConfiguration_builder struct {
 
 	// Control which field are included in the tool schema.
 	FieldMask *fieldmaskpb.FieldMask
+	// Set a max depth for the schema (defaults to 5).
+	WithMaxDepth int32
 	// (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
 	// return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
 	// rather than being returned tool results with fields it does not need.
@@ -1409,6 +1424,7 @@ func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.FieldMask = b.FieldMask
+	x.WithMaxDepth = b.WithMaxDepth
 	x.WithResponseReadMask = b.WithResponseReadMask
 	x.WithResponseSchema = b.WithResponseSchema
 	return m0
@@ -1468,12 +1484,14 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
 	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
 	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest\x127\n" +
-	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask\"\xb9\x01\n" +
+	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask\"\xea\x01\n" +
 	"\x13SchemaConfiguration\x129\n" +
 	"\n" +
-	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x125\n" +
-	"\x17with_response_read_mask\x18\x02 \x01(\bR\x14withResponseReadMask\x120\n" +
-	"\x14with_response_schema\x18\x03 \x01(\bR\x12withResponseSchema2\x8a\x04\n" +
+	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x12/\n" +
+	"\x0ewith_max_depth\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
+	"(\x00R\fwithMaxDepth\x125\n" +
+	"\x17with_response_read_mask\x18\x03 \x01(\bR\x14withResponseReadMask\x120\n" +
+	"\x14with_response_schema\x18\x04 \x01(\bR\x12withResponseSchema2\x8a\x04\n" +
 	"\bAiEngine\x12[\n" +
 	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
 	"\n" +
