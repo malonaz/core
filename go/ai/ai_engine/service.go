@@ -103,8 +103,8 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		if request.GetSchemaConfiguration().GetWithResponseReadMask() {
 			schemaOptions = append(schemaOptions, pbjson.WithResponseReadMask())
 		}
-		if request.GetSchemaConfiguration().GetWithResponseSchema() {
-			schemaOptions = append(schemaOptions, pbjson.WithResponseSchema())
+		if responseSchemaMaxDepth := request.GetSchemaConfiguration().GetWithResponseSchemaMaxDepth(); responseSchemaMaxDepth > 0 {
+			schemaOptions = append(schemaOptions, pbjson.WithResponseSchemaMaxDepth(int(responseSchemaMaxDepth)))
 		}
 
 	case *pb.DescriptorReference_Message:

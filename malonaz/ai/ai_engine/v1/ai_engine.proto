@@ -39,8 +39,8 @@ service AiEngine {
 message GenerateMessageRequest {
   option (buf.validate.message).cel = {
     id: "schema_config_requires_method"
-    message: "with_response_read_mask and with_response_schema require method descriptor"
-    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
+    message: "with_response_read_mask and with_response_schema_max_depth require method descriptor"
+    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
   };
 
   // The descriptor reference for the message to generate.
@@ -61,8 +61,8 @@ message GenerateMessageRequest {
 message CreateToolRequest {
   option (buf.validate.message).cel = {
     id: "schema_config_requires_method"
-    message: "with_response_read_mask and with_response_schema require method descriptor"
-    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
+    message: "with_response_read_mask and with_response_schema_max_depth require method descriptor"
+    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
   };
 
   // The descriptor reference for which to create a tool.
@@ -192,5 +192,8 @@ message SchemaConfiguration {
 
   // (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
   // This can be quite verbose so use with care.
-  bool with_response_schema = 4;
+  int32 with_response_schema_max_depth = 4 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 10
+  }];
 }

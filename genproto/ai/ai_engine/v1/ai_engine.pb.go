@@ -1318,9 +1318,9 @@ type SchemaConfiguration struct {
 	WithResponseReadMask bool `protobuf:"varint,3,opt,name=with_response_read_mask,json=withResponseReadMask,proto3" json:"with_response_read_mask,omitempty"`
 	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
 	// This can be quite verbose so use with care.
-	WithResponseSchema bool `protobuf:"varint,4,opt,name=with_response_schema,json=withResponseSchema,proto3" json:"with_response_schema,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	WithResponseSchemaMaxDepth int32 `protobuf:"varint,4,opt,name=with_response_schema_max_depth,json=withResponseSchemaMaxDepth,proto3" json:"with_response_schema_max_depth,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *SchemaConfiguration) Reset() {
@@ -1369,11 +1369,11 @@ func (x *SchemaConfiguration) GetWithResponseReadMask() bool {
 	return false
 }
 
-func (x *SchemaConfiguration) GetWithResponseSchema() bool {
+func (x *SchemaConfiguration) GetWithResponseSchemaMaxDepth() int32 {
 	if x != nil {
-		return x.WithResponseSchema
+		return x.WithResponseSchemaMaxDepth
 	}
-	return false
+	return 0
 }
 
 func (x *SchemaConfiguration) SetFieldMask(v *fieldmaskpb.FieldMask) {
@@ -1388,8 +1388,8 @@ func (x *SchemaConfiguration) SetWithResponseReadMask(v bool) {
 	x.WithResponseReadMask = v
 }
 
-func (x *SchemaConfiguration) SetWithResponseSchema(v bool) {
-	x.WithResponseSchema = v
+func (x *SchemaConfiguration) SetWithResponseSchemaMaxDepth(v int32) {
+	x.WithResponseSchemaMaxDepth = v
 }
 
 func (x *SchemaConfiguration) HasFieldMask() bool {
@@ -1416,7 +1416,7 @@ type SchemaConfiguration_builder struct {
 	WithResponseReadMask bool
 	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
 	// This can be quite verbose so use with care.
-	WithResponseSchema bool
+	WithResponseSchemaMaxDepth int32
 }
 
 func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
@@ -1426,7 +1426,7 @@ func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
 	x.FieldMask = b.FieldMask
 	x.WithMaxDepth = b.WithMaxDepth
 	x.WithResponseReadMask = b.WithResponseReadMask
-	x.WithResponseSchema = b.WithResponseSchema
+	x.WithResponseSchemaMaxDepth = b.WithResponseSchemaMaxDepth
 	return m0
 }
 
@@ -1434,18 +1434,18 @@ var File_malonaz_ai_ai_engine_v1_ai_engine_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xfc\x04\n" +
+	"'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x94\x05\n" +
 	"\x16GenerateMessageRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12/\n" +
 	"\x05model\x18\x02 \x01(\tB\x19\xfaA\x16\n" +
 	"\x14ai.malonaz.com/ModelR\x05model\x12\x16\n" +
 	"\x06prompt\x18\x03 \x01(\tR\x06prompt\x12_\n" +
-	"\x14schema_configuration\x18\x04 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xce\x02\xbaH\xca\x02\x1a\xc7\x02\n" +
-	"\x1dschema_config_requires_method\x12Jwith_response_read_mask and with_response_schema require method descriptor\x1a\xd9\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\xae\x04\n" +
+	"\x14schema_configuration\x18\x04 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n" +
+	"\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\xc6\x04\n" +
 	"\x11CreateToolRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12_\n" +
-	"\x14schema_configuration\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xce\x02\xbaH\xca\x02\x1a\xc7\x02\n" +
-	"\x1dschema_config_requires_method\x12Jwith_response_read_mask and with_response_schema require method descriptor\x1a\xd9\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && !this.schema_configuration.with_response_schema)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\x93\x01\n" +
+	"\x14schema_configuration\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n" +
+	"\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\x93\x01\n" +
 	"\x14ParseToolCallRequest\x12<\n" +
 	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x12=\n" +
 	"\ttool_sets\x18\x02 \x03(\v2 .malonaz.ai.ai_engine.v1.ToolSetR\btoolSets\"\x85\x02\n" +
@@ -1484,14 +1484,15 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
 	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
 	"\arequest\x18\x03 \x01(\v2\x17.google.protobuf.StructR\arequest\x127\n" +
-	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask\"\xea\x01\n" +
+	"\tread_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskR\breadMask\"\x87\x02\n" +
 	"\x13SchemaConfiguration\x129\n" +
 	"\n" +
 	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x12/\n" +
 	"\x0ewith_max_depth\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
 	"(\x00R\fwithMaxDepth\x125\n" +
-	"\x17with_response_read_mask\x18\x03 \x01(\bR\x14withResponseReadMask\x120\n" +
-	"\x14with_response_schema\x18\x04 \x01(\bR\x12withResponseSchema2\x8a\x04\n" +
+	"\x17with_response_read_mask\x18\x03 \x01(\bR\x14withResponseReadMask\x12M\n" +
+	"\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
+	"(\x00R\x1awithResponseSchemaMaxDepth2\x8a\x04\n" +
 	"\bAiEngine\x12[\n" +
 	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
 	"\n" +

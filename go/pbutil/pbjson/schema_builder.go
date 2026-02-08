@@ -41,18 +41,18 @@ func NewSchemaBuilder(schema *pbreflection.Schema) *SchemaBuilder {
 }
 
 type schemaOptions struct {
-	maxDepth             int
-	fieldMask            *fieldmaskpb.FieldMask
-	withResponseReadMask bool
-	withResponseSchema   bool
+	maxDepth                   int
+	fieldMask                  *fieldmaskpb.FieldMask
+	withResponseReadMask       bool
+	withResponseSchemaMaxDepth int
 }
 
 type SchemaOption func(*schemaOptions)
 
 // Include a response schema in the tool description.
-func WithResponseSchema() SchemaOption {
+func WithResponseSchemaMaxDepth(maxDepth int) SchemaOption {
 	return func(o *schemaOptions) {
-		o.withResponseSchema = true
+		o.withResponseSchemaMaxDepth = maxDepth
 	}
 }
 
@@ -98,8 +98,16 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	case protoreflect.MethodDescriptor:
 		msg = d.Input()
 		standardMethodType = b.schema.GetStandardMethodType(d.FullName())
-		if so.withResponseSchema {
-			responseDesc = b.buildResponseDescription(so, d.Output())
+		{
+			responseSchema, err := b.BuildSchema(d.Output().FullName(), WithMaxDepth(so.withResponseSchemaMaxDepth))
+			if err != nil {
+				return nil, fmt.Errorf("building response schema: %v", err)
+			}
+			bytes, err := pbutil.JSONMarshal(responseSchema)
+			if err != nil {
+				return nil, fmt.Errorf("marshaling response schema: %v", err)
+			}
+			responseDesc = "Response JSON schema:\n" + string(bytes)
 		}
 	default:
 		return nil, fmt.Errorf("descriptor is not a message or method: %s", descriptorFullName)
@@ -132,15 +140,6 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		schema.Description += responseDesc
 	}
 	return schema, nil
-}
-
-func (b *SchemaBuilder) buildResponseDescription(so *schemaOptions, msg protoreflect.MessageDescriptor) string {
-	schema := b.buildMessageSchema(so, msg, "", 0, pbreflection.StandardMethodTypeUnspecified, nil)
-	data, err := pbutil.JSONMarshal(schema)
-	if err != nil {
-		return ""
-	}
-	return "Response JSON schema:\n" + string(data)
 }
 
 func (b *SchemaBuilder) buildMessageSchema(
