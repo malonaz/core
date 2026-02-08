@@ -125,6 +125,9 @@ message CreateServiceToolSetRequest {
 
   // Configuration for the schema (applies to all tools created).
   SchemaConfiguration schema_configuration = 3;
+
+  // Set a specific schema configuration for a method.
+  map<string, SchemaConfiguration> method_name_to_schema_configuration = 4;
 }
 
 // A reference to a protobuf descriptor.

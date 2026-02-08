@@ -98,7 +98,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	case protoreflect.MethodDescriptor:
 		msg = d.Input()
 		standardMethodType = b.schema.GetStandardMethodType(d.FullName())
-		{
+		if so.withResponseSchemaMaxDepth > 0 {
 			responseSchema, err := b.BuildSchema(d.Output().FullName(), WithMaxDepth(so.withResponseSchemaMaxDepth))
 			if err != nil {
 				return nil, fmt.Errorf("building response schema: %v", err)
@@ -107,7 +107,11 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 			if err != nil {
 				return nil, fmt.Errorf("marshaling response schema: %v", err)
 			}
-			responseDesc = "Response JSON schema:\n" + string(bytes)
+			if d.Input().FullName() == d.Output().FullName() {
+				responseDesc = fmt.Sprintf("Returns the same object type as the input. JSON schema (max_depth=%d):\n%s", so.withResponseSchemaMaxDepth, bytes)
+			} else {
+				responseDesc = fmt.Sprintf("Response JSON schema (max_depth=%d):\n%s", so.withResponseSchemaMaxDepth, bytes)
+			}
 		}
 	default:
 		return nil, fmt.Errorf("descriptor is not a message or method: %s", descriptorFullName)

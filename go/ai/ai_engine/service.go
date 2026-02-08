@@ -403,12 +403,19 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	// Create the method tools.
 	var tools []*aipb.Tool
 	toolNameToDiscoverTimestamp := map[string]int64{}
+	if len(request.MethodNameToSchemaConfiguration) == 0 {
+		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
+	}
 	for _, methodName := range request.MethodNames {
+		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
+		if schemaConfiguration == nil {
+			schemaConfiguration = request.SchemaConfiguration
+		}
 		createToolRequest := &pb.CreateToolRequest{
 			DescriptorReference: &pb.DescriptorReference{
 				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
 			},
-			SchemaConfiguration: request.SchemaConfiguration,
+			SchemaConfiguration: schemaConfiguration,
 		}
 		tool, err := s.CreateTool(ctx, createToolRequest)
 		if err != nil {
