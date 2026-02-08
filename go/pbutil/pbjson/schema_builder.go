@@ -235,7 +235,7 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, field protoreflect.F
 	}
 
 	if field.Kind() == protoreflect.MessageKind {
-		schema := b.buildMessageSchema(so, field.Message(), path+".", depth+1, methodType, allowedPaths)
+		schema := b.buildMessageSchema(so, field.Message(), path+".", depth, methodType, allowedPaths)
 		if description != "" {
 			schema.Description = description + " (" + schema.Description + ")"
 		}
