@@ -170,25 +170,60 @@ func (c *Client) TextToTextStream(
 				}
 
 				if part.FunctionCall != nil {
-					currentBlockIndex++
-					currentBlockType = blockTypeToolCall
+					fc := part.FunctionCall
 
-					argsJSON, err := json.Marshal(part.FunctionCall.Args)
-					if err != nil {
-						return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+					if len(fc.PartialArgs) > 0 {
+						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
+							currentBlockIndex++
+							currentBlockType = blockTypeToolCall
+							tca.Start(currentBlockIndex, fc.ID, fc.Name)
+						}
+
+						for _, partialArg := range fc.PartialArgs {
+							tca.AppendArgs(currentBlockIndex, partialArg.StringValue)
+						}
+
+						if fc.WillContinue != nil && !*fc.WillContinue {
+							block, err := tca.Build(currentBlockIndex)
+							if err != nil {
+								return err
+							}
+							block.Signature = signature
+							cs.SendBlocks(ctx, block)
+						} else {
+							block, err := tca.BuildPartial(currentBlockIndex)
+							if err != nil {
+								return err
+							}
+							block.Signature = signature
+							cs.SendBlocks(ctx, block)
+						}
+					} else {
+						if currentBlockType != blockTypeToolCall {
+							currentBlockIndex++
+							currentBlockType = blockTypeToolCall
+						}
+
+						argsJSON, err := json.Marshal(fc.Args)
+						if err != nil {
+							return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+						}
+
+						toolCallID := fc.ID
+						if toolCallID == "" {
+							toolCallID = fmt.Sprintf("call_%s_%d", fc.Name, time.Now().UnixNano())
+						}
+
+						tca.Start(currentBlockIndex, toolCallID, fc.Name)
+						tca.AppendArgs(currentBlockIndex, string(argsJSON))
+
+						block, err := tca.Build(currentBlockIndex)
+						if err != nil {
+							return err
+						}
+						block.Signature = signature
+						cs.SendBlocks(ctx, block)
 					}
-
-					toolCallID := fmt.Sprintf("call_%s_%d", part.FunctionCall.Name, time.Now().UnixNano())
-
-					tca.Start(currentBlockIndex, toolCallID, part.FunctionCall.Name)
-					tca.AppendArgs(currentBlockIndex, string(argsJSON))
-
-					block, err := tca.Build(currentBlockIndex)
-					if err != nil {
-						return err
-					}
-					block.Signature = signature
-					cs.SendBlocks(ctx, block)
 				}
 			}
 
