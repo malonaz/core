@@ -80,6 +80,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		Id:        entry.id,
 		Name:      entry.name,
 		Arguments: &structpb.Struct{},
+		Partial:   true,
 	}
 	lexer := streamingjson.NewLexer()
 	lexer.AppendString(entry.args.String())

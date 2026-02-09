@@ -42,6 +42,9 @@ message ToolCall {
 
   // Annotations populated from the tool that created this tool call.
   map<string, string> annotations = 5;
+
+  // If true, this is a partial tool call.
+  bool partial = 6;
 }
 
 // The result of executing a tool call.

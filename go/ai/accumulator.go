@@ -48,6 +48,7 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 				return fmt.Errorf("block %d: received text content but block has type %T", c.Block.Index, block.Content)
 			}
 			existing.Text += content.Text
+
 		case *aipb.Block_Thought:
 			if block.Content == nil {
 				block.Content = &aipb.Block_Thought{}
@@ -57,13 +58,7 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 				return fmt.Errorf("block %d: received thought content but block has type %T", c.Block.Index, block.Content)
 			}
 			existing.Thought += content.Thought
-		case *aipb.Block_ToolCall:
-			if block.Content != nil {
-				if _, ok := block.Content.(*aipb.Block_ToolCall); !ok {
-					return fmt.Errorf("block %d: received tool_call content but block has type %T", c.Block.Index, block.Content)
-				}
-			}
-			block.Content = content
+
 		case *aipb.Block_Image:
 			if block.Content != nil {
 				if _, ok := block.Content.(*aipb.Block_Image); !ok {
@@ -71,7 +66,30 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 				}
 			}
 			block.Content = content
+
 		case *aipb.Block_PartialToolCall:
+			if block.Content != nil {
+				switch block.Content.(type) {
+				case *aipb.Block_PartialToolCall:
+				case *aipb.Block_ToolCall:
+					return fmt.Errorf("block %d: received partial_tool_call content but block already has completed tool_call", c.Block.Index)
+				default:
+					return fmt.Errorf("block %d: received partial_tool_call content but block has type %T", c.Block.Index, block.Content)
+				}
+			}
+			block.Content = content
+
+		case *aipb.Block_ToolCall:
+			if block.Content != nil {
+				switch block.Content.(type) {
+				case *aipb.Block_PartialToolCall:
+				case *aipb.Block_ToolCall:
+				default:
+					return fmt.Errorf("block %d: received tool_call content but block has type %T", c.Block.Index, block.Content)
+				}
+			}
+			block.Content = content
+
 		}
 
 	case *pb.TextToTextStreamResponse_StopReason:

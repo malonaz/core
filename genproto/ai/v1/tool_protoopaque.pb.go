@@ -203,6 +203,7 @@ type ToolCall struct {
 	xxx_hidden_Arguments   *structpb.Struct       `protobuf:"bytes,3,opt,name=arguments,proto3"`
 	xxx_hidden_ExtraFields *structpb.Struct       `protobuf:"bytes,4,opt,name=extra_fields,json=extraFields,proto3"`
 	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,5,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Partial     bool                   `protobuf:"varint,6,opt,name=partial,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -267,6 +268,13 @@ func (x *ToolCall) GetAnnotations() map[string]string {
 	return nil
 }
 
+func (x *ToolCall) GetPartial() bool {
+	if x != nil {
+		return x.xxx_hidden_Partial
+	}
+	return false
+}
+
 func (x *ToolCall) SetId(v string) {
 	x.xxx_hidden_Id = v
 }
@@ -285,6 +293,10 @@ func (x *ToolCall) SetExtraFields(v *structpb.Struct) {
 
 func (x *ToolCall) SetAnnotations(v map[string]string) {
 	x.xxx_hidden_Annotations = v
+}
+
+func (x *ToolCall) SetPartial(v bool) {
+	x.xxx_hidden_Partial = v
 }
 
 func (x *ToolCall) HasArguments() bool {
@@ -322,6 +334,8 @@ type ToolCall_builder struct {
 	ExtraFields *structpb.Struct
 	// Annotations populated from the tool that created this tool call.
 	Annotations map[string]string
+	// If true, this is a partial tool call.
+	Partial bool
 }
 
 func (b0 ToolCall_builder) Build() *ToolCall {
@@ -333,6 +347,7 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 	x.xxx_hidden_Arguments = b.Arguments
 	x.xxx_hidden_ExtraFields = b.ExtraFields
 	x.xxx_hidden_Annotations = b.Annotations
+	x.xxx_hidden_Partial = b.Partial
 	return m0
 }
 
@@ -771,13 +786,14 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vannotations\x18\x04 \x03(\v2$.malonaz.ai.v1.Tool.AnnotationsEntryR\vannotations\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc5\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x02\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\x12:\n" +
 	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12J\n" +
-	"\vannotations\x18\x05 \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryR\vannotations\x1a>\n" +
+	"\vannotations\x18\x05 \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryR\vannotations\x12\x18\n" +
+	"\apartial\x18\x06 \x01(\bR\apartial\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xed\x01\n" +
