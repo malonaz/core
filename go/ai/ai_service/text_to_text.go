@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/proto"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -231,11 +230,7 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		return nil, err
 	}
 
-	// Aggregate chunks to form a single response.
-	blockIndexToBlock := map[int64]*aipb.Block{}
-	message := ai.NewAssistantMessage()
-	response := &pb.TextToTextResponse{Message: message}
-
+	accumulator := ai.NewTextToTextAccumulator()
 	for {
 		event, err := stream.Recv()
 		if err != nil {
@@ -244,72 +239,10 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 			}
 			return nil, err
 		}
-
-		switch c := event.GetContent().(type) {
-		case *pb.TextToTextStreamResponse_Block:
-			block, ok := blockIndexToBlock[c.Block.Index]
-			if !ok {
-				block = &aipb.Block{Index: c.Block.Index}
-				blockIndexToBlock[c.Block.Index] = block
-				message.Blocks = append(message.Blocks, block)
-			}
-			if c.Block.Signature != "" {
-				block.Signature = c.Block.Signature
-			}
-			switch content := c.Block.Content.(type) {
-			case *aipb.Block_Text:
-				if block.Content == nil {
-					block.Content = &aipb.Block_Text{}
-				}
-				existing, ok := block.Content.(*aipb.Block_Text)
-				if !ok {
-					return nil, grpc.Errorf(codes.Internal, "block %d: received text content but block has type %T", c.Block.Index, block.Content).Err()
-				}
-				existing.Text += content.Text
-			case *aipb.Block_Thought:
-				if block.Content == nil {
-					block.Content = &aipb.Block_Thought{}
-				}
-				existing, ok := block.Content.(*aipb.Block_Thought)
-				if !ok {
-					return nil, grpc.Errorf(codes.Internal, "block %d: received thought content but block has type %T", c.Block.Index, block.Content).Err()
-				}
-				existing.Thought += content.Thought
-			case *aipb.Block_ToolCall:
-				if block.Content != nil {
-					if _, ok := block.Content.(*aipb.Block_ToolCall); !ok {
-						return nil, grpc.Errorf(codes.Internal, "block %d: received tool_call content but block has type %T", c.Block.Index, block.Content).Err()
-					}
-				}
-				block.Content = content
-			case *aipb.Block_Image:
-				if block.Content != nil {
-					if _, ok := block.Content.(*aipb.Block_Image); !ok {
-						return nil, grpc.Errorf(codes.Internal, "block %d: received image content but block has type %T", c.Block.Index, block.Content).Err()
-					}
-				}
-				block.Content = content
-			case *aipb.Block_PartialToolCall:
-				// Skip partial tool calls in aggregation
-			}
-
-		case *pb.TextToTextStreamResponse_StopReason:
-			response.StopReason = c.StopReason
-
-		case *pb.TextToTextStreamResponse_ModelUsage:
-			if response.ModelUsage == nil {
-				response.ModelUsage = &aipb.ModelUsage{}
-			}
-			proto.Merge(response.ModelUsage, c.ModelUsage)
-
-		case *pb.TextToTextStreamResponse_GenerationMetrics:
-			if response.GenerationMetrics == nil {
-				response.GenerationMetrics = &aipb.GenerationMetrics{}
-			}
-			proto.Merge(response.GenerationMetrics, c.GenerationMetrics)
-			response.GenerationMetrics.Ttfb = nil
+		if err := accumulator.Add(event); err != nil {
+			return nil, grpc.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 		}
 	}
 
-	return response, nil
+	return accumulator.Response(), nil
 }

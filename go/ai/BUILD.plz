@@ -1,14 +1,17 @@
 go_library(
     name = "ai",
     srcs = [
+        "accumulator.go",
         "messages.go",
         "utils.go",
     ],
     visibility = ["//..."],
     deps = [
         "//go/pbutil",
+        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
