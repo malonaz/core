@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/huandu/xstrings"
@@ -283,6 +284,9 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 		parsedResource.Children = append(parsedResource.Children, child)
 	}
 
+	sort.Slice(parsedResource.Children, func(i, j int) bool {
+		return parsedResource.Children[i].Type < parsedResource.Children[j].Type
+	})
 	return parsedResource, nil
 }
 
