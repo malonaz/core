@@ -96,10 +96,12 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 					// Valid cache breakdown - allow the new input value to be sent
 					w.modelUsage.InputToken = inputToken
 				} else if inputToken.Quantity < existingInputToken.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received input tokens with smaller quantity: previous %d, current %d",
-						existingInputToken.Quantity, inputToken.Quantity,
-					).Err()
+					w.modelUsage.InputToken = inputToken
+					// Gemini is misbehaving -_-.
+					//return grpc.Errorf(codes.Internal,
+					//	"received input tokens with smaller quantity: previous %d, current %d",
+					//	existingInputToken.Quantity, inputToken.Quantity,
+					//).Err()
 				} else if inputToken.Quantity == existingInputToken.Quantity {
 					modelUsage.InputToken = nil
 				} else {
