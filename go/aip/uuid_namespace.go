@@ -13,21 +13,8 @@ import (
 // GetUUIDNamespace extracts the UUID namespace from a proto message's options.
 // Returns an error if the namespace is not defined or is empty.
 func GetUUIDNamespace(msg proto.Message) (uuid.UUID, error) {
-	namespace := pbutil.MustGetMessageOption(msg, aippb.E_UuidNamespace)
-	if namespace == nil {
-		return uuid.UUID{}, fmt.Errorf("%T does not define a uuid_namespace", msg)
-	}
-
-	namespaceStr, ok := namespace.(string)
-	if !ok {
-		return uuid.UUID{}, fmt.Errorf("uuid_namespace for %T is not a string", msg)
-	}
-
-	if namespaceStr == "" {
-		return uuid.UUID{}, fmt.Errorf("uuid_namespace for %T is empty", msg)
-	}
-
-	parsedUUID, err := uuid.Parse(namespaceStr)
+	namespace := pbutil.Must(pbutil.GetMessageOption[string](msg, aippb.E_UuidNamespace))
+	parsedUUID, err := uuid.Parse(namespace)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("parsing namespace for %T: %w", msg, err)
 	}

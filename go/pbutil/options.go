@@ -2,7 +2,6 @@ package pbutil
 
 import (
 	"fmt"
-	"strings"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/proto"
@@ -17,65 +16,38 @@ type enum interface {
 	String() string
 }
 
-// MustGetServiceOption returns the service option or panics.
-func MustGetServiceOption(
-	serviceName string,
-	extensionInfo *protoimpl.ExtensionInfo,
-) any {
-	serviceOption, ok := GetServiceOption(serviceName, extensionInfo)
-	if !ok {
-		panic("could not find service option")
+func Must[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
 	}
-	return serviceOption
+	return value
 }
 
-// MustGetServiceOption returns the service option or panics.
-func GetServiceOption(
-	serviceName string,
-	extensionInfo *protoimpl.ExtensionInfo,
-) (any, bool) {
+func GetServiceOption[T any](serviceName string, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+	var zero T
 	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
 	if err != nil {
-		panic("could not find service descriptor: " + err.Error())
+		return zero, fmt.Errorf("could not find service descriptor: %w", err)
 	}
 	serviceDescriptor, ok := fd.(protoreflect.ServiceDescriptor)
 	if !ok {
-		panic(fmt.Errorf("descriptor is not a service descriptor for service: %s", serviceName))
+		return zero, fmt.Errorf("descriptor is not a service descriptor for service: %s", serviceName)
 	}
-
 	options, ok := serviceDescriptor.Options().(*descriptorpb.ServiceOptions)
+	if !ok || options == nil {
+		return zero, fmt.Errorf("service options for %s not found or wrong type", serviceName)
+	}
+	ext := proto.GetExtension(options, extensionInfo)
+	result, ok := ext.(T)
 	if !ok {
-		return nil, false
+		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
 	}
-	extension := proto.GetExtension(options, extensionInfo)
-	if extension == nil {
-		return nil, false
-	}
-	return extension, true
-}
-
-// MustGetEnumValueOption returns the enum value option or panics.
-func MustGetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) any {
-	enumDescriptor := enum.Descriptor()
-	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
-	options := valueEnumDescriptor.Options().(*descriptorpb.EnumValueOptions)
-	return proto.GetExtension(options, extensionInfo)
-}
-
-// MustGetMessageOption returns an option for the given message.
-func MustGetMessageOption(m proto.Message, extensionInfo *protoimpl.ExtensionInfo) any {
-	options := m.ProtoReflect().Descriptor().Options()
-	if options != nil {
-		if err := protovalidate.Validate(options); err != nil {
-			panic(fmt.Errorf("validating message option: %w", err))
-		}
-	}
-	return proto.GetExtension(options, extensionInfo)
+	return result, nil
 }
 
 // GetMessageOption returns an option for the given message.
 // Returns an error if validation fails or if the type assertion fails.
-func GetMessageOption[T proto.Message](m proto.Message, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+func GetMessageOption[T any](m proto.Message, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
 	var zero T
 	options := m.ProtoReflect().Descriptor().Options()
 	if options != nil {
@@ -93,27 +65,21 @@ func GetMessageOption[T proto.Message](m proto.Message, extensionInfo *protoimpl
 	return result, nil
 }
 
-// GetEnumValueOption returns the enum value option along with any error encountered.
-func GetEnumValueOption(enum enum, extensionInfo *protoimpl.ExtensionInfo) (any, error) {
+func GetEnumValueOption[T any](enum enum, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+	var zero T
 	enumDescriptor := enum.Descriptor()
 	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
 	if valueEnumDescriptor == nil {
-		return nil, fmt.Errorf("enum value descriptor for %v not found", enum.String())
+		return zero, fmt.Errorf("enum value descriptor for %v not found", enum.String())
 	}
 	options, ok := valueEnumDescriptor.Options().(*descriptorpb.EnumValueOptions)
 	if !ok || options == nil {
-		return nil, fmt.Errorf("enum value options for %v not found or wrong type", enum.String())
+		return zero, fmt.Errorf("enum value options for %v not found or wrong type", enum.String())
 	}
-	extension := proto.GetExtension(options, extensionInfo)
-	if extension == nil {
-		return nil, fmt.Errorf("extension is undefined for %v", enum.String())
+	ext := proto.GetExtension(options, extensionInfo)
+	result, ok := ext.(T)
+	if !ok {
+		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
 	}
-	return extension, nil
-}
-
-func SanitizeEnumString(enum, prefix string) string {
-	enum = strings.TrimPrefix(enum, prefix)
-	enum = strings.ReplaceAll(enum, "_", " ")
-	enum = strings.ToLower(enum)
-	return enum
+	return result, nil
 }
