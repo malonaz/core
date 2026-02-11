@@ -2,6 +2,7 @@ go_library(
     name = "ai",
     srcs = [
         "accumulator.go",
+        "errors.go",
         "messages.go",
         "utils.go",
     ],

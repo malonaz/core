@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc"
 )
 
@@ -89,8 +90,8 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		healed = "{}"
 	}
 	if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "failed to unmarshal healed tool call arguments").
-			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": healed}).Err()
+		return nil, grpc.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
+			WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
 	}
 	return &aipb.Block{
 		Index: index,
@@ -113,8 +114,8 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	}
 	rawJSON := entry.args.String()
 	if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "failed to unmarshal tool call arguments").
-			WithErrorInfo("JSON_UNMARSHAL_ERROR", "tool_accumulator", map[string]string{"raw_json": rawJSON}).Err()
+		return nil, grpc.Errorf(codes.Internal, "unmarshaling tool call arguments").
+			WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": rawJSON}).Err()
 	}
 	delete(a.calls, index)
 	return &aipb.Block{

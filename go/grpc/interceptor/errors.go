@@ -9,10 +9,11 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/protoadapt"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	"github.com/malonaz/core/go/pbutil"
 )
 
 // serviceMetadata caches service metadata extracted from proto definitions
@@ -136,27 +137,29 @@ func (ei *errorInfoInjector) buildServiceMetadataCache() {
 			serviceFullName := string(service.FullName())
 
 			// Extract default_host from service options
-			if proto.HasExtension(service.Options(), annotations.E_DefaultHost) {
-				defaultHost := proto.GetExtension(service.Options(), annotations.E_DefaultHost).(string)
+			if !pbutil.HasExtension(service.Options(), annotations.E_DefaultHost) {
+				continue
+			}
 
-				// Extract domain from default_host (everything after first dot)
-				domain := ""
-				if idx := strings.Index(defaultHost, "."); idx != -1 {
-					domain = defaultHost[idx+1:]
-				}
+			defaultHost := pbutil.Must(pbutil.GetExtension[string](service.Options(), annotations.E_DefaultHost))
 
-				metadata := &serviceMetadata{
-					defaultHost: defaultHost,
-					domain:      domain,
-				}
+			// Extract domain from default_host (everything after first dot)
+			var domain string
+			if idx := strings.Index(defaultHost, "."); idx != -1 {
+				domain = defaultHost[idx+1:]
+			}
 
-				// Store metadata for each method in the service
-				methods := service.Methods()
-				for j := 0; j < methods.Len(); j++ {
-					method := methods.Get(j)
-					fullMethodName := "/" + serviceFullName + "/" + string(method.Name())
-					ei.fullMethodNameToServiceMetadata[fullMethodName] = metadata
-				}
+			metadata := &serviceMetadata{
+				defaultHost: defaultHost,
+				domain:      domain,
+			}
+
+			// Store metadata for each method in the service
+			methods := service.Methods()
+			for j := 0; j < methods.Len(); j++ {
+				method := methods.Get(j)
+				fullMethodName := "/" + serviceFullName + "/" + string(method.Name())
+				ei.fullMethodNameToServiceMetadata[fullMethodName] = metadata
 			}
 		}
 		return true
@@ -251,10 +254,10 @@ func (ei *errorInfoInjector) injectErrorInfo(ctx context.Context, fullMethod str
 
 	// Create new status with ErrorInfo
 	newSt := status.New(st.Code(), st.Message())
-	newSt, newErr := newSt.WithDetails(allDetails...)
-	if newErr != nil {
+	newSt, err = newSt.WithDetails(allDetails...)
+	if err != nil {
 		slog.ErrorContext(ctx, "injecting error info",
-			"error", newErr,
+			"error", err,
 			"method", fullMethod,
 		)
 		return st.Err() // Return original error on failure

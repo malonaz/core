@@ -11,6 +11,7 @@ go_library(
     resources = glob(["configs/*.json"]),
     visibility = ["//..."],
     deps = [
+        "//go/ai",
         "//go/aip",
         "//go/grpc",
         "//go/pbutil",

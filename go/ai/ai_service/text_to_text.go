@@ -57,30 +57,36 @@ type tttStreamWrapper struct {
 	toolNameToTool map[string]*aipb.Tool
 }
 
-func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) {
-	tool, ok := w.toolNameToTool[toolCall.Name]
-	if !ok {
-		return
-	}
-	if len(tool.GetAnnotations()) == 0 {
-		return
-	}
+func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) error {
+	// We always instantiate tool calls annotations.
 	if toolCall.Annotations == nil {
 		toolCall.Annotations = map[string]string{}
+	}
+
+	// Find the target tool.
+	tool, ok := w.toolNameToTool[toolCall.Name]
+	if !ok {
+		return grpc.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
+			WithErrorInfo(ai.ErrorInfoReasonToolCallUnknownTool, "copyToolAnnotations", nil).Err()
 	}
 	for k, v := range tool.GetAnnotations() {
 		toolCall.Annotations[k] = v
 	}
+	return nil
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	switch c := resp.GetContent().(type) {
 	case *pb.TextToTextStreamResponse_Block:
 		if c.Block.GetToolCall() != nil {
-			w.copyToolAnnotations(c.Block.GetToolCall())
+			if err := w.copyToolAnnotations(c.Block.GetToolCall()); err != nil {
+				return err
+			}
 		}
 		if c.Block.GetPartialToolCall() != nil {
-			w.copyToolAnnotations(c.Block.GetPartialToolCall())
+			if err := w.copyToolAnnotations(c.Block.GetPartialToolCall()); err != nil {
+				return err
+			}
 		}
 
 	case *pb.TextToTextStreamResponse_ModelUsage:

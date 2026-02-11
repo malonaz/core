@@ -7,7 +7,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -23,7 +22,26 @@ func Must[T any](value T, err error) T {
 	return value
 }
 
-func GetServiceOption[T any](serviceName string, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+func HasExtension(m proto.Message, extensionType protoreflect.ExtensionType) bool {
+	return proto.HasExtension(m, extensionType)
+}
+
+func GetExtension[T any](options proto.Message, extensionType protoreflect.ExtensionType) (T, error) {
+	var zero T
+	ext := proto.GetExtension(options, extensionType)
+	result, ok := ext.(T)
+	if !ok {
+		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
+	}
+	if m, ok := any(result).(proto.Message); ok {
+		if err := protovalidate.Validate(m); err != nil {
+			return zero, fmt.Errorf("validating extension: %w", err)
+		}
+	}
+	return result, nil
+}
+
+func GetServiceOption[T any](serviceName string, extensionType protoreflect.ExtensionType) (T, error) {
 	var zero T
 	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
 	if err != nil {
@@ -37,35 +55,19 @@ func GetServiceOption[T any](serviceName string, extensionInfo *protoimpl.Extens
 	if !ok || options == nil {
 		return zero, fmt.Errorf("service options for %s not found or wrong type", serviceName)
 	}
-	ext := proto.GetExtension(options, extensionInfo)
-	result, ok := ext.(T)
-	if !ok {
-		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
-	}
-	return result, nil
+	return GetExtension[T](options, extensionType)
 }
 
-// GetMessageOption returns an option for the given message.
-// Returns an error if validation fails or if the type assertion fails.
-func GetMessageOption[T any](m proto.Message, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+func GetMessageOption[T any](m proto.Message, extensionType protoreflect.ExtensionType) (T, error) {
 	var zero T
 	options := m.ProtoReflect().Descriptor().Options()
-	if options != nil {
-		if err := protovalidate.Validate(options); err != nil {
-			return zero, fmt.Errorf("validating message option: %w", err)
-		}
+	if options == nil {
+		return zero, fmt.Errorf("message options not found")
 	}
-
-	ext := proto.GetExtension(options, extensionInfo)
-	result, ok := ext.(T)
-	if !ok {
-		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
-	}
-
-	return result, nil
+	return GetExtension[T](options, extensionType)
 }
 
-func GetEnumValueOption[T any](enum enum, extensionInfo *protoimpl.ExtensionInfo) (T, error) {
+func GetEnumValueOption[T any](enum enum, extensionType protoreflect.ExtensionType) (T, error) {
 	var zero T
 	enumDescriptor := enum.Descriptor()
 	valueEnumDescriptor := enumDescriptor.Values().ByName(protoreflect.Name(enum.String()))
@@ -76,10 +78,5 @@ func GetEnumValueOption[T any](enum enum, extensionInfo *protoimpl.ExtensionInfo
 	if !ok || options == nil {
 		return zero, fmt.Errorf("enum value options for %v not found or wrong type", enum.String())
 	}
-	ext := proto.GetExtension(options, extensionInfo)
-	result, ok := ext.(T)
-	if !ok {
-		return zero, fmt.Errorf("failed to cast extension to type %T", zero)
-	}
-	return result, nil
+	return GetExtension[T](options, extensionType)
 }
