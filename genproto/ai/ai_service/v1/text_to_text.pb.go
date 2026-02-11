@@ -103,13 +103,10 @@ type TextToTextConfiguration struct {
 	// to generate before creating a response to the prompt. Higher effort levels
 	// result in more thorough reasoning at the cost of speed and token usage.
 	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,4,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
-	// If true, we attempt to clean the output to extract a json object.
-	// Fails the request if a json object cannot be found.
-	ExtractJsonObject bool `protobuf:"varint,5,opt,name=extract_json_object,json=extractJsonObject,proto3" json:"extract_json_object,omitempty"`
 	// If true, we stream partial tool calls.
-	StreamPartialToolCalls bool `protobuf:"varint,6,opt,name=stream_partial_tool_calls,json=streamPartialToolCalls,proto3" json:"stream_partial_tool_calls,omitempty"`
+	StreamPartialToolCalls bool `protobuf:"varint,5,opt,name=stream_partial_tool_calls,json=streamPartialToolCalls,proto3" json:"stream_partial_tool_calls,omitempty"`
 	// Image generation configuration.
-	ImageConfig   *ImageGenerationConfig `protobuf:"bytes,7,opt,name=image_config,json=imageConfig,proto3" json:"image_config,omitempty"`
+	ImageConfig   *ImageGenerationConfig `protobuf:"bytes,6,opt,name=image_config,json=imageConfig,proto3" json:"image_config,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -167,13 +164,6 @@ func (x *TextToTextConfiguration) GetReasoningEffort() v1.ReasoningEffort {
 	return v1.ReasoningEffort(0)
 }
 
-func (x *TextToTextConfiguration) GetExtractJsonObject() bool {
-	if x != nil {
-		return x.ExtractJsonObject
-	}
-	return false
-}
-
 func (x *TextToTextConfiguration) GetStreamPartialToolCalls() bool {
 	if x != nil {
 		return x.StreamPartialToolCalls
@@ -202,10 +192,6 @@ func (x *TextToTextConfiguration) SetToolChoice(v *v1.ToolChoice) {
 
 func (x *TextToTextConfiguration) SetReasoningEffort(v v1.ReasoningEffort) {
 	x.ReasoningEffort = v
-}
-
-func (x *TextToTextConfiguration) SetExtractJsonObject(v bool) {
-	x.ExtractJsonObject = v
 }
 
 func (x *TextToTextConfiguration) SetStreamPartialToolCalls(v bool) {
@@ -252,9 +238,6 @@ type TextToTextConfiguration_builder struct {
 	// to generate before creating a response to the prompt. Higher effort levels
 	// result in more thorough reasoning at the cost of speed and token usage.
 	ReasoningEffort v1.ReasoningEffort
-	// If true, we attempt to clean the output to extract a json object.
-	// Fails the request if a json object cannot be found.
-	ExtractJsonObject bool
 	// If true, we stream partial tool calls.
 	StreamPartialToolCalls bool
 	// Image generation configuration.
@@ -269,7 +252,6 @@ func (b0 TextToTextConfiguration_builder) Build() *TextToTextConfiguration {
 	x.Temperature = b.Temperature
 	x.ToolChoice = b.ToolChoice
 	x.ReasoningEffort = b.ReasoningEffort
-	x.ExtractJsonObject = b.ExtractJsonObject
 	x.StreamPartialToolCalls = b.StreamPartialToolCalls
 	x.ImageConfig = b.ImageConfig
 	return m0
@@ -1040,17 +1022,16 @@ var File_malonaz_ai_ai_service_v1_text_to_text_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\n" +
-	"+malonaz/ai/ai_service/v1/text_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xc2\x03\n" +
+	"+malonaz/ai/ai_service/v1/text_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x92\x03\n" +
 	"\x17TextToTextConfiguration\x12&\n" +
 	"\n" +
 	"max_tokens\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tmaxTokens\x129\n" +
 	"\vtemperature\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\x00@)\x00\x00\x00\x00\x00\x00\x00\x00R\vtemperature\x12:\n" +
 	"\vtool_choice\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolChoiceR\n" +
 	"toolChoice\x12I\n" +
-	"\x10reasoning_effort\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12.\n" +
-	"\x13extract_json_object\x18\x05 \x01(\bR\x11extractJsonObject\x129\n" +
-	"\x19stream_partial_tool_calls\x18\x06 \x01(\bR\x16streamPartialToolCalls\x12R\n" +
-	"\fimage_config\x18\a \x01(\v2/.malonaz.ai.ai_service.v1.ImageGenerationConfigR\vimageConfig\"\xac\x01\n" +
+	"\x10reasoning_effort\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x129\n" +
+	"\x19stream_partial_tool_calls\x18\x05 \x01(\bR\x16streamPartialToolCalls\x12R\n" +
+	"\fimage_config\x18\x06 \x01(\v2/.malonaz.ai.ai_service.v1.ImageGenerationConfigR\vimageConfig\"\xac\x01\n" +
 	"\x15ImageGenerationConfig\x12_\n" +
 	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
 	"\n" +

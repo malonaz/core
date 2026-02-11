@@ -2,6 +2,7 @@ package ai_service
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"google.golang.org/grpc/codes"
@@ -57,7 +58,7 @@ type tttStreamWrapper struct {
 	toolNameToTool map[string]*aipb.Tool
 }
 
-func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) error {
+func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
 	// We always instantiate tool calls annotations.
 	if toolCall.Annotations == nil {
 		toolCall.Annotations = map[string]string{}
@@ -66,26 +67,44 @@ func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) error {
 	// Find the target tool.
 	tool, ok := w.toolNameToTool[toolCall.Name]
 	if !ok {
-		return grpc.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
-			WithErrorInfo(ai.ErrorInfoReasonToolCallUnknownTool, "copyToolAnnotations", nil).Err()
+		return false
 	}
+
+	// Copy annotations.
 	for k, v := range tool.GetAnnotations() {
 		toolCall.Annotations[k] = v
 	}
-	return nil
+	return true
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	switch c := resp.GetContent().(type) {
 	case *pb.TextToTextStreamResponse_Block:
+		var toolCall *aipb.ToolCall
 		if c.Block.GetToolCall() != nil {
-			if err := w.copyToolAnnotations(c.Block.GetToolCall()); err != nil {
-				return err
-			}
+			toolCall = c.Block.GetToolCall()
 		}
 		if c.Block.GetPartialToolCall() != nil {
-			if err := w.copyToolAnnotations(c.Block.GetPartialToolCall()); err != nil {
-				return err
+			toolCall = c.Block.GetPartialToolCall()
+		}
+		if toolCall != nil {
+			// We always instantiate tool calls annotations.
+			if toolCall.Annotations == nil {
+				toolCall.Annotations = map[string]string{}
+			}
+			// Find the target tool.
+			tool, ok := w.toolNameToTool[toolCall.Name]
+			if !ok {
+				return grpc.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
+					WithDetails(&aipb.ToolCallRecoverableError{
+						ToolCallBlock:   c.Block,
+						ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool"))),
+					}).Err()
+			}
+
+			// Copy annotations.
+			for k, v := range tool.GetAnnotations() {
+				toolCall.Annotations[k] = v
 			}
 		}
 

@@ -200,3 +200,10 @@ message SchemaConfiguration {
     lte: 10
   }];
 }
+
+// Error detail indicating the error can be fed back to the AI for correction.
+// Callers can extract the tool result and append it to the conversation history for the model to retry.
+message ParseToolCallRecoverableError {
+  // The tool result representing the failure, ready to be sent back to the model.
+  malonaz.ai.v1.ToolResult tool_result = 1 [(buf.validate.field).required = true];
+}

@@ -42,11 +42,11 @@ go_library(
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__protoadapt",
         "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/proto:google__rpc__status",
     ],
 )

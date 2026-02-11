@@ -1,6 +1,7 @@
 proto_library(
     name = "v1",
     srcs = [
+        "errors.proto",
         "message.proto",
         "metrics.proto",
         "model.proto",

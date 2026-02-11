@@ -152,8 +152,8 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 }
 
 func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRequest) (*pb.ParseToolCallResponse, error) {
-	toolCallName := request.GetToolCall().GetName()
-	annotations := request.GetToolCall().GetAnnotations()
+	toolCall := request.GetToolCall()
+	annotations := toolCall.GetAnnotations()
 	if len(annotations) == 0 {
 		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
@@ -161,7 +161,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	switch toolType := annotations[annotationKeyToolType]; toolType {
 	case annotationValueToolTypeDiscovery: // CASE 1: DISCOVERY TOOL CALL.
 		// Parse the request.
-		args := request.GetToolCall().GetArguments().AsMap()
+		args := toolCall.GetArguments().AsMap()
 		toolNamesRaw, _ := args["tools"].([]any)
 		var toolNames []string
 		for _, name := range toolNamesRaw {
@@ -173,13 +173,13 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		// Find the tool set.
 		var targetToolSet *pb.ToolSet
 		for _, toolSet := range request.GetToolSets() {
-			if toolSet.GetDiscoveryTool().GetName() == toolCallName {
+			if toolSet.GetDiscoveryTool().GetName() == toolCall.GetName() {
 				targetToolSet = toolSet
 				break
 			}
 		}
 		if targetToolSet == nil {
-			return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCallName).Err()
+			return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
 		}
 
 		// Validate the tool names.
@@ -189,7 +189,10 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 				return nil, grpc.Errorf(codes.NotFound, "tool %q not found in tool set", toolName).Err()
 			}
 			if discoverTimestamp > 0 {
-				return nil, grpc.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).Err()
+				return nil, grpc.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).
+					WithDetails(&pb.ParseToolCallRecoverableError{
+						ToolResult: ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), fmt.Errorf("tool already discovered")),
+					}).Err()
 			}
 		}
 
@@ -216,21 +219,20 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		if _, ok := annotations[annotationKeyDiscoverableTool]; ok {
 			var found bool
 			for _, toolSet := range request.GetToolSets() {
-				if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCallName]; ok {
+				if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCall.GetName()]; ok {
 					if discoverTimestamp == 0 {
-						return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCallName).Err()
+						return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCall.GetName()).Err()
 					}
 					found = true
 					break
 				}
 			}
 			if !found {
-				return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCallName).Err()
+				return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
 			}
 		}
 
 		// Parse the request message.
-		toolCall := request.GetToolCall()
 		request, err := s.parseToolCallMessage(ctx, toolCall)
 		if err != nil {
 			return nil, err
@@ -251,7 +253,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 
 	case annotationValueToolTypeGenerateMessage:
 		// CASE 3: GENERATE MESSAGE TOOL CALL.
-		message, err := s.parseToolCallMessage(ctx, request.GetToolCall())
+		message, err := s.parseToolCallMessage(ctx, toolCall)
 		if err != nil {
 			return nil, err
 		}

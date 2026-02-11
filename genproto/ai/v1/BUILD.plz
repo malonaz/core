@@ -1,6 +1,7 @@
 go_library(
     name = "v1",
     srcs = [
+        "errors.pb.go",
         "message.pb.go",
         "metrics.pb.go",
         "model.pb.go",

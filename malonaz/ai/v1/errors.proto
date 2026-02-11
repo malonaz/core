@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/ai/v1/message.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// Error detail indicating the error can be fed back to the AI for correction.
+// Callers can extract the tool result and append it to the conversation history for the model to retry.
+message ToolCallRecoverableError {
+  // The tool call block that caused an error.
+  Block tool_call_block = 1 [(buf.validate.field).required = true];
+  // The tool result block representing the failure, ready to be sent back to the model.
+  Block tool_result_block = 2 [(buf.validate.field).required = true];
+}

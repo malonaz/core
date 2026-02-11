@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -10,7 +11,8 @@ import (
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/protoadapt"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 var maxStackDepth = 5
@@ -22,32 +24,38 @@ func SetErrorMaxStackDepth(depth int) {
 }
 
 type Error struct {
-	code    codes.Code
-	message string
-	details []protoadapt.MessageV1
+	status *spb.Status
 }
 
-// MapContextError converts context errors to gRPC errors with debug info.
-// If err is not a context error, it panics.
-// For context.Canceled, it returns a Canceled error.
-// For context.DeadlineExceeded, it returns a DeadlineExceeded error.
-func FromContextError(err error) error {
-	var grpcErr *Error
-	switch err {
-	case context.Canceled:
-		grpcErr = Errorf(codes.Canceled, "request canceled")
-	case context.DeadlineExceeded:
-		grpcErr = Errorf(codes.DeadlineExceeded, "deadline exceeded")
-	default:
-		panic(fmt.Sprintf("unexpected error: %v", err))
+// Construct an error from an existing error.
+func FromError(err error) *Error {
+	// Check if the error is a context error.
+	if errors.Is(err, context.Canceled) {
+		return &Error{
+			status: &spb.Status{Code: int32(codes.Canceled), Message: err.Error()},
+		}
 	}
-	return grpcErr.Err()
+	if errors.Is(err, context.DeadlineExceeded) {
+		return &Error{
+			status: &spb.Status{Code: int32(codes.DeadlineExceeded), Message: err.Error()},
+		}
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		return &Error{
+			status: &spb.Status{Code: int32(codes.Unknown), Message: err.Error()},
+		}
+	}
+
+	return &Error{
+		status: st.Proto(),
+	}
 }
 
 func Errorf(code codes.Code, message string, params ...any) *Error {
 	e := &Error{
-		code:    code,
-		message: fmt.Sprintf(message, params...),
+		status: &spb.Status{Code: int32(code), Message: fmt.Sprintf(message, params...)},
 	}
 
 	// Only capture stack trace if maxStackDepth > 0
@@ -71,7 +79,11 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 		debugInfo := &errdetails.DebugInfo{
 			StackEntries: stackEntries,
 		}
-		e.details = append(e.details, debugInfo)
+		any, err := anypb.New(debugInfo)
+		if err != nil {
+			panic(err)
+		}
+		e.status.Details = append(e.status.Details, any)
 	}
 
 	return e
@@ -82,7 +94,11 @@ func (e *Error) WithLocalizedMessage(message string, params ...any) *Error {
 		Locale:  "en-US",
 		Message: fmt.Sprintf(message, params...),
 	}
-	e.details = append(e.details, localizedMessage)
+	any, err := anypb.New(localizedMessage)
+	if err != nil {
+		panic(err)
+	}
+	e.status.Details = append(e.status.Details, any)
 	return e
 }
 
@@ -92,48 +108,52 @@ func (e *Error) WithErrorInfo(reason, domain string, metadata map[string]string)
 		Domain:   domain,
 		Metadata: metadata,
 	}
-	e.details = append(e.details, errorInfo)
+	any, err := anypb.New(errorInfo)
+	if err != nil {
+		panic(err)
+	}
+	e.status.Details = append(e.status.Details, any)
+	return e
+}
+
+func (e *Error) WithDetails(messages ...proto.Message) *Error {
+	for _, m := range messages {
+		if a, ok := m.(*anypb.Any); ok {
+			e.status.Details = append(e.status.Details, a)
+			continue
+		}
+		a, err := anypb.New(m)
+		if err != nil {
+			panic(err)
+		}
+		e.status.Details = append(e.status.Details, a)
+	}
 	return e
 }
 
 func (e *Error) Status() *status.Status {
-	st := status.New(e.code, e.message)
-
-	if len(e.details) > 0 {
-		var err error
-		st, err = st.WithDetails(e.details...)
-		if err != nil {
-			return status.New(e.code, fmt.Sprintf("%s (failed to add details: %v)", e.message, err))
-		}
-	}
-
-	return st
+	return status.FromProto(e.status)
 }
 
 func (e *Error) Proto() *spb.Status {
-	return e.Status().Proto()
+	return proto.Clone(e.status).(*spb.Status)
 }
 
 func (e *Error) Err() error {
 	return e.Status().Err()
 }
 
-func FromError(err error) *Error {
+// Range over error details in an error.
+func RangeErrorDetails[M proto.Message](err error, fn func(M) bool) {
 	st, ok := status.FromError(err)
 	if !ok {
-		return &Error{code: codes.Unknown, message: err.Error()}
+		return
 	}
-
-	e := &Error{
-		code:    st.Code(),
-		message: st.Message(),
-	}
-
 	for _, detail := range st.Details() {
-		if msg, ok := detail.(protoadapt.MessageV1); ok {
-			e.details = append(e.details, msg)
+		if m, ok := detail.(M); ok {
+			if !fn(m) {
+				return
+			}
 		}
 	}
-
-	return e
 }

@@ -1446,6 +1446,78 @@ func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
 	return m0
 }
 
+// Error detail indicating the error can be fed back to the AI for correction.
+// Callers can extract the tool result and append it to the conversation history for the model to retry.
+type ParseToolCallRecoverableError struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The tool result representing the failure, ready to be sent back to the model.
+	ToolResult    *v1.ToolResult `protobuf:"bytes,1,opt,name=tool_result,json=toolResult,proto3" json:"tool_result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ParseToolCallRecoverableError) Reset() {
+	*x = ParseToolCallRecoverableError{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ParseToolCallRecoverableError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ParseToolCallRecoverableError) ProtoMessage() {}
+
+func (x *ParseToolCallRecoverableError) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ParseToolCallRecoverableError) GetToolResult() *v1.ToolResult {
+	if x != nil {
+		return x.ToolResult
+	}
+	return nil
+}
+
+func (x *ParseToolCallRecoverableError) SetToolResult(v *v1.ToolResult) {
+	x.ToolResult = v
+}
+
+func (x *ParseToolCallRecoverableError) HasToolResult() bool {
+	if x == nil {
+		return false
+	}
+	return x.ToolResult != nil
+}
+
+func (x *ParseToolCallRecoverableError) ClearToolResult() {
+	x.ToolResult = nil
+}
+
+type ParseToolCallRecoverableError_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The tool result representing the failure, ready to be sent back to the model.
+	ToolResult *v1.ToolResult
+}
+
+func (b0 ParseToolCallRecoverableError_builder) Build() *ParseToolCallRecoverableError {
+	m0 := &ParseToolCallRecoverableError{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.ToolResult = b.ToolResult
+	return m0
+}
+
 var File_malonaz_ai_ai_engine_v1_ai_engine_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
@@ -1512,7 +1584,10 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"(\x00R\fwithMaxDepth\x125\n" +
 	"\x17with_response_read_mask\x18\x03 \x01(\bR\x14withResponseReadMask\x12M\n" +
 	"\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
-	"(\x00R\x1awithResponseSchemaMaxDepth2\x8a\x04\n" +
+	"(\x00R\x1awithResponseSchemaMaxDepth\"c\n" +
+	"\x1dParseToolCallRecoverableError\x12B\n" +
+	"\vtool_result\x18\x01 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"toolResult2\x8a\x04\n" +
 	"\bAiEngine\x12[\n" +
 	"\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x17.google.protobuf.Struct\x12M\n" +
 	"\n" +
@@ -1521,61 +1596,64 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n" +
 	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a .malonaz.ai.ai_engine.v1.ToolSet\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
 
-var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
-	(*GenerateMessageRequest)(nil),      // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	(*CreateToolRequest)(nil),           // 1: malonaz.ai.ai_engine.v1.CreateToolRequest
-	(*ParseToolCallRequest)(nil),        // 2: malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	(*ParseToolCallResponse)(nil),       // 3: malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	(*CreateDiscoveryToolRequest)(nil),  // 4: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	(*CreateServiceToolSetRequest)(nil), // 5: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	(*DescriptorReference)(nil),         // 6: malonaz.ai.ai_engine.v1.DescriptorReference
-	(*ToolSet)(nil),                     // 7: malonaz.ai.ai_engine.v1.ToolSet
-	(*DiscoverToolsRequest)(nil),        // 8: malonaz.ai.ai_engine.v1.DiscoverToolsRequest
-	(*RpcRequest)(nil),                  // 9: malonaz.ai.ai_engine.v1.RpcRequest
-	(*SchemaConfiguration)(nil),         // 10: malonaz.ai.ai_engine.v1.SchemaConfiguration
-	nil,                                 // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
-	nil,                                 // 12: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	(*v1.ToolCall)(nil),                 // 13: malonaz.ai.v1.ToolCall
-	(*structpb.Struct)(nil),             // 14: google.protobuf.Struct
-	(*v1.Tool)(nil),                     // 15: malonaz.ai.v1.Tool
-	(*fieldmaskpb.FieldMask)(nil),       // 16: google.protobuf.FieldMask
+	(*GenerateMessageRequest)(nil),        // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	(*CreateToolRequest)(nil),             // 1: malonaz.ai.ai_engine.v1.CreateToolRequest
+	(*ParseToolCallRequest)(nil),          // 2: malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	(*ParseToolCallResponse)(nil),         // 3: malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	(*CreateDiscoveryToolRequest)(nil),    // 4: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	(*CreateServiceToolSetRequest)(nil),   // 5: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	(*DescriptorReference)(nil),           // 6: malonaz.ai.ai_engine.v1.DescriptorReference
+	(*ToolSet)(nil),                       // 7: malonaz.ai.ai_engine.v1.ToolSet
+	(*DiscoverToolsRequest)(nil),          // 8: malonaz.ai.ai_engine.v1.DiscoverToolsRequest
+	(*RpcRequest)(nil),                    // 9: malonaz.ai.ai_engine.v1.RpcRequest
+	(*SchemaConfiguration)(nil),           // 10: malonaz.ai.ai_engine.v1.SchemaConfiguration
+	(*ParseToolCallRecoverableError)(nil), // 11: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError
+	nil,                                   // 12: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
+	nil,                                   // 13: malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
+	(*v1.ToolCall)(nil),                   // 14: malonaz.ai.v1.ToolCall
+	(*structpb.Struct)(nil),               // 15: google.protobuf.Struct
+	(*v1.Tool)(nil),                       // 16: malonaz.ai.v1.Tool
+	(*fieldmaskpb.FieldMask)(nil),         // 17: google.protobuf.FieldMask
+	(*v1.ToolResult)(nil),                 // 18: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	6,  // 0: malonaz.ai.ai_engine.v1.GenerateMessageRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
 	10, // 1: malonaz.ai.ai_engine.v1.GenerateMessageRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
 	6,  // 2: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
 	10, // 3: malonaz.ai.ai_engine.v1.CreateToolRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	13, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	14, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
 	7,  // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.ai_engine.v1.ToolSet
-	14, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
+	15, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
 	8,  // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discover_tools_request:type_name -> malonaz.ai.ai_engine.v1.DiscoverToolsRequest
 	9,  // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc_request:type_name -> malonaz.ai.ai_engine.v1.RpcRequest
-	15, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
+	16, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
 	10, // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	11, // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
-	15, // 12: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
-	15, // 13: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	12, // 14: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	14, // 15: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
-	16, // 16: malonaz.ai.ai_engine.v1.RpcRequest.read_mask:type_name -> google.protobuf.FieldMask
-	16, // 17: malonaz.ai.ai_engine.v1.SchemaConfiguration.field_mask:type_name -> google.protobuf.FieldMask
-	10, // 18: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry.value:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	0,  // 19: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
-	1,  // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	2,  // 21: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	4,  // 22: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	5,  // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	14, // 24: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
-	15, // 25: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	3,  // 26: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	15, // 27: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
-	7,  // 28: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
-	24, // [24:29] is the sub-list for method output_type
-	19, // [19:24] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	12, // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
+	16, // 12: malonaz.ai.ai_engine.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	16, // 13: malonaz.ai.ai_engine.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	13, // 14: malonaz.ai.ai_engine.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.ai_engine.v1.ToolSet.ToolNameToDiscoverTimestampEntry
+	15, // 15: malonaz.ai.ai_engine.v1.RpcRequest.request:type_name -> google.protobuf.Struct
+	17, // 16: malonaz.ai.ai_engine.v1.RpcRequest.read_mask:type_name -> google.protobuf.FieldMask
+	17, // 17: malonaz.ai.ai_engine.v1.SchemaConfiguration.field_mask:type_name -> google.protobuf.FieldMask
+	18, // 18: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError.tool_result:type_name -> malonaz.ai.v1.ToolResult
+	10, // 19: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry.value:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
+	0,  // 20: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:input_type -> malonaz.ai.ai_engine.v1.GenerateMessageRequest
+	1,  // 21: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	2,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	4,  // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	5,  // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	15, // 25: malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage:output_type -> google.protobuf.Struct
+	16, // 26: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	3,  // 27: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	16, // 28: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	7,  // 29: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.ai_engine.v1.ToolSet
+	25, // [25:30] is the sub-list for method output_type
+	20, // [20:25] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
@@ -1598,7 +1676,7 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc), len(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
