@@ -202,13 +202,13 @@ func (x ImageQuality) Number() protoreflect.EnumNumber {
 // Wrapper message representing any message type in a multi-turn conversation.
 // Use this when building conversation histories or streaming message sequences.
 type Message struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_Metadata   map[string]string      `protobuf:"bytes,2,rep,name=metadata,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Role       Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
-	xxx_hidden_Blocks     *[]*Block              `protobuf:"bytes,4,rep,name=blocks,proto3"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_CreateTime  *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,2,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Role        Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
+	xxx_hidden_Blocks      *[]*Block              `protobuf:"bytes,4,rep,name=blocks,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Message) Reset() {
@@ -243,9 +243,9 @@ func (x *Message) GetCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Message) GetMetadata() map[string]string {
+func (x *Message) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.xxx_hidden_Metadata
+		return x.xxx_hidden_Annotations
 	}
 	return nil
 }
@@ -270,8 +270,8 @@ func (x *Message) SetCreateTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_CreateTime = v
 }
 
-func (x *Message) SetMetadata(v map[string]string) {
-	x.xxx_hidden_Metadata = v
+func (x *Message) SetAnnotations(v map[string]string) {
+	x.xxx_hidden_Annotations = v
 }
 
 func (x *Message) SetRole(v Role) {
@@ -298,8 +298,9 @@ type Message_builder struct {
 
 	// When this message was created.
 	CreateTime *timestamppb.Timestamp
-	// Arbitrary key-value metadata associated with the message.
-	Metadata map[string]string
+	// Annotations about this message (not transmitted to the ai provider).
+	// This should be used by tooling.
+	Annotations map[string]string
 	// Role of the message sender.
 	Role Role
 	// Blocks created by the assistant.
@@ -311,7 +312,7 @@ func (b0 Message_builder) Build() *Message {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_CreateTime = b.CreateTime
-	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Annotations = b.Annotations
 	x.xxx_hidden_Role = b.Role
 	x.xxx_hidden_Blocks = &b.Blocks
 	return m0
@@ -937,15 +938,15 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x8d\a\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x99\a\n" +
 	"\aMessage\x12;\n" +
 	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"createTime\x12@\n" +
-	"\bmetadata\x18\x02 \x03(\v2$.malonaz.ai.v1.Message.MetadataEntryR\bmetadata\x123\n" +
+	"createTime\x12I\n" +
+	"\vannotations\x18\x02 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryR\vannotations\x123\n" +
 	"\x04role\x18\x03 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x12,\n" +
-	"\x06blocks\x18\x04 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a;\n" +
-	"\rMetadataEntry\x12\x10\n" +
+	"\x06blocks\x18\x04 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xe2\x04\xbaH\xde\x04\x1ar\n" +
 	"\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a1this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xdf\x01\n" +
@@ -1000,7 +1001,7 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(*Message)(nil),               // 3: malonaz.ai.v1.Message
 	(*Block)(nil),                 // 4: malonaz.ai.v1.Block
 	(*Image)(nil),                 // 5: malonaz.ai.v1.Image
-	nil,                           // 6: malonaz.ai.v1.Message.MetadataEntry
+	nil,                           // 6: malonaz.ai.v1.Message.AnnotationsEntry
 	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
 	(*ToolCall)(nil),              // 9: malonaz.ai.v1.ToolCall
@@ -1008,7 +1009,7 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
 	7,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
-	6,  // 1: malonaz.ai.v1.Message.metadata:type_name -> malonaz.ai.v1.Message.MetadataEntry
+	6,  // 1: malonaz.ai.v1.Message.annotations:type_name -> malonaz.ai.v1.Message.AnnotationsEntry
 	1,  // 2: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
 	4,  // 3: malonaz.ai.v1.Message.blocks:type_name -> malonaz.ai.v1.Block
 	8,  // 4: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct

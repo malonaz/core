@@ -36,8 +36,9 @@ message Message {
   // When this message was created.
   google.protobuf.Timestamp create_time = 1;
 
-  // Arbitrary key-value metadata associated with the message.
-  map<string, string> metadata = 2;
+  // Annotations about this message (not transmitted to the ai provider).
+  // This should be used by tooling.
+  map<string, string> annotations = 2;
 
   // Role of the message sender.
   Role role = 3 [(buf.validate.field).enum = {
