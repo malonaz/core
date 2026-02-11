@@ -21,7 +21,7 @@ def js_proto_library(
     plugin_flags = [
         '--plugin=protoc-gen-es="$TOOLS_PROTOC_GEN_ES/node_modules/.bin/protoc-gen-es"',
         '--es_out="$OUT_DIR"',
-        '--es_opt=target=ts',
+        '--es_opt=target=ts,valid_types=protovalidate_required',
     ]
 
     if additional_context and GENERATE_JS_CONNECT_QUERY in additional_context:
