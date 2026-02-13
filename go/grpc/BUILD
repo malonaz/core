@@ -8,6 +8,8 @@ go_library(
         "errors.go",
         "form_urlencoded_marshaler.go",
         "gateway.go",
+        "headers.go",
+        "options.go",
         "opts.go",
         "prometheus.go",
         "server.go",

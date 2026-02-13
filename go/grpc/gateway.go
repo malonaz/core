@@ -17,8 +17,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
 
 	grpcpb "github.com/malonaz/core/genproto/grpc/v1"
 	"github.com/malonaz/core/go/certs"
@@ -191,33 +189,10 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		}
 	}
 
-	var protoRegistryRangeFileErr error
-	g.rpcMethodToGatewayOptions = map[string]*grpcpb.GatewayOptions{}
-	protoregistry.GlobalFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		services := fd.Services()
-		for i := 0; i < services.Len(); i++ {
-			service := services.Get(i)
-			methods := service.Methods()
-			for j := 0; j < methods.Len(); j++ {
-				method := methods.Get(j)
-				if !proto.HasExtension(method.Options(), grpcpb.E_GatewayOptions) {
-					continue
-				}
-				methodName := fmt.Sprintf("/%s/%s", service.FullName(), method.Name())
-				// NOTE: We use lower case because grpc-gateway uses some internal `casing` lib that we want to avoid importing.
-				// We then do the same thing in `gatewayOptionsMetadata` on `rpcMethod, ok := runtime.RPCMethod(ctx)`.
-				methodName = strings.ToLower(methodName)
-
-				gatewayOptions := proto.GetExtension(method.Options(), grpcpb.E_GatewayOptions).(*grpcpb.GatewayOptions)
-				if gatewayOptions != nil {
-					g.rpcMethodToGatewayOptions[methodName] = gatewayOptions
-				}
-			}
-		}
-		return true
-	})
-	if protoRegistryRangeFileErr != nil {
-		return protoRegistryRangeFileErr
+	// Get the gateway options.
+	g.rpcMethodToGatewayOptions, err = getMethodNameToGatewayOptions()
+	if err != nil {
+		return fmt.Errorf("getting gateway options: %w", err)
 	}
 
 	url := fmt.Sprintf(":%d", g.opts.Port)
@@ -306,8 +281,6 @@ func (g *Gateway) gatewayOptionsMetadata(ctx context.Context, r *http.Request) m
 	if !ok {
 		return nil
 	}
-	// NOTE: We use lower case because grpc-gateway uses some internal `casing` lib that we want to avoid importing.
-	rpcMethod = strings.ToLower(rpcMethod)
 
 	// Get the gateway options.
 	gatewayOptions, ok := g.rpcMethodToGatewayOptions[rpcMethod]

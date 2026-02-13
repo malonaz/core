@@ -134,6 +134,9 @@ func (i *InternalServiceAuthenticationInterceptor) authenticateService(ctx conte
 		return nil, status.Errorf(codes.Internal, "signing session: %v", err)
 	}
 
+	// Remove the header from the incoming metadata header.
+	ctx = removeFromIncomingContext(ctx, i.opts.MetadataHeader)
+
 	isUpdate := false
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }

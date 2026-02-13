@@ -158,6 +158,9 @@ func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context
 		return nil, status.Errorf(codes.Internal, "signing session: %v", err)
 	}
 
+	// Remove the header from the incoming metadata header.
+	ctx = removeFromIncomingContext(ctx, i.opts.MetadataHeader)
+
 	isUpdate := false
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }
@@ -185,4 +188,16 @@ func (i *ExternalApiKeyAuthenticationInterceptor) Stream() grpc.StreamServerInte
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
 	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+}
+
+func removeFromIncomingContext(ctx context.Context, keys ...string) context.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ctx
+	}
+	md = md.Copy()
+	for _, key := range keys {
+		delete(md, key)
+	}
+	return metadata.NewIncomingContext(ctx, md)
 }

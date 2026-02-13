@@ -129,6 +129,7 @@ package {{ .PackageName }}
 {{- if and $method.Desc.IsStreamingServer $method.Desc.IsStreamingClient }}
 func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
   ctx := srv.Context()
+  ctx = {{ fqn "github.com/malonaz/core/go/grpc" "ForwardCustomHeaders" }}(ctx)
   {{ template "fieldMaskOpts" $handlerOpts }}
   {{ template "pipeBidiStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
   return pipeFn()
@@ -137,6 +138,7 @@ func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $servic
 {{- else if $method.Desc.IsStreamingServer }}
 func (h *Service) {{ $method.GoName }}(request *{{ qgi $method.Input.GoIdent }}, srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
   ctx := srv.Context()
+  ctx = {{ fqn "github.com/malonaz/core/go/grpc" "ForwardCustomHeaders" }}(ctx)
   {{ template "fieldMaskOpts" $handlerOpts }}
   {{ template "pipeServerStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
   return pipeFn()
@@ -145,6 +147,7 @@ func (h *Service) {{ $method.GoName }}(request *{{ qgi $method.Input.GoIdent }},
 {{- else if $method.Desc.IsStreamingClient }}
 func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $service.GoName }}_{{ $method.GoName }}Server) error {
   ctx := srv.Context()
+  ctx = {{ fqn "github.com/malonaz/core/go/grpc" "ForwardCustomHeaders" }}(ctx)
   {{ template "fieldMaskOpts" $handlerOpts }}
   {{ template "pipeClientStreamFn" (dict "ProxyService" $proxyService "ProxyMethod" $proxyMethod) }}
   return pipeFn()
@@ -152,6 +155,7 @@ func (h *Service) {{ $method.GoName }}(srv {{ goIdent $file.GoImportPath $servic
 
 {{- else }}
 func (h *Service) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+  ctx = {{ fqn "github.com/malonaz/core/go/grpc" "ForwardCustomHeaders" }}(ctx)
   {{ template "fieldMaskOpts" $handlerOpts }}
   return h.{{ $proxyService | untitle }}Client.{{ $proxyMethod }}(ctx, request)
 }
