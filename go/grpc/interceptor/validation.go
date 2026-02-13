@@ -15,8 +15,10 @@ import (
 // Invalid messages will be rejected with `InvalidArgument` before sending the request to server.
 func UnaryClientValidate(validator protovalidate.Validator) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		if err := validator.Validate(req.(proto.Message)); err != nil {
-			return status.Error(codes.InvalidArgument, err.Error())
+		if m, ok := req.(proto.Message); ok {
+			if err := validator.Validate(m); err != nil {
+				return status.Error(codes.InvalidArgument, err.Error())
+			}
 		}
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
