@@ -24,14 +24,16 @@ func ForwardCustomHeaders(ctx context.Context) context.Context {
 	if !ok {
 		return ctx
 	}
-	outgoingMD := metadata.MD{}
+	pairs := []string{}
 	for key, values := range incomingMD {
 		if !IsStandardHeader(key) {
-			outgoingMD[key] = values
+			for _, value := range values {
+				pairs = append(pairs, key, value)
+			}
 		}
 	}
-	if len(outgoingMD) == 0 {
+	if len(pairs) == 0 {
 		return ctx
 	}
-	return metadata.NewOutgoingContext(ctx, outgoingMD)
+	return metadata.AppendToOutgoingContext(ctx, pairs...)
 }
