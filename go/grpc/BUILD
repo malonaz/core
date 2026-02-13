@@ -2,6 +2,7 @@ go_library(
     name = "grpc",
     srcs = [
         "client.go",
+        "codec.go",
         "codes.go",
         "cookie.go",
         "errors.go",
