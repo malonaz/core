@@ -2,5 +2,8 @@ go_library(
     name = "jsonnet",
     srcs = ["jsonnet.go"],
     visibility = ["//..."],
-    deps = ["//third_party/go:github.com__google__go-jsonnet"],
+    deps = [
+        "//third_party/go:github.com__google__go-jsonnet",
+        "//third_party/go:github.com__google__go-jsonnet__ast",
+    ],
 )

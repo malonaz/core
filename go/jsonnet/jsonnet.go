@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/google/go-jsonnet"
+	"github.com/google/go-jsonnet/ast"
 )
 
 type importer struct {
@@ -41,8 +42,25 @@ func (i *importer) Import(importedFrom, importedPath string) (jsonnet.Contents, 
 	return contents, resolvedPath, nil
 }
 
-func EvaluateEmbeddedFile(filename string, embedFS fs.FS) ([]byte, error) {
+type Option func(*jsonnet.VM)
+
+func WithEnvVariables() Option {
+	return func(vm *jsonnet.VM) {
+		vm.NativeFunction(&jsonnet.NativeFunction{
+			Name:   "env",
+			Params: ast.Identifiers{"name"},
+			Func: func(args []interface{}) (interface{}, error) {
+				return os.Getenv(args[0].(string)), nil
+			},
+		})
+	}
+}
+
+func EvaluateEmbeddedFile(filename string, embedFS fs.FS, options ...Option) ([]byte, error) {
 	vm := jsonnet.MakeVM()
+	for _, option := range options {
+		option(vm)
+	}
 	vm.Importer(&importer{
 		fs:    embedFS,
 		cache: map[string]jsonnet.Contents{},
@@ -51,14 +69,20 @@ func EvaluateEmbeddedFile(filename string, embedFS fs.FS) ([]byte, error) {
 	return []byte(str), err
 }
 
-func EvaluateSnippet(snippet string) ([]byte, error) {
+func EvaluateSnippet(snippet string, options ...Option) ([]byte, error) {
 	vm := jsonnet.MakeVM()
+	for _, option := range options {
+		option(vm)
+	}
 	str, err := vm.EvaluateAnonymousSnippet("anonymous.snippet", snippet)
 	return []byte(str), err
 }
 
-func EvaluateFile(path string) ([]byte, error) {
+func EvaluateFile(path string, options ...Option) ([]byte, error) {
 	vm := jsonnet.MakeVM()
+	for _, option := range options {
+		option(vm)
+	}
 	vm.Importer(&importer{
 		cache: map[string]jsonnet.Contents{},
 	})
