@@ -29,11 +29,7 @@ go_binary(
     ],
 )
 
-sh_cmd(
+sh_binary(
     name = "local",
-    cmd = " ".join([
-        "plz run //cmd/tsunade --",
-        "--logging.format=pretty",
-        "--prometheus.disable",
-    ]),
+    main = "local.sh",
 )

@@ -11,6 +11,7 @@ go_library(
         "//go/grpc",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//third_party/go:cloud.google.com__go__auth__credentials",
         "//third_party/go:google.golang.org__genai",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",

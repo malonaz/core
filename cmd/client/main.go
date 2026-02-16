@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 
+	"google.golang.org/grpc/metadata"
+
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
@@ -19,7 +21,7 @@ import (
 )
 
 var (
-	socket          = flag.String("socket", "/tmp/core.socket", "Unix socket path")
+	socket          = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
 	model           = flag.String("model", "providers/anthropic/models/claude-sonnet-4-20250514", "Model resource name")
 	systemMessage   = flag.String("system", "You are a helpful assistant.", "System message")
 	userMessage     = flag.String("message", "", "User message (empty for interactive mode)")
@@ -53,6 +55,7 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
+	ctx = metadata.AppendToOutgoingContext(ctx, "tsunade-api-key", "dummy")
 
 	opts := &grpc.Opts{
 		Host:       "localhost",
@@ -477,6 +480,7 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageI
 	switch content := response.Content.(type) {
 	case *aiservicepb.TextToTextStreamResponse_Block:
 		block := content.Block
+
 		if block.GetText() != "" {
 			fmt.Printf("%s%s%s", colorCyan, block.GetText(), colorReset)
 		}
@@ -485,11 +489,11 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageI
 		}
 		if block.GetToolCall() != nil {
 			fmt.Println("Tool Call:")
-			pbutil.MustPrintPretty(block.GetToolCall())
+			pbutil.MustPrintPretty(block)
 		}
 		if block.GetPartialToolCall() != nil {
 			fmt.Println("Partial Tool Call:")
-			pbutil.MustPrintPretty(block.GetPartialToolCall())
+			pbutil.MustPrintPretty(block)
 		}
 		if block.GetImage() != nil {
 			saveGeneratedImage(block.GetImage(), imageIndex)

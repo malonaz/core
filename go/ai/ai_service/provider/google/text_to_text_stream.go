@@ -172,6 +172,11 @@ func (c *Client) TextToTextStream(
 				if part.FunctionCall != nil {
 					fc := part.FunctionCall
 
+					var signature string
+					if len(part.ThoughtSignature) > 0 {
+						signature = base64.StdEncoding.EncodeToString(part.ThoughtSignature)
+					}
+
 					if len(fc.PartialArgs) > 0 {
 						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
 							currentBlockIndex++
@@ -180,7 +185,8 @@ func (c *Client) TextToTextStream(
 						}
 
 						for _, partialArg := range fc.PartialArgs {
-							tca.AppendArgs(currentBlockIndex, partialArg.StringValue)
+							value := resolvePartialArgValue(partialArg)
+							tca.AppendArg(currentBlockIndex, partialArg.JsonPath, value)
 						}
 
 						if fc.WillContinue != nil && !*fc.WillContinue {
@@ -198,15 +204,55 @@ func (c *Client) TextToTextStream(
 							block.Signature = signature
 							cs.SendBlocks(ctx, block)
 						}
+					} else if fc.WillContinue != nil && *fc.WillContinue {
+						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
+							currentBlockIndex++
+							currentBlockType = blockTypeToolCall
+							tca.Start(currentBlockIndex, fc.ID, fc.Name)
+						} else {
+							tca.StartOrUpdate(currentBlockIndex, fc.ID, fc.Name)
+						}
+						if fc.Args != nil {
+							argsJSON, err := json.Marshal(fc.Args)
+							if err != nil {
+								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+							}
+							tca.AppendArgs(currentBlockIndex, string(argsJSON))
+						}
+						block, err := tca.BuildPartial(currentBlockIndex)
+						if err != nil {
+							return err
+						}
+						block.Signature = signature
+						cs.SendBlocks(ctx, block)
+					} else if tca.Has(currentBlockIndex) && currentBlockType == blockTypeToolCall {
+						tca.StartOrUpdate(currentBlockIndex, fc.ID, fc.Name)
+						if fc.Args != nil {
+							argsJSON, err := json.Marshal(fc.Args)
+							if err != nil {
+								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+							}
+							tca.AppendArgs(currentBlockIndex, string(argsJSON))
+						}
+						block, err := tca.Build(currentBlockIndex)
+						if err != nil {
+							return err
+						}
+						block.Signature = signature
+						cs.SendBlocks(ctx, block)
 					} else {
 						if currentBlockType != blockTypeToolCall {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
 						}
 
-						argsJSON, err := json.Marshal(fc.Args)
-						if err != nil {
-							return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+						argsJSON := []byte("{}")
+						if fc.Args != nil {
+							var marshalErr error
+							argsJSON, marshalErr = json.Marshal(fc.Args)
+							if marshalErr != nil {
+								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", marshalErr).Err()
+							}
 						}
 
 						toolCallID := fc.ID
@@ -602,4 +648,17 @@ var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{
 	genai.FinishReasonNoImage:                aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
 	genai.FinishReasonImageRecitation:        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
 	genai.FinishReasonImageOther:             aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
+}
+
+func resolvePartialArgValue(partialArg *genai.PartialArg) any {
+	if partialArg.NULLValue != "" {
+		return nil
+	}
+	if partialArg.NumberValue != nil {
+		return *partialArg.NumberValue
+	}
+	if partialArg.BoolValue != nil {
+		return *partialArg.BoolValue
+	}
+	return partialArg.StringValue
 }

@@ -27,16 +27,16 @@ import (
 )
 
 type Opts struct {
-	VoicesFile       string `long:"voices-file"     env:"VOICES_FILE" description:"Path to JSON file containing voices to preload"`
-	OpenAIApiKey     string `long:"openai-api-key"     env:"OPENAI_API_KEY" description:"Open AI api key"`
-	GroqApiKey       string `long:"groq-api-key"     env:"GROQ_API_KEY" description:"Groq api key"`
-	ElevenlabsApiKey string `long:"elevenlabs-api-key"     env:"ELEVENLABS_API_KEY" description:"Elevenlabs api key"`
-	AnthropicApiKey  string `long:"anthropic-api-key"     env:"ANTHROPIC_API_KEY" description:"Anthropic api key"`
-	CartesiaApiKey   string `long:"cartesia-api-key"     env:"CARTESIA_API_KEY" description:"Cartesia api key"`
-	CerebrasApiKey   string `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
-	GoogleApiKey     string `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
-	XaiApiKey        string `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
-	DeepgramApiKey   string `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
+	VoicesFile       string       `long:"voices-file"     env:"VOICES_FILE" description:"Path to JSON file containing voices to preload"`
+	OpenAIApiKey     string       `long:"openai-api-key"     env:"OPENAI_API_KEY" description:"Open AI api key"`
+	GroqApiKey       string       `long:"groq-api-key"     env:"GROQ_API_KEY" description:"Groq api key"`
+	ElevenlabsApiKey string       `long:"elevenlabs-api-key"     env:"ELEVENLABS_API_KEY" description:"Elevenlabs api key"`
+	AnthropicApiKey  string       `long:"anthropic-api-key"     env:"ANTHROPIC_API_KEY" description:"Anthropic api key"`
+	CartesiaApiKey   string       `long:"cartesia-api-key"     env:"CARTESIA_API_KEY" description:"Cartesia api key"`
+	CerebrasApiKey   string       `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
+	XaiApiKey        string       `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
+	DeepgramApiKey   string       `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
+	Google           *google.Opts `group:"Google" namespace:"google" env-namespace:"GOOGLE"`
 }
 
 type runtime struct {
@@ -60,9 +60,6 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.OpenAIApiKey != "" {
 		providers = append(providers, openai.NewClient(opts.OpenAIApiKey, modelService))
 	}
-	if opts.GoogleApiKey != "" {
-		providers = append(providers, google.NewClient(opts.GoogleApiKey, modelService))
-	}
 	if opts.XaiApiKey != "" {
 		providers = append(providers, xai.NewClient(opts.XaiApiKey, modelService))
 	}
@@ -84,7 +81,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.DeepgramApiKey != "" {
 		providers = append(providers, deepgram.NewClient(opts.DeepgramApiKey, modelService))
 	}
-
+	if opts.Google.Valid() {
+		providers = append(providers, google.NewClient(opts.Google, modelService))
+	}
 	return &runtime{
 		VoiceService: voiceService,
 		ModelService: modelService,

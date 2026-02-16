@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"strconv"
 	"strings"
 
 	streamingjson "github.com/karminski/streaming-json-go"
@@ -12,16 +13,16 @@ import (
 	"github.com/malonaz/core/go/grpc"
 )
 
-// ToolCallAccumulator accumulates streaming tool call chunks for multiple tool calls.
 type ToolCallAccumulator struct {
 	calls map[int64]*toolCallEntry
 }
 
 type toolCallEntry struct {
-	id       string
-	name     string
-	args     strings.Builder
-	complete bool
+	id             string
+	name           string
+	args           strings.Builder
+	structuredArgs map[string]any
+	complete       bool
 }
 
 func NewToolCallAccumulator() *ToolCallAccumulator {
@@ -30,18 +31,15 @@ func NewToolCallAccumulator() *ToolCallAccumulator {
 	}
 }
 
-// Has returns whether a tool call exists at the given index.
 func (a *ToolCallAccumulator) Has(index int64) bool {
 	_, ok := a.calls[index]
 	return ok
 }
 
-// Start begins accumulating a new tool call at the given index.
 func (a *ToolCallAccumulator) Start(index int64, id, name string) {
 	a.calls[index] = &toolCallEntry{id: id, name: name}
 }
 
-// StartOrUpdate begins or updates a tool call at the given index.
 func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	entry, ok := a.calls[index]
 	if !ok {
@@ -56,8 +54,6 @@ func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	}
 }
 
-// AppendArgs appends to the accumulated arguments and optionally stores metadata.
-// Marks all other entries as complete.
 func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 	for idx, entry := range a.calls {
 		if idx != index {
@@ -71,7 +67,22 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 	}
 }
 
-// BuildPartial returns a partial ToolCall for a given index using streaming JSON healing.
+func (a *ToolCallAccumulator) AppendArg(index int64, jsonPath string, value any) {
+	for idx, entry := range a.calls {
+		if idx != index {
+			entry.complete = true
+		}
+	}
+	entry, ok := a.calls[index]
+	if !ok {
+		return
+	}
+	if entry.structuredArgs == nil {
+		entry.structuredArgs = make(map[string]any)
+	}
+	setJSONPath(entry.structuredArgs, jsonPath, value)
+}
+
 func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
@@ -83,16 +94,26 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		Arguments: &structpb.Struct{},
 		Partial:   true,
 	}
-	lexer := streamingjson.NewLexer()
-	lexer.AppendString(entry.args.String())
-	healed := lexer.CompleteJSON()
-	if healed == "" {
-		healed = "{}"
+
+	if entry.structuredArgs != nil {
+		var err error
+		tc.Arguments, err = structpb.NewStruct(entry.structuredArgs)
+		if err != nil {
+			return nil, grpc.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
+		}
+	} else {
+		lexer := streamingjson.NewLexer()
+		lexer.AppendString(entry.args.String())
+		healed := lexer.CompleteJSON()
+		if healed == "" {
+			healed = "{}"
+		}
+		if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
+			return nil, grpc.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
+				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
+		}
 	}
-	if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
-			WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
-	}
+
 	return &aipb.Block{
 		Index: index,
 		Content: &aipb.Block_PartialToolCall{
@@ -101,7 +122,6 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 	}, nil
 }
 
-// Build returns the completed ToolCall proto for a given index and removes it.
 func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
@@ -112,11 +132,21 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 		Name:      entry.name,
 		Arguments: &structpb.Struct{},
 	}
-	rawJSON := entry.args.String()
-	if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "unmarshaling tool call arguments").
-			WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": rawJSON}).Err()
+
+	if entry.structuredArgs != nil {
+		var err error
+		tc.Arguments, err = structpb.NewStruct(entry.structuredArgs)
+		if err != nil {
+			return nil, grpc.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
+		}
+	} else {
+		rawJSON := entry.args.String()
+		if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
+			return nil, grpc.Errorf(codes.Internal, "unmarshaling tool call arguments").
+				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": rawJSON}).Err()
+		}
 	}
+
 	delete(a.calls, index)
 	return &aipb.Block{
 		Index: index,
@@ -126,7 +156,6 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	}, nil
 }
 
-// BuildComplete returns all completed tool calls and removes them from the accumulator.
 func (a *ToolCallAccumulator) BuildComplete() ([]*aipb.Block, error) {
 	var blocks []*aipb.Block
 	for index, entry := range a.calls {
@@ -142,7 +171,6 @@ func (a *ToolCallAccumulator) BuildComplete() ([]*aipb.Block, error) {
 	return blocks, nil
 }
 
-// BuildRemaining returns all remaining tool calls and removes them from the accumulator.
 func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.Block, error) {
 	var blocks []*aipb.Block
 	for index := range a.calls {
@@ -153,4 +181,99 @@ func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.Block, error) {
 		blocks = append(blocks, block)
 	}
 	return blocks, nil
+}
+
+func setJSONPath(root map[string]any, jsonPath string, value any) {
+	segments := parseJSONPathSegments(jsonPath)
+	if len(segments) == 0 {
+		return
+	}
+	setValueAtPath(root, segments, value)
+}
+
+func setValueAtPath(node map[string]any, segments []any, value any) {
+	key, ok := segments[0].(string)
+	if !ok {
+		return
+	}
+
+	if len(segments) == 1 {
+		if existing, ok := node[key].(string); ok {
+			if strVal, ok := value.(string); ok {
+				node[key] = existing + strVal
+				return
+			}
+		}
+		node[key] = value
+		return
+	}
+
+	switch nextSegment := segments[1].(type) {
+	case string:
+		child, ok := node[key].(map[string]any)
+		if !ok {
+			child = make(map[string]any)
+			node[key] = child
+		}
+		setValueAtPath(child, segments[1:], value)
+
+	case int:
+		arr, ok := node[key].([]any)
+		if !ok {
+			arr = make([]any, 0)
+		}
+		for len(arr) <= nextSegment {
+			arr = append(arr, nil)
+		}
+		node[key] = arr
+
+		if len(segments) == 2 {
+			if existing, ok := arr[nextSegment].(string); ok {
+				if strVal, ok := value.(string); ok {
+					arr[nextSegment] = existing + strVal
+					return
+				}
+			}
+			arr[nextSegment] = value
+			return
+		}
+
+		child, ok := arr[nextSegment].(map[string]any)
+		if !ok {
+			child = make(map[string]any)
+			arr[nextSegment] = child
+		}
+		setValueAtPath(child, segments[2:], value)
+	}
+}
+
+func parseJSONPathSegments(path string) []any {
+	path = strings.TrimPrefix(path, "$")
+	var segments []any
+	i := 0
+	for i < len(path) {
+		if path[i] == '.' {
+			i++
+			j := i
+			for j < len(path) && path[j] != '.' && path[j] != '[' {
+				j++
+			}
+			if j > i {
+				segments = append(segments, path[i:j])
+			}
+			i = j
+		} else if path[i] == '[' {
+			i++
+			j := i
+			for j < len(path) && path[j] != ']' {
+				j++
+			}
+			idx, _ := strconv.Atoi(path[i:j])
+			segments = append(segments, idx)
+			i = j + 1
+		} else {
+			i++
+		}
+	}
+	return segments
 }

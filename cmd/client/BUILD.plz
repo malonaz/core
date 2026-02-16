@@ -9,5 +9,6 @@ go_binary(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
+        "//third_party/go:google.golang.org__grpc__metadata",
     ],
 )

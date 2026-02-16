@@ -4,31 +4,66 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/auth/credentials"
 	"google.golang.org/genai"
 
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
-// Client is a Google Gemini API client.
-type Client struct {
-	apiKey       string
-	client       *genai.Client
-	modelService *provider.ModelService
+type Opts struct {
+	APIKey         string `long:"api-key"     env:"API_KEY" description:"API key"`
+	Project        string `long:"cloud-project" env:"CLOUD_PROJECT" description:"Google Cloud Project"`
+	Location       string `long:"cloud-location" env:"CLOUD_LOCATION" description:"Google Cloud Location"`
+	ServiceAccount string `long:"cloud-service-account" env:"CLOUD_SERVICE_ACCOUNT" description:"Google Cloud Service Account"`
 }
 
-// NewClient creates a new Google Gemini client.
-func NewClient(apiKey string, modelService *provider.ModelService) *Client {
+func (o *Opts) Valid() bool {
+	if o == nil {
+		return false
+	}
+	return o.APIKey != "" || o.ServiceAccount != ""
+}
+
+type Client struct {
+	config         *genai.ClientConfig
+	serviceAccount string
+	client         *genai.Client
+	modelService   *provider.ModelService
+}
+
+func NewClient(opts *Opts, modelService *provider.ModelService) *Client {
+	if opts.APIKey != "" {
+		return &Client{
+			config: &genai.ClientConfig{
+				APIKey:  opts.APIKey,
+				Backend: genai.BackendVertexAI,
+			},
+			modelService: modelService,
+		}
+	}
 	return &Client{
-		apiKey:       apiKey,
-		modelService: modelService,
+		config: &genai.ClientConfig{
+			Project:  opts.Project,
+			Location: opts.Location,
+			Backend:  genai.BackendVertexAI,
+		},
+		serviceAccount: opts.ServiceAccount,
+		modelService:   modelService,
 	}
 }
 
-// Implements the provider.Provider interface.
 func (c *Client) Start(ctx context.Context) error {
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey: c.apiKey,
-	})
+	if c.serviceAccount != "" {
+		creds, err := credentials.DetectDefault(&credentials.DetectOptions{
+			CredentialsJSON: []byte(c.serviceAccount),
+			Scopes:          []string{"https://www.googleapis.com/auth/cloud-platform"},
+		})
+		if err != nil {
+			return fmt.Errorf("parsing service account: %w", err)
+		}
+		c.config.Credentials = creds
+	}
+	client, err := genai.NewClient(ctx, c.config)
 	if err != nil {
 		return fmt.Errorf("creating genai client: %w", err)
 	}
@@ -36,13 +71,10 @@ func (c *Client) Start(ctx context.Context) error {
 	return nil
 }
 
-// ProviderId returns the provider ID.
 func (c *Client) ProviderId() string { return provider.Google }
 
-// Close closes the client.
 func (c *Client) Stop() {}
 
-// Verify interface compliance at compile time.
 var (
 	_ provider.TextToTextClient = (*Client)(nil)
 )
