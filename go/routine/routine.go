@@ -42,8 +42,9 @@ type Routine struct {
 	name             string
 	fn               FN
 	onPermanentError func(error)
-	close            chan struct{}
+	exited           chan struct{}
 	closeOnce        sync.Once
+	cancel           context.CancelFunc
 	retryChannel     chan struct{}
 
 	// Additional fields.
@@ -63,7 +64,7 @@ func New(name string, fn FN, onPermanentError func(error)) *Routine {
 		name:             name,
 		fn:               fn,
 		onPermanentError: onPermanentError,
-		close:            make(chan struct{}),    // unbuffered to make sure it's blocking write.
+		exited:           make(chan struct{}),
 		retryChannel:     make(chan struct{}, 1), // non-blocking writes.
 	}
 }
@@ -143,6 +144,7 @@ func (r *Routine) WithConstantBackOff(seconds int) *Routine {
 // Start the routine. Non-block calling call.
 func (r *Routine) Start(ctx context.Context) *Routine {
 	ctx, cancel := context.WithCancel(ctx)
+	r.cancel = cancel
 	r.log = r.log.With("routine", r.name)
 	r.log.InfoContext(ctx, "started routine")
 	consecutiveErrors := 0
@@ -185,13 +187,23 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 
 	// Function responsible for executing `fn` at the right moments.
 	go func() {
-		defer cancel()
+		defer func() {
+			close(r.exited)
+			r.Close()
+		}()
+
 		for {
 			if err := fn(ctx); err != nil {
+				select {
+				case <-ctx.Done():
+					r.log.InfoContext(ctx, "context done", "error", ctx.Err())
+					return
+				default:
+				}
+
 				if errors.Is(err, &PermanentError{}) {
 					r.log.ErrorContext(ctx, "exiting due to permanent error", "error", err)
 					r.onPermanentError(err)
-					r.Close()
 					return
 				}
 				r.log.ErrorContext(ctx, "executing fn", "error", err)
@@ -207,12 +219,7 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 
 			select {
 			case <-ctx.Done():
-				r.log.InfoContext(ctx, "context cancelled", "error", ctx.Err())
-				go func() { <-r.close }()
-				r.Close()
-				return
-			case <-r.close:
-				r.log.InfoContext(ctx, "close called")
+				r.log.InfoContext(ctx, "context done", "error", ctx.Err())
 				return
 			case <-signal:
 				r.log.DebugContext(ctx, "received signal")
@@ -227,8 +234,10 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 // Close closes this routine. It is a blocking call guaranteeing that the routine has exited its loop by the time it returns.
 func (r *Routine) Close() {
 	r.closeOnce.Do(func() {
-		r.log.Info("sending close signal")
-		r.close <- struct{}{}
+		r.log.Info("closing")
+		r.cancel()
+		<-r.exited
+		r.log.Info("closed")
 		if r.ticker != nil {
 			r.ticker.Stop()
 		}
