@@ -89,7 +89,9 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	p.consumer = consumer
 
 	processFn := func(ctx context.Context) error {
-		messageBatch, err := p.consumer.Fetch(batchSize, jetstream.FetchMaxWait(fetchTimeout))
+		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout)
+		defer fetchCancel()
+		messageBatch, err := p.consumer.Fetch(batchSize, jetstream.FetchContext(fetchCtx))
 		if err != nil {
 			return fmt.Errorf("fetching messages: %w", err)
 		}

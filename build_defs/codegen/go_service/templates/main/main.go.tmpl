@@ -62,17 +62,24 @@ runServer := func(ctx {{ goImport "context" }}.Context, serverName string, serve
 go func() {
 if err := serveFn(ctx); err != nil {
 errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
-}
-}()
-}
+                               }
+                               }()
+                               }
 
-{{- /* GATHER SERVICE MANIFESTS */ -}}
-{{- $serviceManifests := list -}}
-{{- $serviceNameToServerNames := dict -}}
-{{- range $server := .servers -}}
-    {{- range $service := $server.services -}}
-        {{- $serviceManifest := parseYaml $service.manifest -}}
-        {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+                               {{- /* GATHER SERVICE MANIFESTS */ -}}
+                               {{- $serviceManifests := list -}}
+                               {{- $serviceNameToServerNames := dict -}}
+                               {{- range $server := .servers -}}
+                               {{- range $service := $server.services -}}
+                               {{- $serviceManifest := parseYaml $service.manifest -}}
+                               {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+                               {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
+                               {{- $updatedServers := append $existingServers $server.name -}}
+                               {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+                               {{- end -}}
+                               {{- if $server.manifest -}}
+                               {{- $serviceManifest := parseYaml $server.manifest -}}
+                               {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
         {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
         {{- $updatedServers := append $existingServers $server.name -}}
         {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
@@ -241,11 +248,14 @@ var gracefulStopFns []func() error
 var stopFns []func() error
 
 {{ range $server := .servers }}
-
+    {{ $services := $server.services | default list }}
+    {{ if eq $server.type "processor" }}
+     {{ $services = append $services $server }}
+    {{ end }}
     // Start {{ $server.name | camelcase }} Server
     {
     {{- /* INSTANTIATE SERVICES*/ -}}
-    {{- range $service := $server.services }}
+    {{- range $service := $services }}
         {{- $serviceManifest := parseYaml $service.manifest -}}
         {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
         {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
@@ -289,12 +299,9 @@ var stopFns []func() error
     {{- end }}
 
 {{- if eq $server.type "processor" }}
-    processor := {{ plzGoImport $server.implementation }}.New(opts.{{ $server.name | camelcase }}Processor)
-    cleanup, err := processor.Start(ctx)
-    if err != nil {
-        return fmt.Errorf("starting {{ $server.name }} processor: %w", err)
-    }
-    defer cleanup()
+    {{- $serviceManifest := parseYaml $server.manifest -}}
+    {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+    healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.Check)
 {{- end }}
 
     {{- if eq $server.type "grpc" }}

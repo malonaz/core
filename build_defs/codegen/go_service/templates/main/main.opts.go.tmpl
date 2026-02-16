@@ -39,6 +39,9 @@
             {{- $serviceManifest := parseYaml $service.manifest -}}
             {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
         {{- end -}}
+        {{- if $server.manifest -}}
+            {{- $serviceManifests = append $serviceManifests (parseYaml $server.manifest) -}}
+        {{- end -}}
     {{- end -}}
 
     {{- /* BASE SERVICE DEPS OPTIONS */ -}}
@@ -100,7 +103,7 @@
     {{- range $server := .servers -}}
         {{- if eq $server.type "processor" -}}
             {{- if doOnce "processor_option_comment" }}{{ "\n\n// Processor options" }}{{ end }}
-            {{ $server.name | camelcase }}Processor *{{ plzGoImport $server.implementation }}.Opts `group:"{{ $server.name | camelcase }} Processor" namespace:"{{ $server.name | kebabcase }}-processor" env-namespace:"{{ $server.name | snakecase | upper }}_PROCESSOR"`
+            {{ $server.name | camelcase }}Processor *{{ plzGoImport (parseYaml $server.manifest).implementation }}.Opts `group:"{{ $server.name | camelcase }} Processor" namespace:"{{ $server.name | kebabcase }}-processor" env-namespace:"{{ $server.name | snakecase | upper }}_PROCESSOR"`
         {{- end -}}
     {{- end }}
 
