@@ -4509,6 +4509,117 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__nats-io__nats.go",
+    _tag = "download",
+    module = "github.com/nats-io/nats.go",
+    version = "v1.48.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["."],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__nats-io__nats.go__encoders__builtin",
+        ":github.com__nats-io__nats.go__internal__parser",
+        ":github.com__nats-io__nats.go__util",
+        ":github.com__nats-io__nkeys",
+        ":github.com__nats-io__nuid",
+        "//third_party/go:github.com__klauspost__compress__flate",
+    ],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go__encoders__builtin",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["encoders/builtin"],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go__internal__parser",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["internal/parser"],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go__internal__syncx",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["internal/syncx"],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go__jetstream",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["jetstream"],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__nats-io__nuid",
+        "//third_party/go:github.com__nats-io__nats.go",
+        "//third_party/go:github.com__nats-io__nats.go__internal__parser",
+        "//third_party/go:github.com__nats-io__nats.go__internal__syncx",
+    ],
+)
+
+go_module(
+    name = "github.com__nats-io__nats.go__util",
+    download = ":_github.com__nats-io__nats.go#download",
+    install = ["util"],
+    module = "github.com/nats-io/nats.go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__nats-io__nkeys",
+    _tag = "download",
+    module = "github.com/nats-io/nkeys",
+    version = "v0.4.11",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nats-io__nkeys",
+    download = ":_github.com__nats-io__nkeys#download",
+    install = ["."],
+    module = "github.com/nats-io/nkeys",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__crypto__curve25519",
+        ":golang.org__x__crypto__nacl__box",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__nats-io__nuid",
+    _tag = "download",
+    module = "github.com/nats-io/nuid",
+    version = "v1.0.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nats-io__nuid",
+    download = ":_github.com__nats-io__nuid#download",
+    install = ["."],
+    module = "github.com/nats-io/nuid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__oklog__ulid",
     _tag = "download",
     module = "github.com/oklog/ulid",
@@ -5180,8 +5291,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -6575,6 +6686,21 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__crypto__blake2b",
+    download = ":_golang.org__x__crypto#download",
+    install = ["blake2b"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = select({
+        ":__config_darwin_amd64": [":golang.org__x__sys__cpu"],
+        ":__config_darwin_arm64": [],
+        ":__config_linux_amd64": [":golang.org__x__sys__cpu"],
+        ":__config_linux_arm64": [],
+        "default": [],
+    }),
+)
+
+go_module(
     name = "golang.org__x__crypto__blowfish",
     download = ":_golang.org__x__crypto#download",
     install = ["blowfish"],
@@ -6630,6 +6756,15 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__crypto__curve25519",
+    download = ":_golang.org__x__crypto#download",
+    install = ["curve25519"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "golang.org__x__crypto__hkdf",
     download = ":_golang.org__x__crypto#download",
     install = ["hkdf"],
@@ -6657,9 +6792,45 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__crypto__nacl__box",
+    download = ":_golang.org__x__crypto#download",
+    install = ["nacl/box"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__crypto__nacl__secretbox",
+        ":golang.org__x__crypto__salsa20__salsa",
+        "//third_party/go:golang.org__x__crypto__blake2b",
+        "//third_party/go:golang.org__x__crypto__curve25519",
+    ],
+)
+
+go_module(
+    name = "golang.org__x__crypto__nacl__secretbox",
+    download = ":_golang.org__x__crypto#download",
+    install = ["nacl/secretbox"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__crypto__salsa20__salsa",
+        "//third_party/go:golang.org__x__crypto__internal__alias",
+        "//third_party/go:golang.org__x__crypto__internal__poly1305",
+    ],
+)
+
+go_module(
     name = "golang.org__x__crypto__pbkdf2",
     download = ":_golang.org__x__crypto#download",
     install = ["pbkdf2"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__salsa20__salsa",
+    download = ":_golang.org__x__crypto#download",
+    install = ["salsa20/salsa"],
     module = "golang.org/x/crypto",
     visibility = ["PUBLIC"],
     deps = [],

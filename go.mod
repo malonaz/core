@@ -40,6 +40,7 @@ require (
 	github.com/mennanov/fmutils v0.3.3
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/mwitkow/grpc-proxy v0.0.0-20250813121105-2866842de9a5
+	github.com/nats-io/nats.go v1.48.0
 	github.com/openai/openai-go/v3 v3.10.0
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2
@@ -130,6 +131,8 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwitkow/go-proto-validators v0.3.2 // indirect
+	github.com/nats-io/nkeys v0.4.11 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pion/randutil v0.1.0 // indirect
