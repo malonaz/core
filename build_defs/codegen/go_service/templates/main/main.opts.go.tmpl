@@ -68,6 +68,18 @@
         {{- end }}
     {{- end }}
 
+    {{- /* NATS CLIENT OPTIONS */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "nats" -}}
+                {{- if doOnce "nats_client_opts" }}
+                    // NATS client options
+                    Nats *{{ goImport "github.com/malonaz/core/go/nats" }}.Opts `group:"Nats" namespace:"nats" env-namespace:"NATS"`
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+
     {{- /* GRPC CLIENT OPTIONS */ -}}
 	  {{- range $serviceManifest := $serviceManifests -}}
 	      {{- if $serviceManifest.dependencies -}}

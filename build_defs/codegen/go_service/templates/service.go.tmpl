@@ -36,6 +36,8 @@ type Service struct {
         {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client
     {{- else if eq $dep.type "service" }}
         {{ ternary ($dep.name | title) $dep.name $exportFields }}Service *{{ plzGoImport $dep.implementation }}.Service
+    {{- else if eq $dep.type "nats" }}
+        {{ ternary "NatsClient" "natsClient" $exportFields }} *{{ goImport "github.com/malonaz/core/go/nats" }}.Client
     {{- end }}
   {{- end }}
 }
@@ -58,6 +60,8 @@ func New(
                 {{ $dep.name }}PostgresClient *{{ goImport "github.com/malonaz/core/go/postgres" }}.Client,
            {{- else if eq $dep.type "service" }}
                 {{ $dep.name }}Service *{{ plzGoImport $dep.implementation }}.Service,
+           {{- else if eq $dep.type "nats" }}
+                natsClient *{{ goImport "github.com/malonaz/core/go/nats" }}.Client,
             {{- end }}
         {{- end }}
 
@@ -85,6 +89,8 @@ func New(
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}PostgresClient: {{ $dep.name }}PostgresClient,
             {{- else if eq $dep.type "service" }}
                 {{ ternary ($dep.name | title) $dep.name $exportFields }}Service: {{ $dep.name }}Service,
+            {{- else if eq $dep.type "nats" }}
+                {{ ternary "NatsClient" "natsClient" $exportFields }}: natsClient,
             {{- end }}
         {{- end }}
 	}, nil

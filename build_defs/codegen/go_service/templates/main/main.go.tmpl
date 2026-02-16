@@ -192,6 +192,26 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
     {{- end }}
 {{- end }}
 
+{{- /* DEPENDENCIES NATS CLIENT */ -}}
+{{- range $serviceManifest := $serviceManifests -}}
+    {{- range $dep := $serviceManifest.dependencies -}}
+        {{- if eq $dep.type "nats" -}}
+            {{- if doOnce "nats_client_instantiation" }}
+
+// Instantiate NATS client.
+natsClient, err := {{ goImport "github.com/malonaz/core/go/nats" }}.NewClient(opts.Nats)
+if err != nil {
+return {{ goImport "fmt" }}.Errorf("instantiating nats client: %w", err)
+}
+if err := natsClient.Start(ctx); err != nil {
+return {{ goImport "fmt" }}.Errorf("starting nats client: %w", err)
+}
+defer natsClient.Close()
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end }}
+
 {{- /* DEPENDENCIES BASE SERVICES*/ -}}
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
@@ -252,6 +272,8 @@ var stopFns []func() error
                 {{ $dep.name | camelcase | untitle }}PsqlClient,
             {{- else if eq $dep.type "service" }}
                 {{ $dep.name | camelcase | untitle }}Service,
+            {{- else if eq $dep.type "nats" }}
+                 natsClient,
             {{- end }}
         {{- end }}
         )

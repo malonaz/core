@@ -29,7 +29,7 @@
                 "properties": {
                     "type": {
                         "type": "string",
-                        "enum": ["grpc_client", "postgres_db_client", "postgres_client", "service"]
+                        "enum": ["grpc_client", "postgres_db_client", "postgres_client", "service", "nats"]
                     },
                     "name": {
                         "type": "string",
