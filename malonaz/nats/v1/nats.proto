@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package malonaz.nats.v1;
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/malonaz/core/genproto/nats/v1";
+
+// Extension for file-level options to declare a NATS JetStream stream.
+extend google.protobuf.ServiceOptions {
+  // Stream configuration declared by this file.
+  repeated StreamOptions stream = 73100;
+}
+
+// StreamOptions defines the configuration for a NATS JetStream stream.
+message StreamOptions {
+  // Unique name of the stream.
+  string name = 1;
+
+  // Maximum age of messages in the stream. Messages older than this are removed.
+  google.protobuf.Duration max_age = 2;
+
+  // Maximum total size of the stream in bytes.
+  int64 max_bytes = 3;
+
+  // Maximum number of messages allowed in the stream.
+  int64 max_msgs = 4;
+
+  // Maximum size of a single message in bytes.
+  int32 max_msg_size = 5;
+
+  // Number of stream replicas for fault tolerance.
+  int32 replicas = 6;
+
+  // Retention policy governing when messages are removed from the stream.
+  RetentionPolicy retention = 7;
+
+  // Storage backend type for the stream's data.
+  StorageType storage = 8;
+
+  // Policy for handling new messages when the stream reaches its limits.
+  DiscardPolicy discard = 9;
+}
+
+// RetentionPolicy determines when messages are removed from a stream.
+enum RetentionPolicy {
+  // Used to detect an unset field.
+  RETENTION_POLICY_UNSPECIFIED = 0;
+
+  // Messages are retained until they exceed configured limits (age, size, count).
+  RETENTION_POLICY_LIMITS = 1;
+
+  // Messages are retained as long as there are active consumers interested in them.
+  RETENTION_POLICY_INTEREST = 2;
+
+  // Messages are removed once they have been consumed by a single consumer.
+  RETENTION_POLICY_WORK_QUEUE = 3;
+}
+
+// StorageType specifies the backend used to persist stream data.
+enum StorageType {
+  // Used to detect an unset field.
+  STORAGE_TYPE_UNSPECIFIED = 0;
+
+  // Messages are persisted to disk for durability across restarts.
+  STORAGE_TYPE_FILE = 1;
+
+  // Messages are stored in memory for lower latency at the cost of durability.
+  STORAGE_TYPE_MEMORY = 2;
+}
+
+// DiscardPolicy determines what happens when the stream reaches its configured limits.
+enum DiscardPolicy {
+  // Used to detect an unset field.
+  DISCARD_POLICY_UNSPECIFIED = 0;
+
+  // Discard the oldest messages to make room for new ones.
+  DISCARD_POLICY_OLD = 1;
+
+  // Reject new messages when the stream is full.
+  DISCARD_POLICY_NEW = 2;
+}

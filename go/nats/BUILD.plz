@@ -3,11 +3,13 @@ go_library(
     srcs = [
         "nats.go",
         "processor.go",
+        "stream.go",
     ],
     visibility = ["//..."],
     deps = [
         "//go/pbutil",
         "//go/routine",
+        "//malonaz/nats/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__nats-io__nats.go",
         "//third_party/go:github.com__nats-io__nats.go__jetstream",

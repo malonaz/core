@@ -77,12 +77,12 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	}
 	consumerConfig := jetstream.ConsumerConfig{
 		Durable:       p.config.ConsumerName,
-		FilterSubject: p.config.FilterSubject,
+		FilterSubject: getStreamSubject(p.config.Stream, p.config.FilterSubject),
 		AckPolicy:     jetstream.AckExplicitPolicy,
 		MaxAckPending: 2 * batchSize,
 		AckWait:       timeout,
 	}
-	consumer, err := p.client.jetStream.CreateOrUpdateConsumer(ctx, p.config.Stream, consumerConfig)
+	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, p.config.Stream, consumerConfig)
 	if err != nil {
 		return fmt.Errorf("creating or updating consumer: %w", err)
 	}

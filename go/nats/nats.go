@@ -18,16 +18,21 @@ type StreamConfig = jetstream.StreamConfig
 type Stream = jetstream.Stream
 
 type Opts struct {
-	Url            string        `long:"url" env:"URL" default:"nats-server:4222"`
+	Host           string        `long:"host" env:"HOST" required:"true"`
+	Port           int           `long:"port" env:"PORT" default:"4222"`
 	TotalWait      time.Duration `long:"total-wait" env:"TOTAL_WAIT" default:"10m"`
 	ReconnectDelay time.Duration `long:"reconnect-delay" env:"RECONNECT_DELAY" default:"1s"`
+}
+
+func (o *Opts) url() string {
+	return fmt.Sprintf("nats://%s:%d", o.Host, o.Port)
 }
 
 type Client struct {
 	*nats.Conn
 	log       *slog.Logger
 	opts      *Opts
-	jetStream jetstream.JetStream
+	JetStream jetstream.JetStream
 }
 
 func NewClient(opts *Opts) (*Client, error) {
@@ -43,6 +48,7 @@ func (c *Client) WithLogger(logger *slog.Logger) *Client {
 }
 
 func (c *Client) Start(ctx context.Context) error {
+	url := c.opts.url()
 	options := []nats.Option{
 		nats.RetryOnFailedConnect(true),
 		nats.ReconnectWait(c.opts.ReconnectDelay),
@@ -64,7 +70,7 @@ func (c *Client) Start(ctx context.Context) error {
 		}),
 	}
 
-	conn, err := nats.Connect(c.opts.Url, options...)
+	conn, err := nats.Connect(url, options...)
 	if err != nil {
 		return fmt.Errorf("connecting to nats: %w", err)
 	}
@@ -74,13 +80,13 @@ func (c *Client) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("connecting to jetstream: %w", err)
 	}
-	c.jetStream = js
+	c.JetStream = js
 
-	c.log.Info(fmt.Sprintf("connected to nats server on [%s]", c.opts.Url))
+	c.log.Info(fmt.Sprintf("connected to nats server on [%s]", url))
 	return nil
 }
 
-func (c *Client) Publish(ctx context.Context, subject string, message proto.Message) error {
+func (c *Client) Publish(ctx context.Context, stream, subject string, message proto.Message) error {
 	if err := protovalidate.Validate(message); err != nil {
 		return fmt.Errorf("validating message: %w", err)
 	}
@@ -88,7 +94,7 @@ func (c *Client) Publish(ctx context.Context, subject string, message proto.Mess
 	if err != nil {
 		return fmt.Errorf("marshaling message: %w", err)
 	}
-	if err := c.Conn.Publish(subject, bytes); err != nil {
+	if _, err := c.JetStream.Publish(ctx, getStreamSubject(stream, subject), bytes, jetstream.WithExpectStream(stream)); err != nil {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil

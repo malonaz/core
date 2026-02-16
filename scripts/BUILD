@@ -12,3 +12,8 @@ sh_binary(
     name = "postgres_docker",
     main = "postgres_docker.sh",
 )
+
+sh_binary(
+    name = "nats_docker",
+    main = "nats_docker.sh",
+)
