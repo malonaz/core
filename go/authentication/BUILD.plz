@@ -23,6 +23,17 @@ go_library(
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["permission_interceptor_test.go"],
+    deps = [
+        ":authentication",
+        "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

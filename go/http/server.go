@@ -105,7 +105,7 @@ func (s *Server) GracefulStop() error {
 	if s.httpServer == nil {
 		return nil
 	}
-	s.log.Info("gracefully stopping gRPC Gateway")
+	s.log.Info("gracefully stopping HTTP Server")
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
