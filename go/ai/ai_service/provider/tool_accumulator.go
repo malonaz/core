@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	streamingjson "github.com/karminski/streaming-json-go"
 	"google.golang.org/grpc/codes"
@@ -14,7 +16,8 @@ import (
 )
 
 type ToolCallAccumulator struct {
-	calls map[int64]*toolCallEntry
+	toolCallIDSeed int64
+	calls          map[int64]*toolCallEntry
 }
 
 type toolCallEntry struct {
@@ -27,7 +30,8 @@ type toolCallEntry struct {
 
 func NewToolCallAccumulator() *ToolCallAccumulator {
 	return &ToolCallAccumulator{
-		calls: make(map[int64]*toolCallEntry),
+		toolCallIDSeed: time.Now().UnixNano(),
+		calls:          make(map[int64]*toolCallEntry),
 	}
 }
 
@@ -94,6 +98,9 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		Arguments: &structpb.Struct{},
 		Partial:   true,
 	}
+	if tc.Id == "" {
+		tc.Id = fmt.Sprintf("call_%s_%d_%d", tc.Name, a.toolCallIDSeed, index)
+	}
 
 	if entry.structuredArgs != nil {
 		var err error
@@ -131,6 +138,9 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 		Id:        entry.id,
 		Name:      entry.name,
 		Arguments: &structpb.Struct{},
+	}
+	if tc.Id == "" {
+		tc.Id = fmt.Sprintf("call_%s_%d_%d", tc.Name, a.toolCallIDSeed, index)
 	}
 
 	if entry.structuredArgs != nil {

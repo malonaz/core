@@ -253,12 +253,7 @@ func (c *Client) TextToTextStream(
 							}
 						}
 
-						toolCallID := fc.ID
-						if toolCallID == "" {
-							toolCallID = fmt.Sprintf("call_%s_%d", fc.Name, time.Now().UnixNano())
-						}
-
-						tca.Start(currentBlockIndex, toolCallID, fc.Name)
+						tca.Start(currentBlockIndex, fc.ID, fc.Name)
 						tca.AppendArgs(currentBlockIndex, string(argsJSON))
 
 						block, err := tca.Build(currentBlockIndex)
