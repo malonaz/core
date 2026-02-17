@@ -80,13 +80,11 @@ func (c *Client) TextToTextStream(
 		}
 		config.Tools = tools
 
-		if request.GetConfiguration().GetToolChoice() != nil {
-			toolConfig, err := buildToolConfig(request.GetConfiguration())
-			if err != nil {
-				return grpc.Errorf(codes.InvalidArgument, "building tool config: %v", err).Err()
-			}
-			config.ToolConfig = toolConfig
+		toolConfig, err := buildToolConfig(request.GetConfiguration())
+		if err != nil {
+			return grpc.Errorf(codes.InvalidArgument, "building tool config: %v", err).Err()
 		}
+		config.ToolConfig = toolConfig
 	}
 
 	startTime := time.Now()
@@ -529,28 +527,30 @@ func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration) (*genai
 	if streamPartialToolCalls {
 		functionCallingConfig.StreamFunctionCallArguments = &streamPartialToolCalls
 	}
-	switch choice := configuration.GetToolChoice().Choice.(type) {
-	case *aipb.ToolChoice_Mode:
-		switch choice.Mode {
-		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_NONE:
-			functionCallingConfig.Mode = genai.FunctionCallingConfigModeNone
+	if configuration.GetToolChoice() != nil {
+		switch choice := configuration.GetToolChoice().Choice.(type) {
+		case *aipb.ToolChoice_Mode:
+			switch choice.Mode {
+			case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_NONE:
+				functionCallingConfig.Mode = genai.FunctionCallingConfigModeNone
 
-		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO:
-			functionCallingConfig.Mode = genai.FunctionCallingConfigModeAuto
+			case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO:
+				functionCallingConfig.Mode = genai.FunctionCallingConfigModeAuto
 
-		case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_REQUIRED:
+			case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_REQUIRED:
+				functionCallingConfig.Mode = genai.FunctionCallingConfigModeAny
+
+			default:
+				return nil, fmt.Errorf("unknown tool choice mode: %v", choice.Mode)
+			}
+
+		case *aipb.ToolChoice_ToolName:
 			functionCallingConfig.Mode = genai.FunctionCallingConfigModeAny
+			functionCallingConfig.AllowedFunctionNames = []string{choice.ToolName}
 
 		default:
-			return nil, fmt.Errorf("unknown tool choice mode: %v", choice.Mode)
+			return nil, fmt.Errorf("unknown tool choice type: %T", choice)
 		}
-
-	case *aipb.ToolChoice_ToolName:
-		functionCallingConfig.Mode = genai.FunctionCallingConfigModeAny
-		functionCallingConfig.AllowedFunctionNames = []string{choice.ToolName}
-
-	default:
-		return nil, fmt.Errorf("unknown tool choice type: %T", choice)
 	}
 
 	return &genai.ToolConfig{

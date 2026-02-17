@@ -18,15 +18,16 @@ import (
 )
 
 const (
-	Cartesia   = "cartesia"
-	Elevenlabs = "elevenlabs"
-	Anthropic  = "anthropic"
-	Openai     = "openai"
-	Groq       = "groq"
-	Cerebras   = "cerebras"
-	Google     = "google"
-	Xai        = "xai"
-	Deepgram   = "deepgram"
+	Cartesia     = "cartesia"
+	Elevenlabs   = "elevenlabs"
+	Anthropic    = "anthropic"
+	Openai       = "openai"
+	Groq         = "groq"
+	Cerebras     = "cerebras"
+	Google       = "google"
+	GoogleVertex = "google-vertex"
+	Xai          = "xai"
+	Deepgram     = "deepgram"
 )
 
 var (

@@ -11,17 +11,9 @@ import (
 )
 
 type Opts struct {
-	APIKey         string `long:"api-key"     env:"API_KEY" description:"API key"`
 	Project        string `long:"cloud-project" env:"CLOUD_PROJECT" description:"Google Cloud Project"`
 	Location       string `long:"cloud-location" env:"CLOUD_LOCATION" description:"Google Cloud Location"`
 	ServiceAccount string `long:"cloud-service-account" env:"CLOUD_SERVICE_ACCOUNT" description:"Google Cloud Service Account"`
-}
-
-func (o *Opts) Valid() bool {
-	if o == nil {
-		return false
-	}
-	return o.APIKey != "" || o.ServiceAccount != ""
 }
 
 type Client struct {
@@ -31,15 +23,16 @@ type Client struct {
 	modelService   *provider.ModelService
 }
 
-func NewClient(opts *Opts, modelService *provider.ModelService) *Client {
-	if opts.APIKey != "" {
-		return &Client{
-			config: &genai.ClientConfig{
-				APIKey: opts.APIKey,
-			},
-			modelService: modelService,
-		}
+func NewClient(apiKey string, modelService *provider.ModelService) *Client {
+	return &Client{
+		config: &genai.ClientConfig{
+			APIKey: apiKey,
+		},
+		modelService: modelService,
 	}
+}
+
+func NewVertexClient(opts *Opts, modelService *provider.ModelService) *Client {
 	return &Client{
 		config: &genai.ClientConfig{
 			Project:  opts.Project,
@@ -49,13 +42,6 @@ func NewClient(opts *Opts, modelService *provider.ModelService) *Client {
 		serviceAccount: opts.ServiceAccount,
 		modelService:   modelService,
 	}
-}
-
-func (c *Client) Name() string {
-	if c.config.Backend == genai.BackendVertexAI {
-		return "google (Vertex)"
-	}
-	return c.ProviderId()
 }
 
 func (c *Client) Start(ctx context.Context) error {
@@ -77,7 +63,12 @@ func (c *Client) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) ProviderId() string { return provider.Google }
+func (c *Client) ProviderId() string {
+	if c.config.Backend == genai.BackendVertexAI {
+		return provider.GoogleVertex
+	}
+	return provider.Google
+}
 
 func (c *Client) Stop() {}
 

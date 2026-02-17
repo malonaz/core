@@ -36,6 +36,7 @@ type Opts struct {
 	CerebrasApiKey   string       `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
 	XaiApiKey        string       `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
 	DeepgramApiKey   string       `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
+	GoogleApiKey     string       `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
 	Google           *google.Opts `group:"Google" namespace:"google" env-namespace:"GOOGLE"`
 }
 
@@ -81,8 +82,11 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.DeepgramApiKey != "" {
 		providers = append(providers, deepgram.NewClient(opts.DeepgramApiKey, modelService))
 	}
-	if opts.Google.Valid() {
-		providers = append(providers, google.NewClient(opts.Google, modelService))
+	if opts.GoogleApiKey != "" {
+		providers = append(providers, google.NewClient(opts.GoogleApiKey, modelService))
+	}
+	if opts.Google != nil {
+		providers = append(providers, google.NewVertexClient(opts.Google, modelService))
 	}
 	return &runtime{
 		VoiceService: voiceService,
@@ -92,20 +96,12 @@ func newRuntime(opts *Opts) (*runtime, error) {
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
-	getProviderName := func(p provider.Provider) string {
-		if client, ok := p.(*google.Client); ok {
-			return client.Name()
-		}
-		return p.ProviderId()
-	}
-
 	for _, provider := range s.providers {
-		providerName := getProviderName(provider)
 		if err := provider.Start(ctx); err != nil {
-			return nil, fmt.Errorf("starting provider %s: %v", providerName, err)
+			return nil, fmt.Errorf("starting provider %s: %v", provider.ProviderId(), err)
 		}
 		if err := s.RegisterProvider(ctx, provider); err != nil {
-			return nil, fmt.Errorf("registering provider %s: %v", providerName, err)
+			return nil, fmt.Errorf("registering provider %s: %v", provider.ProviderId(), err)
 		}
 	}
 
