@@ -35,8 +35,7 @@ func NewClient(opts *Opts, modelService *provider.ModelService) *Client {
 	if opts.APIKey != "" {
 		return &Client{
 			config: &genai.ClientConfig{
-				APIKey:  opts.APIKey,
-				Backend: genai.BackendVertexAI,
+				APIKey: opts.APIKey,
 			},
 			modelService: modelService,
 		}
@@ -50,6 +49,13 @@ func NewClient(opts *Opts, modelService *provider.ModelService) *Client {
 		serviceAccount: opts.ServiceAccount,
 		modelService:   modelService,
 	}
+}
+
+func (c *Client) Name() string {
+	if c.config.Backend == genai.BackendVertexAI {
+		return "google (Vertex)"
+	}
+	return c.ProviderId()
 }
 
 func (c *Client) Start(ctx context.Context) error {

@@ -92,12 +92,20 @@ func newRuntime(opts *Opts) (*runtime, error) {
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
+	getProviderName := func(p provider.Provider) string {
+		if client, ok := p.(*google.Client); ok {
+			return client.Name()
+		}
+		return p.ProviderId()
+	}
+
 	for _, provider := range s.providers {
+		providerName := getProviderName(provider)
 		if err := provider.Start(ctx); err != nil {
-			return nil, fmt.Errorf("starting provider %s: %v", provider.ProviderId(), err)
+			return nil, fmt.Errorf("starting provider %s: %v", providerName, err)
 		}
 		if err := s.RegisterProvider(ctx, provider); err != nil {
-			return nil, fmt.Errorf("registering provider %s: %v", provider.ProviderId(), err)
+			return nil, fmt.Errorf("registering provider %s: %v", providerName, err)
 		}
 	}
 
