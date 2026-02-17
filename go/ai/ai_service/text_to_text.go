@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -47,15 +48,17 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		model:                            model,
 		modelUsage:                       &aipb.ModelUsage{},
 		toolNameToTool:                   toolNameToTool,
+		toolCallIDToToolCall:             map[string]*aipb.ToolCall{},
 	}
 	return provider.TextToTextStream(request, wrapper)
 }
 
 type tttStreamWrapper struct {
 	pb.AiService_TextToTextStreamServer
-	model          *aipb.Model
-	modelUsage     *aipb.ModelUsage
-	toolNameToTool map[string]*aipb.Tool
+	model                *aipb.Model
+	modelUsage           *aipb.ModelUsage
+	toolNameToTool       map[string]*aipb.Tool
+	toolCallIDToToolCall map[string]*aipb.ToolCall
 }
 
 func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
@@ -106,6 +109,15 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			for k, v := range tool.GetAnnotations() {
 				toolCall.Annotations[k] = v
 			}
+		}
+
+		// Dedupe partial tool calls.
+		if partialToolCall := c.Block.GetPartialToolCall(); partialToolCall != nil {
+			if last, ok := w.toolCallIDToToolCall[partialToolCall.Id]; ok && proto.Equal(last, partialToolCall) {
+				return nil
+			}
+			w.toolCallIDToToolCall[partialToolCall.Id] = partialToolCall
+			toolCall = partialToolCall
 		}
 
 	case *pb.TextToTextStreamResponse_ModelUsage:
