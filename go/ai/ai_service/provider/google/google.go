@@ -16,6 +16,10 @@ type Opts struct {
 	ServiceAccount string `long:"cloud-service-account" env:"CLOUD_SERVICE_ACCOUNT" description:"Google Cloud Service Account"`
 }
 
+func (o *Opts) Valid() bool {
+	return o != nil && o.Project != "" && o.Location != "" && o.ServiceAccount != ""
+}
+
 type Client struct {
 	config         *genai.ClientConfig
 	serviceAccount string

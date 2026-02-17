@@ -85,7 +85,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.GoogleApiKey != "" {
 		providers = append(providers, google.NewClient(opts.GoogleApiKey, modelService))
 	}
-	if opts.Google != nil {
+	if opts.Google.Valid() {
 		providers = append(providers, google.NewVertexClient(opts.Google, modelService))
 	}
 	return &runtime{
