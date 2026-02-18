@@ -18,7 +18,7 @@
         "pricing":  {
           "input_token_price_per_million":  1,
           "output_token_price_per_million":  3,
-          "input_cache_read_token_price_per_million":  0.5
+          "input_token_cache_read_price_per_million":  0.5
         }
       }
     },

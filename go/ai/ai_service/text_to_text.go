@@ -127,8 +127,8 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		if inputToken := modelUsage.GetInputToken(); inputToken != nil {
 			if existingInputToken := w.modelUsage.GetInputToken(); existingInputToken != nil {
 				// Check if this is a cache breakdown: input + cache_read == previous_input
-				if inputCacheReadToken := modelUsage.GetInputCacheReadToken(); inputCacheReadToken != nil &&
-					inputToken.Quantity+inputCacheReadToken.Quantity == existingInputToken.Quantity {
+				if inputTokenCacheRead := modelUsage.GetInputTokenCacheRead(); inputTokenCacheRead != nil &&
+					inputToken.Quantity+inputTokenCacheRead.Quantity == existingInputToken.Quantity {
 					// Valid cache breakdown - allow the new input value to be sent
 					w.modelUsage.InputToken = inputToken
 				} else if inputToken.Quantity < existingInputToken.Quantity {
@@ -148,32 +148,32 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			}
 		}
 		// INPUT CACHE READ TOKENS.
-		if inputCacheReadToken := modelUsage.GetInputCacheReadToken(); inputCacheReadToken != nil {
-			if existingInputCacheReadToken := w.modelUsage.GetInputCacheReadToken(); existingInputCacheReadToken != nil {
-				if existingInputCacheReadToken.Quantity != inputCacheReadToken.Quantity {
+		if inputTokenCacheRead := modelUsage.GetInputTokenCacheRead(); inputTokenCacheRead != nil {
+			if existingInputTokenCacheRead := w.modelUsage.GetInputTokenCacheRead(); existingInputTokenCacheRead != nil {
+				if existingInputTokenCacheRead.Quantity != inputTokenCacheRead.Quantity {
 					return grpc.Errorf(codes.Internal,
 						"received input cache read tokens twice with different quantities: previous %d, current %d",
-						existingInputCacheReadToken.Quantity, inputCacheReadToken.Quantity,
+						existingInputTokenCacheRead.Quantity, inputTokenCacheRead.Quantity,
 					).Err()
 				}
-				modelUsage.InputCacheReadToken = nil
+				modelUsage.InputTokenCacheRead = nil
 			} else {
-				w.modelUsage.InputCacheReadToken = inputCacheReadToken
+				w.modelUsage.InputTokenCacheRead = inputTokenCacheRead
 			}
 		}
 
 		// INPUT CACHE WRITE TOKENS.
-		if inputCacheWriteToken := modelUsage.GetInputCacheWriteToken(); inputCacheWriteToken != nil {
-			if existingInputCacheWriteToken := w.modelUsage.GetInputCacheWriteToken(); existingInputCacheWriteToken != nil {
-				if existingInputCacheWriteToken.Quantity != inputCacheWriteToken.Quantity {
+		if inputTokenCacheWrite := modelUsage.GetInputTokenCacheWrite(); inputTokenCacheWrite != nil {
+			if existingInputTokenCacheWrite := w.modelUsage.GetInputTokenCacheWrite(); existingInputTokenCacheWrite != nil {
+				if existingInputTokenCacheWrite.Quantity != inputTokenCacheWrite.Quantity {
 					return grpc.Errorf(codes.Internal,
 						"received input cache write tokens twice with different quantities: previous %d, current %d",
-						existingInputCacheWriteToken.Quantity, inputCacheWriteToken.Quantity,
+						existingInputTokenCacheWrite.Quantity, inputTokenCacheWrite.Quantity,
 					).Err()
 				}
-				modelUsage.InputCacheWriteToken = nil
+				modelUsage.InputTokenCacheWrite = nil
 			} else {
-				w.modelUsage.InputCacheWriteToken = inputCacheWriteToken
+				w.modelUsage.InputTokenCacheWrite = inputTokenCacheWrite
 			}
 		}
 
@@ -196,6 +196,70 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			}
 		}
 
+		// INPUT IMAGE TOKENS.
+		if inputImageToken := modelUsage.GetInputImageToken(); inputImageToken != nil {
+			if existingInputImageToken := w.modelUsage.GetInputImageToken(); existingInputImageToken != nil {
+				if inputImageToken.Quantity < existingInputImageToken.Quantity {
+					w.modelUsage.InputImageToken = inputImageToken
+				} else if inputImageToken.Quantity == existingInputImageToken.Quantity {
+					modelUsage.InputImageToken = nil
+				} else {
+					w.modelUsage.InputImageToken = inputImageToken
+				}
+			} else {
+				w.modelUsage.InputImageToken = inputImageToken
+			}
+		}
+
+		// INPUT IMAGE CACHE READ TOKENS.
+		if inputImageTokenCacheRead := modelUsage.GetInputImageTokenCacheRead(); inputImageTokenCacheRead != nil {
+			if existingInputImageTokenCacheRead := w.modelUsage.GetInputImageTokenCacheRead(); existingInputImageTokenCacheRead != nil {
+				if existingInputImageTokenCacheRead.Quantity != inputImageTokenCacheRead.Quantity {
+					return grpc.Errorf(codes.Internal,
+						"received input image cache read tokens twice with different quantities: previous %d, current %d",
+						existingInputImageTokenCacheRead.Quantity, inputImageTokenCacheRead.Quantity,
+					).Err()
+				}
+				modelUsage.InputImageTokenCacheRead = nil
+			} else {
+				w.modelUsage.InputImageTokenCacheRead = inputImageTokenCacheRead
+			}
+		}
+
+		// INPUT IMAGE CACHE WRITE TOKENS.
+		if inputImageTokenCacheWrite := modelUsage.GetInputImageTokenCacheWrite(); inputImageTokenCacheWrite != nil {
+			if existingInputImageTokenCacheWrite := w.modelUsage.GetInputImageTokenCacheWrite(); existingInputImageTokenCacheWrite != nil {
+				if existingInputImageTokenCacheWrite.Quantity != inputImageTokenCacheWrite.Quantity {
+					return grpc.Errorf(codes.Internal,
+						"received input image cache write tokens twice with different quantities: previous %d, current %d",
+						existingInputImageTokenCacheWrite.Quantity, inputImageTokenCacheWrite.Quantity,
+					).Err()
+				}
+				modelUsage.InputImageTokenCacheWrite = nil
+			} else {
+				w.modelUsage.InputImageTokenCacheWrite = inputImageTokenCacheWrite
+			}
+		}
+
+		// OUTPUT IMAGE TOKENS.
+		if outputImageToken := modelUsage.GetOutputImageToken(); outputImageToken != nil {
+			if existingOutputImageToken := w.modelUsage.GetOutputImageToken(); existingOutputImageToken != nil {
+				if outputImageToken.Quantity < existingOutputImageToken.Quantity {
+					return grpc.Errorf(codes.Internal,
+						"received output image tokens with smaller quantity: previous %d, current %d",
+						existingOutputImageToken.Quantity, outputImageToken.Quantity,
+					).Err()
+				}
+				if outputImageToken.Quantity == existingOutputImageToken.Quantity {
+					modelUsage.OutputImageToken = nil
+				} else {
+					w.modelUsage.OutputImageToken = outputImageToken
+				}
+			} else {
+				w.modelUsage.OutputImageToken = outputImageToken
+			}
+		}
+
 		// OUTPUT REASONING TOKENS.
 		if outputReasoningToken := modelUsage.GetOutputReasoningToken(); outputReasoningToken != nil {
 			if existingOutputReasoningToken := w.modelUsage.GetOutputReasoningToken(); existingOutputReasoningToken != nil {
@@ -208,10 +272,13 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 				w.modelUsage.OutputReasoningToken = outputReasoningToken
 			}
 		}
+
 		// Skip sending empty model usage responses
-		if modelUsage.InputToken == nil && modelUsage.InputCacheReadToken == nil &&
-			modelUsage.InputCacheWriteToken == nil && modelUsage.OutputToken == nil &&
-			modelUsage.OutputReasoningToken == nil {
+		if modelUsage.InputToken == nil && modelUsage.InputTokenCacheRead == nil &&
+			modelUsage.InputTokenCacheWrite == nil && modelUsage.OutputToken == nil &&
+			modelUsage.OutputReasoningToken == nil && modelUsage.InputImageToken == nil &&
+			modelUsage.InputImageTokenCacheRead == nil && modelUsage.InputImageTokenCacheWrite == nil &&
+			modelUsage.OutputImageToken == nil {
 			return nil
 		}
 		computeModelUsagePrices(modelUsage, w.model.GetTtt().GetPricing())
@@ -237,11 +304,25 @@ func computeModelUsagePrices(usage *aipb.ModelUsage, pricing *aipb.TttModelPrici
 		}
 		usage.OutputReasoningToken.Price = float64(usage.OutputReasoningToken.Quantity) * pricePerMillion / 1_000_000
 	}
-	if usage.InputCacheReadToken != nil {
-		usage.InputCacheReadToken.Price = float64(usage.InputCacheReadToken.Quantity) * pricing.InputCacheReadTokenPricePerMillion / 1_000_000
+	if usage.InputTokenCacheRead != nil {
+		usage.InputTokenCacheRead.Price = float64(usage.InputTokenCacheRead.Quantity) * pricing.InputTokenCacheReadPricePerMillion / 1_000_000
 	}
-	if usage.InputCacheWriteToken != nil {
-		usage.InputCacheWriteToken.Price = float64(usage.InputCacheWriteToken.Quantity) * pricing.InputCacheWriteTokenPricePerMillion / 1_000_000
+	if usage.InputTokenCacheWrite != nil {
+		usage.InputTokenCacheWrite.Price = float64(usage.InputTokenCacheWrite.Quantity) * pricing.InputTokenCacheWritePricePerMillion / 1_000_000
+	}
+
+	// IMAGE TOKENS.
+	if usage.InputImageToken != nil {
+		usage.InputImageToken.Price = float64(usage.InputImageToken.Quantity) * pricing.InputImageTokenPricePerMillion / 1_000_000
+	}
+	if usage.OutputImageToken != nil {
+		usage.OutputImageToken.Price = float64(usage.OutputImageToken.Quantity) * pricing.OutputImageTokenPricePerMillion / 1_000_000
+	}
+	if usage.InputImageTokenCacheRead != nil {
+		usage.InputImageTokenCacheRead.Price = float64(usage.InputImageTokenCacheRead.Quantity) * pricing.InputImageTokenCacheReadPricePerMillion / 1_000_000
+	}
+	if usage.InputImageTokenCacheWrite != nil {
+		usage.InputImageTokenCacheWrite.Price = float64(usage.InputImageTokenCacheWrite.Quantity) * pricing.InputImageTokenCacheWritePricePerMillion / 1_000_000
 	}
 }
 

@@ -9,6 +9,7 @@ go_library(
         "//go/ai",
         "//go/ai/ai_service/provider",
         "//go/grpc",
+        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:cloud.google.com__go__auth__credentials",

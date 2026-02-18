@@ -29,15 +29,23 @@ message ModelUsage {
   // Output reasoning token usage.
   ResourceConsumption output_reasoning_token = 4;
   // Cache read token usage.
-  ResourceConsumption input_cache_read_token = 5;
+  ResourceConsumption input_token_cache_read = 5;
   // Cache write token usage.
-  ResourceConsumption input_cache_write_token = 6;
+  ResourceConsumption input_token_cache_write = 6;
   // Input seconds.
   ResourceConsumption input_second = 7;
   // Output seconds.
   ResourceConsumption output_second = 8;
   // Input characters.
   ResourceConsumption input_character = 9;
+  // Input image token usage.
+  ResourceConsumption input_image_token = 10;
+  // Output image token usage.
+  ResourceConsumption output_image_token = 11;
+  // Cache read image token usage.
+  ResourceConsumption input_image_token_cache_read = 12;
+  // Cache write image token usage.
+  ResourceConsumption input_image_token_cache_write = 13;
 }
 
 // Tracks a particular resource consumption.

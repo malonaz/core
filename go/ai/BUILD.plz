@@ -4,6 +4,7 @@ go_library(
         "accumulator.go",
         "errors.go",
         "messages.go",
+        "metrics.go",
         "utils.go",
     ],
     visibility = ["//..."],

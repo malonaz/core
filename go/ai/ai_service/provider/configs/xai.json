@@ -12,7 +12,7 @@
         "pricing":  {
           "input_token_price_per_million":  0.19999999999999998,
           "output_token_price_per_million":  0.5,
-          "input_cache_read_token_price_per_million":  0.049999999999999996
+          "input_token_cache_read_price_per_million":  0.049999999999999996
         }
       }
     },
@@ -28,7 +28,7 @@
         "pricing":  {
           "input_token_price_per_million":  0.19999999999999998,
           "output_token_price_per_million":  0.5,
-          "input_cache_read_token_price_per_million":  0.049999999999999996
+          "input_token_cache_read_price_per_million":  0.049999999999999996
         }
       }
     },
@@ -44,7 +44,7 @@
         "pricing":  {
           "input_token_price_per_million":  0.19999999999999998,
           "output_token_price_per_million":  1.5,
-          "input_cache_read_token_price_per_million":  0.02
+          "input_token_cache_read_price_per_million":  0.02
         }
       }
     },

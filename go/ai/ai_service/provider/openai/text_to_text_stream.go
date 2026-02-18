@@ -161,7 +161,7 @@ func (c *Client) TextToTextStream(
 			}
 
 			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
-				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens)}
+				modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens)}
 			}
 
 			if chunk.Usage.CompletionTokens > 0 {
@@ -174,7 +174,7 @@ func (c *Client) TextToTextStream(
 				}
 			}
 
-			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputCacheReadToken().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
+			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
 					return grpc.Errorf(

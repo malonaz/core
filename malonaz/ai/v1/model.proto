@@ -87,7 +87,7 @@ message TttModelConfig {
   TttModelPricing pricing = 5;
 }
 
-// Pricing for a ttt model.
+// Pricing configuration for a ttt model.
 message TttModelPricing {
   // Price per million input tokens in dollars.
   double input_token_price_per_million = 1;
@@ -96,9 +96,17 @@ message TttModelPricing {
   // Price per million output reasoning tokens in dollars.
   double output_reasoning_token_price_per_million = 3;
   // Price per million cache read tokens in dollars.
-  double input_cache_read_token_price_per_million = 4;
+  double input_token_cache_read_price_per_million = 4;
   // Price per million cache write tokens in dollars.
-  double input_cache_write_token_price_per_million = 5;
+  double input_token_cache_write_price_per_million = 5;
+  // Price per million input image tokens in dollars.
+  double input_image_token_price_per_million = 6;
+  // Price per million output image tokens in dollars.
+  double output_image_token_price_per_million = 7;
+  // Price per million input image cache read tokens in dollars.
+  double input_image_token_cache_read_price_per_million = 8;
+  // Price per million input image cache write tokens in dollars.
+  double input_image_token_cache_write_price_per_million = 9;
 }
 
 // Configuration for a tts model.

@@ -592,11 +592,11 @@ func printModelUsage(usage *aipb.ModelUsage) {
 	if usage.OutputReasoningToken != nil {
 		fmt.Printf("│ Reasoning tokens: %d\n", usage.OutputReasoningToken.Quantity)
 	}
-	if usage.InputCacheReadToken != nil {
-		fmt.Printf("│ Cache read tokens: %d\n", usage.InputCacheReadToken.Quantity)
+	if usage.InputTokenCacheRead != nil {
+		fmt.Printf("│ Cache read tokens: %d\n", usage.InputTokenCacheRead.Quantity)
 	}
-	if usage.InputCacheWriteToken != nil {
-		fmt.Printf("│ Cache write tokens: %d\n", usage.InputCacheWriteToken.Quantity)
+	if usage.InputTokenCacheWrite != nil {
+		fmt.Printf("│ Cache write tokens: %d\n", usage.InputTokenCacheWrite.Quantity)
 	}
 	fmt.Println("└─────────────────────────────────────────────────────────")
 }

@@ -176,10 +176,10 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.InputTokens)}
 			}
 			if variant.Message.Usage.CacheReadInputTokens > 0 {
-				modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheReadInputTokens)}
+				modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheReadInputTokens)}
 			}
 			if variant.Message.Usage.CacheCreationInputTokens > 0 {
-				modelUsage.InputCacheWriteToken = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheCreationInputTokens)}
+				modelUsage.InputTokenCacheWrite = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheCreationInputTokens)}
 			}
 			cs.SendModelUsage(ctx, modelUsage)
 

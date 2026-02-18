@@ -109,8 +109,8 @@ func main() {
 				InputTokenPricePerMillion:           litellmModel.InputCostPerToken * 1_000_000,
 				OutputTokenPricePerMillion:          litellmModel.OutputCostPerToken * 1_000_000,
 				OutputReasoningTokenPricePerMillion: litellmModel.OutputCostPerReasoningToken * 1_000_000,
-				InputCacheReadTokenPricePerMillion:  litellmModel.CacheReadInputTokenCost * 1_000_000,
-				InputCacheWriteTokenPricePerMillion: litellmModel.CacheCreationInputTokenCost * 1_000_000,
+				InputTokenCacheReadPricePerMillion:  litellmModel.CacheReadInputTokenCost * 1_000_000,
+				InputTokenCacheWritePricePerMillion: litellmModel.CacheCreationInputTokenCost * 1_000_000,
 			}
 
 			if !proto.Equal(model.Ttt.Pricing, newPricing) {

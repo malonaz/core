@@ -13,7 +13,7 @@
         "pricing": {
           "input_token_price_per_million": 2,
           "output_token_price_per_million": 12,
-          "input_cache_read_token_price_per_million": 0.19999999999999998
+          "input_token_cache_read_price_per_million": 0.19999999999999998
         }
       },
       "provider_settings": {
@@ -37,7 +37,9 @@
         "pricing": {
           "input_token_price_per_million": 2,
           "output_token_price_per_million": 12,
-          "input_cache_read_token_price_per_million": 0.19999999999999998
+          "input_token_cache_read_price_per_million": 0.19999999999999998,
+          "input_image_token_price_per_million": 2,
+          "output_image_token_price_per_million": 120
         }
       },
       "provider_settings": {
@@ -62,7 +64,7 @@
           "input_token_price_per_million": 0.5,
           "output_token_price_per_million": 3,
           "output_reasoning_token_price_per_million": 3,
-          "input_cache_read_token_price_per_million": 0.049999999999999996
+          "input_token_cache_read_price_per_million": 0.049999999999999996
         }
       },
       "provider_settings": {
@@ -86,7 +88,7 @@
         "pricing": {
           "input_token_price_per_million": 1.25,
           "output_token_price_per_million": 10,
-          "input_cache_read_token_price_per_million": 0.125
+          "input_token_cache_read_price_per_million": 0.125
         }
       },
       "provider_settings": {
@@ -111,7 +113,7 @@
           "input_token_price_per_million": 0.3,
           "output_token_price_per_million": 2.5,
           "output_reasoning_token_price_per_million": 2.5,
-          "input_cache_read_token_price_per_million": 0.03
+          "input_token_cache_read_price_per_million": 0.03
         }
       },
       "provider_settings": {
@@ -136,7 +138,7 @@
           "input_token_price_per_million": 0.09999999999999999,
           "output_token_price_per_million": 0.39999999999999997,
           "output_reasoning_token_price_per_million": 0.39999999999999997,
-          "input_cache_read_token_price_per_million": 0.024999999999999998
+          "input_token_cache_read_price_per_million": 0.024999999999999998
         }
       },
       "provider_settings": {

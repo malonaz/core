@@ -12,8 +12,8 @@
         "pricing": {
           "input_token_price_per_million": 5,
           "output_token_price_per_million": 25,
-          "input_cache_read_token_price_per_million": 0.5,
-          "input_cache_write_token_price_per_million": 6.25
+          "input_token_cache_read_price_per_million": 0.5,
+          "input_token_cache_write_price_per_million": 6.25
         }
       }
     },
@@ -28,8 +28,8 @@
         "pricing":  {
           "input_token_price_per_million":  3,
           "output_token_price_per_million":  15,
-          "input_cache_read_token_price_per_million":  0.3,
-          "input_cache_write_token_price_per_million":  3.75
+          "input_token_cache_read_price_per_million":  0.3,
+          "input_token_cache_write_price_per_million":  3.75
         }
       }
     },
@@ -44,8 +44,8 @@
         "pricing":  {
           "input_token_price_per_million":  1,
           "output_token_price_per_million":  5,
-          "input_cache_read_token_price_per_million":  0.09999999999999999,
-          "input_cache_write_token_price_per_million":  1.25
+          "input_token_cache_read_price_per_million":  0.09999999999999999,
+          "input_token_cache_write_price_per_million":  1.25
         }
       }
     },
@@ -60,8 +60,8 @@
         "pricing":  {
           "input_token_price_per_million":  5,
           "output_token_price_per_million":  25,
-          "input_cache_read_token_price_per_million":  0.5,
-          "input_cache_write_token_price_per_million":  6.25
+          "input_token_cache_read_price_per_million":  0.5,
+          "input_token_cache_write_price_per_million":  6.25
         }
       }
     },
@@ -76,8 +76,8 @@
         "pricing":  {
           "input_token_price_per_million":  15,
           "output_token_price_per_million":  75,
-          "input_cache_read_token_price_per_million":  1.5,
-          "input_cache_write_token_price_per_million":  18.75
+          "input_token_cache_read_price_per_million":  1.5,
+          "input_token_cache_write_price_per_million":  18.75
         }
       }
     },
@@ -92,8 +92,8 @@
         "pricing":  {
           "input_token_price_per_million":  3,
           "output_token_price_per_million":  15,
-          "input_cache_read_token_price_per_million":  0.3,
-          "input_cache_write_token_price_per_million":  3.75
+          "input_token_cache_read_price_per_million":  0.3,
+          "input_token_cache_write_price_per_million":  3.75
         }
       }
     },
@@ -108,8 +108,8 @@
         "pricing":  {
           "input_token_price_per_million":  1,
           "output_token_price_per_million":  5,
-          "input_cache_read_token_price_per_million":  0.09999999999999999,
-          "input_cache_write_token_price_per_million":  1.25
+          "input_token_cache_read_price_per_million":  0.09999999999999999,
+          "input_token_cache_write_price_per_million":  1.25
         }
       }
     },
@@ -124,8 +124,8 @@
         "pricing":  {
           "input_token_price_per_million":  5,
           "output_token_price_per_million":  25,
-          "input_cache_read_token_price_per_million":  0.5,
-          "input_cache_write_token_price_per_million":  6.25
+          "input_token_cache_read_price_per_million":  0.5,
+          "input_token_cache_write_price_per_million":  6.25
         }
       }
     },
@@ -140,8 +140,8 @@
         "pricing":  {
           "input_token_price_per_million":  15,
           "output_token_price_per_million":  75,
-          "input_cache_read_token_price_per_million":  1.5,
-          "input_cache_write_token_price_per_million":  18.75
+          "input_token_cache_read_price_per_million":  1.5,
+          "input_token_cache_write_price_per_million":  18.75
         }
       }
     },
@@ -156,8 +156,8 @@
         "pricing":  {
           "input_token_price_per_million":  3,
           "output_token_price_per_million":  15,
-          "input_cache_read_token_price_per_million":  0.3,
-          "input_cache_write_token_price_per_million":  3.75
+          "input_token_cache_read_price_per_million":  0.3,
+          "input_token_cache_write_price_per_million":  3.75
         }
       }
     },
@@ -172,8 +172,8 @@
         "pricing":  {
           "input_token_price_per_million":  15,
           "output_token_price_per_million":  75,
-          "input_cache_read_token_price_per_million":  1.5,
-          "input_cache_write_token_price_per_million":  18.75
+          "input_token_cache_read_price_per_million":  1.5,
+          "input_token_cache_write_price_per_million":  18.75
         }
       }
     },
@@ -187,8 +187,8 @@
         "pricing":  {
           "input_token_price_per_million":  0.7999999999999999,
           "output_token_price_per_million":  4,
-          "input_cache_read_token_price_per_million":  0.08,
-          "input_cache_write_token_price_per_million":  1
+          "input_token_cache_read_price_per_million":  0.08,
+          "input_token_cache_write_price_per_million":  1
         }
       }
     },
@@ -202,8 +202,8 @@
         "pricing":  {
           "input_token_price_per_million":  0.25,
           "output_token_price_per_million":  1.25,
-          "input_cache_read_token_price_per_million":  0.03,
-          "input_cache_write_token_price_per_million":  0.3
+          "input_token_cache_read_price_per_million":  0.03,
+          "input_token_cache_write_price_per_million":  0.3
         }
       }
     },
@@ -219,8 +219,8 @@
         "pricing":  {
           "input_token_price_per_million":  3,
           "output_token_price_per_million":  15,
-          "input_cache_read_token_price_per_million":  0.3,
-          "input_cache_write_token_price_per_million":  3.75
+          "input_token_cache_read_price_per_million":  0.3,
+          "input_token_cache_write_price_per_million":  3.75
         }
       }
     }

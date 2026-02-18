@@ -15,6 +15,7 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 const (
@@ -276,10 +277,11 @@ func (c *Client) TextToTextStream(
 		}
 
 		if resp.UsageMetadata != nil {
-			modelUsage := buildModelUsage(request.Model, resp.UsageMetadata)
-			if modelUsage != nil {
-				cs.SendModelUsage(ctx, modelUsage)
+			modelUsage, err := buildModelUsage(request.Model, resp.UsageMetadata)
+			if err != nil {
+				return grpc.Errorf(codes.Internal, "building model usage: %v", err).Err()
 			}
+			cs.SendModelUsage(ctx, modelUsage)
 		}
 	}
 
@@ -587,42 +589,69 @@ func buildThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort
 	return config, nil
 }
 
-func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsageMetadata) *aipb.ModelUsage {
+func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsageMetadata) (*aipb.ModelUsage, error) {
 	modelUsage := &aipb.ModelUsage{
 		Model: modelName,
 	}
 
-	if usage.PromptTokenCount > 0 {
-		inputTokens := usage.PromptTokenCount
-		if usage.CachedContentTokenCount > 0 {
-			inputTokens -= usage.CachedContentTokenCount
+	defer func() {
+		bytes, err := json.Marshal(usage)
+		if err != nil {
+			panic(err)
 		}
-		if inputTokens > 0 {
-			modelUsage.InputToken = &aipb.ResourceConsumption{
-				Quantity: int32(inputTokens),
-			}
+		fmt.Println(bytes)
+		pbutil.MustPrintPretty(modelUsage)
+	}()
+
+	var inputImageTokens, outputImageTokens, cacheReadImageTokens int32
+	var inputTextTokens, outputTextTokens, cacheReadTextTokens int32
+	for _, detail := range usage.PromptTokensDetails {
+		switch detail.Modality {
+		case genai.MediaModalityImage:
+			inputImageTokens += detail.TokenCount
+		case genai.MediaModalityText:
+			inputTextTokens += detail.TokenCount
+		}
+	}
+	for _, detail := range usage.CandidatesTokensDetails {
+		switch detail.Modality {
+		case genai.MediaModalityImage:
+			outputImageTokens += detail.TokenCount
+		case genai.MediaModalityText:
+			outputTextTokens += detail.TokenCount
+		}
+	}
+	for _, detail := range usage.CacheTokensDetails {
+		switch detail.Modality {
+		case genai.MediaModalityImage:
+			cacheReadImageTokens += detail.TokenCount
+		case genai.MediaModalityText:
+			cacheReadTextTokens += detail.TokenCount
 		}
 	}
 
-	if usage.CachedContentTokenCount > 0 {
-		modelUsage.InputCacheReadToken = &aipb.ResourceConsumption{
-			Quantity: int32(usage.CachedContentTokenCount),
+	if inputTextTokens > 0 {
+		uncachedTextTokens := inputTextTokens - cacheReadTextTokens
+		if uncachedTextTokens < 0 {
+			return nil, fmt.Errorf("negative uncached text tokens: input=%d, cacheRead=%d", inputTextTokens, cacheReadTextTokens)
 		}
+		modelUsage.InputToken = ai.NewResourceConsumption(uncachedTextTokens)
+	}
+	if inputImageTokens > 0 {
+		uncachedImageTokens := inputImageTokens - cacheReadImageTokens
+		if uncachedImageTokens < 0 {
+			return nil, fmt.Errorf("negative uncached image tokens: input=%d, cacheRead=%d", inputImageTokens, cacheReadImageTokens)
+		}
+		modelUsage.InputImageToken = ai.NewResourceConsumption(uncachedImageTokens)
 	}
 
-	if usage.CandidatesTokenCount > 0 {
-		modelUsage.OutputToken = &aipb.ResourceConsumption{
-			Quantity: int32(usage.CandidatesTokenCount),
-		}
-	}
+	modelUsage.InputTokenCacheRead = ai.NewResourceConsumption(cacheReadTextTokens)
+	modelUsage.OutputToken = ai.NewResourceConsumption(outputTextTokens)
+	modelUsage.OutputReasoningToken = ai.NewResourceConsumption(usage.ThoughtsTokenCount)
+	modelUsage.InputImageTokenCacheRead = ai.NewResourceConsumption(cacheReadImageTokens)
+	modelUsage.OutputImageToken = ai.NewResourceConsumption(outputImageTokens)
 
-	if usage.ThoughtsTokenCount > 0 {
-		modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{
-			Quantity: int32(usage.ThoughtsTokenCount),
-		}
-	}
-
-	return modelUsage
+	return modelUsage, nil
 }
 
 var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{

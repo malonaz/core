@@ -124,18 +124,22 @@ func (b0 GenerationMetrics_builder) Build() *GenerationMetrics {
 // Tracks model usage. When streamed out, incremental resource consumptions can be streamed out.
 // The absolute truth for a resource consumption is the last one streamed out for this resource consumption.
 type ModelUsage struct {
-	state                           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Model                string                 `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_InputToken           *ResourceConsumption   `protobuf:"bytes,2,opt,name=input_token,json=inputToken,proto3"`
-	xxx_hidden_OutputToken          *ResourceConsumption   `protobuf:"bytes,3,opt,name=output_token,json=outputToken,proto3"`
-	xxx_hidden_OutputReasoningToken *ResourceConsumption   `protobuf:"bytes,4,opt,name=output_reasoning_token,json=outputReasoningToken,proto3"`
-	xxx_hidden_InputCacheReadToken  *ResourceConsumption   `protobuf:"bytes,5,opt,name=input_cache_read_token,json=inputCacheReadToken,proto3"`
-	xxx_hidden_InputCacheWriteToken *ResourceConsumption   `protobuf:"bytes,6,opt,name=input_cache_write_token,json=inputCacheWriteToken,proto3"`
-	xxx_hidden_InputSecond          *ResourceConsumption   `protobuf:"bytes,7,opt,name=input_second,json=inputSecond,proto3"`
-	xxx_hidden_OutputSecond         *ResourceConsumption   `protobuf:"bytes,8,opt,name=output_second,json=outputSecond,proto3"`
-	xxx_hidden_InputCharacter       *ResourceConsumption   `protobuf:"bytes,9,opt,name=input_character,json=inputCharacter,proto3"`
-	unknownFields                   protoimpl.UnknownFields
-	sizeCache                       protoimpl.SizeCache
+	state                                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Model                     string                 `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_InputToken                *ResourceConsumption   `protobuf:"bytes,2,opt,name=input_token,json=inputToken,proto3"`
+	xxx_hidden_OutputToken               *ResourceConsumption   `protobuf:"bytes,3,opt,name=output_token,json=outputToken,proto3"`
+	xxx_hidden_OutputReasoningToken      *ResourceConsumption   `protobuf:"bytes,4,opt,name=output_reasoning_token,json=outputReasoningToken,proto3"`
+	xxx_hidden_InputTokenCacheRead       *ResourceConsumption   `protobuf:"bytes,5,opt,name=input_token_cache_read,json=inputTokenCacheRead,proto3"`
+	xxx_hidden_InputTokenCacheWrite      *ResourceConsumption   `protobuf:"bytes,6,opt,name=input_token_cache_write,json=inputTokenCacheWrite,proto3"`
+	xxx_hidden_InputSecond               *ResourceConsumption   `protobuf:"bytes,7,opt,name=input_second,json=inputSecond,proto3"`
+	xxx_hidden_OutputSecond              *ResourceConsumption   `protobuf:"bytes,8,opt,name=output_second,json=outputSecond,proto3"`
+	xxx_hidden_InputCharacter            *ResourceConsumption   `protobuf:"bytes,9,opt,name=input_character,json=inputCharacter,proto3"`
+	xxx_hidden_InputImageToken           *ResourceConsumption   `protobuf:"bytes,10,opt,name=input_image_token,json=inputImageToken,proto3"`
+	xxx_hidden_OutputImageToken          *ResourceConsumption   `protobuf:"bytes,11,opt,name=output_image_token,json=outputImageToken,proto3"`
+	xxx_hidden_InputImageTokenCacheRead  *ResourceConsumption   `protobuf:"bytes,12,opt,name=input_image_token_cache_read,json=inputImageTokenCacheRead,proto3"`
+	xxx_hidden_InputImageTokenCacheWrite *ResourceConsumption   `protobuf:"bytes,13,opt,name=input_image_token_cache_write,json=inputImageTokenCacheWrite,proto3"`
+	unknownFields                        protoimpl.UnknownFields
+	sizeCache                            protoimpl.SizeCache
 }
 
 func (x *ModelUsage) Reset() {
@@ -191,16 +195,16 @@ func (x *ModelUsage) GetOutputReasoningToken() *ResourceConsumption {
 	return nil
 }
 
-func (x *ModelUsage) GetInputCacheReadToken() *ResourceConsumption {
+func (x *ModelUsage) GetInputTokenCacheRead() *ResourceConsumption {
 	if x != nil {
-		return x.xxx_hidden_InputCacheReadToken
+		return x.xxx_hidden_InputTokenCacheRead
 	}
 	return nil
 }
 
-func (x *ModelUsage) GetInputCacheWriteToken() *ResourceConsumption {
+func (x *ModelUsage) GetInputTokenCacheWrite() *ResourceConsumption {
 	if x != nil {
-		return x.xxx_hidden_InputCacheWriteToken
+		return x.xxx_hidden_InputTokenCacheWrite
 	}
 	return nil
 }
@@ -226,6 +230,34 @@ func (x *ModelUsage) GetInputCharacter() *ResourceConsumption {
 	return nil
 }
 
+func (x *ModelUsage) GetInputImageToken() *ResourceConsumption {
+	if x != nil {
+		return x.xxx_hidden_InputImageToken
+	}
+	return nil
+}
+
+func (x *ModelUsage) GetOutputImageToken() *ResourceConsumption {
+	if x != nil {
+		return x.xxx_hidden_OutputImageToken
+	}
+	return nil
+}
+
+func (x *ModelUsage) GetInputImageTokenCacheRead() *ResourceConsumption {
+	if x != nil {
+		return x.xxx_hidden_InputImageTokenCacheRead
+	}
+	return nil
+}
+
+func (x *ModelUsage) GetInputImageTokenCacheWrite() *ResourceConsumption {
+	if x != nil {
+		return x.xxx_hidden_InputImageTokenCacheWrite
+	}
+	return nil
+}
+
 func (x *ModelUsage) SetModel(v string) {
 	x.xxx_hidden_Model = v
 }
@@ -242,12 +274,12 @@ func (x *ModelUsage) SetOutputReasoningToken(v *ResourceConsumption) {
 	x.xxx_hidden_OutputReasoningToken = v
 }
 
-func (x *ModelUsage) SetInputCacheReadToken(v *ResourceConsumption) {
-	x.xxx_hidden_InputCacheReadToken = v
+func (x *ModelUsage) SetInputTokenCacheRead(v *ResourceConsumption) {
+	x.xxx_hidden_InputTokenCacheRead = v
 }
 
-func (x *ModelUsage) SetInputCacheWriteToken(v *ResourceConsumption) {
-	x.xxx_hidden_InputCacheWriteToken = v
+func (x *ModelUsage) SetInputTokenCacheWrite(v *ResourceConsumption) {
+	x.xxx_hidden_InputTokenCacheWrite = v
 }
 
 func (x *ModelUsage) SetInputSecond(v *ResourceConsumption) {
@@ -260,6 +292,22 @@ func (x *ModelUsage) SetOutputSecond(v *ResourceConsumption) {
 
 func (x *ModelUsage) SetInputCharacter(v *ResourceConsumption) {
 	x.xxx_hidden_InputCharacter = v
+}
+
+func (x *ModelUsage) SetInputImageToken(v *ResourceConsumption) {
+	x.xxx_hidden_InputImageToken = v
+}
+
+func (x *ModelUsage) SetOutputImageToken(v *ResourceConsumption) {
+	x.xxx_hidden_OutputImageToken = v
+}
+
+func (x *ModelUsage) SetInputImageTokenCacheRead(v *ResourceConsumption) {
+	x.xxx_hidden_InputImageTokenCacheRead = v
+}
+
+func (x *ModelUsage) SetInputImageTokenCacheWrite(v *ResourceConsumption) {
+	x.xxx_hidden_InputImageTokenCacheWrite = v
 }
 
 func (x *ModelUsage) HasInputToken() bool {
@@ -283,18 +331,18 @@ func (x *ModelUsage) HasOutputReasoningToken() bool {
 	return x.xxx_hidden_OutputReasoningToken != nil
 }
 
-func (x *ModelUsage) HasInputCacheReadToken() bool {
+func (x *ModelUsage) HasInputTokenCacheRead() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_InputCacheReadToken != nil
+	return x.xxx_hidden_InputTokenCacheRead != nil
 }
 
-func (x *ModelUsage) HasInputCacheWriteToken() bool {
+func (x *ModelUsage) HasInputTokenCacheWrite() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_InputCacheWriteToken != nil
+	return x.xxx_hidden_InputTokenCacheWrite != nil
 }
 
 func (x *ModelUsage) HasInputSecond() bool {
@@ -318,6 +366,34 @@ func (x *ModelUsage) HasInputCharacter() bool {
 	return x.xxx_hidden_InputCharacter != nil
 }
 
+func (x *ModelUsage) HasInputImageToken() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_InputImageToken != nil
+}
+
+func (x *ModelUsage) HasOutputImageToken() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_OutputImageToken != nil
+}
+
+func (x *ModelUsage) HasInputImageTokenCacheRead() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_InputImageTokenCacheRead != nil
+}
+
+func (x *ModelUsage) HasInputImageTokenCacheWrite() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_InputImageTokenCacheWrite != nil
+}
+
 func (x *ModelUsage) ClearInputToken() {
 	x.xxx_hidden_InputToken = nil
 }
@@ -330,12 +406,12 @@ func (x *ModelUsage) ClearOutputReasoningToken() {
 	x.xxx_hidden_OutputReasoningToken = nil
 }
 
-func (x *ModelUsage) ClearInputCacheReadToken() {
-	x.xxx_hidden_InputCacheReadToken = nil
+func (x *ModelUsage) ClearInputTokenCacheRead() {
+	x.xxx_hidden_InputTokenCacheRead = nil
 }
 
-func (x *ModelUsage) ClearInputCacheWriteToken() {
-	x.xxx_hidden_InputCacheWriteToken = nil
+func (x *ModelUsage) ClearInputTokenCacheWrite() {
+	x.xxx_hidden_InputTokenCacheWrite = nil
 }
 
 func (x *ModelUsage) ClearInputSecond() {
@@ -348,6 +424,22 @@ func (x *ModelUsage) ClearOutputSecond() {
 
 func (x *ModelUsage) ClearInputCharacter() {
 	x.xxx_hidden_InputCharacter = nil
+}
+
+func (x *ModelUsage) ClearInputImageToken() {
+	x.xxx_hidden_InputImageToken = nil
+}
+
+func (x *ModelUsage) ClearOutputImageToken() {
+	x.xxx_hidden_OutputImageToken = nil
+}
+
+func (x *ModelUsage) ClearInputImageTokenCacheRead() {
+	x.xxx_hidden_InputImageTokenCacheRead = nil
+}
+
+func (x *ModelUsage) ClearInputImageTokenCacheWrite() {
+	x.xxx_hidden_InputImageTokenCacheWrite = nil
 }
 
 type ModelUsage_builder struct {
@@ -363,15 +455,23 @@ type ModelUsage_builder struct {
 	// Output reasoning token usage.
 	OutputReasoningToken *ResourceConsumption
 	// Cache read token usage.
-	InputCacheReadToken *ResourceConsumption
+	InputTokenCacheRead *ResourceConsumption
 	// Cache write token usage.
-	InputCacheWriteToken *ResourceConsumption
+	InputTokenCacheWrite *ResourceConsumption
 	// Input seconds.
 	InputSecond *ResourceConsumption
 	// Output seconds.
 	OutputSecond *ResourceConsumption
 	// Input characters.
 	InputCharacter *ResourceConsumption
+	// Input image token usage.
+	InputImageToken *ResourceConsumption
+	// Output image token usage.
+	OutputImageToken *ResourceConsumption
+	// Cache read image token usage.
+	InputImageTokenCacheRead *ResourceConsumption
+	// Cache write image token usage.
+	InputImageTokenCacheWrite *ResourceConsumption
 }
 
 func (b0 ModelUsage_builder) Build() *ModelUsage {
@@ -382,11 +482,15 @@ func (b0 ModelUsage_builder) Build() *ModelUsage {
 	x.xxx_hidden_InputToken = b.InputToken
 	x.xxx_hidden_OutputToken = b.OutputToken
 	x.xxx_hidden_OutputReasoningToken = b.OutputReasoningToken
-	x.xxx_hidden_InputCacheReadToken = b.InputCacheReadToken
-	x.xxx_hidden_InputCacheWriteToken = b.InputCacheWriteToken
+	x.xxx_hidden_InputTokenCacheRead = b.InputTokenCacheRead
+	x.xxx_hidden_InputTokenCacheWrite = b.InputTokenCacheWrite
 	x.xxx_hidden_InputSecond = b.InputSecond
 	x.xxx_hidden_OutputSecond = b.OutputSecond
 	x.xxx_hidden_InputCharacter = b.InputCharacter
+	x.xxx_hidden_InputImageToken = b.InputImageToken
+	x.xxx_hidden_OutputImageToken = b.OutputImageToken
+	x.xxx_hidden_InputImageTokenCacheRead = b.InputImageTokenCacheRead
+	x.xxx_hidden_InputImageTokenCacheWrite = b.InputImageTokenCacheWrite
 	return m0
 }
 
@@ -471,7 +575,7 @@ const file_malonaz_ai_v1_metrics_proto_rawDesc = "" +
 	"\x1bmalonaz/ai/v1/metrics.proto\x12\rmalonaz.ai.v1\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\"q\n" +
 	"\x11GenerationMetrics\x12-\n" +
 	"\x04ttfb\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x04ttfb\x12-\n" +
-	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\xb4\x05\n" +
+	"\x04ttlb\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x04ttlb\"\xa0\b\n" +
 	"\n" +
 	"ModelUsage\x12/\n" +
 	"\x05model\x18\x01 \x01(\tB\x19\xfaA\x16\n" +
@@ -480,11 +584,16 @@ const file_malonaz_ai_v1_metrics_proto_rawDesc = "" +
 	"inputToken\x12E\n" +
 	"\foutput_token\x18\x03 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\voutputToken\x12X\n" +
 	"\x16output_reasoning_token\x18\x04 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x14outputReasoningToken\x12W\n" +
-	"\x16input_cache_read_token\x18\x05 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x13inputCacheReadToken\x12Y\n" +
-	"\x17input_cache_write_token\x18\x06 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x14inputCacheWriteToken\x12E\n" +
+	"\x16input_token_cache_read\x18\x05 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x13inputTokenCacheRead\x12Y\n" +
+	"\x17input_token_cache_write\x18\x06 \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x14inputTokenCacheWrite\x12E\n" +
 	"\finput_second\x18\a \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\vinputSecond\x12G\n" +
 	"\routput_second\x18\b \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\foutputSecond\x12K\n" +
-	"\x0finput_character\x18\t \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x0einputCharacter\"G\n" +
+	"\x0finput_character\x18\t \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x0einputCharacter\x12N\n" +
+	"\x11input_image_token\x18\n" +
+	" \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x0finputImageToken\x12P\n" +
+	"\x12output_image_token\x18\v \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x10outputImageToken\x12b\n" +
+	"\x1cinput_image_token_cache_read\x18\f \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x18inputImageTokenCacheRead\x12d\n" +
+	"\x1dinput_image_token_cache_write\x18\r \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x19inputImageTokenCacheWrite\"G\n" +
 	"\x13ResourceConsumption\x12\x1a\n" +
 	"\bquantity\x18\x01 \x01(\x05R\bquantity\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\x01R\x05priceB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
@@ -502,16 +611,20 @@ var file_malonaz_ai_v1_metrics_proto_depIdxs = []int32{
 	2,  // 2: malonaz.ai.v1.ModelUsage.input_token:type_name -> malonaz.ai.v1.ResourceConsumption
 	2,  // 3: malonaz.ai.v1.ModelUsage.output_token:type_name -> malonaz.ai.v1.ResourceConsumption
 	2,  // 4: malonaz.ai.v1.ModelUsage.output_reasoning_token:type_name -> malonaz.ai.v1.ResourceConsumption
-	2,  // 5: malonaz.ai.v1.ModelUsage.input_cache_read_token:type_name -> malonaz.ai.v1.ResourceConsumption
-	2,  // 6: malonaz.ai.v1.ModelUsage.input_cache_write_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 5: malonaz.ai.v1.ModelUsage.input_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 6: malonaz.ai.v1.ModelUsage.input_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumption
 	2,  // 7: malonaz.ai.v1.ModelUsage.input_second:type_name -> malonaz.ai.v1.ResourceConsumption
 	2,  // 8: malonaz.ai.v1.ModelUsage.output_second:type_name -> malonaz.ai.v1.ResourceConsumption
 	2,  // 9: malonaz.ai.v1.ModelUsage.input_character:type_name -> malonaz.ai.v1.ResourceConsumption
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 10: malonaz.ai.v1.ModelUsage.input_image_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 11: malonaz.ai.v1.ModelUsage.output_image_token:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 12: malonaz.ai.v1.ModelUsage.input_image_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumption
+	2,  // 13: malonaz.ai.v1.ModelUsage.input_image_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumption
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_metrics_proto_init() }

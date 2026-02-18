@@ -530,7 +530,7 @@ func (b0 TttModelConfig_builder) Build() *TttModelConfig {
 	return m0
 }
 
-// Pricing for a ttt model.
+// Pricing configuration for a ttt model.
 type TttModelPricing struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Price per million input tokens in dollars.
@@ -540,11 +540,19 @@ type TttModelPricing struct {
 	// Price per million output reasoning tokens in dollars.
 	OutputReasoningTokenPricePerMillion float64 `protobuf:"fixed64,3,opt,name=output_reasoning_token_price_per_million,json=outputReasoningTokenPricePerMillion,proto3" json:"output_reasoning_token_price_per_million,omitempty"`
 	// Price per million cache read tokens in dollars.
-	InputCacheReadTokenPricePerMillion float64 `protobuf:"fixed64,4,opt,name=input_cache_read_token_price_per_million,json=inputCacheReadTokenPricePerMillion,proto3" json:"input_cache_read_token_price_per_million,omitempty"`
+	InputTokenCacheReadPricePerMillion float64 `protobuf:"fixed64,4,opt,name=input_token_cache_read_price_per_million,json=inputTokenCacheReadPricePerMillion,proto3" json:"input_token_cache_read_price_per_million,omitempty"`
 	// Price per million cache write tokens in dollars.
-	InputCacheWriteTokenPricePerMillion float64 `protobuf:"fixed64,5,opt,name=input_cache_write_token_price_per_million,json=inputCacheWriteTokenPricePerMillion,proto3" json:"input_cache_write_token_price_per_million,omitempty"`
-	unknownFields                       protoimpl.UnknownFields
-	sizeCache                           protoimpl.SizeCache
+	InputTokenCacheWritePricePerMillion float64 `protobuf:"fixed64,5,opt,name=input_token_cache_write_price_per_million,json=inputTokenCacheWritePricePerMillion,proto3" json:"input_token_cache_write_price_per_million,omitempty"`
+	// Price per million input image tokens in dollars.
+	InputImageTokenPricePerMillion float64 `protobuf:"fixed64,6,opt,name=input_image_token_price_per_million,json=inputImageTokenPricePerMillion,proto3" json:"input_image_token_price_per_million,omitempty"`
+	// Price per million output image tokens in dollars.
+	OutputImageTokenPricePerMillion float64 `protobuf:"fixed64,7,opt,name=output_image_token_price_per_million,json=outputImageTokenPricePerMillion,proto3" json:"output_image_token_price_per_million,omitempty"`
+	// Price per million input image cache read tokens in dollars.
+	InputImageTokenCacheReadPricePerMillion float64 `protobuf:"fixed64,8,opt,name=input_image_token_cache_read_price_per_million,json=inputImageTokenCacheReadPricePerMillion,proto3" json:"input_image_token_cache_read_price_per_million,omitempty"`
+	// Price per million input image cache write tokens in dollars.
+	InputImageTokenCacheWritePricePerMillion float64 `protobuf:"fixed64,9,opt,name=input_image_token_cache_write_price_per_million,json=inputImageTokenCacheWritePricePerMillion,proto3" json:"input_image_token_cache_write_price_per_million,omitempty"`
+	unknownFields                            protoimpl.UnknownFields
+	sizeCache                                protoimpl.SizeCache
 }
 
 func (x *TttModelPricing) Reset() {
@@ -593,16 +601,44 @@ func (x *TttModelPricing) GetOutputReasoningTokenPricePerMillion() float64 {
 	return 0
 }
 
-func (x *TttModelPricing) GetInputCacheReadTokenPricePerMillion() float64 {
+func (x *TttModelPricing) GetInputTokenCacheReadPricePerMillion() float64 {
 	if x != nil {
-		return x.InputCacheReadTokenPricePerMillion
+		return x.InputTokenCacheReadPricePerMillion
 	}
 	return 0
 }
 
-func (x *TttModelPricing) GetInputCacheWriteTokenPricePerMillion() float64 {
+func (x *TttModelPricing) GetInputTokenCacheWritePricePerMillion() float64 {
 	if x != nil {
-		return x.InputCacheWriteTokenPricePerMillion
+		return x.InputTokenCacheWritePricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetInputImageTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.InputImageTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetOutputImageTokenPricePerMillion() float64 {
+	if x != nil {
+		return x.OutputImageTokenPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetInputImageTokenCacheReadPricePerMillion() float64 {
+	if x != nil {
+		return x.InputImageTokenCacheReadPricePerMillion
+	}
+	return 0
+}
+
+func (x *TttModelPricing) GetInputImageTokenCacheWritePricePerMillion() float64 {
+	if x != nil {
+		return x.InputImageTokenCacheWritePricePerMillion
 	}
 	return 0
 }
@@ -619,12 +655,28 @@ func (x *TttModelPricing) SetOutputReasoningTokenPricePerMillion(v float64) {
 	x.OutputReasoningTokenPricePerMillion = v
 }
 
-func (x *TttModelPricing) SetInputCacheReadTokenPricePerMillion(v float64) {
-	x.InputCacheReadTokenPricePerMillion = v
+func (x *TttModelPricing) SetInputTokenCacheReadPricePerMillion(v float64) {
+	x.InputTokenCacheReadPricePerMillion = v
 }
 
-func (x *TttModelPricing) SetInputCacheWriteTokenPricePerMillion(v float64) {
-	x.InputCacheWriteTokenPricePerMillion = v
+func (x *TttModelPricing) SetInputTokenCacheWritePricePerMillion(v float64) {
+	x.InputTokenCacheWritePricePerMillion = v
+}
+
+func (x *TttModelPricing) SetInputImageTokenPricePerMillion(v float64) {
+	x.InputImageTokenPricePerMillion = v
+}
+
+func (x *TttModelPricing) SetOutputImageTokenPricePerMillion(v float64) {
+	x.OutputImageTokenPricePerMillion = v
+}
+
+func (x *TttModelPricing) SetInputImageTokenCacheReadPricePerMillion(v float64) {
+	x.InputImageTokenCacheReadPricePerMillion = v
+}
+
+func (x *TttModelPricing) SetInputImageTokenCacheWritePricePerMillion(v float64) {
+	x.InputImageTokenCacheWritePricePerMillion = v
 }
 
 type TttModelPricing_builder struct {
@@ -637,9 +689,17 @@ type TttModelPricing_builder struct {
 	// Price per million output reasoning tokens in dollars.
 	OutputReasoningTokenPricePerMillion float64
 	// Price per million cache read tokens in dollars.
-	InputCacheReadTokenPricePerMillion float64
+	InputTokenCacheReadPricePerMillion float64
 	// Price per million cache write tokens in dollars.
-	InputCacheWriteTokenPricePerMillion float64
+	InputTokenCacheWritePricePerMillion float64
+	// Price per million input image tokens in dollars.
+	InputImageTokenPricePerMillion float64
+	// Price per million output image tokens in dollars.
+	OutputImageTokenPricePerMillion float64
+	// Price per million input image cache read tokens in dollars.
+	InputImageTokenCacheReadPricePerMillion float64
+	// Price per million input image cache write tokens in dollars.
+	InputImageTokenCacheWritePricePerMillion float64
 }
 
 func (b0 TttModelPricing_builder) Build() *TttModelPricing {
@@ -649,8 +709,12 @@ func (b0 TttModelPricing_builder) Build() *TttModelPricing {
 	x.InputTokenPricePerMillion = b.InputTokenPricePerMillion
 	x.OutputTokenPricePerMillion = b.OutputTokenPricePerMillion
 	x.OutputReasoningTokenPricePerMillion = b.OutputReasoningTokenPricePerMillion
-	x.InputCacheReadTokenPricePerMillion = b.InputCacheReadTokenPricePerMillion
-	x.InputCacheWriteTokenPricePerMillion = b.InputCacheWriteTokenPricePerMillion
+	x.InputTokenCacheReadPricePerMillion = b.InputTokenCacheReadPricePerMillion
+	x.InputTokenCacheWritePricePerMillion = b.InputTokenCacheWritePricePerMillion
+	x.InputImageTokenPricePerMillion = b.InputImageTokenPricePerMillion
+	x.OutputImageTokenPricePerMillion = b.OutputImageTokenPricePerMillion
+	x.InputImageTokenCacheReadPricePerMillion = b.InputImageTokenCacheReadPricePerMillion
+	x.InputImageTokenCacheWritePricePerMillion = b.InputImageTokenCacheWritePricePerMillion
 	return m0
 }
 
@@ -768,13 +832,17 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x127\n" +
 	"\x13context_token_limit\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x125\n" +
 	"\x12output_token_limit\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x10outputTokenLimit\x128\n" +
-	"\apricing\x18\x05 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\x9c\x03\n" +
+	"\apricing\x18\x05 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\xfc\x05\n" +
 	"\x0fTttModelPricing\x12@\n" +
 	"\x1dinput_token_price_per_million\x18\x01 \x01(\x01R\x19inputTokenPricePerMillion\x12B\n" +
 	"\x1eoutput_token_price_per_million\x18\x02 \x01(\x01R\x1aoutputTokenPricePerMillion\x12U\n" +
 	"(output_reasoning_token_price_per_million\x18\x03 \x01(\x01R#outputReasoningTokenPricePerMillion\x12T\n" +
-	"(input_cache_read_token_price_per_million\x18\x04 \x01(\x01R\"inputCacheReadTokenPricePerMillion\x12V\n" +
-	")input_cache_write_token_price_per_million\x18\x05 \x01(\x01R#inputCacheWriteTokenPricePerMillion\"\x9c\x01\n" +
+	"(input_token_cache_read_price_per_million\x18\x04 \x01(\x01R\"inputTokenCacheReadPricePerMillion\x12V\n" +
+	")input_token_cache_write_price_per_million\x18\x05 \x01(\x01R#inputTokenCacheWritePricePerMillion\x12K\n" +
+	"#input_image_token_price_per_million\x18\x06 \x01(\x01R\x1einputImageTokenPricePerMillion\x12M\n" +
+	"$output_image_token_price_per_million\x18\a \x01(\x01R\x1foutputImageTokenPricePerMillion\x12_\n" +
+	".input_image_token_cache_read_price_per_million\x18\b \x01(\x01R'inputImageTokenCacheReadPricePerMillion\x12a\n" +
+	"/input_image_token_cache_write_price_per_million\x18\t \x01(\x01R(inputImageTokenCacheWritePricePerMillion\"\x9c\x01\n" +
 	"\x0eTtsModelConfig\x12C\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
 	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRatesBo\xeaAD\n" +
