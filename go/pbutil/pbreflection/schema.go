@@ -132,8 +132,8 @@ func (s *Schema) GetComment(name protoreflect.FullName, style CommentStyle) stri
 	}
 	switch style {
 	case CommentStyleFirstLine:
-		if idx := strings.Index(c, "\n"); idx != -1 {
-			return c[:idx]
+		if before, _, ok := strings.Cut(c, "\n"); ok {
+			return before
 		}
 		return c
 	case CommentStyleMultiline:

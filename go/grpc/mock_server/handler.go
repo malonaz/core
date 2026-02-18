@@ -62,14 +62,14 @@ func validateHandler(handler any) error {
 	if !(hasTwoInArgs && hasTwoRetVals) {
 		var inputTypes []reflect.Type
 
-		for i := 0; i < handlerType.NumIn(); i++ {
-			inputTypes = append(inputTypes, handlerType.In(i))
+		for in := range handlerType.Ins() {
+			inputTypes = append(inputTypes, in)
 		}
 
 		var outputTypes []reflect.Type
 
-		for i := 0; i < handlerType.NumOut(); i++ {
-			outputTypes = append(outputTypes, handlerType.Out(i))
+		for out := range handlerType.Outs() {
+			outputTypes = append(outputTypes, out)
 		}
 
 		return fmt.Errorf(
@@ -83,13 +83,13 @@ func validateHandler(handler any) error {
 	}
 
 	firstArgType := handlerType.In(0)
-	contextReflectType := reflect.TypeOf(new(context.Context)).Elem()
+	contextReflectType := reflect.TypeFor[context.Context]()
 	if !firstArgType.Implements(contextReflectType) {
 		return fmt.Errorf("expected first argument type to implement context.Context, got type <%v>", firstArgType)
 	}
 
 	secondArgType := handlerType.In(1)
-	protoReflectType := reflect.TypeOf(new(proto.Message)).Elem()
+	protoReflectType := reflect.TypeFor[proto.Message]()
 	if !secondArgType.Implements(protoReflectType) {
 		return fmt.Errorf("expected second argument type to implement proto.Message, got type <%v>", firstArgType)
 	}
@@ -100,7 +100,7 @@ func validateHandler(handler any) error {
 	}
 
 	secondRetType := handlerType.Out(1)
-	errorReflectType := reflect.TypeOf(new(error)).Elem()
+	errorReflectType := reflect.TypeFor[error]()
 	if !secondRetType.Implements(errorReflectType) {
 		return fmt.Errorf("expected second return value type to implement error, got type <%v>", secondRetType)
 	}

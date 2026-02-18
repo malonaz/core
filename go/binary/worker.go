@@ -77,7 +77,6 @@ func (w *Worker) Run() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(w.binaries))
 	for _, binary := range w.binaries {
-		binary := binary
 		go func() { w.runBinary(binary); wg.Done() }()
 	}
 	wg.Wait()

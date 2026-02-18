@@ -51,8 +51,8 @@ func (o *ExternalApiKeysOpts) ParseAPIKey(targetServiceAccountID string) (string
 func (o *ExternalApiKeysOpts) parse() (map[string]string, error) {
 	apiKeyToServiceAccountID := make(map[string]string)
 
-	apiKeyPairs := strings.Split(o.APIKeys, ",")
-	for _, keyPair := range apiKeyPairs {
+	apiKeyPairs := strings.SplitSeq(o.APIKeys, ",")
+	for keyPair := range apiKeyPairs {
 		parts := strings.SplitN(keyPair, ":", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid api key format: %s (expected service_account_id:api_key)", keyPair)

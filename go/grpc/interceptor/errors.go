@@ -145,8 +145,8 @@ func (ei *errorInfoInjector) buildServiceMetadataCache() {
 
 			// Extract domain from default_host (everything after first dot)
 			var domain string
-			if idx := strings.Index(defaultHost, "."); idx != -1 {
-				domain = defaultHost[idx+1:]
+			if _, after, ok := strings.Cut(defaultHost, "."); ok {
+				domain = after
 			}
 
 			metadata := &serviceMetadata{

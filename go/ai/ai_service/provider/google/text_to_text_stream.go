@@ -3,7 +3,9 @@ package google
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"google.golang.org/genai"
@@ -27,9 +29,9 @@ const (
 
 func (c *Client) TextToTextStream(
 	request *aiservicepb.TextToTextStreamRequest,
-	stream aiservicepb.AiService_TextToTextStreamServer,
+	srv aiservicepb.AiService_TextToTextStreamServer,
 ) error {
-	ctx := stream.Context()
+	ctx := srv.Context()
 
 	model, err := c.modelService.GetModel(ctx, &aiservicepb.GetModelRequest{Name: request.Model})
 	if err != nil {
@@ -89,9 +91,9 @@ func (c *Client) TextToTextStream(
 	}
 
 	startTime := time.Now()
-	iter := c.client.Models.GenerateContentStream(ctx, model.ProviderModelId, contents, config)
+	generateContentStream := c.client.Models.GenerateContentStream(ctx, model.ProviderModelId, contents, config)
 
-	cs := provider.NewAsyncTextToTextContentSender(stream, 100)
+	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
 	defer cs.Close()
 
 	tca := provider.NewToolCallAccumulator()
@@ -103,8 +105,11 @@ func (c *Client) TextToTextStream(
 	var currentBlockIndex int64 = -1
 	var currentBlockType string
 
-	for resp, err := range iter {
+	for resp, err := range generateContentStream {
 		if err != nil {
+			if apiError, ok := errors.AsType[*genai.APIError](err); ok {
+				return grpc.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
+			}
 			return grpc.Errorf(codes.Internal, "reading stream: %v", err).Err()
 		}
 
@@ -685,4 +690,27 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 		return *partialArg.BoolValue
 	}
 	return partialArg.StringValue
+}
+
+func grpcCodeFromHTTPStatus(status int) codes.Code {
+	switch status {
+	case http.StatusBadRequest:
+		return codes.InvalidArgument
+	case http.StatusUnauthorized:
+		return codes.Unauthenticated
+	case http.StatusForbidden:
+		return codes.PermissionDenied
+	case http.StatusNotFound:
+		return codes.NotFound
+	case http.StatusConflict:
+		return codes.AlreadyExists
+	case http.StatusTooManyRequests:
+		return codes.ResourceExhausted
+	case http.StatusServiceUnavailable:
+		return codes.Unavailable
+	case http.StatusGatewayTimeout:
+		return codes.DeadlineExceeded
+	default:
+		return codes.Internal
+	}
 }

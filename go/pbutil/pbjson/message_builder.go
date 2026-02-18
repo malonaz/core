@@ -318,7 +318,7 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 
 func splitPaths(s string) []string {
 	var paths []string
-	for _, p := range strings.Split(s, ",") {
+	for p := range strings.SplitSeq(s, ",") {
 		if p = strings.TrimSpace(p); p != "" {
 			paths = append(paths, p)
 		}

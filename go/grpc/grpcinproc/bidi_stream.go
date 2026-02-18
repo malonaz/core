@@ -97,13 +97,13 @@ func (b *bidiStream[Req, Resp]) CloseSend() error {
 
 func (b *bidiStream[Req, Resp]) Header() (metadata.MD, error) { return metadata.MD{}, nil }
 func (b *bidiStream[Req, Resp]) Trailer() metadata.MD         { return metadata.MD{} }
-func (b *bidiStream[Req, Resp]) SendMsg(m interface{}) error {
+func (b *bidiStream[Req, Resp]) SendMsg(m any) error {
 	if msg, ok := m.(*Req); ok {
 		return b.Send(msg)
 	}
 	return errors.New("SendMsg: invalid message type")
 }
-func (b *bidiStream[Req, Resp]) RecvMsg(m interface{}) error {
+func (b *bidiStream[Req, Resp]) RecvMsg(m any) error {
 	msg, err := b.Recv()
 	if err != nil {
 		return err
@@ -147,13 +147,13 @@ func (a *bidiServerAdapter[Req, Resp]) Recv() (*Req, error) {
 func (a *bidiServerAdapter[Req, Resp]) SetHeader(md metadata.MD) error  { return nil }
 func (a *bidiServerAdapter[Req, Resp]) SendHeader(md metadata.MD) error { return nil }
 func (a *bidiServerAdapter[Req, Resp]) SetTrailer(md metadata.MD)       {}
-func (a *bidiServerAdapter[Req, Resp]) SendMsg(m interface{}) error {
+func (a *bidiServerAdapter[Req, Resp]) SendMsg(m any) error {
 	if msg, ok := m.(*Resp); ok {
 		return a.Send(msg)
 	}
 	return errors.New("SendMsg: invalid message type")
 }
-func (a *bidiServerAdapter[Req, Resp]) RecvMsg(m interface{}) error {
+func (a *bidiServerAdapter[Req, Resp]) RecvMsg(m any) error {
 	msg, err := a.Recv()
 	if err != nil {
 		return err

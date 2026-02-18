@@ -1,6 +1,6 @@
 module github.com/malonaz/core
 
-go 1.25
+go 1.26
 
 replace github.com/bazelbuild/buildtools => github.com/peterebden/buildtools v0.0.0-20201001123124-f7a36c689cc9
 

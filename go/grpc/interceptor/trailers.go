@@ -142,7 +142,7 @@ type wrappedStream struct {
 }
 
 // RecvMsg wraps the original RecvMsg call and captures trailers on EOF.
-func (w *wrappedStream) RecvMsg(m interface{}) error {
+func (w *wrappedStream) RecvMsg(m any) error {
 	err := w.ClientStream.RecvMsg(m)
 	if err == io.EOF {
 		w.handleTrailers()

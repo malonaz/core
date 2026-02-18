@@ -94,10 +94,7 @@ func (s *VoiceService) ListVoices(ctx context.Context, request *aiservicepb.List
 	}
 
 	// Calculate end index - fetch one extra item to determine if there's a next page.
-	end := offset + pageSize + 1
-	if end > len(voicesToPage) {
-		end = len(voicesToPage)
-	}
+	end := min(offset+pageSize+1, len(voicesToPage))
 
 	// Slice the voices (including potential extra item).
 	fetchedVoices := voicesToPage[offset:end]

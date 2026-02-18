@@ -271,7 +271,7 @@ func (b *Binary) waitForPort() {
 	defer ticker.Stop()
 	var conn net.Conn
 	var err error
-	for i := 0; i < portCheckMaxAttempts; i++ {
+	for range portCheckMaxAttempts {
 		<-ticker.C
 		conn, err = net.Dial("tcp", address)
 		if err != nil {

@@ -21,7 +21,7 @@ func GetDBColumns(object any, except ...string) []string {
 	}
 
 	// Make a slice of pointers to the type of object
-	sliceType := reflect.SliceOf(reflect.PtrTo(t))
+	sliceType := reflect.SliceOf(reflect.PointerTo(t))
 	slice := reflect.New(sliceType).Elem() // Create a new slice to hold pointers to the struct type
 
 	// Append a new pointer to a copy of the object to the slice

@@ -183,10 +183,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	}
 
 	// Calculate end index - fetch one extra item to determine if there's a next page.
-	end := offset + pageSize + 1
-	if end > len(modelsToPage) {
-		end = len(modelsToPage)
-	}
+	end := min(offset+pageSize+1, len(modelsToPage))
 
 	// Slice the models (including potential extra item).
 	fetchedModels := modelsToPage[offset:end]

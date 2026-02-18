@@ -202,13 +202,13 @@ func TestPaginationRequestParser_PageTokenRoundTrip(t *testing.T) {
 func TestPaginationRequestParser_DifferentDefaultPageSizes(t *testing.T) {
 	tests := []struct {
 		name             string
-		createRequest    func() interface{}
+		createRequest    func() any
 		expectedDefault  uint32
 		expectedSQLLimit string
 	}{
 		{
 			name: "default page size 50",
-			createRequest: func() interface{} {
+			createRequest: func() any {
 				return &pb.PaginateOnlyRequest{PageSize: 0, PageToken: ""}
 			},
 			expectedDefault:  50,
@@ -216,7 +216,7 @@ func TestPaginationRequestParser_DifferentDefaultPageSizes(t *testing.T) {
 		},
 		{
 			name: "default page size 10",
-			createRequest: func() interface{} {
+			createRequest: func() any {
 				return &pb.PaginateWithSmallDefaultRequest{PageSize: 0, PageToken: ""}
 			},
 			expectedDefault:  10,

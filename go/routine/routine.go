@@ -27,7 +27,7 @@ func (e *PermanentError) Is(err error) bool {
 }
 
 // NewPermanentError instantiates and returns a new permanent error.
-func NewPermanentError(message string, args ...interface{}) *PermanentError {
+func NewPermanentError(message string, args ...any) *PermanentError {
 	return &PermanentError{Err: fmt.Errorf(message, args)}
 }
 
@@ -270,7 +270,6 @@ func CloseInParallelFN(routines []*Routine) func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(routines))
 		for _, r := range routines {
-			r := r
 			go func() { r.Close(); wg.Done() }()
 		}
 		wg.Wait()

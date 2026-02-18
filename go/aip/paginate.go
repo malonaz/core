@@ -22,7 +22,7 @@ func apiCallReflection(ctx context.Context, apiCallFunc any, req any, opts ...gr
 	}
 
 	// Check if the second parameter is context.Context
-	if funcValue.Type().In(0) != reflect.TypeOf((*context.Context)(nil)).Elem() {
+	if funcValue.Type().In(0) != reflect.TypeFor[context.Context]() {
 		return nil, fmt.Errorf("first argument of apiCall must be context.Context")
 	}
 
@@ -63,7 +63,7 @@ func Paginate[T any](ctx context.Context, request, apiCallFunction any, opts ...
 
 	// Verify that request has the necessary fields
 	reqValue := reflect.ValueOf(request)
-	if reqValue.Kind() != reflect.Ptr || reqValue.Elem().Kind() != reflect.Struct {
+	if reqValue.Kind() != reflect.Pointer || reqValue.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("request must be a pointer to a struct")
 	}
 
@@ -110,11 +110,10 @@ func Paginate[T any](ctx context.Context, request, apiCallFunction any, opts ...
 // getItems tries to find a field within the provided reflection value that
 // matches a slice of type []T. It returns the slice and a boolean flag indicating success.
 func getItems[T any](responseValue reflect.Value) ([]T, error) {
-	for i := 0; i < responseValue.NumField(); i++ {
-		field := responseValue.Field(i)
+	for _, field := range responseValue.Fields() {
 		if field.Kind() == reflect.Slice {
 			// Check if the elements of the slice are of the generic type T
-			if field.Type().Elem() == reflect.TypeOf((*T)(nil)).Elem() {
+			if field.Type().Elem() == reflect.TypeFor[T]() {
 				items := field.Interface().([]T)
 				return items, nil
 			}
@@ -129,7 +128,7 @@ func getItems[T any](responseValue reflect.Value) ([]T, error) {
 // If the bool is false, pagination will stop and return with no error.
 func PaginateFunc[T any](ctx context.Context, request, apiCallFunction any, processPage func([]T) (bool, error), opts ...grpc.CallOption) error {
 	reqValue := reflect.ValueOf(request)
-	if reqValue.Kind() != reflect.Ptr || reqValue.Elem().Kind() != reflect.Struct {
+	if reqValue.Kind() != reflect.Pointer || reqValue.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("request must be a pointer to a struct")
 	}
 	reqValue = reqValue.Elem()
@@ -253,7 +252,7 @@ func PaginateParallel[T any](
 	allItems := []T{}
 	blockSize := (endTimestamp - startTimestamp) / n
 	eg, ctx := errgroup.WithContext(ctx)
-	for i := int64(0); i < n; i++ {
+	for i := range n {
 		request := proto.Clone(request.(proto.Message))
 		reqValue := reflect.ValueOf(request).Elem()
 		initialFilter := reqValue.FieldByName("Filter").String()

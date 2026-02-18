@@ -38,7 +38,7 @@ func BatchInsertQuery(sqlQueryTemplate string, objectsToInsertSlice any, dbColum
 func generateInsertQuery(template string, columns []string, numObjects int) string {
 	columnNames := "(" + strings.Join(columns, ",") + ")"
 	paramPlaceholders := strings.Builder{}
-	for i := 0; i < numObjects; i++ {
+	for i := range numObjects {
 		paramPlaceholders.WriteString(fmt.Sprintf("($%d", i*len(columns)+1))
 		for j := 1; j < len(columns); j++ {
 			paramPlaceholders.WriteString(fmt.Sprintf(",$%d", i*len(columns)+j+1))
@@ -121,11 +121,11 @@ func extractParams(object reflect.Value, columns []string) []any {
 	return objParams
 }
 
-func findFieldByTag(object reflect.Value, tagToFind string) (interface{}, bool) {
+func findFieldByTag(object reflect.Value, tagToFind string) (any, bool) {
 	return findFieldByTagRecursive(object, tagToFind)
 }
 
-func findFieldByTagRecursive(object reflect.Value, tagToFind string) (interface{}, bool) {
+func findFieldByTagRecursive(object reflect.Value, tagToFind string) (any, bool) {
 	t := object.Type()
 	for i := 0; i < object.NumField(); i++ {
 		field := object.Field(i)

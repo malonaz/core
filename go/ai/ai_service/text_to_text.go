@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -74,9 +75,7 @@ func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
 	}
 
 	// Copy annotations.
-	for k, v := range tool.GetAnnotations() {
-		toolCall.Annotations[k] = v
-	}
+	maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 	return true
 }
 
@@ -106,9 +105,7 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			}
 
 			// Copy annotations.
-			for k, v := range tool.GetAnnotations() {
-				toolCall.Annotations[k] = v
-			}
+			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 		}
 
 		// Dedupe partial tool calls.
@@ -121,209 +118,19 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		}
 
 	case *pb.TextToTextStreamResponse_ModelUsage:
-		modelUsage := c.ModelUsage
-
-		// INPUT TOKENS.
-		if inputToken := modelUsage.GetInputToken(); inputToken != nil {
-			if existingInputToken := w.modelUsage.GetInputToken(); existingInputToken != nil {
-				// Check if this is a cache breakdown: input + cache_read == previous_input
-				if inputTokenCacheRead := modelUsage.GetInputTokenCacheRead(); inputTokenCacheRead != nil &&
-					inputToken.Quantity+inputTokenCacheRead.Quantity == existingInputToken.Quantity {
-					// Valid cache breakdown - allow the new input value to be sent
-					w.modelUsage.InputToken = inputToken
-				} else if inputToken.Quantity < existingInputToken.Quantity {
-					w.modelUsage.InputToken = inputToken
-					// Gemini is misbehaving -_-.
-					//return grpc.Errorf(codes.Internal,
-					//	"received input tokens with smaller quantity: previous %d, current %d",
-					//	existingInputToken.Quantity, inputToken.Quantity,
-					//).Err()
-				} else if inputToken.Quantity == existingInputToken.Quantity {
-					modelUsage.InputToken = nil
-				} else {
-					w.modelUsage.InputToken = inputToken
-				}
-			} else {
-				w.modelUsage.InputToken = inputToken
-			}
-		}
-		// INPUT CACHE READ TOKENS.
-		if inputTokenCacheRead := modelUsage.GetInputTokenCacheRead(); inputTokenCacheRead != nil {
-			if existingInputTokenCacheRead := w.modelUsage.GetInputTokenCacheRead(); existingInputTokenCacheRead != nil {
-				if existingInputTokenCacheRead.Quantity != inputTokenCacheRead.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received input cache read tokens twice with different quantities: previous %d, current %d",
-						existingInputTokenCacheRead.Quantity, inputTokenCacheRead.Quantity,
-					).Err()
-				}
-				modelUsage.InputTokenCacheRead = nil
-			} else {
-				w.modelUsage.InputTokenCacheRead = inputTokenCacheRead
-			}
-		}
-
-		// INPUT CACHE WRITE TOKENS.
-		if inputTokenCacheWrite := modelUsage.GetInputTokenCacheWrite(); inputTokenCacheWrite != nil {
-			if existingInputTokenCacheWrite := w.modelUsage.GetInputTokenCacheWrite(); existingInputTokenCacheWrite != nil {
-				if existingInputTokenCacheWrite.Quantity != inputTokenCacheWrite.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received input cache write tokens twice with different quantities: previous %d, current %d",
-						existingInputTokenCacheWrite.Quantity, inputTokenCacheWrite.Quantity,
-					).Err()
-				}
-				modelUsage.InputTokenCacheWrite = nil
-			} else {
-				w.modelUsage.InputTokenCacheWrite = inputTokenCacheWrite
-			}
-		}
-
-		// OUTPUT TOKENS.
-		if outputToken := modelUsage.GetOutputToken(); outputToken != nil {
-			if existingOutputToken := w.modelUsage.GetOutputToken(); existingOutputToken != nil {
-				if outputToken.Quantity < existingOutputToken.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received output tokens with smaller quantity: previous %d, current %d",
-						existingOutputToken.Quantity, outputToken.Quantity,
-					).Err()
-				}
-				if outputToken.Quantity == existingOutputToken.Quantity {
-					modelUsage.OutputToken = nil
-				} else {
-					w.modelUsage.OutputToken = outputToken
-				}
-			} else {
-				w.modelUsage.OutputToken = outputToken
-			}
-		}
-
-		// INPUT IMAGE TOKENS.
-		if inputImageToken := modelUsage.GetInputImageToken(); inputImageToken != nil {
-			if existingInputImageToken := w.modelUsage.GetInputImageToken(); existingInputImageToken != nil {
-				if inputImageToken.Quantity < existingInputImageToken.Quantity {
-					w.modelUsage.InputImageToken = inputImageToken
-				} else if inputImageToken.Quantity == existingInputImageToken.Quantity {
-					modelUsage.InputImageToken = nil
-				} else {
-					w.modelUsage.InputImageToken = inputImageToken
-				}
-			} else {
-				w.modelUsage.InputImageToken = inputImageToken
-			}
-		}
-
-		// INPUT IMAGE CACHE READ TOKENS.
-		if inputImageTokenCacheRead := modelUsage.GetInputImageTokenCacheRead(); inputImageTokenCacheRead != nil {
-			if existingInputImageTokenCacheRead := w.modelUsage.GetInputImageTokenCacheRead(); existingInputImageTokenCacheRead != nil {
-				if existingInputImageTokenCacheRead.Quantity != inputImageTokenCacheRead.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received input image cache read tokens twice with different quantities: previous %d, current %d",
-						existingInputImageTokenCacheRead.Quantity, inputImageTokenCacheRead.Quantity,
-					).Err()
-				}
-				modelUsage.InputImageTokenCacheRead = nil
-			} else {
-				w.modelUsage.InputImageTokenCacheRead = inputImageTokenCacheRead
-			}
-		}
-
-		// INPUT IMAGE CACHE WRITE TOKENS.
-		if inputImageTokenCacheWrite := modelUsage.GetInputImageTokenCacheWrite(); inputImageTokenCacheWrite != nil {
-			if existingInputImageTokenCacheWrite := w.modelUsage.GetInputImageTokenCacheWrite(); existingInputImageTokenCacheWrite != nil {
-				if existingInputImageTokenCacheWrite.Quantity != inputImageTokenCacheWrite.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received input image cache write tokens twice with different quantities: previous %d, current %d",
-						existingInputImageTokenCacheWrite.Quantity, inputImageTokenCacheWrite.Quantity,
-					).Err()
-				}
-				modelUsage.InputImageTokenCacheWrite = nil
-			} else {
-				w.modelUsage.InputImageTokenCacheWrite = inputImageTokenCacheWrite
-			}
-		}
-
-		// OUTPUT IMAGE TOKENS.
-		if outputImageToken := modelUsage.GetOutputImageToken(); outputImageToken != nil {
-			if existingOutputImageToken := w.modelUsage.GetOutputImageToken(); existingOutputImageToken != nil {
-				if outputImageToken.Quantity < existingOutputImageToken.Quantity {
-					return grpc.Errorf(codes.Internal,
-						"received output image tokens with smaller quantity: previous %d, current %d",
-						existingOutputImageToken.Quantity, outputImageToken.Quantity,
-					).Err()
-				}
-				if outputImageToken.Quantity == existingOutputImageToken.Quantity {
-					modelUsage.OutputImageToken = nil
-				} else {
-					w.modelUsage.OutputImageToken = outputImageToken
-				}
-			} else {
-				w.modelUsage.OutputImageToken = outputImageToken
-			}
-		}
-
-		// OUTPUT REASONING TOKENS.
-		if outputReasoningToken := modelUsage.GetOutputReasoningToken(); outputReasoningToken != nil {
-			if existingOutputReasoningToken := w.modelUsage.GetOutputReasoningToken(); existingOutputReasoningToken != nil {
-				if outputReasoningToken.Quantity == existingOutputReasoningToken.Quantity {
-					modelUsage.OutputReasoningToken = nil
-				} else {
-					w.modelUsage.OutputReasoningToken = outputReasoningToken
-				}
-			} else {
-				w.modelUsage.OutputReasoningToken = outputReasoningToken
-			}
-		}
-
-		// Skip sending empty model usage responses
-		if modelUsage.InputToken == nil && modelUsage.InputTokenCacheRead == nil &&
-			modelUsage.InputTokenCacheWrite == nil && modelUsage.OutputToken == nil &&
-			modelUsage.OutputReasoningToken == nil && modelUsage.InputImageToken == nil &&
-			modelUsage.InputImageTokenCacheRead == nil && modelUsage.InputImageTokenCacheWrite == nil &&
-			modelUsage.OutputImageToken == nil {
+		// Check if the model usage is empty.
+		if ai.IsModelUsageEmpty(c.ModelUsage) {
 			return nil
 		}
-		computeModelUsagePrices(modelUsage, w.model.GetTtt().GetPricing())
+		// Merge the incoming model usage onto the base model usage.
+		if err := ai.MergeModelUsage(w.modelUsage, c.ModelUsage); err != nil {
+			return grpc.Errorf(codes.Internal, "merging model usage: %v", err).Err()
+		}
+		// Set the model usage pricing.
+		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
 	}
 
 	return w.AiService_TextToTextStreamServer.Send(resp)
-}
-
-func computeModelUsagePrices(usage *aipb.ModelUsage, pricing *aipb.TttModelPricing) {
-	if pricing == nil {
-		return
-	}
-	if usage.InputToken != nil {
-		usage.InputToken.Price = float64(usage.InputToken.Quantity) * pricing.InputTokenPricePerMillion / 1_000_000
-	}
-	if usage.OutputToken != nil {
-		usage.OutputToken.Price = float64(usage.OutputToken.Quantity) * pricing.OutputTokenPricePerMillion / 1_000_000
-	}
-	if usage.OutputReasoningToken != nil {
-		pricePerMillion := pricing.OutputReasoningTokenPricePerMillion
-		if pricePerMillion == 0 {
-			pricePerMillion = pricing.OutputTokenPricePerMillion
-		}
-		usage.OutputReasoningToken.Price = float64(usage.OutputReasoningToken.Quantity) * pricePerMillion / 1_000_000
-	}
-	if usage.InputTokenCacheRead != nil {
-		usage.InputTokenCacheRead.Price = float64(usage.InputTokenCacheRead.Quantity) * pricing.InputTokenCacheReadPricePerMillion / 1_000_000
-	}
-	if usage.InputTokenCacheWrite != nil {
-		usage.InputTokenCacheWrite.Price = float64(usage.InputTokenCacheWrite.Quantity) * pricing.InputTokenCacheWritePricePerMillion / 1_000_000
-	}
-
-	// IMAGE TOKENS.
-	if usage.InputImageToken != nil {
-		usage.InputImageToken.Price = float64(usage.InputImageToken.Quantity) * pricing.InputImageTokenPricePerMillion / 1_000_000
-	}
-	if usage.OutputImageToken != nil {
-		usage.OutputImageToken.Price = float64(usage.OutputImageToken.Quantity) * pricing.OutputImageTokenPricePerMillion / 1_000_000
-	}
-	if usage.InputImageTokenCacheRead != nil {
-		usage.InputImageTokenCacheRead.Price = float64(usage.InputImageTokenCacheRead.Quantity) * pricing.InputImageTokenCacheReadPricePerMillion / 1_000_000
-	}
-	if usage.InputImageTokenCacheWrite != nil {
-		usage.InputImageTokenCacheWrite.Price = float64(usage.InputImageTokenCacheWrite.Quantity) * pricing.InputImageTokenCacheWritePricePerMillion / 1_000_000
-	}
 }
 
 // TextToText collects all streamed text chunks into a single response

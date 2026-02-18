@@ -19,7 +19,6 @@ func CombineChecks(checks ...Check) Check {
 		errGroup, groupCtx := errgroup.WithContext(ctx)
 
 		for _, check := range checks {
-			check := check // capture loop variables
 			errGroup.Go(func() error {
 				return check(groupCtx)
 			})

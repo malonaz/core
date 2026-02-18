@@ -49,7 +49,7 @@ func WithEnvVariables() Option {
 		vm.NativeFunction(&jsonnet.NativeFunction{
 			Name:   "env",
 			Params: ast.Identifiers{"name"},
-			Func: func(args []interface{}) (interface{}, error) {
+			Func: func(args []any) (any, error) {
 				return os.Getenv(args[0].(string)), nil
 			},
 		})

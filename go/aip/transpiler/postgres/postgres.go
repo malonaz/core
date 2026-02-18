@@ -12,10 +12,10 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-func TranspileFilter(filter filtering.Filter) (string, []interface{}, error) {
+func TranspileFilter(filter filtering.Filter) (string, []any, error) {
 	t := &Transpiler{
 		filter: filter,
-		params: []interface{}{},
+		params: []any{},
 	}
 	return t.Transpile()
 }
@@ -107,11 +107,11 @@ const (
 
 type Transpiler struct {
 	filter       filtering.Filter
-	params       []interface{}
+	params       []any
 	paramCounter int
 }
 
-func (t *Transpiler) Transpile() (string, []interface{}, error) {
+func (t *Transpiler) Transpile() (string, []any, error) {
 	if t.filter.CheckedExpr == nil {
 		return "", nil, nil
 	}
@@ -631,7 +631,7 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (sqlExpr, error) {
 	return t.param(timeArg), nil
 }
 
-func (t *Transpiler) param(value interface{}) param {
+func (t *Transpiler) param(value any) param {
 	p := t.nextParam()
 	t.params = append(t.params, value)
 	return param(p)

@@ -11,7 +11,7 @@ func convertPCMBytesToFloat32(data []byte, bitsPerSample int32) []float32 {
 	sampleCount := len(data) / bytesPerSample
 	float32Data := make([]float32, sampleCount)
 
-	for i := 0; i < sampleCount; i++ {
+	for i := range sampleCount {
 		offset := i * bytesPerSample
 		if offset+1 >= len(data) {
 			break

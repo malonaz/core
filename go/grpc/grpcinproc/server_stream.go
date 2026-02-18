@@ -99,11 +99,11 @@ func (y *serverStreamYielder[T]) Trailer() metadata.MD {
 	return metadata.MD{}
 }
 
-func (y *serverStreamYielder[T]) SendMsg(m interface{}) error {
+func (y *serverStreamYielder[T]) SendMsg(m any) error {
 	return errors.New("SendMsg not supported on client stream")
 }
 
-func (y *serverStreamYielder[T]) RecvMsg(m interface{}) error {
+func (y *serverStreamYielder[T]) RecvMsg(m any) error {
 	msg, err := y.Recv()
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (a *serverStreamAdapter[T]) SendHeader(md metadata.MD) error {
 func (a *serverStreamAdapter[T]) SetTrailer(md metadata.MD) {
 }
 
-func (a *serverStreamAdapter[T]) SendMsg(m interface{}) error {
+func (a *serverStreamAdapter[T]) SendMsg(m any) error {
 	// For local calls, delegate to Send if m is the right type
 	if msg, ok := m.(*T); ok {
 		return a.Send(msg)
@@ -148,7 +148,7 @@ func (a *serverStreamAdapter[T]) SendMsg(m interface{}) error {
 	return errors.New("SendMsg: invalid message type")
 }
 
-func (a *serverStreamAdapter[T]) RecvMsg(m interface{}) error {
+func (a *serverStreamAdapter[T]) RecvMsg(m any) error {
 	return errors.New("RecvMsg not supported on server stream")
 }
 

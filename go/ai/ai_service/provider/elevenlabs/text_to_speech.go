@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 	"unicode/utf8"
 
@@ -48,16 +49,13 @@ func (c *Client) TextToSpeechStream(
 	// Use the preferred sample rate if it is supported
 	preferredSampleRate := request.GetConfiguration().GetPreferredSampleRate()
 	if preferredSampleRate > 0 {
-		for _, supportedSampleRate := range model.Tts.SupportedSampleRates {
-			if supportedSampleRate == preferredSampleRate {
-				audioFormat.SampleRate = preferredSampleRate
-				break
-			}
+		if slices.Contains(model.Tts.SupportedSampleRates, preferredSampleRate) {
+			audioFormat.SampleRate = preferredSampleRate
 		}
 	}
 
 	// Build base request with non-overridable fields
-	baseRequest := map[string]interface{}{
+	baseRequest := map[string]any{
 		"text":     request.Text,
 		"model_id": model.ProviderModelId,
 	}

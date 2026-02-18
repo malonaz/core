@@ -128,7 +128,7 @@ func PCM16ToMulaw8(pcmBytes []byte) []byte {
 	sampleCount := len(pcmBytes) / 2
 	mulawBytes := make([]byte, sampleCount)
 
-	for i := 0; i < sampleCount; i++ {
+	for i := range sampleCount {
 		// Read little-endian 16-bit integer
 		pcm16 := int16(binary.LittleEndian.Uint16(pcmBytes[i*2:]))
 
@@ -149,7 +149,7 @@ func ResamplePCM16(input []byte, fromRate, toRate int32) []byte {
 	// Convert bytes to int16 samples
 	numInputSamples := len(input) / 2
 	inputSamples := make([]int16, numInputSamples)
-	for i := 0; i < numInputSamples; i++ {
+	for i := range numInputSamples {
 		inputSamples[i] = int16(input[i*2]) | int16(input[i*2+1])<<8
 	}
 
@@ -161,7 +161,7 @@ func ResamplePCM16(input []byte, fromRate, toRate int32) []byte {
 	// Simple decimation for downsampling (taking every Nth sample)
 	// For 24kHz -> 8kHz, we take every 3rd sample
 	step := float64(fromRate) / float64(toRate)
-	for i := 0; i < numOutputSamples; i++ {
+	for i := range numOutputSamples {
 		srcIndex := int(float64(i) * step)
 		if srcIndex < numInputSamples {
 			outputSamples[i] = inputSamples[srcIndex]
