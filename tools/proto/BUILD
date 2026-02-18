@@ -144,3 +144,15 @@ genrule(
     output_is_complete = True,
     visibility = ["PUBLIC"],
 )
+
+# Protoc ruby grpc plugin - referenced in .plzconfig.
+genrule(
+    name = "protoc-gen-ruby-grpc",
+    outs = ["protoc-gen-ruby-grpc"],
+    cmd = [
+        "GEM_HOME=$PWD/protoc-gen-ruby-grpc gem install grpc-tools --no-document",
+        "rm -rf protoc-gen-ruby-grpc/cache",
+    ],
+    output_is_complete = True,
+    visibility = ["PUBLIC"],
+)

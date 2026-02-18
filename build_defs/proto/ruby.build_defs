@@ -1,0 +1,107 @@
+"""Build rules for compiling protocol buffers for Ruby.
+"""
+subinclude(
+    "///proto//build_defs/sdk",
+)
+
+def ruby_proto_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    return protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "ruby",
+        tools = {},
+        protoc_flags = protoc_flags,
+        plugin_flags = [
+            '--ruby_out="$OUT_DIR"',
+        ],
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        visibility = visibility,
+    )
+
+def ruby_grpc_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    tools = {"grpc_ruby_plugin": CONFIG.CORE.PROTOC_GEN_GRPC_RUBY}
+    plugin_flags = [
+        '--ruby_out="$OUT_DIR"',
+        '--grpc_out="$OUT_DIR"',
+        '--plugin=protoc-gen-grpc="$TOOLS_GRPC_RUBY_PLUGIN/bin/grpc_tools_ruby_protoc_plugin"',
+    ]
+    pre_build_function = lambda rule: set_command(rule, 'export GEM_HOME="$TOOLS_GRPC_RUBY_PLUGIN" && ' + get_command(rule))
+
+    return protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "ruby",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps,
+        pre_build = pre_build_function,
+        visibility = visibility,
+    )
+
+def ruby_grpc_gateway_library(
+        name:str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        additional_context:dict=None,
+):
+    return ruby_grpc_library(
+        name = name,
+        srcs = srcs,
+        deps = deps,
+        visibility = visibility,
+        labels = labels,
+        test_only = test_only,
+        root_dir = root_dir,
+        protoc_flags = protoc_flags,
+        additional_context = additional_context,
+    )
+
+def ruby_grpc_gateway_language():
+    return proto_language(
+        language = "ruby",
+        build_def = ruby_grpc_gateway_library,
+    )
+
+def ruby_grpc_language():
+    return proto_language(
+        language = "ruby",
+        build_def = ruby_grpc_library,
+    )
+
+def ruby_proto_language():
+    return proto_language(
+        language = "ruby",
+        build_def = ruby_proto_library,
+    )

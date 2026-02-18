@@ -39,6 +39,7 @@ CgoEnabled = true
 Target = //plugins:proto
 LanguageDef = //build_defs/proto:go
 LanguageDef = //build_defs/proto:js
+;;LanguageDef = //build_defs/proto:ruby
 ProtocTool = //tools/proto:protoc
 
 [Plugin "core"]
@@ -123,6 +124,11 @@ DefaultValue = //tools/proto:protoc-gen-es
 [PluginConfig "protoc_gen_connect_query"]
 ConfigKey = ProtocGenConnectQuery
 DefaultValue = //tools/proto:protoc-gen-connect-query
+
+[PluginConfig "protoc_gen_grpc_ruby"]
+ConfigKey = ProtocGenGrpcRuby
+DefaultValue = //tools/proto:protoc-gen-ruby-grpc
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]

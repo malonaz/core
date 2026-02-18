@@ -7,6 +7,11 @@ filegroup(
     srcs = ["descriptor.build_defs"],
 )
 
+filegroup(
+    name = "utils",
+    srcs = ["utils.build_defs"],
+)
+
 proto_build_defs(
     name = "go",
     srcs = ["go.build_defs"],
@@ -29,7 +34,13 @@ proto_build_defs(
     visibility = ["PUBLIC"],
 )
 
-filegroup(
-    name = "utils",
-    srcs = ["utils.build_defs"],
+proto_build_defs(
+    name = "ruby",
+    srcs = ["ruby.build_defs"],
+    proto_languages = {
+        "grpc_language": ["ruby_grpc_language"],
+        "proto_language": ["ruby_proto_language"],
+        "grpc_gateway_language": ["ruby_grpc_gateway_language"],
+    },
+    visibility = ["PUBLIC"],
 )
