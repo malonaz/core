@@ -17,7 +17,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 const (
@@ -107,7 +106,7 @@ func (c *Client) TextToTextStream(
 
 	for resp, err := range generateContentStream {
 		if err != nil {
-			if apiError, ok := errors.AsType[*genai.APIError](err); ok {
+			if apiError, ok := errors.AsType[genai.APIError](err); ok {
 				return grpc.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
 			}
 			return grpc.Errorf(codes.Internal, "reading stream: %v", err).Err()
@@ -125,6 +124,13 @@ func (c *Client) TextToTextStream(
 		}
 
 		for _, candidate := range resp.Candidates {
+			if candidate.FinishReason != genai.FinishReasonUnspecified {
+				var ok bool
+				stopReason, ok = finishReasonToPb[candidate.FinishReason]
+				if !ok {
+					return grpc.Errorf(codes.Internal, "unknown finish reason: %v", candidate.FinishReason).Err()
+				}
+			}
 			if candidate.Content == nil {
 				continue
 			}
@@ -269,14 +275,6 @@ func (c *Client) TextToTextStream(
 						block.Signature = signature
 						cs.SendBlocks(ctx, block)
 					}
-				}
-			}
-
-			if candidate.FinishReason != genai.FinishReasonUnspecified {
-				var ok bool
-				stopReason, ok = finishReasonToPb[candidate.FinishReason]
-				if !ok {
-					return grpc.Errorf(codes.Internal, "unknown finish reason: %v", candidate.FinishReason).Err()
 				}
 			}
 		}
@@ -599,40 +597,46 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 		Model: modelName,
 	}
 
-	defer func() {
-		bytes, err := json.Marshal(usage)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(bytes)
-		pbutil.MustPrintPretty(modelUsage)
-	}()
-
 	var inputImageTokens, outputImageTokens, cacheReadImageTokens int32
 	var inputTextTokens, outputTextTokens, cacheReadTextTokens int32
-	for _, detail := range usage.PromptTokensDetails {
-		switch detail.Modality {
-		case genai.MediaModalityImage:
-			inputImageTokens += detail.TokenCount
-		case genai.MediaModalityText:
-			inputTextTokens += detail.TokenCount
+
+	if len(usage.PromptTokensDetails) > 0 {
+		for _, detail := range usage.PromptTokensDetails {
+			switch detail.Modality {
+			case genai.MediaModalityImage:
+				inputImageTokens += detail.TokenCount
+			case genai.MediaModalityText:
+				inputTextTokens += detail.TokenCount
+			}
 		}
+	} else {
+		inputTextTokens = usage.PromptTokenCount
 	}
-	for _, detail := range usage.CandidatesTokensDetails {
-		switch detail.Modality {
-		case genai.MediaModalityImage:
-			outputImageTokens += detail.TokenCount
-		case genai.MediaModalityText:
-			outputTextTokens += detail.TokenCount
+
+	if len(usage.CandidatesTokensDetails) > 0 {
+		for _, detail := range usage.CandidatesTokensDetails {
+			switch detail.Modality {
+			case genai.MediaModalityImage:
+				outputImageTokens += detail.TokenCount
+			case genai.MediaModalityText:
+				outputTextTokens += detail.TokenCount
+			}
 		}
+	} else {
+		outputTextTokens = usage.CandidatesTokenCount
 	}
-	for _, detail := range usage.CacheTokensDetails {
-		switch detail.Modality {
-		case genai.MediaModalityImage:
-			cacheReadImageTokens += detail.TokenCount
-		case genai.MediaModalityText:
-			cacheReadTextTokens += detail.TokenCount
+
+	if len(usage.CacheTokensDetails) > 0 {
+		for _, detail := range usage.CacheTokensDetails {
+			switch detail.Modality {
+			case genai.MediaModalityImage:
+				cacheReadImageTokens += detail.TokenCount
+			case genai.MediaModalityText:
+				cacheReadTextTokens += detail.TokenCount
+			}
 		}
+	} else {
+		cacheReadTextTokens = usage.CachedContentTokenCount
 	}
 
 	if inputTextTokens > 0 {

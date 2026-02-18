@@ -123,9 +123,8 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			return nil
 		}
 		// Merge the incoming model usage onto the base model usage.
-		if err := ai.MergeModelUsage(w.modelUsage, c.ModelUsage); err != nil {
-			return grpc.Errorf(codes.Internal, "merging model usage: %v", err).Err()
-		}
+		proto.Merge(w.modelUsage, c.ModelUsage)
+
 		// Set the model usage pricing.
 		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
 	}
