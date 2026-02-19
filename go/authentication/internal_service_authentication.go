@@ -126,7 +126,6 @@ func (i *InternalServiceAuthenticationInterceptor) authenticateService(ctx conte
 				ServiceAccount: serviceAccount,
 			},
 		},
-		RoleIds: serviceAccount.RoleIds,
 	}
 
 	signedSession, err := i.sessionManager.sign(session)

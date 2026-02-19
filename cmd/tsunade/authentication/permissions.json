@@ -1,4 +1,9 @@
+// Service accounts.
+local internal_service_accounts = import 'internal_service_accounts.json';
+local external_service_accounts = import 'external_service_accounts.json';
+
 {
+  "service_accounts": internal_service_accounts.service_accounts + external_service_accounts.service_accounts,
   "roles": [
     {
       "id": "ai:text_to_text",

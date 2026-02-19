@@ -24,9 +24,9 @@ type PermissionAuthenticationInterceptorOpts struct {
 }
 
 type PermissionAuthenticationInterceptor struct {
-	sessionManager    *SessionManager
-	methodToRoleIDSet map[string]map[string]struct{}
-	publicMethodSet   map[string]struct{}
+	sessionManager              *SessionManager
+	serviceAccountIDToMethodSet map[string]map[string]struct{}
+	publicMethodSet             map[string]struct{}
 }
 
 var (
@@ -46,8 +46,8 @@ func compileWildcardPermission(pattern string) (*regexp.Regexp, error) {
 	return compiled, nil
 }
 
-// allFullMethods returns the set of all registered RPC full method names from the proto registry.
-func allFullMethods() map[string]struct{} {
+// getMethodSet returns the set of all registered RPC full method names from the proto registry.
+func getMethodSet() map[string]struct{} {
 	fullMethodSet := map[string]struct{}{}
 	protoregistry.GlobalFiles.RangeFiles(func(fileDescriptor protoreflect.FileDescriptor) bool {
 		services := fileDescriptor.Services()
@@ -76,23 +76,38 @@ func NewPermissionAuthenticationInterceptor(
 	}
 
 	// Collect all registered RPC full method names from the proto registry.
-	fullMethodSet := allFullMethods()
+	methodSet := getMethodSet()
 
+	// Compute a mapping of role ids to role.
 	roleIDToRole := map[string]*authenticationpb.Role{}
 	for _, role := range configuration.Roles {
 		roleIDToRole[role.Id] = role
 	}
 
-	// Build permission map with role inheritance.
+	// Compute a mapping of service account ids to permissions.
+	// Handles inherited roles.
+	serviceAccountIDToPermissions := map[string][]string{}
+	for _, serviceAccount := range configuration.ServiceAccounts {
+		permissions := serviceAccount.Permissions
+		for _, roleID := range serviceAccount.RoleIds {
+			permissionSet, err := getPermissionSetForRole(roleID, roleIDToRole, make(map[string]bool))
+			if err != nil {
+				return nil, err
+			}
+			for permission := range permissionSet {
+				permissions = append(permissions, permission)
+			}
+		}
+		serviceAccountIDToPermissions[serviceAccount.Id] = permissions
+	}
+
+	// Build service account permission map.
 	// Expand wildcard permissions into exact matches against registered methods.
-	methodToRoleIDSet := map[string]map[string]struct{}{}
+	serviceAccountIDToMethodSet := map[string]map[string]struct{}{}
 
-	// For each role, get all its permissions (including inherited ones)
-	for _, role := range configuration.Roles {
-		allPermissions := getAllPermissionsForRole(role.Id, roleIDToRole, make(map[string]bool))
-
-		// Map each permission to this role
-		for permission := range allPermissions {
+	for serviceAccountID, permissions := range serviceAccountIDToPermissions {
+		serviceAccountIDToMethodSet[serviceAccountID] = map[string]struct{}{}
+		for _, permission := range permissions {
 			if strings.Contains(permission, "*") {
 				// Wildcard permission: expand against registered methods.
 				pattern, err := compileWildcardPermission(permission)
@@ -100,31 +115,23 @@ func NewPermissionAuthenticationInterceptor(
 					return nil, err
 				}
 				matchCount := 0
-				for fullMethod := range fullMethodSet {
-					if pattern.MatchString(fullMethod) {
+				for method := range methodSet {
+					if pattern.MatchString(method) {
 						matchCount++
-						roleIDSet, ok := methodToRoleIDSet[fullMethod]
-						if !ok {
-							roleIDSet = map[string]struct{}{}
-							methodToRoleIDSet[fullMethod] = roleIDSet
-						}
-						roleIDSet[role.Id] = struct{}{}
+						serviceAccountIDToMethodSet[serviceAccountID][method] = struct{}{}
 					}
 				}
 				if matchCount == 0 {
-					return nil, fmt.Errorf("wildcard permission %q in role %q matches no registered RPC methods", permission, role.Id)
+					return nil, fmt.Errorf("wildcard permission %q for service account %q matches no registered RPC methods", permission, serviceAccountID)
 				}
 			} else {
+				method := permission // Exact match.
+
 				// Exact permission: validate it maps to a registered method.
-				if _, ok := fullMethodSet[permission]; !ok {
-					return nil, fmt.Errorf("permission %q in role %q does not match any registered RPC method", permission, role.Id)
+				if _, ok := methodSet[method]; !ok {
+					return nil, fmt.Errorf("permission %q in service account %q does not match any registered RPC method", permission, serviceAccountID)
 				}
-				roleIDSet, ok := methodToRoleIDSet[permission]
-				if !ok {
-					roleIDSet = map[string]struct{}{}
-					methodToRoleIDSet[permission] = roleIDSet
-				}
-				roleIDSet[role.Id] = struct{}{}
+				serviceAccountIDToMethodSet[serviceAccountID][method] = struct{}{}
 			}
 		}
 	}
@@ -136,24 +143,24 @@ func NewPermissionAuthenticationInterceptor(
 	}
 
 	return &PermissionAuthenticationInterceptor{
-		sessionManager:    sessionManager,
-		methodToRoleIDSet: methodToRoleIDSet,
-		publicMethodSet:   publicMethodSet,
+		sessionManager:              sessionManager,
+		serviceAccountIDToMethodSet: serviceAccountIDToMethodSet,
+		publicMethodSet:             publicMethodSet,
 	}, nil
 }
 
-// getAllPermissionsForRole recursively collects all permissions for a role,
+// getPermissionSetForRole recursively collects all permissions for a role,
 // including permissions from inherited roles
-func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authenticationpb.Role, visited map[string]bool) map[string]struct{} {
+func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticationpb.Role, visited map[string]bool) (map[string]struct{}, error) {
 	// Prevent infinite loops in case of circular inheritance
 	if visited[roleID] {
-		return map[string]struct{}{}
+		return nil, nil
 	}
 	visited[roleID] = true
 
 	role, exists := roleIDToRole[roleID]
 	if !exists {
-		return map[string]struct{}{}
+		return nil, fmt.Errorf("unknown role %q", roleID)
 	}
 
 	permissions := make(map[string]struct{})
@@ -165,13 +172,16 @@ func getAllPermissionsForRole(roleID string, roleIDToRole map[string]*authentica
 
 	// Add inherited permissions
 	for _, inheritedRoleID := range role.InheritedRoleIds {
-		inheritedPermissions := getAllPermissionsForRole(inheritedRoleID, roleIDToRole, visited)
+		inheritedPermissions, err := getPermissionSetForRole(inheritedRoleID, roleIDToRole, visited)
+		if err != nil {
+			return nil, err
+		}
 		for permission := range inheritedPermissions {
 			permissions[permission] = struct{}{}
 		}
 	}
 
-	return permissions
+	return permissions, nil
 }
 
 func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
@@ -198,21 +208,18 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		return ctx, nil
 	}
 
-	// Process edge request.
-	roleIDSet, ok := i.methodToRoleIDSet[fullMethod]
-	if !ok {
-		return nil, status.Errorf(codes.PermissionDenied, "no role available for method: %s", fullMethod)
-	}
-
-	found := false
-	for _, roleID := range session.RoleIds {
-		if _, ok := roleIDSet[roleID]; ok {
-			found = true
-			break
+	switch identity := session.GetIdentity().(type) {
+	case *authenticationpb.Session_ServiceAccountIdentity:
+		serviceAccount := identity.ServiceAccountIdentity.GetServiceAccount()
+		methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccount.Id]
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "unknown service account %q", serviceAccount)
 		}
-	}
-	if !found {
-		return nil, status.Errorf(codes.PermissionDenied, "requires %s permission", fullMethod)
+		if _, ok := methodSet[fullMethod]; !ok {
+			return nil, status.Errorf(codes.PermissionDenied, "requires permission %q", fullMethod)
+		}
+	default:
+		return nil, status.Errorf(codes.Unauthenticated, "only service accounts are supported")
 	}
 
 	// Set the session to authorized, sign it and store it.

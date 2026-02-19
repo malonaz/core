@@ -150,7 +150,6 @@ func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context
 				ServiceAccount: serviceAccount,
 			},
 		},
-		RoleIds: serviceAccount.RoleIds,
 	}
 
 	signedSession, err := i.sessionManager.sign(session)

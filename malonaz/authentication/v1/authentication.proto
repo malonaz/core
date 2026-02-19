@@ -9,20 +9,38 @@ option go_package = "github.com/malonaz/core/genproto/authentication/v1";
 
 // Configuration for roles.
 message PermissionConfiguration {
+  // List of all service accounts configured in the system, each with their
+  // assigned roles & permissions for programmatic access.
+  repeated ServiceAccount service_accounts = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).cel = {
+      id: "unique_service_account_ids"
+      message: "service account ids must be unique"
+      expression: "this.map(sa, sa.id).unique()"
+    }
+  ];
+
   // List of all roles defined in the system, including their permissions
   // and inheritance relationships.
-  repeated Role roles = 1;
+  repeated Role roles = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).cel = {
+      id: "unique_role_ids"
+      message: "role ids must be unique"
+      expression: "this.map(r, r.id).unique()"
+    }
+  ];
 
   // List of RPC methods that can be accessed without authentication
   // (e.g., "/api.v1.AuthService/Login").
-  repeated string public_methods = 2;
+  repeated string public_methods = 3 [(buf.validate.field).repeated.unique = true];
 }
 
 // Configuration for service accounts.
 message ServiceAccountConfiguration {
   // List of all service accounts configured in the system, each with their
   // assigned roles for programmatic access.
-  repeated ServiceAccount service_accounts = 1;
+  repeated ServiceAccount service_accounts = 1 [(buf.validate.field).required = true];
 }
 
 // ServiceAccount represents a non-human identity used for programmatic access
@@ -39,7 +57,10 @@ message ServiceAccount {
 
   // List of role IDs assigned to this service account, determining what
   // permissions and access it has within the system.
-  repeated string role_ids = 3;
+  repeated string role_ids = 3 [(buf.validate.field).repeated.unique = true];
+
+  // Permission this service account has access to.
+  repeated string permissions = 4 [(buf.validate.field).repeated.unique = true];
 }
 
 // Type of the service account.
@@ -62,12 +83,12 @@ message Role {
 
   // List of permission strings this role grants. Permissions typically correspond
   // to RPC method names (e.g., "/api.v1.UserService/GetUser").
-  repeated string permissions = 2;
+  repeated string permissions = 2 [(buf.validate.field).repeated.unique = true];
 
   // Optional list of role IDs from which this role inherits permissions.
   // Enables hierarchical role definitions where a role can include all
   // permissions from parent roles.
-  repeated string inherited_role_ids = 3;
+  repeated string inherited_role_ids = 3 [(buf.validate.field).repeated.unique = true];
 
   // Optional scope or context for this role, enabling organization-specific
   // or domain-specific role definitions (e.g., "org:123" for organization-level roles).
@@ -100,19 +121,16 @@ message Session {
     ServiceAccountIdentity service_account_identity = 4;
   }
 
-  // The role ids available to this session.
-  repeated string role_ids = 5;
-
   // An authorized session does not get checked again method permissions.
   // We only check at edges entry point.
   // For example, let's look at an external call:
   //  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
   //  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
-  bool authorized = 6;
+  bool authorized = 5;
 
   // Additional metadata about the session, including client information
   // and context for logging and auditing purposes.
-  SessionMetadata metadata = 7;
+  SessionMetadata metadata = 6;
 }
 
 // Identity of a human user

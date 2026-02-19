@@ -37,4 +37,4 @@ plz build //cmd/tsunade
     --prometheus.disable \
     --external-api-key-authentication.config=cmd/tsunade/authentication/external_service_accounts.json \
     --internal-service-authentication.config=cmd/tsunade/authentication/internal_service_accounts.json \
-    --permission-authentication.config=cmd/tsunade/authentication/roles.json
+    --permission-authentication.config=cmd/tsunade/authentication/permissions.json

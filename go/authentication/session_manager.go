@@ -223,9 +223,6 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 	}
 
 	// Add basic session fields (only non-zero values)
-	if len(session.RoleIds) > 0 {
-		fields = append(fields, "role_ids", session.RoleIds)
-	}
 	if session.Authorized {
 		fields = append(fields, "authorized", session.Authorized)
 	}
