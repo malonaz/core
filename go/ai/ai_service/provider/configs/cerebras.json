@@ -1,8 +1,10 @@
+local p = "providers/cerebras/models/";
+
 {
   "provider_id": "cerebras",
   "models": [
     {
-      "name": "providers/cerebras/models/qwen3-235b",
+      "name": p + "qwen3-235b",
       "provider_model_id": "qwen-3-235b-a22b-instruct-2507",
       "description": "This non-thinking version offers powerful multilingual capabilities with significant improvements in instruction following, logical reasoning, mathematics, coding, and tool usage.",
       "ttt": {
@@ -16,7 +18,7 @@
       }
     },
     {
-      "name": "providers/cerebras/models/glm-4.6",
+      "name": p + "glm-4.6",
       "provider_model_id": "zai-glm-4.6",
       "description": "This model delivers strong coding performance with advanced reasoning capabilities, superior tool use, and enhanced real-world performance in agentic coding applications.",
       "ttt": {

@@ -1,8 +1,10 @@
+local p = "providers/elevenlabs/models/";
+
 {
   "provider_id": "elevenlabs",
   "models": [
     {
-      "name": "providers/elevenlabs/models/flash-v2-5",
+      "name": p + "flash-v2-5",
       "provider_model_id": "eleven_flash_v2_5",
       "tts": {
         "audio_format": {
@@ -14,7 +16,7 @@
       }
     },
     {
-      "name": "providers/elevenlabs/models/scribe_v2_realtime",
+      "name": p + "scribe_v2_realtime",
       "provider_model_id": "scribe_v2_realtime",
       "stt": {}
     }

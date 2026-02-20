@@ -1,14 +1,16 @@
+local p = "providers/groq/models/";
+
 {
   "provider_id":  "groq",
   "models":  [
     {
-      "name":  "providers/groq/models/whisper-large-v3-turbo",
+      "name":  p + "whisper-large-v3-turbo",
       "provider_model_id":  "whisper-large-v3-turbo",
       "description":  "Whisper Large v3 is OpenAI's most advanced and capable speech recognition model, delivering state-of-the-art accuracy across a wide range of audio conditions and languages. This flagship model excels at handling challenging audio scenarios including background noise, accents, and technical terminology. With its robust architecture and extensive training, it represents the gold standard for automatic speech recognition tasks requiring the highest possible accuracy.",
       "stt":  {}
     },
     {
-      "name":  "providers/groq/models/kimi-k2-instruct-0905",
+      "name":  p + "kimi-k2-instruct-0905",
       "provider_model_id":  "moonshotai/kimi-k2-instruct-0905",
       "description":  "Kimi K2 0905 is Moonshot AI's improved version of the Kimi K2 model, featuring enhanced coding capabilities with superior frontend development and tool calling performance. This Mixture-of-Experts (MoE) model with 1 trillion total parameters and 32 billion activated parameters offers improved integration with various agent scaffolds, making it ideal for building sophisticated AI agents and autonomous systems.",
       "ttt":  {
@@ -23,7 +25,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/llama-4-maverick-17b-128e-instruct",
+      "name":  p + "llama-4-maverick-17b-128e-instruct",
       "provider_model_id":  "meta-llama/llama-4-maverick-17b-128e-instruct",
       "description":  "Llama 4 Maverick is Meta's natively multimodal model that enables text and image understanding. With a 17 billion parameter mixture-of-experts architecture (128 experts), this model offers industry-leading performance for multimodal tasks like natural assistant-like chat, image recognition, and coding tasks. With a 128K token context window and support for 12 languages (Arabic, English, French, German, Hindi, Indonesian, Italian, Portuguese, Spanish, Tagalog, Thai, and Vietnamese), the model delivers exceptional capabilities when paired with Groq for fast inference.",
       "ttt":  {
@@ -37,7 +39,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/llama-4-scout-17b-16e-instruct",
+      "name":  p + "llama-4-scout-17b-16e-instruct",
       "provider_model_id":  "meta-llama/llama-4-maverick-17b-128e-instruct",
       "description":  "Llama 4 Scout is Meta's natively multimodal model that enables text and image understanding. With a 17 billion parameter mixture-of-experts architecture (16 experts), this model offers industry-leading performance for multimodal tasks like natural assistant-like chat, image recognition, and coding tasks. With a 128K token context window and support for 12 languages (Arabic, English, French, German, Hindi, Indonesian, Italian, Portuguese, Spanish, Tagalog, Thai, and Vietnamese), the model delivers exceptional capabilities, especially when paired with Groq for fast inference.",
       "ttt":  {
@@ -51,7 +53,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/llama-3.3-70b-versatile",
+      "name":  p + "llama-3.3-70b-versatile",
       "provider_model_id":  "llama-3.3-70b-versatile",
       "description":  "Llama 3.3 70B Versatile is Meta's advanced multilingual large language model, optimized for a wide range of natural language processing tasks. With 70 billion parameters, it offers high performance across various benchmarks while maintaining efficiency suitable for diverse applications. The model supports tool use and JSON object mode, making it ideal for complex reasoning tasks and structured output generation.",
       "ttt":  {
@@ -65,7 +67,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/llama-3.1-8b-instant",
+      "name":  p + "llama-3.1-8b-instant",
       "provider_model_id":  "llama-3.1-8b-instant",
       "description":  "Llama 3.1 8B on Groq provides low-latency, high-quality responses suitable for real-time conversational interfaces, content filtering systems, and data analysis applications. This model offers a balance of speed and performance with significant cost savings compared to larger models. Technical capabilities include native function calling support, JSON mode for structured output generation, and a 128K token context window for handling large documents.",
       "ttt":  {
@@ -79,7 +81,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/qwen3-32b",
+      "name":  p + "qwen3-32b",
       "provider_model_id":  "qwen/qwen3-32b",
       "description":  "Qwen 3 32B is the latest generation of large language models in the Qwen series, offering groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support. It uniquely supports seamless switching between thinking mode (for complex logical reasoning, math, and coding) and non-thinking mode (for efficient, general-purpose dialogue) within a single model. The model excels in human preference alignment, creative writing, role-playing, and multi-turn dialogues, while supporting 100+ languages and dialects.",
       "ttt":  {
@@ -94,7 +96,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/gpt-oss-20b",
+      "name":  p + "gpt-oss-20b",
       "provider_model_id":  "openai/gpt-oss-20b",
       "description":  "GPT OSS 20B is OpenAI's compact open-weight Mixture-of-Experts (MoE) model with 20 billion total parameters. Optimized for cost-efficient deployment and agentic workflows, it supports long-context reasoning, tool use, and function calling in a small memory footprint. This model offers an excellent balance of performance and efficiency, making it ideal for applications requiring capable AI at reduced computational costs.",
       "ttt":  {
@@ -109,7 +111,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/gpt-oss-120b",
+      "name":  p + "gpt-oss-120b",
       "provider_model_id":  "openai/gpt-oss-120b",
       "description":  "GPT OSS 120B is OpenAI's flagship open-weight MoE model with 120 billion total parameters. Designed for high-capability agentic use, it matches or surpasses proprietary models like OpenAI o4-mini on many benchmarks. With long-context reasoning, competitive math/coding performance, and robust health knowledge, it is ideal for advanced research, autonomous tools, and agentic applications requiring state-of-the-art performance.",
       "ttt":  {
@@ -124,7 +126,7 @@
       }
     },
     {
-      "name":  "providers/groq/models/playai-tts",
+      "name":  p + "playai-tts",
       "provider_model_id":  "playai-tts",
       "description":  "PlayAI Dialog v1.0 is a generative AI model designed to assist with creative content generation, interactive storytelling, and narrative development. Built on a transformer-based architecture, the model generates human-like audio to support writers, game developers, and content creators in vocalizing text to speech, crafting voice agentic experiences, or exploring interactive dialogue options.",
       "tts":  {

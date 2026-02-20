@@ -1,8 +1,10 @@
+local p = "providers/xai/models/";
+
 {
   "provider_id":  "xai",
   "models":  [
     {
-      "name":  "providers/xai/models/grok-4.1",
+      "name":  p + "grok-4.1",
       "provider_model_id":  "grok-4-1-fast-non-reasoning",
       "description":  "A frontier multimodal model optimized specifically for high-performance agentic tool calling.",
       "ttt":  {
@@ -17,7 +19,7 @@
       }
     },
     {
-      "name":  "providers/xai/models/grok-4.1-reasoning",
+      "name":  p + "grok-4.1-reasoning",
       "provider_model_id":  "grok-4-1-fast-reasoning",
       "description":  "A frontier multimodal model optimized specifically for high-performance agentic tool calling, with reasoning capabilities.",
       "ttt":  {
@@ -33,7 +35,7 @@
       }
     },
     {
-      "name":  "providers/xai/models/grok-code-fast-1",
+      "name":  p + "grok-code-fast-1",
       "provider_model_id":  "grok-code-fast-1",
       "description":  "A speedy and economical reasoning model that excels at agentic coding.",
       "ttt":  {
@@ -49,7 +51,7 @@
       }
     },
     {
-      "name":  "providers/xai/models/stt-streaming",
+      "name":  p + "stt-streaming",
       "provider_model_id":  "undefined",
       "description":  "A live transcription model with VAD.",
       "stt":  {}

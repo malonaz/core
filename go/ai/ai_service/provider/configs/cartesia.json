@@ -1,8 +1,10 @@
+local p = "providers/cartesia/models/";
+
 {
   "provider_id": "cartesia",
   "models": [
     {
-      "name": "providers/cartesia/models/sonic-3",
+      "name": p + "sonic-3",
       "provider_model_id": "sonic-3",
       "tts": {
         "audio_format": {
