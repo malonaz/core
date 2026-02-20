@@ -15,6 +15,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/jsonnet"
 )
 
 const (
@@ -64,9 +65,9 @@ func (s *ModelService) RegisterProvider(ctx context.Context, provider Provider) 
 	s.providerIdToProvider[provider.ProviderId()] = provider
 
 	configPath := fmt.Sprintf("configs/%s.json", provider.ProviderId())
-	configBytes, err := configsFS.ReadFile(configPath)
+	configBytes, err := jsonnet.EvaluateEmbeddedFile(configPath, configsFS)
 	if err != nil {
-		return fmt.Errorf("parsing config %s: %w", configPath, err)
+		return fmt.Errorf("evaluating jsonnet config %s: %w", configPath, err)
 	}
 	config, err := parseModels(configBytes)
 	if err != nil {

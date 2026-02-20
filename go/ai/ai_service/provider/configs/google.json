@@ -2,6 +2,30 @@
   "provider_id": "google",
   "models": [
     {
+      "name": "providers/google/models/gemini-3.1-pro-preview",
+      "provider_model_id": "gemini-3.1-pro-preview",
+      "description": "Built to refine the performance and reliability of the Gemini 3 Pro series, Gemini 3.1 Pro Preview provides better thinking, improved token efficiency, and a more grounded, factually consistent experience. Optimized for software engineering and agentic workflows requiring precise tool usage and reliable multi-step execution.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 2,
+          "output_token_price_per_million": 12,
+          "input_token_cache_read_price_per_million": 0.19999999999999998
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "LOW",
+        "REASONING_EFFORT_DEFAULT": "LOW",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "HIGH",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+    {
       "name": "providers/google/models/gemini-3-pro-preview",
       "provider_model_id": "gemini-3-pro-preview",
       "description": "The best model in the world for multimodal understanding, and our most powerful agentic and vibe-coding model yet, delivering richer visuals and deeper interactivity, all built on a foundation of state-of-the-art reasoning.",
