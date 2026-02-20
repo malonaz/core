@@ -29,7 +29,7 @@ func ComputeETag(m ETagResource) (string, error) {
 		return "", err
 	}
 	hash := sha256.Sum256(bytes)
-	return base64.StdEncoding.EncodeToString(hash[:]), nil
+	return `"` + base64.StdEncoding.EncodeToString(hash[:]) + `"`, nil
 }
 
 // UpdateRequest defines the interface of an AIP update request.
