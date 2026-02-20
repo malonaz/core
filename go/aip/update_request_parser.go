@@ -1,6 +1,8 @@
 package aip
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -13,6 +15,22 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
+
+// A resource that has an etag field.
+type ETagResource interface {
+	proto.Message
+	GetEtag() string
+}
+
+// Compute an etag for a resource.
+func ComputeETag(m ETagResource) (string, error) {
+	bytes, err := pbutil.MarshalDeterministic(m)
+	if err != nil {
+		return "", err
+	}
+	hash := sha256.Sum256(bytes)
+	return base64.StdEncoding.EncodeToString(hash[:]), nil
+}
 
 // UpdateRequest defines the interface of an AIP update request.
 type updateRequest interface {
@@ -121,7 +139,7 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	mappings := map[string]string{}
 	for _, node := range tree.Nodes {
 		// We always add 'update_time' as an updatable field.
-		if node.Path == "update_time" {
+		if node.Path == "update_time" || node.Path == "etag" {
 			paths = append(paths, node.Path)
 		}
 		if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) ||

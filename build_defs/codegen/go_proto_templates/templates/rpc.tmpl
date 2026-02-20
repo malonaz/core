@@ -68,6 +68,7 @@ package {{ .PackageName }}
         {{ $parseName := (printf "Parse%sName" $rpc.Message.GoIdent.GoName) | $modelGpi.Ident | qgi }}
         {{ $goType := $rpc.Message.GoIdent.GoName }}
         {{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
+        {{ $errEtagChangedFqi := (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
         {{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
         {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
         {{- $singletonChildren := list }}
@@ -81,6 +82,7 @@ package {{ .PackageName }}
             {{- end }}
         {{ end }}
         {{- $softDeletable := $rpc.Message.Desc.Fields.ByName "delete_time" }}
+        {{- $etag := $rpc.Message.Desc.Fields.ByName "etag" }}
         {{- $modelOpts := getModelOpts $rpc.Message -}}
         {{ $hasRequestID := false }}
         {{- range $method := $service.Methods -}}
@@ -99,7 +101,7 @@ package {{ .PackageName }}
             {{ if not $pr.Singleton }}
                 Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             {{ end }}
-            Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string) (*{{ $goTypeQgi }}, error)
+            Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string{{ if $etag }}, etag string{{ end}}) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
                 {{- if $softDeletable }}
                     SoftDelete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeQgi }}, error)
@@ -218,9 +220,14 @@ package {{ .PackageName }}
             }
 
             {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
-                // STEP 0: set the update time.
+                // Set the update time.
                 request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
 	              request.{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
+            {{- end }}
+            {{- if $etag }}
+                // Capture the etag.
+                etag := request.Get{{ $resourceGoName }}().GetEtag()
+                request.UpdateMask.Paths = append(request.UpdateMask.Paths, "etag")
             {{- end }}
 
             // STEP 1: Parse request.
@@ -241,16 +248,31 @@ package {{ .PackageName }}
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask: %v", err)
 	          }
 
+            {{ if $etag }}
+            { // Compute the new etag.
+              var err error
+              patched{{ $resourceGoName }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}(patched{{ $resourceGoName }})
+              if err != nil {
+                 return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing new etag: %v", err)
+              }
+            }
+            {{ end }}
+
             // STEP 4: Insert patched resource.
 	          {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(patched{{ $resourceGoName }})
 	          if err != nil {
 		        return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err)
 	          }
-	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns())
+	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(){{ if $etag }}, etag{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist")
             }
+            {{ if $etag }}
+            if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+            return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed")
+            }
+            {{ end }}
             return nil, {{ fqn "google.golang.org/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $pr.Desc.Singular }}: %v", err)
             }
 

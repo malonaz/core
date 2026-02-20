@@ -125,6 +125,9 @@ var (
     Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already exists")
     Err{{ $message.GoIdent.GoName }}NotExist = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} does not exist")
     Err{{ $message.GoIdent.GoName }}AlreadyDeleted = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already deleted")
+    {{- if $message.Desc.Fields.ByName "etag" }}
+       Err{{ $message.GoIdent.GoName }}ETagChanged = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} etag changed")
+    {{- end -}}
 {{- end -}}
 )
 

@@ -224,37 +224,58 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
 
 {{/* ################### UPDATE ################### */}}
 var update{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET #update_clause# WHERE #where_clause# ` +
-	postgres.SelectQuery("RETURNING %s", {{ $goType }}PostgresColumns)
+  postgres.SelectQuery("RETURNING %s", {{ $goType }}PostgresColumns)
 
-func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string) (*{{ $goTypeFqi }}, error) {
-	// Get update params from the object using the provided columns
-	updateParams := {{ fqn "github.com/malonaz/core/go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
+func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string{{- if $message.Desc.Fields.ByName "etag" }}, etag string{{ end }}) (*{{ $goTypeFqi }}, error) {
+  // Get update params from the object using the provided columns
+  updateParams := {{ fqn "github.com/malonaz/core/go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
 
-	query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
+  query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
   // Build WHERE clause with correct placeholders accounting for update params
-	numUpdateParams := len(updateParams)
+  numUpdateParams := len(updateParams)
   whereClause := fmt.Sprintf("{{ $whereClause }}", {{- range $i, $_ := $pr.PatternVariables }}numUpdateParams+{{ add $i 1 }},{{ end }})
   query = strings.Replace(query, "#where_clause#", whereClause, 1)
 
-	// Combine params: update params first, then WHERE clause params
-	params := append(updateParams,
-		{{- range $i, $var := $pr.PatternVariables }}
-		{{ $goName }}.{{ $var | camelcase | title }}ID,
-		{{- end }}
-	)
+  // Combine params: update params first, then WHERE clause params
+  params := append(updateParams,
+    {{- range $i, $var := $pr.PatternVariables }}
+    {{ $goName }}.{{ $var | camelcase | title }}ID,
+    {{- end }}
+  )
 
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, {{ $errNotExistFqi }}
-		}
-		return nil, err
-	}
-	return row, nil
+  {{- if $message.Desc.Fields.ByName "etag" }}
+  if etag != "" {
+    query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+    params = append(params, etag)
+  }
+  {{- end }}
+
+  rows, err := s.client.Query(ctx, query, params...)
+  if err != nil {
+    return nil, err
+  }
+  row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+  if err != nil {
+    if err == pgx.ErrNoRows {
+      {{- if $message.Desc.Fields.ByName "etag" }}
+      if etag != "" {
+        etagQuery := fmt.Sprintf(`SELECT etag FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`)
+        etagRows, etagErr := s.client.Query(ctx, etagQuery, {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $goName }}.{{ $var | camelcase | title }}ID{{ end }})
+        if etagErr == nil {
+          if currentEtag, collectErr := pgx.CollectOneRow(etagRows, pgx.RowTo[string]); collectErr == nil {
+            if currentEtag == etag {
+              return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch for {{ $goName }} %v", {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $goName }}.{{ $var | camelcase | title }}ID{{ end }})
+            }
+            return nil, {{ (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
+          }
+        }
+      }
+      {{- end }}
+      return nil, {{ $errNotExistFqi }}
+    }
+    return nil, err
+  }
+  return row, nil
 }
 
 	{{/* ################### DELETE ################### */}}
