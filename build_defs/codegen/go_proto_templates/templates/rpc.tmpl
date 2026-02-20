@@ -104,9 +104,9 @@ package {{ .PackageName }}
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string{{ if $etag }}, etag string{{ end}}) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
                 {{- if $softDeletable }}
-                    SoftDelete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeQgi }}, error)
+                    SoftDelete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string{{ if $etag }}, etag string{{ end }}, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeQgi }}, error)
                 {{ else }}
-                    Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string) error
+                    Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string{{ if $etag }}, etag string{{ end }}) error
                 {{- end }}
             {{ end }}
             Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeQgi }}, error)
@@ -294,11 +294,16 @@ package {{ .PackageName }}
             {{- if $softDeletable }}
                 // STEP 2: Soft delete the resource.
                 deleteTime := {{ fqn "time" "Now" }}()
-                db{{ $modelGoName }}, err := s.store.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}, deleteTime)
+                db{{ $modelGoName }}, err := s.store.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}{{ if $etag}}, request.GetEtag(){{ end }}, deleteTime)
                 if err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
                 }
+                {{ if $etag }}
+                  if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+                  }
+                {{ end }}
                 if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) && !request.AllowMissing {
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
                 }
@@ -314,8 +319,13 @@ package {{ .PackageName }}
 
             {{ else }}
                 // STEP 2: Hard delete the resource.
-                if err := s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}); err != nil {
+                if err := s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}{{ if $etag }}, request.GetEtag(){{ end }}); err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
+                {{ if $etag }}
+                  if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+                  }
+                {{ end }}
                 if request.AllowMissing {
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
                 }

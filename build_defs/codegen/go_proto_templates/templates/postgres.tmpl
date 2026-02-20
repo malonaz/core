@@ -303,14 +303,38 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
         {{ $goTypeFqi }}
       }
 
-      func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
-        rows, err := s.client.Query(ctx, softDelete{{ $message.GoIdent.GoName }}PostgresQuery, {{ $pr.PatternVariableIDs true }}, deleteTime)
+      func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string{{- if $etag }}, etag string{{ end }}, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
+        query := softDelete{{ $message.GoIdent.GoName }}PostgresQuery
+        params := []any{ {{ $pr.PatternVariableIDs true }}, deleteTime}
+        {{- if $etag }}
+        if etag != "" {
+          query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+          params = append(params, etag)
+        }
+        {{- end }}
+        rows, err := s.client.Query(ctx, query, params...)
         if err != nil {
           return nil, fmt.Errorf("soft deleting {{ $goName }}: %w", err)
         }
         row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[softDelete{{ $message.GoIdent.GoName }}Result])
         if err != nil {
           if err == pgx.ErrNoRows {
+            {{- if $etag }}
+            if etag != "" {
+              currentEtag, getEtagErr := s.get{{ $message.GoIdent.GoName }}ETag(ctx, {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $var | camelcase | untitle }}Id{{ end }})
+              switch getEtagErr {
+              case nil:
+                if currentEtag == etag {
+                  return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
+                }
+                return nil, {{ (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
+              case pgx.ErrNoRows:
+                return nil, {{ $errNotExistFqi }}
+              default:
+                return nil, fmt.Errorf("getting etag: %v", getEtagErr)
+              }
+            }
+            {{- end }}
             return nil, {{ $errNotExistFqi }}
           }
           return nil, err
@@ -321,18 +345,41 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
         return &row.{{ $goType }}, nil
       }
     {{ else }}
-			func (s *Store) Delete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) error {
-				query := `DELETE FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
-				result, err := s.client.Exec(ctx, query, {{ $pr.PatternVariableIDs true }})
-				if err != nil {
-					return err
-				}
-				if result.RowsAffected() == 1 {
-					return {{ $errNotExistFqi }}
-				}
-				return nil
-			}
-		{{ end }}
+      func (s *Store) Delete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string{{- if $etag }}, etag string{{ end }}) error {
+        query := `DELETE FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
+        params := []any{ {{ $pr.PatternVariableIDs true }} }
+        {{- if $etag }}
+        if etag != "" {
+          query += fmt.Sprintf(" AND etag = $%d", len(params)+1)
+          params = append(params, etag)
+        }
+        {{- end }}
+        result, err := s.client.Exec(ctx, query, params...)
+        if err != nil {
+          return err
+        }
+        if result.RowsAffected() == 0 {
+          {{- if $etag }}
+          if etag != "" {
+            currentEtag, getEtagErr := s.get{{ $message.GoIdent.GoName }}ETag(ctx, {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $var | camelcase | untitle }}Id{{ end }})
+            switch getEtagErr {
+            case nil:
+              if currentEtag == etag {
+                return fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
+              }
+              return {{ (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
+            case pgx.ErrNoRows:
+              return {{ $errNotExistFqi }}
+            default:
+              return fmt.Errorf("getting etag: %v", getEtagErr)
+            }
+          }
+          {{- end }}
+          return {{ $errNotExistFqi }}
+        }
+        return nil
+      }
+    {{ end }}
 
 	{{/* ################### GET ################### */}}
 		func (s *Store) Get{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeFqi }}, error) {
