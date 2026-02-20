@@ -102,7 +102,7 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 	client.preUnaryInterceptors = append(client.preUnaryInterceptors, interceptor.UnaryClientTrailerPropagation())
 	client.preStreamInterceptors = append(client.preStreamInterceptors, interceptor.StreamClientTrailerPropagation())
 
-	if prometheusOpts.Enabled() {
+	if prometheusOpts.Enabled() && false {
 		metrics := grpc_prometheus.NewClientMetrics(
 			grpc_prometheus.WithClientHandlingTimeHistogram(
 				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
