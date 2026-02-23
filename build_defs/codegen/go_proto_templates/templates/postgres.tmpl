@@ -295,17 +295,17 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 
 	{{/* ################### DELETE ################### */}}
       {{- if $message.Desc.Fields.ByName "delete_time" }}
-      var softDelete{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET delete_time = COALESCE(delete_time, ${{ add (len $pr.PatternVariables) 1 }}) WHERE {{ $placeholderDeclarations }} RETURNING (delete_time < ${{ add (len $pr.PatternVariables) 1 }}) AS was_already_deleted, ` +
-        postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
+      var softDelete{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET delete_time = COALESCE(delete_time, ${{ add (len $pr.PatternVariables) 1 }}){{- if $etag }}, etag = ${{ add (len $pr.PatternVariables) 2 }}{{- end }} WHERE {{ $placeholderDeclarations }} RETURNING (delete_time < ${{ add (len $pr.PatternVariables) 1 }}) AS was_already_deleted, ` +
+  postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
 
       type softDelete{{ $message.GoIdent.GoName }}Result struct {
         WasAlreadyDeleted bool `db:"was_already_deleted"`
         {{ $goTypeFqi }}
       }
 
-      func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string{{- if $etag }}, etag string{{ end }}, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
+      func (s *Store) SoftDelete{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string{{- if $etag }}, etag, newEtag string{{ end }}, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeFqi }}, error) {
         query := softDelete{{ $message.GoIdent.GoName }}PostgresQuery
-        params := []any{ {{ $pr.PatternVariableIDs true }}, deleteTime}
+        params := []any{ {{ $pr.PatternVariableIDs true }}, deleteTime{{- if $etag }}, newEtag{{ end }}}
         {{- if $etag }}
         if etag != "" {
           query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
