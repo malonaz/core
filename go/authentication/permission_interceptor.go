@@ -12,11 +12,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
+	coregrpc "github.com/malonaz/core/go/grpc"
 )
 
 type PermissionAuthenticationInterceptorOpts struct {
@@ -192,14 +192,14 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 	// Grab the session and verify its signature.
 	signedSession, err := getSignedSessionFromLocalContext(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, coregrpc.Errorf(codes.Unauthenticated, err.Error()).Err()
 	}
 	ok, err := i.sessionManager.verify(signedSession)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "verifying session: %v", err)
+		return nil, coregrpc.Errorf(codes.Internal, "verifying session: %v", err).Err()
 	}
 	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid session signature")
+		return nil, coregrpc.Errorf(codes.Unauthenticated, "invalid session signature").Err()
 	}
 	session := signedSession.Session
 
@@ -210,23 +210,23 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 
 	switch identity := session.GetIdentity().(type) {
 	case *authenticationpb.Session_ServiceAccountIdentity:
-		serviceAccount := identity.ServiceAccountIdentity.GetServiceAccount()
-		methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccount.Id]
+		serviceAccountID := identity.ServiceAccountIdentity.GetServiceAccountId()
+		methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccountID]
 		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "unknown service account %q", serviceAccount)
+			return nil, coregrpc.Errorf(codes.Unauthenticated, "unknown service account %q", serviceAccountID).Err()
 		}
 		if _, ok := methodSet[fullMethod]; !ok {
-			return nil, status.Errorf(codes.PermissionDenied, "requires permission %q", fullMethod)
+			return nil, coregrpc.Errorf(codes.PermissionDenied, "requires permission %q", fullMethod).Err()
 		}
 	default:
-		return nil, status.Errorf(codes.Unauthenticated, "only service accounts are supported")
+		return nil, coregrpc.Errorf(codes.Unauthenticated, "only service accounts are supported").Err()
 	}
 
 	// Set the session to authorized, sign it and store it.
 	session.Authorized = true
 	signedSession, err = i.sessionManager.sign(session)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "signing session: %v", err)
+		return nil, coregrpc.Errorf(codes.Internal, "signing session: %v", err).Err()
 	}
 	isUpdate := true
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)

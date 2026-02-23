@@ -142,14 +142,22 @@ func (i *ExternalApiKeyAuthenticationInterceptor) authenticateAPIKey(ctx context
 		return nil, status.Errorf(codes.Unauthenticated, "could not find service account")
 	}
 
+	// Extract session metadata.
+	sessionMetadata, err := extractSessionMetadataFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// Create a session with the service account and its roles
 	session := &authenticationpb.Session{
 		CreateTime: timestamppb.Now(),
 		Identity: &authenticationpb.Session_ServiceAccountIdentity{
 			ServiceAccountIdentity: &authenticationpb.ServiceAccountIdentity{
-				ServiceAccount: serviceAccount,
+				ServiceAccountId:   serviceAccount.Id,
+				ServiceAccountType: serviceAccount.Type,
 			},
 		},
+		Labels:   serviceAccount.Labels,
+		Metadata: sessionMetadata,
 	}
 
 	signedSession, err := i.sessionManager.sign(session)

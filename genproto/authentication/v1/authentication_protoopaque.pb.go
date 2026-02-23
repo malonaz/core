@@ -238,6 +238,7 @@ type ServiceAccount struct {
 	xxx_hidden_Type        ServiceAccountType     `protobuf:"varint,2,opt,name=type,proto3,enum=malonaz.authentication.v1.ServiceAccountType"`
 	xxx_hidden_RoleIds     []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3"`
 	xxx_hidden_Permissions []string               `protobuf:"bytes,4,rep,name=permissions,proto3"`
+	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -295,6 +296,13 @@ func (x *ServiceAccount) GetPermissions() []string {
 	return nil
 }
 
+func (x *ServiceAccount) GetLabels() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Labels
+	}
+	return nil
+}
+
 func (x *ServiceAccount) SetId(v string) {
 	x.xxx_hidden_Id = v
 }
@@ -311,6 +319,10 @@ func (x *ServiceAccount) SetPermissions(v []string) {
 	x.xxx_hidden_Permissions = v
 }
 
+func (x *ServiceAccount) SetLabels(v map[string]string) {
+	x.xxx_hidden_Labels = v
+}
+
 type ServiceAccount_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -323,6 +335,8 @@ type ServiceAccount_builder struct {
 	RoleIds []string
 	// Permission this service account has access to.
 	Permissions []string
+	// The labels on this sessino.
+	Labels map[string]string
 }
 
 func (b0 ServiceAccount_builder) Build() *ServiceAccount {
@@ -333,6 +347,7 @@ func (b0 ServiceAccount_builder) Build() *ServiceAccount {
 	x.xxx_hidden_Type = b.Type
 	x.xxx_hidden_RoleIds = b.RoleIds
 	x.xxx_hidden_Permissions = b.Permissions
+	x.xxx_hidden_Labels = b.Labels
 	return m0
 }
 
@@ -890,10 +905,11 @@ func (b0 UserIdentity_builder) Build() *UserIdentity {
 
 // Identity of a service account
 type ServiceAccountIdentity struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ServiceAccount *ServiceAccount        `protobuf:"bytes,1,opt,name=service_account,json=serviceAccount,proto3"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ServiceAccountId   string                 `protobuf:"bytes,1,opt,name=service_account_id,json=serviceAccountId,proto3"`
+	xxx_hidden_ServiceAccountType ServiceAccountType     `protobuf:"varint,2,opt,name=service_account_type,json=serviceAccountType,proto3,enum=malonaz.authentication.v1.ServiceAccountType"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *ServiceAccountIdentity) Reset() {
@@ -921,40 +937,43 @@ func (x *ServiceAccountIdentity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ServiceAccountIdentity) GetServiceAccount() *ServiceAccount {
+func (x *ServiceAccountIdentity) GetServiceAccountId() string {
 	if x != nil {
-		return x.xxx_hidden_ServiceAccount
+		return x.xxx_hidden_ServiceAccountId
 	}
-	return nil
+	return ""
 }
 
-func (x *ServiceAccountIdentity) SetServiceAccount(v *ServiceAccount) {
-	x.xxx_hidden_ServiceAccount = v
-}
-
-func (x *ServiceAccountIdentity) HasServiceAccount() bool {
-	if x == nil {
-		return false
+func (x *ServiceAccountIdentity) GetServiceAccountType() ServiceAccountType {
+	if x != nil {
+		return x.xxx_hidden_ServiceAccountType
 	}
-	return x.xxx_hidden_ServiceAccount != nil
+	return ServiceAccountType_SERVICE_ACCOUNT_TYPE_UNSPECIFIED
 }
 
-func (x *ServiceAccountIdentity) ClearServiceAccount() {
-	x.xxx_hidden_ServiceAccount = nil
+func (x *ServiceAccountIdentity) SetServiceAccountId(v string) {
+	x.xxx_hidden_ServiceAccountId = v
+}
+
+func (x *ServiceAccountIdentity) SetServiceAccountType(v ServiceAccountType) {
+	x.xxx_hidden_ServiceAccountType = v
 }
 
 type ServiceAccountIdentity_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The service account behind this identity.
-	ServiceAccount *ServiceAccount
+	ServiceAccountId string
+	// The type of sercice account this is.
+	ServiceAccountType ServiceAccountType
 }
 
 func (b0 ServiceAccountIdentity_builder) Build() *ServiceAccountIdentity {
 	m0 := &ServiceAccountIdentity{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_ServiceAccount = b.ServiceAccount
+	x.xxx_hidden_ServiceAccountId = b.ServiceAccountId
+	x.xxx_hidden_ServiceAccountType = b.ServiceAccountType
 	return m0
 }
 
@@ -965,7 +984,6 @@ type SessionMetadata struct {
 	xxx_hidden_IpAddress     string                 `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3"`
 	xxx_hidden_ClientVersion *ClientVersion         `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3"`
 	xxx_hidden_UserAgent     string                 `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3"`
-	xxx_hidden_KeyToValue    map[string]string      `protobuf:"bytes,4,rep,name=key_to_value,json=keyToValue,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -1016,13 +1034,6 @@ func (x *SessionMetadata) GetUserAgent() string {
 	return ""
 }
 
-func (x *SessionMetadata) GetKeyToValue() map[string]string {
-	if x != nil {
-		return x.xxx_hidden_KeyToValue
-	}
-	return nil
-}
-
 func (x *SessionMetadata) SetIpAddress(v string) {
 	x.xxx_hidden_IpAddress = v
 }
@@ -1033,10 +1044,6 @@ func (x *SessionMetadata) SetClientVersion(v *ClientVersion) {
 
 func (x *SessionMetadata) SetUserAgent(v string) {
 	x.xxx_hidden_UserAgent = v
-}
-
-func (x *SessionMetadata) SetKeyToValue(v map[string]string) {
-	x.xxx_hidden_KeyToValue = v
 }
 
 func (x *SessionMetadata) HasClientVersion() bool {
@@ -1062,9 +1069,6 @@ type SessionMetadata_builder struct {
 	// User-Agent string from the client, providing information about the
 	// client software, operating system, and browser (if applicable).
 	UserAgent string
-	// Extensible key-value store for additional custom metadata that may be
-	// needed for specific use cases or integrations.
-	KeyToValue map[string]string
 }
 
 func (b0 SessionMetadata_builder) Build() *SessionMetadata {
@@ -1074,7 +1078,6 @@ func (b0 SessionMetadata_builder) Build() *SessionMetadata {
 	x.xxx_hidden_IpAddress = b.IpAddress
 	x.xxx_hidden_ClientVersion = b.ClientVersion
 	x.xxx_hidden_UserAgent = b.UserAgent
-	x.xxx_hidden_KeyToValue = b.KeyToValue
 	return m0
 }
 
@@ -1180,13 +1183,17 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\xc8\x01\x01R\x05roles\x12/\n" +
 	"\x0epublic_methods\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\rpublicMethods\"{\n" +
 	"\x1bServiceAccountConfiguration\x12\\\n" +
-	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceAccounts\"\xc8\x01\n" +
+	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceAccounts\"\xe1\x03\n" +
 	"\x0eServiceAccount\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12M\n" +
 	"\x04type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\x12#\n" +
 	"\brole_ids\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\aroleIds\x12*\n" +
-	"\vpermissions\x18\x04 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\vpermissions\"\x90\x01\n" +
+	"\vpermissions\x18\x04 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\vpermissions\x12\xdb\x01\n" +
+	"\x06labels\x18\x05 \x03(\v25.malonaz.authentication.v1.ServiceAccount.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x90\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
 	"\vpermissions\x18\x02 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\vpermissions\x126\n" +
@@ -1213,20 +1220,17 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\bidentity\"P\n" +
 	"\fUserIdentity\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"l\n" +
-	"\x16ServiceAccountIdentity\x12R\n" +
-	"\x0fservice_account\x18\x01 \x01(\v2).malonaz.authentication.v1.ServiceAccountR\x0eserviceAccount\"\xbd\x02\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xb3\x01\n" +
+	"\x16ServiceAccountIdentity\x12,\n" +
+	"\x12service_account_id\x18\x01 \x01(\tR\x10serviceAccountId\x12k\n" +
+	"\x14service_account_type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x12serviceAccountType\"\xa0\x01\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12O\n" +
 	"\x0eclient_version\x18\x02 \x01(\v2(.malonaz.authentication.v1.ClientVersionR\rclientVersion\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x03 \x01(\tR\tuserAgent\x12\\\n" +
-	"\fkey_to_value\x18\x04 \x03(\v2:.malonaz.authentication.v1.SessionMetadata.KeyToValueEntryR\n" +
-	"keyToValue\x1a=\n" +
-	"\x0fKeyToValueEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"Q\n" +
+	"user_agent\x18\x03 \x01(\tR\tuserAgent\"Q\n" +
 	"\rClientVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
 	"\x05minor\x18\x02 \x01(\x05R\x05minor\x12\x14\n" +
@@ -1250,8 +1254,8 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(*ServiceAccountIdentity)(nil),      // 8: malonaz.authentication.v1.ServiceAccountIdentity
 	(*SessionMetadata)(nil),             // 9: malonaz.authentication.v1.SessionMetadata
 	(*ClientVersion)(nil),               // 10: malonaz.authentication.v1.ClientVersion
-	nil,                                 // 11: malonaz.authentication.v1.Session.LabelsEntry
-	nil,                                 // 12: malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
+	nil,                                 // 11: malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	nil,                                 // 12: malonaz.authentication.v1.Session.LabelsEntry
 	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
 }
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
@@ -1259,15 +1263,15 @@ var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
 	4,  // 1: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
 	3,  // 2: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	0,  // 3: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	6,  // 4: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
-	13, // 5: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
-	7,  // 6: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
-	8,  // 7: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
-	11, // 8: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
-	9,  // 9: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
-	3,  // 10: malonaz.authentication.v1.ServiceAccountIdentity.service_account:type_name -> malonaz.authentication.v1.ServiceAccount
-	10, // 11: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
-	12, // 12: malonaz.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
+	11, // 4: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	6,  // 5: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
+	13, // 6: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	7,  // 7: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
+	8,  // 8: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
+	12, // 9: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
+	9,  // 10: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
+	0,  // 11: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	10, // 12: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
 	13, // [13:13] is the sub-list for method output_type
 	13, // [13:13] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name

@@ -20,7 +20,10 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-const metadataKeySignedSession = "x-signed-session-bin"
+const (
+	metadataKeySignedSession = "x-signed-session-bin"
+	metadataKeyClientVersion = "x-client-version"
+)
 
 var ErrSignedSessionNotFound = errors.New("session not found in context")
 
@@ -244,13 +247,6 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 		fields = append(fields, "user_agent", userAgent)
 	}
 
-	// Add custom metadata fields
-	for k, v := range session.GetMetadata().GetKeyToValue() {
-		if v != "" {
-			fields = append(fields, fmt.Sprintf("custom.%s", k), v)
-		}
-	}
-
 	// Add identity-specific fields
 	switch identity := session.Identity.(type) {
 	case *authenticationpb.Session_UserIdentity:
@@ -263,10 +259,10 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 		}
 	case *authenticationpb.Session_ServiceAccountIdentity:
 		fields = append(fields, "session_type", "service_account")
-		if identity.ServiceAccountIdentity.ServiceAccount.Id != "" {
-			fields = append(fields, "service_account_id", identity.ServiceAccountIdentity.ServiceAccount.Id)
+		if identity.ServiceAccountIdentity.ServiceAccountId != "" {
+			fields = append(fields, "service_account_id", identity.ServiceAccountIdentity.ServiceAccountId)
 		}
-		if saType := identity.ServiceAccountIdentity.ServiceAccount.Type.String(); saType != "" {
+		if saType := identity.ServiceAccountIdentity.ServiceAccountType.String(); saType != "" {
 			fields = append(fields, "service_account_type", saType)
 		}
 	}

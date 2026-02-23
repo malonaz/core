@@ -61,6 +61,20 @@ message ServiceAccount {
 
   // Permission this service account has access to.
   repeated string permissions = 4 [(buf.validate.field).repeated.unique = true];
+
+  // The labels on this sessino.
+  map<string, string> labels = 5 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
 }
 
 // Type of the service account.
@@ -158,7 +172,12 @@ message UserIdentity {
 // Identity of a service account
 message ServiceAccountIdentity {
   // The service account behind this identity.
-  ServiceAccount service_account = 1;
+  string service_account_id = 1;
+  // The type of sercice account this is.
+  ServiceAccountType service_account_type = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
 }
 
 // SessionMetadata contains contextual information about a session, useful for
@@ -175,10 +194,6 @@ message SessionMetadata {
   // User-Agent string from the client, providing information about the
   // client software, operating system, and browser (if applicable).
   string user_agent = 3;
-
-  // Extensible key-value store for additional custom metadata that may be
-  // needed for specific use cases or integrations.
-  map<string, string> key_to_value = 4;
 }
 
 // ClientVersion represents a semantic version (semver) of the client application,
