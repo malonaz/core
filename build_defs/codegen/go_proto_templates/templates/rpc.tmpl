@@ -320,6 +320,7 @@ package {{ .PackageName }}
             {{- if $softDeletable }}
                 deleteTime := {{ fqn "time" "Now" }}()
                 {{ if $etag }}
+                    // Compute new etag.
                 get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.Name }
                 {{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
                 if err != nil {

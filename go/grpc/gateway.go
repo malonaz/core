@@ -12,6 +12,7 @@ import (
 	"time"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -20,7 +21,7 @@ import (
 
 	grpcpb "github.com/malonaz/core/genproto/grpc/v1"
 	"github.com/malonaz/core/go/certs"
-	grpc_interceptor "github.com/malonaz/core/go/grpc/interceptor"
+	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/prometheus"
 )
@@ -163,15 +164,15 @@ func (g *Gateway) Serve(ctx context.Context) error {
 	g.dialOptions = append(g.dialOptions, clientTransportCredentialsOptions)
 
 	// Default interceptors.
-	g.unaryInterceptors = append(g.unaryInterceptors, grpc_interceptor.UnaryClientRetry())
+	g.unaryInterceptors = append(g.unaryInterceptors, middleware.UnaryClientRetry())
 	if g.prometheusOpts.Enabled() {
 		metrics := grpc_prometheus.NewClientMetrics(
 			grpc_prometheus.WithClientHandlingTimeHistogram(
 				grpc_prometheus.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
 			),
 		)
-		g.unaryInterceptors = append(g.unaryInterceptors, metrics.UnaryClientInterceptor())
-		g.streamInterceptors = append(g.streamInterceptors, metrics.StreamClientInterceptor())
+		g.unaryInterceptors = append(g.unaryInterceptors, grpc_selector.UnaryClientInterceptor(metrics.UnaryClientInterceptor(), middleware.AllButHealth))
+		g.streamInterceptors = append(g.streamInterceptors, grpc_selector.StreamClientInterceptor(metrics.StreamClientInterceptor(), middleware.AllButHealth))
 	}
 
 	// Chain interceptors.

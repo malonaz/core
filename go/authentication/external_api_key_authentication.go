@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/malonaz/core/go/grpc/middleware"
 )
 
 type ExternalApiKeysOpts struct {
@@ -181,7 +183,7 @@ func (i *ExternalApiKeyAuthenticationInterceptor) Unary() grpc.UnaryServerInterc
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // Stream implements the API key authentication stream interceptor.
@@ -194,7 +196,7 @@ func (i *ExternalApiKeyAuthenticationInterceptor) Stream() grpc.StreamServerInte
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 func removeFromIncomingContext(ctx context.Context, keys ...string) context.Context {

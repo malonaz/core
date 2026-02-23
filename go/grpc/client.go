@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"buf.build/go/protovalidate"
+	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/sercand/kuberesolver/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -18,7 +19,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/malonaz/core/go/certs"
-	"github.com/malonaz/core/go/grpc/interceptor"
+	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/prometheus"
 )
@@ -98,23 +99,23 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 	client.options = append(client.options, clientTransportCredentialsOptions)
 
 	// Default interceptors.
-	client.preUnaryInterceptors = append(client.preUnaryInterceptors, interceptor.UnaryClientTrailerPropagation())
-	client.preStreamInterceptors = append(client.preStreamInterceptors, interceptor.StreamClientTrailerPropagation())
+	client.preUnaryInterceptors = append(client.preUnaryInterceptors, middleware.UnaryClientTrailerPropagation())
+	client.preStreamInterceptors = append(client.preStreamInterceptors, middleware.StreamClientTrailerPropagation())
 
 	if prometheusOpts.Enabled() {
 		metrics := getPrometheusClientMetrics()
-		client.preUnaryInterceptors = append(client.preUnaryInterceptors, metrics.UnaryClientInterceptor())
-		client.preStreamInterceptors = append(client.preStreamInterceptors, metrics.StreamClientInterceptor())
+		client.preUnaryInterceptors = append(client.preUnaryInterceptors, grpc_selector.UnaryClientInterceptor(metrics.UnaryClientInterceptor(), middleware.AllButHealth))
+		client.preStreamInterceptors = append(client.preStreamInterceptors, grpc_selector.StreamClientInterceptor(metrics.StreamClientInterceptor(), middleware.AllButHealth))
 	}
 
 	// Post interceptors.
 	client.postUnaryInterceptors = append(
 		client.postUnaryInterceptors,
-		interceptor.UnaryClientValidate(validator),
-		interceptor.UnaryClientTimeout(),
-		interceptor.UnaryClientRetry(),
+		middleware.UnaryClientValidate(validator),
+		middleware.UnaryClientTimeout(),
+		middleware.UnaryClientRetry(),
 	)
-	client.postStreamInterceptors = append(client.postStreamInterceptors, interceptor.StreamClientRetry())
+	client.postStreamInterceptors = append(client.postStreamInterceptors, middleware.StreamClientRetry())
 	return client, nil
 }
 

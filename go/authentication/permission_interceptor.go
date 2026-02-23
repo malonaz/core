@@ -7,16 +7,15 @@ import (
 	"strings"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
-	grpc_interceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	coregrpc "github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/middleware"
 )
 
 type PermissionAuthenticationInterceptorOpts struct {
@@ -28,12 +27,6 @@ type PermissionAuthenticationInterceptor struct {
 	serviceAccountIDToMethodSet map[string]map[string]struct{}
 	publicMethodSet             map[string]struct{}
 }
-
-var (
-	allButHealth = grpc_selector.MatchFunc(func(ctx context.Context, callMeta grpc_interceptors.CallMeta) bool {
-		return grpc_health_v1.Health_ServiceDesc.ServiceName != callMeta.Service
-	})
-)
 
 // compileWildcardPermission converts a glob-style permission pattern into a compiled regexp.
 func compileWildcardPermission(pattern string) (*regexp.Regexp, error) {
@@ -241,7 +234,7 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // Stream implements the authentication stream interceptor.
@@ -253,5 +246,5 @@ func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerIntercep
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }

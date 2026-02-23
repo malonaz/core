@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
-	"github.com/malonaz/core/go/grpc/interceptor"
+	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -128,7 +128,7 @@ func (s *SessionManager) UnaryServerLocalContextInjectorInterceptor() grpc.Unary
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // StreamServerLocalContextInjectorInterceptor
@@ -143,7 +143,7 @@ func (s *SessionManager) StreamServerLocalContextInjectorInterceptor() grpc.Stre
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 func (s *SessionManager) injectSignedSessionFromIncomingContextToLocalContext(ctx context.Context) (context.Context, error) {
@@ -179,7 +179,7 @@ func (s *SessionManager) UnaryServerOutgoingContextInjectorInterceptor() grpc.Un
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // StreamServerOutgoingContextInjectorInterceptor
@@ -194,7 +194,7 @@ func (s *SessionManager) StreamServerOutgoingContextInjectorInterceptor() grpc.S
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ctx context.Context) (context.Context, error) {
@@ -269,7 +269,7 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 
 	// Single call to inject all fields
 	if len(fields) > 0 {
-		interceptor.InjectLogFields(ctx, fields...)
+		middleware.InjectLogFields(ctx, fields...)
 	}
 
 	return nil
@@ -283,7 +283,7 @@ func (s *SessionManager) UnaryServerLogInjectorInterceptor() grpc.UnaryServerInt
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // StreamServerLogInjectorInterceptor injects session fields into the log context for streaming RPCs
@@ -295,5 +295,5 @@ func (s *SessionManager) StreamServerLogInjectorInterceptor() grpc.StreamServerI
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }

@@ -1,10 +1,11 @@
 go_library(
-    name = "interceptor",
+    name = "middleware",
     srcs = [
         "errors.go",
         "field_mask.go",
         "headers.go",
         "logging.go",
+        "middleware.go",
         "retry.go",
         "timeout.go",
         "trailers.go",
@@ -24,6 +25,7 @@ go_library(
         "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
@@ -38,7 +40,7 @@ go_test(
     name = "test",
     srcs = ["headers_test.go"],
     deps = [
-        ":interceptor",
+        ":middleware",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc__metadata",
     ],

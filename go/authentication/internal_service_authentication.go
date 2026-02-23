@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/malonaz/core/go/grpc/middleware"
 )
 
 type InternalServiceAuthenticationInterceptorOpts struct {
@@ -158,7 +160,7 @@ func (i *InternalServiceAuthenticationInterceptor) Unary() grpc.UnaryServerInter
 		}
 		return handler(ctx, request)
 	}
-	return grpc_selector.UnaryServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
 // Stream implements the internal service authentication stream interceptor.
@@ -171,5 +173,5 @@ func (i *InternalServiceAuthenticationInterceptor) Stream() grpc.StreamServerInt
 		}
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
-	return grpc_selector.StreamServerInterceptor(interceptor, allButHealth)
+	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }

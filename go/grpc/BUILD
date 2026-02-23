@@ -17,7 +17,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/certs",
-        "//go/grpc/interceptor",
+        "//go/grpc/middleware",
         "//go/health",
         "//go/pbutil",
         "//go/prometheus",
@@ -25,6 +25,7 @@ go_library(
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__recovery",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
         "//third_party/go:github.com__huandu__xstrings",

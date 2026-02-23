@@ -9,7 +9,7 @@
 {{- define "fieldMaskOpts" -}}
 {{- $handlerOpts := . -}}
 {{- if $handlerOpts.GetFieldMask.GetPaths -}}
-ctx = {{ fqn "github.com/malonaz/core/go/grpc/interceptor" "WithFieldMask" }}(ctx, "{{ $handlerOpts.FieldMask.Paths | join "," }}")
+ctx = {{ fqn "github.com/malonaz/core/go/grpc/middleware" "WithFieldMask" }}(ctx, "{{ $handlerOpts.FieldMask.Paths | join "," }}")
 {{- end -}}
 {{- end -}}
 
