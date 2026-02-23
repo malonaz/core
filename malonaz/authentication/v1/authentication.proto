@@ -197,6 +197,9 @@ message SessionMetadata {
   // Semantic version of the client application making requests with this session,
   // enabling version-specific behavior and compatibility tracking.
   ClientVersion client_version = 4;
+
+  // IANA timezone of the client (e.g., "America/New_York").
+  string client_timezone = 5;
 }
 
 // ClientVersion represents a semantic version (semver) of the client application,

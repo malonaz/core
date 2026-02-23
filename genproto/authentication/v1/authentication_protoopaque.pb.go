@@ -985,6 +985,7 @@ type SessionMetadata struct {
 	xxx_hidden_UserAgent      string                 `protobuf:"bytes,2,opt,name=user_agent,json=userAgent,proto3"`
 	xxx_hidden_ClientPlatform string                 `protobuf:"bytes,3,opt,name=client_platform,json=clientPlatform,proto3"`
 	xxx_hidden_ClientVersion  *ClientVersion         `protobuf:"bytes,4,opt,name=client_version,json=clientVersion,proto3"`
+	xxx_hidden_ClientTimezone string                 `protobuf:"bytes,5,opt,name=client_timezone,json=clientTimezone,proto3"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -1042,6 +1043,13 @@ func (x *SessionMetadata) GetClientVersion() *ClientVersion {
 	return nil
 }
 
+func (x *SessionMetadata) GetClientTimezone() string {
+	if x != nil {
+		return x.xxx_hidden_ClientTimezone
+	}
+	return ""
+}
+
 func (x *SessionMetadata) SetIpAddress(v string) {
 	x.xxx_hidden_IpAddress = v
 }
@@ -1056,6 +1064,10 @@ func (x *SessionMetadata) SetClientPlatform(v string) {
 
 func (x *SessionMetadata) SetClientVersion(v *ClientVersion) {
 	x.xxx_hidden_ClientVersion = v
+}
+
+func (x *SessionMetadata) SetClientTimezone(v string) {
+	x.xxx_hidden_ClientTimezone = v
 }
 
 func (x *SessionMetadata) HasClientVersion() bool {
@@ -1083,6 +1095,8 @@ type SessionMetadata_builder struct {
 	// Semantic version of the client application making requests with this session,
 	// enabling version-specific behavior and compatibility tracking.
 	ClientVersion *ClientVersion
+	// IANA timezone of the client (e.g., "America/New_York").
+	ClientTimezone string
 }
 
 func (b0 SessionMetadata_builder) Build() *SessionMetadata {
@@ -1093,6 +1107,7 @@ func (b0 SessionMetadata_builder) Build() *SessionMetadata {
 	x.xxx_hidden_UserAgent = b.UserAgent
 	x.xxx_hidden_ClientPlatform = b.ClientPlatform
 	x.xxx_hidden_ClientVersion = b.ClientVersion
+	x.xxx_hidden_ClientTimezone = b.ClientTimezone
 	return m0
 }
 
@@ -1239,14 +1254,15 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x16ServiceAccountIdentity\x12,\n" +
 	"\x12service_account_id\x18\x01 \x01(\tR\x10serviceAccountId\x12k\n" +
 	"\x14service_account_type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x12serviceAccountType\"\xc9\x01\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x12serviceAccountType\"\xf2\x01\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12\x1d\n" +
 	"\n" +
 	"user_agent\x18\x02 \x01(\tR\tuserAgent\x12'\n" +
 	"\x0fclient_platform\x18\x03 \x01(\tR\x0eclientPlatform\x12O\n" +
-	"\x0eclient_version\x18\x04 \x01(\v2(.malonaz.authentication.v1.ClientVersionR\rclientVersion\"Q\n" +
+	"\x0eclient_version\x18\x04 \x01(\v2(.malonaz.authentication.v1.ClientVersionR\rclientVersion\x12'\n" +
+	"\x0fclient_timezone\x18\x05 \x01(\tR\x0eclientTimezone\"Q\n" +
 	"\rClientVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
 	"\x05minor\x18\x02 \x01(\x05R\x05minor\x12\x14\n" +

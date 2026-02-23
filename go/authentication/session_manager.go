@@ -24,6 +24,7 @@ const (
 	metadataKeySignedSession  = "x-signed-session-bin"
 	metadataKeyClientPlatform = "x-client-platform"
 	metadataKeyClientVersion  = "x-client-version"
+	metadataKeyClientTimezone = "x-client-timezone"
 )
 
 var ErrSignedSessionNotFound = errors.New("session not found in context")
@@ -240,6 +241,9 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 	}
 	if ipAddr := session.GetMetadata().GetIpAddress(); ipAddr != "" {
 		fields = append(fields, "ip_address", ipAddr)
+	}
+	if clientPlatform := session.GetMetadata().GetClientPlatform(); clientPlatform != "" {
+		fields = append(fields, "client_platform", clientPlatform)
 	}
 	if clientVersion := session.GetMetadata().GetClientVersion(); clientVersion != nil {
 		fields = append(fields, "client_version", fmt.Sprintf("%d.%d.%d", clientVersion.Major, clientVersion.Minor, clientVersion.Patch))
