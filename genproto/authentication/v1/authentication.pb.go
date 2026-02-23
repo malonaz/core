@@ -571,9 +571,11 @@ type Session struct {
 	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
 	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
 	Authorized bool `protobuf:"varint,5,opt,name=authorized,proto3" json:"authorized,omitempty"`
+	// The labels on this sessino.
+	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Additional metadata about the session, including client information
 	// and context for logging and auditing purposes.
-	Metadata      *SessionMetadata `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *SessionMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -649,6 +651,13 @@ func (x *Session) GetAuthorized() bool {
 	return false
 }
 
+func (x *Session) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
 func (x *Session) GetMetadata() *SessionMetadata {
 	if x != nil {
 		return x.Metadata
@@ -682,6 +691,10 @@ func (x *Session) SetServiceAccountIdentity(v *ServiceAccountIdentity) {
 
 func (x *Session) SetAuthorized(v bool) {
 	x.Authorized = v
+}
+
+func (x *Session) SetLabels(v map[string]string) {
+	x.Labels = v
 }
 
 func (x *Session) SetMetadata(v *SessionMetadata) {
@@ -788,6 +801,8 @@ type Session_builder struct {
 	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
 	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
 	Authorized bool
+	// The labels on this sessino.
+	Labels map[string]string
 	// Additional metadata about the session, including client information
 	// and context for logging and auditing purposes.
 	Metadata *SessionMetadata
@@ -806,6 +821,7 @@ func (b0 Session_builder) Build() *Session {
 		x.Identity = &Session_ServiceAccountIdentity{b.ServiceAccountIdentity}
 	}
 	x.Authorized = b.Authorized
+	x.Labels = b.Labels
 	x.Metadata = b.Metadata
 	return m0
 }
@@ -1232,7 +1248,7 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x05scope\x18\x04 \x01(\tR\x05scope\"k\n" +
 	"\rSignedSession\x12<\n" +
 	"\asession\x18\x01 \x01(\v2\".malonaz.authentication.v1.SessionR\asession\x12\x1c\n" +
-	"\tsignature\x18\x02 \x01(\fR\tsignature\"\x89\x03\n" +
+	"\tsignature\x18\x02 \x01(\fR\tsignature\"\x9b\x05\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
@@ -1241,8 +1257,12 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x18service_account_identity\x18\x04 \x01(\v21.malonaz.authentication.v1.ServiceAccountIdentityH\x00R\x16serviceAccountIdentity\x12\x1e\n" +
 	"\n" +
 	"authorized\x18\x05 \x01(\bR\n" +
-	"authorized\x12F\n" +
-	"\bmetadata\x18\x06 \x01(\v2*.malonaz.authentication.v1.SessionMetadataR\bmetadataB\n" +
+	"authorized\x12\xd4\x01\n" +
+	"\x06labels\x18\x06 \x03(\v2..malonaz.authentication.v1.Session.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x12F\n" +
+	"\bmetadata\x18\a \x01(\v2*.malonaz.authentication.v1.SessionMetadataR\bmetadata\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
 	"\bidentity\"P\n" +
 	"\fUserIdentity\x12'\n" +
@@ -1271,7 +1291,7 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"%SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE\x10\x02B4Z2github.com/malonaz/core/genproto/authentication/v1b\x06proto3"
 
 var file_malonaz_authentication_v1_authentication_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(ServiceAccountType)(0),             // 0: malonaz.authentication.v1.ServiceAccountType
 	(*PermissionConfiguration)(nil),     // 1: malonaz.authentication.v1.PermissionConfiguration
@@ -1284,8 +1304,9 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(*ServiceAccountIdentity)(nil),      // 8: malonaz.authentication.v1.ServiceAccountIdentity
 	(*SessionMetadata)(nil),             // 9: malonaz.authentication.v1.SessionMetadata
 	(*ClientVersion)(nil),               // 10: malonaz.authentication.v1.ClientVersion
-	nil,                                 // 11: malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
-	(*timestamppb.Timestamp)(nil),       // 12: google.protobuf.Timestamp
+	nil,                                 // 11: malonaz.authentication.v1.Session.LabelsEntry
+	nil,                                 // 12: malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
+	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
 }
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
 	3,  // 0: malonaz.authentication.v1.PermissionConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
@@ -1293,18 +1314,19 @@ var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
 	3,  // 2: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	0,  // 3: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
 	6,  // 4: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
-	12, // 5: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	13, // 5: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
 	7,  // 6: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
 	8,  // 7: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
-	9,  // 8: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
-	3,  // 9: malonaz.authentication.v1.ServiceAccountIdentity.service_account:type_name -> malonaz.authentication.v1.ServiceAccount
-	10, // 10: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
-	11, // 11: malonaz.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	11, // 8: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
+	9,  // 9: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
+	3,  // 10: malonaz.authentication.v1.ServiceAccountIdentity.service_account:type_name -> malonaz.authentication.v1.ServiceAccount
+	10, // 11: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
+	12, // 12: malonaz.authentication.v1.SessionMetadata.key_to_value:type_name -> malonaz.authentication.v1.SessionMetadata.KeyToValueEntry
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_authentication_v1_authentication_proto_init() }
@@ -1322,7 +1344,7 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_authentication_v1_authentication_proto_rawDesc), len(file_malonaz_authentication_v1_authentication_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

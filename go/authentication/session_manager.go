@@ -40,6 +40,14 @@ func NewSessionManager(opts *SessionManagerOpts) *SessionManager {
 	}
 }
 
+func GetSession(ctx context.Context) (*authenticationpb.Session, error) {
+	signedSession, err := getSignedSessionFromLocalContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return signedSession.Session, nil
+}
+
 // verifySession checks if a session has a valid signature.
 func (s *SessionManager) verify(signedSession *authenticationpb.SignedSession) (bool, error) {
 	// Marshal the session copy
@@ -92,7 +100,7 @@ func (s *SessionManager) injectSignedSessionIntoLocalContext(
 }
 
 // Get session gets the signed session from the local context, verifies it and returns the underlying session.
-func (s *SessionManager) getSignedSessionFromLocalContext(ctx context.Context) (*authenticationpb.SignedSession, error) {
+func getSignedSessionFromLocalContext(ctx context.Context) (*authenticationpb.SignedSession, error) {
 	value := ctx.Value(localSignedSessionKey{})
 	if value == nil {
 		return nil, ErrSignedSessionNotFound
@@ -187,7 +195,7 @@ func (s *SessionManager) StreamServerOutgoingContextInjectorInterceptor() grpc.S
 }
 
 func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ctx context.Context) (context.Context, error) {
-	signedSession, err := s.getSignedSessionFromLocalContext(ctx)
+	signedSession, err := getSignedSessionFromLocalContext(ctx)
 	if err != nil {
 		if errors.Is(err, ErrSignedSessionNotFound) {
 			return ctx, nil // No session to propagate, continue with original context
@@ -206,7 +214,7 @@ func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ct
 // ///////////////////////////////////////////////// INJECT SESSION TO LOG SESSION INTERCEPTOR ////////////////////////////////
 // injectSessionFieldsIntoLogContext extracts session information and injects it into the log context
 func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) error {
-	signedSession, err := s.getSignedSessionFromLocalContext(ctx)
+	signedSession, err := getSignedSessionFromLocalContext(ctx)
 	if err != nil {
 		if errors.Is(err, ErrSignedSessionNotFound) {
 			return nil // No session to log, skip gracefully
