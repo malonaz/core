@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"buf.build/go/protovalidate"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/sercand/kuberesolver/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -102,12 +101,8 @@ func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus
 	client.preUnaryInterceptors = append(client.preUnaryInterceptors, interceptor.UnaryClientTrailerPropagation())
 	client.preStreamInterceptors = append(client.preStreamInterceptors, interceptor.StreamClientTrailerPropagation())
 
-	if prometheusOpts.Enabled() && false {
-		metrics := grpc_prometheus.NewClientMetrics(
-			grpc_prometheus.WithClientHandlingTimeHistogram(
-				grpc_prometheus.WithHistogramBuckets(prometheusDefaultHistogramBuckets),
-			),
-		)
+	if prometheusOpts.Enabled() {
+		metrics := getPrometheusClientMetrics()
 		client.preUnaryInterceptors = append(client.preUnaryInterceptors, metrics.UnaryClientInterceptor())
 		client.preStreamInterceptors = append(client.preStreamInterceptors, metrics.StreamClientInterceptor())
 	}
