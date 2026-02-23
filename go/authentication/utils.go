@@ -58,6 +58,10 @@ func extractSessionMetadataFromContext(ctx context.Context) (*authenticationpb.S
 		sessionMetadata.UserAgent = values[0]
 	}
 
+	if values := md.Get(metadataKeyClientPlatform); len(values) > 0 {
+		sessionMetadata.ClientPlatform = values[0]
+	}
+
 	if values := md.Get(metadataKeyClientVersion); len(values) > 0 {
 		clientVersion, err := parseClientVersion(values[0])
 		if err != nil {

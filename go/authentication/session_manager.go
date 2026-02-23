@@ -21,8 +21,9 @@ import (
 )
 
 const (
-	metadataKeySignedSession = "x-signed-session-bin"
-	metadataKeyClientVersion = "x-client-version"
+	metadataKeySignedSession  = "x-signed-session-bin"
+	metadataKeyClientPlatform = "x-client-platform"
+	metadataKeyClientVersion  = "x-client-version"
 )
 
 var ErrSignedSessionNotFound = errors.New("session not found in context")

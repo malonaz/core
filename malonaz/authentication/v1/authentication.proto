@@ -187,13 +187,16 @@ message SessionMetadata {
   // useful for security monitoring and geographic access tracking.
   string ip_address = 1;
 
-  // Semantic version of the client application making requests with this session,
-  // enabling version-specific behavior and compatibility tracking.
-  ClientVersion client_version = 2;
-
   // User-Agent string from the client, providing information about the
   // client software, operating system, and browser (if applicable).
-  string user_agent = 3;
+  string user_agent = 2;
+
+  // Information about the platform, e.g. web, mobile-app etc.
+  string client_platform = 3;
+
+  // Semantic version of the client application making requests with this session,
+  // enabling version-specific behavior and compatibility tracking.
+  ClientVersion client_version = 4;
 }
 
 // ClientVersion represents a semantic version (semver) of the client application,

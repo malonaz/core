@@ -980,12 +980,13 @@ func (b0 ServiceAccountIdentity_builder) Build() *ServiceAccountIdentity {
 // SessionMetadata contains contextual information about a session, useful for
 // logging, auditing, security monitoring, and debugging.
 type SessionMetadata struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_IpAddress     string                 `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3"`
-	xxx_hidden_ClientVersion *ClientVersion         `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3"`
-	xxx_hidden_UserAgent     string                 `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_IpAddress      string                 `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3"`
+	xxx_hidden_UserAgent      string                 `protobuf:"bytes,2,opt,name=user_agent,json=userAgent,proto3"`
+	xxx_hidden_ClientPlatform string                 `protobuf:"bytes,3,opt,name=client_platform,json=clientPlatform,proto3"`
+	xxx_hidden_ClientVersion  *ClientVersion         `protobuf:"bytes,4,opt,name=client_version,json=clientVersion,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *SessionMetadata) Reset() {
@@ -1020,13 +1021,6 @@ func (x *SessionMetadata) GetIpAddress() string {
 	return ""
 }
 
-func (x *SessionMetadata) GetClientVersion() *ClientVersion {
-	if x != nil {
-		return x.xxx_hidden_ClientVersion
-	}
-	return nil
-}
-
 func (x *SessionMetadata) GetUserAgent() string {
 	if x != nil {
 		return x.xxx_hidden_UserAgent
@@ -1034,16 +1028,34 @@ func (x *SessionMetadata) GetUserAgent() string {
 	return ""
 }
 
+func (x *SessionMetadata) GetClientPlatform() string {
+	if x != nil {
+		return x.xxx_hidden_ClientPlatform
+	}
+	return ""
+}
+
+func (x *SessionMetadata) GetClientVersion() *ClientVersion {
+	if x != nil {
+		return x.xxx_hidden_ClientVersion
+	}
+	return nil
+}
+
 func (x *SessionMetadata) SetIpAddress(v string) {
 	x.xxx_hidden_IpAddress = v
 }
 
-func (x *SessionMetadata) SetClientVersion(v *ClientVersion) {
-	x.xxx_hidden_ClientVersion = v
-}
-
 func (x *SessionMetadata) SetUserAgent(v string) {
 	x.xxx_hidden_UserAgent = v
+}
+
+func (x *SessionMetadata) SetClientPlatform(v string) {
+	x.xxx_hidden_ClientPlatform = v
+}
+
+func (x *SessionMetadata) SetClientVersion(v *ClientVersion) {
+	x.xxx_hidden_ClientVersion = v
 }
 
 func (x *SessionMetadata) HasClientVersion() bool {
@@ -1063,12 +1075,14 @@ type SessionMetadata_builder struct {
 	// IP address of the client that created or is using this session,
 	// useful for security monitoring and geographic access tracking.
 	IpAddress string
-	// Semantic version of the client application making requests with this session,
-	// enabling version-specific behavior and compatibility tracking.
-	ClientVersion *ClientVersion
 	// User-Agent string from the client, providing information about the
 	// client software, operating system, and browser (if applicable).
 	UserAgent string
+	// Information about the platform, e.g. web, mobile-app etc.
+	ClientPlatform string
+	// Semantic version of the client application making requests with this session,
+	// enabling version-specific behavior and compatibility tracking.
+	ClientVersion *ClientVersion
 }
 
 func (b0 SessionMetadata_builder) Build() *SessionMetadata {
@@ -1076,8 +1090,9 @@ func (b0 SessionMetadata_builder) Build() *SessionMetadata {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_IpAddress = b.IpAddress
-	x.xxx_hidden_ClientVersion = b.ClientVersion
 	x.xxx_hidden_UserAgent = b.UserAgent
+	x.xxx_hidden_ClientPlatform = b.ClientPlatform
+	x.xxx_hidden_ClientVersion = b.ClientVersion
 	return m0
 }
 
@@ -1224,13 +1239,14 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x16ServiceAccountIdentity\x12,\n" +
 	"\x12service_account_id\x18\x01 \x01(\tR\x10serviceAccountId\x12k\n" +
 	"\x14service_account_type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x12serviceAccountType\"\xa0\x01\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x12serviceAccountType\"\xc9\x01\n" +
 	"\x0fSessionMetadata\x12\x1d\n" +
 	"\n" +
-	"ip_address\x18\x01 \x01(\tR\tipAddress\x12O\n" +
-	"\x0eclient_version\x18\x02 \x01(\v2(.malonaz.authentication.v1.ClientVersionR\rclientVersion\x12\x1d\n" +
+	"ip_address\x18\x01 \x01(\tR\tipAddress\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x03 \x01(\tR\tuserAgent\"Q\n" +
+	"user_agent\x18\x02 \x01(\tR\tuserAgent\x12'\n" +
+	"\x0fclient_platform\x18\x03 \x01(\tR\x0eclientPlatform\x12O\n" +
+	"\x0eclient_version\x18\x04 \x01(\v2(.malonaz.authentication.v1.ClientVersionR\rclientVersion\"Q\n" +
 	"\rClientVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
 	"\x05minor\x18\x02 \x01(\x05R\x05minor\x12\x14\n" +
