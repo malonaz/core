@@ -263,6 +263,11 @@ package {{ .PackageName }}
             if err != nil {
             return nil, err
             }
+            {{ if $softDeletable }}
+            if patched{{ $resourceGoName }}.DeleteTime != nil {
+               return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+            }
+            {{ end }}
 
             // STEP 3: Patch the existing resource.
 	          if err := parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
