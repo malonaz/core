@@ -1,8 +1,12 @@
 go_library(
     name = "postgres",
     srcs = [
+        "has.go",
+        "jsonb.go",
         "order_by.go",
         "postgres.go",
+        "types.go",
+        "wildcard.go",
     ],
     visibility = ["//..."],
     deps = [

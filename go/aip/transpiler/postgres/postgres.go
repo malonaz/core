@@ -13,97 +13,9 @@ import (
 )
 
 func TranspileFilter(filter filtering.Filter) (string, []any, error) {
-	t := &Transpiler{
-		filter: filter,
-		params: []any{},
-	}
+	t := &Transpiler{filter: filter, params: []any{}}
 	return t.Transpile()
 }
-
-type sqlExpr interface {
-	SQL() string
-}
-
-type boolExpr interface {
-	sqlExpr
-	isBoolExpr()
-}
-
-type rawSQL string
-
-func (r rawSQL) SQL() string { return string(r) }
-func (r rawSQL) isBoolExpr() {}
-
-type ident string
-
-func (i ident) SQL() string { return string(i) }
-func (i ident) isBoolExpr() {}
-
-type param string
-
-func (p param) SQL() string { return "@" + string(p) }
-func (p param) isBoolExpr() {}
-
-type paren struct {
-	expr sqlExpr
-}
-
-func (p paren) SQL() string { return "(" + p.expr.SQL() + ")" }
-func (p paren) isBoolExpr() {}
-
-type comparisonOp struct {
-	lhs sqlExpr
-	op  string
-	rhs sqlExpr
-}
-
-func (c comparisonOp) SQL() string {
-	return c.lhs.SQL() + " " + c.op + " " + c.rhs.SQL()
-}
-func (c comparisonOp) isBoolExpr() {}
-
-type logicalOp struct {
-	op  string
-	lhs boolExpr
-	rhs boolExpr
-}
-
-func (l logicalOp) SQL() string {
-	if l.lhs == nil {
-		return l.op + " " + l.rhs.SQL()
-	}
-	return l.lhs.SQL() + " " + l.op + " " + l.rhs.SQL()
-}
-func (l logicalOp) isBoolExpr() {}
-
-type isOp struct {
-	lhs    sqlExpr
-	negate bool
-}
-
-func (i isOp) SQL() string {
-	if i.negate {
-		return i.lhs.SQL() + " IS NOT NULL"
-	}
-	return i.lhs.SQL() + " IS NULL"
-}
-func (i isOp) isBoolExpr() {}
-
-const (
-	opEq   = "="
-	opNe   = "!="
-	opLt   = "<"
-	opLe   = "<="
-	opGt   = ">"
-	opGe   = ">="
-	opLike = "LIKE"
-)
-
-const (
-	opAnd = "AND"
-	opOr  = "OR"
-	opNot = "NOT"
-)
 
 type Transpiler struct {
 	filter       filtering.Filter
@@ -123,8 +35,7 @@ func (t *Transpiler) Transpile() (string, []any, error) {
 	if !ok {
 		return "", nil, fmt.Errorf("not a bool expr")
 	}
-	sql := "WHERE " + strings.ReplaceAll(resultBoolExpr.SQL(), "@_param_", "$")
-	return sql, t.params, nil
+	return "WHERE " + resultBoolExpr.SQL(), t.params, nil
 }
 
 func (t *Transpiler) transpileExpr(e *expr.Expr) (sqlExpr, error) {
@@ -143,23 +54,6 @@ func (t *Transpiler) transpileExpr(e *expr.Expr) (sqlExpr, error) {
 		return t.transpileConstExpr(e)
 	default:
 		return nil, fmt.Errorf("unsupported expr: %v", e)
-	}
-}
-
-func (t *Transpiler) transpileConstExpr(e *expr.Expr) (sqlExpr, error) {
-	switch kind := e.GetConstExpr().GetConstantKind().(type) {
-	case *expr.Constant_BoolValue:
-		return t.param(kind.BoolValue), nil
-	case *expr.Constant_DoubleValue:
-		return t.param(kind.DoubleValue), nil
-	case *expr.Constant_Int64Value:
-		return t.param(kind.Int64Value), nil
-	case *expr.Constant_StringValue:
-		return t.param(kind.StringValue), nil
-	case *expr.Constant_Uint64Value:
-		return t.param(int64(kind.Uint64Value)), nil
-	default:
-		return nil, fmt.Errorf("unsupported const expr: %v", kind)
 	}
 }
 
@@ -195,18 +89,31 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (boolExpr, error) {
 	}
 }
 
+func (t *Transpiler) transpileConstExpr(e *expr.Expr) (sqlExpr, error) {
+	switch kind := e.GetConstExpr().GetConstantKind().(type) {
+	case *expr.Constant_BoolValue:
+		return t.addParam(kind.BoolValue), nil
+	case *expr.Constant_DoubleValue:
+		return t.addParam(kind.DoubleValue), nil
+	case *expr.Constant_Int64Value:
+		return t.addParam(kind.Int64Value), nil
+	case *expr.Constant_StringValue:
+		return t.addParam(kind.StringValue), nil
+	case *expr.Constant_Uint64Value:
+		return t.addParam(int64(kind.Uint64Value)), nil
+	default:
+		return nil, fmt.Errorf("unsupported const expr: %v", kind)
+	}
+}
+
 func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (sqlExpr, error) {
 	identExpr := e.GetIdentExpr()
 	identType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
 	if !ok {
 		return nil, fmt.Errorf("unknown type of ident expr %d", e.GetId())
 	}
-	if messageType := identType.GetMessageType(); messageType != "" {
-		if enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(messageType)); err == nil {
-			if enumValue := enumType.Descriptor().Values().ByName(protoreflect.Name(identExpr.GetName())); enumValue != nil {
-				return t.param(int64(enumValue.Number())), nil
-			}
-		}
+	if enumValue, ok := t.resolveEnumValue(identType, identExpr.GetName()); ok {
+		return t.addParam(int64(enumValue)), nil
 	}
 	return ident(identExpr.GetName()), nil
 }
@@ -217,97 +124,35 @@ func (t *Transpiler) transpileIdentExprForJSONB(e *expr.Expr) (sqlExpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown type of ident expr %d", e.GetId())
 	}
-	if messageType := identType.GetMessageType(); messageType != "" {
-		if enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(messageType)); err == nil {
-			if enumValue := enumType.Descriptor().Values().ByName(protoreflect.Name(identExpr.GetName())); enumValue != nil {
-				return t.param(identExpr.GetName()), nil
-			}
-		}
+	if _, ok := t.resolveEnumValue(identType, identExpr.GetName()); ok {
+		return t.addParam(identExpr.GetName()), nil
 	}
 	return ident(identExpr.GetName()), nil
 }
 
+func (t *Transpiler) resolveEnumValue(identType *expr.Type, name string) (protoreflect.EnumNumber, bool) {
+	messageType := identType.GetMessageType()
+	if messageType == "" {
+		return 0, false
+	}
+	enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(messageType))
+	if err != nil {
+		return 0, false
+	}
+	enumValue := enumType.Descriptor().Values().ByName(protoreflect.Name(name))
+	if enumValue == nil {
+		return 0, false
+	}
+	return enumValue.Number(), true
+}
+
 func (t *Transpiler) transpileSelectExpr(e *expr.Expr) (sqlExpr, error) {
 	path, root := t.extractSelectPath(e)
-
 	exprType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
 	if !ok {
 		return nil, fmt.Errorf("unknown type of select expr %d", e.GetId())
 	}
-
-	return t.buildJSONBPathExpr(root, path, exprType), nil
-}
-
-func (t *Transpiler) buildJSONBPathExpr(root string, path []string, exprType *expr.Type) rawSQL {
-	var sb strings.Builder
-
-	needsCast := true
-	var castType string
-	switch exprType.GetPrimitive() {
-	case expr.Type_STRING:
-		needsCast = false
-	case expr.Type_BOOL:
-		castType = "boolean"
-	case expr.Type_INT64:
-		castType = "bigint"
-	case expr.Type_UINT64:
-		castType = "bigint"
-	case expr.Type_DOUBLE:
-		castType = "double precision"
-	default:
-		needsCast = false
-	}
-
-	if needsCast {
-		sb.WriteString("(")
-	}
-	sb.WriteString(root)
-	for i, p := range path {
-		if i < len(path)-1 {
-			sb.WriteString("->'")
-		} else {
-			sb.WriteString("->>'")
-		}
-		sb.WriteString(p)
-		sb.WriteString("'")
-	}
-	if needsCast {
-		sb.WriteString(")::")
-		sb.WriteString(castType)
-	}
-
-	return rawSQL(sb.String())
-}
-
-func (t *Transpiler) buildJSONBPathExprRaw(root string, path []string) string {
-	var sb strings.Builder
-	sb.WriteString(root)
-	for i, p := range path {
-		if i < len(path)-1 {
-			sb.WriteString("->'")
-		} else {
-			sb.WriteString("->>'")
-		}
-		sb.WriteString(p)
-		sb.WriteString("'")
-	}
-	return sb.String()
-}
-
-func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (boolExpr, error) {
-	callExpr := e.GetCallExpr()
-	if len(callExpr.GetArgs()) != 1 {
-		return nil, fmt.Errorf("unexpected number of arguments to `%s` expression: %d", filtering.FunctionNot, len(callExpr.GetArgs()))
-	}
-	rhsExpr, err := t.transpileExpr(callExpr.GetArgs()[0])
-	if err != nil {
-		return nil, err
-	}
-	rhsBoolExpr, ok := rhsExpr.(boolExpr)
-	if !ok {
-		return nil, fmt.Errorf("unexpected argument to `%s`: not a bool expr", filtering.FunctionNot)
-	}
-	return logicalOp{op: opNot, rhs: rhsBoolExpr}, nil
+	return buildJSONBTypedExpr(root, path, exprType), nil
 }
 
 func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolExpr, error) {
@@ -324,12 +169,10 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 		return nil, err
 	}
 
-	// We should instead simply check for 'SelectExpr', but `aip-go`'s `filtering lib currently does not handle structs, so we declare
-	// nested message paths as indents, like `metadata.analysis.summary'`
-	// Use IS DISTINCT FROM for != on JSONB paths to handle NULLs correctly
 	if op == opNe && t.isJSONBPath(lhs) {
-		op = "IS DISTINCT FROM"
+		op = opIsDistinctFrom
 	}
+
 	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionTimestamp {
 		rhsExpr, err := t.transpileTimestampCallExpr(rhs)
 		if err != nil {
@@ -347,7 +190,6 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 	if err != nil {
 		return nil, err
 	}
-
 	return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
 }
 
@@ -359,339 +201,57 @@ func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
 	if lhs.GetIdentExpr() == nil && lhs.GetSelectExpr() == nil {
 		return false
 	}
-	rhs := e.GetCallExpr().GetArgs()[1]
-	if rhs.GetConstExpr() == nil {
-		return false
-	}
-	rhsStringExpr, ok := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue)
+	val, ok := getStringConstValue(e.GetCallExpr().GetArgs()[1])
 	if !ok {
 		return false
 	}
-	return strings.HasPrefix(rhsStringExpr.StringValue, "*") || strings.HasSuffix(rhsStringExpr.StringValue, "*")
+	return isWildcardPattern(val)
 }
 
 func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (boolExpr, error) {
 	lhs := e.GetCallExpr().GetArgs()[0]
-	rhs := e.GetCallExpr().GetArgs()[1]
-	rhsString := rhs.GetConstExpr().GetConstantKind().(*expr.Constant_StringValue).StringValue
+	rhsString, _ := getStringConstValue(e.GetCallExpr().GetArgs()[1])
 
-	hasLeading := strings.HasPrefix(rhsString, "*")
-	hasTrailing := strings.HasSuffix(rhsString, "*")
-
-	trimmed := rhsString
-	if hasLeading {
-		trimmed = trimmed[1:]
-	}
-	if hasTrailing {
-		trimmed = trimmed[:len(trimmed)-1]
-	}
-
+	trimmed := strings.TrimPrefix(strings.TrimSuffix(rhsString, "*"), "*")
 	if strings.Contains(trimmed, "*") {
 		return nil, fmt.Errorf("wildcard only supported in leading or trailing positions")
 	}
 
 	var lhsExpr sqlExpr
 	var err error
-	if lhs.GetSelectExpr() != nil {
+	switch {
+	case lhs.GetSelectExpr() != nil:
 		lhsExpr, err = t.transpileSelectExpr(lhs)
-		if err != nil {
-			return nil, err
-		}
-	} else if lhs.GetIdentExpr() != nil {
+	case lhs.GetIdentExpr() != nil:
 		lhsExpr = ident(lhs.GetIdentExpr().GetName())
-	} else {
+	default:
 		return nil, fmt.Errorf("unsupported LHS for substring match")
 	}
-
-	likePattern := strings.ReplaceAll(rhsString, "*", "%")
+	if err != nil {
+		return nil, err
+	}
 
 	return comparisonOp{
 		lhs: lhsExpr,
 		op:  opLike,
-		rhs: t.param(likePattern),
+		rhs: t.addParam(toLIKEPattern(rhsString)),
 	}, nil
 }
 
-func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (boolExpr, error) {
+func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (boolExpr, error) {
 	callExpr := e.GetCallExpr()
-	if len(callExpr.GetArgs()) != 2 {
-		return nil, fmt.Errorf("unexpected number of arguments to `:` expression: %d", len(callExpr.GetArgs()))
+	if len(callExpr.GetArgs()) != 1 {
+		return nil, fmt.Errorf("unexpected number of arguments to `%s` expression: %d", filtering.FunctionNot, len(callExpr.GetArgs()))
 	}
-	lhsExpr := callExpr.GetArgs()[0]
-	rhsExpr := callExpr.GetArgs()[1]
-
-	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhsExpr.GetId()]
+	rhsExpr, err := t.transpileExpr(callExpr.GetArgs()[0])
+	if err != nil {
+		return nil, err
+	}
+	rhsBoolExpr, ok := rhsExpr.(boolExpr)
 	if !ok {
-		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
+		return nil, fmt.Errorf("unexpected argument to `%s`: not a bool expr", filtering.FunctionNot)
 	}
-
-	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
-		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok && strVal.StringValue == "*" {
-			if lhsType.GetPrimitive() == expr.Type_STRING {
-				lhs, err := t.transpileExpr(lhsExpr)
-				if err != nil {
-					return nil, err
-				}
-				return logicalOp{
-					op:  opAnd,
-					lhs: isOp{lhs: lhs, negate: true},
-					rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("''")},
-				}, nil
-			}
-			if lhsType.GetListType() != nil {
-				isNativeArray := lhsExpr.GetIdentExpr() != nil
-				if isNativeArray {
-					lhs, err := t.transpileExpr(lhsExpr)
-					if err != nil {
-						return nil, err
-					}
-					return logicalOp{
-						op:  opAnd,
-						lhs: isOp{lhs: lhs, negate: true},
-						rhs: comparisonOp{lhs: rawSQL(fmt.Sprintf("COALESCE(array_length(%s, 1), 0)", lhs.SQL())), op: opGt, rhs: rawSQL("0")},
-					}, nil
-				}
-				path, root := t.extractSelectPath(lhsExpr)
-				jsonbExpr := t.buildJSONBArrowPath(root, path)
-				return logicalOp{
-					op:  opAnd,
-					lhs: isOp{lhs: jsonbExpr, negate: true},
-					rhs: comparisonOp{lhs: rawSQL(fmt.Sprintf("jsonb_array_length(%s)", jsonbExpr.SQL())), op: opGt, rhs: rawSQL("0")},
-				}, nil
-			}
-			if lhsType.GetMapType() != nil {
-				lhs, err := t.transpileExpr(lhsExpr)
-				if err != nil {
-					return nil, err
-				}
-				return logicalOp{
-					op:  opAnd,
-					lhs: isOp{lhs: lhs, negate: true},
-					rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("'{}'::jsonb")},
-				}, nil
-			}
-			lhs, err := t.transpileExpr(lhsExpr)
-			if err != nil {
-				return nil, err
-			}
-			return isOp{lhs: lhs, negate: true}, nil
-		}
-	}
-
-	if listType := lhsType.GetListType(); listType != nil {
-		return t.transpileHasOnRepeated(lhsExpr, rhsExpr, listType)
-	}
-
-	if lhsType.GetMapType() != nil {
-		return t.transpileHasOnMap(lhsExpr, rhsExpr)
-	}
-
-	if lhsExpr.GetSelectExpr() != nil {
-		if t.traversesThroughRepeatedField(lhsExpr) {
-			return t.transpileHasOnRepeatedNested(lhsExpr, rhsExpr)
-		}
-		return t.transpileHasOnSelect(lhsExpr, rhsExpr)
-	}
-
-	return nil, fmt.Errorf("unsupported type for `:` operator")
-}
-
-func (t *Transpiler) traversesThroughRepeatedField(e *expr.Expr) bool {
-	current := e
-	for {
-		selectExpr := current.GetSelectExpr()
-		if selectExpr == nil {
-			return false
-		}
-		operand := selectExpr.GetOperand()
-		operandType, ok := t.filter.CheckedExpr.GetTypeMap()[operand.GetId()]
-		fmt.Printf("DEBUG: operand id=%d, field=%s, hasType=%v, type=%v\n",
-			operand.GetId(), selectExpr.GetField(), ok, operandType)
-		if ok && operandType.GetListType() != nil {
-			return true
-		}
-		current = operand
-	}
-}
-
-func (t *Transpiler) transpileHasOnMap(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
-	lhs, err := t.transpileExpr(lhsExpr)
-	if err != nil {
-		return nil, err
-	}
-	rhs, err := t.transpileExpr(rhsExpr)
-	if err != nil {
-		return nil, err
-	}
-	return rawSQL(fmt.Sprintf("COALESCE(%s, '{}') ? %s", lhs.SQL(), rhs.SQL())), nil
-}
-
-func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
-	lhs, err := t.transpileExpr(lhsExpr)
-	if err != nil {
-		return nil, err
-	}
-
-	var rhs sqlExpr
-	if rhsExpr.GetIdentExpr() != nil {
-		rhs, err = t.transpileIdentExprForJSONB(rhsExpr)
-	} else {
-		rhs, err = t.transpileExpr(rhsExpr)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return comparisonOp{lhs: lhs, op: opEq, rhs: rhs}, nil
-}
-
-// go/aip/transpiler/postgres/postgres.go
-
-func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (boolExpr, error) {
-	if lhsExpr.GetIdentExpr() != nil && listType.GetElemType().GetPrimitive() != expr.Type_PRIMITIVE_TYPE_UNSPECIFIED {
-		if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
-			if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
-				if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
-					lhs, err := t.transpileExpr(lhsExpr)
-					if err != nil {
-						return nil, err
-					}
-					likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
-					paramExpr := t.param(likePattern)
-					existsSQL := fmt.Sprintf("EXISTS(SELECT 1 FROM unnest(%s) AS _elem WHERE _elem LIKE %s::text)",
-						lhs.SQL(), paramExpr.SQL())
-					return rawSQL(existsSQL), nil
-				}
-			}
-		}
-
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		rhs, err := t.transpileExpr(rhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return rawSQL(fmt.Sprintf("%s = ANY(%s)", rhs.SQL(), lhs.SQL())), nil
-	}
-
-	if lhsExpr.GetSelectExpr() != nil {
-		return t.transpileHasOnRepeatedNested(lhsExpr, rhsExpr)
-	}
-
-	return nil, fmt.Errorf("unsupported repeated field type for `:` operator")
-}
-
-func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
-	var fieldPath []string
-	var repeatedField string
-	current := lhsExpr
-
-	for {
-		selectExpr := current.GetSelectExpr()
-		if selectExpr == nil {
-			break
-		}
-		fieldPath = append([]string{selectExpr.GetField()}, fieldPath...)
-		operand := selectExpr.GetOperand()
-
-		operandType, ok := t.filter.CheckedExpr.GetTypeMap()[operand.GetId()]
-		if ok && operandType.GetListType() != nil {
-			if identExpr := operand.GetIdentExpr(); identExpr != nil {
-				repeatedField = identExpr.GetName()
-				break
-			}
-			if operand.GetSelectExpr() != nil {
-				nestedPath, nestedRoot := t.extractSelectPath(operand)
-				repeatedField = nestedRoot
-				for _, p := range nestedPath {
-					repeatedField += "->'" + p + "'"
-				}
-				break
-			}
-		}
-		current = operand
-	}
-
-	if repeatedField == "" {
-		path, root := t.extractSelectPath(lhsExpr)
-		if root == "" || len(path) == 0 {
-			return nil, fmt.Errorf("could not find repeated field in nested has expression")
-		}
-		var sb strings.Builder
-		sb.WriteString(root)
-		for _, p := range path {
-			sb.WriteString("->'")
-			sb.WriteString(p)
-			sb.WriteString("'")
-		}
-		arrayExpr := sb.String()
-
-		if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
-			if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
-				if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
-					likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
-					paramExpr := t.param(likePattern)
-					return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem LIKE %s::text)",
-						arrayExpr, paramExpr.SQL())), nil
-				}
-			}
-		}
-
-		rhs, err := t.transpileExpr(rhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem = %s::text)",
-			arrayExpr, rhs.SQL())), nil
-	}
-
-	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
-		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
-			if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
-				likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
-				paramExpr := t.param(likePattern)
-				if len(fieldPath) == 0 {
-					return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem LIKE %s::text)",
-						repeatedField, paramExpr.SQL())), nil
-				}
-				elemPath := t.buildJSONBPathExprRaw("_elem", fieldPath)
-				return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s LIKE %s::text)",
-					repeatedField, elemPath, paramExpr.SQL())), nil
-			}
-		}
-	}
-
-	rhs, err := t.transpileExpr(rhsExpr)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(fieldPath) == 0 {
-		return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem = %s::text)",
-			repeatedField, rhs.SQL())), nil
-	}
-	elemPath := t.buildJSONBPathExprRaw("_elem", fieldPath)
-	return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s = %s)",
-		repeatedField, elemPath, rhs.SQL())), nil
-}
-
-func (t *Transpiler) extractSelectPath(e *expr.Expr) (path []string, root string) {
-	current := e
-	for {
-		selectExpr := current.GetSelectExpr()
-		if selectExpr == nil {
-			break
-		}
-		path = append([]string{selectExpr.GetField()}, path...)
-		operand := selectExpr.GetOperand()
-		if identExpr := operand.GetIdentExpr(); identExpr != nil {
-			root = identExpr.GetName()
-			break
-		}
-		current = operand
-	}
-	return
+	return logicalOp{op: opNot, rhs: rhsBoolExpr}, nil
 }
 
 func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op string) (boolExpr, error) {
@@ -735,37 +295,11 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (sqlExpr, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
 	}
-	return t.param(timeArg), nil
+	return t.addParam(timeArg), nil
 }
 
-func (t *Transpiler) param(value any) param {
-	p := t.nextParam()
-	t.params = append(t.params, value)
-	return param(p)
-}
-
-func (t *Transpiler) nextParam() string {
+func (t *Transpiler) addParam(value any) sqlParam {
 	t.paramCounter++
-	return "_param_" + strconv.Itoa(t.paramCounter)
-}
-
-func (t *Transpiler) isJSONBPath(e *expr.Expr) bool {
-	if e.GetSelectExpr() != nil {
-		return true
-	}
-	if identExpr := e.GetIdentExpr(); identExpr != nil {
-		return strings.Contains(identExpr.GetName(), ".")
-	}
-	return false
-}
-
-func (t *Transpiler) buildJSONBArrowPath(root string, path []string) rawSQL {
-	var sb strings.Builder
-	sb.WriteString(root)
-	for _, p := range path {
-		sb.WriteString("->'")
-		sb.WriteString(p)
-		sb.WriteString("'")
-	}
-	return rawSQL(sb.String())
+	t.params = append(t.params, value)
+	return sqlParam("$" + strconv.Itoa(t.paramCounter))
 }

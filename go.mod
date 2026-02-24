@@ -57,7 +57,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/pretty v1.2.1
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.einride.tech/aip v0.73.0
+	go.einride.tech/aip v0.80.0
 	golang.org/x/image v0.34.0
 	golang.org/x/mod v0.31.0
 	golang.org/x/net v0.47.0
