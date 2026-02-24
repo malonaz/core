@@ -1,5 +1,3 @@
-// file: malonaz/canonicalize/v1/canonicalize.proto
-
 syntax = "proto3";
 
 package malonaz.canonicalize.v1;

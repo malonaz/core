@@ -54,8 +54,8 @@ func GetServiceOption[T any](serviceName string, extensionType protoreflect.Exte
 		return zero, fmt.Errorf("descriptor is not a service descriptor for service: %s", serviceName)
 	}
 	options, ok := serviceDescriptor.Options().(*descriptorpb.ServiceOptions)
-	if !ok || options == nil {
-		return zero, fmt.Errorf("service options for %s not found or wrong type", serviceName)
+	if !ok {
+		return zero, fmt.Errorf("service options for %s has wrong type", serviceName)
 	}
 	return GetExtension[T](options, extensionType)
 }
@@ -71,18 +71,14 @@ func GetMethodOption[T any](methodName string, extensionType protoreflect.Extens
 		return zero, fmt.Errorf("descriptor is not a method descriptor for method: %s", methodName)
 	}
 	options, ok := methodDescriptor.Options().(*descriptorpb.MethodOptions)
-	if !ok || options == nil {
-		return zero, fmt.Errorf("method options for %s not found or wrong type", methodName)
+	if !ok {
+		return zero, fmt.Errorf("method options for %s has wrong type", methodName)
 	}
 	return GetExtension[T](options, extensionType)
 }
 
 func GetMessageOption[T any](m proto.Message, extensionType protoreflect.ExtensionType) (T, error) {
-	var zero T
 	options := m.ProtoReflect().Descriptor().Options()
-	if options == nil {
-		return zero, fmt.Errorf("message options not found")
-	}
 	return GetExtension[T](options, extensionType)
 }
 
