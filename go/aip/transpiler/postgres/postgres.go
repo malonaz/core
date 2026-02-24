@@ -427,6 +427,49 @@ func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (boolExpr, error) {
 
 	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
 		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok && strVal.StringValue == "*" {
+			if lhsType.GetPrimitive() == expr.Type_STRING {
+				lhs, err := t.transpileExpr(lhsExpr)
+				if err != nil {
+					return nil, err
+				}
+				return logicalOp{
+					op:  opAnd,
+					lhs: isOp{lhs: lhs, negate: true},
+					rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("''")},
+				}, nil
+			}
+			if lhsType.GetListType() != nil {
+				isNativeArray := lhsExpr.GetIdentExpr() != nil
+				if isNativeArray {
+					lhs, err := t.transpileExpr(lhsExpr)
+					if err != nil {
+						return nil, err
+					}
+					return logicalOp{
+						op:  opAnd,
+						lhs: isOp{lhs: lhs, negate: true},
+						rhs: comparisonOp{lhs: rawSQL(fmt.Sprintf("COALESCE(array_length(%s, 1), 0)", lhs.SQL())), op: opGt, rhs: rawSQL("0")},
+					}, nil
+				}
+				path, root := t.extractSelectPath(lhsExpr)
+				jsonbExpr := t.buildJSONBArrowPath(root, path)
+				return logicalOp{
+					op:  opAnd,
+					lhs: isOp{lhs: jsonbExpr, negate: true},
+					rhs: comparisonOp{lhs: rawSQL(fmt.Sprintf("jsonb_array_length(%s)", jsonbExpr.SQL())), op: opGt, rhs: rawSQL("0")},
+				}, nil
+			}
+			if lhsType.GetMapType() != nil {
+				lhs, err := t.transpileExpr(lhsExpr)
+				if err != nil {
+					return nil, err
+				}
+				return logicalOp{
+					op:  opAnd,
+					lhs: isOp{lhs: lhs, negate: true},
+					rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("'{}'::jsonb")},
+				}, nil
+			}
 			lhs, err := t.transpileExpr(lhsExpr)
 			if err != nil {
 				return nil, err
@@ -501,8 +544,26 @@ func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr
 	return comparisonOp{lhs: lhs, op: opEq, rhs: rhs}, nil
 }
 
+// go/aip/transpiler/postgres/postgres.go
+
 func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (boolExpr, error) {
 	if lhsExpr.GetIdentExpr() != nil && listType.GetElemType().GetPrimitive() != expr.Type_PRIMITIVE_TYPE_UNSPECIFIED {
+		if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
+			if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
+				if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
+					lhs, err := t.transpileExpr(lhsExpr)
+					if err != nil {
+						return nil, err
+					}
+					likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
+					paramExpr := t.param(likePattern)
+					existsSQL := fmt.Sprintf("EXISTS(SELECT 1 FROM unnest(%s) AS _elem WHERE _elem LIKE %s::text)",
+						lhs.SQL(), paramExpr.SQL())
+					return rawSQL(existsSQL), nil
+				}
+			}
+		}
+
 		lhs, err := t.transpileExpr(lhsExpr)
 		if err != nil {
 			return nil, err
@@ -553,7 +614,52 @@ func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (
 	}
 
 	if repeatedField == "" {
-		return nil, fmt.Errorf("could not find repeated field in nested has expression")
+		path, root := t.extractSelectPath(lhsExpr)
+		if root == "" || len(path) == 0 {
+			return nil, fmt.Errorf("could not find repeated field in nested has expression")
+		}
+		var sb strings.Builder
+		sb.WriteString(root)
+		for _, p := range path {
+			sb.WriteString("->'")
+			sb.WriteString(p)
+			sb.WriteString("'")
+		}
+		arrayExpr := sb.String()
+
+		if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
+			if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
+				if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
+					likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
+					paramExpr := t.param(likePattern)
+					return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem LIKE %s::text)",
+						arrayExpr, paramExpr.SQL())), nil
+				}
+			}
+		}
+
+		rhs, err := t.transpileExpr(rhsExpr)
+		if err != nil {
+			return nil, err
+		}
+		return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem = %s::text)",
+			arrayExpr, rhs.SQL())), nil
+	}
+
+	if constExpr := rhsExpr.GetConstExpr(); constExpr != nil {
+		if strVal, ok := constExpr.GetConstantKind().(*expr.Constant_StringValue); ok {
+			if strings.HasPrefix(strVal.StringValue, "*") || strings.HasSuffix(strVal.StringValue, "*") {
+				likePattern := strings.ReplaceAll(strVal.StringValue, "*", "%")
+				paramExpr := t.param(likePattern)
+				if len(fieldPath) == 0 {
+					return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem LIKE %s::text)",
+						repeatedField, paramExpr.SQL())), nil
+				}
+				elemPath := t.buildJSONBPathExprRaw("_elem", fieldPath)
+				return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s LIKE %s::text)",
+					repeatedField, elemPath, paramExpr.SQL())), nil
+			}
+		}
 	}
 
 	rhs, err := t.transpileExpr(rhsExpr)
@@ -561,12 +667,13 @@ func (t *Transpiler) transpileHasOnRepeatedNested(lhsExpr, rhsExpr *expr.Expr) (
 		return nil, err
 	}
 
+	if len(fieldPath) == 0 {
+		return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements_text(%s) AS _elem WHERE _elem = %s::text)",
+			repeatedField, rhs.SQL())), nil
+	}
 	elemPath := t.buildJSONBPathExprRaw("_elem", fieldPath)
-
-	existsSQL := fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s = %s)",
-		repeatedField, elemPath, rhs.SQL())
-
-	return rawSQL(existsSQL), nil
+	return rawSQL(fmt.Sprintf("EXISTS(SELECT 1 FROM jsonb_array_elements(%s) AS _elem WHERE %s = %s)",
+		repeatedField, elemPath, rhs.SQL())), nil
 }
 
 func (t *Transpiler) extractSelectPath(e *expr.Expr) (path []string, root string) {
@@ -650,4 +757,15 @@ func (t *Transpiler) isJSONBPath(e *expr.Expr) bool {
 		return strings.Contains(identExpr.GetName(), ".")
 	}
 	return false
+}
+
+func (t *Transpiler) buildJSONBArrowPath(root string, path []string) rawSQL {
+	var sb strings.Builder
+	sb.WriteString(root)
+	for _, p := range path {
+		sb.WriteString("->'")
+		sb.WriteString(p)
+		sb.WriteString("'")
+	}
+	return rawSQL(sb.String())
 }

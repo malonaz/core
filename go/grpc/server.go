@@ -213,7 +213,10 @@ func (s *Server) Serve(ctx context.Context) error {
 	// We place this interceptor in the 'post' to allow authentication middleware to take precedence.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerValidate(validator))
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerValidate(validator))
-	// POST (2): Field mask interceptor.
+	// POST (2): Canonicalize interceptor (After proto validate).
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerCanonicalize())
+	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerCanonicalize())
+	// POST (3): Field mask interceptor.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerFieldMask())
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerFieldMask())
 

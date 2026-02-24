@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package malonaz.library.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/canonicalize/v1/canonicalize.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/library/v1";
+option (google.api.resource_definition) = {
+  type: "library.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+
+// Author represents a book author.
+message Author {
+  option (google.api.resource) = {
+    type: "library.malonaz.com/Author"
+    pattern: "organizations/{organization}/authors/{author}"
+    singular: "author"
+    plural: "authors"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+
+  // The resource name of the author.
+  // Format: organizations/{organization}/authors/{author}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The display name of the author.
+  string display_name = 5 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 256
+  }];
+
+  // A biography of the author.
+  string biography = 6 [(buf.validate.field).string.max_len = 4096];
+
+  // Email address of this author.
+  string email_address = 7 [
+    (buf.validate.field).string.email = true,
+    (malonaz.canonicalize.v1.field).email_address = true
+  ];
+
+  // Email address of this author.
+  string phone_number = 8 [(malonaz.canonicalize.v1.field).phone_number_e164 = true];
+
+  // Email addresses of this author.
+  repeated string email_addresses = 9 [
+    (buf.validate.field).repeated.items.string.email = true,
+    (malonaz.canonicalize.v1.field).email_address = true
+  ];
+
+  // Phone numbers of this author.
+  repeated string phone_numbers = 10 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (malonaz.canonicalize.v1.field).phone_number_e164 = true
+  ];
+
+  // The labels on this author.
+  map<string, string> labels = 11 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 12;
+
+  // Author metadata.
+  AuthorMetadata metadata = 13 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+}
+
+// Metadata for an author.
+message AuthorMetadata {
+  // The country of origin.
+  string country = 1;
+
+  // Email addresses of this author.
+  repeated string email_addresses = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).repeated.items.string.email = true,
+    (malonaz.canonicalize.v1.field).email_address = true
+  ];
+
+  // Phone numbers of this author.
+  repeated string phone_numbers = 3 [(malonaz.canonicalize.v1.field).phone_number_e164 = true];
+}

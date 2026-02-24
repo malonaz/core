@@ -17,7 +17,7 @@ func Error(t *testing.T, code codes.Code, err error) {
 	require.Error(t, err)
 	status, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, code, status.Code())
+	require.Equalf(t, code.String(), status.Code().String(), "message: %s", status.Message())
 }
 
 func Equal(t *testing.T, expected, actual proto.Message, opts ...cmp.Option) {

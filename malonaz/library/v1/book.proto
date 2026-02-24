@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package malonaz.library.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/library/v1";
+
+// Book represents a book on a shelf.
+message Book {
+  option (google.api.resource) = {
+    type: "library.malonaz.com/Book"
+    pattern: "organizations/{organization}/shelves/{shelf}/books/{book}"
+    singular: "book"
+    plural: "books"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+  // The resource name of the book.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The title of the book.
+  string title = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+
+  // The resource name of the author.
+  // Format: organizations/{organization}/authors/{author}
+  string author = 5 [
+    (google.api.resource_reference).type = "library.malonaz.com/Author",
+    (buf.validate.field).required = true
+  ];
+
+  // The ISBN of the book.
+  string isbn = 6 [(buf.validate.field).string.max_len = 17];
+
+  // The publication year.
+  int32 publication_year = 7;
+
+  // The number of pages.
+  int32 page_count = 8 [(buf.validate.field).int32.gte = 0];
+
+  // The labels on this book.
+  map<string, string> labels = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 10;
+
+  // Book metadata.
+  BookMetadata metadata = 11 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+}
+
+// Metadata for a book.
+message BookMetadata {
+  // A brief summary of the book.
+  string summary = 1;
+  // The language of the book (e.g., "en", "fr").
+  string language = 2;
+}

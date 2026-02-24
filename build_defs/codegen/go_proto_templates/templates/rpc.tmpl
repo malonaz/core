@@ -236,6 +236,9 @@ package {{ .PackageName }}
         {{- else if $rpc.Update }}
             var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
             func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+            if len(request.GetUpdateMask().GetPaths()) == 0 {
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
+            }
             if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.{{ $resourceGoName }}.Name) {
             return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
             }
@@ -344,7 +347,11 @@ package {{ .PackageName }}
                     return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                   }
                 {{ end }}
-                if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) && !request.AllowMissing {
+                if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) {
+                if request.AllowMissing {
+                 get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.Name }
+                 return s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+                }
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
                 }
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err).Err()
@@ -361,16 +368,16 @@ package {{ .PackageName }}
                 // STEP 2: Hard delete the resource.
                 if err := s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}{{ if $etag }}, request.GetEtag(){{ end }}); err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
-                {{ if $etag }}
-                  if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
-                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
-                  }
-                {{ end }}
                 if request.AllowMissing {
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
                 }
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
                 }
+                {{ if $etag }}
+                  if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+                  }
+                {{ end }}
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $pr.Desc.Singular }}: %v", err).Err()
                 }
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
@@ -463,16 +470,16 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     whereClause := "WHERE " + {{ fqn "strings" "Join" }}(whereClauses, " OR ")
 
     // Retrieve from the database
-    db{{ $modelGoName }}s, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
+    db{{ $pr.PluralGoName }}, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
     if err != nil {
         return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err).Err()
     }
-    if len(db{{ $modelGoName }}s) != len(request.Names) {
-       return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $modelGoName }}s)).Err()
+    if len(db{{ $pr.PluralGoName }}) != len(request.Names) {
+       return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $pr.PluralGoName }})).Err()
     }
     // Convert to proto
     {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }} := make(map[string]*{{ qgi $rpc.Message.GoIdent }}, len(request.Names))
-    for _, db{{ $modelGoName }} := range db{{ $modelGoName }}s {
+    for _, db{{ $modelGoName }} := range db{{ $pr.PluralGoName }} {
         {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
         if err != nil {
             return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
@@ -480,17 +487,17 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
         {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[{{ $resourceGoName | untitle }}.Name] = {{ $resourceGoName | untitle }}
     }
 
-    {{ $resourceGoName | untitle }}s := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len(db{{ $modelGoName }}s))
+    {{ $pr.PluralGoName | untitle }} := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len(db{{ $pr.PluralGoName }}))
     for _, name := range request.Names {
        {{ $resourceGoName | untitle }}, ok := {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[name]
        if !ok {
           return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "could not find %q", name).Err()
        }
-       {{ $resourceGoName | untitle }}s = append({{ $resourceGoName | untitle }}s, {{ $resourceGoName | untitle }})
+       {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
     }
 
     return &{{ qgi $method.Output.GoIdent }}{
-        {{ $resourceGoName }}s: {{ $resourceGoName | untitle }}s,
+        {{ $resourceGoName }}s: {{ $pr.PluralGoName | untitle }},
     }, nil
 }
 
@@ -526,18 +533,18 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
 	          }
 
             // Convert back to proto.
-            {{ $resourceGoName | untitle }}s := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len({{ $resourceDbName }}s))
+            {{ $pr.PluralGoName | untitle }} := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len({{ $resourceDbName }}s))
 	          for _, {{ $resourceDbName }} := range {{ $resourceDbName }}s {
 		        {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
 		        if err != nil {
 			      return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to {{ $resourceGoName }}: %v", err).Err()
 		        }
-		        {{ $resourceGoName | untitle }}s = append({{ $resourceGoName | untitle }}s, {{ $resourceGoName | untitle }})
+		        {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
 	          }
 
             // Create and return response.
             return &{{ qgi $method.Output.GoIdent }}{
-            {{ $resourceGoName }}s: {{ $resourceGoName | untitle}}s,
+            {{ $pr.PluralGoName }}: {{ $pr.PluralGoName | untitle }},
             NextPageToken: nextPageToken,
             }, nil
             }

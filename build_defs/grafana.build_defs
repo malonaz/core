@@ -18,7 +18,7 @@ def golang_grafana_dashboard(name:str, binary:str, folder:str, deps:list=[], vis
     )
 
 def grafana_dashboard(name:str, src:str, folder:str, deps:list=[], visibility:list=[]):
-    grafana_upload_dashboard_tool = with_plugin_support("//tools/grafana-upload-dashboard")
+    grafana_upload_dashboard_tool = plugin_target("//tools/grafana-upload-dashboard")
     return sh_cmd(
         labels = ["grafana-dashboard-upload"],
         name = f"{name}_push",

@@ -1,0 +1,6 @@
+name: library
+directories:
+  - name: library
+    migrations:
+      - filename: 001_init.sql
+        hash: df52fb339994cf3e6349ba5812f7d219

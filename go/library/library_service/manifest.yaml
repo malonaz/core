@@ -1,0 +1,12 @@
+name: library-service
+includeRuntime: true
+implementation: //go/library/library_service
+codegens:
+  - type: rpc
+    name: library-service
+    store: library
+    implementation: //go/library/library_service/rpc
+dependencies:
+  - type: postgres_db_client
+    name: library
+    implementation: //go/library/store

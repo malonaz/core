@@ -3,16 +3,16 @@ subinclude("//build_defs:docker")
 subinclude("//build_defs:utils")
 
 # Schema templates.
-_SCHEMA_MAIN_GO = with_plugin_support("//build_defs/codegen/go_service/schemas:main.go.schema")
-_SCHEMA_SERVICE_GO = with_plugin_support("//build_defs/codegen/go_service/schemas:service.go.schema")
+_SCHEMA_MAIN_GO = plugin_target("//build_defs/codegen/go_service/schemas:main.go.schema")
+_SCHEMA_SERVICE_GO = plugin_target("//build_defs/codegen/go_service/schemas:service.go.schema")
 
 # Codegen templates.
-_TEMPLATE_UTILS_GO = with_plugin_support("//build_defs/codegen/go_service/templates:utils.go.tmpl")
-_TEMPLATE_SERVICE_GO = with_plugin_support("//build_defs/codegen/go_service/templates:service.go.tmpl")
+_TEMPLATE_UTILS_GO = plugin_target("//build_defs/codegen/go_service/templates:utils.go.tmpl")
+_TEMPLATE_SERVICE_GO = plugin_target("//build_defs/codegen/go_service/templates:service.go.tmpl")
 _TEMPLATE_MAIN_GO = [
-    with_plugin_support("//build_defs/codegen/go_service/templates/main:main.go.tmpl"),
-    with_plugin_support("//build_defs/codegen/go_service/templates/main:main.opts.go.tmpl"),
-    with_plugin_support("//build_defs/codegen/go_service/templates/main:main.shutdown.go.tmpl"),
+    plugin_target("//build_defs/codegen/go_service/templates/main:main.go.tmpl"),
+    plugin_target("//build_defs/codegen/go_service/templates/main:main.opts.go.tmpl"),
+    plugin_target("//build_defs/codegen/go_service/templates/main:main.shutdown.go.tmpl"),
 ]
 
 def go_main_manifest(

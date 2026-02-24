@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package malonaz.library.library_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/protobuf/empty.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/library/library_service/v1/author.proto";
+import "malonaz/library/library_service/v1/book.proto";
+import "malonaz/library/library_service/v1/shelf.proto";
+import "malonaz/library/v1/author.proto";
+import "malonaz/library/v1/book.proto";
+import "malonaz/library/v1/shelf.proto";
+
+option go_package = "github.com/malonaz/core/genproto/library/library_service/v1";
+
+// LibraryService provides CRUD operations for managing authors, shelves, and books.
+service LibraryService {
+  option (google.api.default_host) = "library.malonaz.com";
+
+  // ===================== Author =====================
+
+  // Creates an author.
+  rpc CreateAuthor(CreateAuthorRequest) returns (malonaz.library.v1.Author) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/authors"
+      body: "author"
+    };
+    option (google.api.method_signature) = "parent,author";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Author";
+  }
+
+  // Gets an author.
+  rpc GetAuthor(GetAuthorRequest) returns (malonaz.library.v1.Author) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/authors/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Author";
+  }
+
+  // Updates an author.
+  rpc UpdateAuthor(UpdateAuthorRequest) returns (malonaz.library.v1.Author) {
+    option (google.api.http) = {
+      patch: "/v1/{author.name=organizations/*/authors/*}"
+      body: "author"
+    };
+    option (google.api.method_signature) = "author,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Author";
+  }
+
+  // Deletes an author.
+  rpc DeleteAuthor(DeleteAuthorRequest) returns (malonaz.library.v1.Author) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/authors/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Author";
+  }
+
+  // Lists authors.
+  rpc ListAuthors(ListAuthorsRequest) returns (ListAuthorsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Author";
+  }
+
+  // ===================== Shelf =====================
+
+  // Creates a shelf.
+  rpc CreateShelf(CreateShelfRequest) returns (malonaz.library.v1.Shelf) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/shelves"
+      body: "shelf"
+    };
+    option (google.api.method_signature) = "parent,shelf";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Shelf";
+  }
+
+  // Gets a shelf.
+  rpc GetShelf(GetShelfRequest) returns (malonaz.library.v1.Shelf) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Shelf";
+  }
+
+  // Updates a shelf.
+  rpc UpdateShelf(UpdateShelfRequest) returns (malonaz.library.v1.Shelf) {
+    option (google.api.http) = {
+      patch: "/v1/{shelf.name=organizations/*/shelves/*}"
+      body: "shelf"
+    };
+    option (google.api.method_signature) = "shelf,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Shelf";
+  }
+
+  // Deletes a shelf.
+  rpc DeleteShelf(DeleteShelfRequest) returns (malonaz.library.v1.Shelf) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Shelf";
+  }
+
+  // Lists shelves.
+  rpc ListShelves(ListShelvesRequest) returns (ListShelvesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Shelf";
+  }
+
+  // ===================== Book =====================
+
+  // Creates a book.
+  rpc CreateBook(CreateBookRequest) returns (malonaz.library.v1.Book) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*}/books"
+      body: "book"
+    };
+    option (google.api.method_signature) = "parent,book";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Book";
+  }
+
+  // Gets a book.
+  rpc GetBook(GetBookRequest) returns (malonaz.library.v1.Book) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*/books/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Book";
+  }
+
+  // Updates a book.
+  rpc UpdateBook(UpdateBookRequest) returns (malonaz.library.v1.Book) {
+    option (google.api.http) = {
+      patch: "/v1/{book.name=organizations/*/shelves/*/books/*}"
+      body: "book"
+    };
+    option (google.api.method_signature) = "book,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Book";
+  }
+
+  // Deletes a book.
+  rpc DeleteBook(DeleteBookRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*/books/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Book";
+  }
+
+  // Lists books.
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.malonaz.com/Book";
+  }
+}

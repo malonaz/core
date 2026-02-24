@@ -1,5 +1,6 @@
 subinclude("//build_defs/codegen/go_service:build_defs")
 subinclude("///go//build_defs:go")
+subinclude("//build_defs:utils")
 
 def postgres_migrations(
         name:str,
@@ -33,14 +34,14 @@ sed 's/^    /  /' >> $OUT
     go_src(
         name = "migration_hash_test.go",
         manifest = ":manifest",
-        templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator_test.go.tmpl"]
+        templates = [plugin_target("//build_defs/codegen/postgres/templates:postgres_migrator_test.go.tmpl")]
     )
     go_test(
         name = "migration_hash_test",
         srcs = [":migration_hash_test.go"],
         resources = dirs + migration_yaml_files,
         deps = [
-            "//third_party/go:github.com__malonaz__core__go__postgres__migrator__migrations",
+            plugin_go_lib("//go/postgres/migrator/migrations"),
             "//third_party/go:github.com__stretchr__testify__require",
         ],
     )
@@ -49,7 +50,7 @@ sed 's/^    /  /' >> $OUT
     go_src(
         name = "initializer.go",
         manifest = ":manifest",
-        templates = ["///core//build_defs/codegen/postgres/templates:postgres_initializer.go.tmpl"]
+        templates = [plugin_target("//build_defs/codegen/postgres/templates:postgres_initializer.go.tmpl")]
     )
     go_binary(
         name = "initializer",
@@ -57,10 +58,10 @@ sed 's/^    /  /' >> $OUT
         resources = dirs + migration_yaml_files,
         visibility = visibility,
         deps = [
-            "//third_party/go:github.com__malonaz__core__go__logging",
-            "//third_party/go:github.com__malonaz__core__go__flags",
-            "//third_party/go:github.com__malonaz__core__go__postgres",
-            "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
+            plugin_go_lib("//go/logging"),
+            plugin_go_lib("//go/flags"),
+            plugin_go_lib("//go/postgres"),
+            plugin_go_lib("//go/postgres/migrator"),
         ],
     )
 
@@ -68,7 +69,7 @@ sed 's/^    /  /' >> $OUT
     go_src(
         name = "migrator.go",
         manifest = ":manifest",
-        templates = ["///core//build_defs/codegen/postgres/templates:postgres_migrator.go.tmpl"]
+        templates = [plugin_target("//build_defs/codegen/postgres/templates:postgres_migrator.go.tmpl")]
     )
     go_binary(
         name = "migrator",
@@ -76,10 +77,10 @@ sed 's/^    /  /' >> $OUT
         resources = dirs + migration_yaml_files,
         visibility = visibility,
         deps = [
-            "//third_party/go:github.com__malonaz__core__go__flags",
-            "//third_party/go:github.com__malonaz__core__go__logging",
-            "//third_party/go:github.com__malonaz__core__go__postgres",
-            "//third_party/go:github.com__malonaz__core__go__postgres__migrator",
+            plugin_go_lib("//go/logging"),
+            plugin_go_lib("//go/flags"),
+            plugin_go_lib("//go/postgres"),
+            plugin_go_lib("//go/postgres/migrator"),
         ],
     )
 
@@ -87,15 +88,15 @@ sed 's/^    /  /' >> $OUT
     go_src(
         name = "reset.go",
         manifest = ":manifest",
-        templates = ["///core//build_defs/codegen/postgres/templates:postgres_reset.go.tmpl"]
+        templates = [plugin_target("//build_defs/codegen/postgres/templates:postgres_reset.go.tmpl")]
     )
     go_binary(
         name = "reset",
         srcs = [":reset.go"],
         visibility = visibility,
         deps = [
-            "//third_party/go:github.com__malonaz__core__go__flags",
-            "//third_party/go:github.com__malonaz__core__go__logging",
-            "//third_party/go:github.com__malonaz__core__go__postgres",
+            plugin_go_lib("//go/logging"),
+            plugin_go_lib("//go/flags"),
+            plugin_go_lib("//go/postgres"),
         ],
     )

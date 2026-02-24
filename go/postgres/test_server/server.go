@@ -86,21 +86,21 @@ func NewServer(config Config, log *slog.Logger) (*Server, error) {
 	// Start relevant binaries.
 	postgresDir := getPostgresBinaryDir()
 	binaryPath := func(name string) string { return filepath.Join(postgresDir, name) }
-	initJob, err := binary.New("postgres-initdb", binaryPath("initdb"), "--no-locale", "--encoding=UTF8", "--nosync", "-D", config.DataDirectory, "--auth", "trust", "-U", config.User)
+	initJob, err := binary.New(binaryPath("initdb"), "--no-locale", "--encoding=UTF8", "--nosync", "-D", config.DataDirectory, "--auth", "trust", "-U", config.User)
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate init job: %w", err)
 	}
-	initJob.WithLogger(log).AsJob()
-	startJob, err := binary.New("postgres-start", binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "start")
+	initJob.WithName("postgres-initdb").WithLogger(log).AsJob()
+	startJob, err := binary.New(binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "start")
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate start job: %w", err)
 	}
-	startJob.WithPort(config.Port).WithLogger(log).AsJob()
-	stopJob, err := binary.New("postgres-stop", binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "stop", "--mode", "immediate")
+	startJob.WithName("postgres-start").WithPort(config.Port).WithLogger(log).AsJob()
+	stopJob, err := binary.New(binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "stop", "--mode", "immediate")
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate stop job: %w", err)
 	}
-	stopJob.WithLogger(log).AsJob()
+	stopJob.WithName("postgres-stop").WithLogger(log).AsJob()
 	return &Server{
 		log:      log,
 		config:   config,

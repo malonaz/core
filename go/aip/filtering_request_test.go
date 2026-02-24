@@ -438,13 +438,13 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 		{
 			name:           "string field is present",
 			filter:         `id:*`,
-			expectedClause: "WHERE (id IS NOT NULL)",
+			expectedClause: "WHERE (id IS NOT NULL AND id != '')",
 			expectedParams: []any{},
 		},
 		{
 			name:           "string field is not present (null check)",
 			filter:         `NOT id:*`,
-			expectedClause: "WHERE (NOT (id IS NOT NULL))",
+			expectedClause: "WHERE (NOT (id IS NOT NULL AND id != ''))",
 			expectedParams: []any{},
 		},
 		{
@@ -492,7 +492,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 		{
 			name:           "repeated field is present",
 			filter:         `tags:*`,
-			expectedClause: "WHERE (tags IS NOT NULL)",
+			expectedClause: "WHERE (tags IS NOT NULL AND COALESCE(array_length(tags, 1), 0) > 0)",
 			expectedParams: []any{},
 		},
 
@@ -526,7 +526,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 		{
 			name:           "map field is present",
 			filter:         `labels:*`,
-			expectedClause: "WHERE (labels IS NOT NULL)",
+			expectedClause: "WHERE (labels IS NOT NULL AND labels != '{}'::jsonb)",
 			expectedParams: []any{},
 		},
 		{
@@ -550,7 +550,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 		{
 			name:           "presence check combined with equality",
 			filter:         `id:* AND id = "user1"`,
-			expectedClause: "WHERE ((id IS NOT NULL) AND (id = $1))",
+			expectedClause: "WHERE ((id IS NOT NULL AND id != '') AND (id = $1))",
 			expectedParams: []any{"user1"},
 		},
 	}
@@ -1049,7 +1049,7 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 		{
 			name:           "presence checks combined",
 			filter:         `id:* AND nested:* AND NOT deleted`,
-			expectedClause: "WHERE (((id IS NOT NULL) AND (nested IS NOT NULL)) AND (NOT deleted))",
+			expectedClause: "WHERE (((id IS NOT NULL AND id != '') AND (nested IS NOT NULL)) AND (NOT deleted))",
 			expectedParams: []any{},
 		},
 		{

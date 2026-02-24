@@ -53,7 +53,7 @@ def echo_message(message):
 
 lint_codegen_strip_cmd = "plz run " + ("" if "IS_CORE_REPO" in CONFIG else "///core") + "//scripts:copy_generated_code"
 
-lint_codegen_strip_cmd = "plz run " + with_plugin_support("//scripts:copy_generated_code")
+lint_codegen_strip_cmd = "plz run " + plugin_target("//scripts:copy_generated_code")
 
 if CONFIG.CORE.LINT_CODEGEN_STRIP_PREFIX:
     lint_codegen_strip_cmd += f" -- --strip-prefix {CONFIG.CORE.LINT_CODEGEN_STRIP_PREFIX}"
