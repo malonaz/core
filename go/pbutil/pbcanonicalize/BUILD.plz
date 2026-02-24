@@ -1,0 +1,15 @@
+go_library(
+    name = "pbcanonicalize",
+    srcs = ["message.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/canonicalize",
+        "//go/pbutil",
+        "//malonaz/canonicalize/v1",
+        "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+    ],
+)

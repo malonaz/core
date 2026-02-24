@@ -1,6 +1,7 @@
 package pbutil
 
 import (
+	"errors"
 	"fmt"
 
 	"buf.build/go/protovalidate"
@@ -9,6 +10,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
+
+var ErrExtensionNotFound = errors.New("extension not found")
 
 type enum interface {
 	protoreflect.Enum
@@ -22,12 +25,11 @@ func Must[T any](value T, err error) T {
 	return value
 }
 
-func HasExtension(m proto.Message, extensionType protoreflect.ExtensionType) bool {
-	return proto.HasExtension(m, extensionType)
-}
-
 func GetExtension[T any](options proto.Message, extensionType protoreflect.ExtensionType) (T, error) {
 	var zero T
+	if !proto.HasExtension(options, extensionType) {
+		return zero, ErrExtensionNotFound
+	}
 	ext := proto.GetExtension(options, extensionType)
 	result, ok := ext.(T)
 	if !ok {
@@ -54,6 +56,23 @@ func GetServiceOption[T any](serviceName string, extensionType protoreflect.Exte
 	options, ok := serviceDescriptor.Options().(*descriptorpb.ServiceOptions)
 	if !ok || options == nil {
 		return zero, fmt.Errorf("service options for %s not found or wrong type", serviceName)
+	}
+	return GetExtension[T](options, extensionType)
+}
+
+func GetMethodOption[T any](methodName string, extensionType protoreflect.ExtensionType) (T, error) {
+	var zero T
+	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(methodName))
+	if err != nil {
+		return zero, fmt.Errorf("could not find method descriptor: %w", err)
+	}
+	methodDescriptor, ok := fd.(protoreflect.MethodDescriptor)
+	if !ok {
+		return zero, fmt.Errorf("descriptor is not a method descriptor for method: %s", methodName)
+	}
+	options, ok := methodDescriptor.Options().(*descriptorpb.MethodOptions)
+	if !ok || options == nil {
+		return zero, fmt.Errorf("method options for %s not found or wrong type", methodName)
 	}
 	return GetExtension[T](options, extensionType)
 }

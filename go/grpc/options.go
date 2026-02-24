@@ -21,11 +21,11 @@ func getMethodNameToGatewayOptions() (map[string]*grpcpb.GatewayOptions, error) 
 			methods := service.Methods()
 			for j := 0; j < methods.Len(); j++ {
 				method := methods.Get(j)
-				if !pbutil.HasExtension(method.Options(), grpcpb.E_GatewayOptions) {
-					continue
-				}
 				gatewayOptions, err := pbutil.GetExtension[*grpcpb.GatewayOptions](method.Options(), grpcpb.E_GatewayOptions)
 				if err != nil {
+					if err == pbutil.ErrExtensionNotFound {
+						continue
+					}
 					rangeFilesErr = fmt.Errorf("getting gateway options for %q: %w", method.FullName(), err)
 					return false
 				}

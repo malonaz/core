@@ -1,3 +1,5 @@
+// file: malonaz/canonicalize/v1/canonicalize.proto
+
 syntax = "proto3";
 
 package malonaz.canonicalize.v1;
@@ -20,4 +22,11 @@ message Field {
 extend google.protobuf.FieldOptions {
   // Field option for canonicalization option.
   Field field = 50000;
+}
+
+extend google.protobuf.MethodOptions {
+  // When set to true, the canonicalization interceptor will skip processing
+  // the request message for this RPC. Useful for RPCs that accept raw or
+  // pre-canonicalized input where automatic normalization is undesirable.
+  bool skip = 50001;
 }

@@ -136,12 +136,13 @@ func (ei *errorInfoInjector) buildServiceMetadataCache() {
 			service := services.Get(i)
 			serviceFullName := string(service.FullName())
 
-			// Extract default_host from service options
-			if !pbutil.HasExtension(service.Options(), annotations.E_DefaultHost) {
-				continue
+			defaultHost, err := pbutil.GetExtension[string](service.Options(), annotations.E_DefaultHost)
+			if err != nil {
+				if err == pbutil.ErrExtensionNotFound {
+					continue
+				}
+				panic(err)
 			}
-
-			defaultHost := pbutil.Must(pbutil.GetExtension[string](service.Options(), annotations.E_DefaultHost))
 
 			// Extract domain from default_host (everything after first dot)
 			var domain string
