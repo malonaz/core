@@ -5,6 +5,7 @@ filegroup(
         "book.proto",
         "shelf.proto",
     ],
+    test_only = True,
     visibility = ["PUBLIC"],
 )
 
@@ -19,6 +20,8 @@ proto_library(
         GENERATE_GO_AIP: True,
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/library/v1",
     },
+    labels = ["copy_generated_code"],
+    test_only = True,
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/canonicalize/v1",

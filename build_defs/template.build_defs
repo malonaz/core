@@ -1,4 +1,10 @@
-def templated_text_file(filename:str, content:str, replace={}, deps=[]):
+def templated_text_file(
+        filename:str,
+        content:str,
+        replace={},
+        deps=[],
+        test_only:bool=False,
+):
     """
     templated_text_file is a utility function that creates a file with the given filename, and content.
     the `replace` parameter allows a user to pass-in substitutions.
@@ -13,6 +19,7 @@ def templated_text_file(filename:str, content:str, replace={}, deps=[]):
         cmd = cmd,
         outs = [f'{filename}'],
         deps = deps,
+        test_only=test_only,
     )
 
 def text_template(
@@ -20,6 +27,7 @@ def text_template(
         src:str,
         visibility:list=[],
         delims:str=None,
+        test_only:bool=False,
 ):
     args = [
         f"--output {name}",
@@ -38,6 +46,7 @@ def text_template(
         outs = [name],
         labels = ["codegen"],
         visibility = visibility,
+        test_only=test_only,
     )
 
 def go_template(
@@ -48,6 +57,7 @@ def go_template(
         format:str="json",
         deps:list=[],
         visibility:list=[],
+        test_only:bool=False,
 ):
     # Handle templates that need export_file rules
     processed_templates = []
@@ -59,6 +69,7 @@ def go_template(
             f = export_file(
                 name = f"{name}_template_{i}",
                 src = t,
+                test_only=test_only,
             )
             processed_templates.append(f)
             template_deps.append(f)
@@ -88,6 +99,7 @@ def go_template(
         tools = [CONFIG.CORE.TEMPLATES_GO],
         deps = deps + template_deps + ([data] if data else []),
         outs = [f"unformatted_{name}"],
+        test_only=test_only,
     )
 
     # Second genrule: Format the generated file
@@ -102,6 +114,7 @@ def go_template(
         tools = ["//tools/go:toolchain|gofmt"],
         labels = ["codegen"],
         visibility = visibility,
+        test_only=test_only,
     )
 
 def validated_file(
@@ -111,6 +124,7 @@ def validated_file(
         format:str="json",
         exported_deps:list=[],
         visibility:list=[],
+        test_only:bool=False,
 ):
     return genrule(
         name = name,
@@ -124,4 +138,5 @@ def validated_file(
         out = name,
         tools = [CONFIG.CORE.VALIDATE_SCHEMA],
         visibility=visibility,
+        test_only=test_only,
     )

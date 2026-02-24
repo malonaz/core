@@ -4,12 +4,14 @@ go_proto_template_library(
     name = "codegen",
     srcs = ["//malonaz/library/v1:proto"],
     template = "//build_defs/codegen/go_proto_templates/templates:model",
+    test_only = True,
     deps = ["//malonaz/library/v1"],
 )
 
 go_library(
     name = "model",
     srcs = [":codegen"],
+    test_only = True,
     visibility = ["//go/library/..."],
     deps = [
         "//go/pbutil",

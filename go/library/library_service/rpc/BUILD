@@ -9,12 +9,14 @@ go_proto_template_library(
         },
     },
     template = "//build_defs/codegen/go_proto_templates/templates:rpc",
+    test_only = True,
     deps = ["//malonaz/library/library_service/v1"],
 )
 
 go_library(
     name = "rpc",
     srcs = [":codegen"],
+    test_only = True,
     visibility = ["//go/library/library_service/..."],
     deps = [
         "//go/aip",

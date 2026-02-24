@@ -1,0 +1,25 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "author.pb.go",
+        "book.pb.go",
+        "library_service.pb.go",
+        "library_service_grpc.pb.go",
+        "shelf.pb.go",
+    ],
+    test_only = True,
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/library/v1",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:validate",
+    ],
+)

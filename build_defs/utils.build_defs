@@ -14,8 +14,11 @@ def plugin_target(tool:str):
     _PREFIX = "" if "IS_CORE_REPO" in CONFIG else "///core"
     return _PREFIX + tool
 
+_CORE_GO_IMPORT_PATH = "github.com/malonaz/core"
+_CORE_GO_IMPORT_PATH_PLZ = "github.com" + "/malonaz/core".replace(".", "__").replace("/", "__")
+
 def plugin_go_lib(target:str):
     if "IS_CORE_REPO" in CONFIG:
         return target
     path = target.lstrip("/").replace("/", "__")
-    return "//third_party/go:" + CONFIG.GO.IMPORT_PATH.replace(".", "__") + "__" + path
+    return "//third_party/go:" + _CORE_GO_IMPORT_PATH_PLZ + "__" + path

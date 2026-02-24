@@ -22,6 +22,7 @@ def go_main_manifest(
         visibility:list=[],
         schema:str=_SCHEMA_MAIN_GO,
         ignore_schema:bool=False,
+        test_only:bool=False,
 ):
     return go_manifest(
         name=name,
@@ -30,6 +31,7 @@ def go_main_manifest(
         visibility=visibility,
         schema=schema,
         ignore_schema=ignore_schema,
+        test_only=test_only,
     )
 
 
@@ -40,6 +42,7 @@ def go_service_manifest(
         visibility:list=[],
         schema:str=_SCHEMA_SERVICE_GO,
         ignore_schema:bool=False,
+        test_only:bool=False,
 ):
     return go_manifest(
         name=name,
@@ -48,6 +51,7 @@ def go_service_manifest(
         visibility=visibility,
         schema=schema,
         ignore_schema=ignore_schema,
+        test_only=test_only,
     )
 
 def go_manifest(
@@ -57,12 +61,14 @@ def go_manifest(
         visibility:list=[],
         schema:str=None,
         ignore_schema:bool=False,
+        test_only:bool=False,
 ):
     if len(deps) == 0:
         # If no deps, just use the original manifest
         templated_manifest = text_template(
             name = "manifest_templated.yaml",
             src = manifest,
+            test_only=test_only,
         )
     else:
         # Build awk commands using variables (safer than inline strings)
@@ -82,11 +88,13 @@ def go_manifest(
             deps = deps,
             cmd = cmd,
             out = f"{name}_processed_manifest",
+            test_only=test_only,
         )
 
         templated_manifest = text_template(
             name = f"{name}_manifest_templated.yaml",
             src = f":{name}_processed_manifest",
+            test_only=test_only,
         )
 
     # Skip validation if ignore_schema is True
@@ -96,6 +104,7 @@ def go_manifest(
             srcs = [templated_manifest],
             exported_deps = deps,
             visibility = visibility,
+            test_only=test_only,
         )
     else:
         return validated_file(
@@ -105,6 +114,7 @@ def go_manifest(
             format = "yaml",
             exported_deps = deps,
             visibility = visibility,
+            test_only=test_only,
         )
 
 def go_service_src(
@@ -113,6 +123,7 @@ def go_service_src(
         templates:list=[],
         visibility:list=[],
         exclude_default_templates:bool=False,
+        test_only:bool=False,
 ):
     if not exclude_default_templates:
         if len(templates) == 0:
@@ -124,6 +135,7 @@ def go_service_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        test_only=test_only,
     )
 
 def go_main_src(
@@ -131,6 +143,7 @@ def go_main_src(
         manifest:str,
         templates:list=[],
         visibility:list=[],
+        test_only:bool=False,
 ):
     if len(templates) == 0:
         templates = _TEMPLATE_MAIN_GO
@@ -142,6 +155,7 @@ def go_main_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        test_only=test_only,
     )
 
 def go_src(
@@ -149,6 +163,7 @@ def go_src(
         manifest:str,
         templates:list,
         visibility:list=[],
+        test_only:bool=False,
 ):
     templates.append(_TEMPLATE_UTILS_GO)
 
@@ -158,4 +173,5 @@ def go_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        test_only=test_only,
     )

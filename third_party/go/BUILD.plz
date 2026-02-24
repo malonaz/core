@@ -6037,7 +6037,7 @@ go_mod_download(
     name = "go.einride.tech__aip",
     _tag = "download",
     module = "go.einride.tech/aip",
-    version = "v0.73.0",
+    version = "v0.80.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6050,6 +6050,7 @@ go_module(
     deps = [
         ":go.einride.tech__aip__cmd__protoc-gen-go-aip__internal__genaip",
         ":google.golang.org__protobuf__compiler__protogen",
+        ":google.golang.org__protobuf__types__pluginpb",
     ],
 )
 
@@ -6093,6 +6094,7 @@ go_module(
     deps = [
         ":google.golang.org__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__types__dynamicpb",
         "//third_party/proto:google__api__expr__v1alpha1",
     ],
 )

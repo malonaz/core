@@ -9,12 +9,14 @@ go_proto_template_library(
         },
     },
     template = "//build_defs/codegen/go_proto_templates/templates:postgres",
+    test_only = True,
     deps = ["//malonaz/library/v1"],
 )
 
 go_library(
     name = "store",
     srcs = [":codegen"],
+    test_only = True,
     visibility = ["//..."],
     deps = [
         "//go/library/model",
