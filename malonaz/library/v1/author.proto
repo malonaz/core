@@ -57,7 +57,7 @@ message Author {
   ];
 
   // Email address of this author.
-  string phone_number = 8 [(malonaz.canonicalize.v1.field).phone_number_e164 = true];
+  string phone_number = 8 [(malonaz.canonicalize.v1.field).phone_number = true];
 
   // Email addresses of this author.
   repeated string email_addresses = 9 [
@@ -69,7 +69,7 @@ message Author {
   repeated string phone_numbers = 10 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
-    (malonaz.canonicalize.v1.field).phone_number_e164 = true
+    (malonaz.canonicalize.v1.field).phone_number = true
   ];
 
   // The labels on this author.
@@ -110,5 +110,5 @@ message AuthorMetadata {
   ];
 
   // Phone numbers of this author.
-  repeated string phone_numbers = 3 [(malonaz.canonicalize.v1.field).phone_number_e164 = true];
+  repeated string phone_numbers = 3 [(malonaz.canonicalize.v1.field).phone_number = true];
 }

@@ -135,7 +135,7 @@ func canonicalizeReflectMessage(reflectMessage protoreflect.Message) error {
 		if !proto.HasExtension(fieldDescriptor.Options(), canonicalizepb.E_Field) {
 			return true
 		}
-		fieldRules, err := pbutil.GetExtension[*canonicalizepb.FieldRules](fieldDescriptor.Options(), canonicalizepb.E_Field)
+		field, err := pbutil.GetExtension[*canonicalizepb.Field](fieldDescriptor.Options(), canonicalizepb.E_Field)
 		if err != nil {
 			canonicalizeErr = &canonicalizationError{
 				field:       string(fieldDescriptor.FullName()),
@@ -143,7 +143,7 @@ func canonicalizeReflectMessage(reflectMessage protoreflect.Message) error {
 			}
 			return false
 		}
-		if fieldRules == nil {
+		if field == nil {
 			canonicalizeErr = &canonicalizationError{
 				field:       string(fieldDescriptor.FullName()),
 				description: "expected non-nil field rules",
@@ -168,9 +168,10 @@ func canonicalizeReflectMessage(reflectMessage protoreflect.Message) error {
 				if stringValue == "" {
 					continue
 				}
-				if fieldRules.GetEmailAddress() {
+				switch field.GetRule().(type) {
+				case *canonicalizepb.Field_EmailAddress:
 					list.Set(i, protoreflect.ValueOfString(canonicalize.EmailAddress(stringValue)))
-				} else if fieldRules.GetPhoneNumberE164() {
+				case *canonicalizepb.Field_PhoneNumber:
 					canonicalized, err := canonicalize.PhoneNumber(stringValue, canonicalize.RegionCodeUS)
 					if err != nil {
 						canonicalizeErr = &canonicalizationError{
@@ -191,9 +192,10 @@ func canonicalizeReflectMessage(reflectMessage protoreflect.Message) error {
 			return true
 		}
 
-		if fieldRules.GetEmailAddress() {
+		switch field.GetRule().(type) {
+		case *canonicalizepb.Field_EmailAddress:
 			reflectMessage.Set(fieldDescriptor, protoreflect.ValueOfString(canonicalize.EmailAddress(stringValue)))
-		} else if fieldRules.GetPhoneNumberE164() {
+		case *canonicalizepb.Field_PhoneNumber:
 			canonicalized, err := canonicalize.PhoneNumber(stringValue, canonicalize.RegionCodeUS)
 			if err != nil {
 				canonicalizeErr = &canonicalizationError{

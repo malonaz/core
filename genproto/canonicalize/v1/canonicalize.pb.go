@@ -24,30 +24,33 @@ const (
 )
 
 // Field-level canonicalization options for string fields.
-type FieldRules struct {
+type Field struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Canonicalize as an email address (lowercase, trim whitespace, etc.).
-	EmailAddress bool `protobuf:"varint,1,opt,name=email_address,json=emailAddress,proto3" json:"email_address,omitempty"`
-	// Canonicalize as an E.164 phone number.
-	PhoneNumberE164 bool `protobuf:"varint,2,opt,name=phone_number_e164,json=phoneNumberE164,proto3" json:"phone_number_e164,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// The rule.
+	//
+	// Types that are valid to be assigned to Rule:
+	//
+	//	*Field_EmailAddress
+	//	*Field_PhoneNumber
+	Rule          isField_Rule `protobuf_oneof:"rule"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *FieldRules) Reset() {
-	*x = FieldRules{}
+func (x *Field) Reset() {
+	*x = Field{}
 	mi := &file_malonaz_canonicalize_v1_canonicalize_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FieldRules) String() string {
+func (x *Field) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FieldRules) ProtoMessage() {}
+func (*Field) ProtoMessage() {}
 
-func (x *FieldRules) ProtoReflect() protoreflect.Message {
+func (x *Field) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_canonicalize_v1_canonicalize_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -59,50 +62,154 @@ func (x *FieldRules) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *FieldRules) GetEmailAddress() bool {
+func (x *Field) GetRule() isField_Rule {
 	if x != nil {
-		return x.EmailAddress
+		return x.Rule
+	}
+	return nil
+}
+
+func (x *Field) GetEmailAddress() bool {
+	if x != nil {
+		if x, ok := x.Rule.(*Field_EmailAddress); ok {
+			return x.EmailAddress
+		}
 	}
 	return false
 }
 
-func (x *FieldRules) GetPhoneNumberE164() bool {
+func (x *Field) GetPhoneNumber() bool {
 	if x != nil {
-		return x.PhoneNumberE164
+		if x, ok := x.Rule.(*Field_PhoneNumber); ok {
+			return x.PhoneNumber
+		}
 	}
 	return false
 }
 
-func (x *FieldRules) SetEmailAddress(v bool) {
-	x.EmailAddress = v
+func (x *Field) SetEmailAddress(v bool) {
+	x.Rule = &Field_EmailAddress{v}
 }
 
-func (x *FieldRules) SetPhoneNumberE164(v bool) {
-	x.PhoneNumberE164 = v
+func (x *Field) SetPhoneNumber(v bool) {
+	x.Rule = &Field_PhoneNumber{v}
 }
 
-type FieldRules_builder struct {
+func (x *Field) HasRule() bool {
+	if x == nil {
+		return false
+	}
+	return x.Rule != nil
+}
+
+func (x *Field) HasEmailAddress() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Rule.(*Field_EmailAddress)
+	return ok
+}
+
+func (x *Field) HasPhoneNumber() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Rule.(*Field_PhoneNumber)
+	return ok
+}
+
+func (x *Field) ClearRule() {
+	x.Rule = nil
+}
+
+func (x *Field) ClearEmailAddress() {
+	if _, ok := x.Rule.(*Field_EmailAddress); ok {
+		x.Rule = nil
+	}
+}
+
+func (x *Field) ClearPhoneNumber() {
+	if _, ok := x.Rule.(*Field_PhoneNumber); ok {
+		x.Rule = nil
+	}
+}
+
+const Field_Rule_not_set_case case_Field_Rule = 0
+const Field_EmailAddress_case case_Field_Rule = 1
+const Field_PhoneNumber_case case_Field_Rule = 2
+
+func (x *Field) WhichRule() case_Field_Rule {
+	if x == nil {
+		return Field_Rule_not_set_case
+	}
+	switch x.Rule.(type) {
+	case *Field_EmailAddress:
+		return Field_EmailAddress_case
+	case *Field_PhoneNumber:
+		return Field_PhoneNumber_case
+	default:
+		return Field_Rule_not_set_case
+	}
+}
+
+type Field_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The rule.
+
+	// Fields of oneof Rule:
 	// Canonicalize as an email address (lowercase, trim whitespace, etc.).
-	EmailAddress bool
+	EmailAddress *bool
 	// Canonicalize as an E.164 phone number.
-	PhoneNumberE164 bool
+	PhoneNumber *bool
+	// -- end of Rule
 }
 
-func (b0 FieldRules_builder) Build() *FieldRules {
-	m0 := &FieldRules{}
+func (b0 Field_builder) Build() *Field {
+	m0 := &Field{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.EmailAddress = b.EmailAddress
-	x.PhoneNumberE164 = b.PhoneNumberE164
+	if b.EmailAddress != nil {
+		x.Rule = &Field_EmailAddress{*b.EmailAddress}
+	}
+	if b.PhoneNumber != nil {
+		x.Rule = &Field_PhoneNumber{*b.PhoneNumber}
+	}
 	return m0
 }
+
+type case_Field_Rule protoreflect.FieldNumber
+
+func (x case_Field_Rule) String() string {
+	md := file_malonaz_canonicalize_v1_canonicalize_proto_msgTypes[0].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isField_Rule interface {
+	isField_Rule()
+}
+
+type Field_EmailAddress struct {
+	// Canonicalize as an email address (lowercase, trim whitespace, etc.).
+	EmailAddress bool `protobuf:"varint,1,opt,name=email_address,json=emailAddress,proto3,oneof"`
+}
+
+type Field_PhoneNumber struct {
+	// Canonicalize as an E.164 phone number.
+	PhoneNumber bool `protobuf:"varint,2,opt,name=phone_number,json=phoneNumber,proto3,oneof"`
+}
+
+func (*Field_EmailAddress) isField_Rule() {}
+
+func (*Field_PhoneNumber) isField_Rule() {}
 
 var file_malonaz_canonicalize_v1_canonicalize_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
-		ExtensionType: (*FieldRules)(nil),
+		ExtensionType: (*Field)(nil),
 		Field:         50000,
 		Name:          "malonaz.canonicalize.v1.field",
 		Tag:           "bytes,50000,opt,name=field",
@@ -114,7 +221,7 @@ var file_malonaz_canonicalize_v1_canonicalize_proto_extTypes = []protoimpl.Exten
 var (
 	// Field option for canonicalization option.
 	//
-	// optional malonaz.canonicalize.v1.FieldRules field = 50000;
+	// optional malonaz.canonicalize.v1.Field field = 50000;
 	E_Field = &file_malonaz_canonicalize_v1_canonicalize_proto_extTypes[0]
 )
 
@@ -122,21 +229,21 @@ var File_malonaz_canonicalize_v1_canonicalize_proto protoreflect.FileDescriptor
 
 const file_malonaz_canonicalize_v1_canonicalize_proto_rawDesc = "" +
 	"\n" +
-	"*malonaz/canonicalize/v1/canonicalize.proto\x12\x17malonaz.canonicalize.v1\x1a google/protobuf/descriptor.proto\"]\n" +
-	"\n" +
-	"FieldRules\x12#\n" +
-	"\remail_address\x18\x01 \x01(\bR\femailAddress\x12*\n" +
-	"\x11phone_number_e164\x18\x02 \x01(\bR\x0fphoneNumberE164:Z\n" +
-	"\x05field\x12\x1d.google.protobuf.FieldOptions\x18І\x03 \x01(\v2#.malonaz.canonicalize.v1.FieldRulesR\x05fieldB2Z0github.com/malonaz/core/genproto/canonicalize/v1b\x06proto3"
+	"*malonaz/canonicalize/v1/canonicalize.proto\x12\x17malonaz.canonicalize.v1\x1a google/protobuf/descriptor.proto\"[\n" +
+	"\x05Field\x12%\n" +
+	"\remail_address\x18\x01 \x01(\bH\x00R\femailAddress\x12#\n" +
+	"\fphone_number\x18\x02 \x01(\bH\x00R\vphoneNumberB\x06\n" +
+	"\x04rule:U\n" +
+	"\x05field\x12\x1d.google.protobuf.FieldOptions\x18І\x03 \x01(\v2\x1e.malonaz.canonicalize.v1.FieldR\x05fieldB2Z0github.com/malonaz/core/genproto/canonicalize/v1b\x06proto3"
 
 var file_malonaz_canonicalize_v1_canonicalize_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_canonicalize_v1_canonicalize_proto_goTypes = []any{
-	(*FieldRules)(nil),                // 0: malonaz.canonicalize.v1.FieldRules
+	(*Field)(nil),                     // 0: malonaz.canonicalize.v1.Field
 	(*descriptorpb.FieldOptions)(nil), // 1: google.protobuf.FieldOptions
 }
 var file_malonaz_canonicalize_v1_canonicalize_proto_depIdxs = []int32{
 	1, // 0: malonaz.canonicalize.v1.field:extendee -> google.protobuf.FieldOptions
-	0, // 1: malonaz.canonicalize.v1.field:type_name -> malonaz.canonicalize.v1.FieldRules
+	0, // 1: malonaz.canonicalize.v1.field:type_name -> malonaz.canonicalize.v1.Field
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	1, // [1:2] is the sub-list for extension type_name
@@ -148,6 +255,10 @@ func init() { file_malonaz_canonicalize_v1_canonicalize_proto_init() }
 func file_malonaz_canonicalize_v1_canonicalize_proto_init() {
 	if File_malonaz_canonicalize_v1_canonicalize_proto != nil {
 		return
+	}
+	file_malonaz_canonicalize_v1_canonicalize_proto_msgTypes[0].OneofWrappers = []any{
+		(*Field_EmailAddress)(nil),
+		(*Field_PhoneNumber)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

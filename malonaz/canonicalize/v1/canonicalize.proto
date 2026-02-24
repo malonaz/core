@@ -7,14 +7,17 @@ import "google/protobuf/descriptor.proto";
 option go_package = "github.com/malonaz/core/genproto/canonicalize/v1";
 
 // Field-level canonicalization options for string fields.
-message FieldRules {
-  // Canonicalize as an email address (lowercase, trim whitespace, etc.).
-  bool email_address = 1;
-  // Canonicalize as an E.164 phone number.
-  bool phone_number_e164 = 2;
+message Field {
+  // The rule.
+  oneof rule {
+    // Canonicalize as an email address (lowercase, trim whitespace, etc.).
+    bool email_address = 1;
+    // Canonicalize as an E.164 phone number.
+    bool phone_number = 2;
+  }
 }
 
 extend google.protobuf.FieldOptions {
   // Field option for canonicalization option.
-  FieldRules field = 50000;
+  Field field = 50000;
 }
