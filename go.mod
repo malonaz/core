@@ -15,6 +15,7 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/coder/websocket v1.8.14
+	github.com/dimuska139/go-email-normalizer/v5 v5.0.0
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-openapi/strfmt v0.25.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -42,6 +43,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/mwitkow/grpc-proxy v0.0.0-20250813121105-2866842de9a5
 	github.com/nats-io/nats.go v1.48.0
+	github.com/nyaruka/phonenumbers v1.6.10
 	github.com/openai/openai-go/v3 v3.10.0
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2

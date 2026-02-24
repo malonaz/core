@@ -1,6 +1,7 @@
 go_library(
     name = "middleware",
     srcs = [
+        "canonicalize.go",
         "errors.go",
         "field_mask.go",
         "headers.go",
@@ -13,8 +14,10 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/canonicalize",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
+        "//malonaz/canonicalize/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",

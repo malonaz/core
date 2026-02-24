@@ -1,0 +1,25 @@
+go_library(
+    name = "canonicalize",
+    srcs = [
+        "email_address.go",
+        "phone_number.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:github.com__dimuska139__go-email-normalizer__v5",
+        "//third_party/go:github.com__nyaruka__phonenumbers",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = [
+        "email_address_test.go",
+        "phone_number_test.go",
+    ],
+    deps = [
+        ":canonicalize",
+        "//third_party/go:github.com__nyaruka__phonenumbers",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

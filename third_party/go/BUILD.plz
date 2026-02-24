@@ -921,6 +921,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__dimuska139__go-email-normalizer__v5",
+    _tag = "download",
+    module = "github.com/dimuska139/go-email-normalizer/v5",
+    version = "v5.0.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__dimuska139__go-email-normalizer__v5",
+    download = ":_github.com__dimuska139__go-email-normalizer__v5#download",
+    install = ["."],
+    module = "github.com/dimuska139/go-email-normalizer/v5",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__envoyproxy__protoc-gen-validate",
     _tag = "download",
     module = "github.com/envoyproxy/protoc-gen-validate",
@@ -4620,6 +4637,30 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__nyaruka__phonenumbers",
+    _tag = "download",
+    module = "github.com/nyaruka/phonenumbers",
+    version = "v1.6.10",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nyaruka__phonenumbers",
+    download = ":_github.com__nyaruka__phonenumbers#download",
+    install = ["."],
+    module = "github.com/nyaruka/phonenumbers",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__exp__slices",
+        ":golang.org__x__text__language",
+        ":golang.org__x__text__language__display",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_mod_download(
     name = "github.com__oklog__ulid",
     _tag = "download",
     module = "github.com/oklog/ulid",
@@ -7214,6 +7255,18 @@ go_module(
     deps = [
         "//third_party/go:golang.org__x__text__internal__language",
         "//third_party/go:golang.org__x__text__internal__language__compact",
+    ],
+)
+
+go_module(
+    name = "golang.org__x__text__language__display",
+    download = ":_golang.org__x__text#download",
+    install = ["language/display"],
+    module = "golang.org/x/text",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:golang.org__x__text__internal__format",
+        "//third_party/go:golang.org__x__text__language",
     ],
 )
 
