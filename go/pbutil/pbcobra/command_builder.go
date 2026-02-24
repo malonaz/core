@@ -1,6 +1,7 @@
 package pbcobra
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -323,16 +324,15 @@ type fieldBehaviors struct {
 
 func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
 	var fb fieldBehaviors
-	opts := field.Options()
-	if opts == nil {
-		return fb
+	behaviors, err := pbutil.GetExtension[[]annotations.FieldBehavior](field.Options(), annotations.E_FieldBehavior)
+	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return fb
+		}
+		panic(fmt.Sprintf("getting field behaviors: %v", err))
 	}
-	if !proto.HasExtension(opts, annotations.E_FieldBehavior) {
-		return fb
-	}
-	behaviors := proto.GetExtension(opts, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
-	for _, b := range behaviors {
-		switch b {
+	for _, behavior := range behaviors {
+		switch behavior {
 		case annotations.FieldBehavior_REQUIRED:
 			fb.required = true
 		case annotations.FieldBehavior_OUTPUT_ONLY:
@@ -610,19 +610,21 @@ func parseScalar(field protoreflect.FieldDescriptor, s string) (protoreflect.Val
 }
 
 func (b *CommandBuilder) getParentDefault(field protoreflect.FieldDescriptor) string {
-	opts := field.Options()
-	if opts == nil {
-		return ""
+	ref, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
+	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return ""
+		}
+		panic(fmt.Sprintf("getting resource reference: %v", err))
 	}
-	if !proto.HasExtension(opts, annotations.E_ResourceReference) {
-		return ""
-	}
-	ref := proto.GetExtension(opts, annotations.E_ResourceReference).(*annotations.ResourceReference)
 	resourceType := ref.GetType()
 	if resourceType == "" {
 		return ""
 	}
-	resourceDesc := b.schema.GetResourceDescriptor(resourceType)
+	resourceDesc, err := b.schema.GetResourceDescriptor(resourceType)
+	if err != nil {
+		return ""
+	}
 	if len(resourceDesc.GetPattern()) == 0 {
 		return ""
 	}

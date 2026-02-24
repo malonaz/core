@@ -1,14 +1,13 @@
-// go/aip/resource_tree.go
 package aip
 
 import (
+	"errors"
 	"fmt"
 	"iter"
 	"regexp"
 	"slices"
 	"strings"
 
-	"buf.build/go/protovalidate"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
@@ -30,7 +29,6 @@ type TreeConfig struct {
 
 type Tree struct {
 	Config         *TreeConfig
-	Validator      protovalidate.Validator
 	Resource       *ParsedResource
 	AllowAllPaths  bool
 	AllowedPathSet map[string]struct{}
@@ -57,15 +55,7 @@ func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opt
 	for _, opt := range opts {
 		opt(config)
 	}
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(&modelpb.FieldOpts{}),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tree, err := newTree(config, validator)
+	tree, err := newTree(config)
 	if err != nil {
 		return nil, err
 	}
@@ -90,15 +80,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	for _, opt := range opts {
 		opt(config)
 	}
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(&modelpb.FieldOpts{}),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tree, err := newTree(config, validator)
+	tree, err := newTree(config)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +192,7 @@ func (t *Tree) allowedNodes() iter.Seq[*Node] {
 	}
 }
 
-func newTree(config *TreeConfig, validator protovalidate.Validator) (*Tree, error) {
+func newTree(config *TreeConfig) (*Tree, error) {
 	if config.maxDepth == 0 {
 		config.maxDepth = defaultMaxDepth
 	}
@@ -228,7 +210,6 @@ func newTree(config *TreeConfig, validator protovalidate.Validator) (*Tree, erro
 
 	return &Tree{
 		Config:         config,
-		Validator:      validator,
 		AllowAllPaths:  allowAllPaths,
 		AllowedPathSet: allowedPathSet,
 	}, nil
@@ -336,14 +317,10 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 
 	fieldName := fieldDesc.TextName()
 	options := fieldDesc.Options()
-	var fieldOpts *modelpb.FieldOpts
-	if proto.HasExtension(options, modelpb.E_FieldOpts) {
-		fieldOpts = proto.GetExtension(options, modelpb.E_FieldOpts).(*modelpb.FieldOpts)
-		if err := t.Validator.Validate(fieldOpts); err != nil {
-			return fmt.Errorf("validating fields opts %s: %v", fieldName, err)
-		}
+	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](options, modelpb.E_FieldOpts)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return fmt.Errorf("getting field opts for %s: %v", fieldName, err)
 	}
-
 	if fieldOpts.GetSkip() {
 		return nil
 	}
@@ -360,8 +337,11 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 	}
 	t.Add(node)
 
-	if proto.HasExtension(options, annotationspb.E_FieldBehavior) {
-		behaviors := proto.GetExtension(options, annotationspb.E_FieldBehavior).([]annotationspb.FieldBehavior)
+	behaviors, err := pbutil.GetExtension[[]annotationspb.FieldBehavior](options, annotationspb.E_FieldBehavior)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return fmt.Errorf("getting field behaviors for %s: %v", fieldName, err)
+	}
+	if len(behaviors) > 0 {
 		node.FieldBehaviorSet = make(map[annotationspb.FieldBehavior]struct{}, len(behaviors))
 		for _, fb := range behaviors {
 			node.FieldBehaviorSet[fb] = struct{}{}

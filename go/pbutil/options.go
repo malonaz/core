@@ -18,6 +18,28 @@ type enum interface {
 	String() string
 }
 
+type optionConfig struct {
+	registry *protoregistry.Files
+}
+
+type OptionConfigOpt func(*optionConfig)
+
+func WithRegistry(registry *protoregistry.Files) OptionConfigOpt {
+	return func(configuration *optionConfig) {
+		configuration.registry = registry
+	}
+}
+
+func newOptionConfig(opts []OptionConfigOpt) *optionConfig {
+	configuration := &optionConfig{
+		registry: protoregistry.GlobalFiles,
+	}
+	for _, opt := range opts {
+		opt(configuration)
+	}
+	return configuration
+}
+
 func Must[T any](value T, err error) T {
 	if err != nil {
 		panic(err)
@@ -43,9 +65,10 @@ func GetExtension[T any](options proto.Message, extensionType protoreflect.Exten
 	return result, nil
 }
 
-func GetServiceOption[T any](serviceName string, extensionType protoreflect.ExtensionType) (T, error) {
+func GetServiceOption[T any](serviceName string, extensionType protoreflect.ExtensionType, opts ...OptionConfigOpt) (T, error) {
 	var zero T
-	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
+	configuration := newOptionConfig(opts)
+	fd, err := configuration.registry.FindDescriptorByName(protoreflect.FullName(serviceName))
 	if err != nil {
 		return zero, fmt.Errorf("could not find service descriptor: %w", err)
 	}
@@ -60,9 +83,10 @@ func GetServiceOption[T any](serviceName string, extensionType protoreflect.Exte
 	return GetExtension[T](options, extensionType)
 }
 
-func GetMethodOption[T any](methodName string, extensionType protoreflect.ExtensionType) (T, error) {
+func GetMethodOption[T any](methodName string, extensionType protoreflect.ExtensionType, opts ...OptionConfigOpt) (T, error) {
 	var zero T
-	fd, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(methodName))
+	configuration := newOptionConfig(opts)
+	fd, err := configuration.registry.FindDescriptorByName(protoreflect.FullName(methodName))
 	if err != nil {
 		return zero, fmt.Errorf("could not find method descriptor: %w", err)
 	}

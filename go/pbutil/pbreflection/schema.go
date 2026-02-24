@@ -2,6 +2,7 @@ package pbreflection
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	gatewaypb "github.com/malonaz/core/genproto/codegen/gateway/v1"
 	"github.com/malonaz/core/go/aip"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 type CommentStyle int
@@ -149,68 +151,35 @@ func (s *Schema) FindDescriptorByName(name protoreflect.FullName) (protoreflect.
 	return s.files.FindDescriptorByName(name)
 }
 
-// GetStandardMethodType returns the standard method type for a method, or empty string if not a standard method.
-func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) StandardMethodType {
-	// Check for proxy annotation.
-	desc, err := s.files.FindDescriptorByName(methodFullName)
+func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) (StandardMethodType, error) {
+	opts, err := pbutil.GetMethodOption[*gatewaypb.HandlerOpts](string(methodFullName), gatewaypb.E_Opts, pbutil.WithRegistry(s.files))
 	if err != nil {
-		return StandardMethodTypeUnspecified
-	}
-	method, ok := desc.(protoreflect.MethodDescriptor)
-	if !ok {
-		return StandardMethodTypeUnspecified
-	}
-	methodOpts := method.Options()
-	if methodOpts == nil || !proto.HasExtension(methodOpts, gatewaypb.E_Opts) {
-		return s.methodFullNameToStandardMethodType[methodFullName]
-	}
-	opts := proto.GetExtension(methodOpts, gatewaypb.E_Opts).(*gatewaypb.HandlerOpts)
-	if opts.GetProxy() == "" {
-		return StandardMethodTypeUnspecified
-	}
-	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())]
-}
-
-func (s *Schema) GetStandardMethodResourceDescriptor(methodFullName protoreflect.FullName) *annotations.ResourceDescriptor {
-	// Check for proxy annotation.
-	desc, err := s.files.FindDescriptorByName(methodFullName)
-	if err == nil {
-		if method, ok := desc.(protoreflect.MethodDescriptor); ok {
-			methodOpts := method.Options()
-			if methodOpts != nil && proto.HasExtension(methodOpts, gatewaypb.E_Opts) {
-				opts := proto.GetExtension(methodOpts, gatewaypb.E_Opts).(*gatewaypb.HandlerOpts)
-				if opts.GetProxy() != "" {
-					methodFullName = protoreflect.FullName(opts.GetProxy())
-				}
-			}
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return s.methodFullNameToStandardMethodType[methodFullName], nil
 		}
+		return StandardMethodTypeUnspecified, fmt.Errorf("getting gateway opts for %s: %w", methodFullName, err)
 	}
-
-	msg := s.methodFullNameToResourceMessageDescriptor[methodFullName]
-	if msg == nil {
-		return nil
+	if opts.GetProxy() == "" {
+		return StandardMethodTypeUnspecified, nil
 	}
-	opts := msg.Options()
-	if opts == nil || !proto.HasExtension(opts, annotations.E_Resource) {
-		return nil
-	}
-	return proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
+	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())], nil
 }
 
-func (s *Schema) GetResourceDescriptor(resourceType string) *annotations.ResourceDescriptor {
+func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.ResourceDescriptor, error) {
 	var result *annotations.ResourceDescriptor
+	var resultErr error
 	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		messages := fd.Messages()
 		for i := 0; i < messages.Len(); i++ {
 			msg := messages.Get(i)
-			opts := msg.Options()
-			if opts == nil {
-				continue
+			res, err := pbutil.GetExtension[*annotations.ResourceDescriptor](msg.Options(), annotations.E_Resource)
+			if err != nil {
+				if errors.Is(err, pbutil.ErrExtensionNotFound) {
+					continue
+				}
+				resultErr = fmt.Errorf("getting resource extension for %s: %w", msg.FullName(), err)
+				return false
 			}
-			if !proto.HasExtension(opts, annotations.E_Resource) {
-				continue
-			}
-			res := proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
 			if res.GetType() == resourceType {
 				result = res
 				return false
@@ -218,7 +187,10 @@ func (s *Schema) GetResourceDescriptor(resourceType string) *annotations.Resourc
 		}
 		return true
 	})
-	return result
+	if resultErr != nil {
+		return nil, resultErr
+	}
+	return result, nil
 }
 
 func newSchema(data *schemaData) (*Schema, error) {
@@ -401,7 +373,7 @@ func fetchFileDescriptors(stream rpb.ServerReflection_ServerReflectionInfoClient
 
 // Call this in newSchema after building the files registry:
 func (s *Schema) buildStandardMethodTypes() error {
-	var err error
+	var errRangeFiles error
 	s.files.RangeFiles(func(fileDescriptor protoreflect.FileDescriptor) bool {
 		services := fileDescriptor.Services()
 		for i := 0; i < services.Len(); i++ {
@@ -415,21 +387,25 @@ func (s *Schema) buildStandardMethodTypes() error {
 				}
 				standardMethod := proto.GetExtension(methodOptions, aippb.E_StandardMethod).(*aippb.StandardMethod)
 				if standardMethod.GetResource() == "" {
-					err = fmt.Errorf("method %s has incomplete standard method annotation", method.FullName())
+					errRangeFiles = fmt.Errorf("method %s has incomplete standard method annotation", method.FullName())
 					return false
 				}
-				resourceDesc := s.GetResourceDescriptor(standardMethod.GetResource())
+				resourceDesc, err := s.GetResourceDescriptor(standardMethod.GetResource())
+				if err != nil {
+					errRangeFiles = fmt.Errorf("getting resource descriptor %s for method %s", standardMethod.GetResource(), method.FullName())
+					return false
+				}
 				if resourceDesc == nil {
-					err = fmt.Errorf("could not find resource descriptor %s for method %s", standardMethod.GetResource(), method.FullName())
+					errRangeFiles = fmt.Errorf("could not find resource descriptor %s for method %s", standardMethod.GetResource(), method.FullName())
 					return false
 				}
 				if resourceDesc.GetSingular() == "" || resourceDesc.GetPlural() == "" {
-					err = fmt.Errorf("resource descriptor %s is missing singular or plural values", standardMethod.GetResource())
+					errRangeFiles = fmt.Errorf("resource descriptor %s is missing singular or plural values", standardMethod.GetResource())
 					return false
 				}
 				resource, ok := s.resourceTypeToMessageDescriptor[resourceDesc.GetType()]
 				if !ok {
-					err = fmt.Errorf("cannot find resource message for resource descriptor %s ", standardMethod.GetResource())
+					errRangeFiles = fmt.Errorf("cannot find resource message for resource descriptor %s ", standardMethod.GetResource())
 					return false
 				}
 				s.methodFullNameToResourceMessageDescriptor[method.FullName()] = resource
@@ -452,7 +428,7 @@ func (s *Schema) buildStandardMethodTypes() error {
 				case string(StandardMethodTypeList) + plural:
 					methodType = StandardMethodTypeList
 				default:
-					err = fmt.Errorf("method %s has standard annotation but does not match any of the standard method types", method.FullName())
+					errRangeFiles = fmt.Errorf("method %s has standard annotation but does not match any of the standard method types", method.FullName())
 					return false
 				}
 				s.methodFullNameToStandardMethodType[method.FullName()] = methodType
@@ -462,7 +438,7 @@ func (s *Schema) buildStandardMethodTypes() error {
 		return true
 	})
 
-	return err
+	return errRangeFiles
 }
 
 func extractComments(comments map[string]string, fd protoreflect.FileDescriptor) {
@@ -544,7 +520,7 @@ func trimCommentLines(s string) string {
 }
 
 func (s *Schema) augmentMethodComments() error {
-	var err error
+	var errRangeFiles error
 
 	messageFQNSeenSet := map[string]struct{}{}
 	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
@@ -566,7 +542,11 @@ func (s *Schema) augmentMethodComments() error {
 				}
 
 				// We do not update the same message twice.
-				standardMethodType := s.GetStandardMethodType(method.FullName())
+				standardMethodType, err := s.GetStandardMethodType(method.FullName())
+				if err != nil {
+					errRangeFiles = err
+					return false
+				}
 				_, messageSeen := messageFQNSeenSet[string(input.FullName())]
 				messageFQNSeenSet[string(input.FullName())] = struct{}{}
 
@@ -579,7 +559,12 @@ func (s *Schema) augmentMethodComments() error {
 						if fieldOpts != nil && proto.HasExtension(fieldOpts, annotations.E_ResourceReference) {
 							ref := proto.GetExtension(fieldOpts, annotations.E_ResourceReference).(*annotations.ResourceReference)
 							if ref.GetType() != "" {
-								if resourceDesc := s.GetResourceDescriptor(ref.GetType()); len(resourceDesc.GetPattern()) > 0 {
+								resourceDesc, err := s.GetResourceDescriptor(ref.GetType())
+								if err != nil {
+									errRangeFiles = fmt.Errorf("getting resource descriptor for %q: %w", ref.GetType(), resourceDesc)
+									return false
+								}
+								if len(resourceDesc.GetPattern()) > 0 {
 									pattern := resourceDesc.GetPattern()[0]
 									wildcardPattern := resourcePatternWildcard.ReplaceAllString(pattern, "-")
 									s.comments[string(field.FullName())] += fmt.Sprintf("\nWildcard '-' can be used for any segment: e.g. %s", wildcardPattern)
@@ -598,16 +583,16 @@ func (s *Schema) augmentMethodComments() error {
 							if standardMethodType != StandardMethodTypeUnspecified {
 								resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
 								if !ok {
-									err = fmt.Errorf("could not find resource message descriptor for method %s", method.FullName())
+									errRangeFiles = fmt.Errorf("could not find resource message descriptor for method %s", method.FullName())
 									return false
 								}
-								var tree *aip.Tree
-								tree, err = aip.BuildResourceTreeFromDescriptor(
+								tree, err := aip.BuildResourceTreeFromDescriptor(
 									resourceMessageDescriptor,
 									aip.WithAllowedPaths(filtering.Paths),
 									aip.WithMaxDepth(3),
 								)
 								if err != nil {
+									errRangeFiles = err
 									return false
 								}
 								paths = nil
@@ -681,7 +666,7 @@ func (s *Schema) augmentMethodComments() error {
 		return true
 	})
 
-	return err
+	return errRangeFiles
 }
 
 func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []string) string {

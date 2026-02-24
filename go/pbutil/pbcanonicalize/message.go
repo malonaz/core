@@ -1,6 +1,7 @@
 package pbcanonicalize
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -90,11 +91,11 @@ func canonicalizeReflectMessage(reflectMessage protoreflect.Message) error {
 		}
 
 		// Skip fields that don't have the canonicalize extension.
-		if !proto.HasExtension(fieldDescriptor.Options(), canonicalizepb.E_Field) {
-			return true
-		}
 		field, err := pbutil.GetExtension[*canonicalizepb.Field](fieldDescriptor.Options(), canonicalizepb.E_Field)
 		if err != nil {
+			if errors.Is(err, pbutil.ErrExtensionNotFound) {
+				return true
+			}
 			canonicalizeErr = &canonicalizationError{
 				field:       string(fieldDescriptor.FullName()),
 				description: fmt.Sprintf("get extension: %v", err),

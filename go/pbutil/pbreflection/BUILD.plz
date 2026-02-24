@@ -8,6 +8,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/aip",
+        "//go/pbutil",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/gateway/v1",
         "//third_party/go:github.com__huandu__xstrings",

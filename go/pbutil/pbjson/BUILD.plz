@@ -10,7 +10,6 @@ go_library(
         "//go/pbutil/pbfieldmask",
         "//go/pbutil/pbreflection",
         "//malonaz/json/v1",
-        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",

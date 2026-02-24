@@ -1,13 +1,13 @@
 package pbjson
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/timeofday"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -97,7 +97,11 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		standardMethodType = pbreflection.StandardMethodTypeUnspecified
 	case protoreflect.MethodDescriptor:
 		msg = d.Input()
-		standardMethodType = b.schema.GetStandardMethodType(d.FullName())
+		var err error
+		standardMethodType, err = b.schema.GetStandardMethodType(d.FullName())
+		if err != nil {
+			return nil, fmt.Errorf("getting standard method type %q: %v", d.FullName(), err)
+		}
 		if so.withResponseSchemaMaxDepth > 0 {
 			responseSchema, err := b.BuildSchema(d.Output().FullName(), WithMaxDepth(so.withResponseSchemaMaxDepth))
 			if err != nil {
@@ -285,14 +289,13 @@ type fieldBehaviors struct {
 
 func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
 	var fb fieldBehaviors
-	opts := field.Options()
-	if opts == nil {
-		return fb
+	behaviors, err := pbutil.GetExtension[[]annotations.FieldBehavior](field.Options(), annotations.E_FieldBehavior)
+	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return fb
+		}
+		panic(fmt.Sprintf("getting field behaviors: %v", err))
 	}
-	if !proto.HasExtension(opts, annotations.E_FieldBehavior) {
-		return fb
-	}
-	behaviors := proto.GetExtension(opts, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
 	for _, behavior := range behaviors {
 		switch behavior {
 		case annotations.FieldBehavior_REQUIRED:
