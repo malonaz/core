@@ -1,7 +1,6 @@
 package pbcobra
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -85,37 +84,53 @@ func (b *CommandBuilder) WithMaxDepth(maxDepth int) *CommandBuilder {
 	return b
 }
 
-func (b *CommandBuilder) Build() []*cobra.Command {
+func (b *CommandBuilder) Build() ([]*cobra.Command, error) {
 	var cmds []*cobra.Command
-	b.schema.Services(func(svc protoreflect.ServiceDescriptor) bool {
-		cmds = append(cmds, b.buildServiceCommand(svc))
+	var errServices error
+	b.schema.Services(func(serviceDescriptor protoreflect.ServiceDescriptor) bool {
+		cmd, err := b.buildServiceCommand(serviceDescriptor)
+		if err != nil {
+			errServices = fmt.Errorf("build command for service %q: %w", serviceDescriptor.FullName(), err)
+			return false
+		}
+		cmds = append(cmds, cmd)
 		return true
 	})
-	return cmds
+	return cmds, errServices
 }
 
-func (b *CommandBuilder) buildServiceCommand(svc protoreflect.ServiceDescriptor) *cobra.Command {
+func (b *CommandBuilder) buildServiceCommand(serviceDescriptor protoreflect.ServiceDescriptor) (*cobra.Command, error) {
 	cmd := &cobra.Command{
-		Use:   xstrings.ToKebabCase(string(svc.Name())),
-		Short: b.schema.GetComment(svc.FullName(), pbreflection.CommentStyleFirstLine),
-		Long:  b.schema.GetComment(svc.FullName(), pbreflection.CommentStyleMultiline),
+		Use:   xstrings.ToKebabCase(string(serviceDescriptor.Name())),
+		Short: b.schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleFirstLine),
+		Long:  b.schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline),
 		Annotations: map[string]string{
-			annotationKeyService: string(svc.FullName()),
+			annotationKeyService: string(serviceDescriptor.FullName()),
 		},
 	}
 
-	methods := svc.Methods()
+	methods := serviceDescriptor.Methods()
 	for i := 0; i < methods.Len(); i++ {
-		methodCmd := b.buildMethodCommand(methods.Get(i))
-		methodCmd.Annotations[annotationKeyService] = string(svc.FullName())
+		method := methods.Get(i)
+		methodCmd, err := b.buildMethodCommand(method)
+		if err != nil {
+			return nil, fmt.Errorf("build command for method %q: %w", method.FullName, err)
+		}
+		methodCmd.Annotations[annotationKeyService] = string(serviceDescriptor.FullName())
 		cmd.AddCommand(methodCmd)
 	}
-	return cmd
+	return cmd, nil
 }
 
-func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor) *cobra.Command {
-	longDesc := b.schema.GetComment(method.FullName(), pbreflection.CommentStyleMultiline)
-	if responseDoc := b.formatResponseDoc(method.Output()); responseDoc != "" {
+func (b *CommandBuilder) buildMethodCommand(methodDescriptor protoreflect.MethodDescriptor) (*cobra.Command, error) {
+	// Get standard method type.
+	standardMethodType, err := b.schema.GetStandardMethodType(methodDescriptor.FullName())
+	if err != nil {
+		return nil, fmt.Errorf("getting standard method type %q: %v", methodDescriptor.FullName(), err)
+	}
+
+	longDesc := b.schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
+	if responseDoc := b.formatResponseDoc(methodDescriptor.Output()); responseDoc != "" {
 		if longDesc != "" {
 			longDesc += "\n\n"
 		}
@@ -123,18 +138,18 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 	}
 
 	cmd := &cobra.Command{
-		Use:   xstrings.ToKebabCase(string(method.Name())),
-		Short: b.schema.GetComment(method.FullName(), pbreflection.CommentStyleFirstLine),
+		Use:   xstrings.ToKebabCase(string(methodDescriptor.Name())),
+		Short: b.schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleFirstLine),
 		Long:  longDesc,
 		Args:  cobra.NoArgs,
 		Annotations: map[string]string{
-			annotationKeyMethod: string(method.FullName()),
+			annotationKeyMethod: string(methodDescriptor.FullName()),
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := b.invokeMethod(cmd, method)
+			err := b.invokeMethod(cmd, methodDescriptor)
 			if err != nil {
 				return b.errorHandler(err)
 			}
@@ -142,12 +157,12 @@ func (b *CommandBuilder) buildMethodCommand(method protoreflect.MethodDescriptor
 		},
 	}
 
-	methodName := string(method.Name())
-	fields := method.Input().Fields()
+	methodName := string(methodDescriptor.Name())
+	fields := methodDescriptor.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		b.addFlagWithPrefix(cmd, fields.Get(i), "", 0, methodName)
+		b.addFlagWithPrefix(cmd, standardMethodType, fields.Get(i), "", 0, methodName)
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (b *CommandBuilder) formatResponseDoc(msg protoreflect.MessageDescriptor) string {
@@ -204,69 +219,90 @@ func (b *CommandBuilder) fieldTypeName(field protoreflect.FieldDescriptor) strin
 }
 
 // In command_builder.go, modify addFlagWithPrefix to set default for parent fields:
-func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflect.FieldDescriptor, prefix string, depth int, methodName string) {
+func (b *CommandBuilder) addFlagWithPrefix(
+	cmd *cobra.Command,
+	standardMethodType pbreflection.StandardMethodType,
+	fieldDescriptor protoreflect.FieldDescriptor,
+	prefix string,
+	depth int,
+	methodName string,
+) error {
+	// Depth check.
 	if depth > b.maxDepth {
-		return
+		return nil
 	}
 
-	behaviors := getFieldBehaviors(field)
-	if behaviors.outputOnly {
-		return
+	// Grab the field behavior.
+	fieldBehavior, err := pbutil.GetFieldBehavior(fieldDescriptor)
+	if err != nil {
+		return fmt.Errorf("getting field behavior: %w", err)
 	}
 
-	isCreate := strings.HasPrefix(methodName, "Create")
-	isUpdate := strings.HasPrefix(methodName, "Update")
-
-	if isCreate && behaviors.identifier {
-		return
-	}
-	if isUpdate && behaviors.immutable {
-		return
+	var isRequired bool
+	switch standardMethodType {
+	case pbreflection.StandardMethodTypeCreate:
+		if fieldBehavior.Identifier {
+			return nil
+		}
+		isRequired = fieldBehavior.Required
+	case pbreflection.StandardMethodTypeUpdate:
+		if fieldBehavior.Immutable {
+			return nil
+		}
+		isRequired = fieldBehavior.Identifier
+	default:
+		isRequired = fieldBehavior.Required
 	}
 
 	// Compute default value for parent fields with resource references
 	var defaultValue string
-	if field.Name() == "parent" && field.Kind() == protoreflect.StringKind {
-		defaultValue = b.getParentDefault(field)
+	if fieldDescriptor.Name() == "parent" && fieldDescriptor.Kind() == protoreflect.StringKind {
+		var err error
+		defaultValue, err = b.getParentDefault(fieldDescriptor)
+		if err != nil {
+			return fmt.Errorf("getting parent default for %q: %w", fieldDescriptor.Name(), err)
+		}
+	}
+	if defaultValue != "" {
+		isRequired = false
 	}
 
-	name := prefix + xstrings.ToKebabCase(string(field.Name()))
-	help := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleSingleLine)
+	name := prefix + xstrings.ToKebabCase(string(fieldDescriptor.Name()))
+	help := b.schema.GetComment(fieldDescriptor.FullName(), pbreflection.CommentStyleSingleLine)
 
-	isRequired := defaultValue == "" && (behaviors.required || (isUpdate && behaviors.identifier))
 	if isRequired {
 		help = "(required) " + help
 	}
 
-	if field.IsList() {
+	if fieldDescriptor.IsList() {
 		cmd.Flags().StringArray(name, nil, help)
 		if isRequired {
 			cmd.MarkFlagRequired(name)
 		}
-		return
+		return nil
 	}
 
-	switch field.Kind() {
+	switch fieldDescriptor.Kind() {
 	case protoreflect.MessageKind:
-		switch field.Message().FullName() {
+		switch fieldDescriptor.Message().FullName() {
 		case timestampFullName:
 			cmd.Flags().String(name, "", help+" (Format: RFC3339, e.g. 2006-01-02T15:04:05Z)")
 			if isRequired {
 				cmd.MarkFlagRequired(name)
 			}
-			return
+			return nil
 		case durationFullName:
 			cmd.Flags().String(name, "", help+" (Format: Go duration, e.g. 1h30m)")
 			if isRequired {
 				cmd.MarkFlagRequired(name)
 			}
-			return
+			return nil
 		case fieldMaskFullName:
 			cmd.Flags().String(name, "", help+" (comma-separated paths)")
 			if isRequired {
 				cmd.MarkFlagRequired(name)
 			}
-			return
+			return nil
 
 		default:
 			// Add flag to explicitly instantiate this message
@@ -275,10 +311,10 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 				cmd.MarkFlagRequired(name)
 			}
 
-			nestedFields := field.Message().Fields()
+			nestedFields := fieldDescriptor.Message().Fields()
 			nestedPrefix := name + "-"
 			for i := 0; i < nestedFields.Len(); i++ {
-				b.addFlagWithPrefix(cmd, nestedFields.Get(i), nestedPrefix, depth+1, methodName)
+				b.addFlagWithPrefix(cmd, standardMethodType, nestedFields.Get(i), nestedPrefix, depth+1, methodName)
 			}
 		}
 
@@ -301,7 +337,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 	case protoreflect.BytesKind:
 		cmd.Flags().String(name, "", help)
 	case protoreflect.EnumKind:
-		enumHelp := b.schema.GetComment(field.Enum().FullName(), pbreflection.CommentStyleSingleLine)
+		enumHelp := b.schema.GetComment(fieldDescriptor.Enum().FullName(), pbreflection.CommentStyleSingleLine)
 		if help != "" && enumHelp != "" {
 			help = help + " (" + enumHelp + ")"
 		} else if enumHelp != "" {
@@ -313,37 +349,7 @@ func (b *CommandBuilder) addFlagWithPrefix(cmd *cobra.Command, field protoreflec
 	if isRequired {
 		cmd.MarkFlagRequired(name)
 	}
-}
-
-type fieldBehaviors struct {
-	required   bool
-	outputOnly bool
-	immutable  bool
-	identifier bool
-}
-
-func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
-	var fb fieldBehaviors
-	behaviors, err := pbutil.GetExtension[[]annotations.FieldBehavior](field.Options(), annotations.E_FieldBehavior)
-	if err != nil {
-		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return fb
-		}
-		panic(fmt.Sprintf("getting field behaviors: %v", err))
-	}
-	for _, behavior := range behaviors {
-		switch behavior {
-		case annotations.FieldBehavior_REQUIRED:
-			fb.required = true
-		case annotations.FieldBehavior_OUTPUT_ONLY:
-			fb.outputOnly = true
-		case annotations.FieldBehavior_IMMUTABLE:
-			fb.immutable = true
-		case annotations.FieldBehavior_IDENTIFIER:
-			fb.identifier = true
-		}
-	}
-	return fb
+	return nil
 }
 
 func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.MethodDescriptor) error {
@@ -609,24 +615,21 @@ func parseScalar(field protoreflect.FieldDescriptor, s string) (protoreflect.Val
 	}
 }
 
-func (b *CommandBuilder) getParentDefault(field protoreflect.FieldDescriptor) string {
-	ref, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
+func (b *CommandBuilder) getParentDefault(fieldDescriptor protoreflect.FieldDescriptor) (string, error) {
+	resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](fieldDescriptor.Options(), annotations.E_ResourceReference)
 	if err != nil {
-		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return ""
-		}
-		panic(fmt.Sprintf("getting resource reference: %v", err))
+		return "", fmt.Errorf("getting resource reference: %w", err)
 	}
-	resourceType := ref.GetType()
+	resourceType := resourceReference.GetType()
 	if resourceType == "" {
-		return ""
+		return "", fmt.Errorf("resource reference has no type")
 	}
-	resourceDesc, err := b.schema.GetResourceDescriptor(resourceType)
-	if err != nil {
-		return ""
+	resourceDescriptor, ok := b.schema.GetResourceDescriptor(resourceType)
+	if !ok {
+		return "", fmt.Errorf("resource descriptor not found for %q", resourceType)
 	}
-	if len(resourceDesc.GetPattern()) == 0 {
-		return ""
+	if len(resourceDescriptor.GetPattern()) == 0 {
+		return "", fmt.Errorf("resource descriptor %q has no patterns", resourceType)
 	}
-	return patternSegmentRegexp.ReplaceAllString(resourceDesc.GetPattern()[0], "-")
+	return patternSegmentRegexp.ReplaceAllString(resourceDescriptor.GetPattern()[0], "-"), nil
 }

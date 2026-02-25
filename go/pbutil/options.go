@@ -3,6 +3,7 @@ package pbutil
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/proto"
@@ -60,6 +61,17 @@ func GetExtension[T any](options proto.Message, extensionType protoreflect.Exten
 	if m, ok := any(result).(proto.Message); ok {
 		if err := protovalidate.Validate(m); err != nil {
 			return zero, fmt.Errorf("validating extension: %w", err)
+		}
+	} else {
+		rv := reflect.ValueOf(result)
+		if rv.Kind() == reflect.Slice {
+			for i := 0; i < rv.Len(); i++ {
+				if m, ok := rv.Index(i).Interface().(proto.Message); ok {
+					if err := protovalidate.Validate(m); err != nil {
+						return zero, fmt.Errorf("validating extension[%d]: %w", i, err)
+					}
+				}
+			}
 		}
 	}
 	return result, nil

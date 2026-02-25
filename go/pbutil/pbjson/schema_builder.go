@@ -1,11 +1,9 @@
 package pbjson
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -132,7 +130,10 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		}
 	}
 
-	schema := b.buildMessageSchema(so, msg, "", 0, standardMethodType, allowedPaths)
+	schema, err := b.buildMessageSchema(so, msg, "", 0, standardMethodType, allowedPaths)
+	if err != nil {
+		return nil, fmt.Errorf("building message schema %q: %w", msg.FullName(), err)
+	}
 	if so.withResponseReadMask {
 		schema.Properties[responseReadMaskKey] = &jsonpb.Schema{
 			Type:        "string",
@@ -152,18 +153,18 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 
 func (b *SchemaBuilder) buildMessageSchema(
 	so *schemaOptions, msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool,
-) *jsonpb.Schema {
+) (*jsonpb.Schema, error) {
 	switch msg.FullName() {
 	case timestampFullName:
-		return &jsonpb.Schema{Type: "string", Description: "RFC3339, e.g. 2006-01-02T15:04:05Z"}
+		return &jsonpb.Schema{Type: "string", Description: "RFC3339, e.g. 2006-01-02T15:04:05Z"}, nil
 	case durationFullName:
-		return &jsonpb.Schema{Type: "string", Description: "e.g. 1h30m"}
+		return &jsonpb.Schema{Type: "string", Description: "e.g. 1h30m"}, nil
 	case fieldMaskFullName:
-		return &jsonpb.Schema{Type: "string", Description: "comma-separated paths"}
+		return &jsonpb.Schema{Type: "string", Description: "comma-separated paths"}, nil
 	case dateFullName:
-		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}
+		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}, nil
 	case timeOfDayFullName:
-		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}
+		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}, nil
 	}
 
 	properties := make(map[string]*jsonpb.Schema)
@@ -172,7 +173,10 @@ func (b *SchemaBuilder) buildMessageSchema(
 	fields := msg.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		schema, isRequired := b.buildFieldSchema(so, field, prefix, depth+1, methodType, allowedPaths)
+		schema, isRequired, err := b.buildFieldSchema(so, field, prefix, depth+1, methodType, allowedPaths)
+		if err != nil {
+			return nil, fmt.Errorf("building field %q schema: %w", field.Name(), err)
+		}
 		if schema != nil {
 			properties[string(field.Name())] = schema
 			if isRequired {
@@ -186,72 +190,89 @@ func (b *SchemaBuilder) buildMessageSchema(
 		Description: b.schema.GetComment(msg.FullName(), pbreflection.CommentStyleMultiline),
 		Properties:  properties,
 		Required:    required,
-	}
+	}, nil
 }
 
-func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, bool) {
+func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, bool, error) {
+	// Depth chech.
 	if depth > so.maxDepth {
-		return nil, false
+		return nil, false, nil
 	}
 
-	path := prefix + string(field.Name())
-
+	// Construct the field path and check that it is allowed.
+	path := prefix + string(fieldDescriptor.Name())
 	if len(allowedPaths) > 0 && !isPathAllowed(path, allowedPaths) {
-		return nil, false
+		return nil, false, nil
 	}
 
-	behaviors := getFieldBehaviors(field)
-	if behaviors.outputOnly {
-		return nil, false
+	fieldBehavior, err := pbutil.GetFieldBehavior(fieldDescriptor)
+	if err != nil {
+		return nil, false, fmt.Errorf("getting field behavior: %w", err)
 	}
+	if fieldBehavior.OutputOnly {
+		return nil, false, nil
+	}
+
 	var isRequired bool
 	switch methodType {
 	case pbreflection.StandardMethodTypeCreate:
-		if behaviors.identifier {
-			return nil, false
+		if fieldBehavior.Identifier {
+			return nil, false, nil
 		}
-		isRequired = behaviors.required
+		isRequired = fieldBehavior.Required
 	case pbreflection.StandardMethodTypeUpdate:
-		if behaviors.immutable {
-			return nil, false
+		if fieldBehavior.Immutable {
+			return nil, false, nil
 		}
-		isRequired = behaviors.identifier
+		isRequired = fieldBehavior.Identifier
 	default:
-		isRequired = behaviors.required
+		isRequired = fieldBehavior.Required
 	}
 
-	description := b.schema.GetComment(field.FullName(), pbreflection.CommentStyleMultiline)
+	description := b.schema.GetComment(fieldDescriptor.FullName(), pbreflection.CommentStyleMultiline)
 
-	if field.IsMap() {
+	if fieldDescriptor.IsMap() {
+		additionalProperties, err := b.elementSchema(so, fieldDescriptor.MapValue(), path, depth, methodType, allowedPaths)
+		if err != nil {
+			return nil, false, fmt.Errorf("building element schema %q: %q", fieldDescriptor.FullName(), err)
+		}
+
 		return &jsonpb.Schema{
 			Type:                 "object",
 			Description:          description,
-			AdditionalProperties: b.elementSchema(so, field.MapValue(), path, depth, methodType, allowedPaths),
-		}, isRequired
+			AdditionalProperties: additionalProperties,
+		}, isRequired, nil
 	}
 
-	if field.IsList() {
+	if fieldDescriptor.IsList() {
+		items, err := b.elementSchema(so, fieldDescriptor, path, depth, methodType, allowedPaths)
+		if err != nil {
+			return nil, false, fmt.Errorf("building element schema %q: %q", fieldDescriptor.FullName(), err)
+		}
 		return &jsonpb.Schema{
 			Type:        "array",
 			Description: description,
-			Items:       b.elementSchema(so, field, path, depth, methodType, allowedPaths),
-		}, isRequired
+			Items:       items,
+		}, isRequired, nil
 	}
 
-	if field.Kind() == protoreflect.MessageKind {
-		schema := b.buildMessageSchema(so, field.Message(), path+".", depth, methodType, allowedPaths)
+	if fieldDescriptor.Kind() == protoreflect.MessageKind {
+		schema, err := b.buildMessageSchema(so, fieldDescriptor.Message(), path+".", depth, methodType, allowedPaths)
+		if err != nil {
+			return nil, false, fmt.Errorf("building message %q schema: %w", fieldDescriptor.Message().FullName(), err)
+		}
 		if description != "" {
 			schema.Description = description + " (" + schema.Description + ")"
 		}
-		return schema, isRequired
+		return schema, isRequired, nil
 	}
 
-	return b.scalarSchema(field, description), isRequired
+	return b.scalarSchema(fieldDescriptor, description), isRequired, nil
 }
 
-func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
+func (b *SchemaBuilder) scalarSchema(fieldDescriptor protoreflect.FieldDescriptor, description string) *jsonpb.Schema {
 	schema := &jsonpb.Schema{Description: description}
-	switch field.Kind() {
+	switch fieldDescriptor.Kind() {
 	case protoreflect.BoolKind:
 		schema.Type = "boolean"
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind,
@@ -263,7 +284,7 @@ func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, descrip
 		schema.Type = "number"
 	case protoreflect.EnumKind:
 		schema.Type = "string"
-		values := field.Enum().Values()
+		values := fieldDescriptor.Enum().Values()
 		for i := 0; i < values.Len(); i++ {
 			schema.Enum = append(schema.Enum, string(values.Get(i).Name()))
 		}
@@ -273,42 +294,11 @@ func (b *SchemaBuilder) scalarSchema(field protoreflect.FieldDescriptor, descrip
 	return schema
 }
 
-func (b *SchemaBuilder) elementSchema(so *schemaOptions, field protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) *jsonpb.Schema {
-	if field.Kind() == protoreflect.MessageKind {
-		return b.buildMessageSchema(so, field.Message(), prefix+".", depth, methodType, allowedPaths)
+func (b *SchemaBuilder) elementSchema(so *schemaOptions, fieldDescriptor protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, error) {
+	if fieldDescriptor.Kind() == protoreflect.MessageKind {
+		return b.buildMessageSchema(so, fieldDescriptor.Message(), prefix+".", depth, methodType, allowedPaths)
 	}
-	return b.scalarSchema(field, "")
-}
-
-type fieldBehaviors struct {
-	required   bool
-	outputOnly bool
-	immutable  bool
-	identifier bool
-}
-
-func getFieldBehaviors(field protoreflect.FieldDescriptor) fieldBehaviors {
-	var fb fieldBehaviors
-	behaviors, err := pbutil.GetExtension[[]annotations.FieldBehavior](field.Options(), annotations.E_FieldBehavior)
-	if err != nil {
-		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return fb
-		}
-		panic(fmt.Sprintf("getting field behaviors: %v", err))
-	}
-	for _, behavior := range behaviors {
-		switch behavior {
-		case annotations.FieldBehavior_REQUIRED:
-			fb.required = true
-		case annotations.FieldBehavior_OUTPUT_ONLY:
-			fb.outputOnly = true
-		case annotations.FieldBehavior_IMMUTABLE:
-			fb.immutable = true
-		case annotations.FieldBehavior_IDENTIFIER:
-			fb.identifier = true
-		}
-	}
-	return fb
+	return b.scalarSchema(fieldDescriptor, ""), nil
 }
 
 func isPathAllowed(path string, allowedPaths map[string]bool) bool {

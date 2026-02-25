@@ -66,6 +66,7 @@ type Schema struct {
 	serviceSet                                map[string]struct{}
 	comments                                  map[string]string
 	resourceTypeToMessageDescriptor           map[string]protoreflect.MessageDescriptor
+	resourceTypeToResourceDescriptor          map[string]*annotations.ResourceDescriptor
 	methodFullNameToStandardMethodType        map[protoreflect.FullName]StandardMethodType
 	methodFullNameToResourceMessageDescriptor map[protoreflect.FullName]protoreflect.MessageDescriptor
 }
@@ -165,32 +166,9 @@ func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) (St
 	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())], nil
 }
 
-func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.ResourceDescriptor, error) {
-	var result *annotations.ResourceDescriptor
-	var resultErr error
-	s.files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		messages := fd.Messages()
-		for i := 0; i < messages.Len(); i++ {
-			msg := messages.Get(i)
-			res, err := pbutil.GetExtension[*annotations.ResourceDescriptor](msg.Options(), annotations.E_Resource)
-			if err != nil {
-				if errors.Is(err, pbutil.ErrExtensionNotFound) {
-					continue
-				}
-				resultErr = fmt.Errorf("getting resource extension for %s: %w", msg.FullName(), err)
-				return false
-			}
-			if res.GetType() == resourceType {
-				result = res
-				return false
-			}
-		}
-		return true
-	})
-	if resultErr != nil {
-		return nil, resultErr
-	}
-	return result, nil
+func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.ResourceDescriptor, bool) {
+	resourceDescriptor, ok := s.resourceTypeToResourceDescriptor[resourceType]
+	return resourceDescriptor, ok
 }
 
 func newSchema(data *schemaData) (*Schema, error) {
@@ -238,30 +216,37 @@ func newSchema(data *schemaData) (*Schema, error) {
 	})
 
 	// Step 2: parse resource messages.
+	resourceTypeToResourceDescriptor := map[string]*annotations.ResourceDescriptor{}
 	resourceTypeToMessageDescriptor := map[string]protoreflect.MessageDescriptor{}
+	var errRangeFiles error
 	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		messages := fd.Messages()
 		for i := 0; i < messages.Len(); i++ {
 			msg := messages.Get(i)
-			opts := msg.Options()
-			if opts == nil {
-				continue
+			resourceDescriptor, err := pbutil.GetExtension[*annotations.ResourceDescriptor](msg.Options(), annotations.E_Resource)
+			if err != nil {
+				if errors.Is(err, pbutil.ErrExtensionNotFound) {
+					continue
+				}
+				errRangeFiles = fmt.Errorf("getting resource extension for %s: %w", msg.FullName(), err)
+				return false
 			}
-			if !proto.HasExtension(opts, annotations.E_Resource) {
-				continue
-			}
-			res := proto.GetExtension(opts, annotations.E_Resource).(*annotations.ResourceDescriptor)
-			resourceTypeToMessageDescriptor[res.GetType()] = msg
+			resourceTypeToResourceDescriptor[resourceDescriptor.GetType()] = resourceDescriptor
+			resourceTypeToMessageDescriptor[resourceDescriptor.GetType()] = msg
 		}
 		return true
 	})
+	if errRangeFiles != nil {
+		return nil, errRangeFiles
+	}
 
 	// Define the schema.
 	schema := &Schema{
-		files:                              files,
-		serviceSet:                         serviceSet,
-		resourceTypeToMessageDescriptor:    resourceTypeToMessageDescriptor,
-		methodFullNameToStandardMethodType: map[protoreflect.FullName]StandardMethodType{},
+		files:                                     files,
+		serviceSet:                                serviceSet,
+		resourceTypeToResourceDescriptor:          resourceTypeToResourceDescriptor,
+		resourceTypeToMessageDescriptor:           resourceTypeToMessageDescriptor,
+		methodFullNameToStandardMethodType:        map[protoreflect.FullName]StandardMethodType{},
 		methodFullNameToResourceMessageDescriptor: map[protoreflect.FullName]protoreflect.MessageDescriptor{},
 		comments: comments,
 	}
@@ -381,38 +366,34 @@ func (s *Schema) buildStandardMethodTypes() error {
 			methods := service.Methods()
 			for j := 0; j < methods.Len(); j++ {
 				method := methods.Get(j)
-				methodOptions := method.Options()
-				if methodOptions == nil || !proto.HasExtension(methodOptions, aippb.E_StandardMethod) {
-					continue
-				}
-				standardMethod := proto.GetExtension(methodOptions, aippb.E_StandardMethod).(*aippb.StandardMethod)
-				if standardMethod.GetResource() == "" {
-					errRangeFiles = fmt.Errorf("method %s has incomplete standard method annotation", method.FullName())
+				standardMethod, err := pbutil.GetExtension[*aippb.StandardMethod](method.Options(), aippb.E_StandardMethod)
+				if err != nil {
+					if errors.Is(err, pbutil.ErrExtensionNotFound) {
+						continue
+					}
+					errRangeFiles = fmt.Errorf("getting standard method extension for %q: %w", method.FullName(), err)
 					return false
 				}
-				resourceDesc, err := s.GetResourceDescriptor(standardMethod.GetResource())
-				if err != nil {
+
+				resourceDescriptor, ok := s.GetResourceDescriptor(standardMethod.GetResource())
+				if !ok {
 					errRangeFiles = fmt.Errorf("getting resource descriptor %s for method %s", standardMethod.GetResource(), method.FullName())
 					return false
 				}
-				if resourceDesc == nil {
-					errRangeFiles = fmt.Errorf("could not find resource descriptor %s for method %s", standardMethod.GetResource(), method.FullName())
+				if resourceDescriptor.GetSingular() == "" || resourceDescriptor.GetPlural() == "" {
+					errRangeFiles = fmt.Errorf("resource descriptor %q is missing singular or plural values", standardMethod.GetResource())
 					return false
 				}
-				if resourceDesc.GetSingular() == "" || resourceDesc.GetPlural() == "" {
-					errRangeFiles = fmt.Errorf("resource descriptor %s is missing singular or plural values", standardMethod.GetResource())
-					return false
-				}
-				resource, ok := s.resourceTypeToMessageDescriptor[resourceDesc.GetType()]
+				resource, ok := s.resourceTypeToMessageDescriptor[resourceDescriptor.GetType()]
 				if !ok {
-					errRangeFiles = fmt.Errorf("cannot find resource message for resource descriptor %s ", standardMethod.GetResource())
+					errRangeFiles = fmt.Errorf("cannot find resource message for resource descriptor %q ", standardMethod.GetResource())
 					return false
 				}
 				s.methodFullNameToResourceMessageDescriptor[method.FullName()] = resource
 
 				methodName := string(method.Name())
-				singular := xstrings.ToPascalCase(resourceDesc.GetSingular())
-				plural := xstrings.ToPascalCase(resourceDesc.GetPlural())
+				singular := xstrings.ToPascalCase(resourceDescriptor.GetSingular())
+				plural := xstrings.ToPascalCase(resourceDescriptor.GetPlural())
 				var methodType StandardMethodType
 				switch methodName {
 				case string(StandardMethodTypeCreate) + singular:
@@ -555,92 +536,104 @@ func (s *Schema) augmentMethodComments() error {
 				// Parent field wildcard support
 				if !messageSeen {
 					if field := input.Fields().ByName("parent"); field != nil {
-						fieldOpts := field.Options()
-						if fieldOpts != nil && proto.HasExtension(fieldOpts, annotations.E_ResourceReference) {
-							ref := proto.GetExtension(fieldOpts, annotations.E_ResourceReference).(*annotations.ResourceReference)
-							if ref.GetType() != "" {
-								resourceDesc, err := s.GetResourceDescriptor(ref.GetType())
-								if err != nil {
-									errRangeFiles = fmt.Errorf("getting resource descriptor for %q: %w", ref.GetType(), resourceDesc)
-									return false
-								}
-								if len(resourceDesc.GetPattern()) > 0 {
-									pattern := resourceDesc.GetPattern()[0]
-									wildcardPattern := resourcePatternWildcard.ReplaceAllString(pattern, "-")
-									s.comments[string(field.FullName())] += fmt.Sprintf("\nWildcard '-' can be used for any segment: e.g. %s", wildcardPattern)
-								}
+						resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
+						if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+							errRangeFiles = fmt.Errorf("getting resource reference for %q: %w", field.FullName(), err)
+							return false
+						}
+						if resourceReference.GetType() != "" {
+							resourceDescriptor, ok := s.GetResourceDescriptor(resourceReference.GetType())
+							if !ok {
+								errRangeFiles = fmt.Errorf("getting resource descriptor for %q", resourceReference.GetType())
+								return false
+							}
+							if len(resourceDescriptor.GetPattern()) > 0 {
+								pattern := resourceDescriptor.GetPattern()[0]
+								wildcardPattern := resourcePatternWildcard.ReplaceAllString(pattern, "-")
+								s.comments[string(field.FullName())] += fmt.Sprintf("\nWildcard '-' can be used for any segment: e.g. %s", wildcardPattern)
 							}
 						}
 					}
 				}
 
-				// Filtering
-				if proto.HasExtension(inputOpts, aippb.E_Filtering) {
-					if filtering := proto.GetExtension(inputOpts, aippb.E_Filtering).(*aippb.FilteringOptions); filtering != nil && len(filtering.Paths) > 0 {
-						paths := filtering.GetPaths()
-						resourceMsg := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
-						if !messageSeen {
-							if standardMethodType != StandardMethodTypeUnspecified {
-								resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
-								if !ok {
-									errRangeFiles = fmt.Errorf("could not find resource message descriptor for method %s", method.FullName())
-									return false
-								}
-								tree, err := aip.BuildResourceTreeFromDescriptor(
-									resourceMessageDescriptor,
-									aip.WithAllowedPaths(filtering.Paths),
-									aip.WithMaxDepth(3),
-								)
-								if err != nil {
-									errRangeFiles = err
-									return false
-								}
-								paths = nil
-								for node := range tree.FilterableNodes() {
-									paths = append(paths, node.Path)
-								}
+				// Filtering options.
+				filteringOptions, err := pbutil.GetExtension[*aippb.FilteringOptions](inputOpts, aippb.E_Filtering)
+				if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+					errRangeFiles = fmt.Errorf("getting filtering extension for %q: %w", input.FullName(), err)
+					return false
+				}
+				if len(filteringOptions.GetPaths()) > 0 {
+					paths := filteringOptions.GetPaths()
+					resourceMsg := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
+					if !messageSeen {
+						if standardMethodType != StandardMethodTypeUnspecified {
+							resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[method.FullName()]
+							if !ok {
+								errRangeFiles = fmt.Errorf("could not find resource message descriptor for method %s", method.FullName())
+								return false
 							}
-
-							if field := input.Fields().ByName("filter"); field != nil {
-								s.comments[string(field.FullName())] = fmt.Sprintf("Filter by: %s", strings.Join(paths, ", "))
+							tree, err := aip.BuildResourceTreeFromDescriptor(
+								resourceMessageDescriptor,
+								aip.WithAllowedPaths(filteringOptions.GetPaths()),
+								aip.WithMaxDepth(3),
+							)
+							if err != nil {
+								errRangeFiles = err
+								return false
+							}
+							paths = nil
+							for node := range tree.FilterableNodes() {
+								paths = append(paths, node.Path)
 							}
 						}
-						methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, paths))
-					}
-				}
-
-				// Ordering
-				if proto.HasExtension(inputOpts, aippb.E_Ordering) {
-					if ordering := proto.GetExtension(inputOpts, aippb.E_Ordering).(*aippb.OrderingOptions); ordering != nil && len(ordering.Paths) > 0 {
-						methodExtras = append(methodExtras, formatOrderingDoc(ordering.Paths, ordering.Default))
-						if !messageSeen {
-							if field := input.Fields().ByName("order_by"); field != nil {
-								s.comments[string(field.FullName())] = fmt.Sprintf("Order by: %s (default: %s)", strings.Join(ordering.Paths, ", "), ordering.Default)
-							}
+						if field := input.Fields().ByName("filter"); field != nil {
+							s.comments[string(field.FullName())] = fmt.Sprintf("Filter by: %s", strings.Join(paths, ", "))
 						}
 					}
+					methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, paths))
 				}
 
-				// Pagination
-				if proto.HasExtension(inputOpts, aippb.E_Pagination) {
-					if pagination := proto.GetExtension(inputOpts, aippb.E_Pagination).(*aippb.PaginationOptions); pagination != nil {
-						methodExtras = append(methodExtras, formatPaginationDoc(pagination.DefaultPageSize))
-						if !messageSeen {
-							if field := input.Fields().ByName("page_size"); field != nil {
-								s.comments[string(field.FullName())] = fmt.Sprintf("Page size (default: %d)", pagination.DefaultPageSize)
-							}
+				// Ordering options.
+				orderingOptions, err := pbutil.GetExtension[*aippb.OrderingOptions](inputOpts, aippb.E_Ordering)
+				if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+					errRangeFiles = fmt.Errorf("getting ordering extension for %q: %w", input.FullName(), err)
+					return false
+				}
+				if len(orderingOptions.GetPaths()) > 0 {
+					methodExtras = append(methodExtras, formatOrderingDoc(orderingOptions.Paths, orderingOptions.Default))
+					if !messageSeen {
+						if field := input.Fields().ByName("order_by"); field != nil {
+							s.comments[string(field.FullName())] = fmt.Sprintf("Order by: %s (default: %s)", strings.Join(orderingOptions.Paths, ", "), orderingOptions.Default)
 						}
 					}
 				}
 
-				// Updating
-				if proto.HasExtension(inputOpts, aippb.E_Update) {
-					if update := proto.GetExtension(inputOpts, aippb.E_Update).(*aippb.UpdateOptions); update != nil && len(update.Paths) > 0 {
-						methodExtras = append(methodExtras, formatUpdateDoc(update.Paths))
-						if !messageSeen {
-							if field := input.Fields().ByName("update_mask"); field != nil {
-								s.comments[string(field.FullName())] = fmt.Sprintf("Updatable fields: %s", strings.Join(update.Paths, ", "))
-							}
+				// Pagination options.
+				paginationOptions, err := pbutil.GetExtension[*aippb.PaginationOptions](inputOpts, aippb.E_Pagination)
+				if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+					errRangeFiles = fmt.Errorf("getting pagination extension for %q: %w", input.FullName(), err)
+					return false
+				}
+				if paginationOptions != nil {
+					methodExtras = append(methodExtras, formatPaginationDoc(paginationOptions.DefaultPageSize))
+					if !messageSeen {
+						if field := input.Fields().ByName("page_size"); field != nil {
+							s.comments[string(field.FullName())] = fmt.Sprintf("Page size (default: %d)", paginationOptions.DefaultPageSize)
+						}
+					}
+				}
+
+				// Updating options.
+				updateOptions, err := pbutil.GetExtension[*aippb.UpdateOptions](inputOpts, aippb.E_Update)
+				if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+					errRangeFiles = fmt.Errorf("getting update extension for %q: %w", input.FullName(), err)
+					return false
+				}
+				if len(updateOptions.GetPaths()) > 0 {
+					methodExtras = append(methodExtras, formatUpdateDoc(updateOptions.Paths))
+					if !messageSeen {
+						if field := input.Fields().ByName("update_mask"); field != nil {
+							s.comments[string(field.FullName())] = fmt.Sprintf("Updatable fields: %s", strings.Join(updateOptions.Paths, ", "))
 						}
 					}
 				}

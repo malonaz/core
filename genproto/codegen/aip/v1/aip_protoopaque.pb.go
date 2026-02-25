@@ -454,9 +454,9 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01R\x05paths\x12 \n" +
 	"\adefault\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\adefault\"%\n" +
 	"\rUpdateOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"K\n" +
-	"\x0eStandardMethod\x12\x1a\n" +
-	"\bresource\x18\x01 \x01(\tR\bresource\x12\x1d\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x81\x01\n" +
+	"\x0eStandardMethod\x12P\n" +
+	"\bresource\x18\x01 \x01(\tB4\xbaH1\xc8\x01\x01r,2*^[a-z]+\\.[a-z]+\\.[a-z0-9]+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
 	"\n" +
 	"emit_event\x18\x02 \x01(\bR\temitEvent:q\n" +
 	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:H\n" +

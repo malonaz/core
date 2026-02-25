@@ -2,6 +2,7 @@ go_library(
     name = "pbutil",
     srcs = [
         "any.go",
+        "field_behavior.go",
         "marshaller.go",
         "options.go",
         "pretty.go",
@@ -18,5 +19,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/proto:google__api__annotations",
     ],
 )
