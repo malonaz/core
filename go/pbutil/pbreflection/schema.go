@@ -219,7 +219,32 @@ func newSchema(data *schemaData) (*Schema, error) {
 	resourceTypeToResourceDescriptor := map[string]*annotations.ResourceDescriptor{}
 	resourceTypeToMessageDescriptor := map[string]protoreflect.MessageDescriptor{}
 	var errRangeFiles error
+	// Function to add a resource descriptor (ensuring that we have consistency).
+	addResourceDescriptor := func(resourceDescriptor *annotations.ResourceDescriptor) error {
+		existingResourceDescriptor, ok := resourceTypeToResourceDescriptor[resourceDescriptor.GetType()]
+		if ok && !proto.Equal(resourceDescriptor, existingResourceDescriptor) {
+			return fmt.Errorf("resource descriptor %q has more than one definition that differ", resourceDescriptor.GetType())
+		}
+		resourceTypeToResourceDescriptor[resourceDescriptor.GetType()] = resourceDescriptor
+		return nil
+	}
 	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		// Extract file-level resource definitions (repeated option).
+		resourceDefinitions, err := pbutil.GetExtension[[]*annotations.ResourceDescriptor](fd.Options(), annotations.E_ResourceDefinition)
+		if err != nil {
+			if !errors.Is(err, pbutil.ErrExtensionNotFound) {
+				errRangeFiles = fmt.Errorf("getting resource_definition extension for file %s: %w", fd.Path(), err)
+				return false
+			}
+		} else {
+			for _, resourceDescriptor := range resourceDefinitions {
+				if err := addResourceDescriptor(resourceDescriptor); err != nil {
+					errRangeFiles = err
+					return false
+				}
+			}
+		}
+
 		messages := fd.Messages()
 		for i := 0; i < messages.Len(); i++ {
 			msg := messages.Get(i)
@@ -231,7 +256,10 @@ func newSchema(data *schemaData) (*Schema, error) {
 				errRangeFiles = fmt.Errorf("getting resource extension for %s: %w", msg.FullName(), err)
 				return false
 			}
-			resourceTypeToResourceDescriptor[resourceDescriptor.GetType()] = resourceDescriptor
+			if err := addResourceDescriptor(resourceDescriptor); err != nil {
+				errRangeFiles = err
+				return false
+			}
 			resourceTypeToMessageDescriptor[resourceDescriptor.GetType()] = msg
 		}
 		return true
