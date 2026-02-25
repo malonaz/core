@@ -10,13 +10,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// ServerStreamClient allows receiving messages from a server stream.
-type ServerStreamClient[T any] interface {
-	Recv() (*T, error)
-	CloseSend() error
-	grpc.ClientStream
-}
-
 // ServerStreamServer allows sending messages in a server stream.
 type ServerStreamServer[T any] interface {
 	Send(*T) error
@@ -34,8 +27,8 @@ type GrpcServerStreamStream[T any] interface {
 // This allows calling server implementations directly without going through gRPC.
 func NewServerStreamAsClient[Req, Resp any, Srv grpc.ServerStream](
 	handler func(*Req, Srv) error,
-) func(context.Context, *Req) (ServerStreamClient[Resp], error) {
-	return func(ctx context.Context, req *Req) (ServerStreamClient[Resp], error) {
+) func(context.Context, *Req, ...grpc.CallOption) (grpc.ServerStreamingClient[Resp], error) {
+	return func(ctx context.Context, req *Req, _ ...grpc.CallOption) (grpc.ServerStreamingClient[Resp], error) {
 		y := &serverStreamYielder[Resp]{ctx: ctx}
 
 		// Pull from iter.Seq2[*Resp, error].

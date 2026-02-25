@@ -10,17 +10,10 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type BidiStreamClient[Req, Resp any] interface {
-	Send(*Req) error
-	Recv() (*Resp, error)
-	CloseSend() error
-	grpc.ClientStream
-}
-
 func NewBidiStreamAsClient[Req, Resp any, Srv grpc.ServerStream](
 	handler func(Srv) error,
-) func(context.Context) (BidiStreamClient[Req, Resp], error) {
-	return func(ctx context.Context) (BidiStreamClient[Req, Resp], error) {
+) func(context.Context, ...grpc.CallOption) (grpc.BidiStreamingClient[Req, Resp], error) {
+	return func(ctx context.Context, _ ...grpc.CallOption) (grpc.BidiStreamingClient[Req, Resp], error) {
 		b := &bidiStream[Req, Resp]{
 			ctx:      ctx,
 			reqCh:    make(chan *Req),

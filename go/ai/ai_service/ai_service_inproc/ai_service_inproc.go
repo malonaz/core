@@ -24,7 +24,7 @@ func New(server aiservicepb.AiServiceServer) (*Client, error) {
 func (c *Client) CreateModel(
 	ctx context.Context,
 	request *aiservicepb.CreateModelRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aipb.Model, error) {
 	return c.server.CreateModel(ctx, request)
 }
@@ -33,7 +33,7 @@ func (c *Client) CreateModel(
 func (c *Client) GetModel(
 	ctx context.Context,
 	request *aiservicepb.GetModelRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aipb.Model, error) {
 	return c.server.GetModel(ctx, request)
 }
@@ -42,7 +42,7 @@ func (c *Client) GetModel(
 func (c *Client) ListModels(
 	ctx context.Context,
 	request *aiservicepb.ListModelsRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aiservicepb.ListModelsResponse, error) {
 	return c.server.ListModels(ctx, request)
 }
@@ -51,7 +51,7 @@ func (c *Client) ListModels(
 func (c *Client) CreateVoice(
 	ctx context.Context,
 	request *aiservicepb.CreateVoiceRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aipb.Voice, error) {
 	return c.server.CreateVoice(ctx, request)
 }
@@ -60,7 +60,7 @@ func (c *Client) CreateVoice(
 func (c *Client) GetVoice(
 	ctx context.Context,
 	request *aiservicepb.GetVoiceRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aipb.Voice, error) {
 	return c.server.GetVoice(ctx, request)
 }
@@ -69,7 +69,7 @@ func (c *Client) GetVoice(
 func (c *Client) ListVoices(
 	ctx context.Context,
 	request *aiservicepb.ListVoicesRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aiservicepb.ListVoicesResponse, error) {
 	return c.server.ListVoices(ctx, request)
 }
@@ -79,7 +79,7 @@ func (c *Client) ListVoices(
 func (c *Client) TextToTextStream(
 	ctx context.Context,
 	request *aiservicepb.TextToTextStreamRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (aiservicepb.AiService_TextToTextStreamClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
@@ -88,14 +88,14 @@ func (c *Client) TextToTextStream(
 		aiservicepb.AiService_TextToTextStreamServer,
 	](c.server.TextToTextStream)
 
-	return serverStreamClient(ctx, request)
+	return serverStreamClient(ctx, request, opts...)
 }
 
 // TextToText provides a client-facing interface for text-to-text conversion.
 func (c *Client) TextToText(
 	ctx context.Context,
 	request *aiservicepb.TextToTextRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aiservicepb.TextToTextResponse, error) {
 	return c.server.TextToText(ctx, request)
 }
@@ -104,7 +104,7 @@ func (c *Client) TextToText(
 func (c *Client) SpeechToText(
 	ctx context.Context,
 	request *aiservicepb.SpeechToTextRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aiservicepb.SpeechToTextResponse, error) {
 	return c.server.SpeechToText(ctx, request)
 }
@@ -113,7 +113,7 @@ func (c *Client) SpeechToText(
 func (c *Client) TextToSpeech(
 	ctx context.Context,
 	request *aiservicepb.TextToSpeechRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (*aiservicepb.TextToSpeechResponse, error) {
 	return c.server.TextToSpeech(ctx, request)
 }
@@ -123,7 +123,7 @@ func (c *Client) TextToSpeech(
 func (c *Client) TextToSpeechStream(
 	ctx context.Context,
 	request *aiservicepb.TextToSpeechStreamRequest,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (aiservicepb.AiService_TextToSpeechStreamClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
@@ -132,7 +132,7 @@ func (c *Client) TextToSpeechStream(
 		aiservicepb.AiService_TextToSpeechStreamServer,
 	](c.server.TextToSpeechStream)
 
-	return serverStreamClient(ctx, request)
+	return serverStreamClient(ctx, request, opts...)
 }
 
 // SpeechToTextStream provides a client-facing streaming interface.
@@ -140,13 +140,13 @@ func (c *Client) TextToSpeechStream(
 // SpeechToTextStream provides a client-facing bidirectional streaming interface.
 func (c *Client) SpeechToTextStream(
 	ctx context.Context,
-	_ ...grpc.CallOption,
+	opts ...grpc.CallOption,
 ) (aiservicepb.AiService_SpeechToTextStreamClient, error) {
 	return grpcinproc.NewBidiStreamAsClient[
 		aiservicepb.SpeechToTextStreamRequest,
 		aiservicepb.SpeechToTextStreamResponse,
 		aiservicepb.AiService_SpeechToTextStreamServer,
-	](c.server.SpeechToTextStream)(ctx)
+	](c.server.SpeechToTextStream)(ctx, opts...)
 }
 
 // Verify interface compliance at compile time.

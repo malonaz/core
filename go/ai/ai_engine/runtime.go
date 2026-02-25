@@ -3,6 +3,7 @@ package ai_engine
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -22,6 +23,8 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/reflect/protodesc"
 )
 
 var (
@@ -44,16 +47,88 @@ var (
 )
 
 type Opts struct {
-	DefaultModel string `long:"default-model" env:"DEFAULT_MODEL" description:"The default model to use" required:"true"`
+	DefaultModel             string   `long:"default-model" env:"DEFAULT_MODEL" description:"The default model to use" required:"true"`
+	FileDescriptorSetConfigs []string `long:"file-descriptor-set" env:"FILE_DESCRIPTOR_SET" description:"Use a local file descriptor set instead of a grpc reflection client. each item can be passed as 'filepath:fqn_service_name1,fqn_service_name2', e.g. 'path/to/fds.bin:user.user_service.v1.UserService,chat.chat_service.v1.ChatService'"`
 }
 
-type runtime struct{}
+type runtime struct {
+	reflectionServerOptions *reflection.ServerOptions
+}
 
 func newRuntime(opts *Opts) (*runtime, error) {
-	return &runtime{}, nil
+	// Construct the aggregate file descriptor set.
+	var (
+		aggregateFileDescriptorSet *descriptorpb.FileDescriptorSet
+		serviceNames               []string
+	)
+
+	if len(opts.FileDescriptorSetConfigs) > 0 {
+		aggregateFileDescriptorSet = &descriptorpb.FileDescriptorSet{}
+	}
+	fileDescriptorNameSet := map[string]struct{}{}
+	for _, fileDescriptorSetConfig := range opts.FileDescriptorSetConfigs {
+		parts := strings.SplitN(fileDescriptorSetConfig, ":", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid file descriptor set config %q: expected format 'filepath:service1,service2'", fileDescriptorSetConfig)
+		}
+		fileDescriptorSetFilepath := parts[0]
+		serviceNames = append(serviceNames, strings.Split(parts[1], ",")...)
+		bytes, err := os.ReadFile(fileDescriptorSetFilepath)
+		if err != nil {
+			return nil, fmt.Errorf("reading file descriptor set file %q: %w", fileDescriptorSetFilepath, err)
+		}
+		fileDescriptorSet := &descriptorpb.FileDescriptorSet{}
+		if err := pbutil.Unmarshal(bytes, fileDescriptorSet); err != nil {
+			return nil, fmt.Errorf("parsing file descriptor set file %q: %w", fileDescriptorSetFilepath, err)
+		}
+		for _, fileDescriptorProto := range fileDescriptorSet.GetFile() {
+			if _, ok := fileDescriptorNameSet[fileDescriptorProto.GetName()]; ok {
+				continue
+			}
+			fileDescriptorNameSet[fileDescriptorProto.GetName()] = struct{}{}
+			aggregateFileDescriptorSet.File = append(aggregateFileDescriptorSet.File, fileDescriptorProto)
+		}
+	}
+
+	// Build the reflection server options.
+	var reflectionServerOptions *reflection.ServerOptions
+	if aggregateFileDescriptorSet != nil {
+		files, err := protodesc.NewFiles(aggregateFileDescriptorSet)
+		if err != nil {
+			return nil, fmt.Errorf("building file descriptor registry: %w", err)
+		}
+		types, err := pbreflection.NewTypesFromFiles(files)
+		if err != nil {
+			return nil, fmt.Errorf("new types from files: %w", err)
+		}
+		serviceInfoProvider, err := pbreflection.NewServiceInfoProvider(files, serviceNames)
+		if err != nil {
+			return nil, fmt.Errorf("instantiaing new service info provider: %w", err)
+		}
+		reflectionServerOptions = &reflection.ServerOptions{
+			Services:           serviceInfoProvider,
+			ExtensionResolver:  types,
+			DescriptorResolver: files,
+		}
+	}
+
+	return &runtime{
+		reflectionServerOptions: reflectionServerOptions,
+	}, nil
 }
 
-func (s *Service) start(ctx context.Context) (func(), error) { return func() {}, nil }
+func (s *Service) start(ctx context.Context) (func(), error) {
+	if s.reflectionServerOptions != nil && s.serverReflectionClient != nil {
+		return nil, fmt.Errorf("cannot use both grpc reflection client and file descriptor set")
+	}
+	if s.reflectionServerOptions == nil && s.serverReflectionClient == nil {
+		return nil, fmt.Errorf("must provide either a grpc reflection client or a file descriptor set")
+	}
+	if s.reflectionServerOptions != nil {
+		s.serverReflectionClient = pbreflection.NewServerReflectionClientInProc(*s.reflectionServerOptions)
+	}
+	return func() {}, nil
+}
 
 func (s *Service) getSchema(ctx context.Context) (*pbreflection.Schema, error) {
 	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient, pbreflection.WithMemCache("schema", time.Hour))
