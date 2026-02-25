@@ -18,7 +18,7 @@ go_service_src(
 go_library(
     name = "ai_engine",
     srcs = [
-        "service.go",
+        "runtime.go",
         ":service.tmpl.go",
     ],
     visibility = ["//..."],

@@ -20,6 +20,7 @@ go_library(
         "//go/grpc/middleware",
         "//go/health",
         "//go/pbutil",
+        "//go/pbutil/pbreflection",
         "//go/prometheus",
         "//malonaz/grpc/v1",
         "//third_party/go:buf.build__go__protovalidate",

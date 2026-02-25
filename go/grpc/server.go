@@ -27,6 +27,7 @@ import (
 	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbreflection"
 	"github.com/malonaz/core/go/prometheus"
 )
 
@@ -278,9 +279,13 @@ func (s *Server) Serve(ctx context.Context) error {
 			if err != nil {
 				return fmt.Errorf("building file descriptor registry: %w", err)
 			}
+			types, err := pbreflection.NewTypesFromFiles(files)
+			if err != nil {
+				return fmt.Errorf("new types from files: %w", err)
+			}
 			reflectionServerOptions := reflection.ServerOptions{
-				Services: s.Raw,
-				//ExtensionResolver: files,
+				Services:           s.Raw,
+				ExtensionResolver:  types,
 				DescriptorResolver: files,
 			}
 			reflectionServer := reflection.NewServerV1(reflectionServerOptions)
@@ -302,8 +307,4 @@ func (s *Server) Serve(ctx context.Context) error {
 		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}
 	return nil
-}
-
-type ReflectionRichServer struct {
-	*grpc.Server
 }
