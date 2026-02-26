@@ -7,7 +7,7 @@ path = /bin:/usr/bin:/usr/local/bin:/opt/toolchain/1.0/bin
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = 66ac411df948a899781bdf01754acae0cd30f445
+core-revision = 92ebb964a9000aeabc25c08c864854207e0aa122
 is-core-repo = true
 
 [sandbox]
@@ -44,15 +44,10 @@ ProtocTool = //tools/proto:protoc
 
 [Plugin "core"]
 Target = //plugins:core
-LintCodegenStripPrefix = malonaz
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLUGIN ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [PluginDefinition]
 Name = core
-
-[PluginConfig "lint_codegen_strip_prefix"]
-ConfigKey = LintCodegenStripPrefix
-DefaultValue = ""
 
 [PluginConfig "protoc_gen_go"]
 ConfigKey = ProtocGenGo

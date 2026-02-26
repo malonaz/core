@@ -4,7 +4,7 @@ proto_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/pbutil",
     },
-    labels = ["copy_generated_code"],
+    labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,
     visibility = ["//go/pbutil/..."],
     deps = [

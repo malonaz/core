@@ -27,7 +27,7 @@ proto_library(
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/v1",
         GENERATE_GO_AIP: True,
     },
-    labels = ["copy_generated_code"],
+    labels = ["copy_generated_code:malonaz:genproto"],
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/audio/v1",

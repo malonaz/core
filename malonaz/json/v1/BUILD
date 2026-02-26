@@ -6,7 +6,7 @@ proto_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/json/v1",
     },
-    labels = ["copy_generated_code"],
+    labels = ["copy_generated_code:malonaz:genproto"],
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/proto:validate",

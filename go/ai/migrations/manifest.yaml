@@ -1,0 +1,6 @@
+name: ai
+directories:
+  - name: chat
+    migrations:
+      - filename: 001_init.sql
+        hash: 0d90d6b09e9ee808d81285a1c575657d
