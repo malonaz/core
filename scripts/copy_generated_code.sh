@@ -47,6 +47,7 @@ done
 
 for dest_dir in "${!DEST_DIRS[@]}"; do
   [[ ! -d "$dest_dir" ]] && continue
+  [[ "$dest_dir" == "." ]] && continue
 
   while read -r f; do
     [[ ! -v ACTIVE_FILES["$f"] ]] && rm -f "$f" && echo "🗑 Removed stale $f"

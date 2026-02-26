@@ -3,6 +3,7 @@ subinclude("//build_defs/codegen/go_proto_templates:build_defs")
 go_proto_template_library(
     name = "codegen",
     srcs = ["//malonaz/ai/v1:proto"],
+    labels = ["copy_generated_code:go:gengo"],
     template = "//build_defs/codegen/go_proto_templates/templates:model",
     deps = ["//malonaz/ai/v1"],
 )
@@ -10,6 +11,7 @@ go_proto_template_library(
 go_library(
     name = "model",
     srcs = [":codegen"],
+    import_path = "github.com/malonaz/core/gengo/ai/model",
     visibility = ["PUBLIC"],
     deps = [
         "//go/pbutil",

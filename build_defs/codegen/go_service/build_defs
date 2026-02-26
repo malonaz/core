@@ -123,6 +123,7 @@ def go_service_src(
         templates:list=[],
         visibility:list=[],
         exclude_default_templates:bool=False,
+        labels:list=[],
         test_only:bool=False,
 ):
     if not exclude_default_templates:
@@ -135,6 +136,7 @@ def go_service_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        labels=labels + ["go"],
         test_only=test_only,
     )
 
@@ -143,6 +145,7 @@ def go_main_src(
         manifest:str,
         templates:list=[],
         visibility:list=[],
+        labels:list=[],
         test_only:bool=False,
 ):
     if len(templates) == 0:
@@ -155,6 +158,7 @@ def go_main_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        labels=labels + ["go"],
         test_only=test_only,
     )
 
@@ -163,6 +167,7 @@ def go_src(
         manifest:str,
         templates:list,
         visibility:list=[],
+        labels:list=[],
         test_only:bool=False,
 ):
     templates.append(_TEMPLATE_UTILS_GO)
@@ -173,5 +178,6 @@ def go_src(
         data = manifest,
         format = "yaml",
         visibility = visibility,
+        labels=labels + ["go"],
         test_only=test_only,
     )

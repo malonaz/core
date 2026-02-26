@@ -3,8 +3,8 @@ package ai_service
 import (
 	"context"
 	"fmt"
-	"github.com/malonaz/core/go/ai/ai_service/rpc"
-	"github.com/malonaz/core/go/ai/store"
+	"github.com/malonaz/core/gengo/ai/ai_service/rpc"
+	"github.com/malonaz/core/gengo/ai/store"
 	"log/slog"
 )
 

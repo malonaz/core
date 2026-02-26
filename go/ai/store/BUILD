@@ -5,9 +5,10 @@ go_proto_template_library(
     srcs = ["//malonaz/ai/v1:proto"],
     additional_context = {
         GO_PROTO_TEMPLATES_GO_IMPORT_PATHS: {
-            "model": "//go/ai/model",
+            "model": "//gengo/ai/model",
         },
     },
+    labels = ["copy_generated_code:go:gengo"],
     template = "//build_defs/codegen/go_proto_templates/templates:postgres",
     deps = ["//malonaz/ai/v1"],
 )
@@ -15,6 +16,7 @@ go_proto_template_library(
 go_library(
     name = "store",
     srcs = [":codegen"],
+    import_path = "github.com/malonaz/core/gengo/ai/store",
     visibility = ["//..."],
     deps = [
         "//go/ai/model",

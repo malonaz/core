@@ -3,6 +3,7 @@ def templated_text_file(
         content:str,
         replace={},
         deps=[],
+        labels:list=[],
         test_only:bool=False,
 ):
     """
@@ -19,6 +20,7 @@ def templated_text_file(
         cmd = cmd,
         outs = [f'{filename}'],
         deps = deps,
+        labels = labels,
         test_only=test_only,
     )
 
@@ -27,6 +29,7 @@ def text_template(
         src:str,
         visibility:list=[],
         delims:str=None,
+        labels:list=[],
         test_only:bool=False,
 ):
     args = [
@@ -44,7 +47,7 @@ def text_template(
         tools = [CONFIG.CORE.TEMPLATES_GO],
         srcs = [src],
         outs = [name],
-        labels = ["codegen"],
+        labels = labels + ["codegen"],
         visibility = visibility,
         test_only=test_only,
     )
@@ -57,6 +60,7 @@ def go_template(
         format:str="json",
         deps:list=[],
         visibility:list=[],
+        labels:list=[],
         test_only:bool=False,
 ):
     # Handle templates that need export_file rules
@@ -100,6 +104,7 @@ def go_template(
         deps = deps + template_deps + ([data] if data else []),
         outs = [f"unformatted_{name}"],
         test_only=test_only,
+        labels = labels,
     )
 
     # Second genrule: Format the generated file
@@ -112,7 +117,7 @@ def go_template(
         srcs = [template_rule],
         outs = [name],
         tools = ["//tools/go:toolchain|gofmt"],
-        labels = ["codegen"],
+        labels = labels + ["codegen"],
         visibility = visibility,
         test_only=test_only,
     )

@@ -4,8 +4,8 @@ codegens:
   - type: rpc
     name: ai-service
     store: ai
-    implementation: //go/ai/ai_service/rpc
+    implementation: //gengo/ai/ai_service/rpc
 dependencies:
   - type: postgres_db_client
     name: ai
-    implementation: //go/ai/store
+    implementation: //gengo/ai/store

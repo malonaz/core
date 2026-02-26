@@ -17,6 +17,9 @@ test = true
 systemstats = true
 
 [parse]
+experimentalDir=experimental
+experimentalDir=genproto
+experimentalDir=gengo
 preloadsubincludes = ///shell//build_defs:shell
 preloadSubincludes = ///python//build_defs:python
 preloadsubincludes = ///go//build_defs:go

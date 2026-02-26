@@ -1,0 +1,25 @@
+go_library(
+    name = "rpc",
+    srcs = [
+        "ai_service_rpc.pb.go",
+        "chat_rpc.pb.go",
+        "model_rpc.pb.go",
+        "speech_to_text_rpc.pb.go",
+        "text_to_speech_rpc.pb.go",
+        "text_to_text_rpc.pb.go",
+        "voice_rpc.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/model",
+        "//go/aip",
+        "//go/grpc",
+        "//go/uuid",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

@@ -10,7 +10,8 @@
             "go_template": "{{ name }}"
         },
         "import_path_remapping": {
-            "github.com/malonaz/core/genproto": "github.com/malonaz/core/malonaz"
+          "github.com/malonaz/core/genproto": "github.com/malonaz/core/malonaz",
+          "github.com/malonaz/core/gengo": "github.com/malonaz/core/go"
         }
     },
     "known_dependency": {

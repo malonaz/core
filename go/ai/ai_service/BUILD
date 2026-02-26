@@ -7,6 +7,7 @@ go_service_manifest(
 
 go_service_src(
     name = "service.tmpl.go",
+    labels = ["copy_generated_code::"],
     manifest = ":manifest",
 )
 
