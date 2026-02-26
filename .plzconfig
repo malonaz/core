@@ -7,7 +7,7 @@ path = /bin:/usr/bin:/usr/local/bin:/opt/toolchain/1.0/bin
 
 [buildconfig]
 ;; Tracks the core revision.
-core-revision = 92ebb964a9000aeabc25c08c864854207e0aa122
+core-revision = 4bbdef43a9102b7b21bc112841f58f27845fb8e8
 is-core-repo = true
 
 [sandbox]
