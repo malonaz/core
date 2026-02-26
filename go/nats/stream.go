@@ -36,6 +36,14 @@ func MustGetServiceStreams(serviceDesc grpc.ServiceDesc) *ServiceStreams {
 	return &ServiceStreams{nameToStream: nameToStream}
 }
 
+func (s *ServiceStreams) GetStreams() []*Stream {
+	streams := make([]*Stream, 0, len(s.nameToStream))
+	for _, stream := range s.nameToStream {
+		streams = append(streams, stream)
+	}
+	return streams
+}
+
 func (s *ServiceStreams) MustGetStream(name string) *Stream {
 	stream, ok := s.nameToStream[name]
 	if !ok {
