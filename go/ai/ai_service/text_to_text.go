@@ -76,6 +76,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 					return err
 				}
 				createChatRequest := &pb.CreateChatRequest{
+					Parent: chatRn.UserResourceName().String(),
 					ChatId: chatRn.Chat,
 					Chat: &aipb.Chat{
 						Metadata: &aipb.ChatMetadata{},
