@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -62,8 +61,8 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	// Get or create chat chat.
 	eg, ctxEg := errgroup.WithContext(ctx)
 	var chat *aipb.Chat
+	chatRn := &aipb.ChatResourceName{}
 	if request.GetParent() != "" {
-		chatRn := &aipb.ChatResourceName{}
 		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
 			return grpc.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 		}
@@ -91,6 +90,15 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		})
 	}
 
+	// Filter out deleted messages.
+	allMessages := request.GetMessages()
+	request.Messages = nil
+	for _, message := range allMessages {
+		if message.GetDeleteTime() == nil {
+			request.Messages = append(request.Messages, message)
+		}
+	}
+
 	// Process the request.
 	if err := provider.TextToTextStream(request, wrapper); err != nil {
 		return err
@@ -103,36 +111,9 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 
 	// Update the chat.
 	if chat != nil {
-		// Capture existing messages.
-		createTimeToMessage := make(map[int64]*aipb.Message, len(chat.GetMetadata().GetMessages()))
-		for _, message := range chat.GetMetadata().GetMessages() {
-			createTimeToMessage[message.GetCreateTime().AsTime().UnixNano()] = message
-		}
-
-		// Iterate through the new messages and make updates.
-		for _, message := range append(request.GetMessages(), textToTextAccumulator.Response().GetMessage()) {
-			t := message.GetCreateTime().AsTime().UnixNano()
-			if _, ok := createTimeToMessage[t]; ok {
-				// The message exist.
-				delete(createTimeToMessage, t)
-				continue
-			}
-			// The message does not exist => add it.
-			chat.Metadata.Messages = append(chat.Metadata.Messages, message)
-		}
-
-		// Iterate through the remaining entries in `createTimeMessage` and set their delete time if it's not already set.
-		now := timestamppb.Now()
-		for _, message := range createTimeToMessage {
-			if message.DeleteTime == nil { // Do no re-delete a message.
-				message.DeleteTime = now
-			}
-		}
-
-		// Append the model usage.
-		chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
-
 		// Update the chat.
+		chat.Metadata.Messages = append(allMessages, textToTextAccumulator.Response().GetMessage())
+		chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
 		updateChatRequest := &pb.UpdateChatRequest{
 			Chat:       chat,
 			UpdateMask: pbfieldmask.FromPaths("metadata").Proto(),

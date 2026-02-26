@@ -40,15 +40,15 @@ message Message {
     (google.api.field_behavior) = REQUIRED
   ];
 
-  // The deletion timestamp of the message.
-  google.protobuf.Timestamp delete_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // If a message is deleted, it is not passed down to the AI providers.
+  google.protobuf.Timestamp delete_time = 5;
 
   // Annotations about this message (not transmitted to the ai provider).
   // This should be used by tooling.
-  map<string, string> annotations = 3;
+  map<string, string> annotations = 2;
 
-  // The labels on this chat.
-  map<string, string> labels = 4 [(buf.validate.field).map = {
+  // The labels on this message.
+  map<string, string> labels = 6 [(buf.validate.field).map = {
     max_pairs: 64
     keys: {
       string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
@@ -62,13 +62,13 @@ message Message {
   }];
 
   // Role of the message sender.
-  Role role = 5 [(buf.validate.field).enum = {
+  Role role = 3 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
 
   // Blocks created by the assistant.
-  repeated Block blocks = 6;
+  repeated Block blocks = 4;
 }
 
 // A block of content within a message.

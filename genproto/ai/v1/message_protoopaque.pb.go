@@ -205,11 +205,11 @@ func (x ImageQuality) Number() protoreflect.EnumNumber {
 type Message struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_CreateTime  *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_DeleteTime  *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=delete_time,json=deleteTime,proto3"`
-	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,3,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Role        Role                   `protobuf:"varint,5,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
-	xxx_hidden_Blocks      *[]*Block              `protobuf:"bytes,6,rep,name=blocks,proto3"`
+	xxx_hidden_DeleteTime  *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=delete_time,json=deleteTime,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,2,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,6,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Role        Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
+	xxx_hidden_Blocks      *[]*Block              `protobuf:"bytes,4,rep,name=blocks,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -334,12 +334,12 @@ type Message_builder struct {
 
 	// The creation timestamp of the message.
 	CreateTime *timestamppb.Timestamp
-	// The deletion timestamp of the message.
+	// If a message is deleted, it is not passed down to the AI providers.
 	DeleteTime *timestamppb.Timestamp
 	// Annotations about this message (not transmitted to the ai provider).
 	// This should be used by tooling.
 	Annotations map[string]string
-	// The labels on this chat.
+	// The labels on this message.
 	Labels map[string]string
 	// Role of the message sender.
 	Role Role
@@ -980,17 +980,17 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xec\t\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xe7\t\n" +
 	"\aMessage\x12F\n" +
 	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\n" +
-	"createTime\x12@\n" +
-	"\vdelete_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"createTime\x12;\n" +
+	"\vdelete_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"deleteTime\x12I\n" +
-	"\vannotations\x18\x03 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryR\vannotations\x12\xc8\x01\n" +
-	"\x06labels\x18\x04 \x03(\v2\".malonaz.ai.v1.Message.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x123\n" +
-	"\x04role\x18\x05 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
+	"\vannotations\x18\x02 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryR\vannotations\x12\xc8\x01\n" +
+	"\x06labels\x18\x06 \x03(\v2\".malonaz.ai.v1.Message.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x123\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x12,\n" +
-	"\x06blocks\x18\x06 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a>\n" +
+	"\x06blocks\x18\x04 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
