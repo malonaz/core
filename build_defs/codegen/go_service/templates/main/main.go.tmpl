@@ -192,7 +192,7 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
             {{- if eq $dep.type "postgres_db_client" -}}
                 {{- $dbImplKey := printf "postgres_impl_%s_%s" $dep.name $dep.implementation  -}}
                 {{- if doOnce $dbImplKey }}
-                    {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name | camelcase | untitle }}PsqlClient)
+                    {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_"}}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name | camelcase | untitle }}PsqlClient)
                 {{ end }}
             {{- end }}
         {{- end }}
@@ -277,7 +277,7 @@ var stopFns []func() error
                 {{ $grpc := parseGRPC $dep.proto $dep.name -}}
                 {{ $grpc.Client }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  }}DBClient,
+                {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  | replace ":" "_" }}DBClient,
             {{- else if eq $dep.type "postgres_client" }}
                 {{ $dep.name | camelcase | untitle }}PsqlClient,
             {{- else if eq $dep.type "service" }}
