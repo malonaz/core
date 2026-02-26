@@ -74,7 +74,7 @@ message ImageGenerationConfig {
 message TextToTextRequest {
   // The resource name of the parent chat.
   // Format: organizations/{organization}/users/{user}/chats/{chat}
-  string parent = 1 [(google.api.resource_reference) = {type: "ai.onikisu.com/Chat"}];
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/Chat"}];
 
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
@@ -136,7 +136,7 @@ message TextToTextResponse {
 message TextToTextStreamRequest {
   // The resource name of the parent chat.
   // Format: organizations/{organization}/users/{user}/chats/{chat}
-  string parent = 1 [(google.api.resource_reference) = {type: "ai.onikisu.com/Chat"}];
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/Chat"}];
 
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}

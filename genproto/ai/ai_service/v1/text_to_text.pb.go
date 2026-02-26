@@ -1074,7 +1074,7 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xbe\x02\n" +
 	"\x11TextToTextRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
-	"\x13ai.onikisu.com/ChatR\x06parent\x125\n" +
+	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
 	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
@@ -1089,7 +1089,7 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xe5\x02\n" +
 	"\x17TextToTextStreamRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
-	"\x13ai.onikisu.com/ChatR\x06parent\x125\n" +
+	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
 	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
