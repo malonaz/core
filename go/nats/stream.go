@@ -3,35 +3,58 @@ package nats
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/nats-io/nats.go/jetstream"
+	"google.golang.org/grpc"
 
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 )
 
-func MustGetStreamOptions(serviceName string, streamName string) *natspb.StreamOptions {
+type ServiceStreams struct {
+	nameToStream map[string]*Stream
+}
+
+type Stream struct {
+	*natspb.StreamOptions
+}
+
+type Subject struct {
+	stream string
+	name   string
+}
+
+func MustGetServiceStreams(serviceDesc grpc.ServiceDesc) *ServiceStreams {
 	streamOptionsList := pbutil.Must(pbutil.GetServiceOption[[]*natspb.StreamOptions](
-		serviceName,
+		serviceDesc.ServiceName,
 		natspb.E_Stream,
 	))
+	nameToStream := make(map[string]*Stream, len(streamOptionsList))
 	for _, streamOptions := range streamOptionsList {
-		if streamOptions.GetName() == streamName {
-			return streamOptions
-		}
+		nameToStream[streamOptions.GetName()] = &Stream{StreamOptions: streamOptions}
 	}
-	panic(fmt.Sprintf("stream %q not found on service %q", streamName, serviceName))
+	return &ServiceStreams{nameToStream: nameToStream}
 }
 
-func getStreamSubject(stream, subject string) string {
-	return strings.ReplaceAll(strings.ToLower(stream), "_", ".") + "." + subject
+func (s *ServiceStreams) MustGetStream(name string) *Stream {
+	stream, ok := s.nameToStream[name]
+	if !ok {
+		panic(fmt.Sprintf("unknown stream %q", name))
+	}
+	return stream
 }
 
-func (c *Client) CreateOrUpdateStream(ctx context.Context, streamOptions *natspb.StreamOptions) (Stream, error) {
+func (s *Stream) Subject(name string) *Subject {
+	return &Subject{
+		stream: s.GetName(),
+		name:   name,
+	}
+}
+
+func (c *Client) CreateOrUpdateStream(ctx context.Context, streamOptions *Stream) (jetstream.Stream, error) {
 	streamConfig := jetstream.StreamConfig{
 		Name:     streamOptions.GetName(),
-		Subjects: []string{getStreamSubject(streamOptions.GetName(), ">")},
+		Subjects: []string{streamOptions.Subject(">").name},
 	}
 	if maxAge := streamOptions.GetMaxAge(); maxAge != nil {
 		streamConfig.MaxAge = maxAge.AsDuration()

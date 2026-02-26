@@ -29,9 +29,8 @@ type Message[T proto.Message] struct {
 type ProcessorFunc[T proto.Message] func(ctx context.Context, messages []*Message[T]) error
 
 type ProcessorConfig struct {
-	Stream               string
+	Subjects             []*Subject
 	ConsumerName         string
-	FilterSubject        string
 	MaxConsecutiveErrors int
 	BatchSize            int
 	FetchTimeout         time.Duration
@@ -63,6 +62,19 @@ func (p *Processor[T]) WithLogger(logger *slog.Logger) *Processor[T] {
 }
 
 func (p *Processor[T]) Start(ctx context.Context) error {
+	var stream string
+	var filterSubjects []string
+	for _, subject := range p.config.Subjects {
+		if stream == "" {
+			stream = subject.stream
+		} else {
+			if stream != subject.stream {
+				return fmt.Errorf("all subjects must belong to the same stream")
+			}
+		}
+		filterSubjects = append(filterSubjects, subject.name)
+	}
+
 	fetchTimeout := p.config.FetchTimeout
 	if fetchTimeout == 0 {
 		fetchTimeout = defaultFetchTimeout
@@ -76,13 +88,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		timeout = defaultTimeout
 	}
 	consumerConfig := jetstream.ConsumerConfig{
-		Durable:       p.config.ConsumerName,
-		FilterSubject: getStreamSubject(p.config.Stream, p.config.FilterSubject),
-		AckPolicy:     jetstream.AckExplicitPolicy,
-		MaxAckPending: 2 * batchSize,
-		AckWait:       timeout,
+		Durable:        p.config.ConsumerName,
+		FilterSubjects: filterSubjects,
+		AckPolicy:      jetstream.AckExplicitPolicy,
+		MaxAckPending:  2 * batchSize,
+		AckWait:        timeout,
 	}
-	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, p.config.Stream, consumerConfig)
+	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, stream, consumerConfig)
 	if err != nil {
 		return fmt.Errorf("creating or updating consumer: %w", err)
 	}

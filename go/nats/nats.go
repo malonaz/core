@@ -14,9 +14,6 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-type StreamConfig = jetstream.StreamConfig
-type Stream = jetstream.Stream
-
 type Opts struct {
 	Host           string        `long:"host" env:"HOST" required:"true"`
 	Port           int           `long:"port" env:"PORT" default:"4222"`
@@ -86,7 +83,7 @@ func (c *Client) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) Publish(ctx context.Context, stream, subject string, message proto.Message) error {
+func (c *Client) Publish(ctx context.Context, subject *Subject, message proto.Message) error {
 	if err := protovalidate.Validate(message); err != nil {
 		return fmt.Errorf("validating message: %w", err)
 	}
@@ -94,7 +91,7 @@ func (c *Client) Publish(ctx context.Context, stream, subject string, message pr
 	if err != nil {
 		return fmt.Errorf("marshaling message: %w", err)
 	}
-	if _, err := c.JetStream.Publish(ctx, getStreamSubject(stream, subject), bytes, jetstream.WithExpectStream(stream)); err != nil {
+	if _, err := c.JetStream.Publish(ctx, subject.name, bytes, jetstream.WithExpectStream(subject.stream)); err != nil {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil

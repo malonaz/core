@@ -13,6 +13,7 @@ go_library(
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__nats-io__nats.go",
         "//third_party/go:github.com__nats-io__nats.go__jetstream",
+        "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__proto",
     ],
 )
