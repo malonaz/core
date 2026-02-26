@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/v1/chat.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.CreateChat.
+message CreateChatRequest {
+  // The resource name of the parent user.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/User"}
+  ];
+
+  // The chat to create.
+  ai.v1.Chat chat = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string chat_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AiService.GetChat.
+message GetChatRequest {
+  // The resource name of the chat to retrieve.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+}
+
+// Request message for AiService.UpdateChat.
+message UpdateChatRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: ["metadata"]
+  };
+  option (buf.validate.message).cel = {
+    id: "chat.name_required"
+    message: "chat.name must be set"
+    expression: "has(this.chat.name)"
+  };
+
+  // The chat to update.
+  ai.v1.Chat chat = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.DeleteChat.
+message DeleteChatRequest {
+  // The resource name of the chat to delete.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // If true, and the chat is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  // This ensures the client has an up-to-date value before proceeding with deletion.
+  string etag = 3;
+}
+
+// Request message for AiService.ListChats.
+message ListChatsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent user that owns this collection of chats.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/User"}
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted chats.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of chats to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListChats` call.
+  string page_token = 6;
+}
+
+// Response message for AiService.ListChats.
+message ListChatsResponse {
+  // The list of chats.
+  repeated ai.v1.Chat chats = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}

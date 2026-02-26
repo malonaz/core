@@ -1,6 +1,8 @@
 go_library(
     name = "v1",
     srcs = [
+        "chat.pb.go",
+        "chat_aip.go",
         "errors.pb.go",
         "message.pb.go",
         "metrics.pb.go",
@@ -13,6 +15,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//malonaz/audio/v1",
+        "//malonaz/codegen/model/v1",
         "//malonaz/json/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

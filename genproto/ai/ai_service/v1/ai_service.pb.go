@@ -10,6 +10,7 @@ package v1
 
 import (
 	v1 "github.com/malonaz/core/genproto/ai/v1"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -28,7 +29,7 @@ var File_malonaz_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\n" +
-	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto2\xee\x0e\n" +
+	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xdd\x15\n" +
 	"\tAiService\x12\x89\x01\n" +
 	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12{\n" +
 	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x12\x99\x01\n" +
@@ -46,7 +47,20 @@ const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"TextToText\x12+.malonaz.ai.ai_service.v1.TextToTextRequest\x1a,.malonaz.ai.ai_service.v1.TextToTextResponse\"8\x82\xd3\xe4\x93\x022:\x01*\"-/v1/{model=providers/*/models/*}/text-to-text\x12\xbc\x01\n" +
 	"\x10TextToTextStream\x121.malonaz.ai.ai_service.v1.TextToTextStreamRequest\x1a2.malonaz.ai.ai_service.v1.TextToTextStreamResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{model=providers/*/models/*}/text-to-text:stream0\x01\x12\xa9\x01\n" +
 	"\fTextToSpeech\x12-.malonaz.ai.ai_service.v1.TextToSpeechRequest\x1a..malonaz.ai.ai_service.v1.TextToSpeechResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/{model=providers/*/models/*}/text-to-speech\x12\xc4\x01\n" +
-	"\x12TextToSpeechStream\x123.malonaz.ai.ai_service.v1.TextToSpeechStreamRequest\x1a4.malonaz.ai.ai_service.v1.TextToSpeechStreamResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{model=providers/*/models/*}/text-to-speech:stream0\x01\x1a\x11\xcaA\x0eai.malonaz.comB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
+	"\x12TextToSpeechStream\x123.malonaz.ai.ai_service.v1.TextToSpeechStreamRequest\x1a4.malonaz.ai.ai_service.v1.TextToSpeechStreamResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{model=providers/*/models/*}/text-to-speech:stream0\x01\x12\xaf\x01\n" +
+	"\n" +
+	"CreateChat\x12+.malonaz.ai.ai_service.v1.CreateChatRequest\x1a\x13.malonaz.ai.v1.Chat\"_\xdaA\vparent,chat´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x022:\x04chat\"*/v1/{parent=organizations/*/users/*}/chats\x12\x9c\x01\n" +
+	"\aGetChat\x12(.malonaz.ai.ai_service.v1.GetChatRequest\x1a\x13.malonaz.ai.v1.Chat\"R\xdaA\x04name´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{name=organizations/*/users/*/chats/*}\x12\xb9\x01\n" +
+	"\n" +
+	"UpdateChat\x12+.malonaz.ai.ai_service.v1.UpdateChatRequest\x1a\x13.malonaz.ai.v1.Chat\"i\xdaA\x10chat,update_mask´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x027:\x04chat2//v1/{chat.name=organizations/*/users/*/chats/*}\x12\xa2\x01\n" +
+	"\n" +
+	"DeleteChat\x12+.malonaz.ai.ai_service.v1.DeleteChatRequest\x1a\x13.malonaz.ai.v1.Chat\"R\xdaA\x04name´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,**/v1/{name=organizations/*/users/*/chats/*}\x12\xba\x01\n" +
+	"\tListChats\x12*.malonaz.ai.ai_service.v1.ListChatsRequest\x1a+.malonaz.ai.ai_service.v1.ListChatsResponse\"T\xdaA\x06parent´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{parent=organizations/*/users/*}/chats\x1a\x11\xcaA\x0eai.malonaz.comB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_ai_service_proto_goTypes = []any{
 	(*CreateModelRequest)(nil),         // 0: malonaz.ai.ai_service.v1.CreateModelRequest
@@ -61,16 +75,23 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_goTypes = []any{
 	(*TextToTextStreamRequest)(nil),    // 9: malonaz.ai.ai_service.v1.TextToTextStreamRequest
 	(*TextToSpeechRequest)(nil),        // 10: malonaz.ai.ai_service.v1.TextToSpeechRequest
 	(*TextToSpeechStreamRequest)(nil),  // 11: malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
-	(*v1.Model)(nil),                   // 12: malonaz.ai.v1.Model
-	(*ListModelsResponse)(nil),         // 13: malonaz.ai.ai_service.v1.ListModelsResponse
-	(*v1.Voice)(nil),                   // 14: malonaz.ai.v1.Voice
-	(*ListVoicesResponse)(nil),         // 15: malonaz.ai.ai_service.v1.ListVoicesResponse
-	(*SpeechToTextResponse)(nil),       // 16: malonaz.ai.ai_service.v1.SpeechToTextResponse
-	(*SpeechToTextStreamResponse)(nil), // 17: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
-	(*TextToTextResponse)(nil),         // 18: malonaz.ai.ai_service.v1.TextToTextResponse
-	(*TextToTextStreamResponse)(nil),   // 19: malonaz.ai.ai_service.v1.TextToTextStreamResponse
-	(*TextToSpeechResponse)(nil),       // 20: malonaz.ai.ai_service.v1.TextToSpeechResponse
-	(*TextToSpeechStreamResponse)(nil), // 21: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
+	(*CreateChatRequest)(nil),          // 12: malonaz.ai.ai_service.v1.CreateChatRequest
+	(*GetChatRequest)(nil),             // 13: malonaz.ai.ai_service.v1.GetChatRequest
+	(*UpdateChatRequest)(nil),          // 14: malonaz.ai.ai_service.v1.UpdateChatRequest
+	(*DeleteChatRequest)(nil),          // 15: malonaz.ai.ai_service.v1.DeleteChatRequest
+	(*ListChatsRequest)(nil),           // 16: malonaz.ai.ai_service.v1.ListChatsRequest
+	(*v1.Model)(nil),                   // 17: malonaz.ai.v1.Model
+	(*ListModelsResponse)(nil),         // 18: malonaz.ai.ai_service.v1.ListModelsResponse
+	(*v1.Voice)(nil),                   // 19: malonaz.ai.v1.Voice
+	(*ListVoicesResponse)(nil),         // 20: malonaz.ai.ai_service.v1.ListVoicesResponse
+	(*SpeechToTextResponse)(nil),       // 21: malonaz.ai.ai_service.v1.SpeechToTextResponse
+	(*SpeechToTextStreamResponse)(nil), // 22: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
+	(*TextToTextResponse)(nil),         // 23: malonaz.ai.ai_service.v1.TextToTextResponse
+	(*TextToTextStreamResponse)(nil),   // 24: malonaz.ai.ai_service.v1.TextToTextStreamResponse
+	(*TextToSpeechResponse)(nil),       // 25: malonaz.ai.ai_service.v1.TextToSpeechResponse
+	(*TextToSpeechStreamResponse)(nil), // 26: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
+	(*v1.Chat)(nil),                    // 27: malonaz.ai.v1.Chat
+	(*ListChatsResponse)(nil),          // 28: malonaz.ai.ai_service.v1.ListChatsResponse
 }
 var file_malonaz_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.ai.ai_service.v1.AiService.CreateModel:input_type -> malonaz.ai.ai_service.v1.CreateModelRequest
@@ -85,20 +106,30 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
 	9,  // 9: malonaz.ai.ai_service.v1.AiService.TextToTextStream:input_type -> malonaz.ai.ai_service.v1.TextToTextStreamRequest
 	10, // 10: malonaz.ai.ai_service.v1.AiService.TextToSpeech:input_type -> malonaz.ai.ai_service.v1.TextToSpeechRequest
 	11, // 11: malonaz.ai.ai_service.v1.AiService.TextToSpeechStream:input_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
-	12, // 12: malonaz.ai.ai_service.v1.AiService.CreateModel:output_type -> malonaz.ai.v1.Model
-	12, // 13: malonaz.ai.ai_service.v1.AiService.GetModel:output_type -> malonaz.ai.v1.Model
-	13, // 14: malonaz.ai.ai_service.v1.AiService.ListModels:output_type -> malonaz.ai.ai_service.v1.ListModelsResponse
-	14, // 15: malonaz.ai.ai_service.v1.AiService.CreateVoice:output_type -> malonaz.ai.v1.Voice
-	14, // 16: malonaz.ai.ai_service.v1.AiService.GetVoice:output_type -> malonaz.ai.v1.Voice
-	15, // 17: malonaz.ai.ai_service.v1.AiService.ListVoices:output_type -> malonaz.ai.ai_service.v1.ListVoicesResponse
-	16, // 18: malonaz.ai.ai_service.v1.AiService.SpeechToText:output_type -> malonaz.ai.ai_service.v1.SpeechToTextResponse
-	17, // 19: malonaz.ai.ai_service.v1.AiService.SpeechToTextStream:output_type -> malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
-	18, // 20: malonaz.ai.ai_service.v1.AiService.TextToText:output_type -> malonaz.ai.ai_service.v1.TextToTextResponse
-	19, // 21: malonaz.ai.ai_service.v1.AiService.TextToTextStream:output_type -> malonaz.ai.ai_service.v1.TextToTextStreamResponse
-	20, // 22: malonaz.ai.ai_service.v1.AiService.TextToSpeech:output_type -> malonaz.ai.ai_service.v1.TextToSpeechResponse
-	21, // 23: malonaz.ai.ai_service.v1.AiService.TextToSpeechStream:output_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
-	12, // [12:24] is the sub-list for method output_type
-	0,  // [0:12] is the sub-list for method input_type
+	12, // 12: malonaz.ai.ai_service.v1.AiService.CreateChat:input_type -> malonaz.ai.ai_service.v1.CreateChatRequest
+	13, // 13: malonaz.ai.ai_service.v1.AiService.GetChat:input_type -> malonaz.ai.ai_service.v1.GetChatRequest
+	14, // 14: malonaz.ai.ai_service.v1.AiService.UpdateChat:input_type -> malonaz.ai.ai_service.v1.UpdateChatRequest
+	15, // 15: malonaz.ai.ai_service.v1.AiService.DeleteChat:input_type -> malonaz.ai.ai_service.v1.DeleteChatRequest
+	16, // 16: malonaz.ai.ai_service.v1.AiService.ListChats:input_type -> malonaz.ai.ai_service.v1.ListChatsRequest
+	17, // 17: malonaz.ai.ai_service.v1.AiService.CreateModel:output_type -> malonaz.ai.v1.Model
+	17, // 18: malonaz.ai.ai_service.v1.AiService.GetModel:output_type -> malonaz.ai.v1.Model
+	18, // 19: malonaz.ai.ai_service.v1.AiService.ListModels:output_type -> malonaz.ai.ai_service.v1.ListModelsResponse
+	19, // 20: malonaz.ai.ai_service.v1.AiService.CreateVoice:output_type -> malonaz.ai.v1.Voice
+	19, // 21: malonaz.ai.ai_service.v1.AiService.GetVoice:output_type -> malonaz.ai.v1.Voice
+	20, // 22: malonaz.ai.ai_service.v1.AiService.ListVoices:output_type -> malonaz.ai.ai_service.v1.ListVoicesResponse
+	21, // 23: malonaz.ai.ai_service.v1.AiService.SpeechToText:output_type -> malonaz.ai.ai_service.v1.SpeechToTextResponse
+	22, // 24: malonaz.ai.ai_service.v1.AiService.SpeechToTextStream:output_type -> malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
+	23, // 25: malonaz.ai.ai_service.v1.AiService.TextToText:output_type -> malonaz.ai.ai_service.v1.TextToTextResponse
+	24, // 26: malonaz.ai.ai_service.v1.AiService.TextToTextStream:output_type -> malonaz.ai.ai_service.v1.TextToTextStreamResponse
+	25, // 27: malonaz.ai.ai_service.v1.AiService.TextToSpeech:output_type -> malonaz.ai.ai_service.v1.TextToSpeechResponse
+	26, // 28: malonaz.ai.ai_service.v1.AiService.TextToSpeechStream:output_type -> malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
+	27, // 29: malonaz.ai.ai_service.v1.AiService.CreateChat:output_type -> malonaz.ai.v1.Chat
+	27, // 30: malonaz.ai.ai_service.v1.AiService.GetChat:output_type -> malonaz.ai.v1.Chat
+	27, // 31: malonaz.ai.ai_service.v1.AiService.UpdateChat:output_type -> malonaz.ai.v1.Chat
+	27, // 32: malonaz.ai.ai_service.v1.AiService.DeleteChat:output_type -> malonaz.ai.v1.Chat
+	28, // 33: malonaz.ai.ai_service.v1.AiService.ListChats:output_type -> malonaz.ai.ai_service.v1.ListChatsResponse
+	17, // [17:34] is the sub-list for method output_type
+	0,  // [0:17] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -109,6 +140,7 @@ func file_malonaz_ai_ai_service_v1_ai_service_proto_init() {
 	if File_malonaz_ai_ai_service_v1_ai_service_proto != nil {
 		return
 	}
+	file_malonaz_ai_ai_service_v1_chat_proto_init()
 	file_malonaz_ai_ai_service_v1_model_proto_init()
 	file_malonaz_ai_ai_service_v1_speech_to_text_proto_init()
 	file_malonaz_ai_ai_service_v1_text_to_speech_proto_init()

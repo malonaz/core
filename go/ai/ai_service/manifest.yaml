@@ -1,2 +1,11 @@
 name: ai-service
 implementation: //go/ai/ai_service
+codegens:
+  - type: rpc
+    name: ai-service
+    store: ai
+    implementation: //go/ai/ai_service/rpc
+dependencies:
+  - type: postgres_db_client
+    name: ai
+    implementation: //go/ai/store

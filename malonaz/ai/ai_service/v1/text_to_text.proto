@@ -72,21 +72,25 @@ message ImageGenerationConfig {
 
 // Request message for AiService.TextToText.
 message TextToTextRequest {
+  // The resource name of the parent chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.onikisu.com/Chat"}];
+
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
-  string model = 1 [
+  string model = 2 [
     (google.api.resource_reference).type = "ai.malonaz.com/Model",
     (buf.validate.field).required = true
   ];
 
   // The conversation messages.
-  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+  repeated .malonaz.ai.v1.Message messages = 3 [(buf.validate.field).repeated.min_items = 1];
 
   // Tools available for the model to call.
-  repeated .malonaz.ai.v1.Tool tools = 3;
+  repeated .malonaz.ai.v1.Tool tools = 4;
 
   // Additional configuration.
-  TextToTextConfiguration configuration = 4;
+  TextToTextConfiguration configuration = 5;
 }
 
 // Reason why generation stopped.
@@ -130,24 +134,28 @@ message TextToTextResponse {
 
 // Request message for AiService.TextToTextStream.
 message TextToTextStreamRequest {
+  // The resource name of the parent chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.onikisu.com/Chat"}];
+
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
-  string model = 1 [
+  string model = 2 [
     (google.api.resource_reference).type = "ai.malonaz.com/Model",
     (buf.validate.field).required = true
   ];
 
   // The conversation messages.
-  repeated .malonaz.ai.v1.Message messages = 2 [(buf.validate.field).repeated.min_items = 1];
+  repeated .malonaz.ai.v1.Message messages = 3 [(buf.validate.field).repeated.min_items = 1];
 
   // Tools available for the model to call.
-  repeated .malonaz.ai.v1.Tool tools = 3;
+  repeated .malonaz.ai.v1.Tool tools = 4;
 
   // For the model to use a tool.
-  string tool_choice = 4;
+  string tool_choice = 5;
 
   // Additional configuration.
-  TextToTextConfiguration configuration = 5;
+  TextToTextConfiguration configuration = 6;
 }
 
 // Response message for AiService.TextToTextStream.

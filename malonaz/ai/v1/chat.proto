@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
+
+// Chat represents a multi-turn AI conversation between a user and an assistant.
+// Contains the full message history and associated metadata for a single conversation session.
+message Chat {
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Chat"
+    pattern: "organizations/{organization}/users/{user}/chats/{chat}"
+    singular: "chat"
+    plural: "chats"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+
+  // The resource name of the chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the chat.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the chat.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the chat.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
+  string etag = 5;
+
+  // The labels on this chat.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Chat metadata containing the conversation message history.
+  ChatMetadata metadata = 7 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true
+  ];
+}
+
+// ChatMetadata contains the conversation content for a chat.
+message ChatMetadata {
+  // The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
+  repeated Message messages = 1;
+  // Model usage for this chat.
+  repeated ModelUsage model_usages = 2;
+}

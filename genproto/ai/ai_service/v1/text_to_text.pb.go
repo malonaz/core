@@ -341,15 +341,18 @@ func (b0 ImageGenerationConfig_builder) Build() *ImageGenerationConfig {
 // Request message for AiService.TextToText.
 type TextToTextRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the parent chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The conversation messages.
-	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
+	Messages []*v1.Message `protobuf:"bytes,3,rep,name=messages,proto3" json:"messages,omitempty"`
 	// Tools available for the model to call.
-	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	Tools []*v1.Tool `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
 	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -379,6 +382,13 @@ func (x *TextToTextRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *TextToTextRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
 func (x *TextToTextRequest) GetModel() string {
 	if x != nil {
 		return x.Model
@@ -405,6 +415,10 @@ func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
 		return x.Configuration
 	}
 	return nil
+}
+
+func (x *TextToTextRequest) SetParent(v string) {
+	x.Parent = v
 }
 
 func (x *TextToTextRequest) SetModel(v string) {
@@ -437,6 +451,9 @@ func (x *TextToTextRequest) ClearConfiguration() {
 type TextToTextRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The resource name of the parent chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Parent string
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
 	Model string
@@ -452,6 +469,7 @@ func (b0 TextToTextRequest_builder) Build() *TextToTextRequest {
 	m0 := &TextToTextRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Parent = b.Parent
 	x.Model = b.Model
 	x.Messages = b.Messages
 	x.Tools = b.Tools
@@ -603,17 +621,20 @@ func (b0 TextToTextResponse_builder) Build() *TextToTextResponse {
 // Request message for AiService.TextToTextStream.
 type TextToTextStreamRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the parent chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
-	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The conversation messages.
-	Messages []*v1.Message `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
+	Messages []*v1.Message `protobuf:"bytes,3,rep,name=messages,proto3" json:"messages,omitempty"`
 	// Tools available for the model to call.
-	Tools []*v1.Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	Tools []*v1.Tool `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
 	// For the model to use a tool.
-	ToolChoice string `protobuf:"bytes,4,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
+	ToolChoice string `protobuf:"bytes,5,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
 	// Additional configuration.
-	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	Configuration *TextToTextConfiguration `protobuf:"bytes,6,opt,name=configuration,proto3" json:"configuration,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -641,6 +662,13 @@ func (x *TextToTextStreamRequest) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
+}
+
+func (x *TextToTextStreamRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
 }
 
 func (x *TextToTextStreamRequest) GetModel() string {
@@ -678,6 +706,10 @@ func (x *TextToTextStreamRequest) GetConfiguration() *TextToTextConfiguration {
 	return nil
 }
 
+func (x *TextToTextStreamRequest) SetParent(v string) {
+	x.Parent = v
+}
+
 func (x *TextToTextStreamRequest) SetModel(v string) {
 	x.Model = v
 }
@@ -712,6 +744,9 @@ func (x *TextToTextStreamRequest) ClearConfiguration() {
 type TextToTextStreamRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The resource name of the parent chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Parent string
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
 	Model string
@@ -729,6 +764,7 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	m0 := &TextToTextStreamRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Parent = b.Parent
 	x.Model = b.Model
 	x.Messages = b.Messages
 	x.Tools = b.Tools
@@ -1035,28 +1071,32 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x15ImageGenerationConfig\x12_\n" +
 	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
 	"\n" +
-	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\x8c\x02\n" +
-	"\x11TextToTextRequest\x125\n" +
-	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xbe\x02\n" +
+	"\x11TextToTextRequest\x120\n" +
+	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
+	"\x13ai.onikisu.com/ChatR\x06parent\x125\n" +
+	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
-	"\bmessages\x18\x02 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12W\n" +
-	"\rconfiguration\x18\x04 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xa4\x02\n" +
+	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
+	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12W\n" +
+	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xa4\x02\n" +
 	"\x12TextToTextResponse\x120\n" +
 	"\amessage\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageR\amessage\x12O\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonR\n" +
 	"stopReason\x12:\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xb3\x02\n" +
-	"\x17TextToTextStreamRequest\x125\n" +
-	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xe5\x02\n" +
+	"\x17TextToTextStreamRequest\x120\n" +
+	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
+	"\x13ai.onikisu.com/ChatR\x06parent\x125\n" +
+	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
-	"\bmessages\x18\x02 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
-	"\vtool_choice\x18\x04 \x01(\tR\n" +
+	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
+	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
+	"\vtool_choice\x18\x05 \x01(\tR\n" +
 	"toolChoice\x12W\n" +
-	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xbe\x02\n" +
+	"\rconfiguration\x18\x06 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xbe\x02\n" +
 	"\x18TextToTextStreamResponse\x12,\n" +
 	"\x05block\x18\x01 \x01(\v2\x14.malonaz.ai.v1.BlockH\x00R\x05block\x12Q\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonH\x00R\n" +

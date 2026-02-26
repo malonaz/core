@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -23,8 +25,6 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
-	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/reflect/protodesc"
 )
 
 var (

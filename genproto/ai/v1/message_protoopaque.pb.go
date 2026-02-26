@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -204,9 +205,11 @@ func (x ImageQuality) Number() protoreflect.EnumNumber {
 type Message struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_CreateTime  *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,2,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Role        Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
-	xxx_hidden_Blocks      *[]*Block              `protobuf:"bytes,4,rep,name=blocks,proto3"`
+	xxx_hidden_DeleteTime  *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=delete_time,json=deleteTime,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,3,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Role        Role                   `protobuf:"varint,5,opt,name=role,proto3,enum=malonaz.ai.v1.Role"`
+	xxx_hidden_Blocks      *[]*Block              `protobuf:"bytes,6,rep,name=blocks,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -243,9 +246,23 @@ func (x *Message) GetCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Message) GetDeleteTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_DeleteTime
+	}
+	return nil
+}
+
 func (x *Message) GetAnnotations() map[string]string {
 	if x != nil {
 		return x.xxx_hidden_Annotations
+	}
+	return nil
+}
+
+func (x *Message) GetLabels() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Labels
 	}
 	return nil
 }
@@ -270,8 +287,16 @@ func (x *Message) SetCreateTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_CreateTime = v
 }
 
+func (x *Message) SetDeleteTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_DeleteTime = v
+}
+
 func (x *Message) SetAnnotations(v map[string]string) {
 	x.xxx_hidden_Annotations = v
+}
+
+func (x *Message) SetLabels(v map[string]string) {
+	x.xxx_hidden_Labels = v
 }
 
 func (x *Message) SetRole(v Role) {
@@ -289,18 +314,33 @@ func (x *Message) HasCreateTime() bool {
 	return x.xxx_hidden_CreateTime != nil
 }
 
+func (x *Message) HasDeleteTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_DeleteTime != nil
+}
+
 func (x *Message) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
+}
+
+func (x *Message) ClearDeleteTime() {
+	x.xxx_hidden_DeleteTime = nil
 }
 
 type Message_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// When this message was created.
+	// The creation timestamp of the message.
 	CreateTime *timestamppb.Timestamp
+	// The deletion timestamp of the message.
+	DeleteTime *timestamppb.Timestamp
 	// Annotations about this message (not transmitted to the ai provider).
 	// This should be used by tooling.
 	Annotations map[string]string
+	// The labels on this chat.
+	Labels map[string]string
 	// Role of the message sender.
 	Role Role
 	// Blocks created by the assistant.
@@ -312,7 +352,9 @@ func (b0 Message_builder) Build() *Message {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_CreateTime = b.CreateTime
+	x.xxx_hidden_DeleteTime = b.DeleteTime
 	x.xxx_hidden_Annotations = b.Annotations
+	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Role = b.Role
 	x.xxx_hidden_Blocks = &b.Blocks
 	return m0
@@ -938,15 +980,21 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x99\a\n" +
-	"\aMessage\x12;\n" +
-	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"createTime\x12I\n" +
-	"\vannotations\x18\x02 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryR\vannotations\x123\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xec\t\n" +
+	"\aMessage\x12F\n" +
+	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\n" +
+	"createTime\x12@\n" +
+	"\vdelete_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"deleteTime\x12I\n" +
+	"\vannotations\x18\x03 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryR\vannotations\x12\xc8\x01\n" +
+	"\x06labels\x18\x04 \x03(\v2\".malonaz.ai.v1.Message.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x123\n" +
+	"\x04role\x18\x05 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x12,\n" +
-	"\x06blocks\x18\x04 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a>\n" +
+	"\x06blocks\x18\x06 \x03(\v2\x14.malonaz.ai.v1.BlockR\x06blocks\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xe2\x04\xbaH\xde\x04\x1ar\n" +
 	"\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a1this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xdf\x01\n" +
@@ -993,7 +1041,7 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x12IMAGE_QUALITY_HIGH\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(ReasoningEffort)(0),          // 0: malonaz.ai.v1.ReasoningEffort
 	(Role)(0),                     // 1: malonaz.ai.v1.Role
@@ -1002,27 +1050,30 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(*Block)(nil),                 // 4: malonaz.ai.v1.Block
 	(*Image)(nil),                 // 5: malonaz.ai.v1.Image
 	nil,                           // 6: malonaz.ai.v1.Message.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
-	(*ToolCall)(nil),              // 9: malonaz.ai.v1.ToolCall
-	(*ToolResult)(nil),            // 10: malonaz.ai.v1.ToolResult
+	nil,                           // 7: malonaz.ai.v1.Message.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 9: google.protobuf.Struct
+	(*ToolCall)(nil),              // 10: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 11: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
-	6,  // 1: malonaz.ai.v1.Message.annotations:type_name -> malonaz.ai.v1.Message.AnnotationsEntry
-	1,  // 2: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
-	4,  // 3: malonaz.ai.v1.Message.blocks:type_name -> malonaz.ai.v1.Block
-	8,  // 4: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
-	9,  // 5: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	9,  // 6: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
-	10, // 7: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
-	5,  // 8: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
-	2,  // 9: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
+	8,  // 1: malonaz.ai.v1.Message.delete_time:type_name -> google.protobuf.Timestamp
+	6,  // 2: malonaz.ai.v1.Message.annotations:type_name -> malonaz.ai.v1.Message.AnnotationsEntry
+	7,  // 3: malonaz.ai.v1.Message.labels:type_name -> malonaz.ai.v1.Message.LabelsEntry
+	1,  // 4: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
+	4,  // 5: malonaz.ai.v1.Message.blocks:type_name -> malonaz.ai.v1.Block
+	9,  // 6: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
+	10, // 7: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	10, // 8: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
+	11, // 9: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
+	5,  // 10: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
+	2,  // 11: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -1049,7 +1100,7 @@ func file_malonaz_ai_v1_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

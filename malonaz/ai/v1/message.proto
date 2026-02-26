@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.ai.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/ai/v1/tool.proto";
@@ -33,21 +34,41 @@ message Message {
     expression: "this.role != 4 || this.blocks.all(b, has(b.tool_result))"
   };
 
-  // When this message was created.
-  google.protobuf.Timestamp create_time = 1;
+  // The creation timestamp of the message.
+  google.protobuf.Timestamp create_time = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The deletion timestamp of the message.
+  google.protobuf.Timestamp delete_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Annotations about this message (not transmitted to the ai provider).
   // This should be used by tooling.
-  map<string, string> annotations = 2;
+  map<string, string> annotations = 3;
+
+  // The labels on this chat.
+  map<string, string> labels = 4 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
 
   // Role of the message sender.
-  Role role = 3 [(buf.validate.field).enum = {
+  Role role = 5 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
 
   // Blocks created by the assistant.
-  repeated Block blocks = 4;
+  repeated Block blocks = 6;
 }
 
 // A block of content within a message.

@@ -149,6 +149,51 @@ func (c *Client) SpeechToTextStream(
 	](c.server.SpeechToTextStream)(ctx, opts...)
 }
 
+// CreateChat creates a new chat and returns the created resource.
+func (c *Client) CreateChat(
+	ctx context.Context,
+	request *aiservicepb.CreateChatRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Chat, error) {
+	return c.server.CreateChat(ctx, request)
+}
+
+// GetChat retrieves a single chat by its resource name.
+func (c *Client) GetChat(
+	ctx context.Context,
+	request *aiservicepb.GetChatRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Chat, error) {
+	return c.server.GetChat(ctx, request)
+}
+
+// UpdateChat updates an existing chat and returns the updated resource.
+func (c *Client) UpdateChat(
+	ctx context.Context,
+	request *aiservicepb.UpdateChatRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Chat, error) {
+	return c.server.UpdateChat(ctx, request)
+}
+
+// DeleteChat soft-deletes a chat by its resource name.
+func (c *Client) DeleteChat(
+	ctx context.Context,
+	request *aiservicepb.DeleteChatRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Chat, error) {
+	return c.server.DeleteChat(ctx, request)
+}
+
+// ListChats returns a paginated list of chats for a user.
+func (c *Client) ListChats(
+	ctx context.Context,
+	request *aiservicepb.ListChatsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListChatsResponse, error) {
+	return c.server.ListChats(ctx, request)
+}
+
 // Verify interface compliance at compile time.
 var (
 	_ aiservicepb.AiServiceClient = (*Client)(nil)

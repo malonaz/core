@@ -1,7 +1,22 @@
+filegroup(
+    name = "proto",
+    srcs = [
+        "ai_service.proto",
+        "chat.proto",
+        "model.proto",
+        "speech_to_text.proto",
+        "text_to_speech.proto",
+        "text_to_text.proto",
+        "voice.proto",
+    ],
+    visibility = ["PUBLIC"],
+)
+
 grpc_library(
     name = "v1",
     srcs = [
         "ai_service.proto",
+        "chat.proto",
         "model.proto",
         "speech_to_text.proto",
         "text_to_speech.proto",

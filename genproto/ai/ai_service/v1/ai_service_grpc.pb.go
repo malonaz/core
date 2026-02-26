@@ -59,6 +59,16 @@ type AiServiceClient interface {
 	TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error)
 	// Converts text to speech audio with streaming response.
 	TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error)
+	// Creates a new chat.
+	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Gets a chat.
+	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Updates a chat.
+	UpdateChat(ctx context.Context, in *UpdateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Deletes a chat (soft delete).
+	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Lists chats for a user.
+	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
 }
 
 type aiServiceClient struct {
@@ -245,6 +255,51 @@ func (x *aiServiceTextToSpeechStreamClient) Recv() (*TextToSpeechStreamResponse,
 	return m, nil
 }
 
+func (c *aiServiceClient) CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error) {
+	out := new(v1.Chat)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/CreateChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*v1.Chat, error) {
+	out := new(v1.Chat)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GetChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateChat(ctx context.Context, in *UpdateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error) {
+	out := new(v1.Chat)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/UpdateChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error) {
+	out := new(v1.Chat)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/DeleteChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error) {
+	out := new(ListChatsResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/ListChats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AiServiceServer is the server API for AiService service.
 // All implementations should embed UnimplementedAiServiceServer
 // for forward compatibility
@@ -285,6 +340,16 @@ type AiServiceServer interface {
 	TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error)
 	// Converts text to speech audio with streaming response.
 	TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error
+	// Creates a new chat.
+	CreateChat(context.Context, *CreateChatRequest) (*v1.Chat, error)
+	// Gets a chat.
+	GetChat(context.Context, *GetChatRequest) (*v1.Chat, error)
+	// Updates a chat.
+	UpdateChat(context.Context, *UpdateChatRequest) (*v1.Chat, error)
+	// Deletes a chat (soft delete).
+	DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error)
+	// Lists chats for a user.
+	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
 }
 
 // UnimplementedAiServiceServer should be embedded to have forward compatible implementations.
@@ -326,6 +391,21 @@ func (UnimplementedAiServiceServer) TextToSpeech(context.Context, *TextToSpeechR
 }
 func (UnimplementedAiServiceServer) TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method TextToSpeechStream not implemented")
+}
+func (UnimplementedAiServiceServer) CreateChat(context.Context, *CreateChatRequest) (*v1.Chat, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
+}
+func (UnimplementedAiServiceServer) GetChat(context.Context, *GetChatRequest) (*v1.Chat, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChat not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateChat(context.Context, *UpdateChatRequest) (*v1.Chat, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateChat not implemented")
+}
+func (UnimplementedAiServiceServer) DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteChat not implemented")
+}
+func (UnimplementedAiServiceServer) ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChats not implemented")
 }
 
 // UnsafeAiServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -569,6 +649,96 @@ func (x *aiServiceTextToSpeechStreamServer) Send(m *TextToSpeechStreamResponse) 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AiService_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).CreateChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/CreateChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).CreateChat(ctx, req.(*CreateChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GetChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetChat(ctx, req.(*GetChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/UpdateChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateChat(ctx, req.(*UpdateChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_DeleteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).DeleteChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/DeleteChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).DeleteChat(ctx, req.(*DeleteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListChats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListChats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/ListChats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListChats(ctx, req.(*ListChatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AiService_ServiceDesc is the grpc.ServiceDesc for AiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -611,6 +781,26 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TextToSpeech",
 			Handler:    _AiService_TextToSpeech_Handler,
+		},
+		{
+			MethodName: "CreateChat",
+			Handler:    _AiService_CreateChat_Handler,
+		},
+		{
+			MethodName: "GetChat",
+			Handler:    _AiService_GetChat_Handler,
+		},
+		{
+			MethodName: "UpdateChat",
+			Handler:    _AiService_UpdateChat_Handler,
+		},
+		{
+			MethodName: "DeleteChat",
+			Handler:    _AiService_DeleteChat_Handler,
+		},
+		{
+			MethodName: "ListChats",
+			Handler:    _AiService_ListChats_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -4,13 +4,16 @@ package malonaz.ai.ai_service.v1;
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
+import "malonaz/ai/ai_service/v1/chat.proto";
 import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
 import "malonaz/ai/ai_service/v1/text_to_text.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
+import "malonaz/ai/v1/chat.proto";
 import "malonaz/ai/v1/model.proto";
 import "malonaz/ai/v1/voice.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
@@ -114,5 +117,48 @@ service AiService {
       post: "/v1/{model=providers/*/models/*}/text-to-speech:stream"
       body: "*"
     };
+  }
+
+  // ===================== Chat Management =====================
+
+  // Creates a new chat.
+  rpc CreateChat(CreateChatRequest) returns (ai.v1.Chat) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/chats"
+      body: "chat"
+    };
+    option (google.api.method_signature) = "parent,chat";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
+  // Gets a chat.
+  rpc GetChat(GetChatRequest) returns (ai.v1.Chat) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
+  // Updates a chat.
+  rpc UpdateChat(UpdateChatRequest) returns (ai.v1.Chat) {
+    option (google.api.http) = {
+      patch: "/v1/{chat.name=organizations/*/users/*/chats/*}"
+      body: "chat"
+    };
+    option (google.api.method_signature) = "chat,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
+  // Deletes a chat (soft delete).
+  rpc DeleteChat(DeleteChatRequest) returns (ai.v1.Chat) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/chats/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
+  // Lists chats for a user.
+  rpc ListChats(ListChatsRequest) returns (ListChatsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 }
