@@ -66,13 +66,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	var filterSubjects []string
 	for _, subject := range p.config.Subjects {
 		if stream == "" {
-			stream = subject.stream
+			stream = subject.stream.GetName()
 		} else {
-			if stream != subject.stream {
+			if stream != subject.stream.GetName() {
 				return fmt.Errorf("all subjects must belong to the same stream")
 			}
 		}
-		filterSubjects = append(filterSubjects, subject.name)
+		filterSubjects = append(filterSubjects, subject.GetName())
 	}
 
 	fetchTimeout := p.config.FetchTimeout

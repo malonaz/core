@@ -91,7 +91,7 @@ func (c *Client) Publish(ctx context.Context, subject *Subject, message proto.Me
 	if err != nil {
 		return fmt.Errorf("marshaling message: %w", err)
 	}
-	if _, err := c.JetStream.Publish(ctx, subject.name, bytes, jetstream.WithExpectStream(subject.stream)); err != nil {
+	if _, err := c.JetStream.Publish(ctx, subject.GetName(), bytes, jetstream.WithExpectStream(subject.stream.GetName())); err != nil {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil

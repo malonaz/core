@@ -20,8 +20,8 @@ type Stream struct {
 }
 
 type Subject struct {
-	stream string
-	name   string
+	stream *Stream
+	suffix string
 }
 
 func MustGetServiceStreams(serviceDesc grpc.ServiceDesc) *ServiceStreams {
@@ -52,17 +52,21 @@ func (s *ServiceStreams) MustGetStream(name string) *Stream {
 	return stream
 }
 
-func (s *Stream) Subject(name string) *Subject {
+func (s *Stream) Subject(suffix string) *Subject {
 	return &Subject{
-		stream: s.GetName(),
-		name:   name,
+		stream: s,
+		suffix: suffix,
 	}
+}
+
+func (s *Subject) GetName() string {
+	return s.stream.GetName() + "." + s.suffix
 }
 
 func (c *Client) CreateOrUpdateStream(ctx context.Context, streamOptions *Stream) (jetstream.Stream, error) {
 	streamConfig := jetstream.StreamConfig{
 		Name:     streamOptions.GetName(),
-		Subjects: []string{streamOptions.Subject(">").name},
+		Subjects: []string{streamOptions.Subject(">").GetName()},
 	}
 	if maxAge := streamOptions.GetMaxAge(); maxAge != nil {
 		streamConfig.MaxAge = maxAge.AsDuration()
