@@ -4,12 +4,14 @@ subinclude("//build_defs:utils")
 
 def postgres_migrations(
         name:str,
+        manifest:str="manifest.yaml",
         dirs:list,
         visibility:list=[],
 ):
     # Manifest.
     manifest = go_manifest(
         name = "manifest",
+        manifest=manifest,
         ignore_schema = True,
         visibility = visibility,
     )
