@@ -1,6 +1,9 @@
 go_library(
     name = "routine",
-    srcs = ["routine.go"],
+    srcs = [
+        "metrics.go",
+        "routine.go",
+    ],
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/go:github.com__cenkalti__backoff__v4",

@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // PermanentError is a permanent error that will cause a routine to immediately panic.
@@ -28,7 +26,7 @@ func (e *PermanentError) Is(err error) bool {
 
 // NewPermanentError instantiates and returns a new permanent error.
 func NewPermanentError(message string, args ...any) *PermanentError {
-	return &PermanentError{Err: fmt.Errorf(message, args)}
+	return &PermanentError{Err: fmt.Errorf(message, args...)}
 }
 
 // FN is a routine function.
@@ -43,29 +41,28 @@ type Routine struct {
 	fn               FN
 	onPermanentError func(error)
 	exited           chan struct{}
+	closeErr         error
 	closeOnce        sync.Once
 	cancel           context.CancelFunc
 	retryChannel     chan struct{}
 
 	// Additional fields.
-	timeoutSeconds       int
+	metrics              *routineMetrics
+	timeout              time.Duration
 	constantBackOff      *backoff.ConstantBackOff
 	ticker               *time.Ticker
 	signals              []reflect.SelectCase
 	maxConsecutiveErrors int
-	errorCounter         prometheus.Counter
-	durationHistogram    *prometheus.HistogramVec
 }
 
 // New instantiates and return a new Routine.
-func New(name string, fn FN, onPermanentError func(error)) *Routine {
+func New(name string, fn FN) *Routine {
 	return &Routine{
-		log:              slog.Default(),
-		name:             name,
-		fn:               fn,
-		onPermanentError: onPermanentError,
-		exited:           make(chan struct{}),
-		retryChannel:     make(chan struct{}, 1), // non-blocking writes.
+		log:          slog.Default(),
+		name:         name,
+		fn:           fn,
+		exited:       make(chan struct{}),
+		retryChannel: make(chan struct{}, 1), // non-blocking writes.
 	}
 }
 
@@ -74,24 +71,34 @@ func (r *Routine) WithLogger(logger *slog.Logger) *Routine {
 	return r
 }
 
+// Checks the health of this routine.
+func (r *Routine) HealthCheck() error {
+	select {
+	case <-r.exited:
+		return fmt.Errorf("routine %q stopped: %w", r.name, r.closeErr)
+	default:
+		return nil
+	}
+}
+
+// WithMetrics
+func (r *Routine) WithMetrics() *Routine {
+	r.metrics = getMetrics()
+	return r
+}
+
+func (r *Routine) OnPermanentError(fn func(error)) {
+	r.onPermanentError = fn
+}
+
 // WithMaxConsecutiveErrors sets a max consecutive error threshold which, if exceeded, kills the routine.
-func (r *Routine) WithMaxConsecutiveErrors(maxConsecutiveErrors int) *Routine {
-	r.maxConsecutiveErrors = maxConsecutiveErrors
+func (r *Routine) WithMaxConsecutiveErrors(n int) *Routine {
+	r.maxConsecutiveErrors = n
 	return r
 }
 
 // WithTimeout sets a timeout on the context for each execution of the routine's FN.
-func (r *Routine) WithTimeout(seconds int) *Routine { r.timeoutSeconds = seconds; return r }
-
-// WithTicker sets a ticker internal at which the fn will be executed.
-func (r *Routine) WithTickerS(seconds int) *Routine {
-	return r.WithTicker(time.Duration(seconds) * time.Second)
-}
-
-// WithTickerMs sets a ticker internal in ms at which the fn will be executed.
-func (r *Routine) WithTickerMs(ms int64) *Routine {
-	return r.WithTicker(time.Duration(ms) * time.Microsecond)
-}
+func (r *Routine) WithTimeout(d time.Duration) *Routine { r.timeout = d; return r }
 
 func (r *Routine) WithTicker(duration time.Duration) *Routine {
 	if r.ticker != nil {
@@ -112,37 +119,39 @@ func (r *Routine) WithSignal(channels ...<-chan struct{}) *Routine {
 	return r
 }
 
-// WithDurationHistogram sets a routine to measure duration metrics.
-func (r *Routine) WithDurationHistogram(name string) *Routine {
-	r.durationHistogram = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name: name,
-			Help: "Duration of routine iteration",
-		},
-		[]string{"success"},
-	)
-	return r
-}
-
-// WithErrorCounter sets a routine to measure number of errors.
-func (r *Routine) WithErrorCounter(name string) *Routine {
-	r.errorCounter = promauto.NewCounter(
-		prometheus.CounterOpts{
-			Name: name,
-			Help: "Errors returned from routine",
-		},
-	)
-	return r
-}
-
 // WithConstantBackOff adds a constant backoff everytime a non permanent error is encountered.
 func (r *Routine) WithConstantBackOff(seconds int) *Routine {
 	r.constantBackOff = backoff.NewConstantBackOff(time.Duration(seconds) * time.Second)
 	return r
 }
 
-// Start the routine. Non-block calling call.
 func (r *Routine) Start(ctx context.Context) *Routine {
+	go func() {
+		var err error
+		func() {
+			defer func() {
+				if v := recover(); v != nil {
+					err = NewPermanentError("panic: %v", v)
+				}
+			}()
+			err = r.start(ctx)
+		}()
+		r.closeErr = err
+		close(r.exited)
+		r.Close()
+		if r.onPermanentError != nil && errors.Is(err, &PermanentError{}) {
+			r.onPermanentError(err)
+		}
+	}()
+	return r
+}
+
+func (r *Routine) start(ctx context.Context) error {
+	if r.metrics != nil {
+		r.metrics.running.WithLabelValues(r.name).Set(1)
+		defer r.metrics.running.WithLabelValues(r.name).Set(0)
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	r.cancel = cancel
 	r.log = r.log.With("routine", r.name)
@@ -164,78 +173,77 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 	signal := make(chan struct{}, 1)
 	go func() {
 		if len(r.signals) == 0 {
-			// No signal means we don't want to block after each execution on `fn`.
-			// We thus close the `signal` so that every `receive` action immediately returns.
+			// No signals configured — close so receives never block.
 			close(signal)
 			return
 		}
+
+		// Prepend ctx.Done() as case 0 so we can exit when the context is cancelled.
+		// Without this, reflect.Select blocks on r.signals indefinitely, leaking this goroutine.
+		doneCase := reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ctx.Done())}
+		cases := append([]reflect.SelectCase{doneCase}, r.signals...)
+
 		for {
-			select {
-			case <-ctx.Done():
+			// reflect.Select blocks until one of the cases fires.
+			// `chosen` is the index into `cases` that was selected.
+			chosen, _, _ := reflect.Select(cases)
+			if chosen == 0 {
+				// ctx.Done() fired — stop fanning out signals.
 				return
-			default:
 			}
 
-			// Will block for one of the signal.
-			reflect.Select(r.signals)
+			// One of the configured signals fired — forward it.
+			// Non-blocking write: if there's already a pending signal, skip.
 			select {
 			case signal <- struct{}{}:
-			default: // There is already an unconsumed signal in here.
+			default:
 			}
 		}
 	}()
 
-	// Function responsible for executing `fn` at the right moments.
-	go func() {
-		defer func() {
-			close(r.exited)
-			r.Close()
-		}()
-
-		for {
-			if err := fn(ctx); err != nil {
-				select {
-				case <-ctx.Done():
-					r.log.InfoContext(ctx, "context done", "error", ctx.Err())
-					return
-				default:
-				}
-
-				if errors.Is(err, &PermanentError{}) {
-					r.log.ErrorContext(ctx, "exiting due to permanent error", "error", err)
-					r.onPermanentError(err)
-					return
-				}
-				r.log.ErrorContext(ctx, "executing fn", "error", err)
-				if r.constantBackOff != nil {
-					time.Sleep(r.constantBackOff.NextBackOff())
-				}
-				// Add a retry signal.
-				select {
-				case r.retryChannel <- struct{}{}:
-				default:
-				}
-			}
-
+	for {
+		if err := fn(ctx); err != nil {
 			select {
 			case <-ctx.Done():
 				r.log.InfoContext(ctx, "context done", "error", ctx.Err())
-				return
-			case <-signal:
-				r.log.DebugContext(ctx, "received signal")
-			case <-r.retryChannel:
-				r.log.DebugContext(ctx, "retrying")
+				return ctx.Err()
+			default:
+			}
+
+			if errors.Is(err, &PermanentError{}) {
+				r.log.ErrorContext(ctx, "exiting due to permanent error", "error", err)
+				return err
+			}
+			r.log.ErrorContext(ctx, "executing fn", "error", err)
+			if r.constantBackOff != nil {
+				time.Sleep(r.constantBackOff.NextBackOff())
+			}
+			// Add a retry signal.
+			select {
+			case r.retryChannel <- struct{}{}:
+			default:
 			}
 		}
-	}()
-	return r
+
+		select {
+		case <-ctx.Done():
+			r.log.InfoContext(ctx, "context done", "error", ctx.Err())
+			return ctx.Err()
+		case <-signal:
+			r.log.DebugContext(ctx, "received signal")
+		case <-r.retryChannel:
+			r.log.DebugContext(ctx, "retrying")
+		}
+	}
 }
 
 // Close closes this routine. It is a blocking call guaranteeing that the routine has exited its loop by the time it returns.
 func (r *Routine) Close() {
 	r.closeOnce.Do(func() {
 		r.log.Info("closing")
-		r.cancel()
+		if r.cancel != nil {
+			r.cancel()
+		}
 		<-r.exited
 		r.log.Info("closed")
 		if r.ticker != nil {
@@ -245,33 +253,32 @@ func (r *Routine) Close() {
 }
 
 func (r *Routine) execute(ctx context.Context) error {
-	if r.timeoutSeconds > 0 {
-		var cancel func()
-		ctx, cancel = context.WithTimeout(ctx, time.Duration(r.timeoutSeconds)*time.Second)
-		defer cancel()
+	var cancel func()
+	if r.timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, r.timeout)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
 	}
-	var err error
-	if r.durationHistogram != nil {
-		start := time.Now()
-		defer func() {
-			r.durationHistogram.With(map[string]string{"success": fmt.Sprintf("%v", err == nil)}).Observe(time.Now().Sub(start).Seconds())
-		}()
-	}
-	err = r.fn(ctx)
-	if r.errorCounter != nil && err != nil {
-		r.errorCounter.Inc()
-	}
-	return err
-}
+	defer cancel()
 
-// CloseInParallelFN returns a function that will close routine in parallel and block until all routines have exited their loop.
-func CloseInParallelFN(routines []*Routine) func() {
-	return func() {
-		wg := sync.WaitGroup{}
-		wg.Add(len(routines))
-		for _, r := range routines {
-			go func() { r.Close(); wg.Done() }()
-		}
-		wg.Wait()
+	var start time.Time
+	if r.metrics != nil {
+		start = time.Now()
 	}
+
+	err := r.fn(ctx)
+
+	if r.metrics != nil {
+		r.metrics.durationSeconds.WithLabelValues(r.name).Observe(time.Since(start).Seconds())
+		status := "success"
+		if err != nil {
+			status = "error"
+			if errors.Is(err, &PermanentError{}) {
+				status = "permanent_error"
+			}
+		}
+		r.metrics.executionsTotal.WithLabelValues(r.name, status).Inc()
+	}
+
+	return err
 }

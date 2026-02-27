@@ -45,6 +45,7 @@ type Processor[T proto.Message] struct {
 	processorFunc ProcessorFunc[T]
 	consumer      jetstream.Consumer
 	routine       *routine.Routine
+	metrics       bool
 }
 
 func NewProcessor[T proto.Message](client *Client, config *ProcessorConfig, processorFunc ProcessorFunc[T]) *Processor[T] {
@@ -61,18 +62,23 @@ func (p *Processor[T]) WithLogger(logger *slog.Logger) *Processor[T] {
 	return p
 }
 
+func (p *Processor[T]) WithMetrics() *Processor[T] {
+	p.metrics = true
+	return p
+}
+
 func (p *Processor[T]) Start(ctx context.Context) error {
 	var stream string
 	var filterSubjects []string
 	for _, subject := range p.config.Subjects {
 		if stream == "" {
-			stream = subject.stream.GetName()
+			stream = subject.stream.name
 		} else {
-			if stream != subject.stream.GetName() {
+			if stream != subject.stream.name {
 				return fmt.Errorf("all subjects must belong to the same stream")
 			}
 		}
-		filterSubjects = append(filterSubjects, subject.GetName())
+		filterSubjects = append(filterSubjects, subject.name)
 	}
 
 	fetchTimeout := p.config.FetchTimeout
@@ -168,7 +174,6 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	r := routine.New(
 		fmt.Sprintf("nats-processor-%s", p.config.ConsumerName),
 		processFn,
-		func(err error) { p.log.Error("permanent error", "error", err) },
 	).WithLogger(p.log).
 		WithConstantBackOff(backoffSeconds)
 
@@ -176,6 +181,9 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		r = r.WithMaxConsecutiveErrors(p.config.MaxConsecutiveErrors)
 	}
 
+	if p.metrics {
+		r.WithMetrics()
+	}
 	p.routine = r.Start(ctx)
 	return nil
 }
