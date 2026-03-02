@@ -98,9 +98,7 @@ package {{ .PackageName }}
         {{- $serverGoName := printf "%s_%sServer" ($service.GoName | untitle) $resourceGoName }}
         {{ if doOnce (printf "%s_resource_interface_def" $pr.Desc.Singular) }}
             type {{ $storeInterface }} interface {
-            {{ if not $pr.Singleton }}
                 Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
-            {{ end }}
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string{{ if $etag }}, etag string{{ end}}) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
                 {{- if $softDeletable }}

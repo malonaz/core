@@ -108,8 +108,8 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
 		{{- end }}
 
 		{{- if $pr.Singleton }}
-			const {{ $message.GoIdent.GoName }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO NOTHING`
-		{{ else }}
+			  const {{ $message.GoIdent.GoName }}InsertSingletonPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO NOTHING`
+    {{ end }}
 
 	  var (
       {{ $message.GoIdent.GoName }}WithRequestIDPostgresColumns = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName }}WithRequestID{})
@@ -124,7 +124,7 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
 					{{- $modelOpts := getModelOpts $message }}
 					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
-					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
 
 				{{ if eq (len $singletonChildren) 0 }}
@@ -184,7 +184,7 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
         {{- $modelOpts := getModelOpts $message }}
         {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
-        query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+        query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
     {{ end }}
 
     var inserted *{{ $goTypeFqi }}
@@ -232,7 +232,6 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
     }
     return inserted, nil
     }
-		{{- end }}
 
 
 {{/* ################### UPDATE ################### */}}
