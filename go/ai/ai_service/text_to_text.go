@@ -81,7 +81,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	eg, ctxEg := errgroup.WithContext(ctx)
 	var chat *aipb.Chat
 	eg.Go(func() error {
-		getChatRequest := &pb.GetChatRequest{Name: request.GetParent()}
+		getChatRequest := &pb.GetChatRequest{Name: chatRn.String()}
 		var err error
 		chat, err = s.GetChat(ctxEg, getChatRequest)
 		if err != nil {

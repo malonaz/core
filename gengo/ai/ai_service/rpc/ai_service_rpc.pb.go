@@ -34,7 +34,6 @@ func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 
 type aiService_ChatStore interface {
 	InsertChatIdempotently(ctx context.Context, requestID string, chat *model.Chat) (*model.Chat, error)
-
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)
 
 	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, deleteTime time.Time) (*model.Chat, error)
