@@ -4,6 +4,32 @@ local p = "providers/google/models/";
   "provider_id": "google",
   "models": [
     {
+      "name": p + "gemini-3.1-flash-image-preview",
+      "provider_model_id": "gemini-3.1-flash-image-preview",
+      "description": "High-quality image generation and conversational editing at mainstream pricing and low latency. High-efficiency counterpart to Gemini 3 Pro Image, optimized for speed and high-volume developer use cases. Supports new output resolutions (0.5K-4K), image search grounding, and extended aspect ratios.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": false,
+        "context_token_limit": 131072,
+        "output_token_limit": 32768,
+        "pricing": {
+          "input_token_price_per_million": 0.25,
+          "output_token_price_per_million": 1.5,
+          "input_image_token_price_per_million": 0.25,
+          "output_image_token_price_per_million": 60
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.1-pro-preview",
       "provider_model_id": "gemini-3.1-pro-preview",
       "description": "Built to refine the performance and reliability of the Gemini 3 Pro series, Gemini 3.1 Pro Preview provides better thinking, improved token efficiency, and a more grounded, factually consistent experience. Optimized for software engineering and agentic workflows requiring precise tool usage and reliable multi-step execution.",
@@ -31,6 +57,7 @@ local p = "providers/google/models/";
       "name": p + "gemini-3-pro-preview",
       "provider_model_id": "gemini-3-pro-preview",
       "description": "The best model in the world for multimodal understanding, and our most powerful agentic and vibe-coding model yet, delivering richer visuals and deeper interactivity, all built on a foundation of state-of-the-art reasoning.",
+      "deprecate_time": "2026-03-09T00:00:00Z",
       "ttt": {
         "reasoning": true,
         "tool_call": true,
