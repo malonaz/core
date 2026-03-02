@@ -6,6 +6,7 @@ import (
 	"io"
 	"maps"
 
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
@@ -19,8 +20,26 @@ import (
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 )
 
+var (
+	textToTextDefaultUserRn = &aipb.UserResourceName{
+		Organization: "unknown",
+		User:         "unknown",
+	}
+)
+
 // TextToTextStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
+	// Parse or create chat resource name.
+	var chatRn *aipb.ChatResourceName
+	if request.GetParent() == "" {
+		chatRn = new(textToTextDefaultUserRn.ChatResourceName(aip.NewSystemGeneratedBase32ResourceID()))
+	} else {
+		chatRn = &aipb.ChatResourceName{}
+		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
+			return grpc.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
+		}
+	}
+
 	ctx := srv.Context()
 
 	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
@@ -61,34 +80,28 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	// Get or create chat chat.
 	eg, ctxEg := errgroup.WithContext(ctx)
 	var chat *aipb.Chat
-	chatRn := &aipb.ChatResourceName{}
-	if request.GetParent() != "" {
-		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
-		}
-		eg.Go(func() error {
-			getChatRequest := &pb.GetChatRequest{Name: request.GetParent()}
-			var err error
-			chat, err = s.GetChat(ctxEg, getChatRequest)
-			if err != nil {
-				if status.Code(err) != codes.NotFound {
-					return err
-				}
-				createChatRequest := &pb.CreateChatRequest{
-					Parent: chatRn.UserResourceName().String(),
-					ChatId: chatRn.Chat,
-					Chat: &aipb.Chat{
-						Metadata: &aipb.ChatMetadata{},
-					},
-				}
-				chat, err = s.CreateChat(ctxEg, createChatRequest)
-				if err != nil {
-					return err
-				}
+	eg.Go(func() error {
+		getChatRequest := &pb.GetChatRequest{Name: request.GetParent()}
+		var err error
+		chat, err = s.GetChat(ctxEg, getChatRequest)
+		if err != nil {
+			if status.Code(err) != codes.NotFound {
+				return err
 			}
-			return nil
-		})
-	}
+			createChatRequest := &pb.CreateChatRequest{
+				Parent: chatRn.UserResourceName().String(),
+				ChatId: chatRn.Chat,
+				Chat: &aipb.Chat{
+					Metadata: &aipb.ChatMetadata{},
+				},
+			}
+			chat, err = s.CreateChat(ctxEg, createChatRequest)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
 	// Filter out deleted messages.
 	allMessages := request.GetMessages()
@@ -110,17 +123,17 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	}
 
 	// Update the chat.
-	if chat != nil {
-		// Update the chat.
-		chat.Metadata.Messages = append(allMessages, textToTextAccumulator.Response().GetMessage())
-		chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
-		updateChatRequest := &pb.UpdateChatRequest{
-			Chat:       chat,
-			UpdateMask: pbfieldmask.FromPaths("metadata").Proto(),
-		}
-		if _, err := s.UpdateChat(ctx, updateChatRequest); err != nil {
-			return err
-		}
+	chat.Metadata.Messages = append(allMessages, textToTextAccumulator.Response().GetMessage())
+	chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
+	for k, v := range request.Labels {
+		aip.SetLabel(chat, k, v)
+	}
+	updateChatRequest := &pb.UpdateChatRequest{
+		Chat:       chat,
+		UpdateMask: pbfieldmask.FromPaths("metadata", "labels").Proto(),
+	}
+	if _, err := s.UpdateChat(ctx, updateChatRequest); err != nil {
+		return err
 	}
 	return nil
 }

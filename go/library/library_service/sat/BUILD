@@ -3,6 +3,7 @@ go_test(
     srcs = [
         "author_test.go",
         "book_test.go",
+        "labels_test.go",
         "sat_test.go",
         "shelf_test.go",
     ],

@@ -2,6 +2,7 @@ go_library(
     name = "aip",
     srcs = [
         "filtering_request.go",
+        "labels.go",
         "list_request_parser.go",
         "ordering_request.go",
         "paginate.go",
@@ -42,6 +43,7 @@ go_test(
     name = "test",
     srcs = [
         "filtering_request_test.go",
+        "labels_test.go",
         "ordering_request_test.go",
         "pagination_request_test.go",
         "update_request_parser_test.go",
@@ -49,6 +51,7 @@ go_test(
     deps = [
         ":aip",
         "//go/pbutil/pbfieldmask",
+        "//malonaz/library/v1",
         "//malonaz/test/aip",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__stretchr__testify__require",

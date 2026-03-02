@@ -61,7 +61,10 @@ message GetChatRequest {
 // Request message for AiService.UpdateChat.
 message UpdateChatRequest {
   option (malonaz.codegen.aip.v1.update) = {
-    paths: ["metadata"]
+    paths: [
+      "metadata",
+      "labels"
+    ]
   };
   option (buf.validate.message).cel = {
     id: "chat.name_required"

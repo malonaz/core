@@ -636,14 +636,14 @@ const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"G\n" +
 	"\x0eGetChatRequest\x125\n" +
 	"\x04name\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
-	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\"\xdf\x01\n" +
+	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\"\xe7\x01\n" +
 	"\x11UpdateChatRequest\x12/\n" +
 	"\x04chat\x18\x01 \x01(\v2\x13.malonaz.ai.v1.ChatB\x06\xbaH\x03\xd8\x01\x03R\x04chat\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:T\xbaHB\x1a@\n" +
-	"\x12chat.name_required\x12\x15chat.name must be set\x1a\x13has(this.chat.name)\xea\x9c\xc1\x03\n" +
-	"\n" +
-	"\bmetadata\"\x83\x01\n" +
+	"updateMask:\\\xbaHB\x1a@\n" +
+	"\x12chat.name_required\x12\x15chat.name must be set\x1a\x13has(this.chat.name)\xea\x9c\xc1\x03\x12\n" +
+	"\bmetadata\n" +
+	"\x06labels\"\x83\x01\n" +
 	"\x11DeleteChatRequest\x125\n" +
 	"\x04name\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +

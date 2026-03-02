@@ -635,6 +635,8 @@ type TextToTextStreamRequest struct {
 	ToolChoice string `protobuf:"bytes,5,opt,name=tool_choice,json=toolChoice,proto3" json:"tool_choice,omitempty"`
 	// Additional configuration.
 	Configuration *TextToTextConfiguration `protobuf:"bytes,6,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	// Labels to merge onto the chat's labels.
+	Labels        map[string]string `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -706,6 +708,13 @@ func (x *TextToTextStreamRequest) GetConfiguration() *TextToTextConfiguration {
 	return nil
 }
 
+func (x *TextToTextStreamRequest) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
 func (x *TextToTextStreamRequest) SetParent(v string) {
 	x.Parent = v
 }
@@ -728,6 +737,10 @@ func (x *TextToTextStreamRequest) SetToolChoice(v string) {
 
 func (x *TextToTextStreamRequest) SetConfiguration(v *TextToTextConfiguration) {
 	x.Configuration = v
+}
+
+func (x *TextToTextStreamRequest) SetLabels(v map[string]string) {
+	x.Labels = v
 }
 
 func (x *TextToTextStreamRequest) HasConfiguration() bool {
@@ -758,6 +771,8 @@ type TextToTextStreamRequest_builder struct {
 	ToolChoice string
 	// Additional configuration.
 	Configuration *TextToTextConfiguration
+	// Labels to merge onto the chat's labels.
+	Labels map[string]string
 }
 
 func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
@@ -770,6 +785,7 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	x.Tools = b.Tools
 	x.ToolChoice = b.ToolChoice
 	x.Configuration = b.Configuration
+	x.Labels = b.Labels
 	return m0
 }
 
@@ -1086,7 +1102,7 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"stopReason\x12:\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xe5\x02\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\x86\x05\n" +
 	"\x17TextToTextStreamRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
 	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
@@ -1096,7 +1112,11 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12\x1f\n" +
 	"\vtool_choice\x18\x05 \x01(\tR\n" +
 	"toolChoice\x12W\n" +
-	"\rconfiguration\x18\x06 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\"\xbe\x02\n" +
+	"\rconfiguration\x18\x06 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\x12\xe3\x01\n" +
+	"\x06labels\x18\a \x03(\v2=.malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbe\x02\n" +
 	"\x18TextToTextStreamResponse\x12,\n" +
 	"\x05block\x18\x01 \x01(\v2\x14.malonaz.ai.v1.BlockH\x00R\x05block\x12Q\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2..malonaz.ai.ai_service.v1.TextToTextStopReasonH\x00R\n" +
@@ -1115,7 +1135,7 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	" TEXT_TO_TEXT_STOP_REASON_REFUSAL\x10\x06B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_ai_ai_service_v1_text_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_goTypes = []any{
 	(TextToTextStopReason)(0),        // 0: malonaz.ai.ai_service.v1.TextToTextStopReason
 	(*TextToTextConfiguration)(nil),  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration
@@ -1124,37 +1144,39 @@ var file_malonaz_ai_ai_service_v1_text_to_text_proto_goTypes = []any{
 	(*TextToTextResponse)(nil),       // 4: malonaz.ai.ai_service.v1.TextToTextResponse
 	(*TextToTextStreamRequest)(nil),  // 5: malonaz.ai.ai_service.v1.TextToTextStreamRequest
 	(*TextToTextStreamResponse)(nil), // 6: malonaz.ai.ai_service.v1.TextToTextStreamResponse
-	(*v1.ToolChoice)(nil),            // 7: malonaz.ai.v1.ToolChoice
-	(v1.ReasoningEffort)(0),          // 8: malonaz.ai.v1.ReasoningEffort
-	(*v1.Message)(nil),               // 9: malonaz.ai.v1.Message
-	(*v1.Tool)(nil),                  // 10: malonaz.ai.v1.Tool
-	(*v1.ModelUsage)(nil),            // 11: malonaz.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),     // 12: malonaz.ai.v1.GenerationMetrics
-	(*v1.Block)(nil),                 // 13: malonaz.ai.v1.Block
+	nil,                              // 7: malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntry
+	(*v1.ToolChoice)(nil),            // 8: malonaz.ai.v1.ToolChoice
+	(v1.ReasoningEffort)(0),          // 9: malonaz.ai.v1.ReasoningEffort
+	(*v1.Message)(nil),               // 10: malonaz.ai.v1.Message
+	(*v1.Tool)(nil),                  // 11: malonaz.ai.v1.Tool
+	(*v1.ModelUsage)(nil),            // 12: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),     // 13: malonaz.ai.v1.GenerationMetrics
+	(*v1.Block)(nil),                 // 14: malonaz.ai.v1.Block
 }
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
-	8,  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	8,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
+	9,  // 1: malonaz.ai.ai_service.v1.TextToTextConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
 	2,  // 2: malonaz.ai.ai_service.v1.TextToTextConfiguration.image_config:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfig
-	9,  // 3: malonaz.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.ai.v1.Message
-	10, // 4: malonaz.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.ai.v1.Tool
+	10, // 3: malonaz.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.ai.v1.Message
+	11, // 4: malonaz.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.ai.v1.Tool
 	1,  // 5: malonaz.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	9,  // 6: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
+	10, // 6: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
 	0,  // 7: malonaz.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	11, // 8: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	12, // 9: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	9,  // 10: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
-	10, // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
+	12, // 8: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	13, // 9: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	10, // 10: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
+	11, // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
 	1,  // 12: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	13, // 13: malonaz.ai.ai_service.v1.TextToTextStreamResponse.block:type_name -> malonaz.ai.v1.Block
-	0,  // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	11, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	12, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	7,  // 13: malonaz.ai.ai_service.v1.TextToTextStreamRequest.labels:type_name -> malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntry
+	14, // 14: malonaz.ai.ai_service.v1.TextToTextStreamResponse.block:type_name -> malonaz.ai.v1.Block
+	0,  // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	12, // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	13, // 17: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_text_to_text_proto_init() }
@@ -1174,7 +1196,7 @@ func file_malonaz_ai_ai_service_v1_text_to_text_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

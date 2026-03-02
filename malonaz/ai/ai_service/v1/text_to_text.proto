@@ -156,6 +156,20 @@ message TextToTextStreamRequest {
 
   // Additional configuration.
   TextToTextConfiguration configuration = 6;
+
+  // Labels to merge onto the chat's labels.
+  map<string, string> labels = 7 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
 }
 
 // Response message for AiService.TextToTextStream.
