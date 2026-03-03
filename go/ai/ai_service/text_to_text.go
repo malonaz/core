@@ -27,6 +27,9 @@ var (
 	}
 )
 
+// context key
+type tttAccumulatorKey struct{}
+
 // TextToTextStream implements the gRPC streaming method - direct pass-through
 func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
 	// Parse or create chat resource name.
@@ -67,7 +70,15 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	for _, tool := range request.Tools {
 		toolNameToTool[tool.Name] = tool
 	}
-	textToTextAccumulator := ai.NewTextToTextAccumulator()
+
+	// Instantiate the text to text accumulator if it doesn't exist in context.
+	var textToTextAccumulator *ai.TextToTextAccumulator
+	if v, ok := ctx.Value(tttAccumulatorKey{}).(*ai.TextToTextAccumulator); ok {
+		textToTextAccumulator = v
+	} else {
+		textToTextAccumulator = ai.NewTextToTextAccumulator()
+	}
+
 	wrapper := &tttStreamWrapper{
 		AiService_TextToTextStreamServer: srv,
 		textToTextAccumulator:            textToTextAccumulator,
@@ -230,7 +241,10 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		Messages:      request.Messages,
 		Tools:         request.Tools,
 		Configuration: request.Configuration,
+		Labels:        request.Labels,
 	}
+	accumulator := ai.NewTextToTextAccumulator()
+	ctx = context.WithValue(ctx, tttAccumulatorKey{}, accumulator)
 
 	// Create a local streaming client using grpcinproc
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
@@ -244,17 +258,12 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		return nil, err
 	}
 
-	accumulator := ai.NewTextToTextAccumulator()
 	for {
-		event, err := stream.Recv()
-		if err != nil {
+		if _, err := stream.Recv(); err != nil {
 			if err == io.EOF {
 				break
 			}
 			return nil, err
-		}
-		if err := accumulator.Add(event); err != nil {
-			return nil, grpc.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 		}
 	}
 

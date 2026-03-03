@@ -91,6 +91,20 @@ message TextToTextRequest {
 
   // Additional configuration.
   TextToTextConfiguration configuration = 5;
+
+  // Labels to merge onto the chat's labels.
+  map<string, string> labels = 6 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
 }
 
 // Reason why generation stopped.
@@ -151,14 +165,11 @@ message TextToTextStreamRequest {
   // Tools available for the model to call.
   repeated .malonaz.ai.v1.Tool tools = 4;
 
-  // For the model to use a tool.
-  string tool_choice = 5;
-
   // Additional configuration.
-  TextToTextConfiguration configuration = 6;
+  TextToTextConfiguration configuration = 5;
 
   // Labels to merge onto the chat's labels.
-  map<string, string> labels = 7 [(buf.validate.field).map = {
+  map<string, string> labels = 6 [(buf.validate.field).map = {
     max_pairs: 64
     keys: {
       string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
