@@ -18,51 +18,70 @@ import (
 )
 
 var (
-	messageTypeToResourceDescriptor    = map[string]*annotationspb.ResourceDescriptor{}
-	resourceTypeToResourceDescriptor   = map[string]*annotationspb.ResourceDescriptor{}
-	resourceTypeToParentResourceType   = map[string]string{}
-	resourceTypeToChildResourceTypeSet = map[string]map[string]struct{}{}
-	resourceTypeToMessage              = map[string]*protogen.Message{}
+	messageTypeToResourceDescriptor     = map[string]*annotationspb.ResourceDescriptor{}
+	resourceTypeToResourceDescriptor    = map[string]*annotationspb.ResourceDescriptor{}
+	resourcePatternToResourceDescriptor = map[string]*annotationspb.ResourceDescriptor{}
+	resourceTypeToParentResourceType    = map[string]string{}
+	resourceTypeToChildResourceTypeSet  = map[string]map[string]struct{}{}
+	resourceTypeToMessage               = map[string]*protogen.Message{}
 )
 
 func registerAnnotations(files []*protogen.File) error {
+	resourcePatternToFile := map[string]string{}
+	registerPattern := func(pattern string, rd *annotationspb.ResourceDescriptor, filePath string) error {
+		if existingRd, ok := resourcePatternToResourceDescriptor[pattern]; ok {
+			if !proto.Equal(existingRd, rd) {
+				return fmt.Errorf(
+					"pattern %q already registered by resource %q (from %s), cannot register again for resource %q (from %s)",
+					pattern, existingRd.Type, resourcePatternToFile[pattern], rd.Type, filePath,
+				)
+			}
+		}
+		resourcePatternToResourceDescriptor[pattern] = rd
+		resourcePatternToFile[pattern] = filePath
+		return nil
+	}
+
 	for _, f := range files {
-		// Register file-level resource definitions
+		filePath := string(f.Desc.Path())
 		fileOpts := f.Desc.Options()
 		if fileOpts != nil && proto.HasExtension(fileOpts, annotationspb.E_ResourceDefinition) {
-			// The extension can contain multiple resource definitions
 			ext := proto.GetExtension(fileOpts, annotationspb.E_ResourceDefinition)
-
-			// Handle both single and repeated resource definitions
-			switch v := ext.(type) {
-			case *annotationspb.ResourceDescriptor:
-				if v != nil && v.Type != "" {
-					resourceTypeToResourceDescriptor[v.Type] = v
+			resourceDefinitions := ext.([]*annotationspb.ResourceDescriptor)
+			for _, rd := range resourceDefinitions {
+				if rd != nil && rd.Type != "" {
+					resourceTypeToResourceDescriptor[rd.Type] = rd
 				}
-			case []*annotationspb.ResourceDescriptor:
-				for _, rd := range v {
-					if rd != nil && rd.Type != "" {
-						resourceTypeToResourceDescriptor[rd.Type] = rd
+				for _, pattern := range rd.Pattern {
+					if err := registerPattern(pattern, rd, filePath); err != nil {
+						return err
 					}
 				}
 			}
 		}
 
-		// Register message-level resources
 		for _, message := range f.Messages {
 			messageType := string(message.Desc.FullName())
 			msgOpts := message.Desc.Options()
-			if msgOpts != nil {
-				if proto.HasExtension(msgOpts, annotationspb.E_Resource) {
-					ext := proto.GetExtension(msgOpts, annotationspb.E_Resource)
-					rd, ok := ext.(*annotationspb.ResourceDescriptor)
-					if ok && rd != nil && rd.Type != "" {
-						resourceTypeToResourceDescriptor[rd.Type] = rd
-						messageTypeToResourceDescriptor[messageType] = rd
-						resourceTypeToMessage[rd.Type] = message
-					}
+			if msgOpts == nil {
+				continue
+			}
+			if !proto.HasExtension(msgOpts, annotationspb.E_Resource) {
+				continue
+			}
+			ext := proto.GetExtension(msgOpts, annotationspb.E_Resource)
+			rd, ok := ext.(*annotationspb.ResourceDescriptor)
+			if !ok || rd == nil || rd.Type == "" {
+				continue
+			}
+			for _, pattern := range rd.Pattern {
+				if err := registerPattern(pattern, rd, filePath); err != nil {
+					return err
 				}
 			}
+			resourceTypeToResourceDescriptor[rd.Type] = rd
+			messageTypeToResourceDescriptor[messageType] = rd
+			resourceTypeToMessage[rd.Type] = message
 		}
 	}
 	return nil
@@ -229,22 +248,27 @@ func parseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 
 	// set pattern variables.
 	var sc resourcename.Scanner
-	singleton := true
-	hasParent := false
+	var lastSegmentIsVariable bool
 	var patternVariables []string
 	sc.Init(pattern)
 	for sc.Scan() {
 		if sc.Segment().IsVariable() {
-			patternVariable := string(sc.Segment().Literal())
-			patternVariables = append(patternVariables, patternVariable)
-			if xstrings.ToCamelCase(patternVariable) == resourceDescriptor.Singular {
-				singleton = false
-			} else {
-				hasParent = true
+			literal := string(sc.Segment().Literal())
+			subPattern := pattern[:sc.End()]
+			rd, ok := resourcePatternToResourceDescriptor[subPattern]
+			if !ok {
+				return nil, fmt.Errorf("no resource descriptor found for sub-pattern %q (variable %q) in pattern %q", subPattern, literal, pattern)
 			}
+			patternVariables = append(patternVariables, xstrings.ToSnakeCase(rd.Singular))
+			lastSegmentIsVariable = true
+		} else {
+			lastSegmentIsVariable = false
 		}
 	}
+	singleton := !lastSegmentIsVariable
+	hasParent := len(patternVariables) > 1 || (singleton && len(patternVariables) > 0)
 
+	// Instantiate the parsed resource.
 	parsedResource := &ParsedResource{
 		Desc:             resourceDescriptor,
 		Type:             resourceType,
