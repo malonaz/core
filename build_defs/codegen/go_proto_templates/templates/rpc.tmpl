@@ -98,7 +98,7 @@ package {{ .PackageName }}
         {{- $serverGoName := printf "%s_%sServer" ($service.GoName | untitle) $resourceGoName }}
         {{ if doOnce (printf "%s_resource_interface_def" $pr.Desc.Singular) }}
             type {{ $storeInterface }} interface {
-                Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
+            Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx {{ fqn "context" "Context" }}, {{ if $hasRequestID }}requestID string,{{ end }} {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeQgi }}, error)
             Update{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $resourceGoName | untitle }} *{{ $goTypeQgi }}, updateClause string, columns []string{{ if $etag }}, etag string{{ end}}) (*{{ $goTypeQgi }}, error)
             {{ if not $pr.Singleton }}
                 {{- if $softDeletable }}
@@ -163,13 +163,13 @@ package {{ .PackageName }}
             {{ end -}}
 
             {{- if $etag }}
-              { // Capture the etag.
-              var err error
-              request.{{ $resourceGoName }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}(request.{{ $resourceGoName }})
-              if err != nil {
+                { // Capture the etag.
+                var err error
+                request.{{ $resourceGoName }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}(request.{{ $resourceGoName }})
+                if err != nil {
                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing etag: %v", err).Err()
-              }
-              }
+                }
+                }
             {{- end }}
 
             {{ "\n" }}
@@ -192,15 +192,15 @@ package {{ .PackageName }}
                 UpdateTime: request.{{ $resourceGoName }}.UpdateTime,
                 }
 
-            {{- if $childMessage.Desc.Fields.ByName "etag" }}
-              { // Capture the etag.
-              var err error
-              {{ $childResourceGoName | untitle }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}({{ $childResourceGoName | untitle }})
-              if err != nil {
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing %s etag: %v", {{ $childPr.Desc.Singular }}, err).Err()
-              }
-              }
-            {{- end }}
+                {{- if $childMessage.Desc.Fields.ByName "etag" }}
+                    { // Capture the etag.
+                    var err error
+                    {{ $childResourceGoName | untitle }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}({{ $childResourceGoName | untitle }})
+                    if err != nil {
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing %s etag: %v", {{ $childPr.Desc.Singular }}, err).Err()
+                    }
+                    }
+                {{- end }}
 
                 {{ $parseFromPb := (printf "%sFromPb" $childMessage.GoIdent.GoName) | $modelGpi.Ident | qgi }}
                 {{ $childResourceGoName | untitle }}Model, err := {{ $parseFromPb }}({{ $childResourceGoName | untitle }})
@@ -412,11 +412,6 @@ package {{ .PackageName }}
             }
 
 {{- else if $rpc.BatchGet }}
-    type resourceIdentifiers struct {
-        {{- range $id := $pr.PatternVariables }}
-        {{ $id | camelcase }}Id string
-        {{- end }}
-    }
 
 func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
     {{ if $pr.Parent }}
@@ -429,44 +424,40 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
         }
     {{ end }}
 
-    // Validate and parse all names
-    identifiers := make([]resourceIdentifiers, 0, len(request.Names))
+    // Build WHERE clause for batch retrieval with OR conditions for each full resource identifier
+    orClauses := make([]string, len(request.GetNames()))
+    whereParams := make([]any, 0, len(request.GetNames()) * {{ len $pr.PatternVariables }})
 
-    for _, name := range request.Names {
+    for i, name := range request.Names {
+        // Validate names.
         if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(name) {
             return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name cannot contain wildcard").Err()
         }
+
         {{ if $pr.Parent }}
+        // Verify childrren match parent.
         if request.Parent != "" && !{{ fqn "go.einride.tech/aip/resourcename" "HasParent" }}(name, request.Parent) {
             return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name %q does not have parent %q", name, request.Parent).Err()
         }
         {{ end }}
+
+        // Parse identifiers.
         {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(name)
         if err != nil {
             return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name %s: %v", name, err).Err()
         }
-        identifiers = append(identifiers, resourceIdentifiers{
-            {{- range $id := $pr.PatternVariables }}
-            {{ $id | camelcase }}Id: {{ $id | camelcase | untitle }}Id,
-            {{- end }}
-        })
-    }
 
-    // Build WHERE clause for batch retrieval with OR conditions for each full resource identifier
-    whereClauses := make([]string, len(identifiers))
-    whereParams := make([]any, 0, len(identifiers) * {{ len $pr.PatternVariables }})
-
-    for i, ids := range identifiers {
-        conditions := make([]string, {{ len $pr.PatternVariables }})
-        {{- range $idx, $id := $pr.PatternVariables }}
-        {{- $dbColumn := $id }}
-        {{- if and (eq $idx 0) $modelOpts.IdColumnName }}{{ $dbColumn = $modelOpts.IdColumnName }}{{ end }}
-        conditions[{{ $idx }}] = "{{ $dbColumn | snakecase }}_id = $" + {{ fqn "strconv" "Itoa" }}(len(whereParams) + 1)
-        whereParams = append(whereParams, ids.{{ $id | camelcase }}Id)
-        {{- end }}
-        whereClauses[i] = "(" + {{ fqn "strings" "Join" }}(conditions, " AND ") + ")"
+       // Construct where clause.
+       conditions := make([]string, {{ len $pr.PatternVariables }})
+       {{- range $idx, $id := $pr.PatternVariables }}
+         {{- $dbColumn := printf "%s_id" ($id | snakecase) -}}
+          {{- if and (eq $idx 0) $modelOpts.IdColumnName }}{{ $dbColumn = $modelOpts.IdColumnName }}{{ end }}
+          conditions[{{ $idx }}] = "{{ $dbColumn }} = $" + {{ fqn "strconv" "Itoa" }}(len(whereParams) + {{ add $idx 1 }})
+       {{- end }}
+       whereParams = append(whereParams, {{ $pr.PatternVariableIDs true }})
+       orClauses[i] = "(" + {{ fqn "strings" "Join" }}(conditions, " AND ") + ")"
     }
-    whereClause := "WHERE " + {{ fqn "strings" "Join" }}(whereClauses, " OR ")
+    whereClause := "WHERE " + {{ fqn "strings" "Join" }}(orClauses, " OR ")
 
     // Retrieve from the database
     db{{ $pr.PluralGoName }}, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
