@@ -25,6 +25,7 @@ go_library(
         "//go/uuid",
         "//malonaz/library/library_service/v1",
         "//malonaz/library/v1",
+        "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",

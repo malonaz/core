@@ -271,9 +271,10 @@ package {{ .PackageName }}
             {{ end }}
 
             // STEP 3: Patch the existing resource.
-	          if err := parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }}); err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "applying field mask: %v", err).Err()
-	          }
+	          parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }})
+            if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
+              return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
+            }
 
             {{ if $etag }}
             { // Compute the new etag.

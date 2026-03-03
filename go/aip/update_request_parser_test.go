@@ -3,7 +3,6 @@ package aip
 import (
 	"testing"
 
-	"buf.build/go/protovalidate"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -181,11 +180,6 @@ func TestUpdateRequestParser_UpdateTimestampAlwaysAuthorized(t *testing.T) {
 }
 
 func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
-	validator, err := protovalidate.New()
-	if err != nil {
-		panic("instantiating proto validator")
-	}
-
 	existingResource := &pb.Resource{
 		Field1: "initialValue1",
 		Nested: &pb.NestedResource{
@@ -211,7 +205,6 @@ func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
 
 	// Test updating specific nested fields
 	parsedRequestSpecificNestedFields := &ParsedUpdateRequest{
-		validator: validator,
 		fieldMask: pbfieldmask.FromPaths("field1", "nested.field3"),
 	}
 	parsedRequestSpecificNestedFields.ApplyFieldMask(existingResource, newResource)
@@ -238,7 +231,6 @@ func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
 
 	// Test replacing the entire nested field
 	parsedRequestEntireNestedField := &ParsedUpdateRequest{
-		validator: validator,
 		fieldMask: pbfieldmask.FromPaths("nested2"),
 	}
 	parsedRequestEntireNestedField.ApplyFieldMask(existingResource, newResource)

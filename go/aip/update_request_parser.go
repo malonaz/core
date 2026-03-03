@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"buf.build/go/protovalidate"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -40,20 +39,14 @@ type updateRequest interface {
 
 // ParsedUpdateRequest is a request that is parsed.
 type ParsedUpdateRequest struct {
-	validator      protovalidate.Validator
 	fieldMask      *pbfieldmask.FieldMask
 	updateFieldSet map[string]struct{}
 	updateFields   []string
 }
 
-// ApplyFieldMask applies the field mask and validates the newly formed resource using protovalidate.
-// Existing resource should be used to update.
-func (p *ParsedUpdateRequest) ApplyFieldMask(existingResource, newResource proto.Message) error {
+// ApplyFieldMask merges any fields covered by the field mask from newResource into existingResource.
+func (p *ParsedUpdateRequest) ApplyFieldMask(existingResource, newResource proto.Message) {
 	p.fieldMask.Update(existingResource, newResource)
-	if err := p.validator.Validate(existingResource); err != nil {
-		return fmt.Errorf("validating updated resource: %w", err)
-	}
-	return nil
 }
 
 func (p *ParsedUpdateRequest) GetSQLUpsertClause() string {
@@ -84,7 +77,6 @@ func (p *ParsedUpdateRequest) GetSQLColumns() []string {
 
 // UpdateRequestParser implements update request parsing.
 type UpdateRequestParser[T updateRequest, R proto.Message] struct {
-	validator         protovalidate.Validator
 	paths             []string
 	protoPathToColumn map[string]string
 	mappings          map[string]string
@@ -101,11 +93,6 @@ func MustNewUpdateRequestParser[T updateRequest, R proto.Message]() *UpdateReque
 
 // NewUpdateRequestParser instantiates and returns a new update request parser.
 func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestParser[T, R], error) {
-	validator, err := protovalidate.New()
-	if err != nil {
-		return nil, fmt.Errorf("instantiating proto validator: %w", err)
-	}
-
 	// Parse options.
 	var zero T
 	options, err := pbutil.GetMessageOption[*aippb.UpdateOptions](zero, aippb.E_Update)
@@ -160,7 +147,6 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	}
 
 	return &UpdateRequestParser[T, R]{
-		validator:         validator,
 		paths:             paths,
 		protoPathToColumn: protoPathToColumn,
 		mappings:          mappings,
@@ -180,7 +166,6 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 	}
 
 	parsedUpdateRequest := &ParsedUpdateRequest{
-		validator:      p.validator,
 		fieldMask:      fieldMask,
 		updateFieldSet: map[string]struct{}{},
 	}

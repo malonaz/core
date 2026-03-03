@@ -38,7 +38,6 @@ func TestFilteringRequestParser_NewParser(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, parser)
-				require.NotNil(t, parser.validator)
 				require.NotNil(t, parser.declarations)
 			}
 		})

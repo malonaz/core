@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/ordering"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -23,7 +22,6 @@ type orderingRequest interface {
 
 // ////////////////////////////// PARSER //////////////////////////
 type OrderingRequestParser[T orderingRequest, R proto.Message] struct {
-	validator   protovalidate.Validator
 	options     *aippb.OrderingOptions
 	tree        *Tree
 	pathToAllow map[string]bool
@@ -38,23 +36,11 @@ func MustNewOrderingRequestParser[T orderingRequest, R proto.Message]() *Orderin
 }
 
 func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRequestParser[T, R], error) {
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(&aippb.OrderingOptions{}),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("instantiated validator for ordering request parser: %v", err)
-	}
-
 	// Parse options from the generic type T
 	var zero T
 	options, err := pbutil.GetMessageOption[*aippb.OrderingOptions](zero, aippb.E_Ordering)
 	if err != nil {
 		return nil, fmt.Errorf("getting message options: %v", err)
-	}
-	// Validate options
-	if err := validator.Validate(options); err != nil {
-		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
 	var zeroResource R
@@ -74,7 +60,6 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 	}
 
 	return &OrderingRequestParser[T, R]{
-		validator:   validator,
 		options:     options,
 		tree:        tree,
 		pathToAllow: pathToAllow,

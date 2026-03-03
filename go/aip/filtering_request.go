@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/filtering"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
-	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/aip/transpiler/postgres"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
@@ -24,7 +22,6 @@ type filteringRequest interface {
 }
 
 type FilteringRequestParser[T filteringRequest, R proto.Message] struct {
-	validator    protovalidate.Validator
 	declarations *filtering.Declarations
 	tree         *Tree
 }
@@ -38,21 +35,10 @@ func MustNewFilteringRequestParser[T filteringRequest, R proto.Message]() *Filte
 }
 
 func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*FilteringRequestParser[T, R], error) {
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(&aippb.FilteringOptions{}, &modelpb.FieldOpts{}),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("instantiating validator for filtering request parser: %v", err)
-	}
-
 	var zero T
 	filteringOptions, err := pbutil.GetMessageOption[*aippb.FilteringOptions](zero, aippb.E_Filtering)
 	if err != nil {
 		return nil, fmt.Errorf("getting filtering options: %v", err)
-	}
-	if err := validator.Validate(filteringOptions); err != nil {
-		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
 	var zeroResource R
@@ -121,7 +107,6 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	}
 
 	return &FilteringRequestParser[T, R]{
-		validator:    validator,
 		declarations: declarations,
 		tree:         tree,
 	}, nil

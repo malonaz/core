@@ -3,6 +3,7 @@
 package rpc
 
 import (
+	protovalidate "buf.build/go/protovalidate"
 	context "context"
 	errors "errors"
 	model "github.com/malonaz/core/gengo/ai/model"
@@ -177,8 +178,9 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	}
 
 	// STEP 3: Patch the existing resource.
-	if err := parsedRequest.ApplyFieldMask(patchedChat, request.Chat); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "applying field mask: %v", err).Err()
+	parsedRequest.ApplyFieldMask(patchedChat, request.Chat)
+	if err := protovalidate.Validate(patchedChat); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
 	}
 
 	{ // Compute the new etag.

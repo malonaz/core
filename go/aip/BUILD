@@ -53,7 +53,6 @@ go_test(
         "//go/pbutil/pbfieldmask",
         "//malonaz/library/v1",
         "//malonaz/test/aip",
-        "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
     ],
