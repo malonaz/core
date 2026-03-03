@@ -61,6 +61,8 @@ message UpdateShelfRequest {
     paths: [
       "display_name",
       "genre",
+      "correlation_id_2",
+      "external_id",
       "metadata.*"
     ]
   };
@@ -96,11 +98,7 @@ message DeleteShelfRequest {
 message ListShelvesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
   option (malonaz.codegen.aip.v1.ordering) = {
-    paths: [
-      "create_time",
-      "update_time",
-      "display_name"
-    ]
+    paths: ["*"]
     default: "create_time desc"
   };
   option (malonaz.codegen.aip.v1.filtering) = {

@@ -5,92 +5,61 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pb "github.com/malonaz/core/genproto/test/aip"
+	libraryservicepb "github.com/malonaz/core/genproto/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/library/v1"
 )
 
 func TestPaginationRequestParser_NewParser(t *testing.T) {
-	tests := []struct {
-		name             string
-		createParser     func() (*PaginationRequestParser[*pb.PaginateOnlyRequest], error)
-		wantErr          bool
-		expectedPageSize uint32
-	}{
-		{
-			name: "valid parser creation",
-			createParser: func() (*PaginationRequestParser[*pb.PaginateOnlyRequest], error) {
-				return NewPaginationRequestParser[*pb.PaginateOnlyRequest]()
-			},
-			wantErr:          false,
-			expectedPageSize: 50,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			parser, err := tc.createParser()
-
-			if tc.wantErr {
-				require.Error(t, err)
-				require.Nil(t, parser)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, parser)
-				require.Equal(t, tc.expectedPageSize, parser.options.DefaultPageSize)
-			}
-		})
-	}
+	parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
+	require.NoError(t, err)
+	require.NotNil(t, parser)
+	require.Equal(t, uint32(100), parser.options.DefaultPageSize)
 }
 
 func TestPaginationRequestParser_Parse(t *testing.T) {
-	parser, err := NewPaginationRequestParser[*pb.PaginateOnlyRequest]()
+	parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
 	require.NoError(t, err)
 
 	tests := []struct {
 		name                  string
-		request               *pb.PaginateOnlyRequest
+		request               *libraryservicepb.ListAuthorsRequest
 		expectedPageSize      int32
 		expectedPaginationSQL string
 		hasNextPageToken      bool
 		itemsFetched          int
 	}{
 		{
-			name: "default page size - no page token",
-			request: &pb.PaginateOnlyRequest{
-				PageSize:  0, // Should use default
-				PageToken: "",
-			},
-			expectedPageSize:      50,
-			expectedPaginationSQL: "OFFSET 0 LIMIT 51",
+			name:                  "default page size - no page token",
+			request:               &libraryservicepb.ListAuthorsRequest{},
+			expectedPageSize:      100,
+			expectedPaginationSQL: "OFFSET 0 LIMIT 101",
 			hasNextPageToken:      false,
-			itemsFetched:          30, // Less than page size
+			itemsFetched:          30,
 		},
 		{
 			name: "custom page size - no page token",
-			request: &pb.PaginateOnlyRequest{
-				PageSize:  25,
-				PageToken: "",
+			request: &libraryservicepb.ListAuthorsRequest{
+				PageSize: 25,
 			},
 			expectedPageSize:      25,
 			expectedPaginationSQL: "OFFSET 0 LIMIT 26",
 			hasNextPageToken:      false,
-			itemsFetched:          20, // Less than page size
+			itemsFetched:          20,
 		},
 		{
 			name: "next page token generation - more items than page size",
-			request: &pb.PaginateOnlyRequest{
-				PageSize:  10,
-				PageToken: "",
+			request: &libraryservicepb.ListAuthorsRequest{
+				PageSize: 10,
 			},
 			expectedPageSize:      10,
 			expectedPaginationSQL: "OFFSET 0 LIMIT 11",
 			hasNextPageToken:      true,
-			itemsFetched:          11, // More than page size (fetched page_size + 1)
+			itemsFetched:          11,
 		},
 		{
 			name: "large page size",
-			request: &pb.PaginateOnlyRequest{
-				PageSize:  1000,
-				PageToken: "",
+			request: &libraryservicepb.ListAuthorsRequest{
+				PageSize: 1000,
 			},
 			expectedPageSize:      1000,
 			expectedPaginationSQL: "OFFSET 0 LIMIT 1001",
@@ -98,15 +67,12 @@ func TestPaginationRequestParser_Parse(t *testing.T) {
 			itemsFetched:          500,
 		},
 		{
-			name: "page size zero (default used)",
-			request: &pb.PaginateOnlyRequest{
-				PageSize:  0, // Will use default of 50
-				PageToken: "",
-			},
-			expectedPageSize:      50,
-			expectedPaginationSQL: "OFFSET 0 LIMIT 51",
+			name:                  "page size zero (default used)",
+			request:               &libraryservicepb.ListAuthorsRequest{},
+			expectedPageSize:      100,
+			expectedPaginationSQL: "OFFSET 0 LIMIT 101",
 			hasNextPageToken:      true,
-			itemsFetched:          51,
+			itemsFetched:          101,
 		},
 	}
 
@@ -115,15 +81,9 @@ func TestPaginationRequestParser_Parse(t *testing.T) {
 			parsedRequest, err := parser.Parse(tc.request)
 			require.NoError(t, err)
 			require.NotNil(t, parsedRequest)
-
-			// Verify the parsed request has correct page size
 			require.Equal(t, tc.expectedPageSize, tc.request.GetPageSize())
+			require.Equal(t, tc.expectedPaginationSQL, parsedRequest.GetSQLPaginationClause())
 
-			// Verify SQL pagination clause
-			paginationSQL := parsedRequest.GetSQLPaginationClause()
-			require.Equal(t, tc.expectedPaginationSQL, paginationSQL)
-
-			// Verify next page token generation
 			nextPageToken := parsedRequest.GetNextPageToken(tc.itemsFetched)
 			if tc.hasNextPageToken {
 				require.NotEmpty(t, nextPageToken)
@@ -135,38 +95,38 @@ func TestPaginationRequestParser_Parse(t *testing.T) {
 }
 
 func TestPaginationRequestParser_PageTokenRoundTrip(t *testing.T) {
-	parser, err := NewPaginationRequestParser[*pb.PaginateOnlyRequest]()
+	parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
 	require.NoError(t, err)
 
 	tests := []struct {
 		name          string
 		pageSize      int32
-		itemsPerFetch []int // Items returned on each fetch (including the +1 lookahead)
+		itemsPerFetch []int
 	}{
 		{
 			name:          "single page - no next token",
 			pageSize:      10,
-			itemsPerFetch: []int{5}, // Less than page size, so no next page
+			itemsPerFetch: []int{5},
 		},
 		{
 			name:          "multiple pages",
 			pageSize:      10,
-			itemsPerFetch: []int{11, 11, 8}, // Full page + 1 lookahead, then last page
+			itemsPerFetch: []int{11, 11, 8},
 		},
 		{
 			name:          "exact page boundary",
 			pageSize:      20,
-			itemsPerFetch: []int{21, 15}, // Full page + 1, then partial last page
+			itemsPerFetch: []int{21, 15},
 		},
 		{
 			name:          "many pages",
 			pageSize:      5,
-			itemsPerFetch: []int{6, 6, 6, 6, 3}, // Four full pages, then last partial page
+			itemsPerFetch: []int{6, 6, 6, 6, 3},
 		},
 		{
 			name:          "single item pages",
 			pageSize:      1,
-			itemsPerFetch: []int{2, 2, 1}, // Multiple single-item pages
+			itemsPerFetch: []int{2, 2, 1},
 		},
 	}
 
@@ -175,7 +135,7 @@ func TestPaginationRequestParser_PageTokenRoundTrip(t *testing.T) {
 			currentPageToken := ""
 
 			for pageIdx, itemsFetched := range tc.itemsPerFetch {
-				request := &pb.PaginateOnlyRequest{
+				request := &libraryservicepb.ListAuthorsRequest{
 					PageSize:  tc.pageSize,
 					PageToken: currentPageToken,
 				}
@@ -183,15 +143,12 @@ func TestPaginationRequestParser_PageTokenRoundTrip(t *testing.T) {
 				parsedRequest, err := parser.Parse(request)
 				require.NoError(t, err)
 
-				// Get the next page token
 				nextPageToken := parsedRequest.GetNextPageToken(itemsFetched)
-
-				// If this is the last page, there should be no next token
 				isLastPage := pageIdx == len(tc.itemsPerFetch)-1
 				if isLastPage {
-					require.Empty(t, nextPageToken, "Last page should have no next token")
+					require.Empty(t, nextPageToken)
 				} else {
-					require.NotEmpty(t, nextPageToken, "Non-last page should have next token when itemsFetched > pageSize")
+					require.NotEmpty(t, nextPageToken)
 					currentPageToken = nextPageToken
 				}
 			}
@@ -199,58 +156,43 @@ func TestPaginationRequestParser_PageTokenRoundTrip(t *testing.T) {
 	}
 }
 
-func TestPaginationRequestParser_DifferentDefaultPageSizes(t *testing.T) {
-	tests := []struct {
-		name             string
-		createRequest    func() any
-		expectedDefault  uint32
-		expectedSQLLimit string
-	}{
-		{
-			name: "default page size 50",
-			createRequest: func() any {
-				return &pb.PaginateOnlyRequest{PageSize: 0, PageToken: ""}
-			},
-			expectedDefault:  50,
-			expectedSQLLimit: "OFFSET 0 LIMIT 51",
-		},
-		{
-			name: "default page size 10",
-			createRequest: func() any {
-				return &pb.PaginateWithSmallDefaultRequest{PageSize: 0, PageToken: ""}
-			},
-			expectedDefault:  10,
-			expectedSQLLimit: "OFFSET 0 LIMIT 11",
-		},
-	}
+func TestPaginationRequestParser_DifferentResources(t *testing.T) {
+	t.Run("ListAuthorsRequest", func(t *testing.T) {
+		parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
+		require.NoError(t, err)
+		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			switch req := tc.createRequest().(type) {
-			case *pb.PaginateOnlyRequest:
-				parser, err := NewPaginationRequestParser[*pb.PaginateOnlyRequest]()
-				require.NoError(t, err)
-				require.Equal(t, tc.expectedDefault, parser.options.DefaultPageSize)
+		request := &libraryservicepb.ListAuthorsRequest{}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "OFFSET 0 LIMIT 101", parsedRequest.GetSQLPaginationClause())
+	})
 
-				parsedRequest, err := parser.Parse(req)
-				require.NoError(t, err)
-				require.Equal(t, tc.expectedSQLLimit, parsedRequest.GetSQLPaginationClause())
+	t.Run("ListBooksRequest", func(t *testing.T) {
+		parser, err := NewPaginationRequestParser[*libraryservicepb.ListBooksRequest]()
+		require.NoError(t, err)
+		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
 
-			case *pb.PaginateWithSmallDefaultRequest:
-				parser, err := NewPaginationRequestParser[*pb.PaginateWithSmallDefaultRequest]()
-				require.NoError(t, err)
-				require.Equal(t, tc.expectedDefault, parser.options.DefaultPageSize)
+		request := &libraryservicepb.ListBooksRequest{}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "OFFSET 0 LIMIT 101", parsedRequest.GetSQLPaginationClause())
+	})
 
-				parsedRequest, err := parser.Parse(req)
-				require.NoError(t, err)
-				require.Equal(t, tc.expectedSQLLimit, parsedRequest.GetSQLPaginationClause())
-			}
-		})
-	}
+	t.Run("ListShelvesRequest", func(t *testing.T) {
+		parser, err := NewPaginationRequestParser[*libraryservicepb.ListShelvesRequest]()
+		require.NoError(t, err)
+		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
+
+		request := &libraryservicepb.ListShelvesRequest{}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "OFFSET 0 LIMIT 101", parsedRequest.GetSQLPaginationClause())
+	})
 }
 
 func TestPaginatedRequest_GetNextPageToken(t *testing.T) {
-	parser, err := NewPaginationRequestParser[*pb.PaginateOnlyRequest]()
+	parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -279,17 +221,16 @@ func TestPaginatedRequest_GetNextPageToken(t *testing.T) {
 		},
 		{
 			name:             "page size zero (default used)",
-			pageSize:         0, // Will use default of 50
-			itemsFetched:     51,
+			pageSize:         0,
+			itemsFetched:     101,
 			hasNextPageToken: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.PaginateOnlyRequest{
-				PageSize:  tc.pageSize,
-				PageToken: "",
+			request := &libraryservicepb.ListAuthorsRequest{
+				PageSize: tc.pageSize,
 			}
 
 			parsedRequest, err := parser.Parse(request)
@@ -303,4 +244,22 @@ func TestPaginatedRequest_GetNextPageToken(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPaginationRequestParser_MustNew(t *testing.T) {
+	require.NotPanics(t, func() {
+		MustNewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
+	})
+}
+
+func TestPaginationRequestParser_ListRequestParser(t *testing.T) {
+	parser := MustNewListRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+
+	request := &libraryservicepb.ListAuthorsRequest{
+		PageSize: 50,
+	}
+
+	parsedRequest, err := parser.Parse(request)
+	require.NoError(t, err)
+	require.Equal(t, "OFFSET 0 LIMIT 51", parsedRequest.GetSQLPaginationClause())
 }

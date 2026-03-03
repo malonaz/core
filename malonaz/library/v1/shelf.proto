@@ -46,8 +46,17 @@ message Shelf {
     not_in: [0]
   }];
 
+  // Field with custom column name.
+  string external_id = 7 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (malonaz.codegen.model.v1.field_opts).column_name = "ext_id"
+  ];
+
+  // Field with custom column name.
+  string correlation_id_2 = 8 [(malonaz.codegen.model.v1.field_opts).column_name = "correlation_id"];
+
   // The labels on this shelf.
-  map<string, string> labels = 7 [
+  map<string, string> labels = 9 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (buf.validate.field).map = {
@@ -65,7 +74,10 @@ message Shelf {
   ];
 
   // Shelf metadata.
-  ShelfMetadata metadata = 8 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  ShelfMetadata metadata = 10 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).column_name = "legacy_meta"
+  ];
 }
 
 // Metadata for a shelf.

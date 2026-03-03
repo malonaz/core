@@ -616,20 +616,22 @@ const file_malonaz_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"N\n" +
 	"\x0fGetShelfRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
-	"\x19library.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\"\x82\x02\n" +
+	"\x19library.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\"\xa2\x02\n" +
 	"\x12UpdateShelfRequest\x127\n" +
 	"\x05shelf\x18\x01 \x01(\v2\x19.malonaz.library.v1.ShelfB\x06\xbaH\x03\xd8\x01\x03R\x05shelf\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:n\xbaHE\x1aC\n" +
-	"\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03!\n" +
+	"updateMask:\x8d\x01\xbaHE\x1aC\n" +
+	"\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03@\n" +
 	"\fdisplay_name\n" +
 	"\x05genre\n" +
+	"\x10correlation_id_2\n" +
+	"\vexternal_id\n" +
 	"\n" +
 	"metadata.*\"v\n" +
 	"\x12DeleteShelfRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19library.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
-	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\"\xc7\x02\n" +
+	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\"\xa2\x02\n" +
 	"\x12ListShelvesRequest\x12F\n" +
 	"\x06parent\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" library.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -639,10 +641,8 @@ const file_malonaz_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\tpage_size\x18\x05 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken:K\x82\xf3-\x02\bd\x8a\xf3-:\n" +
-	"\vcreate_time\n" +
-	"\vupdate_time\n" +
-	"\fdisplay_name\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken:&\x82\xf3-\x02\bd\x8a\xf3-\x15\n" +
+	"\x01*\x12\x10create_time desc\x92\xf3-\x03\n" +
 	"\x01*\"r\n" +
 	"\x13ListShelvesResponse\x123\n" +
 	"\ashelves\x18\x01 \x03(\v2\x19.malonaz.library.v1.ShelfR\ashelves\x12&\n" +

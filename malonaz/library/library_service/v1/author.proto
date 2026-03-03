@@ -64,6 +64,7 @@ message UpdateAuthorRequest {
       "email_address",
       "phone_number",
       "labels",
+      "metadata",
       "metadata.*"
     ]
   };

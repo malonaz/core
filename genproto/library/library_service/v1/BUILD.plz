@@ -7,7 +7,6 @@ go_library(
         "library_service_grpc.pb.go",
         "shelf.pb.go",
     ],
-    test_only = True,
     visibility = ["//..."],
     deps = [
         "//malonaz/codegen/aip/v1",

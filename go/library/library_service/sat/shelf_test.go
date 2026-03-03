@@ -321,16 +321,6 @@ func TestShelfList(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("OrderByNotAllowed", func(t *testing.T) {
-		organizationParent := getOrganizationParent()
-		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
-			Parent:  organizationParent,
-			OrderBy: "genre asc",
-		}
-		_, err := libraryServiceClient.ListShelves(ctx, listShelvesRequest)
-		grpcrequire.Error(t, codes.InvalidArgument, err)
-	})
-
 	t.Run("FilterWithLabels", func(t *testing.T) {
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{

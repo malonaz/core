@@ -6,328 +6,619 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	pb "github.com/malonaz/core/genproto/test/aip"
+	libraryservicepb "github.com/malonaz/core/genproto/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/library/v1"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
-func TestUpdateRequestParser_ParseWithAuthorizedPaths(t *testing.T) {
-	parser, err := NewUpdateRequestParser[*pb.UpdateResourceRequest, *pb.Resource]()
-	require.NoError(t, err)
+func TestUpdateRequestParser_NewParser(t *testing.T) {
+	t.Run("Author", func(t *testing.T) {
+		parser, err := NewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+	})
+
+	t.Run("Book", func(t *testing.T) {
+		parser, err := NewUpdateRequestParser[*libraryservicepb.UpdateBookRequest, *librarypb.Book]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+	})
+
+	t.Run("Shelf", func(t *testing.T) {
+		parser, err := NewUpdateRequestParser[*libraryservicepb.UpdateShelfRequest, *librarypb.Shelf]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+	})
+}
+
+func TestUpdateRequestParser_AuthorizedPaths(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
 
 	tests := []struct {
-		name             string
-		fieldMaskPaths   []string
-		wantUpdateClause string
-		wantErr          bool
+		name           string
+		fieldMaskPaths []string
+		wantColumns    []string
+		wantErr        bool
 	}{
-		// Tests that should succeed because the paths are authorized
 		{
-			name:             "single authorized field path with mapping",
-			fieldMaskPaths:   []string{"field1"},
-			wantUpdateClause: "field1 = EXCLUDED.field1",
-			wantErr:          false,
+			name:           "single authorized field",
+			fieldMaskPaths: []string{"display_name"},
+			wantColumns:    []string{"display_name"},
 		},
 		{
-			name:             "single authorized nested field path",
-			fieldMaskPaths:   []string{"nested.field2"},
-			wantUpdateClause: "nested = EXCLUDED.nested",
-			wantErr:          false,
+			name:           "multiple authorized fields",
+			fieldMaskPaths: []string{"display_name", "biography"},
+			wantColumns:    []string{"biography", "display_name"},
 		},
 		{
-			name:             "multiple authorized field paths",
-			fieldMaskPaths:   []string{"field1", "nested.field2"},
-			wantUpdateClause: "field1 = EXCLUDED.field1, nested = EXCLUDED.nested",
-			wantErr:          false,
+			name:           "all simple authorized fields",
+			fieldMaskPaths: []string{"biography", "display_name", "email_address", "phone_number"},
+			wantColumns:    []string{"biography", "display_name", "email_address", "phone_number"},
 		},
 		{
-			name:             "single nested field using regex",
-			fieldMaskPaths:   []string{"nested2"},
-			wantUpdateClause: "nested2 = EXCLUDED.nested2",
-			wantErr:          false,
+			name:           "labels field (JSON bytes)",
+			fieldMaskPaths: []string{"labels"},
+			wantColumns:    []string{"labels"},
 		},
 		{
-			name:             "authorized field path without explicit mapping",
-			fieldMaskPaths:   []string{"nested"},
-			wantUpdateClause: "nested = EXCLUDED.nested",
-			wantErr:          false,
-		},
-
-		// Tests that should fail because the paths are not authorized
-		{
-			name:             "unauthorized field path",
-			fieldMaskPaths:   []string{"nested.field3"},
-			wantUpdateClause: "",
-			wantErr:          true,
+			name:           "unauthorized - name (IDENTIFIER)",
+			fieldMaskPaths: []string{"name"},
+			wantErr:        true,
 		},
 		{
-			name:             "authorized and unauthorized field paths",
-			fieldMaskPaths:   []string{"field1", "nested.field3"},
-			wantUpdateClause: "",
-			wantErr:          true,
+			name:           "unauthorized - create_time (OUTPUT_ONLY)",
+			fieldMaskPaths: []string{"create_time"},
+			wantErr:        true,
+		},
+		{
+			name:           "unauthorized - delete_time",
+			fieldMaskPaths: []string{"delete_time"},
+			wantErr:        true,
+		},
+		{
+			name:           "mix of authorized and unauthorized",
+			fieldMaskPaths: []string{"display_name", "name"},
+			wantErr:        true,
+		},
+		{
+			name:           "field not in update paths - email_addresses",
+			fieldMaskPaths: []string{"email_addresses"},
+			wantErr:        true,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resource := &pb.Resource{}
-			updateResourceRequest := &pb.UpdateResourceRequest{
-				Resource:   resource,
-				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+				Author:     &librarypb.Author{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
 			}
-			parsedRequest, err := parser.Parse(updateResourceRequest)
+			parsedRequest, err := parser.Parse(updateAuthorRequest)
 
-			// Check for errors if expected.
-			if tt.wantErr {
+			if tc.wantErr {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				// Verify the parsed request SQL Update Clause.
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
+				return
 			}
+			require.NoError(t, err)
+			require.Equal(t, tc.wantColumns, parsedRequest.GetSQLColumns())
 		})
 	}
 }
 
-func TestUpdateRequestParser_ParseWithWildcardMapping(t *testing.T) {
-	parser, err := NewUpdateRequestParser[*pb.UpdateResourceRequest, *pb.Resource]()
-	require.NoError(t, err)
+func TestUpdateRequestParser_WildcardPaths(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
 
 	tests := []struct {
-		name             string
-		fieldMaskPaths   []string
-		wantUpdateClause string
-		wantErr          bool
+		name           string
+		fieldMaskPaths []string
+		wantColumns    []string
+		wantErr        bool
 	}{
 		{
-			name:             "matching wildcard path",
-			fieldMaskPaths:   []string{"nested4.field1"},
-			wantUpdateClause: "nested4 = EXCLUDED.nested4",
-			wantErr:          false,
+			name:           "nested field via wildcard - single field",
+			fieldMaskPaths: []string{"metadata.country"},
+			wantColumns:    []string{"metadata"},
 		},
 		{
-			name:             "match wildcard path + unauthorized field",
-			fieldMaskPaths:   []string{"nested4.field1", "nested4.field2"},
-			wantUpdateClause: "",
-			wantErr:          true,
+			name:           "nested field via wildcard - multiple fields same parent",
+			fieldMaskPaths: []string{"metadata.country", "metadata.email_addresses"},
+			wantColumns:    []string{"metadata"},
 		},
 		{
-			name:             "two matching wildcard path",
-			fieldMaskPaths:   []string{"nested4.field1", "nested4.field3"},
-			wantUpdateClause: "nested4 = EXCLUDED.nested4",
+			name:           "full metadata object",
+			fieldMaskPaths: []string{"metadata"},
+			wantColumns:    []string{"metadata"},
+		},
+		{
+			name:           "nested and simple fields combined",
+			fieldMaskPaths: []string{"metadata.country", "display_name"},
+			wantColumns:    []string{"metadata", "display_name"},
+		},
+		{
+			name:           "all nested metadata fields",
+			fieldMaskPaths: []string{"metadata.country", "metadata.email_addresses", "metadata.phone_numbers"},
+			wantColumns:    []string{"metadata"},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resource := &pb.Resource{}
-			updateResourceRequest := &pb.UpdateResourceRequest{
-				Resource:   resource,
-				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+				Author:     &librarypb.Author{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
 			}
-			parsedRequest, err := parser.Parse(updateResourceRequest)
+			parsedRequest, err := parser.Parse(updateAuthorRequest)
 
-			if tt.wantErr {
+			if tc.wantErr {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
+				return
 			}
+			require.NoError(t, err)
+			require.ElementsMatch(t, tc.wantColumns, parsedRequest.GetSQLColumns())
 		})
 	}
 }
 
-func TestUpdateRequestParser_UpdateTimestampAlwaysAuthorized(t *testing.T) {
-	parser, err := NewUpdateRequestParser[*pb.UpdateResource2Request, *pb.Resource]()
-	require.NoError(t, err)
+func TestUpdateRequestParser_AutoAuthorizedFields(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
+
+	tests := []struct {
+		name           string
+		fieldMaskPaths []string
+		wantColumns    []string
+	}{
+		{
+			name:           "update_time alone",
+			fieldMaskPaths: []string{"update_time"},
+			wantColumns:    []string{"update_time"},
+		},
+		{
+			name:           "update_time with other fields",
+			fieldMaskPaths: []string{"display_name", "update_time"},
+			wantColumns:    []string{"display_name", "update_time"},
+		},
+		{
+			name:           "etag alone",
+			fieldMaskPaths: []string{"etag"},
+			wantColumns:    []string{"etag"},
+		},
+		{
+			name:           "etag with other fields",
+			fieldMaskPaths: []string{"display_name", "etag"},
+			wantColumns:    []string{"display_name", "etag"},
+		},
+		{
+			name:           "both update_time and etag",
+			fieldMaskPaths: []string{"update_time", "etag"},
+			wantColumns:    []string{"update_time", "etag"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+				Author:     &librarypb.Author{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateAuthorRequest)
+			require.NoError(t, err)
+			require.ElementsMatch(t, tc.wantColumns, parsedRequest.GetSQLColumns())
+		})
+	}
+}
+
+func TestUpdateRequestParser_SQLClauses(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name             string
 		fieldMaskPaths   []string
+		wantSQLColumns   []string
+		wantUpsertClause string
 		wantUpdateClause string
-		wantErr          bool
 	}{
 		{
-			name:             "explicit field path",
-			fieldMaskPaths:   []string{"nested", "update_time"},
-			wantUpdateClause: "nested = EXCLUDED.nested, update_time = EXCLUDED.update_time",
-			wantErr:          false,
+			name:             "single field",
+			fieldMaskPaths:   []string{"display_name"},
+			wantSQLColumns:   []string{"display_name"},
+			wantUpsertClause: "display_name = EXCLUDED.display_name",
+			wantUpdateClause: "display_name = $1",
 		},
 		{
-			name:             "explicit field path with default path",
-			fieldMaskPaths:   []string{"update_time"},
-			wantUpdateClause: "update_time = EXCLUDED.update_time",
-			wantErr:          false,
+			name:             "multiple fields",
+			fieldMaskPaths:   []string{"display_name", "biography"},
+			wantSQLColumns:   []string{"biography", "display_name"},
+			wantUpsertClause: "biography = EXCLUDED.biography, display_name = EXCLUDED.display_name",
+			wantUpdateClause: "biography = $1, display_name = $2",
+		},
+		{
+			name:             "nested via wildcard collapses to parent",
+			fieldMaskPaths:   []string{"metadata.country", "metadata.email_addresses"},
+			wantSQLColumns:   []string{"metadata"},
+			wantUpsertClause: "metadata = EXCLUDED.metadata",
+			wantUpdateClause: "metadata = $1",
+		},
+		{
+			name:             "mixed nested and simple",
+			fieldMaskPaths:   []string{"display_name", "metadata.country"},
+			wantSQLColumns:   []string{"display_name", "metadata"},
+			wantUpsertClause: "display_name = EXCLUDED.display_name, metadata = EXCLUDED.metadata",
+			wantUpdateClause: "display_name = $1, metadata = $2",
+		},
+		{
+			name:             "three fields",
+			fieldMaskPaths:   []string{"display_name", "biography", "email_address"},
+			wantSQLColumns:   []string{"biography", "display_name", "email_address"},
+			wantUpsertClause: "biography = EXCLUDED.biography, display_name = EXCLUDED.display_name, email_address = EXCLUDED.email_address",
+			wantUpdateClause: "biography = $1, display_name = $2, email_address = $3",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resource := &pb.Resource{}
-			updateResourceRequest := &pb.UpdateResource2Request{
-				Resource:   resource,
-				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+				Author:     &librarypb.Author{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
 			}
-			parsedRequest, err := parser.Parse(updateResourceRequest)
-
-			if tt.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpsertClause())
-			}
+			parsedRequest, err := parser.Parse(updateAuthorRequest)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantSQLColumns, parsedRequest.GetSQLColumns())
+			require.Equal(t, tc.wantUpsertClause, parsedRequest.GetSQLUpsertClause())
+			require.Equal(t, tc.wantUpdateClause, parsedRequest.GetSQLUpdateClause())
 		})
 	}
 }
 
 func TestParsedUpdateRequest_ApplyFieldMask(t *testing.T) {
-	existingResource := &pb.Resource{
-		Field1: "initialValue1",
-		Nested: &pb.NestedResource{
-			Field2: 123,
-			Field3: "initialValue2",
-		},
-		Nested2: &pb.NestedResource{
-			Field2: 456,
-			Field3: "initialValue3",
-		},
-	}
-	newResource := &pb.Resource{
-		Field1: "updatedValue1",
-		Nested: &pb.NestedResource{
-			Field2: 789,
-			Field3: "updatedValue2",
-		},
-		Nested2: &pb.NestedResource{
-			Field2: 101112,
-			Field3: "updatedValue3",
-		},
-	}
+	t.Run("simple fields only", func(t *testing.T) {
+		existingAuthor := &librarypb.Author{
+			DisplayName:  "Original Name",
+			Biography:    "Original Bio",
+			EmailAddress: "original@test.com",
+		}
+		newAuthor := &librarypb.Author{
+			DisplayName:  "Updated Name",
+			Biography:    "Updated Bio",
+			EmailAddress: "updated@test.com",
+		}
 
-	// Test updating specific nested fields
-	parsedRequestSpecificNestedFields := &ParsedUpdateRequest{
-		fieldMask: pbfieldmask.FromPaths("field1", "nested.field3"),
-	}
-	parsedRequestSpecificNestedFields.ApplyFieldMask(existingResource, newResource)
+		parsedRequest := &ParsedUpdateRequest{
+			fieldMask: pbfieldmask.FromPaths("display_name"),
+		}
+		parsedRequest.ApplyFieldMask(existingAuthor, newAuthor)
 
-	// Verify that only the specified fields have been updated
-	require.Equal(t, "updatedValue1", existingResource.Field1)         // field1 should be updated
-	require.Equal(t, int64(123), existingResource.Nested.Field2)       // nested.field2 should NOT be updated
-	require.Equal(t, "updatedValue2", existingResource.Nested.Field3)  // nested.field3 should be updated
-	require.Equal(t, int64(456), existingResource.Nested2.Field2)      // nested2.field2 should NOT be updated
-	require.Equal(t, "initialValue3", existingResource.Nested2.Field3) // nested2.field3 should NOT be updated
+		require.Equal(t, "Updated Name", existingAuthor.DisplayName)
+		require.Equal(t, "Original Bio", existingAuthor.Biography)
+		require.Equal(t, "original@test.com", existingAuthor.EmailAddress)
+	})
 
-	// Set up a fresh instance of the existing resource for the next test
-	existingResource = &pb.Resource{
-		Field1: "initialValue1",
-		Nested: &pb.NestedResource{
-			Field2: 123,
-			Field3: "initialValue2",
-		},
-		Nested2: &pb.NestedResource{
-			Field2: 456,
-			Field3: "initialValue3",
-		},
-	}
+	t.Run("entire nested message", func(t *testing.T) {
+		existingAuthor := &librarypb.Author{
+			DisplayName: "Original Name",
+			Metadata: &librarypb.AuthorMetadata{
+				Country:        "USA",
+				EmailAddresses: []string{"old@test.com"},
+			},
+		}
+		newAuthor := &librarypb.Author{
+			DisplayName: "Updated Name",
+			Metadata: &librarypb.AuthorMetadata{
+				Country:        "UK",
+				EmailAddresses: []string{"new@test.com"},
+			},
+		}
 
-	// Test replacing the entire nested field
-	parsedRequestEntireNestedField := &ParsedUpdateRequest{
-		fieldMask: pbfieldmask.FromPaths("nested2"),
-	}
-	parsedRequestEntireNestedField.ApplyFieldMask(existingResource, newResource)
+		parsedRequest := &ParsedUpdateRequest{
+			fieldMask: pbfieldmask.FromPaths("metadata"),
+		}
+		parsedRequest.ApplyFieldMask(existingAuthor, newAuthor)
 
-	// Verify that the entire nested2 field has been replaced
-	require.Equal(t, "initialValue1", existingResource.Field1)         // field1 should NOT be updated
-	require.Equal(t, int64(123), existingResource.Nested.Field2)       // nested.field2 should NOT be updated
-	require.Equal(t, "initialValue2", existingResource.Nested.Field3)  // nested.field3 should NOT be updated
-	require.Equal(t, int64(101112), existingResource.Nested2.Field2)   // nested2.field2 should be updated
-	require.Equal(t, "updatedValue3", existingResource.Nested2.Field3) // nested2.field3 should be updated
+		require.Equal(t, "Original Name", existingAuthor.DisplayName)
+		require.Equal(t, "UK", existingAuthor.Metadata.Country)
+		require.Equal(t, []string{"new@test.com"}, existingAuthor.Metadata.EmailAddresses)
+	})
+
+	t.Run("specific nested field", func(t *testing.T) {
+		existingAuthor := &librarypb.Author{
+			Metadata: &librarypb.AuthorMetadata{
+				Country:        "USA",
+				EmailAddresses: []string{"old@test.com"},
+			},
+		}
+		newAuthor := &librarypb.Author{
+			Metadata: &librarypb.AuthorMetadata{
+				Country:        "UK",
+				EmailAddresses: []string{"new@test.com"},
+			},
+		}
+
+		parsedRequest := &ParsedUpdateRequest{
+			fieldMask: pbfieldmask.FromPaths("metadata.country"),
+		}
+		parsedRequest.ApplyFieldMask(existingAuthor, newAuthor)
+
+		require.Equal(t, "UK", existingAuthor.Metadata.Country)
+		require.Equal(t, []string{"old@test.com"}, existingAuthor.Metadata.EmailAddresses)
+	})
+
+	t.Run("multiple fields", func(t *testing.T) {
+		existingAuthor := &librarypb.Author{
+			DisplayName:  "Original Name",
+			Biography:    "Original Bio",
+			EmailAddress: "original@test.com",
+			PhoneNumber:  "+1234567890",
+		}
+		newAuthor := &librarypb.Author{
+			DisplayName:  "Updated Name",
+			Biography:    "Updated Bio",
+			EmailAddress: "updated@test.com",
+			PhoneNumber:  "+0987654321",
+		}
+
+		parsedRequest := &ParsedUpdateRequest{
+			fieldMask: pbfieldmask.FromPaths("display_name", "phone_number"),
+		}
+		parsedRequest.ApplyFieldMask(existingAuthor, newAuthor)
+
+		require.Equal(t, "Updated Name", existingAuthor.DisplayName)
+		require.Equal(t, "Original Bio", existingAuthor.Biography)
+		require.Equal(t, "original@test.com", existingAuthor.EmailAddress)
+		require.Equal(t, "+0987654321", existingAuthor.PhoneNumber)
+	})
+
+	t.Run("map field - labels", func(t *testing.T) {
+		existingAuthor := &librarypb.Author{
+			DisplayName: "Original Name",
+			Labels:      map[string]string{"env": "prod", "team": "alpha"},
+		}
+		newAuthor := &librarypb.Author{
+			DisplayName: "Updated Name",
+			Labels:      map[string]string{"env": "staging", "version": "v2"},
+		}
+
+		parsedRequest := &ParsedUpdateRequest{
+			fieldMask: pbfieldmask.FromPaths("labels"),
+		}
+		parsedRequest.ApplyFieldMask(existingAuthor, newAuthor)
+
+		require.Equal(t, "Original Name", existingAuthor.DisplayName)
+		require.Equal(t, map[string]string{"env": "staging", "version": "v2"}, existingAuthor.Labels)
+	})
 }
 
-func TestUpdateRequestParser_ParseWithColumnNameChange(t *testing.T) {
-	parser, err := NewUpdateRequestParser[*pb.UpdateResourceWithColumnNameRequest, *pb.Resource]()
-	require.NoError(t, err)
+func TestUpdateRequestParser_EmptyFieldMask(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
+
+	updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+		Author:     &librarypb.Author{},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{}},
+	}
+	_, err := parser.Parse(updateAuthorRequest)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no mask paths")
+}
+
+func TestUpdateRequestParser_InvalidFieldMask(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
+
+	updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+		Author:     &librarypb.Author{},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"nonexistent_field"}},
+	}
+	_, err := parser.Parse(updateAuthorRequest)
+	require.Error(t, err)
+}
+
+func TestUpdateRequestParser_BookPaths(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateBookRequest, *librarypb.Book]()
+
+	tests := []struct {
+		name           string
+		fieldMaskPaths []string
+		wantColumns    []string
+		wantErr        bool
+	}{
+		{
+			name:           "title field",
+			fieldMaskPaths: []string{"title"},
+			wantColumns:    []string{"title"},
+		},
+		{
+			name:           "author reference field",
+			fieldMaskPaths: []string{"author"},
+			wantColumns:    []string{"author"},
+		},
+		{
+			name:           "numeric fields",
+			fieldMaskPaths: []string{"publication_year", "page_count"},
+			wantColumns:    []string{"publication_year", "page_count"},
+		},
+		{
+			name:           "metadata nested field",
+			fieldMaskPaths: []string{"metadata.summary"},
+			wantColumns:    []string{"metadata"},
+		},
+		{
+			name:           "metadata multiple nested fields",
+			fieldMaskPaths: []string{"metadata.summary", "metadata.language"},
+			wantColumns:    []string{"metadata"},
+		},
+		{
+			name:           "all book update paths",
+			fieldMaskPaths: []string{"title", "author", "isbn", "publication_year", "page_count"},
+			wantColumns:    []string{"title", "author", "isbn", "publication_year", "page_count"},
+		},
+		{
+			name:           "labels not in book update paths",
+			fieldMaskPaths: []string{"labels"},
+			wantErr:        true,
+		},
+		{
+			name:           "name unauthorized",
+			fieldMaskPaths: []string{"name"},
+			wantErr:        true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateBookRequest := &libraryservicepb.UpdateBookRequest{
+				Book:       &librarypb.Book{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateBookRequest)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.ElementsMatch(t, tc.wantColumns, parsedRequest.GetSQLColumns())
+		})
+	}
+}
+
+func TestUpdateRequestParser_ShelfPaths(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateShelfRequest, *librarypb.Shelf]()
+
+	tests := []struct {
+		name           string
+		fieldMaskPaths []string
+		wantColumns    []string
+		wantErr        bool
+	}{
+		{
+			name:           "display_name field",
+			fieldMaskPaths: []string{"display_name"},
+			wantColumns:    []string{"display_name"},
+		},
+		{
+			name:           "genre enum field",
+			fieldMaskPaths: []string{"genre"},
+			wantColumns:    []string{"genre"},
+		},
+		{
+			name:           "metadata nested field (with name change)",
+			fieldMaskPaths: []string{"metadata.capacity"},
+			wantColumns:    []string{"legacy_meta"},
+		},
+		{
+			name:           "multiple authorized fields",
+			fieldMaskPaths: []string{"display_name", "genre"},
+			wantColumns:    []string{"display_name", "genre"},
+		},
+		{
+			name:           "labels not in shelf update paths",
+			fieldMaskPaths: []string{"labels"},
+			wantErr:        true,
+		},
+		{
+			name:           "delete_time unauthorized",
+			fieldMaskPaths: []string{"delete_time"},
+			wantErr:        true,
+		},
+		{
+			name:           "mixed authorized and unauthorized",
+			fieldMaskPaths: []string{"display_name", "genre", "metadata"},
+			wantErr:        true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+				Shelf:      &librarypb.Shelf{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
+			}
+			parsedRequest, err := parser.Parse(updateShelfRequest)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.wantColumns, parsedRequest.GetSQLColumns())
+		})
+	}
+}
+
+func TestUpdateRequestParser_ColumnNameReplacement(t *testing.T) {
+	parser := MustNewUpdateRequestParser[*libraryservicepb.UpdateShelfRequest, *librarypb.Shelf]()
 
 	tests := []struct {
 		name             string
 		fieldMaskPaths   []string
+		wantColumns      []string
 		wantUpsertClause string
 		wantUpdateClause string
-		wantColumns      []string
-		wantErr          bool
 	}{
 		{
-			name:             "field with column name change",
-			fieldMaskPaths:   []string{"column_name_changed"},
-			wantUpsertClause: "new_name = EXCLUDED.new_name",
-			wantUpdateClause: "new_name = $1",
-			wantColumns:      []string{"new_name"},
-			wantErr:          false,
+			name:             "external_id uses ext_id column",
+			fieldMaskPaths:   []string{"external_id"},
+			wantColumns:      []string{"ext_id"},
+			wantUpsertClause: "ext_id = EXCLUDED.ext_id",
+			wantUpdateClause: "ext_id = $1",
 		},
 		{
-			name:             "field with column name change and regular field",
-			fieldMaskPaths:   []string{"column_name_changed", "field1"},
-			wantUpsertClause: "new_name = EXCLUDED.new_name, field1 = EXCLUDED.field1",
-			wantUpdateClause: "new_name = $1, field1 = $2",
-			wantColumns:      []string{"new_name", "field1"},
-			wantErr:          false,
+			name:             "correlation_id_2 uses correlation_id column",
+			fieldMaskPaths:   []string{"correlation_id_2"},
+			wantColumns:      []string{"correlation_id"},
+			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id",
+			wantUpdateClause: "correlation_id = $1",
 		},
 		{
-			name:             "regular field only",
-			fieldMaskPaths:   []string{"field1"},
-			wantUpsertClause: "field1 = EXCLUDED.field1",
-			wantUpdateClause: "field1 = $1",
-			wantColumns:      []string{"field1"},
-			wantErr:          false,
+			name:             "multiple renamed columns",
+			fieldMaskPaths:   []string{"external_id", "correlation_id_2"},
+			wantColumns:      []string{"correlation_id", "ext_id"},
+			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id",
+			wantUpdateClause: "correlation_id = $1, ext_id = $2",
 		},
 		{
-			name:           "unauthorized field",
-			fieldMaskPaths: []string{"nested"},
-			wantErr:        true,
-		},
-		// New test cases for nested_changed with column name change
-		{
-			name:             "nested field with column name change via path mapping",
-			fieldMaskPaths:   []string{"nested_changed.field2"},
-			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name",
-			wantUpdateClause: "nested_new_name = $1",
-			wantColumns:      []string{"nested_new_name"},
-			wantErr:          false,
+			name:             "mixed standard and renamed columns",
+			fieldMaskPaths:   []string{"display_name", "external_id", "genre"},
+			wantColumns:      []string{"display_name", "ext_id", "genre"},
+			wantUpsertClause: "display_name = EXCLUDED.display_name, ext_id = EXCLUDED.ext_id, genre = EXCLUDED.genre",
+			wantUpdateClause: "display_name = $1, ext_id = $2, genre = $3",
 		},
 		{
-			name:             "nested field with column name change - full object update",
-			fieldMaskPaths:   []string{"nested_changed"},
-			wantUpsertClause: "nested_new_name = EXCLUDED.nested_new_name",
-			wantUpdateClause: "nested_new_name = $1",
-			wantColumns:      []string{"nested_new_name"},
-			wantErr:          false,
+			name:             "nested field with parent column replacement",
+			fieldMaskPaths:   []string{"metadata.capacity"},
+			wantColumns:      []string{"legacy_meta"},
+			wantUpsertClause: "legacy_meta = EXCLUDED.legacy_meta",
+			wantUpdateClause: "legacy_meta = $1",
 		},
 		{
-			name:             "nested field with column name change combined with regular fields",
-			fieldMaskPaths:   []string{"nested_changed.field2", "field1", "column_name_changed"},
-			wantUpsertClause: "new_name = EXCLUDED.new_name, field1 = EXCLUDED.field1, nested_new_name = EXCLUDED.nested_new_name",
-			wantUpdateClause: "new_name = $1, field1 = $2, nested_new_name = $3",
-			wantColumns:      []string{"new_name", "field1", "nested_new_name"},
-			wantErr:          false,
+			name:             "all renamed columns together",
+			fieldMaskPaths:   []string{"external_id", "correlation_id_2", "metadata.capacity"},
+			wantColumns:      []string{"correlation_id", "ext_id", "legacy_meta"},
+			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id, legacy_meta = EXCLUDED.legacy_meta",
+			wantUpdateClause: "correlation_id = $1, ext_id = $2, legacy_meta = $3",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resource := &pb.Resource{}
-			updateResourceRequest := &pb.UpdateResourceWithColumnNameRequest{
-				Resource:   resource,
-				UpdateMask: &fieldmaskpb.FieldMask{Paths: tt.fieldMaskPaths},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+				Shelf:      &librarypb.Shelf{},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
 			}
-			parsedRequest, err := parser.Parse(updateResourceRequest)
-
-			if tt.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.wantUpsertClause, parsedRequest.GetSQLUpsertClause())
-				require.Equal(t, tt.wantUpdateClause, parsedRequest.GetSQLUpdateClause())
-				require.Equal(t, tt.wantColumns, parsedRequest.GetSQLColumns())
-			}
+			parsedRequest, err := parser.Parse(updateShelfRequest)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantColumns, parsedRequest.GetSQLColumns())
+			require.Equal(t, tc.wantUpsertClause, parsedRequest.GetSQLUpsertClause())
+			require.Equal(t, tc.wantUpdateClause, parsedRequest.GetSQLUpdateClause())
 		})
 	}
+}
+
+func TestUpdateRequestParser_MustNewPanics(t *testing.T) {
+	require.NotPanics(t, func() {
+		MustNewUpdateRequestParser[*libraryservicepb.UpdateAuthorRequest, *librarypb.Author]()
+	})
+	require.NotPanics(t, func() {
+		MustNewUpdateRequestParser[*libraryservicepb.UpdateBookRequest, *librarypb.Book]()
+	})
+	require.NotPanics(t, func() {
+		MustNewUpdateRequestParser[*libraryservicepb.UpdateShelfRequest, *librarypb.Shelf]()
+	})
 }

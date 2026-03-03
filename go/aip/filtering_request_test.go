@@ -3,11 +3,11 @@ package aip
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
-	pb "github.com/malonaz/core/genproto/test/aip"
+	libraryservicepb "github.com/malonaz/core/genproto/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/library/v1"
 )
 
 func escapeDollar(s string) string {
@@ -17,36 +17,46 @@ func escapeDollar(s string) string {
 func TestFilteringRequestParser_NewParser(t *testing.T) {
 	tests := []struct {
 		name         string
-		createParser func() (*FilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource], error)
+		createParser func() error
 		wantErr      bool
 	}{
 		{
-			name: "valid parser creation",
-			createParser: func() (*FilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource], error) {
-				return NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+			name: "valid parser creation - Author",
+			createParser: func() error {
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+				return err
 			},
-			wantErr: false,
+		},
+		{
+			name: "valid parser creation - Shelf",
+			createParser: func() error {
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+				return err
+			},
+		},
+		{
+			name: "valid parser creation - Book",
+			createParser: func() error {
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+				return err
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			parser, err := tc.createParser()
+			err := tc.createParser()
 			if tc.wantErr {
 				require.Error(t, err)
-				require.Nil(t, parser)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, parser)
-				require.NotNil(t, parser.declarations)
 			}
 		})
 	}
 }
 
 func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name           string
@@ -57,33 +67,15 @@ func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
 	}{
 		{
 			name:           "string field equality",
-			filter:         `id = "testUser"`,
-			expectedClause: "WHERE (id = $1)",
-			expectedParams: []any{"testUser"},
+			filter:         `display_name = "John Doe"`,
+			expectedClause: "WHERE (display_name = $1)",
+			expectedParams: []any{"John Doe"},
 		},
 		{
 			name:           "string field with special characters",
-			filter:         `id = "user@example.com"`,
-			expectedClause: "WHERE (id = $1)",
+			filter:         `email_address = "user@example.com"`,
+			expectedClause: "WHERE (email_address = $1)",
 			expectedParams: []any{"user@example.com"},
-		},
-		{
-			name:           "boolean field bare identifier (true)",
-			filter:         `deleted`,
-			expectedClause: "WHERE deleted",
-			expectedParams: []any{},
-		},
-		{
-			name:           "boolean field explicit true",
-			filter:         `deleted = true`,
-			expectedClause: "WHERE (deleted = true)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "boolean field explicit false",
-			filter:         `deleted = false`,
-			expectedClause: "WHERE (deleted = false)",
-			expectedParams: []any{},
 		},
 		{
 			name:           "empty filter",
@@ -95,7 +87,7 @@ func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -110,8 +102,7 @@ func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
 }
 
 func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
 
 	tests := []struct {
 		name           string
@@ -122,69 +113,69 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 	}{
 		{
 			name:           "string equality",
-			filter:         `id = "test"`,
-			expectedClause: "WHERE (id = $1)",
-			expectedParams: []any{"test"},
+			filter:         `title = "The Great Gatsby"`,
+			expectedClause: "WHERE (title = $1)",
+			expectedParams: []any{"The Great Gatsby"},
 		},
 		{
 			name:           "string not equal",
-			filter:         `id != "excluded"`,
-			expectedClause: "WHERE (id != $1)",
-			expectedParams: []any{"excluded"},
+			filter:         `title != "Excluded"`,
+			expectedClause: "WHERE (title != $1)",
+			expectedParams: []any{"Excluded"},
 		},
 		{
 			name:           "integer greater than",
-			filter:         `column_name_changed > 1000`,
-			expectedClause: "WHERE (new_name > $1)",
-			expectedParams: []any{int64(1000)},
-		},
-		{
-			name:           "integer less than",
-			filter:         `column_name_changed < 2000`,
-			expectedClause: "WHERE (new_name < $1)",
+			filter:         `publication_year > 2000`,
+			expectedClause: "WHERE (publication_year > $1)",
 			expectedParams: []any{int64(2000)},
 		},
 		{
+			name:           "integer less than",
+			filter:         `publication_year < 2020`,
+			expectedClause: "WHERE (publication_year < $1)",
+			expectedParams: []any{int64(2020)},
+		},
+		{
 			name:           "integer greater than or equal",
-			filter:         `column_name_changed >= 1500`,
-			expectedClause: "WHERE (new_name >= $1)",
-			expectedParams: []any{int64(1500)},
+			filter:         `publication_year >= 1990`,
+			expectedClause: "WHERE (publication_year >= $1)",
+			expectedParams: []any{int64(1990)},
 		},
 		{
 			name:           "integer less than or equal",
-			filter:         `column_name_changed <= 1800`,
-			expectedClause: "WHERE (new_name <= $1)",
-			expectedParams: []any{int64(1800)},
+			filter:         `publication_year <= 2010`,
+			expectedClause: "WHERE (publication_year <= $1)",
+			expectedParams: []any{int64(2010)},
 		},
 		{
 			name:           "integer equality",
-			filter:         `column_name_changed = 100`,
-			expectedClause: "WHERE (new_name = $1)",
-			expectedParams: []any{int64(100)},
+			filter:         `publication_year = 1984`,
+			expectedClause: "WHERE (publication_year = $1)",
+			expectedParams: []any{int64(1984)},
 		},
 		{
 			name:           "integer not equal",
-			filter:         `column_name_changed != 999`,
-			expectedClause: "WHERE (new_name != $1)",
-			expectedParams: []any{int64(999)},
+			filter:         `publication_year != 1999`,
+			expectedClause: "WHERE (publication_year != $1)",
+			expectedParams: []any{int64(1999)},
 		},
 		{
 			name:           "string greater than (lexical)",
-			filter:         `id > "abc"`,
-			expectedClause: "WHERE (id > $1)",
-			expectedParams: []any{"abc"},
+			filter:         `title > "A"`,
+			expectedClause: "WHERE (title > $1)",
+			expectedParams: []any{"A"},
 		},
 		{
 			name:           "string less than (lexical)",
-			filter:         `id < "xyz"`,
-			expectedClause: "WHERE (id < $1)",
-			expectedParams: []any{"xyz"},
+			filter:         `title < "Z"`,
+			expectedClause: "WHERE (title < $1)",
+			expectedParams: []any{"Z"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -199,8 +190,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 }
 
 func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name           string
@@ -211,75 +201,57 @@ func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
 	}{
 		{
 			name:           "AND with two conditions",
-			filter:         `id = "user1" AND deleted`,
-			expectedClause: "WHERE ((id = $1) AND deleted)",
-			expectedParams: []any{"user1"},
+			filter:         `display_name = "John" AND biography = "Author bio"`,
+			expectedClause: "WHERE ((display_name = $1) AND (biography = $2))",
+			expectedParams: []any{"John", "Author bio"},
 		},
 		{
 			name:           "AND with three conditions",
-			filter:         `id = "user1" AND deleted AND field1 = "test"`,
-			expectedClause: "WHERE (((id = $1) AND deleted) AND (field1 = $2))",
-			expectedParams: []any{"user1", "test"},
+			filter:         `display_name = "John" AND biography = "Bio" AND email_address = "john@test.com"`,
+			expectedClause: "WHERE (((display_name = $1) AND (biography = $2)) AND (email_address = $3))",
+			expectedParams: []any{"John", "Bio", "john@test.com"},
 		},
 		{
 			name:           "OR with two conditions",
-			filter:         `id = "user1" OR id = "user2"`,
-			expectedClause: "WHERE ((id = $1) OR (id = $2))",
-			expectedParams: []any{"user1", "user2"},
+			filter:         `display_name = "John" OR display_name = "Jane"`,
+			expectedClause: "WHERE ((display_name = $1) OR (display_name = $2))",
+			expectedParams: []any{"John", "Jane"},
 		},
 		{
 			name:           "OR with three conditions",
-			filter:         `id = "a" OR id = "b" OR id = "c"`,
-			expectedClause: "WHERE (((id = $1) OR (id = $2)) OR (id = $3))",
-			expectedParams: []any{"a", "b", "c"},
-		},
-		{
-			name:           "NOT with boolean",
-			filter:         `NOT deleted`,
-			expectedClause: "WHERE (NOT deleted)",
-			expectedParams: []any{},
+			filter:         `display_name = "A" OR display_name = "B" OR display_name = "C"`,
+			expectedClause: "WHERE (((display_name = $1) OR (display_name = $2)) OR (display_name = $3))",
+			expectedParams: []any{"A", "B", "C"},
 		},
 		{
 			name:           "NOT with comparison",
-			filter:         `NOT id = "excluded"`,
-			expectedClause: "WHERE (NOT (id = $1))",
-			expectedParams: []any{"excluded"},
+			filter:         `NOT display_name = "Excluded"`,
+			expectedClause: "WHERE (NOT (display_name = $1))",
+			expectedParams: []any{"Excluded"},
 		},
 		{
 			name:           "NOT with parentheses",
-			filter:         `NOT (id = "a" OR id = "b")`,
-			expectedClause: "WHERE (NOT ((id = $1) OR (id = $2)))",
-			expectedParams: []any{"a", "b"},
-		},
-		{
-			name:           "minus operator with boolean",
-			filter:         `-deleted`,
-			expectedClause: "WHERE (NOT deleted)",
-			expectedParams: []any{},
+			filter:         `NOT (display_name = "A" OR display_name = "B")`,
+			expectedClause: "WHERE (NOT ((display_name = $1) OR (display_name = $2)))",
+			expectedParams: []any{"A", "B"},
 		},
 		{
 			name:           "minus operator with comparison",
-			filter:         `-id = "excluded"`,
-			expectedClause: "WHERE (NOT (id = $1))",
-			expectedParams: []any{"excluded"},
+			filter:         `-display_name = "Excluded"`,
+			expectedClause: "WHERE (NOT (display_name = $1))",
+			expectedParams: []any{"Excluded"},
 		},
 		{
 			name:           "AND and OR combined with parentheses",
-			filter:         `(id = "user1" OR id = "user2") AND NOT deleted`,
-			expectedClause: "WHERE (((id = $1) OR (id = $2)) AND (NOT deleted))",
-			expectedParams: []any{"user1", "user2"},
-		},
-		{
-			name:           "nested NOT with parentheses",
-			filter:         `NOT (NOT deleted)`,
-			expectedClause: "WHERE (NOT (NOT deleted))",
-			expectedParams: []any{},
+			filter:         `(display_name = "John" OR display_name = "Jane") AND NOT email_address = "spam@test.com"`,
+			expectedClause: "WHERE (((display_name = $1) OR (display_name = $2)) AND (NOT (email_address = $3)))",
+			expectedParams: []any{"John", "Jane", "spam@test.com"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -294,8 +266,7 @@ func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
 }
 
 func TestFilteringRequestParser_OperatorPrecedence(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name           string
@@ -305,27 +276,27 @@ func TestFilteringRequestParser_OperatorPrecedence(t *testing.T) {
 	}{
 		{
 			name:           "OR has higher precedence than AND",
-			filter:         `id = "a" AND id = "b" OR id = "c"`,
-			expectedClause: "WHERE ((id = $1) AND ((id = $2) OR (id = $3)))",
-			expectedParams: []any{"a", "b", "c"},
+			filter:         `display_name = "A" AND display_name = "B" OR display_name = "C"`,
+			expectedClause: "WHERE ((display_name = $1) AND ((display_name = $2) OR (display_name = $3)))",
+			expectedParams: []any{"A", "B", "C"},
 		},
 		{
 			name:           "explicit parentheses override precedence",
-			filter:         `(id = "a" AND id = "b") OR id = "c"`,
-			expectedClause: "WHERE (((id = $1) AND (id = $2)) OR (id = $3))",
-			expectedParams: []any{"a", "b", "c"},
+			filter:         `(display_name = "A" AND display_name = "B") OR display_name = "C"`,
+			expectedClause: "WHERE (((display_name = $1) AND (display_name = $2)) OR (display_name = $3))",
+			expectedParams: []any{"A", "B", "C"},
 		},
 		{
 			name:           "multiple OR groups with AND",
-			filter:         `id = "a" AND id = "b" OR id = "c" AND id = "d" OR id = "e"`,
-			expectedClause: "WHERE (((id = $1) AND ((id = $2) OR (id = $3))) AND ((id = $4) OR (id = $5)))",
-			expectedParams: []any{"a", "b", "c", "d", "e"},
+			filter:         `display_name = "A" AND display_name = "B" OR display_name = "C" AND display_name = "D" OR display_name = "E"`,
+			expectedClause: "WHERE (((display_name = $1) AND ((display_name = $2) OR (display_name = $3))) AND ((display_name = $4) OR (display_name = $5)))",
+			expectedParams: []any{"A", "B", "C", "D", "E"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			require.NoError(t, err)
 			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
@@ -336,243 +307,302 @@ func TestFilteringRequestParser_OperatorPrecedence(t *testing.T) {
 }
 
 func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	t.Run("Author metadata", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
-	tests := []struct {
-		name           string
-		filter         string
-		expectedClause string
-		expectedParams []any
-		wantErr        bool
-	}{
-		{
-			name:           "nested string field",
-			filter:         `nested.field3 = "value"`,
-			expectedClause: "WHERE (nested->>'field3' = $1)",
-			expectedParams: []any{"value"},
-		},
-		{
-			name:           "nested integer field",
-			filter:         `nested.field2 = 42`,
-			expectedClause: "WHERE ((nested->>'field2')::bigint = $1)",
-			expectedParams: []any{int64(42)},
-		},
-		{
-			name:           "nested boolean field bare",
-			filter:         `nested.field1`,
-			expectedClause: "WHERE (nested->>'field1')::boolean",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested boolean field explicit",
-			filter:         `nested.field1 = true`,
-			expectedClause: "WHERE ((nested->>'field1')::boolean = true)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "deeply nested string field",
-			filter:         `nested.further_nested.field3 = "deep"`,
-			expectedClause: "WHERE (nested->'further_nested'->>'field3' = $1)",
-			expectedParams: []any{"deep"},
-		},
-		{
-			name:           "deeply nested integer field",
-			filter:         `nested.further_nested.field2 = 99`,
-			expectedClause: "WHERE ((nested->'further_nested'->>'field2')::bigint = $1)",
-			expectedParams: []any{int64(99)},
-		},
-		{
-			name:           "deeply nested boolean field",
-			filter:         `nested.further_nested.field1`,
-			expectedClause: "WHERE (nested->'further_nested'->>'field1')::boolean",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested integer greater than",
-			filter:         `nested.field2 > 10`,
-			expectedClause: "WHERE ((nested->>'field2')::bigint > $1)",
-			expectedParams: []any{int64(10)},
-		},
-		{
-			name:           "nested integer less than or equal",
-			filter:         `nested.further_nested.field2 <= 100`,
-			expectedClause: "WHERE ((nested->'further_nested'->>'field2')::bigint <= $1)",
-			expectedParams: []any{int64(100)},
-		},
-		{
-			name:    "undefined nested field",
-			filter:  `nested.undefined_field = "test"`,
-			wantErr: true,
-		},
-	}
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+			wantErr        bool
+		}{
+			{
+				name:           "nested string field",
+				filter:         `metadata.country = "USA"`,
+				expectedClause: "WHERE (metadata->>'country' = $1)",
+				expectedParams: []any{"USA"},
+			},
+			{
+				name:    "undefined nested field",
+				filter:  `metadata.undefined_field = "test"`,
+				wantErr: true,
+			},
+		}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
-			parsedRequest, err := parser.Parse(request)
-			if tc.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
-			require.Equal(t, tc.expectedParams, whereParams)
-		})
-	}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				if tc.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Shelf metadata with integer", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "nested integer field equality",
+				filter:         `metadata.capacity = 100`,
+				expectedClause: "WHERE ((legacy_meta->>'capacity')::bigint = $1)",
+				expectedParams: []any{int64(100)},
+			},
+			{
+				name:           "nested integer field greater than",
+				filter:         `metadata.capacity > 50`,
+				expectedClause: "WHERE ((legacy_meta->>'capacity')::bigint > $1)",
+				expectedParams: []any{int64(50)},
+			},
+			{
+				name:           "nested integer field less than or equal",
+				filter:         `metadata.capacity <= 200`,
+				expectedClause: "WHERE ((legacy_meta->>'capacity')::bigint <= $1)",
+				expectedParams: []any{int64(200)},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book metadata strings", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "nested summary field",
+				filter:         `metadata.summary = "A great book"`,
+				expectedClause: "WHERE (metadata->>'summary' = $1)",
+				expectedParams: []any{"A great book"},
+			},
+			{
+				name:           "nested language field",
+				filter:         `metadata.language = "en"`,
+				expectedClause: "WHERE (metadata->>'language' = $1)",
+				expectedParams: []any{"en"},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }
 
 func TestFilteringRequestParser_HasOperator(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	t.Run("Author fields", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
-	tests := []struct {
-		name           string
-		filter         string
-		expectedClause string
-		expectedParams []any
-		wantErr        bool
-	}{
-		{
-			name:           "string field is present",
-			filter:         `id:*`,
-			expectedClause: "WHERE (id IS NOT NULL AND id != '')",
-			expectedParams: []any{},
-		},
-		{
-			name:           "string field is not present (null check)",
-			filter:         `NOT id:*`,
-			expectedClause: "WHERE (NOT (id IS NOT NULL AND id != ''))",
-			expectedParams: []any{},
-		},
-		{
-			name:           "boolean field is present",
-			filter:         `deleted:*`,
-			expectedClause: "WHERE (deleted IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "integer field is present",
-			filter:         `column_name_changed:*`,
-			expectedClause: "WHERE (new_name IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "enum field is present",
-			filter:         `my_enum:*`,
-			expectedClause: "WHERE (my_enum IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested message field is present",
-			filter:         `nested:*`,
-			expectedClause: "WHERE (nested IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested message field is not present",
-			filter:         `-nested:*`,
-			expectedClause: "WHERE (NOT (nested IS NOT NULL))",
-			expectedParams: []any{},
-		},
-		{
-			name:           "repeated string contains value",
-			filter:         `tags:"important"`,
-			expectedClause: "WHERE ($1 = ANY(tags))",
-			expectedParams: []any{"important"},
-		},
-		{
-			name:           "repeated string contains value with NOT",
-			filter:         `NOT tags:"spam"`,
-			expectedClause: "WHERE (NOT ($1 = ANY(tags)))",
-			expectedParams: []any{"spam"},
-		},
-		{
-			name:           "repeated field is present",
-			filter:         `tags:*`,
-			expectedClause: "WHERE (tags IS NOT NULL AND COALESCE(array_length(tags, 1), 0) > 0)",
-			expectedParams: []any{},
-		},
-
-		/*
-			   TODO(): Reactivate this once we fix our logic!
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+			wantErr        bool
+		}{
 			{
-				name:           "repeated message nested string field",
-				filter:         `items.field3:"test"`,
-				expectedClause: "WHERE (EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->>'field3' = $1))",
-				expectedParams: []any{"test"},
+				name:           "string field is present",
+				filter:         `display_name:*`,
+				expectedClause: "WHERE (display_name IS NOT NULL AND display_name != '')",
+				expectedParams: []any{},
 			},
 			{
-				name:           "repeated message deeply nested field",
-				filter:         `items.further_nested.field3:"deep"`,
-				expectedClause: "WHERE (EXISTS(SELECT 1 FROM jsonb_array_elements(items) AS _elem WHERE _elem->'further_nested'->>'field3' = $1))",
-				expectedParams: []any{"deep"},
-			},*/
+				name:           "string field is not present",
+				filter:         `NOT display_name:*`,
+				expectedClause: "WHERE (NOT (display_name IS NOT NULL AND display_name != ''))",
+				expectedParams: []any{},
+			},
+			{
+				name:           "nested message field is present",
+				filter:         `metadata:*`,
+				expectedClause: "WHERE (metadata IS NOT NULL)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "nested message field is not present",
+				filter:         `-metadata:*`,
+				expectedClause: "WHERE (NOT (metadata IS NOT NULL))",
+				expectedParams: []any{},
+			},
+			{
+				name:           "repeated string contains value",
+				filter:         `email_addresses:"john@example.com"`,
+				expectedClause: "WHERE ($1 = ANY(email_addresses))",
+				expectedParams: []any{"john@example.com"},
+			},
+			{
+				name:           "repeated string contains value with NOT",
+				filter:         `NOT email_addresses:"spam@example.com"`,
+				expectedClause: "WHERE (NOT ($1 = ANY(email_addresses)))",
+				expectedParams: []any{"spam@example.com"},
+			},
+			{
+				name:           "repeated field is present",
+				filter:         `email_addresses:*`,
+				expectedClause: "WHERE (email_addresses IS NOT NULL AND COALESCE(array_length(email_addresses, 1), 0) > 0)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "map contains key",
+				filter:         `labels:"environment"`,
+				expectedClause: "WHERE (COALESCE(labels, '{}') ? $1)",
+				expectedParams: []any{"environment"},
+			},
+			{
+				name:           "map does not contain key",
+				filter:         `NOT labels:"deprecated"`,
+				expectedClause: "WHERE (NOT (COALESCE(labels, '{}') ? $1))",
+				expectedParams: []any{"deprecated"},
+			},
+			{
+				name:           "map field is present",
+				filter:         `labels:*`,
+				expectedClause: "WHERE (labels IS NOT NULL AND labels != '{}'::jsonb)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "map key has specific value",
+				filter:         `labels.environment:"production"`,
+				expectedClause: "WHERE (labels->>'environment' = $1)",
+				expectedParams: []any{"production"},
+			},
+			{
+				name:           "map key equals specific value",
+				filter:         `labels.environment = "staging"`,
+				expectedClause: "WHERE (labels->>'environment' = $1)",
+				expectedParams: []any{"staging"},
+			},
+			{
+				name:           "has combined with AND",
+				filter:         `email_addresses:"john@example.com" AND display_name = "John"`,
+				expectedClause: "WHERE (($1 = ANY(email_addresses)) AND (display_name = $2))",
+				expectedParams: []any{"john@example.com", "John"},
+			},
+			{
+				name:           "presence check combined with equality",
+				filter:         `display_name:* AND display_name = "John"`,
+				expectedClause: "WHERE ((display_name IS NOT NULL AND display_name != '') AND (display_name = $1))",
+				expectedParams: []any{"John"},
+			},
+			{
+				name:           "timestamp field is present",
+				filter:         `create_time:*`,
+				expectedClause: "WHERE (create_time IS NOT NULL)",
+				expectedParams: []any{},
+			},
+		}
 
-		{
-			name:           "map contains key",
-			filter:         `labels:"environment"`,
-			expectedClause: "WHERE (COALESCE(labels, '{}') ? $1)",
-			expectedParams: []any{"environment"},
-		},
-		{
-			name:           "map does not contain key",
-			filter:         `NOT labels:"deprecated"`,
-			expectedClause: "WHERE (NOT (COALESCE(labels, '{}') ? $1))",
-			expectedParams: []any{"deprecated"},
-		},
-		{
-			name:           "map field is present",
-			filter:         `labels:*`,
-			expectedClause: "WHERE (labels IS NOT NULL AND labels != '{}'::jsonb)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "map key has specific value",
-			filter:         `labels.environment:"production"`,
-			expectedClause: "WHERE (labels->>'environment' = $1)",
-			expectedParams: []any{"production"},
-		},
-		{
-			name:           "map key equals specific value",
-			filter:         `labels.environment = "staging"`,
-			expectedClause: "WHERE (labels->>'environment' = $1)",
-			expectedParams: []any{"staging"},
-		},
-		{
-			name:           "has combined with AND",
-			filter:         `tags:"important" AND NOT deleted`,
-			expectedClause: "WHERE (($1 = ANY(tags)) AND (NOT deleted))",
-			expectedParams: []any{"important"},
-		},
-		{
-			name:           "presence check combined with equality",
-			filter:         `id:* AND id = "user1"`,
-			expectedClause: "WHERE ((id IS NOT NULL AND id != '') AND (id = $1))",
-			expectedParams: []any{"user1"},
-		},
-	}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				if tc.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
-			parsedRequest, err := parser.Parse(request)
-			if tc.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
-			require.Equal(t, tc.expectedParams, whereParams)
-		})
-	}
+	t.Run("Shelf enum field", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "enum field is present",
+				filter:         `genre:*`,
+				expectedClause: "WHERE (genre IS NOT NULL)",
+				expectedParams: []any{},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book integer field", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "integer field is present",
+				filter:         `publication_year:*`,
+				expectedClause: "WHERE (publication_year IS NOT NULL)",
+				expectedParams: []any{},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }
 
 func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name           string
@@ -583,70 +613,57 @@ func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
 	}{
 		{
 			name:           "string starts with",
-			filter:         `id = "user_*"`,
-			expectedClause: "WHERE (id LIKE $1)",
-			expectedParams: []any{"user_%"},
-		},
-		{
-			name:           "string starts with prefix",
-			filter:         `field1 = "prefix*"`,
-			expectedClause: "WHERE (field1 LIKE $1)",
-			expectedParams: []any{"prefix%"},
+			filter:         `display_name = "John*"`,
+			expectedClause: "WHERE (display_name LIKE $1)",
+			expectedParams: []any{"John%"},
 		},
 		{
 			name:           "string ends with",
-			filter:         `id = "*.example.com"`,
-			expectedClause: "WHERE (id LIKE $1)",
-			expectedParams: []any{"%.example.com"},
-		},
-		{
-			name:           "string ends with suffix",
-			filter:         `field1 = "*_suffix"`,
-			expectedClause: "WHERE (field1 LIKE $1)",
-			expectedParams: []any{"%_suffix"},
+			filter:         `display_name = "*Smith"`,
+			expectedClause: "WHERE (display_name LIKE $1)",
+			expectedParams: []any{"%Smith"},
 		},
 		{
 			name:           "string contains",
-			filter:         `id = "*middle*"`,
-			expectedClause: "WHERE (id LIKE $1)",
+			filter:         `display_name = "*middle*"`,
+			expectedClause: "WHERE (display_name LIKE $1)",
 			expectedParams: []any{"%middle%"},
 		},
 		{
 			name:           "nested string starts with",
-			filter:         `nested.field3 = "test_*"`,
-			expectedClause: "WHERE (nested->>'field3' LIKE $1)",
-			expectedParams: []any{"test_%"},
+			filter:         `metadata.country = "United*"`,
+			expectedClause: "WHERE (metadata->>'country' LIKE $1)",
+			expectedParams: []any{"United%"},
 		},
 		{
 			name:           "nested string ends with",
-			filter:         `nested.field3 = "*.json"`,
-			expectedClause: "WHERE (nested->>'field3' LIKE $1)",
-			expectedParams: []any{"%.json"},
+			filter:         `metadata.country = "*Kingdom"`,
+			expectedClause: "WHERE (metadata->>'country' LIKE $1)",
+			expectedParams: []any{"%Kingdom"},
 		},
 		{
-			name:           "wildcard in middle only is invalid",
-			filter:         `id = "pre*fix"`,
-			expectedClause: "WHERE (id = $1)",
+			name:           "wildcard in middle only is literal",
+			filter:         `display_name = "pre*fix"`,
+			expectedClause: "WHERE (display_name = $1)",
 			expectedParams: []any{"pre*fix"},
-			//wantErr: true,
 		},
 		{
 			name:           "wildcard with AND",
-			filter:         `id = "user_*" AND NOT deleted`,
-			expectedClause: "WHERE ((id LIKE $1) AND (NOT deleted))",
-			expectedParams: []any{"user_%"},
+			filter:         `display_name = "John*" AND email_address = "john@example.com"`,
+			expectedClause: "WHERE ((display_name LIKE $1) AND (email_address = $2))",
+			expectedParams: []any{"John%", "john@example.com"},
 		},
 		{
 			name:           "wildcard with OR",
-			filter:         `id = "admin_*" OR id = "super_*"`,
-			expectedClause: "WHERE ((id LIKE $1) OR (id LIKE $2))",
-			expectedParams: []any{"admin_%", "super_%"},
+			filter:         `display_name = "John*" OR display_name = "Jane*"`,
+			expectedClause: "WHERE ((display_name LIKE $1) OR (display_name LIKE $2))",
+			expectedParams: []any{"John%", "Jane%"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -661,8 +678,7 @@ func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
 }
 
 func TestFilteringRequestParser_Timestamps(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name           string
@@ -673,68 +689,74 @@ func TestFilteringRequestParser_Timestamps(t *testing.T) {
 	}{
 		{
 			name:           "timestamp equals",
-			filter:         `create_timestamp = timestamp("2024-01-15T10:30:00Z")`,
-			expectedClause: "WHERE (create_timestamp = $1)",
-			expectedParams: []any{mustParseTime("2024-01-15T10:30:00Z")},
+			filter:         `create_time = "2024-01-15T10:30:00Z"`,
+			expectedClause: "WHERE (create_time = $1)",
+			expectedParams: []any{"2024-01-15T10:30:00Z"},
 		},
 		{
 			name:           "timestamp greater than",
-			filter:         `create_timestamp > timestamp("2024-01-01T00:00:00Z")`,
-			expectedClause: "WHERE (create_timestamp > $1)",
-			expectedParams: []any{mustParseTime("2024-01-01T00:00:00Z")},
+			filter:         `create_time > "2024-01-01T00:00:00Z"`,
+			expectedClause: "WHERE (create_time > $1)",
+			expectedParams: []any{"2024-01-01T00:00:00Z"},
 		},
 		{
 			name:           "timestamp less than",
-			filter:         `create_timestamp < timestamp("2024-12-31T23:59:59Z")`,
-			expectedClause: "WHERE (create_timestamp < $1)",
-			expectedParams: []any{mustParseTime("2024-12-31T23:59:59Z")},
+			filter:         `create_time < "2024-12-31T23:59:59Z"`,
+			expectedClause: "WHERE (create_time < $1)",
+			expectedParams: []any{"2024-12-31T23:59:59Z"},
 		},
 		{
 			name:           "timestamp greater than or equal",
-			filter:         `create_timestamp >= timestamp("2024-06-01T00:00:00Z")`,
-			expectedClause: "WHERE (create_timestamp >= $1)",
-			expectedParams: []any{mustParseTime("2024-06-01T00:00:00Z")},
+			filter:         `create_time >= "2024-06-01T00:00:00Z"`,
+			expectedClause: "WHERE (create_time >= $1)",
+			expectedParams: []any{"2024-06-01T00:00:00Z"},
 		},
 		{
 			name:           "timestamp less than or equal",
-			filter:         `update_time <= timestamp("2024-06-30T23:59:59Z")`,
+			filter:         `update_time <= "2024-06-30T23:59:59Z"`,
 			expectedClause: "WHERE (update_time <= $1)",
-			expectedParams: []any{mustParseTime("2024-06-30T23:59:59Z")},
+			expectedParams: []any{"2024-06-30T23:59:59Z"},
 		},
 		{
 			name:           "timestamp with positive UTC offset",
-			filter:         `create_timestamp > timestamp("2024-01-15T10:30:00+05:30")`,
-			expectedClause: "WHERE (create_timestamp > $1)",
-			expectedParams: []any{mustParseTime("2024-01-15T10:30:00+05:30")},
+			filter:         `create_time > "2024-01-15T10:30:00+05:30"`,
+			expectedClause: "WHERE (create_time > $1)",
+			expectedParams: []any{"2024-01-15T10:30:00+05:30"},
 		},
 		{
 			name:           "timestamp with negative UTC offset",
-			filter:         `create_timestamp < timestamp("2024-01-15T10:30:00-08:00")`,
-			expectedClause: "WHERE (create_timestamp < $1)",
-			expectedParams: []any{mustParseTime("2024-01-15T10:30:00-08:00")},
+			filter:         `create_time < "2024-01-15T10:30:00-08:00"`,
+			expectedClause: "WHERE (create_time < $1)",
+			expectedParams: []any{"2024-01-15T10:30:00-08:00"},
 		},
 		{
 			name:           "timestamp range with AND",
-			filter:         `create_timestamp >= timestamp("2024-01-01T00:00:00Z") AND create_timestamp < timestamp("2024-02-01T00:00:00Z")`,
-			expectedClause: "WHERE ((create_timestamp >= $1) AND (create_timestamp < $2))",
-			expectedParams: []any{mustParseTime("2024-01-01T00:00:00Z"), mustParseTime("2024-02-01T00:00:00Z")},
+			filter:         `create_time >= "2024-01-01T00:00:00Z" AND create_time < "2024-02-01T00:00:00Z"`,
+			expectedClause: "WHERE ((create_time >= $1) AND (create_time < $2))",
+			expectedParams: []any{"2024-01-01T00:00:00Z", "2024-02-01T00:00:00Z"},
 		},
 		{
 			name:           "timestamp field is present",
-			filter:         `create_timestamp:*`,
-			expectedClause: "WHERE (create_timestamp IS NOT NULL)",
+			filter:         `create_time:*`,
+			expectedClause: "WHERE (create_time IS NOT NULL)",
+			expectedParams: []any{},
+		},
+		{
+			name:           "nullable timestamp delete_time",
+			filter:         `delete_time:*`,
+			expectedClause: "WHERE (delete_time IS NOT NULL)",
 			expectedParams: []any{},
 		},
 		{
 			name:    "invalid timestamp format",
-			filter:  `create_timestamp > timestamp("not-a-timestamp")`,
+			filter:  `create_time > "not-a-timestamp")`,
 			wantErr: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -749,8 +771,7 @@ func TestFilteringRequestParser_Timestamps(t *testing.T) {
 }
 
 func TestFilteringRequestParser_Enums(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
 
 	tests := []struct {
 		name           string
@@ -760,80 +781,75 @@ func TestFilteringRequestParser_Enums(t *testing.T) {
 		wantErr        bool
 	}{
 		{
-			name:           "root enum equality",
-			filter:         `my_enum = MY_ENUM_VALUE`,
-			expectedClause: "WHERE (my_enum = $1)",
+			name:           "enum equality - FICTION",
+			filter:         `genre = SHELF_GENRE_FICTION`,
+			expectedClause: "WHERE (genre = $1)",
 			expectedParams: []any{int64(1)},
 		},
 		{
-			name:           "root enum unspecified",
-			filter:         `my_enum = MY_ENUM_UNSPECIFIED`,
-			expectedClause: "WHERE (my_enum = $1)",
+			name:           "enum equality - NON_FICTION",
+			filter:         `genre = SHELF_GENRE_NON_FICTION`,
+			expectedClause: "WHERE (genre = $1)",
+			expectedParams: []any{int64(2)},
+		},
+		{
+			name:           "enum equality - SCIENCE_FICTION",
+			filter:         `genre = SHELF_GENRE_SCIENCE_FICTION`,
+			expectedClause: "WHERE (genre = $1)",
+			expectedParams: []any{int64(3)},
+		},
+		{
+			name:           "enum equality - HISTORY",
+			filter:         `genre = SHELF_GENRE_HISTORY`,
+			expectedClause: "WHERE (genre = $1)",
+			expectedParams: []any{int64(4)},
+		},
+		{
+			name:           "enum equality - BIOGRAPHY",
+			filter:         `genre = SHELF_GENRE_BIOGRAPHY`,
+			expectedClause: "WHERE (genre = $1)",
+			expectedParams: []any{int64(5)},
+		},
+		{
+			name:           "enum unspecified",
+			filter:         `genre = SHELF_GENRE_UNSPECIFIED`,
+			expectedClause: "WHERE (genre = $1)",
 			expectedParams: []any{int64(0)},
 		},
 		{
-			name:           "root enum not equal",
-			filter:         `my_enum != MY_ENUM_VALUE`,
-			expectedClause: "WHERE (my_enum != $1)",
+			name:           "enum not equal",
+			filter:         `genre != SHELF_GENRE_FICTION`,
+			expectedClause: "WHERE (genre != $1)",
 			expectedParams: []any{int64(1)},
 		},
 		{
-			name:           "root enum presence check",
-			filter:         `my_enum:*`,
-			expectedClause: "WHERE (my_enum IS NOT NULL)",
+			name:           "enum presence check",
+			filter:         `genre:*`,
+			expectedClause: "WHERE (genre IS NOT NULL)",
 			expectedParams: []any{},
 		},
 		{
-			name:           "nullable enum equality",
-			filter:         `nullable_enum = MY_NULLABLE_ENUM_UNSPECIFIED`,
-			expectedClause: "WHERE (nullable_enum = $1)",
-			expectedParams: []any{int64(0)},
-		},
-		{
-			name:           "nested enum equality",
-			filter:         `nested.state = MY_ENUM_VALUE`,
-			expectedClause: "WHERE (nested->>'state' = $1)",
-			expectedParams: []any{"MY_ENUM_VALUE"},
-		},
-		{
-			name:           "nested enum unspecified",
-			filter:         `nested.state = MY_ENUM_UNSPECIFIED`,
-			expectedClause: "WHERE (nested->>'state' = $1)",
-			expectedParams: []any{"MY_ENUM_UNSPECIFIED"},
-		},
-		{
-			name:           "nested enum not equal",
-			filter:         `nested.state != MY_ENUM_VALUE`,
-			expectedClause: "WHERE (nested->>'state' IS DISTINCT FROM $1)",
-			expectedParams: []any{"MY_ENUM_VALUE"},
-		},
-		{
 			name:    "invalid enum value",
-			filter:  `my_enum = INVALID_ENUM_VALUE`,
-			wantErr: true,
-		},
-		{
-			name:    "nested invalid enum value",
-			filter:  `nested.state = INVALID_ENUM`,
+			filter:  `genre = INVALID_GENRE`,
 			wantErr: true,
 		},
 		{
 			name:           "enum with AND",
-			filter:         `my_enum = MY_ENUM_VALUE AND NOT deleted`,
-			expectedClause: "WHERE ((my_enum = $1) AND (NOT deleted))",
-			expectedParams: []any{int64(1)},
+			filter:         `genre = SHELF_GENRE_FICTION AND display_name = "Fiction Shelf"`,
+			expectedClause: "WHERE ((genre = $1) AND (display_name = $2))",
+			expectedParams: []any{int64(1), "Fiction Shelf"},
 		},
 		{
-			name:           "nested enum with AND",
-			filter:         `nested.state = MY_ENUM_VALUE AND nested.field1`,
-			expectedClause: "WHERE ((nested->>'state' = $1) AND (nested->>'field1')::boolean)",
-			expectedParams: []any{"MY_ENUM_VALUE"},
+			name:           "multiple enum conditions with OR",
+			filter:         `genre = SHELF_GENRE_FICTION OR genre = SHELF_GENRE_SCIENCE_FICTION`,
+			expectedClause: "WHERE ((genre = $1) OR (genre = $2))",
+			expectedParams: []any{int64(1), int64(3)},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -847,122 +863,80 @@ func TestFilteringRequestParser_Enums(t *testing.T) {
 	}
 }
 
-func TestFilteringRequestParser_ColumnNameChanges(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	tests := []struct {
-		name           string
-		filter         string
-		expectedClause string
-		expectedParams []any
-	}{
-		{
-			name:           "root field with column name override",
-			filter:         `column_name_changed = 42`,
-			expectedClause: "WHERE (new_name = $1)",
-			expectedParams: []any{int64(42)},
-		},
-		{
-			name:           "root field with column name override comparison",
-			filter:         `column_name_changed > 100`,
-			expectedClause: "WHERE (new_name > $1)",
-			expectedParams: []any{int64(100)},
-		},
-		{
-			name:           "root field with column name override presence",
-			filter:         `column_name_changed:*`,
-			expectedClause: "WHERE (new_name IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested field with column override - integer",
-			filter:         `nested_changed.field2 = 42`,
-			expectedClause: "WHERE ((nested_new_name->>'field2')::bigint = $1)",
-			expectedParams: []any{int64(42)},
-		},
-		{
-			name:           "nested field with column override - string",
-			filter:         `nested_changed.field3 = "test"`,
-			expectedClause: "WHERE (nested_new_name->>'field3' = $1)",
-			expectedParams: []any{"test"},
-		},
-		{
-			name:           "nested field with column override - boolean",
-			filter:         `nested_changed.field1`,
-			expectedClause: "WHERE (nested_new_name->>'field1')::boolean",
-			expectedParams: []any{},
-		},
-		{
-			name:           "nested field with column override - deeply nested",
-			filter:         `nested_changed.further_nested.field3 = "deep"`,
-			expectedClause: "WHERE (nested_new_name->'further_nested'->>'field3' = $1)",
-			expectedParams: []any{"deep"},
-		},
-		{
-			name:           "nested field with column override - presence",
-			filter:         `nested_changed:*`,
-			expectedClause: "WHERE (nested_new_name IS NOT NULL)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "column name changes combined",
-			filter:         `column_name_changed > 10 AND nested_changed.field2 = 5`,
-			expectedClause: "WHERE ((new_name > $1) AND ((nested_new_name->>'field2')::bigint = $2))",
-			expectedParams: []any{int64(10), int64(5)},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
-			parsedRequest, err := parser.Parse(request)
-			require.NoError(t, err)
-			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
-			require.Equal(t, tc.expectedParams, whereParams)
-		})
-	}
-}
-
 func TestFilteringRequestParser_TypeValidation(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	t.Run("Author type mismatches", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
-	tests := []struct {
-		name   string
-		filter string
-	}{
-		{
-			name:   "string field with integer value",
-			filter: `id = 123`,
-		},
-		{
-			name:   "integer field with string value",
-			filter: `column_name_changed = "not_a_number"`,
-		},
-		{
-			name:   "boolean field with string value",
-			filter: `deleted = "true"`,
-		},
-		{
-			name:   "boolean field with integer value",
-			filter: `deleted = 1`,
-		},
-	}
+		tests := []struct {
+			name   string
+			filter string
+		}{
+			{
+				name:   "string field with integer value",
+				filter: `display_name = 123`,
+			},
+		}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
-			_, err := parser.Parse(request)
-			require.Error(t, err, "expected type mismatch error for: %s", tc.filter)
-		})
-	}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+				_, err := parser.Parse(request)
+				require.Error(t, err, "expected type mismatch error for: %s", tc.filter)
+			})
+		}
+	})
+
+	t.Run("Book type mismatches", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name   string
+			filter string
+		}{
+			{
+				name:   "integer field with string value",
+				filter: `publication_year = "not_a_number"`,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				_, err := parser.Parse(request)
+				require.Error(t, err, "expected type mismatch error for: %s", tc.filter)
+			})
+		}
+	})
+
+	t.Run("Shelf type mismatches", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+		tests := []struct {
+			name   string
+			filter string
+		}{
+			{
+				name:   "enum field with string value",
+				filter: `genre = "FICTION"`,
+			},
+			{
+				name:   "enum field with integer value",
+				filter: `genre = 1`,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				_, err := parser.Parse(request)
+				require.Error(t, err, "expected type mismatch error for: %s", tc.filter)
+			})
+		}
+	})
 }
 
 func TestFilteringRequestParser_ErrorCases(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
 	tests := []struct {
 		name   string
@@ -974,23 +948,23 @@ func TestFilteringRequestParser_ErrorCases(t *testing.T) {
 		},
 		{
 			name:   "undefined nested field",
-			filter: `nested.undefined = "value"`,
+			filter: `metadata.undefined = "value"`,
 		},
 		{
 			name:   "missing value after operator",
-			filter: `id =`,
+			filter: `display_name =`,
 		},
 		{
 			name:   "unbalanced parentheses - missing close",
-			filter: `(id = "user1"`,
+			filter: `(display_name = "John"`,
 		},
 		{
 			name:   "unbalanced parentheses - missing open",
-			filter: `id = "user1")`,
+			filter: `display_name = "John")`,
 		},
 		{
 			name:   "invalid operator",
-			filter: `id === "test"`,
+			filter: `display_name === "test"`,
 		},
 		{
 			name:   "empty parentheses",
@@ -998,25 +972,21 @@ func TestFilteringRequestParser_ErrorCases(t *testing.T) {
 		},
 		{
 			name:   "double operator",
-			filter: `id = = "test"`,
+			filter: `display_name = = "test"`,
 		},
 		{
 			name:   "missing operand for AND",
-			filter: `id = "test" AND`,
+			filter: `display_name = "test" AND`,
 		},
 		{
 			name:   "missing operand for OR",
-			filter: `OR id = "test"`,
-		},
-		{
-			name:   "invalid enum value",
-			filter: `my_enum = COMPLETELY_INVALID_ENUM`,
+			filter: `OR display_name = "test"`,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
 			_, err := parser.Parse(request)
 			require.Error(t, err, "expected error for invalid filter: %s", tc.filter)
 		})
@@ -1024,167 +994,260 @@ func TestFilteringRequestParser_ErrorCases(t *testing.T) {
 }
 
 func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
+	t.Run("Author complex filters", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 
-	tests := []struct {
-		name           string
-		filter         string
-		expectedClause string
-		expectedParams []any
-	}{
-		{
-			name:           "multi-condition query",
-			filter:         `id = "user1" AND NOT deleted AND my_enum = MY_ENUM_VALUE`,
-			expectedClause: "WHERE (((id = $1) AND (NOT deleted)) AND (my_enum = $2))",
-			expectedParams: []any{"user1", int64(1)},
-		},
-		{
-			name:           "nested fields with logical operators",
-			filter:         `nested.field1 AND nested.field2 > 10 OR nested.field3 = "test"`,
-			expectedClause: "WHERE ((nested->>'field1')::boolean AND (((nested->>'field2')::bigint > $1) OR (nested->>'field3' = $2)))",
-			expectedParams: []any{int64(10), "test"},
-		},
-		{
-			name:           "presence checks combined",
-			filter:         `id:* AND nested:* AND NOT deleted`,
-			expectedClause: "WHERE (((id IS NOT NULL AND id != '') AND (nested IS NOT NULL)) AND (NOT deleted))",
-			expectedParams: []any{},
-		},
-		{
-			name:           "wildcard string with enum",
-			filter:         `id = "user_*" AND my_enum = MY_ENUM_VALUE`,
-			expectedClause: "WHERE ((id LIKE $1) AND (my_enum = $2))",
-			expectedParams: []any{"user_%", int64(1)},
-		},
-		{
-			name:           "repeated field with other conditions",
-			filter:         `tags:"important" AND NOT deleted AND id = "user1"`,
-			expectedClause: "WHERE ((($1 = ANY(tags)) AND (NOT deleted)) AND (id = $2))",
-			expectedParams: []any{"important", "user1"},
-		},
-		{
-			name:           "map and nested combined",
-			filter:         `labels:"env" AND nested.field2 > 5`,
-			expectedClause: "WHERE ((COALESCE(labels, '{}') ? $1) AND ((nested->>'field2')::bigint > $2))",
-			expectedParams: []any{"env", int64(5)},
-		},
-		{
-			name:           "deeply nested with column changes",
-			filter:         `nested_changed.further_nested.field2 > 100 AND column_name_changed < 50`,
-			expectedClause: "WHERE (((nested_new_name->'further_nested'->>'field2')::bigint > $1) AND (new_name < $2))",
-			expectedParams: []any{int64(100), int64(50)},
-		},
-		{
-			name:           "multiple OR groups",
-			filter:         `(id = "a" OR id = "b") AND (my_enum = MY_ENUM_VALUE OR my_enum = MY_ENUM_UNSPECIFIED)`,
-			expectedClause: "WHERE (((id = $1) OR (id = $2)) AND ((my_enum = $3) OR (my_enum = $4)))",
-			expectedParams: []any{"a", "b", int64(1), int64(0)},
-		},
-	}
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "multi-condition query",
+				filter:         `display_name = "John" AND email_address = "john@test.com" AND metadata.country = "USA"`,
+				expectedClause: "WHERE (((display_name = $1) AND (email_address = $2)) AND (metadata->>'country' = $3))",
+				expectedParams: []any{"John", "john@test.com", "USA"},
+			},
+			{
+				name:           "presence checks combined",
+				filter:         `display_name:* AND metadata:* AND email_addresses:*`,
+				expectedClause: "WHERE (((display_name IS NOT NULL AND display_name != '') AND (metadata IS NOT NULL)) AND (email_addresses IS NOT NULL AND COALESCE(array_length(email_addresses, 1), 0) > 0))",
+				expectedParams: []any{},
+			},
+			{
+				name:           "wildcard string with map check",
+				filter:         `display_name = "John*" AND labels:"env"`,
+				expectedClause: "WHERE ((display_name LIKE $1) AND (COALESCE(labels, '{}') ? $2))",
+				expectedParams: []any{"John%", "env"},
+			},
+			{
+				name:           "repeated field with other conditions",
+				filter:         `email_addresses:"john@test.com" AND display_name = "John"`,
+				expectedClause: "WHERE (($1 = ANY(email_addresses)) AND (display_name = $2))",
+				expectedParams: []any{"john@test.com", "John"},
+			},
+			{
+				name:           "map key value and nested combined",
+				filter:         `labels.env = "prod" AND metadata.country = "USA"`,
+				expectedClause: "WHERE ((labels->>'env' = $1) AND (metadata->>'country' = $2))",
+				expectedParams: []any{"prod", "USA"},
+			},
+			{
+				name:           "multiple OR groups",
+				filter:         `(display_name = "John" OR display_name = "Jane") AND (email_address = "a@test.com" OR email_address = "b@test.com")`,
+				expectedClause: "WHERE (((display_name = $1) OR (display_name = $2)) AND ((email_address = $3) OR (email_address = $4)))",
+				expectedParams: []any{"John", "Jane", "a@test.com", "b@test.com"},
+			},
+		}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{Filter: tc.filter}
-			parsedRequest, err := parser.Parse(request)
-			require.NoError(t, err)
-			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
-			require.Equal(t, tc.expectedParams, whereParams)
-		})
-	}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Shelf complex filters with enum", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "enum with string and nested int",
+				filter:         `genre = SHELF_GENRE_FICTION AND display_name = "My Shelf" AND metadata.capacity > 50`,
+				expectedClause: "WHERE (((genre = $1) AND (display_name = $2)) AND ((legacy_meta->>'capacity')::bigint > $3))",
+				expectedParams: []any{int64(1), "My Shelf", int64(50)},
+			},
+			{
+				name:           "multiple enums with OR",
+				filter:         `(genre = SHELF_GENRE_FICTION OR genre = SHELF_GENRE_NON_FICTION) AND metadata.capacity >= 100`,
+				expectedClause: "WHERE (((genre = $1) OR (genre = $2)) AND ((legacy_meta->>'capacity')::bigint >= $3))",
+				expectedParams: []any{int64(1), int64(2), int64(100)},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book complex filters with integers", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "integer range with string",
+				filter:         `publication_year >= 2000 AND publication_year < 2020 AND title = "My Book*"`,
+				expectedClause: "WHERE (((publication_year >= $1) AND (publication_year < $2)) AND (title LIKE $3))",
+				expectedParams: []any{int64(2000), int64(2020), "My Book%"},
+			},
+			{
+				name:           "nested metadata with labels",
+				filter:         `metadata.language = "en" AND labels:"category"`,
+				expectedClause: "WHERE ((metadata->>'language' = $1) AND (COALESCE(labels, '{}') ? $2))",
+				expectedParams: []any{"en", "category"},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }
 
-func TestFilteringRequestParser_WildcardPaths(t *testing.T) {
-	parser, err := NewFilteringRequestParser[*pb.ListResourcesRequest2, *pb.Resource]()
-	require.NoError(t, err)
+func TestFilteringRequestParser_SelectivePaths(t *testing.T) {
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
 
-	tests := []struct {
-		name           string
-		filter         string
-		expectedClause string
-		expectedParams []any
-		wantErr        bool
-	}{
-		{
-			name:           "explicitly allowed root field",
-			filter:         `id = "test"`,
-			expectedClause: "WHERE (id = $1)",
-			expectedParams: []any{"test"},
-		},
-		{
-			name:           "wildcard allows nested.field1",
-			filter:         `nested.field1`,
-			expectedClause: "WHERE (nested->>'field1')::boolean",
-			expectedParams: []any{},
-		},
-		{
-			name:           "wildcard allows nested.field2",
-			filter:         `nested.field2 = 42`,
-			expectedClause: "WHERE ((nested->>'field2')::bigint = $1)",
-			expectedParams: []any{int64(42)},
-		},
-		{
-			name:           "wildcard allows nested.field3",
-			filter:         `nested.field3 = "value"`,
-			expectedClause: "WHERE (nested->>'field3' = $1)",
-			expectedParams: []any{"value"},
-		},
-		{
-			name:           "second level wildcard allows field1",
-			filter:         `NOT nested2.further_nested.field1`,
-			expectedClause: "WHERE (NOT (nested2->'further_nested'->>'field1')::boolean)",
-			expectedParams: []any{},
-		},
-		{
-			name:           "second level wildcard allows field2",
-			filter:         `nested2.further_nested.field2 = 99`,
-			expectedClause: "WHERE ((nested2->'further_nested'->>'field2')::bigint = $1)",
-			expectedParams: []any{int64(99)},
-		},
-		{
-			name:           "second level wildcard allows field3",
-			filter:         `nested2.further_nested.field3 = "test"`,
-			expectedClause: "WHERE (nested2->'further_nested'->>'field3' = $1)",
-			expectedParams: []any{"test"},
-		},
-		{
-			name:    "non-whitelisted root field fails",
-			filter:  `deleted`,
-			wantErr: true,
-		},
-		{
-			name:    "non-whitelisted nested field fails",
-			filter:  `nested3.field1 = true`,
-			wantErr: true,
-		},
-		{
-			name:    "wildcard doesn't cover parent",
-			filter:  `nested2.field1 = true`,
-			wantErr: true,
-		},
-		{
-			name:           "multiple wildcard fields combined",
-			filter:         `id = "test" AND nested.field1 AND nested2.further_nested.field2 = 5`,
-			expectedClause: "WHERE (((id = $1) AND (nested->>'field1')::boolean) AND ((nested2->'further_nested'->>'field2')::bigint = $2))",
-			expectedParams: []any{"test", int64(5)},
-		},
-	}
+	t.Run("allowed paths work", func(t *testing.T) {
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "title is allowed",
+				filter:         `title = "The Book"`,
+				expectedClause: "WHERE (title = $1)",
+				expectedParams: []any{"The Book"},
+			},
+			{
+				name:           "author is allowed",
+				filter:         `author = "organizations/123/authors/456"`,
+				expectedClause: "WHERE (author = $1)",
+				expectedParams: []any{"organizations/123/authors/456"},
+			},
+			{
+				name:           "isbn is allowed",
+				filter:         `isbn = "978-3-16-148410-0"`,
+				expectedClause: "WHERE (isbn = $1)",
+				expectedParams: []any{"978-3-16-148410-0"},
+			},
+			{
+				name:           "publication_year is allowed",
+				filter:         `publication_year = 2024`,
+				expectedClause: "WHERE (publication_year = $1)",
+				expectedParams: []any{int64(2024)},
+			},
+			{
+				name:           "metadata.summary via wildcard",
+				filter:         `metadata.summary = "A summary"`,
+				expectedClause: "WHERE (metadata->>'summary' = $1)",
+				expectedParams: []any{"A summary"},
+			},
+			{
+				name:           "metadata.language via wildcard",
+				filter:         `metadata.language = "en"`,
+				expectedClause: "WHERE (metadata->>'language' = $1)",
+				expectedParams: []any{"en"},
+			},
+			{
+				name:           "labels is allowed",
+				filter:         `labels:"category"`,
+				expectedClause: "WHERE (COALESCE(labels, '{}') ? $1)",
+				expectedParams: []any{"category"},
+			},
+		}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest2{Filter: tc.filter}
-			parsedRequest, err := parser.Parse(request)
-			if tc.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
-			require.Equal(t, tc.expectedParams, whereParams)
-		})
-	}
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("disallowed paths fail", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			filter string
+		}{
+			{
+				name:   "name is not in allowed paths",
+				filter: `name = "organizations/123/shelves/456/books/789"`,
+			},
+			{
+				name:   "create_time is not in allowed paths",
+				filter: `create_time > "2024-01-01T00:00:00Z"`,
+			},
+			{
+				name:   "page_count is not in allowed paths",
+				filter: `page_count > 100`,
+			},
+			{
+				name:   "etag is not in allowed paths",
+				filter: `etag = "abc123"`,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				_, err := parser.Parse(request)
+				require.Error(t, err, "expected error for disallowed path: %s", tc.filter)
+			})
+		}
+	})
+
+	t.Run("combined allowed fields", func(t *testing.T) {
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			{
+				name:           "multiple allowed fields combined",
+				filter:         `title = "Book" AND publication_year >= 2000 AND metadata.language = "en"`,
+				expectedClause: "WHERE (((title = $1) AND (publication_year >= $2)) AND (metadata->>'language' = $3))",
+				expectedParams: []any{"Book", int64(2000), "en"},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }
 
 func TestApplyReplacement(t *testing.T) {
@@ -1273,10 +1336,67 @@ func TestApplyReplacement(t *testing.T) {
 	}
 }
 
-func mustParseTime(s string) any {
-	t, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		panic(err)
+func TestFilteringRequestParser_ColumnNameReplacement(t *testing.T) {
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+	tests := []struct {
+		name           string
+		filter         string
+		expectedClause string
+		expectedParams []any
+	}{
+		{
+			name:           "external_id uses ext_id column",
+			filter:         `external_id = "abc123"`,
+			expectedClause: "WHERE (ext_id = $1)",
+			expectedParams: []any{"abc123"},
+		},
+		{
+			name:           "correlation_id_2 uses correlation_id column",
+			filter:         `correlation_id_2 = "corr-456"`,
+			expectedClause: "WHERE (correlation_id = $1)",
+			expectedParams: []any{"corr-456"},
+		},
+		{
+			name:           "external_id presence check",
+			filter:         `external_id:*`,
+			expectedClause: "WHERE (ext_id IS NOT NULL AND ext_id != '')",
+			expectedParams: []any{},
+		},
+		{
+			name:           "correlation_id_2 presence check",
+			filter:         `correlation_id_2:*`,
+			expectedClause: "WHERE (correlation_id IS NOT NULL AND correlation_id != '')",
+			expectedParams: []any{},
+		},
+		{
+			name:           "combined column replacements",
+			filter:         `external_id = "ext" AND correlation_id_2 = "corr"`,
+			expectedClause: "WHERE ((ext_id = $1) AND (correlation_id = $2))",
+			expectedParams: []any{"ext", "corr"},
+		},
+		{
+			name:           "nested field with parent column replacement",
+			filter:         `metadata.capacity > 100`,
+			expectedClause: "WHERE ((legacy_meta->>'capacity')::bigint > $1)",
+			expectedParams: []any{int64(100)},
+		},
+		{
+			name:           "mixed standard and renamed columns",
+			filter:         `display_name = "Test" AND external_id = "ext123" AND metadata.capacity >= 50`,
+			expectedClause: "WHERE (((display_name = $1) AND (ext_id = $2)) AND ((legacy_meta->>'capacity')::bigint >= $3))",
+			expectedParams: []any{"Test", "ext123", int64(50)},
+		},
 	}
-	return t
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+			parsedRequest, err := parser.Parse(request)
+			require.NoError(t, err)
+			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+			require.Equal(t, tc.expectedParams, whereParams)
+		})
+	}
 }

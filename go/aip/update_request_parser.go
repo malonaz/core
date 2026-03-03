@@ -39,9 +39,8 @@ type updateRequest interface {
 
 // ParsedUpdateRequest is a request that is parsed.
 type ParsedUpdateRequest struct {
-	fieldMask      *pbfieldmask.FieldMask
-	updateFieldSet map[string]struct{}
-	updateFields   []string
+	fieldMask    *pbfieldmask.FieldMask
+	updateFields []string
 }
 
 // ApplyFieldMask merges any fields covered by the field mask from newResource into existingResource.
@@ -165,10 +164,8 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 		return nil, fmt.Errorf("invalid field mask paths: %v", err)
 	}
 
-	parsedUpdateRequest := &ParsedUpdateRequest{
-		fieldMask:      fieldMask,
-		updateFieldSet: map[string]struct{}{},
-	}
+	updateFieldSet := map[string]struct{}{}
+	var updateFields []string
 
 	// Iterate over each path in the field mask.
 	for _, path := range fieldMask.GetPaths() {
@@ -183,9 +180,9 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 				// Add the mapped update mapping to the set and list.
 				// Translate mapped path to column name if applicable.
 				columnName := p.translateToColumnName(mappingTo)
-				if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
-					parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
-					parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
+				if _, ok := updateFieldSet[columnName]; !ok {
+					updateFieldSet[columnName] = struct{}{}
+					updateFields = append(updateFields, columnName)
 				}
 				mappingFound = true
 				break
@@ -195,13 +192,17 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 		// If no mapping is found, we simply add the field (translated to column name).
 		if !mappingFound {
 			columnName := p.translateToColumnName(path)
-			if _, ok := parsedUpdateRequest.updateFieldSet[columnName]; !ok {
-				parsedUpdateRequest.updateFieldSet[columnName] = struct{}{}
-				parsedUpdateRequest.updateFields = append(parsedUpdateRequest.updateFields, columnName)
+			if _, ok := updateFieldSet[columnName]; !ok {
+				updateFieldSet[columnName] = struct{}{}
+				updateFields = append(updateFields, columnName)
 			}
 		}
 	}
-	return parsedUpdateRequest, nil
+
+	return &ParsedUpdateRequest{
+		fieldMask:    fieldMask,
+		updateFields: updateFields,
+	}, nil
 }
 
 // translateToColumnName translates a proto path to its database column name.

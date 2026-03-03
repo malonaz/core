@@ -1,49 +1,39 @@
 package aip
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	pb "github.com/malonaz/core/genproto/test/aip"
+	libraryservicepb "github.com/malonaz/core/genproto/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/library/v1"
 )
 
 func TestOrderingRequestParser_NewParser(t *testing.T) {
-	tests := []struct {
-		name            string
-		createParser    func() (*OrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource], error)
-		wantErr         bool
-		expectedDefault string
-	}{
-		{
-			name: "valid parser creation",
-			createParser: func() (*OrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource], error) {
-				return NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-			},
-			wantErr:         false,
-			expectedDefault: "create_timestamp desc",
-		},
-	}
+	t.Run("ListAuthorsRequest", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+		require.Equal(t, "create_time desc", parser.options.Default)
+	})
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			parser, err := tc.createParser()
+	t.Run("ListBooksRequest", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+		require.Equal(t, "create_time desc", parser.options.Default)
+	})
 
-			if tc.wantErr {
-				require.Error(t, err)
-				require.Nil(t, parser)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, parser)
-				require.Equal(t, tc.expectedDefault, parser.options.Default)
-			}
-		})
-	}
+	t.Run("ListShelvesRequest", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		require.NoError(t, err)
+		require.NotNil(t, parser)
+		require.Equal(t, "create_time desc", parser.options.Default)
+	})
 }
 
 func TestOrderingRequestParser_Parse(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -56,70 +46,54 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 		{
 			name:               "default order by when empty",
 			orderBy:            "",
-			expectedOrderBySQL: "ORDER BY create_timestamp DESC",
-			wantErr:            false,
+			expectedOrderBySQL: "ORDER BY create_time DESC",
 		},
 		{
 			name:               "single field ascending",
-			orderBy:            "id asc",
-			expectedOrderBySQL: "ORDER BY id",
-			wantErr:            false,
+			orderBy:            "create_time asc",
+			expectedOrderBySQL: "ORDER BY create_time",
 		},
 		{
 			name:               "single field descending",
-			orderBy:            "id desc",
-			expectedOrderBySQL: "ORDER BY id DESC",
-			wantErr:            false,
+			orderBy:            "create_time desc",
+			expectedOrderBySQL: "ORDER BY create_time DESC",
+		},
+		{
+			name:               "single field implicit ascending",
+			orderBy:            "update_time",
+			expectedOrderBySQL: "ORDER BY update_time",
 		},
 		{
 			name:               "multiple fields mixed order",
-			orderBy:            "create_timestamp desc, id asc",
-			expectedOrderBySQL: "ORDER BY create_timestamp DESC, id",
-			wantErr:            false,
-		},
-		{
-			name:               "default field descending",
-			orderBy:            "create_timestamp desc",
-			expectedOrderBySQL: "ORDER BY create_timestamp DESC",
-			wantErr:            false,
+			orderBy:            "create_time desc, update_time asc",
+			expectedOrderBySQL: "ORDER BY create_time DESC, update_time",
 		},
 		{
 			name:               "all allowed fields",
-			orderBy:            "id asc, create_timestamp desc, update_time asc",
-			expectedOrderBySQL: "ORDER BY id, create_timestamp DESC, update_time",
-			wantErr:            false,
+			orderBy:            "create_time asc, update_time desc, display_name asc",
+			expectedOrderBySQL: "ORDER BY create_time, update_time DESC, display_name",
 		},
 		{
 			name:                 "unauthorized field",
 			orderBy:              "unauthorized_field asc",
-			expectedOrderBySQL:   "",
 			wantErr:              true,
 			expectedErrorMessage: "invalid order path",
 		},
 		{
 			name:                 "mixed authorized and unauthorized fields",
-			orderBy:              "id asc, unauthorized_field desc",
-			expectedOrderBySQL:   "",
+			orderBy:              "create_time asc, unauthorized_field desc",
 			wantErr:              true,
 			expectedErrorMessage: "invalid order path",
 		},
 		{
-			name:               "single field asc (implicit)",
-			orderBy:            "id",
-			expectedOrderBySQL: "ORDER BY id",
-			wantErr:            false,
-		},
-		{
-			name:                 "invalid syntax - wrong direction",
-			orderBy:              "id ascending",
-			expectedOrderBySQL:   "",
+			name:                 "invalid syntax - wrong direction keyword",
+			orderBy:              "create_time ascending",
 			wantErr:              true,
 			expectedErrorMessage: "parsing order by",
 		},
 		{
-			name:                 "invalid syntax - extra comma",
-			orderBy:              "id asc,",
-			expectedOrderBySQL:   "",
+			name:                 "invalid syntax - trailing comma",
+			orderBy:              "create_time asc,",
 			wantErr:              true,
 			expectedErrorMessage: "parsing order by",
 		},
@@ -127,10 +101,7 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
+			request := &libraryservicepb.ListAuthorsRequest{OrderBy: tc.orderBy}
 			parsedRequest, err := parser.Parse(request)
 
 			if tc.wantErr {
@@ -138,65 +109,95 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 				if tc.expectedErrorMessage != "" {
 					require.Contains(t, err.Error(), tc.expectedErrorMessage)
 				}
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, parsedRequest)
-
-				// Verify SQL order by clause
-				orderBySQL := parsedRequest.GetSQLOrderByClause()
-				require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
+				return
 			}
+			require.NoError(t, err)
+			require.NotNil(t, parsedRequest)
+			require.Equal(t, tc.expectedOrderBySQL, parsedRequest.GetSQLOrderByClause())
 		})
 	}
 }
 
-func TestOrderingRequestParser_DefaultOrderByInjection(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+func TestOrderingRequestParser_Parse_Books(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
 	require.NoError(t, err)
 
 	tests := []struct {
-		name           string
-		initialOrderBy string
-		expectedInject bool
+		name               string
+		orderBy            string
+		expectedOrderBySQL string
+		wantErr            bool
 	}{
 		{
-			name:           "empty order_by gets default injected",
-			initialOrderBy: "",
-			expectedInject: true,
+			name:               "default order by",
+			orderBy:            "",
+			expectedOrderBySQL: "ORDER BY create_time DESC",
 		},
 		{
-			name:           "explicit order_by not modified",
-			initialOrderBy: "id asc",
-			expectedInject: false,
+			name:               "title ascending",
+			orderBy:            "title asc",
+			expectedOrderBySQL: "ORDER BY title",
+		},
+		{
+			name:               "publication_year descending",
+			orderBy:            "publication_year desc",
+			expectedOrderBySQL: "ORDER BY publication_year DESC",
+		},
+		{
+			name:               "multiple book-specific fields",
+			orderBy:            "title asc, publication_year desc",
+			expectedOrderBySQL: "ORDER BY title, publication_year DESC",
+		},
+		{
+			name:               "all allowed book fields",
+			orderBy:            "create_time desc, update_time asc, title desc, publication_year asc",
+			expectedOrderBySQL: "ORDER BY create_time DESC, update_time, title DESC, publication_year",
+		},
+		{
+			name:    "field not in book ordering paths",
+			orderBy: "display_name asc",
+			wantErr: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.initialOrderBy,
-			}
-
+			request := &libraryservicepb.ListBooksRequest{OrderBy: tc.orderBy}
 			parsedRequest, err := parser.Parse(request)
-			require.NoError(t, err)
 
-			if tc.expectedInject {
-				// Should have the default order by
-				require.Equal(t, parser.options.Default, request.GetOrderBy())
-			} else {
-				// Should retain the original order by
-				require.Equal(t, tc.initialOrderBy, request.GetOrderBy())
+			if tc.wantErr {
+				require.Error(t, err)
+				return
 			}
-
-			// SQL should be generated in both cases
-			orderBySQL := parsedRequest.GetSQLOrderByClause()
-			require.NotEmpty(t, orderBySQL)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedOrderBySQL, parsedRequest.GetSQLOrderByClause())
 		})
 	}
 }
 
+func TestOrderingRequestParser_DefaultOrderByInjection(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	t.Run("empty order_by receives default", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: ""}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, parser.options.Default, request.GetOrderBy())
+		require.NotEmpty(t, parsedRequest.GetSQLOrderByClause())
+	})
+
+	t.Run("explicit order_by preserved", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "display_name asc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "display_name asc", request.GetOrderBy())
+		require.NotEmpty(t, parsedRequest.GetSQLOrderByClause())
+	})
+}
+
 func TestOrderingRequestParser_SQLTranspilation(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -205,112 +206,258 @@ func TestOrderingRequestParser_SQLTranspilation(t *testing.T) {
 		expectedSQL string
 	}{
 		{
-			name:        "single field ascending omits ASC",
-			orderBy:     "id asc",
-			expectedSQL: "ORDER BY id",
+			name:        "ascending omits ASC keyword",
+			orderBy:     "create_time asc",
+			expectedSQL: "ORDER BY create_time",
 		},
 		{
-			name:        "single field descending includes DESC",
-			orderBy:     "id desc",
-			expectedSQL: "ORDER BY id DESC",
+			name:        "descending includes DESC keyword",
+			orderBy:     "create_time desc",
+			expectedSQL: "ORDER BY create_time DESC",
 		},
 		{
-			name:        "multiple fields mixed order",
-			orderBy:     "create_timestamp desc, id asc",
-			expectedSQL: "ORDER BY create_timestamp DESC, id",
+			name:        "multiple fields mixed directions",
+			orderBy:     "create_time desc, display_name asc",
+			expectedSQL: "ORDER BY create_time DESC, display_name",
 		},
 		{
-			name:        "all ascending omits ASC",
-			orderBy:     "id asc, create_timestamp asc",
-			expectedSQL: "ORDER BY id, create_timestamp",
+			name:        "all ascending",
+			orderBy:     "create_time asc, update_time asc",
+			expectedSQL: "ORDER BY create_time, update_time",
 		},
 		{
-			name:        "all descending includes DESC",
-			orderBy:     "id desc, create_timestamp desc",
-			expectedSQL: "ORDER BY id DESC, create_timestamp DESC",
+			name:        "all descending",
+			orderBy:     "create_time desc, update_time desc",
+			expectedSQL: "ORDER BY create_time DESC, update_time DESC",
+		},
+		{
+			name:        "three fields alternating",
+			orderBy:     "create_time desc, update_time asc, display_name desc",
+			expectedSQL: "ORDER BY create_time DESC, update_time, display_name DESC",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
+			request := &libraryservicepb.ListAuthorsRequest{OrderBy: tc.orderBy}
 			parsedRequest, err := parser.Parse(request)
 			require.NoError(t, err)
-
-			orderBySQL := parsedRequest.GetSQLOrderByClause()
-			require.Equal(t, tc.expectedSQL, orderBySQL)
+			require.Equal(t, tc.expectedSQL, parsedRequest.GetSQLOrderByClause())
 		})
 	}
 }
 
 func TestOrderingRequest_GetSQLOrderByClause(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
 	require.NoError(t, err)
 
-	tests := []struct {
-		name         string
-		orderBy      string
-		verifyClause func(t *testing.T, clause string)
-	}{
-		{
-			name:    "clause starts with ORDER BY",
-			orderBy: "id asc",
-			verifyClause: func(t *testing.T, clause string) {
-				require.Contains(t, clause, "ORDER BY")
-			},
-		},
-		{
-			name:    "clause contains field name",
-			orderBy: "create_timestamp desc",
-			verifyClause: func(t *testing.T, clause string) {
-				require.Contains(t, clause, "create_timestamp")
-			},
-		},
-		{
-			name:    "clause contains DESC for descending",
-			orderBy: "id desc",
-			verifyClause: func(t *testing.T, clause string) {
-				require.Contains(t, clause, "DESC")
-			},
-		},
-		{
-			name:    "clause omits ASC for ascending",
-			orderBy: "id asc",
-			verifyClause: func(t *testing.T, clause string) {
-				require.NotContains(t, clause, "ASC")
-			},
-		},
-		{
-			name:    "multiple fields separated by comma",
-			orderBy: "id asc, create_timestamp desc",
-			verifyClause: func(t *testing.T, clause string) {
-				require.Contains(t, clause, "id")
-				require.Contains(t, clause, "create_timestamp")
-				require.Contains(t, clause, ",")
-			},
-		},
-	}
+	t.Run("starts with ORDER BY", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Contains(t, parsedRequest.GetSQLOrderByClause(), "ORDER BY")
+	})
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
+	t.Run("contains field name", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "display_name desc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Contains(t, parsedRequest.GetSQLOrderByClause(), "display_name")
+	})
 
-			parsedRequest, err := parser.Parse(request)
-			require.NoError(t, err)
+	t.Run("contains DESC for descending", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time desc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Contains(t, parsedRequest.GetSQLOrderByClause(), "DESC")
+	})
 
-			clause := parsedRequest.GetSQLOrderByClause()
-			tc.verifyClause(t, clause)
-		})
-	}
+	t.Run("omits ASC for ascending", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.NotContains(t, parsedRequest.GetSQLOrderByClause(), "ASC")
+	})
+
+	t.Run("multiple fields comma separated", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc, display_name desc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		clause := parsedRequest.GetSQLOrderByClause()
+		require.Contains(t, clause, "create_time")
+		require.Contains(t, clause, "display_name")
+		require.Contains(t, clause, ",")
+	})
 }
 
-func TestOrderingRequestParser_ColumnNameOverride(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
+func TestOrderingRequestParser_DifferentResourceHierarchies(t *testing.T) {
+	t.Run("Author - two level hierarchy", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		require.NoError(t, err)
+		require.NotNil(t, parser.tree.Resource)
+		require.Equal(t, "author", parser.tree.Resource.Singular)
+	})
+
+	t.Run("Book - three level hierarchy", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		require.NoError(t, err)
+		require.NotNil(t, parser.tree.Resource)
+		require.Equal(t, "book", parser.tree.Resource.Singular)
+	})
+
+	t.Run("Shelf - two level hierarchy", func(t *testing.T) {
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		require.NoError(t, err)
+		require.NotNil(t, parser.tree.Resource)
+		require.Equal(t, "shelf", parser.tree.Resource.Singular)
+	})
+}
+
+func TestOrderingRequestParser_PathAllowValidation(t *testing.T) {
+	authorParser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	bookParser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+	require.NoError(t, err)
+
+	t.Run("author allows display_name", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "display_name asc"}
+		_, err := authorParser.Parse(request)
+		require.NoError(t, err)
+	})
+
+	t.Run("book disallows display_name", func(t *testing.T) {
+		request := &libraryservicepb.ListBooksRequest{OrderBy: "display_name asc"}
+		_, err := bookParser.Parse(request)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid order path")
+	})
+
+	t.Run("book allows title", func(t *testing.T) {
+		request := &libraryservicepb.ListBooksRequest{OrderBy: "title desc"}
+		_, err := bookParser.Parse(request)
+		require.NoError(t, err)
+	})
+
+	t.Run("author disallows title", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "title desc"}
+		_, err := authorParser.Parse(request)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid order path")
+	})
+
+	t.Run("book allows publication_year", func(t *testing.T) {
+		request := &libraryservicepb.ListBooksRequest{OrderBy: "publication_year asc"}
+		_, err := bookParser.Parse(request)
+		require.NoError(t, err)
+	})
+
+	t.Run("common fields allowed in both", func(t *testing.T) {
+		authorRequest := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time desc, update_time asc"}
+		_, err := authorParser.Parse(authorRequest)
+		require.NoError(t, err)
+
+		bookRequest := &libraryservicepb.ListBooksRequest{OrderBy: "create_time desc, update_time asc"}
+		_, err = bookParser.Parse(bookRequest)
+		require.NoError(t, err)
+	})
+}
+
+func TestOrderingRequestParser_ImplicitDirection(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	t.Run("implicit ascending single field", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time", parsedRequest.GetSQLOrderByClause())
+	})
+
+	t.Run("implicit ascending multiple fields", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time, update_time"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time, update_time", parsedRequest.GetSQLOrderByClause())
+	})
+
+	t.Run("mixed implicit and explicit", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time, update_time desc, display_name"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time, update_time DESC, display_name", parsedRequest.GetSQLOrderByClause())
+	})
+}
+
+func TestOrderingRequestParser_EdgeCases(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	t.Run("whitespace handling", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "  create_time   desc  "}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time DESC", parsedRequest.GetSQLOrderByClause())
+	})
+
+	t.Run("repeated field same direction", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc, create_time asc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time, create_time", parsedRequest.GetSQLOrderByClause())
+	})
+
+	t.Run("repeated field different directions", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc, create_time desc"}
+		parsedRequest, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "ORDER BY create_time, create_time DESC", parsedRequest.GetSQLOrderByClause())
+	})
+}
+
+func TestOrderingRequestParser_MustNewPanicsOnInvalidConfig(t *testing.T) {
+	t.Run("valid config does not panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			MustNewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		})
+	})
+}
+
+func TestOrderingRequestParser_RequestMutation(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	t.Run("empty request gets default set", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{}
+		_, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "create_time desc", request.GetOrderBy())
+	})
+
+	t.Run("explicit request preserved", func(t *testing.T) {
+		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "update_time asc"}
+		_, err := parser.Parse(request)
+		require.NoError(t, err)
+		require.Equal(t, "update_time asc", request.GetOrderBy())
+	})
+}
+
+func TestOrderingRequestParser_ConsistentResults(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	require.NoError(t, err)
+
+	t.Run("same input produces same output", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			request := &libraryservicepb.ListAuthorsRequest{OrderBy: "display_name desc, create_time asc"}
+			parsedRequest, err := parser.Parse(request)
+			require.NoError(t, err)
+			require.Equal(t, "ORDER BY display_name DESC, create_time", parsedRequest.GetSQLOrderByClause())
+		}
+	})
+}
+
+func TestOrderingRequestParser_ColumnNameReplacement(t *testing.T) {
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -320,315 +467,47 @@ func TestOrderingRequestParser_ColumnNameOverride(t *testing.T) {
 		wantErr            bool
 	}{
 		{
-			name:               "column name override ascending works",
-			orderBy:            "column_name_changed asc",
-			expectedOrderBySQL: "ORDER BY new_name",
-			wantErr:            false,
+			name:               "external_id uses ext_id column ascending",
+			orderBy:            "external_id asc",
+			expectedOrderBySQL: "ORDER BY ext_id",
 		},
 		{
-			name:               "column name override descending",
-			orderBy:            "column_name_changed desc",
-			expectedOrderBySQL: "ORDER BY new_name DESC",
-			wantErr:            false,
+			name:               "external_id uses ext_id column descending",
+			orderBy:            "external_id desc",
+			expectedOrderBySQL: "ORDER BY ext_id DESC",
 		},
 		{
-			name:               "column name override with other fields",
-			orderBy:            "id asc, column_name_changed desc",
-			expectedOrderBySQL: "ORDER BY id, new_name DESC",
-			wantErr:            false,
+			name:               "correlation_id_2 uses correlation_id column",
+			orderBy:            "correlation_id_2 desc",
+			expectedOrderBySQL: "ORDER BY correlation_id DESC",
 		},
 		{
-			name:               "multiple column name overrides",
-			orderBy:            "column_name_changed asc, column_name_changed desc",
-			expectedOrderBySQL: "ORDER BY new_name, new_name DESC",
-			wantErr:            false,
+			name:               "multiple renamed columns",
+			orderBy:            "external_id asc, correlation_id_2 desc",
+			expectedOrderBySQL: "ORDER BY ext_id, correlation_id DESC",
+		},
+		{
+			name:               "mixed standard and renamed columns",
+			orderBy:            "display_name asc, external_id desc, create_time asc",
+			expectedOrderBySQL: "ORDER BY display_name, ext_id DESC, create_time",
+		},
+		{
+			name:               "renamed column with standard columns",
+			orderBy:            "create_time desc, correlation_id_2 asc",
+			expectedOrderBySQL: "ORDER BY create_time DESC, correlation_id",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
+			request := &libraryservicepb.ListShelvesRequest{OrderBy: tc.orderBy}
 			parsedRequest, err := parser.Parse(request)
-
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, parsedRequest)
-
-				orderBySQL := parsedRequest.GetSQLOrderByClause()
-				require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
-			}
-		})
-	}
-}
-
-func TestOrderingRequestParser_NameExpansion(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	tests := []struct {
-		name               string
-		orderBy            string
-		expectedOrderBySQL string
-		wantErr            bool
-		expectedErrMsg     string
-	}{
-		{
-			name:               "name ascending expands to composite keys",
-			orderBy:            "name asc",
-			expectedOrderBySQL: "ORDER BY organization_id, user_id, resource_id",
-		},
-		{
-			name:               "name descending expands to composite keys",
-			orderBy:            "name desc",
-			expectedOrderBySQL: "ORDER BY organization_id DESC, user_id DESC, resource_id DESC",
-		},
-		{
-			name:               "name implicit ascending",
-			orderBy:            "name",
-			expectedOrderBySQL: "ORDER BY organization_id, user_id, resource_id",
-		},
-		{
-			name:               "name with other fields before",
-			orderBy:            "create_timestamp desc, name asc",
-			expectedOrderBySQL: "ORDER BY create_timestamp DESC, organization_id, user_id, resource_id",
-		},
-		{
-			name:               "name with other fields after",
-			orderBy:            "name desc, id asc",
-			expectedOrderBySQL: "ORDER BY organization_id DESC, user_id DESC, resource_id DESC, id",
-		},
-		{
-			name:               "name between other fields",
-			orderBy:            "id asc, name desc, create_timestamp asc",
-			expectedOrderBySQL: "ORDER BY id, organization_id DESC, user_id DESC, resource_id DESC, create_timestamp",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
-			parsedRequest, err := parser.Parse(request)
-
-			if tc.wantErr {
-				require.Error(t, err)
-				if tc.expectedErrMsg != "" {
-					require.Contains(t, err.Error(), tc.expectedErrMsg)
-				}
-				return
-			}
-
-			require.NoError(t, err)
-			require.NotNil(t, parsedRequest)
-
-			orderBySQL := parsedRequest.GetSQLOrderByClause()
-			require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
-		})
-	}
-}
-
-/*
-func TestOrderingRequestParser_NameNotAllowed(t *testing.T) {
-	// This test requires a parser where "name" is NOT in the allowed paths.
-	// You may need to create a separate test proto/request type for this,
-	// or skip if the test proto always allows "name".
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesWithoutNameOrderingRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	request := &pb.ListResourcesWithoutNameOrderingRequest{
-		OrderBy: "name asc",
-	}
-
-	_, err = parser.Parse(request)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "ordering by path name not allowed")
-}
-*/
-
-func TestOrderingRequestParser_GetCompositeKeyFields(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	// Access the composite key fields through the expansion
-	// by checking the resulting SQL
-	request := &pb.ListResourcesRequest{
-		OrderBy: "name",
-	}
-
-	parsedRequest, err := parser.Parse(request)
-	require.NoError(t, err)
-
-	sql := parsedRequest.GetSQLOrderByClause()
-
-	// Verify all composite key fields are present in order
-	require.Contains(t, sql, "organization_id")
-	require.Contains(t, sql, "user_id")
-	require.Contains(t, sql, "resource_id")
-
-	// Verify the order is correct (organization before user before resource)
-	orgIdx := strings.Index(sql, "organization_id")
-	userIdx := strings.Index(sql, "user_id")
-	resourceIdx := strings.Index(sql, "resource_id")
-
-	require.Less(t, orgIdx, userIdx, "organization_id should come before user_id")
-	require.Less(t, userIdx, resourceIdx, "user_id should come before resource_id")
-}
-
-func TestOrderingRequestParser_NameExpansionPreservesDirection(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	tests := []struct {
-		name     string
-		orderBy  string
-		wantDesc bool
-	}{
-		{
-			name:     "ascending direction preserved",
-			orderBy:  "name asc",
-			wantDesc: false,
-		},
-		{
-			name:     "descending direction preserved",
-			orderBy:  "name desc",
-			wantDesc: true,
-		},
-		{
-			name:     "implicit ascending",
-			orderBy:  "name",
-			wantDesc: false,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
-			parsedRequest, err := parser.Parse(request)
-			require.NoError(t, err)
-
-			sql := parsedRequest.GetSQLOrderByClause()
-
-			if tc.wantDesc {
-				// All expanded fields should have DESC
-				require.Contains(t, sql, "organization_id DESC")
-				require.Contains(t, sql, "user_id DESC")
-				require.Contains(t, sql, "resource_id DESC")
-			} else {
-				// No DESC should appear (ASC is implicit and omitted)
-				require.NotContains(t, sql, "DESC")
-			}
-		})
-	}
-}
-
-func TestOrderingRequestParser_NameWithColumnOverride(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	// Test that name expansion works alongside column name overrides
-	request := &pb.ListResourcesRequest{
-		OrderBy: "name asc, column_name_changed desc",
-	}
-
-	parsedRequest, err := parser.Parse(request)
-	require.NoError(t, err)
-
-	sql := parsedRequest.GetSQLOrderByClause()
-
-	// Verify name expansion happened
-	require.Contains(t, sql, "organization_id")
-	require.Contains(t, sql, "user_id")
-	require.Contains(t, sql, "resource_id")
-
-	// Verify column override also applied
-	require.Contains(t, sql, "new_name DESC")
-}
-
-func TestOrderingRequestParser_CustomIdColumnName(t *testing.T) {
-	// Test with Book resource which has id_column_name: "id"
-	parser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Book]()
-	require.NoError(t, err)
-
-	tests := []struct {
-		name               string
-		orderBy            string
-		expectedOrderBySQL string
-		wantErr            bool
-	}{
-		{
-			name:               "name ascending with custom id column",
-			orderBy:            "name asc",
-			expectedOrderBySQL: "ORDER BY id",
-		},
-		{
-			name:               "name descending with custom id column",
-			orderBy:            "name desc",
-			expectedOrderBySQL: "ORDER BY id DESC",
-		},
-		{
-			name:               "name implicit ascending with custom id column",
-			orderBy:            "name",
-			expectedOrderBySQL: "ORDER BY id",
-		},
-		{
-			name:               "name with other fields",
-			orderBy:            "name desc, create_time asc",
-			expectedOrderBySQL: "ORDER BY id DESC, create_time",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			request := &pb.ListResourcesRequest{
-				OrderBy: tc.orderBy,
-			}
-
-			parsedRequest, err := parser.Parse(request)
-
 			if tc.wantErr {
 				require.Error(t, err)
 				return
 			}
-
 			require.NoError(t, err)
-			require.NotNil(t, parsedRequest)
-
-			orderBySQL := parsedRequest.GetSQLOrderByClause()
-			require.Equal(t, tc.expectedOrderBySQL, orderBySQL)
+			require.Equal(t, tc.expectedOrderBySQL, parsedRequest.GetSQLOrderByClause())
 		})
 	}
-}
-
-func TestOrderingRequestParser_CustomIdColumnNameVsStandard(t *testing.T) {
-	// Compare Book (custom id) vs Resource (standard id)
-
-	// Book uses id_column_name: "id", pattern: "books/{book}"
-	bookParser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Book]()
-	require.NoError(t, err)
-
-	// Resource uses standard pattern: "organizations/{organization}/users/{user}/resources/{resource}"
-	resourceParser, err := NewOrderingRequestParser[*pb.ListResourcesRequest, *pb.Resource]()
-	require.NoError(t, err)
-
-	// Book should expand "name" to just "id"
-	bookRequest := &pb.ListResourcesRequest{OrderBy: "name"}
-	bookParsed, err := bookParser.Parse(bookRequest)
-	require.NoError(t, err)
-	require.Equal(t, "ORDER BY id", bookParsed.GetSQLOrderByClause())
-
-	// Resource should expand "name" to "organization_id, user_id, resource_id"
-	resourceRequest := &pb.ListResourcesRequest{OrderBy: "name"}
-	resourceParsed, err := resourceParser.Parse(resourceRequest)
-	require.NoError(t, err)
-	require.Equal(t, "ORDER BY organization_id, user_id, resource_id", resourceParsed.GetSQLOrderByClause())
 }

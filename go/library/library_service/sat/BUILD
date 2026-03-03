@@ -3,9 +3,12 @@ go_test(
     srcs = [
         "author_test.go",
         "book_test.go",
+        "filter_test.go",
         "labels_test.go",
+        "order_by_test.go",
         "sat_test.go",
         "shelf_test.go",
+        "update_test.go",
     ],
     data = [
         "//cmd/library-service",
@@ -24,6 +27,8 @@ go_test(
         "//malonaz/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__testing__protocmp",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
     ],
 )

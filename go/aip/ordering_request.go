@@ -43,6 +43,7 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 		return nil, fmt.Errorf("getting message options: %v", err)
 	}
 
+	// Extract out the default ordering paths.
 	var zeroResource R
 	if err := pbfieldmask.FromPaths(options.GetPaths()...).Validate(zeroResource); err != nil {
 		return nil, fmt.Errorf("validating paths: %w", err)
@@ -59,11 +60,18 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 		pathToAllow[node.Path] = node.AllowedPath
 	}
 
-	return &OrderingRequestParser[T, R]{
+	parser := &OrderingRequestParser[T, R]{
 		options:     options,
 		tree:        tree,
 		pathToAllow: pathToAllow,
-	}, nil
+	}
+
+	// Call parse on the zero value, triggering the default() clause.
+	request := zero.ProtoReflect().New().Interface().(T)
+	if _, err := parser.Parse(request); err != nil {
+		return nil, fmt.Errorf("invalid default %q: %w", options.GetDefault(), err)
+	}
+	return parser, nil
 }
 
 func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error) {

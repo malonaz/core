@@ -102,10 +102,14 @@ type Shelf struct {
 	DisplayName string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	// The genre of books on this shelf.
 	Genre ShelfGenre `protobuf:"varint,6,opt,name=genre,proto3,enum=malonaz.library.v1.ShelfGenre" json:"genre,omitempty"`
+	// Field with custom column name.
+	ExternalId string `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	// Field with custom column name.
+	CorrelationId_2 string `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3" json:"correlation_id_2,omitempty"`
 	// The labels on this shelf.
-	Labels map[string]string `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Shelf metadata.
-	Metadata      *ShelfMetadata `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *ShelfMetadata `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,6 +181,20 @@ func (x *Shelf) GetGenre() ShelfGenre {
 	return ShelfGenre_SHELF_GENRE_UNSPECIFIED
 }
 
+func (x *Shelf) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *Shelf) GetCorrelationId_2() string {
+	if x != nil {
+		return x.CorrelationId_2
+	}
+	return ""
+}
+
 func (x *Shelf) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
@@ -213,6 +231,14 @@ func (x *Shelf) SetDisplayName(v string) {
 
 func (x *Shelf) SetGenre(v ShelfGenre) {
 	x.Genre = v
+}
+
+func (x *Shelf) SetExternalId(v string) {
+	x.ExternalId = v
+}
+
+func (x *Shelf) SetCorrelationId_2(v string) {
+	x.CorrelationId_2 = v
 }
 
 func (x *Shelf) SetLabels(v map[string]string) {
@@ -283,6 +309,10 @@ type Shelf_builder struct {
 	DisplayName string
 	// The genre of books on this shelf.
 	Genre ShelfGenre
+	// Field with custom column name.
+	ExternalId string
+	// Field with custom column name.
+	CorrelationId_2 string
 	// The labels on this shelf.
 	Labels map[string]string
 	// Shelf metadata.
@@ -299,6 +329,8 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.DeleteTime = b.DeleteTime
 	x.DisplayName = b.DisplayName
 	x.Genre = b.Genre
+	x.ExternalId = b.ExternalId
+	x.CorrelationId_2 = b.CorrelationId_2
 	x.Labels = b.Labels
 	x.Metadata = b.Metadata
 	return m0
@@ -368,7 +400,7 @@ var File_malonaz_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x97\x06\n" +
+	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x95\a\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -380,9 +412,17 @@ const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x05 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x02R\vdisplayName\x12@\n" +
 	"\x05genre\x18\x06 \x01(\x0e2\x1e.malonaz.library.v1.ShelfGenreB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05genre\x12\xd3\x01\n" +
-	"\x06labels\x18\a \x03(\v2%.malonaz.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12E\n" +
-	"\bmetadata\x18\b \x01(\v2!.malonaz.library.v1.ShelfMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x05genre\x12/\n" +
+	"\vexternal_id\x18\a \x01(\tB\x0e\xba\xea\x0f\n" +
+	"\n" +
+	"\x06ext_id \x01R\n" +
+	"externalId\x12>\n" +
+	"\x10correlation_id_2\x18\b \x01(\tB\x14\xba\xea\x0f\x10\n" +
+	"\x0ecorrelation_idR\x0ecorrelationId2\x12\xd3\x01\n" +
+	"\x06labels\x18\t \x03(\v2%.malonaz.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12R\n" +
+	"\bmetadata\x18\n" +
+	" \x01(\v2!.malonaz.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
+	"\vlegacy_meta\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xeaAY\n" +

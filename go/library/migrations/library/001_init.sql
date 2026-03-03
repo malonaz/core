@@ -28,8 +28,10 @@ CREATE TABLE shelf (
     delete_time TIMESTAMP,
     display_name TEXT NOT NULL,
     genre SMALLINT NOT NULL,
+    ext_id TEXT,
+    correlation_id TEXT NOT NULL,
     labels JSONB,
-    metadata JSONB NOT NULL,
+    legacy_meta JSONB NOT NULL,
     PRIMARY KEY (organization_id, shelf_id),
     CONSTRAINT shelf_request_id_unique UNIQUE (request_id)
 );
