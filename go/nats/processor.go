@@ -67,6 +67,11 @@ func (p *Processor[T]) WithMetrics() *Processor[T] {
 	return p
 }
 
+// Checks the health of this routine.
+func (p *Processor[T]) HealthCheck(ctx context.Context) error {
+	return p.routine.HealthCheck(ctx)
+}
+
 func (p *Processor[T]) Start(ctx context.Context) error {
 	var stream string
 	var filterSubjects []string

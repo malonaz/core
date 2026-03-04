@@ -301,7 +301,7 @@ var stopFns []func() error
 {{- if eq $server.type "processor" }}
     {{- $serviceManifest := parseYaml $server.manifest -}}
     {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-    healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.Check)
+    healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
 {{- end }}
 
     {{- if eq $server.type "grpc" }}

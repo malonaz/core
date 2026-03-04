@@ -72,7 +72,7 @@ func (r *Routine) WithLogger(logger *slog.Logger) *Routine {
 }
 
 // Checks the health of this routine.
-func (r *Routine) HealthCheck() error {
+func (r *Routine) HealthCheck(ctx context.Context) error {
 	select {
 	case <-r.exited:
 		return fmt.Errorf("routine %q stopped: %w", r.name, r.closeErr)
