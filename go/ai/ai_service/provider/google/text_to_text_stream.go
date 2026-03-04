@@ -288,6 +288,10 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
+	if err := cs.Err(); err != nil {
+		return status.Errorf(codes.Internal, "error sending content: %v", err).Err()
+	}
+
 	toolCalls, err := tca.BuildRemaining()
 	if err != nil {
 		return err
