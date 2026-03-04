@@ -209,6 +209,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	// PRE (8): Error interceptor.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerErrorInfoInjector())
 	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerErrorInfoInjector())
+	// PRE (9): Hook interceptor.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerHook())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerHook())
 
 	// POST (1): Proto validator interceptor. (Last before it goes on the wire).
 	// We place this interceptor in the 'post' to allow authentication middleware to take precedence.

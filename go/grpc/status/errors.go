@@ -1,4 +1,4 @@
-package grpc
+package status
 
 import (
 	"context"
@@ -15,21 +15,32 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// maxStackDepth controls how many stack frames are captured in DebugInfo
+// when creating errors via Errorf. A value of 0 disables stack capture entirely.
 var maxStackDepth = 5
 
-// A client of this library may chose to set a higher or lower stack depth.
-// If depth == 0 => we do not set a debug info.
+// SetErrorMaxStackDepth configures the number of stack frames captured in the
+// DebugInfo detail attached to errors created by Errorf.
+// Setting depth to 0 disables stack trace capture.
 func SetErrorMaxStackDepth(depth int) {
 	maxStackDepth = depth
 }
 
+// Error wraps a google.rpc.Status proto, providing a builder pattern for
+// attaching structured error details (debug info, localized messages, error info)
+// before converting to a gRPC-compatible error.
 type Error struct {
 	status *spb.Status
 }
 
-// Construct an error from an existing error.
+// FromError converts a standard Go error into an *Error.
+//
+// It handles three cases:
+//   - context.Canceled and context.DeadlineExceeded are mapped to their
+//     corresponding gRPC codes (Canceled, DeadlineExceeded).
+//   - Errors already carrying a gRPC status are unwrapped and preserved.
+//   - All other errors are wrapped with codes.Unknown.
 func FromError(err error) *Error {
-	// Check if the error is a context error.
 	if errors.Is(err, context.Canceled) {
 		return &Error{
 			status: &spb.Status{Code: int32(codes.Canceled), Message: err.Error()},
@@ -53,18 +64,19 @@ func FromError(err error) *Error {
 	}
 }
 
+// Errorf creates a new *Error with the given gRPC status code and a formatted message.
+// If maxStackDepth > 0, a DebugInfo detail containing the caller's stack trace
+// (up to maxStackDepth frames, excluding Errorf itself) is automatically attached.
 func Errorf(code codes.Code, message string, params ...any) *Error {
 	e := &Error{
 		status: &spb.Status{Code: int32(code), Message: fmt.Sprintf(message, params...)},
 	}
 
-	// Only capture stack trace if maxStackDepth > 0
 	if maxStackDepth > 0 {
 		stackEntries := make([]string, 0, maxStackDepth)
 
-		// Capture stack trace.
 		for i := 0; i < maxStackDepth; i++ {
-			pc, file, line, ok := runtime.Caller(i + 1) // Skip 1 to exclude Errorf itself.
+			pc, file, line, ok := runtime.Caller(i + 1)
 			if !ok {
 				break
 			}
@@ -89,6 +101,8 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 	return e
 }
 
+// WithLocalizedMessage appends a LocalizedMessage detail (locale "en-US") to the error.
+// The message is formatted using fmt.Sprintf. Returns the receiver for chaining.
 func (e *Error) WithLocalizedMessage(message string, params ...any) *Error {
 	localizedMessage := &errdetails.LocalizedMessage{
 		Locale:  "en-US",
@@ -102,6 +116,8 @@ func (e *Error) WithLocalizedMessage(message string, params ...any) *Error {
 	return e
 }
 
+// WithErrorInfo appends an ErrorInfo detail containing a machine-readable reason,
+// domain, and optional metadata map. Returns the receiver for chaining.
 func (e *Error) WithErrorInfo(reason, domain string, metadata map[string]string) *Error {
 	errorInfo := &errdetails.ErrorInfo{
 		Reason:   reason,
@@ -116,6 +132,10 @@ func (e *Error) WithErrorInfo(reason, domain string, metadata map[string]string)
 	return e
 }
 
+// WithDetails appends arbitrary proto messages as error details.
+// Messages that are already *anypb.Any are appended directly; all others
+// are marshaled into Any first. Panics if marshaling fails.
+// Returns the receiver for chaining.
 func (e *Error) WithDetails(messages ...proto.Message) *Error {
 	for _, m := range messages {
 		if a, ok := m.(*anypb.Any); ok {
@@ -131,29 +151,19 @@ func (e *Error) WithDetails(messages ...proto.Message) *Error {
 	return e
 }
 
+// Status converts the Error into a *grpc/status.Status, suitable for
+// inspection or further manipulation via the standard gRPC status API.
 func (e *Error) Status() *status.Status {
 	return status.FromProto(e.status)
 }
 
+// Proto returns a deep copy of the underlying google.rpc.Status proto.
 func (e *Error) Proto() *spb.Status {
 	return proto.Clone(e.status).(*spb.Status)
 }
 
+// Err converts the Error into a standard Go error carrying the gRPC status.
+// This is typically the final call in an RPC handler's error return path.
 func (e *Error) Err() error {
 	return e.Status().Err()
-}
-
-// Range over error details in an error.
-func RangeErrorDetails[M proto.Message](err error, fn func(M) bool) {
-	st, ok := status.FromError(err)
-	if !ok {
-		return
-	}
-	for _, detail := range st.Details() {
-		if m, ok := detail.(M); ok {
-			if !fn(m) {
-				return
-			}
-		}
-	}
 }

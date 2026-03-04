@@ -11,6 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
+	_ "github.com/malonaz/core/genproto/grpc/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -340,7 +341,9 @@ func (b0 Shelf_builder) Build() *Shelf {
 type ShelfMetadata struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Maximum capacity of books on this shelf.
-	Capacity      int32 `protobuf:"varint,1,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	Capacity int32 `protobuf:"varint,1,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	// Maximum capacity of books on this shelf.
+	Dummy         string `protobuf:"bytes,2,opt,name=dummy,proto3" json:"dummy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -377,8 +380,19 @@ func (x *ShelfMetadata) GetCapacity() int32 {
 	return 0
 }
 
+func (x *ShelfMetadata) GetDummy() string {
+	if x != nil {
+		return x.Dummy
+	}
+	return ""
+}
+
 func (x *ShelfMetadata) SetCapacity(v int32) {
 	x.Capacity = v
+}
+
+func (x *ShelfMetadata) SetDummy(v string) {
+	x.Dummy = v
 }
 
 type ShelfMetadata_builder struct {
@@ -386,6 +400,8 @@ type ShelfMetadata_builder struct {
 
 	// Maximum capacity of books on this shelf.
 	Capacity int32
+	// Maximum capacity of books on this shelf.
+	Dummy string
 }
 
 func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
@@ -393,6 +409,7 @@ func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Capacity = b.Capacity
+	x.Dummy = b.Dummy
 	return m0
 }
 
@@ -400,7 +417,7 @@ var File_malonaz_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x95\a\n" +
+	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a malonaz/grpc/v1/extensions.proto\"\x95\a\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -426,9 +443,11 @@ const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xeaAY\n" +
-	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\"+\n" +
+	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\"l\n" +
 	"\rShelfMetadata\x12\x1a\n" +
-	"\bcapacity\x18\x01 \x01(\x05R\bcapacity*\xb4\x01\n" +
+	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x14\n" +
+	"\x05dummy\x18\x02 \x01(\tR\x05dummy:)\x8a\xb5\x18%\n" +
+	"!library.malonaz.com/ShelfMetadata\x10\x01*\xb4\x01\n" +
 	"\n" +
 	"ShelfGenre\x12\x1b\n" +
 	"\x17SHELF_GENRE_UNSPECIFIED\x10\x00\x12\x17\n" +

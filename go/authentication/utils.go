@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/jsonnet"
 	"github.com/malonaz/core/go/pbutil"
 )
@@ -69,7 +69,7 @@ func extractSessionMetadataFromContext(ctx context.Context) (*authenticationpb.S
 	if values := md.Get(metadataKeyClientVersion); len(values) > 0 {
 		clientVersion, err := parseClientVersion(values[0])
 		if err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "parsing client version: %v", err).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "parsing client version: %v", err).Err()
 		}
 		sessionMetadata.ClientVersion = clientVersion
 	}

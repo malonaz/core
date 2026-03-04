@@ -12,7 +12,7 @@ import (
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 type ToolCallAccumulator struct {
@@ -90,7 +90,7 @@ func (a *ToolCallAccumulator) AppendArg(index int64, jsonPath string, value any)
 func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
-		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
+		return nil, status.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
 		Id:        entry.id,
@@ -106,7 +106,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		var err error
 		tc.Arguments, err = structpb.NewStruct(entry.structuredArgs)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
 		}
 	} else {
 		lexer := streamingjson.NewLexer()
@@ -116,7 +116,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 			healed = "{}"
 		}
 		if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
-			return nil, grpc.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
+			return nil, status.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
 				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
 		}
 	}
@@ -132,7 +132,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	entry, ok := a.calls[index]
 	if !ok {
-		return nil, grpc.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
+		return nil, status.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
 	tc := &aipb.ToolCall{
 		Id:        entry.id,
@@ -147,12 +147,12 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 		var err error
 		tc.Arguments, err = structpb.NewStruct(entry.structuredArgs)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "marshaling structured tool call arguments: %v", err).Err()
 		}
 	} else {
 		rawJSON := entry.args.String()
 		if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
-			return nil, grpc.Errorf(codes.Internal, "unmarshaling tool call arguments").
+			return nil, status.Errorf(codes.Internal, "unmarshaling tool call arguments").
 				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": rawJSON}).Err()
 		}
 	}

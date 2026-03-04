@@ -20,7 +20,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
@@ -160,11 +160,11 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		descriptorFullName = protoreflect.FullName(target.Method)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "finding method descriptor (%s): %v", target.Method, err).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "finding method descriptor (%s): %v", target.Method, err).Err()
 		}
 		methodDescriptor, ok := descriptor.(protoreflect.MethodDescriptor)
 		if !ok {
-			return nil, grpc.Errorf(codes.InvalidArgument, "%s is not a method", target.Method).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "%s is not a method", target.Method).Err()
 		}
 		messageDescriptor = methodDescriptor.Input()
 		toolName = string(methodDescriptor.Name())
@@ -186,19 +186,19 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		descriptorFullName = protoreflect.FullName(target.Message)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", target.Message, err).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", target.Message, err).Err()
 		}
 		var ok bool
 		messageDescriptor, ok = descriptor.(protoreflect.MessageDescriptor)
 		if !ok {
-			return nil, grpc.Errorf(codes.InvalidArgument, "%s is not a message", target.Message).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "%s is not a message", target.Message).Err()
 		}
 		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
 		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
 		annotations[annotationKeyToolType] = annotationValueToolTypeGenerateMessage
 
 	default:
-		return nil, grpc.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
 	}
 
 	// Set the proto message annotation.
@@ -208,14 +208,14 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		fieldMask := pbfieldmask.New(request.GetSchemaConfiguration().GetFieldMask())
 		message := dynamicpb.NewMessage(messageDescriptor)
 		if err := fieldMask.Validate(message); err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
 		}
 		annotations[annotationKeyGenerationFieldMask] = fieldMask.String()
 		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(fieldMask.GetPaths()...))
 	}
 	jsonSchema, err := schemaBuilder.BuildSchema(descriptorFullName, schemaOptions...)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "building schema: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "building schema: %v", err).Err()
 	}
 
 	return &aipb.Tool{
@@ -230,7 +230,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	toolCall := request.GetToolCall()
 	annotations := toolCall.GetAnnotations()
 	if len(annotations) == 0 {
-		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
 
 	switch toolType := annotations[annotationKeyToolType]; toolType {
@@ -254,17 +254,17 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 			}
 		}
 		if targetToolSet == nil {
-			return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
+			return nil, status.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
 		}
 
 		// Validate the tool names.
 		for _, toolName := range toolNames {
 			discoverTimestamp, ok := targetToolSet.ToolNameToDiscoverTimestamp[toolName]
 			if !ok {
-				return nil, grpc.Errorf(codes.NotFound, "tool %q not found in tool set", toolName).Err()
+				return nil, status.Errorf(codes.NotFound, "tool %q not found in tool set", toolName).Err()
 			}
 			if discoverTimestamp > 0 {
-				return nil, grpc.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).
+				return nil, status.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).
 					WithDetails(&pb.ParseToolCallRecoverableError{
 						ToolResult: ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), fmt.Errorf("tool already discovered")),
 					}).Err()
@@ -283,11 +283,11 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	case annotationValueToolTypeGenerateRPCRequest: // CASE 2: GRPC METHOD TOOL CALL.
 		methodFullName, ok := annotations[annotationKeyGRPCMethod]
 		if !ok {
-			return nil, grpc.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCMethod).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCMethod).Err()
 		}
 		serviceFullName, ok := annotations[annotationKeyGRPCService]
 		if !ok {
-			return nil, grpc.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCService).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, annotationKeyGRPCService).Err()
 		}
 
 		// If it's a discoverable tool, verify it has been discovered.
@@ -296,14 +296,14 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 			for _, toolSet := range request.GetToolSets() {
 				if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCall.GetName()]; ok {
 					if discoverTimestamp == 0 {
-						return nil, grpc.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCall.GetName()).Err()
+						return nil, status.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCall.GetName()).Err()
 					}
 					found = true
 					break
 				}
 			}
 			if !found {
-				return nil, grpc.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
+				return nil, status.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
 			}
 		}
 
@@ -337,7 +337,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		}, nil
 
 	default:
-		return nil, grpc.Errorf(codes.InvalidArgument, "unknown tool type %s", toolType).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "unknown tool type %s", toolType).Err()
 	}
 }
 
@@ -377,7 +377,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	}
 	textToTextResponse, err := s.aiServiceClient.TextToText(ctx, textToTextRequest)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "text to text: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "text to text: %v", err).Err()
 	}
 
 	// Parse tool call.
@@ -388,7 +388,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		}
 	}
 	if len(toolCalls) != 1 {
-		return nil, grpc.Errorf(codes.Internal, "expected 1 tool call, got %d", len(toolCalls)).Err()
+		return nil, status.Errorf(codes.Internal, "expected 1 tool call, got %d", len(toolCalls)).Err()
 	}
 	parseToolCallRequest := &pb.ParseToolCallRequest{
 		ToolCall: toolCalls[0],
@@ -404,7 +404,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	case *pb.ParseToolCallResponse_Message:
 		return result.Message, nil
 	default:
-		return nil, grpc.Errorf(codes.Internal, "unexpected result type: %T", result).Err()
+		return nil, status.Errorf(codes.Internal, "unexpected result type: %T", result).Err()
 	}
 }
 
@@ -462,11 +462,11 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	// Find the service descriptor.
 	descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(request.ServiceFullName))
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "finding service descriptor (%s): %v", request.ServiceFullName, err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "finding service descriptor (%s): %v", request.ServiceFullName, err).Err()
 	}
 	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
 	if !ok {
-		return nil, grpc.Errorf(codes.InvalidArgument, "%s is not a service", request.ServiceFullName).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "%s is not a service", request.ServiceFullName).Err()
 	}
 
 	// Fill method names if not provided.
@@ -496,7 +496,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		}
 		tool, err := s.CreateTool(ctx, createToolRequest)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
+			return nil, status.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
 		tool.Annotations[annotationKeyDiscoverableTool] = "true"
@@ -512,7 +512,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	}
 	discoveryTool, err := s.CreateDiscoveryTool(ctx, createDiscoveryToolRequest)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "creating discovery tool: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "creating discovery tool: %v", err).Err()
 	}
 
 	return &pb.ToolSet{
@@ -526,12 +526,12 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 func (s *Service) parseToolCallMessage(ctx context.Context, toolCall *aipb.ToolCall) (*structpb.Struct, error) {
 	annotations := toolCall.GetAnnotations()
 	if len(annotations) == 0 {
-		return nil, grpc.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
 
 	messageFullName, ok := annotations[annotationKeyProtoMessage]
 	if !ok {
-		return nil, grpc.Errorf(codes.InvalidArgument, "missing %s annotation", annotationKeyProtoMessage).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", annotationKeyProtoMessage).Err()
 	}
 
 	schema, err := s.getSchema(ctx)
@@ -541,21 +541,21 @@ func (s *Service) parseToolCallMessage(ctx context.Context, toolCall *aipb.ToolC
 	schemaBuilder := pbjson.NewSchemaBuilder(schema)
 	dynamicMessage, err := schemaBuilder.BuildMessage(protoreflect.FullName(messageFullName), toolCall.GetArguments().AsMap())
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "building message: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "building message: %v", err).Err()
 	}
 
 	// Apply the generation field mask. (LLMs sometimes generate additional fields).
 	if generationFieldMask, ok := annotations[annotationKeyGenerationFieldMask]; ok {
 		fieldMask := pbfieldmask.FromString(generationFieldMask)
 		if err := fieldMask.Validate(dynamicMessage); err != nil {
-			return nil, grpc.Errorf(codes.Internal, "validating generation field mask: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "validating generation field mask: %v", err).Err()
 		}
 		fieldMask.Apply(dynamicMessage)
 	}
 
 	message := &structpb.Struct{}
 	if err := pbutil.UnmarshalFromDynamic(message, dynamicMessage); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
 	}
 
 	return message, nil

@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 const (
@@ -156,12 +156,12 @@ func (c *Client) speechToTextStreamNova(
 	}
 	vadConfiguration := configuration.GetVad()
 	if vadConfiguration == nil {
-		return grpc.Errorf(codes.InvalidArgument, "only supports vad commit strategy").Err()
+		return status.Errorf(codes.InvalidArgument, "only supports vad commit strategy").Err()
 	}
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
 	if err != nil {
-		return grpc.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
+		return status.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
 	var endpointingMs int
@@ -177,7 +177,7 @@ func (c *Client) speechToTextStreamNova(
 		EndpointingMs: endpointingMs,
 	})
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "connecting to deepgram nova: %v", err).Err()
+		return status.Errorf(codes.Internal, "connecting to deepgram nova: %v", err).Err()
 	}
 	defer conn.Close()
 

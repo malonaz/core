@@ -24,7 +24,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/ai",
-        "//go/grpc",
+        "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
         "//go/pbutil/pbjson",

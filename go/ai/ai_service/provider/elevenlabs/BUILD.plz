@@ -10,6 +10,7 @@ go_library(
         "//go/ai/ai_service/provider",
         "//go/audio",
         "//go/grpc",
+        "//go/grpc/status",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/audio/v1",

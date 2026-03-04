@@ -5,6 +5,7 @@ package malonaz.library.library_service.v1;
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/protobuf/empty.proto";
+import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/library/library_service/v1/author.proto";
 import "malonaz/library/library_service/v1/book.proto";
@@ -109,6 +110,7 @@ service LibraryService {
 
   // Creates a book.
   rpc CreateBook(CreateBookRequest) returns (malonaz.library.v1.Book) {
+    option (malonaz.canonicalize.v1.skip) = true;
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/shelves/*}/books"
       body: "book"

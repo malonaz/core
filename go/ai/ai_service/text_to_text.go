@@ -10,14 +10,13 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
-	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 var (
@@ -39,7 +38,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	} else {
 		chatRn = &aipb.ChatResourceName{}
 		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 		}
 	}
 
@@ -50,7 +49,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 	if request.Configuration == nil {
 		request.Configuration = &pb.TextToTextConfiguration{}
@@ -60,10 +59,10 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	}
 
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
-		return grpc.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
+		return status.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
 	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
-		return grpc.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
+		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
 	toolNameToTool := make(map[string]*aipb.Tool, len(request.Tools))
@@ -96,7 +95,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		var err error
 		chat, err = s.GetChat(ctxEg, getChatRequest)
 		if err != nil {
-			if status.Code(err) != codes.NotFound {
+			if !status.HasCode(err, codes.NotFound) {
 				return err
 			}
 			createChatRequest := &pb.CreateChatRequest{
@@ -177,7 +176,7 @@ func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	if err := w.textToTextAccumulator.Add(resp); err != nil {
-		return grpc.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
+		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 	}
 
 	switch c := resp.GetContent().(type) {
@@ -197,7 +196,7 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			// Find the target tool.
 			tool, ok := w.toolNameToTool[toolCall.Name]
 			if !ok {
-				return grpc.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
+				return status.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
 					WithDetails(&aipb.ToolCallRecoverableError{
 						ToolCallBlock:   c.Block,
 						ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool"))),

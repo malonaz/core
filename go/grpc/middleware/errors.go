@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 
@@ -138,7 +139,7 @@ func (ei *errorInfoInjector) buildServiceMetadataCache() {
 
 			defaultHost, err := pbutil.GetExtension[string](service.Options(), annotations.E_DefaultHost)
 			if err != nil {
-				if err == pbutil.ErrExtensionNotFound {
+				if errors.Is(err, pbutil.ErrExtensionNotFound) {
 					continue
 				}
 				panic(err)

@@ -142,7 +142,7 @@ package {{ .PackageName }}
             {{ if $pr.Parent }}
                 var {{ $pr.Parent.PatternVariableIDs true }} string
                 if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
-		            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
+		            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
                 }
             {{ end }}
             request.{{ $resourceGoName }}.Name = {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $pr.Pattern }}", {{ $pr.PatternVariableIDs true }})
@@ -152,7 +152,7 @@ package {{ .PackageName }}
                 // Check for x-migration-request header
                 if values := {{ fqn "google.golang.org/grpc/metadata" "ValueFromIncomingContext" }}(ctx, "x-migration-request"); len(values) > 0 {
                 if request.{{ $resourceGoName }}.CreateTime == nil {
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "x-migration-request used without setting a create_time").Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "x-migration-request used without setting a create_time").Err()
                 }
                 } else {
                 request.{{ $resourceGoName }}.CreateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
@@ -167,7 +167,7 @@ package {{ .PackageName }}
                 var err error
                 request.{{ $resourceGoName }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}(request.{{ $resourceGoName }})
                 if err != nil {
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing etag: %v", err).Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing etag: %v", err).Err()
                 }
                 }
             {{- end }}
@@ -176,7 +176,7 @@ package {{ .PackageName }}
             // STEP 3: Convert the resource to the database representation.
             {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(request.{{ $resourceGoName }})
 	          if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
 	          }
 
             {{- range $childPr := $singletonChildren }}
@@ -197,7 +197,7 @@ package {{ .PackageName }}
                     var err error
                     {{ $childResourceGoName | untitle }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}({{ $childResourceGoName | untitle }})
                     if err != nil {
-                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing %s etag: %v", {{ $childPr.Desc.Singular }}, err).Err()
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing %s etag: %v", {{ $childPr.Desc.Singular }}, err).Err()
                     }
                     }
                 {{- end }}
@@ -205,7 +205,7 @@ package {{ .PackageName }}
                 {{ $parseFromPb := (printf "%sFromPb" $childMessage.GoIdent.GoName) | $modelGpi.Ident | qgi }}
                 {{ $childResourceGoName | untitle }}Model, err := {{ $parseFromPb }}({{ $childResourceGoName | untitle }})
                 if err != nil {
-		            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childPr.Desc.Singular }} from pb to model: %v", err).Err()
+		            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childPr.Desc.Singular }} from pb to model: %v", err).Err()
 	              }
             {{ end }}
 
@@ -219,14 +219,14 @@ package {{ .PackageName }}
             db{{ $modelGoName }}, err := s.store.Insert{{ $resourceGoName }}{{ if $hasRequestID }}Idempotently{{ end }}(ctx, {{ if $hasRequestID }}request.RequestId,{{ end }} {{ $modelGoName | untitle }}{{ range $childPr := $singletonChildren }}, {{ $childPr.SingularGoName | untitle }}Model{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists").Err()
             }
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err).Err()
 	          }
 
             {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
 		        if err != nil {
-			      return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+			      return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
 		        }
             return {{ $resourceGoName | untitle }}, nil
             }
@@ -235,10 +235,10 @@ package {{ .PackageName }}
             var update{{ $resourceGoName }}RequestParser = {{ fqn "github.com/malonaz/core/go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
             func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             if len(request.GetUpdateMask().GetPaths()) == 0 {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
             }
             if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.{{ $resourceGoName }}.Name) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
             }
 
             {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
@@ -255,7 +255,7 @@ package {{ .PackageName }}
             // STEP 1: Parse request.
 	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request)
 	          if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err).Err()
 	          }
 
             // STEP 2: retrieve existing resource.
@@ -266,14 +266,14 @@ package {{ .PackageName }}
             }
             {{- if $softDeletable }}
             if patched{{ $resourceGoName }}.DeleteTime != nil {
-               return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+               return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
             {{ end }}
 
             // STEP 3: Patch the existing resource.
 	          parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }})
             if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
-              return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
+              return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
             }
 
             {{ if $etag }}
@@ -281,7 +281,7 @@ package {{ .PackageName }}
               var err error
               patched{{ $resourceGoName }}.Etag, err = {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}(patched{{ $resourceGoName }})
               if err != nil {
-                 return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing new etag: %v", err).Err()
+                 return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing new etag: %v", err).Err()
               }
             }
             {{ end }}
@@ -289,24 +289,24 @@ package {{ .PackageName }}
             // STEP 4: Insert patched resource.
 	          {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(patched{{ $resourceGoName }})
 	          if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
 	          }
 	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(){{ if $etag }}, etag{{ end }})
             if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
             {{ if $etag }}
             if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
             }
             {{ end }}
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $pr.Desc.Singular }}: %v", err).Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $pr.Desc.Singular }}: %v", err).Err()
             }
 
             {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
 		        if err != nil {
-			      return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+			      return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
 		        }
             return {{ $resourceGoName | untitle }}, nil
             }
@@ -316,7 +316,7 @@ package {{ .PackageName }}
             // STEP 1: Parse resource name.
             {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(request.Name)
             if err != nil {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
             }
 
             {{- if $softDeletable }}
@@ -331,7 +331,7 @@ package {{ .PackageName }}
                 {{ $resourceGoName }}.DeleteTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "New" }}(deleteTime)
                 newEtag, err := {{ fqn "github.com/malonaz/core/go/aip" "ComputeETag" }}({{ $resourceGoName }})
                 if err != nil {
-                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing etag: %v", err).Err()
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing etag: %v", err).Err()
                 }
                 {{ end }}
 
@@ -339,11 +339,11 @@ package {{ .PackageName }}
                 db{{ $modelGoName }}, err := s.store.SoftDelete{{ $resourceGoName }}(ctx, {{ $pr.PatternVariableIDs true }}{{ if $etag}}, request.GetEtag(), newEtag{{ end }}, deleteTime)
                 if err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
                 }
                 {{ if $etag }}
                   if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
-                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                   }
                 {{ end }}
                 if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) {
@@ -351,15 +351,15 @@ package {{ .PackageName }}
                  get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.Name }
                  return s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
                 }
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
                 }
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err).Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err).Err()
                 }
 
                 // STEP 3: Convert to protobuf and return.
                 {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
                 if err != nil {
-			          return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+			          return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
                 }
                 return {{ $resourceGoName | untitle }}, nil
 
@@ -370,14 +370,14 @@ package {{ .PackageName }}
                 if request.AllowMissing {
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
                 }
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
                 }
                 {{ if $etag }}
                   if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
-                    return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+                    return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                   }
                 {{ end }}
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $pr.Desc.Singular }}: %v", err).Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $pr.Desc.Singular }}: %v", err).Err()
                 }
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
             {{ end }}
@@ -387,26 +387,26 @@ package {{ .PackageName }}
             {{- $resourceDbName := printf "db%s" $resourceGoName }}
             func (s *{{ $serverGoName }}) Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.Name) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
             }
 
             {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(request.Name)
             if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
             }
 
             // Retrieve from the database.
             db{{ $modelGoName }}, err := s.store.{{ $method.GoName }}(ctx, {{ $pr.PatternVariableIDs true }})
 	          if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "getting {{ $pr.Desc.Singular }}: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "getting {{ $pr.Desc.Singular }}: %v", err).Err()
 	          }
 
 		        {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
 		        if err != nil {
-			      return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+			      return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
 		        }
             return {{ $resourceGoName | untitle }}, nil
             }
@@ -419,7 +419,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
         var {{ $pr.Parent.PatternVariableIDs true }} string
         if request.Parent != "" {
             if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
-                return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
+                return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
             }
         }
     {{ end }}
@@ -431,20 +431,20 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     for i, name := range request.Names {
         // Validate names.
         if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(name) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name cannot contain wildcard").Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name cannot contain wildcard").Err()
         }
 
         {{ if $pr.Parent }}
         // Verify childrren match parent.
         if request.Parent != "" && !{{ fqn "go.einride.tech/aip/resourcename" "HasParent" }}(name, request.Parent) {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name %q does not have parent %q", name, request.Parent).Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "name %q does not have parent %q", name, request.Parent).Err()
         }
         {{ end }}
 
         // Parse identifiers.
         {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(name)
         if err != nil {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name %s: %v", name, err).Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name %s: %v", name, err).Err()
         }
 
        // Construct where clause.
@@ -462,17 +462,17 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     // Retrieve from the database
     db{{ $pr.PluralGoName }}, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
     if err != nil {
-        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err).Err()
+        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err).Err()
     }
     if len(db{{ $pr.PluralGoName }}) != len(request.Names) {
-       return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $pr.PluralGoName }})).Err()
+       return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $pr.PluralGoName }})).Err()
     }
     // Convert to proto
     {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }} := make(map[string]*{{ qgi $rpc.Message.GoIdent }}, len(request.Names))
     for _, db{{ $modelGoName }} := range db{{ $pr.PluralGoName }} {
         {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
         if err != nil {
-            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
         }
         {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[{{ $resourceGoName | untitle }}.Name] = {{ $resourceGoName | untitle }}
     }
@@ -481,7 +481,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     for _, name := range request.Names {
        {{ $resourceGoName | untitle }}, ok := {{ $resourceGoName | untitle }}NameTo{{ $resourceGoName }}[name]
        if !ok {
-          return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "could not find %q", name).Err()
+          return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "could not find %q", name).Err()
        }
        {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
     }
@@ -500,14 +500,14 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
                 // Parse parent names
                 var {{ $pr.Parent.PatternVariableIDs true }} string
                 if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
-		            return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
+		            return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
                 }
             {{ end }}
 
             // Parse request
             parsedRequest, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.Parse(request)
 	          if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error()).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error()).Err()
 	          }
 	          whereClause, whereParams := parsedRequest.GetSQLWhereClause()
             var dbColumns []string
@@ -515,7 +515,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
             // Retrieve from the database.
             {{ $resourceDbName }}s, err := s.store.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
-		        return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err).Err()
+		        return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err).Err()
 	          }
 	          nextPageToken := parsedRequest.GetNextPageToken(len({{ $resourceDbName }}s))
 	          if nextPageToken != "" {
@@ -527,7 +527,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
 	          for _, {{ $resourceDbName }} := range {{ $resourceDbName }}s {
 		        {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
 		        if err != nil {
-			      return nil, {{ fqn "github.com/malonaz/core/go/grpc" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to {{ $resourceGoName }}: %v", err).Err()
+			      return nil, {{ fqn "github.com/malonaz/core/go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to {{ $resourceGoName }}: %v", err).Err()
 		        }
 		        {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
 	          }

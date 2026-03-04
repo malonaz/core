@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 const (
@@ -44,11 +44,11 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	event, err := srv.Recv()
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
+		return status.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return grpc.Errorf(codes.FailedPrecondition, "first message must be configuration").Err()
+		return status.Errorf(codes.FailedPrecondition, "first message must be configuration").Err()
 	}
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
@@ -59,12 +59,12 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	audioFormat := configuration.AudioFormat
 	if audioFormat.BitsPerSample != 16 {
-		return grpc.Errorf(codes.InvalidArgument, "only 16-bit PCM audio supported").Err()
+		return status.Errorf(codes.InvalidArgument, "only 16-bit PCM audio supported").Err()
 	}
 
 	vadConfiguration := configuration.GetVad()
 	if vadConfiguration == nil {
-		return grpc.Errorf(codes.InvalidArgument, "only supports vad commit strategy").Err()
+		return status.Errorf(codes.InvalidArgument, "only supports vad commit strategy").Err()
 	}
 
 	params := url.Values{}
@@ -93,16 +93,16 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	conn, _, err := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: header})
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "connecting to elevenlabs: %v", err).Err()
+		return status.Errorf(codes.Internal, "connecting to elevenlabs: %v", err).Err()
 	}
 	defer conn.Close(websocket.StatusNormalClosure, "closing")
 
 	msg, err := c.receiveSTTMessage(ctx, conn)
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "receiving session_started: %v", err).Err()
+		return status.Errorf(codes.Internal, "receiving session_started: %v", err).Err()
 	}
 	if msg.MessageType != msgTypeSessionStarted {
-		return grpc.Errorf(codes.Internal, "expected session_started, got %s", msg.MessageType).Err()
+		return status.Errorf(codes.Internal, "expected session_started, got %s", msg.MessageType).Err()
 	}
 
 	errChan := make(chan error, 2)
@@ -152,7 +152,7 @@ func (c *Client) sendSTTEvents(ctx context.Context, srv aiservicepb.AiService_Sp
 			return err
 		}
 		if msg.MessageType == msgTypeInputError {
-			return grpc.Errorf(codes.Internal, "elevenlabs error [%s]: %s", msg.Code, msg.Message).Err()
+			return status.Errorf(codes.Internal, "elevenlabs error [%s]: %s", msg.Code, msg.Message).Err()
 		}
 
 		if !turnStarted {

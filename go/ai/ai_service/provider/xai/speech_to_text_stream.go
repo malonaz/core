@@ -12,7 +12,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	"github.com/malonaz/core/go/audio"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 const websocketEndpoint = "wss://api.x.ai/v1/realtime/audio/transcriptions"
@@ -89,11 +89,11 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	event, err := srv.Recv()
 	if err != nil {
-		return grpc.Errorf(codes.InvalidArgument, "receiving first message: %v", err).Err()
+		return status.Errorf(codes.InvalidArgument, "receiving first message: %v", err).Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return grpc.Errorf(codes.InvalidArgument, "first event must contain configuration").Err()
+		return status.Errorf(codes.InvalidArgument, "first event must contain configuration").Err()
 	}
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
@@ -105,7 +105,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	header.Set("Authorization", "Bearer "+c.apiKey)
 	connection, _, err := websocket.DefaultDialer.DialContext(ctx, websocketEndpoint, header)
 	if err != nil {
-		return grpc.Errorf(codes.Unavailable, "connecting to xai websocket: %v", err).Err()
+		return status.Errorf(codes.Unavailable, "connecting to xai websocket: %v", err).Err()
 	}
 	defer connection.Close()
 
@@ -126,7 +126,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		},
 	}
 	if err := connection.WriteJSON(configMsg); err != nil {
-		return grpc.Errorf(codes.Internal, "sending configuration: %v", err).Err()
+		return status.Errorf(codes.Internal, "sending configuration: %v", err).Err()
 	}
 
 	errChan := make(chan error, 2)
@@ -147,16 +147,16 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 					return nil
 				}
-				return grpc.Errorf(codes.Internal, "reading websocket response: %w", err).Err()
+				return status.Errorf(codes.Internal, "reading websocket response: %w", err).Err()
 			}
 
 			var response websocketResponse
 			if err := json.Unmarshal(rawMsg, &response); err != nil {
-				return grpc.Errorf(codes.Internal, "unmarshaling websocket response: %w", err).Err()
+				return status.Errorf(codes.Internal, "unmarshaling websocket response: %w", err).Err()
 			}
 
 			if response.Error != "" {
-				return grpc.Errorf(codes.Internal, "xai error: %s", response.Error).Err()
+				return status.Errorf(codes.Internal, "xai error: %s", response.Error).Err()
 			}
 
 			switch response.Data.Type {
@@ -173,7 +173,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 								},
 							},
 						}); err != nil {
-							return grpc.Errorf(codes.Internal, "sending turn end: %v", err).Err()
+							return status.Errorf(codes.Internal, "sending turn end: %v", err).Err()
 						}
 					}
 
@@ -186,7 +186,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 				if !state.inTurn {
 					state.startTurn()
 					if err := sendTurnStart(); err != nil {
-						return grpc.Errorf(codes.Internal, "sending turn start: %v", err).Err()
+						return status.Errorf(codes.Internal, "sending turn start: %v", err).Err()
 					}
 				}
 				if response.Data.Data.IsFinal {
@@ -200,7 +200,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 							},
 						},
 					}); err != nil {
-						return grpc.Errorf(codes.Internal, "sending turn update: %v", err).Err()
+						return status.Errorf(codes.Internal, "sending turn update: %v", err).Err()
 					}
 				}
 
@@ -221,7 +221,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 				return nil
 			}
 			if err != nil {
-				return grpc.Errorf(codes.Internal, "receiving audio: %v", err).Err()
+				return status.Errorf(codes.Internal, "receiving audio: %v", err).Err()
 			}
 			if chunk := message.GetAudioChunk(); chunk != nil {
 				audioMsg := websocketAudioMessage{
@@ -229,7 +229,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 					Data: websocketAudioData{Audio: base64.StdEncoding.EncodeToString(resampleAudio(chunk.Data))},
 				}
 				if err := connection.WriteJSON(audioMsg); err != nil {
-					return grpc.Errorf(codes.Internal, "sending audio: %v", err).Err()
+					return status.Errorf(codes.Internal, "sending audio: %v", err).Err()
 				}
 			}
 		}

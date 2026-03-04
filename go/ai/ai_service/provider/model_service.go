@@ -14,7 +14,7 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/aip"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/jsonnet"
 )
 
@@ -96,17 +96,17 @@ func (s *ModelService) CreateModel(ctx context.Context, request *aiservicepb.Cre
 	// Parse provider rn and instantiate model rn.
 	providerRn := &aipb.ProviderResourceName{}
 	if err := providerRn.UnmarshalString(request.Parent); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
 	}
 	modelRn := providerRn.ModelResourceName(request.ModelId)
 	request.Model.Name = modelRn.String()
 	if err := s.validator.Validate(request); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "validating: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "validating: %v", err).Err()
 	}
 
 	// Check provider is registered.
 	if _, ok := s.providerIdToProvider[providerRn.Provider]; !ok {
-		return nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", providerRn.Provider).Err()
+		return nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", providerRn.Provider).Err()
 	}
 
 	// Store model.
@@ -124,15 +124,15 @@ func (s *ModelService) CreateModel(ctx context.Context, request *aiservicepb.Cre
 func (s *ModelService) GetModel(ctx context.Context, request *aiservicepb.GetModelRequest) (*aipb.Model, error) {
 	modelRn := &aipb.ModelResourceName{}
 	if err := modelRn.UnmarshalString(request.Name); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 	modelIdToModel, ok := s.providerIdToModelIdToModel[modelRn.Provider]
 	if !ok {
-		return nil, grpc.Errorf(codes.NotFound, "unknown provider %s", modelRn.Provider).Err()
+		return nil, status.Errorf(codes.NotFound, "unknown provider %s", modelRn.Provider).Err()
 	}
 	model, ok := modelIdToModel[modelRn.Model]
 	if !ok {
-		return nil, grpc.Errorf(codes.NotFound, "unknown model %s for provider %s", modelRn.Model, modelRn.Provider).Err()
+		return nil, status.Errorf(codes.NotFound, "unknown model %s for provider %s", modelRn.Model, modelRn.Provider).Err()
 	}
 	return proto.Clone(model).(*aipb.Model), nil
 }
@@ -143,7 +143,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	// Step 1: Parse the pagination request.
 	parsed, err := listModelsRequestParser.Parse(request)
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error()).Err()
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
 	}
 	offset := int(parsed.GetOffset())
 	pageSize := int(request.GetPageSize())
@@ -151,7 +151,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	// Step 2: Parse the provider name.
 	providerRn := &aipb.ProviderResourceName{}
 	if err := providerRn.UnmarshalString(request.Parent); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
 	}
 
 	// Step 3: Determine which models to paginate over.
@@ -211,25 +211,25 @@ func (s *ModelService) GetTextToTextProvider(ctx context.Context, modelName stri
 		return nil, nil, err
 	}
 	if model.Ttt == nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "model %s is not of type TTT", modelName).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type TTT", modelName).Err()
 	}
 
 	// Parse the model name.
 	modelRn := &aipb.ModelResourceName{}
 	if err := modelRn.UnmarshalString(modelName); err != nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 
 	// Get the provider.
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
 	}
 
 	// Verify provider implements TTT interface.
 	textToTextClient, ok := provider.(TextToTextClient)
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support text to text", provider.ProviderId()).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support text to text", provider.ProviderId()).Err()
 	}
 	return textToTextClient, model, nil
 }
@@ -242,25 +242,25 @@ func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName st
 		return nil, nil, err
 	}
 	if model.Stt == nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
 	}
 
 	// Parse the model name.
 	modelRn := &aipb.ModelResourceName{}
 	if err := modelRn.UnmarshalString(modelName); err != nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 
 	// Get the provider.
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
 	}
 
 	// Verify provider implements STT interface.
 	speechToTextClient, ok := provider.(SpeechToTextClient)
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support speech to text", provider.ProviderId()).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support speech to text", provider.ProviderId()).Err()
 	}
 	return speechToTextClient, model, nil
 }
@@ -272,19 +272,19 @@ func (s *ModelService) GetSpeechToTextStreamProvider(ctx context.Context, modelN
 		return nil, nil, err
 	}
 	if model.Stt == nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
 	}
 	modelRn := &aipb.ModelResourceName{}
 	if err := modelRn.UnmarshalString(modelName); err != nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
 	}
 	speechToTextStreamClient, ok := provider.(SpeechToTextStreamClient)
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support speech to text streaming", provider.ProviderId()).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support speech to text streaming", provider.ProviderId()).Err()
 	}
 	return speechToTextStreamClient, model, nil
 }
@@ -297,25 +297,25 @@ func (s *ModelService) GetTextToSpeechProvider(ctx context.Context, modelName st
 		return nil, nil, err
 	}
 	if model.Tts == nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "model %s is not of type TTS", modelName).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type TTS", modelName).Err()
 	}
 
 	// Parse the model name.
 	modelRn := &aipb.ModelResourceName{}
 	if err := modelRn.UnmarshalString(modelName); err != nil {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 
 	// Get the provider.
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
 	}
 
 	// Verify provider implements TTS interface.
 	textToSpeechClient, ok := provider.(TextToSpeechClient)
 	if !ok {
-		return nil, nil, grpc.Errorf(codes.InvalidArgument, "provider %s does not support text to speech", provider.ProviderId()).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support text to speech", provider.ProviderId()).Err()
 	}
 	return textToSpeechClient, model, nil
 }

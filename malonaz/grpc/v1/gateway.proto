@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package malonaz.grpc.v1;
+
+option go_package = "github.com/malonaz/core/genproto/grpc/v1";
+
+// GatewayOptions provides configuration for how the gRPC-Gateway should
+// handle a specific RPC method, allowing customization of gateway behavior
+// on a per-method basis.
+message GatewayOptions {
+  // custom_mime specifies a custom MIME type to use for this method's
+  // HTTP requests/responses. This overrides the default content type
+  // and allows handling of non-standard formats (e.g., "application/raw-webhook").
+  string custom_mime = 1;
+  // If true, pass the original url in the grpc metadata using the key `X-Original-Url`.
+  bool require_original_url = 2;
+  // If true, pass the request body in the grpc metadata using the key `X-Request-Body-Bin`.
+  bool require_request_body = 3;
+}

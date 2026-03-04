@@ -9,7 +9,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStreamServer) error {
@@ -18,11 +18,11 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	// Grab the configuration event and validate it.
 	event, err := srv.Recv()
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
+		return status.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return grpc.Errorf(codes.FailedPrecondition, "first message must be configuration", err).Err()
+		return status.Errorf(codes.FailedPrecondition, "first message must be configuration", err).Err()
 	}
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
@@ -36,23 +36,23 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	endOfTurnConfiguration := configuration.GetEndOfTurn()
 	if endOfTurnConfiguration == nil {
-		return grpc.Errorf(codes.InvalidArgument, "only supports end_of_turn commit strategy", err).Err()
+		return status.Errorf(codes.InvalidArgument, "only supports end_of_turn commit strategy", err).Err()
 	}
 
 	if endOfTurnConfiguration.ConfidenceThreshold > 0 {
 		if endOfTurnConfiguration.ConfidenceThreshold < 0.5 || endOfTurnConfiguration.ConfidenceThreshold > 0.9 {
-			return grpc.Errorf(codes.InvalidArgument, "end_of_turn_confidence_threshold must be between 0.5 and 0.9").Err()
+			return status.Errorf(codes.InvalidArgument, "end_of_turn_confidence_threshold must be between 0.5 and 0.9").Err()
 		}
 	}
 	if endOfTurnConfiguration.EagerConfidenceThreshold > 0 {
 		if endOfTurnConfiguration.EagerConfidenceThreshold < 0.3 || endOfTurnConfiguration.EagerConfidenceThreshold > 0.9 {
-			return grpc.Errorf(codes.InvalidArgument, "eager_end_of_turn_confidence_threshold must be between 0.3 and 0.9").Err()
+			return status.Errorf(codes.InvalidArgument, "eager_end_of_turn_confidence_threshold must be between 0.3 and 0.9").Err()
 		}
 	}
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
 	if err != nil {
-		return grpc.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
+		return status.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
 	var eotTimeoutMs int
@@ -69,7 +69,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "connecting to deepgram: %v", err).Err()
+		return status.Errorf(codes.Internal, "connecting to deepgram: %v", err).Err()
 	}
 	defer conn.Close()
 

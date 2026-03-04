@@ -8,6 +8,7 @@ import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/grpc/v1/extensions.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 option (google.api.resource_definition) = {
@@ -26,6 +27,10 @@ message Author {
     plural: "authors"
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.grpc.v1.hook) = {
+    key: "library.malonaz.com/Author"
+    on_response: true
+  };
 
   // The resource name of the author.
   // Format: organizations/{organization}/authors/{author}
@@ -56,7 +61,7 @@ message Author {
     (malonaz.canonicalize.v1.field).email_address = true
   ];
 
-  // Email address of this author.
+  // Phone number of this author.
   string phone_number = 8 [(malonaz.canonicalize.v1.field).phone_number = true];
 
   // Email addresses of this author.

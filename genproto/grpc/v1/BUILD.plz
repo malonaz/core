@@ -1,6 +1,11 @@
 go_library(
     name = "v1",
-    srcs = ["grpc.pb.go"],
+    srcs = [
+        "extensions.pb.go",
+        "gateway.pb.go",
+        "hook.pb.go",
+        "http_cookie.pb.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

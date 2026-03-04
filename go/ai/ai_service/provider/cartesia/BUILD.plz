@@ -9,7 +9,7 @@ go_library(
     deps = [
         "//go/ai/ai_service/provider",
         "//go/audio",
-        "//go/grpc",
+        "//go/grpc/status",
         "//go/websocket",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",

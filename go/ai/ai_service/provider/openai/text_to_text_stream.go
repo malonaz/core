@@ -18,7 +18,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -42,7 +42,7 @@ func (c *Client) TextToTextStream(
 	for i, msg := range request.Messages {
 		converted, err := pbMessageToOpenAI(msg)
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
+			return status.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
 		}
 		messages = append(messages, converted...)
 	}
@@ -70,7 +70,7 @@ func (c *Client) TextToTextStream(
 	if request.GetConfiguration().GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
 		if err != nil {
-			return grpc.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
+			return status.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
 		}
 		if reasoningEffort != "" {
 			params.ReasoningEffort = shared.ReasoningEffort(reasoningEffort)
@@ -90,7 +90,7 @@ func (c *Client) TextToTextStream(
 		for i, tool := range request.Tools {
 			openaiTool, err := pbToolToOpenAI(tool)
 			if err != nil {
-				return grpc.Errorf(codes.InvalidArgument, "tool [%d]: %v", i, err).Err()
+				return status.Errorf(codes.InvalidArgument, "tool [%d]: %v", i, err).Err()
 			}
 			params.Tools = append(params.Tools, openaiTool)
 		}
@@ -99,7 +99,7 @@ func (c *Client) TextToTextStream(
 	if request.GetConfiguration().GetToolChoice() != nil {
 		toolChoice, err := pbToolChoiceToOpenAI(request.GetConfiguration().GetToolChoice())
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
 		}
 		params.ToolChoice = toolChoice
 	}
@@ -141,7 +141,7 @@ func (c *Client) TextToTextStream(
 			if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
 				unquoted, err := strconv.Unquote(reasoningChunk)
 				if err != nil {
-					return grpc.Errorf(codes.Internal, "unquoting reasoning chunk: %v", err).Err()
+					return status.Errorf(codes.Internal, "unquoting reasoning chunk: %v", err).Err()
 				}
 				choice.Delta.JSON.ExtraFields["reasoning_content"] = respjson.NewField(unquoted)
 			}
@@ -177,7 +177,7 @@ func (c *Client) TextToTextStream(
 			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
 				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
-					return grpc.Errorf(
+					return status.Errorf(
 						codes.Internal, "reasoning tokens doesn't match inferred value: inferred %d, got %d",
 						inferredReasoningTokens, chunk.Usage.CompletionTokensDetails.ReasoningTokens,
 					).Err()
@@ -242,7 +242,7 @@ func (c *Client) TextToTextStream(
 			var ok bool
 			stopReason, ok = openAIFinishReasonToPb[string(choice.FinishReason)]
 			if !ok {
-				return grpc.Errorf(codes.Internal, "unknown finish reason: %s", choice.FinishReason).Err()
+				return status.Errorf(codes.Internal, "unknown finish reason: %s", choice.FinishReason).Err()
 			}
 		}
 	}

@@ -9,6 +9,7 @@
 package v1
 
 import (
+	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	v1 "github.com/malonaz/core/genproto/library/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -30,7 +31,7 @@ var File_malonaz_library_library_service_v1_library_service_proto protoreflect.F
 
 const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\xca\x17\n" +
+	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\xce\x17\n" +
 	"\x0eLibraryService\x12\xc9\x01\n" +
 	"\fCreateAuthor\x127.malonaz.library.library_service.v1.CreateAuthorRequest\x1a\x1a.malonaz.library.v1.Author\"d\xdaA\rparent,author´-\x1c\n" +
 	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xb2\x01\n" +
@@ -51,9 +52,9 @@ const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = ""
 	"\vDeleteShelf\x126.malonaz.library.library_service.v1.DeleteShelfRequest\x1a\x19.malonaz.library.v1.Shelf\"R\xdaA\x04name´-\x1b\n" +
 	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&*$/v1/{name=organizations/*/shelves/*}\x12\xd4\x01\n" +
 	"\vListShelves\x126.malonaz.library.library_service.v1.ListShelvesRequest\x1a7.malonaz.library.library_service.v1.ListShelvesResponse\"T\xdaA\x06parent´-\x1b\n" +
-	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/shelves\x12\xc5\x01\n" +
+	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/shelves\x12\xc9\x01\n" +
 	"\n" +
-	"CreateBook\x125.malonaz.library.library_service.v1.CreateBookRequest\x1a\x18.malonaz.library.v1.Book\"f\xdaA\vparent,book´-\x1a\n" +
+	"CreateBook\x125.malonaz.library.library_service.v1.CreateBookRequest\x1a\x18.malonaz.library.v1.Book\"j\xdaA\vparent,book\x88\xb5\x18\x01´-\x1a\n" +
 	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x024:\x04book\",/v1/{parent=organizations/*/shelves/*}/books\x12\xb2\x01\n" +
 	"\aGetBook\x122.malonaz.library.library_service.v1.GetBookRequest\x1a\x18.malonaz.library.v1.Book\"Y\xdaA\x04name´-\x1a\n" +
 	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{name=organizations/*/shelves/*/books/*}\x12\xcf\x01\n" +

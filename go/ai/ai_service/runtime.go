@@ -21,8 +21,8 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/google"
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
 	"github.com/malonaz/core/go/ai/ai_service/provider/xai"
-	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -154,7 +154,7 @@ func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequ
 		return nil, err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return nil, grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return nil, status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 
 	return provider.SpeechToText(ctx, request)
@@ -168,7 +168,7 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 
 	if request.Voice != "" {
@@ -185,7 +185,7 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 			}
 		}
 		if providerVoiceId == "" {
-			return grpc.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", request.Model, request.Voice).Err()
+			return status.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", request.Model, request.Voice).Err()
 		}
 		request.ProviderVoiceId = providerVoiceId
 	}
@@ -267,7 +267,7 @@ func (s *Service) SpeechToTextStream(server pb.AiService_SpeechToTextStreamServe
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return grpc.Errorf(codes.InvalidArgument, "first message must be configuration").Err()
+		return status.Errorf(codes.InvalidArgument, "first message must be configuration").Err()
 	}
 
 	// Retrieve the provider.
@@ -276,7 +276,7 @@ func (s *Service) SpeechToTextStream(server pb.AiService_SpeechToTextStreamServe
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return grpc.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 	wrappedServer := &speechToTextStreamServerWrapper{
 		AiService_SpeechToTextStreamServer: server,

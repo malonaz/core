@@ -19,6 +19,7 @@ import (
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/audio"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 // Define protected keys that cannot be overridden by provider settings
@@ -70,7 +71,7 @@ func (c *Client) TextToSpeechStream(
 		providerMap := providerSettings.AsMap()
 		for key, value := range providerMap {
 			if _, ok := protectedKeySet[key]; ok {
-				return grpc.Errorf(codes.InvalidArgument, "cannot set protected provider setting key %s", key).Err()
+				return status.Errorf(codes.InvalidArgument, "cannot set protected provider setting key %s", key).Err()
 			}
 			baseRequest[key] = value
 		}
@@ -79,7 +80,7 @@ func (c *Client) TextToSpeechStream(
 	// Marshal the final request body
 	requestBody, err := json.Marshal(baseRequest)
 	if err != nil {
-		return grpc.Errorf(codes.InvalidArgument, "marshaling request: %v", err).Err()
+		return status.Errorf(codes.InvalidArgument, "marshaling request: %v", err).Err()
 	}
 
 	// Create the HTTP request
@@ -87,7 +88,7 @@ func (c *Client) TextToSpeechStream(
 
 	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return grpc.Errorf(codes.Internal, "creating HTTP request: %v", err).Err()
+		return status.Errorf(codes.Internal, "creating HTTP request: %v", err).Err()
 	}
 
 	// Set headers
@@ -103,7 +104,7 @@ func (c *Client) TextToSpeechStream(
 	// Execute the HTTP request
 	response, err := c.client.Do(httpRequest)
 	if err != nil {
-		return grpc.Errorf(codes.Unavailable, "executing HTTP request: %v", err).Err()
+		return status.Errorf(codes.Unavailable, "executing HTTP request: %v", err).Err()
 	}
 	defer response.Body.Close()
 
@@ -111,7 +112,7 @@ func (c *Client) TextToSpeechStream(
 	if response.StatusCode != http.StatusOK {
 		responseBody, _ := io.ReadAll(response.Body)
 		code := grpc.CodeFromHTTPStatus(response.StatusCode)
-		return grpc.Errorf(code, "HTTP status %d: %s", response.StatusCode, string(responseBody)).Err()
+		return status.Errorf(code, "HTTP status %d: %s", response.StatusCode, string(responseBody)).Err()
 	}
 
 	// Send audio format first
@@ -120,7 +121,7 @@ func (c *Client) TextToSpeechStream(
 			AudioFormat: audioFormat,
 		},
 	}); err != nil {
-		return grpc.Errorf(codes.Internal, "sending audio format: %v", err).Err()
+		return status.Errorf(codes.Internal, "sending audio format: %v", err).Err()
 	}
 
 	// Stream audio chunks
@@ -133,7 +134,7 @@ func (c *Client) TextToSpeechStream(
 			if err == io.EOF {
 				break
 			}
-			return grpc.Errorf(codes.Internal, "reading response body: %v", err).Err()
+			return status.Errorf(codes.Internal, "reading response body: %v", err).Err()
 		}
 		if bytesRead == 0 {
 			continue
@@ -170,7 +171,7 @@ func (c *Client) TextToSpeechStream(
 				AudioChunk: audioChunk,
 			},
 		}); err != nil {
-			return grpc.Errorf(codes.Internal, "sending audio chunk: %v", err).Err()
+			return status.Errorf(codes.Internal, "sending audio chunk: %v", err).Err()
 		}
 	}
 
@@ -192,7 +193,7 @@ func (c *Client) TextToSpeechStream(
 			ModelUsage: modelUsage,
 		},
 	}); err != nil {
-		return grpc.Errorf(codes.Internal, "sending model usage: %v", err).Err()
+		return status.Errorf(codes.Internal, "sending model usage: %v", err).Err()
 	}
 
 	// Send generation metrics
@@ -201,7 +202,7 @@ func (c *Client) TextToSpeechStream(
 			GenerationMetrics: generationMetrics,
 		},
 	}); err != nil {
-		return grpc.Errorf(codes.Internal, "sending generation metrics: %v", err).Err()
+		return status.Errorf(codes.Internal, "sending generation metrics: %v", err).Err()
 	}
 
 	return nil

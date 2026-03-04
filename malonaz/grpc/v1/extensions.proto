@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package malonaz.grpc.v1;
+
+import "google/protobuf/descriptor.proto";
+import "malonaz/grpc/v1/gateway.proto";
+import "malonaz/grpc/v1/hook.proto";
+
+option go_package = "github.com/malonaz/core/genproto/grpc/v1";
+
+// Method extensions.
+extend google.protobuf.MethodOptions {
+  // gateway_options allows attaching gateway-specific configuration
+  // to individual RPC methods, controlling how the gRPC-Gateway handles them.
+  GatewayOptions gateway_options = 50000;
+}
+
+// Message options.
+extend google.protobuf.MessageOptions {
+  // hook attaches hook options to a message, enabling automatic invocation
+  // of registered handlers when the message appears in RPC request or response trees.
+  HookOptions hook = 50001;
+}
+
+// Enum options.
+extend google.protobuf.EnumValueOptions {
+  // trailer_key specifies a custom key name to use when this enum value
+  // is sent as a gRPC trailer (metadata sent after the response body).
+  string trailer_key = 23241;
+
+  // metadata_key specifies a custom key name to use when this enum value
+  // is sent as gRPC metadata (headers sent before the response body).
+  string metadata_key = 23242;
+}

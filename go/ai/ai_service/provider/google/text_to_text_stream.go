@@ -16,7 +16,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 const (
@@ -39,7 +39,7 @@ func (c *Client) TextToTextStream(
 
 	contents, systemInstruction, err := buildContents(request.Messages)
 	if err != nil {
-		return grpc.Errorf(codes.InvalidArgument, "building contents: %v", err).Err()
+		return status.Errorf(codes.InvalidArgument, "building contents: %v", err).Err()
 	}
 
 	config := &genai.GenerateContentConfig{}
@@ -70,7 +70,7 @@ func (c *Client) TextToTextStream(
 	if model.GetTtt().GetReasoning() {
 		thinkingConfig, err := buildThinkingConfig(model, request.GetConfiguration().GetReasoningEffort())
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "building thinking config: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "building thinking config: %v", err).Err()
 		}
 		config.ThinkingConfig = thinkingConfig
 	}
@@ -78,13 +78,13 @@ func (c *Client) TextToTextStream(
 	if len(request.Tools) > 0 {
 		tools, err := buildTools(request.Tools)
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "building tools: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "building tools: %v", err).Err()
 		}
 		config.Tools = tools
 
 		toolConfig, err := buildToolConfig(request.GetConfiguration())
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "building tool config: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "building tool config: %v", err).Err()
 		}
 		config.ToolConfig = toolConfig
 	}
@@ -107,13 +107,13 @@ func (c *Client) TextToTextStream(
 	for resp, err := range generateContentStream {
 		if err != nil {
 			if apiError, ok := errors.AsType[genai.APIError](err); ok {
-				return grpc.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
+				return status.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
 			}
-			return grpc.Errorf(codes.Internal, "reading stream: %v", err).Err()
+			return status.Errorf(codes.Internal, "reading stream: %v", err).Err()
 		}
 
 		if err := cs.Err(); err != nil {
-			return grpc.Errorf(codes.Internal, "error sending content: %v", err).Err()
+			return status.Errorf(codes.Internal, "error sending content: %v", err).Err()
 		}
 
 		if !sentTtfb {
@@ -128,7 +128,7 @@ func (c *Client) TextToTextStream(
 				var ok bool
 				stopReason, ok = finishReasonToPb[candidate.FinishReason]
 				if !ok {
-					return grpc.Errorf(codes.Internal, "unknown finish reason: %v", candidate.FinishReason).Err()
+					return status.Errorf(codes.Internal, "unknown finish reason: %v", candidate.FinishReason).Err()
 				}
 			}
 			if candidate.Content == nil {
@@ -225,7 +225,7 @@ func (c *Client) TextToTextStream(
 						if fc.Args != nil {
 							argsJSON, err := json.Marshal(fc.Args)
 							if err != nil {
-								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
 							}
 							tca.AppendArgs(currentBlockIndex, string(argsJSON))
 						}
@@ -240,7 +240,7 @@ func (c *Client) TextToTextStream(
 						if fc.Args != nil {
 							argsJSON, err := json.Marshal(fc.Args)
 							if err != nil {
-								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
 							}
 							tca.AppendArgs(currentBlockIndex, string(argsJSON))
 						}
@@ -261,7 +261,7 @@ func (c *Client) TextToTextStream(
 							var marshalErr error
 							argsJSON, marshalErr = json.Marshal(fc.Args)
 							if marshalErr != nil {
-								return grpc.Errorf(codes.Internal, "marshaling function call args: %v", marshalErr).Err()
+								return status.Errorf(codes.Internal, "marshaling function call args: %v", marshalErr).Err()
 							}
 						}
 
@@ -282,7 +282,7 @@ func (c *Client) TextToTextStream(
 		if resp.UsageMetadata != nil {
 			modelUsage, err := buildModelUsage(request.Model, resp.UsageMetadata)
 			if err != nil {
-				return grpc.Errorf(codes.Internal, "building model usage: %v", err).Err()
+				return status.Errorf(codes.Internal, "building model usage: %v", err).Err()
 			}
 			cs.SendModelUsage(ctx, modelUsage)
 		}

@@ -1,5 +1,5 @@
 name: library-service
-includeRuntime: true
+includeRuntime: false
 implementation: //go/library/library_service
 codegens:
   - type: rpc

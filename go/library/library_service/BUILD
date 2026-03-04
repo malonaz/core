@@ -14,11 +14,18 @@ go_service_src(
 
 go_library(
     name = "library_service",
-    srcs = [":service.tmpl.go"],
+    srcs = [
+        "runtime.go",
+        ":service.tmpl.go",
+    ],
     test_only = True,
     visibility = ["//..."],
     deps = [
+        "//go/aip",
+        "//go/grpc/middleware",
         "//go/library/library_service/rpc",
         "//go/library/store",
+        "//malonaz/library/v1",
+        "//third_party/go:google.golang.org__grpc__metadata",
     ],
 )

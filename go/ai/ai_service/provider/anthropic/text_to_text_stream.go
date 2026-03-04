@@ -16,7 +16,7 @@ import (
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -40,7 +40,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				case *aipb.Block_Text:
 					systemBlocks = append(systemBlocks, anthropic.TextBlockParam{Text: content.Text})
 				default:
-					return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for SYSTEM role", i, j, content).Err()
+					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for SYSTEM role", i, j, content).Err()
 				}
 			}
 
@@ -60,17 +60,17 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					case *aipb.Image_Data:
 						mediaType := anthropic.Base64ImageSourceMediaType(img.MediaType)
 						if _, ok := imageSourceMediaTypeSet[mediaType]; !ok {
-							return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unsupported media type %s", i, j, img.MediaType).Err()
+							return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unsupported media type %s", i, j, img.MediaType).Err()
 						}
 						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.Base64ImageSourceParam{
 							Data:      base64.StdEncoding.EncodeToString(source.Data),
 							MediaType: mediaType,
 						}))
 					default:
-						return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected image source type %T", i, j, source).Err()
+						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected image source type %T", i, j, source).Err()
 					}
 				default:
-					return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for USER role", i, j, content).Err()
+					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for USER role", i, j, content).Err()
 				}
 			}
 			messages = append(messages, anthropic.NewUserMessage(contentBlocks...))
@@ -87,11 +87,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					tc := content.ToolCall
 					bytes, err := pbutil.JSONMarshal(tc.Arguments)
 					if err != nil {
-						return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: marshaling tool call arguments: %v", i, j, err).Err()
+						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: marshaling tool call arguments: %v", i, j, err).Err()
 					}
 					contentBlocks = append(contentBlocks, anthropic.NewToolUseBlock(tc.Id, json.RawMessage(bytes), tc.Name))
 				default:
-					return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for ASSISTANT role", i, j, content).Err()
+					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for ASSISTANT role", i, j, content).Err()
 				}
 			}
 			messages = append(messages, anthropic.NewAssistantMessage(contentBlocks...))
@@ -103,17 +103,17 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					tr := content.ToolResult
 					text, err := ai.ParseToolResult(tr)
 					if err != nil {
-						return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: converting tool result: %v", i, j, err).Err()
+						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: converting tool result: %v", i, j, err).Err()
 					}
 					toolResultBlock := anthropic.NewToolResultBlock(tr.ToolCallId, text, tr.GetError() != nil)
 					messages = append(messages, anthropic.NewUserMessage(toolResultBlock))
 				default:
-					return grpc.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for TOOL role", i, j, content).Err()
+					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for TOOL role", i, j, content).Err()
 				}
 			}
 
 		default:
-			return grpc.Errorf(codes.InvalidArgument, "message [%d]: unexpected role %v", i, msg.Role).Err()
+			return status.Errorf(codes.InvalidArgument, "message [%d]: unexpected role %v", i, msg.Role).Err()
 		}
 	}
 
@@ -147,7 +147,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	if request.GetConfiguration().GetToolChoice() != nil {
 		toolChoice, err := pbToolChoiceToAnthropic(request.GetConfiguration().GetToolChoice())
 		if err != nil {
-			return grpc.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
+			return status.Errorf(codes.InvalidArgument, "tool choice: %v", err).Err()
 		}
 		messageParams.ToolChoice = toolChoice
 	}
@@ -200,7 +200,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			case anthropic.ServerToolUseBlock:
 			case anthropic.WebSearchToolResultBlock:
 			default:
-				return grpc.Errorf(codes.Internal, "unexpected content block type: %T", contentBlock).Err()
+				return status.Errorf(codes.Internal, "unexpected content block type: %T", contentBlock).Err()
 			}
 
 		case anthropic.ContentBlockDeltaEvent:
@@ -221,7 +221,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					cs.SendBlocks(ctx, block)
 				}
 			default:
-				return grpc.Errorf(codes.Internal, "unexpected delta type: %T", delta).Err()
+				return status.Errorf(codes.Internal, "unexpected delta type: %T", delta).Err()
 			}
 
 		case anthropic.ContentBlockStopEvent:
@@ -242,7 +242,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 
 			stopReason, ok := anthropicStopReasonToPb[variant.Delta.StopReason]
 			if !ok {
-				return grpc.Errorf(codes.Internal, "unknown stop reason: %s", variant.Delta.StopReason).Err()
+				return status.Errorf(codes.Internal, "unknown stop reason: %s", variant.Delta.StopReason).Err()
 			}
 			cs.SendStopReason(ctx, stopReason)
 
@@ -250,7 +250,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
 		default:
-			return grpc.Errorf(codes.Internal, "unexpected event type: %T", variant).Err()
+			return status.Errorf(codes.Internal, "unexpected event type: %T", variant).Err()
 		}
 	}
 

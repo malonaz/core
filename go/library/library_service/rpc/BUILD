@@ -20,7 +20,7 @@ go_library(
     visibility = ["//go/library/library_service/..."],
     deps = [
         "//go/aip",
-        "//go/grpc",
+        "//go/grpc/status",
         "//go/library/model",
         "//go/uuid",
         "//malonaz/library/library_service/v1",

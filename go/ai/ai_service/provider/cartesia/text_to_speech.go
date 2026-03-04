@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -137,7 +137,7 @@ func (c *Client) TextToSpeechStream(
 		// Handles context cancellation cleanly :).
 		textToSpeechResponse, err := stream.Recv(ctx)
 		if err != nil {
-			return grpc.Errorf(codes.Internal, "reading from stream: %v", err).Err()
+			return status.Errorf(codes.Internal, "reading from stream: %v", err).Err()
 		}
 		if textToSpeechResponse.Done {
 			isDone = true

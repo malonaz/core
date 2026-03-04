@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package malonaz.grpc.v1;
 
-import "google/protobuf/descriptor.proto";
-
 option go_package = "github.com/malonaz/core/genproto/grpc/v1";
 
 // HttpCookie represents an HTTP cookie with all standard cookie attributes.
@@ -48,37 +46,4 @@ message HttpCookie {
   // transmitted over secure HTTPS connections. This protects the cookie's
   // data from being intercepted during transmission over unencrypted connections.
   bool secure = 8;
-}
-
-// Extension definitions for protobuf descriptor options, allowing custom
-// metadata to be attached to enum values and method definitions.
-
-extend google.protobuf.EnumValueOptions {
-  // trailer_key specifies a custom key name to use when this enum value
-  // is sent as a gRPC trailer (metadata sent after the response body).
-  string trailer_key = 23241;
-
-  // metadata_key specifies a custom key name to use when this enum value
-  // is sent as gRPC metadata (headers sent before the response body).
-  string metadata_key = 23242;
-}
-
-extend google.protobuf.MethodOptions {
-  // gateway_options allows attaching gateway-specific configuration
-  // to individual RPC methods, controlling how the gRPC-Gateway handles them.
-  GatewayOptions gateway_options = 50000;
-}
-
-// GatewayOptions provides configuration for how the gRPC-Gateway should
-// handle a specific RPC method, allowing customization of gateway behavior
-// on a per-method basis.
-message GatewayOptions {
-  // custom_mime specifies a custom MIME type to use for this method's
-  // HTTP requests/responses. This overrides the default content type
-  // and allows handling of non-standard formats (e.g., "application/raw-webhook").
-  string custom_mime = 1;
-  // If true, pass the original url in the grpc metadata using the key `X-Original-Url`.
-  bool require_original_url = 2;
-  // If true, pass the request body in the grpc metadata using the key `X-Request-Body-Bin`.
-  bool require_request_body = 3;
 }

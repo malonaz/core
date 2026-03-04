@@ -25,6 +25,7 @@ grpc_library(
     test_only = True,
     visibility = ["PUBLIC"],
     deps = [
+        "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/library/v1",
         "//third_party/proto:google__api__annotations",

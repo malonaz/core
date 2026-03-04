@@ -9,6 +9,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/library/v1",
         "//third_party/go:google.golang.org__grpc",

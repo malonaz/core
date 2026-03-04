@@ -10,7 +10,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	v11 "github.com/malonaz/core/genproto/ai/v1"
 	aip "github.com/malonaz/core/go/aip"
-	grpc "github.com/malonaz/core/go/grpc"
+	status "github.com/malonaz/core/go/grpc/status"
 	uuid "github.com/malonaz/core/go/uuid"
 	resourcename "go.einride.tech/aip/resourcename"
 	codes "google.golang.org/grpc/codes"
@@ -70,7 +70,7 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 
 	var organizationId, userId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}
 
 	request.Chat.Name = resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}", organizationId, userId, chatId)
@@ -79,7 +79,7 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 	// Check for x-migration-request header
 	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
 		if request.Chat.CreateTime == nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
 	} else {
 		request.Chat.CreateTime = timestamppb.Now()
@@ -90,14 +90,14 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 		var err error
 		request.Chat.Etag, err = aip.ComputeETag(request.Chat)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "computing etag: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 		}
 	}
 
 	// STEP 3: Convert the resource to the database representation.
 	chatModel, err := model.ChatFromPb(request.Chat)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from pb to model: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from pb to model: %v", err).Err()
 	}
 	if request.ValidateOnly {
 		return request.Chat, nil
@@ -107,40 +107,40 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 	dbChatModel, err := s.store.InsertChatIdempotently(ctx, request.RequestId, chatModel)
 	if err != nil {
 		if errors.Is(err, model.ErrChatAlreadyExists) {
-			return nil, grpc.Errorf(codes.AlreadyExists, "chat already exists").Err()
+			return nil, status.Errorf(codes.AlreadyExists, "chat already exists").Err()
 		}
-		return nil, grpc.Errorf(codes.Internal, "inserting chat: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "inserting chat: %v", err).Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
 	return chat, nil
 }
 
 func (s *aiService_ChatServer) GetChat(ctx context.Context, request *v1.GetChatRequest) (*v11.Chat, error) {
 	if resourcename.ContainsWildcard(request.Name) {
-		return nil, grpc.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
 
 	organizationId, userId, chatId, err := model.ParseChatName(request.Name)
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
 
 	// Retrieve from the database.
 	dbChatModel, err := s.store.GetChat(ctx, organizationId, userId, chatId)
 	if err != nil {
 		if errors.Is(err, model.ErrChatNotExist) {
-			return nil, grpc.Errorf(codes.NotFound, "chat does not exist").Err()
+			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 		}
-		return nil, grpc.Errorf(codes.Internal, "getting chat: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "getting chat: %v", err).Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
 	return chat, nil
 }
@@ -149,10 +149,10 @@ var updateChatRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateChatReque
 
 func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
-		return nil, grpc.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
 	if resourcename.ContainsWildcard(request.Chat.Name) {
-		return nil, grpc.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
 	// Set the update time.
 	request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
@@ -164,7 +164,7 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	// STEP 1: Parse request.
 	parsedRequest, err := updateChatRequestParser.Parse(request)
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
 	}
 
 	// STEP 2: retrieve existing resource.
@@ -174,44 +174,44 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 		return nil, err
 	}
 	if patchedChat.DeleteTime != nil {
-		return nil, grpc.Errorf(codes.NotFound, "chat does not exist").Err()
+		return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 	}
 
 	// STEP 3: Patch the existing resource.
 	parsedRequest.ApplyFieldMask(patchedChat, request.Chat)
 	if err := protovalidate.Validate(patchedChat); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
 	}
 
 	{ // Compute the new etag.
 		var err error
 		patchedChat.Etag, err = aip.ComputeETag(patchedChat)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
 		}
 	}
 
 	// STEP 4: Insert patched resource.
 	chatModel, err := model.ChatFromPb(patchedChat)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from pb to model: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from pb to model: %v", err).Err()
 	}
 	dbChatModel, err := s.store.UpdateChat(ctx, chatModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
 	if err != nil {
 		if errors.Is(err, model.ErrChatNotExist) {
-			return nil, grpc.Errorf(codes.NotFound, "chat does not exist").Err()
+			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 		}
 
 		if errors.Is(err, model.ErrChatETagChanged) {
-			return nil, grpc.Errorf(codes.Aborted, "ETag changed").Err()
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
 
-		return nil, grpc.Errorf(codes.Internal, "inserting chat: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "inserting chat: %v", err).Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
 	return chat, nil
 }
@@ -220,7 +220,7 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	// STEP 1: Parse resource name.
 	organizationId, userId, chatId, err := model.ParseChatName(request.Name)
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
 	deleteTime := time.Now()
 
@@ -233,18 +233,18 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	Chat.DeleteTime = timestamppb.New(deleteTime)
 	newEtag, err := aip.ComputeETag(Chat)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
 
 	// STEP 2: Soft delete the resource.
 	dbChatModel, err := s.store.SoftDeleteChat(ctx, organizationId, userId, chatId, request.GetEtag(), newEtag, deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrChatNotExist) {
-			return nil, grpc.Errorf(codes.NotFound, "chat does not exist").Err()
+			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 		}
 
 		if errors.Is(err, model.ErrChatETagChanged) {
-			return nil, grpc.Errorf(codes.Aborted, "ETag changed").Err()
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
 
 		if errors.Is(err, model.ErrChatAlreadyDeleted) {
@@ -252,15 +252,15 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 				getChatRequest := &v1.GetChatRequest{Name: request.Name}
 				return s.GetChat(ctx, getChatRequest)
 			}
-			return nil, grpc.Errorf(codes.NotFound, "chat already deleted").Err()
+			return nil, status.Errorf(codes.NotFound, "chat already deleted").Err()
 		}
-		return nil, grpc.Errorf(codes.Internal, "soft deleting chat: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "soft deleting chat: %v", err).Err()
 	}
 
 	// STEP 3: Convert to protobuf and return.
 	chat, err := dbChatModel.ToPb()
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
 	return chat, nil
 
@@ -273,13 +273,13 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	// Parse parent names
 	var organizationId, userId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}
 
 	// Parse request
 	parsedRequest, err := listChatsRequestParser.Parse(request)
 	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error()).Err()
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
 	}
 	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
 	var dbColumns []string
@@ -287,7 +287,7 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	// Retrieve from the database.
 	dbChats, err := s.store.ListChats(ctx, organizationId, userId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "listing chat: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "listing chat: %v", err).Err()
 	}
 	nextPageToken := parsedRequest.GetNextPageToken(len(dbChats))
 	if nextPageToken != "" {
@@ -299,7 +299,7 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	for _, dbChat := range dbChats {
 		chat, err := dbChat.ToPb()
 		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, "converting model.Chat to Chat: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "converting model.Chat to Chat: %v", err).Err()
 		}
 		chats = append(chats, chat)
 	}

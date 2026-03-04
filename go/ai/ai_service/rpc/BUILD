@@ -21,7 +21,7 @@ go_library(
     deps = [
         "//go/ai/model",
         "//go/aip",
-        "//go/grpc",
+        "//go/grpc/status",
         "//go/uuid",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
