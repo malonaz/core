@@ -226,6 +226,11 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 
 		// Set the model usage pricing.
 		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
+		resp = &pb.TextToTextStreamResponse{
+			Content: &pb.TextToTextStreamResponse_ModelUsage{
+				ModelUsage: w.modelUsage,
+			},
+		}
 	}
 
 	return w.AiService_TextToTextStreamServer.Send(resp)
