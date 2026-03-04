@@ -7,7 +7,6 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/model/v1/model.proto";
-import "malonaz/grpc/v1/extensions.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 
@@ -83,11 +82,6 @@ message Shelf {
 
 // Metadata for a shelf.
 message ShelfMetadata {
-  option (malonaz.grpc.v1.hook) = {
-    key: "library.malonaz.com/ShelfMetadata"
-    on_request: true
-  };
-
   // Maximum capacity of books on this shelf.
   int32 capacity = 1;
 

@@ -12,7 +12,6 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
-	_ "github.com/malonaz/core/genproto/grpc/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -422,7 +421,7 @@ var File_malonaz_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/library/v1/author.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a malonaz/grpc/v1/extensions.proto\"\x8f\b\n" +
+	"\x1fmalonaz/library/v1/author.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xec\a\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -444,9 +443,8 @@ const file_malonaz_library_v1_author_proto_rawDesc = "" +
 	"\bmetadata\x18\r \x01(\v2\".malonaz.library.v1.AuthorMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x85\x01\xeaA\\\n" +
-	"\x1alibrary.malonaz.com/Author\x12-organizations/{organization}/authors/{author}*\aauthors2\x06authorҦ\x04\x00\x8a\xb5\x18\x1e\n" +
-	"\x1alibrary.malonaz.com/Author\x18\x01\"\x97\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:c\xeaA\\\n" +
+	"\x1alibrary.malonaz.com/Author\x12-organizations/{organization}/authors/{author}*\aauthors2\x06authorҦ\x04\x00\"\x97\x01\n" +
 	"\x0eAuthorMetadata\x12\x18\n" +
 	"\acountry\x18\x01 \x01(\tR\acountry\x12>\n" +
 	"\x0femail_addresses\x18\x02 \x03(\tB\x15\xbaH\f\xd8\x01\x01\x92\x01\x06\"\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\x0eemailAddresses\x12+\n" +

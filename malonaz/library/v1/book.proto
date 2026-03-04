@@ -9,7 +9,6 @@ import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
-import "malonaz/grpc/v1/extensions.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 
@@ -23,11 +22,6 @@ message Book {
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
-  option (malonaz.grpc.v1.hook) = {
-    key: "library.malonaz.com/Book"
-    on_request: true
-    on_response: true
-  };
 
   // The resource name of the book.
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}

@@ -2,6 +2,7 @@ package library_service
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/metadata"
 
@@ -25,33 +26,36 @@ func newRuntime(opts *Opts) (*runtime, error) {
 func (s *Service) start(ctx context.Context) (func(), error) {
 	// Base matcher.
 	matcher := func(ctx context.Context, callMetadata *middleware.CallMetadata) bool {
-		if len(metadata.ValueFromIncomingContext(ctx, MetadataKeyEnableHook)) == 0 {
-			return false
-		}
-		return true
+		return len(metadata.ValueFromIncomingContext(ctx, MetadataKeyEnableHook)) > 0
 	}
 
-	middleware.RegisterHookHandler("library.malonaz.com/Author", func(ctx context.Context, author *pb.Author) error {
+	if err := middleware.RegisterHookHandler(func(ctx context.Context, author *pb.Author) error {
 		aip.SetLabel(author, "hook/author-response", aip.LabelValueTrue)
 		return nil
-	}, middleware.WithMatcher(matcher))
+	}, middleware.WithHookOnResponse(), middleware.WithHookMatchers(matcher)); err != nil {
+		return nil, fmt.Errorf("registering author hook handler: %w", err)
+	}
 
-	middleware.RegisterHookHandler("library.malonaz.com/Book", func(ctx context.Context, book *pb.Book) error {
+	if err := middleware.RegisterHookHandler(func(ctx context.Context, book *pb.Book) error {
 		aip.SetLabel(book, "hook/book-request", aip.LabelValueTrue)
 		return nil
-	}, middleware.WithMatcher(matcher))
+	}, middleware.WithHookOnRequest(), middleware.WithHookMatchers(matcher)); err != nil {
+		return nil, fmt.Errorf("registering book request hook handler: %w", err)
+	}
 
-	middleware.RegisterHookHandler("library.malonaz.com/Book", func(ctx context.Context, book *pb.Book) error {
+	if err := middleware.RegisterHookHandler(func(ctx context.Context, book *pb.Book) error {
 		aip.SetLabel(book, "hook/book-response", aip.LabelValueTrue)
 		return nil
-	}, middleware.WithMatcher(matcher))
+	}, middleware.WithHookOnResponse(), middleware.WithHookMatchers(matcher)); err != nil {
+		return nil, fmt.Errorf("registering book response hook handler: %w", err)
+	}
 
-	middleware.RegisterHookHandler("library.malonaz.com/ShelfMetadata", func(ctx context.Context, shelfMetadata *pb.ShelfMetadata) error {
+	if err := middleware.RegisterHookHandler(func(ctx context.Context, shelfMetadata *pb.ShelfMetadata) error {
 		shelfMetadata.Dummy = "hello"
 		return nil
-	}, middleware.WithMatcher(func(ctx context.Context, callMetadata *middleware.CallMetadata) bool {
-		return matcher(ctx, callMetadata) && callMetadata.Method == "CreateShelf"
-	}))
+	}, middleware.WithHookOnRequest(), middleware.WithHookMatchers(matcher, middleware.MatchMethods("CreateShelf"))); err != nil {
+		return nil, fmt.Errorf("registering shelf metadata hook handler: %w", err)
+	}
 
 	return func() {}, nil
 }

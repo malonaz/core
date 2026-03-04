@@ -1,9 +1,8 @@
 go_library(
     name = "v1",
     srcs = [
-        "extensions.pb.go",
         "gateway.pb.go",
-        "hook.pb.go",
+        "grpc.pb.go",
         "http_cookie.pb.go",
     ],
     visibility = ["//..."],

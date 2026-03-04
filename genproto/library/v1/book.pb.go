@@ -13,7 +13,6 @@ import (
 	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
-	_ "github.com/malonaz/core/genproto/grpc/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -382,7 +381,7 @@ var File_malonaz_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/library/v1/book.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a malonaz/grpc/v1/extensions.proto\"\x94\a\n" +
+	"\x1dmalonaz/library/v1/book.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf2\x06\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -403,9 +402,8 @@ const file_malonaz_library_v1_book_proto_rawDesc = "" +
 	"\bmetadata\x18\v \x01(\v2 .malonaz.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xb3\x01\xeaAb\n" +
-	"\x18library.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\x00\x8a\xb5\x18\x1e\n" +
-	"\x18library.malonaz.com/Book\x10\x01\x18\x01\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"o\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x91\x01\xeaAb\n" +
+	"\x18library.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\x00\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"o\n" +
 	"\fBookMetadata\x12\x18\n" +
 	"\asummary\x18\x01 \x01(\tR\asummary\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\x12)\n" +

@@ -1,9 +1,8 @@
 proto_library(
     name = "v1",
     srcs = [
-        "extensions.proto",
         "gateway.proto",
-        "hook.proto",
+        "grpc.proto",
         "http_cookie.proto",
     ],
     additional_context = {
