@@ -175,10 +175,6 @@ func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
-	if err := w.textToTextAccumulator.Add(resp); err != nil {
-		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
-	}
-
 	switch c := resp.GetContent().(type) {
 	case *pb.TextToTextStreamResponse_Block:
 		var toolCall *aipb.ToolCall
@@ -233,6 +229,9 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		}
 	}
 
+	if err := w.textToTextAccumulator.Add(resp); err != nil {
+		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
+	}
 	return w.AiService_TextToTextStreamServer.Send(resp)
 }
 
