@@ -69,7 +69,6 @@ func (s *GRPCServer) Shutdown() {
 func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 	ticker := time.NewTicker(time.Duration(s.opts.IntervalSeconds) * time.Second)
 	defer ticker.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -91,10 +90,10 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 						log := s.log.With("service", request.Service, "error", err)
 						switch {
 						case errors.Is(err, context.Canceled):
-							log.DebugContext(ctx, "health check cancelled")
+							log.WarnContext(ctx, "health check cancelled")
 							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
 						case errors.Is(err, context.DeadlineExceeded):
-							log.DebugContext(ctx, "health check timed out")
+							log.WarnContext(ctx, "health check timed out")
 							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
 						default:
 							log.WarnContext(ctx, "health check failed")
@@ -137,11 +136,12 @@ func (s *GRPCServer) checkService(ctx context.Context, req *grpc_health_v1.Healt
 	checkCtx, cancel := context.WithTimeout(ctx, time.Duration(s.opts.TimeoutSeconds)*time.Second)
 	defer cancel()
 
-	status := grpc_health_v1.HealthCheckResponse_SERVING
+	servingStatus := grpc_health_v1.HealthCheckResponse_SERVING
 	if err := healthCheck(checkCtx); err != nil {
-		status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
+		s.log.WarnContext(ctx, "health check failed", "service", req.Service, "error", err)
+		servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 	}
-	return &grpc_health_v1.HealthCheckResponse{Status: status}, nil
+	return &grpc_health_v1.HealthCheckResponse{Status: servingStatus}, nil
 }
 
 func (s *GRPCServer) CheckFn() Check {

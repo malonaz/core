@@ -69,11 +69,7 @@ func (p *Processor[T]) WithMetrics() *Processor[T] {
 
 // Checks the health of this routine.
 func (p *Processor[T]) HealthCheck(ctx context.Context) error {
-	err := p.routine.HealthCheck(ctx)
-	if err != nil {
-		p.log.WarnContext(ctx, "nats processor failed health check", "consumer", p.config.ConsumerName, "error", err)
-	}
-	return err
+	return p.routine.HealthCheck(ctx)
 }
 
 func (p *Processor[T]) Start(ctx context.Context) error {
