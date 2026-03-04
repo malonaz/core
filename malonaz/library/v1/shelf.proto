@@ -87,6 +87,12 @@ message ShelfMetadata {
 
   // Maximum capacity of books on this shelf.
   string dummy = 2;
+
+  // Notes about this shelf.
+  repeated ShelfNote notes = 3;
+
+  // Additional notes.
+  map<string, ShelfNote> author_to_note = 4;
 }
 
 // Genre categories for shelves.
@@ -103,4 +109,10 @@ enum ShelfGenre {
   SHELF_GENRE_HISTORY = 4;
   // Biography books.
   SHELF_GENRE_BIOGRAPHY = 5;
+}
+
+// A note about a shelf.
+message ShelfNote {
+  // Content of the node.
+  string content = 1;
 }

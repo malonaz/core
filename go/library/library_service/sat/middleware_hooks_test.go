@@ -192,3 +192,72 @@ func TestHook_ValidationStillApplies(t *testing.T) {
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
 }
+
+// go/library/library_service/sat/middleware_hooks_test.go
+// Add this test function:
+
+func TestHook_ShelfNoteRequestHook(t *testing.T) {
+	organizationParent := getOrganizationParent()
+
+	t.Run("TriggeredOnRepeatedField", func(t *testing.T) {
+		hookCtx := hookContext()
+		createShelfRequest := &libraryservicepb.CreateShelfRequest{
+			Parent: organizationParent,
+			Shelf: &librarypb.Shelf{
+				DisplayName: "Hook ShelfNote Repeated",
+				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata: &librarypb.ShelfMetadata{
+					Capacity: 10,
+					Notes: []*librarypb.ShelfNote{
+						{Content: "note1"},
+						{Content: "note2"},
+					},
+				},
+			},
+		}
+		createdShelf, err := libraryServiceClient.CreateShelf(hookCtx, createShelfRequest)
+		require.NoError(t, err)
+		require.Len(t, createdShelf.Metadata.Notes, 2)
+		require.Equal(t, "note1 [hooked]", createdShelf.Metadata.Notes[0].Content)
+		require.Equal(t, "note2 [hooked]", createdShelf.Metadata.Notes[1].Content)
+	})
+
+	t.Run("TriggeredOnMapField", func(t *testing.T) {
+		hookCtx := hookContext()
+		createShelfRequest := &libraryservicepb.CreateShelfRequest{
+			Parent: organizationParent,
+			Shelf: &librarypb.Shelf{
+				DisplayName: "Hook ShelfNote Map",
+				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata: &librarypb.ShelfMetadata{
+					Capacity: 10,
+					AuthorToNote: map[string]*librarypb.ShelfNote{
+						"author-a": {Content: "mapnote1"},
+						"author-b": {Content: "mapnote2"},
+					},
+				},
+			},
+		}
+		createdShelf, err := libraryServiceClient.CreateShelf(hookCtx, createShelfRequest)
+		require.NoError(t, err)
+		require.Equal(t, "mapnote1 [hooked]", createdShelf.Metadata.AuthorToNote["author-a"].Content)
+		require.Equal(t, "mapnote2 [hooked]", createdShelf.Metadata.AuthorToNote["author-b"].Content)
+	})
+
+	t.Run("NotTriggeredWithoutHeader", func(t *testing.T) {
+		createShelfRequest := &libraryservicepb.CreateShelfRequest{
+			Parent: organizationParent,
+			Shelf: &librarypb.Shelf{
+				DisplayName: "Hook ShelfNote NoHeader",
+				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata: &librarypb.ShelfMetadata{
+					Capacity: 10,
+					Notes:    []*librarypb.ShelfNote{{Content: "unchanged"}},
+				},
+			},
+		}
+		createdShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+		require.NoError(t, err)
+		require.Equal(t, "unchanged", createdShelf.Metadata.Notes[0].Content)
+	})
+}

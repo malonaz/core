@@ -327,11 +327,13 @@ func (b0 Shelf_builder) Build() *Shelf {
 
 // Metadata for a shelf.
 type ShelfMetadata struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Capacity int32                  `protobuf:"varint,1,opt,name=capacity,proto3"`
-	xxx_hidden_Dummy    string                 `protobuf:"bytes,2,opt,name=dummy,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Capacity     int32                  `protobuf:"varint,1,opt,name=capacity,proto3"`
+	xxx_hidden_Dummy        string                 `protobuf:"bytes,2,opt,name=dummy,proto3"`
+	xxx_hidden_Notes        *[]*ShelfNote          `protobuf:"bytes,3,rep,name=notes,proto3"`
+	xxx_hidden_AuthorToNote map[string]*ShelfNote  `protobuf:"bytes,4,rep,name=author_to_note,json=authorToNote,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *ShelfMetadata) Reset() {
@@ -373,12 +375,36 @@ func (x *ShelfMetadata) GetDummy() string {
 	return ""
 }
 
+func (x *ShelfMetadata) GetNotes() []*ShelfNote {
+	if x != nil {
+		if x.xxx_hidden_Notes != nil {
+			return *x.xxx_hidden_Notes
+		}
+	}
+	return nil
+}
+
+func (x *ShelfMetadata) GetAuthorToNote() map[string]*ShelfNote {
+	if x != nil {
+		return x.xxx_hidden_AuthorToNote
+	}
+	return nil
+}
+
 func (x *ShelfMetadata) SetCapacity(v int32) {
 	x.xxx_hidden_Capacity = v
 }
 
 func (x *ShelfMetadata) SetDummy(v string) {
 	x.xxx_hidden_Dummy = v
+}
+
+func (x *ShelfMetadata) SetNotes(v []*ShelfNote) {
+	x.xxx_hidden_Notes = &v
+}
+
+func (x *ShelfMetadata) SetAuthorToNote(v map[string]*ShelfNote) {
+	x.xxx_hidden_AuthorToNote = v
 }
 
 type ShelfMetadata_builder struct {
@@ -388,6 +414,10 @@ type ShelfMetadata_builder struct {
 	Capacity int32
 	// Maximum capacity of books on this shelf.
 	Dummy string
+	// Notes about this shelf.
+	Notes []*ShelfNote
+	// Additional notes.
+	AuthorToNote map[string]*ShelfNote
 }
 
 func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
@@ -396,6 +426,67 @@ func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
 	_, _ = b, x
 	x.xxx_hidden_Capacity = b.Capacity
 	x.xxx_hidden_Dummy = b.Dummy
+	x.xxx_hidden_Notes = &b.Notes
+	x.xxx_hidden_AuthorToNote = b.AuthorToNote
+	return m0
+}
+
+// A note about a shelf.
+type ShelfNote struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Content string                 `protobuf:"bytes,1,opt,name=content,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ShelfNote) Reset() {
+	*x = ShelfNote{}
+	mi := &file_malonaz_library_v1_shelf_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShelfNote) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShelfNote) ProtoMessage() {}
+
+func (x *ShelfNote) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_v1_shelf_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ShelfNote) GetContent() string {
+	if x != nil {
+		return x.xxx_hidden_Content
+	}
+	return ""
+}
+
+func (x *ShelfNote) SetContent(v string) {
+	x.xxx_hidden_Content = v
+}
+
+type ShelfNote_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Content of the node.
+	Content string
+}
+
+func (b0 ShelfNote_builder) Build() *ShelfNote {
+	m0 := &ShelfNote{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Content = b.Content
 	return m0
 }
 
@@ -429,10 +520,17 @@ const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xeaAY\n" +
-	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\"A\n" +
+	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\"\xb1\x02\n" +
 	"\rShelfMetadata\x12\x1a\n" +
 	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x14\n" +
-	"\x05dummy\x18\x02 \x01(\tR\x05dummy*\xb4\x01\n" +
+	"\x05dummy\x18\x02 \x01(\tR\x05dummy\x123\n" +
+	"\x05notes\x18\x03 \x03(\v2\x1d.malonaz.library.v1.ShelfNoteR\x05notes\x12Y\n" +
+	"\x0eauthor_to_note\x18\x04 \x03(\v23.malonaz.library.v1.ShelfMetadata.AuthorToNoteEntryR\fauthorToNote\x1a^\n" +
+	"\x11AuthorToNoteEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x123\n" +
+	"\x05value\x18\x02 \x01(\v2\x1d.malonaz.library.v1.ShelfNoteR\x05value:\x028\x01\"%\n" +
+	"\tShelfNote\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent*\xb4\x01\n" +
 	"\n" +
 	"ShelfGenre\x12\x1b\n" +
 	"\x17SHELF_GENRE_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -443,26 +541,31 @@ const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\x15SHELF_GENRE_BIOGRAPHY\x10\x05B-Z+github.com/malonaz/core/genproto/library/v1b\x06proto3"
 
 var file_malonaz_library_v1_shelf_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_library_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_library_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_malonaz_library_v1_shelf_proto_goTypes = []any{
 	(ShelfGenre)(0),               // 0: malonaz.library.v1.ShelfGenre
 	(*Shelf)(nil),                 // 1: malonaz.library.v1.Shelf
 	(*ShelfMetadata)(nil),         // 2: malonaz.library.v1.ShelfMetadata
-	nil,                           // 3: malonaz.library.v1.Shelf.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*ShelfNote)(nil),             // 3: malonaz.library.v1.ShelfNote
+	nil,                           // 4: malonaz.library.v1.Shelf.LabelsEntry
+	nil,                           // 5: malonaz.library.v1.ShelfMetadata.AuthorToNoteEntry
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_malonaz_library_v1_shelf_proto_depIdxs = []int32{
-	4, // 0: malonaz.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
-	4, // 1: malonaz.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
-	4, // 2: malonaz.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
+	6, // 0: malonaz.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
+	6, // 1: malonaz.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
+	6, // 2: malonaz.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
 	0, // 3: malonaz.library.v1.Shelf.genre:type_name -> malonaz.library.v1.ShelfGenre
-	3, // 4: malonaz.library.v1.Shelf.labels:type_name -> malonaz.library.v1.Shelf.LabelsEntry
+	4, // 4: malonaz.library.v1.Shelf.labels:type_name -> malonaz.library.v1.Shelf.LabelsEntry
 	2, // 5: malonaz.library.v1.Shelf.metadata:type_name -> malonaz.library.v1.ShelfMetadata
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3, // 6: malonaz.library.v1.ShelfMetadata.notes:type_name -> malonaz.library.v1.ShelfNote
+	5, // 7: malonaz.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.library.v1.ShelfMetadata.AuthorToNoteEntry
+	3, // 8: malonaz.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.library.v1.ShelfNote
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_library_v1_shelf_proto_init() }
@@ -476,7 +579,7 @@ func file_malonaz_library_v1_shelf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_library_v1_shelf_proto_rawDesc), len(file_malonaz_library_v1_shelf_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

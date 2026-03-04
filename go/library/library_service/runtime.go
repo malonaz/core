@@ -57,5 +57,12 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		return nil, fmt.Errorf("registering shelf metadata hook handler: %w", err)
 	}
 
+	if err := middleware.RegisterHookHandler(func(ctx context.Context, shelfNote *pb.ShelfNote) error {
+		shelfNote.Content = shelfNote.Content + " [hooked]"
+		return nil
+	}, middleware.WithHookOnRequest(), middleware.WithHookMatchers(matcher)); err != nil {
+		return nil, fmt.Errorf("registering shelf note hook handler: %w", err)
+	}
+
 	return func() {}, nil
 }
