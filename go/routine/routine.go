@@ -126,6 +126,9 @@ func (r *Routine) WithConstantBackOff(seconds int) *Routine {
 }
 
 func (r *Routine) Start(ctx context.Context) *Routine {
+	ctx, cancel := context.WithCancel(ctx)
+	r.cancel = cancel
+
 	go func() {
 		var err error
 		func() {
@@ -152,8 +155,6 @@ func (r *Routine) start(ctx context.Context) error {
 		defer r.metrics.running.WithLabelValues(r.name).Set(0)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	r.cancel = cancel
 	r.log = r.log.With("routine", r.name)
 	r.log.InfoContext(ctx, "started routine")
 	consecutiveErrors := 0
