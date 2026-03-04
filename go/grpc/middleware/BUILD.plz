@@ -45,10 +45,19 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["headers_test.go"],
+    srcs = [
+        "headers_test.go",
+        "hooks_test.go",
+    ],
     deps = [
         ":middleware",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/go:google.golang.org__protobuf__types__known__wrapperspb",
     ],
 )
