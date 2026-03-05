@@ -342,7 +342,7 @@ var stopFns []func() error
             {{ end }}
         {{- end }}
 
-	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ .name }}", register){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
+	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ $server.name }}", register){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
 
         grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
             {{- if eq $interceptor.type "session_local_context_injector" }}
@@ -424,7 +424,7 @@ var stopFns []func() error
         {{- end }}
         }
 
-	      httpServer := {{ goImport "github.com/malonaz/core/go/http"}}.NewServer(opts.{{ $server.name | camelcase }}HTTP, register)
+	      httpServer := {{ goImport "github.com/malonaz/core/go/http"}}.NewServer(opts.{{ $server.name | camelcase }}HTTP, "{{ $server.name }}", register)
         gracefulStopFns = append(gracefulStopFns, httpServer.GracefulStop)
         stopFns = append(stopFns, httpServer.Stop)
         {{- range $service := $server.services }}
