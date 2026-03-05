@@ -7,6 +7,7 @@ import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/nats/v1/event.proto";
 import "malonaz/library/library_service/v1/author.proto";
 import "malonaz/library/library_service/v1/book.proto";
 import "malonaz/library/library_service/v1/shelf.proto";
@@ -19,6 +20,12 @@ option go_package = "github.com/malonaz/core/genproto/library/library_service/v1
 // LibraryService provides CRUD operations for managing authors, shelves, and books.
 service LibraryService {
   option (google.api.default_host) = "library.malonaz.com";
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.library.library_service.v1.book"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
 
   // ===================== Author =====================
 

@@ -25,6 +25,7 @@ go_library(
         "//go/grpc/middleware",
         "//go/library/library_service/rpc",
         "//go/library/store",
+        "//go/nats",
         "//malonaz/library/v1",
         "//third_party/go:google.golang.org__grpc__metadata",
     ],

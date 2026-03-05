@@ -22,6 +22,7 @@ go_library(
         "//go/aip",
         "//go/grpc/status",
         "//go/library/model",
+        "//go/nats",
         "//go/uuid",
         "//malonaz/library/library_service/v1",
         "//malonaz/library/v1",

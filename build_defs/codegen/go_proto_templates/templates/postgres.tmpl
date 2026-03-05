@@ -30,11 +30,11 @@ import (
 {{ if doOnce "store_def" }}
 // Store is this service's db layer.
 type Store struct {
-	client *{{ fqn "github.com/malonaz/core/go/postgres" "Client" }}
+	client *{{ fqnCore "go/postgres" "Client" }}
 }
 
 // New returns a new db.
-func New(client *{{ fqn "github.com/malonaz/core/go/postgres" "Client" }}) *Store {
+func New(client *{{ fqnCore "go/postgres" "Client" }}) *Store {
 	return &Store{client: client}
 }
 {{ end }}
@@ -44,7 +44,7 @@ var (
 	{{ range $message := $file.Messages -}}
 		{{- $modelOpts := getModelOpts . -}}
 		  {{- if not $modelOpts -}}{{ continue }}{{- end }}
-		{{ $message.GoIdent.GoName }}PostgresColumns = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
+		{{ $message.GoIdent.GoName }}PostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
 	{{- end -}}
 )
 
@@ -112,7 +112,7 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
     {{ end }}
 
 	  var (
-      {{ $message.GoIdent.GoName }}WithRequestIDPostgresColumns = {{ fqn "github.com/malonaz/core/go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName }}WithRequestID{})
+      {{ $message.GoIdent.GoName }}WithRequestIDPostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName }}WithRequestID{})
       _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO UPDATE SET {{ $identifier }} = EXCLUDED.{{ $identifier }} RETURNING `
 		  {{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}WithRequestIDPostgresColumns)
 		  {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
@@ -240,7 +240,7 @@ var update{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} 
 
 func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string{{- if $etag }}, etag string{{ end }}) (*{{ $goTypeFqi }}, error) {
   // Get update params from the object using the provided columns
-  updateParams := {{ fqn "github.com/malonaz/core/go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
+  updateParams := {{ fqnCore "go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
 
   query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
   // Build WHERE clause with correct placeholders accounting for update params
@@ -407,7 +407,7 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 		{{ if $pr.Parent }}
 			{{- range $var := $pr.Parent.PatternVariables -}}
 				if {{ $var | camelcase | untitle }}Id != "-" && {{ $var | camelcase | untitle }}Id != "" {
-					whereClause = {{ fqn "github.com/malonaz/core/go/postgres" "AddToWhereClause" }}(whereClause, fmt.Sprintf("{{ $var }}_id = $%d", len(params) + 1))
+					whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, fmt.Sprintf("{{ $var }}_id = $%d", len(params) + 1))
 					params = append(params, {{ $var | camelcase | untitle }}Id)
 				}
 			{{ end }}
@@ -416,7 +416,7 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
 		{{- if $message.Desc.Fields.ByName "delete_time" }}
 			// Add delete_time filter to whereClause if not showing deleted
 			if !showDeleted {
-				whereClause = {{ fqn "github.com/malonaz/core/go/postgres" "AddToWhereClause" }}(whereClause, "delete_time IS NULL")
+				whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, "delete_time IS NULL")
 			}
 		{{- end }}
 

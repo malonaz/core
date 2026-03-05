@@ -9,6 +9,7 @@ import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/codegen/nats/v1/event.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 
@@ -19,6 +20,12 @@ message Book {
     pattern: "organizations/{organization}/shelves/{shelf}/books/{book}"
     singular: "book"
     plural: "books"
+  };
+  option (malonaz.codegen.nats.v1.event) = {
+    stream: "malonaz.library.library_service.v1.book"
+    created: true
+    updated: true
+    deleted: true
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
@@ -87,4 +94,10 @@ message BookMetadata {
   string language = 2;
   // Phone number of the author of this book.
   string phone_number = 3 [(malonaz.canonicalize.v1.field).phone_number = true];
+}
+
+// Metadata for a book.
+message BookCreatedEvent {
+  // The created book.
+  Book book = 1;
 }

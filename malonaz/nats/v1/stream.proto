@@ -2,16 +2,9 @@ syntax = "proto3";
 
 package malonaz.nats.v1;
 
-import "google/protobuf/descriptor.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/malonaz/core/genproto/nats/v1";
-
-// Extension for file-level options to declare a NATS JetStream stream.
-extend google.protobuf.ServiceOptions {
-  // Stream configuration declared by this file.
-  repeated StreamOptions stream = 73100;
-}
 
 // StreamOptions defines the configuration for a NATS JetStream stream.
 message StreamOptions {

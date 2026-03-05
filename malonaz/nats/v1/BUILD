@@ -1,6 +1,6 @@
 proto_library(
     name = "v1",
-    srcs = ["nats.proto"],
+    srcs = ["stream.proto"],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/nats/v1",
     },

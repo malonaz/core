@@ -19,3 +19,8 @@ export_file(
     name = "gateway_handler",
     src = "gateway_handler.tmpl",
 )
+
+export_file(
+    name = "nats",
+    src = "nats.tmpl",
+)

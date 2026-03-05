@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package malonaz.codegen.nats.v1;
+
+import "google/protobuf/descriptor.proto";
+import "malonaz/nats/v1/stream.proto";
+
+option go_package = "github.com/malonaz/core/genproto/codegen/nats/v1";
+
+// Extension to annotate a protobuf file with NATS stream generation options.
+// When set, the code generator emits a NATS JetStream stream configuration
+// for all resources defined in the file.
+extend google.protobuf.ServiceOptions {
+  // Stream options for resources in this file.
+  repeated malonaz.nats.v1.StreamOptions stream = 74000;
+}
+
+// Extension to annotate a protobuf resource message with NATS event generation options.
+// When set, the code generator emits typed NATS JetStream event messages
+// for the specified standard AIP methods (create, update, delete).
+extend google.protobuf.MessageOptions {
+  // Event generation options for this resource.
+  EventOptions event = 74001;
+}
+
+// Options controlling which NATS events are generated for a resource.
+// Each flag corresponds to a standard AIP method. When enabled, the code
+// generator produces a typed event message and publishes it on the
+// resource's NATS subject after the method completes successfully.
+message EventOptions {
+  // Sets the stream on which events will be streamed.
+  // If it is omitted, the FQN of the message this annotation is attached to will be used.
+  string stream = 1;
+
+  // Generate a created event when the resource is created via its Create method.
+  // Produces a <Resource>CreatedEvent containing the newly created resource.
+  bool created = 2;
+
+  // Generate an updated event when the resource is updated via its Update method.
+  // Produces a <Resource>UpdatedEvent containing the previous state, the new
+  // state, and the field mask that was applied.
+  bool updated = 3;
+
+  // Generate a deleted event when the resource is deleted via its Delete method.
+  // Produces a <Resource>DeletedEvent containing the resource at deletion time.
+  bool deleted = 4;
+}

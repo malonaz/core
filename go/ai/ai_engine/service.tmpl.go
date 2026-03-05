@@ -48,12 +48,10 @@ func New(
 	}, nil
 }
 
-// Start this service. Returns clean up function.
 func (s *Service) Start(ctx context.Context, withServiceAccount func(context.Context) context.Context) (func(), error) {
 	if withServiceAccount != nil {
 		s.withServiceAccount = withServiceAccount
-		ctxSA := withServiceAccount(ctx)
-		return s.start(ctxSA)
+		ctx = withServiceAccount(ctx)
 	}
 	return s.start(ctx)
 }

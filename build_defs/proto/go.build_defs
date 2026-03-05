@@ -3,6 +3,7 @@
 subinclude(
     "///proto//build_defs/sdk",
     "///go//build_defs:go",
+    "//build_defs:utils",
 )
 
 GO_IMPORT_PATH = "go_import_path"
@@ -11,6 +12,7 @@ GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_AIP = "generate_go_aip"
 GENERATE_GO_RPC = "generate_go_rpc"
 GENERATE_GO_MODEL = "generate_go_model"
+GENERATE_GO_NATS = "generate_go_nat"
 GENERATE_GO_POSTGRES = "generate_go_postgres"
 
 def go_path_mapping(plugin_out_keys:list):
@@ -76,7 +78,7 @@ def go_proto_library(
       additional_context (dict): Additional context.
     """
     tools= {"protoc_gen_go": [CONFIG.CORE.PROTOC_GEN_GO]}
-    deps += [CONFIG.CORE.PROTOC_GEN_GO_DEP]
+    go_deps = [CONFIG.CORE.PROTOC_GEN_GO_DEP]
     plugin_out_keys = ['go_out']
     plugin_flags = [
         '--plugin=protoc-gen-go="$(which $TOOLS_PROTOC_GEN_GO)"',
@@ -87,7 +89,7 @@ def go_proto_library(
     # PROTOC-GEN-GRPC
     if additional_context and GENERATE_GO_GRPC in additional_context:
         tools["protoc_gen_grpc_go"] = CONFIG.CORE.PROTOC_GEN_GRPC_GO
-        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
+        go_deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GO_DEP]
         plugin_out_keys += ['go-grpc_out']
         plugin_flags += [
             '--plugin=protoc-gen-go-grpc="$(which $TOOLS_PROTOC_GEN_GRPC_GO)"',
@@ -98,7 +100,7 @@ def go_proto_library(
     # PROTOC-GEN-GRPC-GATEWAY
     if additional_context and GENERATE_GO_GRPC_GATEWAY in additional_context:
         tools['protoc_gen_grpc_gateway_go'] = [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO]
-        deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
+        go_deps += [CONFIG.CORE.PROTOC_GEN_GRPC_GATEWAY_GO_DEP]
         plugin_out_keys += ['grpc-gateway_out']
         plugin_flags += [
             '--plugin=protoc-gen-grpc-gateway="`which $TOOLS_PROTOC_GEN_GRPC_GATEWAY_GO`"',
@@ -109,7 +111,7 @@ def go_proto_library(
     # PROTOC-GEN-AIP
     if additional_context and GENERATE_GO_AIP in additional_context:
         tools["protoc_gen_aip_go"] = CONFIG.CORE.PROTOC_GEN_AIP_GO
-        deps += [CONFIG.CORE.PROTOC_GEN_AIP_GO_DEP]
+        go_deps += [CONFIG.CORE.PROTOC_GEN_AIP_GO_DEP]
         plugin_out_keys += ['go-aip_out']
         plugin_flags += [
             '--plugin=protoc-gen-go-aip="$(which $TOOLS_PROTOC_GEN_AIP_GO)"',
@@ -119,18 +121,9 @@ def go_proto_library(
 
     protoc_go_templates = []
 
-    if additional_context and GENERATE_GO_RPC in additional_context:
-        protoc_go_templates += ["///core//build_defs/codegen/go_proto_templates/templates:rpc"]
-        tools["protoc_templates"] = [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]
-        deps += [CONFIG.CORE.PROTOC_GEN_RPC_GO_DEP]
-
-    if additional_context and GENERATE_GO_MODEL in additional_context:
-        protoc_go_templates += ["///core//build_defs/codegen/go_proto_templates/templates:model"]
-        deps += [CONFIG.CORE.PROTOC_GEN_MODEL_GO_DEP]
-
-    if additional_context and GENERATE_GO_POSTGRES in additional_context:
-        protoc_go_templates += ["///core//build_defs/codegen/go_proto_templates/templates:postgres"]
-        deps += [CONFIG.CORE.PROTOC_GEN_POSTGRES_GO_DEP]
+    if additional_context and GENERATE_GO_NATS in additional_context:
+        protoc_go_templates += [plugin_target("//build_defs/codegen/go_proto_templates/templates:nats")]
+        go_deps += [CONFIG.CORE.PROTOC_GEN_NATS_GO_DEP]
 
     if len(protoc_go_templates) > 0:
         tools["protoc_templates"] = [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]
@@ -161,7 +154,7 @@ def go_proto_library(
     return go_library(
         name = f"_{name}#go",
         srcs = [protoc],
-        deps = deps,
+        deps = deps + go_deps,
         test_only = test_only,
         labels = labels,
         visibility = visibility,

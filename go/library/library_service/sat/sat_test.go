@@ -94,6 +94,7 @@ func run(ctx context.Context) (func(), error) {
 			Path: "go/library/migrations/migrator",
 		},
 		EnvironmentVariables: environmentVariables,
+		Nats:                 true,
 	}
 	satEnvironment = sat.New(config)
 	if err := satEnvironment.Start(ctx); err != nil {

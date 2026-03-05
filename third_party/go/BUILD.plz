@@ -755,6 +755,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__antithesishq__antithesis-sdk-go",
+    _tag = "download",
+    module = "github.com/antithesishq/antithesis-sdk-go",
+    version = "v0.5.0-default-no-op",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__antithesishq__antithesis-sdk-go__assert",
+    download = ":_github.com__antithesishq__antithesis-sdk-go#download",
+    install = ["assert"],
+    module = "github.com/antithesishq/antithesis-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__antlr4-go__antlr__v4",
     _tag = "download",
     module = "github.com/antlr4-go/antlr/v4",
@@ -4265,7 +4282,7 @@ go_mod_download(
     name = "github.com__klauspost__compress",
     _tag = "download",
     module = "github.com/klauspost/compress",
-    version = "v1.18.0",
+    version = "v1.18.3",
     visibility = ["PUBLIC"],
 )
 
@@ -4285,6 +4302,27 @@ go_module(
     module = "github.com/klauspost/compress",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__internal__race",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["internal/race"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__s2",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["s2"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__klauspost__compress__internal__le",
+        "//third_party/go:github.com__klauspost__compress__internal__race",
+    ],
 )
 
 go_mod_download(
@@ -4410,6 +4448,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__minio__highwayhash",
+    _tag = "download",
+    module = "github.com/minio/highwayhash",
+    version = "v1.0.4-0.20251030100505-070ab1a87a76",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__minio__highwayhash",
+    download = ":_github.com__minio__highwayhash#download",
+    install = ["."],
+    module = "github.com/minio/highwayhash",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__sys__cpu"],
+)
+
+go_mod_download(
     name = "github.com__mitchellh__copystructure",
     _tag = "download",
     module = "github.com/mitchellh/copystructure",
@@ -4526,6 +4581,215 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__nats-io__jwt__v2",
+    _tag = "download",
+    module = "github.com/nats-io/jwt/v2",
+    version = "v2.8.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nats-io__jwt__v2",
+    download = ":_github.com__nats-io__jwt__v2#download",
+    install = ["."],
+    module = "github.com/nats-io/jwt/v2",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__nats-io__nkeys"],
+)
+
+go_mod_download(
+    name = "github.com__nats-io__nats-server__v2",
+    _tag = "download",
+    module = "github.com/nats-io/nats-server/v2",
+    version = "v2.12.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__conf",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["conf"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__internal__fastrand",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["internal/fastrand"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__internal__ldap",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["internal/ldap"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__logger",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["logger"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__nats-io__nats-server__v2__server__ats",
+        ":github.com__nats-io__nats-server__v2__server__avl",
+        ":github.com__nats-io__nats-server__v2__server__certidp",
+        ":github.com__nats-io__nats-server__v2__server__certstore",
+        ":github.com__nats-io__nats-server__v2__server__elastic",
+        ":github.com__nats-io__nats-server__v2__server__gsl",
+        ":github.com__nats-io__nats-server__v2__server__pse",
+        ":github.com__nats-io__nats-server__v2__server__stree",
+        ":github.com__nats-io__nats-server__v2__server__sysmem",
+        ":github.com__nats-io__nats-server__v2__server__thw",
+        ":github.com__nats-io__nats-server__v2__server__tpm",
+        ":github.com__nats-io__nkeys",
+        ":github.com__nats-io__nuid",
+        ":golang.org__x__crypto__bcrypt",
+        ":golang.org__x__crypto__chacha20",
+        ":golang.org__x__crypto__chacha20poly1305",
+        ":golang.org__x__crypto__ocsp",
+        ":golang.org__x__time__rate",
+        "//third_party/go:github.com__antithesishq__antithesis-sdk-go__assert",
+        "//third_party/go:github.com__klauspost__compress__flate",
+        "//third_party/go:github.com__klauspost__compress__s2",
+        "//third_party/go:github.com__minio__highwayhash",
+        "//third_party/go:github.com__nats-io__jwt__v2",
+        "//third_party/go:github.com__nats-io__nats-server__v2__conf",
+        "//third_party/go:github.com__nats-io__nats-server__v2__internal__fastrand",
+        "//third_party/go:github.com__nats-io__nats-server__v2__internal__ldap",
+        "//third_party/go:github.com__nats-io__nats-server__v2__logger",
+    ],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__ats",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/ats"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__avl",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/avl"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__certidp",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/certidp"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__crypto__ocsp"],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__certstore",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/certstore"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__elastic",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/elastic"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__gsl",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/gsl"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__pse",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/pse"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__stree",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/stree"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__nats-io__nats-server__v2__server__gsl"],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__sysmem",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/sysmem"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__thw",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/thw"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__server__tpm",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["server/tpm"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__nats-io__nats-server__v2__test",
+    download = ":_github.com__nats-io__nats-server__v2#download",
+    install = ["test"],
+    module = "github.com/nats-io/nats-server/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__nats-io__nats-server__v2__logger",
+        "//third_party/go:github.com__nats-io__nats-server__v2__server",
+    ],
+)
+
+go_mod_download(
     name = "github.com__nats-io__nats.go",
     _tag = "download",
     module = "github.com/nats-io/nats.go",
@@ -4603,7 +4867,7 @@ go_mod_download(
     name = "github.com__nats-io__nkeys",
     _tag = "download",
     module = "github.com/nats-io/nkeys",
-    version = "v0.4.11",
+    version = "v0.4.12",
     visibility = ["PUBLIC"],
 )
 
@@ -6715,7 +6979,7 @@ go_mod_download(
     name = "golang.org__x__crypto",
     _tag = "download",
     module = "golang.org/x/crypto",
-    version = "v0.44.0",
+    version = "v0.47.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6862,6 +7126,15 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__crypto__ocsp",
+    download = ":_golang.org__x__crypto#download",
+    install = ["ocsp"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "golang.org__x__crypto__pbkdf2",
     download = ":_golang.org__x__crypto#download",
     install = ["pbkdf2"],
@@ -6995,7 +7268,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.47.0",
+    version = "v0.48.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7113,7 +7386,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.38.0",
+    version = "v0.40.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7372,6 +7645,23 @@ go_module(
     module = "golang.org/x/text",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go:golang.org__x__text__transform"],
+)
+
+go_mod_download(
+    name = "golang.org__x__time",
+    _tag = "download",
+    module = "golang.org/x/time",
+    version = "v0.14.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "golang.org__x__time__rate",
+    download = ":_golang.org__x__time#download",
+    install = ["rate"],
+    module = "golang.org/x/time",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(

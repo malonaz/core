@@ -2,16 +2,15 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.32.1
-// source: malonaz/nats/v1/nats.proto
+// source: malonaz/nats/v1/stream.proto
 
-//go:build protoopaque
+//go:build !protoopaque
 
 package v1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -65,11 +64,11 @@ func (x RetentionPolicy) String() string {
 }
 
 func (RetentionPolicy) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_nats_v1_nats_proto_enumTypes[0].Descriptor()
+	return file_malonaz_nats_v1_stream_proto_enumTypes[0].Descriptor()
 }
 
 func (RetentionPolicy) Type() protoreflect.EnumType {
-	return &file_malonaz_nats_v1_nats_proto_enumTypes[0]
+	return &file_malonaz_nats_v1_stream_proto_enumTypes[0]
 }
 
 func (x RetentionPolicy) Number() protoreflect.EnumNumber {
@@ -113,11 +112,11 @@ func (x StorageType) String() string {
 }
 
 func (StorageType) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_nats_v1_nats_proto_enumTypes[1].Descriptor()
+	return file_malonaz_nats_v1_stream_proto_enumTypes[1].Descriptor()
 }
 
 func (StorageType) Type() protoreflect.EnumType {
-	return &file_malonaz_nats_v1_nats_proto_enumTypes[1]
+	return &file_malonaz_nats_v1_stream_proto_enumTypes[1]
 }
 
 func (x StorageType) Number() protoreflect.EnumNumber {
@@ -161,11 +160,11 @@ func (x DiscardPolicy) String() string {
 }
 
 func (DiscardPolicy) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_nats_v1_nats_proto_enumTypes[2].Descriptor()
+	return file_malonaz_nats_v1_stream_proto_enumTypes[2].Descriptor()
 }
 
 func (DiscardPolicy) Type() protoreflect.EnumType {
-	return &file_malonaz_nats_v1_nats_proto_enumTypes[2]
+	return &file_malonaz_nats_v1_stream_proto_enumTypes[2]
 }
 
 func (x DiscardPolicy) Number() protoreflect.EnumNumber {
@@ -174,23 +173,32 @@ func (x DiscardPolicy) Number() protoreflect.EnumNumber {
 
 // StreamOptions defines the configuration for a NATS JetStream stream.
 type StreamOptions struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name       string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_MaxAge     *durationpb.Duration   `protobuf:"bytes,2,opt,name=max_age,json=maxAge,proto3"`
-	xxx_hidden_MaxBytes   int64                  `protobuf:"varint,3,opt,name=max_bytes,json=maxBytes,proto3"`
-	xxx_hidden_MaxMsgs    int64                  `protobuf:"varint,4,opt,name=max_msgs,json=maxMsgs,proto3"`
-	xxx_hidden_MaxMsgSize int32                  `protobuf:"varint,5,opt,name=max_msg_size,json=maxMsgSize,proto3"`
-	xxx_hidden_Replicas   int32                  `protobuf:"varint,6,opt,name=replicas,proto3"`
-	xxx_hidden_Retention  RetentionPolicy        `protobuf:"varint,7,opt,name=retention,proto3,enum=malonaz.nats.v1.RetentionPolicy"`
-	xxx_hidden_Storage    StorageType            `protobuf:"varint,8,opt,name=storage,proto3,enum=malonaz.nats.v1.StorageType"`
-	xxx_hidden_Discard    DiscardPolicy          `protobuf:"varint,9,opt,name=discard,proto3,enum=malonaz.nats.v1.DiscardPolicy"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Unique name of the stream.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Maximum age of messages in the stream. Messages older than this are removed.
+	MaxAge *durationpb.Duration `protobuf:"bytes,2,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
+	// Maximum total size of the stream in bytes.
+	MaxBytes int64 `protobuf:"varint,3,opt,name=max_bytes,json=maxBytes,proto3" json:"max_bytes,omitempty"`
+	// Maximum number of messages allowed in the stream.
+	MaxMsgs int64 `protobuf:"varint,4,opt,name=max_msgs,json=maxMsgs,proto3" json:"max_msgs,omitempty"`
+	// Maximum size of a single message in bytes.
+	MaxMsgSize int32 `protobuf:"varint,5,opt,name=max_msg_size,json=maxMsgSize,proto3" json:"max_msg_size,omitempty"`
+	// Number of stream replicas for fault tolerance.
+	Replicas int32 `protobuf:"varint,6,opt,name=replicas,proto3" json:"replicas,omitempty"`
+	// Retention policy governing when messages are removed from the stream.
+	Retention RetentionPolicy `protobuf:"varint,7,opt,name=retention,proto3,enum=malonaz.nats.v1.RetentionPolicy" json:"retention,omitempty"`
+	// Storage backend type for the stream's data.
+	Storage StorageType `protobuf:"varint,8,opt,name=storage,proto3,enum=malonaz.nats.v1.StorageType" json:"storage,omitempty"`
+	// Policy for handling new messages when the stream reaches its limits.
+	Discard       DiscardPolicy `protobuf:"varint,9,opt,name=discard,proto3,enum=malonaz.nats.v1.DiscardPolicy" json:"discard,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StreamOptions) Reset() {
 	*x = StreamOptions{}
-	mi := &file_malonaz_nats_v1_nats_proto_msgTypes[0]
+	mi := &file_malonaz_nats_v1_stream_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -202,7 +210,7 @@ func (x *StreamOptions) String() string {
 func (*StreamOptions) ProtoMessage() {}
 
 func (x *StreamOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_nats_v1_nats_proto_msgTypes[0]
+	mi := &file_malonaz_nats_v1_stream_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -215,112 +223,112 @@ func (x *StreamOptions) ProtoReflect() protoreflect.Message {
 
 func (x *StreamOptions) GetName() string {
 	if x != nil {
-		return x.xxx_hidden_Name
+		return x.Name
 	}
 	return ""
 }
 
 func (x *StreamOptions) GetMaxAge() *durationpb.Duration {
 	if x != nil {
-		return x.xxx_hidden_MaxAge
+		return x.MaxAge
 	}
 	return nil
 }
 
 func (x *StreamOptions) GetMaxBytes() int64 {
 	if x != nil {
-		return x.xxx_hidden_MaxBytes
+		return x.MaxBytes
 	}
 	return 0
 }
 
 func (x *StreamOptions) GetMaxMsgs() int64 {
 	if x != nil {
-		return x.xxx_hidden_MaxMsgs
+		return x.MaxMsgs
 	}
 	return 0
 }
 
 func (x *StreamOptions) GetMaxMsgSize() int32 {
 	if x != nil {
-		return x.xxx_hidden_MaxMsgSize
+		return x.MaxMsgSize
 	}
 	return 0
 }
 
 func (x *StreamOptions) GetReplicas() int32 {
 	if x != nil {
-		return x.xxx_hidden_Replicas
+		return x.Replicas
 	}
 	return 0
 }
 
 func (x *StreamOptions) GetRetention() RetentionPolicy {
 	if x != nil {
-		return x.xxx_hidden_Retention
+		return x.Retention
 	}
 	return RetentionPolicy_RETENTION_POLICY_UNSPECIFIED
 }
 
 func (x *StreamOptions) GetStorage() StorageType {
 	if x != nil {
-		return x.xxx_hidden_Storage
+		return x.Storage
 	}
 	return StorageType_STORAGE_TYPE_UNSPECIFIED
 }
 
 func (x *StreamOptions) GetDiscard() DiscardPolicy {
 	if x != nil {
-		return x.xxx_hidden_Discard
+		return x.Discard
 	}
 	return DiscardPolicy_DISCARD_POLICY_UNSPECIFIED
 }
 
 func (x *StreamOptions) SetName(v string) {
-	x.xxx_hidden_Name = v
+	x.Name = v
 }
 
 func (x *StreamOptions) SetMaxAge(v *durationpb.Duration) {
-	x.xxx_hidden_MaxAge = v
+	x.MaxAge = v
 }
 
 func (x *StreamOptions) SetMaxBytes(v int64) {
-	x.xxx_hidden_MaxBytes = v
+	x.MaxBytes = v
 }
 
 func (x *StreamOptions) SetMaxMsgs(v int64) {
-	x.xxx_hidden_MaxMsgs = v
+	x.MaxMsgs = v
 }
 
 func (x *StreamOptions) SetMaxMsgSize(v int32) {
-	x.xxx_hidden_MaxMsgSize = v
+	x.MaxMsgSize = v
 }
 
 func (x *StreamOptions) SetReplicas(v int32) {
-	x.xxx_hidden_Replicas = v
+	x.Replicas = v
 }
 
 func (x *StreamOptions) SetRetention(v RetentionPolicy) {
-	x.xxx_hidden_Retention = v
+	x.Retention = v
 }
 
 func (x *StreamOptions) SetStorage(v StorageType) {
-	x.xxx_hidden_Storage = v
+	x.Storage = v
 }
 
 func (x *StreamOptions) SetDiscard(v DiscardPolicy) {
-	x.xxx_hidden_Discard = v
+	x.Discard = v
 }
 
 func (x *StreamOptions) HasMaxAge() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_MaxAge != nil
+	return x.MaxAge != nil
 }
 
 func (x *StreamOptions) ClearMaxAge() {
-	x.xxx_hidden_MaxAge = nil
+	x.MaxAge = nil
 }
 
 type StreamOptions_builder struct {
@@ -350,42 +358,23 @@ func (b0 StreamOptions_builder) Build() *StreamOptions {
 	m0 := &StreamOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Name = b.Name
-	x.xxx_hidden_MaxAge = b.MaxAge
-	x.xxx_hidden_MaxBytes = b.MaxBytes
-	x.xxx_hidden_MaxMsgs = b.MaxMsgs
-	x.xxx_hidden_MaxMsgSize = b.MaxMsgSize
-	x.xxx_hidden_Replicas = b.Replicas
-	x.xxx_hidden_Retention = b.Retention
-	x.xxx_hidden_Storage = b.Storage
-	x.xxx_hidden_Discard = b.Discard
+	x.Name = b.Name
+	x.MaxAge = b.MaxAge
+	x.MaxBytes = b.MaxBytes
+	x.MaxMsgs = b.MaxMsgs
+	x.MaxMsgSize = b.MaxMsgSize
+	x.Replicas = b.Replicas
+	x.Retention = b.Retention
+	x.Storage = b.Storage
+	x.Discard = b.Discard
 	return m0
 }
 
-var file_malonaz_nats_v1_nats_proto_extTypes = []protoimpl.ExtensionInfo{
-	{
-		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
-		ExtensionType: ([]*StreamOptions)(nil),
-		Field:         73100,
-		Name:          "malonaz.nats.v1.stream",
-		Tag:           "bytes,73100,rep,name=stream",
-		Filename:      "malonaz/nats/v1/nats.proto",
-	},
-}
+var File_malonaz_nats_v1_stream_proto protoreflect.FileDescriptor
 
-// Extension fields to descriptorpb.ServiceOptions.
-var (
-	// Stream configuration declared by this file.
-	//
-	// repeated malonaz.nats.v1.StreamOptions stream = 73100;
-	E_Stream = &file_malonaz_nats_v1_nats_proto_extTypes[0]
-)
-
-var File_malonaz_nats_v1_nats_proto protoreflect.FileDescriptor
-
-const file_malonaz_nats_v1_nats_proto_rawDesc = "" +
+const file_malonaz_nats_v1_stream_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/nats/v1/nats.proto\x12\x0fmalonaz.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1egoogle/protobuf/duration.proto\"\xff\x02\n" +
+	"\x1cmalonaz/nats/v1/stream.proto\x12\x0fmalonaz.nats.v1\x1a\x1egoogle/protobuf/duration.proto\"\xff\x02\n" +
 	"\rStreamOptions\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\amax_age\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x06maxAge\x12\x1b\n" +
@@ -409,55 +398,50 @@ const file_malonaz_nats_v1_nats_proto_rawDesc = "" +
 	"\rDiscardPolicy\x12\x1e\n" +
 	"\x1aDISCARD_POLICY_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DISCARD_POLICY_OLD\x10\x01\x12\x16\n" +
-	"\x12DISCARD_POLICY_NEW\x10\x02:Y\n" +
-	"\x06stream\x12\x1f.google.protobuf.ServiceOptions\x18\x8c\xbb\x04 \x03(\v2\x1e.malonaz.nats.v1.StreamOptionsR\x06streamB*Z(github.com/malonaz/core/genproto/nats/v1b\x06proto3"
+	"\x12DISCARD_POLICY_NEW\x10\x02B*Z(github.com/malonaz/core/genproto/nats/v1b\x06proto3"
 
-var file_malonaz_nats_v1_nats_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_malonaz_nats_v1_nats_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_malonaz_nats_v1_nats_proto_goTypes = []any{
-	(RetentionPolicy)(0),                // 0: malonaz.nats.v1.RetentionPolicy
-	(StorageType)(0),                    // 1: malonaz.nats.v1.StorageType
-	(DiscardPolicy)(0),                  // 2: malonaz.nats.v1.DiscardPolicy
-	(*StreamOptions)(nil),               // 3: malonaz.nats.v1.StreamOptions
-	(*durationpb.Duration)(nil),         // 4: google.protobuf.Duration
-	(*descriptorpb.ServiceOptions)(nil), // 5: google.protobuf.ServiceOptions
+var file_malonaz_nats_v1_stream_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_malonaz_nats_v1_stream_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_nats_v1_stream_proto_goTypes = []any{
+	(RetentionPolicy)(0),        // 0: malonaz.nats.v1.RetentionPolicy
+	(StorageType)(0),            // 1: malonaz.nats.v1.StorageType
+	(DiscardPolicy)(0),          // 2: malonaz.nats.v1.DiscardPolicy
+	(*StreamOptions)(nil),       // 3: malonaz.nats.v1.StreamOptions
+	(*durationpb.Duration)(nil), // 4: google.protobuf.Duration
 }
-var file_malonaz_nats_v1_nats_proto_depIdxs = []int32{
+var file_malonaz_nats_v1_stream_proto_depIdxs = []int32{
 	4, // 0: malonaz.nats.v1.StreamOptions.max_age:type_name -> google.protobuf.Duration
 	0, // 1: malonaz.nats.v1.StreamOptions.retention:type_name -> malonaz.nats.v1.RetentionPolicy
 	1, // 2: malonaz.nats.v1.StreamOptions.storage:type_name -> malonaz.nats.v1.StorageType
 	2, // 3: malonaz.nats.v1.StreamOptions.discard:type_name -> malonaz.nats.v1.DiscardPolicy
-	5, // 4: malonaz.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
-	3, // 5: malonaz.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	5, // [5:6] is the sub-list for extension type_name
-	4, // [4:5] is the sub-list for extension extendee
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_malonaz_nats_v1_nats_proto_init() }
-func file_malonaz_nats_v1_nats_proto_init() {
-	if File_malonaz_nats_v1_nats_proto != nil {
+func init() { file_malonaz_nats_v1_stream_proto_init() }
+func file_malonaz_nats_v1_stream_proto_init() {
+	if File_malonaz_nats_v1_stream_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_nats_v1_nats_proto_rawDesc), len(file_malonaz_nats_v1_nats_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_nats_v1_stream_proto_rawDesc), len(file_malonaz_nats_v1_stream_proto_rawDesc)),
 			NumEnums:      3,
 			NumMessages:   1,
-			NumExtensions: 1,
+			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_malonaz_nats_v1_nats_proto_goTypes,
-		DependencyIndexes: file_malonaz_nats_v1_nats_proto_depIdxs,
-		EnumInfos:         file_malonaz_nats_v1_nats_proto_enumTypes,
-		MessageInfos:      file_malonaz_nats_v1_nats_proto_msgTypes,
-		ExtensionInfos:    file_malonaz_nats_v1_nats_proto_extTypes,
+		GoTypes:           file_malonaz_nats_v1_stream_proto_goTypes,
+		DependencyIndexes: file_malonaz_nats_v1_stream_proto_depIdxs,
+		EnumInfos:         file_malonaz_nats_v1_stream_proto_enumTypes,
+		MessageInfos:      file_malonaz_nats_v1_stream_proto_msgTypes,
 	}.Build()
-	File_malonaz_nats_v1_nats_proto = out.File
-	file_malonaz_nats_v1_nats_proto_goTypes = nil
-	file_malonaz_nats_v1_nats_proto_depIdxs = nil
+	File_malonaz_nats_v1_stream_proto = out.File
+	file_malonaz_nats_v1_stream_proto_goTypes = nil
+	file_malonaz_nats_v1_stream_proto_depIdxs = nil
 }

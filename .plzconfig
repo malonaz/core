@@ -44,6 +44,7 @@ LanguageDef = //build_defs/proto:go
 LanguageDef = //build_defs/proto:js
 ;;LanguageDef = //build_defs/proto:ruby
 ProtocTool = //tools/proto:protoc
+ProtocFlags = -Ithird_party/proto
 
 [Plugin "core"]
 Target = //plugins:core
@@ -84,6 +85,10 @@ DefaultValue = //tools/proto:protoc-gen-go-aip
 ConfigKey = ProtocGenAipGoDep
 DefaultValue = //tools/proto:protoc-gen-go-aip-dep
 
+[PluginConfig "protoc_gen_nats_go_dep"]
+ConfigKey = ProtocGenNatsGoDep
+DefaultValue = //tools/proto:protoc-gen-go-nats-dep
+
 [PluginConfig "protoc_gen_cobra_go_dep"]
 ConfigKey = ProtocGenCobraGoDep
 DefaultValue = //tools/proto:protoc-gen-go-cobra-dep
@@ -99,20 +104,6 @@ DefaultValue = //tools/validate-schema
 [PluginConfig "templates_go"]
 ConfigKey = TemplatesGo
 DefaultValue = //tools/template
-
-;; TEMPLATE-BASED DEPS GO HERE.
-[PluginConfig "protoc_gen_model_go_dep"]
-ConfigKey = ProtocGenModelGoDep
-DefaultValue = //tools/proto:protoc-gen-go-model-dep
-
-[PluginConfig "protoc_gen_rpc_go_dep"]
-ConfigKey = ProtocGenRpcGoDep
-DefaultValue = //tools/proto:protoc-gen-go-rpc-dep
-
-[PluginConfig "protoc_gen_postgres_go_dep"]
-ConfigKey = ProtocGenPostgresGoDep
-DefaultValue = //tools/proto:protoc-gen-go-postgres-dep
-
 
 ;; JS
 [PluginConfig "protoc_gen_es"]

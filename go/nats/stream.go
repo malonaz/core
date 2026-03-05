@@ -5,51 +5,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/malonaz/core/go/pbutil"
 	"github.com/nats-io/nats.go/jetstream"
-	"google.golang.org/grpc"
 
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 )
 
-type ServiceStreams struct {
-	nameToStream map[string]*Stream
-}
-
-func MustGetServiceStreams(serviceDesc grpc.ServiceDesc) *ServiceStreams {
-	streamOptionsList := pbutil.Must(pbutil.GetServiceOption[[]*natspb.StreamOptions](
-		serviceDesc.ServiceName,
-		natspb.E_Stream,
-	))
-	nameToStream := make(map[string]*Stream, len(streamOptionsList))
-	for _, streamOptions := range streamOptionsList {
-		nameToStream[streamOptions.GetName()] = &Stream{
-			name:    strings.ReplaceAll(streamOptions.GetName(), ".", "_"),
-			options: streamOptions,
-		}
-	}
-	return &ServiceStreams{nameToStream: nameToStream}
-}
-
-func (s *ServiceStreams) GetStreams() []*Stream {
-	streams := make([]*Stream, 0, len(s.nameToStream))
-	for _, stream := range s.nameToStream {
-		streams = append(streams, stream)
-	}
-	return streams
-}
-
-func (s *ServiceStreams) MustGetStream(name string) *Stream {
-	stream, ok := s.nameToStream[name]
-	if !ok {
-		panic(fmt.Sprintf("unknown stream %q", name))
-	}
-	return stream
-}
-
 type Stream struct {
 	name    string
 	options *natspb.StreamOptions
+}
+
+func NewStream(streamOptions *natspb.StreamOptions) *Stream {
+	return &Stream{
+		name:    strings.ReplaceAll(streamOptions.GetName(), ".", "_"),
+		options: streamOptions,
+	}
 }
 
 func (s *Stream) Subject(suffix string) *Subject {

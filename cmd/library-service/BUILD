@@ -28,6 +28,7 @@ go_binary(
         "//go/library/library_service",
         "//go/library/store",
         "//go/logging",
+        "//go/nats",
         "//go/postgres",
         "//go/prometheus",
         "//malonaz/library/library_service/v1",

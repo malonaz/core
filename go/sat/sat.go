@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
+
+	natsserver "github.com/nats-io/nats-server/v2/server"
+	natstestserver "github.com/nats-io/nats-server/v2/test"
 
 	"github.com/malonaz/core/go/binary"
 	"github.com/malonaz/core/go/logging"
@@ -30,6 +34,7 @@ type Config struct {
 	Migrator             SUT
 	PostgresServerConfig PostgresServerConfig
 	EnvironmentVariables map[string]string
+	Nats                 bool
 }
 
 // PostgresServerConfig holds connection details for the test Postgres instance.
@@ -47,6 +52,7 @@ type SAT struct {
 	config         *Config
 	sutsWorker     *binary.Worker
 	PostgresServer *postgrestestserver.Server
+	natsServer     *natsserver.Server
 }
 
 // WithLogger sets this SAT's logger.
@@ -77,6 +83,16 @@ func (s *SAT) Start(ctx context.Context) error {
 	}
 
 	s.log.Info("instantiating SAT", "PATH", os.Getenv("PATH"))
+
+	if s.config.Nats {
+		s.log.InfoContext(ctx, "starting nats server")
+		natsOptions := natstestserver.DefaultTestOptions
+		natsOptions.NoLog = false
+		natsOptions.JetStream = true
+		s.natsServer = natstestserver.RunServer(&natsOptions)
+		environmentVariables["NATS_HOST"] = natsOptions.Host
+		environmentVariables["NATS_PORT"] = strconv.Itoa(natsOptions.Port)
+	}
 
 	// Merge caller-provided env vars into the global set, then export them all.
 	for k, v := range s.config.EnvironmentVariables {
@@ -144,5 +160,8 @@ func (s *SAT) Cleanup() {
 	s.sutsWorker.Exit()
 	if s.PostgresServer != nil {
 		s.PostgresServer.Shutdown()
+	}
+	if s.natsServer != nil {
+		s.natsServer.Shutdown()
 	}
 }

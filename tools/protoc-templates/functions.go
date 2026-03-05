@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 	"text/template"
 
@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 var (
@@ -74,8 +75,11 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		},
 		"replaceImportPath": se.replaceImportPath,
 		"fqn":               se.fqn,
-		"qualifiedGoIdent":  se.qualifiedGoIdent,
-		"qgi":               se.qualifiedGoIdent,
+		"fqnCore": func(lib, symbol string) string {
+			return se.fqn("github.com/malonaz/core/"+lib, symbol)
+		},
+		"qualifiedGoIdent": se.qualifiedGoIdent,
+		"qgi":              se.qualifiedGoIdent,
 
 		"parseRPC":                 parseRPC,
 		"parseResource":            parseResource,
@@ -166,15 +170,6 @@ func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {
 		return nil, fmt.Errorf("failed to find extension: %w", err)
 	}
 	ext := proto.GetExtension(proto.Message(options), extType)
-	if pbMsg, ok := ext.(proto.Message); ok {
-		if reflect.ValueOf(pbMsg).IsNil() {
-			// Get the concrete type of the message
-			msgType := reflect.TypeOf(pbMsg).Elem()
-			// Create a new instance of the concrete type
-			newMsg := reflect.New(msgType).Interface().(proto.Message)
-			return newMsg, nil
-		}
-	}
 	return ext, nil
 }
 
@@ -183,16 +178,12 @@ func getModelOpts(message *protogen.Message) (*modelpb.ModelOpts, error) {
 	if options == nil {
 		return nil, nil
 	}
-
-	if !proto.HasExtension(options, modelpb.E_ModelOpts) {
+	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](options, modelpb.E_ModelOpts)
+	if errors.Is(err, pbutil.ErrExtensionNotFound) {
 		return nil, nil
 	}
-
-	modelOptsExt := proto.GetExtension(options, modelpb.E_ModelOpts)
-	modelOpts, ok := modelOptsExt.(*modelpb.ModelOpts)
-	if !ok || modelOpts == nil {
-		return nil, fmt.Errorf("message %s has invalid model_opts annotation", message.Desc.FullName())
+	if err != nil {
+		return nil, fmt.Errorf("message %s: %w", message.Desc.FullName(), err)
 	}
-
 	return modelOpts, nil
 }

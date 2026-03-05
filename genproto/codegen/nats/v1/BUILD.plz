@@ -1,10 +1,11 @@
 go_library(
     name = "v1",
-    srcs = ["stream.pb.go"],
+    srcs = ["nats.pb.go"],
     visibility = ["//..."],
     deps = [
+        "//malonaz/nats/v1",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
-        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
     ],
 )

@@ -20,6 +20,7 @@ grpc_library(
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/library/library_service/v1",
+        GENERATE_GO_NATS: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,
@@ -27,7 +28,9 @@ grpc_library(
     deps = [
         "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/nats/v1",
         "//malonaz/library/v1",
+        "//malonaz/nats/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",
     ],

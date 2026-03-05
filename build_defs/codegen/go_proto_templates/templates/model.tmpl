@@ -150,19 +150,19 @@ var (
     {{- end }}
 		{{- range $field := $message.Fields -}}
         {{-  $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
-				{{- if or $fieldOpts.Skip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end }}
-    		{{ if not $fieldOpts.Embed }}{{ $field.GoName -}}{{- " " -}}{{ end }}
-				{{- if or $fieldOpts.AsJsonBytes $fieldOpts.AsProtoBytes -}}
+				{{- if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end }}
+    		{{ if not $fieldOpts.GetEmbed }}{{ $field.GoName -}}{{- " " -}}{{ end }}
+				{{- if or $fieldOpts.GetAsJsonBytes $fieldOpts.GetAsProtoBytes -}}
 						[]byte
-				{{- else if $fieldOpts.PgVector -}}
-      			{{- if $fieldOpts.Nullable }}*{{ end }}{{ fqn $pgvector "Vector" }}
-				{{- else if $fieldOpts.Embed -}}
+				{{- else if $fieldOpts.GetPgVector -}}
+      			{{- if $fieldOpts.GetNullable }}*{{ end }}{{ fqn $pgvector "Vector" }}
+				{{- else if $fieldOpts.GetEmbed -}}
 						{{ $message.GoIdent.GoName }}{{ $field.GoName }}
 				{{- else -}}
-    				{{- if $fieldOpts.Nullable -}}*{{- end -}}
+    				{{- if $fieldOpts.GetNullable -}}*{{- end -}}
 						{{- template "SanitizedFieldType" $field -}}
 				{{- end -}}
-				{{ if not $fieldOpts.Embed }} `db:"{{- columnName $field -}}"`{{ end }}
+				{{ if not $fieldOpts.GetEmbed }} `db:"{{- columnName $field -}}"`{{ end }}
 		{{- end }}
     }
 {{ end -}}
@@ -187,26 +187,26 @@ var (
 
 		{{ range $field := $message.Fields -}}
         {{-  $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
-				{{- if or $fieldOpts.Skip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end }}
+				{{- if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end }}
         {{ $isProtobufTs := and .Message (eq .Message.Desc.FullName "google.protobuf.Timestamp") }}
 
-				{{ if or $fieldOpts.AsJsonBytes $fieldOpts.AsProtoBytes -}}
+				{{ if or $fieldOpts.GetAsJsonBytes $fieldOpts.GetAsProtoBytes -}}
 					  {{ template "Marshal" $field }}
-				{{- else if $fieldOpts.PgVector -}}
-						{{ if $fieldOpts.Nullable }}
+				{{- else if $fieldOpts.GetPgVector -}}
+						{{ if $fieldOpts.GetNullable }}
 								var {{ $field.GoName }}Ptr *{{ fqn $pgvector "Vector" }}
 								if m.{{ $field.GoName }} != nil {
 								{{ $field.GoName }} := pgvector_go.NewVector(m.{{ $field.GoName }})
 								{{ $field.GoName }}Ptr = &{{ $field.GoName }}
 								}
 						{{- end -}}
-				{{ else if $fieldOpts.Embed }}
+				{{ else if $fieldOpts.GetEmbed }}
 					  {{ $field.GoName }}, err := {{ $message.GoIdent.GoName }}{{ $field.GoName }}FromPb(m.{{ $field.GoName }})
 					  if err != nil {
 					 	return nil, {{ fqn "fmt" "Errorf" }}("converting to model {{ $field.Desc.TextName }}: %w", err)
 					  }
 				{{ else }}
-						{{ if $fieldOpts.Nullable }}
+						{{ if $fieldOpts.GetNullable }}
 								var {{ $field.GoName }} *{{- template "SanitizedFieldType" $field }}
 								if m.{{ $field.GoName }} != {{ zeroValue $field }} {
                 {{ if $field.Enum }}
@@ -237,21 +237,21 @@ var (
     {{- end }}
 		{{- range $field := $message.Fields }}
         {{  $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
-				{{ if or $fieldOpts.Skip (eq $field.Desc.TextName "name") }}{{ continue }}{{ end -}}
-				{{ if $fieldOpts.Embed }}{{ $message.GoIdent.GoName }}{{ end }}
+				{{ if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{ continue }}{{ end -}}
+				{{ if $fieldOpts.GetEmbed }}{{ $message.GoIdent.GoName }}{{ end }}
 				{{- $field.GoName -}}{{- ": " -}}
-				{{- if or $fieldOpts.AsJsonBytes $fieldOpts.AsProtoBytes -}}
+				{{- if or $fieldOpts.GetAsJsonBytes $fieldOpts.GetAsProtoBytes -}}
 					 	{{- $field.GoName -}}Bytes,
-				{{- else if $fieldOpts.PgVector -}}
-					 	{{- if $fieldOpts.Nullable }}
+				{{- else if $fieldOpts.GetPgVector -}}
+					 	{{- if $fieldOpts.GetNullable }}
 						 	 	{{- $field.GoName -}}Ptr,
 						{{- else -}}
 							 	m.{{- $field.GoName -}},
 						{{- end -}}
-				{{- else if $fieldOpts.Embed -}}
+				{{- else if $fieldOpts.GetEmbed -}}
 					 	{{- $field.GoName -}},
 				{{- else -}}
-					 	{{- if $fieldOpts.Nullable }}
+					 	{{- if $fieldOpts.GetNullable }}
 						 	 	{{- $field.GoName -}},
 						{{- else -}}
 						    {{- template "ProtoFieldValue" $field -}},
@@ -272,36 +272,36 @@ var (
     func (m *{{ $message.GoIdent.GoName }}) ToPb() (*{{ qgi $message.GoIdent }}, error) {
 		{{ range $field := $message.Fields -}}
         {{- $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
-		 		{{- if or $fieldOpts.Skip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end -}}
+		 		{{- if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end -}}
         {{ $isProtobufTs := and .Message (eq .Message.Desc.FullName "google.protobuf.Timestamp") }}
-				{{- if or $fieldOpts.AsJsonBytes $fieldOpts.AsProtoBytes -}}
+				{{- if or $fieldOpts.GetAsJsonBytes $fieldOpts.GetAsProtoBytes -}}
 					  {{ template "Unmarshal" $field }}
-				{{- else if $fieldOpts.PgVector -}}
-						{{ if $fieldOpts.Nullable }}
+				{{- else if $fieldOpts.GetPgVector -}}
+						{{ if $fieldOpts.GetNullable }}
 								var {{ $field.GoName }} {{ template "SanitizedFieldType" $field }}
 								if m.{{ $field.GoName }} != nil {
 							 	{{ $field.GoName }} = m.{{ $field.GoName }}.Slice()
 								}
 						{{- end -}}
-				{{ else if $fieldOpts.Embed }}
+				{{ else if $fieldOpts.GetEmbed }}
 					  {{ $field.GoName }}, err := m.{{ $message.GoIdent.GoName}}{{ $field.GoName }}.ToPb()
 					  if err != nil {
 					 	return nil, {{ fqn "fmt" "Errorf" }}("converting to pb {{ $field.GoName }}: %w", err)
 					  }
 				{{ else if $isProtobufTs }}
             var {{ $field.GoName }} *{{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Timestamp" }}
-            {{- if $fieldOpts.Nullable }}
+            {{- if $fieldOpts.GetNullable }}
                 if m.{{ $field.GoName }} != nil {
             {{- end }}
-            {{ $field.GoName }} = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "New" }}({{- if $fieldOpts.Nullable }}*{{ end }}m.{{ $field.GoName }})
+            {{ $field.GoName }} = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "New" }}({{- if $fieldOpts.GetNullable }}*{{ end }}m.{{ $field.GoName }})
             if err := {{ $field.GoName }}.CheckValid(); err != nil {
 					 	return nil, {{ fqn "fmt" "Errorf" }}("validating {{ $field.Desc.TextName }}: %w", err)
             }
-            {{- if $fieldOpts.Nullable }}
+            {{- if $fieldOpts.GetNullable }}
                 }
             {{ end }}
 				{{ else -}}
-						{{- if $fieldOpts.Nullable }}
+						{{- if $fieldOpts.GetNullable }}
 								var {{ $field.GoName }} {{ template "SanitizedFieldType" $field }}
 								if m.{{ $field.GoName }} != nil {
 							 	{{ $field.GoName }} = *m.{{ $field.GoName }}
@@ -318,23 +318,23 @@ var (
     Name: name,
 		{{- range $field := $message.Fields }}
         {{ $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
-		 		{{ if or $fieldOpts.Skip (eq $field.Desc.TextName "name") }}{{ continue }}{{ end -}}
+		 		{{ if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{ continue }}{{ end -}}
         {{ $isProtobufTs := and .Message (eq .Message.Desc.FullName "google.protobuf.Timestamp") }}
 				{{- $field.GoName -}}{{- ": " -}}
-				{{- if or $fieldOpts.AsJsonBytes $fieldOpts.AsProtoBytes -}}
+				{{- if or $fieldOpts.GetAsJsonBytes $fieldOpts.GetAsProtoBytes -}}
 					 	{{- $field.GoName -}},
-				{{- else if $fieldOpts.PgVector -}}
-					 	{{- if $fieldOpts.Nullable }}
+				{{- else if $fieldOpts.GetPgVector -}}
+					 	{{- if $fieldOpts.GetNullable }}
 						 	 	{{- $field.GoName -}},
 						{{- else -}}
 						    m.{{- $field.GoName -}}.Slice(),
 						{{- end -}}
-				{{- else if $fieldOpts.Embed -}}
+				{{- else if $fieldOpts.GetEmbed -}}
 					 	{{- $field.GoName -}},
 				{{- else if $isProtobufTs -}}
 					 	{{- $field.GoName -}},
 				{{- else -}}
-					 	{{- if $fieldOpts.Nullable }}
+					 	{{- if $fieldOpts.GetNullable }}
                 {{- if $field.Enum -}}
                     {{- qgi $field.Enum.GoIdent -}}({{- $field.GoName -}}),
                 {{- else -}}

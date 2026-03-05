@@ -6,7 +6,9 @@ codegens:
     name: library-service
     store: library
     implementation: //go/library/library_service/rpc
+    nats: true
 dependencies:
+  - type: nats
   - type: postgres_db_client
     name: library
     implementation: //go/library/store

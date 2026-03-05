@@ -116,6 +116,7 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
+
 	return chat, nil
 }
 
