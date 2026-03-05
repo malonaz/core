@@ -33,6 +33,11 @@ func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 	}
 }
 
+func (s *AiServiceServer) Start(ctx context.Context) error {
+
+	return nil
+}
+
 type aiService_ChatStore interface {
 	InsertChatIdempotently(ctx context.Context, requestID string, chat *model.Chat) (*model.Chat, error)
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)

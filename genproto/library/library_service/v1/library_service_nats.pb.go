@@ -7,9 +7,25 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	sync "sync"
 )
 
 var (
-	streamOptions = pbutil.Must(pbutil.GetExtension[[]*v1.StreamOptions](File_malonaz_library_library_service_v1_library_service_proto, v11.E_Stream))
-	BookStream    = nats.NewStream(streamOptions[0])
+	libraryServiceStreamOptionsOnce           sync.Once
+	libraryServiceStreamOptionsVal            []*v1.StreamOptions
+	libraryServiceStreamOptionsStreamBookOnce sync.Once
+	libraryServiceStreamOptionsStreamBookVal  *nats.Stream
 )
+
+func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
+	libraryServiceStreamOptionsOnce.Do(func() {
+		libraryServiceStreamOptionsVal = pbutil.Must(pbutil.GetServiceOption[[]*v1.StreamOptions](LibraryService_ServiceDesc.ServiceName, v11.E_Stream))
+	})
+	return libraryServiceStreamOptionsVal
+}
+func GetLibraryServiceStreamBook() *nats.Stream {
+	libraryServiceStreamOptionsStreamBookOnce.Do(func() {
+		libraryServiceStreamOptionsStreamBookVal = nats.NewStream(GetLibraryServiceStreamOptions()[0])
+	})
+	return libraryServiceStreamOptionsStreamBookVal
+}

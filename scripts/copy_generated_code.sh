@@ -6,7 +6,7 @@ SRC_DIR="plz-out/gen"
 declare -A ACTIVE_FILES
 declare -A DEST_DIRS
 
-targets=$(plz query alltargets --hidden --include copy_generated_code*,codegen,go 2>/dev/null)
+targets=$(plz query alltargets --hidden --include copy_generated_code*,codegen 2>/dev/null)
 
 if [[ -z "$targets" ]]; then
   echo "No targets found, skipping"

@@ -13,6 +13,7 @@ import (
 	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
+	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -377,11 +378,82 @@ func (b0 BookMetadata_builder) Build() *BookMetadata {
 	return m0
 }
 
+// Metadata for a book.
+type BookCreatedEvent struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The created book.
+	Book          *Book `protobuf:"bytes,1,opt,name=book,proto3" json:"book,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BookCreatedEvent) Reset() {
+	*x = BookCreatedEvent{}
+	mi := &file_malonaz_library_v1_book_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BookCreatedEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BookCreatedEvent) ProtoMessage() {}
+
+func (x *BookCreatedEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_v1_book_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BookCreatedEvent) GetBook() *Book {
+	if x != nil {
+		return x.Book
+	}
+	return nil
+}
+
+func (x *BookCreatedEvent) SetBook(v *Book) {
+	x.Book = v
+}
+
+func (x *BookCreatedEvent) HasBook() bool {
+	if x == nil {
+		return false
+	}
+	return x.Book != nil
+}
+
+func (x *BookCreatedEvent) ClearBook() {
+	x.Book = nil
+}
+
+type BookCreatedEvent_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The created book.
+	Book *Book
+}
+
+func (b0 BookCreatedEvent_builder) Build() *BookCreatedEvent {
+	m0 := &BookCreatedEvent{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Book = b.Book
+	return m0
+}
+
 var File_malonaz_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/library/v1/book.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf2\x06\n" +
+	"\x1dmalonaz/library/v1/book.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a#malonaz/codegen/nats/v1/event.proto\"\xa5\a\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -402,30 +474,35 @@ const file_malonaz_library_v1_book_proto_rawDesc = "" +
 	"\bmetadata\x18\v \x01(\v2 .malonaz.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x91\x01\xeaAb\n" +
-	"\x18library.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\x00\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"o\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc4\x01\xeaAb\n" +
+	"\x18library.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\x00\x8a\x91$/\n" +
+	"'malonaz.library.library_service.v1.book\x10\x01\x18\x01 \x01\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"o\n" +
 	"\fBookMetadata\x12\x18\n" +
 	"\asummary\x18\x01 \x01(\tR\asummary\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\x12)\n" +
-	"\fphone_number\x18\x03 \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumberB-Z+github.com/malonaz/core/genproto/library/v1b\x06proto3"
+	"\fphone_number\x18\x03 \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumber\"@\n" +
+	"\x10BookCreatedEvent\x12,\n" +
+	"\x04book\x18\x01 \x01(\v2\x18.malonaz.library.v1.BookR\x04bookB-Z+github.com/malonaz/core/genproto/library/v1b\x06proto3"
 
-var file_malonaz_library_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_library_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_library_v1_book_proto_goTypes = []any{
 	(*Book)(nil),                  // 0: malonaz.library.v1.Book
 	(*BookMetadata)(nil),          // 1: malonaz.library.v1.BookMetadata
-	nil,                           // 2: malonaz.library.v1.Book.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*BookCreatedEvent)(nil),      // 2: malonaz.library.v1.BookCreatedEvent
+	nil,                           // 3: malonaz.library.v1.Book.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_malonaz_library_v1_book_proto_depIdxs = []int32{
-	3, // 0: malonaz.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.library.v1.Book.update_time:type_name -> google.protobuf.Timestamp
-	2, // 2: malonaz.library.v1.Book.labels:type_name -> malonaz.library.v1.Book.LabelsEntry
+	4, // 0: malonaz.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
+	4, // 1: malonaz.library.v1.Book.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.library.v1.Book.labels:type_name -> malonaz.library.v1.Book.LabelsEntry
 	1, // 3: malonaz.library.v1.Book.metadata:type_name -> malonaz.library.v1.BookMetadata
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0, // 4: malonaz.library.v1.BookCreatedEvent.book:type_name -> malonaz.library.v1.Book
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_library_v1_book_proto_init() }
@@ -439,7 +516,7 @@ func file_malonaz_library_v1_book_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_library_v1_book_proto_rawDesc), len(file_malonaz_library_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
