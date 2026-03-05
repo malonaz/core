@@ -271,7 +271,6 @@ func (s *Server) Serve(ctx context.Context) error {
 	s.Raw = grpc.NewServer(s.options...)
 	s.register(s)
 	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
-	s.healthServer.Start(ctx)
 
 	if s.opts.EnableReflection {
 		if s.fdsBytes != nil {
@@ -307,6 +306,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		getPrometheusServerMetrics().InitializeMetrics(s.Raw)
 	}
 
+	s.healthServer.Start(ctx)
 	s.log.InfoContext(ctx, "serving")
 	if err := s.Raw.Serve(listener); err != nil {
 		return fmt.Errorf("server exited unexpectedly: %w", err)

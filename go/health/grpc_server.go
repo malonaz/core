@@ -3,7 +3,6 @@ package health
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"sync"
@@ -12,15 +11,20 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
+
+	"github.com/malonaz/core/go/grpc/status"
 )
 
-const minBackoff = 1 * time.Second
+const (
+	minBackoff       = 1 * time.Second
+	backoffIncrement = 100 * time.Millisecond
+)
 
 // GRPCOpts holds configuration for the gRPC health check server.
 type GRPCOpts struct {
-	Interval time.Duration `long:"interval" description:"Health check interval in seconds" default:"10s"`
+	Interval time.Duration `long:"interval" description:"Health check interval in seconds" default:"5s"`
 	Timeout  time.Duration `long:"timeout" description:"Health check timeout in seconds" default:"30s"`
+	Startup  time.Duration `long:"startup" description:"During this interval, we do not log failed health checks" default:"30s"`
 }
 
 // GRPCServer manages health checking for registered gRPC services.
@@ -37,6 +41,7 @@ type GRPCServer struct {
 	log                      *slog.Logger
 	serviceNameToHealthCheck map[string]Check
 	shutdownChan             chan struct{}
+	startupCompleted         bool
 }
 
 // NewGRPCServer creates a new health check server with the given options.
@@ -105,7 +110,16 @@ func (s *GRPCServer) Shutdown() {
 func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 	mutex := sync.Mutex{}
 	serviceNameToStatus := make(map[string]grpc_health_v1.HealthCheckResponse_ServingStatus, len(s.serviceNameToHealthCheck))
-	allHealthy := false
+	var allHealthy bool
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(s.opts.Startup):
+			s.startupCompleted = true
+		}
+	}()
 
 	// updateOverallStatus recomputes the aggregate "" status from individual
 	// service statuses. NOT_SERVING takes priority over UNKNOWN, which takes
@@ -113,6 +127,7 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 	updateOverallStatus := func() {
 		mutex.Lock()
 		defer mutex.Unlock()
+
 		worstStatus := grpc_health_v1.HealthCheckResponse_SERVING
 		for _, servingStatus := range serviceNameToStatus {
 			if servingStatus == grpc_health_v1.HealthCheckResponse_NOT_SERVING {
@@ -129,6 +144,16 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 		}
 		allHealthy = nowHealthy
 	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(minBackoff):
+			}
+			updateOverallStatus()
+		}
+	}()
 
 	for serviceName := range s.serviceNameToHealthCheck {
 		// Random initial delay in [0, interval) to stagger checks across services.
@@ -149,17 +174,17 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 				var servingStatus grpc_health_v1.HealthCheckResponse_ServingStatus
 				response, err := s.checkService(ctx, request)
 				if err != nil {
-					log := s.log.With("service", serviceName, "error", err)
-					switch {
-					case errors.Is(err, context.Canceled):
-						log.WarnContext(ctx, "health check cancelled")
-						servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
-					case errors.Is(err, context.DeadlineExceeded):
-						log.WarnContext(ctx, "health check timed out")
-						servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
-					default:
-						log.WarnContext(ctx, "health check failed")
-						servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
+					servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+					if s.startupCompleted {
+						log := s.log.With("service", serviceName, "error", err)
+						switch {
+						case errors.Is(err, context.Canceled):
+							log.WarnContext(ctx, "health check cancelled")
+						case errors.Is(err, context.DeadlineExceeded):
+							log.WarnContext(ctx, "health check timed out")
+						default:
+							log.WarnContext(ctx, "health check failed")
+						}
 					}
 				} else {
 					servingStatus = response.Status
@@ -171,17 +196,13 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 				mutex.Lock()
 				serviceNameToStatus[serviceName] = servingStatus
 				mutex.Unlock()
-				updateOverallStatus()
 
 				// Healthy: wait full interval. Unhealthy: exponential backoff
 				// starting at minBackoff, doubling each iteration, capped at interval.
 				if servingStatus == grpc_health_v1.HealthCheckResponse_SERVING {
 					backoff = s.opts.Interval
 				} else {
-					backoff = min(backoff*2, s.opts.Interval)
-					if backoff < minBackoff {
-						backoff = minBackoff
-					}
+					backoff = min(backoff+backoffIncrement, s.opts.Interval)
 				}
 
 				select {
@@ -220,20 +241,45 @@ func (s *GRPCServer) recordMetrics(serviceName string, servingStatus grpc_health
 func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
 	healthCheck, ok := s.serviceNameToHealthCheck[request.Service]
 	if !ok {
-		return nil, status.Error(codes.NotFound, "service not found")
+		return nil, status.Errorf(codes.NotFound, "service not found").Err()
 	}
-
-	checkCtx, cancel := context.WithTimeout(ctx, s.opts.Timeout)
+	ctxCancel, cancel := context.WithTimeout(ctx, s.opts.Timeout)
 	defer cancel()
-
 	start := time.Now()
-	servingStatus := grpc_health_v1.HealthCheckResponse_SERVING
-	if err := healthCheck(checkCtx); err != nil {
-		s.log.WarnContext(ctx, "health check failed", "service", request.Service, "error", err)
-		servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
-	}
-	metrics.durationSeconds.WithLabelValues(s.name, request.Service).Observe(time.Since(start).Seconds())
+	defer metrics.durationSeconds.WithLabelValues(s.name, request.Service).Observe(time.Since(start).Seconds())
 
+	servingStatus := grpc_health_v1.HealthCheckResponse_SERVING
+	if err := healthCheck(ctxCancel); err != nil {
+		servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+		logAttrs := []any{"service", request.Service}
+
+		// Look for a health check response.
+		var healthCheckResponseFound bool
+		status.RangeErrorDetails[*grpc_health_v1.HealthCheckResponse](err, func(healthCheckResponse *grpc_health_v1.HealthCheckResponse) bool {
+			servingStatus = healthCheckResponse.Status
+			logAttrs = append(logAttrs, "status", healthCheckResponse.Status.String())
+			healthCheckResponseFound = true
+			return false
+		})
+		if !healthCheckResponseFound {
+			logAttrs = append(logAttrs, "error", err)
+		}
+
+		// Some providers will provide a breakdown.
+		status.RangeErrorDetails[*grpc_health_v1.HealthListResponse](err, func(healthListResponse *grpc_health_v1.HealthListResponse) bool {
+			for serviceName, serviceStatus := range healthListResponse.Statuses {
+				if serviceName != "" && serviceStatus.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+					logAttrs = append(logAttrs, slog.Group(serviceName, "status", serviceStatus.Status.String()))
+				}
+			}
+			return false
+		})
+
+		// If startup has not completed, we do not log.
+		if s.startupCompleted {
+			s.log.WarnContext(ctx, "health check failed", logAttrs...)
+		}
+	}
 	return &grpc_health_v1.HealthCheckResponse{Status: servingStatus}, nil
 }
 
@@ -242,13 +288,17 @@ func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.H
 // GRPCServer instance.
 func (s *GRPCServer) CheckFn() Check {
 	return func(ctx context.Context) error {
-		request := &grpc_health_v1.HealthCheckRequest{}
-		response, err := s.Check(ctx, request)
+		healthListRequest := &grpc_health_v1.HealthListRequest{}
+		healthListResponse, err := s.List(ctx, healthListRequest)
 		if err != nil {
 			return err
 		}
-		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
-			return fmt.Errorf("health check returned :%s", response.Status)
+		healthCheckResponse := healthListResponse.Statuses[""]
+		if healthCheckResponse.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+			return status.Errorf(codes.Unavailable, "health check returned: %s", healthCheckResponse.Status).
+				WithDetails(healthCheckResponse).
+				WithDetails(healthListResponse).
+				Err()
 		}
 		return nil
 	}

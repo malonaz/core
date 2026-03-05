@@ -17,6 +17,7 @@ go_library(
     deps = [
         "//go/certs",
         "//go/grpc/middleware",
+        "//go/grpc/status",
         "//go/health",
         "//go/pbutil",
         "//go/pbutil/pbreflection",

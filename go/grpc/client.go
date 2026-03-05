@@ -13,6 +13,7 @@ import (
 	"github.com/sercand/kuberesolver/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/grpc/middleware"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/prometheus"
 )
@@ -189,7 +191,9 @@ func (c *Connection) HealthCheckFn(service string) health.Check {
 			return err
 		}
 		if response.Status != grpc_health_v1.HealthCheckResponse_SERVING {
-			return fmt.Errorf("health check returned :%s", response.Status)
+			return status.Errorf(codes.Unavailable, "health check returned: %s", response.Status).
+				WithDetails(response).
+				Err()
 		}
 		return nil
 	}

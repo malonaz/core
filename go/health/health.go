@@ -15,14 +15,12 @@ func CombineChecks(checks ...Check) Check {
 		if len(checks) == 0 {
 			return nil
 		}
-
-		errGroup, groupCtx := errgroup.WithContext(ctx)
-
+		eg, ctxEg := errgroup.WithContext(ctx)
 		for _, check := range checks {
-			errGroup.Go(func() error {
-				return check(groupCtx)
+			eg.Go(func() error {
+				return check(ctxEg)
 			})
 		}
-		return errGroup.Wait()
+		return eg.Wait()
 	}
 }
