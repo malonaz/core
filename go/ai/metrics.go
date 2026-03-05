@@ -66,3 +66,31 @@ func IsModelUsageEmpty(modelUsage *aipb.ModelUsage) bool {
 		modelUsage.GetOutputSecond() == nil &&
 		modelUsage.GetInputCharacter() == nil
 }
+
+func AggregateModelUsage(aggregateModelUsage *aipb.ModelUsage, modelUsages ...*aipb.ModelUsage) {
+	addResourceConsumption := func(target **aipb.ResourceConsumption, source *aipb.ResourceConsumption) {
+		if source.GetQuantity() == 0 && source.GetPrice() == 0 {
+			return
+		}
+		if *target == nil {
+			*target = &aipb.ResourceConsumption{}
+		}
+		(*target).Quantity += source.GetQuantity()
+		(*target).Price += source.GetPrice()
+	}
+
+	for _, modelUsage := range modelUsages {
+		addResourceConsumption(&aggregateModelUsage.InputToken, modelUsage.GetInputToken())
+		addResourceConsumption(&aggregateModelUsage.OutputToken, modelUsage.GetOutputToken())
+		addResourceConsumption(&aggregateModelUsage.OutputReasoningToken, modelUsage.GetOutputReasoningToken())
+		addResourceConsumption(&aggregateModelUsage.InputTokenCacheRead, modelUsage.GetInputTokenCacheRead())
+		addResourceConsumption(&aggregateModelUsage.InputTokenCacheWrite, modelUsage.GetInputTokenCacheWrite())
+		addResourceConsumption(&aggregateModelUsage.InputSecond, modelUsage.GetInputSecond())
+		addResourceConsumption(&aggregateModelUsage.OutputSecond, modelUsage.GetOutputSecond())
+		addResourceConsumption(&aggregateModelUsage.InputCharacter, modelUsage.GetInputCharacter())
+		addResourceConsumption(&aggregateModelUsage.InputImageToken, modelUsage.GetInputImageToken())
+		addResourceConsumption(&aggregateModelUsage.OutputImageToken, modelUsage.GetOutputImageToken())
+		addResourceConsumption(&aggregateModelUsage.InputImageTokenCacheRead, modelUsage.GetInputImageTokenCacheRead())
+		addResourceConsumption(&aggregateModelUsage.InputImageTokenCacheWrite, modelUsage.GetInputImageTokenCacheWrite())
+	}
+}
