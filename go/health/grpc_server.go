@@ -19,8 +19,8 @@ const minBackoff = 1 * time.Second
 
 // GRPCOpts holds configuration for the gRPC health check server.
 type GRPCOpts struct {
-	IntervalSeconds int `long:"interval-seconds" description:"Health check interval in seconds" default:"10"`
-	TimeoutSeconds  int `long:"timeout-seconds" description:"Health check timeout in seconds" default:"30"`
+	Interval time.Duration `long:"interval" description:"Health check interval in seconds" default:"10s"`
+	Timeout  time.Duration `long:"timeout" description:"Health check timeout in seconds" default:"30s"`
 }
 
 // GRPCServer manages health checking for registered gRPC services.
@@ -32,6 +32,7 @@ type GRPCOpts struct {
 // worst status across all services.
 type GRPCServer struct {
 	*health.Server
+	name                     string
 	opts                     *GRPCOpts
 	log                      *slog.Logger
 	serviceNameToHealthCheck map[string]Check
@@ -39,9 +40,10 @@ type GRPCServer struct {
 }
 
 // NewGRPCServer creates a new health check server with the given options.
-func NewGRPCServer(opts *GRPCOpts) *GRPCServer {
+func NewGRPCServer(opts *GRPCOpts, name string) *GRPCServer {
 	return &GRPCServer{
 		Server:                   health.NewServer(),
+		name:                     name,
 		opts:                     opts,
 		log:                      slog.Default(),
 		serviceNameToHealthCheck: make(map[string]Check),
@@ -67,6 +69,7 @@ func (s *GRPCServer) RegisterService(serviceName string, checks ...Check) {
 // Start initializes the overall server status to NOT_SERVING and launches
 // background health monitoring goroutines — one per registered service.
 func (s *GRPCServer) Start(ctx context.Context) {
+	s.log = s.log.WithGroup("health_grpc_server").With("name", s.name, "interval", s.opts.Interval, "timeout", s.opts.Timeout)
 	s.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 
 	// Start a go-routine that cancels the context when Shutdown() is called.
@@ -103,7 +106,6 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 	mutex := sync.Mutex{}
 	serviceNameToStatus := make(map[string]grpc_health_v1.HealthCheckResponse_ServingStatus, len(s.serviceNameToHealthCheck))
 	allHealthy := false
-	interval := time.Duration(s.opts.IntervalSeconds) * time.Second
 
 	// updateOverallStatus recomputes the aggregate "" status from individual
 	// service statuses. NOT_SERVING takes priority over UNKNOWN, which takes
@@ -130,7 +132,7 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 
 	for serviceName := range s.serviceNameToHealthCheck {
 		// Random initial delay in [0, interval) to stagger checks across services.
-		initialDelay := time.Duration(rand.Int64N(int64(interval)))
+		initialDelay := time.Duration(rand.Int64N(int64(s.opts.Interval)))
 
 		go func() {
 			select {
@@ -139,7 +141,7 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 			case <-time.After(initialDelay):
 			}
 
-			backoff := interval
+			backoff := s.opts.Interval
 
 			for {
 				// Run the health check for this service.
@@ -174,9 +176,9 @@ func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
 				// Healthy: wait full interval. Unhealthy: exponential backoff
 				// starting at minBackoff, doubling each iteration, capped at interval.
 				if servingStatus == grpc_health_v1.HealthCheckResponse_SERVING {
-					backoff = interval
+					backoff = s.opts.Interval
 				} else {
-					backoff = min(backoff*2, interval)
+					backoff = min(backoff*2, s.opts.Interval)
 					if backoff < minBackoff {
 						backoff = minBackoff
 					}
@@ -207,8 +209,8 @@ func (s *GRPCServer) recordMetrics(serviceName string, servingStatus grpc_health
 		statusValue = -1
 		statusLabel = "unknown"
 	}
-	metrics.status.WithLabelValues(serviceName).Set(statusValue)
-	metrics.executionsTotal.WithLabelValues(serviceName, statusLabel).Inc()
+	metrics.status.WithLabelValues(s.name, serviceName).Set(statusValue)
+	metrics.executionsTotal.WithLabelValues(s.name, serviceName, statusLabel).Inc()
 }
 
 // checkService executes the registered health check for the requested service
@@ -221,7 +223,7 @@ func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.H
 		return nil, status.Error(codes.NotFound, "service not found")
 	}
 
-	checkCtx, cancel := context.WithTimeout(ctx, time.Duration(s.opts.TimeoutSeconds)*time.Second)
+	checkCtx, cancel := context.WithTimeout(ctx, s.opts.Timeout)
 	defer cancel()
 
 	start := time.Now()
@@ -230,7 +232,7 @@ func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.H
 		s.log.WarnContext(ctx, "health check failed", "service", request.Service, "error", err)
 		servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 	}
-	metrics.durationSeconds.WithLabelValues(request.Service).Observe(time.Since(start).Seconds())
+	metrics.durationSeconds.WithLabelValues(s.name, request.Service).Observe(time.Since(start).Seconds())
 
 	return &grpc_health_v1.HealthCheckResponse{Status: servingStatus}, nil
 }

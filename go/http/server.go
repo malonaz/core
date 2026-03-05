@@ -32,12 +32,12 @@ type Server struct {
 }
 
 // NewServer creates a new HTTP server.
-func NewServer(opts *Opts, register func(*Server)) *Server {
+func NewServer(opts *Opts, name string, register func(*Server)) *Server {
 	return &Server{
 		opts:         opts,
 		log:          slog.Default(),
 		mux:          http.NewServeMux(),
-		healthServer: health.NewGRPCServer(opts.Health),
+		healthServer: health.NewGRPCServer(opts.Health, name),
 		register:     register,
 		patternSet:   map[string]struct{}{},
 	}

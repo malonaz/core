@@ -23,16 +23,18 @@ type Server struct {
 	*GRPCServer
 	opts       *Opts
 	log        *slog.Logger
+	name       string
 	ready      bool
 	mutex      sync.RWMutex
 	httpServer *http.Server
 }
 
 // NewServer creates a new health check server.
-func NewServer(opts *Opts) *Server {
+func NewServer(opts *Opts, name string) *Server {
 	return &Server{
-		GRPCServer: NewGRPCServer(opts.GRPCOpts),
+		GRPCServer: NewGRPCServer(opts.GRPCOpts, name),
 		opts:       opts,
+		name:       name,
 		log:        slog.Default(),
 	}
 }
@@ -60,6 +62,7 @@ func (s *Server) MarkReady() {
 
 // Serve starts the HTTP health check server.
 func (s *Server) Serve(ctx context.Context) {
+	s.log = s.log.WithGroup("health_http_server").With("name", s.name, "port", s.opts.Port, "disable", s.opts.Disable)
 	if s.opts.Disable {
 		return
 	}
