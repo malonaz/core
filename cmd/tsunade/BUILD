@@ -15,11 +15,15 @@ go_main_src(
 
 go_binary(
     name = "tsunade",
-    srcs = [":main.go"],
+    srcs = [
+        "init.go",
+        ":main.go",
+    ],
     deps = [
         "//go/ai/ai_service",
         "//go/ai/store",
         "//go/authentication",
+        "//go/binary",
         "//go/certs",
         "//go/flags",
         "//go/grpc",

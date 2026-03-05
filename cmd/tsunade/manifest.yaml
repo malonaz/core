@@ -1,4 +1,5 @@
 name: tsunade
+setup: true
 servers:
   - type: grpc
     name: tsunade-external
