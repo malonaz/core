@@ -32,7 +32,7 @@ var File_malonaz_library_library_service_v1_library_service_proto protoreflect.F
 
 const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a#malonaz/codegen/nats/v1/event.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\x86\x18\n" +
+	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\x86\x18\n" +
 	"\x0eLibraryService\x12\xc9\x01\n" +
 	"\fCreateAuthor\x127.malonaz.library.library_service.v1.CreateAuthorRequest\x1a\x1a.malonaz.library.v1.Author\"d\xdaA\rparent,author´-\x1c\n" +
 	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xb2\x01\n" +

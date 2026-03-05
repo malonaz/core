@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.32.1
-// source: malonaz/codegen/nats/v1/event.proto
+// source: malonaz/codegen/nats/v1/nats.proto
 
-//go:build protoopaque
+//go:build !protoopaque
 
 package v1
 
@@ -29,18 +29,27 @@ const (
 // generator produces a typed event message and publishes it on the
 // resource's NATS subject after the method completes successfully.
 type EventOptions struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Stream  string                 `protobuf:"bytes,1,opt,name=stream,proto3"`
-	xxx_hidden_Created bool                   `protobuf:"varint,2,opt,name=created,proto3"`
-	xxx_hidden_Updated bool                   `protobuf:"varint,3,opt,name=updated,proto3"`
-	xxx_hidden_Deleted bool                   `protobuf:"varint,4,opt,name=deleted,proto3"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Sets the stream on which events will be streamed.
+	// If it is omitted, the FQN of the message this annotation is attached to will be used.
+	Stream string `protobuf:"bytes,1,opt,name=stream,proto3" json:"stream,omitempty"`
+	// Generate a created event when the resource is created via its Create method.
+	// Produces a <Resource>CreatedEvent containing the newly created resource.
+	Created bool `protobuf:"varint,2,opt,name=created,proto3" json:"created,omitempty"`
+	// Generate an updated event when the resource is updated via its Update method.
+	// Produces a <Resource>UpdatedEvent containing the previous state, the new
+	// state, and the field mask that was applied.
+	Updated bool `protobuf:"varint,3,opt,name=updated,proto3" json:"updated,omitempty"`
+	// Generate a deleted event when the resource is deleted via its Delete method.
+	// Produces a <Resource>DeletedEvent containing the resource at deletion time.
+	Deleted       bool `protobuf:"varint,4,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EventOptions) Reset() {
 	*x = EventOptions{}
-	mi := &file_malonaz_codegen_nats_v1_event_proto_msgTypes[0]
+	mi := &file_malonaz_codegen_nats_v1_nats_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -52,7 +61,7 @@ func (x *EventOptions) String() string {
 func (*EventOptions) ProtoMessage() {}
 
 func (x *EventOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_nats_v1_event_proto_msgTypes[0]
+	mi := &file_malonaz_codegen_nats_v1_nats_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -65,46 +74,46 @@ func (x *EventOptions) ProtoReflect() protoreflect.Message {
 
 func (x *EventOptions) GetStream() string {
 	if x != nil {
-		return x.xxx_hidden_Stream
+		return x.Stream
 	}
 	return ""
 }
 
 func (x *EventOptions) GetCreated() bool {
 	if x != nil {
-		return x.xxx_hidden_Created
+		return x.Created
 	}
 	return false
 }
 
 func (x *EventOptions) GetUpdated() bool {
 	if x != nil {
-		return x.xxx_hidden_Updated
+		return x.Updated
 	}
 	return false
 }
 
 func (x *EventOptions) GetDeleted() bool {
 	if x != nil {
-		return x.xxx_hidden_Deleted
+		return x.Deleted
 	}
 	return false
 }
 
 func (x *EventOptions) SetStream(v string) {
-	x.xxx_hidden_Stream = v
+	x.Stream = v
 }
 
 func (x *EventOptions) SetCreated(v bool) {
-	x.xxx_hidden_Created = v
+	x.Created = v
 }
 
 func (x *EventOptions) SetUpdated(v bool) {
-	x.xxx_hidden_Updated = v
+	x.Updated = v
 }
 
 func (x *EventOptions) SetDeleted(v bool) {
-	x.xxx_hidden_Deleted = v
+	x.Deleted = v
 }
 
 type EventOptions_builder struct {
@@ -129,21 +138,21 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	m0 := &EventOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Stream = b.Stream
-	x.xxx_hidden_Created = b.Created
-	x.xxx_hidden_Updated = b.Updated
-	x.xxx_hidden_Deleted = b.Deleted
+	x.Stream = b.Stream
+	x.Created = b.Created
+	x.Updated = b.Updated
+	x.Deleted = b.Deleted
 	return m0
 }
 
-var file_malonaz_codegen_nats_v1_event_proto_extTypes = []protoimpl.ExtensionInfo{
+var file_malonaz_codegen_nats_v1_nats_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
 		ExtensionType: ([]*v1.StreamOptions)(nil),
 		Field:         74000,
 		Name:          "malonaz.codegen.nats.v1.stream",
 		Tag:           "bytes,74000,rep,name=stream",
-		Filename:      "malonaz/codegen/nats/v1/event.proto",
+		Filename:      "malonaz/codegen/nats/v1/nats.proto",
 	},
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
@@ -151,7 +160,7 @@ var file_malonaz_codegen_nats_v1_event_proto_extTypes = []protoimpl.ExtensionInf
 		Field:         74001,
 		Name:          "malonaz.codegen.nats.v1.event",
 		Tag:           "bytes,74001,opt,name=event",
-		Filename:      "malonaz/codegen/nats/v1/event.proto",
+		Filename:      "malonaz/codegen/nats/v1/nats.proto",
 	},
 }
 
@@ -160,7 +169,7 @@ var (
 	// Stream options for resources in this file.
 	//
 	// repeated malonaz.nats.v1.StreamOptions stream = 74000;
-	E_Stream = &file_malonaz_codegen_nats_v1_event_proto_extTypes[0]
+	E_Stream = &file_malonaz_codegen_nats_v1_nats_proto_extTypes[0]
 )
 
 // Extension fields to descriptorpb.MessageOptions.
@@ -168,14 +177,14 @@ var (
 	// Event generation options for this resource.
 	//
 	// optional malonaz.codegen.nats.v1.EventOptions event = 74001;
-	E_Event = &file_malonaz_codegen_nats_v1_event_proto_extTypes[1]
+	E_Event = &file_malonaz_codegen_nats_v1_nats_proto_extTypes[1]
 )
 
-var File_malonaz_codegen_nats_v1_event_proto protoreflect.FileDescriptor
+var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
-const file_malonaz_codegen_nats_v1_event_proto_rawDesc = "" +
+const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/codegen/nats/v1/event.proto\x12\x17malonaz.codegen.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"t\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"t\n" +
 	"\fEventOptions\x12\x16\n" +
 	"\x06stream\x18\x01 \x01(\tR\x06stream\x12\x18\n" +
 	"\acreated\x18\x02 \x01(\bR\acreated\x12\x18\n" +
@@ -184,14 +193,14 @@ const file_malonaz_codegen_nats_v1_event_proto_rawDesc = "" +
 	"\x06stream\x12\x1f.google.protobuf.ServiceOptions\x18\x90\xc2\x04 \x03(\v2\x1e.malonaz.nats.v1.StreamOptionsR\x06stream:^\n" +
 	"\x05event\x12\x1f.google.protobuf.MessageOptions\x18\x91\xc2\x04 \x01(\v2%.malonaz.codegen.nats.v1.EventOptionsR\x05eventB2Z0github.com/malonaz/core/genproto/codegen/nats/v1b\x06proto3"
 
-var file_malonaz_codegen_nats_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_malonaz_codegen_nats_v1_event_proto_goTypes = []any{
+var file_malonaz_codegen_nats_v1_nats_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_codegen_nats_v1_nats_proto_goTypes = []any{
 	(*EventOptions)(nil),                // 0: malonaz.codegen.nats.v1.EventOptions
 	(*descriptorpb.ServiceOptions)(nil), // 1: google.protobuf.ServiceOptions
 	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
 	(*v1.StreamOptions)(nil),            // 3: malonaz.nats.v1.StreamOptions
 }
-var file_malonaz_codegen_nats_v1_event_proto_depIdxs = []int32{
+var file_malonaz_codegen_nats_v1_nats_proto_depIdxs = []int32{
 	1, // 0: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
 	2, // 1: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
 	3, // 2: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
@@ -203,27 +212,27 @@ var file_malonaz_codegen_nats_v1_event_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_malonaz_codegen_nats_v1_event_proto_init() }
-func file_malonaz_codegen_nats_v1_event_proto_init() {
-	if File_malonaz_codegen_nats_v1_event_proto != nil {
+func init() { file_malonaz_codegen_nats_v1_nats_proto_init() }
+func file_malonaz_codegen_nats_v1_nats_proto_init() {
+	if File_malonaz_codegen_nats_v1_nats_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_nats_v1_event_proto_rawDesc), len(file_malonaz_codegen_nats_v1_event_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_nats_v1_nats_proto_rawDesc), len(file_malonaz_codegen_nats_v1_nats_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
-		GoTypes:           file_malonaz_codegen_nats_v1_event_proto_goTypes,
-		DependencyIndexes: file_malonaz_codegen_nats_v1_event_proto_depIdxs,
-		MessageInfos:      file_malonaz_codegen_nats_v1_event_proto_msgTypes,
-		ExtensionInfos:    file_malonaz_codegen_nats_v1_event_proto_extTypes,
+		GoTypes:           file_malonaz_codegen_nats_v1_nats_proto_goTypes,
+		DependencyIndexes: file_malonaz_codegen_nats_v1_nats_proto_depIdxs,
+		MessageInfos:      file_malonaz_codegen_nats_v1_nats_proto_msgTypes,
+		ExtensionInfos:    file_malonaz_codegen_nats_v1_nats_proto_extTypes,
 	}.Build()
-	File_malonaz_codegen_nats_v1_event_proto = out.File
-	file_malonaz_codegen_nats_v1_event_proto_goTypes = nil
-	file_malonaz_codegen_nats_v1_event_proto_depIdxs = nil
+	File_malonaz_codegen_nats_v1_nats_proto = out.File
+	file_malonaz_codegen_nats_v1_nats_proto_goTypes = nil
+	file_malonaz_codegen_nats_v1_nats_proto_depIdxs = nil
 }

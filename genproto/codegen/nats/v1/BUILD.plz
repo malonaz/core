@@ -1,6 +1,6 @@
 go_library(
     name = "v1",
-    srcs = ["event.pb.go"],
+    srcs = ["nats.pb.go"],
     visibility = ["//..."],
     deps = [
         "//malonaz/nats/v1",

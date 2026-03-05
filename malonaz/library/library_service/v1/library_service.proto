@@ -7,7 +7,7 @@ import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
-import "malonaz/codegen/nats/v1/event.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/library/library_service/v1/author.proto";
 import "malonaz/library/library_service/v1/book.proto";
 import "malonaz/library/library_service/v1/shelf.proto";

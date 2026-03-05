@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
-import "malonaz/codegen/nats/v1/event.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 
