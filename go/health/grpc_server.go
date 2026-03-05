@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -14,13 +15,21 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Opts holds health opts.
+const minBackoff = 1 * time.Second
+
+// GRPCOpts holds configuration for the gRPC health check server.
 type GRPCOpts struct {
 	IntervalSeconds int `long:"interval-seconds" description:"Health check interval in seconds" default:"10"`
 	TimeoutSeconds  int `long:"timeout-seconds" description:"Health check timeout in seconds" default:"30"`
 }
 
-// Server holds the health check server state and embeds gRPC health server.
+// GRPCServer manages health checking for registered gRPC services.
+// It embeds the standard gRPC health server and runs a dedicated monitoring
+// goroutine per service. When a service becomes unhealthy, its check interval
+// backs off exponentially (starting at minBackoff, capped at IntervalSeconds)
+// to avoid overwhelming failing dependencies. On recovery, the interval resets
+// to IntervalSeconds. An overall "" (empty) service status is maintained as the
+// worst status across all services.
 type GRPCServer struct {
 	*health.Server
 	opts                     *GRPCOpts
@@ -29,7 +38,7 @@ type GRPCServer struct {
 	shutdownChan             chan struct{}
 }
 
-// NewGRPCServer creates a new health check server.
+// NewGRPCServer creates a new health check server with the given options.
 func NewGRPCServer(opts *GRPCOpts) *GRPCServer {
 	return &GRPCServer{
 		Server:                   health.NewServer(),
@@ -40,6 +49,7 @@ func NewGRPCServer(opts *GRPCOpts) *GRPCServer {
 	}
 }
 
+// WithLogger sets a custom logger and returns the server for chaining.
 func (s *GRPCServer) WithLogger(logger *slog.Logger) *GRPCServer {
 	s.log = logger
 	return s
@@ -47,88 +57,166 @@ func (s *GRPCServer) WithLogger(logger *slog.Logger) *GRPCServer {
 
 // RegisterService registers health checks for a specific service.
 // serviceName should match the fully qualified gRPC service name (e.g., "myapp.v1.UserService").
-// Use an empty string "" to register checks for the overall server health.
+// The service is initially marked as NOT_SERVING until the first successful check.
 func (s *GRPCServer) RegisterService(serviceName string, checks ...Check) {
 	s.serviceNameToHealthCheck[serviceName] = CombineChecks(checks...)
 	s.SetServingStatus(serviceName, grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 	s.log.Debug("registered health check", "service", serviceName, "checks", len(checks))
 }
 
-// Check performs health checks for the specified service, implementing the gRPC health interface.
+// Start initializes the overall server status to NOT_SERVING and launches
+// background health monitoring goroutines — one per registered service.
 func (s *GRPCServer) Start(ctx context.Context) {
-	// the grpc/health instantiates this as 'serving' so we change it here.
 	s.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
-	go s.updateHealthPeriodically(ctx)
-}
 
-func (s *GRPCServer) Shutdown() {
-	close(s.shutdownChan)
-	s.Server.Shutdown()
-}
-
-func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
-	ticker := time.NewTicker(time.Duration(s.opts.IntervalSeconds) * time.Second)
-	defer ticker.Stop()
-	for {
+	// Start a go-routine that cancels the context when Shutdown() is called.
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		defer cancel()
 		select {
 		case <-ctx.Done():
 			return
 		case <-s.shutdownChan:
 			return
-		case <-ticker.C:
-			mutex := sync.Mutex{}
-			wg := sync.WaitGroup{}
-			wg.Add(len(s.serviceNameToHealthCheck))
-			statuses := make([]grpc_health_v1.HealthCheckResponse_ServingStatus, 0, len(s.serviceNameToHealthCheck))
-			for serviceName := range s.serviceNameToHealthCheck {
-				request := &grpc_health_v1.HealthCheckRequest{Service: serviceName}
-				go func() {
-					defer wg.Done()
-					var status grpc_health_v1.HealthCheckResponse_ServingStatus
-					response, err := s.checkService(ctx, request)
-					if err != nil {
-						log := s.log.With("service", request.Service, "error", err)
-						switch {
-						case errors.Is(err, context.Canceled):
-							log.WarnContext(ctx, "health check cancelled")
-							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
-						case errors.Is(err, context.DeadlineExceeded):
-							log.WarnContext(ctx, "health check timed out")
-							status = grpc_health_v1.HealthCheckResponse_UNKNOWN
-						default:
-							log.WarnContext(ctx, "health check failed")
-							status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
-						}
-					} else {
-						status = response.Status
-					}
-					s.SetServingStatus(request.Service, status)
-					mutex.Lock()
-					statuses = append(statuses, status)
-					mutex.Unlock()
-				}()
+		}
+	}()
+
+	s.updateHealthPeriodically(ctx)
+}
+
+// Shutdown signals all monitoring goroutines to stop and shuts down the
+// underlying gRPC health server, setting all services to NOT_SERVING.
+func (s *GRPCServer) Shutdown() {
+	close(s.shutdownChan)
+	s.Server.Shutdown()
+}
+
+// updateHealthPeriodically spawns one goroutine per registered service, each
+// with a random initial delay to stagger checks and avoid thundering herd.
+// Each goroutine independently polls its service's health check. On success,
+// it waits the full IntervalSeconds before the next check. On failure, it
+// uses exponential backoff (minBackoff -> 2s -> 4s -> ... capped at IntervalSeconds)
+// to retry more aggressively. After each check, the overall "" status is
+// recomputed as the worst across all services, and a log line is emitted
+// when all services transition to healthy.
+func (s *GRPCServer) updateHealthPeriodically(ctx context.Context) {
+	mutex := sync.Mutex{}
+	serviceNameToStatus := make(map[string]grpc_health_v1.HealthCheckResponse_ServingStatus, len(s.serviceNameToHealthCheck))
+	allHealthy := false
+	interval := time.Duration(s.opts.IntervalSeconds) * time.Second
+
+	// updateOverallStatus recomputes the aggregate "" status from individual
+	// service statuses. NOT_SERVING takes priority over UNKNOWN, which takes
+	// priority over SERVING. Logs once when transitioning to all-healthy.
+	updateOverallStatus := func() {
+		mutex.Lock()
+		defer mutex.Unlock()
+		worstStatus := grpc_health_v1.HealthCheckResponse_SERVING
+		for _, servingStatus := range serviceNameToStatus {
+			if servingStatus == grpc_health_v1.HealthCheckResponse_NOT_SERVING {
+				worstStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
+				break
+			} else if servingStatus == grpc_health_v1.HealthCheckResponse_UNKNOWN {
+				worstStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+			}
+		}
+		s.SetServingStatus("", worstStatus)
+		nowHealthy := worstStatus == grpc_health_v1.HealthCheckResponse_SERVING && len(serviceNameToStatus) == len(s.serviceNameToHealthCheck)
+		if nowHealthy && !allHealthy {
+			s.log.Info("all services are healthy")
+		}
+		allHealthy = nowHealthy
+	}
+
+	for serviceName := range s.serviceNameToHealthCheck {
+		// Random initial delay in [0, interval) to stagger checks across services.
+		initialDelay := time.Duration(rand.Int64N(int64(interval)))
+
+		go func() {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(initialDelay):
 			}
 
-			// Update "" state.
-			go func() {
-				wg.Wait()
-				worstStatus := grpc_health_v1.HealthCheckResponse_SERVING
-				for _, status := range statuses {
-					if status == grpc_health_v1.HealthCheckResponse_NOT_SERVING {
-						worstStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
-						break
-					} else if status == grpc_health_v1.HealthCheckResponse_UNKNOWN {
-						worstStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+			backoff := interval
+
+			for {
+				// Run the health check for this service.
+				request := &grpc_health_v1.HealthCheckRequest{Service: serviceName}
+				var servingStatus grpc_health_v1.HealthCheckResponse_ServingStatus
+				response, err := s.checkService(ctx, request)
+				if err != nil {
+					log := s.log.With("service", serviceName, "error", err)
+					switch {
+					case errors.Is(err, context.Canceled):
+						log.WarnContext(ctx, "health check cancelled")
+						servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+					case errors.Is(err, context.DeadlineExceeded):
+						log.WarnContext(ctx, "health check timed out")
+						servingStatus = grpc_health_v1.HealthCheckResponse_UNKNOWN
+					default:
+						log.WarnContext(ctx, "health check failed")
+						servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
+					}
+				} else {
+					servingStatus = response.Status
+				}
+
+				// Publish this service's status and recompute overall health.
+				s.SetServingStatus(serviceName, servingStatus)
+				s.recordMetrics(serviceName, servingStatus)
+				mutex.Lock()
+				serviceNameToStatus[serviceName] = servingStatus
+				mutex.Unlock()
+				updateOverallStatus()
+
+				// Healthy: wait full interval. Unhealthy: exponential backoff
+				// starting at minBackoff, doubling each iteration, capped at interval.
+				if servingStatus == grpc_health_v1.HealthCheckResponse_SERVING {
+					backoff = interval
+				} else {
+					backoff = min(backoff*2, interval)
+					if backoff < minBackoff {
+						backoff = minBackoff
 					}
 				}
-				s.SetServingStatus("", worstStatus)
-			}()
-		}
+
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(backoff):
+				}
+			}
+		}()
 	}
 }
 
-func (s *GRPCServer) checkService(ctx context.Context, req *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
-	healthCheck, ok := s.serviceNameToHealthCheck[req.Service]
+// recordMetrics records the health check status gauge and execution counter.
+func (s *GRPCServer) recordMetrics(serviceName string, servingStatus grpc_health_v1.HealthCheckResponse_ServingStatus) {
+	var statusValue float64
+	var statusLabel string
+	switch servingStatus {
+	case grpc_health_v1.HealthCheckResponse_SERVING:
+		statusValue = 1
+		statusLabel = "serving"
+	case grpc_health_v1.HealthCheckResponse_NOT_SERVING:
+		statusValue = 0
+		statusLabel = "not_serving"
+	default:
+		statusValue = -1
+		statusLabel = "unknown"
+	}
+	metrics.status.WithLabelValues(serviceName).Set(statusValue)
+	metrics.executionsTotal.WithLabelValues(serviceName, statusLabel).Inc()
+}
+
+// checkService executes the registered health check for the requested service
+// within a timeout derived from TimeoutSeconds. Returns NOT_SERVING if the
+// check fails, SERVING otherwise. Returns a NotFound error if the service
+// is not registered.
+func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
+	healthCheck, ok := s.serviceNameToHealthCheck[request.Service]
 	if !ok {
 		return nil, status.Error(codes.NotFound, "service not found")
 	}
@@ -136,14 +224,20 @@ func (s *GRPCServer) checkService(ctx context.Context, req *grpc_health_v1.Healt
 	checkCtx, cancel := context.WithTimeout(ctx, time.Duration(s.opts.TimeoutSeconds)*time.Second)
 	defer cancel()
 
+	start := time.Now()
 	servingStatus := grpc_health_v1.HealthCheckResponse_SERVING
 	if err := healthCheck(checkCtx); err != nil {
-		s.log.WarnContext(ctx, "health check failed", "service", req.Service, "error", err)
+		s.log.WarnContext(ctx, "health check failed", "service", request.Service, "error", err)
 		servingStatus = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 	}
+	metrics.durationSeconds.WithLabelValues(request.Service).Observe(time.Since(start).Seconds())
+
 	return &grpc_health_v1.HealthCheckResponse{Status: servingStatus}, nil
 }
 
+// CheckFn returns a Check that queries the overall "" health status of this
+// server, suitable for registering as a dependency health check in another
+// GRPCServer instance.
 func (s *GRPCServer) CheckFn() Check {
 	return func(ctx context.Context) error {
 		request := &grpc_health_v1.HealthCheckRequest{}

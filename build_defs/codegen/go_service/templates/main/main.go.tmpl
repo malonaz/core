@@ -181,12 +181,16 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
 
             {{- /* Add health check function to all servers that use this service */ -}}
             {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+            {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($dep.name | camelcase | untitle) -}}
             {{- range $serverName := $serverNames -}}
+                {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $dep.name -}}
+                {{- if doOnce $healthCheckKey -}}
                 {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
                 {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                {{- $updatedHealthChecks := append $existingHealthChecks (printf "%sPsqlClient.Ping" ($dep.name | camelcase | untitle)) -}}
+                {{- $updatedHealthChecks := append $existingHealthChecks $healthCheckFn -}}
                 {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
                 {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+                {{- end -}}
             {{- end -}}
 
             {{- if eq $dep.type "postgres_db_client" -}}

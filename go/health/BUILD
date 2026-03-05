@@ -4,10 +4,13 @@ go_library(
         "grpc_server.go",
         "health.go",
         "http_server.go",
+        "metrics.go",
     ],
     visibility = ["PUBLIC"],
     deps = [
         "//go/pbutil",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__health",
