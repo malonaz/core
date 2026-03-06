@@ -43,22 +43,22 @@ func TestUpdateRequestParser_AuthorizedPaths(t *testing.T) {
 		{
 			name:           "single authorized field",
 			fieldMaskPaths: []string{"display_name"},
-			wantColumns:    []string{"display_name"},
+			wantColumns:    []string{"update_time", "etag", "display_name"},
 		},
 		{
 			name:           "multiple authorized fields",
 			fieldMaskPaths: []string{"display_name", "biography"},
-			wantColumns:    []string{"biography", "display_name"},
+			wantColumns:    []string{"update_time", "etag", "biography", "display_name"},
 		},
 		{
 			name:           "all simple authorized fields",
 			fieldMaskPaths: []string{"biography", "display_name", "email_address", "phone_number"},
-			wantColumns:    []string{"biography", "display_name", "email_address", "phone_number"},
+			wantColumns:    []string{"update_time", "etag", "biography", "display_name", "email_address", "phone_number"},
 		},
 		{
 			name:           "labels field (JSON bytes)",
 			fieldMaskPaths: []string{"labels"},
-			wantColumns:    []string{"labels"},
+			wantColumns:    []string{"update_time", "etag", "labels"},
 		},
 		{
 			name:           "unauthorized - name (IDENTIFIER)",
@@ -117,27 +117,27 @@ func TestUpdateRequestParser_WildcardPaths(t *testing.T) {
 		{
 			name:           "nested field via wildcard - single field",
 			fieldMaskPaths: []string{"metadata.country"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 		{
 			name:           "nested field via wildcard - multiple fields same parent",
 			fieldMaskPaths: []string{"metadata.country", "metadata.email_addresses"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 		{
 			name:           "full metadata object",
 			fieldMaskPaths: []string{"metadata"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 		{
 			name:           "nested and simple fields combined",
 			fieldMaskPaths: []string{"metadata.country", "display_name"},
-			wantColumns:    []string{"metadata", "display_name"},
+			wantColumns:    []string{"update_time", "etag", "metadata", "display_name"},
 		},
 		{
 			name:           "all nested metadata fields",
 			fieldMaskPaths: []string{"metadata.country", "metadata.email_addresses", "metadata.phone_numbers"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 	}
 
@@ -170,27 +170,22 @@ func TestUpdateRequestParser_AutoAuthorizedFields(t *testing.T) {
 		{
 			name:           "update_time alone",
 			fieldMaskPaths: []string{"update_time"},
-			wantColumns:    []string{"update_time"},
 		},
 		{
 			name:           "update_time with other fields",
 			fieldMaskPaths: []string{"display_name", "update_time"},
-			wantColumns:    []string{"display_name", "update_time"},
 		},
 		{
 			name:           "etag alone",
 			fieldMaskPaths: []string{"etag"},
-			wantColumns:    []string{"etag"},
 		},
 		{
 			name:           "etag with other fields",
 			fieldMaskPaths: []string{"display_name", "etag"},
-			wantColumns:    []string{"display_name", "etag"},
 		},
 		{
 			name:           "both update_time and etag",
 			fieldMaskPaths: []string{"update_time", "etag"},
-			wantColumns:    []string{"update_time", "etag"},
 		},
 	}
 
@@ -200,9 +195,8 @@ func TestUpdateRequestParser_AutoAuthorizedFields(t *testing.T) {
 				Author:     &librarypb.Author{},
 				UpdateMask: &fieldmaskpb.FieldMask{Paths: tc.fieldMaskPaths},
 			}
-			parsedRequest, err := parser.Parse(updateAuthorRequest)
-			require.NoError(t, err)
-			require.ElementsMatch(t, tc.wantColumns, parsedRequest.GetSQLColumns())
+			_, err := parser.Parse(updateAuthorRequest)
+			require.Error(t, err)
 		})
 	}
 }
@@ -220,37 +214,37 @@ func TestUpdateRequestParser_SQLClauses(t *testing.T) {
 		{
 			name:             "single field",
 			fieldMaskPaths:   []string{"display_name"},
-			wantSQLColumns:   []string{"display_name"},
-			wantUpsertClause: "display_name = EXCLUDED.display_name",
-			wantUpdateClause: "display_name = $1",
+			wantSQLColumns:   []string{"update_time", "etag", "display_name"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, etag = EXCLUDED.etag, display_name = EXCLUDED.display_name",
+			wantUpdateClause: "update_time = $1, etag = $2, display_name = $3",
 		},
 		{
 			name:             "multiple fields",
 			fieldMaskPaths:   []string{"display_name", "biography"},
-			wantSQLColumns:   []string{"biography", "display_name"},
-			wantUpsertClause: "biography = EXCLUDED.biography, display_name = EXCLUDED.display_name",
-			wantUpdateClause: "biography = $1, display_name = $2",
+			wantSQLColumns:   []string{"update_time", "etag", "biography", "display_name"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, etag = EXCLUDED.etag, biography = EXCLUDED.biography, display_name = EXCLUDED.display_name",
+			wantUpdateClause: "update_time = $1, etag = $2, biography = $3, display_name = $4",
 		},
 		{
 			name:             "nested via wildcard collapses to parent",
 			fieldMaskPaths:   []string{"metadata.country", "metadata.email_addresses"},
-			wantSQLColumns:   []string{"metadata"},
-			wantUpsertClause: "metadata = EXCLUDED.metadata",
-			wantUpdateClause: "metadata = $1",
+			wantSQLColumns:   []string{"update_time", "etag", "metadata"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, etag = EXCLUDED.etag, metadata = EXCLUDED.metadata",
+			wantUpdateClause: "update_time = $1, etag = $2, metadata = $3",
 		},
 		{
 			name:             "mixed nested and simple",
 			fieldMaskPaths:   []string{"display_name", "metadata.country"},
-			wantSQLColumns:   []string{"display_name", "metadata"},
-			wantUpsertClause: "display_name = EXCLUDED.display_name, metadata = EXCLUDED.metadata",
-			wantUpdateClause: "display_name = $1, metadata = $2",
+			wantSQLColumns:   []string{"update_time", "etag", "display_name", "metadata"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, etag = EXCLUDED.etag, display_name = EXCLUDED.display_name, metadata = EXCLUDED.metadata",
+			wantUpdateClause: "update_time = $1, etag = $2, display_name = $3, metadata = $4",
 		},
 		{
 			name:             "three fields",
 			fieldMaskPaths:   []string{"display_name", "biography", "email_address"},
-			wantSQLColumns:   []string{"biography", "display_name", "email_address"},
-			wantUpsertClause: "biography = EXCLUDED.biography, display_name = EXCLUDED.display_name, email_address = EXCLUDED.email_address",
-			wantUpdateClause: "biography = $1, display_name = $2, email_address = $3",
+			wantSQLColumns:   []string{"update_time", "etag", "biography", "display_name", "email_address"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, etag = EXCLUDED.etag, biography = EXCLUDED.biography, display_name = EXCLUDED.display_name, email_address = EXCLUDED.email_address",
+			wantUpdateClause: "update_time = $1, etag = $2, biography = $3, display_name = $4, email_address = $5",
 		},
 	}
 
@@ -421,32 +415,32 @@ func TestUpdateRequestParser_BookPaths(t *testing.T) {
 		{
 			name:           "title field",
 			fieldMaskPaths: []string{"title"},
-			wantColumns:    []string{"title"},
+			wantColumns:    []string{"update_time", "etag", "title"},
 		},
 		{
 			name:           "author reference field",
 			fieldMaskPaths: []string{"author"},
-			wantColumns:    []string{"author"},
+			wantColumns:    []string{"update_time", "etag", "author"},
 		},
 		{
 			name:           "numeric fields",
 			fieldMaskPaths: []string{"publication_year", "page_count"},
-			wantColumns:    []string{"publication_year", "page_count"},
+			wantColumns:    []string{"update_time", "etag", "publication_year", "page_count"},
 		},
 		{
 			name:           "metadata nested field",
 			fieldMaskPaths: []string{"metadata.summary"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 		{
 			name:           "metadata multiple nested fields",
 			fieldMaskPaths: []string{"metadata.summary", "metadata.language"},
-			wantColumns:    []string{"metadata"},
+			wantColumns:    []string{"update_time", "etag", "metadata"},
 		},
 		{
 			name:           "all book update paths",
 			fieldMaskPaths: []string{"title", "author", "isbn", "publication_year", "page_count"},
-			wantColumns:    []string{"title", "author", "isbn", "publication_year", "page_count"},
+			wantColumns:    []string{"update_time", "etag", "title", "author", "isbn", "publication_year", "page_count"},
 		},
 		{
 			name:           "labels not in book update paths",
@@ -490,22 +484,22 @@ func TestUpdateRequestParser_ShelfPaths(t *testing.T) {
 		{
 			name:           "display_name field",
 			fieldMaskPaths: []string{"display_name"},
-			wantColumns:    []string{"display_name"},
+			wantColumns:    []string{"update_time", "display_name"},
 		},
 		{
 			name:           "genre enum field",
 			fieldMaskPaths: []string{"genre"},
-			wantColumns:    []string{"genre"},
+			wantColumns:    []string{"update_time", "genre"},
 		},
 		{
 			name:           "metadata nested field (with name change)",
 			fieldMaskPaths: []string{"metadata.capacity"},
-			wantColumns:    []string{"legacy_meta"},
+			wantColumns:    []string{"update_time", "legacy_meta"},
 		},
 		{
 			name:           "multiple authorized fields",
 			fieldMaskPaths: []string{"display_name", "genre"},
-			wantColumns:    []string{"display_name", "genre"},
+			wantColumns:    []string{"update_time", "display_name", "genre"},
 		},
 		{
 			name:           "labels not in shelf update paths",
@@ -555,44 +549,44 @@ func TestUpdateRequestParser_ColumnNameReplacement(t *testing.T) {
 		{
 			name:             "external_id uses ext_id column",
 			fieldMaskPaths:   []string{"external_id"},
-			wantColumns:      []string{"ext_id"},
-			wantUpsertClause: "ext_id = EXCLUDED.ext_id",
-			wantUpdateClause: "ext_id = $1",
+			wantColumns:      []string{"update_time", "ext_id"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, ext_id = EXCLUDED.ext_id",
+			wantUpdateClause: "update_time = $1, ext_id = $2",
 		},
 		{
 			name:             "correlation_id_2 uses correlation_id column",
 			fieldMaskPaths:   []string{"correlation_id_2"},
-			wantColumns:      []string{"correlation_id"},
-			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id",
-			wantUpdateClause: "correlation_id = $1",
+			wantColumns:      []string{"update_time", "correlation_id"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, correlation_id = EXCLUDED.correlation_id",
+			wantUpdateClause: "update_time = $1, correlation_id = $2",
 		},
 		{
 			name:             "multiple renamed columns",
 			fieldMaskPaths:   []string{"external_id", "correlation_id_2"},
-			wantColumns:      []string{"correlation_id", "ext_id"},
-			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id",
-			wantUpdateClause: "correlation_id = $1, ext_id = $2",
+			wantColumns:      []string{"update_time", "correlation_id", "ext_id"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id",
+			wantUpdateClause: "update_time = $1, correlation_id = $2, ext_id = $3",
 		},
 		{
 			name:             "mixed standard and renamed columns",
 			fieldMaskPaths:   []string{"display_name", "external_id", "genre"},
-			wantColumns:      []string{"display_name", "ext_id", "genre"},
-			wantUpsertClause: "display_name = EXCLUDED.display_name, ext_id = EXCLUDED.ext_id, genre = EXCLUDED.genre",
-			wantUpdateClause: "display_name = $1, ext_id = $2, genre = $3",
+			wantColumns:      []string{"update_time", "display_name", "ext_id", "genre"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, display_name = EXCLUDED.display_name, ext_id = EXCLUDED.ext_id, genre = EXCLUDED.genre",
+			wantUpdateClause: "update_time = $1, display_name = $2, ext_id = $3, genre = $4",
 		},
 		{
 			name:             "nested field with parent column replacement",
 			fieldMaskPaths:   []string{"metadata.capacity"},
-			wantColumns:      []string{"legacy_meta"},
-			wantUpsertClause: "legacy_meta = EXCLUDED.legacy_meta",
-			wantUpdateClause: "legacy_meta = $1",
+			wantColumns:      []string{"update_time", "legacy_meta"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, legacy_meta = EXCLUDED.legacy_meta",
+			wantUpdateClause: "update_time = $1, legacy_meta = $2",
 		},
 		{
 			name:             "all renamed columns together",
 			fieldMaskPaths:   []string{"external_id", "correlation_id_2", "metadata.capacity"},
-			wantColumns:      []string{"correlation_id", "ext_id", "legacy_meta"},
-			wantUpsertClause: "correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id, legacy_meta = EXCLUDED.legacy_meta",
-			wantUpdateClause: "correlation_id = $1, ext_id = $2, legacy_meta = $3",
+			wantColumns:      []string{"update_time", "correlation_id", "ext_id", "legacy_meta"},
+			wantUpsertClause: "update_time = EXCLUDED.update_time, correlation_id = EXCLUDED.correlation_id, ext_id = EXCLUDED.ext_id, legacy_meta = EXCLUDED.legacy_meta",
+			wantUpdateClause: "update_time = $1, correlation_id = $2, ext_id = $3, legacy_meta = $4",
 		},
 	}
 

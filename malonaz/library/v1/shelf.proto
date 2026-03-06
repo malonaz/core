@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
 
 option go_package = "github.com/malonaz/core/genproto/library/v1";
 
@@ -17,6 +18,12 @@ message Shelf {
     pattern: "organizations/{organization}/shelves/{shelf}"
     singular: "shelf"
     plural: "shelves"
+  };
+  option (malonaz.codegen.nats.v1.event) = {
+    stream: "malonaz.library.library_service.v1.shelf"
+    created: true
+    updated: true
+    deleted: true
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
 

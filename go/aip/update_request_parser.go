@@ -15,6 +15,15 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
+var (
+	updateRequestParserInvalidPathSet = map[string]struct{}{
+		"create_time": {},
+		"update_time": {},
+		"delete_time": {},
+		"etag":        {},
+	}
+)
+
 // A resource that has an etag field.
 type ETagResource interface {
 	proto.Message
@@ -39,8 +48,8 @@ type updateRequest interface {
 
 // ParsedUpdateRequest is a request that is parsed.
 type ParsedUpdateRequest struct {
-	fieldMask    *pbfieldmask.FieldMask
-	updateFields []string
+	fieldMask         *pbfieldmask.FieldMask
+	updateColumnNames []string
 }
 
 // ApplyFieldMask merges any fields covered by the field mask from newResource into existingResource.
@@ -50,9 +59,9 @@ func (p *ParsedUpdateRequest) ApplyFieldMask(existingResource, newResource proto
 
 func (p *ParsedUpdateRequest) GetSQLUpsertClause() string {
 	var sb strings.Builder
-	for i, updateField := range p.updateFields {
-		sb.WriteString(fmt.Sprintf("%s = EXCLUDED.%s", updateField, updateField))
-		if i < len(p.updateFields)-1 {
+	for i, updateColumnName := range p.updateColumnNames {
+		sb.WriteString(fmt.Sprintf("%s = EXCLUDED.%s", updateColumnName, updateColumnName))
+		if i < len(p.updateColumnNames)-1 {
 			sb.WriteString(", ")
 		}
 	}
@@ -61,9 +70,9 @@ func (p *ParsedUpdateRequest) GetSQLUpsertClause() string {
 
 func (p *ParsedUpdateRequest) GetSQLUpdateClause() string {
 	var sb strings.Builder
-	for i, updateField := range p.updateFields {
-		sb.WriteString(fmt.Sprintf("%s = $%d", updateField, i+1))
-		if i < len(p.updateFields)-1 {
+	for i, updateColumnName := range p.updateColumnNames {
+		sb.WriteString(fmt.Sprintf("%s = $%d", updateColumnName, i+1))
+		if i < len(p.updateColumnNames)-1 {
 			sb.WriteString(", ")
 		}
 	}
@@ -71,14 +80,15 @@ func (p *ParsedUpdateRequest) GetSQLUpdateClause() string {
 }
 
 func (p *ParsedUpdateRequest) GetSQLColumns() []string {
-	return p.updateFields
+	return p.updateColumnNames
 }
 
 // UpdateRequestParser implements update request parsing.
 type UpdateRequestParser[T updateRequest, R proto.Message] struct {
-	paths             []string
-	protoPathToColumn map[string]string
-	mappings          map[string]string
+	paths              []string
+	protoPathToColumn  map[string]string
+	mappings           map[string]string
+	defaultColumnNames []string
 }
 
 // MustNewUpdateRequestParser instantiates and returns a new update request parser, panicking on error.
@@ -106,6 +116,9 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	var zeroResource R
 	sanitizedPaths := make([]string, 0, len(options.GetPaths()))
 	for _, path := range options.GetPaths() {
+		if _, ok := updateRequestParserInvalidPathSet[path]; ok {
+			return nil, fmt.Errorf("cannot use protected path: %s", path)
+		}
 		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
 	}
 	if len(sanitizedPaths) > 0 {
@@ -123,20 +136,25 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	paths := options.Paths
 	protoPathToColumn := make(map[string]string)
 	mappings := map[string]string{}
+	defaultColumnNames := []string{}
 	for _, node := range tree.Nodes {
-		// We always add 'update_time' as an updatable field.
-		if node.Path == "update_time" || node.Path == "etag" {
-			paths = append(paths, node.Path)
+		columnName := node.Path
+		if node.ReplacementPath != "" {
+			columnName = node.ReplacementPath
 		}
+
+		// We will auto-inject these fields.
+		if node.Path == "update_time" || node.Path == "etag" {
+			defaultColumnNames = append(defaultColumnNames, columnName)
+			continue
+		}
+
 		if node.HasFieldBehavior(annotationspb.FieldBehavior_IDENTIFIER) ||
 			node.HasFieldBehavior(annotationspb.FieldBehavior_IMMUTABLE) ||
 			node.HasFieldBehavior(annotationspb.FieldBehavior_OUTPUT_ONLY) {
 			continue
 		}
-		columnName := node.Path
-		if node.ReplacementPath != "" {
-			columnName = node.ReplacementPath
-		}
+
 		protoPathToColumn[node.Path] = columnName
 
 		// Auto-generate mappings for fields stored as JSON or Proto bytes.
@@ -146,9 +164,10 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	}
 
 	return &UpdateRequestParser[T, R]{
-		paths:             paths,
-		protoPathToColumn: protoPathToColumn,
-		mappings:          mappings,
+		paths:              paths,
+		protoPathToColumn:  protoPathToColumn,
+		mappings:           mappings,
+		defaultColumnNames: defaultColumnNames,
 	}, nil
 }
 
@@ -164,13 +183,17 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 		return nil, fmt.Errorf("invalid field mask paths: %v", err)
 	}
 
-	updateFieldSet := map[string]struct{}{}
-	var updateFields []string
+	updateColumnNameSet := map[string]struct{}{}
+	var updateColumnNames []string
+	for _, columnName := range p.defaultColumnNames {
+		updateColumnNameSet[columnName] = struct{}{}
+		updateColumnNames = append(updateColumnNames, columnName)
+	}
 
 	// Iterate over each path in the field mask.
 	for _, path := range fieldMask.GetPaths() {
 		if !p.isAuthorizedPath(path) {
-			return nil, fmt.Errorf("unauthorized field mask path: %s", path)
+			return nil, fmt.Errorf("unauthorized update mask path: %s", path)
 		}
 
 		// Check against configured fields to see if there is a match.
@@ -180,9 +203,9 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 				// Add the mapped update mapping to the set and list.
 				// Translate mapped path to column name if applicable.
 				columnName := p.translateToColumnName(mappingTo)
-				if _, ok := updateFieldSet[columnName]; !ok {
-					updateFieldSet[columnName] = struct{}{}
-					updateFields = append(updateFields, columnName)
+				if _, ok := updateColumnNameSet[columnName]; !ok {
+					updateColumnNameSet[columnName] = struct{}{}
+					updateColumnNames = append(updateColumnNames, columnName)
 				}
 				mappingFound = true
 				break
@@ -192,16 +215,16 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 		// If no mapping is found, we simply add the field (translated to column name).
 		if !mappingFound {
 			columnName := p.translateToColumnName(path)
-			if _, ok := updateFieldSet[columnName]; !ok {
-				updateFieldSet[columnName] = struct{}{}
-				updateFields = append(updateFields, columnName)
+			if _, ok := updateColumnNameSet[columnName]; !ok {
+				updateColumnNameSet[columnName] = struct{}{}
+				updateColumnNames = append(updateColumnNames, columnName)
 			}
 		}
 	}
 
 	return &ParsedUpdateRequest{
-		fieldMask:    fieldMask,
-		updateFields: updateFields,
+		fieldMask:         fieldMask,
+		updateColumnNames: updateColumnNames,
 	}, nil
 }
 

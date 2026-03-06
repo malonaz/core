@@ -23,7 +23,6 @@ message Book {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.library.library_service.v1.book"
-    created: true
     updated: true
     deleted: true
   };
@@ -94,10 +93,4 @@ message BookMetadata {
   string language = 2;
   // Phone number of the author of this book.
   string phone_number = 3 [(malonaz.canonicalize.v1.field).phone_number = true];
-}
-
-// Metadata for a book.
-message BookCreatedEvent {
-  // The created book.
-  Book book = 1;
 }

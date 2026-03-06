@@ -11,6 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
+	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -508,7 +509,7 @@ var File_malonaz_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x95\a\n" +
+	"\x1emalonaz/library/v1/shelf.proto\x12\x12malonaz.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xca\a\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -533,8 +534,9 @@ const file_malonaz_library_v1_shelf_proto_rawDesc = "" +
 	"\vlegacy_meta\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xeaAY\n" +
-	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\"\xb1\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x94\x01\xeaAY\n" +
+	"\x19library.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\x8a\x91$0\n" +
+	"(malonaz.library.library_service.v1.shelf\x10\x01\x18\x01 \x01\"\xb1\x02\n" +
 	"\rShelfMetadata\x12\x1a\n" +
 	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x14\n" +
 	"\x05dummy\x18\x02 \x01(\tR\x05dummy\x123\n" +

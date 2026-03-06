@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package malonaz.aip.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/field_mask.proto";
+
+option go_package = "github.com/malonaz/core/genproto/aip/v1";
+
+// A resource creation event.
+message ResourceCreatedEvent {
+  // The created resource.
+  google.protobuf.Any resource = 1;
+}
+
+// A resource update event.
+message ResourceUpdatedEvent {
+  // The resource after the update.
+  google.protobuf.Any resource = 1;
+  // The resource before the update.
+  google.protobuf.Any old_resource = 2;
+  // The field mask of updated fields.
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+// A resource deletion event.
+message ResourceDeletedEvent {
+  // The deleted resource.
+  google.protobuf.Any resource = 1;
+}

@@ -1,0 +1,9 @@
+proto_library(
+    name = "v1",
+    srcs = ["aip.proto"],
+    additional_context = {
+        GO_IMPORT_PATH: "github.com/malonaz/core/genproto/aip/v1",
+    },
+    labels = ["copy_generated_code:malonaz:genproto"],
+    visibility = ["PUBLIC"],
+)

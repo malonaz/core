@@ -15,6 +15,7 @@ import (
 	resourcename "go.einride.tech/aip/resourcename"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
+	proto "google.golang.org/protobuf/proto"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -29,7 +30,8 @@ type AiServiceServer struct {
 
 func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 	return &AiServiceServer{
-		newAiService_ChatServer(store),
+
+		aiService_ChatServer: newAiService_ChatServer(store),
 	}
 }
 
@@ -161,11 +163,9 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
 	// Set the update time.
-	request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
 	request.Chat.UpdateTime = timestamppb.Now()
 	// Capture the etag.
 	etag := request.GetChat().GetEtag()
-	request.UpdateMask.Paths = append(request.UpdateMask.Paths, "etag")
 
 	// STEP 1: Parse request.
 	parsedRequest, err := updateChatRequestParser.Parse(request)
@@ -175,15 +175,17 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 
 	// STEP 2: retrieve existing resource.
 	getChatRequest := &v1.GetChatRequest{Name: request.Chat.Name}
-	patchedChat, err := s.GetChat(ctx, getChatRequest)
+	existingChat, err := s.GetChat(ctx, getChatRequest)
 	if err != nil {
 		return nil, err
 	}
-	if patchedChat.DeleteTime != nil {
+	// Verify that the resource is not soft deleted.
+	if existingChat.DeleteTime != nil {
 		return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 	}
 
 	// STEP 3: Patch the existing resource.
+	patchedChat := proto.CloneOf(existingChat)
 	parsedRequest.ApplyFieldMask(patchedChat, request.Chat)
 	if err := protovalidate.Validate(patchedChat); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
@@ -219,6 +221,7 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
+
 	return chat, nil
 }
 
@@ -268,6 +271,7 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
+
 	return chat, nil
 
 }

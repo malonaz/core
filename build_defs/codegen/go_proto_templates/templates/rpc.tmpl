@@ -52,17 +52,26 @@ package {{ .PackageName }}
     {{- end }}
     }
 
+    {{ $natsStreamNames := get $serviceToNatsStreamNames $serviceName }}
     type {{ $serviceName }}Server struct {
+    {{ if $natsStreamNames }}
+        natsClient *{{ fqnCore "go/nats" "Client"}}
+    {{ end }}
     {{- range $pr := $resources }}
         *{{ $serviceName | untitle }}_{{ $pr.SingularGoName }}Server
     {{- end }}
     }
 
+
+
     {{ $natsStreamNames := get $serviceToNatsStreamNames $serviceName }}
     func New{{ $serviceName }}Server(store {{ $serviceName | untitle }}Store{{ if $natsStreamNames }}, natsClient *{{ fqnCore "go/nats" "Client" }}{{ end }}) *{{ $serviceName }}Server {
     return &{{ $serviceName }}Server{
+    {{ if $natsStreamNames }}
+        natsClient: natsClient,
+    {{ end }}
     {{- range $pr := $resources }}
-        new{{ $serviceName }}_{{ $pr.SingularGoName }}Server(store{{ if get $resourceTypeToRequiresNatsClient $pr.Desc.Type }}, natsClient{{ end }}),
+        {{ $serviceName | untitle }}_{{ $pr.SingularGoName }}Server: new{{ $serviceName }}_{{ $pr.SingularGoName }}Server(store{{ if get $resourceTypeToRequiresNatsClient $pr.Desc.Type }}, natsClient{{ end }}),
     {{- end }}
     }
     }
@@ -134,7 +143,7 @@ package {{ .PackageName }}
                 {{- if $softDeletable }}
                     SoftDelete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string{{ if $etag }}, etag, newEtag string{{ end }}, deleteTime {{ fqn "time" "Time" }}) (*{{ $goTypeQgi }}, error)
                 {{ else }}
-                    Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string{{ if $etag }}, etag string{{ end }}) error
+                    Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string{{ if $etag }}, etag string{{ end }}) (*{{ $goTypeQgi }}, error)
                 {{- end }}
             {{ end }}
             Get{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeQgi }}, error)
@@ -264,12 +273,14 @@ package {{ .PackageName }}
 		        }
 
             {{ if $natsEventOpts.GetCreated }}
-                {{ $resourceGoName | untitle }}CreatedEvent := &{{ qgi $rpc.Message.GoIdent }}CreatedEvent{
-                    {{ $resourceGoName }}: {{ $resourceGoName | untitle }},
+              // STEP 5: Publish event.
+                resourceCreatedEvent, err := {{ fqnCore "go/aip" "NewResourceCreatedEvent" }}({{ $resourceGoName | untitle }})
+                if err != nil {
+                  return nil, status.Errorf(codes.Internal, "constructing resource created event: %v", err).Err()
                 }
                 subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("created")
-               if err := s.natsClient.Publish(ctx, subject, {{ $resourceGoName | untitle }}CreatedEvent); err != nil {
-	                	return nil, status.Errorf(codes.Internal, "publishing {{ $pr.Desc.Singular }} created event: %v", err).Err()
+               if err := s.natsClient.Publish(ctx, subject, resourceCreatedEvent); err != nil {
+	                	return nil, status.Errorf(codes.Internal, "publishing resource created event: %v", err).Err()
 	             }
             {{ end }}
             return {{ $resourceGoName | untitle }}, nil
@@ -287,13 +298,11 @@ package {{ .PackageName }}
 
             {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
                 // Set the update time.
-                request.UpdateMask.Paths = append(request.UpdateMask.Paths, "update_time")
 	              request.{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
             {{- end }}
             {{- if $etag }}
                 // Capture the etag.
                 etag := request.Get{{ $resourceGoName }}().GetEtag()
-                request.UpdateMask.Paths = append(request.UpdateMask.Paths, "etag")
             {{- end }}
 
             // STEP 1: Parse request.
@@ -304,22 +313,23 @@ package {{ .PackageName }}
 
             // STEP 2: retrieve existing resource.
             get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.{{ $resourceGoName }}.Name }
-            patched{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+            existing{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
             if err != nil {
             return nil, err
             }
             {{- if $softDeletable }}
-            if patched{{ $resourceGoName }}.DeleteTime != nil {
+            // Verify that the resource is not soft deleted.
+            if existing{{ $resourceGoName }}.DeleteTime != nil {
                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
             {{ end }}
 
             // STEP 3: Patch the existing resource.
+            patched{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "CloneOf" }}(existing{{ $resourceGoName }})
 	          parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }})
             if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
               return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
             }
-
             {{ if $etag }}
             { // Compute the new etag.
               var err error
@@ -352,6 +362,20 @@ package {{ .PackageName }}
 		        if err != nil {
 			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
 		        }
+
+
+            {{ if $natsEventOpts.GetUpdated }}
+              // STEP 5: Publish event.
+                resourceUpdatedEvent, err := {{ fqnCore "go/aip" "NewResourceUpdatedEvent" }}({{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask())
+                if err != nil {
+                  return nil, status.Errorf(codes.Internal, "constructing resource updated event: %v", err).Err()
+                }
+                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("updated")
+               if err := s.natsClient.Publish(ctx, subject, resourceUpdatedEvent); err != nil {
+	                	return nil, status.Errorf(codes.Internal, "publishing resource updated event: %v", err).Err()
+	             }
+            {{ end }}
+
             return {{ $resourceGoName | untitle }}, nil
             }
 
@@ -405,11 +429,25 @@ package {{ .PackageName }}
                 if err != nil {
 			          return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
                 }
+
+            {{ if $natsEventOpts.GetDeleted }}
+              // STEP 4: Publish event.
+                resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}({{ $resourceGoName | untitle }})
+                if err != nil {
+                  return nil, status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
+                }
+                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("deleted")
+               if err := s.natsClient.Publish(ctx, subject, resourceDeletedEvent); err != nil {
+	                	return nil, status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
+	             }
+            {{ end }}
+
                 return {{ $resourceGoName | untitle }}, nil
 
             {{ else }}
                 // STEP 2: Hard delete the resource.
-                if err := s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}{{ if $etag }}, request.GetEtag(){{ end }}); err != nil {
+                {{ if $natsEventOpts.GetDeleted }}db{{ $modelGoName }}, err :={{ else }}_, err = {{ end }} s.store.Delete{{ $resourceGoName }}(ctx{{ if $pr.PatternVariables }}, {{ $pr.PatternVariableIDs true }}{{ end }}{{ if $etag }}, request.GetEtag(){{ end }})
+                if err != nil {
                 if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
                 if request.AllowMissing {
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
@@ -423,6 +461,22 @@ package {{ .PackageName }}
                 {{ end }}
                 return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $pr.Desc.Singular }}: %v", err).Err()
                 }
+
+             {{ if $natsEventOpts.GetDeleted }}
+              // STEP 5: Publish event.
+                {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
+                if err != nil {
+			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+		        }
+                resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}({{ $resourceGoName | untitle }})
+                if err != nil {
+                  return nil, status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
+                }
+                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("deleted")
+               if err := s.natsClient.Publish(ctx, subject, resourceDeletedEvent); err != nil {
+	                	return nil, status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
+	             }
+            {{ end }}
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
             {{ end }}
             }

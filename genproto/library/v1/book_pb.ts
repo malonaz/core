@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/library/v1/book.proto.
  */
 export const file_malonaz_library_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("Ch1tYWxvbmF6L2xpYnJhcnkvdjEvYm9vay5wcm90bxISbWFsb25hei5saWJyYXJ5LnYxIrIGCgRCb29rEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIZCgV0aXRsZRgEIAEoCUIKukgHcgUQARiABBI1CgZhdXRob3IYBSABKAlCJfpBHAoabGlicmFyeS5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASygEKBmxhYmVscxgJIAMoCzIkLm1hbG9uYXoubGlicmFyeS52MS5Cb29rLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCiABKAkSOgoIbWV0YWRhdGEYCyABKAsyIC5tYWxvbmF6LmxpYnJhcnkudjEuQm9va01ldGFkYXRhQga66g8CEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATrEAepBYgoYbGlicmFyeS5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYEAIqRJC8KJ21hbG9uYXoubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuYm9vaxABGAEgAYL2LCRhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAiTwoMQm9va01ldGFkYXRhEg8KB3N1bW1hcnkYASABKAkSEAoIbGFuZ3VhZ2UYAiABKAkSHAoMcGhvbmVfbnVtYmVyGAMgASgJQgaCtRgCEAEiOgoQQm9va0NyZWF0ZWRFdmVudBImCgRib29rGAEgASgLMhgubWFsb25hei5saWJyYXJ5LnYxLkJvb2tCLVorZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vbGlicmFyeS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("Ch1tYWxvbmF6L2xpYnJhcnkvdjEvYm9vay5wcm90bxISbWFsb25hei5saWJyYXJ5LnYxIrAGCgRCb29rEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIZCgV0aXRsZRgEIAEoCUIKukgHcgUQARiABBI1CgZhdXRob3IYBSABKAlCJfpBHAoabGlicmFyeS5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASygEKBmxhYmVscxgJIAMoCzIkLm1hbG9uYXoubGlicmFyeS52MS5Cb29rLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCiABKAkSOgoIbWV0YWRhdGEYCyABKAsyIC5tYWxvbmF6LmxpYnJhcnkudjEuQm9va01ldGFkYXRhQga66g8CEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATrCAepBYgoYbGlicmFyeS5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYEAIqRJC0KJ21hbG9uYXoubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuYm9vaxgBIAGC9iwkYTFiMmMzZDQtZTVmNi03ODkwLWFiY2QtZWYxMjM0NTY3ODkwIk8KDEJvb2tNZXRhZGF0YRIPCgdzdW1tYXJ5GAEgASgJEhAKCGxhbmd1YWdlGAIgASgJEhwKDHBob25lX251bWJlchgDIAEoCUIGgrUYAhABQi1aK2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Book represents a book on a shelf.
@@ -236,39 +236,4 @@ export type BookMetadataValid = BookMetadata;
  */
 export const BookMetadataSchema: GenMessage<BookMetadata, {validType: BookMetadataValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_library_v1_book, 1);
-
-/**
- * Metadata for a book.
- *
- * @generated from message malonaz.library.v1.BookCreatedEvent
- */
-export type BookCreatedEvent = Message<"malonaz.library.v1.BookCreatedEvent"> & {
-  /**
-   * The created book.
-   *
-   * @generated from field: malonaz.library.v1.Book book = 1;
-   */
-  book?: Book;
-};
-
-/**
- * Metadata for a book.
- *
- * @generated from message malonaz.library.v1.BookCreatedEvent
- */
-export type BookCreatedEventValid = Message<"malonaz.library.v1.BookCreatedEvent"> & {
-  /**
-   * The created book.
-   *
-   * @generated from field: malonaz.library.v1.Book book = 1;
-   */
-  book?: BookValid;
-};
-
-/**
- * Describes the message malonaz.library.v1.BookCreatedEvent.
- * Use `create(BookCreatedEventSchema)` to create a new message.
- */
-export const BookCreatedEventSchema: GenMessage<BookCreatedEvent, {validType: BookCreatedEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_library_v1_book, 2);
 

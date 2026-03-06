@@ -26,6 +26,12 @@ service LibraryService {
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE
   };
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.library.library_service.v1.shelf"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
 
   // ===================== Author =====================
 
