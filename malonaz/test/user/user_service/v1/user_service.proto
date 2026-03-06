@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package malonaz.test.user.user_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
+import "malonaz/test/user/user_service/v1/organization.proto";
+import "malonaz/test/user/user_service/v1/user.proto";
+import "malonaz/test/user/v1/organization.proto";
+import "malonaz/test/user/v1/user.proto";
+
+option go_package = "github.com/malonaz/core/genproto/testuser/user_service/v1";
+
+// UserService provides CRUD operations for managing organizations and users.
+service UserService {
+  option (google.api.default_host) = "user.test.malonaz.com";
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.test.user.user_service.v1.organization"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.test.user.user_service.v1.user"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
+
+  // ===================== Organization =====================
+
+  // Creates an organization.
+  rpc CreateOrganization(CreateOrganizationRequest) returns (malonaz.test.user.v1.Organization) {
+    option (google.api.http) = {
+      post: "/v1/organizations"
+      body: "organization"
+    };
+    option (google.api.method_signature) = "organization";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // Gets an organization.
+  rpc GetOrganization(GetOrganizationRequest) returns (malonaz.test.user.v1.Organization) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // Updates an organization.
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (malonaz.test.user.v1.Organization) {
+    option (google.api.http) = {
+      patch: "/v1/{organization.name=organizations/*}"
+      body: "organization"
+    };
+    option (google.api.method_signature) = "organization,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // Deletes an organization.
+  rpc DeleteOrganization(DeleteOrganizationRequest) returns (malonaz.test.user.v1.Organization) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // Lists organizations.
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
+    option (google.api.http) = {get: "/v1/organizations"};
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // Gets multiple organizations in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetOrganizations(BatchGetOrganizationsRequest) returns (BatchGetOrganizationsResponse) {
+    option (google.api.http) = {get: "/v1/organizations:batchGet"};
+    option (google.api.method_signature) = "names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
+  // ===================== User =====================
+
+  // Creates a user.
+  rpc CreateUser(CreateUserRequest) returns (malonaz.test.user.v1.User) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/users"
+      body: "user"
+    };
+    option (google.api.method_signature) = "parent,user";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Gets a user.
+  rpc GetUser(GetUserRequest) returns (malonaz.test.user.v1.User) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Updates a user.
+  rpc UpdateUser(UpdateUserRequest) returns (malonaz.test.user.v1.User) {
+    option (google.api.http) = {
+      patch: "/v1/{user.name=organizations/*/users/*}"
+      body: "user"
+    };
+    option (google.api.method_signature) = "user,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Deletes a user.
+  rpc DeleteUser(DeleteUserRequest) returns (malonaz.test.user.v1.User) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Lists users.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/users"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Gets multiple users in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetUsers(BatchGetUsersRequest) returns (BatchGetUsersResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/users:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+}

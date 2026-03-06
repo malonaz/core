@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package malonaz.test.user.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
+
+option go_package = "github.com/malonaz/core/genproto/testuser/v1";
+
+// Organization represents a tenant organization.
+message Organization {
+  option (google.api.resource) = {
+    type: "user.test.malonaz.com/Organization"
+    pattern: "organizations/{organization}"
+    singular: "organization"
+    plural: "organizations"
+  };
+  option (malonaz.codegen.nats.v1.event) = {
+    stream: "malonaz.test.user.user_service.v1.organization"
+    created: true
+    updated: true
+    deleted: true
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+
+  // The resource name of the organization.
+  // Format: organizations/{organization}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The display name of the organization.
+  string display_name = 5 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 256
+  }];
+
+  // The labels on this organization.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 7;
+}

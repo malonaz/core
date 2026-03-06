@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	libraryservicepb "github.com/malonaz/core/genproto/library/library_service/v1"
-	librarypb "github.com/malonaz/core/genproto/library/v1"
+	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 )
 
 func TestPaginationRequestParser_NewParser(t *testing.T) {

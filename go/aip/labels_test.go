@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	librarypb "github.com/malonaz/core/genproto/library/v1"
+	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 )
 
 func TestSetLabel(t *testing.T) {

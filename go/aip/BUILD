@@ -52,8 +52,8 @@ go_test(
     deps = [
         ":aip",
         "//go/pbutil/pbfieldmask",
-        "//malonaz/library/library_service/v1",
-        "//malonaz/library/v1",
+        "//malonaz/test/library/library_service/v1",
+        "//malonaz/test/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
     ],

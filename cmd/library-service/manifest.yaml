@@ -3,5 +3,5 @@ servers:
   - type: grpc
     name: library-service-external
     services:
-      - proto: //malonaz/library/library_service/v1
-        manifest: //go/library/library_service:manifest
+      - proto: //malonaz/test/library/library_service/v1
+        manifest: //go/test/library/library_service:manifest

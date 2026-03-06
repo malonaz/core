@@ -1,0 +1,33 @@
+filegroup(
+    name = "proto",
+    srcs = [
+        "organization.proto",
+        "user.proto",
+    ],
+    test_only = True,
+    visibility = ["PUBLIC"],
+)
+
+proto_library(
+    name = "v1",
+    srcs = [
+        "organization.proto",
+        "user.proto",
+    ],
+    additional_context = {
+        GENERATE_GO_AIP: True,
+        GO_IMPORT_PATH: "github.com/malonaz/core/genproto/testuser/v1",
+    },
+    labels = ["copy_generated_code:malonaz:genproto"],
+    test_only = True,
+    visibility = ["PUBLIC"],
+    deps = [
+        "//malonaz/canonicalize/v1",
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/model/v1",
+        "//malonaz/codegen/nats/v1",
+        "//malonaz/grpc/v1",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:validate",
+    ],
+)

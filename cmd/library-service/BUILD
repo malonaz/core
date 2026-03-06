@@ -4,8 +4,8 @@ go_main_manifest(
     name = "manifest",
     test_only = True,
     deps = [
-        "//go/library/library_service:manifest",
-        "//malonaz/library/library_service/v1",
+        "//go/test/library/library_service:manifest",
+        "//malonaz/test/library/library_service/v1",
     ],
 )
 
@@ -19,18 +19,18 @@ go_binary(
     name = "library-service",
     srcs = [":main.go"],
     test_only = True,
-    visibility = ["//go/library/library_service/..."],
+    visibility = ["//go/test/library/library_service/..."],
     deps = [
         "//go/certs",
         "//go/flags",
         "//go/grpc",
         "//go/health",
-        "//go/library/library_service",
-        "//go/library/store",
+        "//go/test/library/library_service",
+        "//go/test/library/store",
         "//go/logging",
         "//go/nats",
         "//go/postgres",
         "//go/prometheus",
-        "//malonaz/library/library_service/v1",
+        "//malonaz/test/library/library_service/v1",
     ],
 )

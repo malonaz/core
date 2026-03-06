@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package malonaz.test.user.user_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/user/v1/organization.proto";
+
+option go_package = "github.com/malonaz/core/genproto/testuser/user_service/v1";
+
+// Request message for UserService.CreateOrganization.
+message CreateOrganizationRequest {
+  // The ID to use for the resource.
+  string organization_id = 1 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    }
+  ];
+
+  // The organization to create.
+  malonaz.test.user.v1.Organization organization = 2 [(buf.validate.field).required = true];
+
+  // A unique identifier for this request.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 4;
+}
+
+// Request message for UserService.GetOrganization.
+message GetOrganizationRequest {
+  // The resource name of the organization to retrieve.
+  // Format: organizations/{organization}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/Organization"
+  ];
+}
+
+// Request message for UserService.UpdateOrganization.
+message UpdateOrganizationRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "display_name",
+      "labels"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "organization.name_required"
+    message: "organization.name must be set"
+    expression: "has(this.organization.name)"
+  };
+
+  // The organization to update.
+  malonaz.test.user.v1.Organization organization = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for UserService.DeleteOrganization.
+message DeleteOrganizationRequest {
+  // The resource name of the organization to delete.
+  // Format: organizations/{organization}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/Organization"
+  ];
+
+  // If true, and the organization is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for UserService.ListOrganizations.
+message ListOrganizationsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time",
+      "display_name"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // @autogen
+  string filter = 1;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 2;
+
+  // @autogen.
+  string order_by = 3;
+
+  // Requested page size.
+  int32 page_size = 4 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListOrganizations` call.
+  string page_token = 5;
+}
+
+// Response message for UserService.ListOrganizations.
+message ListOrganizationsResponse {
+  // The list of organizations.
+  repeated malonaz.test.user.v1.Organization organizations = 1;
+
+  // A token to retrieve the next page.
+  string next_page_token = 2;
+}
+
+// Request message for UserService.BatchGetOrganizations.
+message BatchGetOrganizationsRequest {
+  // The resource names of the organizations to retrieve.
+  // Format: organizations/{organization}
+  // A maximum of 1000 organizations can be retrieved in a batch.
+  repeated string names = 1 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "user.test.malonaz.com/Organization"
+  ];
+}
+
+// Response message for UserService.BatchGetOrganizations.
+message BatchGetOrganizationsResponse {
+  // Organizations requested.
+  repeated malonaz.test.user.v1.Organization organizations = 1;
+}
