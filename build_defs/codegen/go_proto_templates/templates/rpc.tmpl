@@ -296,10 +296,6 @@ package {{ .PackageName }}
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
             }
 
-            {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
-                // Set the update time.
-	              request.{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
-            {{- end }}
             {{- if $etag }}
                 // Capture the etag.
                 etag := request.Get{{ $resourceGoName }}().GetEtag()
@@ -330,6 +326,10 @@ package {{ .PackageName }}
             if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
               return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
             }
+            {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
+                // Set the update time.
+	              patched{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
+            {{- end }}
             {{ if $etag }}
             { // Compute the new etag.
               var err error
