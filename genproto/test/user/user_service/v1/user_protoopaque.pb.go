@@ -11,7 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
-	v1 "github.com/malonaz/core/genproto/testuser/v1"
+	v1 "github.com/malonaz/core/genproto/test/user/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -810,7 +810,7 @@ const file_malonaz_test_user_user_service_v1_user_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB2\xfaA\x1c\n" +
 	"\x1auser.test.malonaz.com/User\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"I\n" +
 	"\x15BatchGetUsersResponse\x120\n" +
-	"\x05users\x18\x01 \x03(\v2\x1a.malonaz.test.user.v1.UserR\x05usersB;Z9github.com/malonaz/core/genproto/testuser/user_service/v1b\x06proto3"
+	"\x05users\x18\x01 \x03(\v2\x1a.malonaz.test.user.v1.UserR\x05usersB<Z:github.com/malonaz/core/genproto/test/user/user_service/v1b\x06proto3"
 
 var file_malonaz_test_user_user_service_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_test_user_user_service_v1_user_proto_goTypes = []any{

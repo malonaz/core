@@ -9,10 +9,9 @@
 package v1
 
 import (
-	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
-	v1 "github.com/malonaz/core/genproto/testuser/v1"
+	v1 "github.com/malonaz/core/genproto/test/user/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -31,7 +30,7 @@ var File_malonaz_test_user_user_service_v1_user_service_proto protoreflect.FileD
 
 const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto2\xef\x14\n" +
+	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto2\xef\x14\n" +
 	"\vUserService\x12\xd6\x01\n" +
 	"\x12CreateOrganization\x12<.malonaz.test.user.user_service.v1.CreateOrganizationRequest\x1a\".malonaz.test.user.v1.Organization\"^\xdaA\forganization´-$\n" +
 	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02!:\forganization\"\x11/v1/organizations\x12\xc3\x01\n" +
@@ -61,7 +60,7 @@ const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\rBatchGetUsers\x127.malonaz.test.user.user_service.v1.BatchGetUsersRequest\x1a8.malonaz.test.user.user_service.v1.BatchGetUsersResponse\"b\xdaA\fparent,names´-\x1c\n" +
 	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*}/users:batchGet\x1a\x8e\x01\xcaA\x15user.test.malonaz.com\x82\x91$;\n" +
 	".malonaz.test.user.user_service.v1.organization\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$3\n" +
-	"&malonaz.test.user.user_service.v1.user\x12\x05\b\x80\x9a\x9e\x018\x01@\x01B;Z9github.com/malonaz/core/genproto/testuser/user_service/v1b\x06proto3"
+	"&malonaz.test.user.user_service.v1.user\x12\x05\b\x80\x9a\x9e\x018\x01@\x01B<Z:github.com/malonaz/core/genproto/test/user/user_service/v1b\x06proto3"
 
 var file_malonaz_test_user_user_service_v1_user_service_proto_goTypes = []any{
 	(*CreateOrganizationRequest)(nil),     // 0: malonaz.test.user.user_service.v1.CreateOrganizationRequest

@@ -11,7 +11,7 @@ import "malonaz/test/user/user_service/v1/user.proto";
 import "malonaz/test/user/v1/organization.proto";
 import "malonaz/test/user/v1/user.proto";
 
-option go_package = "github.com/malonaz/core/genproto/testuser/user_service/v1";
+option go_package = "github.com/malonaz/core/genproto/test/user/user_service/v1";
 
 // UserService provides CRUD operations for managing organizations and users.
 service UserService {

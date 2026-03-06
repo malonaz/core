@@ -9,7 +9,7 @@ import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/test/user/v1/user.proto";
 
-option go_package = "github.com/malonaz/core/genproto/testuser/user_service/v1";
+option go_package = "github.com/malonaz/core/genproto/test/user/user_service/v1";
 
 // Request message for UserService.CreateUser.
 message CreateUserRequest {

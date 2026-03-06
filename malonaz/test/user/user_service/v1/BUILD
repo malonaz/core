@@ -17,7 +17,7 @@ grpc_library(
         "user_service.proto",
     ],
     additional_context = {
-        GO_IMPORT_PATH: "github.com/malonaz/core/genproto/testuser/user_service/v1",
+        GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/user/user_service/v1",
         GENERATE_GO_NATS: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],

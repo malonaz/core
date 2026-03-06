@@ -13,20 +13,13 @@ go_service_src(
 )
 
 go_library(
-    name = "library_service",
-    srcs = [
-        "runtime.go",
-        ":service.tmpl.go",
-    ],
+    name = "user_service",
+    srcs = [":service.tmpl.go"],
     test_only = True,
     visibility = ["//..."],
     deps = [
-        "//go/aip",
-        "//go/grpc/middleware",
         "//go/nats",
-        "//go/test/library/library_service/rpc",
-        "//go/test/library/store",
-        "//malonaz/test/library/v1",
-        "//third_party/go:google.golang.org__grpc__metadata",
+        "//go/test/user/store",
+        "//go/test/user/user_service/rpc",
     ],
 )

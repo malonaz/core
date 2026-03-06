@@ -231,7 +231,7 @@ const file_malonaz_test_user_v1_organization_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x01\xeaA_\n" +
 	"\"user.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganizationҦ\x04\x00\x8a\x91$6\n" +
-	".malonaz.test.user.user_service.v1.organization\x10\x01\x18\x01 \x01B.Z,github.com/malonaz/core/genproto/testuser/v1b\x06proto3"
+	".malonaz.test.user.user_service.v1.organization\x10\x01\x18\x01 \x01B/Z-github.com/malonaz/core/genproto/test/user/v1b\x06proto3"
 
 var file_malonaz_test_user_v1_organization_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_test_user_v1_organization_proto_goTypes = []any{

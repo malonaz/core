@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 
-option go_package = "github.com/malonaz/core/genproto/testuser/v1";
+option go_package = "github.com/malonaz/core/genproto/test/user/v1";
 
 // Organization represents a tenant organization.
 message Organization {
