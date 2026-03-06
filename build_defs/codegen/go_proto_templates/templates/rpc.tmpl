@@ -112,7 +112,7 @@ package {{ .PackageName }}
         {{- range $childPr := $pr.Children }}
             {{- if $childPr.Singleton }}
 	              {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-	              {{- $modelOpts := getModelOpts $childMessage }}
+	              {{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
                 {{- if $modelOpts }}
                     {{- $singletonChildren = append $singletonChildren $childPr }}
                 {{ end }}
@@ -120,7 +120,7 @@ package {{ .PackageName }}
         {{ end }}
         {{- $softDeletable := $rpc.Message.Desc.Fields.ByName "delete_time" }}
         {{- $etag := $rpc.Message.Desc.Fields.ByName "etag" }}
-        {{- $modelOpts := getModelOpts $rpc.Message -}}
+        {{- $modelOpts := getExt $rpc.Message.Desc "malonaz.codegen.model.v1.model_opts" -}}
         {{ $hasRequestID := false }}
         {{- range $method := $service.Methods -}}
             {{ $rpc := parseRPC $method }}
@@ -547,9 +547,10 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
 
        // Construct where clause.
        conditions := make([]string, {{ len $pr.PatternVariables }})
+       {{- $lastIdx := sub (len $pr.PatternVariables) 1 }}
        {{- range $idx, $id := $pr.PatternVariables }}
          {{- $dbColumn := printf "%s_id" ($id | snakecase) -}}
-          {{- if and (eq $idx 0) $modelOpts.IdColumnName }}{{ $dbColumn = $modelOpts.IdColumnName }}{{ end }}
+          {{- if and (eq $idx $lastIdx) $modelOpts.GetIdColumnName }}{{ $dbColumn = $modelOpts.GetIdColumnName }}{{ end }}
           conditions[{{ $idx }}] = "{{ $dbColumn }} = $" + {{ fqn "strconv" "Itoa" }}(len(whereParams) + {{ add $idx 1 }})
        {{- end }}
        whereParams = append(whereParams, {{ $pr.PatternVariableIDs true }})

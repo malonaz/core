@@ -3,4 +3,4 @@ directories:
   - name: user
     migrations:
       - filename: 001_init.sql
-        hash: 3b5c604a63f8a79ac375f83f3b2e60d9
+        hash: d35d52577f346b80392c218c2cdb87f9

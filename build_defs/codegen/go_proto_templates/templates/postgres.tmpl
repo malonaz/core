@@ -2,7 +2,7 @@
 {{ $file := .File }}
 {{ $skip := true }}
 {{ range $message := $file.Messages -}}
-	{{- $modelOpts := getModelOpts . -}}
+	{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 	  {{- if $modelOpts -}}{{ $skip = false }}{{- end }}
 {{- end -}}
 {{ if $skip }}
@@ -42,7 +42,7 @@ func New(client *{{ fqnCore "go/postgres" "Client" }}) *Store {
 {{/* ################### VAR COLUMNS ################### */}}
 var (
 	{{ range $message := $file.Messages -}}
-		{{- $modelOpts := getModelOpts . -}}
+		{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 		  {{- if not $modelOpts -}}{{ continue }}{{- end }}
 		{{ $message.GoIdent.GoName }}PostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
 	{{- end -}}
@@ -50,7 +50,7 @@ var (
 
 {{/* ################### TYPE DEFINITIONS ################### */}}
 {{ range $message := $file.Messages -}}
-	{{- $modelOpts := getModelOpts . -}}
+	{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 	{{- if not $modelOpts -}}{{ continue }}{{- end }}
 	{{- $pr := parseResourceFromMessage $message }}
 
@@ -60,26 +60,27 @@ var (
 	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
 	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
   {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
-	{{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.TableName (empty $modelOpts.TableName) }}
+	{{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
   {{- $whereConditions := list }}
-	{{- $placeholders := list }}
-	{{- range $i, $var := $pr.PatternVariables }}
-		{{ if and (eq $i 0) $modelOpts.IdColumnName }}
-      {{- $whereConditions = append $whereConditions (printf "%s = $%%d" $modelOpts.IdColumnName) }}
-			{{- $placeholders = append $placeholders (printf "%s = $%d" $modelOpts.IdColumnName (add $i 1)) }}
-		{{ else }}
+    {{- $placeholders := list }}
+    {{- $lastIdx := sub (len $pr.PatternVariables) 1 }}
+    {{- range $i, $var := $pr.PatternVariables }}
+        {{ if and (eq $i $lastIdx) $modelOpts.GetIdColumnName }}
+      {{- $whereConditions = append $whereConditions (printf "%s = $%%d" $modelOpts.GetIdColumnName) }}
+            {{- $placeholders = append $placeholders (printf "%s = $%d" $modelOpts.GetIdColumnName (add $i 1)) }}
+        {{ else }}
       {{- $whereConditions = append $whereConditions (printf "%s_id = $%%d" $var) }}
-			{{- $placeholders = append $placeholders (printf "%s_id = $%d" $var (add $i 1)) }}
-		{{ end }}
-	{{- end }}
+            {{- $placeholders = append $placeholders (printf "%s_id = $%d" $var (add $i 1)) }}
+        {{ end }}
+    {{- end }}
   {{- $whereClause := join " AND " $whereConditions }}
 	{{- $placeholderDeclarations := (join " AND " $placeholders) }}
 	{{- $columnNames := $pr.PatternVariableIDs false }}
 	{{- $identifier := "" }}
 	{{- if not $pr.Singleton }} {{ $identifier = $pr.PatternVariableID false }}{{ end }}
-	{{ if $modelOpts.IdColumnName }}
-		{{ $identifier = $modelOpts.IdColumnName }}
-		{{ $columnNames = $columnNames | replace ($pr.PatternVariableID false) $modelOpts.IdColumnName }}
+	{{ if $modelOpts.GetIdColumnName }}
+		{{ $identifier = $modelOpts.GetIdColumnName }}
+		{{ $columnNames = $columnNames | replace ($pr.PatternVariableID false) $modelOpts.GetIdColumnName }}
 	{{ end }}
   {{ $etag := $message.Desc.Fields.ByName "etag" }}
 
@@ -100,7 +101,7 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
 		{{- range $childPr := $pr.Children }}
 			{{- if $childPr.Singleton }}
 				{{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-				{{- $modelOpts := getModelOpts $childMessage }}
+				{{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
 				{{- if $modelOpts }}
 					{{- $singletonChildren = append $singletonChildren $childPr }}
 				{{ end }}
@@ -122,8 +123,8 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
 				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
 				{{ range $i, $childPr := $singletonChildren }}
 					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-					{{- $modelOpts := getModelOpts $message }}
-					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
+					{{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
+					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
 					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
 				{{ end }}
 
@@ -182,8 +183,8 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
     query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
     {{ range $i, $childPr := $singletonChildren }}
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-        {{- $modelOpts := getModelOpts $message }}
-        {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.TableName (empty $modelOpts.TableName) }}
+        {{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
+        {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
         query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
     {{ end }}
 

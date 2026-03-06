@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"text/template"
@@ -14,7 +13,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 var (
@@ -85,9 +83,6 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"fieldType":   fieldType,
 		"zeroValue":   zeroValue,
 		"unquote":     unquote,
-
-		// Opts functions
-		"getModelOpts": getModelOpts,
 	}
 	for k, v := range additional {
 		se.funcMap[k] = v
@@ -162,19 +157,4 @@ func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {
 	}
 	ext := proto.GetExtension(proto.Message(options), extType)
 	return ext, nil
-}
-
-func getModelOpts(message *protogen.Message) (*modelpb.ModelOpts, error) {
-	options := message.Desc.Options()
-	if options == nil {
-		return nil, nil
-	}
-	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](options, modelpb.E_ModelOpts)
-	if errors.Is(err, pbutil.ErrExtensionNotFound) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("message %s: %w", message.Desc.FullName(), err)
-	}
-	return modelOpts, nil
 }

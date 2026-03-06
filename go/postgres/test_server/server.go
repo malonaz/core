@@ -1,4 +1,18 @@
-// Package testserver is used to run a lightweight Postgres server for testing purposes.
+// Package testserver runs a lightweight Postgres server for testing.
+//
+// A [Server] manages the full lifecycle of a temporary Postgres instance:
+// initialization, configuration, startup, and shutdown. The data directory
+// is removed on shutdown, ensuring test isolation.
+//
+// [RunWithPostgres] is a convenience function for TestMain that starts a
+// server, runs migrations, executes tests, and cleans up:
+//
+//	func TestMain(m *testing.M) {
+//	    testserver.RunWithPostgres(ctx, m, logger, &client,
+//	        extensionLoader, extensionDirs,
+//	        migrationLoader, migrationDirs,
+//	    )
+//	}
 package testserver
 
 import (
@@ -17,101 +31,81 @@ import (
 	"github.com/malonaz/core/go/postgres/migrator/migrations"
 )
 
-var (
-	dbInstance *postgres.Client
-)
-
 const (
-	defaultHost     = "localhost"
-	defaultPort     = 5432
-	defaultDatabase = "postgres"
-	defaultUser     = "postgres"
-	defaultPassword = "postgres"
-
+	defaultHost          = "localhost"
+	defaultPort          = 5432
+	defaultDatabase      = "postgres"
+	defaultUser          = "postgres"
+	defaultPassword      = "postgres"
+	defaultMaxConns      = 10
 	defaultDataDirectory = "/tmp/db"
-	socketFilepath       = "postgres_socket"
-	configFilepath       = "postgresql.conf"
-	logFilepath          = "postgresql.log"
+
+	socketDirectory = "postgres_socket"
+	configFilename  = "postgresql.conf"
+	logFilename     = "postgresql.log"
 )
 
-// Config holds a Server config.
+// Config holds configuration for a test Postgres [Server].
 type Config struct {
-	Host     string
-	Port     int
-	User     string
-	Database string
-	Password string
-	MaxConns int
-
-	// DataDirectory is used to use a data directory other than the default one.
+	Host          string
+	Port          int
+	User          string
+	Database      string
+	Password      string
+	MaxConns      int
 	DataDirectory string
 }
 
-// Server controls a Postgres instance.
+// applyDefaults fills any zero-valued fields with sensible defaults.
+func (c *Config) applyDefaults() {
+	if c.Host == "" {
+		c.Host = defaultHost
+	}
+	if c.Port == 0 {
+		c.Port = defaultPort
+	}
+	if c.User == "" {
+		c.User = defaultUser
+	}
+	if c.Database == "" {
+		c.Database = defaultDatabase
+	}
+	if c.Password == "" {
+		c.Password = defaultPassword
+	}
+	if c.MaxConns == 0 {
+		c.MaxConns = defaultMaxConns
+	}
+	if c.DataDirectory == "" {
+		c.DataDirectory = defaultDataDirectory
+	}
+}
+
+// Server controls the lifecycle of a temporary Postgres instance.
 type Server struct {
-	log    *slog.Logger
-	config Config
-
-	// Keep track of binaries to ensure they are cleaned up after.
-	initJob  *binary.Binary
-	startJob *binary.Binary
-	stopJob  *binary.Binary
+	log         *slog.Logger
+	config      Config
+	postgresDir string
 }
 
-// NewServer instantiates and returns a new Server.
-func NewServer(config Config, log *slog.Logger) (*Server, error) {
-	// Apply defaults to config if not provided.
-	if config.Host == "" {
-		config.Host = defaultHost
-	}
-	if config.Port == 0 {
-		config.Port = defaultPort
-	}
-	if config.User == "" {
-		config.User = defaultUser
-	}
-	if config.Database == "" {
-		config.Database = defaultDatabase
-	}
-	if config.Password == "" {
-		config.Password = defaultPassword
-	}
-	if config.DataDirectory == "" {
-		config.DataDirectory = defaultDataDirectory
-	}
-	if config.MaxConns == 0 {
-		config.MaxConns = 10
-	}
-
-	// Start relevant binaries.
-	postgresDir := getPostgresBinaryDir()
-	binaryPath := func(name string) string { return filepath.Join(postgresDir, name) }
-	initJob, err := binary.New(binaryPath("initdb"), "--no-locale", "--encoding=UTF8", "--nosync", "-D", config.DataDirectory, "--auth", "trust", "-U", config.User)
-	if err != nil {
-		return nil, fmt.Errorf("could not instantiate init job: %w", err)
-	}
-	initJob.WithName("postgres-initdb").WithLogger(log).AsJob()
-	startJob, err := binary.New(binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "start")
-	if err != nil {
-		return nil, fmt.Errorf("could not instantiate start job: %w", err)
-	}
-	startJob.WithName("postgres-start").WithPort(config.Port).WithLogger(log).AsJob()
-	stopJob, err := binary.New(binaryPath("pg_ctl"), "-D", config.DataDirectory, "-l", config.DataDirectory+logFilepath, "stop", "--mode", "immediate")
-	if err != nil {
-		return nil, fmt.Errorf("could not instantiate stop job: %w", err)
-	}
-	stopJob.WithName("postgres-stop").WithLogger(log).AsJob()
+// NewServer returns a new [Server] with the given configuration.
+// Zero-valued config fields are populated with defaults.
+func NewServer(config Config) *Server {
+	config.applyDefaults()
 	return &Server{
-		log:      log,
-		config:   config,
-		initJob:  initJob,
-		startJob: startJob,
-		stopJob:  stopJob,
-	}, nil
+		log:         slog.Default(),
+		config:      config,
+		postgresDir: getPostgresBinaryDir(),
+	}
 }
 
-// GetOpts returns this server's postgres.Opts.
-func (s *Server) GetOpts() *postgres.Opts {
+func (s *Server) WithLogger(log *slog.Logger) *Server {
+	s.log = log
+	return s
+}
+
+// Opts returns the [postgres.Opts] needed to connect to this server.
+func (s *Server) Opts() *postgres.Opts {
 	return &postgres.Opts{
 		Host:     s.config.Host,
 		Port:     s.config.Port,
@@ -122,54 +116,99 @@ func (s *Server) GetOpts() *postgres.Opts {
 	}
 }
 
-// Run runs this server.
-func (s *Server) Run() error {
-	if err := s.initJob.RunAsJob(); err != nil {
-		return fmt.Errorf("could not run init job: %w", err)
+// Client returns a new [postgres.Client] configured for this server.
+func (s *Server) Client() *postgres.Client {
+	return postgres.NewClient(s.Opts())
+}
+
+// Start initializes and starts the Postgres instance. It creates the data
+// directory via initdb, writes a tuned-for-testing configuration, and
+// starts the server. The call blocks until Postgres is accepting connections.
+func (s *Server) Start(ctx context.Context) error {
+	if err := s.initDatabase(); err != nil {
+		return fmt.Errorf("init database: %w", err)
 	}
-	if err := s.writeConfigToDisk(); err != nil {
-		return fmt.Errorf("could not start server: %w", err)
+	if err := s.writeConfig(); err != nil {
+		return fmt.Errorf("write config: %w", err)
 	}
 	if err := s.createSocketDirectory(); err != nil {
-		return fmt.Errorf("could not start server: %w", err)
+		return fmt.Errorf("create socket directory: %w", err)
 	}
-	if err := s.startJob.RunAsJob(); err != nil {
-		return fmt.Errorf("could not run start job: %w", err)
+	if err := s.startPostgres(); err != nil {
+		return fmt.Errorf("start postgres: %w", err)
 	}
 	return nil
 }
 
-// Shutdown gracefully terminates the Postgres binaries.
+// Shutdown stops the Postgres instance and removes the data directory.
 func (s *Server) Shutdown() error {
-	// Run the stop job, then exit all binaries, though they should have all exited already
-	// given that they are jobs. Better safe than sorry to catch any funky logs though.
-	if err := s.stopJob.RunAsJob(); err != nil {
-		return fmt.Errorf("could not run stop job: %w", err)
+	if err := s.stopPostgres(); err != nil {
+		return fmt.Errorf("stop postgres: %w", err)
 	}
-	s.stopJob.Exit()
-	s.startJob.Exit()
-	s.initJob.Exit()
 	if err := os.RemoveAll(s.config.DataDirectory); err != nil {
-		return fmt.Errorf("could not delete Postgresql data directory: %w", err)
+		return fmt.Errorf("remove data directory %s: %w", s.config.DataDirectory, err)
 	}
 	return nil
 }
 
-// GetClient instantiates and returns a *postgres.Client.
-func (s *Server) GetClient() *postgres.Client {
-	return postgres.NewClient(s.GetOpts())
+// initDatabase runs initdb to create the data directory.
+func (s *Server) initDatabase() error {
+	initJob, err := binary.New(
+		s.binaryPath("initdb"),
+		"--no-locale", "--encoding=UTF8", "--nosync",
+		"-D", s.config.DataDirectory,
+		"--auth", "trust",
+		"-U", s.config.User,
+	)
+	if err != nil {
+		return err
+	}
+	return initJob.WithName("postgres-initdb").WithLogger(s.log).Run()
 }
 
+// startPostgres runs pg_ctl start with -w to block until the server is
+// accepting connections.
+func (s *Server) startPostgres() error {
+	startJob, err := binary.New(
+		s.binaryPath("pg_ctl"),
+		"-D", s.config.DataDirectory,
+		"-l", filepath.Join(s.config.DataDirectory, logFilename),
+		"-w", "start",
+	)
+	if err != nil {
+		return err
+	}
+	return startJob.WithName("postgres-start").WithLogger(s.log).Run()
+}
+
+// stopPostgres runs pg_ctl stop in immediate mode.
+func (s *Server) stopPostgres() error {
+	stopJob, err := binary.New(
+		s.binaryPath("pg_ctl"),
+		"-D", s.config.DataDirectory,
+		"-l", filepath.Join(s.config.DataDirectory, logFilename),
+		"stop", "--mode", "immediate",
+	)
+	if err != nil {
+		return err
+	}
+	return stopJob.WithName("postgres-stop").WithLogger(s.log).Run()
+}
+
+// createSocketDirectory creates the Unix domain socket directory inside
+// the data directory.
 func (s *Server) createSocketDirectory() error {
-	if err := os.MkdirAll(s.config.DataDirectory+socketFilepath, os.ModeDir|os.ModePerm); err != nil {
-		return fmt.Errorf("could not create socket directory: %w", err)
-	}
-	return nil
+	socketDir := filepath.Join(s.config.DataDirectory, socketDirectory)
+	return os.MkdirAll(socketDir, os.ModeDir|os.ModePerm)
 }
 
-func (s *Server) writeConfigToDisk() error {
-	m := map[string]string{
-		"unix_socket_directories":    "'" + s.config.DataDirectory + socketFilepath + "'",
+// writeConfig writes a postgresql.conf tuned for testing speed into the
+// data directory. Durability features (fsync, WAL) are disabled since
+// test data is ephemeral.
+func (s *Server) writeConfig() error {
+	socketDir := filepath.Join(s.config.DataDirectory, socketDirectory)
+	keyToValue := map[string]string{
+		"unix_socket_directories":    "'" + socketDir + "'",
 		"listen_addresses":           s.config.Host,
 		"port":                       strconv.Itoa(s.config.Port),
 		"max_connections":            "200",
@@ -187,70 +226,82 @@ func (s *Server) writeConfigToDisk() error {
 		"checkpoint_timeout":         "86400",
 		"autovacuum":                 "off",
 	}
-	f, err := os.Create(s.config.DataDirectory + configFilepath)
-	defer f.Close()
-	if err != nil {
-		return fmt.Errorf("could not create postgresql.conffile: %w", err)
-	}
-	writer := bufio.NewWriter(f)
-	for key, value := range m {
-		if _, err := fmt.Fprintf(writer, "%s = %s\n", key, value); err != nil {
-			return fmt.Errorf("could not write to postgresql.conf file: %w", err)
-		}
 
+	configPath := filepath.Join(s.config.DataDirectory, configFilename)
+	file, err := os.Create(configPath)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", configPath, err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	for key, value := range keyToValue {
+		if _, err := fmt.Fprintf(writer, "%s = %s\n", key, value); err != nil {
+			return fmt.Errorf("write to %s: %w", configPath, err)
+		}
 	}
 	if err := writer.Flush(); err != nil {
-		return fmt.Errorf("could not flush writer to postgresql.conf file: %w", err)
+		return fmt.Errorf("flush %s: %w", configPath, err)
 	}
 	return nil
 }
 
-// RunWithPostgres will start a temporary postgres instance, run all migrations, run all tests, then terminate postgres.
-// It will also write the client to the input client parameter.
+// binaryPath returns the absolute path to a Postgres binary by name.
+func (s *Server) binaryPath(name string) string {
+	return filepath.Join(s.postgresDir, name)
+}
+
+// RunWithPostgres starts a temporary Postgres instance, runs migrations,
+// executes the test suite, then shuts everything down. It writes the
+// connected client to the provided pointer so tests can access it.
+// Intended for use in TestMain.
 func RunWithPostgres(
-	ctx context.Context, m *testing.M, logger *slog.Logger, client **postgres.Client,
-	extensionLoader migrations.FileLoader, extensionDirectories []string,
-	migrationLoader migrations.FileLoader, migrationDirectories []string,
+	ctx context.Context,
+	m *testing.M,
+	logger *slog.Logger,
+	client **postgres.Client,
+	extensionLoader migrations.FileLoader,
+	extensionDirectories []string,
+	migrationLoader migrations.FileLoader,
+	migrationDirectories []string,
 ) {
-	fn := func() int {
-		server, err := NewServer(Config{}, logger)
-		if err != nil {
-			panic(err)
-		}
+	run := func() int {
+		server := NewServer(Config{}).WithLogger(logger)
 		defer server.Shutdown()
-		if err := server.Run(); err != nil {
-			panic(fmt.Errorf("running server: %w", err))
-		}
-		*client = server.GetClient()
-		if err := (*client).Start(ctx); err != nil {
-			panic(err)
+		if err := server.Start(ctx); err != nil {
+			panic(fmt.Errorf("start test postgres: %w", err))
 		}
 
-		migrator := migrator.NewMigrator(*client)
+		*client = server.Client()
+		if err := (*client).Start(ctx); err != nil {
+			panic(fmt.Errorf("connect to test postgres: %w", err))
+		}
+
+		postgresMigrator := migrator.NewMigrator(*client)
 		if len(extensionDirectories) > 0 {
-			if err := migrator.RunMigrations(ctx, extensionLoader, extensionDirectories...); err != nil {
-				panic(err)
+			if err := postgresMigrator.RunMigrations(ctx, extensionLoader, extensionDirectories...); err != nil {
+				panic(fmt.Errorf("run extensions: %w", err))
 			}
 		}
-		if err := migrator.RunMigrations(ctx, migrationLoader, migrationDirectories...); err != nil {
-			panic(err)
+		if err := postgresMigrator.RunMigrations(ctx, migrationLoader, migrationDirectories...); err != nil {
+			panic(fmt.Errorf("run migrations: %w", err))
 		}
 
-		code := m.Run()
-		return code
+		return m.Run()
 	}
-	os.Exit(fn())
+	os.Exit(run())
 }
 
-// ClearTables truncates tables and restarts any identity such as auto-increments
+// ClearTables truncates the given tables and restarts identity columns
+// (e.g. auto-increment sequences). Useful in test setup/teardown.
 func ClearTables(ctx context.Context, client *postgres.Client, tables ...string) {
 	for _, table := range tables {
-		query := fmt.Sprintf("TRUNCATE %s RESTART IDENTITY", table)
-		client.Exec(ctx, query)
+		client.Exec(ctx, fmt.Sprintf("TRUNCATE %s RESTART IDENTITY", table))
 	}
 }
 
-// DropTables drops all tables from the migration.
+// DropTables drops the migration tracking table and each of the given
+// tables if they exist.
 func DropTables(ctx context.Context, client *postgres.Client, tables ...string) {
 	client.Exec(ctx, "DROP TABLE IF EXISTS migration")
 	for _, table := range tables {

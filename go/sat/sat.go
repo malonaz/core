@@ -35,6 +35,7 @@ type Config struct {
 	PostgresServerConfig PostgresServerConfig
 	EnvironmentVariables map[string]string
 	Nats                 bool
+	Debug                bool
 }
 
 // PostgresServerConfig holds connection details for the test Postgres instance.
@@ -77,6 +78,9 @@ func (s *SAT) Start(ctx context.Context) error {
 		Format:   logging.FormatRaw,
 		FilePath: "sat.log",
 	}
+	if s.config.Debug {
+		loggingOpts.FilePath = ""
+	}
 	rawLogger, err := logging.NewLogger(loggingOpts)
 	if err != nil {
 		return fmt.Errorf("instantiating raw logger: %w", err)
@@ -110,34 +114,28 @@ func (s *SAT) Start(ctx context.Context) error {
 			User:     s.config.PostgresServerConfig.User,
 			Password: s.config.PostgresServerConfig.Password,
 		}
-		postgresServer, err := postgrestestserver.NewServer(serverConfig, rawLogger)
-		if err != nil {
-			return fmt.Errorf("instantiating postgres: %w", err)
-		}
-		s.PostgresServer = postgresServer
+		s.PostgresServer = postgrestestserver.NewServer(serverConfig).WithLogger(rawLogger)
 
-		// binary.New takes (path, args...) — we use WithName to set the display name separately.
 		databaseInitializerBinary, err := binary.New(s.config.Initializer.Path, s.config.Initializer.Args...)
 		if err != nil {
 			return fmt.Errorf("instantiate database initializer binary: %w", err)
 		}
-		databaseInitializerBinary.WithLogger(rawLogger).WithName(s.config.Initializer.Name).AsJob()
+		databaseInitializerBinary.WithLogger(rawLogger).WithName(s.config.Initializer.Name)
 
 		databaseMigratorBinary, err := binary.New(s.config.Migrator.Path, s.config.Migrator.Args...)
 		if err != nil {
 			return fmt.Errorf("instantiate database migrator binary: %w", err)
 		}
-		databaseMigratorBinary.WithLogger(rawLogger).WithName(s.config.Migrator.Name).AsJob()
+		databaseMigratorBinary.WithLogger(rawLogger).WithName(s.config.Migrator.Name)
 
-		// Start Postgres first, then run the initializer and migrator as sequential jobs.
-		if err := s.PostgresServer.Run(); err != nil {
+		if err := s.PostgresServer.Start(ctx); err != nil {
 			return fmt.Errorf("running postgres server: %w", err)
 		}
-		if err := databaseInitializerBinary.RunAsJob(); err != nil {
+		if err := databaseInitializerBinary.Run(); err != nil {
 			return fmt.Errorf("running database initializer: %w", err)
 		}
-		if err := databaseMigratorBinary.RunAsJob(); err != nil {
-			return fmt.Errorf("running database migrator binary: %w", err)
+		if err := databaseMigratorBinary.Run(); err != nil {
+			return fmt.Errorf("running database migrator: %w", err)
 		}
 	}
 
@@ -150,14 +148,20 @@ func (s *SAT) Start(ctx context.Context) error {
 		}
 		sutBinaries = append(sutBinaries, sutBinary.WithName(sut.Name).WithPort(sut.Port))
 	}
-	s.sutsWorker = binary.NewWorker("suts", sutBinaries).WithLogger(rawLogger)
-	s.sutsWorker.Run()
+
+	s.sutsWorker = binary.NewWorker("suts", sutBinaries).WithLogger(rawLogger).OnExit(func(err error) {
+		if err != nil {
+			panic(fmt.Errorf("SUTs worker errored out: %w", err))
+		}
+	})
+	if err := s.sutsWorker.RunAsync(); err != nil {
+		return fmt.Errorf("running SUTs worker: %w", err)
+	}
 	return nil
 }
 
-// Cleanup gracefully shuts down all SUTs and the Postgres server.
 func (s *SAT) Cleanup() {
-	s.sutsWorker.Exit()
+	s.sutsWorker.Stop()
 	if s.PostgresServer != nil {
 		s.PostgresServer.Shutdown()
 	}

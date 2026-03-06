@@ -118,7 +118,7 @@ package {{ .PackageName }}
 
 {{/* ################### VAR COLUMNS ################### */}}
 {{ range $message := $file.Messages -}}
-    {{-  $modelOpts := getModelOpts . -}}
+    {{-  $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
     {{- if not $modelOpts -}}{{ continue }}{{- end }}
     {{ $pr := parseResourceFromMessage $message }}
     var Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already exists")
@@ -133,19 +133,21 @@ package {{ .PackageName }}
 {{/* ################### TYPE DEFINITIONS ################### */}}
 {{ "" }}
 {{ range $message := $file.Messages -}}
-    {{-  $modelOpts := getModelOpts . -}}
+    {{-  $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
     {{- if not $modelOpts -}}{{ continue }}{{- end -}}
     {{ $pr := parseResourceFromMessage $message }}
 
-		type {{ $message.GoIdent.GoName }} struct {
+    type {{ $message.GoIdent.GoName }} struct {
     {{- range $i, $id := $pr.PatternVariables }}
-        {{ if and (eq $i 0) $modelOpts.IdColumnName }}
+        {{ $lastIdx := sub (len $pr.PatternVariables) 1 }}
+        {{ if and (eq $i $lastIdx) $modelOpts.IdColumnName }}
             {{ if $pr.Singleton }}{{ fail (printf "singleton resource %s declares a id_column_name" $pr.Desc.Type) }}{{ end }}
             {{ $id | camelcase }}ID string `db:"{{ $modelOpts.IdColumnName }}"`
         {{ else }}
             {{ $id | camelcase }}ID string `db:"{{ $id }}_id"`
         {{ end }}
     {{- end }}
+
 		{{- range $field := $message.Fields -}}
         {{-  $fieldOpts := (getExt .Desc "malonaz.codegen.model.v1.field_opts") -}}
 				{{- if or $fieldOpts.GetSkip (eq $field.Desc.TextName "name") }}{{- continue -}}{{- end }}
@@ -167,7 +169,7 @@ package {{ .PackageName }}
 
 {{- /* ################### FromPb Conversions ################### */ -}}
 {{- range $message := $file.Messages -}}
-    {{-  $modelOpts := getModelOpts . -}}
+    {{-  $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 		{{- if not $modelOpts -}}{{ continue }}{{- end }}
     {{ $pr := parseResourceFromMessage $message }}
 
@@ -263,7 +265,7 @@ package {{ .PackageName }}
 
 {{- /* ################### ToPb Conversions ################### */ -}}
 {{- range $message := $file.Messages -}}
-    {{-  $modelOpts := getModelOpts . -}}
+    {{-  $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 		{{- if not $modelOpts -}}{{ continue }}{{- end -}}
     {{ $pr := parseResourceFromMessage $message }}
 
@@ -350,7 +352,7 @@ package {{ .PackageName }}
 
 {{- /* ################### ParseName Utilities ################### */ -}}
 {{- range $message := $file.Messages -}}
-    {{-  $modelOpts := getModelOpts . -}}
+    {{-  $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
 		{{- if not $modelOpts -}}{{ continue }}{{- end -}}
     {{ $pr := parseResourceFromMessage $message }}
 

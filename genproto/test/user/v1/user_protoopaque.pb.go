@@ -345,7 +345,7 @@ var File_malonaz_test_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xfb\x06\n" +
+	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9c\a\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -356,16 +356,18 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"deleteTime\x12-\n" +
 	"\fdisplay_name\x18\x05 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x02R\vdisplayName\x122\n" +
-	"\remail_address\x18\x06 \x01(\tB\r\xbaH\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\femailAddress\x12)\n" +
-	"\fphone_number\x18\a \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumber\x12\xd4\x01\n" +
+	"\remail_address\x18\x06 \x01(\tB\r\xbaH\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\femailAddress\x12C\n" +
+	"\fphone_number\x18\a \x01(\tB \xba\xea\x0f\x16\n" +
+	"\x14phone_number_renamed\x82\xb5\x18\x02\x10\x01R\vphoneNumber\x12\xd4\x01\n" +
 	"\x06labels\x18\b \x03(\v2&.malonaz.test.user.v1.User.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
 	"\x04etag\x18\t \x01(\tR\x04etag\x12F\n" +
 	"\bmetadata\x18\n" +
 	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x91\x01\xeaAT\n" +
-	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\x04\x12\x02id\x8a\x91$.\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x98\x01\xeaAT\n" +
+	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\v\n" +
+	"\x05user_\x12\x02id\x8a\x91$.\n" +
 	"&malonaz.test.user.user_service.v1.user\x10\x01\x18\x01 \x01\"Y\n" +
 	"\fUserMetadata\x12-\n" +
 	"\x12preferred_language\x18\x01 \x01(\tR\x11preferredLanguage\x12\x1a\n" +

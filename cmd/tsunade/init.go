@@ -22,43 +22,44 @@ func setup(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("instantiating raw logger: %w", err)
 	}
-	binaryLoggingArgs := func(name string, args ...any) []string {
-		return []string{
-			fmt.Sprintf("--logging.format=%s", opts.Logging.Format),
-			fmt.Sprintf("--logging.field=binary:%s", fmt.Sprintf(name, args...)),
-		}
-	}
 
 	env := os.Getenv("ENV")
 	for _, database := range databases {
-		var initializer *binary.Binary
-		var migrator *binary.Binary
-		if env == "" {
-			// Run the initializer binaries.
-			initializer = binary.MustNew(
-				fmt.Sprintf("plz-out/bin/go/%s/migrations/initializer", database),
-				binaryLoggingArgs("postgres_initializer_job_%s", database)...,
-			).WithLogger(rawLogger).AsJob()
-			migrator = binary.MustNew(
-				fmt.Sprintf("plz-out/bin/go/%s/migrations/migrator", database),
-				binaryLoggingArgs("postgres_migrator_job_%s", database)...,
-			).WithLogger(rawLogger).AsJob()
-		} else {
-			initializer = binary.MustNew(
-				fmt.Sprintf("tsunade-%s-postgres-initializer", database),
-				binaryLoggingArgs("postgres_initializer_job_%s", database)...,
-			).WithLogger(rawLogger).AsJob()
-			migrator = binary.MustNew(
-				fmt.Sprintf("tsunade-%s-postgres-migrator", database),
-				binaryLoggingArgs("postgres_migrator_job_%s", database)...,
-			).WithLogger(rawLogger).AsJob()
+		initializerPath, migratorPath := localPaths(database)
+		if env != "" {
+			initializerPath, migratorPath = remotePaths(database)
 		}
-		if err := initializer.RunAsJob(); err != nil {
+
+		loggingArgs := func(name string) []string {
+			return []string{
+				fmt.Sprintf("--logging.format=%s", opts.Logging.Format),
+				fmt.Sprintf("--logging.field=binary:%s", name),
+			}
+		}
+
+		initializerName := fmt.Sprintf("postgres_initializer_job_%s", database)
+		initializer := binary.MustNew(initializerPath, loggingArgs(initializerName)...)
+		initializer.WithName(initializerName).WithLogger(rawLogger)
+		if err := initializer.Run(); err != nil {
 			return fmt.Errorf("running %s db initializer: %w", database, err)
 		}
-		if err := migrator.RunAsJob(); err != nil {
+
+		migratorName := fmt.Sprintf("postgres_migrator_job_%s", database)
+		migrator := binary.MustNew(migratorPath, loggingArgs(migratorName)...)
+		migrator.WithName(migratorName).WithLogger(rawLogger)
+		if err := migrator.Run(); err != nil {
 			return fmt.Errorf("running %s db migrator: %w", database, err)
 		}
 	}
 	return nil
+}
+
+func localPaths(database string) (string, string) {
+	return fmt.Sprintf("plz-out/bin/go/%s/migrations/initializer", database),
+		fmt.Sprintf("plz-out/bin/go/%s/migrations/migrator", database)
+}
+
+func remotePaths(database string) (string, string) {
+	return fmt.Sprintf("tsunade-%s-postgres-initializer", database),
+		fmt.Sprintf("tsunade-%s-postgres-migrator", database)
 }

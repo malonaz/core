@@ -26,7 +26,10 @@ message User {
     updated: true
     deleted: true
   };
-  option (malonaz.codegen.model.v1.model_opts) = {id_column_name: "id"};
+  option (malonaz.codegen.model.v1.model_opts) = {
+    table_name: "user_"
+    id_column_name: "id"
+  };
 
   // The resource name of the user.
   // Format: organizations/{organization}/users/{user}
@@ -55,7 +58,10 @@ message User {
   ];
 
   // The phone number of the user.
-  string phone_number = 7 [(malonaz.canonicalize.v1.field).phone_number = true];
+  string phone_number = 7 [
+    (malonaz.canonicalize.v1.field).phone_number = true,
+    (malonaz.codegen.model.v1.field_opts).column_name = "phone_number_renamed"
+  ];
 
   // The labels on this user.
   map<string, string> labels = 8 [
