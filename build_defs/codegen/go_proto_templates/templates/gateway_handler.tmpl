@@ -9,7 +9,7 @@
 {{- define "fieldMaskOpts" -}}
 {{- $handlerOpts := . -}}
 {{- if $handlerOpts.GetFieldMask.GetPaths -}}
-ctx = {{ fqnCore "go/grpc/middleware" "WithFieldMask" }}(ctx, "{{ $handlerOpts.FieldMask.Paths | join "," }}")
+ctx = {{ fqnCore "go/grpc/middleware" "WithFieldMask" }}(ctx, "{{ $handlerOpts.GetFieldMask.GetPaths | join "," }}")
 {{- end -}}
 {{- end -}}
 
@@ -121,8 +121,8 @@ package {{ .PackageName }}
 {{ range $service := $file.Services }}
 {{- range $method := $service.Methods }}
 {{ $handlerOpts := getExt $method.Desc "malonaz.codegen.gateway.v1.opts" }}
-{{ if not $handlerOpts.Proxy }}{{ continue }}{{ end }}
-{{- $proxyParts := splitList "." $handlerOpts.Proxy -}}
+{{ if not $handlerOpts.GetProxy }}{{ continue }}{{ end }}
+{{- $proxyParts := splitList "." $handlerOpts.GetProxy -}}
 {{- $proxyMethod := index $proxyParts (sub (len $proxyParts) 1) -}}
 {{- $proxyService := index $proxyParts (sub (len $proxyParts) 2) -}}
 
