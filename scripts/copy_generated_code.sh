@@ -13,25 +13,43 @@ if [[ -z "$targets" ]]; then
   exit 0
 fi
 
-for target in $targets; do
-  label=$(plz query print "$target" --label=copy_generated_code: 2>/dev/null || true)
-  [[ -z "$label" ]] && continue
+declare -A TARGET_LABELS
+while IFS=$'\t' read -r target label; do
+  [[ -n "$label" ]] && TARGET_LABELS["$target"]="$label"
+done < <(
+  for target in $targets; do
+    echo "$target"
+  done | xargs -P8 -I{} bash -c 'label=$(plz query print "{}" --label=copy_generated_code: 2>/dev/null); [[ -n "$label" ]] && printf "%s\t%s\n" "{}" "$label"'
+)
 
+labeled_targets=("${!TARGET_LABELS[@]}")
+if [[ ${#labeled_targets[@]} -eq 0 ]]; then
+  echo "No labeled targets, skipping"
+  exit 0
+fi
+
+build_output=$(plz build "${labeled_targets[@]}" 2>&1 | grep "plz-out/gen/" || true)
+
+IFS=$'\n' sorted_targets=($(for t in "${labeled_targets[@]}"; do pkg="${t%%:*}"; pkg="${pkg#//}"; printf '%d\t%s\n' "${#pkg}" "$t"; done | sort -rn | cut -f2))
+unset IFS
+declare -A CLAIMED_FILES
+
+for target in "${sorted_targets[@]}"; do
+  label="${TARGET_LABELS[$target]}"
   IFS=':' read -r strip_prefix dest_dir <<< "$label"
   dest_dir="${dest_dir:-.}"
-
   DEST_DIRS["$dest_dir"]=1
 
-  output=$(plz build "$target" 2>&1 | grep "plz-out/gen/" || true)
+  pkg="${target%%:*}"
+  pkg="${pkg#//}"
 
-  for file in $output; do
-    [[ "$file" != plz-out/gen/* ]] && continue
+  for file in $build_output; do
+    [[ "$file" != plz-out/gen/${pkg}/* ]] && continue
+    [[ -v CLAIMED_FILES["$file"] ]] && continue
+    CLAIMED_FILES["$file"]=1
 
     rel_path="${file#plz-out/gen/}"
-
-    if [[ -n "$strip_prefix" ]]; then
-      rel_path="${rel_path#$strip_prefix/}"
-    fi
+    [[ -n "$strip_prefix" ]] && rel_path="${rel_path#$strip_prefix/}"
 
     dir=$(dirname "$rel_path")
     filename=$(basename "$file")
@@ -40,14 +58,12 @@ for target in $targets; do
     mkdir -p "$dest_dir/$dir"
     cp -f "$file" "$dest_file"
     echo "✓ Copied $rel_path -> $dest_file"
-
     ACTIVE_FILES["$dest_file"]=1
   done
 done
 
 for dest_dir in "${!DEST_DIRS[@]}"; do
-  [[ ! -d "$dest_dir" ]] && continue
-  [[ "$dest_dir" == "." ]] && continue
+  [[ ! -d "$dest_dir" || "$dest_dir" == "." ]] && continue
 
   while read -r f; do
     [[ ! -v ACTIVE_FILES["$f"] ]] && rm -f "$f" && echo "🗑 Removed stale $f"

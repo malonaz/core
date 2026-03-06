@@ -30,7 +30,6 @@ go_library(
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",
-        "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
