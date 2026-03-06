@@ -59,6 +59,23 @@ func Paginate[T any](ctx context.Context, request, apiCallFunction any, opts ...
 	return allItems, nil
 }
 
+func Iterator[T any](ctx context.Context, request, apiCallFunction any, opts ...grpc.CallOption) iter.Seq2[T, error] {
+	return func(yield func(T, error) bool) {
+		for items, err := range PageIterator[T](ctx, request, apiCallFunction, opts...) {
+			if err != nil {
+				var zero T
+				yield(zero, err)
+				return
+			}
+			for _, item := range items {
+				if !yield(item, nil) {
+					return
+				}
+			}
+		}
+	}
+}
+
 // PageIterator returns an iterator that yields slices of T, one per page.
 func PageIterator[T any](ctx context.Context, request, apiCallFunction any, opts ...grpc.CallOption) iter.Seq2[[]T, error] {
 	return func(yield func([]T, error) bool) {

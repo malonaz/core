@@ -8,12 +8,15 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 
 	natsserver "github.com/nats-io/nats-server/v2/server"
 	natstestserver "github.com/nats-io/nats-server/v2/test"
 
 	"github.com/malonaz/core/go/binary"
 	"github.com/malonaz/core/go/logging"
+	"github.com/malonaz/core/go/nats"
 	postgrestestserver "github.com/malonaz/core/go/postgres/test_server"
 )
 
@@ -54,6 +57,9 @@ type SAT struct {
 	sutsWorker     *binary.Worker
 	PostgresServer *postgrestestserver.Server
 	natsServer     *natsserver.Server
+	natsOptions    *natsserver.Options
+	natsClient     *nats.Client
+	natsClientOnce sync.Once
 }
 
 // WithLogger sets this SAT's logger.
@@ -69,6 +75,28 @@ func New(config *Config) *SAT {
 		log:    slog.Default(),
 		config: config,
 	}
+}
+
+func (s *SAT) GetNatsClient(ctx context.Context) (*nats.Client, error) {
+	var err error
+	s.natsClientOnce.Do(func() {
+		natsOpts := &nats.Opts{
+			Host:           s.natsOptions.Host,
+			Port:           s.natsOptions.Port,
+			TotalWait:      30 * time.Second,
+			ReconnectDelay: time.Second,
+		}
+		s.natsClient, err = nats.NewClient(natsOpts)
+		if err != nil {
+			err = fmt.Errorf("creating nats client: %w", err)
+			return
+		}
+		if err = s.natsClient.Start(ctx); err != nil {
+			err = fmt.Errorf("starting nats client: %w", err)
+			return
+		}
+	})
+	return s.natsClient, err
 }
 
 func (s *SAT) Start(ctx context.Context) error {
@@ -90,12 +118,12 @@ func (s *SAT) Start(ctx context.Context) error {
 
 	if s.config.Nats {
 		s.log.InfoContext(ctx, "starting nats server")
-		natsOptions := natstestserver.DefaultTestOptions
-		natsOptions.NoLog = false
-		natsOptions.JetStream = true
-		s.natsServer = natstestserver.RunServer(&natsOptions)
-		environmentVariables["NATS_HOST"] = natsOptions.Host
-		environmentVariables["NATS_PORT"] = strconv.Itoa(natsOptions.Port)
+		s.natsOptions = &natstestserver.DefaultTestOptions
+		s.natsOptions.NoLog = false
+		s.natsOptions.JetStream = true
+		s.natsServer = natstestserver.RunServer(s.natsOptions)
+		environmentVariables["NATS_HOST"] = s.natsOptions.Host
+		environmentVariables["NATS_PORT"] = strconv.Itoa(s.natsOptions.Port)
 	}
 
 	// Merge caller-provided env vars into the global set, then export them all.

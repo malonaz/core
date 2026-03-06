@@ -380,6 +380,20 @@ package {{ .PackageName }}
             }
 
         {{- else if $rpc.Delete }}
+        {{ if $natsEventOpts.GetDeleted }}
+           func (s *{{ $serverGoName }}) publishResourceDeletedEvent(ctx {{ fqn "context" "Context" }}, resource *{{ qgi $rpc.Message.GoIdent }}) error {
+            resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}(resource)
+            if err != nil {
+              return status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
+            }
+            subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("deleted")
+            if err := s.natsClient.Publish(ctx, subject, resourceDeletedEvent); err != nil {
+	           	return status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
+	          }
+            return nil
+           }
+        {{ end }}
+
             func (s *{{ $serverGoName }}) Delete{{ $resourceGoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             // STEP 1: Parse resource name.
             {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(request.Name)
@@ -417,7 +431,16 @@ package {{ .PackageName }}
                 if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyDeletedFqi }}) {
                 if request.AllowMissing {
                  get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.Name }
-                 return s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+                 {{ $resourceGoName | untitle }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+                 if err != nil {
+                 return nil, err
+                 }
+            {{- if $natsEventOpts.GetDeleted }}
+               if err := s.publishResourceDeletedEvent(ctx, {{ $resourceGoName | untitle }}); err != nil {
+                 return nil, err
+               }
+            {{- end }}
+                 return {{ $resourceGoName | untitle }}, nil
                 }
                 return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
                 }
@@ -431,17 +454,11 @@ package {{ .PackageName }}
                 }
 
             {{ if $natsEventOpts.GetDeleted }}
-              // STEP 4: Publish event.
-                resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}({{ $resourceGoName | untitle }})
-                if err != nil {
-                  return nil, status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
-                }
-                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("deleted")
-               if err := s.natsClient.Publish(ctx, subject, resourceDeletedEvent); err != nil {
-	                	return nil, status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
-	             }
+            // STEP 4: Publish event.
+               if err := s.publishResourceDeletedEvent(ctx, {{ $resourceGoName | untitle }}); err != nil {
+                 return nil, err
+               }
             {{ end }}
-
                 return {{ $resourceGoName | untitle }}, nil
 
             {{ else }}
@@ -466,16 +483,11 @@ package {{ .PackageName }}
               // STEP 5: Publish event.
                 {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
                 if err != nil {
-			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
-		        }
-                resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}({{ $resourceGoName | untitle }})
-                if err != nil {
-                  return nil, status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
+			             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+		            }
+                if err := s.publishResourceDeletedEvent(ctx, {{ $resourceGoName | untitle }}); err != nil {
+                   return nil, err
                 }
-                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Subject("deleted")
-               if err := s.natsClient.Publish(ctx, subject, resourceDeletedEvent); err != nil {
-	                	return nil, status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
-	             }
             {{ end }}
                 return &{{ fqn "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
             {{ end }}

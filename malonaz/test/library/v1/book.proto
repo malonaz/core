@@ -23,6 +23,7 @@ message Book {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.library_service.v1.book"
+    created: true
     updated: true
     deleted: true
   };

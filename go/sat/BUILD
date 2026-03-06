@@ -10,6 +10,7 @@ go_library(
     deps = [
         "//go/binary",
         "//go/logging",
+        "//go/nats",
         "//go/postgres/test_server",
         "//third_party/go:github.com__nats-io__nats-server__v2__server",
         "//third_party/go:github.com__nats-io__nats-server__v2__test",

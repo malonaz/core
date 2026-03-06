@@ -259,7 +259,11 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 		if errors.Is(err, model.ErrChatAlreadyDeleted) {
 			if request.AllowMissing {
 				getChatRequest := &v1.GetChatRequest{Name: request.Name}
-				return s.GetChat(ctx, getChatRequest)
+				chat, err := s.GetChat(ctx, getChatRequest)
+				if err != nil {
+					return nil, err
+				}
+				return chat, nil
 			}
 			return nil, status.Errorf(codes.NotFound, "chat already deleted").Err()
 		}

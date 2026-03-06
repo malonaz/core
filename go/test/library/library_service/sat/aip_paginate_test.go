@@ -183,3 +183,71 @@ func TestAIPPaginate_Shelves(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, shelves, 4)
 }
+
+func TestAIPPaginate_Iterator(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	for i := range 5 {
+		createTestAuthor(t, organizationParent, fmt.Sprintf("Iterator Author %02d", i))
+	}
+
+	t.Run("YieldsAllItems", func(t *testing.T) {
+		t.Parallel()
+		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
+			Parent:   organizationParent,
+			PageSize: 2,
+		}
+		var authors []*librarypb.Author
+		for author, err := range aip.Iterator[*librarypb.Author](ctx, listAuthorsRequest, libraryServiceClient.ListAuthors) {
+			require.NoError(t, err)
+			authors = append(authors, author)
+		}
+		require.Len(t, authors, 5)
+	})
+
+	t.Run("EarlyBreak", func(t *testing.T) {
+		t.Parallel()
+		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
+			Parent:   organizationParent,
+			PageSize: 2,
+		}
+		var authors []*librarypb.Author
+		for author, err := range aip.Iterator[*librarypb.Author](ctx, listAuthorsRequest, libraryServiceClient.ListAuthors) {
+			require.NoError(t, err)
+			authors = append(authors, author)
+			if len(authors) == 3 {
+				break
+			}
+		}
+		require.Len(t, authors, 3)
+	})
+
+	t.Run("SinglePage", func(t *testing.T) {
+		t.Parallel()
+		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
+			Parent:   organizationParent,
+			PageSize: 100,
+		}
+		var authors []*librarypb.Author
+		for author, err := range aip.Iterator[*librarypb.Author](ctx, listAuthorsRequest, libraryServiceClient.ListAuthors) {
+			require.NoError(t, err)
+			authors = append(authors, author)
+		}
+		require.Len(t, authors, 5)
+	})
+
+	t.Run("EmptyResult", func(t *testing.T) {
+		t.Parallel()
+		emptyParent := getOrganizationParent()
+		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
+			Parent:   emptyParent,
+			PageSize: 10,
+		}
+		var authors []*librarypb.Author
+		for author, err := range aip.Iterator[*librarypb.Author](ctx, listAuthorsRequest, libraryServiceClient.ListAuthors) {
+			require.NoError(t, err)
+			authors = append(authors, author)
+		}
+		require.Empty(t, authors)
+	})
+}

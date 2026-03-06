@@ -344,10 +344,10 @@ func TestBookList(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book List Author")
-	shelf := createTestShelf(t, organizationParent, "Book List Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("BasicList", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Basic List Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createTestBook(t, shelf.Name, author.Name, "List Book A")
 		createTestBook(t, shelf.Name, author.Name, "List Book B")
 
@@ -356,11 +356,12 @@ func TestBookList(t *testing.T) {
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 2)
+		require.Len(t, listBooksResponse.Books, 2)
 	})
 
 	t.Run("FilterByTitle", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Title Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createTestBook(t, shelf.Name, author.Name, "Unique Title XYZ123")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
@@ -375,8 +376,10 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterByAuthorReference", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Author Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		secondAuthor := createTestAuthor(t, organizationParent, "Second List Author")
 		createTestBook(t, shelf.Name, secondAuthor.Name, "Second Author Book")
+		createTestBook(t, shelf.Name, author.Name, "First Author Book")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
@@ -384,7 +387,7 @@ func TestBookList(t *testing.T) {
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 1)
+		require.Len(t, listBooksResponse.Books, 1)
 		for _, book := range listBooksResponse.Books {
 			require.Equal(t, secondAuthor.Name, book.Author)
 		}
@@ -392,6 +395,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterByPublicationYear_Comparison", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter PubYear Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -404,13 +408,25 @@ func TestBookList(t *testing.T) {
 		_, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
 		require.NoError(t, err)
 
+		createBookRequest2 := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:           "New Book",
+				Author:          author.Name,
+				PublicationYear: 2020,
+				Metadata:        &librarypb.BookMetadata{},
+			},
+		}
+		_, err = libraryServiceClient.CreateBook(ctx, createBookRequest2)
+		require.NoError(t, err)
+
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `publication_year < 1900`,
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 1)
+		require.Len(t, listBooksResponse.Books, 1)
 		for _, book := range listBooksResponse.Books {
 			require.Less(t, book.PublicationYear, int32(1900))
 		}
@@ -418,6 +434,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterByISBN", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter ISBN Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -441,6 +458,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterByMetadataLanguage", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter MetaLang Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -463,6 +481,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterByLabelsHasKey", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter LabelKey Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -481,11 +500,12 @@ func TestBookList(t *testing.T) {
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 1)
+		require.Len(t, listBooksResponse.Books, 1)
 	})
 
 	t.Run("FilterByLabelsKeyValue", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter LabelKV Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -509,6 +529,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterWithWildcardString", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Wildcard Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createTestBook(t, shelf.Name, author.Name, "Wildcard Prefix Book ZZZ")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
@@ -517,11 +538,12 @@ func TestBookList(t *testing.T) {
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 1)
+		require.Len(t, listBooksResponse.Books, 1)
 	})
 
 	t.Run("FilterWithANDandOR", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter ANDOR Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -557,7 +579,9 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterWithNOT", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter NOT Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createTestBook(t, shelf.Name, author.Name, "NOT Filter Exclude Me")
+		createTestBook(t, shelf.Name, author.Name, "NOT Filter Keep Me")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
@@ -565,6 +589,7 @@ func TestBookList(t *testing.T) {
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 1)
 		for _, book := range listBooksResponse.Books {
 			require.NotEqual(t, "NOT Filter Exclude Me", book.Title)
 		}
@@ -572,17 +597,21 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterPresenceCheck", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Presence Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		createTestBook(t, shelf.Name, author.Name, "Presence Check Book")
+
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `title:*`,
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(listBooksResponse.Books), 1)
+		require.Len(t, listBooksResponse.Books, 1)
 	})
 
 	t.Run("FilterNotAllowed_PageCount", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Bad PageCount Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `page_count > 100`,
@@ -593,6 +622,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterNotAllowed_Etag", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Bad Etag Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `etag = "something"`,
@@ -603,6 +633,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("FilterInvalidSyntax", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filter Bad Syntax Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `title = `,
@@ -613,6 +644,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByAllowed_Title", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order Title Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc",
@@ -623,6 +655,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByAllowed_PublicationYear", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order PubYear Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "publication_year desc",
@@ -633,6 +666,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByAllowed_MultipleFields", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order Multi Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc, create_time desc",
@@ -643,6 +677,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByNotAllowed_Author", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order Bad Author Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "author asc",
@@ -653,6 +688,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByNotAllowed_PageCount", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order Bad PageCount Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "page_count asc",
@@ -663,6 +699,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("OrderByInvalidSyntax", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Order Bad Syntax Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title ascending",
@@ -673,16 +710,16 @@ func TestBookList(t *testing.T) {
 
 	t.Run("Pagination", func(t *testing.T) {
 		t.Parallel()
-		paginationShelf := createTestShelf(t, organizationParent, "Pagination Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		shelf := createTestShelf(t, organizationParent, "Pagination Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		for i := range 3 {
-			createTestBook(t, paginationShelf.Name, author.Name, fmt.Sprintf("Paginated Book %d", i))
+			createTestBook(t, shelf.Name, author.Name, fmt.Sprintf("Paginated Book %d", i))
 		}
 
 		var allBooks []*librarypb.Book
 		pageToken := ""
 		for {
 			listBooksRequest := &libraryservicepb.ListBooksRequest{
-				Parent:    paginationShelf.Name,
+				Parent:    shelf.Name,
 				PageSize:  1,
 				PageToken: pageToken,
 			}
@@ -699,12 +736,12 @@ func TestBookList(t *testing.T) {
 
 	t.Run("DefaultOrdering", func(t *testing.T) {
 		t.Parallel()
-		defaultShelf := createTestShelf(t, organizationParent, "Default Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
-		createTestBook(t, defaultShelf.Name, author.Name, "First Created")
-		createTestBook(t, defaultShelf.Name, author.Name, "Second Created")
+		shelf := createTestShelf(t, organizationParent, "Default Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		createTestBook(t, shelf.Name, author.Name, "First Created")
+		createTestBook(t, shelf.Name, author.Name, "Second Created")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
-			Parent: defaultShelf.Name,
+			Parent: shelf.Name,
 		}
 		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		require.NoError(t, err)
@@ -724,6 +761,7 @@ func TestBookList(t *testing.T) {
 
 	t.Run("Protovalidation_PageSizeTooLarge", func(t *testing.T) {
 		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "PageSize Too Large Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:   shelf.Name,
 			PageSize: 1001,
