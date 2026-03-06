@@ -128,6 +128,55 @@ func TestBatchGetAuthors(t *testing.T) {
 		_, err := libraryServiceClient.BatchGetAuthors(ctx, batchGetAuthorsRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
+
+	t.Run("WildcardParent_FullWildcard", func(t *testing.T) {
+		t.Parallel()
+		batchGetAuthorsRequest := &libraryservicepb.BatchGetAuthorsRequest{
+			Parent: "organizations/-",
+			Names:  []string{author1.Name, author2.Name},
+		}
+		batchGetAuthorsResponse, err := libraryServiceClient.BatchGetAuthors(ctx, batchGetAuthorsRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetAuthorsResponse.Authors, 2)
+	})
+
+	t.Run("WildcardName_Rejected", func(t *testing.T) {
+		t.Parallel()
+		batchGetAuthorsRequest := &libraryservicepb.BatchGetAuthorsRequest{
+			Parent: organizationParent,
+			Names:  []string{organizationParent + "/authors/-"},
+		}
+		_, err := libraryServiceClient.BatchGetAuthors(ctx, batchGetAuthorsRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_ChildParentMismatch", func(t *testing.T) {
+		t.Parallel()
+		otherOrganizationParent := getOrganizationParent()
+		otherAuthor := createTestAuthor(t, otherOrganizationParent, "Other Org Author")
+		batchGetAuthorsRequest := &libraryservicepb.BatchGetAuthorsRequest{
+			Parent: organizationParent,
+			Names:  []string{otherAuthor.Name},
+		}
+		_, err := libraryServiceClient.BatchGetAuthors(ctx, batchGetAuthorsRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_CrossParent", func(t *testing.T) {
+		t.Parallel()
+		otherOrganizationParent := getOrganizationParent()
+		otherAuthor := createTestAuthor(t, otherOrganizationParent, "Other Org Author")
+		batchGetAuthorsRequest := &libraryservicepb.BatchGetAuthorsRequest{
+			Parent: "organizations/-",
+			Names:  []string{author1.Name, otherAuthor.Name},
+		}
+		batchGetAuthorsResponse, err := libraryServiceClient.BatchGetAuthors(ctx, batchGetAuthorsRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetAuthorsResponse.Authors, 2)
+		require.Equal(t, author1.Name, batchGetAuthorsResponse.Authors[0].Name)
+		require.Equal(t, otherAuthor.Name, batchGetAuthorsResponse.Authors[1].Name)
+	})
+
 }
 
 func TestBatchGetShelves(t *testing.T) {
@@ -233,6 +282,54 @@ func TestBatchGetShelves(t *testing.T) {
 		}
 		_, err := libraryServiceClient.BatchGetShelves(ctx, batchGetShelvesRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent", func(t *testing.T) {
+		t.Parallel()
+		batchGetShelvesRequest := &libraryservicepb.BatchGetShelvesRequest{
+			Parent: "organizations/-",
+			Names:  []string{shelf1.Name, shelf2.Name},
+		}
+		batchGetShelvesResponse, err := libraryServiceClient.BatchGetShelves(ctx, batchGetShelvesRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetShelvesResponse.Shelves, 2)
+	})
+
+	t.Run("WildcardName_Rejected", func(t *testing.T) {
+		t.Parallel()
+		batchGetShelvesRequest := &libraryservicepb.BatchGetShelvesRequest{
+			Parent: organizationParent,
+			Names:  []string{organizationParent + "/shelves/-"},
+		}
+		_, err := libraryServiceClient.BatchGetShelves(ctx, batchGetShelvesRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_ChildParentMismatch", func(t *testing.T) {
+		t.Parallel()
+		otherOrganizationParent := getOrganizationParent()
+		otherShelf := createTestShelf(t, otherOrganizationParent, "Other Org Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		batchGetShelvesRequest := &libraryservicepb.BatchGetShelvesRequest{
+			Parent: organizationParent,
+			Names:  []string{otherShelf.Name},
+		}
+		_, err := libraryServiceClient.BatchGetShelves(ctx, batchGetShelvesRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_CrossParent", func(t *testing.T) {
+		t.Parallel()
+		otherOrganizationParent := getOrganizationParent()
+		otherShelf := createTestShelf(t, otherOrganizationParent, "Other Org Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		batchGetShelvesRequest := &libraryservicepb.BatchGetShelvesRequest{
+			Parent: "organizations/-",
+			Names:  []string{shelf1.Name, otherShelf.Name},
+		}
+		batchGetShelvesResponse, err := libraryServiceClient.BatchGetShelves(ctx, batchGetShelvesRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetShelvesResponse.Shelves, 2)
+		require.Equal(t, shelf1.Name, batchGetShelvesResponse.Shelves[0].Name)
+		require.Equal(t, otherShelf.Name, batchGetShelvesResponse.Shelves[1].Name)
 	})
 }
 
@@ -342,4 +439,63 @@ func TestBatchGetBooks(t *testing.T) {
 		_, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
+
+	t.Run("WildcardParent", func(t *testing.T) {
+		t.Parallel()
+		batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+			Parent: "organizations/-/shelves/-",
+			Names:  []string{book1.Name, book2.Name},
+		}
+		batchGetBooksResponse, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetBooksResponse.Books, 2)
+	})
+
+	t.Run("WildcardName_Rejected", func(t *testing.T) {
+		t.Parallel()
+		batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+			Parent: shelf.Name,
+			Names:  []string{shelf.Name + "/books/-"},
+		}
+		_, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_ChildParentMismatch", func(t *testing.T) {
+		t.Parallel()
+		otherShelf := createTestShelf(t, organizationParent, "Other Shelf For Books", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+		otherBook := createTestBook(t, otherShelf.Name, author.Name, "Other Shelf Book")
+		batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+			Parent: shelf.Name,
+			Names:  []string{otherBook.Name},
+		}
+		_, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("WildcardParent_CrossParent", func(t *testing.T) {
+		t.Parallel()
+		otherShelf := createTestShelf(t, organizationParent, "Other Shelf For Books", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+		otherBook := createTestBook(t, otherShelf.Name, author.Name, "Other Shelf Book")
+		batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+			Parent: "organizations/-/shelves/-",
+			Names:  []string{book1.Name, otherBook.Name},
+		}
+		batchGetBooksResponse, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetBooksResponse.Books, 2)
+		require.Equal(t, book1.Name, batchGetBooksResponse.Books[0].Name)
+		require.Equal(t, otherBook.Name, batchGetBooksResponse.Books[1].Name)
+	})
+
+	t.Run("Protovalidation_EmptyNameEntry", func(t *testing.T) {
+		t.Parallel()
+		batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+			Parent: shelf.Name,
+			Names:  []string{""},
+		}
+		_, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
 }
