@@ -255,25 +255,25 @@ func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.H
 
 		// Look for a health check response.
 		var healthCheckResponseFound bool
-		status.RangeErrorDetails[*grpc_health_v1.HealthCheckResponse](err, func(healthCheckResponse *grpc_health_v1.HealthCheckResponse) bool {
+		for healthCheckResponse := range status.ErrorDetails[*grpc_health_v1.HealthCheckResponse](err) {
 			servingStatus = healthCheckResponse.Status
 			logAttrs = append(logAttrs, "status", healthCheckResponse.Status.String())
 			healthCheckResponseFound = true
-			return false
-		})
+			break
+		}
 		if !healthCheckResponseFound {
 			logAttrs = append(logAttrs, "error", err)
 		}
 
 		// Some providers will provide a breakdown.
-		status.RangeErrorDetails[*grpc_health_v1.HealthListResponse](err, func(healthListResponse *grpc_health_v1.HealthListResponse) bool {
+		for healthListResponse := range status.ErrorDetails[*grpc_health_v1.HealthListResponse](err) {
 			for serviceName, serviceStatus := range healthListResponse.Statuses {
 				if serviceName != "" && serviceStatus.Status != grpc_health_v1.HealthCheckResponse_SERVING {
 					logAttrs = append(logAttrs, slog.Group(serviceName, "status", serviceStatus.Status.String()))
 				}
 			}
-			return false
-		})
+			break
+		}
 
 		// If startup has not completed, we do not log.
 		if s.startupCompleted {

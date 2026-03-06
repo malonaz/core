@@ -1,23 +1,26 @@
 package status
 
 import (
+	"iter"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
-// RangeErrorDetails extracts typed error details from a gRPC error.
-// For each detail matching the type parameter M, fn is called. Iteration
-// stops early if fn returns false or if the error does not carry a gRPC status.
-func RangeErrorDetails[M proto.Message](err error, fn func(M) bool) {
-	st, ok := status.FromError(err)
-	if !ok {
-		return
-	}
-	for _, detail := range st.Details() {
-		if m, ok := detail.(M); ok {
-			if !fn(m) {
-				return
+// ErrorDetails returns an iterator over the gRPC error details of type M attached to err.
+// If err does not carry a gRPC status, the iterator yields nothing.
+func ErrorDetails[M proto.Message](err error) iter.Seq[M] {
+	return func(yield func(M) bool) {
+		st, ok := status.FromError(err)
+		if !ok {
+			return
+		}
+		for _, detail := range st.Details() {
+			if m, ok := detail.(M); ok {
+				if !yield(m) {
+					return
+				}
 			}
 		}
 	}
