@@ -17,7 +17,7 @@ package {{ .PackageName }}
     {{ printf "%sStreamOptions" $service.GoName | untitle }}Val []*{{ fqnCore "genproto/nats/v1" "StreamOptions" }}
 
 {{- range $i, $stream := $streams }}
-    {{- $streamName := $stream.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "Stream%s" }}
+    {{- $streamName := $stream.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
     {{ printf "%sStreamOptions%s" $service.GoName $streamName | untitle }}Once {{ fqn "sync" "Once" }}
     {{ printf "%sStreamOptions%s" $service.GoName $streamName | untitle }}Val *{{ fqnCore "go/nats" "Stream" }}
 {{ end }}
@@ -31,7 +31,7 @@ package {{ .PackageName }}
   }
 
 {{- range $i, $stream := $streams }}
-  {{- $streamName := $stream.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "Stream%s" }}
+  {{- $streamName := $stream.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
   func Get{{ $service.GoName }}{{ $streamName }}() *{{ fqnCore "go/nats" "Stream" }} {
     {{ printf "%sStreamOptions%s" $service.GoName $streamName | untitle }}Once.Do(func() {
       {{ printf "%sStreamOptions%s" $service.GoName $streamName | untitle }}Val = {{ fqnCore "go/nats" "NewStream" }}(Get{{ $service.GoName }}StreamOptions()[{{ $i }}])

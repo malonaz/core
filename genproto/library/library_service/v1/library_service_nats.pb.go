@@ -13,11 +13,11 @@ import (
 var (
 	libraryServiceStreamOptionsOnce           sync.Once
 	libraryServiceStreamOptionsVal            []*v1.StreamOptions
-	libraryServiceStreamOptionsStreamBookOnce sync.Once
-	libraryServiceStreamOptionsStreamBookVal  *nats.Stream
+	libraryServiceStreamOptionsBookStreamOnce sync.Once
+	libraryServiceStreamOptionsBookStreamVal  *nats.Stream
 
-	libraryServiceStreamOptionsStreamShelfOnce sync.Once
-	libraryServiceStreamOptionsStreamShelfVal  *nats.Stream
+	libraryServiceStreamOptionsShelfStreamOnce sync.Once
+	libraryServiceStreamOptionsShelfStreamVal  *nats.Stream
 )
 
 func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
@@ -26,16 +26,16 @@ func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
 	})
 	return libraryServiceStreamOptionsVal
 }
-func GetLibraryServiceStreamBook() *nats.Stream {
-	libraryServiceStreamOptionsStreamBookOnce.Do(func() {
-		libraryServiceStreamOptionsStreamBookVal = nats.NewStream(GetLibraryServiceStreamOptions()[0])
+func GetLibraryServiceBookStream() *nats.Stream {
+	libraryServiceStreamOptionsBookStreamOnce.Do(func() {
+		libraryServiceStreamOptionsBookStreamVal = nats.NewStream(GetLibraryServiceStreamOptions()[0])
 	})
-	return libraryServiceStreamOptionsStreamBookVal
+	return libraryServiceStreamOptionsBookStreamVal
 }
 
-func GetLibraryServiceStreamShelf() *nats.Stream {
-	libraryServiceStreamOptionsStreamShelfOnce.Do(func() {
-		libraryServiceStreamOptionsStreamShelfVal = nats.NewStream(GetLibraryServiceStreamOptions()[1])
+func GetLibraryServiceShelfStream() *nats.Stream {
+	libraryServiceStreamOptionsShelfStreamOnce.Do(func() {
+		libraryServiceStreamOptionsShelfStreamVal = nats.NewStream(GetLibraryServiceStreamOptions()[1])
 	})
-	return libraryServiceStreamOptionsStreamShelfVal
+	return libraryServiceStreamOptionsShelfStreamVal
 }

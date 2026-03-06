@@ -14,8 +14,8 @@ package {{ .PackageName }}
     {{ $natsStreamOpts := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
     {{ if $natsStreamOpts }}
         {{ range $opts := $natsStreamOpts }}
-            {{ $natsStreamName := $opts.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "Stream%s" }}
-            {{ $serviceToNatsStreamNames = merge $serviceToNatsStreamNames (dict $service.GoName (append (default list (get $serviceToNatsStreamNames $service.GoName)) $natsStreamName)) }}
+            {{ $natsStreamName := $opts.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
+            {{ $serviceToNatsStreamNames = set $serviceToNatsStreamNames $service.GoName (append (default list (get $serviceToNatsStreamNames $service.GoName)) $natsStreamName) }}
         {{ end }}
     {{ end }}
     {{- $resourceList := list }}
@@ -96,7 +96,7 @@ package {{ .PackageName }}
         {{ if not $rpc }}{{ continue }}{{ end }}
         {{ $pr := $rpc.ParsedResource }}
         {{ $natsEventOpts := getExt $rpc.Message.Desc "malonaz.codegen.nats.v1.event" }}
-        {{ $natsStreamName := $natsEventOpts.GetStream | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "Stream%s" }}
+        {{ $natsStreamName := $natsEventOpts.GetStream | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
         {{ $storeInterface := printf "%s_%sStore" ($service.Desc.Name | toString | camelcase | untitle) $pr.SingularGoName }}
         {{- $resourceGoName := $pr.SingularGoName }}
         {{- $modelGoName := printf "%sModel" $resourceGoName }}
