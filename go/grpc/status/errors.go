@@ -159,7 +159,7 @@ func (e *Error) Status() *status.Status {
 
 // Proto returns a deep copy of the underlying google.rpc.Status proto.
 func (e *Error) Proto() *spb.Status {
-	return proto.Clone(e.status).(*spb.Status)
+	return proto.CloneOf(e.status)
 }
 
 // Err converts the Error into a standard Go error carrying the gRPC status.

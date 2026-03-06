@@ -2,6 +2,7 @@ package sat
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -73,9 +74,11 @@ func getShelf(t *testing.T, name string) *librarypb.Shelf {
 }
 
 func TestUpdate_SingleField(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("StringField", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "SingleField String Original")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -90,6 +93,7 @@ func TestUpdate_SingleField(t *testing.T) {
 	})
 
 	t.Run("IntegerField", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "SingleField Int Author")
 		shelf := createTestShelf(t, organizationParent, "SingleField Int Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "SingleField Int Book")
@@ -107,6 +111,7 @@ func TestUpdate_SingleField(t *testing.T) {
 	})
 
 	t.Run("EnumField", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "SingleField Enum Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -122,6 +127,7 @@ func TestUpdate_SingleField(t *testing.T) {
 	})
 
 	t.Run("ResourceReferenceField", func(t *testing.T) {
+		t.Parallel()
 		author1 := createTestAuthor(t, organizationParent, "SingleField Ref Author1")
 		author2 := createTestAuthor(t, organizationParent, "SingleField Ref Author2")
 		shelf := createTestShelf(t, organizationParent, "SingleField Ref Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
@@ -141,9 +147,11 @@ func TestUpdate_SingleField(t *testing.T) {
 }
 
 func TestUpdate_MultipleFields(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("TwoFields", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "MultiField Two Original")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -160,6 +168,7 @@ func TestUpdate_MultipleFields(t *testing.T) {
 	})
 
 	t.Run("AllSimpleAuthorFields", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "MultiField All Original")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -180,6 +189,7 @@ func TestUpdate_MultipleFields(t *testing.T) {
 	})
 
 	t.Run("MixedTypesOnBook", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "MultiField Mixed Author")
 		shelf := createTestShelf(t, organizationParent, "MultiField Mixed Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "MultiField Mixed Book")
@@ -204,9 +214,11 @@ func TestUpdate_MultipleFields(t *testing.T) {
 }
 
 func TestUpdate_NestedMessage(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("FullReplacement", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Nested Full Original"
 		author.Metadata = &librarypb.AuthorMetadata{
@@ -240,6 +252,7 @@ func TestUpdate_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("SingleSubField_PreservesSiblings", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Nested Sub Original"
 		author.Metadata = &librarypb.AuthorMetadata{
@@ -270,6 +283,7 @@ func TestUpdate_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("MultipleSubFields_PreservesSiblings", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Nested MultiSub Original"
 		author.Metadata = &librarypb.AuthorMetadata{
@@ -301,6 +315,7 @@ func TestUpdate_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("BookMetadataPartial", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Nested Book Author")
 		shelf := createTestShelf(t, organizationParent, "Nested Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "Nested Book Meta")
@@ -320,6 +335,7 @@ func TestUpdate_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("ShelfMetadataPartial_WithColumnRename", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "Nested Shelf Meta", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -335,9 +351,11 @@ func TestUpdate_NestedMessage(t *testing.T) {
 }
 
 func TestUpdate_Labels(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("SetOnEmpty", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Labels SetOnEmpty Author")
 		require.Empty(t, original.Labels)
 
@@ -354,6 +372,7 @@ func TestUpdate_Labels(t *testing.T) {
 	})
 
 	t.Run("ReplaceExisting", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Labels Replace Author"
 		author.Labels = map[string]string{"old-key": "old-value", "keep": "nope"}
@@ -381,6 +400,7 @@ func TestUpdate_Labels(t *testing.T) {
 	})
 
 	t.Run("ClearLabels", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Labels Clear Author"
 		author.Labels = map[string]string{"remove": "me"}
@@ -404,6 +424,7 @@ func TestUpdate_Labels(t *testing.T) {
 	})
 
 	t.Run("PreservedWhenUpdatingOtherFields", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Labels Preserved Author"
 		author.Labels = map[string]string{"keep": "this"}
@@ -428,9 +449,11 @@ func TestUpdate_Labels(t *testing.T) {
 }
 
 func TestUpdate_FieldPreservation(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("SingleFieldUpdatePreservesAll", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Preserve All Original"
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -445,7 +468,7 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 			DisplayName: "Preserve All Changed",
 		}, []string{"display_name"})
 
-		expected := proto.Clone(original).(*librarypb.Author)
+		expected := proto.CloneOf(original)
 		expected.DisplayName = "Preserve All Changed"
 		grpcrequire.Equal(t, expected, updated,
 			protocmp.IgnoreFields((*librarypb.Author)(nil), "update_time", "etag"))
@@ -460,6 +483,7 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 	})
 
 	t.Run("NestedUpdatePreservesTopLevel", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Nested Preserve Top"
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -482,6 +506,7 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 	})
 
 	t.Run("TopLevelUpdatePreservesNested", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Top Preserve Nested"
 		author.Metadata = &librarypb.AuthorMetadata{
@@ -506,6 +531,7 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 	})
 
 	t.Run("BookUpdatePreservesUnmaskedFields", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Preserve Book Author")
 		shelf := createTestShelf(t, organizationParent, "Preserve Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "Preserve Book Title")
@@ -515,7 +541,7 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 			Title: "Only Title Changed",
 		}, []string{"title"})
 
-		expected := proto.Clone(original).(*librarypb.Book)
+		expected := proto.CloneOf(original)
 		expected.Title = "Only Title Changed"
 		grpcrequire.Equal(t, expected, updated,
 			protocmp.IgnoreFields((*librarypb.Book)(nil), "update_time", "etag"))
@@ -523,9 +549,11 @@ func TestUpdate_FieldPreservation(t *testing.T) {
 }
 
 func TestUpdate_TimestampAndEtag(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("UpdateTimeAdvances", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Timestamp Advance Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -539,6 +567,7 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 	})
 
 	t.Run("CreateTimeUnchanged", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "CreateTime Unchanged Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -549,7 +578,27 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 		require.Equal(t, original.CreateTime.AsTime(), updated.CreateTime.AsTime())
 	})
 
+	t.Run("UpdateTimeAccurate", func(t *testing.T) {
+		t.Parallel()
+		original := createTestAuthor(t, organizationParent, "UpdateTime Accurate Author")
+
+		before := time.Now().UTC()
+		updated := updateAuthor(t, &librarypb.Author{
+			Name:      original.Name,
+			Biography: "Accurate timestamp test.",
+		}, []string{"biography"})
+		after := time.Now().UTC()
+
+		updateTime := updated.UpdateTime.AsTime()
+		require.True(t, !updateTime.Before(before), "update_time %v should be >= before %v", updateTime, before)
+		require.True(t, !updateTime.After(after), "update_time %v should be <= after %v", updateTime, after)
+
+		got := getAuthor(t, original.Name)
+		require.Equal(t, updated.UpdateTime, got.UpdateTime)
+	})
+
 	t.Run("EtagChanges", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Etag Change Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -562,6 +611,7 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 	})
 
 	t.Run("ConsecutiveUpdatesChangeEtag", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Consecutive Etag Author")
 
 		first := updateAuthor(t, &librarypb.Author{
@@ -580,6 +630,7 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 	})
 
 	t.Run("EtagMatchesGetAfterUpdate", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Etag Get Match Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -592,6 +643,7 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 	})
 
 	t.Run("DeleteTimeStaysNilAfterUpdate", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "DeleteTime Nil Author")
 		require.Nil(t, original.DeleteTime)
 
@@ -605,9 +657,11 @@ func TestUpdate_TimestampAndEtag(t *testing.T) {
 }
 
 func TestUpdate_ZeroValues(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("ClearStringField", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "ZeroVal String Author")
 		require.NotEmpty(t, original.Biography)
 
@@ -624,6 +678,7 @@ func TestUpdate_ZeroValues(t *testing.T) {
 	})
 
 	t.Run("SetIntegerToZero", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "ZeroVal Int Author")
 		shelf := createTestShelf(t, organizationParent, "ZeroVal Int Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "ZeroVal Int Book")
@@ -642,6 +697,7 @@ func TestUpdate_ZeroValues(t *testing.T) {
 	})
 
 	t.Run("SetPageCountToZero", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "ZeroVal Page Author")
 		shelf := createTestShelf(t, organizationParent, "ZeroVal Page Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "ZeroVal Page Book")
@@ -659,6 +715,7 @@ func TestUpdate_ZeroValues(t *testing.T) {
 	})
 
 	t.Run("ClearNestedMessageField", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "ZeroVal Nested Author"
 		author.Metadata = &librarypb.AuthorMetadata{
@@ -688,9 +745,11 @@ func TestUpdate_ZeroValues(t *testing.T) {
 }
 
 func TestUpdate_Canonicalization(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("EmailLowercased", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Canon Email Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -705,6 +764,7 @@ func TestUpdate_Canonicalization(t *testing.T) {
 	})
 
 	t.Run("PhoneNumberE164_US", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Canon Phone US Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -719,6 +779,7 @@ func TestUpdate_Canonicalization(t *testing.T) {
 	})
 
 	t.Run("PhoneNumberE164_French", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Canon Phone FR Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -730,6 +791,7 @@ func TestUpdate_Canonicalization(t *testing.T) {
 	})
 
 	t.Run("NestedMetadataEmailsCanonicalized", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Canon Nested Author"
 		author.Metadata = &librarypb.AuthorMetadata{Country: "US"}
@@ -754,6 +816,7 @@ func TestUpdate_Canonicalization(t *testing.T) {
 	})
 
 	t.Run("NestedMetadataPhonesCanonicalized", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.DisplayName = "Canon Nested Phone Author"
 		author.Metadata = &librarypb.AuthorMetadata{Country: "UK"}
@@ -779,9 +842,11 @@ func TestUpdate_Canonicalization(t *testing.T) {
 }
 
 func TestUpdate_ColumnNameReplacement(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("ExternalId", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "ColName ExtId Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -796,6 +861,7 @@ func TestUpdate_ColumnNameReplacement(t *testing.T) {
 	})
 
 	t.Run("CorrelationId2", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "ColName CorrId Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -810,6 +876,7 @@ func TestUpdate_ColumnNameReplacement(t *testing.T) {
 	})
 
 	t.Run("BothRenamedColumns", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "ColName Both Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -828,6 +895,7 @@ func TestUpdate_ColumnNameReplacement(t *testing.T) {
 	})
 
 	t.Run("RenamedColumnWithStandardColumn", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "ColName Mixed Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updated := updateShelf(t, &librarypb.Shelf{
@@ -845,6 +913,7 @@ func TestUpdate_ColumnNameReplacement(t *testing.T) {
 }
 
 func TestUpdate_Unauthorized(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	original := createTestAuthor(t, organizationParent, "Unauthorized Fields Author")
 
@@ -863,6 +932,7 @@ func TestUpdate_Unauthorized(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 				Author: &librarypb.Author{
 					Name: original.Name,
@@ -875,6 +945,7 @@ func TestUpdate_Unauthorized(t *testing.T) {
 	}
 
 	t.Run("BookLabelsNotInPaths", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Unauth Book Author")
 		shelf := createTestShelf(t, organizationParent, "Unauth Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		book := createTestBook(t, shelf.Name, author.Name, "Unauth Book")
@@ -891,6 +962,7 @@ func TestUpdate_Unauthorized(t *testing.T) {
 	})
 
 	t.Run("ShelfLabelsNotInPaths", func(t *testing.T) {
+		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Unauth Shelf Labels", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
@@ -905,6 +977,7 @@ func TestUpdate_Unauthorized(t *testing.T) {
 	})
 
 	t.Run("ShelfMetadataFullNotInPaths", func(t *testing.T) {
+		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Unauth Shelf Meta", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
@@ -920,9 +993,11 @@ func TestUpdate_Unauthorized(t *testing.T) {
 }
 
 func TestUpdate_InvalidMask(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("EmptyMask", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Invalid Empty Mask Author")
 
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -934,6 +1009,7 @@ func TestUpdate_InvalidMask(t *testing.T) {
 	})
 
 	t.Run("NonexistentField", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Invalid Nonexistent Author")
 
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -945,6 +1021,7 @@ func TestUpdate_InvalidMask(t *testing.T) {
 	})
 
 	t.Run("MissingName", func(t *testing.T) {
+		t.Parallel()
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 			Author: &librarypb.Author{
 				DisplayName: "No Name Set",
@@ -956,6 +1033,7 @@ func TestUpdate_InvalidMask(t *testing.T) {
 	})
 
 	t.Run("NilMask", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Invalid Nil Mask Author")
 
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -967,9 +1045,11 @@ func TestUpdate_InvalidMask(t *testing.T) {
 }
 
 func TestUpdate_NotFound(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("Author", func(t *testing.T) {
+		t.Parallel()
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 			Author: &librarypb.Author{
 				Name:        organizationParent + "/authors/nonexistent-update",
@@ -982,6 +1062,7 @@ func TestUpdate_NotFound(t *testing.T) {
 	})
 
 	t.Run("Book", func(t *testing.T) {
+		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "NotFound Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -996,6 +1077,7 @@ func TestUpdate_NotFound(t *testing.T) {
 	})
 
 	t.Run("Shelf", func(t *testing.T) {
+		t.Parallel()
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
 			Shelf: &librarypb.Shelf{
 				Name:        organizationParent + "/shelves/nonexistent-update",
@@ -1009,6 +1091,7 @@ func TestUpdate_NotFound(t *testing.T) {
 }
 
 func TestUpdate_IdempotentSameValue(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	original := createTestAuthor(t, organizationParent, "Idempotent Author")
 
@@ -1030,9 +1113,11 @@ func TestUpdate_IdempotentSameValue(t *testing.T) {
 }
 
 func TestUpdate_GetMatchesUpdateResponse(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("Author", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "GetMatch Author")
 
 		updated := updateAuthor(t, &librarypb.Author{
@@ -1049,6 +1134,7 @@ func TestUpdate_GetMatchesUpdateResponse(t *testing.T) {
 	})
 
 	t.Run("Book", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "GetMatch Book Author")
 		shelf := createTestShelf(t, organizationParent, "GetMatch Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		original := createTestBook(t, shelf.Name, author.Name, "GetMatch Book")
@@ -1066,6 +1152,7 @@ func TestUpdate_GetMatchesUpdateResponse(t *testing.T) {
 	})
 
 	t.Run("Shelf", func(t *testing.T) {
+		t.Parallel()
 		original := createTestShelf(t, organizationParent, "GetMatch Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 		updated := updateShelf(t, &librarypb.Shelf{

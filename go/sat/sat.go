@@ -75,7 +75,7 @@ func (s *SAT) Start(ctx context.Context) error {
 	loggingOpts := &logging.Opts{
 		Level:    logging.LevelDebug,
 		Format:   logging.FormatRaw,
-		FilePath: "/tmp/sat.log",
+		FilePath: "sat.log",
 	}
 	rawLogger, err := logging.NewLogger(loggingOpts)
 	if err != nil {

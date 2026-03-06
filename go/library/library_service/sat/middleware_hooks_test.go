@@ -20,9 +20,11 @@ func hookContext() context.Context {
 }
 
 func TestHook_AuthorResponseHook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("NotTriggeredWithoutHeader", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Hook No Header Author")
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{
 			Name: author.Name,
@@ -33,6 +35,7 @@ func TestHook_AuthorResponseHook(t *testing.T) {
 	})
 
 	t.Run("TriggeredWithHeader", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		author := validAuthor()
 		author.DisplayName = "Hook Header Author"
@@ -53,6 +56,7 @@ func TestHook_AuthorResponseHook(t *testing.T) {
 	})
 
 	t.Run("AppliedOnListResponse", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		author := validAuthor()
 		author.DisplayName = "Hook List Author Unique 9988"
@@ -75,16 +79,19 @@ func TestHook_AuthorResponseHook(t *testing.T) {
 }
 
 func TestHook_BookRequestHook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Hook Book Author")
 	shelf := createTestShelf(t, organizationParent, "Hook Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("NotTriggeredWithoutHeader", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Hook No Header Book")
 		require.NotEqual(t, "true", book.Labels["hook/book-request"])
 	})
 
 	t.Run("TriggeredOnCreate", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
@@ -102,11 +109,13 @@ func TestHook_BookRequestHook(t *testing.T) {
 }
 
 func TestHook_BookResponseHook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Hook BookResp Author")
 	shelf := createTestShelf(t, organizationParent, "Hook BookResp Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("TriggeredOnGet", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Hook BookResp Get")
 		hookCtx := hookContext()
 		getBookRequest := &libraryservicepb.GetBookRequest{
@@ -118,6 +127,7 @@ func TestHook_BookResponseHook(t *testing.T) {
 	})
 
 	t.Run("TriggeredOnList", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
@@ -142,9 +152,11 @@ func TestHook_BookResponseHook(t *testing.T) {
 }
 
 func TestHook_ShelfMetadataRequestHook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("TriggeredOnCreateShelf", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -160,11 +172,13 @@ func TestHook_ShelfMetadataRequestHook(t *testing.T) {
 	})
 
 	t.Run("NotTriggeredWithoutHeader", func(t *testing.T) {
+		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Hook ShelfMeta NoHeader", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		require.Empty(t, shelf.Metadata.Dummy)
 	})
 
 	t.Run("NotTriggeredOnNonCreateMethods", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		shelf := createTestShelf(t, organizationParent, "Hook ShelfMeta GetTest", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		getShelfRequest := &libraryservicepb.GetShelfRequest{
@@ -177,10 +191,12 @@ func TestHook_ShelfMetadataRequestHook(t *testing.T) {
 }
 
 func TestHook_ValidationStillApplies(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	hookCtx := hookContext()
 
 	t.Run("InvalidBookStillRejected", func(t *testing.T) {
+		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Hook Validation Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
@@ -197,9 +213,11 @@ func TestHook_ValidationStillApplies(t *testing.T) {
 // Add this test function:
 
 func TestHook_ShelfNoteRequestHook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("TriggeredOnRepeatedField", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -223,6 +241,7 @@ func TestHook_ShelfNoteRequestHook(t *testing.T) {
 	})
 
 	t.Run("TriggeredOnMapField", func(t *testing.T) {
+		t.Parallel()
 		hookCtx := hookContext()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -245,6 +264,7 @@ func TestHook_ShelfNoteRequestHook(t *testing.T) {
 	})
 
 	t.Run("NotTriggeredWithoutHeader", func(t *testing.T) {
+		t.Parallel()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{

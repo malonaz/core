@@ -14,9 +14,11 @@ import (
 )
 
 func TestCanonicalize_AppliedOnCreate(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("Email", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.EmailAddress = "CREATE@EXAMPLE.COM"
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -29,6 +31,7 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 	})
 
 	t.Run("PhoneNumber", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.PhoneNumber = "(202) 555-1234"
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -41,6 +44,7 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 	})
 
 	t.Run("RepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.EmailAddresses = []string{"ALICE@TEST.COM", "BOB@TEST.COM"}
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -53,6 +57,7 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 	})
 
 	t.Run("RepeatedPhoneNumbers", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.PhoneNumbers = []string{"(415) 555-0001", "+33 6 12 34 56 78"}
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -65,6 +70,7 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 	})
 
 	t.Run("NestedRepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.Metadata.EmailAddresses = []string{"META@TEST.COM"}
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -77,6 +83,7 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 	})
 
 	t.Run("NestedRepeatedPhoneNumbers", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.Metadata.PhoneNumbers = []string{"+44 20 7946 0958"}
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -90,9 +97,11 @@ func TestCanonicalize_AppliedOnCreate(t *testing.T) {
 }
 
 func TestCanonicalize_AppliedOnUpdate(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("Email", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Canon Update Email")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 			Author: &librarypb.Author{
@@ -107,6 +116,7 @@ func TestCanonicalize_AppliedOnUpdate(t *testing.T) {
 	})
 
 	t.Run("PhoneNumber", func(t *testing.T) {
+		t.Parallel()
 		original := createTestAuthor(t, organizationParent, "Canon Update Phone")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 			Author: &librarypb.Author{
@@ -122,9 +132,11 @@ func TestCanonicalize_AppliedOnUpdate(t *testing.T) {
 }
 
 func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("InvalidPhoneNumber", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.PhoneNumber = "not-a-phone"
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -136,6 +148,7 @@ func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
 	})
 
 	t.Run("InvalidPhoneInRepeatedField", func(t *testing.T) {
+		t.Parallel()
 		author := validAuthor()
 		author.PhoneNumbers = []string{"+14155550001", "invalid"}
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -148,6 +161,7 @@ func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
 }
 
 func TestCanonicalize_NonAnnotatedFieldUnchanged(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := validAuthor()
 	author.DisplayName = "UPPERCASE DisplayName"
@@ -163,6 +177,7 @@ func TestCanonicalize_NonAnnotatedFieldUnchanged(t *testing.T) {
 }
 
 func TestCanonicalize_Persisted(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := validAuthor()
 	author.EmailAddress = "PERSIST@EXAMPLE.COM"
@@ -182,6 +197,7 @@ func TestCanonicalize_Persisted(t *testing.T) {
 }
 
 func TestCanonicalize_SkippedOnCreateBook(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Canon Skip Author")
 	shelf := createTestShelf(t, organizationParent, "Canon Skip Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)

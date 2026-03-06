@@ -64,15 +64,6 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 			doOnceCache[key] = true
 			return true
 		},
-
-		"emptyPb": func(message proto.Message) bool {
-			// Create a new instance of the same type
-			empty := proto.Clone(message)
-			// Reset it to its zero state
-			proto.Reset(empty)
-			// Compare with original
-			return proto.Equal(message, empty)
-		},
 		"replaceImportPath": se.replaceImportPath,
 		"fqn":               se.fqn,
 		"fqnCore": func(lib, symbol string) string {

@@ -34,6 +34,10 @@ type LibraryServiceClient interface {
 	DeleteAuthor(ctx context.Context, in *DeleteAuthorRequest, opts ...grpc.CallOption) (*v1.Author, error)
 	// Lists authors.
 	ListAuthors(ctx context.Context, in *ListAuthorsRequest, opts ...grpc.CallOption) (*ListAuthorsResponse, error)
+	// Gets multiple authors in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error)
 	// Creates a shelf.
 	CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -44,7 +48,11 @@ type LibraryServiceClient interface {
 	DeleteShelf(ctx context.Context, in *DeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(ctx context.Context, in *ListShelvesRequest, opts ...grpc.CallOption) (*ListShelvesResponse, error)
-	// Creates a book.
+	// Gets multiple shelves in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetShelves(ctx context.Context, in *BatchGetShelvesRequest, opts ...grpc.CallOption) (*BatchGetShelvesResponse, error)
+	// creates a book.
 	CreateBook(ctx context.Context, in *CreateBookRequest, opts ...grpc.CallOption) (*v1.Book, error)
 	// Gets a book.
 	GetBook(ctx context.Context, in *GetBookRequest, opts ...grpc.CallOption) (*v1.Book, error)
@@ -54,6 +62,10 @@ type LibraryServiceClient interface {
 	DeleteBook(ctx context.Context, in *DeleteBookRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Lists books.
 	ListBooks(ctx context.Context, in *ListBooksRequest, opts ...grpc.CallOption) (*ListBooksResponse, error)
+	// Gets multiple books in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
 }
 
 type libraryServiceClient struct {
@@ -109,6 +121,15 @@ func (c *libraryServiceClient) ListAuthors(ctx context.Context, in *ListAuthorsR
 	return out, nil
 }
 
+func (c *libraryServiceClient) BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error) {
+	out := new(BatchGetAuthorsResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.library.library_service.v1.LibraryService/BatchGetAuthors", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error) {
 	out := new(v1.Shelf)
 	err := c.cc.Invoke(ctx, "/malonaz.library.library_service.v1.LibraryService/CreateShelf", in, out, opts...)
@@ -148,6 +169,15 @@ func (c *libraryServiceClient) DeleteShelf(ctx context.Context, in *DeleteShelfR
 func (c *libraryServiceClient) ListShelves(ctx context.Context, in *ListShelvesRequest, opts ...grpc.CallOption) (*ListShelvesResponse, error) {
 	out := new(ListShelvesResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.library.library_service.v1.LibraryService/ListShelves", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetShelves(ctx context.Context, in *BatchGetShelvesRequest, opts ...grpc.CallOption) (*BatchGetShelvesResponse, error) {
+	out := new(BatchGetShelvesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.library.library_service.v1.LibraryService/BatchGetShelves", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -199,6 +229,15 @@ func (c *libraryServiceClient) ListBooks(ctx context.Context, in *ListBooksReque
 	return out, nil
 }
 
+func (c *libraryServiceClient) BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error) {
+	out := new(BatchGetBooksResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.library.library_service.v1.LibraryService/BatchGetBooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility
@@ -213,6 +252,10 @@ type LibraryServiceServer interface {
 	DeleteAuthor(context.Context, *DeleteAuthorRequest) (*v1.Author, error)
 	// Lists authors.
 	ListAuthors(context.Context, *ListAuthorsRequest) (*ListAuthorsResponse, error)
+	// Gets multiple authors in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error)
 	// Creates a shelf.
 	CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -223,7 +266,11 @@ type LibraryServiceServer interface {
 	DeleteShelf(context.Context, *DeleteShelfRequest) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error)
-	// Creates a book.
+	// Gets multiple shelves in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetShelves(context.Context, *BatchGetShelvesRequest) (*BatchGetShelvesResponse, error)
+	// creates a book.
 	CreateBook(context.Context, *CreateBookRequest) (*v1.Book, error)
 	// Gets a book.
 	GetBook(context.Context, *GetBookRequest) (*v1.Book, error)
@@ -233,6 +280,10 @@ type LibraryServiceServer interface {
 	DeleteBook(context.Context, *DeleteBookRequest) (*emptypb.Empty, error)
 	// Lists books.
 	ListBooks(context.Context, *ListBooksRequest) (*ListBooksResponse, error)
+	// Gets multiple books in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have forward compatible implementations.
@@ -254,6 +305,9 @@ func (UnimplementedLibraryServiceServer) DeleteAuthor(context.Context, *DeleteAu
 func (UnimplementedLibraryServiceServer) ListAuthors(context.Context, *ListAuthorsRequest) (*ListAuthorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthors not implemented")
 }
+func (UnimplementedLibraryServiceServer) BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetAuthors not implemented")
+}
 func (UnimplementedLibraryServiceServer) CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateShelf not implemented")
 }
@@ -269,6 +323,9 @@ func (UnimplementedLibraryServiceServer) DeleteShelf(context.Context, *DeleteShe
 func (UnimplementedLibraryServiceServer) ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListShelves not implemented")
 }
+func (UnimplementedLibraryServiceServer) BatchGetShelves(context.Context, *BatchGetShelvesRequest) (*BatchGetShelvesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetShelves not implemented")
+}
 func (UnimplementedLibraryServiceServer) CreateBook(context.Context, *CreateBookRequest) (*v1.Book, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBook not implemented")
 }
@@ -283,6 +340,9 @@ func (UnimplementedLibraryServiceServer) DeleteBook(context.Context, *DeleteBook
 }
 func (UnimplementedLibraryServiceServer) ListBooks(context.Context, *ListBooksRequest) (*ListBooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBooks not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetBooks not implemented")
 }
 
 // UnsafeLibraryServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -386,6 +446,24 @@ func _LibraryService_ListAuthors_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_BatchGetAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetAuthorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetAuthors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.library.library_service.v1.LibraryService/BatchGetAuthors",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetAuthors(ctx, req.(*BatchGetAuthorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_CreateShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateShelfRequest)
 	if err := dec(in); err != nil {
@@ -472,6 +550,24 @@ func _LibraryService_ListShelves_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).ListShelves(ctx, req.(*ListShelvesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetShelves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetShelvesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetShelves(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.library.library_service.v1.LibraryService/BatchGetShelves",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetShelves(ctx, req.(*BatchGetShelvesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -566,6 +662,24 @@ func _LibraryService_ListBooks_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_BatchGetBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.library.library_service.v1.LibraryService/BatchGetBooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetBooks(ctx, req.(*BatchGetBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -594,6 +708,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibraryService_ListAuthors_Handler,
 		},
 		{
+			MethodName: "BatchGetAuthors",
+			Handler:    _LibraryService_BatchGetAuthors_Handler,
+		},
+		{
 			MethodName: "CreateShelf",
 			Handler:    _LibraryService_CreateShelf_Handler,
 		},
@@ -614,6 +732,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibraryService_ListShelves_Handler,
 		},
 		{
+			MethodName: "BatchGetShelves",
+			Handler:    _LibraryService_BatchGetShelves_Handler,
+		},
+		{
 			MethodName: "CreateBook",
 			Handler:    _LibraryService_CreateBook_Handler,
 		},
@@ -632,6 +754,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBooks",
 			Handler:    _LibraryService_ListBooks_Handler,
+		},
+		{
+			MethodName: "BatchGetBooks",
+			Handler:    _LibraryService_BatchGetBooks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

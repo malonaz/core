@@ -13,12 +13,10 @@ import (
 	time "time"
 )
 
-var (
-	ErrChatAlreadyExists  = errors.New("chat already exists")
-	ErrChatNotExist       = errors.New("chat does not exist")
-	ErrChatAlreadyDeleted = errors.New("chat already deleted")
-	ErrChatETagChanged    = errors.New("chat etag changed")
-)
+var ErrChatAlreadyExists = errors.New("chat already exists")
+var ErrChatNotExist = errors.New("chat does not exist")
+var ErrChatAlreadyDeleted = errors.New("chat already deleted")
+var ErrChatETagChanged = errors.New("chat etag changed")
 
 type Chat struct {
 	OrganizationID string `db:"organization_id"`

@@ -117,19 +117,17 @@
 package {{ .PackageName }}
 
 {{/* ################### VAR COLUMNS ################### */}}
-var (
 {{ range $message := $file.Messages -}}
     {{-  $modelOpts := getModelOpts . -}}
     {{- if not $modelOpts -}}{{ continue }}{{- end }}
     {{ $pr := parseResourceFromMessage $message }}
-    Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already exists")
-    Err{{ $message.GoIdent.GoName }}NotExist = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} does not exist")
-    Err{{ $message.GoIdent.GoName }}AlreadyDeleted = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already deleted")
+    var Err{{ $message.GoIdent.GoName }}AlreadyExists = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already exists")
+    var Err{{ $message.GoIdent.GoName }}NotExist = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} does not exist")
+    var Err{{ $message.GoIdent.GoName }}AlreadyDeleted = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} already deleted")
     {{- if $message.Desc.Fields.ByName "etag" }}
-       Err{{ $message.GoIdent.GoName }}ETagChanged = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} etag changed")
+       var Err{{ $message.GoIdent.GoName }}ETagChanged = {{ fqn "errors" "New" }}("{{ $pr.SingularSnakeCase }} etag changed")
     {{- end -}}
 {{- end -}}
-)
 
 
 {{/* ################### TYPE DEFINITIONS ################### */}}

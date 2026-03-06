@@ -11,6 +11,7 @@ import (
 )
 
 func TestOrderBy_SingleField_Ascending(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Order Test Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Order Test Author")
@@ -32,6 +33,7 @@ func TestOrderBy_SingleField_Ascending(t *testing.T) {
 }
 
 func TestOrderBy_SingleField_Descending(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Order Desc Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Order Desc Author")
@@ -53,6 +55,7 @@ func TestOrderBy_SingleField_Descending(t *testing.T) {
 }
 
 func TestOrderBy_ImplicitAscending(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Implicit Asc Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Implicit Asc Author")
@@ -72,6 +75,7 @@ func TestOrderBy_ImplicitAscending(t *testing.T) {
 }
 
 func TestOrderBy_DefaultOrdering(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Default Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Default Order Author")
@@ -92,6 +96,7 @@ func TestOrderBy_DefaultOrdering(t *testing.T) {
 }
 
 func TestOrderBy_IntegerField(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Int Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Int Order Author")
@@ -101,6 +106,7 @@ func TestOrderBy_IntegerField(t *testing.T) {
 	book2010 := createTestBookWithYear(t, shelf.Name, author.Name, "Book 2010", 2010)
 
 	t.Run("Ascending", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "publication_year asc",
@@ -114,6 +120,7 @@ func TestOrderBy_IntegerField(t *testing.T) {
 	})
 
 	t.Run("Descending", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "publication_year desc",
@@ -128,6 +135,7 @@ func TestOrderBy_IntegerField(t *testing.T) {
 }
 
 func TestOrderBy_MultipleFields(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Multi Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Multi Order Author")
@@ -138,6 +146,7 @@ func TestOrderBy_MultipleFields(t *testing.T) {
 	bookB2010 := createTestBookWithYear(t, shelf.Name, author.Name, "BBB Multi", 2010)
 
 	t.Run("TitleAsc_YearAsc", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc, publication_year asc",
@@ -152,6 +161,7 @@ func TestOrderBy_MultipleFields(t *testing.T) {
 	})
 
 	t.Run("TitleAsc_YearDesc", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc, publication_year desc",
@@ -166,6 +176,7 @@ func TestOrderBy_MultipleFields(t *testing.T) {
 	})
 
 	t.Run("TitleDesc_YearAsc", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title desc, publication_year asc",
@@ -180,6 +191,7 @@ func TestOrderBy_MultipleFields(t *testing.T) {
 	})
 
 	t.Run("TitleDesc_YearDesc", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title desc, publication_year desc",
@@ -195,6 +207,7 @@ func TestOrderBy_MultipleFields(t *testing.T) {
 }
 
 func TestOrderBy_TimestampField(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	authorA := createTestAuthor(t, organizationParent, "Timestamp A")
@@ -202,6 +215,7 @@ func TestOrderBy_TimestampField(t *testing.T) {
 	authorC := createTestAuthor(t, organizationParent, "Timestamp C")
 
 	t.Run("CreateTimeAsc", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:  organizationParent,
 			OrderBy: "create_time asc",
@@ -215,6 +229,7 @@ func TestOrderBy_TimestampField(t *testing.T) {
 	})
 
 	t.Run("CreateTimeDesc", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:  organizationParent,
 			OrderBy: "create_time desc",
@@ -229,6 +244,7 @@ func TestOrderBy_TimestampField(t *testing.T) {
 }
 
 func TestOrderBy_WithFilter(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Filter Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Filter Order Author")
@@ -250,6 +266,7 @@ func TestOrderBy_WithFilter(t *testing.T) {
 }
 
 func TestOrderBy_WithPagination(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	shelf := createTestShelf(t, organizationParent, "Paginated Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	author := createTestAuthor(t, organizationParent, "Paginated Order Author")

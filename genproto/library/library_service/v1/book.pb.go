@@ -622,6 +622,148 @@ func (b0 ListBooksResponse_builder) Build() *ListBooksResponse {
 	return m0
 }
 
+// Request message for LibraryService.BatchGetBooks.
+type BatchGetBooksRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent shelf that owns the books.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The resource names of the books to retrieve.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	// A maximum of 1000 books can be retrieved in a batch.
+	Names         []string `protobuf:"bytes,2,rep,name=names,proto3" json:"names,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchGetBooksRequest) Reset() {
+	*x = BatchGetBooksRequest{}
+	mi := &file_malonaz_library_library_service_v1_book_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetBooksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetBooksRequest) ProtoMessage() {}
+
+func (x *BatchGetBooksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_library_service_v1_book_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchGetBooksRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *BatchGetBooksRequest) GetNames() []string {
+	if x != nil {
+		return x.Names
+	}
+	return nil
+}
+
+func (x *BatchGetBooksRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *BatchGetBooksRequest) SetNames(v []string) {
+	x.Names = v
+}
+
+type BatchGetBooksRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent shelf that owns the books.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string
+	// The resource names of the books to retrieve.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	// A maximum of 1000 books can be retrieved in a batch.
+	Names []string
+}
+
+func (b0 BatchGetBooksRequest_builder) Build() *BatchGetBooksRequest {
+	m0 := &BatchGetBooksRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Names = b.Names
+	return m0
+}
+
+// Response message for LibraryService.BatchGetBooks.
+type BatchGetBooksResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Books requested.
+	Books         []*v1.Book `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchGetBooksResponse) Reset() {
+	*x = BatchGetBooksResponse{}
+	mi := &file_malonaz_library_library_service_v1_book_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetBooksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetBooksResponse) ProtoMessage() {}
+
+func (x *BatchGetBooksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_library_service_v1_book_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchGetBooksResponse) GetBooks() []*v1.Book {
+	if x != nil {
+		return x.Books
+	}
+	return nil
+}
+
+func (x *BatchGetBooksResponse) SetBooks(v []*v1.Book) {
+	x.Books = v
+}
+
+type BatchGetBooksResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Books requested.
+	Books []*v1.Book
+}
+
+func (b0 BatchGetBooksResponse_builder) Build() *BatchGetBooksResponse {
+	m0 := &BatchGetBooksResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Books = b.Books
+	return m0
+}
+
 var File_malonaz_library_library_service_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_library_service_v1_book_proto_rawDesc = "" +
@@ -678,9 +820,16 @@ const file_malonaz_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x06labels\"k\n" +
 	"\x11ListBooksResponse\x12.\n" +
 	"\x05books\x18\x01 \x03(\v2\x18.malonaz.library.v1.BookR\x05books\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageTokenB=Z;github.com/malonaz/core/genproto/library/library_service/v1b\x06proto3"
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x96\x01\n" +
+	"\x14BatchGetBooksRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\n" +
+	"\x19library.malonaz.com/ShelfR\x06parent\x12F\n" +
+	"\x05names\x18\x02 \x03(\tB0\xfaA\x1a\n" +
+	"\x18library.malonaz.com/Book\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"G\n" +
+	"\x15BatchGetBooksResponse\x12.\n" +
+	"\x05books\x18\x01 \x03(\v2\x18.malonaz.library.v1.BookR\x05booksB=Z;github.com/malonaz/core/genproto/library/library_service/v1b\x06proto3"
 
-var file_malonaz_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_library_library_service_v1_book_proto_goTypes = []any{
 	(*CreateBookRequest)(nil),     // 0: malonaz.library.library_service.v1.CreateBookRequest
 	(*GetBookRequest)(nil),        // 1: malonaz.library.library_service.v1.GetBookRequest
@@ -688,19 +837,22 @@ var file_malonaz_library_library_service_v1_book_proto_goTypes = []any{
 	(*DeleteBookRequest)(nil),     // 3: malonaz.library.library_service.v1.DeleteBookRequest
 	(*ListBooksRequest)(nil),      // 4: malonaz.library.library_service.v1.ListBooksRequest
 	(*ListBooksResponse)(nil),     // 5: malonaz.library.library_service.v1.ListBooksResponse
-	(*v1.Book)(nil),               // 6: malonaz.library.v1.Book
-	(*fieldmaskpb.FieldMask)(nil), // 7: google.protobuf.FieldMask
+	(*BatchGetBooksRequest)(nil),  // 6: malonaz.library.library_service.v1.BatchGetBooksRequest
+	(*BatchGetBooksResponse)(nil), // 7: malonaz.library.library_service.v1.BatchGetBooksResponse
+	(*v1.Book)(nil),               // 8: malonaz.library.v1.Book
+	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
 }
 var file_malonaz_library_library_service_v1_book_proto_depIdxs = []int32{
-	6, // 0: malonaz.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.library.v1.Book
-	6, // 1: malonaz.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.library.v1.Book
-	7, // 2: malonaz.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
-	6, // 3: malonaz.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.library.v1.Book
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8, // 0: malonaz.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.library.v1.Book
+	8, // 1: malonaz.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.library.v1.Book
+	9, // 2: malonaz.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
+	8, // 3: malonaz.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.library.v1.Book
+	8, // 4: malonaz.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.library.v1.Book
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_library_library_service_v1_book_proto_init() }
@@ -714,7 +866,7 @@ func file_malonaz_library_library_service_v1_book_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_library_library_service_v1_book_proto_rawDesc), len(file_malonaz_library_library_service_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

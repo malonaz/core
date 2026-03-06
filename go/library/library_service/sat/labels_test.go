@@ -11,9 +11,11 @@ import (
 )
 
 func TestAuthorLabels(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 
 	t.Run("CreateWithLabels", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -34,11 +36,13 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("CreateWithoutLabels", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "No Labels Author")
 		require.Empty(t, author.Labels)
 	})
 
 	t.Run("GetPreservesLabels", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -61,6 +65,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("UpdateLabels", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labels Update Author")
 
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -80,6 +85,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("UpdateLabelsReplacesAll", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -108,6 +114,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("ClearLabels", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -134,6 +141,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelKeyExists", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -157,6 +165,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelKeyValue", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -180,6 +189,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelKeyValueNotEqual", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -205,6 +215,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelHasAnyLabels", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -231,6 +242,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelWildcardValue", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{
@@ -254,6 +266,7 @@ func TestAuthorLabels(t *testing.T) {
 	})
 
 	t.Run("LabelsPreservedAfterNonLabelUpdate", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
 			Author: &librarypb.Author{

@@ -32,7 +32,7 @@ var File_malonaz_library_library_service_v1_library_service_proto protoreflect.F
 
 const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\xc0\x18\n" +
+	"8malonaz/library/library_service/v1/library_service.proto\x12\"malonaz.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a/malonaz/library/library_service/v1/author.proto\x1a-malonaz/library/library_service/v1/book.proto\x1a.malonaz/library/library_service/v1/shelf.proto\x1a\x1fmalonaz/library/v1/author.proto\x1a\x1dmalonaz/library/v1/book.proto\x1a\x1emalonaz/library/v1/shelf.proto2\x98\x1e\n" +
 	"\x0eLibraryService\x12\xc9\x01\n" +
 	"\fCreateAuthor\x127.malonaz.library.library_service.v1.CreateAuthorRequest\x1a\x1a.malonaz.library.v1.Author\"d\xdaA\rparent,author´-\x1c\n" +
 	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xb2\x01\n" +
@@ -43,7 +43,9 @@ const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = ""
 	"\fDeleteAuthor\x127.malonaz.library.library_service.v1.DeleteAuthorRequest\x1a\x1a.malonaz.library.v1.Author\"S\xdaA\x04name´-\x1c\n" +
 	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02&*$/v1/{name=organizations/*/authors/*}\x12\xd5\x01\n" +
 	"\vListAuthors\x126.malonaz.library.library_service.v1.ListAuthorsRequest\x1a7.malonaz.library.library_service.v1.ListAuthorsResponse\"U\xdaA\x06parent´-\x1c\n" +
-	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/authors\x12\xc3\x01\n" +
+	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/authors\x12\xf0\x01\n" +
+	"\x0fBatchGetAuthors\x12:.malonaz.library.library_service.v1.BatchGetAuthorsRequest\x1a;.malonaz.library.library_service.v1.BatchGetAuthorsResponse\"d\xdaA\fparent,names´-\x1c\n" +
+	"\x1alibrary.malonaz.com/Author\x82\xd3\xe4\x93\x02/\x12-/v1/{parent=organizations/*}/authors:batchGet\x12\xc3\x01\n" +
 	"\vCreateShelf\x126.malonaz.library.library_service.v1.CreateShelfRequest\x1a\x19.malonaz.library.v1.Shelf\"a\xdaA\fparent,shelf´-\x1b\n" +
 	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02-:\x05shelf\"$/v1/{parent=organizations/*}/shelves\x12\xae\x01\n" +
 	"\bGetShelf\x123.malonaz.library.library_service.v1.GetShelfRequest\x1a\x19.malonaz.library.v1.Shelf\"R\xdaA\x04name´-\x1b\n" +
@@ -53,7 +55,9 @@ const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = ""
 	"\vDeleteShelf\x126.malonaz.library.library_service.v1.DeleteShelfRequest\x1a\x19.malonaz.library.v1.Shelf\"R\xdaA\x04name´-\x1b\n" +
 	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&*$/v1/{name=organizations/*/shelves/*}\x12\xd4\x01\n" +
 	"\vListShelves\x126.malonaz.library.library_service.v1.ListShelvesRequest\x1a7.malonaz.library.library_service.v1.ListShelvesResponse\"T\xdaA\x06parent´-\x1b\n" +
-	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/shelves\x12\xc9\x01\n" +
+	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&\x12$/v1/{parent=organizations/*}/shelves\x12\xef\x01\n" +
+	"\x0fBatchGetShelves\x12:.malonaz.library.library_service.v1.BatchGetShelvesRequest\x1a;.malonaz.library.library_service.v1.BatchGetShelvesResponse\"c\xdaA\fparent,names´-\x1b\n" +
+	"\x19library.malonaz.com/Shelf\x82\xd3\xe4\x93\x02/\x12-/v1/{parent=organizations/*}/shelves:batchGet\x12\xc9\x01\n" +
 	"\n" +
 	"CreateBook\x125.malonaz.library.library_service.v1.CreateBookRequest\x1a\x18.malonaz.library.v1.Book\"j\xdaA\vparent,book\x88\xb5\x18\x01´-\x1a\n" +
 	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x024:\x04book\",/v1/{parent=organizations/*/shelves/*}/books\x12\xb2\x01\n" +
@@ -66,33 +70,41 @@ const file_malonaz_library_library_service_v1_library_service_proto_rawDesc = ""
 	"DeleteBook\x125.malonaz.library.library_service.v1.DeleteBookRequest\x1a\x16.google.protobuf.Empty\"Y\xdaA\x04name´-\x1a\n" +
 	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x02.*,/v1/{name=organizations/*/shelves/*/books/*}\x12\xd5\x01\n" +
 	"\tListBooks\x124.malonaz.library.library_service.v1.ListBooksRequest\x1a5.malonaz.library.library_service.v1.ListBooksResponse\"[\xdaA\x06parent´-\x1a\n" +
-	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{parent=organizations/*/shelves/*}/books\x1a\x87\x01\xcaA\x13library.malonaz.com\x82\x91$4\n" +
+	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{parent=organizations/*/shelves/*}/books\x12\xf0\x01\n" +
+	"\rBatchGetBooks\x128.malonaz.library.library_service.v1.BatchGetBooksRequest\x1a9.malonaz.library.library_service.v1.BatchGetBooksResponse\"j\xdaA\fparent,names´-\x1a\n" +
+	"\x18library.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x1a\x87\x01\xcaA\x13library.malonaz.com\x82\x91$4\n" +
 	"'malonaz.library.library_service.v1.book\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$5\n" +
 	"(malonaz.library.library_service.v1.shelf\x12\x05\b\x80\x9a\x9e\x018\x01@\x01B=Z;github.com/malonaz/core/genproto/library/library_service/v1b\x06proto3"
 
 var file_malonaz_library_library_service_v1_library_service_proto_goTypes = []any{
-	(*CreateAuthorRequest)(nil), // 0: malonaz.library.library_service.v1.CreateAuthorRequest
-	(*GetAuthorRequest)(nil),    // 1: malonaz.library.library_service.v1.GetAuthorRequest
-	(*UpdateAuthorRequest)(nil), // 2: malonaz.library.library_service.v1.UpdateAuthorRequest
-	(*DeleteAuthorRequest)(nil), // 3: malonaz.library.library_service.v1.DeleteAuthorRequest
-	(*ListAuthorsRequest)(nil),  // 4: malonaz.library.library_service.v1.ListAuthorsRequest
-	(*CreateShelfRequest)(nil),  // 5: malonaz.library.library_service.v1.CreateShelfRequest
-	(*GetShelfRequest)(nil),     // 6: malonaz.library.library_service.v1.GetShelfRequest
-	(*UpdateShelfRequest)(nil),  // 7: malonaz.library.library_service.v1.UpdateShelfRequest
-	(*DeleteShelfRequest)(nil),  // 8: malonaz.library.library_service.v1.DeleteShelfRequest
-	(*ListShelvesRequest)(nil),  // 9: malonaz.library.library_service.v1.ListShelvesRequest
-	(*CreateBookRequest)(nil),   // 10: malonaz.library.library_service.v1.CreateBookRequest
-	(*GetBookRequest)(nil),      // 11: malonaz.library.library_service.v1.GetBookRequest
-	(*UpdateBookRequest)(nil),   // 12: malonaz.library.library_service.v1.UpdateBookRequest
-	(*DeleteBookRequest)(nil),   // 13: malonaz.library.library_service.v1.DeleteBookRequest
-	(*ListBooksRequest)(nil),    // 14: malonaz.library.library_service.v1.ListBooksRequest
-	(*v1.Author)(nil),           // 15: malonaz.library.v1.Author
-	(*ListAuthorsResponse)(nil), // 16: malonaz.library.library_service.v1.ListAuthorsResponse
-	(*v1.Shelf)(nil),            // 17: malonaz.library.v1.Shelf
-	(*ListShelvesResponse)(nil), // 18: malonaz.library.library_service.v1.ListShelvesResponse
-	(*v1.Book)(nil),             // 19: malonaz.library.v1.Book
-	(*emptypb.Empty)(nil),       // 20: google.protobuf.Empty
-	(*ListBooksResponse)(nil),   // 21: malonaz.library.library_service.v1.ListBooksResponse
+	(*CreateAuthorRequest)(nil),     // 0: malonaz.library.library_service.v1.CreateAuthorRequest
+	(*GetAuthorRequest)(nil),        // 1: malonaz.library.library_service.v1.GetAuthorRequest
+	(*UpdateAuthorRequest)(nil),     // 2: malonaz.library.library_service.v1.UpdateAuthorRequest
+	(*DeleteAuthorRequest)(nil),     // 3: malonaz.library.library_service.v1.DeleteAuthorRequest
+	(*ListAuthorsRequest)(nil),      // 4: malonaz.library.library_service.v1.ListAuthorsRequest
+	(*BatchGetAuthorsRequest)(nil),  // 5: malonaz.library.library_service.v1.BatchGetAuthorsRequest
+	(*CreateShelfRequest)(nil),      // 6: malonaz.library.library_service.v1.CreateShelfRequest
+	(*GetShelfRequest)(nil),         // 7: malonaz.library.library_service.v1.GetShelfRequest
+	(*UpdateShelfRequest)(nil),      // 8: malonaz.library.library_service.v1.UpdateShelfRequest
+	(*DeleteShelfRequest)(nil),      // 9: malonaz.library.library_service.v1.DeleteShelfRequest
+	(*ListShelvesRequest)(nil),      // 10: malonaz.library.library_service.v1.ListShelvesRequest
+	(*BatchGetShelvesRequest)(nil),  // 11: malonaz.library.library_service.v1.BatchGetShelvesRequest
+	(*CreateBookRequest)(nil),       // 12: malonaz.library.library_service.v1.CreateBookRequest
+	(*GetBookRequest)(nil),          // 13: malonaz.library.library_service.v1.GetBookRequest
+	(*UpdateBookRequest)(nil),       // 14: malonaz.library.library_service.v1.UpdateBookRequest
+	(*DeleteBookRequest)(nil),       // 15: malonaz.library.library_service.v1.DeleteBookRequest
+	(*ListBooksRequest)(nil),        // 16: malonaz.library.library_service.v1.ListBooksRequest
+	(*BatchGetBooksRequest)(nil),    // 17: malonaz.library.library_service.v1.BatchGetBooksRequest
+	(*v1.Author)(nil),               // 18: malonaz.library.v1.Author
+	(*ListAuthorsResponse)(nil),     // 19: malonaz.library.library_service.v1.ListAuthorsResponse
+	(*BatchGetAuthorsResponse)(nil), // 20: malonaz.library.library_service.v1.BatchGetAuthorsResponse
+	(*v1.Shelf)(nil),                // 21: malonaz.library.v1.Shelf
+	(*ListShelvesResponse)(nil),     // 22: malonaz.library.library_service.v1.ListShelvesResponse
+	(*BatchGetShelvesResponse)(nil), // 23: malonaz.library.library_service.v1.BatchGetShelvesResponse
+	(*v1.Book)(nil),                 // 24: malonaz.library.v1.Book
+	(*emptypb.Empty)(nil),           // 25: google.protobuf.Empty
+	(*ListBooksResponse)(nil),       // 26: malonaz.library.library_service.v1.ListBooksResponse
+	(*BatchGetBooksResponse)(nil),   // 27: malonaz.library.library_service.v1.BatchGetBooksResponse
 }
 var file_malonaz_library_library_service_v1_library_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.library.library_service.v1.LibraryService.CreateAuthor:input_type -> malonaz.library.library_service.v1.CreateAuthorRequest
@@ -100,33 +112,39 @@ var file_malonaz_library_library_service_v1_library_service_proto_depIdxs = []in
 	2,  // 2: malonaz.library.library_service.v1.LibraryService.UpdateAuthor:input_type -> malonaz.library.library_service.v1.UpdateAuthorRequest
 	3,  // 3: malonaz.library.library_service.v1.LibraryService.DeleteAuthor:input_type -> malonaz.library.library_service.v1.DeleteAuthorRequest
 	4,  // 4: malonaz.library.library_service.v1.LibraryService.ListAuthors:input_type -> malonaz.library.library_service.v1.ListAuthorsRequest
-	5,  // 5: malonaz.library.library_service.v1.LibraryService.CreateShelf:input_type -> malonaz.library.library_service.v1.CreateShelfRequest
-	6,  // 6: malonaz.library.library_service.v1.LibraryService.GetShelf:input_type -> malonaz.library.library_service.v1.GetShelfRequest
-	7,  // 7: malonaz.library.library_service.v1.LibraryService.UpdateShelf:input_type -> malonaz.library.library_service.v1.UpdateShelfRequest
-	8,  // 8: malonaz.library.library_service.v1.LibraryService.DeleteShelf:input_type -> malonaz.library.library_service.v1.DeleteShelfRequest
-	9,  // 9: malonaz.library.library_service.v1.LibraryService.ListShelves:input_type -> malonaz.library.library_service.v1.ListShelvesRequest
-	10, // 10: malonaz.library.library_service.v1.LibraryService.CreateBook:input_type -> malonaz.library.library_service.v1.CreateBookRequest
-	11, // 11: malonaz.library.library_service.v1.LibraryService.GetBook:input_type -> malonaz.library.library_service.v1.GetBookRequest
-	12, // 12: malonaz.library.library_service.v1.LibraryService.UpdateBook:input_type -> malonaz.library.library_service.v1.UpdateBookRequest
-	13, // 13: malonaz.library.library_service.v1.LibraryService.DeleteBook:input_type -> malonaz.library.library_service.v1.DeleteBookRequest
-	14, // 14: malonaz.library.library_service.v1.LibraryService.ListBooks:input_type -> malonaz.library.library_service.v1.ListBooksRequest
-	15, // 15: malonaz.library.library_service.v1.LibraryService.CreateAuthor:output_type -> malonaz.library.v1.Author
-	15, // 16: malonaz.library.library_service.v1.LibraryService.GetAuthor:output_type -> malonaz.library.v1.Author
-	15, // 17: malonaz.library.library_service.v1.LibraryService.UpdateAuthor:output_type -> malonaz.library.v1.Author
-	15, // 18: malonaz.library.library_service.v1.LibraryService.DeleteAuthor:output_type -> malonaz.library.v1.Author
-	16, // 19: malonaz.library.library_service.v1.LibraryService.ListAuthors:output_type -> malonaz.library.library_service.v1.ListAuthorsResponse
-	17, // 20: malonaz.library.library_service.v1.LibraryService.CreateShelf:output_type -> malonaz.library.v1.Shelf
-	17, // 21: malonaz.library.library_service.v1.LibraryService.GetShelf:output_type -> malonaz.library.v1.Shelf
-	17, // 22: malonaz.library.library_service.v1.LibraryService.UpdateShelf:output_type -> malonaz.library.v1.Shelf
-	17, // 23: malonaz.library.library_service.v1.LibraryService.DeleteShelf:output_type -> malonaz.library.v1.Shelf
-	18, // 24: malonaz.library.library_service.v1.LibraryService.ListShelves:output_type -> malonaz.library.library_service.v1.ListShelvesResponse
-	19, // 25: malonaz.library.library_service.v1.LibraryService.CreateBook:output_type -> malonaz.library.v1.Book
-	19, // 26: malonaz.library.library_service.v1.LibraryService.GetBook:output_type -> malonaz.library.v1.Book
-	19, // 27: malonaz.library.library_service.v1.LibraryService.UpdateBook:output_type -> malonaz.library.v1.Book
-	20, // 28: malonaz.library.library_service.v1.LibraryService.DeleteBook:output_type -> google.protobuf.Empty
-	21, // 29: malonaz.library.library_service.v1.LibraryService.ListBooks:output_type -> malonaz.library.library_service.v1.ListBooksResponse
-	15, // [15:30] is the sub-list for method output_type
-	0,  // [0:15] is the sub-list for method input_type
+	5,  // 5: malonaz.library.library_service.v1.LibraryService.BatchGetAuthors:input_type -> malonaz.library.library_service.v1.BatchGetAuthorsRequest
+	6,  // 6: malonaz.library.library_service.v1.LibraryService.CreateShelf:input_type -> malonaz.library.library_service.v1.CreateShelfRequest
+	7,  // 7: malonaz.library.library_service.v1.LibraryService.GetShelf:input_type -> malonaz.library.library_service.v1.GetShelfRequest
+	8,  // 8: malonaz.library.library_service.v1.LibraryService.UpdateShelf:input_type -> malonaz.library.library_service.v1.UpdateShelfRequest
+	9,  // 9: malonaz.library.library_service.v1.LibraryService.DeleteShelf:input_type -> malonaz.library.library_service.v1.DeleteShelfRequest
+	10, // 10: malonaz.library.library_service.v1.LibraryService.ListShelves:input_type -> malonaz.library.library_service.v1.ListShelvesRequest
+	11, // 11: malonaz.library.library_service.v1.LibraryService.BatchGetShelves:input_type -> malonaz.library.library_service.v1.BatchGetShelvesRequest
+	12, // 12: malonaz.library.library_service.v1.LibraryService.CreateBook:input_type -> malonaz.library.library_service.v1.CreateBookRequest
+	13, // 13: malonaz.library.library_service.v1.LibraryService.GetBook:input_type -> malonaz.library.library_service.v1.GetBookRequest
+	14, // 14: malonaz.library.library_service.v1.LibraryService.UpdateBook:input_type -> malonaz.library.library_service.v1.UpdateBookRequest
+	15, // 15: malonaz.library.library_service.v1.LibraryService.DeleteBook:input_type -> malonaz.library.library_service.v1.DeleteBookRequest
+	16, // 16: malonaz.library.library_service.v1.LibraryService.ListBooks:input_type -> malonaz.library.library_service.v1.ListBooksRequest
+	17, // 17: malonaz.library.library_service.v1.LibraryService.BatchGetBooks:input_type -> malonaz.library.library_service.v1.BatchGetBooksRequest
+	18, // 18: malonaz.library.library_service.v1.LibraryService.CreateAuthor:output_type -> malonaz.library.v1.Author
+	18, // 19: malonaz.library.library_service.v1.LibraryService.GetAuthor:output_type -> malonaz.library.v1.Author
+	18, // 20: malonaz.library.library_service.v1.LibraryService.UpdateAuthor:output_type -> malonaz.library.v1.Author
+	18, // 21: malonaz.library.library_service.v1.LibraryService.DeleteAuthor:output_type -> malonaz.library.v1.Author
+	19, // 22: malonaz.library.library_service.v1.LibraryService.ListAuthors:output_type -> malonaz.library.library_service.v1.ListAuthorsResponse
+	20, // 23: malonaz.library.library_service.v1.LibraryService.BatchGetAuthors:output_type -> malonaz.library.library_service.v1.BatchGetAuthorsResponse
+	21, // 24: malonaz.library.library_service.v1.LibraryService.CreateShelf:output_type -> malonaz.library.v1.Shelf
+	21, // 25: malonaz.library.library_service.v1.LibraryService.GetShelf:output_type -> malonaz.library.v1.Shelf
+	21, // 26: malonaz.library.library_service.v1.LibraryService.UpdateShelf:output_type -> malonaz.library.v1.Shelf
+	21, // 27: malonaz.library.library_service.v1.LibraryService.DeleteShelf:output_type -> malonaz.library.v1.Shelf
+	22, // 28: malonaz.library.library_service.v1.LibraryService.ListShelves:output_type -> malonaz.library.library_service.v1.ListShelvesResponse
+	23, // 29: malonaz.library.library_service.v1.LibraryService.BatchGetShelves:output_type -> malonaz.library.library_service.v1.BatchGetShelvesResponse
+	24, // 30: malonaz.library.library_service.v1.LibraryService.CreateBook:output_type -> malonaz.library.v1.Book
+	24, // 31: malonaz.library.library_service.v1.LibraryService.GetBook:output_type -> malonaz.library.v1.Book
+	24, // 32: malonaz.library.library_service.v1.LibraryService.UpdateBook:output_type -> malonaz.library.v1.Book
+	25, // 33: malonaz.library.library_service.v1.LibraryService.DeleteBook:output_type -> google.protobuf.Empty
+	26, // 34: malonaz.library.library_service.v1.LibraryService.ListBooks:output_type -> malonaz.library.library_service.v1.ListBooksResponse
+	27, // 35: malonaz.library.library_service.v1.LibraryService.BatchGetBooks:output_type -> malonaz.library.library_service.v1.BatchGetBooksResponse
+	18, // [18:36] is the sub-list for method output_type
+	0,  // [0:18] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

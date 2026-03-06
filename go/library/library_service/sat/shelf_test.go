@@ -30,7 +30,9 @@ func createTestShelf(t *testing.T, parent, displayName string, genre librarypb.S
 }
 
 func TestShelfCreate(t *testing.T) {
+	t.Parallel()
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -52,6 +54,7 @@ func TestShelfCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_GenreUnspecified", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -66,6 +69,7 @@ func TestShelfCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingDisplayName", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -79,6 +83,7 @@ func TestShelfCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingParent", func(t *testing.T) {
+		t.Parallel()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Shelf: &librarypb.Shelf{
 				DisplayName: "No Parent Shelf",
@@ -91,7 +96,9 @@ func TestShelfCreate(t *testing.T) {
 }
 
 func TestShelfUpdate(t *testing.T) {
+	t.Parallel()
 	t.Run("AllowedFields", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Update Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
@@ -110,6 +117,7 @@ func TestShelfUpdate(t *testing.T) {
 	})
 
 	t.Run("MetadataPartialUpdate", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Metadata Update Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
@@ -126,6 +134,7 @@ func TestShelfUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedField_Name", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Unauthorized Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
@@ -140,6 +149,7 @@ func TestShelfUpdate(t *testing.T) {
 	})
 
 	t.Run("UpdateTimeChanges", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Update Time Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
 
@@ -158,7 +168,9 @@ func TestShelfUpdate(t *testing.T) {
 }
 
 func TestShelfDelete(t *testing.T) {
+	t.Parallel()
 	t.Run("SoftDelete", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Delete Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
@@ -178,6 +190,7 @@ func TestShelfDelete(t *testing.T) {
 	})
 
 	t.Run("SoftDeletedHiddenFromList", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Hidden Deleted Shelf 99887", librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION)
 
@@ -197,6 +210,7 @@ func TestShelfDelete(t *testing.T) {
 	})
 
 	t.Run("ShowDeletedRevealsDeleted", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Show Deleted Shelf 44556", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
@@ -218,6 +232,7 @@ func TestShelfDelete(t *testing.T) {
 	})
 
 	t.Run("AllowMissing does not return error on already deleted resource", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		shelf := createTestShelf(t, organizationParent, "Hidden Deleted Shelf 345319", librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION)
 
@@ -253,6 +268,7 @@ func TestShelfDelete(t *testing.T) {
 	})
 
 	t.Run("AllowMissing still throws not found error on soft deletable resource if it does not exist", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		deleteShelfRequest := &libraryservicepb.DeleteShelfRequest{
 			Name:         organizationParent + "/shelves/nonexistent-shelf",
@@ -263,6 +279,7 @@ func TestShelfDelete(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		deleteShelfRequest := &libraryservicepb.DeleteShelfRequest{
 			Name: organizationParent + "/shelves/nonexistent-shelf-err",
@@ -273,7 +290,9 @@ func TestShelfDelete(t *testing.T) {
 }
 
 func TestShelfList(t *testing.T) {
+	t.Parallel()
 	t.Run("FilterByGenreEnum", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createTestShelf(t, organizationParent, "History Shelf for Filter", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
 
@@ -290,6 +309,7 @@ func TestShelfList(t *testing.T) {
 	})
 
 	t.Run("FilterByMetadataCapacity", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
@@ -312,6 +332,7 @@ func TestShelfList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_DisplayName", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
 			Parent:  organizationParent,
@@ -322,6 +343,7 @@ func TestShelfList(t *testing.T) {
 	})
 
 	t.Run("FilterWithLabels", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,

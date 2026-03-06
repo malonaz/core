@@ -65,7 +65,7 @@ func (s *VoiceService) GetVoice(ctx context.Context, request *aiservicepb.GetVoi
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "unknown voice %s ", voiceRn.Voice).Err()
 	}
-	return proto.Clone(voice).(*aipb.Voice), nil
+	return proto.CloneOf(voice), nil
 }
 
 var listVoicesRequestParser = aip.MustNewPaginationRequestParser[*aiservicepb.ListVoicesRequest]()
@@ -82,7 +82,7 @@ func (s *VoiceService) ListVoices(ctx context.Context, request *aiservicepb.List
 	// Step 3: Determine which voices to paginate over.
 	voicesToPage := make([]*aipb.Voice, 0, len(s.voicesSorted))
 	for _, voice := range s.voicesSorted {
-		voicesToPage = append(voicesToPage, proto.Clone(voice).(*aipb.Voice))
+		voicesToPage = append(voicesToPage, proto.CloneOf(voice))
 	}
 
 	// Step 5: Apply pagination.

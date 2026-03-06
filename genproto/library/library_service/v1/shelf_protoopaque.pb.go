@@ -601,6 +601,144 @@ func (b0 ListShelvesResponse_builder) Build() *ListShelvesResponse {
 	return m0
 }
 
+// Request message for LibraryService.BatchGetShelves.
+type BatchGetShelvesRequest struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Names  []string               `protobuf:"bytes,2,rep,name=names,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *BatchGetShelvesRequest) Reset() {
+	*x = BatchGetShelvesRequest{}
+	mi := &file_malonaz_library_library_service_v1_shelf_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetShelvesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetShelvesRequest) ProtoMessage() {}
+
+func (x *BatchGetShelvesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_library_service_v1_shelf_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchGetShelvesRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *BatchGetShelvesRequest) GetNames() []string {
+	if x != nil {
+		return x.xxx_hidden_Names
+	}
+	return nil
+}
+
+func (x *BatchGetShelvesRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *BatchGetShelvesRequest) SetNames(v []string) {
+	x.xxx_hidden_Names = v
+}
+
+type BatchGetShelvesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent organization that owns the shelves.
+	// Format: organizations/{organization}
+	Parent string
+	// The resource names of the shelves to retrieve.
+	// Format: organizations/{organization}/shelves/{shelf}
+	// A maximum of 1000 shelves can be retrieved in a batch.
+	Names []string
+}
+
+func (b0 BatchGetShelvesRequest_builder) Build() *BatchGetShelvesRequest {
+	m0 := &BatchGetShelvesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Names = b.Names
+	return m0
+}
+
+// Response message for LibraryService.BatchGetShelves.
+type BatchGetShelvesResponse struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Shelves *[]*v1.Shelf           `protobuf:"bytes,1,rep,name=shelves,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *BatchGetShelvesResponse) Reset() {
+	*x = BatchGetShelvesResponse{}
+	mi := &file_malonaz_library_library_service_v1_shelf_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetShelvesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetShelvesResponse) ProtoMessage() {}
+
+func (x *BatchGetShelvesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_library_library_service_v1_shelf_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchGetShelvesResponse) GetShelves() []*v1.Shelf {
+	if x != nil {
+		if x.xxx_hidden_Shelves != nil {
+			return *x.xxx_hidden_Shelves
+		}
+	}
+	return nil
+}
+
+func (x *BatchGetShelvesResponse) SetShelves(v []*v1.Shelf) {
+	x.xxx_hidden_Shelves = &v
+}
+
+type BatchGetShelvesResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Shelves requested.
+	Shelves []*v1.Shelf
+}
+
+func (b0 BatchGetShelvesResponse_builder) Build() *BatchGetShelvesResponse {
+	m0 := &BatchGetShelvesResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Shelves = &b.Shelves
+	return m0
+}
+
 var File_malonaz_library_library_service_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_library_library_service_v1_shelf_proto_rawDesc = "" +
@@ -646,29 +784,39 @@ const file_malonaz_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\x01*\"r\n" +
 	"\x13ListShelvesResponse\x123\n" +
 	"\ashelves\x18\x01 \x03(\v2\x19.malonaz.library.v1.ShelfR\ashelves\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageTokenB=Z;github.com/malonaz/core/genproto/library/library_service/v1b\x06proto3"
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa0\x01\n" +
+	"\x16BatchGetShelvesRequest\x12=\n" +
+	"\x06parent\x18\x01 \x01(\tB%\xfaA\"\n" +
+	" library.malonaz.com/OrganizationR\x06parent\x12G\n" +
+	"\x05names\x18\x02 \x03(\tB1\xfaA\x1b\n" +
+	"\x19library.malonaz.com/Shelf\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"N\n" +
+	"\x17BatchGetShelvesResponse\x123\n" +
+	"\ashelves\x18\x01 \x03(\v2\x19.malonaz.library.v1.ShelfR\ashelvesB=Z;github.com/malonaz/core/genproto/library/library_service/v1b\x06proto3"
 
-var file_malonaz_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_library_library_service_v1_shelf_proto_goTypes = []any{
-	(*CreateShelfRequest)(nil),    // 0: malonaz.library.library_service.v1.CreateShelfRequest
-	(*GetShelfRequest)(nil),       // 1: malonaz.library.library_service.v1.GetShelfRequest
-	(*UpdateShelfRequest)(nil),    // 2: malonaz.library.library_service.v1.UpdateShelfRequest
-	(*DeleteShelfRequest)(nil),    // 3: malonaz.library.library_service.v1.DeleteShelfRequest
-	(*ListShelvesRequest)(nil),    // 4: malonaz.library.library_service.v1.ListShelvesRequest
-	(*ListShelvesResponse)(nil),   // 5: malonaz.library.library_service.v1.ListShelvesResponse
-	(*v1.Shelf)(nil),              // 6: malonaz.library.v1.Shelf
-	(*fieldmaskpb.FieldMask)(nil), // 7: google.protobuf.FieldMask
+	(*CreateShelfRequest)(nil),      // 0: malonaz.library.library_service.v1.CreateShelfRequest
+	(*GetShelfRequest)(nil),         // 1: malonaz.library.library_service.v1.GetShelfRequest
+	(*UpdateShelfRequest)(nil),      // 2: malonaz.library.library_service.v1.UpdateShelfRequest
+	(*DeleteShelfRequest)(nil),      // 3: malonaz.library.library_service.v1.DeleteShelfRequest
+	(*ListShelvesRequest)(nil),      // 4: malonaz.library.library_service.v1.ListShelvesRequest
+	(*ListShelvesResponse)(nil),     // 5: malonaz.library.library_service.v1.ListShelvesResponse
+	(*BatchGetShelvesRequest)(nil),  // 6: malonaz.library.library_service.v1.BatchGetShelvesRequest
+	(*BatchGetShelvesResponse)(nil), // 7: malonaz.library.library_service.v1.BatchGetShelvesResponse
+	(*v1.Shelf)(nil),                // 8: malonaz.library.v1.Shelf
+	(*fieldmaskpb.FieldMask)(nil),   // 9: google.protobuf.FieldMask
 }
 var file_malonaz_library_library_service_v1_shelf_proto_depIdxs = []int32{
-	6, // 0: malonaz.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.library.v1.Shelf
-	6, // 1: malonaz.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.library.v1.Shelf
-	7, // 2: malonaz.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
-	6, // 3: malonaz.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.library.v1.Shelf
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8, // 0: malonaz.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.library.v1.Shelf
+	8, // 1: malonaz.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.library.v1.Shelf
+	9, // 2: malonaz.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
+	8, // 3: malonaz.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.library.v1.Shelf
+	8, // 4: malonaz.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.library.v1.Shelf
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_library_library_service_v1_shelf_proto_init() }
@@ -682,7 +830,7 @@ func file_malonaz_library_library_service_v1_shelf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_library_library_service_v1_shelf_proto_rawDesc), len(file_malonaz_library_library_service_v1_shelf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

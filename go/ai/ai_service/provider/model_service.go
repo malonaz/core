@@ -134,7 +134,7 @@ func (s *ModelService) GetModel(ctx context.Context, request *aiservicepb.GetMod
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "unknown model %s for provider %s", modelRn.Model, modelRn.Provider).Err()
 	}
-	return proto.Clone(model).(*aipb.Model), nil
+	return proto.CloneOf(model), nil
 }
 
 var listModelsRequestParser = aip.MustNewPaginationRequestParser[*aiservicepb.ListModelsRequest]()
@@ -159,7 +159,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	for providerId, modelIdToModel := range s.providerIdToModelIdToModel {
 		if providerRn.ContainsWildcard() || providerRn.Provider == providerId {
 			for _, model := range modelIdToModel {
-				modelsToPage = append(modelsToPage, proto.Clone(model).(*aipb.Model))
+				modelsToPage = append(modelsToPage, proto.CloneOf(model))
 			}
 		}
 	}

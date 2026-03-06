@@ -37,11 +37,13 @@ func createTestBook(t *testing.T, shelfName, authorName, title string) *libraryp
 }
 
 func TestBookCreate(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book Create Author")
 	shelf := createTestShelf(t, organizationParent, "Book Create Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -68,6 +70,7 @@ func TestBookCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingTitle", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -80,6 +83,7 @@ func TestBookCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingAuthor", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -92,6 +96,7 @@ func TestBookCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_NegativePageCount", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -106,6 +111,7 @@ func TestBookCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingParent", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Book: &librarypb.Book{
 				Title:    "No Parent Book",
@@ -119,12 +125,14 @@ func TestBookCreate(t *testing.T) {
 }
 
 func TestBookGet(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book Get Author")
 	shelf := createTestShelf(t, organizationParent, "Book Get Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	book := createTestBook(t, shelf.Name, author.Name, "Get Test Book")
 
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		getBookRequest := &libraryservicepb.GetBookRequest{
 			Name: book.Name,
 		}
@@ -135,6 +143,7 @@ func TestBookGet(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
 		getBookRequest := &libraryservicepb.GetBookRequest{
 			Name: shelf.Name + "/books/nonexistent-book",
 		}
@@ -144,11 +153,13 @@ func TestBookGet(t *testing.T) {
 }
 
 func TestBookUpdate(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book Update Author")
 	shelf := createTestShelf(t, organizationParent, "Book Update Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("AllowedFields", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Update Allowed Book")
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -169,6 +180,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("UpdateTimeChanges", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Update Time Book")
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -185,6 +197,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("EtagChanges", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Etag Book")
 		originalEtag := book.Etag
 
@@ -201,6 +214,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("MetadataPartialUpdate", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Metadata Update Book")
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -219,6 +233,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedField_Name", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Unauthorized Name Book")
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -232,6 +247,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedField_CreateTime", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Unauthorized CT Book")
 
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
@@ -245,6 +261,7 @@ func TestBookUpdate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingName", func(t *testing.T) {
+		t.Parallel()
 		updateBookRequest := &libraryservicepb.UpdateBookRequest{
 			Book: &librarypb.Book{
 				Title: "No Name",
@@ -257,11 +274,13 @@ func TestBookUpdate(t *testing.T) {
 }
 
 func TestBookDelete(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book Delete Author")
 	shelf := createTestShelf(t, organizationParent, "Book Delete Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("HardDelete", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Hard Delete Book")
 
 		deleteBookRequest := &libraryservicepb.DeleteBookRequest{
@@ -278,6 +297,7 @@ func TestBookDelete(t *testing.T) {
 	})
 
 	t.Run("DeleteWithMatchingEtag", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Etag Delete Book")
 
 		deleteBookRequest := &libraryservicepb.DeleteBookRequest{
@@ -289,6 +309,7 @@ func TestBookDelete(t *testing.T) {
 	})
 
 	t.Run("DeleteWithWrongEtag", func(t *testing.T) {
+		t.Parallel()
 		book := createTestBook(t, shelf.Name, author.Name, "Wrong Etag Delete Book")
 
 		deleteBookRequest := &libraryservicepb.DeleteBookRequest{
@@ -300,6 +321,7 @@ func TestBookDelete(t *testing.T) {
 	})
 
 	t.Run("AllowMissing", func(t *testing.T) {
+		t.Parallel()
 		deleteBookRequest := &libraryservicepb.DeleteBookRequest{
 			Name:         shelf.Name + "/books/nonexistent-book-for-delete",
 			AllowMissing: true,
@@ -309,6 +331,7 @@ func TestBookDelete(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
 		deleteBookRequest := &libraryservicepb.DeleteBookRequest{
 			Name: shelf.Name + "/books/nonexistent-book-err",
 		}
@@ -318,11 +341,13 @@ func TestBookDelete(t *testing.T) {
 }
 
 func TestBookList(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book List Author")
 	shelf := createTestShelf(t, organizationParent, "Book List Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
 	t.Run("BasicList", func(t *testing.T) {
+		t.Parallel()
 		createTestBook(t, shelf.Name, author.Name, "List Book A")
 		createTestBook(t, shelf.Name, author.Name, "List Book B")
 
@@ -335,6 +360,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByTitle", func(t *testing.T) {
+		t.Parallel()
 		createTestBook(t, shelf.Name, author.Name, "Unique Title XYZ123")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
@@ -348,6 +374,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByAuthorReference", func(t *testing.T) {
+		t.Parallel()
 		secondAuthor := createTestAuthor(t, organizationParent, "Second List Author")
 		createTestBook(t, shelf.Name, secondAuthor.Name, "Second Author Book")
 
@@ -364,6 +391,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByPublicationYear_Comparison", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -389,6 +417,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByISBN", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -411,6 +440,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByMetadataLanguage", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -432,6 +462,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelsHasKey", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -454,6 +485,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterByLabelsKeyValue", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -476,6 +508,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterWithWildcardString", func(t *testing.T) {
+		t.Parallel()
 		createTestBook(t, shelf.Name, author.Name, "Wildcard Prefix Book ZZZ")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
@@ -488,6 +521,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterWithANDandOR", func(t *testing.T) {
+		t.Parallel()
 		createBookRequest := &libraryservicepb.CreateBookRequest{
 			Parent: shelf.Name,
 			Book: &librarypb.Book{
@@ -522,6 +556,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterWithNOT", func(t *testing.T) {
+		t.Parallel()
 		createTestBook(t, shelf.Name, author.Name, "NOT Filter Exclude Me")
 
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
@@ -536,6 +571,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterPresenceCheck", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `title:*`,
@@ -546,6 +582,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterNotAllowed_PageCount", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `page_count > 100`,
@@ -555,6 +592,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterNotAllowed_Etag", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `etag = "something"`,
@@ -564,6 +602,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("FilterInvalidSyntax", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `title = `,
@@ -573,6 +612,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_Title", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc",
@@ -582,6 +622,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_PublicationYear", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "publication_year desc",
@@ -591,6 +632,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_MultipleFields", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title asc, create_time desc",
@@ -600,6 +642,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByNotAllowed_Author", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "author asc",
@@ -609,6 +652,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByNotAllowed_PageCount", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "page_count asc",
@@ -618,6 +662,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("OrderByInvalidSyntax", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:  shelf.Name,
 			OrderBy: "title ascending",
@@ -627,6 +672,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
+		t.Parallel()
 		paginationShelf := createTestShelf(t, organizationParent, "Pagination Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		for i := range 3 {
 			createTestBook(t, paginationShelf.Name, author.Name, fmt.Sprintf("Paginated Book %d", i))
@@ -652,6 +698,7 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("DefaultOrdering", func(t *testing.T) {
+		t.Parallel()
 		defaultShelf := createTestShelf(t, organizationParent, "Default Order Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 		createTestBook(t, defaultShelf.Name, author.Name, "First Created")
 		createTestBook(t, defaultShelf.Name, author.Name, "Second Created")
@@ -669,12 +716,14 @@ func TestBookList(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingParent", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{}
 		_, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
 
 	t.Run("Protovalidation_PageSizeTooLarge", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent:   shelf.Name,
 			PageSize: 1001,
@@ -685,12 +734,14 @@ func TestBookList(t *testing.T) {
 }
 
 func TestBookFieldMask(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	author := createTestAuthor(t, organizationParent, "Book Field Mask Author")
 	shelf := createTestShelf(t, organizationParent, "Book Field Mask Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	book := createTestBook(t, shelf.Name, author.Name, "Field Mask Book")
 
 	t.Run("ReturnsOnlyRequestedFields", func(t *testing.T) {
+		t.Parallel()
 		ctxWithFieldMask := middleware.WithFieldMask(ctx, "name,title")
 		getBookRequest := &libraryservicepb.GetBookRequest{
 			Name: book.Name,
@@ -706,6 +757,7 @@ func TestBookFieldMask(t *testing.T) {
 	})
 
 	t.Run("NestedFieldMask", func(t *testing.T) {
+		t.Parallel()
 		ctxWithFieldMask := middleware.WithFieldMask(ctx, "name,metadata.language")
 		getBookRequest := &libraryservicepb.GetBookRequest{
 			Name: book.Name,

@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/library/library_service/v1/shelf.proto.
  */
 export const file_malonaz_library_library_service_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("Ci5tYWxvbmF6L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxL3NoZWxmLnByb3RvEiJtYWxvbmF6LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvcBChJDcmVhdGVTaGVsZlJlcXVlc3QSPgoGcGFyZW50GAEgASgJQi7gQQL6QSIKIGxpYnJhcnkubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjAKBXNoZWxmGAMgASgLMhkubWFsb25hei5saWJyYXJ5LnYxLlNoZWxmQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJICg9HZXRTaGVsZlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBIo8CChJVcGRhdGVTaGVsZlJlcXVlc3QSMAoFc2hlbGYYASABKAsyGS5tYWxvbmF6LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATqNAbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQNACgxkaXNwbGF5X25hbWUKBWdlbnJlChBjb3JyZWxhdGlvbl9pZF8yCgtleHRlcm5hbF9pZAoKbWV0YWRhdGEuKiJiChJEZWxldGVTaGVsZlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgi5wEKEkxpc3RTaGVsdmVzUmVxdWVzdBI+CgZwYXJlbnQYASABKAlCLuBBAvpBIgogbGlicmFyeS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCTomgvMtAghkivMtFQoBKhIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoTTGlzdFNoZWx2ZXNSZXNwb25zZRIqCgdzaGVsdmVzGAEgAygLMhkubWFsb25hei5saWJyYXJ5LnYxLlNoZWxmEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUI9WjtnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_library_v1_shelf]);
+  fileDesc("Ci5tYWxvbmF6L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxL3NoZWxmLnByb3RvEiJtYWxvbmF6LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvcBChJDcmVhdGVTaGVsZlJlcXVlc3QSPgoGcGFyZW50GAEgASgJQi7gQQL6QSIKIGxpYnJhcnkubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjAKBXNoZWxmGAMgASgLMhkubWFsb25hei5saWJyYXJ5LnYxLlNoZWxmQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJICg9HZXRTaGVsZlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBIo8CChJVcGRhdGVTaGVsZlJlcXVlc3QSMAoFc2hlbGYYASABKAsyGS5tYWxvbmF6LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATqNAbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQNACgxkaXNwbGF5X25hbWUKBWdlbnJlChBjb3JyZWxhdGlvbl9pZF8yCgtleHRlcm5hbF9pZAoKbWV0YWRhdGEuKiJiChJEZWxldGVTaGVsZlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgi5wEKEkxpc3RTaGVsdmVzUmVxdWVzdBI+CgZwYXJlbnQYASABKAlCLuBBAvpBIgogbGlicmFyeS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCTomgvMtAghkivMtFQoBKhIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoTTGlzdFNoZWx2ZXNSZXNwb25zZRIqCgdzaGVsdmVzGAEgAygLMhkubWFsb25hei5saWJyYXJ5LnYxLlNoZWxmEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKRAQoWQmF0Y2hHZXRTaGVsdmVzUmVxdWVzdBI1CgZwYXJlbnQYASABKAlCJfpBIgogbGlicmFyeS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SQAoFbmFtZXMYAiADKAlCMfpBGwoZbGlicmFyeS5tYWxvbmF6LmNvbS9TaGVsZrpIEJIBDQgBEOgHGAEiBHICEAEiRQoXQmF0Y2hHZXRTaGVsdmVzUmVzcG9uc2USKgoHc2hlbHZlcxgBIAMoCzIZLm1hbG9uYXoubGlicmFyeS52MS5TaGVsZkI9WjtnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_library_v1_shelf]);
 
 /**
  * Request message for LibraryService.CreateShelf.
@@ -388,4 +388,60 @@ export type ListShelvesResponseValid = ListShelvesResponse;
  */
 export const ListShelvesResponseSchema: GenMessage<ListShelvesResponse, {validType: ListShelvesResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_library_library_service_v1_shelf, 5);
+
+/**
+ * Request message for LibraryService.BatchGetShelves.
+ *
+ * @generated from message malonaz.library.library_service.v1.BatchGetShelvesRequest
+ */
+export type BatchGetShelvesRequest = Message<"malonaz.library.library_service.v1.BatchGetShelvesRequest"> & {
+  /**
+   * The parent organization that owns the shelves.
+   * Format: organizations/{organization}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The resource names of the shelves to retrieve.
+   * Format: organizations/{organization}/shelves/{shelf}
+   * A maximum of 1000 shelves can be retrieved in a batch.
+   *
+   * @generated from field: repeated string names = 2;
+   */
+  names: string[];
+};
+
+export type BatchGetShelvesRequestValid = BatchGetShelvesRequest;
+
+/**
+ * Describes the message malonaz.library.library_service.v1.BatchGetShelvesRequest.
+ * Use `create(BatchGetShelvesRequestSchema)` to create a new message.
+ */
+export const BatchGetShelvesRequestSchema: GenMessage<BatchGetShelvesRequest, {validType: BatchGetShelvesRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_library_library_service_v1_shelf, 6);
+
+/**
+ * Response message for LibraryService.BatchGetShelves.
+ *
+ * @generated from message malonaz.library.library_service.v1.BatchGetShelvesResponse
+ */
+export type BatchGetShelvesResponse = Message<"malonaz.library.library_service.v1.BatchGetShelvesResponse"> & {
+  /**
+   * Shelves requested.
+   *
+   * @generated from field: repeated malonaz.library.v1.Shelf shelves = 1;
+   */
+  shelves: Shelf[];
+};
+
+export type BatchGetShelvesResponseValid = BatchGetShelvesResponse;
+
+/**
+ * Describes the message malonaz.library.library_service.v1.BatchGetShelvesResponse.
+ * Use `create(BatchGetShelvesResponseSchema)` to create a new message.
+ */
+export const BatchGetShelvesResponseSchema: GenMessage<BatchGetShelvesResponse, {validType: BatchGetShelvesResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_library_library_service_v1_shelf, 7);
 

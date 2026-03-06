@@ -29,9 +29,9 @@ const (
 	defaultPassword = "postgres"
 
 	defaultDataDirectory = "/tmp/db"
-	socketFilepath       = "/postgres_socket"
-	configFilepath       = "/postgresql.conf"
-	logFilepath          = "/postgresql.log"
+	socketFilepath       = "postgres_socket"
+	configFilepath       = "postgresql.conf"
+	logFilepath          = "postgresql.log"
 )
 
 // Config holds a Server config.
@@ -80,7 +80,7 @@ func NewServer(config Config, log *slog.Logger) (*Server, error) {
 		config.DataDirectory = defaultDataDirectory
 	}
 	if config.MaxConns == 0 {
-		config.MaxConns = 1
+		config.MaxConns = 10
 	}
 
 	// Start relevant binaries.
@@ -182,6 +182,10 @@ func (s *Server) writeConfigToDisk() error {
 		"log_disconnections":         "on",
 		"max_wal_size":               "3072",
 		"timezone":                   "UTC",
+		"wal_level":                  "minimal",
+		"max_wal_senders":            "0",
+		"checkpoint_timeout":         "86400",
+		"autovacuum":                 "off",
 	}
 	f, err := os.Create(s.config.DataDirectory + configFilepath)
 	defer f.Close()

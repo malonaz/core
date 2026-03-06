@@ -1,8 +1,12 @@
 go_test(
     name = "sat",
     srcs = [
+        "aip_paginate_test.go",
         "author_test.go",
+        "batch_test.go",
         "book_test.go",
+        "create_test.go",
+        "delete_test.go",
         "filter_test.go",
         "labels_test.go",
         "middleware_canonicalize_test.go",
@@ -18,7 +22,9 @@ go_test(
         "//go/library/migrations:initializer",
         "//go/library/migrations:migrator",
     ],
+    test_outputs = ["sat.log"],
     deps = [
+        "//go/aip",
         "//go/grpc",
         "//go/grpc/middleware",
         "//go/grpc/require",

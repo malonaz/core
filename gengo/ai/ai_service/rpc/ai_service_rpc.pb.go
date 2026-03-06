@@ -162,8 +162,6 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	if resourcename.ContainsWildcard(request.Chat.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
-	// Set the update time.
-	request.Chat.UpdateTime = timestamppb.Now()
 	// Capture the etag.
 	etag := request.GetChat().GetEtag()
 
@@ -190,6 +188,8 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	if err := protovalidate.Validate(patchedChat); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
 	}
+	// Set the update time.
+	patchedChat.UpdateTime = timestamppb.Now()
 
 	{ // Compute the new etag.
 		var err error
@@ -231,7 +231,7 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
-	deleteTime := time.Now()
+	deleteTime := time.Now().UTC()
 
 	// Compute new etag.
 	getChatRequest := &v1.GetChatRequest{Name: request.Name}

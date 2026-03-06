@@ -52,7 +52,9 @@ func createTestAuthor(t *testing.T, parent, displayName string) *librarypb.Autho
 }
 
 func TestAuthorCreate(t *testing.T) {
+	t.Parallel()
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
@@ -71,6 +73,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("WithCustomID", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent:   organizationParent,
@@ -83,6 +86,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingParent", func(t *testing.T) {
+		t.Parallel()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Author: validAuthor(),
 		}
@@ -91,6 +95,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingAuthor", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
@@ -100,6 +105,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_DisplayNameTooShort", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.DisplayName = ""
@@ -112,6 +118,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_InvalidEmail", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.EmailAddress = "not-an-email"
@@ -124,6 +131,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingEmail", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.EmailAddress = ""
@@ -136,6 +144,7 @@ func TestAuthorCreate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_InvalidAuthorID", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent:   organizationParent,
@@ -148,9 +157,11 @@ func TestAuthorCreate(t *testing.T) {
 }
 
 func TestAuthorCanonicalize(t *testing.T) {
+	t.Parallel()
 	author := validAuthor()
 	author.EmailAddress = "TEST@EXAMPLE.COM"
 	t.Run("EmailNormalized", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 			Parent: organizationParent,
@@ -169,6 +180,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("PhoneNumberE164_US", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.PhoneNumber = "(202) 555-1234"
@@ -189,6 +201,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("PhoneNumberE164_French", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.PhoneNumber = "+33 1 42 68 53 00"
@@ -202,6 +215,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("PhoneNumberE164_FrenchMobile", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.PhoneNumber = "+33 6 12 34 56 78"
@@ -215,6 +229,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("MetadataEmailsNormalized", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.EmailAddresses = []string{"ALICE@EXAMPLE.COM", "BOB@EXAMPLE.COM"}
@@ -245,6 +260,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("MetadataPhoneNumbers_International", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.Metadata.PhoneNumbers = []string{"+33 1 42 68 53 00", "+44 20 7946 0958"}
@@ -259,6 +275,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("InvalidPhoneNumberRejected", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.PhoneNumber = "not-a-phone"
@@ -271,6 +288,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("UpdateCanonicalizesEmail", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Update Canonicalize Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -286,6 +304,7 @@ func TestAuthorCanonicalize(t *testing.T) {
 	})
 
 	t.Run("UpdateCanonicalizesPhoneNumber_French", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Update Canon Phone FR Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -302,8 +321,10 @@ func TestAuthorCanonicalize(t *testing.T) {
 }
 
 func TestAuthorGet(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Get Author")
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{
 			Name: author.Name,
@@ -315,6 +336,7 @@ func TestAuthorGet(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{
 			Name: organizationParent + "/authors/nonexistent-author",
 		}
@@ -323,6 +345,7 @@ func TestAuthorGet(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingName", func(t *testing.T) {
+		t.Parallel()
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{}
 		_, err := libraryServiceClient.GetAuthor(ctx, getAuthorRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
@@ -330,7 +353,9 @@ func TestAuthorGet(t *testing.T) {
 }
 
 func TestAuthorUpdate(t *testing.T) {
+	t.Parallel()
 	t.Run("AllowedFields", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Update Allowed Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -348,6 +373,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("UpdateTimeChanges", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Update Time Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -364,6 +390,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("EtagChanges", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Etag Change Author")
 		originalEtag := author.Etag
@@ -380,6 +407,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedField_Name", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Unauthorized Name Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -393,6 +421,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedField_CreateTime", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Unauthorized CreateTime Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -406,6 +435,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("MetadataPartialUpdate", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
@@ -431,6 +461,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("UpdateLabels", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Labels Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -447,6 +478,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingName", func(t *testing.T) {
+		t.Parallel()
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
 			Author: &librarypb.Author{
 				Biography: "No name set.",
@@ -458,6 +490,7 @@ func TestAuthorUpdate(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_EmptyMask", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Empty Mask Author")
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -472,7 +505,9 @@ func TestAuthorUpdate(t *testing.T) {
 }
 
 func TestAuthorDelete(t *testing.T) {
+	t.Parallel()
 	t.Run("SoftDelete", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Soft Delete Author")
 
@@ -492,6 +527,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("SoftDeletedHiddenFromList", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Hidden After Delete Author")
 
@@ -511,6 +547,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("ShowDeletedRevealsDeleted", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Show Deleted Author")
 
@@ -532,6 +569,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("DeleteWithMatchingEtag", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Etag Delete Author")
 
@@ -544,6 +582,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("DeleteWithWrongEtag", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Wrong Etag Delete Author")
 
@@ -556,6 +595,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("Delete twice", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := createTestAuthor(t, organizationParent, "Wrong Etag Delete Author")
 
@@ -575,6 +615,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("AllowMissing throws error on soft-deletable non existent resource", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		deleteAuthorRequest := &libraryservicepb.DeleteAuthorRequest{
 			Name:         organizationParent + "/authors/nonexistent-for-delete",
@@ -585,6 +626,7 @@ func TestAuthorDelete(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		deleteAuthorRequest := &libraryservicepb.DeleteAuthorRequest{
 			Name: organizationParent + "/authors/nonexistent-for-delete-err",
@@ -595,8 +637,10 @@ func TestAuthorDelete(t *testing.T) {
 }
 
 func TestAuthorList(t *testing.T) {
+	t.Parallel()
 
 	t.Run("BasicList", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
@@ -607,6 +651,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterByDisplayName_ExactMatch", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createTestAuthor(t, organizationParent, "Unique Filter Author 9876")
 
@@ -621,6 +666,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterByDisplayName_NotEqual", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createTestAuthor(t, organizationParent, "NEQ Filter Author 5432")
 
@@ -636,6 +682,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterByMetadataCountry", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.Metadata.Country = "JP-unique-filter-test"
@@ -656,6 +703,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterWithAND", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.DisplayName = "AND Filter Author"
@@ -679,6 +727,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterWithOR", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createTestAuthor(t, organizationParent, "OR Filter Author A 111")
 		createTestAuthor(t, organizationParent, "OR Filter Author B 222")
@@ -693,6 +742,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterWithNOT", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		createTestAuthor(t, organizationParent, "NOT Filter Author XYZZY")
 
@@ -708,6 +758,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("FilterWithParentheses", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		author := validAuthor()
 		author.DisplayName = "Paren Filter A 7788"
@@ -743,6 +794,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_DisplayName", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:  organizationParent,
@@ -754,6 +806,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("OrderByAllowed_CreateTimeDesc", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:  organizationParent,
@@ -764,6 +817,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("OrderByNotAllowed", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:  organizationParent,
@@ -774,6 +828,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		for i := range 3 {
 			createTestAuthor(t, organizationParent, fmt.Sprintf("Paginated Author %d", i))
@@ -799,12 +854,14 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_MissingParent", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{}
 		_, err := libraryServiceClient.ListAuthors(ctx, listAuthorsRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
 
 	t.Run("Protovalidation_PageSizeTooLarge", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:   organizationParent,
@@ -815,6 +872,7 @@ func TestAuthorList(t *testing.T) {
 	})
 
 	t.Run("Protovalidation_NegativePageSize", func(t *testing.T) {
+		t.Parallel()
 		organizationParent := getOrganizationParent()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:   organizationParent,
@@ -826,6 +884,7 @@ func TestAuthorList(t *testing.T) {
 }
 
 func TestAuthorFilterSubstringMatch(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 		Parent: organizationParent,
@@ -849,6 +908,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("DisplayName_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `display_name = "Substring Hemingway*"`,
@@ -862,6 +922,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("DisplayName_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `display_name = "*TestAuthor"`,
@@ -875,6 +936,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("DisplayName_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `display_name = "*Hemingway*"`,
@@ -888,6 +950,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("Biography_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `biography = "A farewell to arms*"`,
@@ -901,6 +964,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("Biography_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `biography = "*unique biography text"`,
@@ -914,6 +978,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("Biography_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `biography = "*farewell to arms unique*"`,
@@ -927,6 +992,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("EmailAddress_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_address = "hemingway-substring*"`,
@@ -940,6 +1006,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("EmailAddress_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_address = "*hemingway-substring*"`,
@@ -950,6 +1017,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataCountry_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.country = "US-substring*"`,
@@ -963,6 +1031,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataCountry_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.country = "*substring-test"`,
@@ -976,6 +1045,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataCountry_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.country = "*substring*"`,
@@ -986,6 +1056,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("LabelValue_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.era = "modernist-substring*"`,
@@ -999,6 +1070,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("LabelValue_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.region = "*america-substring"`,
@@ -1012,6 +1084,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("LabelValue_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.era = "*substring*"`,
@@ -1022,6 +1095,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataEmailAddresses_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.email_addresses:"ernest-sub*"`,
@@ -1032,6 +1106,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataEmailAddresses_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.email_addresses:"*@writing.org"`,
@@ -1042,6 +1117,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("MetadataEmailAddresses_BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.email_addresses:"*-sub@*"`,
@@ -1052,6 +1128,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("NoMatch_TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `display_name = "zzz-nonexistent-prefix*"`,
@@ -1062,6 +1139,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 	})
 
 	t.Run("NoMatch_LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `display_name = "*zzz-nonexistent-suffix"`,
@@ -1073,6 +1151,7 @@ func TestAuthorFilterSubstringMatch(t *testing.T) {
 }
 
 func TestAuthorFilterLabels(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 		Parent: organizationParent,
@@ -1092,6 +1171,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("HasKey", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels:"cost-center-id"`,
@@ -1106,6 +1186,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueExact", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.environment = "staging-unique-4471"`,
@@ -1117,6 +1198,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueNotEqual", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.environment != "staging-unique-4471"`,
@@ -1129,6 +1211,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueTrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.team = "backend-unique*"`,
@@ -1142,6 +1225,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueLeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.team = "*unique-4471"`,
@@ -1155,6 +1239,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueBothWildcards", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.team = "*unique*"`,
@@ -1165,6 +1250,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("MultipleLabelsAND", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels.environment = "staging-unique-4471" AND labels.team = "backend-unique-4471"`,
@@ -1175,6 +1261,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 	})
 
 	t.Run("HasKeyAndValueCombined", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels:"cost-center-id" AND labels.environment = "staging-unique-4471"`,
@@ -1186,6 +1273,7 @@ func TestAuthorFilterLabels(t *testing.T) {
 }
 
 func TestAuthorFilterRepeatedFields(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 		Parent: organizationParent,
@@ -1205,6 +1293,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("ExactMatchInRepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"alice-repeated-8833@lit.com"`,
@@ -1215,6 +1304,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("ExactMatchSecondElement", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"bob-repeated-8833@pub.org"`,
@@ -1225,6 +1315,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("TrailingWildcardInRepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"alice-repeated*"`,
@@ -1235,6 +1326,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("LeadingWildcardInRepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"*@pub.org"`,
@@ -1245,6 +1337,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("BothWildcardsInRepeatedEmails", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"*repeated-8833*"`,
@@ -1255,6 +1348,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("ExactMatchInRepeatedPhoneNumbers", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `phone_numbers:"+33142685300"`,
@@ -1265,6 +1359,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("TrailingWildcardInRepeatedPhones", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `phone_numbers:"+3314*"`,
@@ -1275,6 +1370,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("NoMatch", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_addresses:"nonexistent-zzz@nowhere.com"`,
@@ -1286,6 +1382,7 @@ func TestAuthorFilterRepeatedFields(t *testing.T) {
 }
 
 func TestAuthorFilterPresenceAndHas(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
 		Parent: organizationParent,
@@ -1318,6 +1415,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("HasEmailAddresses Nested", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.email_addresses:*`,
@@ -1331,6 +1429,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasPhoneNumbers Nested", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.phone_numbers:*`,
@@ -1344,6 +1443,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasEmailAddress", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `email_address:*`,
@@ -1357,6 +1457,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasPhoneNumber", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `phone_number:*`,
@@ -1370,6 +1471,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasBiography", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `biography:*`,
@@ -1382,6 +1484,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasLabels", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels:*`,
@@ -1395,6 +1498,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasLabelKey", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `labels:"tier"`,
@@ -1409,6 +1513,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasMetadataCountry", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.country:*`,
@@ -1422,6 +1527,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasMetadataEmailAddresses", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.email_addresses:*`,
@@ -1435,6 +1541,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("HasMetadataPhoneNumbers", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `metadata.phone_numbers:*`,
@@ -1448,6 +1555,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("CombinedPresenceAndEquality", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `phone_number:* AND display_name = "Presence Author With Email 6622"`,
@@ -1458,6 +1566,7 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 	})
 
 	t.Run("NegatedPresence", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: organizationParent,
 			Filter: `NOT phone_number:*`,
@@ -1471,8 +1580,10 @@ func TestAuthorFilterPresenceAndHas(t *testing.T) {
 }
 
 func TestAuthorFieldMask(t *testing.T) {
+	t.Parallel()
 	organizationParent := getOrganizationParent()
 	t.Run("ReturnsOnlyRequestedFields", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Field Mask Author")
 		ctxWithFieldMask := middleware.WithFieldMask(ctx, "name,display_name")
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{
@@ -1488,6 +1599,7 @@ func TestAuthorFieldMask(t *testing.T) {
 	})
 
 	t.Run("WildcardReturnsAllFields", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Wildcard Mask Author")
 		ctxWithFieldMask := middleware.WithFieldMask(ctx, "*")
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{
@@ -1500,6 +1612,7 @@ func TestAuthorFieldMask(t *testing.T) {
 	})
 
 	t.Run("NestedFieldMask", func(t *testing.T) {
+		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Nested Mask Author")
 		ctxWithFieldMask := middleware.WithFieldMask(ctx, "name,metadata.country")
 		getAuthorRequest := &libraryservicepb.GetAuthorRequest{

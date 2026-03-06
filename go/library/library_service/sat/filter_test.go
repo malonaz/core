@@ -45,6 +45,7 @@ func listAuthors(t *testing.T, parent, filter string) []*librarypb.Author {
 }
 
 func TestFilter_Equality(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	a1 := createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Alice Equality"
@@ -58,28 +59,33 @@ func TestFilter_Equality(t *testing.T) {
 	})
 
 	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Alice Equality"`)
 		require.Len(t, results, 1)
 		require.Equal(t, a1.Name, results[0].Name)
 	})
 
 	t.Run("NoMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Nonexistent Person"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("NotEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name != "Alice Equality"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Bob Equality", results[0].DisplayName)
 	})
 
 	t.Run("NotEqualReturnsAllWhenNoMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name != "Nonexistent"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("EmptyStringMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `biography = "bio-alice"`)
 		require.Len(t, results, 1)
 		require.Equal(t, a1.Name, results[0].Name)
@@ -87,6 +93,7 @@ func TestFilter_Equality(t *testing.T) {
 }
 
 func TestFilter_EmptyFilter(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Empty Filter A"
@@ -102,6 +109,7 @@ func TestFilter_EmptyFilter(t *testing.T) {
 }
 
 func TestFilter_LogicalOperators(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Logic Alpha"
@@ -120,32 +128,38 @@ func TestFilter_LogicalOperators(t *testing.T) {
 	})
 
 	t.Run("AND_BothMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Logic Alpha" AND biography = "logic-bio-shared"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Logic Alpha", results[0].DisplayName)
 	})
 
 	t.Run("AND_OneFails", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Logic Alpha" AND biography = "logic-bio-different"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("OR_EitherMatches", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Logic Alpha" OR display_name = "Logic Beta"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("OR_OnlyOneMatches", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Logic Alpha" OR display_name = "Nonexistent"`)
 		require.Len(t, results, 1)
 	})
 
 	t.Run("OR_NeitherMatches", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Nope1" OR display_name = "Nope2"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("NOT", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT display_name = "Logic Gamma"`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -154,16 +168,19 @@ func TestFilter_LogicalOperators(t *testing.T) {
 	})
 
 	t.Run("MinusOperator", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `-display_name = "Logic Gamma"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("TripleOR", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Logic Alpha" OR display_name = "Logic Beta" OR display_name = "Logic Gamma"`)
 		require.Len(t, results, 3)
 	})
 
 	t.Run("TripleAND_SharedBio", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `biography = "logic-bio-shared" AND display_name != "Logic Alpha" AND display_name != "Logic Gamma"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Logic Beta", results[0].DisplayName)
@@ -171,6 +188,7 @@ func TestFilter_LogicalOperators(t *testing.T) {
 }
 
 func TestFilter_Parentheses(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Paren A"
@@ -189,29 +207,34 @@ func TestFilter_Parentheses(t *testing.T) {
 	})
 
 	t.Run("GroupedOR_WithAND", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `(display_name = "Paren A" OR display_name = "Paren C") AND biography = "paren-bio-x"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Paren A", results[0].DisplayName)
 	})
 
 	t.Run("GroupedOR_WithAND_BothMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `(display_name = "Paren A" OR display_name = "Paren B") AND biography = "paren-bio-x"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("NOT_GroupedOR", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT (display_name = "Paren A" OR display_name = "Paren B")`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Paren C", results[0].DisplayName)
 	})
 
 	t.Run("DoubleGroupedOR_WithAND", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `(display_name = "Paren A" OR display_name = "Paren B") AND (biography = "paren-bio-x" OR biography = "paren-bio-y")`)
 		require.Len(t, results, 2)
 	})
 }
 
 func TestFilter_WildcardStrings(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Wildcard Hemingway Jones"
@@ -227,6 +250,7 @@ func TestFilter_WildcardStrings(t *testing.T) {
 	})
 
 	t.Run("TrailingWildcard", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Wildcard Hemingway*"`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -235,6 +259,7 @@ func TestFilter_WildcardStrings(t *testing.T) {
 	})
 
 	t.Run("LeadingWildcard", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "*Jones"`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -243,6 +268,7 @@ func TestFilter_WildcardStrings(t *testing.T) {
 	})
 
 	t.Run("BothWildcards", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "*Hemingway*"`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -251,22 +277,26 @@ func TestFilter_WildcardStrings(t *testing.T) {
 	})
 
 	t.Run("MiddleWildcard_TreatedAsLiteral", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Wild*Jones"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("WildcardNoMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Nonexistent*"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("WildcardCombinedWithAND", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Wildcard*" AND display_name = "*Jones"`)
 		require.Len(t, results, 2)
 	})
 }
 
 func TestFilter_NestedMessage(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Nested US Author"
@@ -285,17 +315,20 @@ func TestFilter_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.country = "US-nested-test"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "US-nested-test", results[0].Metadata.Country)
 	})
 
 	t.Run("WildcardMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.country = "*nested-test"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("PresenceCheck", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.country:*`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -304,12 +337,14 @@ func TestFilter_NestedMessage(t *testing.T) {
 	})
 
 	t.Run("CombinedWithTopLevel", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.country = "US-nested-test" AND display_name = "Nested US Author"`)
 		require.Len(t, results, 1)
 	})
 }
 
 func TestFilter_RepeatedFields(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Repeated A"
@@ -324,33 +359,39 @@ func TestFilter_RepeatedFields(t *testing.T) {
 	})
 
 	t.Run("HasExactValue", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `email_addresses:"alice-rep@two.com"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Repeated A", results[0].DisplayName)
 	})
 
 	t.Run("HasWildcardValue", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `email_addresses:"*@one.com"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("HasPresence_NonEmpty", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `email_addresses:*`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("HasPresence_PhoneNumbers", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `phone_numbers:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Repeated A", results[0].DisplayName)
 	})
 
 	t.Run("NoMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `email_addresses:"nonexistent@nowhere.com"`)
 		require.Empty(t, results)
 	})
 
 	t.Run("NOT_Has", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT email_addresses:"alice-rep@two.com"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Repeated B", results[0].DisplayName)
@@ -358,6 +399,7 @@ func TestFilter_RepeatedFields(t *testing.T) {
 }
 
 func TestFilter_NestedRepeatedFields(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "NestedRep A"
@@ -376,17 +418,20 @@ func TestFilter_NestedRepeatedFields(t *testing.T) {
 	})
 
 	t.Run("ExactValueInNestedRepeated", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.email_addresses:"meta-a@two.com"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "NestedRep A", results[0].DisplayName)
 	})
 
 	t.Run("WildcardInNestedRepeated", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.email_addresses:"*@one.com"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("PresenceOfNestedRepeated", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.phone_numbers:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "NestedRep A", results[0].DisplayName)
@@ -394,6 +439,7 @@ func TestFilter_NestedRepeatedFields(t *testing.T) {
 }
 
 func TestFilter_MapLabels(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Label A"
@@ -411,23 +457,27 @@ func TestFilter_MapLabels(t *testing.T) {
 	})
 
 	t.Run("HasKey", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels:"tier"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Label A", results[0].DisplayName)
 	})
 
 	t.Run("HasKey_Common", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels:"env"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("KeyValueExact", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels.env = "prod-filter-test"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Label A", results[0].DisplayName)
 	})
 
 	t.Run("KeyValueNotEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels.env != "prod-filter-test"`)
 		for _, r := range results {
 			require.NotEqual(t, "prod-filter-test", r.Labels["env"])
@@ -435,11 +485,13 @@ func TestFilter_MapLabels(t *testing.T) {
 	})
 
 	t.Run("KeyValueWildcard", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels.env = "*filter-test"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("HasAnyLabels", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels:*`)
 		require.Len(t, results, 2)
 		for _, r := range results {
@@ -448,28 +500,33 @@ func TestFilter_MapLabels(t *testing.T) {
 	})
 
 	t.Run("NOT_HasAnyLabels", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT labels:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Label None", results[0].DisplayName)
 	})
 
 	t.Run("HasKeyAND_KeyValue", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels:"tier" AND labels.env = "prod-filter-test"`)
 		require.Len(t, results, 1)
 	})
 
 	t.Run("NOT_HasKey", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT labels:"tier"`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("HasOperatorWithValue", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `labels.env:"prod-filter-test"`)
 		require.Len(t, results, 1)
 	})
 }
 
 func TestFilter_PresenceChecks(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Presence Full"
@@ -485,44 +542,52 @@ func TestFilter_PresenceChecks(t *testing.T) {
 	})
 
 	t.Run("StringPresent", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `phone_number:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Presence Full", results[0].DisplayName)
 	})
 
 	t.Run("StringAbsent", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT phone_number:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Presence Minimal", results[0].DisplayName)
 	})
 
 	t.Run("BiographyPresent", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `biography:*`)
 		require.Len(t, results, 1)
 	})
 
 	t.Run("MetadataPresent", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata:*`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("TimestampPresent_CreateTime", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `create_time:*`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("TimestampAbsent_DeleteTime", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `NOT delete_time:*`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("CombinedPresenceAndEquality", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `phone_number:* AND display_name = "Presence Full"`)
 		require.Len(t, results, 1)
 	})
 }
 
 func TestFilter_Timestamps(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	a1 := createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Timestamp First"
@@ -537,6 +602,7 @@ func TestFilter_Timestamps(t *testing.T) {
 	afterCreate := a2.GetCreateTime().AsTime().Add(time.Microsecond)
 
 	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
 		filter := fmt.Sprintf(`create_time > %q`, midpoint.Format(time.RFC3339Nano))
 		results := listAuthors(t, parent, filter)
 		require.Len(t, results, 1)
@@ -544,6 +610,7 @@ func TestFilter_Timestamps(t *testing.T) {
 	})
 
 	t.Run("LessThan", func(t *testing.T) {
+		t.Parallel()
 		filter := fmt.Sprintf(`create_time < %q`, midpoint.Format(time.RFC3339Nano))
 		results := listAuthors(t, parent, filter)
 		require.Len(t, results, 1)
@@ -551,6 +618,7 @@ func TestFilter_Timestamps(t *testing.T) {
 	})
 
 	t.Run("Range", func(t *testing.T) {
+		t.Parallel()
 		filter := fmt.Sprintf(
 			`create_time >= %q AND create_time <= %q`,
 			beforeCreate.Format(time.RFC3339Nano),
@@ -561,6 +629,7 @@ func TestFilter_Timestamps(t *testing.T) {
 	})
 
 	t.Run("NoMatch_FutureBound", func(t *testing.T) {
+		t.Parallel()
 		future := time.Now().UTC().Add(24 * time.Hour)
 		filter := fmt.Sprintf(`create_time > %q`, future.Format(time.RFC3339Nano))
 		results := listAuthors(t, parent, filter)
@@ -569,6 +638,7 @@ func TestFilter_Timestamps(t *testing.T) {
 }
 
 func TestFilter_EnumFields(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createTestShelf(t, parent, "Enum Fiction Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	createTestShelf(t, parent, "Enum History Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
@@ -586,12 +656,14 @@ func TestFilter_EnumFields(t *testing.T) {
 	}
 
 	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre = SHELF_GENRE_FICTION`)
 		require.Len(t, results, 1)
 		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, results[0].Genre)
 	})
 
 	t.Run("NotEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre != SHELF_GENRE_FICTION`)
 		require.Len(t, results, 2)
 		for _, s := range results {
@@ -600,22 +672,26 @@ func TestFilter_EnumFields(t *testing.T) {
 	})
 
 	t.Run("MultipleWithOR", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre = SHELF_GENRE_FICTION OR genre = SHELF_GENRE_HISTORY`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("EnumPresence", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre:*`)
 		require.Len(t, results, 3)
 	})
 
 	t.Run("CombinedWithString", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre = SHELF_GENRE_FICTION AND display_name = "Enum Fiction Shelf"`)
 		require.Len(t, results, 1)
 	})
 }
 
 func TestFilter_IntegerComparisons(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	author := createTestAuthor(t, parent, "Int Cmp Author")
 	shelf := createTestShelf(t, parent, "Int Cmp Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
@@ -636,51 +712,60 @@ func TestFilter_IntegerComparisons(t *testing.T) {
 	}
 
 	t.Run("Equal", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year = 2000`)
 		require.Len(t, results, 1)
 		require.Equal(t, int32(2000), results[0].PublicationYear)
 	})
 
 	t.Run("NotEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year != 2000`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year > 2000`)
 		require.Len(t, results, 1)
 		require.Equal(t, int32(2020), results[0].PublicationYear)
 	})
 
 	t.Run("GreaterThanOrEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year >= 2000`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("LessThan", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year < 2000`)
 		require.Len(t, results, 1)
 		require.Equal(t, int32(1980), results[0].PublicationYear)
 	})
 
 	t.Run("LessThanOrEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year <= 2000`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("Range", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year >= 1990 AND publication_year <= 2010`)
 		require.Len(t, results, 1)
 		require.Equal(t, int32(2000), results[0].PublicationYear)
 	})
 
 	t.Run("Presence", func(t *testing.T) {
+		t.Parallel()
 		results := listBooks(`publication_year:*`)
 		require.Len(t, results, 3)
 	})
 }
 
 func TestFilter_NestedIntegerField(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createShelfWithCapacity := func(name string, capacity int32) {
 		t.Helper()
@@ -712,22 +797,26 @@ func TestFilter_NestedIntegerField(t *testing.T) {
 	}
 
 	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`metadata.capacity = 200`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Medium Shelf", results[0].DisplayName)
 	})
 
 	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`metadata.capacity > 100`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("LessThanOrEqual", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`metadata.capacity <= 200`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("CombinedWithEnum", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`genre = SHELF_GENRE_FICTION AND metadata.capacity >= 500`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Large Shelf", results[0].DisplayName)
@@ -735,6 +824,7 @@ func TestFilter_NestedIntegerField(t *testing.T) {
 }
 
 func TestFilter_ComplexCombined(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "Complex Alpha"
@@ -759,29 +849,34 @@ func TestFilter_ComplexCombined(t *testing.T) {
 	})
 
 	t.Run("PresenceAND_Equality_AND_NestedField", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `phone_number:* AND labels.env = "prod" AND metadata.country = "US"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Complex Alpha", results[0].DisplayName)
 	})
 
 	t.Run("OR_WithNested_AND_Labels", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `(metadata.country = "US" OR metadata.country = "UK") AND labels:*`)
 		require.Len(t, results, 2)
 	})
 
 	t.Run("NOT_WithNestedAND", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `metadata.country = "US" AND NOT labels:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Complex Gamma", results[0].DisplayName)
 	})
 
 	t.Run("WildcardString_AND_Presence_AND_Label", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Complex*" AND phone_number:* AND labels:"team"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Complex Alpha", results[0].DisplayName)
 	})
 
 	t.Run("RepeatedField_AND_Nested_AND_NOT", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `email_addresses:"*@example.com" AND metadata.country = "US" AND NOT phone_number:*`)
 		require.Len(t, results, 1)
 		require.Equal(t, "Complex Gamma", results[0].DisplayName)
@@ -789,6 +884,7 @@ func TestFilter_ComplexCombined(t *testing.T) {
 }
 
 func TestFilter_SoftDeletedVisibility(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	author := createFilterAuthor(t, parent, func(a *librarypb.Author) {
 		a.DisplayName = "SoftDel Visible"
@@ -803,12 +899,14 @@ func TestFilter_SoftDeletedVisibility(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("DefaultHidesDeleted", func(t *testing.T) {
+		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "SoftDel*"`)
 		require.Len(t, results, 1)
 		require.Equal(t, author.Name, results[0].Name)
 	})
 
 	t.Run("ShowDeletedReveals", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:      parent,
 			Filter:      `display_name = "SoftDel*"`,
@@ -820,6 +918,7 @@ func TestFilter_SoftDeletedVisibility(t *testing.T) {
 	})
 
 	t.Run("FilterDeleteTime_ShowDeleted", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent:      parent,
 			Filter:      `delete_time:*`,
@@ -833,12 +932,14 @@ func TestFilter_SoftDeletedVisibility(t *testing.T) {
 }
 
 func TestFilter_DisallowedPaths(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	author := createTestAuthor(t, parent, "Disallowed Path Author")
 	shelf := createTestShelf(t, parent, "Disallowed Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	createTestBook(t, shelf.Name, author.Name, "Disallowed Book")
 
 	t.Run("Book_PageCountNotAllowed", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `page_count > 100`,
@@ -848,6 +949,7 @@ func TestFilter_DisallowedPaths(t *testing.T) {
 	})
 
 	t.Run("Book_EtagNotAllowed", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `etag = "something"`,
@@ -857,6 +959,7 @@ func TestFilter_DisallowedPaths(t *testing.T) {
 	})
 
 	t.Run("Book_NameNotAllowed", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `name = "something"`,
@@ -866,6 +969,7 @@ func TestFilter_DisallowedPaths(t *testing.T) {
 	})
 
 	t.Run("Book_CreateTimeNotAllowed", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `create_time > "2024-01-01T00:00:00Z"`,
@@ -876,6 +980,7 @@ func TestFilter_DisallowedPaths(t *testing.T) {
 }
 
 func TestFilter_InvalidSyntax(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createTestAuthor(t, parent, "Syntax Error Author")
 
@@ -896,6 +1001,7 @@ func TestFilter_InvalidSyntax(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 				Parent: parent,
 				Filter: tc.filter,
@@ -907,12 +1013,14 @@ func TestFilter_InvalidSyntax(t *testing.T) {
 }
 
 func TestFilter_TypeMismatch(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	author := createTestAuthor(t, parent, "Type Mismatch Author")
 	shelf := createTestShelf(t, parent, "Type Mismatch Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	createTestBook(t, shelf.Name, author.Name, "Type Mismatch Book")
 
 	t.Run("StringFieldWithInteger", func(t *testing.T) {
+		t.Parallel()
 		listAuthorsRequest := &libraryservicepb.ListAuthorsRequest{
 			Parent: parent,
 			Filter: `display_name = 123`,
@@ -922,6 +1030,7 @@ func TestFilter_TypeMismatch(t *testing.T) {
 	})
 
 	t.Run("IntegerFieldWithString", func(t *testing.T) {
+		t.Parallel()
 		listBooksRequest := &libraryservicepb.ListBooksRequest{
 			Parent: shelf.Name,
 			Filter: `publication_year = "not_a_number"`,
@@ -931,6 +1040,7 @@ func TestFilter_TypeMismatch(t *testing.T) {
 	})
 
 	t.Run("EnumWithString", func(t *testing.T) {
+		t.Parallel()
 		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
 			Parent: parent,
 			Filter: `genre = "FICTION"`,
@@ -940,6 +1050,7 @@ func TestFilter_TypeMismatch(t *testing.T) {
 	})
 
 	t.Run("EnumWithInteger", func(t *testing.T) {
+		t.Parallel()
 		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
 			Parent: parent,
 			Filter: `genre = 1`,
@@ -949,6 +1060,7 @@ func TestFilter_TypeMismatch(t *testing.T) {
 	})
 
 	t.Run("InvalidEnumValue", func(t *testing.T) {
+		t.Parallel()
 		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
 			Parent: parent,
 			Filter: `genre = INVALID_GENRE_VALUE`,
@@ -959,6 +1071,7 @@ func TestFilter_TypeMismatch(t *testing.T) {
 }
 
 func TestFilter_ColumnNameReplacement(t *testing.T) {
+	t.Parallel()
 	parent := getOrganizationParent()
 	createShelfRequest := &libraryservicepb.CreateShelfRequest{
 		Parent: parent,
@@ -985,23 +1098,27 @@ func TestFilter_ColumnNameReplacement(t *testing.T) {
 	}
 
 	t.Run("ExternalId", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`external_id = "ext-filter-123"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "ext-filter-123", results[0].ExternalId)
 	})
 
 	t.Run("CorrelationId2", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`correlation_id_2 = "corr-filter-456"`)
 		require.Len(t, results, 1)
 		require.Equal(t, "corr-filter-456", results[0].CorrelationId_2)
 	})
 
 	t.Run("ExternalId_Presence", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`external_id:*`)
 		require.Len(t, results, 1)
 	})
 
 	t.Run("Combined", func(t *testing.T) {
+		t.Parallel()
 		results := listShelves(`external_id = "ext-filter-123" AND correlation_id_2 = "corr-filter-456"`)
 		require.Len(t, results, 1)
 	})

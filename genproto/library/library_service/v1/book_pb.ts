@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/library/library_service/v1/book.proto.
  */
 export const file_malonaz_library_library_service_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxL2Jvb2sucHJvdG8SIm1hbG9uYXoubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEi7AEKEUNyZWF0ZUJvb2tSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESLgoEYm9vaxgDIAEoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJGCg5HZXRCb29rUmVxdWVzdBI0CgRuYW1lGAEgASgJQibgQQL6QRoKGGxpYnJhcnkubWFsb25hei5jb20vQm9va7pIA8gBASKIAgoRVXBkYXRlQm9va1JlcXVlc3QSLgoEYm9vaxgBIAEoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6iQG6SEIaQAoSYm9vay5uYW1lX3JlcXVpcmVkEhVib29rLm5hbWUgbXVzdCBiZSBzZXQaE2hhcyh0aGlzLmJvb2submFtZSnqnMEDPwoFdGl0bGUKBmF1dGhvcgoEaXNibgoQcHVibGljYXRpb25feWVhcgoKcGFnZV9jb3VudAoKbWV0YWRhdGEuKiJuChFEZWxldGVCb29rUmVxdWVzdBI0CgRuYW1lGAEgASgJQibgQQL6QRoKGGxpYnJhcnkubWFsb25hei5jb20vQm9va7pIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkisQIKEExpc3RCb29rc1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWxpYnJhcnkubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOo4BgvMtAghkivMtRQoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhchIQY3JlYXRlX3RpbWUgZGVzY5LzLTsKBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCm1ldGFkYXRhLioKBmxhYmVscyJVChFMaXN0Qm9va3NSZXNwb25zZRInCgVib29rcxgBIAMoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUI9WjtnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_library_v1_book]);
+  fileDesc("Ci1tYWxvbmF6L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxL2Jvb2sucHJvdG8SIm1hbG9uYXoubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEi7AEKEUNyZWF0ZUJvb2tSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlsaWJyYXJ5Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESLgoEYm9vaxgDIAEoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJGCg5HZXRCb29rUmVxdWVzdBI0CgRuYW1lGAEgASgJQibgQQL6QRoKGGxpYnJhcnkubWFsb25hei5jb20vQm9va7pIA8gBASKIAgoRVXBkYXRlQm9va1JlcXVlc3QSLgoEYm9vaxgBIAEoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6iQG6SEIaQAoSYm9vay5uYW1lX3JlcXVpcmVkEhVib29rLm5hbWUgbXVzdCBiZSBzZXQaE2hhcyh0aGlzLmJvb2submFtZSnqnMEDPwoFdGl0bGUKBmF1dGhvcgoEaXNibgoQcHVibGljYXRpb25feWVhcgoKcGFnZV9jb3VudAoKbWV0YWRhdGEuKiJuChFEZWxldGVCb29rUmVxdWVzdBI0CgRuYW1lGAEgASgJQibgQQL6QRoKGGxpYnJhcnkubWFsb25hei5jb20vQm9va7pIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkisQIKEExpc3RCb29rc1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWxpYnJhcnkubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOo4BgvMtAghkivMtRQoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhchIQY3JlYXRlX3RpbWUgZGVzY5LzLTsKBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCm1ldGFkYXRhLioKBmxhYmVscyJVChFMaXN0Qm9va3NSZXNwb25zZRInCgVib29rcxgBIAMoCzIYLm1hbG9uYXoubGlicmFyeS52MS5Cb29rEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKHAQoUQmF0Y2hHZXRCb29rc1JlcXVlc3QSLgoGcGFyZW50GAEgASgJQh76QRsKGWxpYnJhcnkubWFsb25hei5jb20vU2hlbGYSPwoFbmFtZXMYAiADKAlCMPpBGgoYbGlicmFyeS5tYWxvbmF6LmNvbS9Cb29rukgQkgENCAEQ6AcYASIEcgIQASJAChVCYXRjaEdldEJvb2tzUmVzcG9uc2USJwoFYm9va3MYASADKAsyGC5tYWxvbmF6LmxpYnJhcnkudjEuQm9va0I9WjtnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_library_v1_book]);
 
 /**
  * Request message for LibraryService.CreateBook.
@@ -407,4 +407,72 @@ export type ListBooksResponseValid = Message<"malonaz.library.library_service.v1
  */
 export const ListBooksResponseSchema: GenMessage<ListBooksResponse, {validType: ListBooksResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_library_library_service_v1_book, 5);
+
+/**
+ * Request message for LibraryService.BatchGetBooks.
+ *
+ * @generated from message malonaz.library.library_service.v1.BatchGetBooksRequest
+ */
+export type BatchGetBooksRequest = Message<"malonaz.library.library_service.v1.BatchGetBooksRequest"> & {
+  /**
+   * The parent shelf that owns the books.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The resource names of the books to retrieve.
+   * Format: organizations/{organization}/shelves/{shelf}/books/{book}
+   * A maximum of 1000 books can be retrieved in a batch.
+   *
+   * @generated from field: repeated string names = 2;
+   */
+  names: string[];
+};
+
+export type BatchGetBooksRequestValid = BatchGetBooksRequest;
+
+/**
+ * Describes the message malonaz.library.library_service.v1.BatchGetBooksRequest.
+ * Use `create(BatchGetBooksRequestSchema)` to create a new message.
+ */
+export const BatchGetBooksRequestSchema: GenMessage<BatchGetBooksRequest, {validType: BatchGetBooksRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_library_library_service_v1_book, 6);
+
+/**
+ * Response message for LibraryService.BatchGetBooks.
+ *
+ * @generated from message malonaz.library.library_service.v1.BatchGetBooksResponse
+ */
+export type BatchGetBooksResponse = Message<"malonaz.library.library_service.v1.BatchGetBooksResponse"> & {
+  /**
+   * Books requested.
+   *
+   * @generated from field: repeated malonaz.library.v1.Book books = 1;
+   */
+  books: Book[];
+};
+
+/**
+ * Response message for LibraryService.BatchGetBooks.
+ *
+ * @generated from message malonaz.library.library_service.v1.BatchGetBooksResponse
+ */
+export type BatchGetBooksResponseValid = Message<"malonaz.library.library_service.v1.BatchGetBooksResponse"> & {
+  /**
+   * Books requested.
+   *
+   * @generated from field: repeated malonaz.library.v1.Book books = 1;
+   */
+  books: BookValid[];
+};
+
+/**
+ * Describes the message malonaz.library.library_service.v1.BatchGetBooksResponse.
+ * Use `create(BatchGetBooksResponseSchema)` to create a new message.
+ */
+export const BatchGetBooksResponseSchema: GenMessage<BatchGetBooksResponse, {validType: BatchGetBooksResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_library_library_service_v1_book, 7);
 
