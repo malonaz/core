@@ -8,83 +8,64 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	aippb "github.com/malonaz/core/genproto/aip/v1"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 // NewResourceCreatedEvent constructs a ResourceCreatedEvent by marshaling the given resource into an Any.
-func NewResourceCreatedEvent[R proto.Message](resource R) (*aippb.ResourceCreatedEvent, error) {
+func NewResourceCreatedEvent[R proto.Message](resource R) (*aippb.ResourceEvent, error) {
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling %s to Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
 	}
-	return &aippb.ResourceCreatedEvent{
+	return &aippb.ResourceEvent{
+		Type:     aippb.ResourceEventType_RESOURCE_EVENT_TYPE_CREATED,
 		Resource: resourceAny,
 	}, nil
 }
 
-// NewResourceUpdatedEvent constructs a ResourceUpdatedEvent by marshaling the current and old resource
+// NewResourceUpdatedEvent constructs a ResourceUpdatedEvent by marshaling the current and previous resource
 // into Any fields, along with the update mask describing which fields were modified.
-func NewResourceUpdatedEvent[R proto.Message](resource, oldResource R, updateMask *fieldmaskpb.FieldMask) (*aippb.ResourceUpdatedEvent, error) {
+func NewResourceUpdatedEvent[R proto.Message](resource, previousResource R, updateMask *fieldmaskpb.FieldMask) (*aippb.ResourceEvent, error) {
 	fullName := resource.ProtoReflect().Descriptor().FullName()
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling %s to Any: %w", fullName, err)
 	}
-	oldResourceAny, err := anypb.New(oldResource)
+	previousResourceAny, err := anypb.New(previousResource)
 	if err != nil {
-		return nil, fmt.Errorf("marshaling old %s to Any: %w", fullName, err)
+		return nil, fmt.Errorf("marshaling previous %s to Any: %w", fullName, err)
 	}
-	return &aippb.ResourceUpdatedEvent{
-		Resource:    resourceAny,
-		OldResource: oldResourceAny,
-		UpdateMask:  updateMask,
+	return &aippb.ResourceEvent{
+		Type:             aippb.ResourceEventType_RESOURCE_EVENT_TYPE_UPDATED,
+		Resource:         resourceAny,
+		PreviousResource: previousResourceAny,
+		UpdateMask:       updateMask,
 	}, nil
 }
 
 // NewResourceDeletedEvent constructs a ResourceDeletedEvent by marshaling the given resource into an Any.
-func NewResourceDeletedEvent[R proto.Message](resource R) (*aippb.ResourceDeletedEvent, error) {
+func NewResourceDeletedEvent[R proto.Message](resource R) (*aippb.ResourceEvent, error) {
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling %s to Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
 	}
-	return &aippb.ResourceDeletedEvent{
+	return &aippb.ResourceEvent{
+		Type:     aippb.ResourceEventType_RESOURCE_EVENT_TYPE_DELETED,
 		Resource: resourceAny,
 	}, nil
 }
 
-// ParseResourceCreatedEvent extracts the resource from a ResourceCreatedEvent by unmarshaling the Any
-// into a new instance of R.
-func ParseResourceCreatedEvent[R proto.Message](event *aippb.ResourceCreatedEvent) (R, error) {
-	var zero R
-	resource := zero.ProtoReflect().New().Interface().(R)
-	if err := anypb.UnmarshalTo(event.GetResource(), resource, proto.UnmarshalOptions{}); err != nil {
-		return zero, fmt.Errorf("unmarshaling %s from Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
-	}
-	return resource, nil
+// ParseEventResource extracts and unmarshals the resource from a ResourceEvent.
+func ParseEventResource[R proto.Message](event *aippb.ResourceEvent) (R, error) {
+	return pbutil.ParseAny[R](event.GetResource())
 }
 
-// ParseResourceUpdatedEvent extracts the current resource, old resource, and update mask from a
-// ResourceUpdatedEvent by unmarshaling the Any fields into new instances of R.
-func ParseResourceUpdatedEvent[R proto.Message](event *aippb.ResourceUpdatedEvent) (R, R, *fieldmaskpb.FieldMask, error) {
+// ParseEventPreviousResource extracts and unmarshals the previous resource from a ResourceEvent.
+// Returns an error if the event type is not RESOURCE_EVENT_TYPE_UPDATED.
+func ParseEventPreviousResource[R proto.Message](event *aippb.ResourceEvent) (R, error) {
 	var zero R
-	resource := zero.ProtoReflect().New().Interface().(R)
-	fullName := resource.ProtoReflect().Descriptor().FullName()
-	if err := anypb.UnmarshalTo(event.GetResource(), resource, proto.UnmarshalOptions{}); err != nil {
-		return zero, zero, nil, fmt.Errorf("unmarshaling %s from Any: %w", fullName, err)
+	if event.GetType() != aippb.ResourceEventType_RESOURCE_EVENT_TYPE_UPDATED {
+		return zero, fmt.Errorf("expected updated event, got %s", event.GetType())
 	}
-	oldResource := zero.ProtoReflect().New().Interface().(R)
-	if err := anypb.UnmarshalTo(event.GetOldResource(), oldResource, proto.UnmarshalOptions{}); err != nil {
-		return zero, zero, nil, fmt.Errorf("unmarshaling old %s from Any: %w", fullName, err)
-	}
-	return resource, oldResource, event.GetUpdateMask(), nil
-}
-
-// ParseResourceDeletedEvent extracts the resource from a ResourceDeletedEvent by unmarshaling the Any
-// into a new instance of R.
-func ParseResourceDeletedEvent[R proto.Message](event *aippb.ResourceDeletedEvent) (R, error) {
-	var zero R
-	resource := zero.ProtoReflect().New().Interface().(R)
-	if err := anypb.UnmarshalTo(event.GetResource(), resource, proto.UnmarshalOptions{}); err != nil {
-		return zero, fmt.Errorf("unmarshaling %s from Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
-	}
-	return resource, nil
+	return pbutil.ParseAny[R](event.GetPreviousResource())
 }

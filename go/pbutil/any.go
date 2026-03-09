@@ -22,3 +22,13 @@ func ExtractConcreteMessageFromAnyMessage(anyMessage *anypb.Any) (proto.Message,
 	}
 	return message, nil
 }
+
+// ParseAny unmarshals an anypb.Any into a new instance of R.
+func ParseAny[R proto.Message](any *anypb.Any) (R, error) {
+	var zero R
+	resource := zero.ProtoReflect().New().Interface().(R)
+	if err := anypb.UnmarshalTo(any, resource, proto.UnmarshalOptions{}); err != nil {
+		return zero, fmt.Errorf("unmarshaling %s from Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
+	}
+	return resource, nil
+}

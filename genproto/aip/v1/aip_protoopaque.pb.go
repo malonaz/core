@@ -9,6 +9,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -24,28 +25,83 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A resource creation event.
-type ResourceCreatedEvent struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Resource *anypb.Any             `protobuf:"bytes,1,opt,name=resource,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+// Type of resource event.
+type ResourceEventType int32
+
+const (
+	// Used to detect an unset field.
+	ResourceEventType_RESOURCE_EVENT_TYPE_UNSPECIFIED ResourceEventType = 0
+	// A resource was created.
+	ResourceEventType_RESOURCE_EVENT_TYPE_CREATED ResourceEventType = 1
+	// A resource was updated.
+	ResourceEventType_RESOURCE_EVENT_TYPE_UPDATED ResourceEventType = 2
+	// A resource was deleted.
+	ResourceEventType_RESOURCE_EVENT_TYPE_DELETED ResourceEventType = 3
+)
+
+// Enum value maps for ResourceEventType.
+var (
+	ResourceEventType_name = map[int32]string{
+		0: "RESOURCE_EVENT_TYPE_UNSPECIFIED",
+		1: "RESOURCE_EVENT_TYPE_CREATED",
+		2: "RESOURCE_EVENT_TYPE_UPDATED",
+		3: "RESOURCE_EVENT_TYPE_DELETED",
+	}
+	ResourceEventType_value = map[string]int32{
+		"RESOURCE_EVENT_TYPE_UNSPECIFIED": 0,
+		"RESOURCE_EVENT_TYPE_CREATED":     1,
+		"RESOURCE_EVENT_TYPE_UPDATED":     2,
+		"RESOURCE_EVENT_TYPE_DELETED":     3,
+	}
+)
+
+func (x ResourceEventType) Enum() *ResourceEventType {
+	p := new(ResourceEventType)
+	*p = x
+	return p
 }
 
-func (x *ResourceCreatedEvent) Reset() {
-	*x = ResourceCreatedEvent{}
+func (x ResourceEventType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ResourceEventType) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_aip_v1_aip_proto_enumTypes[0].Descriptor()
+}
+
+func (ResourceEventType) Type() protoreflect.EnumType {
+	return &file_malonaz_aip_v1_aip_proto_enumTypes[0]
+}
+
+func (x ResourceEventType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// A resource lifecycle event.
+type ResourceEvent struct {
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Type             ResourceEventType      `protobuf:"varint,4,opt,name=type,proto3,enum=malonaz.aip.v1.ResourceEventType"`
+	xxx_hidden_Resource         *anypb.Any             `protobuf:"bytes,1,opt,name=resource,proto3"`
+	xxx_hidden_PreviousResource *anypb.Any             `protobuf:"bytes,2,opt,name=previous_resource,json=previousResource,proto3"`
+	xxx_hidden_UpdateMask       *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
+}
+
+func (x *ResourceEvent) Reset() {
+	*x = ResourceEvent{}
 	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ResourceCreatedEvent) String() string {
+func (x *ResourceEvent) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ResourceCreatedEvent) ProtoMessage() {}
+func (*ResourceEvent) ProtoMessage() {}
 
-func (x *ResourceCreatedEvent) ProtoReflect() protoreflect.Message {
+func (x *ResourceEvent) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -57,232 +113,104 @@ func (x *ResourceCreatedEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ResourceCreatedEvent) GetResource() *anypb.Any {
+func (x *ResourceEvent) GetType() ResourceEventType {
+	if x != nil {
+		return x.xxx_hidden_Type
+	}
+	return ResourceEventType_RESOURCE_EVENT_TYPE_UNSPECIFIED
+}
+
+func (x *ResourceEvent) GetResource() *anypb.Any {
 	if x != nil {
 		return x.xxx_hidden_Resource
 	}
 	return nil
 }
 
-func (x *ResourceCreatedEvent) SetResource(v *anypb.Any) {
-	x.xxx_hidden_Resource = v
-}
-
-func (x *ResourceCreatedEvent) HasResource() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Resource != nil
-}
-
-func (x *ResourceCreatedEvent) ClearResource() {
-	x.xxx_hidden_Resource = nil
-}
-
-type ResourceCreatedEvent_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The created resource.
-	Resource *anypb.Any
-}
-
-func (b0 ResourceCreatedEvent_builder) Build() *ResourceCreatedEvent {
-	m0 := &ResourceCreatedEvent{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Resource = b.Resource
-	return m0
-}
-
-// A resource update event.
-type ResourceUpdatedEvent struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Resource    *anypb.Any             `protobuf:"bytes,1,opt,name=resource,proto3"`
-	xxx_hidden_OldResource *anypb.Any             `protobuf:"bytes,2,opt,name=old_resource,json=oldResource,proto3"`
-	xxx_hidden_UpdateMask  *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *ResourceUpdatedEvent) Reset() {
-	*x = ResourceUpdatedEvent{}
-	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ResourceUpdatedEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResourceUpdatedEvent) ProtoMessage() {}
-
-func (x *ResourceUpdatedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[1]
+func (x *ResourceEvent) GetPreviousResource() *anypb.Any {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ResourceUpdatedEvent) GetResource() *anypb.Any {
-	if x != nil {
-		return x.xxx_hidden_Resource
+		return x.xxx_hidden_PreviousResource
 	}
 	return nil
 }
 
-func (x *ResourceUpdatedEvent) GetOldResource() *anypb.Any {
-	if x != nil {
-		return x.xxx_hidden_OldResource
-	}
-	return nil
-}
-
-func (x *ResourceUpdatedEvent) GetUpdateMask() *fieldmaskpb.FieldMask {
+func (x *ResourceEvent) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
 		return x.xxx_hidden_UpdateMask
 	}
 	return nil
 }
 
-func (x *ResourceUpdatedEvent) SetResource(v *anypb.Any) {
+func (x *ResourceEvent) SetType(v ResourceEventType) {
+	x.xxx_hidden_Type = v
+}
+
+func (x *ResourceEvent) SetResource(v *anypb.Any) {
 	x.xxx_hidden_Resource = v
 }
 
-func (x *ResourceUpdatedEvent) SetOldResource(v *anypb.Any) {
-	x.xxx_hidden_OldResource = v
+func (x *ResourceEvent) SetPreviousResource(v *anypb.Any) {
+	x.xxx_hidden_PreviousResource = v
 }
 
-func (x *ResourceUpdatedEvent) SetUpdateMask(v *fieldmaskpb.FieldMask) {
+func (x *ResourceEvent) SetUpdateMask(v *fieldmaskpb.FieldMask) {
 	x.xxx_hidden_UpdateMask = v
 }
 
-func (x *ResourceUpdatedEvent) HasResource() bool {
+func (x *ResourceEvent) HasResource() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Resource != nil
 }
 
-func (x *ResourceUpdatedEvent) HasOldResource() bool {
+func (x *ResourceEvent) HasPreviousResource() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_OldResource != nil
+	return x.xxx_hidden_PreviousResource != nil
 }
 
-func (x *ResourceUpdatedEvent) HasUpdateMask() bool {
+func (x *ResourceEvent) HasUpdateMask() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_UpdateMask != nil
 }
 
-func (x *ResourceUpdatedEvent) ClearResource() {
+func (x *ResourceEvent) ClearResource() {
 	x.xxx_hidden_Resource = nil
 }
 
-func (x *ResourceUpdatedEvent) ClearOldResource() {
-	x.xxx_hidden_OldResource = nil
+func (x *ResourceEvent) ClearPreviousResource() {
+	x.xxx_hidden_PreviousResource = nil
 }
 
-func (x *ResourceUpdatedEvent) ClearUpdateMask() {
+func (x *ResourceEvent) ClearUpdateMask() {
 	x.xxx_hidden_UpdateMask = nil
 }
 
-type ResourceUpdatedEvent_builder struct {
+type ResourceEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The resource after the update.
+	// The type of event.
+	Type ResourceEventType
+	// The resource after the event.
 	Resource *anypb.Any
-	// The resource before the update.
-	OldResource *anypb.Any
-	// The field mask of updated fields.
+	// The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
+	PreviousResource *anypb.Any
+	// The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
 	UpdateMask *fieldmaskpb.FieldMask
 }
 
-func (b0 ResourceUpdatedEvent_builder) Build() *ResourceUpdatedEvent {
-	m0 := &ResourceUpdatedEvent{}
+func (b0 ResourceEvent_builder) Build() *ResourceEvent {
+	m0 := &ResourceEvent{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Type = b.Type
 	x.xxx_hidden_Resource = b.Resource
-	x.xxx_hidden_OldResource = b.OldResource
+	x.xxx_hidden_PreviousResource = b.PreviousResource
 	x.xxx_hidden_UpdateMask = b.UpdateMask
-	return m0
-}
-
-// A resource deletion event.
-type ResourceDeletedEvent struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Resource *anypb.Any             `protobuf:"bytes,1,opt,name=resource,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
-func (x *ResourceDeletedEvent) Reset() {
-	*x = ResourceDeletedEvent{}
-	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ResourceDeletedEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResourceDeletedEvent) ProtoMessage() {}
-
-func (x *ResourceDeletedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ResourceDeletedEvent) GetResource() *anypb.Any {
-	if x != nil {
-		return x.xxx_hidden_Resource
-	}
-	return nil
-}
-
-func (x *ResourceDeletedEvent) SetResource(v *anypb.Any) {
-	x.xxx_hidden_Resource = v
-}
-
-func (x *ResourceDeletedEvent) HasResource() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Resource != nil
-}
-
-func (x *ResourceDeletedEvent) ClearResource() {
-	x.xxx_hidden_Resource = nil
-}
-
-type ResourceDeletedEvent_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The deleted resource.
-	Resource *anypb.Any
-}
-
-func (b0 ResourceDeletedEvent_builder) Build() *ResourceDeletedEvent {
-	m0 := &ResourceDeletedEvent{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Resource = b.Resource
 	return m0
 }
 
@@ -290,36 +218,39 @@ var File_malonaz_aip_v1_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/aip/v1/aip.proto\x12\x0emalonaz.aip.v1\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\"H\n" +
-	"\x14ResourceCreatedEvent\x120\n" +
-	"\bresource\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bresource\"\xbe\x01\n" +
-	"\x14ResourceUpdatedEvent\x120\n" +
-	"\bresource\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bresource\x127\n" +
-	"\fold_resource\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\voldResource\x12;\n" +
+	"\x18malonaz/aip/v1/aip.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\"\xea\x03\n" +
+	"\rResourceEvent\x12A\n" +
+	"\x04type\x18\x04 \x01(\x0e2!.malonaz.aip.v1.ResourceEventTypeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\x120\n" +
+	"\bresource\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bresource\x12A\n" +
+	"\x11previous_resource\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\x10previousResource\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\"H\n" +
-	"\x14ResourceDeletedEvent\x120\n" +
-	"\bresource\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bresourceB)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
+	"updateMask:\xe3\x01\xbaH\xdf\x01\x1a\xdc\x01\n" +
+	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))*\x9b\x01\n" +
+	"\x11ResourceEventType\x12#\n" +
+	"\x1fRESOURCE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bRESOURCE_EVENT_TYPE_CREATED\x10\x01\x12\x1f\n" +
+	"\x1bRESOURCE_EVENT_TYPE_UPDATED\x10\x02\x12\x1f\n" +
+	"\x1bRESOURCE_EVENT_TYPE_DELETED\x10\x03B)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
 
-var file_malonaz_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_aip_v1_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_aip_v1_aip_proto_goTypes = []any{
-	(*ResourceCreatedEvent)(nil),  // 0: malonaz.aip.v1.ResourceCreatedEvent
-	(*ResourceUpdatedEvent)(nil),  // 1: malonaz.aip.v1.ResourceUpdatedEvent
-	(*ResourceDeletedEvent)(nil),  // 2: malonaz.aip.v1.ResourceDeletedEvent
-	(*anypb.Any)(nil),             // 3: google.protobuf.Any
-	(*fieldmaskpb.FieldMask)(nil), // 4: google.protobuf.FieldMask
+	(ResourceEventType)(0),        // 0: malonaz.aip.v1.ResourceEventType
+	(*ResourceEvent)(nil),         // 1: malonaz.aip.v1.ResourceEvent
+	(*anypb.Any)(nil),             // 2: google.protobuf.Any
+	(*fieldmaskpb.FieldMask)(nil), // 3: google.protobuf.FieldMask
 }
 var file_malonaz_aip_v1_aip_proto_depIdxs = []int32{
-	3, // 0: malonaz.aip.v1.ResourceCreatedEvent.resource:type_name -> google.protobuf.Any
-	3, // 1: malonaz.aip.v1.ResourceUpdatedEvent.resource:type_name -> google.protobuf.Any
-	3, // 2: malonaz.aip.v1.ResourceUpdatedEvent.old_resource:type_name -> google.protobuf.Any
-	4, // 3: malonaz.aip.v1.ResourceUpdatedEvent.update_mask:type_name -> google.protobuf.FieldMask
-	3, // 4: malonaz.aip.v1.ResourceDeletedEvent.resource:type_name -> google.protobuf.Any
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 0: malonaz.aip.v1.ResourceEvent.type:type_name -> malonaz.aip.v1.ResourceEventType
+	2, // 1: malonaz.aip.v1.ResourceEvent.resource:type_name -> google.protobuf.Any
+	2, // 2: malonaz.aip.v1.ResourceEvent.previous_resource:type_name -> google.protobuf.Any
+	3, // 3: malonaz.aip.v1.ResourceEvent.update_mask:type_name -> google.protobuf.FieldMask
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_aip_v1_aip_proto_init() }
@@ -332,13 +263,14 @@ func file_malonaz_aip_v1_aip_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_aip_v1_aip_proto_rawDesc), len(file_malonaz_aip_v1_aip_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_aip_v1_aip_proto_goTypes,
 		DependencyIndexes: file_malonaz_aip_v1_aip_proto_depIdxs,
+		EnumInfos:         file_malonaz_aip_v1_aip_proto_enumTypes,
 		MessageInfos:      file_malonaz_aip_v1_aip_proto_msgTypes,
 	}.Build()
 	File_malonaz_aip_v1_aip_proto = out.File

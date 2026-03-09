@@ -30,9 +30,9 @@ type shelfCreatedEvent struct {
 }
 
 type shelfUpdatedEvent struct {
-	Shelf      *librarypb.Shelf
-	OldShelf   *librarypb.Shelf
-	UpdateMask *fieldmaskpb.FieldMask
+	Shelf         *librarypb.Shelf
+	PreviousShelf *librarypb.Shelf
+	UpdateMask    *fieldmaskpb.FieldMask
 }
 
 type shelfDeletedEvent struct {
@@ -44,9 +44,9 @@ type authorCreatedEvent struct {
 }
 
 type authorUpdatedEvent struct {
-	Author     *librarypb.Author
-	OldAuthor  *librarypb.Author
-	UpdateMask *fieldmaskpb.FieldMask
+	Author         *librarypb.Author
+	PreviousAuthor *librarypb.Author
+	UpdateMask     *fieldmaskpb.FieldMask
 }
 
 type authorDeletedEvent struct {
@@ -58,9 +58,9 @@ type bookCreatedEvent struct {
 }
 
 type bookUpdatedEvent struct {
-	Book       *librarypb.Book
-	OldBook    *librarypb.Book
-	UpdateMask *fieldmaskpb.FieldMask
+	Book         *librarypb.Book
+	PreviousBook *librarypb.Book
+	UpdateMask   *fieldmaskpb.FieldMask
 }
 
 type bookDeletedEvent struct {
@@ -85,11 +85,11 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().Get()},
 		ConsumerName: "test-shelf-created-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			shelf, err := aip.ParseResourceCreatedEvent[*librarypb.Shelf](message.Payload)
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
 			if err != nil {
 				panic(err)
 			}
@@ -104,18 +104,22 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfUpdatedSubject().Get()},
 		ConsumerName: "test-shelf-updated-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceUpdatedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			shelf, oldShelf, updateMask, err := aip.ParseResourceUpdatedEvent[*librarypb.Shelf](message.Payload)
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
 			if err != nil {
 				panic(err)
 			}
 			shelfNameToUpdatedEvents[shelf.Name] = append(shelfNameToUpdatedEvents[shelf.Name], &shelfUpdatedEvent{
-				Shelf:      shelf,
-				OldShelf:   oldShelf,
-				UpdateMask: updateMask,
+				Shelf:         shelf,
+				PreviousShelf: previousShelf,
+				UpdateMask:    message.Payload.GetUpdateMask(),
 			})
 		}
 		return nil
@@ -125,11 +129,11 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfDeletedSubject().Get()},
 		ConsumerName: "test-shelf-deleted-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceDeletedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			shelf, err := aip.ParseResourceDeletedEvent[*librarypb.Shelf](message.Payload)
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
 			if err != nil {
 				panic(err)
 			}
@@ -148,11 +152,11 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre).Get()},
 		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
 		defer filteredMu.Unlock()
 		for _, message := range messages {
-			shelf, err := aip.ParseResourceCreatedEvent[*librarypb.Shelf](message.Payload)
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
 			if err != nil {
 				panic(err)
 			}
@@ -305,7 +309,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		events := shelfNameToUpdatedEvents[shelf.Name]
 		require.Len(t, events, 1)
 		require.Equal(t, "Nats Updated Shelf Changed", events[0].Shelf.DisplayName)
-		require.Equal(t, "Nats Updated Shelf", events[0].OldShelf.DisplayName)
+		require.Equal(t, "Nats Updated Shelf", events[0].PreviousShelf.DisplayName)
 		require.Equal(t, []string{"display_name"}, events[0].UpdateMask.GetPaths())
 	})
 
@@ -335,8 +339,8 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		event := shelfNameToUpdatedEvents[shelf.Name][0]
 		require.Equal(t, "Nats MultiPath Changed", event.Shelf.DisplayName)
 		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY, event.Shelf.Genre)
-		require.Equal(t, "Nats MultiPath Shelf", event.OldShelf.DisplayName)
-		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, event.OldShelf.Genre)
+		require.Equal(t, "Nats MultiPath Shelf", event.PreviousShelf.DisplayName)
+		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, event.PreviousShelf.Genre)
 		require.ElementsMatch(t, []string{"display_name", "genre"}, event.UpdateMask.GetPaths())
 	})
 
@@ -385,19 +389,19 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		defer mu.Unlock()
 		event := shelfNameToUpdatedEvents[shelf.Name][0]
 		require.Equal(t, int32(999), event.Shelf.Metadata.Capacity)
-		require.Equal(t, int32(100), event.OldShelf.Metadata.Capacity)
+		require.Equal(t, int32(100), event.PreviousShelf.Metadata.Capacity)
 		require.Equal(t, []string{"metadata.capacity"}, event.UpdateMask.GetPaths())
 	})
 
-	t.Run("UpdatedEvent_OldResourceMatchesPreUpdateGet", func(t *testing.T) {
+	t.Run("UpdatedEvent_PreviousResourceMatchesPreUpdateGet", func(t *testing.T) {
 		t.Parallel()
-		shelf := createTestShelf(t, organizationParent, "Nats OldRes Shelf", librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION)
+		shelf := createTestShelf(t, organizationParent, "Nats PreviousRes Shelf", librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION)
 		preUpdateShelf := getShelf(t, shelf.Name)
 
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
 			Shelf: &librarypb.Shelf{
 				Name:        shelf.Name,
-				DisplayName: "Nats OldRes Changed",
+				DisplayName: "Nats PreviousRes Changed",
 			},
 			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"display_name"}},
 		}
@@ -412,7 +416,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 
 		mu.Lock()
 		defer mu.Unlock()
-		grpcrequire.Equal(t, preUpdateShelf, shelfNameToUpdatedEvents[shelf.Name][0].OldShelf)
+		grpcrequire.Equal(t, preUpdateShelf, shelfNameToUpdatedEvents[shelf.Name][0].PreviousShelf)
 	})
 
 	t.Run("MultipleUpdates_MultipleEvents", func(t *testing.T) {
@@ -580,11 +584,11 @@ func TestNatsEvents_Book(t *testing.T) {
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.Get().Subject("created.>")},
 		ConsumerName: "test-book-created-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			book, err := aip.ParseResourceCreatedEvent[*librarypb.Book](message.Payload)
+			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
 			if err != nil {
 				panic(err)
 			}
@@ -599,18 +603,22 @@ func TestNatsEvents_Book(t *testing.T) {
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.GetBookUpdatedSubject().Get()},
 		ConsumerName: "test-book-updated-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceUpdatedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			book, oldBook, updateMask, err := aip.ParseResourceUpdatedEvent[*librarypb.Book](message.Payload)
+			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			previousBook, err := aip.ParseEventPreviousResource[*librarypb.Book](message.Payload)
 			if err != nil {
 				panic(err)
 			}
 			bookNameToUpdatedEvents[book.Name] = append(bookNameToUpdatedEvents[book.Name], &bookUpdatedEvent{
-				Book:       book,
-				OldBook:    oldBook,
-				UpdateMask: updateMask,
+				Book:         book,
+				PreviousBook: previousBook,
+				UpdateMask:   message.Payload.GetUpdateMask(),
 			})
 		}
 		return nil
@@ -620,11 +628,11 @@ func TestNatsEvents_Book(t *testing.T) {
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.GetBookDeletedSubject().Get()},
 		ConsumerName: "test-book-deleted-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceDeletedEvent]) error {
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
 		for _, message := range messages {
-			book, err := aip.ParseResourceDeletedEvent[*librarypb.Book](message.Payload)
+			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
 			if err != nil {
 				panic(err)
 			}
@@ -676,7 +684,7 @@ func TestNatsEvents_Book(t *testing.T) {
 		event := bookNameToUpdatedEvents[book.Name][0]
 		require.Equal(t, "Nats Updated Book Changed", event.Book.Title)
 		require.Equal(t, int32(2025), event.Book.PublicationYear)
-		require.Equal(t, "Nats Updated Book", event.OldBook.Title)
+		require.Equal(t, "Nats Updated Book", event.PreviousBook.Title)
 		require.ElementsMatch(t, []string{"title", "publication_year"}, event.UpdateMask.GetPaths())
 	})
 

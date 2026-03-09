@@ -7,5 +7,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/proto:validate",
     ],
 )

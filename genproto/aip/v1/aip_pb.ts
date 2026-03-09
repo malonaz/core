@@ -2,8 +2,9 @@
 // @generated from file malonaz/aip/v1/aip.proto (package malonaz.aip.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import type { Any, FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_any, file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
@@ -12,88 +13,90 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/aip.proto.
  */
 export const file_malonaz_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxIj4KFFJlc291cmNlQ3JlYXRlZEV2ZW50EiYKCHJlc291cmNlGAEgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueSKbAQoUUmVzb3VyY2VVcGRhdGVkRXZlbnQSJgoIcmVzb3VyY2UYASABKAsyFC5nb29nbGUucHJvdG9idWYuQW55EioKDG9sZF9yZXNvdXJjZRgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkSLwoLdXBkYXRlX21hc2sYAyABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrIj4KFFJlc291cmNlRGVsZXRlZEV2ZW50EiYKCHJlc291cmNlGAEgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_google_protobuf_any, file_google_protobuf_field_mask]);
+  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxIrwDCg1SZXNvdXJjZUV2ZW50EjsKBHR5cGUYBCABKA4yIS5tYWxvbmF6LmFpcC52MS5SZXNvdXJjZUV2ZW50VHlwZUIKukgHggEEEAEgABImCghyZXNvdXJjZRgBIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkSLwoRcHJldmlvdXNfcmVzb3VyY2UYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Ei8KC3VwZGF0ZV9tYXNrGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzazrjAbpI3wEa3AEKOHVwZGF0ZWRfZXZlbnRfcmVxdWlyZXNfcHJldmlvdXNfcmVzb3VyY2VfYW5kX3VwZGF0ZV9tYXNrElZwcmV2aW91c19yZXNvdXJjZSBhbmQgdXBkYXRlX21hc2sgbXVzdCBiZSBzZXQgd2hlbiB0eXBlIGlzIFJFU09VUkNFX0VWRU5UX1RZUEVfVVBEQVRFRBpIdGhpcy50eXBlICE9IDIgfHwgKGhhcyh0aGlzLnByZXZpb3VzX3Jlc291cmNlKSAmJiBoYXModGhpcy51cGRhdGVfbWFzaykpKpsBChFSZXNvdXJjZUV2ZW50VHlwZRIjCh9SRVNPVVJDRV9FVkVOVF9UWVBFX1VOU1BFQ0lGSUVEEAASHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9DUkVBVEVEEAESHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9VUERBVEVEEAISHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9ERUxFVEVEEANCKVonZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_any, file_google_protobuf_field_mask]);
 
 /**
- * A resource creation event.
+ * A resource lifecycle event.
  *
- * @generated from message malonaz.aip.v1.ResourceCreatedEvent
+ * @generated from message malonaz.aip.v1.ResourceEvent
  */
-export type ResourceCreatedEvent = Message<"malonaz.aip.v1.ResourceCreatedEvent"> & {
+export type ResourceEvent = Message<"malonaz.aip.v1.ResourceEvent"> & {
   /**
-   * The created resource.
+   * The type of event.
    *
-   * @generated from field: google.protobuf.Any resource = 1;
+   * @generated from field: malonaz.aip.v1.ResourceEventType type = 4;
    */
-  resource?: Any;
-};
+  type: ResourceEventType;
 
-export type ResourceCreatedEventValid = ResourceCreatedEvent;
-
-/**
- * Describes the message malonaz.aip.v1.ResourceCreatedEvent.
- * Use `create(ResourceCreatedEventSchema)` to create a new message.
- */
-export const ResourceCreatedEventSchema: GenMessage<ResourceCreatedEvent, {validType: ResourceCreatedEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_aip_v1_aip, 0);
-
-/**
- * A resource update event.
- *
- * @generated from message malonaz.aip.v1.ResourceUpdatedEvent
- */
-export type ResourceUpdatedEvent = Message<"malonaz.aip.v1.ResourceUpdatedEvent"> & {
   /**
-   * The resource after the update.
+   * The resource after the event.
    *
    * @generated from field: google.protobuf.Any resource = 1;
    */
   resource?: Any;
 
   /**
-   * The resource before the update.
+   * The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
    *
-   * @generated from field: google.protobuf.Any old_resource = 2;
+   * @generated from field: google.protobuf.Any previous_resource = 2;
    */
-  oldResource?: Any;
+  previousResource?: Any;
 
   /**
-   * The field mask of updated fields.
+   * The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
    *
    * @generated from field: google.protobuf.FieldMask update_mask = 3;
    */
   updateMask?: FieldMask;
 };
 
-export type ResourceUpdatedEventValid = ResourceUpdatedEvent;
+export type ResourceEventValid = ResourceEvent;
 
 /**
- * Describes the message malonaz.aip.v1.ResourceUpdatedEvent.
- * Use `create(ResourceUpdatedEventSchema)` to create a new message.
+ * Describes the message malonaz.aip.v1.ResourceEvent.
+ * Use `create(ResourceEventSchema)` to create a new message.
  */
-export const ResourceUpdatedEventSchema: GenMessage<ResourceUpdatedEvent, {validType: ResourceUpdatedEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_aip_v1_aip, 1);
+export const ResourceEventSchema: GenMessage<ResourceEvent, {validType: ResourceEventValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_aip_v1_aip, 0);
 
 /**
- * A resource deletion event.
+ * Type of resource event.
  *
- * @generated from message malonaz.aip.v1.ResourceDeletedEvent
+ * @generated from enum malonaz.aip.v1.ResourceEventType
  */
-export type ResourceDeletedEvent = Message<"malonaz.aip.v1.ResourceDeletedEvent"> & {
+export enum ResourceEventType {
   /**
-   * The deleted resource.
+   * Used to detect an unset field.
    *
-   * @generated from field: google.protobuf.Any resource = 1;
+   * @generated from enum value: RESOURCE_EVENT_TYPE_UNSPECIFIED = 0;
    */
-  resource?: Any;
-};
+  UNSPECIFIED = 0,
 
-export type ResourceDeletedEventValid = ResourceDeletedEvent;
+  /**
+   * A resource was created.
+   *
+   * @generated from enum value: RESOURCE_EVENT_TYPE_CREATED = 1;
+   */
+  CREATED = 1,
+
+  /**
+   * A resource was updated.
+   *
+   * @generated from enum value: RESOURCE_EVENT_TYPE_UPDATED = 2;
+   */
+  UPDATED = 2,
+
+  /**
+   * A resource was deleted.
+   *
+   * @generated from enum value: RESOURCE_EVENT_TYPE_DELETED = 3;
+   */
+  DELETED = 3,
+}
 
 /**
- * Describes the message malonaz.aip.v1.ResourceDeletedEvent.
- * Use `create(ResourceDeletedEventSchema)` to create a new message.
+ * Describes the enum malonaz.aip.v1.ResourceEventType.
  */
-export const ResourceDeletedEventSchema: GenMessage<ResourceDeletedEvent, {validType: ResourceDeletedEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_aip_v1_aip, 2);
+export const ResourceEventTypeSchema: GenEnum<ResourceEventType> = /*@__PURE__*/
+  enumDesc(file_malonaz_aip_v1_aip, 0);
 

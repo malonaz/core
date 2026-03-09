@@ -2,29 +2,41 @@ syntax = "proto3";
 
 package malonaz.aip.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/field_mask.proto";
 
 option go_package = "github.com/malonaz/core/genproto/aip/v1";
 
-// A resource creation event.
-message ResourceCreatedEvent {
-  // The created resource.
-  google.protobuf.Any resource = 1;
+// Type of resource event.
+enum ResourceEventType {
+  // Used to detect an unset field.
+  RESOURCE_EVENT_TYPE_UNSPECIFIED = 0;
+  // A resource was created.
+  RESOURCE_EVENT_TYPE_CREATED = 1;
+  // A resource was updated.
+  RESOURCE_EVENT_TYPE_UPDATED = 2;
+  // A resource was deleted.
+  RESOURCE_EVENT_TYPE_DELETED = 3;
 }
 
-// A resource update event.
-message ResourceUpdatedEvent {
-  // The resource after the update.
+// A resource lifecycle event.
+message ResourceEvent {
+  option (buf.validate.message).cel = {
+    id: "updated_event_requires_previous_resource_and_update_mask"
+    expression: "this.type != 2 || (has(this.previous_resource) && has(this.update_mask))"
+    message: "previous_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED"
+  };
+
+  // The type of event.
+  ResourceEventType type = 4 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // The resource after the event.
   google.protobuf.Any resource = 1;
-  // The resource before the update.
-  google.protobuf.Any old_resource = 2;
-  // The field mask of updated fields.
+  // The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
+  google.protobuf.Any previous_resource = 2;
+  // The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
   google.protobuf.FieldMask update_mask = 3;
-}
-
-// A resource deletion event.
-message ResourceDeletedEvent {
-  // The deleted resource.
-  google.protobuf.Any resource = 1;
 }
