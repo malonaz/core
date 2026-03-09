@@ -88,9 +88,9 @@ package {{ .PackageName }}
                 {{- $field := getFieldByName $message $fieldName }}
                 {{- if not $field }}{{ fail (printf "subject_field %q not found on message %s" $fieldName $message.GoIdent.GoName) }}{{ end }}
                 {{- if $field.Enum }}
-                    {{ $fieldName | camelcase | untitle }} *{{ qgi $field.Enum.GoIdent }}
+                    _{{ $field.GoName | untitle }} *{{ qgi $field.Enum.GoIdent }}
                 {{- else }}
-                    {{ $fieldName | camelcase | untitle }} *string
+                    _{{ $field.GoName | untitle }} *string
                 {{- end }}
             {{- end }}
             }
@@ -99,12 +99,12 @@ package {{ .PackageName }}
                 {{- $field := getFieldByName $message $fieldName }}
                 {{- if $field.Enum }}
                     func (s *{{ $structName }}) With{{ $fieldName | camelcase }}(v {{ qgi $field.Enum.GoIdent }}) *{{ $structName }} {
-                    s.{{ $fieldName | camelcase | untitle }} = &v
+                    s._{{ $field.GoName | untitle }} = &v
                     return s
                     }
                 {{- else }}
                     func (s *{{ $structName }}) With{{ $fieldName | camelcase }}(v string) *{{ $structName }} {
-                    s.{{ $fieldName | camelcase | untitle }} = &v
+                    s._{{ $field.GoName | untitle }} = &v
                     return s
                     }
                 {{- end }}
@@ -130,12 +130,12 @@ package {{ .PackageName }}
             tokens := []string{"{{ $eventType.Name | lower }}"}
             {{- range $fieldName := $subjectFields }}
                 {{- $field := getFieldByName $message $fieldName }}
-                if s.{{ $fieldName | camelcase | untitle }} != nil {
+                if s._{{ $field.GoName | untitle }} != nil {
                 {{- if $field.Enum }}
                     {{- $enumPrefix := $field.Enum.GoIdent.GoName | snakecase | upper | printf "%s_" }}
-                    tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}("{{ $enumPrefix }}", s.{{ $fieldName | camelcase | untitle }}.String())))
+                    tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}("{{ $enumPrefix }}", s._{{ $field.GoName | untitle }}.String())))
                 {{- else }}
-                    tokens = append(tokens, *s.{{ $fieldName | camelcase | untitle }})
+                    tokens = append(tokens, *s._{{ $field.GoName | untitle }})
                 {{- end }}
                 } else {
                 tokens = append(tokens, "*")

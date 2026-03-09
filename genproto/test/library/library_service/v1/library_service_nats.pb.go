@@ -110,11 +110,11 @@ func (s *LibraryServiceBookStream) GetBookDeletedSubject() *LibraryServiceBookSt
 
 type LibraryServiceShelfStreamShelfCreatedSubject struct {
 	stream *LibraryServiceShelfStream
-	genre  *v12.ShelfGenre
+	_genre *v12.ShelfGenre
 }
 
 func (s *LibraryServiceShelfStreamShelfCreatedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfCreatedSubject {
-	s.genre = &v
+	s._genre = &v
 	return s
 }
 
@@ -124,8 +124,8 @@ func (s *LibraryServiceShelfStreamShelfCreatedSubject) Evaluate(resource *v12.Sh
 
 func (s *LibraryServiceShelfStreamShelfCreatedSubject) Get() *nats.Subject {
 	tokens := []string{"created"}
-	if s.genre != nil {
-		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s.genre.String())))
+	if s._genre != nil {
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s._genre.String())))
 	} else {
 		tokens = append(tokens, "*")
 	}
@@ -137,12 +137,12 @@ func (s *LibraryServiceShelfStream) GetShelfCreatedSubject() *LibraryServiceShel
 }
 
 type LibraryServiceShelfStreamShelfUpdatedSubject struct {
-	stream         *LibraryServiceShelfStream
-	correlationId2 *string
+	stream           *LibraryServiceShelfStream
+	_correlationId_2 *string
 }
 
 func (s *LibraryServiceShelfStreamShelfUpdatedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfUpdatedSubject {
-	s.correlationId2 = &v
+	s._correlationId_2 = &v
 	return s
 }
 
@@ -160,8 +160,8 @@ func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Evaluate(resource *v12.Sh
 
 func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Get() *nats.Subject {
 	tokens := []string{"updated"}
-	if s.correlationId2 != nil {
-		tokens = append(tokens, *s.correlationId2)
+	if s._correlationId_2 != nil {
+		tokens = append(tokens, *s._correlationId_2)
 	} else {
 		tokens = append(tokens, "*")
 	}
@@ -173,18 +173,18 @@ func (s *LibraryServiceShelfStream) GetShelfUpdatedSubject() *LibraryServiceShel
 }
 
 type LibraryServiceShelfStreamShelfDeletedSubject struct {
-	stream         *LibraryServiceShelfStream
-	genre          *v12.ShelfGenre
-	correlationId2 *string
+	stream           *LibraryServiceShelfStream
+	_genre           *v12.ShelfGenre
+	_correlationId_2 *string
 }
 
 func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfDeletedSubject {
-	s.genre = &v
+	s._genre = &v
 	return s
 }
 
 func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfDeletedSubject {
-	s.correlationId2 = &v
+	s._correlationId_2 = &v
 	return s
 }
 
@@ -194,13 +194,13 @@ func (s *LibraryServiceShelfStreamShelfDeletedSubject) Evaluate(resource *v12.Sh
 
 func (s *LibraryServiceShelfStreamShelfDeletedSubject) Get() *nats.Subject {
 	tokens := []string{"deleted"}
-	if s.genre != nil {
-		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s.genre.String())))
+	if s._genre != nil {
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s._genre.String())))
 	} else {
 		tokens = append(tokens, "*")
 	}
-	if s.correlationId2 != nil {
-		tokens = append(tokens, *s.correlationId2)
+	if s._correlationId_2 != nil {
+		tokens = append(tokens, *s._correlationId_2)
 	} else {
 		tokens = append(tokens, "*")
 	}
