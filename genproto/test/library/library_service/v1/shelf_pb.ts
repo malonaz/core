@@ -380,7 +380,26 @@ export type ListShelvesResponse = Message<"malonaz.test.library.library_service.
   nextPageToken: string;
 };
 
-export type ListShelvesResponseValid = ListShelvesResponse;
+/**
+ * Response message for LibraryService.ListShelves.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ListShelvesResponse
+ */
+export type ListShelvesResponseValid = Message<"malonaz.test.library.library_service.v1.ListShelvesResponse"> & {
+  /**
+   * The list of shelves.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Shelf shelves = 1;
+   */
+  shelves: ShelfValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.ListShelvesResponse.
@@ -436,7 +455,19 @@ export type BatchGetShelvesResponse = Message<"malonaz.test.library.library_serv
   shelves: Shelf[];
 };
 
-export type BatchGetShelvesResponseValid = BatchGetShelvesResponse;
+/**
+ * Response message for LibraryService.BatchGetShelves.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchGetShelvesResponse
+ */
+export type BatchGetShelvesResponseValid = Message<"malonaz.test.library.library_service.v1.BatchGetShelvesResponse"> & {
+  /**
+   * Shelves requested.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Shelf shelves = 1;
+   */
+  shelves: ShelfValid[];
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.BatchGetShelvesResponse.

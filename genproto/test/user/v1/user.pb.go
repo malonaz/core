@@ -381,7 +381,7 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x98\x01\xeaAT\n" +
 	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\v\n" +
 	"\x05user_\x12\x02id\x8a\x91$.\n" +
-	"&malonaz.test.user.user_service.v1.user\x10\x01\x18\x01 \x01\"Y\n" +
+	"&malonaz.test.user.user_service.v1.user\x12\x00\x1a\x00\"\x00\"Y\n" +
 	"\fUserMetadata\x12-\n" +
 	"\x12preferred_language\x18\x01 \x01(\tR\x11preferredLanguage\x12\x1a\n" +
 	"\btimezone\x18\x02 \x01(\tR\btimezoneB/Z-github.com/malonaz/core/genproto/test/user/v1b\x06proto3"

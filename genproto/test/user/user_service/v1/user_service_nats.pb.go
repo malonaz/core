@@ -5,8 +5,10 @@ package v1
 import (
 	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
+	v12 "github.com/malonaz/core/genproto/test/user/v1"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	strings "strings"
 	sync "sync"
 )
 
@@ -14,10 +16,10 @@ var (
 	userServiceStreamOptionsOnce                   sync.Once
 	userServiceStreamOptionsVal                    []*v1.StreamOptions
 	userServiceStreamOptionsOrganizationStreamOnce sync.Once
-	userServiceStreamOptionsOrganizationStreamVal  *nats.Stream
+	userServiceStreamOptionsOrganizationStreamVal  *UserServiceOrganizationStream
 
 	userServiceStreamOptionsUserStreamOnce sync.Once
-	userServiceStreamOptionsUserStreamVal  *nats.Stream
+	userServiceStreamOptionsUserStreamVal  *UserServiceUserStream
 )
 
 func GetUserServiceStreamOptions() []*v1.StreamOptions {
@@ -26,16 +28,139 @@ func GetUserServiceStreamOptions() []*v1.StreamOptions {
 	})
 	return userServiceStreamOptionsVal
 }
-func GetUserServiceOrganizationStream() *nats.Stream {
+
+type UserServiceOrganizationStream struct {
+	stream *nats.Stream
+}
+
+func GetUserServiceOrganizationStream() *UserServiceOrganizationStream {
 	userServiceStreamOptionsOrganizationStreamOnce.Do(func() {
-		userServiceStreamOptionsOrganizationStreamVal = nats.NewStream(GetUserServiceStreamOptions()[0])
+		userServiceStreamOptionsOrganizationStreamVal = &UserServiceOrganizationStream{
+			stream: nats.NewStream(GetUserServiceStreamOptions()[0]),
+		}
 	})
 	return userServiceStreamOptionsOrganizationStreamVal
 }
 
-func GetUserServiceUserStream() *nats.Stream {
+func (s *UserServiceOrganizationStream) Get() *nats.Stream {
+	return s.stream
+}
+
+type UserServiceUserStream struct {
+	stream *nats.Stream
+}
+
+func GetUserServiceUserStream() *UserServiceUserStream {
 	userServiceStreamOptionsUserStreamOnce.Do(func() {
-		userServiceStreamOptionsUserStreamVal = nats.NewStream(GetUserServiceStreamOptions()[1])
+		userServiceStreamOptionsUserStreamVal = &UserServiceUserStream{
+			stream: nats.NewStream(GetUserServiceStreamOptions()[1]),
+		}
 	})
 	return userServiceStreamOptionsUserStreamVal
+}
+
+func (s *UserServiceUserStream) Get() *nats.Stream {
+	return s.stream
+}
+
+type UserServiceOrganizationStreamOrganizationCreatedSubject struct {
+	stream *UserServiceOrganizationStream
+}
+
+func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) Evaluate(resource *v12.Organization) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) Get() *nats.Subject {
+	tokens := []string{"created"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceOrganizationStream) GetOrganizationCreatedSubject() *UserServiceOrganizationStreamOrganizationCreatedSubject {
+	return &UserServiceOrganizationStreamOrganizationCreatedSubject{stream: s}
+}
+
+type UserServiceOrganizationStreamOrganizationUpdatedSubject struct {
+	stream *UserServiceOrganizationStream
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Evaluate(resource *v12.Organization) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceOrganizationStream) GetOrganizationUpdatedSubject() *UserServiceOrganizationStreamOrganizationUpdatedSubject {
+	return &UserServiceOrganizationStreamOrganizationUpdatedSubject{stream: s}
+}
+
+type UserServiceOrganizationStreamOrganizationDeletedSubject struct {
+	stream *UserServiceOrganizationStream
+}
+
+func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) Evaluate(resource *v12.Organization) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) Get() *nats.Subject {
+	tokens := []string{"deleted"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceOrganizationStream) GetOrganizationDeletedSubject() *UserServiceOrganizationStreamOrganizationDeletedSubject {
+	return &UserServiceOrganizationStreamOrganizationDeletedSubject{stream: s}
+}
+
+type UserServiceUserStreamUserCreatedSubject struct {
+	stream *UserServiceUserStream
+}
+
+func (s *UserServiceUserStreamUserCreatedSubject) Evaluate(resource *v12.User) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceUserStreamUserCreatedSubject) Get() *nats.Subject {
+	tokens := []string{"created"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceUserStream) GetUserCreatedSubject() *UserServiceUserStreamUserCreatedSubject {
+	return &UserServiceUserStreamUserCreatedSubject{stream: s}
+}
+
+type UserServiceUserStreamUserUpdatedSubject struct {
+	stream *UserServiceUserStream
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) Evaluate(resource *v12.User) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceUserStream) GetUserUpdatedSubject() *UserServiceUserStreamUserUpdatedSubject {
+	return &UserServiceUserStreamUserUpdatedSubject{stream: s}
+}
+
+type UserServiceUserStreamUserDeletedSubject struct {
+	stream *UserServiceUserStream
+}
+
+func (s *UserServiceUserStreamUserDeletedSubject) Evaluate(resource *v12.User) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceUserStreamUserDeletedSubject) Get() *nats.Subject {
+	tokens := []string{"deleted"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceUserStream) GetUserDeletedSubject() *UserServiceUserStreamUserDeletedSubject {
+	return &UserServiceUserStreamUserDeletedSubject{stream: s}
 }

@@ -25,24 +25,27 @@ const (
 )
 
 // Options controlling which NATS events are generated for a resource.
-// Each flag corresponds to a standard AIP method. When enabled, the code
+// Each field corresponds to a standard AIP method. When set, the code
 // generator produces a typed event message and publishes it on the
 // resource's NATS subject after the method completes successfully.
 type EventOptions struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Sets the stream on which events will be streamed.
-	// If it is omitted, the FQN of the message this annotation is attached to will be used.
+	// Sets the stream on which events will be published.
+	// If omitted, the FQN of the message this annotation is attached to will be used.
 	Stream string `protobuf:"bytes,1,opt,name=stream,proto3" json:"stream,omitempty"`
-	// Generate a created event when the resource is created via its Create method.
+	// Options for the created event, published when a resource is created via its Create method.
 	// Produces a <Resource>CreatedEvent containing the newly created resource.
-	Created bool `protobuf:"varint,2,opt,name=created,proto3" json:"created,omitempty"`
-	// Generate an updated event when the resource is updated via its Update method.
+	// If unset, no created event is generated.
+	Created *EventMethodOptions `protobuf:"bytes,2,opt,name=created,proto3" json:"created,omitempty"`
+	// Options for the updated event, published when a resource is updated via its Update method.
 	// Produces a <Resource>UpdatedEvent containing the previous state, the new
 	// state, and the field mask that was applied.
-	Updated bool `protobuf:"varint,3,opt,name=updated,proto3" json:"updated,omitempty"`
-	// Generate a deleted event when the resource is deleted via its Delete method.
+	// If unset, no updated event is generated.
+	Updated *EventMethodOptions `protobuf:"bytes,3,opt,name=updated,proto3" json:"updated,omitempty"`
+	// Options for the deleted event, published when a resource is deleted via its Delete method.
 	// Produces a <Resource>DeletedEvent containing the resource at deletion time.
-	Deleted       bool `protobuf:"varint,4,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	// If unset, no deleted event is generated.
+	Deleted       *EventMethodOptions `protobuf:"bytes,4,opt,name=deleted,proto3" json:"deleted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -79,59 +82,95 @@ func (x *EventOptions) GetStream() string {
 	return ""
 }
 
-func (x *EventOptions) GetCreated() bool {
+func (x *EventOptions) GetCreated() *EventMethodOptions {
 	if x != nil {
 		return x.Created
 	}
-	return false
+	return nil
 }
 
-func (x *EventOptions) GetUpdated() bool {
+func (x *EventOptions) GetUpdated() *EventMethodOptions {
 	if x != nil {
 		return x.Updated
 	}
-	return false
+	return nil
 }
 
-func (x *EventOptions) GetDeleted() bool {
+func (x *EventOptions) GetDeleted() *EventMethodOptions {
 	if x != nil {
 		return x.Deleted
 	}
-	return false
+	return nil
 }
 
 func (x *EventOptions) SetStream(v string) {
 	x.Stream = v
 }
 
-func (x *EventOptions) SetCreated(v bool) {
+func (x *EventOptions) SetCreated(v *EventMethodOptions) {
 	x.Created = v
 }
 
-func (x *EventOptions) SetUpdated(v bool) {
+func (x *EventOptions) SetUpdated(v *EventMethodOptions) {
 	x.Updated = v
 }
 
-func (x *EventOptions) SetDeleted(v bool) {
+func (x *EventOptions) SetDeleted(v *EventMethodOptions) {
 	x.Deleted = v
+}
+
+func (x *EventOptions) HasCreated() bool {
+	if x == nil {
+		return false
+	}
+	return x.Created != nil
+}
+
+func (x *EventOptions) HasUpdated() bool {
+	if x == nil {
+		return false
+	}
+	return x.Updated != nil
+}
+
+func (x *EventOptions) HasDeleted() bool {
+	if x == nil {
+		return false
+	}
+	return x.Deleted != nil
+}
+
+func (x *EventOptions) ClearCreated() {
+	x.Created = nil
+}
+
+func (x *EventOptions) ClearUpdated() {
+	x.Updated = nil
+}
+
+func (x *EventOptions) ClearDeleted() {
+	x.Deleted = nil
 }
 
 type EventOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Sets the stream on which events will be streamed.
-	// If it is omitted, the FQN of the message this annotation is attached to will be used.
+	// Sets the stream on which events will be published.
+	// If omitted, the FQN of the message this annotation is attached to will be used.
 	Stream string
-	// Generate a created event when the resource is created via its Create method.
+	// Options for the created event, published when a resource is created via its Create method.
 	// Produces a <Resource>CreatedEvent containing the newly created resource.
-	Created bool
-	// Generate an updated event when the resource is updated via its Update method.
+	// If unset, no created event is generated.
+	Created *EventMethodOptions
+	// Options for the updated event, published when a resource is updated via its Update method.
 	// Produces a <Resource>UpdatedEvent containing the previous state, the new
 	// state, and the field mask that was applied.
-	Updated bool
-	// Generate a deleted event when the resource is deleted via its Delete method.
+	// If unset, no updated event is generated.
+	Updated *EventMethodOptions
+	// Options for the deleted event, published when a resource is deleted via its Delete method.
 	// Produces a <Resource>DeletedEvent containing the resource at deletion time.
-	Deleted bool
+	// If unset, no deleted event is generated.
+	Deleted *EventMethodOptions
 }
 
 func (b0 EventOptions_builder) Build() *EventOptions {
@@ -142,6 +181,108 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	x.Created = b.Created
 	x.Updated = b.Updated
 	x.Deleted = b.Deleted
+	return m0
+}
+
+// Options controlling subject routing and conditional publishing for a single event type.
+type EventMethodOptions struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Fields to inject as subject tokens, appended in order after the event type.
+	// For example, specifying ["provider_id"] produces subjects like
+	// `<stream>.created.<provider_id_value>`.
+	// Multiple fields are appended in order: `<stream>.created.<field1>.<field2>`.
+	//
+	// Each referenced field must have a `required` field behavior annotation on
+	// the resource message, as its value must always be present.
+	//
+	// String fields are used as-is.
+	// Enum fields have their type prefix stripped and the remainder is lower_cased
+	// (e.g. PROVIDER_TYPE_AWS -> aws).
+	SubjectFields []string `protobuf:"bytes,1,rep,name=subject_fields,json=subjectFields,proto3" json:"subject_fields,omitempty"`
+	// Optional CEL expression evaluated against the resource message.
+	// If present, the event is only published when the expression evaluates to true.
+	// The expression has access to the resource as `this`.
+	// Example: "this.status == 'ACTIVE' && this.provider_id != ”"
+	Cel           string `protobuf:"bytes,2,opt,name=cel,proto3" json:"cel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EventMethodOptions) Reset() {
+	*x = EventMethodOptions{}
+	mi := &file_malonaz_codegen_nats_v1_nats_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EventMethodOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventMethodOptions) ProtoMessage() {}
+
+func (x *EventMethodOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_nats_v1_nats_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *EventMethodOptions) GetSubjectFields() []string {
+	if x != nil {
+		return x.SubjectFields
+	}
+	return nil
+}
+
+func (x *EventMethodOptions) GetCel() string {
+	if x != nil {
+		return x.Cel
+	}
+	return ""
+}
+
+func (x *EventMethodOptions) SetSubjectFields(v []string) {
+	x.SubjectFields = v
+}
+
+func (x *EventMethodOptions) SetCel(v string) {
+	x.Cel = v
+}
+
+type EventMethodOptions_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Fields to inject as subject tokens, appended in order after the event type.
+	// For example, specifying ["provider_id"] produces subjects like
+	// `<stream>.created.<provider_id_value>`.
+	// Multiple fields are appended in order: `<stream>.created.<field1>.<field2>`.
+	//
+	// Each referenced field must have a `required` field behavior annotation on
+	// the resource message, as its value must always be present.
+	//
+	// String fields are used as-is.
+	// Enum fields have their type prefix stripped and the remainder is lower_cased
+	// (e.g. PROVIDER_TYPE_AWS -> aws).
+	SubjectFields []string
+	// Optional CEL expression evaluated against the resource message.
+	// If present, the event is only published when the expression evaluates to true.
+	// The expression has access to the resource as `this`.
+	// Example: "this.status == 'ACTIVE' && this.provider_id != ”"
+	Cel string
+}
+
+func (b0 EventMethodOptions_builder) Build() *EventMethodOptions {
+	m0 := &EventMethodOptions{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.SubjectFields = b.SubjectFields
+	x.Cel = b.Cel
 	return m0
 }
 
@@ -166,7 +307,7 @@ var file_malonaz_codegen_nats_v1_nats_proto_extTypes = []protoimpl.ExtensionInfo
 
 // Extension fields to descriptorpb.ServiceOptions.
 var (
-	// Stream options for resources in this file.
+	// Stream options for resources in this service.
 	//
 	// repeated malonaz.nats.v1.StreamOptions stream = 74000;
 	E_Stream = &file_malonaz_codegen_nats_v1_nats_proto_extTypes[0]
@@ -184,32 +325,39 @@ var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"t\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xfb\x01\n" +
 	"\fEventOptions\x12\x16\n" +
-	"\x06stream\x18\x01 \x01(\tR\x06stream\x12\x18\n" +
-	"\acreated\x18\x02 \x01(\bR\acreated\x12\x18\n" +
-	"\aupdated\x18\x03 \x01(\bR\aupdated\x12\x18\n" +
-	"\adeleted\x18\x04 \x01(\bR\adeleted:Y\n" +
+	"\x06stream\x18\x01 \x01(\tR\x06stream\x12E\n" +
+	"\acreated\x18\x02 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
+	"\aupdated\x18\x03 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
+	"\adeleted\x18\x04 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"M\n" +
+	"\x12EventMethodOptions\x12%\n" +
+	"\x0esubject_fields\x18\x01 \x03(\tR\rsubjectFields\x12\x10\n" +
+	"\x03cel\x18\x02 \x01(\tR\x03cel:Y\n" +
 	"\x06stream\x12\x1f.google.protobuf.ServiceOptions\x18\x90\xc2\x04 \x03(\v2\x1e.malonaz.nats.v1.StreamOptionsR\x06stream:^\n" +
 	"\x05event\x12\x1f.google.protobuf.MessageOptions\x18\x91\xc2\x04 \x01(\v2%.malonaz.codegen.nats.v1.EventOptionsR\x05eventB2Z0github.com/malonaz/core/genproto/codegen/nats/v1b\x06proto3"
 
-var file_malonaz_codegen_nats_v1_nats_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_codegen_nats_v1_nats_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_codegen_nats_v1_nats_proto_goTypes = []any{
 	(*EventOptions)(nil),                // 0: malonaz.codegen.nats.v1.EventOptions
-	(*descriptorpb.ServiceOptions)(nil), // 1: google.protobuf.ServiceOptions
-	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
-	(*v1.StreamOptions)(nil),            // 3: malonaz.nats.v1.StreamOptions
+	(*EventMethodOptions)(nil),          // 1: malonaz.codegen.nats.v1.EventMethodOptions
+	(*descriptorpb.ServiceOptions)(nil), // 2: google.protobuf.ServiceOptions
+	(*descriptorpb.MessageOptions)(nil), // 3: google.protobuf.MessageOptions
+	(*v1.StreamOptions)(nil),            // 4: malonaz.nats.v1.StreamOptions
 }
 var file_malonaz_codegen_nats_v1_nats_proto_depIdxs = []int32{
-	1, // 0: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
-	2, // 1: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
-	3, // 2: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
-	0, // 3: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	2, // [2:4] is the sub-list for extension type_name
-	0, // [0:2] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: malonaz.codegen.nats.v1.EventOptions.created:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
+	1, // 1: malonaz.codegen.nats.v1.EventOptions.updated:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
+	1, // 2: malonaz.codegen.nats.v1.EventOptions.deleted:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
+	2, // 3: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
+	3, // 4: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
+	4, // 5: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
+	0, // 6: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	5, // [5:7] is the sub-list for extension type_name
+	3, // [3:5] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_nats_v1_nats_proto_init() }
@@ -223,7 +371,7 @@ func file_malonaz_codegen_nats_v1_nats_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_nats_v1_nats_proto_rawDesc), len(file_malonaz_codegen_nats_v1_nats_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 2,
 			NumServices:   0,
 		},

@@ -109,6 +109,8 @@ filegroup(
     exported_deps = [
         "//go/nats",
         "//go/pbutil",
+        "//third_party/go:github.com__google__cel-go__cel",
+        "//third_party/go:github.com__google__cel-go__ext",
     ],
 )
 

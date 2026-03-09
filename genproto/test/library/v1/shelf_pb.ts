@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/shelf.proto.
  */
 export const file_malonaz_test_library_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEi6wYKBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARIuChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhS66g8QCg5jb3JyZWxhdGlvbl9pZBLQAQoGbGFiZWxzGAkgAygLMioubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESTQoIbWV0YWRhdGEYCiABKAsyJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk1ldGFkYXRhQhO66g8PCgtsZWdhY3lfbWV0YRABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6ngHqQV4KHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhIsb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0qB3NoZWx2ZXMyBXNoZWxm0qYEAIqRJDUKLW1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5zaGVsZhABGAEgASKOAgoNU2hlbGZNZXRhZGF0YRIQCghjYXBhY2l0eRgBIAEoBRINCgVkdW1teRgCIAEoCRIxCgVub3RlcxgDIAMoCzIiLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTm90ZRJQCg5hdXRob3JfdG9fbm90ZRgEIAMoCzI4Lm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGEuQXV0aG9yVG9Ob3RlRW50cnkaVwoRQXV0aG9yVG9Ob3RlRW50cnkSCwoDa2V5GAEgASgJEjEKBXZhbHVlGAIgASgLMiIubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZOb3RlOgI4ASIcCglTaGVsZk5vdGUSDwoHY29udGVudBgBIAEoCSq0AQoKU2hlbGZHZW5yZRIbChdTSEVMRl9HRU5SRV9VTlNQRUNJRklFRBAAEhcKE1NIRUxGX0dFTlJFX0ZJQ1RJT04QARIbChdTSEVMRl9HRU5SRV9OT05fRklDVElPThACEh8KG1NIRUxGX0dFTlJFX1NDSUVOQ0VfRklDVElPThADEhcKE1NIRUxGX0dFTlJFX0hJU1RPUlkQBBIZChVTSEVMRl9HRU5SRV9CSU9HUkFQSFkQBUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEitAcKBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARI0ChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhq6SAPIAQG66g8QCg5jb3JyZWxhdGlvbl9pZBLQAQoGbGFiZWxzGAkgAygLMioubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESTQoIbWV0YWRhdGEYCiABKAsyJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk1ldGFkYXRhQhO66g8PCgtsZWdhY3lfbWV0YRABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE64QHqQV4KHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhIsb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0qB3NoZWx2ZXMyBXNoZWxm0qYEAIqRJHgKLW1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5zaGVsZhIHCgVnZW5yZRojChBjb3JyZWxhdGlvbl9pZF8yEg90aGlzLmdlbnJlICE9IDEiGQoFZ2VucmUKEGNvcnJlbGF0aW9uX2lkXzIijgIKDVNoZWxmTWV0YWRhdGESEAoIY2FwYWNpdHkYASABKAUSDQoFZHVtbXkYAiABKAkSMQoFbm90ZXMYAyADKAsyIi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk5vdGUSUAoOYXV0aG9yX3RvX25vdGUYBCADKAsyOC5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk1ldGFkYXRhLkF1dGhvclRvTm90ZUVudHJ5GlcKEUF1dGhvclRvTm90ZUVudHJ5EgsKA2tleRgBIAEoCRIxCgV2YWx1ZRgCIAEoCzIiLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTm90ZToCOAEiHAoJU2hlbGZOb3RlEg8KB2NvbnRlbnQYASABKAkqtAEKClNoZWxmR2VucmUSGwoXU0hFTEZfR0VOUkVfVU5TUEVDSUZJRUQQABIXChNTSEVMRl9HRU5SRV9GSUNUSU9OEAESGwoXU0hFTEZfR0VOUkVfTk9OX0ZJQ1RJT04QAhIfChtTSEVMRl9HRU5SRV9TQ0lFTkNFX0ZJQ1RJT04QAxIXChNTSEVMRl9HRU5SRV9ISVNUT1JZEAQSGQoVU0hFTEZfR0VOUkVfQklPR1JBUEhZEAVCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Shelf represents a categorized collection of books.
@@ -97,7 +97,83 @@ export type Shelf = Message<"malonaz.test.library.v1.Shelf"> & {
   metadata?: ShelfMetadata;
 };
 
-export type ShelfValid = Shelf;
+/**
+ * Shelf represents a categorized collection of books.
+ *
+ * @generated from message malonaz.test.library.v1.Shelf
+ */
+export type ShelfValid = Message<"malonaz.test.library.v1.Shelf"> & {
+  /**
+   * The resource name of the shelf.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The creation timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   */
+  createTime?: Timestamp;
+
+  /**
+   * The last update timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * The deletion timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp delete_time = 4;
+   */
+  deleteTime?: Timestamp;
+
+  /**
+   * The display name of the shelf.
+   *
+   * @generated from field: string display_name = 5;
+   */
+  displayName: string;
+
+  /**
+   * The genre of books on this shelf.
+   *
+   * @generated from field: malonaz.test.library.v1.ShelfGenre genre = 6;
+   */
+  genre: ShelfGenre;
+
+  /**
+   * Field with custom column name.
+   *
+   * @generated from field: string external_id = 7;
+   */
+  externalId: string;
+
+  /**
+   * Field with custom column name.
+   *
+   * @generated from field: string correlation_id_2 = 8;
+   */
+  correlationId2: string;
+
+  /**
+   * The labels on this shelf.
+   *
+   * @generated from field: map<string, string> labels = 9;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * Shelf metadata.
+   *
+   * @generated from field: malonaz.test.library.v1.ShelfMetadata metadata = 10;
+   */
+  metadata?: ShelfMetadataValid;
+};
 
 /**
  * Describes the message malonaz.test.library.v1.Shelf.

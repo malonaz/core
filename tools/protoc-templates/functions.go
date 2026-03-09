@@ -46,6 +46,14 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 			}
 			return nil
 		},
+		"getFieldByName": func(m *protogen.Message, fieldName string) (*protogen.Field, error) {
+			for _, field := range m.Fields {
+				if field.Desc.TextName() == fieldName {
+					return field, nil
+				}
+			}
+			return nil, fmt.Errorf("field %q not found", fieldName)
+		},
 		"protoreflectName": func(s string) protoreflect.Name { return protoreflect.Name(s) },
 		"goIdent": func(goImportPath protogen.GoImportPath, goName string) string {
 			goIdent := protogen.GoIdent{

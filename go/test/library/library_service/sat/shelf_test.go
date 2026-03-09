@@ -19,9 +19,10 @@ func createTestShelf(t *testing.T, parent, displayName string, genre librarypb.S
 	createShelfRequest := &libraryservicepb.CreateShelfRequest{
 		Parent: parent,
 		Shelf: &librarypb.Shelf{
-			DisplayName: displayName,
-			Genre:       genre,
-			Metadata:    &librarypb.ShelfMetadata{Capacity: 100},
+			DisplayName:     displayName,
+			Genre:           genre,
+			Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
+			CorrelationId_2: "hello",
 		},
 	}
 	shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -37,9 +38,10 @@ func TestShelfCreate(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Science Fiction Classics",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 100},
+				DisplayName:     "Science Fiction Classics",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
+				CorrelationId_2: "hello",
 			},
 		}
 		createdShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -59,9 +61,10 @@ func TestShelfCreate(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Bad Genre Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
-				Metadata:    &librarypb.ShelfMetadata{},
+				DisplayName:     "Bad Genre Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
+				Metadata:        &librarypb.ShelfMetadata{},
+				CorrelationId_2: "hello",
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -74,8 +77,9 @@ func TestShelfCreate(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				Genre:    librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata: &librarypb.ShelfMetadata{},
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{},
+				CorrelationId_2: "hello",
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -86,8 +90,9 @@ func TestShelfCreate(t *testing.T) {
 		t.Parallel()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Shelf: &librarypb.Shelf{
-				DisplayName: "No Parent Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				DisplayName:     "No Parent Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -314,9 +319,10 @@ func TestShelfList(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Large Capacity Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 9999},
+				DisplayName:     "Large Capacity Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 9999},
+				CorrelationId_2: "hello",
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -348,10 +354,11 @@ func TestShelfList(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Labeled Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Labels:      map[string]string{"floor": "unique-floor-3"},
-				Metadata:    &librarypb.ShelfMetadata{},
+				DisplayName:     "Labeled Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Labels:          map[string]string{"floor": "unique-floor-3"},
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)

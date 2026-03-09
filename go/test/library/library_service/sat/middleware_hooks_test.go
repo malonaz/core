@@ -161,9 +161,10 @@ func TestHook_ShelfMetadataRequestHook(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Hook ShelfMeta Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 50},
+				DisplayName:     "Hook ShelfMeta Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+				CorrelationId_2: "hello",
 			},
 		}
 		createdShelf, err := libraryServiceClient.CreateShelf(hookCtx, createShelfRequest)
@@ -222,8 +223,9 @@ func TestHook_ShelfNoteRequestHook(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Hook ShelfNote Repeated",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				DisplayName:     "Hook ShelfNote Repeated",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
 				Metadata: &librarypb.ShelfMetadata{
 					Capacity: 10,
 					Notes: []*librarypb.ShelfNote{
@@ -246,8 +248,9 @@ func TestHook_ShelfNoteRequestHook(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Hook ShelfNote Map",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				DisplayName:     "Hook ShelfNote Map",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
 				Metadata: &librarypb.ShelfMetadata{
 					Capacity: 10,
 					AuthorToNote: map[string]*librarypb.ShelfNote{
@@ -268,8 +271,9 @@ func TestHook_ShelfNoteRequestHook(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Hook ShelfNote NoHeader",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				DisplayName:     "Hook ShelfNote NoHeader",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
 				Metadata: &librarypb.ShelfMetadata{
 					Capacity: 10,
 					Notes:    []*librarypb.ShelfNote{{Content: "unchanged"}},

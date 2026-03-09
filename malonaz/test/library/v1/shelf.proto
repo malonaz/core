@@ -21,9 +21,19 @@ message Shelf {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.library_service.v1.shelf"
-    created: true
-    updated: true
-    deleted: true
+    created: {
+      subject_fields: ["genre"]
+    }
+    updated: {
+      subject_fields: ["correlation_id_2"]
+      cel: "this.genre != 1"
+    }
+    deleted: {
+      subject_fields: [
+        "genre",
+        "correlation_id_2"
+      ]
+    }
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
 
@@ -60,7 +70,10 @@ message Shelf {
   ];
 
   // Field with custom column name.
-  string correlation_id_2 = 8 [(malonaz.codegen.model.v1.field_opts).column_name = "correlation_id"];
+  string correlation_id_2 = 8 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).column_name = "correlation_id"
+  ];
 
   // The labels on this shelf.
   map<string, string> labels = 9 [

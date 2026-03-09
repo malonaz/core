@@ -14,11 +14,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/nats/v1/nats.proto.
  */
 export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSJRCgxFdmVudE9wdGlvbnMSDgoGc3RyZWFtGAEgASgJEg8KB2NyZWF0ZWQYAiABKAgSDwoHdXBkYXRlZBgDIAEoCBIPCgdkZWxldGVkGAQgASgIOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSLYAQoMRXZlbnRPcHRpb25zEg4KBnN0cmVhbRgBIAEoCRI8CgdjcmVhdGVkGAIgASgLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEjwKB3VwZGF0ZWQYAyABKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHZGVsZXRlZBgEIAEoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucyI5ChJFdmVudE1ldGhvZE9wdGlvbnMSFgoOc3ViamVjdF9maWVsZHMYASADKAkSCwoDY2VsGAIgASgJOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
 
 /**
  * Options controlling which NATS events are generated for a resource.
- * Each flag corresponds to a standard AIP method. When enabled, the code
+ * Each field corresponds to a standard AIP method. When set, the code
  * generator produces a typed event message and publishes it on the
  * resource's NATS subject after the method completes successfully.
  *
@@ -26,37 +26,40 @@ export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
  */
 export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
   /**
-   * Sets the stream on which events will be streamed.
-   * If it is omitted, the FQN of the message this annotation is attached to will be used.
+   * Sets the stream on which events will be published.
+   * If omitted, the FQN of the message this annotation is attached to will be used.
    *
    * @generated from field: string stream = 1;
    */
   stream: string;
 
   /**
-   * Generate a created event when the resource is created via its Create method.
+   * Options for the created event, published when a resource is created via its Create method.
    * Produces a <Resource>CreatedEvent containing the newly created resource.
+   * If unset, no created event is generated.
    *
-   * @generated from field: bool created = 2;
+   * @generated from field: malonaz.codegen.nats.v1.EventMethodOptions created = 2;
    */
-  created: boolean;
+  created?: EventMethodOptions;
 
   /**
-   * Generate an updated event when the resource is updated via its Update method.
+   * Options for the updated event, published when a resource is updated via its Update method.
    * Produces a <Resource>UpdatedEvent containing the previous state, the new
    * state, and the field mask that was applied.
+   * If unset, no updated event is generated.
    *
-   * @generated from field: bool updated = 3;
+   * @generated from field: malonaz.codegen.nats.v1.EventMethodOptions updated = 3;
    */
-  updated: boolean;
+  updated?: EventMethodOptions;
 
   /**
-   * Generate a deleted event when the resource is deleted via its Delete method.
+   * Options for the deleted event, published when a resource is deleted via its Delete method.
    * Produces a <Resource>DeletedEvent containing the resource at deletion time.
+   * If unset, no deleted event is generated.
    *
-   * @generated from field: bool deleted = 4;
+   * @generated from field: malonaz.codegen.nats.v1.EventMethodOptions deleted = 4;
    */
-  deleted: boolean;
+  deleted?: EventMethodOptions;
 };
 
 export type EventOptionsValid = EventOptions;
@@ -69,7 +72,50 @@ export const EventOptionsSchema: GenMessage<EventOptions, {validType: EventOptio
   messageDesc(file_malonaz_codegen_nats_v1_nats, 0);
 
 /**
- * Stream options for resources in this file.
+ * Options controlling subject routing and conditional publishing for a single event type.
+ *
+ * @generated from message malonaz.codegen.nats.v1.EventMethodOptions
+ */
+export type EventMethodOptions = Message<"malonaz.codegen.nats.v1.EventMethodOptions"> & {
+  /**
+   * Fields to inject as subject tokens, appended in order after the event type.
+   * For example, specifying ["provider_id"] produces subjects like
+   * `<stream>.created.<provider_id_value>`.
+   * Multiple fields are appended in order: `<stream>.created.<field1>.<field2>`.
+   *
+   * Each referenced field must have a `required` field behavior annotation on
+   * the resource message, as its value must always be present.
+   *
+   * String fields are used as-is.
+   * Enum fields have their type prefix stripped and the remainder is lower_cased
+   * (e.g. PROVIDER_TYPE_AWS -> aws).
+   *
+   * @generated from field: repeated string subject_fields = 1;
+   */
+  subjectFields: string[];
+
+  /**
+   * Optional CEL expression evaluated against the resource message.
+   * If present, the event is only published when the expression evaluates to true.
+   * The expression has access to the resource as `this`.
+   * Example: "this.status == 'ACTIVE' && this.provider_id != ''"
+   *
+   * @generated from field: string cel = 2;
+   */
+  cel: string;
+};
+
+export type EventMethodOptionsValid = EventMethodOptions;
+
+/**
+ * Describes the message malonaz.codegen.nats.v1.EventMethodOptions.
+ * Use `create(EventMethodOptionsSchema)` to create a new message.
+ */
+export const EventMethodOptionsSchema: GenMessage<EventMethodOptions, {validType: EventMethodOptionsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_nats_v1_nats, 1);
+
+/**
+ * Stream options for resources in this service.
  *
  * @generated from extension: repeated malonaz.nats.v1.StreamOptions stream = 74000;
  */

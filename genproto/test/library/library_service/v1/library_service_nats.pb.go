@@ -3,10 +3,15 @@
 package v1
 
 import (
+	fmt "fmt"
+	cel "github.com/google/cel-go/cel"
+	ext "github.com/google/cel-go/ext"
 	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
+	v12 "github.com/malonaz/core/genproto/test/library/v1"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	strings "strings"
 	sync "sync"
 )
 
@@ -14,10 +19,10 @@ var (
 	libraryServiceStreamOptionsOnce           sync.Once
 	libraryServiceStreamOptionsVal            []*v1.StreamOptions
 	libraryServiceStreamOptionsBookStreamOnce sync.Once
-	libraryServiceStreamOptionsBookStreamVal  *nats.Stream
+	libraryServiceStreamOptionsBookStreamVal  *LibraryServiceBookStream
 
 	libraryServiceStreamOptionsShelfStreamOnce sync.Once
-	libraryServiceStreamOptionsShelfStreamVal  *nats.Stream
+	libraryServiceStreamOptionsShelfStreamVal  *LibraryServiceShelfStream
 )
 
 func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
@@ -26,16 +31,228 @@ func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
 	})
 	return libraryServiceStreamOptionsVal
 }
-func GetLibraryServiceBookStream() *nats.Stream {
+
+type LibraryServiceBookStream struct {
+	stream *nats.Stream
+}
+
+func GetLibraryServiceBookStream() *LibraryServiceBookStream {
 	libraryServiceStreamOptionsBookStreamOnce.Do(func() {
-		libraryServiceStreamOptionsBookStreamVal = nats.NewStream(GetLibraryServiceStreamOptions()[0])
+		libraryServiceStreamOptionsBookStreamVal = &LibraryServiceBookStream{
+			stream: nats.NewStream(GetLibraryServiceStreamOptions()[0]),
+		}
 	})
 	return libraryServiceStreamOptionsBookStreamVal
 }
 
-func GetLibraryServiceShelfStream() *nats.Stream {
+func (s *LibraryServiceBookStream) Get() *nats.Stream {
+	return s.stream
+}
+
+type LibraryServiceShelfStream struct {
+	stream *nats.Stream
+}
+
+func GetLibraryServiceShelfStream() *LibraryServiceShelfStream {
 	libraryServiceStreamOptionsShelfStreamOnce.Do(func() {
-		libraryServiceStreamOptionsShelfStreamVal = nats.NewStream(GetLibraryServiceStreamOptions()[1])
+		libraryServiceStreamOptionsShelfStreamVal = &LibraryServiceShelfStream{
+			stream: nats.NewStream(GetLibraryServiceStreamOptions()[1]),
+		}
 	})
 	return libraryServiceStreamOptionsShelfStreamVal
 }
+
+func (s *LibraryServiceShelfStream) Get() *nats.Stream {
+	return s.stream
+}
+
+type LibraryServiceBookStreamBookUpdatedSubject struct {
+	stream *LibraryServiceBookStream
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) Evaluate(resource *v12.Book) (bool, error) {
+	out, _, err := libraryServiceBookStreamBookUpdatedCELProgramVal.Eval(map[string]any{"this": resource})
+	if err != nil {
+		return false, fmt.Errorf("evaluating CEL expression: %w", err)
+	}
+	result, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
+	}
+	return result, nil
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceBookStream) GetBookUpdatedSubject() *LibraryServiceBookStreamBookUpdatedSubject {
+	return &LibraryServiceBookStreamBookUpdatedSubject{stream: s}
+}
+
+type LibraryServiceBookStreamBookDeletedSubject struct {
+	stream *LibraryServiceBookStream
+}
+
+func (s *LibraryServiceBookStreamBookDeletedSubject) Evaluate(resource *v12.Book) (bool, error) {
+	return true, nil
+}
+
+func (s *LibraryServiceBookStreamBookDeletedSubject) Get() *nats.Subject {
+	tokens := []string{"deleted"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceBookStream) GetBookDeletedSubject() *LibraryServiceBookStreamBookDeletedSubject {
+	return &LibraryServiceBookStreamBookDeletedSubject{stream: s}
+}
+
+type LibraryServiceShelfStreamShelfCreatedSubject struct {
+	stream *LibraryServiceShelfStream
+	genre  *v12.ShelfGenre
+}
+
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfCreatedSubject {
+	s.genre = &v
+	return s
+}
+
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
+	return true, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) Get() *nats.Subject {
+	tokens := []string{"created"}
+	if s.genre != nil {
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s.genre.String())))
+	} else {
+		tokens = append(tokens, "*")
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceShelfStream) GetShelfCreatedSubject() *LibraryServiceShelfStreamShelfCreatedSubject {
+	return &LibraryServiceShelfStreamShelfCreatedSubject{stream: s}
+}
+
+type LibraryServiceShelfStreamShelfUpdatedSubject struct {
+	stream         *LibraryServiceShelfStream
+	correlationId2 *string
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfUpdatedSubject {
+	s.correlationId2 = &v
+	return s
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
+	out, _, err := libraryServiceShelfStreamShelfUpdatedCELProgramVal.Eval(map[string]any{"this": resource})
+	if err != nil {
+		return false, fmt.Errorf("evaluating CEL expression: %w", err)
+	}
+	result, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
+	}
+	return result, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	if s.correlationId2 != nil {
+		tokens = append(tokens, *s.correlationId2)
+	} else {
+		tokens = append(tokens, "*")
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceShelfStream) GetShelfUpdatedSubject() *LibraryServiceShelfStreamShelfUpdatedSubject {
+	return &LibraryServiceShelfStreamShelfUpdatedSubject{stream: s}
+}
+
+type LibraryServiceShelfStreamShelfDeletedSubject struct {
+	stream         *LibraryServiceShelfStream
+	genre          *v12.ShelfGenre
+	correlationId2 *string
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfDeletedSubject {
+	s.genre = &v
+	return s
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfDeletedSubject {
+	s.correlationId2 = &v
+	return s
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
+	return true, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) Get() *nats.Subject {
+	tokens := []string{"deleted"}
+	if s.genre != nil {
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s.genre.String())))
+	} else {
+		tokens = append(tokens, "*")
+	}
+	if s.correlationId2 != nil {
+		tokens = append(tokens, *s.correlationId2)
+	} else {
+		tokens = append(tokens, "*")
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceShelfStream) GetShelfDeletedSubject() *LibraryServiceShelfStreamShelfDeletedSubject {
+	return &LibraryServiceShelfStreamShelfDeletedSubject{stream: s}
+}
+
+var libraryServiceBookStreamBookUpdatedCELProgramVal = func() cel.Program {
+	env, err := cel.NewEnv(
+		ext.Protos(),
+		cel.Types(&v12.Book{}),
+		cel.Variable("this", cel.ObjectType("malonaz.test.library.v1.Book")),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL environment: %v", err))
+	}
+	ast, issues := env.Compile(`this.publication_year > 2007`)
+	if issues != nil && issues.Err() != nil {
+		panic(fmt.Sprintf("compiling CEL expression: %v", issues.Err()))
+	}
+	if ast.OutputType() != cel.BoolType {
+		panic(fmt.Sprintf("CEL expression must return bool, got %v", ast.OutputType()))
+	}
+	prg, err := env.Program(ast)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL program: %v", err))
+	}
+	return prg
+}()
+
+var libraryServiceShelfStreamShelfUpdatedCELProgramVal = func() cel.Program {
+	env, err := cel.NewEnv(
+		ext.Protos(),
+		cel.Types(&v12.Shelf{}),
+		cel.Variable("this", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL environment: %v", err))
+	}
+	ast, issues := env.Compile(`this.genre != 1`)
+	if issues != nil && issues.Err() != nil {
+		panic(fmt.Sprintf("compiling CEL expression: %v", issues.Err()))
+	}
+	if ast.OutputType() != cel.BoolType {
+		panic(fmt.Sprintf("CEL expression must return bool, got %v", ast.OutputType()))
+	}
+	prg, err := env.Program(ast)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL program: %v", err))
+	}
+	return prg
+}()

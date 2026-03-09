@@ -772,9 +772,10 @@ func TestFilter_NestedIntegerField(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: parent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: name,
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: capacity},
+				DisplayName:     name,
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{Capacity: capacity},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)

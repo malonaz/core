@@ -7,11 +7,11 @@ import "malonaz/nats/v1/stream.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/nats/v1";
 
-// Extension to annotate a protobuf file with NATS stream generation options.
+// Extension to annotate a protobuf service with NATS stream generation options.
 // When set, the code generator emits a NATS JetStream stream configuration
-// for all resources defined in the file.
+// for all resources defined in the service.
 extend google.protobuf.ServiceOptions {
-  // Stream options for resources in this file.
+  // Stream options for resources in this service.
   repeated malonaz.nats.v1.StreamOptions stream = 74000;
 }
 
@@ -24,24 +24,49 @@ extend google.protobuf.MessageOptions {
 }
 
 // Options controlling which NATS events are generated for a resource.
-// Each flag corresponds to a standard AIP method. When enabled, the code
+// Each field corresponds to a standard AIP method. When set, the code
 // generator produces a typed event message and publishes it on the
 // resource's NATS subject after the method completes successfully.
 message EventOptions {
-  // Sets the stream on which events will be streamed.
-  // If it is omitted, the FQN of the message this annotation is attached to will be used.
+  // Sets the stream on which events will be published.
+  // If omitted, the FQN of the message this annotation is attached to will be used.
   string stream = 1;
 
-  // Generate a created event when the resource is created via its Create method.
+  // Options for the created event, published when a resource is created via its Create method.
   // Produces a <Resource>CreatedEvent containing the newly created resource.
-  bool created = 2;
+  // If unset, no created event is generated.
+  EventMethodOptions created = 2;
 
-  // Generate an updated event when the resource is updated via its Update method.
+  // Options for the updated event, published when a resource is updated via its Update method.
   // Produces a <Resource>UpdatedEvent containing the previous state, the new
   // state, and the field mask that was applied.
-  bool updated = 3;
+  // If unset, no updated event is generated.
+  EventMethodOptions updated = 3;
 
-  // Generate a deleted event when the resource is deleted via its Delete method.
+  // Options for the deleted event, published when a resource is deleted via its Delete method.
   // Produces a <Resource>DeletedEvent containing the resource at deletion time.
-  bool deleted = 4;
+  // If unset, no deleted event is generated.
+  EventMethodOptions deleted = 4;
+}
+
+// Options controlling subject routing and conditional publishing for a single event type.
+message EventMethodOptions {
+  // Fields to inject as subject tokens, appended in order after the event type.
+  // For example, specifying ["provider_id"] produces subjects like
+  // `<stream>.created.<provider_id_value>`.
+  // Multiple fields are appended in order: `<stream>.created.<field1>.<field2>`.
+  //
+  // Each referenced field must have a `required` field behavior annotation on
+  // the resource message, as its value must always be present.
+  //
+  // String fields are used as-is.
+  // Enum fields have their type prefix stripped and the remainder is lower_cased
+  // (e.g. PROVIDER_TYPE_AWS -> aws).
+  repeated string subject_fields = 1;
+
+  // Optional CEL expression evaluated against the resource message.
+  // If present, the event is only published when the expression evaluates to true.
+  // The expression has access to the resource as `this`.
+  // Example: "this.status == 'ACTIVE' && this.provider_id != ''"
+  string cel = 2;
 }

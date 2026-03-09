@@ -21,9 +21,9 @@ message Organization {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.user.user_service.v1.organization"
-    created: true
-    updated: true
-    deleted: true
+    created: {}
+    updated: {}
+    deleted: {}
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
 

@@ -23,9 +23,8 @@ message Book {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.library_service.v1.book"
-    created: true
-    updated: true
-    deleted: true
+    updated: {cel: "this.publication_year > 2007"}
+    deleted: {}
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";

@@ -185,10 +185,11 @@ func TestCreate_Shelf(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Science Fiction Classics",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
-				Labels:      map[string]string{"floor": "2"},
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 100},
+				DisplayName:     "Science Fiction Classics",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
+				Labels:          map[string]string{"floor": "2"},
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
+				CorrelationId_2: "hello",
 			},
 		}
 		createdShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -217,9 +218,10 @@ func TestCreate_Shelf(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "GetMatch Create Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 50},
+				DisplayName:     "GetMatch Create Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+				CorrelationId_2: "hello",
 			},
 		}
 		createdShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -262,9 +264,10 @@ func TestCreate_Shelf(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Bad Genre Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
-				Metadata:    &librarypb.ShelfMetadata{},
+				DisplayName:     "Bad Genre Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -276,8 +279,9 @@ func TestCreate_Shelf(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				Genre:    librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata: &librarypb.ShelfMetadata{},
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -288,8 +292,9 @@ func TestCreate_Shelf(t *testing.T) {
 		t.Parallel()
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Shelf: &librarypb.Shelf{
-				DisplayName: "No Parent Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				DisplayName:     "No Parent Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)

@@ -17,6 +17,8 @@ go_library(
         "//malonaz/codegen/nats/v1",
         "//malonaz/nats/v1",
         "//malonaz/test/library/v1",
+        "//third_party/go:github.com__google__cel-go__cel",
+        "//third_party/go:github.com__google__cel-go__ext",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",

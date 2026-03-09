@@ -83,7 +83,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.Subject("created")},
+		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().Get()},
 		ConsumerName: "test-shelf-created-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
 		mu.Lock()
@@ -102,7 +102,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.Subject("updated")},
+		Subjects:     []*nats.Subject{shelfStream.GetShelfUpdatedSubject().Get()},
 		ConsumerName: "test-shelf-updated-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceUpdatedEvent]) error {
 		mu.Lock()
@@ -123,7 +123,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.Subject("deleted")},
+		Subjects:     []*nats.Subject{shelfStream.GetShelfDeletedSubject().Get()},
 		ConsumerName: "test-shelf-deleted-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceDeletedEvent]) error {
 		mu.Lock()
@@ -140,6 +140,58 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, deletedProcessor.Start(ctx))
+
+	// Processor that filters on subject.
+	targetGenre := librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION
+	var filteredMu sync.Mutex
+	filteredShelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
+	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre).Get()},
+		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
+		filteredMu.Lock()
+		defer filteredMu.Unlock()
+		for _, message := range messages {
+			shelf, err := aip.ParseResourceCreatedEvent[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			filteredShelfNameToCreatedEvents[shelf.Name] = append(filteredShelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
+				Shelf: shelf,
+			})
+		}
+		return nil
+	})
+	require.NoError(t, filteredProcessor.Start(ctx))
+
+	t.Run("CreatedEvent_FilteredByGenreSubject", func(t *testing.T) {
+		t.Parallel()
+		matchingShelf := createTestShelf(t, organizationParent, "Genre Match Shelf", targetGenre)
+		nonMatchingShelf := createTestShelf(t, organizationParent, "Genre NoMatch Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToCreatedEvents[nonMatchingShelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		require.Eventually(t, func() bool {
+			filteredMu.Lock()
+			defer filteredMu.Unlock()
+			return len(filteredShelfNameToCreatedEvents[matchingShelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		filteredMu.Lock()
+		defer filteredMu.Unlock()
+		require.Len(t, filteredShelfNameToCreatedEvents[matchingShelf.Name], 1)
+		require.Equal(t, targetGenre, filteredShelfNameToCreatedEvents[matchingShelf.Name][0].Shelf.Genre)
+
+		require.Never(t, func() bool {
+			filteredMu.Lock()
+			defer filteredMu.Unlock()
+			return len(filteredShelfNameToCreatedEvents[nonMatchingShelf.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
 
 	t.Run("CreatedEvent", func(t *testing.T) {
 		t.Parallel()
@@ -186,9 +238,10 @@ func TestNatsEvents_Shelf(t *testing.T) {
 			ShelfId:      shelfID,
 			ValidateOnly: true,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "ValidateOnly Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:    &librarypb.ShelfMetadata{Capacity: 50},
+				CorrelationId_2: "hello",
+				DisplayName:     "ValidateOnly Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -206,9 +259,10 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		createShelfRequest := &libraryservicepb.CreateShelfRequest{
 			Parent: organizationParent,
 			Shelf: &librarypb.Shelf{
-				DisplayName: "Bad Genre Shelf",
-				Genre:       librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
-				Metadata:    &librarypb.ShelfMetadata{},
+				CorrelationId_2: "hello",
+				DisplayName:     "Bad Genre Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_UNSPECIFIED,
+				Metadata:        &librarypb.ShelfMetadata{},
 			},
 		}
 		_, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
@@ -286,9 +340,30 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		require.ElementsMatch(t, []string{"display_name", "genre"}, event.UpdateMask.GetPaths())
 	})
 
-	t.Run("UpdatedEvent_NestedMetadata", func(t *testing.T) {
+	t.Run("UpdatedEvent_fails_cel_expr", func(t *testing.T) {
 		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Nats NestedMeta Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:     shelf.Name,
+				Metadata: &librarypb.ShelfMetadata{Capacity: 999},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"metadata.capacity"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToUpdatedEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+
+	t.Run("UpdatedEvent_NestedMetadata", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Nats NestedMeta Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
 
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
 			Shelf: &librarypb.Shelf{
@@ -342,13 +417,18 @@ func TestNatsEvents_Shelf(t *testing.T) {
 
 	t.Run("MultipleUpdates_MultipleEvents", func(t *testing.T) {
 		t.Parallel()
-		shelf := createTestShelf(t, organizationParent, "Nats MultiUpdate Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		shelf := createTestShelf(t, organizationParent, "Nats MultiUpdate Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
 
+		indexToGenre := map[int]librarypb.ShelfGenre{
+			0: librarypb.ShelfGenre_SHELF_GENRE_HISTORY,
+			1: librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
+			2: librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION,
+		}
 		for i := range 3 {
 			updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
 				Shelf: &librarypb.Shelf{
 					Name:  shelf.Name,
-					Genre: librarypb.ShelfGenre(i + 1),
+					Genre: indexToGenre[i],
 				},
 				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
 			}
@@ -369,7 +449,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 
 	t.Run("FailedUpdate_NoEvent", func(t *testing.T) {
 		t.Parallel()
-		shelf := createTestShelf(t, organizationParent, "Nats FailedUpdate Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		shelf := createTestShelf(t, organizationParent, "Nats FailedUpdate Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
 
 		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
 			Shelf: &librarypb.Shelf{
@@ -498,7 +578,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.Subject("created")},
+		Subjects:     []*nats.Subject{bookStream.Get().Subject("created.>")},
 		ConsumerName: "test-book-created-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceCreatedEvent]) error {
 		mu.Lock()
@@ -517,7 +597,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.Subject("updated")},
+		Subjects:     []*nats.Subject{bookStream.GetBookUpdatedSubject().Get()},
 		ConsumerName: "test-book-updated-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceUpdatedEvent]) error {
 		mu.Lock()
@@ -538,7 +618,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.Subject("deleted")},
+		Subjects:     []*nats.Subject{bookStream.GetBookDeletedSubject().Get()},
 		ConsumerName: "test-book-deleted-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceDeletedEvent]) error {
 		mu.Lock()
@@ -559,40 +639,15 @@ func TestNatsEvents_Book(t *testing.T) {
 	author := createTestAuthor(t, organizationParent, "Nats Book Author")
 	shelf := createTestShelf(t, organizationParent, "Nats Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
-	t.Run("CreatedEvent", func(t *testing.T) {
+	t.Run("CreatedEvent_NotEmitted", func(t *testing.T) {
 		t.Parallel()
-		book := createTestBook(t, shelf.Name, author.Name, "Nats Created Book")
+		book := createTestBook(t, shelf.Name, author.Name, "Nats NoCreated Book")
 
-		require.Eventually(t, func() bool {
+		require.Never(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			return len(bookNameToCreatedEvents[book.Name]) >= 1
+			return len(bookNameToCreatedEvents[book.Name]) > 0
 		}, natsEventCheckTimeout, natsEventCheckInterval)
-
-		mu.Lock()
-		defer mu.Unlock()
-		events := bookNameToCreatedEvents[book.Name]
-		require.Len(t, events, 1)
-		require.Equal(t, book.Name, events[0].Book.Name)
-		require.Equal(t, "Nats Created Book", events[0].Book.Title)
-		require.Equal(t, author.Name, events[0].Book.Author)
-	})
-
-	t.Run("CreatedEvent_MatchesGet", func(t *testing.T) {
-		t.Parallel()
-		book := createTestBook(t, shelf.Name, author.Name, "Nats Created MatchGet Book")
-
-		require.Eventually(t, func() bool {
-			mu.Lock()
-			defer mu.Unlock()
-			return len(bookNameToCreatedEvents[book.Name]) >= 1
-		}, natsEventCheckTimeout, natsEventCheckInterval)
-
-		gotBook := getBook(t, book.Name)
-
-		mu.Lock()
-		defer mu.Unlock()
-		grpcrequire.Equal(t, gotBook, bookNameToCreatedEvents[book.Name][0].Book)
 	})
 
 	t.Run("UpdatedEvent", func(t *testing.T) {
@@ -623,6 +678,28 @@ func TestNatsEvents_Book(t *testing.T) {
 		require.Equal(t, int32(2025), event.Book.PublicationYear)
 		require.Equal(t, "Nats Updated Book", event.OldBook.Title)
 		require.ElementsMatch(t, []string{"title", "publication_year"}, event.UpdateMask.GetPaths())
+	})
+
+	t.Run("UpdatedEvent does not match cel expression", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Nats Updated Book")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:            book.Name,
+				Title:           "Nats Updated Book Changed",
+				PublicationYear: 2005, // Fails > 2007 filter expression.
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title", "publication_year"}},
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(bookNameToUpdatedEvents[book.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 
 	t.Run("DeletedEvent_HardDelete", func(t *testing.T) {
