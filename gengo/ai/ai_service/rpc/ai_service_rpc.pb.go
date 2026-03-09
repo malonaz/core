@@ -156,14 +156,40 @@ func (s *aiService_ChatServer) GetChat(ctx context.Context, request *v1.GetChatR
 var updateChatRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateChatRequest, *v11.Chat]()
 
 func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
+	// Request specifies an ETag => we propagate the 'Aborted' error back to the client.
+	if request.GetChat().GetEtag() != "" {
+		return s.updateChat(ctx, request)
+	}
+
+	// Request did not specify an ETag => we retry internally on context aborted errors.
+	// In order to understand why we still use ETag in `update()`, consider the following situation:
+	//  > `resource.metadata` is stored as JSONB in the store.
+	//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+	//  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
+	//  > Request A reads the resource and patches it.
+	//  > Request B reads the resource and patches it.
+	//  > Request A persists the patched resource, followed by by Request B.
+	//  > Request A's changes are lost.
+	for {
+		response, err := s.updateChat(ctx, request)
+		if err != nil {
+			if status.HasCode(err, codes.Aborted) {
+				continue
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+
+}
+
+func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
 	if resourcename.ContainsWildcard(request.Chat.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
-	// Capture the etag.
-	etag := request.GetChat().GetEtag()
 
 	// STEP 1: Parse request.
 	parsedRequest, err := updateChatRequestParser.Parse(request)
@@ -180,6 +206,11 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	// Verify that the resource is not soft deleted.
 	if existingChat.DeleteTime != nil {
 		return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
+	}
+	// Capture the etag. If it is not set, use the latest available etag.
+	etag := request.GetChat().GetEtag()
+	if etag == "" {
+		etag = existingChat.GetEtag()
 	}
 
 	// STEP 3: Patch the existing resource.

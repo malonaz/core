@@ -1,6 +1,7 @@
 package sat
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -1165,5 +1166,53 @@ func TestUpdate_GetMatchesUpdateResponse(t *testing.T) {
 
 		got := getShelf(t, original.Name)
 		grpcrequire.Equal(t, updated, got)
+	})
+
+	t.Run("Book no etag parallel calls", func(t *testing.T) {
+		t.Parallel()
+		author := createTestAuthor(t, organizationParent, "GetMatch Book Author")
+		shelf := createTestShelf(t, organizationParent, "GetMatch Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		original := createTestBook(t, shelf.Name, author.Name, "GetMatch Book")
+
+		wg := sync.WaitGroup{}
+		wg.Go(func() {
+			updateBookRequest := &libraryservicepb.UpdateBookRequest{
+				Book: &librarypb.Book{
+					Name:     original.Name,
+					Metadata: &librarypb.BookMetadata{Summary: "updated summary"},
+				},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"metadata.summary"}},
+			}
+			_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+			require.NoError(t, err)
+		})
+		wg.Go(func() {
+			updateBookRequest := &libraryservicepb.UpdateBookRequest{
+				Book: &librarypb.Book{
+					Name:     original.Name,
+					Metadata: &librarypb.BookMetadata{Language: "fr"},
+				},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"metadata.language"}},
+			}
+			_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+			require.NoError(t, err)
+		})
+		wg.Go(func() {
+			updateBookRequest := &libraryservicepb.UpdateBookRequest{
+				Book: &librarypb.Book{
+					Name:     original.Name,
+					Metadata: &librarypb.BookMetadata{PhoneNumber: "+14155550199"},
+				},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"metadata.phone_number"}},
+			}
+			_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+			require.NoError(t, err)
+		})
+		wg.Wait()
+
+		got := getBook(t, original.Name)
+		require.Equal(t, "updated summary", got.Metadata.Summary)
+		require.Equal(t, "fr", got.Metadata.Language)
+		require.Equal(t, "+14155550199", got.Metadata.PhoneNumber)
 	})
 }
