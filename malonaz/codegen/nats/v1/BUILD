@@ -8,5 +8,6 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/nats/v1",
+        "//third_party/proto:validate",
     ],
 )

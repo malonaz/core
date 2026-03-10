@@ -107,6 +107,7 @@ filegroup(
 filegroup(
     name = "protoc-gen-go-nats-dep",
     exported_deps = [
+        "//go/aip",
         "//go/nats",
         "//go/pbutil",
         "//third_party/go:github.com__google__cel-go__cel",

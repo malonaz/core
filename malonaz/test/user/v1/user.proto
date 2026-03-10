@@ -22,9 +22,9 @@ message User {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.user.user_service.v1.user"
-    created: {}
-    updated: {}
-    deleted: {}
+    created: {subject: "created"}
+    updated: {subject: "updated"}
+    deleted: {subject: "deleted"}
   };
   option (malonaz.codegen.model.v1.model_opts) = {
     table_name: "user_"

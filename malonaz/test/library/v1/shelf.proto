@@ -22,13 +22,21 @@ message Shelf {
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.library_service.v1.shelf"
     created: {
+      subject: "created"
       subject_fields: ["genre"]
     }
     updated: {
+      subject: "updated"
       subject_fields: ["correlation_id_2"]
-      cel: "this.genre != 1"
+      cel: "shelf.genre != 1"
+    }
+    updated: {
+      subject: "genre_change"
+      subject_fields: ["genre"]
+      cel: "shelf.genre != previous_shelf.genre"
     }
     deleted: {
+      subject: "deleted"
       subject_fields: [
         "genre",
         "correlation_id_2"

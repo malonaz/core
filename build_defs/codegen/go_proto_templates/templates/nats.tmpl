@@ -10,9 +10,9 @@ package {{ .PackageName }}
 
 {{- $streamFQNToStreamName := dict }}
 {{- range $service := $file.Services }}
-    {{ $streams := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
-    {{ if not $streams }}{{ continue }}{{ end }}
-    {{ $skip = false }}
+    {{- $streams := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
+    {{- if not $streams }}{{ continue }}{{ end }}
+    {{- $skip = false }}
     {{- range $stream := $streams }}
         {{- $streamName := $stream.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
         {{- $streamFQNToStreamName = set $streamFQNToStreamName $stream.GetName (printf "%s%s" $service.GoName $streamName) }}
@@ -20,8 +20,8 @@ package {{ .PackageName }}
 {{- end }}
 
 {{- range $service := $file.Services }}
-    {{ $streams := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
-    {{ if not $streams }}{{ continue }}{{ end }}
+    {{- $streams := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
+    {{- if not $streams }}{{ continue }}{{ end }}
 
     var (
     {{ printf "%sStreamOptions" $service.GoName | untitle }}Once {{ fqn "sync" "Once" }}
@@ -64,132 +64,179 @@ package {{ .PackageName }}
 {{ end }}
 
 {{- /* ################### SUBJECT STRUCTS ################### */ -}}
-
 {{- range $f := .Files }}
     {{- range $message := $f.Messages }}
-        {{ $natsEventOpts := getExt $message.Desc "malonaz.codegen.nats.v1.event" }}
-        {{ if not $natsEventOpts }}{{ continue }}{{ end }}
-        {{ $qualifiedStreamName := get $streamFQNToStreamName $natsEventOpts.GetStream }}
-        {{ if not $qualifiedStreamName }}{{ continue }}{{ end }}
+        {{- $natsEventOpts := getExt $message.Desc "malonaz.codegen.nats.v1.event" }}
+        {{- if not $natsEventOpts }}{{ continue }}{{ end }}
+        {{- $qualifiedStreamName := get $streamFQNToStreamName $natsEventOpts.GetStream }}
+        {{- if not $qualifiedStreamName }}{{ continue }}{{ end }}
 
-        {{- $eventTypes := list }}
-        {{- if $natsEventOpts.GetCreated }}{{ $eventTypes = append $eventTypes (dict "Name" "Created" "Opts" $natsEventOpts.GetCreated) }}{{ end }}
-        {{- if $natsEventOpts.GetUpdated }}{{ $eventTypes = append $eventTypes (dict "Name" "Updated" "Opts" $natsEventOpts.GetUpdated) }}{{ end }}
-        {{- if $natsEventOpts.GetDeleted }}{{ $eventTypes = append $eventTypes (dict "Name" "Deleted" "Opts" $natsEventOpts.GetDeleted) }}{{ end }}
+        {{- $eventTypeToEventOpts := dict }}
+        {{- if $natsEventOpts.GetCreated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Created" $natsEventOpts.GetCreated }}{{ end }}
+        {{- if $natsEventOpts.GetUpdated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Updated" $natsEventOpts.GetUpdated }}{{ end }}
+        {{- if $natsEventOpts.GetDeleted }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Deleted" $natsEventOpts.GetDeleted }}{{ end }}
 
-        {{- range $eventType := $eventTypes }}
-            {{ $structName := printf "%s%s%sSubject" $qualifiedStreamName $message.GoIdent.GoName $eventType.Name }}
-            {{ $subjectFields := $eventType.Opts.GetSubjectFields }}
-            {{ $celProgramVar := printf "%s%s%sCELProgram" $qualifiedStreamName $message.GoIdent.GoName $eventType.Name | untitle }}
+        {{- range $eventType, $eventOpts := $eventTypeToEventOpts }}
+            {{- range $eventOpt := $eventOpts }}
+                {{- $structName := printf "%s%s%sSubject" $qualifiedStreamName $message.GoIdent.GoName ($eventOpt.GetSubject | camelcase) }}
+                {{- $celProgramVar := printf "%s%s%sCELProgram" $qualifiedStreamName $message.GoIdent.GoName ($eventOpt.GetSubject | camelcase) | untitle }}
 
-            type {{ $structName }} struct {
-            stream *{{ $qualifiedStreamName }}
-            {{- range $fieldName := $subjectFields }}
-                {{- $field := getFieldByName $message $fieldName }}
-                {{- if not $field }}{{ fail (printf "subject_field %q not found on message %s" $fieldName $message.GoIdent.GoName) }}{{ end }}
-                {{- if $field.Enum }}
-                    _{{ $field.GoName | untitle }} *{{ qgi $field.Enum.GoIdent }}
-                {{- else }}
-                    _{{ $field.GoName | untitle }} *string
+                type {{ $structName }} struct {
+                stream *{{ $qualifiedStreamName }}
+                {{- range $subjectField := $eventOpt.GetSubjectFields }}
+                    {{- $field := getFieldByName $message $subjectField }}
+                    {{- if not $field }}{{ fail (printf "subject_field %q not found on message %s" $subjectField $message.GoIdent.GoName) }}{{ end }}
+                    {{- if $field.Enum }}
+                        _{{ $field.GoName | untitle }} *{{ qgi $field.Enum.GoIdent }}
+                    {{- else }}
+                        _{{ $field.GoName | untitle }} *string
+                    {{- end }}
                 {{- end }}
-            {{- end }}
-            }
+                }
 
-            {{- range $fieldName := $subjectFields }}
-                {{- $field := getFieldByName $message $fieldName }}
-                {{- if $field.Enum }}
-                    func (s *{{ $structName }}) With{{ $fieldName | camelcase }}(v {{ qgi $field.Enum.GoIdent }}) *{{ $structName }} {
-                    s._{{ $field.GoName | untitle }} = &v
-                    return s
-                    }
-                {{- else }}
-                    func (s *{{ $structName }}) With{{ $fieldName | camelcase }}(v string) *{{ $structName }} {
-                    s._{{ $field.GoName | untitle }} = &v
-                    return s
-                    }
+                {{- range $subjectField := $eventOpt.GetSubjectFields }}
+                    {{- $field := getFieldByName $message $subjectField }}
+                    {{- if $field.Enum }}
+                        func (s *{{ $structName }}) With{{ $subjectField | camelcase }}(v {{ qgi $field.Enum.GoIdent }}) (*{{ $structName }}, error) {
+                        if v == 0 {
+                        return nil, {{ fqn "fmt" "Errorf" }}("{{ $subjectField }} must be set")
+                        }
+                        s._{{ $field.GoName | untitle }} = &v
+                        return s, nil
+                        }
+                    {{- else }}
+                        func (s *{{ $structName }}) With{{ $subjectField | camelcase }}(v string) (*{{ $structName }}, error) {
+                        if v == "" {
+                        return nil, {{ fqn "fmt" "Errorf" }}("{{ $subjectField }} must be set")
+                        }
+                        s._{{ $field.GoName | untitle }} = &v
+                        return s, nil
+                        }
+                    {{- end }}
                 {{- end }}
-            {{ end }}
 
-            func (s *{{ $structName }}) Evaluate(resource *{{ qgi $message.GoIdent }}) (bool, error) {
-            {{- if $eventType.Opts.GetCel }}
-                out, _, err := {{ $celProgramVar }}Val.Eval(map[string]any{"this": resource})
+                func (s *{{ $structName }}) evaluate(resource *{{ qgi $message.GoIdent }}{{ if eq $eventType "Updated"}}, previousResource *{{ qgi $message.GoIdent }}, updateMask *{{ fqn "google.golang.org/protobuf/types/known/fieldmaskpb" "FieldMask" }}{{ end }}) (bool, error) {
+                {{- if $eventOpt.GetCel }}
+                    out, _, err := {{ $celProgramVar }}Val.Eval(map[string]any{
+                    "{{ $message.GoIdent.GoName | snakecase }}": resource,
+                    {{- if eq $eventType "Updated"}}
+                        "previous_{{ $message.GoIdent.GoName | snakecase }}": previousResource,
+                        "update_mask": updateMask,
+                    {{ end  }}
+                    })
+                    if err != nil {
+                    return false, {{ fqn "fmt" "Errorf" }}("evaluating CEL expression: %w", err)
+                    }
+                    result, ok := out.Value().(bool)
+                    if !ok {
+                    return false, {{ fqn "fmt" "Errorf" }}("CEL expression returned non-bool type %T", out.Value())
+                    }
+                    return result, nil
+                {{- else }}
+                    return true, nil
+                {{- end }}
+                }
+
+                func (s *{{ $structName }}) Publish(ctx {{ fqn "context" "Context" }}, natsClient *{{ fqnCore "go/nats" "Client"}}, resource *{{ qgi $message.GoIdent }}{{ if eq $eventType "Updated"}}, previousResource *{{ qgi $message.GoIdent }}, updateMask *{{ fqn "google.golang.org/protobuf/types/known/fieldmaskpb" "FieldMask" }}{{ end }}) error {
+                ok, err := s.evaluate(resource{{ if eq $eventType "Updated"}}, previousResource, updateMask{{ end }})
                 if err != nil {
-                return false, {{ fqn "fmt" "Errorf" }}("evaluating CEL expression: %w", err)
+                return err
                 }
-                result, ok := out.Value().(bool)
                 if !ok {
-                return false, {{ fqn "fmt" "Errorf" }}("CEL expression returned non-bool type %T", out.Value())
+                return nil
                 }
-                return result, nil
-            {{- else }}
-                return true, nil
-            {{- end }}
-            }
+                if err := s.set(resource); err != nil {
+                return err
+                }
+                event, err := {{ fqnCore "go/aip" (printf "NewResource%sEvent" $eventType) }}(resource{{ if eq $eventType "Updated"}}, previousResource, updateMask{{ end }})
+                if err != nil {
+                return {{ fqn "fmt" "Errorf" }}("constructing resource event: %w", err)
+                }
+                return natsClient.Publish(ctx, s.Get(), event)
+                }
 
-            func (s *{{ $structName }}) Get() *{{ fqnCore "go/nats" "Subject" }} {
-            tokens := []string{"{{ $eventType.Name | lower }}"}
-            {{- range $fieldName := $subjectFields }}
-                {{- $field := getFieldByName $message $fieldName }}
-                if s._{{ $field.GoName | untitle }} != nil {
-                {{- if $field.Enum }}
-                    {{- $enumPrefix := $field.Enum.GoIdent.GoName | snakecase | upper | printf "%s_" }}
-                    tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}(s._{{ $field.GoName | untitle }}.String(), "{{ $enumPrefix }}")))
-                {{- else }}
-                    tokens = append(tokens, *s._{{ $field.GoName | untitle }})
+                func (s *{{ $structName }}) set(resource *{{ qgi $message.GoIdent }}) error {
+                {{- range $subjectField := $eventOpt.GetSubjectFields }}
+                    {{- $field := getFieldByName $message $subjectField }}
+                    if _, err := s.With{{ $subjectField | camelcase }}(resource.{{ $field.GoName }}); err != nil {
+                    return err
+                    }
                 {{- end }}
-                } else {
-                tokens = append(tokens, "*")
+                return nil
+                }
+
+                func (s *{{ $structName }}) Get() *{{ fqnCore "go/nats" "Subject" }} {
+                tokens := []string{"{{ $eventOpt.GetSubject | lower }}"}
+                {{- range $subjectField := $eventOpt.GetSubjectFields }}
+                    {{- $field := getFieldByName $message $subjectField }}
+                    if s._{{ $field.GoName | untitle }} != nil {
+                    {{- if $field.Enum }}
+                        {{- $enumPrefix := $field.Enum.GoIdent.GoName | snakecase | upper | printf "%s_" }}
+                        tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}(s._{{ $field.GoName | untitle }}.String(), "{{ $enumPrefix }}")))
+                    {{- else }}
+                        tokens = append(tokens, *s._{{ $field.GoName | untitle }})
+                    {{- end }}
+                    } else {
+                    tokens = append(tokens, "*")
+                    }
+                {{- end }}
+                return s.stream.stream.Subject({{ fqn "strings" "Join" }}(tokens, "."))
+                }
+
+                func (s *{{ $qualifiedStreamName }}) Get{{ $message.GoIdent.GoName }}{{ ($eventOpt.GetSubject | camelcase) }}Subject() *{{ $structName }} {
+                return &{{ $structName }}{stream: s}
                 }
             {{- end }}
-            return s.stream.stream.Subject({{ fqn "strings" "Join" }}(tokens, "."))
-            }
-
-            func (s *{{ $qualifiedStreamName }}) Get{{ $message.GoIdent.GoName }}{{ $eventType.Name }}Subject() *{{ $structName }} {
-            return &{{ $structName }}{stream: s}
-            }
-        {{ end }}
-    {{ end }}
-{{ end }}
+        {{- end }}
+    {{- end }}
+{{- end }}
 
 {{- /* ################### CEL EXPRESSIONS STRUCTS ################### */ -}}
 
 {{- range $f := .Files }}
     {{- range $message := $f.Messages }}
-        {{ $natsEventOpts := getExt $message.Desc "malonaz.codegen.nats.v1.event" }}
-        {{ if not $natsEventOpts }}{{ continue }}{{ end }}
-        {{ $qualifiedStreamName := get $streamFQNToStreamName $natsEventOpts.GetStream }}
-        {{ if not $qualifiedStreamName }}{{ continue }}{{ end }}
+        {{- $natsEventOpts := getExt $message.Desc "malonaz.codegen.nats.v1.event" }}
+        {{- if not $natsEventOpts }}{{ continue }}{{ end }}
+        {{- $qualifiedStreamName := get $streamFQNToStreamName $natsEventOpts.GetStream }}
+        {{- if not $qualifiedStreamName }}{{ continue }}{{ end }}
 
-        {{- $eventTypes := list }}
-        {{- if $natsEventOpts.GetCreated }}{{ $eventTypes = append $eventTypes (dict "Name" "Created" "Opts" $natsEventOpts.GetCreated) }}{{ end }}
-        {{- if $natsEventOpts.GetUpdated }}{{ $eventTypes = append $eventTypes (dict "Name" "Updated" "Opts" $natsEventOpts.GetUpdated) }}{{ end }}
-        {{- if $natsEventOpts.GetDeleted }}{{ $eventTypes = append $eventTypes (dict "Name" "Deleted" "Opts" $natsEventOpts.GetDeleted) }}{{ end }}
+        {{- $eventTypeToEventOpts := dict }}
+        {{- if $natsEventOpts.GetCreated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Created" $natsEventOpts.GetCreated }}{{ end }}
+        {{- if $natsEventOpts.GetUpdated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Updated" $natsEventOpts.GetUpdated }}{{ end }}
+        {{- if $natsEventOpts.GetDeleted }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Deleted" $natsEventOpts.GetDeleted }}{{ end }}
 
-        {{- range $eventType := $eventTypes }}
-            {{- if $eventType.Opts.GetCel }}
-                {{ $varName := printf "%s%s%sCELProgram" $qualifiedStreamName $message.GoIdent.GoName $eventType.Name }}
-                var {{ $varName | untitle }}Val = func() {{ fqn "github.com/google/cel-go/cel" "Program" }} {
-                env, err := {{ fqn "github.com/google/cel-go/cel" "NewEnv" }}(
-                {{ fqn "github.com/google/cel-go/ext" "Protos" }}(),
-                {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ qgi $message.GoIdent }}{}),
-                {{ fqn "github.com/google/cel-go/cel" "Variable" }}("this", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $message.Desc.FullName }}")),
-                )
-                if err != nil {
-                panic({{ fqn "fmt" "Sprintf" }}("creating CEL environment: %v", err))
-                }
-                ast, issues := env.Compile(`{{ $eventType.Opts.GetCel }}`)
-                if issues != nil && issues.Err() != nil {
-                panic({{ fqn "fmt" "Sprintf" }}("compiling CEL expression: %v", issues.Err()))
-                }
-                if ast.OutputType() != {{ fqn "github.com/google/cel-go/cel" "BoolType" }} {
-                panic({{ fqn "fmt" "Sprintf" }}("CEL expression must return bool, got %v", ast.OutputType()))
-                }
-                prg, err := env.Program(ast)
-                if err != nil {
-                panic({{ fqn "fmt" "Sprintf" }}("creating CEL program: %v", err))
-                }
-                return prg
-                }()
+        {{- range $eventType, $eventOpts := $eventTypeToEventOpts }}
+            {{- range $eventOpt := $eventOpts }}
+                {{- if $eventOpt.GetCel }}
+                    {{ $varName := printf "%s%s%sCELProgram" $qualifiedStreamName $message.GoIdent.GoName ($eventOpt.GetSubject | camelcase) }}
+                    var {{ $varName | untitle }}Val = func() {{ fqn "github.com/google/cel-go/cel" "Program" }} {
+                    env, err := {{ fqn "github.com/google/cel-go/cel" "NewEnv" }}(
+                    {{ fqn "github.com/google/cel-go/ext" "Protos" }}(),
+                    {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ qgi $message.GoIdent }}{}),
+                    {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ fqn "google.golang.org/protobuf/types/known/fieldmaskpb" "FieldMask" }}{}),
+                    {{ fqn "github.com/google/cel-go/cel" "Variable" }}("{{ $message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $message.Desc.FullName }}")),
+                    {{- if eq $eventType "Updated"}}
+                        {{ fqn "github.com/google/cel-go/cel" "Variable" }}("previous_{{ $message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $message.Desc.FullName }}")),
+                        {{ fqn "github.com/google/cel-go/cel" "Variable" }}("update_mask", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("google.protobuf.FieldMask")),
+                    {{ end }}
+                    )
+                    if err != nil {
+                    panic({{ fqn "fmt" "Sprintf" }}("creating CEL environment: %v", err))
+                    }
+                    ast, issues := env.Compile(`{{ $eventOpt.GetCel }}`)
+                    if issues != nil && issues.Err() != nil {
+                    panic({{ fqn "fmt" "Sprintf" }}("compiling CEL expression: %v", issues.Err()))
+                    }
+                    if ast.OutputType() != {{ fqn "github.com/google/cel-go/cel" "BoolType" }} {
+                    panic({{ fqn "fmt" "Sprintf" }}("CEL expression must return bool, got %v", ast.OutputType()))
+                    }
+                    prg, err := env.Program(ast)
+                    if err != nil {
+                    panic({{ fqn "fmt" "Sprintf" }}("creating CEL program: %v", err))
+                    }
+                    return prg
+                    }()
+                {{- end }}
             {{- end }}
         {{- end }}
     {{- end }}

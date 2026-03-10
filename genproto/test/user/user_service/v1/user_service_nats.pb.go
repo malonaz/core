@@ -3,11 +3,15 @@
 package v1
 
 import (
+	context "context"
+	fmt "fmt"
 	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	v12 "github.com/malonaz/core/genproto/test/user/v1"
+	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
 )
@@ -67,8 +71,30 @@ type UserServiceOrganizationStreamOrganizationCreatedSubject struct {
 	stream *UserServiceOrganizationStream
 }
 
-func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) Evaluate(resource *v12.Organization) (bool, error) {
+func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) evaluate(resource *v12.Organization) (bool, error) {
 	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Organization) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceCreatedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) set(resource *v12.Organization) error {
+	return nil
 }
 
 func (s *UserServiceOrganizationStreamOrganizationCreatedSubject) Get() *nats.Subject {
@@ -80,29 +106,34 @@ func (s *UserServiceOrganizationStream) GetOrganizationCreatedSubject() *UserSer
 	return &UserServiceOrganizationStreamOrganizationCreatedSubject{stream: s}
 }
 
-type UserServiceOrganizationStreamOrganizationUpdatedSubject struct {
-	stream *UserServiceOrganizationStream
-}
-
-func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Evaluate(resource *v12.Organization) (bool, error) {
-	return true, nil
-}
-
-func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{"updated"}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
-}
-
-func (s *UserServiceOrganizationStream) GetOrganizationUpdatedSubject() *UserServiceOrganizationStreamOrganizationUpdatedSubject {
-	return &UserServiceOrganizationStreamOrganizationUpdatedSubject{stream: s}
-}
-
 type UserServiceOrganizationStreamOrganizationDeletedSubject struct {
 	stream *UserServiceOrganizationStream
 }
 
-func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) Evaluate(resource *v12.Organization) (bool, error) {
+func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) evaluate(resource *v12.Organization) (bool, error) {
 	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Organization) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceDeletedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) set(resource *v12.Organization) error {
+	return nil
 }
 
 func (s *UserServiceOrganizationStreamOrganizationDeletedSubject) Get() *nats.Subject {
@@ -114,12 +145,73 @@ func (s *UserServiceOrganizationStream) GetOrganizationDeletedSubject() *UserSer
 	return &UserServiceOrganizationStreamOrganizationDeletedSubject{stream: s}
 }
 
+type UserServiceOrganizationStreamOrganizationUpdatedSubject struct {
+	stream *UserServiceOrganizationStream
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) evaluate(resource *v12.Organization, previousResource *v12.Organization, updateMask *fieldmaskpb.FieldMask) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Organization, previousResource *v12.Organization, updateMask *fieldmaskpb.FieldMask) error {
+	ok, err := s.evaluate(resource, previousResource, updateMask)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) set(resource *v12.Organization) error {
+	return nil
+}
+
+func (s *UserServiceOrganizationStreamOrganizationUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceOrganizationStream) GetOrganizationUpdatedSubject() *UserServiceOrganizationStreamOrganizationUpdatedSubject {
+	return &UserServiceOrganizationStreamOrganizationUpdatedSubject{stream: s}
+}
+
 type UserServiceUserStreamUserCreatedSubject struct {
 	stream *UserServiceUserStream
 }
 
-func (s *UserServiceUserStreamUserCreatedSubject) Evaluate(resource *v12.User) (bool, error) {
+func (s *UserServiceUserStreamUserCreatedSubject) evaluate(resource *v12.User) (bool, error) {
 	return true, nil
+}
+
+func (s *UserServiceUserStreamUserCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.User) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceCreatedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceUserStreamUserCreatedSubject) set(resource *v12.User) error {
+	return nil
 }
 
 func (s *UserServiceUserStreamUserCreatedSubject) Get() *nats.Subject {
@@ -131,29 +223,34 @@ func (s *UserServiceUserStream) GetUserCreatedSubject() *UserServiceUserStreamUs
 	return &UserServiceUserStreamUserCreatedSubject{stream: s}
 }
 
-type UserServiceUserStreamUserUpdatedSubject struct {
-	stream *UserServiceUserStream
-}
-
-func (s *UserServiceUserStreamUserUpdatedSubject) Evaluate(resource *v12.User) (bool, error) {
-	return true, nil
-}
-
-func (s *UserServiceUserStreamUserUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{"updated"}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
-}
-
-func (s *UserServiceUserStream) GetUserUpdatedSubject() *UserServiceUserStreamUserUpdatedSubject {
-	return &UserServiceUserStreamUserUpdatedSubject{stream: s}
-}
-
 type UserServiceUserStreamUserDeletedSubject struct {
 	stream *UserServiceUserStream
 }
 
-func (s *UserServiceUserStreamUserDeletedSubject) Evaluate(resource *v12.User) (bool, error) {
+func (s *UserServiceUserStreamUserDeletedSubject) evaluate(resource *v12.User) (bool, error) {
 	return true, nil
+}
+
+func (s *UserServiceUserStreamUserDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.User) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceDeletedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceUserStreamUserDeletedSubject) set(resource *v12.User) error {
+	return nil
 }
 
 func (s *UserServiceUserStreamUserDeletedSubject) Get() *nats.Subject {
@@ -163,4 +260,43 @@ func (s *UserServiceUserStreamUserDeletedSubject) Get() *nats.Subject {
 
 func (s *UserServiceUserStream) GetUserDeletedSubject() *UserServiceUserStreamUserDeletedSubject {
 	return &UserServiceUserStreamUserDeletedSubject{stream: s}
+}
+
+type UserServiceUserStreamUserUpdatedSubject struct {
+	stream *UserServiceUserStream
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) evaluate(resource *v12.User, previousResource *v12.User, updateMask *fieldmaskpb.FieldMask) (bool, error) {
+	return true, nil
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.User, previousResource *v12.User, updateMask *fieldmaskpb.FieldMask) error {
+	ok, err := s.evaluate(resource, previousResource, updateMask)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) set(resource *v12.User) error {
+	return nil
+}
+
+func (s *UserServiceUserStreamUserUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *UserServiceUserStream) GetUserUpdatedSubject() *UserServiceUserStreamUserUpdatedSubject {
+	return &UserServiceUserStreamUserUpdatedSubject{stream: s}
 }

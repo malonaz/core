@@ -9,6 +9,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip",
         "//go/nats",
         "//go/pbutil",
         "//malonaz/codegen/aip/v1",

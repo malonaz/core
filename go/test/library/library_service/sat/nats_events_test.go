@@ -13,6 +13,7 @@ import (
 	"github.com/malonaz/core/go/aip"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/nats"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/uuid"
 
 	aippb "github.com/malonaz/core/genproto/aip/v1"
@@ -150,7 +151,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	var filteredMu sync.Mutex
 	filteredShelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre).Get()},
+		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre)).Get()},
 		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
 	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
@@ -770,6 +771,229 @@ func TestNatsEvents_Book(t *testing.T) {
 			mu.Lock()
 			defer mu.Unlock()
 			return len(bookNameToDeletedEvents[book.Name]) > 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+}
+
+func TestNatsEvents_ShelfGenreChange(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	consumerSuffix := uuid.MustNewV7().String()
+
+	shelfStream := libraryservicepb.GetLibraryServiceShelfStream()
+
+	var mu sync.Mutex
+	shelfNameToGenreChangeEvents := map[string][]*shelfUpdatedEvent{}
+
+	natsClient, err := satEnvironment.GetNatsClient(ctx)
+	require.NoError(t, err)
+
+	genreChangeProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{shelfStream.GetShelfGenreChangeSubject().Get()},
+		ConsumerName: "test-shelf-genre-change-" + consumerSuffix,
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+		mu.Lock()
+		defer mu.Unlock()
+		for _, message := range messages {
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			shelfNameToGenreChangeEvents[shelf.Name] = append(shelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
+				Shelf:         shelf,
+				PreviousShelf: previousShelf,
+				UpdateMask:    message.Payload.GetUpdateMask(),
+			})
+		}
+		return nil
+	})
+	require.NoError(t, genreChangeProcessor.Start(ctx))
+
+	targetGenre := librarypb.ShelfGenre_SHELF_GENRE_HISTORY
+	var filteredMu sync.Mutex
+	filteredShelfNameToGenreChangeEvents := map[string][]*shelfUpdatedEvent{}
+	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfGenreChangeSubject().WithGenre(targetGenre)).Get()},
+		ConsumerName: "test-shelf-genre-change-filtered-" + consumerSuffix,
+	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+		filteredMu.Lock()
+		defer filteredMu.Unlock()
+		for _, message := range messages {
+			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
+			if err != nil {
+				panic(err)
+			}
+			filteredShelfNameToGenreChangeEvents[shelf.Name] = append(filteredShelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
+				Shelf:         shelf,
+				PreviousShelf: previousShelf,
+				UpdateMask:    message.Payload.GetUpdateMask(),
+			})
+		}
+		return nil
+	})
+	require.NoError(t, filteredProcessor.Start(ctx))
+
+	t.Run("GenreChange_EmitsEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Genre Change Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:  shelf.Name,
+				Genre: librarypb.ShelfGenre_SHELF_GENRE_HISTORY,
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToGenreChangeEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		mu.Lock()
+		defer mu.Unlock()
+		events := shelfNameToGenreChangeEvents[shelf.Name]
+		require.Len(t, events, 1)
+		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_HISTORY, events[0].Shelf.Genre)
+		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, events[0].PreviousShelf.Genre)
+		require.Equal(t, []string{"genre"}, events[0].UpdateMask.GetPaths())
+	})
+
+	t.Run("SameGenre_NoEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Same Genre Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:        shelf.Name,
+				DisplayName: "Same Genre Shelf Updated",
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"display_name"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToGenreChangeEvents[shelf.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+
+	t.Run("SameGenreInMask_NoEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Same Genre Mask Shelf", librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:  shelf.Name,
+				Genre: librarypb.ShelfGenre_SHELF_GENRE_NON_FICTION,
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToGenreChangeEvents[shelf.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+
+	t.Run("MultipleGenreChanges_MultipleEvents", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Multi Genre Change Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		genres := []librarypb.ShelfGenre{
+			librarypb.ShelfGenre_SHELF_GENRE_HISTORY,
+			librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
+			librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY,
+		}
+		for _, genre := range genres {
+			updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+				Shelf: &librarypb.Shelf{
+					Name:  shelf.Name,
+					Genre: genre,
+				},
+				UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
+			}
+			_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+			require.NoError(t, err)
+		}
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToGenreChangeEvents[shelf.Name]) >= 3
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		mu.Lock()
+		defer mu.Unlock()
+		require.Len(t, shelfNameToGenreChangeEvents[shelf.Name], 3)
+	})
+
+	t.Run("GenreChange_FilteredByGenreSubject", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Filtered Genre Change Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:  shelf.Name,
+				Genre: targetGenre,
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Eventually(t, func() bool {
+			filteredMu.Lock()
+			defer filteredMu.Unlock()
+			return len(filteredShelfNameToGenreChangeEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		filteredMu.Lock()
+		defer filteredMu.Unlock()
+		require.Len(t, filteredShelfNameToGenreChangeEvents[shelf.Name], 1)
+		require.Equal(t, targetGenre, filteredShelfNameToGenreChangeEvents[shelf.Name][0].Shelf.Genre)
+	})
+
+	t.Run("GenreChange_NonMatchingGenre_NoFilteredEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "NonMatch Genre Change Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		updateShelfRequest := &libraryservicepb.UpdateShelfRequest{
+			Shelf: &librarypb.Shelf{
+				Name:  shelf.Name,
+				Genre: librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION,
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"genre"}},
+		}
+		_, err := libraryServiceClient.UpdateShelf(ctx, updateShelfRequest)
+		require.NoError(t, err)
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToGenreChangeEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		require.Never(t, func() bool {
+			filteredMu.Lock()
+			defer filteredMu.Unlock()
+			return len(filteredShelfNameToGenreChangeEvents[shelf.Name]) > 0
 		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 }

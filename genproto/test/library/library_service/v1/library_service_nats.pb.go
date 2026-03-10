@@ -3,14 +3,17 @@
 package v1
 
 import (
+	context "context"
 	fmt "fmt"
 	cel "github.com/google/cel-go/cel"
 	ext "github.com/google/cel-go/ext"
 	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	v12 "github.com/malonaz/core/genproto/test/library/v1"
+	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
 )
@@ -66,37 +69,34 @@ func (s *LibraryServiceShelfStream) Get() *nats.Stream {
 	return s.stream
 }
 
-type LibraryServiceBookStreamBookUpdatedSubject struct {
-	stream *LibraryServiceBookStream
-}
-
-func (s *LibraryServiceBookStreamBookUpdatedSubject) Evaluate(resource *v12.Book) (bool, error) {
-	out, _, err := libraryServiceBookStreamBookUpdatedCELProgramVal.Eval(map[string]any{"this": resource})
-	if err != nil {
-		return false, fmt.Errorf("evaluating CEL expression: %w", err)
-	}
-	result, ok := out.Value().(bool)
-	if !ok {
-		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
-	}
-	return result, nil
-}
-
-func (s *LibraryServiceBookStreamBookUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{"updated"}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
-}
-
-func (s *LibraryServiceBookStream) GetBookUpdatedSubject() *LibraryServiceBookStreamBookUpdatedSubject {
-	return &LibraryServiceBookStreamBookUpdatedSubject{stream: s}
-}
-
 type LibraryServiceBookStreamBookDeletedSubject struct {
 	stream *LibraryServiceBookStream
 }
 
-func (s *LibraryServiceBookStreamBookDeletedSubject) Evaluate(resource *v12.Book) (bool, error) {
+func (s *LibraryServiceBookStreamBookDeletedSubject) evaluate(resource *v12.Book) (bool, error) {
 	return true, nil
+}
+
+func (s *LibraryServiceBookStreamBookDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Book) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceDeletedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceBookStreamBookDeletedSubject) set(resource *v12.Book) error {
+	return nil
 }
 
 func (s *LibraryServiceBookStreamBookDeletedSubject) Get() *nats.Subject {
@@ -108,18 +108,97 @@ func (s *LibraryServiceBookStream) GetBookDeletedSubject() *LibraryServiceBookSt
 	return &LibraryServiceBookStreamBookDeletedSubject{stream: s}
 }
 
+type LibraryServiceBookStreamBookUpdatedSubject struct {
+	stream *LibraryServiceBookStream
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) evaluate(resource *v12.Book, previousResource *v12.Book, updateMask *fieldmaskpb.FieldMask) (bool, error) {
+	out, _, err := libraryServiceBookStreamBookUpdatedCELProgramVal.Eval(map[string]any{
+		"book":          resource,
+		"previous_book": previousResource,
+		"update_mask":   updateMask,
+	})
+	if err != nil {
+		return false, fmt.Errorf("evaluating CEL expression: %w", err)
+	}
+	result, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
+	}
+	return result, nil
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Book, previousResource *v12.Book, updateMask *fieldmaskpb.FieldMask) error {
+	ok, err := s.evaluate(resource, previousResource, updateMask)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) set(resource *v12.Book) error {
+	return nil
+}
+
+func (s *LibraryServiceBookStreamBookUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceBookStream) GetBookUpdatedSubject() *LibraryServiceBookStreamBookUpdatedSubject {
+	return &LibraryServiceBookStreamBookUpdatedSubject{stream: s}
+}
+
 type LibraryServiceShelfStreamShelfCreatedSubject struct {
 	stream *LibraryServiceShelfStream
 	_genre *v12.ShelfGenre
 }
 
-func (s *LibraryServiceShelfStreamShelfCreatedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfCreatedSubject {
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) WithGenre(v v12.ShelfGenre) (*LibraryServiceShelfStreamShelfCreatedSubject, error) {
+	if v == 0 {
+		return nil, fmt.Errorf("genre must be set")
+	}
 	s._genre = &v
-	return s
+	return s, nil
 }
 
-func (s *LibraryServiceShelfStreamShelfCreatedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) evaluate(resource *v12.Shelf) (bool, error) {
 	return true, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Shelf) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceCreatedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceShelfStreamShelfCreatedSubject) set(resource *v12.Shelf) error {
+	if _, err := s.WithGenre(resource.Genre); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *LibraryServiceShelfStreamShelfCreatedSubject) Get() *nats.Subject {
@@ -136,60 +215,57 @@ func (s *LibraryServiceShelfStream) GetShelfCreatedSubject() *LibraryServiceShel
 	return &LibraryServiceShelfStreamShelfCreatedSubject{stream: s}
 }
 
-type LibraryServiceShelfStreamShelfUpdatedSubject struct {
-	stream           *LibraryServiceShelfStream
-	_correlationId_2 *string
-}
-
-func (s *LibraryServiceShelfStreamShelfUpdatedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfUpdatedSubject {
-	s._correlationId_2 = &v
-	return s
-}
-
-func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
-	out, _, err := libraryServiceShelfStreamShelfUpdatedCELProgramVal.Eval(map[string]any{"this": resource})
-	if err != nil {
-		return false, fmt.Errorf("evaluating CEL expression: %w", err)
-	}
-	result, ok := out.Value().(bool)
-	if !ok {
-		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
-	}
-	return result, nil
-}
-
-func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{"updated"}
-	if s._correlationId_2 != nil {
-		tokens = append(tokens, *s._correlationId_2)
-	} else {
-		tokens = append(tokens, "*")
-	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
-}
-
-func (s *LibraryServiceShelfStream) GetShelfUpdatedSubject() *LibraryServiceShelfStreamShelfUpdatedSubject {
-	return &LibraryServiceShelfStreamShelfUpdatedSubject{stream: s}
-}
-
 type LibraryServiceShelfStreamShelfDeletedSubject struct {
 	stream           *LibraryServiceShelfStream
 	_genre           *v12.ShelfGenre
 	_correlationId_2 *string
 }
 
-func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithGenre(v v12.ShelfGenre) *LibraryServiceShelfStreamShelfDeletedSubject {
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithGenre(v v12.ShelfGenre) (*LibraryServiceShelfStreamShelfDeletedSubject, error) {
+	if v == 0 {
+		return nil, fmt.Errorf("genre must be set")
+	}
 	s._genre = &v
-	return s
+	return s, nil
 }
-
-func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithCorrelationId2(v string) *LibraryServiceShelfStreamShelfDeletedSubject {
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) WithCorrelationId2(v string) (*LibraryServiceShelfStreamShelfDeletedSubject, error) {
+	if v == "" {
+		return nil, fmt.Errorf("correlation_id_2 must be set")
+	}
 	s._correlationId_2 = &v
-	return s
+	return s, nil
 }
 
-func (s *LibraryServiceShelfStreamShelfDeletedSubject) Evaluate(resource *v12.Shelf) (bool, error) {
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) evaluate(resource *v12.Shelf) (bool, error) {
 	return true, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Shelf) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceDeletedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceShelfStreamShelfDeletedSubject) set(resource *v12.Shelf) error {
+	if _, err := s.WithGenre(resource.Genre); err != nil {
+		return err
+	}
+	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *LibraryServiceShelfStreamShelfDeletedSubject) Get() *nats.Subject {
@@ -211,16 +287,155 @@ func (s *LibraryServiceShelfStream) GetShelfDeletedSubject() *LibraryServiceShel
 	return &LibraryServiceShelfStreamShelfDeletedSubject{stream: s}
 }
 
+type LibraryServiceShelfStreamShelfUpdatedSubject struct {
+	stream           *LibraryServiceShelfStream
+	_correlationId_2 *string
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) WithCorrelationId2(v string) (*LibraryServiceShelfStreamShelfUpdatedSubject, error) {
+	if v == "" {
+		return nil, fmt.Errorf("correlation_id_2 must be set")
+	}
+	s._correlationId_2 = &v
+	return s, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) evaluate(resource *v12.Shelf, previousResource *v12.Shelf, updateMask *fieldmaskpb.FieldMask) (bool, error) {
+	out, _, err := libraryServiceShelfStreamShelfUpdatedCELProgramVal.Eval(map[string]any{
+		"shelf":          resource,
+		"previous_shelf": previousResource,
+		"update_mask":    updateMask,
+	})
+	if err != nil {
+		return false, fmt.Errorf("evaluating CEL expression: %w", err)
+	}
+	result, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
+	}
+	return result, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Shelf, previousResource *v12.Shelf, updateMask *fieldmaskpb.FieldMask) error {
+	ok, err := s.evaluate(resource, previousResource, updateMask)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) set(resource *v12.Shelf) error {
+	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *LibraryServiceShelfStreamShelfUpdatedSubject) Get() *nats.Subject {
+	tokens := []string{"updated"}
+	if s._correlationId_2 != nil {
+		tokens = append(tokens, *s._correlationId_2)
+	} else {
+		tokens = append(tokens, "*")
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceShelfStream) GetShelfUpdatedSubject() *LibraryServiceShelfStreamShelfUpdatedSubject {
+	return &LibraryServiceShelfStreamShelfUpdatedSubject{stream: s}
+}
+
+type LibraryServiceShelfStreamShelfGenreChangeSubject struct {
+	stream *LibraryServiceShelfStream
+	_genre *v12.ShelfGenre
+}
+
+func (s *LibraryServiceShelfStreamShelfGenreChangeSubject) WithGenre(v v12.ShelfGenre) (*LibraryServiceShelfStreamShelfGenreChangeSubject, error) {
+	if v == 0 {
+		return nil, fmt.Errorf("genre must be set")
+	}
+	s._genre = &v
+	return s, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfGenreChangeSubject) evaluate(resource *v12.Shelf, previousResource *v12.Shelf, updateMask *fieldmaskpb.FieldMask) (bool, error) {
+	out, _, err := libraryServiceShelfStreamShelfGenreChangeCELProgramVal.Eval(map[string]any{
+		"shelf":          resource,
+		"previous_shelf": previousResource,
+		"update_mask":    updateMask,
+	})
+	if err != nil {
+		return false, fmt.Errorf("evaluating CEL expression: %w", err)
+	}
+	result, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("CEL expression returned non-bool type %T", out.Value())
+	}
+	return result, nil
+}
+
+func (s *LibraryServiceShelfStreamShelfGenreChangeSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *v12.Shelf, previousResource *v12.Shelf, updateMask *fieldmaskpb.FieldMask) error {
+	ok, err := s.evaluate(resource, previousResource, updateMask)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, s.Get(), event)
+}
+
+func (s *LibraryServiceShelfStreamShelfGenreChangeSubject) set(resource *v12.Shelf) error {
+	if _, err := s.WithGenre(resource.Genre); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *LibraryServiceShelfStreamShelfGenreChangeSubject) Get() *nats.Subject {
+	tokens := []string{"genre_change"}
+	if s._genre != nil {
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_")))
+	} else {
+		tokens = append(tokens, "*")
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, "."))
+}
+
+func (s *LibraryServiceShelfStream) GetShelfGenreChangeSubject() *LibraryServiceShelfStreamShelfGenreChangeSubject {
+	return &LibraryServiceShelfStreamShelfGenreChangeSubject{stream: s}
+}
+
 var libraryServiceBookStreamBookUpdatedCELProgramVal = func() cel.Program {
 	env, err := cel.NewEnv(
 		ext.Protos(),
 		cel.Types(&v12.Book{}),
-		cel.Variable("this", cel.ObjectType("malonaz.test.library.v1.Book")),
+		cel.Types(&fieldmaskpb.FieldMask{}),
+		cel.Variable("book", cel.ObjectType("malonaz.test.library.v1.Book")),
+		cel.Variable("previous_book", cel.ObjectType("malonaz.test.library.v1.Book")),
+		cel.Variable("update_mask", cel.ObjectType("google.protobuf.FieldMask")),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("creating CEL environment: %v", err))
 	}
-	ast, issues := env.Compile(`this.publication_year > 2007`)
+	ast, issues := env.Compile(`book.publication_year > 2007`)
 	if issues != nil && issues.Err() != nil {
 		panic(fmt.Sprintf("compiling CEL expression: %v", issues.Err()))
 	}
@@ -238,12 +453,41 @@ var libraryServiceShelfStreamShelfUpdatedCELProgramVal = func() cel.Program {
 	env, err := cel.NewEnv(
 		ext.Protos(),
 		cel.Types(&v12.Shelf{}),
-		cel.Variable("this", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+		cel.Types(&fieldmaskpb.FieldMask{}),
+		cel.Variable("shelf", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+		cel.Variable("previous_shelf", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+		cel.Variable("update_mask", cel.ObjectType("google.protobuf.FieldMask")),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("creating CEL environment: %v", err))
 	}
-	ast, issues := env.Compile(`this.genre != 1`)
+	ast, issues := env.Compile(`shelf.genre != 1`)
+	if issues != nil && issues.Err() != nil {
+		panic(fmt.Sprintf("compiling CEL expression: %v", issues.Err()))
+	}
+	if ast.OutputType() != cel.BoolType {
+		panic(fmt.Sprintf("CEL expression must return bool, got %v", ast.OutputType()))
+	}
+	prg, err := env.Program(ast)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL program: %v", err))
+	}
+	return prg
+}()
+
+var libraryServiceShelfStreamShelfGenreChangeCELProgramVal = func() cel.Program {
+	env, err := cel.NewEnv(
+		ext.Protos(),
+		cel.Types(&v12.Shelf{}),
+		cel.Types(&fieldmaskpb.FieldMask{}),
+		cel.Variable("shelf", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+		cel.Variable("previous_shelf", cel.ObjectType("malonaz.test.library.v1.Shelf")),
+		cel.Variable("update_mask", cel.ObjectType("google.protobuf.FieldMask")),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("creating CEL environment: %v", err))
+	}
+	ast, issues := env.Compile(`shelf.genre != previous_shelf.genre`)
 	if issues != nil && issues.Err() != nil {
 		panic(fmt.Sprintf("compiling CEL expression: %v", issues.Err()))
 	}

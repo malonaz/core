@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"text/template"
 
+	"buf.build/go/protovalidate"
 	"github.com/Masterminds/sprig/v3"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/internal/strs"
@@ -164,5 +166,23 @@ func getExt(desc protoreflect.Descriptor, fullName string) (any, error) {
 		return nil, fmt.Errorf("failed to find extension: %w", err)
 	}
 	ext := proto.GetExtension(proto.Message(options), extType)
+	if proto.HasExtension(proto.Message(options), extType) {
+		if m, ok := any(ext).(proto.Message); ok {
+			if err := protovalidate.Validate(m); err != nil {
+				return nil, fmt.Errorf("validating extension: %w", err)
+			}
+		} else {
+			rv := reflect.ValueOf(ext)
+			if rv.Kind() == reflect.Slice {
+				for i := 0; i < rv.Len(); i++ {
+					if m, ok := rv.Index(i).Interface().(proto.Message); ok {
+						if err := protovalidate.Validate(m); err != nil {
+							return nil, fmt.Errorf("validating extension[%d]: %w", i, err)
+						}
+					}
+				}
+			}
+		}
+	}
 	return ext, nil
 }

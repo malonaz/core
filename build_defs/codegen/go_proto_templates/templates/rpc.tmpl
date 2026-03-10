@@ -273,23 +273,15 @@ package {{ .PackageName }}
 		        }
 
             {{ if $natsEventOpts.GetCreated }}
-                // STEP 5: Publish event.
-                resourceCreatedEvent, err := {{ fqnCore "go/aip" "NewResourceCreatedEvent" }}({{ $resourceGoName | untitle }})
-                if err != nil {
-                return nil, status.Errorf(codes.Internal, "constructing resource created event: %v", err).Err()
-                }
-                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}CreatedSubject()
-                if ok, err := subject.Evaluate({{ $resourceGoName | untitle }}); err != nil {
-                  return nil, status.Errorf(codes.Internal, "evaluating ResourceCreatedEvent cel expression: %v", err).Err()
-                } else if ok {
-                {{- range $fieldName := $natsEventOpts.GetCreated.GetSubjectFields }}
-                    {{- $field := getFieldByName $rpc.Message $fieldName }}
-                    subject = subject.With{{ $fieldName | camelcase }}({{ $resourceGoName | untitle }}.{{ $field.GoName }})
-                {{- end }}
-                if err := s.natsClient.Publish(ctx, subject.Get(), resourceCreatedEvent); err != nil {
-	              return nil, status.Errorf(codes.Internal, "publishing resource created event: %v", err).Err()
-	              }
-                }
+                // STEP 5: Publish events.
+                {{- range $eventOpt := $natsEventOpts.GetCreated }}
+                    { // Subject `{{ $eventOpt.GetSubject }}`
+                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+                    if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}); err != nil {
+                    return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
+                    }
+                    }
+                {{ end }}
             {{ end }}
             return {{ $resourceGoName | untitle }}, nil
             }
@@ -406,50 +398,30 @@ package {{ .PackageName }}
 
 
             {{ if $natsEventOpts.GetUpdated }}
-                // STEP 5: Publish event.
-                resourceUpdatedEvent, err := {{ fqnCore "go/aip" "NewResourceUpdatedEvent" }}({{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask())
-                if err != nil {
-                return nil, status.Errorf(codes.Internal, "constructing resource updated event: %v", err).Err()
-                }
-                subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}UpdatedSubject()
-                if ok, err := subject.Evaluate({{ $resourceGoName | untitle }}); err != nil {
-                  if err != nil {
-                    return nil, status.Errorf(codes.Internal, "evaluating ResourceUpdatedEvent cel expression: %v", err).Err()
-                  }
-                } else if ok {
-                  {{- range $fieldName := $natsEventOpts.GetUpdated.GetSubjectFields }}
-                      {{- $field := getFieldByName $rpc.Message $fieldName }}
-                      subject = subject.With{{ $fieldName | camelcase }}({{ $resourceGoName | untitle }}.{{ $field.GoName }})
-                  {{- end }}
-                  if err := s.natsClient.Publish(ctx, subject.Get(), resourceUpdatedEvent); err != nil {
-                  	return nil, status.Errorf(codes.Internal, "publishing resource updated event: %v", err).Err()
-	                }
-                }
+                // STEP 5: Publish events.
+                {{- range $eventOpt := $natsEventOpts.GetUpdated }}
+                    { // Subject `{{ $eventOpt.GetSubject }}`
+                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+                    if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask()); err != nil {
+                    return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
+                    }
+                    }
                 {{ end }}
-                return {{ $resourceGoName | untitle }}, nil
-                }
+           {{ end }}
+            return {{ $resourceGoName | untitle }}, nil
+           }
 
             {{- else if $rpc.Delete }}
                 {{ if $natsEventOpts.GetDeleted }}
                     func (s *{{ $serverGoName }}) publishResourceDeletedEvent(ctx {{ fqn "context" "Context" }}, {{ $rpc.Message.GoIdent.GoName | untitle }} *{{ qgi $rpc.Message.GoIdent }}) error {
-                    resourceDeletedEvent, err := {{ fqnCore "go/aip" "NewResourceDeletedEvent" }}({{ $rpc.Message.GoIdent.GoName | untitle }})
-                    if err != nil {
-                    return status.Errorf(codes.Internal, "constructing resource deleted event: %v", err).Err()
+                {{- range $eventOpt := $natsEventOpts.GetDeleted }}
+                    { // Subject `{{ $eventOpt.GetSubject }}`
+                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+                    if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}); err != nil {
+                    return status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
                     }
-                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}DeletedSubject()
-                    if ok, err := subject.Evaluate({{ $resourceGoName | untitle }}); err != nil {
-                      if err != nil {
-                        return status.Errorf(codes.Internal, "evaluating ResourceUpdatedEvent cel expression: %v", err).Err()
-                      }
-                    } else if ok {
-                      {{- range $fieldName := $natsEventOpts.GetDeleted.GetSubjectFields }}
-                      {{- $field := getFieldByName $rpc.Message $fieldName }}
-                      subject = subject.With{{ $fieldName | camelcase }}({{ $resourceGoName | untitle }}.{{ $field.GoName }})
-                      {{- end }}
-                      if err := s.natsClient.Publish(ctx, subject.Get(), resourceDeletedEvent); err != nil {
-	              	      return status.Errorf(codes.Internal, "publishing resource deleted event: %v", err).Err()
-	                    }
                     }
+               {{ end }}
                     return nil
                     }
                 {{ end }}

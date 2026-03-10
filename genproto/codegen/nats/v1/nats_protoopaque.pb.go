@@ -9,6 +9,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -31,9 +32,9 @@ const (
 type EventOptions struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Stream  string                 `protobuf:"bytes,1,opt,name=stream,proto3"`
-	xxx_hidden_Created *EventMethodOptions    `protobuf:"bytes,2,opt,name=created,proto3"`
-	xxx_hidden_Updated *EventMethodOptions    `protobuf:"bytes,3,opt,name=updated,proto3"`
-	xxx_hidden_Deleted *EventMethodOptions    `protobuf:"bytes,4,opt,name=deleted,proto3"`
+	xxx_hidden_Created *[]*EventMethodOptions `protobuf:"bytes,2,rep,name=created,proto3"`
+	xxx_hidden_Updated *[]*EventMethodOptions `protobuf:"bytes,3,rep,name=updated,proto3"`
+	xxx_hidden_Deleted *[]*EventMethodOptions `protobuf:"bytes,4,rep,name=deleted,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -70,23 +71,29 @@ func (x *EventOptions) GetStream() string {
 	return ""
 }
 
-func (x *EventOptions) GetCreated() *EventMethodOptions {
+func (x *EventOptions) GetCreated() []*EventMethodOptions {
 	if x != nil {
-		return x.xxx_hidden_Created
+		if x.xxx_hidden_Created != nil {
+			return *x.xxx_hidden_Created
+		}
 	}
 	return nil
 }
 
-func (x *EventOptions) GetUpdated() *EventMethodOptions {
+func (x *EventOptions) GetUpdated() []*EventMethodOptions {
 	if x != nil {
-		return x.xxx_hidden_Updated
+		if x.xxx_hidden_Updated != nil {
+			return *x.xxx_hidden_Updated
+		}
 	}
 	return nil
 }
 
-func (x *EventOptions) GetDeleted() *EventMethodOptions {
+func (x *EventOptions) GetDeleted() []*EventMethodOptions {
 	if x != nil {
-		return x.xxx_hidden_Deleted
+		if x.xxx_hidden_Deleted != nil {
+			return *x.xxx_hidden_Deleted
+		}
 	}
 	return nil
 }
@@ -95,49 +102,16 @@ func (x *EventOptions) SetStream(v string) {
 	x.xxx_hidden_Stream = v
 }
 
-func (x *EventOptions) SetCreated(v *EventMethodOptions) {
-	x.xxx_hidden_Created = v
+func (x *EventOptions) SetCreated(v []*EventMethodOptions) {
+	x.xxx_hidden_Created = &v
 }
 
-func (x *EventOptions) SetUpdated(v *EventMethodOptions) {
-	x.xxx_hidden_Updated = v
+func (x *EventOptions) SetUpdated(v []*EventMethodOptions) {
+	x.xxx_hidden_Updated = &v
 }
 
-func (x *EventOptions) SetDeleted(v *EventMethodOptions) {
-	x.xxx_hidden_Deleted = v
-}
-
-func (x *EventOptions) HasCreated() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Created != nil
-}
-
-func (x *EventOptions) HasUpdated() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Updated != nil
-}
-
-func (x *EventOptions) HasDeleted() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Deleted != nil
-}
-
-func (x *EventOptions) ClearCreated() {
-	x.xxx_hidden_Created = nil
-}
-
-func (x *EventOptions) ClearUpdated() {
-	x.xxx_hidden_Updated = nil
-}
-
-func (x *EventOptions) ClearDeleted() {
-	x.xxx_hidden_Deleted = nil
+func (x *EventOptions) SetDeleted(v []*EventMethodOptions) {
+	x.xxx_hidden_Deleted = &v
 }
 
 type EventOptions_builder struct {
@@ -149,16 +123,16 @@ type EventOptions_builder struct {
 	// Options for the created event, published when a resource is created via its Create method.
 	// Produces a <Resource>CreatedEvent containing the newly created resource.
 	// If unset, no created event is generated.
-	Created *EventMethodOptions
+	Created []*EventMethodOptions
 	// Options for the updated event, published when a resource is updated via its Update method.
 	// Produces a <Resource>UpdatedEvent containing the previous state, the new
 	// state, and the field mask that was applied.
 	// If unset, no updated event is generated.
-	Updated *EventMethodOptions
+	Updated []*EventMethodOptions
 	// Options for the deleted event, published when a resource is deleted via its Delete method.
 	// Produces a <Resource>DeletedEvent containing the resource at deletion time.
 	// If unset, no deleted event is generated.
-	Deleted *EventMethodOptions
+	Deleted []*EventMethodOptions
 }
 
 func (b0 EventOptions_builder) Build() *EventOptions {
@@ -166,17 +140,18 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Stream = b.Stream
-	x.xxx_hidden_Created = b.Created
-	x.xxx_hidden_Updated = b.Updated
-	x.xxx_hidden_Deleted = b.Deleted
+	x.xxx_hidden_Created = &b.Created
+	x.xxx_hidden_Updated = &b.Updated
+	x.xxx_hidden_Deleted = &b.Deleted
 	return m0
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.
 type EventMethodOptions struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_SubjectFields []string               `protobuf:"bytes,1,rep,name=subject_fields,json=subjectFields,proto3"`
-	xxx_hidden_Cel           string                 `protobuf:"bytes,2,opt,name=cel,proto3"`
+	xxx_hidden_Subject       string                 `protobuf:"bytes,1,opt,name=subject,proto3"`
+	xxx_hidden_SubjectFields []string               `protobuf:"bytes,2,rep,name=subject_fields,json=subjectFields,proto3"`
+	xxx_hidden_Cel           string                 `protobuf:"bytes,3,opt,name=cel,proto3"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -206,6 +181,13 @@ func (x *EventMethodOptions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *EventMethodOptions) GetSubject() string {
+	if x != nil {
+		return x.xxx_hidden_Subject
+	}
+	return ""
+}
+
 func (x *EventMethodOptions) GetSubjectFields() []string {
 	if x != nil {
 		return x.xxx_hidden_SubjectFields
@@ -220,6 +202,10 @@ func (x *EventMethodOptions) GetCel() string {
 	return ""
 }
 
+func (x *EventMethodOptions) SetSubject(v string) {
+	x.xxx_hidden_Subject = v
+}
+
 func (x *EventMethodOptions) SetSubjectFields(v []string) {
 	x.xxx_hidden_SubjectFields = v
 }
@@ -231,22 +217,29 @@ func (x *EventMethodOptions) SetCel(v string) {
 type EventMethodOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The subject of this event.
+	Subject string
 	// Fields to inject as subject tokens, appended in order after the event type.
 	// For example, specifying ["provider_id"] produces subjects like
-	// `<stream>.created.<provider_id_value>`.
-	// Multiple fields are appended in order: `<stream>.created.<field1>.<field2>`.
+	// `<stream>.<subject>.<provider_id_value>`.
+	// Multiple fields are appended in order: `<stream>.<subject>.<field1_value>.<field2_value>`.
 	//
-	// Each referenced field must have a `required` field behavior annotation on
-	// the resource message, as its value must always be present.
+	// Each referenced field must have a non-empty strirng representation
+	// as its value must always be present.
 	//
 	// String fields are used as-is.
 	// Enum fields have their type prefix stripped and the remainder is lower_cased
 	// (e.g. PROVIDER_TYPE_AWS -> aws).
 	SubjectFields []string
-	// Optional CEL expression evaluated against the resource message.
+	// Optional CEL expression evaluated against the resource event message.
 	// If present, the event is only published when the expression evaluates to true.
-	// The expression has access to the resource as `this`.
-	// Example: "this.status == 'ACTIVE' && this.provider_id != ”"
+	// The expression has access to:
+	//
+	//	`this.resource` => on `created`, `updated` & `deleted` events.
+	//	`this.previous_resource` => on `updated` events.
+	//	`this.update_mask` => on `updated` events.
+	//
+	// Example: "this.resource.status == 'ACTIVE' && this.resource.provider_id != ”"
 	Cel string
 }
 
@@ -254,6 +247,7 @@ func (b0 EventMethodOptions_builder) Build() *EventMethodOptions {
 	m0 := &EventMethodOptions{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Subject = b.Subject
 	x.xxx_hidden_SubjectFields = b.SubjectFields
 	x.xxx_hidden_Cel = b.Cel
 	return m0
@@ -298,15 +292,16 @@ var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xfb\x01\n" +
-	"\fEventOptions\x12\x16\n" +
-	"\x06stream\x18\x01 \x01(\tR\x06stream\x12E\n" +
-	"\acreated\x18\x02 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
-	"\aupdated\x18\x03 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
-	"\adeleted\x18\x04 \x01(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"M\n" +
-	"\x12EventMethodOptions\x12%\n" +
-	"\x0esubject_fields\x18\x01 \x03(\tR\rsubjectFields\x12\x10\n" +
-	"\x03cel\x18\x02 \x01(\tR\x03cel:Y\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\x83\x02\n" +
+	"\fEventOptions\x12\x1e\n" +
+	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12E\n" +
+	"\acreated\x18\x02 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
+	"\aupdated\x18\x03 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
+	"\adeleted\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"o\n" +
+	"\x12EventMethodOptions\x12 \n" +
+	"\asubject\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12%\n" +
+	"\x0esubject_fields\x18\x02 \x03(\tR\rsubjectFields\x12\x10\n" +
+	"\x03cel\x18\x03 \x01(\tR\x03cel:Y\n" +
 	"\x06stream\x12\x1f.google.protobuf.ServiceOptions\x18\x90\xc2\x04 \x03(\v2\x1e.malonaz.nats.v1.StreamOptionsR\x06stream:^\n" +
 	"\x05event\x12\x1f.google.protobuf.MessageOptions\x18\x91\xc2\x04 \x01(\v2%.malonaz.codegen.nats.v1.EventOptionsR\x05eventB2Z0github.com/malonaz/core/genproto/codegen/nats/v1b\x06proto3"
 
