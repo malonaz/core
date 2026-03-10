@@ -133,7 +133,7 @@ package {{ .PackageName }}
                 if s._{{ $field.GoName | untitle }} != nil {
                 {{- if $field.Enum }}
                     {{- $enumPrefix := $field.Enum.GoIdent.GoName | snakecase | upper | printf "%s_" }}
-                    tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}("{{ $enumPrefix }}", s._{{ $field.GoName | untitle }}.String())))
+                    tokens = append(tokens, {{ fqn "strings" "ToLower" }}({{ fqn "strings" "TrimPrefix" }}(s._{{ $field.GoName | untitle }}.String(), "{{ $enumPrefix }}")))
                 {{- else }}
                     tokens = append(tokens, *s._{{ $field.GoName | untitle }})
                 {{- end }}

@@ -125,7 +125,7 @@ func (s *LibraryServiceShelfStreamShelfCreatedSubject) Evaluate(resource *v12.Sh
 func (s *LibraryServiceShelfStreamShelfCreatedSubject) Get() *nats.Subject {
 	tokens := []string{"created"}
 	if s._genre != nil {
-		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s._genre.String())))
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_")))
 	} else {
 		tokens = append(tokens, "*")
 	}
@@ -195,7 +195,7 @@ func (s *LibraryServiceShelfStreamShelfDeletedSubject) Evaluate(resource *v12.Sh
 func (s *LibraryServiceShelfStreamShelfDeletedSubject) Get() *nats.Subject {
 	tokens := []string{"deleted"}
 	if s._genre != nil {
-		tokens = append(tokens, strings.ToLower(strings.TrimPrefix("SHELF_GENRE_", s._genre.String())))
+		tokens = append(tokens, strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_")))
 	} else {
 		tokens = append(tokens, "*")
 	}
