@@ -17,7 +17,7 @@ import (
 const (
 	defaultFetchTimeout = 5 * time.Second
 	defaultBatchSize    = 1
-	defaultTimeout      = 10 * time.Second
+	defaultAckWait      = 10 * time.Second
 )
 
 type Message[T proto.Message] struct {
@@ -34,7 +34,7 @@ type ProcessorConfig struct {
 	MaxConsecutiveErrors int
 	BatchSize            int
 	FetchTimeout         time.Duration
-	Timeout              time.Duration
+	AckWait              time.Duration
 	BackoffSeconds       int
 }
 
@@ -94,16 +94,16 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	if batchSize == 0 {
 		batchSize = defaultBatchSize
 	}
-	timeout := p.config.Timeout
-	if timeout == 0 {
-		timeout = defaultTimeout
+	ackWait := p.config.AckWait
+	if ackWait == 0 {
+		ackWait = defaultAckWait
 	}
 	consumerConfig := jetstream.ConsumerConfig{
 		Durable:        p.config.ConsumerName,
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
 		MaxAckPending:  2 * batchSize,
-		AckWait:        timeout,
+		AckWait:        ackWait,
 	}
 	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, stream, consumerConfig)
 	if err != nil {
@@ -151,7 +151,7 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 			return nil
 		}
 
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, timeout)
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, ackWait)
 		defer cancel()
 
 		if err := p.processorFunc(ctxWithTimeout, messages); err != nil {
