@@ -211,18 +211,17 @@ func (s *Server) Serve(ctx context.Context) error {
 	// PRE (8): Error interceptor.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerErrorInfoInjector())
 	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerErrorInfoInjector())
-	// PRE (9): Hook interceptor.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerHook())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerHook())
 
-	// POST (1): Proto validator interceptor. (Last before it goes on the wire).
-	// We place this interceptor in the 'post' to allow authentication middleware to take precedence.
-	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerValidate(validator))
-	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerValidate(validator))
-	// POST (2): Canonicalize interceptor (After proto validate).
+	// POST (1): Hook interceptor. Used in `Post` to allow authentication middleware to take precedence.
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerHook())
+	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerHook())
+	// POST (2): Canonicalize interceptor. Set after protovalidate.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerCanonicalize())
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerCanonicalize())
-	// POST (3): Field mask interceptor.
+	// POST (3): Proto validator interceptor. Used in `Post` to allow authentication middleware to take precedence.
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerValidate(validator))
+	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerValidate(validator))
+	// POST (4): Field mask interceptor.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerFieldMask())
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerFieldMask())
 
