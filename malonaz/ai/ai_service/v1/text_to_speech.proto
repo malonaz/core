@@ -27,12 +27,6 @@ message TextToSpeechConfiguration {
 
 // Request message for AiService.TextToSpeech.
 message TextToSpeechRequest {
-  option (buf.validate.message).cel = {
-    id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
-    message: "exactly one of `voice` or `provider_voice_id` must be set"
-    expression: "this.voice != '' || this.provider_voice_id != ''"
-  };
-
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
   string model = 1 [
@@ -40,15 +34,20 @@ message TextToSpeechRequest {
     (buf.validate.field).required = true
   ];
 
-  // The resource name of the voice to use.
-  // Format: voices/{voice}
-  string voice = 2 [
-    (google.api.resource_reference).type = "ai.malonaz.com/Voice",
-    (buf.validate.field).required = true
-  ];
+  // Voice selection.
+  oneof voice_selection {
+    option (buf.validate.oneof).required = true;
 
-  // The provider voice id.
-  string provider_voice_id = 3;
+    // The resource name of the voice to use.
+    // Format: voices/{voice}
+    string voice = 2 [
+      (google.api.resource_reference).type = "ai.malonaz.com/Voice",
+      (buf.validate.field).string.min_len = 1
+    ];
+
+    // The provider voice id.
+    string provider_voice_id = 3 [(buf.validate.field).string.min_len = 1];
+  }
 
   // The text to convert to speech.
   string text = 4 [(buf.validate.field).string.min_len = 1];
@@ -74,12 +73,6 @@ message TextToSpeechResponse {
 
 // Request message for AiService.TextToSpeechStream.
 message TextToSpeechStreamRequest {
-  option (buf.validate.message).cel = {
-    id: "ai.v1.TextToSpeechRequest.voice_or_provider_voice_id"
-    message: "exactly one of `voice` or `provider_voice_id` must be set"
-    expression: "this.voice != '' || this.provider_voice_id != ''"
-  };
-
   // The resource name of the model to use.
   // Format: providers/{provider}/models/{model}
   string model = 1 [
@@ -87,15 +80,20 @@ message TextToSpeechStreamRequest {
     (buf.validate.field).required = true
   ];
 
-  // The resource name of the voice to use.
-  // Format: voices/{voice}
-  string voice = 2 [
-    (google.api.resource_reference).type = "ai.malonaz.com/Voice",
-    (buf.validate.field).required = true
-  ];
+  // Voice selection.
+  oneof voice_selection {
+    option (buf.validate.oneof).required = true;
 
-  // The provider voice id.
-  string provider_voice_id = 3;
+    // The resource name of the voice to use.
+    // Format: voices/{voice}
+    string voice = 2 [
+      (google.api.resource_reference).type = "ai.malonaz.com/Voice",
+      (buf.validate.field).string.min_len = 1
+    ];
+
+    // The provider voice id.
+    string provider_voice_id = 3 [(buf.validate.field).string.min_len = 1];
+  }
 
   // The text to convert to speech.
   string text = 4 [(buf.validate.field).string.min_len = 1];

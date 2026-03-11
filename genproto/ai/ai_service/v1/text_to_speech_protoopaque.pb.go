@@ -132,14 +132,13 @@ func (b0 TextToSpeechConfiguration_builder) Build() *TextToSpeechConfiguration {
 
 // Request message for AiService.TextToSpeech.
 type TextToSpeechRequest struct {
-	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
-	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_Voice           string                     `protobuf:"bytes,2,opt,name=voice,proto3"`
-	xxx_hidden_ProviderVoiceId string                     `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3"`
-	xxx_hidden_Text            string                     `protobuf:"bytes,4,opt,name=text,proto3"`
-	xxx_hidden_Configuration   *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state                     protoimpl.MessageState               `protogen:"opaque.v1"`
+	xxx_hidden_Model          string                               `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_VoiceSelection isTextToSpeechRequest_VoiceSelection `protobuf_oneof:"voice_selection"`
+	xxx_hidden_Text           string                               `protobuf:"bytes,4,opt,name=text,proto3"`
+	xxx_hidden_Configuration  *TextToSpeechConfiguration           `protobuf:"bytes,5,opt,name=configuration,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *TextToSpeechRequest) Reset() {
@@ -176,14 +175,18 @@ func (x *TextToSpeechRequest) GetModel() string {
 
 func (x *TextToSpeechRequest) GetVoice() string {
 	if x != nil {
-		return x.xxx_hidden_Voice
+		if x, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_Voice); ok {
+			return x.Voice
+		}
 	}
 	return ""
 }
 
 func (x *TextToSpeechRequest) GetProviderVoiceId() string {
 	if x != nil {
-		return x.xxx_hidden_ProviderVoiceId
+		if x, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_ProviderVoiceId); ok {
+			return x.ProviderVoiceId
+		}
 	}
 	return ""
 }
@@ -207,11 +210,11 @@ func (x *TextToSpeechRequest) SetModel(v string) {
 }
 
 func (x *TextToSpeechRequest) SetVoice(v string) {
-	x.xxx_hidden_Voice = v
+	x.xxx_hidden_VoiceSelection = &textToSpeechRequest_Voice{v}
 }
 
 func (x *TextToSpeechRequest) SetProviderVoiceId(v string) {
-	x.xxx_hidden_ProviderVoiceId = v
+	x.xxx_hidden_VoiceSelection = &textToSpeechRequest_ProviderVoiceId{v}
 }
 
 func (x *TextToSpeechRequest) SetText(v string) {
@@ -222,6 +225,29 @@ func (x *TextToSpeechRequest) SetConfiguration(v *TextToSpeechConfiguration) {
 	x.xxx_hidden_Configuration = v
 }
 
+func (x *TextToSpeechRequest) HasVoiceSelection() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_VoiceSelection != nil
+}
+
+func (x *TextToSpeechRequest) HasVoice() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_Voice)
+	return ok
+}
+
+func (x *TextToSpeechRequest) HasProviderVoiceId() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_ProviderVoiceId)
+	return ok
+}
+
 func (x *TextToSpeechRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
@@ -229,8 +255,42 @@ func (x *TextToSpeechRequest) HasConfiguration() bool {
 	return x.xxx_hidden_Configuration != nil
 }
 
+func (x *TextToSpeechRequest) ClearVoiceSelection() {
+	x.xxx_hidden_VoiceSelection = nil
+}
+
+func (x *TextToSpeechRequest) ClearVoice() {
+	if _, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_Voice); ok {
+		x.xxx_hidden_VoiceSelection = nil
+	}
+}
+
+func (x *TextToSpeechRequest) ClearProviderVoiceId() {
+	if _, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechRequest_ProviderVoiceId); ok {
+		x.xxx_hidden_VoiceSelection = nil
+	}
+}
+
 func (x *TextToSpeechRequest) ClearConfiguration() {
 	x.xxx_hidden_Configuration = nil
+}
+
+const TextToSpeechRequest_VoiceSelection_not_set_case case_TextToSpeechRequest_VoiceSelection = 0
+const TextToSpeechRequest_Voice_case case_TextToSpeechRequest_VoiceSelection = 2
+const TextToSpeechRequest_ProviderVoiceId_case case_TextToSpeechRequest_VoiceSelection = 3
+
+func (x *TextToSpeechRequest) WhichVoiceSelection() case_TextToSpeechRequest_VoiceSelection {
+	if x == nil {
+		return TextToSpeechRequest_VoiceSelection_not_set_case
+	}
+	switch x.xxx_hidden_VoiceSelection.(type) {
+	case *textToSpeechRequest_Voice:
+		return TextToSpeechRequest_Voice_case
+	case *textToSpeechRequest_ProviderVoiceId:
+		return TextToSpeechRequest_ProviderVoiceId_case
+	default:
+		return TextToSpeechRequest_VoiceSelection_not_set_case
+	}
 }
 
 type TextToSpeechRequest_builder struct {
@@ -239,11 +299,15 @@ type TextToSpeechRequest_builder struct {
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
 	Model string
+	// Voice selection.
+
+	// Fields of oneof xxx_hidden_VoiceSelection:
 	// The resource name of the voice to use.
 	// Format: voices/{voice}
-	Voice string
+	Voice *string
 	// The provider voice id.
-	ProviderVoiceId string
+	ProviderVoiceId *string
+	// -- end of xxx_hidden_VoiceSelection
 	// The text to convert to speech.
 	Text string
 	// Additional configuration.
@@ -255,12 +319,45 @@ func (b0 TextToSpeechRequest_builder) Build() *TextToSpeechRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Model = b.Model
-	x.xxx_hidden_Voice = b.Voice
-	x.xxx_hidden_ProviderVoiceId = b.ProviderVoiceId
+	if b.Voice != nil {
+		x.xxx_hidden_VoiceSelection = &textToSpeechRequest_Voice{*b.Voice}
+	}
+	if b.ProviderVoiceId != nil {
+		x.xxx_hidden_VoiceSelection = &textToSpeechRequest_ProviderVoiceId{*b.ProviderVoiceId}
+	}
 	x.xxx_hidden_Text = b.Text
 	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
+
+type case_TextToSpeechRequest_VoiceSelection protoreflect.FieldNumber
+
+func (x case_TextToSpeechRequest_VoiceSelection) String() string {
+	md := file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[1].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isTextToSpeechRequest_VoiceSelection interface {
+	isTextToSpeechRequest_VoiceSelection()
+}
+
+type textToSpeechRequest_Voice struct {
+	// The resource name of the voice to use.
+	// Format: voices/{voice}
+	Voice string `protobuf:"bytes,2,opt,name=voice,proto3,oneof"`
+}
+
+type textToSpeechRequest_ProviderVoiceId struct {
+	// The provider voice id.
+	ProviderVoiceId string `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3,oneof"`
+}
+
+func (*textToSpeechRequest_Voice) isTextToSpeechRequest_VoiceSelection() {}
+
+func (*textToSpeechRequest_ProviderVoiceId) isTextToSpeechRequest_VoiceSelection() {}
 
 // Response message for AiService.TextToSpeech.
 type TextToSpeechResponse struct {
@@ -412,14 +509,13 @@ func (b0 TextToSpeechResponse_builder) Build() *TextToSpeechResponse {
 
 // Request message for AiService.TextToSpeechStream.
 type TextToSpeechStreamRequest struct {
-	state                      protoimpl.MessageState     `protogen:"opaque.v1"`
-	xxx_hidden_Model           string                     `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_Voice           string                     `protobuf:"bytes,2,opt,name=voice,proto3"`
-	xxx_hidden_ProviderVoiceId string                     `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3"`
-	xxx_hidden_Text            string                     `protobuf:"bytes,4,opt,name=text,proto3"`
-	xxx_hidden_Configuration   *TextToSpeechConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state                     protoimpl.MessageState                     `protogen:"opaque.v1"`
+	xxx_hidden_Model          string                                     `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_VoiceSelection isTextToSpeechStreamRequest_VoiceSelection `protobuf_oneof:"voice_selection"`
+	xxx_hidden_Text           string                                     `protobuf:"bytes,4,opt,name=text,proto3"`
+	xxx_hidden_Configuration  *TextToSpeechConfiguration                 `protobuf:"bytes,5,opt,name=configuration,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *TextToSpeechStreamRequest) Reset() {
@@ -456,14 +552,18 @@ func (x *TextToSpeechStreamRequest) GetModel() string {
 
 func (x *TextToSpeechStreamRequest) GetVoice() string {
 	if x != nil {
-		return x.xxx_hidden_Voice
+		if x, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_Voice); ok {
+			return x.Voice
+		}
 	}
 	return ""
 }
 
 func (x *TextToSpeechStreamRequest) GetProviderVoiceId() string {
 	if x != nil {
-		return x.xxx_hidden_ProviderVoiceId
+		if x, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_ProviderVoiceId); ok {
+			return x.ProviderVoiceId
+		}
 	}
 	return ""
 }
@@ -487,11 +587,11 @@ func (x *TextToSpeechStreamRequest) SetModel(v string) {
 }
 
 func (x *TextToSpeechStreamRequest) SetVoice(v string) {
-	x.xxx_hidden_Voice = v
+	x.xxx_hidden_VoiceSelection = &textToSpeechStreamRequest_Voice{v}
 }
 
 func (x *TextToSpeechStreamRequest) SetProviderVoiceId(v string) {
-	x.xxx_hidden_ProviderVoiceId = v
+	x.xxx_hidden_VoiceSelection = &textToSpeechStreamRequest_ProviderVoiceId{v}
 }
 
 func (x *TextToSpeechStreamRequest) SetText(v string) {
@@ -502,6 +602,29 @@ func (x *TextToSpeechStreamRequest) SetConfiguration(v *TextToSpeechConfiguratio
 	x.xxx_hidden_Configuration = v
 }
 
+func (x *TextToSpeechStreamRequest) HasVoiceSelection() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_VoiceSelection != nil
+}
+
+func (x *TextToSpeechStreamRequest) HasVoice() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_Voice)
+	return ok
+}
+
+func (x *TextToSpeechStreamRequest) HasProviderVoiceId() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_ProviderVoiceId)
+	return ok
+}
+
 func (x *TextToSpeechStreamRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
@@ -509,8 +632,42 @@ func (x *TextToSpeechStreamRequest) HasConfiguration() bool {
 	return x.xxx_hidden_Configuration != nil
 }
 
+func (x *TextToSpeechStreamRequest) ClearVoiceSelection() {
+	x.xxx_hidden_VoiceSelection = nil
+}
+
+func (x *TextToSpeechStreamRequest) ClearVoice() {
+	if _, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_Voice); ok {
+		x.xxx_hidden_VoiceSelection = nil
+	}
+}
+
+func (x *TextToSpeechStreamRequest) ClearProviderVoiceId() {
+	if _, ok := x.xxx_hidden_VoiceSelection.(*textToSpeechStreamRequest_ProviderVoiceId); ok {
+		x.xxx_hidden_VoiceSelection = nil
+	}
+}
+
 func (x *TextToSpeechStreamRequest) ClearConfiguration() {
 	x.xxx_hidden_Configuration = nil
+}
+
+const TextToSpeechStreamRequest_VoiceSelection_not_set_case case_TextToSpeechStreamRequest_VoiceSelection = 0
+const TextToSpeechStreamRequest_Voice_case case_TextToSpeechStreamRequest_VoiceSelection = 2
+const TextToSpeechStreamRequest_ProviderVoiceId_case case_TextToSpeechStreamRequest_VoiceSelection = 3
+
+func (x *TextToSpeechStreamRequest) WhichVoiceSelection() case_TextToSpeechStreamRequest_VoiceSelection {
+	if x == nil {
+		return TextToSpeechStreamRequest_VoiceSelection_not_set_case
+	}
+	switch x.xxx_hidden_VoiceSelection.(type) {
+	case *textToSpeechStreamRequest_Voice:
+		return TextToSpeechStreamRequest_Voice_case
+	case *textToSpeechStreamRequest_ProviderVoiceId:
+		return TextToSpeechStreamRequest_ProviderVoiceId_case
+	default:
+		return TextToSpeechStreamRequest_VoiceSelection_not_set_case
+	}
 }
 
 type TextToSpeechStreamRequest_builder struct {
@@ -519,11 +676,15 @@ type TextToSpeechStreamRequest_builder struct {
 	// The resource name of the model to use.
 	// Format: providers/{provider}/models/{model}
 	Model string
+	// Voice selection.
+
+	// Fields of oneof xxx_hidden_VoiceSelection:
 	// The resource name of the voice to use.
 	// Format: voices/{voice}
-	Voice string
+	Voice *string
 	// The provider voice id.
-	ProviderVoiceId string
+	ProviderVoiceId *string
+	// -- end of xxx_hidden_VoiceSelection
 	// The text to convert to speech.
 	Text string
 	// Additional configuration.
@@ -535,12 +696,45 @@ func (b0 TextToSpeechStreamRequest_builder) Build() *TextToSpeechStreamRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Model = b.Model
-	x.xxx_hidden_Voice = b.Voice
-	x.xxx_hidden_ProviderVoiceId = b.ProviderVoiceId
+	if b.Voice != nil {
+		x.xxx_hidden_VoiceSelection = &textToSpeechStreamRequest_Voice{*b.Voice}
+	}
+	if b.ProviderVoiceId != nil {
+		x.xxx_hidden_VoiceSelection = &textToSpeechStreamRequest_ProviderVoiceId{*b.ProviderVoiceId}
+	}
 	x.xxx_hidden_Text = b.Text
 	x.xxx_hidden_Configuration = b.Configuration
 	return m0
 }
+
+type case_TextToSpeechStreamRequest_VoiceSelection protoreflect.FieldNumber
+
+func (x case_TextToSpeechStreamRequest_VoiceSelection) String() string {
+	md := file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[3].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isTextToSpeechStreamRequest_VoiceSelection interface {
+	isTextToSpeechStreamRequest_VoiceSelection()
+}
+
+type textToSpeechStreamRequest_Voice struct {
+	// The resource name of the voice to use.
+	// Format: voices/{voice}
+	Voice string `protobuf:"bytes,2,opt,name=voice,proto3,oneof"`
+}
+
+type textToSpeechStreamRequest_ProviderVoiceId struct {
+	// The provider voice id.
+	ProviderVoiceId string `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3,oneof"`
+}
+
+func (*textToSpeechStreamRequest_Voice) isTextToSpeechStreamRequest_VoiceSelection() {}
+
+func (*textToSpeechStreamRequest_ProviderVoiceId) isTextToSpeechStreamRequest_VoiceSelection() {}
 
 // Response message for AiService.TextToSpeechStream.
 type TextToSpeechStreamResponse struct {
@@ -820,32 +1014,32 @@ const file_malonaz_ai_ai_service_v1_text_to_speech_proto_rawDesc = "" +
 	"\x19TextToSpeechConfiguration\x12#\n" +
 	"\rlanguage_code\x18\x01 \x01(\tR\flanguageCode\x122\n" +
 	"\x15preferred_sample_rate\x18\x02 \x01(\x05R\x13preferredSampleRate\x12D\n" +
-	"\x11provider_settings\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x10providerSettings\"\xd4\x03\n" +
+	"\x11provider_settings\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x10providerSettings\"\xcf\x02\n" +
 	"\x13TextToSpeechRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x125\n" +
-	"\x05voice\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Voice\xbaH\x03\xc8\x01\x01R\x05voice\x12*\n" +
-	"\x11provider_voice_id\x18\x03 \x01(\tR\x0fproviderVoiceId\x12\x1b\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x128\n" +
+	"\x05voice\x18\x02 \x01(\tB \xfaA\x16\n" +
+	"\x14ai.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00R\x05voice\x125\n" +
+	"\x11provider_voice_id\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x0fproviderVoiceId\x12\x1b\n" +
 	"\x04text\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04text\x12Y\n" +
-	"\rconfiguration\x18\x05 \x01(\v23.malonaz.ai.ai_service.v1.TextToSpeechConfigurationR\rconfiguration:\xaa\x01\xbaH\xa6\x01\x1a\xa3\x01\n" +
-	"4ai.v1.TextToSpeechRequest.voice_or_provider_voice_id\x129exactly one of `voice` or `provider_voice_id` must be set\x1a0this.voice != '' || this.provider_voice_id != ''\"\x9a\x02\n" +
+	"\rconfiguration\x18\x05 \x01(\v23.malonaz.ai.ai_service.v1.TextToSpeechConfigurationR\rconfigurationB\x18\n" +
+	"\x0fvoice_selection\x12\x05\xbaH\x02\b\x01\"\x9a\x02\n" +
 	"\x14TextToSpeechResponse\x12;\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatR\vaudioFormat\x128\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkR\n" +
 	"audioChunk\x12:\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xda\x03\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xd5\x02\n" +
 	"\x19TextToSpeechStreamRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x125\n" +
-	"\x05voice\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Voice\xbaH\x03\xc8\x01\x01R\x05voice\x12*\n" +
-	"\x11provider_voice_id\x18\x03 \x01(\tR\x0fproviderVoiceId\x12\x1b\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x128\n" +
+	"\x05voice\x18\x02 \x01(\tB \xfaA\x16\n" +
+	"\x14ai.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00R\x05voice\x125\n" +
+	"\x11provider_voice_id\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x0fproviderVoiceId\x12\x1b\n" +
 	"\x04text\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04text\x12Y\n" +
-	"\rconfiguration\x18\x05 \x01(\v23.malonaz.ai.ai_service.v1.TextToSpeechConfigurationR\rconfiguration:\xaa\x01\xbaH\xa6\x01\x1a\xa3\x01\n" +
-	"4ai.v1.TextToSpeechRequest.voice_or_provider_voice_id\x129exactly one of `voice` or `provider_voice_id` must be set\x1a0this.voice != '' || this.provider_voice_id != ''\"\xba\x02\n" +
+	"\rconfiguration\x18\x05 \x01(\v23.malonaz.ai.ai_service.v1.TextToSpeechConfigurationR\rconfigurationB\x18\n" +
+	"\x0fvoice_selection\x12\x05\xbaH\x02\b\x01\"\xba\x02\n" +
 	"\x1aTextToSpeechStreamResponse\x12=\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatH\x00R\vaudioFormat\x12:\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
@@ -891,6 +1085,14 @@ func init() { file_malonaz_ai_ai_service_v1_text_to_speech_proto_init() }
 func file_malonaz_ai_ai_service_v1_text_to_speech_proto_init() {
 	if File_malonaz_ai_ai_service_v1_text_to_speech_proto != nil {
 		return
+	}
+	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[1].OneofWrappers = []any{
+		(*textToSpeechRequest_Voice)(nil),
+		(*textToSpeechRequest_ProviderVoiceId)(nil),
+	}
+	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[3].OneofWrappers = []any{
+		(*textToSpeechStreamRequest_Voice)(nil),
+		(*textToSpeechStreamRequest_ProviderVoiceId)(nil),
 	}
 	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[4].OneofWrappers = []any{
 		(*textToSpeechStreamResponse_AudioFormat)(nil),

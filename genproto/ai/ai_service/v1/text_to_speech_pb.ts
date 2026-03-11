@@ -17,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/text_to_speech.proto.
  */
 export const file_malonaz_ai_ai_service_v1_text_to_speech: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QioAMKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESLgoFdm9pY2UYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SAPIAQESGQoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAkSFQoEdGV4dBgEIAEoCUIHukgEcgIQARJKCg1jb25maWd1cmF0aW9uGAUgASgLMjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb246qgG6SKYBGqMBCjRhaS52MS5UZXh0VG9TcGVlY2hSZXF1ZXN0LnZvaWNlX29yX3Byb3ZpZGVyX3ZvaWNlX2lkEjlleGFjdGx5IG9uZSBvZiBgdm9pY2VgIG9yIGBwcm92aWRlcl92b2ljZV9pZGAgbXVzdCBiZSBzZXQaMHRoaXMudm9pY2UgIT0gJycgfHwgdGhpcy5wcm92aWRlcl92b2ljZV9pZCAhPSAnJyLiAQoUVGV4dFRvU3BlZWNoUmVzcG9uc2USLgoMYXVkaW9fZm9ybWF0GAEgASgLMhgubWFsb25hei5hdWRpby52MS5Gb3JtYXQSLAoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rEi4KC21vZGVsX3VzYWdlGAMgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlEjwKEmdlbmVyYXRpb25fbWV0cmljcxgEIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3MipgMKGVRleHRUb1NwZWVjaFN0cmVhbVJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESLgoFdm9pY2UYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SAPIAQESGQoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAkSFQoEdGV4dBgEIAEoCUIHukgEcgIQARJKCg1jb25maWd1cmF0aW9uGAUgASgLMjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb246qgG6SKYBGqMBCjRhaS52MS5UZXh0VG9TcGVlY2hSZXF1ZXN0LnZvaWNlX29yX3Byb3ZpZGVyX3ZvaWNlX2lkEjlleGFjdGx5IG9uZSBvZiBgdm9pY2VgIG9yIGBwcm92aWRlcl92b2ljZV9pZGAgbXVzdCBiZSBzZXQaMHRoaXMudm9pY2UgIT0gJycgfHwgdGhpcy5wcm92aWRlcl92b2ljZV9pZCAhPSAnJyKCAgoaVGV4dFRvU3BlZWNoU3RyZWFtUmVzcG9uc2USMAoMYXVkaW9fZm9ybWF0GAEgASgLMhgubWFsb25hei5hdWRpby52MS5Gb3JtYXRIABIuCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmtIABIwCgttb2RlbF91c2FnZRgDIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgEIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIAEIQCgdjb250ZW50EgW6SAIIAUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwIKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABIVCgR0ZXh0GAQgASgJQge6SARyAhABEkoKDWNvbmZpZ3VyYXRpb24YBSABKAsyMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbkIYCg92b2ljZV9zZWxlY3Rpb24SBbpIAggBIuIBChRUZXh0VG9TcGVlY2hSZXNwb25zZRIuCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKhAgoZVGV4dFRvU3BlZWNoU3RyZWFtUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIxCgV2b2ljZRgCIAEoCUIg+kEWChRhaS5tYWxvbmF6LmNvbS9Wb2ljZbpIBHICEAFIABIkChFwcm92aWRlcl92b2ljZV9pZBgDIAEoCUIHukgEcgIQAUgAEhUKBHRleHQYBCABKAlCB7pIBHICEAESSgoNY29uZmlndXJhdGlvbhgFIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiggIKGlRleHRUb1NwZWVjaFN0cmVhbVJlc3BvbnNlEjAKDGF1ZGlvX2Zvcm1hdBgBIAEoCzIYLm1hbG9uYXouYXVkaW8udjEuRm9ybWF0SAASLgoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rSAASMAoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBCABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
 
 /**
  * Configuration for text to speech generation.
@@ -74,19 +74,28 @@ export type TextToSpeechRequest = Message<"malonaz.ai.ai_service.v1.TextToSpeech
   model: string;
 
   /**
-   * The resource name of the voice to use.
-   * Format: voices/{voice}
+   * Voice selection.
    *
-   * @generated from field: string voice = 2;
+   * @generated from oneof malonaz.ai.ai_service.v1.TextToSpeechRequest.voice_selection
    */
-  voice: string;
-
-  /**
-   * The provider voice id.
-   *
-   * @generated from field: string provider_voice_id = 3;
-   */
-  providerVoiceId: string;
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
 
   /**
    * The text to convert to speech.
@@ -118,19 +127,28 @@ export type TextToSpeechRequestValid = Message<"malonaz.ai.ai_service.v1.TextToS
   model: string;
 
   /**
-   * The resource name of the voice to use.
-   * Format: voices/{voice}
+   * Voice selection.
    *
-   * @generated from field: string voice = 2;
+   * @generated from oneof malonaz.ai.ai_service.v1.TextToSpeechRequest.voice_selection
    */
-  voice: string;
-
-  /**
-   * The provider voice id.
-   *
-   * @generated from field: string provider_voice_id = 3;
-   */
-  providerVoiceId: string;
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
 
   /**
    * The text to convert to speech.
@@ -246,19 +264,28 @@ export type TextToSpeechStreamRequest = Message<"malonaz.ai.ai_service.v1.TextTo
   model: string;
 
   /**
-   * The resource name of the voice to use.
-   * Format: voices/{voice}
+   * Voice selection.
    *
-   * @generated from field: string voice = 2;
+   * @generated from oneof malonaz.ai.ai_service.v1.TextToSpeechStreamRequest.voice_selection
    */
-  voice: string;
-
-  /**
-   * The provider voice id.
-   *
-   * @generated from field: string provider_voice_id = 3;
-   */
-  providerVoiceId: string;
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
 
   /**
    * The text to convert to speech.
@@ -290,19 +317,28 @@ export type TextToSpeechStreamRequestValid = Message<"malonaz.ai.ai_service.v1.T
   model: string;
 
   /**
-   * The resource name of the voice to use.
-   * Format: voices/{voice}
+   * Voice selection.
    *
-   * @generated from field: string voice = 2;
+   * @generated from oneof malonaz.ai.ai_service.v1.TextToSpeechStreamRequest.voice_selection
    */
-  voice: string;
-
-  /**
-   * The provider voice id.
-   *
-   * @generated from field: string provider_voice_id = 3;
-   */
-  providerVoiceId: string;
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
 
   /**
    * The text to convert to speech.

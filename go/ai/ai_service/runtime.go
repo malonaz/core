@@ -171,23 +171,33 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 
-	if request.Voice != "" {
-		getVoiceRequest := &pb.GetVoiceRequest{Name: request.Voice}
+	var providerVoiceID string
+	switch voiceSelection := request.GetVoiceSelection().(type) {
+	case *pb.TextToSpeechStreamRequest_Voice:
+		getVoiceRequest := &pb.GetVoiceRequest{Name: voiceSelection.Voice}
 		voice, err := s.GetVoice(ctx, getVoiceRequest)
 		if err != nil {
 			return err
 		}
-		var providerVoiceId string
 		for _, modelConfig := range voice.ModelConfigs {
 			if request.Model == modelConfig.Model {
-				providerVoiceId = modelConfig.ProviderVoiceId
+				providerVoiceID = modelConfig.ProviderVoiceId
 				break
 			}
 		}
-		if providerVoiceId == "" {
-			return status.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", request.Model, request.Voice).Err()
+		if providerVoiceID == "" {
+			return status.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", request.Model, voiceSelection.Voice).Err()
 		}
-		request.ProviderVoiceId = providerVoiceId
+	case *pb.TextToSpeechStreamRequest_ProviderVoiceId:
+		providerVoiceID = voiceSelection.ProviderVoiceId
+	default:
+		return status.Errorf(codes.Internal, "unknown voice selection type: %T", voiceSelection).Err()
+	}
+	if providerVoiceID == "" {
+		return status.Errorf(codes.Internal, "missing provider voice id").Err()
+	}
+	request.VoiceSelection = &pb.TextToSpeechStreamRequest_ProviderVoiceId{
+		ProviderVoiceId: providerVoiceID,
 	}
 
 	return provider.TextToSpeechStream(request, srv)
@@ -196,10 +206,21 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 // TextToSpeech collects all streamed audio chunks into a single response
 func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequest) (*pb.TextToSpeechResponse, error) {
 	// Convert to streaming request
-	streamRequest := &pb.TextToSpeechStreamRequest{
-		Model: request.Model,
-		Text:  request.Text,
-		Voice: request.Voice,
+	textToSpeechStreamRequest := &pb.TextToSpeechStreamRequest{
+		Model:         request.Model,
+		Text:          request.Text,
+		Configuration: request.Configuration,
+	}
+
+	switch voiceSelection := request.GetVoiceSelection().(type) {
+	case *pb.TextToSpeechRequest_Voice:
+		textToSpeechStreamRequest.VoiceSelection = &pb.TextToSpeechStreamRequest_Voice{
+			Voice: voiceSelection.Voice,
+		}
+	case *pb.TextToSpeechRequest_ProviderVoiceId:
+		textToSpeechStreamRequest.VoiceSelection = &pb.TextToSpeechStreamRequest_ProviderVoiceId{
+			ProviderVoiceId: voiceSelection.ProviderVoiceId,
+		}
 	}
 
 	// Create a local streaming client using grpcinproc
@@ -209,7 +230,7 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 		pb.AiService_TextToSpeechStreamServer,
 	](s.TextToSpeechStream)
 
-	stream, err := serverStreamClient(ctx, streamRequest)
+	stream, err := serverStreamClient(ctx, textToSpeechStreamRequest)
 	if err != nil {
 		return nil, err
 	}

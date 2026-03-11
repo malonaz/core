@@ -105,7 +105,7 @@ func (c *Client) TextToSpeechStream(
 		Language:   request.GetConfiguration().GetLanguageCode(),
 		Voice: VoiceSpecifier{
 			Mode: "id",
-			ID:   request.ProviderVoiceId,
+			ID:   request.GetProviderVoiceId(),
 		},
 		OutputFormat: OutputFormat{
 			Container:  "raw",
