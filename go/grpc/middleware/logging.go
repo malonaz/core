@@ -79,11 +79,11 @@ func StreamServerLogging(logger *slog.Logger) grpc.StreamServerInterceptor {
 // Map gRPC return codes to log levels.
 func errorCodeToLogLevel(code codes.Code) grpc_logging.Level {
 	switch code {
-	case codes.OK, codes.Canceled, codes.AlreadyExists:
+	case codes.OK, codes.Canceled, codes.AlreadyExists, codes.NotFound:
 		return grpc_logging.LevelDebug
 
 	case codes.DeadlineExceeded, codes.PermissionDenied, codes.ResourceExhausted, codes.FailedPrecondition, codes.Aborted,
-		codes.OutOfRange, codes.Unavailable, codes.Unauthenticated, codes.InvalidArgument, codes.NotFound:
+		codes.OutOfRange, codes.Unavailable, codes.Unauthenticated, codes.InvalidArgument:
 		return grpc_logging.LevelWarn
 
 	case codes.Unknown, codes.Unimplemented, codes.Internal, codes.DataLoss:
