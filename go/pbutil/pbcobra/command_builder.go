@@ -274,6 +274,16 @@ func (b *CommandBuilder) addFlagWithPrefix(
 		help = "(required) " + help
 	}
 
+	if fieldDescriptor.IsMap() {
+		cmd.Flags().StringArray(name+"-key", nil, help+" (map keys)")
+		cmd.Flags().StringArray(name+"-value", nil, help+" (map values)")
+		if isRequired {
+			cmd.MarkFlagRequired(name + "-key")
+			cmd.MarkFlagRequired(name + "-value")
+		}
+		return nil
+	}
+
 	if fieldDescriptor.IsList() {
 		cmd.Flags().StringArray(name, nil, help)
 		if isRequired {
@@ -375,6 +385,10 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 		return nil
 	}
 	name := prefix + xstrings.ToKebabCase(string(field.Name()))
+
+	if field.IsMap() {
+		return b.setMapField(msg, field, cmd, name)
+	}
 
 	if field.IsList() {
 		return b.setListField(msg, field, cmd, name)
@@ -489,7 +503,11 @@ func (b *CommandBuilder) anyNestedFlagChanged(cmd *cobra.Command, field protoref
 	for i := 0; i < nestedFields.Len(); i++ {
 		f := nestedFields.Get(i)
 		name := prefix + xstrings.ToKebabCase(string(f.Name()))
-		if f.Kind() == protoreflect.MessageKind {
+		if f.IsMap() {
+			if cmd.Flags().Changed(name+"-key") || cmd.Flags().Changed(name+"-value") {
+				return true
+			}
+		} else if f.Kind() == protoreflect.MessageKind && !f.IsList() {
 			if b.anyNestedFlagChanged(cmd, f, name+"-", depth+1) {
 				return true
 			}
@@ -521,6 +539,40 @@ func (b *CommandBuilder) setListField(msg *dynamicpb.Message, field protoreflect
 			}
 			list.Append(elem)
 		}
+	}
+	return nil
+}
+
+func (b *CommandBuilder) setMapField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, cmd *cobra.Command, name string) error {
+	keys, err := cmd.Flags().GetStringArray(name + "-key")
+	if err != nil {
+		return err
+	}
+	values, err := cmd.Flags().GetStringArray(name + "-value")
+	if err != nil {
+		return err
+	}
+	if len(keys) != len(values) {
+		return fmt.Errorf("%s: number of keys (%d) must match number of values (%d)", name, len(keys), len(values))
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+
+	mapField := msg.Mutable(field).Map()
+	keyDescriptor := field.MapKey()
+	valueDescriptor := field.MapValue()
+
+	for i := range keys {
+		k, err := parseScalar(keyDescriptor, keys[i])
+		if err != nil {
+			return fmt.Errorf("parsing map key %q: %w", keys[i], err)
+		}
+		v, err := parseScalar(valueDescriptor, values[i])
+		if err != nil {
+			return fmt.Errorf("parsing map value %q: %w", values[i], err)
+		}
+		mapField.Set(k.MapKey(), v)
 	}
 	return nil
 }
