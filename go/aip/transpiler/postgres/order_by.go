@@ -15,7 +15,10 @@ func TranspileOrderBy(orderBy ordering.OrderBy) string {
 		order := field.Path
 		if field.Desc {
 			order += " DESC"
+		} else {
+			order += " ASC"
 		}
+		order += " NULLS LAST"
 		result = append(result, order)
 	}
 	return "ORDER BY " + strings.Join(result, ", ")
