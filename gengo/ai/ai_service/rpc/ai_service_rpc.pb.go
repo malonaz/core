@@ -156,34 +156,6 @@ func (s *aiService_ChatServer) GetChat(ctx context.Context, request *v1.GetChatR
 var updateChatRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateChatRequest, *v11.Chat]()
 
 func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
-	// Request specifies an ETag => we propagate the 'Aborted' error back to the client.
-	if request.GetChat().GetEtag() != "" {
-		return s.updateChat(ctx, request)
-	}
-
-	// Request did not specify an ETag => we retry internally on context aborted errors.
-	// In order to understand why we still use ETag in `update()`, consider the following situation:
-	//  > `resource.metadata` is stored as JSONB in the store.
-	//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
-	//  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
-	//  > Request A reads the resource and patches it.
-	//  > Request B reads the resource and patches it.
-	//  > Request A persists the patched resource, followed by by Request B.
-	//  > Request A's changes are lost.
-	for {
-		response, err := s.updateChat(ctx, request)
-		if err != nil {
-			if status.HasCode(err, codes.Aborted) {
-				continue
-			}
-			return nil, err
-		}
-		return response, nil
-	}
-
-}
-
-func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -242,6 +214,19 @@ func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.Updat
 		}
 
 		if errors.Is(err, model.ErrChatETagChanged) {
+			if request.GetChat().GetEtag() == "" {
+				// Request did not specify an ETag => we return a UNAVAILABLE status instead of an ABORTED error.
+				// Client should retry on UNAVAILABLE errors.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by by Request B.
+				//  > Request A's changes are lost.
+				return nil, status.Errorf(codes.Unavailable, "ETag changed").Err()
+			}
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
 

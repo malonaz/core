@@ -289,37 +289,6 @@ package {{ .PackageName }}
         {{- else if $rpc.Update }}
             var update{{ $resourceGoName }}RequestParser = {{ fqnCore "go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
             func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
-            {{- if not $etag }}
-              return s.{{ $method.GoName | untitle }}(ctx, request)
-            {{ else }}
-               // Request specifies an ETag => we propagate the 'Aborted' error back to the client.
-               if request.Get{{ $resourceGoName }}().GetEtag() != "" {
-                 return s.{{ $method.GoName | untitle }}(ctx, request)
-               }
-
-               // Request did not specify an ETag => we retry internally on context aborted errors.
-               // In order to understand why we still use ETag in `update()`, consider the following situation:
-               //  > `resource.metadata` is stored as JSONB in the store.
-               //  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
-               //  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
-               //  > Request A reads the resource and patches it.
-               //  > Request B reads the resource and patches it.
-               //  > Request A persists the patched resource, followed by by Request B.
-               //  > Request A's changes are lost.
-               for {
-                  response, err := s.{{ $method.GoName | untitle }}(ctx, request)
-                  if err != nil {
-                  if {{ fqnCore "go/grpc/status" "HasCode" }}(err, {{ fqn "google.golang.org/grpc/codes" "Aborted" }}) {
-                      continue
-                    }
-                    return nil, err
-                  }
-                  return response, nil
-               }
-            {{ end }}
-            }
-
-            func (s *{{ $serverGoName }}) {{ $method.GoName | untitle }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             if len(request.GetUpdateMask().GetPaths()) == 0 {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
             }
@@ -385,6 +354,19 @@ package {{ .PackageName }}
             }
             {{ if $etag }}
                 if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+                if request.Get{{ $resourceGoName }}().GetEtag() == "" {
+                // Request did not specify an ETag => we return a UNAVAILABLE status instead of an ABORTED error.
+                // Client should retry on UNAVAILABLE errors.
+                // In order to understand why we still use ETag in the db layer, consider the following situation:
+                //  > `resource.metadata` is stored as JSONB in the store.
+                //  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+                //  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
+                //  > Request A reads the resource and patches it.
+                //  > Request B reads the resource and patches it.
+                //  > Request A persists the patched resource, followed by by Request B.
+                //  > Request A's changes are lost.
+                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Unavailable" }}, "ETag changed").Err()
+                }
                 return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                 }
             {{ end }}
