@@ -1,6 +1,9 @@
 package aip
 
 import (
+	"iter"
+	"strings"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -79,4 +82,16 @@ func LabelBool(b bool) string {
 		return LabelValueTrue
 	}
 	return LabelValueFalse
+}
+
+func NamespacedLabels(resource Labellable) iter.Seq2[string, string] {
+	return func(yield func(string, string) bool) {
+		for key, value := range resource.GetLabels() {
+			if strings.Contains(key, "/") {
+				if !yield(key, value) {
+					return
+				}
+			}
+		}
+	}
 }
