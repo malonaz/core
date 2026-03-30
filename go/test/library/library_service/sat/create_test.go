@@ -2,13 +2,14 @@ package sat
 
 import (
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
+	"github.com/malonaz/core/go/uuid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
-
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -438,5 +439,181 @@ func TestCreate_Book(t *testing.T) {
 		}
 		_, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+}
+
+func TestCreate_RequestIdempotency(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+
+	t.Run("SameRequestID_NoResourceID", func(t *testing.T) {
+		t.Parallel()
+		requestID := uuid.MustNewV7().String()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: requestID,
+			Author:    validAuthor(),
+		}
+		firstAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		secondAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+		grpcrequire.Equal(t, firstAuthor, secondAuthor)
+	})
+
+	t.Run("SameRequestID_SameResourceID", func(t *testing.T) {
+		t.Parallel()
+		requestID := uuid.MustNewV7().String()
+		authorID := "idempotent-" + uuid.MustNewV7().String()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: requestID,
+			AuthorId:  authorID,
+			Author:    validAuthor(),
+		}
+		firstAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		secondAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+		grpcrequire.Equal(t, firstAuthor, secondAuthor)
+	})
+
+	t.Run("SameRequestID_DifferentResourceID", func(t *testing.T) {
+		t.Parallel()
+		requestID := uuid.MustNewV7().String()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: requestID,
+			AuthorId:  "idempotent-a-" + uuid.MustNewV7().String(),
+			Author:    validAuthor(),
+		}
+		firstAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		createAuthorRequest.AuthorId = "idempotent-b-" + uuid.MustNewV7().String()
+		secondAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+		grpcrequire.Equal(t, firstAuthor, secondAuthor)
+	})
+
+	t.Run("DifferentRequestID_SameResourceID", func(t *testing.T) {
+		t.Parallel()
+		authorID := "idempotent-dup-" + uuid.MustNewV7().String()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: uuid.MustNewV7().String(),
+			AuthorId:  authorID,
+			Author:    validAuthor(),
+		}
+		_, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		createAuthorRequest.RequestId = uuid.MustNewV7().String()
+		_, err = libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		grpcrequire.Error(t, codes.AlreadyExists, err)
+	})
+
+	t.Run("DifferentRequestID_NoResourceID", func(t *testing.T) {
+		t.Parallel()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: uuid.MustNewV7().String(),
+			Author:    validAuthor(),
+		}
+		firstAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		createAuthorRequest.RequestId = uuid.MustNewV7().String()
+		secondAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+		require.NotEqual(t, firstAuthor.Name, secondAuthor.Name)
+	})
+
+	t.Run("NoRequestID_NotIdempotent", func(t *testing.T) {
+		t.Parallel()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: validAuthor(),
+		}
+		firstAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		secondAuthor, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+		require.NotEqual(t, firstAuthor.Name, secondAuthor.Name)
+	})
+
+	t.Run("Shelf_SameRequestID", func(t *testing.T) {
+		t.Parallel()
+		requestID := uuid.MustNewV7().String()
+		createShelfRequest := &libraryservicepb.CreateShelfRequest{
+			Parent:    organizationParent,
+			RequestId: requestID,
+			Shelf: &librarypb.Shelf{
+				DisplayName:     "Idempotent Shelf",
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+			},
+		}
+		firstShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+		require.NoError(t, err)
+
+		secondShelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+		require.NoError(t, err)
+		grpcrequire.Equal(t, firstShelf, secondShelf)
+	})
+
+	t.Run("Book_SameRequestID", func(t *testing.T) {
+		t.Parallel()
+		author := createTestAuthor(t, organizationParent, "Idempotent Book Author")
+		shelf := createTestShelf(t, organizationParent, "Idempotent Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		requestID := uuid.MustNewV7().String()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent:    shelf.Name,
+			RequestId: requestID,
+			Book: &librarypb.Book{
+				Title:    "Idempotent Book",
+				Author:   author.Name,
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		firstBook, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		secondBook, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+		grpcrequire.Equal(t, firstBook, secondBook)
+	})
+
+	t.Run("SameRequestID_ConcurrentCalls", func(t *testing.T) {
+		t.Parallel()
+		requestID := uuid.MustNewV7().String()
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent:    organizationParent,
+			RequestId: requestID,
+			Author:    validAuthor(),
+		}
+
+		var wg sync.WaitGroup
+		authors := make([]*librarypb.Author, 5)
+		errs := make([]error, 5)
+		for i := range 5 {
+			wg.Go(func() {
+				authors[i], errs[i] = libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+			})
+		}
+		wg.Wait()
+
+		var successAuthor *librarypb.Author
+		for i := range 5 {
+			require.NoError(t, errs[i])
+			if successAuthor == nil {
+				successAuthor = authors[i]
+			}
+			grpcrequire.Equal(t, successAuthor, authors[i])
+		}
 	})
 }

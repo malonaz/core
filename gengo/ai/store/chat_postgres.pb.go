@@ -111,6 +111,16 @@ func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, ra
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		if postgres.IsUniqueViolation(err) {
+			rows, err := s.client.Query(ctx, chatGetByRequestIDQuery, requestID)
+			if err != nil {
+				return nil, err
+			}
+			existing, lookupErr := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[model.Chat])
+			if lookupErr == nil {
+				return existing, nil
+			}
+		}
 		return nil, err
 	}
 	return inserted, nil

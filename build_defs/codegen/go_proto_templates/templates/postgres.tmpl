@@ -229,6 +229,16 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
     }
 
     if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+        if {{ fqnCore "go/postgres" "IsUniqueViolation" }}(err) {
+            rows, err := s.client.Query(ctx, {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery, requestID)
+            if err != nil {
+                return nil, err
+            }
+            existing, lookupErr := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+            if lookupErr == nil {
+                return existing, nil
+            }
+        }
         return nil, err
     }
     return inserted, nil

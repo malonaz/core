@@ -127,3 +127,9 @@ func (c *Client) ExecuteTransaction(ctx context.Context, isolationLevel pgx.TxIs
 		return err
 	}
 }
+
+// IsUniqueViolation returns true if the error is a PostgreSQL unique constraint violation (SQLSTATE 23505).
+func IsUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation
+}
