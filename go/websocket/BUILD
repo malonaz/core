@@ -6,7 +6,7 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/go:github.com__coder__websocket",
         "//third_party/go:github.com__go-json-experiment__json",
-        "//third_party/go:github.com__gorilla__websocket",
     ],
 )

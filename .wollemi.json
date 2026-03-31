@@ -264,8 +264,6 @@
         "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options": "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__protoc-gen-openapiv2__options",
         "github.com/grpc-ecosystem/grpc-gateway/v2/runtime": "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "github.com/grpc-ecosystem/grpc-gateway/v2/utilities": "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
-        "github.com/hashicorp/errwrap": "//third_party/go:github.com__hashicorp__errwrap",
-        "github.com/hashicorp/go-multierror": "//third_party/go:github.com__hashicorp__go-multierror",
         "github.com/huandu/xstrings": "//third_party/go:github.com__huandu__xstrings",
         "github.com/imdario/mergo": "//third_party/go:github.com__imdario__mergo",
         "github.com/improbable-eng/grpc-web/go/grpcweb": "//third_party/go:github.com__improbable-eng__grpc-web__go__grpcweb",

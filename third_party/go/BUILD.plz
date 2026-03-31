@@ -3888,40 +3888,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__hashicorp__errwrap",
-    _tag = "download",
-    module = "github.com/hashicorp/errwrap",
-    version = "v1.0.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__hashicorp__errwrap",
-    download = ":_github.com__hashicorp__errwrap#download",
-    install = ["."],
-    module = "github.com/hashicorp/errwrap",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__hashicorp__go-multierror",
-    _tag = "download",
-    module = "github.com/hashicorp/go-multierror",
-    version = "v1.1.1",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__hashicorp__go-multierror",
-    download = ":_github.com__hashicorp__go-multierror#download",
-    install = ["."],
-    module = "github.com/hashicorp/go-multierror",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__hashicorp__errwrap"],
-)
-
-go_mod_download(
     name = "github.com__huandu__xstrings",
     _tag = "download",
     module = "github.com/huandu/xstrings",
