@@ -259,7 +259,10 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	cs.Close()
-	return status.FromError(cs.Wait(ctx), "waiting on content sender").Err()
+	if err := cs.Wait(ctx); err != nil {
+		return status.FromError(err, "waiting on content sender").Err()
+	}
+	return nil
 }
 
 func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceUnionParam, error) {

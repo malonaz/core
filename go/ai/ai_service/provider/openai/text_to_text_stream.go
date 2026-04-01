@@ -260,7 +260,10 @@ func (c *Client) TextToTextStream(
 	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
 	cs.Close()
-	return status.FromError(cs.Wait(ctx), "waiting on content sender").Err()
+	if err := cs.Wait(ctx); err != nil {
+		return status.FromError(err, "waiting on content sender").Err()
+	}
+	return nil
 }
 
 func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUnion, error) {
