@@ -44,7 +44,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	event, err := srv.Recv()
 	if err != nil {
-		return status.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
+		return status.FromError(err, "receiving configuration event").Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
@@ -54,7 +54,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
-		return err
+		return status.FromError(err, "getting model").Err()
 	}
 
 	audioFormat := configuration.AudioFormat
@@ -93,21 +93,33 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 
 	conn, _, err := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: header})
 	if err != nil {
-		return status.Errorf(codes.Internal, "connecting to elevenlabs: %v", err).Err()
+		return status.FromError(err, "connecting to elevenlabs").Err()
 	}
 	defer conn.Close(websocket.StatusNormalClosure, "closing")
 
 	msg, err := c.receiveSTTMessage(ctx, conn)
 	if err != nil {
-		return status.Errorf(codes.Internal, "receiving session_started: %v", err).Err()
+		return status.FromError(err, "receiving session_started").Err()
 	}
 	if msg.MessageType != msgTypeSessionStarted {
 		return status.Errorf(codes.Internal, "expected session_started, got %s", msg.MessageType).Err()
 	}
 
 	errChan := make(chan error, 2)
-	go func() { errChan <- c.recvSTTAudio(ctx, srv, conn, int(audioFormat.SampleRate)) }()
-	go func() { errChan <- c.sendSTTEvents(ctx, srv, conn) }()
+	go func() {
+		if err := c.recvSTTAudio(ctx, srv, conn, int(audioFormat.SampleRate)); err != nil {
+			errChan <- status.FromError(err, "recv STT audio").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
+	go func() {
+		if err := c.sendSTTEvents(ctx, srv, conn); err != nil {
+			errChan <- status.FromError(err, "send STT events").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
 	return <-errChan
 }
 
@@ -210,7 +222,6 @@ func (c *Client) receiveSTTMessage(ctx context.Context, conn *websocket.Conn) (*
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(data))
 	var msg sttMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return nil, err

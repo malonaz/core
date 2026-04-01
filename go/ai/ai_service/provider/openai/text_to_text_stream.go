@@ -35,7 +35,7 @@ func (c *Client) TextToTextStream(
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
-		return err
+		return status.FromError(err, "getting model").Err()
 	}
 
 	var messages []openai.ChatCompletionMessageParamUnion
@@ -120,11 +120,7 @@ func (c *Client) TextToTextStream(
 	var sentTtfb bool
 	var stopReason aiservicepb.TextToTextStopReason
 
-	for chatStream.Next() {
-		if cs.Err() != nil {
-			break
-		}
-
+	for chatStream.Next() && cs.Err() == nil {
 		chunk := chatStream.Current()
 
 		if !sentTtfb {
@@ -248,7 +244,7 @@ func (c *Client) TextToTextStream(
 	}
 
 	if err := chatStream.Err(); err != nil {
-		return fmt.Errorf("reading stream: %w", err)
+		return status.FromError(err, "reading stream").Err()
 	}
 
 	remainingToolCallBlocks, err := tca.BuildRemaining()
@@ -264,11 +260,7 @@ func (c *Client) TextToTextStream(
 	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
 	cs.Close()
-	if err := cs.Wait(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return status.FromError(cs.Wait(ctx), "waiting on content sender").Err()
 }
 
 func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUnion, error) {

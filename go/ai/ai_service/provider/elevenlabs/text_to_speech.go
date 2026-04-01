@@ -104,7 +104,7 @@ func (c *Client) TextToSpeechStream(
 	// Execute the HTTP request
 	response, err := c.client.Do(httpRequest)
 	if err != nil {
-		return status.Errorf(codes.Unavailable, "executing HTTP request: %v", err).Err()
+		return status.FromError(err, "executing HTTP request").Err()
 	}
 	defer response.Body.Close()
 
@@ -121,7 +121,7 @@ func (c *Client) TextToSpeechStream(
 			AudioFormat: audioFormat,
 		},
 	}); err != nil {
-		return status.Errorf(codes.Internal, "sending audio format: %v", err).Err()
+		return status.FromError(err, "sending audio format").Err()
 	}
 
 	// Stream audio chunks
@@ -171,7 +171,7 @@ func (c *Client) TextToSpeechStream(
 				AudioChunk: audioChunk,
 			},
 		}); err != nil {
-			return status.Errorf(codes.Internal, "sending audio chunk: %v", err).Err()
+			return status.FromError(err, "sending audio chunk").Err()
 		}
 	}
 
@@ -193,7 +193,7 @@ func (c *Client) TextToSpeechStream(
 			ModelUsage: modelUsage,
 		},
 	}); err != nil {
-		return status.Errorf(codes.Internal, "sending model usage: %v", err).Err()
+		return status.FromError(err, "sending model usage").Err()
 	}
 
 	// Send generation metrics
@@ -202,7 +202,7 @@ func (c *Client) TextToSpeechStream(
 			GenerationMetrics: generationMetrics,
 		},
 	}); err != nil {
-		return status.Errorf(codes.Internal, "sending generation metrics: %v", err).Err()
+		return status.FromError(err, "sending generation metrics").Err()
 	}
 
 	return nil

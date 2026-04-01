@@ -33,35 +33,20 @@ type Error struct {
 	status *spb.Status
 }
 
-// FromError converts a standard Go error into an *Error.
-//
-// It handles three cases:
-//   - context.Canceled and context.DeadlineExceeded are mapped to their
-//     corresponding gRPC codes (Canceled, DeadlineExceeded).
-//   - Errors already carrying a gRPC status are unwrapped and preserved.
-//   - All other errors are wrapped with codes.Unknown.
-func FromError(err error) *Error {
-	if errors.Is(err, context.Canceled) {
-		return &Error{
-			status: &spb.Status{Code: int32(codes.Canceled), Message: err.Error()},
-		}
+// FromError attempts to extract a code from an existing error with additional context, preserving its gRPC
+// status code if it has one, or mapping context errors appropriately.
+// Uses (message + params: err.Error() as status message.
+func FromError(err error, message string, params ...any) *Error {
+	code := codes.Unknown
+	switch {
+	case errors.Is(err, context.Canceled):
+		code = codes.Canceled
+	case errors.Is(err, context.DeadlineExceeded):
+		code = codes.DeadlineExceeded
+	default:
+		code = status.Code(err)
 	}
-	if errors.Is(err, context.DeadlineExceeded) {
-		return &Error{
-			status: &spb.Status{Code: int32(codes.DeadlineExceeded), Message: err.Error()},
-		}
-	}
-
-	st, ok := status.FromError(err)
-	if !ok {
-		return &Error{
-			status: &spb.Status{Code: int32(codes.Unknown), Message: err.Error()},
-		}
-	}
-
-	return &Error{
-		status: st.Proto(),
-	}
+	return Errorf(code, "%s: %v", fmt.Sprintf(message, params...), err)
 }
 
 // Errorf creates a new *Error with the given gRPC status code and a formatted message.

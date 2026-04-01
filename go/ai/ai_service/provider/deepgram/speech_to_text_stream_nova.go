@@ -148,7 +148,7 @@ func (c *Client) speechToTextStreamNova(
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
-		return err
+		return status.FromError(err, "getting model").Err()
 	}
 
 	if configuration.LanguageCode == "" {
@@ -177,13 +177,25 @@ func (c *Client) speechToTextStreamNova(
 		EndpointingMs: endpointingMs,
 	})
 	if err != nil {
-		return status.Errorf(codes.Internal, "connecting to deepgram nova: %v", err).Err()
+		return status.FromError(err, "connecting to deepgram").Err()
 	}
 	defer conn.Close()
 
 	errChan := make(chan error, 2)
-	go func() { errChan <- c.recvAudioNova(ctx, srv, conn) }()
-	go func() { errChan <- c.sendEventsNova(ctx, srv, conn) }()
+	go func() {
+		if err := c.recvAudioNova(ctx, srv, conn); err != nil {
+			errChan <- status.FromError(err, "recv audio nova").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
+	go func() {
+		if err := c.sendEventsNova(ctx, srv, conn); err != nil {
+			errChan <- status.FromError(err, "send events nova").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
 	return <-errChan
 }
 

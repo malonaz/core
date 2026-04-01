@@ -137,7 +137,7 @@ func (c *Client) TextToSpeechStream(
 		// Handles context cancellation cleanly :).
 		textToSpeechResponse, err := stream.Recv(ctx)
 		if err != nil {
-			return status.Errorf(codes.Internal, "reading from stream: %v", err).Err()
+			return status.FromError(err, "reading from stream").Err()
 		}
 		if textToSpeechResponse.Done {
 			isDone = true
@@ -154,7 +154,7 @@ func (c *Client) TextToSpeechStream(
 			// Decode base64 audio data
 			audioData, err := base64.StdEncoding.DecodeString(textToSpeechResponse.Data)
 			if err != nil {
-				return fmt.Errorf("failed to decode audio data: %w", err)
+				return status.Errorf(codes.Internal, "decoding audio data: %w", err).Err()
 			}
 			if len(audioData) == 0 {
 				continue
@@ -163,7 +163,7 @@ func (c *Client) TextToSpeechStream(
 			// Update total duration
 			chunkDuration, err := audio.CalculatePCMDuration(audioFormat, len(audioData))
 			if err != nil {
-				return err
+				return status.Errorf(codes.Internal, "calculating pcm duration: %v", err).Err()
 			}
 			totalDuration += chunkDuration
 
@@ -191,8 +191,7 @@ func (c *Client) TextToSpeechStream(
 			isDone = true
 
 		case "error":
-			return fmt.Errorf("cartesia error (status %d): %s",
-				textToSpeechResponse.StatusCode, textToSpeechResponse.Error)
+			return status.Errorf(codes.Internal, "cartesia error (status %d): %s", textToSpeechResponse.StatusCode, textToSpeechResponse.Error).Err()
 
 		case "timestamps":
 			// Optionally handle word timestamps if needed

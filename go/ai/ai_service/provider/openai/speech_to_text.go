@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/audio"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechToTextRequest) (*aiservicepb.SpeechToTextResponse, error) {
@@ -35,7 +35,7 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	startTime := time.Now()
 	response, err := c.client.CreateTranscription(ctx, audioRequest)
 	if err != nil {
-		return nil, fmt.Errorf("whisper transcription failed: %w", err)
+		return nil, status.FromError(err, "creating transcription").Err()
 	}
 	generationMetrics := &aipb.GenerationMetrics{
 		Ttlb: durationpb.New(time.Since(startTime)),

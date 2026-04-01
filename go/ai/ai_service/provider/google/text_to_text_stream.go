@@ -109,11 +109,11 @@ func (c *Client) TextToTextStream(
 			if apiError, ok := errors.AsType[genai.APIError](err); ok {
 				return status.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
 			}
-			return status.Errorf(codes.Internal, "reading stream: %v", err).Err()
+			return status.FromError(err, "reading stream").Err()
 		}
 
-		if err := cs.Err(); err != nil {
-			return status.Errorf(codes.Internal, "error sending content: %v", err).Err()
+		if cs.Err() != nil {
+			break
 		}
 
 		if !sentTtfb {
@@ -288,10 +288,6 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
-	if err := cs.Err(); err != nil {
-		return status.Errorf(codes.Internal, "error sending content: %v", err).Err()
-	}
-
 	toolCalls, err := tca.BuildRemaining()
 	if err != nil {
 		return err
@@ -307,7 +303,7 @@ func (c *Client) TextToTextStream(
 	})
 
 	cs.Close()
-	return cs.Wait(ctx)
+	return status.FromError(cs.Wait(ctx), "waiting on content sender").Err()
 }
 
 func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {

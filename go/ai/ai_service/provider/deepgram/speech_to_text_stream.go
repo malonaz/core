@@ -18,7 +18,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	// Grab the configuration event and validate it.
 	event, err := srv.Recv()
 	if err != nil {
-		return status.Errorf(codes.Internal, "receiving configuration event: %v", err).Err()
+		return status.FromError(err, "receiving configuration event").Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
@@ -28,7 +28,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
-		return err
+		return status.FromError(err, "getting model").Err()
 	}
 	if model.ProviderModelId == "nova-3" {
 		return c.speechToTextStreamNova(srv, configuration)
@@ -69,13 +69,25 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {
-		return status.Errorf(codes.Internal, "connecting to deepgram: %v", err).Err()
+		return status.FromError(err, "connecting to deepgram").Err()
 	}
 	defer conn.Close()
 
 	errChan := make(chan error, 2)
-	go func() { errChan <- c.recvAudio(ctx, srv, conn) }()
-	go func() { errChan <- c.sendEvents(ctx, srv, conn) }()
+	go func() {
+		if err := c.recvAudio(ctx, srv, conn); err != nil {
+			errChan <- status.FromError(err, "recv audio").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
+	go func() {
+		if err := c.sendEvents(ctx, srv, conn); err != nil {
+			errChan <- status.FromError(err, "send events").Err()
+		} else {
+			errChan <- nil
+		}
+	}()
 	return <-errChan
 }
 

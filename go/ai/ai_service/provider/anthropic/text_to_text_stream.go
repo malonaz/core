@@ -255,11 +255,11 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	if err := messageStream.Err(); err != nil {
-		return fmt.Errorf("stream error: %w", err)
+		return status.FromError(err, "streaming from anthropic").Err()
 	}
 
 	cs.Close()
-	return cs.Wait(ctx)
+	return status.FromError(cs.Wait(ctx), "waiting on content sender").Err()
 }
 
 func pbToolChoiceToAnthropic(toolChoice *aipb.ToolChoice) (anthropic.ToolChoiceUnionParam, error) {
