@@ -60,7 +60,10 @@ func NewLogger(opts *Opts) (*slog.Logger, error) {
 
 func getHandler(opts *Opts) (slog.Handler, error) {
 	level := parseLevel(opts.Level)
-	handlerOpts := &slog.HandlerOptions{Level: level}
+	handlerOpts := &slog.HandlerOptions{
+		Level:     level,
+		AddSource: true,
+	}
 
 	writer := io.Writer(os.Stderr)
 	if opts.FilePath != "" {
