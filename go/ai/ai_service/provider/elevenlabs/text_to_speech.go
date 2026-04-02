@@ -134,7 +134,7 @@ func (c *Client) TextToSpeechStream(
 			if err == io.EOF {
 				break
 			}
-			return status.Errorf(codes.Internal, "reading response body: %v", err).Err()
+			return status.FromError(err, "reading response body").Err()
 		}
 		if bytesRead == 0 {
 			continue
