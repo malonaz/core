@@ -36,6 +36,9 @@ type ProcessorConfig struct {
 	FetchTimeout         time.Duration
 	AckWait              time.Duration
 	BackoffSeconds       int
+	// DeliverFromLatest configures the consumer to start from the latest offset on creation.
+	// This only takes effect when the consumer is first created; existing consumers retain their cursor.
+	DeliverFromLatest bool
 }
 
 type Processor[T proto.Message] struct {
@@ -98,12 +101,17 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	if ackWait == 0 {
 		ackWait = defaultAckWait
 	}
+	deliverPolicy := jetstream.DeliverAllPolicy
+	if p.config.DeliverFromLatest {
+		deliverPolicy = jetstream.DeliverNewPolicy
+	}
 	consumerConfig := jetstream.ConsumerConfig{
 		Durable:        p.config.ConsumerName,
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
 		MaxAckPending:  2 * batchSize,
 		AckWait:        ackWait,
+		DeliverPolicy:  deliverPolicy,
 	}
 	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, stream, consumerConfig)
 	if err != nil {
