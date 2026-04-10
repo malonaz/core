@@ -7634,7 +7634,7 @@ go_mod_download(
     name = "google.golang.org__genai",
     _tag = "download",
     module = "google.golang.org/genai",
-    version = "v1.43.0",
+    version = "v1.53.0",
     visibility = ["PUBLIC"],
 )
 
