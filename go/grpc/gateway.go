@@ -31,6 +31,7 @@ const (
 	HeaderXForwardedHost  = "X-Forwarded-Host"
 	HeaderXOriginalURL    = "X-Original-Url"
 	HeaderXRequestBody    = "X-Request-Body-Bin"
+	HeaderXHTTPMethod     = "X-Http-Method"
 )
 
 // RegisterHandler is syntactice sugar for a gRPC gateway handler.
@@ -142,6 +143,7 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		runtime.WithForwardResponseOption(forwardResponseOptionHTTPHeadersForwarder),
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
 		runtime.WithMetadata(g.gatewayOptionsMetadata),
+		runtime.WithMetadata(httpMethodMetadata),
 	)
 	g.options = append(g.options, withCustomMarshalers()...)
 
@@ -392,6 +394,10 @@ func forwardResponseOptionHTTPHeadersForwarder(ctx context.Context, w http.Respo
 	}
 
 	return nil
+}
+
+func httpMethodMetadata(_ context.Context, r *http.Request) metadata.MD {
+	return metadata.Pairs(HeaderXHTTPMethod, r.Method)
 }
 
 // /////////////  WEBHOOK UNMARSHALER //////////////
