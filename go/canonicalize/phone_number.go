@@ -11,6 +11,7 @@ const (
 	RegionCodeUS = "US"
 
 	PhoneNumberFormatInternational = phonenumbers.INTERNATIONAL
+	PhoneNumberFormatNational      = phonenumbers.NATIONAL
 )
 
 func PhoneNumber(phoneNumber, fallbackRegionCode string) (string, error) {
@@ -27,14 +28,6 @@ func FormatPhoneNumber(phoneNumber string, fallbackRegionCode string, format pho
 		return "", err
 	}
 	return phonenumbers.Format(parsedPhoneNumber, format), nil
-}
-
-func FormatPhoneNumberNational(phoneNumber, fallbackRegionCode string) (string, error) {
-	parsedPhoneNumber, err := parseAndValidatePhoneNumber(phoneNumber, fallbackRegionCode)
-	if err != nil {
-		return "", err
-	}
-	return phonenumbers.Format(parsedPhoneNumber, phonenumbers.NATIONAL), nil
 }
 
 func parseAndValidatePhoneNumber(phoneNumber, fallbackRegionCode string) (*phonenumbers.PhoneNumber, error) {
