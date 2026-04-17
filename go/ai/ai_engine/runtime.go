@@ -167,7 +167,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 			return nil, status.Errorf(codes.InvalidArgument, "%s is not a method", target.Method).Err()
 		}
 		messageDescriptor = methodDescriptor.Input()
-		toolName = string(methodDescriptor.Name())
+		toolName = string(methodDescriptor.Parent().Name()) + "_" + string(methodDescriptor.Name())
 		toolDescription = schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
 		annotations[annotationKeyToolType] = annotationValueToolTypeGenerateRPCRequest
 		annotations[annotationKeyGRPCService] = string(methodDescriptor.Parent().FullName())
