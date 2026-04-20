@@ -133,6 +133,9 @@ message Session {
 
     // Service account identity for programmatic access
     ServiceAccountIdentity service_account_identity = 4;
+
+    // Anonymous identity for public method access
+    AnonymousIdentity anonymous_identity = 8;
   }
 
   // An authorized session does not get checked again method permissions.
@@ -160,6 +163,9 @@ message Session {
   // and context for logging and auditing purposes.
   SessionMetadata metadata = 7;
 }
+
+// Identity for unauthenticated callers accessing public methods.
+message AnonymousIdentity {}
 
 // Identity of a human user
 message UserIdentity {

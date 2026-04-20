@@ -254,6 +254,9 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 
 	// Add identity-specific fields
 	switch identity := session.Identity.(type) {
+	case *authenticationpb.Session_AnonymousIdentity:
+		fields = append(fields, "session_type", "anonymous")
+
 	case *authenticationpb.Session_UserIdentity:
 		fields = append(fields, "session_type", "user")
 		if identity.UserIdentity.OrganizationId != "" {

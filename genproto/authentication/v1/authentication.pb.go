@@ -580,6 +580,7 @@ type Session struct {
 	//
 	//	*Session_UserIdentity
 	//	*Session_ServiceAccountIdentity
+	//	*Session_AnonymousIdentity
 	Identity isSession_Identity `protobuf_oneof:"identity"`
 	// An authorized session does not get checked again method permissions.
 	// We only check at edges entry point.
@@ -660,6 +661,15 @@ func (x *Session) GetServiceAccountIdentity() *ServiceAccountIdentity {
 	return nil
 }
 
+func (x *Session) GetAnonymousIdentity() *AnonymousIdentity {
+	if x != nil {
+		if x, ok := x.Identity.(*Session_AnonymousIdentity); ok {
+			return x.AnonymousIdentity
+		}
+	}
+	return nil
+}
+
 func (x *Session) GetAuthorized() bool {
 	if x != nil {
 		return x.Authorized
@@ -705,6 +715,14 @@ func (x *Session) SetServiceAccountIdentity(v *ServiceAccountIdentity) {
 	x.Identity = &Session_ServiceAccountIdentity{v}
 }
 
+func (x *Session) SetAnonymousIdentity(v *AnonymousIdentity) {
+	if v == nil {
+		x.Identity = nil
+		return
+	}
+	x.Identity = &Session_AnonymousIdentity{v}
+}
+
 func (x *Session) SetAuthorized(v bool) {
 	x.Authorized = v
 }
@@ -747,6 +765,14 @@ func (x *Session) HasServiceAccountIdentity() bool {
 	return ok
 }
 
+func (x *Session) HasAnonymousIdentity() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Identity.(*Session_AnonymousIdentity)
+	return ok
+}
+
 func (x *Session) HasMetadata() bool {
 	if x == nil {
 		return false
@@ -774,6 +800,12 @@ func (x *Session) ClearServiceAccountIdentity() {
 	}
 }
 
+func (x *Session) ClearAnonymousIdentity() {
+	if _, ok := x.Identity.(*Session_AnonymousIdentity); ok {
+		x.Identity = nil
+	}
+}
+
 func (x *Session) ClearMetadata() {
 	x.Metadata = nil
 }
@@ -781,6 +813,7 @@ func (x *Session) ClearMetadata() {
 const Session_Identity_not_set_case case_Session_Identity = 0
 const Session_UserIdentity_case case_Session_Identity = 3
 const Session_ServiceAccountIdentity_case case_Session_Identity = 4
+const Session_AnonymousIdentity_case case_Session_Identity = 8
 
 func (x *Session) WhichIdentity() case_Session_Identity {
 	if x == nil {
@@ -791,6 +824,8 @@ func (x *Session) WhichIdentity() case_Session_Identity {
 		return Session_UserIdentity_case
 	case *Session_ServiceAccountIdentity:
 		return Session_ServiceAccountIdentity_case
+	case *Session_AnonymousIdentity:
+		return Session_AnonymousIdentity_case
 	default:
 		return Session_Identity_not_set_case
 	}
@@ -810,6 +845,8 @@ type Session_builder struct {
 	UserIdentity *UserIdentity
 	// Service account identity for programmatic access
 	ServiceAccountIdentity *ServiceAccountIdentity
+	// Anonymous identity for public method access
+	AnonymousIdentity *AnonymousIdentity
 	// -- end of Identity
 	// An authorized session does not get checked again method permissions.
 	// We only check at edges entry point.
@@ -835,6 +872,9 @@ func (b0 Session_builder) Build() *Session {
 	}
 	if b.ServiceAccountIdentity != nil {
 		x.Identity = &Session_ServiceAccountIdentity{b.ServiceAccountIdentity}
+	}
+	if b.AnonymousIdentity != nil {
+		x.Identity = &Session_AnonymousIdentity{b.AnonymousIdentity}
 	}
 	x.Authorized = b.Authorized
 	x.Labels = b.Labels
@@ -866,9 +906,60 @@ type Session_ServiceAccountIdentity struct {
 	ServiceAccountIdentity *ServiceAccountIdentity `protobuf:"bytes,4,opt,name=service_account_identity,json=serviceAccountIdentity,proto3,oneof"`
 }
 
+type Session_AnonymousIdentity struct {
+	// Anonymous identity for public method access
+	AnonymousIdentity *AnonymousIdentity `protobuf:"bytes,8,opt,name=anonymous_identity,json=anonymousIdentity,proto3,oneof"`
+}
+
 func (*Session_UserIdentity) isSession_Identity() {}
 
 func (*Session_ServiceAccountIdentity) isSession_Identity() {}
+
+func (*Session_AnonymousIdentity) isSession_Identity() {}
+
+// Identity for unauthenticated callers accessing public methods.
+type AnonymousIdentity struct {
+	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnonymousIdentity) Reset() {
+	*x = AnonymousIdentity{}
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnonymousIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnonymousIdentity) ProtoMessage() {}
+
+func (x *AnonymousIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type AnonymousIdentity_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 AnonymousIdentity_builder) Build() *AnonymousIdentity {
+	m0 := &AnonymousIdentity{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
 
 // Identity of a human user
 type UserIdentity struct {
@@ -883,7 +974,7 @@ type UserIdentity struct {
 
 func (x *UserIdentity) Reset() {
 	*x = UserIdentity{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -895,7 +986,7 @@ func (x *UserIdentity) String() string {
 func (*UserIdentity) ProtoMessage() {}
 
 func (x *UserIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -959,7 +1050,7 @@ type ServiceAccountIdentity struct {
 
 func (x *ServiceAccountIdentity) Reset() {
 	*x = ServiceAccountIdentity{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -971,7 +1062,7 @@ func (x *ServiceAccountIdentity) String() string {
 func (*ServiceAccountIdentity) ProtoMessage() {}
 
 func (x *ServiceAccountIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1136,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1057,7 +1148,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1271,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1192,7 +1283,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1287,13 +1378,14 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x05scope\x18\x04 \x01(\tR\x05scope\"k\n" +
 	"\rSignedSession\x12<\n" +
 	"\asession\x18\x01 \x01(\v2\".malonaz.authentication.v1.SessionR\asession\x12\x1c\n" +
-	"\tsignature\x18\x02 \x01(\fR\tsignature\"\x9b\x05\n" +
+	"\tsignature\x18\x02 \x01(\fR\tsignature\"\xfa\x05\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12N\n" +
 	"\ruser_identity\x18\x03 \x01(\v2'.malonaz.authentication.v1.UserIdentityH\x00R\fuserIdentity\x12m\n" +
-	"\x18service_account_identity\x18\x04 \x01(\v21.malonaz.authentication.v1.ServiceAccountIdentityH\x00R\x16serviceAccountIdentity\x12\x1e\n" +
+	"\x18service_account_identity\x18\x04 \x01(\v21.malonaz.authentication.v1.ServiceAccountIdentityH\x00R\x16serviceAccountIdentity\x12]\n" +
+	"\x12anonymous_identity\x18\b \x01(\v2,.malonaz.authentication.v1.AnonymousIdentityH\x00R\x11anonymousIdentity\x12\x1e\n" +
 	"\n" +
 	"authorized\x18\x05 \x01(\bR\n" +
 	"authorized\x12\xd4\x01\n" +
@@ -1303,7 +1395,8 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
-	"\bidentity\"P\n" +
+	"\bidentity\"\x13\n" +
+	"\x11AnonymousIdentity\"P\n" +
 	"\fUserIdentity\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xb3\x01\n" +
@@ -1329,7 +1422,7 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"%SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE\x10\x02B4Z2github.com/malonaz/core/genproto/authentication/v1b\x06proto3"
 
 var file_malonaz_authentication_v1_authentication_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(ServiceAccountType)(0),             // 0: malonaz.authentication.v1.ServiceAccountType
 	(*PermissionConfiguration)(nil),     // 1: malonaz.authentication.v1.PermissionConfiguration
@@ -1338,33 +1431,35 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(*Role)(nil),                        // 4: malonaz.authentication.v1.Role
 	(*SignedSession)(nil),               // 5: malonaz.authentication.v1.SignedSession
 	(*Session)(nil),                     // 6: malonaz.authentication.v1.Session
-	(*UserIdentity)(nil),                // 7: malonaz.authentication.v1.UserIdentity
-	(*ServiceAccountIdentity)(nil),      // 8: malonaz.authentication.v1.ServiceAccountIdentity
-	(*SessionMetadata)(nil),             // 9: malonaz.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),               // 10: malonaz.authentication.v1.ClientVersion
-	nil,                                 // 11: malonaz.authentication.v1.ServiceAccount.LabelsEntry
-	nil,                                 // 12: malonaz.authentication.v1.Session.LabelsEntry
-	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
+	(*AnonymousIdentity)(nil),           // 7: malonaz.authentication.v1.AnonymousIdentity
+	(*UserIdentity)(nil),                // 8: malonaz.authentication.v1.UserIdentity
+	(*ServiceAccountIdentity)(nil),      // 9: malonaz.authentication.v1.ServiceAccountIdentity
+	(*SessionMetadata)(nil),             // 10: malonaz.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),               // 11: malonaz.authentication.v1.ClientVersion
+	nil,                                 // 12: malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	nil,                                 // 13: malonaz.authentication.v1.Session.LabelsEntry
+	(*timestamppb.Timestamp)(nil),       // 14: google.protobuf.Timestamp
 }
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
 	3,  // 0: malonaz.authentication.v1.PermissionConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	4,  // 1: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
 	3,  // 2: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	0,  // 3: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	11, // 4: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	12, // 4: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
 	6,  // 5: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
-	13, // 6: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
-	7,  // 7: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
-	8,  // 8: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
-	12, // 9: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
-	9,  // 10: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
-	0,  // 11: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	10, // 12: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	14, // 6: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	8,  // 7: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
+	9,  // 8: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
+	7,  // 9: malonaz.authentication.v1.Session.anonymous_identity:type_name -> malonaz.authentication.v1.AnonymousIdentity
+	13, // 10: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
+	10, // 11: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
+	0,  // 12: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	11, // 13: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_authentication_v1_authentication_proto_init() }
@@ -1375,6 +1470,7 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 	file_malonaz_authentication_v1_authentication_proto_msgTypes[5].OneofWrappers = []any{
 		(*Session_UserIdentity)(nil),
 		(*Session_ServiceAccountIdentity)(nil),
+		(*Session_AnonymousIdentity)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1382,7 +1478,7 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_authentication_v1_authentication_proto_rawDesc), len(file_malonaz_authentication_v1_authentication_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -147,7 +148,7 @@ func NewPermissionAuthenticationInterceptor(
 func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticationpb.Role, visited map[string]bool) (map[string]struct{}, error) {
 	// Prevent infinite loops in case of circular inheritance
 	if visited[roleID] {
-		return nil, nil
+		return nil, fmt.Errorf("circular role inheritance detected: role %q", roleID)
 	}
 	visited[roleID] = true
 
@@ -178,15 +179,35 @@ func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticat
 }
 
 func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
-	if _, ok := i.publicMethodSet[fullMethod]; ok {
-		return ctx, nil
-	}
-
-	// Grab the session and verify its signature.
 	signedSession, err := getSignedSessionFromLocalContext(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error()).Err()
+		if !errors.Is(err, ErrSignedSessionNotFound) {
+			return nil, status.Errorf(codes.Internal, "getting signed session from local context: %v", err).Err()
+		}
+
+		// If no session is present, instantiate an anonymous session.
+		sessionMetadata, err := extractSessionMetadataFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		session := &authenticationpb.Session{
+			Identity: &authenticationpb.Session_AnonymousIdentity{
+				AnonymousIdentity: &authenticationpb.AnonymousIdentity{},
+			},
+			Metadata: sessionMetadata,
+		}
+		signedSession, err = i.sessionManager.sign(session)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "signing session: %v", err).Err()
+		}
+		isUpdate := false
+		ctx, err = i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	// Verify the session signature.
 	ok, err := i.sessionManager.verify(signedSession)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "verifying session: %v", err).Err()
@@ -195,24 +216,28 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		return nil, status.Errorf(codes.Unauthenticated, "invalid session signature").Err()
 	}
 	session := signedSession.Session
-
 	// The session is already authorized, we do not re-check permissions.
 	if session.Authorized {
 		return ctx, nil
 	}
 
-	switch identity := session.GetIdentity().(type) {
-	case *authenticationpb.Session_ServiceAccountIdentity:
-		serviceAccountID := identity.ServiceAccountIdentity.GetServiceAccountId()
-		methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccountID]
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "unknown service account %q", serviceAccountID).Err()
+	// Check the permissions for non public methods.
+	if _, ok := i.publicMethodSet[fullMethod]; !ok {
+		switch identity := session.GetIdentity().(type) {
+		case *authenticationpb.Session_ServiceAccountIdentity:
+			serviceAccountID := identity.ServiceAccountIdentity.GetServiceAccountId()
+			methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccountID]
+			if !ok {
+				return nil, status.Errorf(codes.Unauthenticated, "unknown service account %q", serviceAccountID).Err()
+			}
+			if _, ok := methodSet[fullMethod]; !ok {
+				return nil, status.Errorf(codes.PermissionDenied, "requires permission %q", fullMethod).Err()
+			}
+		case *authenticationpb.Session_AnonymousIdentity:
+			return nil, status.Errorf(codes.Unauthenticated, "requires permission %q", fullMethod).Err()
+		default:
+			return nil, status.Errorf(codes.Unauthenticated, "only service accounts are supported").Err()
 		}
-		if _, ok := methodSet[fullMethod]; !ok {
-			return nil, status.Errorf(codes.PermissionDenied, "requires permission %q", fullMethod).Err()
-		}
-	default:
-		return nil, status.Errorf(codes.Unauthenticated, "only service accounts are supported").Err()
 	}
 
 	// Set the session to authorized, sign it and store it.
