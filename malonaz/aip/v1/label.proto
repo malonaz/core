@@ -14,11 +14,14 @@ message Label {
     pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
   }];
 
+  // Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+  repeated string key_variables = 2;
+
   // Human-readable description of the label's purpose.
-  string description = 2 [(buf.validate.field).required = true];
+  string description = 3 [(buf.validate.field).required = true];
 
   // Optional allowed values. If empty, any value is accepted.
-  repeated string values = 3 [(buf.validate.field).repeated.items.string = {
+  repeated string values = 4 [(buf.validate.field).repeated.items.string = {
     max_len: 63
     pattern: "^[a-z0-9_\\-\\p{L}]*$"
   }];

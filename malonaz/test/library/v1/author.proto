@@ -25,6 +25,18 @@ option (malonaz.codegen.aip.v1.label) = {
   ]
   description: "dummy label"
 };
+option (malonaz.codegen.aip.v1.label) = {
+  key: "library.com/my-label"
+  key_variables: [
+    "category",
+    "type"
+  ]
+  values: [
+    "approved",
+    "rejected"
+  ]
+  description: "dummy label"
+};
 
 // Author represents a book author.
 message Author {

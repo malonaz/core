@@ -28,10 +28,12 @@ type Label struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The label key, e.g. "user.onikisu.com/last-sync".
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+	KeyVariables []string `protobuf:"bytes,2,rep,name=key_variables,json=keyVariables,proto3" json:"key_variables,omitempty"`
 	// Human-readable description of the label's purpose.
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// Optional allowed values. If empty, any value is accepted.
-	Values        []string `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
+	Values        []string `protobuf:"bytes,4,rep,name=values,proto3" json:"values,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -68,6 +70,13 @@ func (x *Label) GetKey() string {
 	return ""
 }
 
+func (x *Label) GetKeyVariables() []string {
+	if x != nil {
+		return x.KeyVariables
+	}
+	return nil
+}
+
 func (x *Label) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -86,6 +95,10 @@ func (x *Label) SetKey(v string) {
 	x.Key = v
 }
 
+func (x *Label) SetKeyVariables(v []string) {
+	x.KeyVariables = v
+}
+
 func (x *Label) SetDescription(v string) {
 	x.Description = v
 }
@@ -99,6 +112,8 @@ type Label_builder struct {
 
 	// The label key, e.g. "user.onikisu.com/last-sync".
 	Key string
+	// Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+	KeyVariables []string
 	// Human-readable description of the label's purpose.
 	Description string
 	// Optional allowed values. If empty, any value is accepted.
@@ -110,6 +125,7 @@ func (b0 Label_builder) Build() *Label {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Key = b.Key
+	x.KeyVariables = b.KeyVariables
 	x.Description = b.Description
 	x.Values = b.Values
 	return m0
@@ -119,11 +135,12 @@ var File_malonaz_aip_v1_label_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_label_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/aip/v1/label.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\xe9\x01\n" +
+	"\x1amalonaz/aip/v1/label.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\x8e\x02\n" +
 	"\x05Label\x12{\n" +
-	"\x03key\x18\x01 \x01(\tBi\xbaHfrd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12(\n" +
-	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x129\n" +
-	"\x06values\x18\x03 \x03(\tB!\xbaH\x1e\x92\x01\x1b\"\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06valuesB)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
+	"\x03key\x18\x01 \x01(\tBi\xbaHfrd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12#\n" +
+	"\rkey_variables\x18\x02 \x03(\tR\fkeyVariables\x12(\n" +
+	"\vdescription\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x129\n" +
+	"\x06values\x18\x04 \x03(\tB!\xbaH\x1e\x92\x01\x1b\"\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06valuesB)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
 
 var file_malonaz_aip_v1_label_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_aip_v1_label_proto_goTypes = []any{

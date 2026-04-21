@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/label.proto.
  */
 export const file_malonaz_aip_v1_label: GenFile = /*@__PURE__*/
-  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEizwEKBUxhYmVsEnYKA2tleRgBIAEoCUJpukhmcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESMQoGdmFsdWVzGAMgAygJQiG6SB6SARsiGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiRCKVonZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate]);
+  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEi5gEKBUxhYmVsEnYKA2tleRgBIAEoCUJpukhmcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kEhUKDWtleV92YXJpYWJsZXMYAiADKAkSGwoLZGVzY3JpcHRpb24YAyABKAlCBrpIA8gBARIxCgZ2YWx1ZXMYBCADKAlCIbpIHpIBGyIZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJEIpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * A label definition declared by a service.
@@ -27,16 +27,23 @@ export type Label = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
+   * Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+   *
+   * @generated from field: repeated string key_variables = 2;
+   */
+  keyVariables: string[];
+
+  /**
    * Human-readable description of the label's purpose.
    *
-   * @generated from field: string description = 2;
+   * @generated from field: string description = 3;
    */
   description: string;
 
   /**
    * Optional allowed values. If empty, any value is accepted.
    *
-   * @generated from field: repeated string values = 3;
+   * @generated from field: repeated string values = 4;
    */
   values: string[];
 };
@@ -55,16 +62,23 @@ export type LabelValid = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
+   * Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+   *
+   * @generated from field: repeated string key_variables = 2;
+   */
+  keyVariables: string[];
+
+  /**
    * Human-readable description of the label's purpose.
    *
-   * @generated from field: string description = 2;
+   * @generated from field: string description = 3;
    */
   description: string;
 
   /**
    * Optional allowed values. If empty, any value is accepted.
    *
-   * @generated from field: repeated string values = 3;
+   * @generated from field: repeated string values = 4;
    */
   values: string[];
 };

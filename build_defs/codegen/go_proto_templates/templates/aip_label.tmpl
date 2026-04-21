@@ -1,3 +1,4 @@
+// file: /home/malon/core/build_defs/codegen/go_proto_templates/templates/aip_label.tmpl
 {{- $file := .File -}}
 {{- $labels := getExt $file.Desc "malonaz.codegen.aip.v1.label" -}}
 {{- if not $labels }}{{ skipGeneration }}{{ end -}}
@@ -10,7 +11,7 @@ package {{ .PackageName }}
     {{- if contains "/" .Key }}{{ $goName = last (splitList "/" .Key) }}{{ end }}
     {{- $goName = $goName | replace "-" "_" | camelcase }}
     type Label{{ $goName }} struct {
-    Key string
+    GetKey func({{ range $i, $v := .KeyVariables }}{{ if $i }}, {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }} string{{ end }}) string
     {{- range .Values }}
         {{ . | replace "-" "_" | camelcase }} string
     {{- end }}
@@ -32,7 +33,13 @@ var Labels = LabelSet{
     {{- if contains "/" .Key }}{{ $goName = last (splitList "/" .Key) }}{{ end }}
     {{- $goName = $goName | replace "-" "_" | camelcase }}
     {{ $goName }}: Label{{ $goName }}{
-    Key: "{{ .Key }}",
+    GetKey: func({{ range $i, $v := .KeyVariables }}{{ if $i }}, {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }} string{{ end }}) string {
+    {{- if .KeyVariables }}
+        return "{{ .Key }}" + "." + {{ range $i, $v := .KeyVariables }}{{ if $i }} + "." + {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }}{{ end }}
+    {{- else }}
+        return "{{ .Key }}"
+    {{- end }}
+    },
     {{- range .Values }}
         {{ . | replace "-" "_" | camelcase }}: "{{ . }}",
     {{- end }}
