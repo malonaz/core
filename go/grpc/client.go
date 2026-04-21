@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/grpc/middleware"
@@ -197,6 +198,19 @@ func (c *Connection) HealthCheckFn(service string) health.Check {
 		}
 		return nil
 	}
+}
+
+// WithMetadata adds a static metadata key-value pair to every unary and stream call.
+func (c *Connection) WithMetadata(key, value string) *Connection {
+	c.unaryInterceptors = append(c.unaryInterceptors, func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		ctx = metadata.AppendToOutgoingContext(ctx, key, value)
+		return invoker(ctx, method, req, reply, cc, opts...)
+	})
+	c.streamInterceptors = append(c.streamInterceptors, func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		ctx = metadata.AppendToOutgoingContext(ctx, key, value)
+		return streamer(ctx, desc, cc, method, opts...)
+	})
+	return c
 }
 
 var kuberesolverMutex sync.Mutex // kuberesolver's Register function is not thread safe.
