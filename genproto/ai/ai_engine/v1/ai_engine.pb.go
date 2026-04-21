@@ -422,7 +422,7 @@ func (x *ParseToolCallResponse) GetDiscovery() *v1.ToolCallDiscovery {
 	return nil
 }
 
-func (x *ParseToolCallResponse) GetRpc() *v1.ToolCallRPC {
+func (x *ParseToolCallResponse) GetRpc() *v1.ToolCallRpc {
 	if x != nil {
 		if x, ok := x.Result.(*ParseToolCallResponse_Rpc); ok {
 			return x.Rpc
@@ -447,7 +447,7 @@ func (x *ParseToolCallResponse) SetDiscovery(v *v1.ToolCallDiscovery) {
 	x.Result = &ParseToolCallResponse_Discovery{v}
 }
 
-func (x *ParseToolCallResponse) SetRpc(v *v1.ToolCallRPC) {
+func (x *ParseToolCallResponse) SetRpc(v *v1.ToolCallRpc) {
 	if v == nil {
 		x.Result = nil
 		return
@@ -540,7 +540,7 @@ type ParseToolCallResponse_builder struct {
 	// A request to discover additional tools from a tool set.
 	Discovery *v1.ToolCallDiscovery
 	// A request to execute a gRPC method.
-	Rpc *v1.ToolCallRPC
+	Rpc *v1.ToolCallRpc
 	// -- end of Result
 }
 
@@ -586,7 +586,7 @@ type ParseToolCallResponse_Discovery struct {
 
 type ParseToolCallResponse_Rpc struct {
 	// A request to execute a gRPC method.
-	Rpc *v1.ToolCallRPC `protobuf:"bytes,3,opt,name=rpc,proto3,oneof"`
+	Rpc *v1.ToolCallRpc `protobuf:"bytes,3,opt,name=rpc,proto3,oneof"`
 }
 
 func (*ParseToolCallResponse_Message) isParseToolCallResponse_Result() {}
@@ -906,7 +906,7 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x15ParseToolCallResponse\x123\n" +
 	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12@\n" +
 	"\tdiscovery\x18\x02 \x01(\v2 .malonaz.ai.v1.ToolCallDiscoveryH\x00R\tdiscovery\x12.\n" +
-	"\x03rpc\x18\x03 \x01(\v2\x1a.malonaz.ai.v1.ToolCallRPCH\x00R\x03rpcB\b\n" +
+	"\x03rpc\x18\x03 \x01(\v2\x1a.malonaz.ai.v1.ToolCallRpcH\x00R\x03rpcB\b\n" +
 	"\x06result\"\x95\x01\n" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
@@ -947,7 +947,7 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*v1.ToolSet)(nil),                    // 11: malonaz.ai.v1.ToolSet
 	(*structpb.Struct)(nil),               // 12: google.protobuf.Struct
 	(*v1.ToolCallDiscovery)(nil),          // 13: malonaz.ai.v1.ToolCallDiscovery
-	(*v1.ToolCallRPC)(nil),                // 14: malonaz.ai.v1.ToolCallRPC
+	(*v1.ToolCallRpc)(nil),                // 14: malonaz.ai.v1.ToolCallRpc
 	(*v1.Tool)(nil),                       // 15: malonaz.ai.v1.Tool
 	(*v1.ToolResult)(nil),                 // 16: malonaz.ai.v1.ToolResult
 }
@@ -960,7 +960,7 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	11, // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
 	12, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
 	13, // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discovery:type_name -> malonaz.ai.v1.ToolCallDiscovery
-	14, // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc:type_name -> malonaz.ai.v1.ToolCallRPC
+	14, // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc:type_name -> malonaz.ai.v1.ToolCallRpc
 	15, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
 	9,  // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.v1.ToolSetSchemaConfiguration
 	7,  // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry

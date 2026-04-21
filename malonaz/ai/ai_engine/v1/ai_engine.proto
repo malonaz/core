@@ -95,7 +95,7 @@ message ParseToolCallResponse {
     // A request to discover additional tools from a tool set.
     ai.v1.ToolCallDiscovery discovery = 2;
     // A request to execute a gRPC method.
-    ai.v1.ToolCallRPC rpc = 3;
+    ai.v1.ToolCallRpc rpc = 3;
   }
 }
 

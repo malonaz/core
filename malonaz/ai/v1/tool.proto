@@ -157,7 +157,7 @@ message ToolCallDiscovery {
 }
 
 // A parsed tool call representing a request to execute a gRPC method.
-message ToolCallRPC {
+message ToolCallRpc {
   // The full name of the service (e.g. "malonaz.ai.v1.AiEngine").
   string service_full_name = 1;
   // The full name of the method (e.g. "malonaz.ai.v1.AiEngine.CreateTool").
