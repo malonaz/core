@@ -156,7 +156,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	schemaOptions = append(schemaOptions, pbjson.WithMaxDepth(maxDepth))
 
 	switch target := request.GetDescriptorReference().GetFullName().(type) {
-	case *aipb.DescriptorReference_Method:
+	case *pb.DescriptorReference_Method:
 		descriptorFullName = protoreflect.FullName(target.Method)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
@@ -182,7 +182,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 			schemaOptions = append(schemaOptions, pbjson.WithResponseSchemaMaxDepth(int(responseSchemaMaxDepth)))
 		}
 
-	case *aipb.DescriptorReference_Message:
+	case *pb.DescriptorReference_Message:
 		descriptorFullName = protoreflect.FullName(target.Message)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
@@ -481,7 +481,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	var tools []*aipb.Tool
 	toolNameToDiscoverTimestamp := map[string]int64{}
 	if len(request.MethodNameToSchemaConfiguration) == 0 {
-		request.MethodNameToSchemaConfiguration = map[string]*aipb.ToolSetSchemaConfiguration{}
+		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
 	}
 	for _, methodName := range request.MethodNames {
 		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
@@ -489,8 +489,8 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			schemaConfiguration = request.SchemaConfiguration
 		}
 		createToolRequest := &pb.CreateToolRequest{
-			DescriptorReference: &aipb.DescriptorReference{
-				FullName: &aipb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
+			DescriptorReference: &pb.DescriptorReference{
+				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
 			},
 			SchemaConfiguration: schemaConfiguration,
 		}

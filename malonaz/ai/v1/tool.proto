@@ -124,30 +124,6 @@ message ToolSet {
   map<string, int64> tool_name_to_discover_timestamp = 4;
 }
 
-// Configuration for a tool set schema.
-message ToolSetSchemaConfiguration {
-  // Control which field are included in the tool schema.
-  google.protobuf.FieldMask field_mask = 1;
-
-  // Set a max depth for the schema (defaults to 5).
-  int32 with_max_depth = 2 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 10
-  }];
-
-  // (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
-  // return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
-  // rather than being returned tool results with fields it does not need.
-  bool with_response_read_mask = 3;
-
-  // (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
-  // This can be quite verbose so use with care.
-  int32 with_response_schema_max_depth = 4 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 10
-  }];
-}
-
 // A parsed tool call representing a request to discover tools from a tool set.
 message ToolCallDiscovery {
   // Name of the tool set to discover tools from.
@@ -166,16 +142,4 @@ message ToolCallRpc {
   google.protobuf.Struct request = 3;
   // Optional field mask to filter which fields are included in the response.
   google.protobuf.FieldMask read_mask = 4;
-}
-
-// A reference to a protobuf descriptor.
-message DescriptorReference {
-  // The descriptor full name.
-  oneof full_name {
-    option (buf.validate.oneof).required = true;
-    // The fully qualified name of the message.
-    string message = 1;
-    // The fully qualified name of the method.
-    string method = 2;
-  }
 }

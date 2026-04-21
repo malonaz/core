@@ -7,9 +7,9 @@ import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_client } from "../../../../google/api/client_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { StructSchema } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
-import type { DescriptorReference, DescriptorReferenceValid, Tool, ToolCall, ToolCallDiscovery, ToolCallRpc, ToolCallValid, ToolResult, ToolResultValid, ToolSchema, ToolSet, ToolSetSchema, ToolSetSchemaConfiguration, ToolSetSchemaConfigurationValid, ToolSetValid, ToolValid } from "../../v1/tool_pb";
+import type { FieldMask, StructSchema } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_field_mask, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Tool, ToolCall, ToolCallDiscovery, ToolCallRpc, ToolCallValid, ToolResult, ToolResultValid, ToolSchema, ToolSet, ToolSetSchema, ToolSetValid, ToolValid } from "../../v1/tool_pb";
 import { file_malonaz_ai_v1_tool } from "../../v1/tool_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
 
@@ -17,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_engine/v1/ai_engine.proto.
  */
 export const file_malonaz_ai_ai_engine_v1_ai_engine: GenFile = /*@__PURE__*/
-  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxIs4EChZHZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0EkgKFGRlc2NyaXB0b3JfcmVmZXJlbmNlGAEgASgLMiIubWFsb25hei5haS52MS5EZXNjcmlwdG9yUmVmZXJlbmNlQga6SAPIAQESKAoFbW9kZWwYAiABKAlCGfpBFgoUYWkubWFsb25hei5jb20vTW9kZWwSDgoGcHJvbXB0GAMgASgJEkcKFHNjaGVtYV9jb25maWd1cmF0aW9uGAQgASgLMikubWFsb25hei5haS52MS5Ub29sU2V0U2NoZW1hQ29uZmlndXJhdGlvbjrmArpI4gIa3wIKHXNjaGVtYV9jb25maWdfcmVxdWlyZXNfbWV0aG9kElR3aXRoX3Jlc3BvbnNlX3JlYWRfbWFzayBhbmQgd2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoIHJlcXVpcmUgbWV0aG9kIGRlc2NyaXB0b3Ia5wEoIWhhcyh0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uKSB8fCAoIXRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9yZWFkX21hc2sgJiYgdGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbi53aXRoX3Jlc3BvbnNlX3NjaGVtYV9tYXhfZGVwdGggPT0gMCkpIHx8IChoYXModGhpcy5kZXNjcmlwdG9yX3JlZmVyZW5jZSkgJiYgaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UubWV0aG9kKSkijwQKEUNyZWF0ZVRvb2xSZXF1ZXN0EkgKFGRlc2NyaXB0b3JfcmVmZXJlbmNlGAEgASgLMiIubWFsb25hei5haS52MS5EZXNjcmlwdG9yUmVmZXJlbmNlQga6SAPIAQESRwoUc2NoZW1hX2NvbmZpZ3VyYXRpb24YAiABKAsyKS5tYWxvbmF6LmFpLnYxLlRvb2xTZXRTY2hlbWFDb25maWd1cmF0aW9uOuYCukjiAhrfAgodc2NoZW1hX2NvbmZpZ19yZXF1aXJlc19tZXRob2QSVHdpdGhfcmVzcG9uc2VfcmVhZF9tYXNrIGFuZCB3aXRoX3Jlc3BvbnNlX3NjaGVtYV9tYXhfZGVwdGggcmVxdWlyZSBtZXRob2QgZGVzY3JpcHRvchrnASghaGFzKHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24pIHx8ICghdGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbi53aXRoX3Jlc3BvbnNlX3JlYWRfbWFzayAmJiB0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCA9PSAwKSkgfHwgKGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlKSAmJiBoYXModGhpcy5kZXNjcmlwdG9yX3JlZmVyZW5jZS5tZXRob2QpKSJ1ChRQYXJzZVRvb2xDYWxsUmVxdWVzdBIyCgl0b29sX2NhbGwYASABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsQga6SAPIAQESKQoJdG9vbF9zZXRzGAIgAygLMhYubWFsb25hei5haS52MS5Ub29sU2V0Iq8BChVQYXJzZVRvb2xDYWxsUmVzcG9uc2USKgoHbWVzc2FnZRgBIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RIABI1CglkaXNjb3ZlcnkYAiABKAsyIC5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsRGlzY292ZXJ5SAASKQoDcnBjGAMgASgLMhoubWFsb25hei5haS52MS5Ub29sQ2FsbFJwY0gAQggKBnJlc3VsdCJ7ChpDcmVhdGVEaXNjb3ZlcnlUb29sUmVxdWVzdBIUCgRuYW1lGAEgASgJQga6SAPIAQESGwoLZGVzY3JpcHRpb24YAiABKAlCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBIpsDChtDcmVhdGVTZXJ2aWNlVG9vbFNldFJlcXVlc3QSIQoRc2VydmljZV9mdWxsX25hbWUYASABKAlCBrpIA8gBARIUCgxtZXRob2RfbmFtZXMYAiADKAkSRwoUc2NoZW1hX2NvbmZpZ3VyYXRpb24YAyABKAsyKS5tYWxvbmF6LmFpLnYxLlRvb2xTZXRTY2hlbWFDb25maWd1cmF0aW9uEoYBCiNtZXRob2RfbmFtZV90b19zY2hlbWFfY29uZmlndXJhdGlvbhgEIAMoCzJZLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdC5NZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkacQokTWV0aG9kTmFtZVRvU2NoZW1hQ29uZmlndXJhdGlvbkVudHJ5EgsKA2tleRgBIAEoCRI4CgV2YWx1ZRgCIAEoCzIpLm1hbG9uYXouYWkudjEuVG9vbFNldFNjaGVtYUNvbmZpZ3VyYXRpb246AjgBIlcKHVBhcnNlVG9vbENhbGxSZWNvdmVyYWJsZUVycm9yEjYKC3Rvb2xfcmVzdWx0GAEgASgLMhkubWFsb25hei5haS52MS5Ub29sUmVzdWx0Qga6SAPIAQEygAQKCEFpRW5naW5lElsKD0dlbmVyYXRlTWVzc2FnZRIvLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QaFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ek0KCkNyZWF0ZVRvb2wSKi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbBJuCg1QYXJzZVRvb2xDYWxsEi0ubWFsb25hei5haS5haV9lbmdpbmUudjEuUGFyc2VUb29sQ2FsbFJlcXVlc3QaLi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5QYXJzZVRvb2xDYWxsUmVzcG9uc2USXwoTQ3JlYXRlRGlzY292ZXJ5VG9vbBIzLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0GhMubWFsb25hei5haS52MS5Ub29sEmQKFENyZWF0ZVNlcnZpY2VUb29sU2V0EjQubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0GhYubWFsb25hei5haS52MS5Ub29sU2V0GhHKQQ5haS5tYWxvbmF6LmNvbUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9lbmdpbmUvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_client, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_tool]);
+  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxItsEChZHZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0ElIKFGRlc2NyaXB0b3JfcmVmZXJlbmNlGAEgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuRGVzY3JpcHRvclJlZmVyZW5jZUIGukgDyAEBEigKBW1vZGVsGAIgASgJQhn6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsEg4KBnByb21wdBgDIAEoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgEIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpIpwEChFDcmVhdGVUb29sUmVxdWVzdBJSChRkZXNjcmlwdG9yX3JlZmVyZW5jZRgBIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkRlc2NyaXB0b3JSZWZlcmVuY2VCBrpIA8gBARJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpInUKFFBhcnNlVG9vbENhbGxSZXF1ZXN0EjIKCXRvb2xfY2FsbBgBIAEoCzIXLm1hbG9uYXouYWkudjEuVG9vbENhbGxCBrpIA8gBARIpCgl0b29sX3NldHMYAiADKAsyFi5tYWxvbmF6LmFpLnYxLlRvb2xTZXQirwEKFVBhcnNlVG9vbENhbGxSZXNwb25zZRIqCgdtZXNzYWdlGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEgAEjUKCWRpc2NvdmVyeRgCIAEoCzIgLm1hbG9uYXouYWkudjEuVG9vbENhbGxEaXNjb3ZlcnlIABIpCgNycGMYAyABKAsyGi5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsUnBjSABCCAoGcmVzdWx0InsKGkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0EhQKBG5hbWUYASABKAlCBrpIA8gBARIbCgtkZXNjcmlwdGlvbhgCIAEoCUIGukgDyAEBEioKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sQga6SAPIAQEioQMKG0NyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBIhChFzZXJ2aWNlX2Z1bGxfbmFtZRgBIAEoCUIGukgDyAEBEhQKDG1ldGhvZF9uYW1lcxgCIAMoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgDIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb24ShgEKI21ldGhvZF9uYW1lX3RvX3NjaGVtYV9jb25maWd1cmF0aW9uGAQgAygLMlkubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0Lk1ldGhvZE5hbWVUb1NjaGVtYUNvbmZpZ3VyYXRpb25FbnRyeRp0CiRNZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkSCwoDa2V5GAEgASgJEjsKBXZhbHVlGAIgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuU2NoZW1hQ29uZmlndXJhdGlvbjoCOAEiVwodUGFyc2VUb29sQ2FsbFJlY292ZXJhYmxlRXJyb3ISNgoLdG9vbF9yZXN1bHQYASABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCBrpIA8gBASK8AQoTU2NoZW1hQ29uZmlndXJhdGlvbhIuCgpmaWVsZF9tYXNrGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzaxIhCg53aXRoX21heF9kZXB0aBgCIAEoBUIJukgGGgQYCigAEh8KF3dpdGhfcmVzcG9uc2VfcmVhZF9tYXNrGAMgASgIEjEKHndpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aBgEIAEoBUIJukgGGgQYCigAIk4KE0Rlc2NyaXB0b3JSZWZlcmVuY2USEQoHbWVzc2FnZRgBIAEoCUgAEhAKBm1ldGhvZBgCIAEoCUgAQhIKCWZ1bGxfbmFtZRIFukgCCAEygAQKCEFpRW5naW5lElsKD0dlbmVyYXRlTWVzc2FnZRIvLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QaFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ek0KCkNyZWF0ZVRvb2wSKi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbBJuCg1QYXJzZVRvb2xDYWxsEi0ubWFsb25hei5haS5haV9lbmdpbmUudjEuUGFyc2VUb29sQ2FsbFJlcXVlc3QaLi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5QYXJzZVRvb2xDYWxsUmVzcG9uc2USXwoTQ3JlYXRlRGlzY292ZXJ5VG9vbBIzLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0GhMubWFsb25hei5haS52MS5Ub29sEmQKFENyZWF0ZVNlcnZpY2VUb29sU2V0EjQubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0GhYubWFsb25hei5haS52MS5Ub29sU2V0GhHKQQ5haS5tYWxvbmF6LmNvbUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9lbmdpbmUvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_client, file_google_api_resource, file_google_protobuf_field_mask, file_google_protobuf_struct, file_malonaz_ai_v1_tool]);
 
 /**
  * Request message for AiEngine.GenerateMessage.
@@ -28,7 +28,7 @@ export type GenerateMessageRequest = Message<"malonaz.ai.ai_engine.v1.GenerateMe
   /**
    * The descriptor reference for the message to generate.
    *
-   * @generated from field: malonaz.ai.v1.DescriptorReference descriptor_reference = 1;
+   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
    */
   descriptorReference?: DescriptorReference;
 
@@ -50,9 +50,9 @@ export type GenerateMessageRequest = Message<"malonaz.ai.ai_engine.v1.GenerateMe
   /**
    * Configuration for the schema.
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 4;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 4;
    */
-  schemaConfiguration?: ToolSetSchemaConfiguration;
+  schemaConfiguration?: SchemaConfiguration;
 };
 
 /**
@@ -64,7 +64,7 @@ export type GenerateMessageRequestValid = Message<"malonaz.ai.ai_engine.v1.Gener
   /**
    * The descriptor reference for the message to generate.
    *
-   * @generated from field: malonaz.ai.v1.DescriptorReference descriptor_reference = 1;
+   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
    */
   descriptorReference: DescriptorReferenceValid;
 
@@ -86,9 +86,9 @@ export type GenerateMessageRequestValid = Message<"malonaz.ai.ai_engine.v1.Gener
   /**
    * Configuration for the schema.
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 4;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 4;
    */
-  schemaConfiguration?: ToolSetSchemaConfigurationValid;
+  schemaConfiguration?: SchemaConfigurationValid;
 };
 
 /**
@@ -107,16 +107,16 @@ export type CreateToolRequest = Message<"malonaz.ai.ai_engine.v1.CreateToolReque
   /**
    * The descriptor reference for which to create a tool.
    *
-   * @generated from field: malonaz.ai.v1.DescriptorReference descriptor_reference = 1;
+   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
    */
   descriptorReference?: DescriptorReference;
 
   /**
    * Configuration for the schema.
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 2;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 2;
    */
-  schemaConfiguration?: ToolSetSchemaConfiguration;
+  schemaConfiguration?: SchemaConfiguration;
 };
 
 /**
@@ -128,16 +128,16 @@ export type CreateToolRequestValid = Message<"malonaz.ai.ai_engine.v1.CreateTool
   /**
    * The descriptor reference for which to create a tool.
    *
-   * @generated from field: malonaz.ai.v1.DescriptorReference descriptor_reference = 1;
+   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
    */
   descriptorReference: DescriptorReferenceValid;
 
   /**
    * Configuration for the schema.
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 2;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 2;
    */
-  schemaConfiguration?: ToolSetSchemaConfigurationValid;
+  schemaConfiguration?: SchemaConfigurationValid;
 };
 
 /**
@@ -344,16 +344,16 @@ export type CreateServiceToolSetRequest = Message<"malonaz.ai.ai_engine.v1.Creat
   /**
    * Configuration for the schema (applies to all tools created).
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 3;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 3;
    */
-  schemaConfiguration?: ToolSetSchemaConfiguration;
+  schemaConfiguration?: SchemaConfiguration;
 
   /**
    * Set a specific schema configuration for a method.
    *
-   * @generated from field: map<string, malonaz.ai.v1.ToolSetSchemaConfiguration> method_name_to_schema_configuration = 4;
+   * @generated from field: map<string, malonaz.ai.ai_engine.v1.SchemaConfiguration> method_name_to_schema_configuration = 4;
    */
-  methodNameToSchemaConfiguration: { [key: string]: ToolSetSchemaConfiguration };
+  methodNameToSchemaConfiguration: { [key: string]: SchemaConfiguration };
 };
 
 /**
@@ -382,16 +382,16 @@ export type CreateServiceToolSetRequestValid = Message<"malonaz.ai.ai_engine.v1.
   /**
    * Configuration for the schema (applies to all tools created).
    *
-   * @generated from field: malonaz.ai.v1.ToolSetSchemaConfiguration schema_configuration = 3;
+   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 3;
    */
-  schemaConfiguration?: ToolSetSchemaConfigurationValid;
+  schemaConfiguration?: SchemaConfigurationValid;
 
   /**
    * Set a specific schema configuration for a method.
    *
-   * @generated from field: map<string, malonaz.ai.v1.ToolSetSchemaConfiguration> method_name_to_schema_configuration = 4;
+   * @generated from field: map<string, malonaz.ai.ai_engine.v1.SchemaConfiguration> method_name_to_schema_configuration = 4;
    */
-  methodNameToSchemaConfiguration: { [key: string]: ToolSetSchemaConfigurationValid };
+  methodNameToSchemaConfiguration: { [key: string]: SchemaConfigurationValid };
 };
 
 /**
@@ -437,6 +437,92 @@ export type ParseToolCallRecoverableErrorValid = Message<"malonaz.ai.ai_engine.v
  */
 export const ParseToolCallRecoverableErrorSchema: GenMessage<ParseToolCallRecoverableError, {validType: ParseToolCallRecoverableErrorValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 6);
+
+/**
+ * Configuration for a tool set schema.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.SchemaConfiguration
+ */
+export type SchemaConfiguration = Message<"malonaz.ai.ai_engine.v1.SchemaConfiguration"> & {
+  /**
+   * Control which field are included in the tool schema.
+   *
+   * @generated from field: google.protobuf.FieldMask field_mask = 1;
+   */
+  fieldMask?: FieldMask;
+
+  /**
+   * Set a max depth for the schema (defaults to 5).
+   *
+   * @generated from field: int32 with_max_depth = 2;
+   */
+  withMaxDepth: number;
+
+  /**
+   * (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
+   * return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
+   * rather than being returned tool results with fields it does not need.
+   *
+   * @generated from field: bool with_response_read_mask = 3;
+   */
+  withResponseReadMask: boolean;
+
+  /**
+   * (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
+   * This can be quite verbose so use with care.
+   *
+   * @generated from field: int32 with_response_schema_max_depth = 4;
+   */
+  withResponseSchemaMaxDepth: number;
+};
+
+export type SchemaConfigurationValid = SchemaConfiguration;
+
+/**
+ * Describes the message malonaz.ai.ai_engine.v1.SchemaConfiguration.
+ * Use `create(SchemaConfigurationSchema)` to create a new message.
+ */
+export const SchemaConfigurationSchema: GenMessage<SchemaConfiguration, {validType: SchemaConfigurationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
+
+/**
+ * A reference to a protobuf descriptor.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.DescriptorReference
+ */
+export type DescriptorReference = Message<"malonaz.ai.ai_engine.v1.DescriptorReference"> & {
+  /**
+   * The descriptor full name.
+   *
+   * @generated from oneof malonaz.ai.ai_engine.v1.DescriptorReference.full_name
+   */
+  fullName: {
+    /**
+     * The fully qualified name of the message.
+     *
+     * @generated from field: string message = 1;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * The fully qualified name of the method.
+     *
+     * @generated from field: string method = 2;
+     */
+    value: string;
+    case: "method";
+  } | { case: undefined; value?: undefined };
+};
+
+export type DescriptorReferenceValid = DescriptorReference;
+
+/**
+ * Describes the message malonaz.ai.ai_engine.v1.DescriptorReference.
+ * Use `create(DescriptorReferenceSchema)` to create a new message.
+ */
+export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validType: DescriptorReferenceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 8);
 
 /**
  * This API represents an AI Engine service for structured message generation.

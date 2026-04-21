@@ -17,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/tool.proto.
  */
 export const file_malonaz_ai_v1_tool: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIpsCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK0AQoKVG9vbFJlc3VsdBIRCgl0b29sX25hbWUYASABKAkSFAoMdG9vbF9jYWxsX2lkGAIgASgJEhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSABCDwoGcmVzdWx0EgW6SAIIASLpAQoKVG9vbENob2ljZRI3CgRtb2RlGAEgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2hvaWNlTW9kZUIIukgFggECEAFIABITCgl0b29sX25hbWUYAiABKAlIADp8ukh5GncKJWFpLnYxLlRvb2xDaG9pY2UubW9kZV9ub3RfdW5zcGVjaWZpZWQSK21vZGUgY2Fubm90IGJlIFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQaISFoYXModGhpcy5tb2RlKSB8fCB0aGlzLm1vZGUgIT0gMEIPCgZjaG9pY2USBbpIAggBIp4CCgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBEmAKH3Rvb2xfbmFtZV90b19kaXNjb3Zlcl90aW1lc3RhbXAYBCADKAsyNy5tYWxvbmF6LmFpLnYxLlRvb2xTZXQuVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkaQgogVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASLDAQoaVG9vbFNldFNjaGVtYUNvbmZpZ3VyYXRpb24SLgoKZmllbGRfbWFzaxgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2sSIQoOd2l0aF9tYXhfZGVwdGgYAiABKAVCCbpIBhoEGAooABIfChd3aXRoX3Jlc3BvbnNlX3JlYWRfbWFzaxgDIAEoCBIxCh53aXRoX3Jlc3BvbnNlX3NjaGVtYV9tYXhfZGVwdGgYBCABKAVCCbpIBhoEGAooACI+ChFUb29sQ2FsbERpc2NvdmVyeRIVCg10b29sX3NldF9uYW1lGAEgASgJEhIKCnRvb2xfbmFtZXMYAiADKAkimwEKC1Rvb2xDYWxsUnBjEhkKEXNlcnZpY2VfZnVsbF9uYW1lGAEgASgJEhgKEG1ldGhvZF9mdWxsX25hbWUYAiABKAkSKAoHcmVxdWVzdBgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSLQoJcmVhZF9tYXNrGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayJOChNEZXNjcmlwdG9yUmVmZXJlbmNlEhEKB21lc3NhZ2UYASABKAlIABIQCgZtZXRob2QYAiABKAlIAEISCglmdWxsX25hbWUSBbpIAggBKocBCg5Ub29sQ2hvaWNlTW9kZRIgChxUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEEAASGQoVVE9PTF9DSE9JQ0VfTU9ERV9OT05FEAESGQoVVE9PTF9DSE9JQ0VfTU9ERV9BVVRPEAISHQoZVE9PTF9DSE9JQ0VfTU9ERV9SRVFVSVJFRBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIpsCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK0AQoKVG9vbFJlc3VsdBIRCgl0b29sX25hbWUYASABKAkSFAoMdG9vbF9jYWxsX2lkGAIgASgJEhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSABCDwoGcmVzdWx0EgW6SAIIASLpAQoKVG9vbENob2ljZRI3CgRtb2RlGAEgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2hvaWNlTW9kZUIIukgFggECEAFIABITCgl0b29sX25hbWUYAiABKAlIADp8ukh5GncKJWFpLnYxLlRvb2xDaG9pY2UubW9kZV9ub3RfdW5zcGVjaWZpZWQSK21vZGUgY2Fubm90IGJlIFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQaISFoYXModGhpcy5tb2RlKSB8fCB0aGlzLm1vZGUgIT0gMEIPCgZjaG9pY2USBbpIAggBIp4CCgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBEmAKH3Rvb2xfbmFtZV90b19kaXNjb3Zlcl90aW1lc3RhbXAYBCADKAsyNy5tYWxvbmF6LmFpLnYxLlRvb2xTZXQuVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkaQgogVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASI+ChFUb29sQ2FsbERpc2NvdmVyeRIVCg10b29sX3NldF9uYW1lGAEgASgJEhIKCnRvb2xfbmFtZXMYAiADKAkimwEKC1Rvb2xDYWxsUnBjEhkKEXNlcnZpY2VfZnVsbF9uYW1lGAEgASgJEhgKEG1ldGhvZF9mdWxsX25hbWUYAiABKAkSKAoHcmVxdWVzdBgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSLQoJcmVhZF9tYXNrGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayqHAQoOVG9vbENob2ljZU1vZGUSIAocVE9PTF9DSE9JQ0VfTU9ERV9VTlNQRUNJRklFRBAAEhkKFVRPT0xfQ0hPSUNFX01PREVfTk9ORRABEhkKFVRPT0xfQ0hPSUNFX01PREVfQVVUTxACEh0KGVRPT0xfQ0hPSUNFX01PREVfUkVRVUlSRUQQA0IoWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
 
 /**
  * Represents a tool that can be called by the AI model.
@@ -384,53 +384,6 @@ export const ToolSetSchema: GenMessage<ToolSet, {validType: ToolSetValid}> = /*@
   messageDesc(file_malonaz_ai_v1_tool, 4);
 
 /**
- * Configuration for a tool set schema.
- *
- * @generated from message malonaz.ai.v1.ToolSetSchemaConfiguration
- */
-export type ToolSetSchemaConfiguration = Message<"malonaz.ai.v1.ToolSetSchemaConfiguration"> & {
-  /**
-   * Control which field are included in the tool schema.
-   *
-   * @generated from field: google.protobuf.FieldMask field_mask = 1;
-   */
-  fieldMask?: FieldMask;
-
-  /**
-   * Set a max depth for the schema (defaults to 5).
-   *
-   * @generated from field: int32 with_max_depth = 2;
-   */
-  withMaxDepth: number;
-
-  /**
-   * (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
-   * return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
-   * rather than being returned tool results with fields it does not need.
-   *
-   * @generated from field: bool with_response_read_mask = 3;
-   */
-  withResponseReadMask: boolean;
-
-  /**
-   * (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
-   * This can be quite verbose so use with care.
-   *
-   * @generated from field: int32 with_response_schema_max_depth = 4;
-   */
-  withResponseSchemaMaxDepth: number;
-};
-
-export type ToolSetSchemaConfigurationValid = ToolSetSchemaConfiguration;
-
-/**
- * Describes the message malonaz.ai.v1.ToolSetSchemaConfiguration.
- * Use `create(ToolSetSchemaConfigurationSchema)` to create a new message.
- */
-export const ToolSetSchemaConfigurationSchema: GenMessage<ToolSetSchemaConfiguration, {validType: ToolSetSchemaConfigurationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_tool, 5);
-
-/**
  * A parsed tool call representing a request to discover tools from a tool set.
  *
  * @generated from message malonaz.ai.v1.ToolCallDiscovery
@@ -458,7 +411,7 @@ export type ToolCallDiscoveryValid = ToolCallDiscovery;
  * Use `create(ToolCallDiscoverySchema)` to create a new message.
  */
 export const ToolCallDiscoverySchema: GenMessage<ToolCallDiscovery, {validType: ToolCallDiscoveryValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_tool, 6);
+  messageDesc(file_malonaz_ai_v1_tool, 5);
 
 /**
  * A parsed tool call representing a request to execute a gRPC method.
@@ -502,46 +455,7 @@ export type ToolCallRpcValid = ToolCallRpc;
  * Use `create(ToolCallRpcSchema)` to create a new message.
  */
 export const ToolCallRpcSchema: GenMessage<ToolCallRpc, {validType: ToolCallRpcValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_tool, 7);
-
-/**
- * A reference to a protobuf descriptor.
- *
- * @generated from message malonaz.ai.v1.DescriptorReference
- */
-export type DescriptorReference = Message<"malonaz.ai.v1.DescriptorReference"> & {
-  /**
-   * The descriptor full name.
-   *
-   * @generated from oneof malonaz.ai.v1.DescriptorReference.full_name
-   */
-  fullName: {
-    /**
-     * The fully qualified name of the message.
-     *
-     * @generated from field: string message = 1;
-     */
-    value: string;
-    case: "message";
-  } | {
-    /**
-     * The fully qualified name of the method.
-     *
-     * @generated from field: string method = 2;
-     */
-    value: string;
-    case: "method";
-  } | { case: undefined; value?: undefined };
-};
-
-export type DescriptorReferenceValid = DescriptorReference;
-
-/**
- * Describes the message malonaz.ai.v1.DescriptorReference.
- * Use `create(DescriptorReferenceSchema)` to create a new message.
- */
-export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validType: DescriptorReferenceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_tool, 8);
+  messageDesc(file_malonaz_ai_v1_tool, 6);
 
 /**
  * Mode for tool choice.
