@@ -32,7 +32,7 @@ go_library(
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/proto:google__api__annotations",

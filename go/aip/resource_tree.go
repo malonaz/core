@@ -12,7 +12,7 @@ import (
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
@@ -377,11 +377,7 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_STRING}})
 
 	case protoreflect.EnumKind:
-		enumType, err := protoregistry.GlobalTypes.FindEnumByName(fieldDesc.Enum().FullName())
-		if err != nil {
-			return fmt.Errorf("finding enum type %s: %w", fieldDesc.Enum().FullName(), err)
-		}
-		node.EnumType = enumType
+		node.EnumType = dynamicpb.NewEnumType(fieldDesc.Enum())
 
 	case protoreflect.MessageKind:
 		if fieldDesc.IsMap() {
