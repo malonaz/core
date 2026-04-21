@@ -432,10 +432,9 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x0eAuthorMetadata\x12\x18\n" +
 	"\acountry\x18\x01 \x01(\tR\acountry\x12>\n" +
 	"\x0femail_addresses\x18\x02 \x03(\tB\x15\xbaH\f\xd8\x01\x01\x92\x01\x06\"\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\x0eemailAddresses\x12+\n" +
-	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\x9e\x02\xeaAb\n" +
+	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\x83\x02\xeaAb\n" +
 	"%library.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\x92\x95\x158\n" +
-	"\x15library.com/my-status\x1a\vdummy label\"\bapproved\"\brejected\x92\x95\x15G\n" +
-	"\x14library.com/my-label\x12\bcategory\x12\x04type\x1a\vdummy label\"\bapproved\"\brejectedZ0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\x15library.com/my-status\x1a\vdummy label\"\bapproved\"\brejected\x92\x95\x15,\x12\x1dlibrary.com/{category}.{type}\x1a\vdummy labelZ0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
 var file_malonaz_test_library_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_test_library_v1_author_proto_goTypes = []any{

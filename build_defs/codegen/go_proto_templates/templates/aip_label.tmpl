@@ -1,4 +1,3 @@
-// file: /home/malon/core/build_defs/codegen/go_proto_templates/templates/aip_label.tmpl
 {{- $file := .File -}}
 {{- $labels := getExt $file.Desc "malonaz.codegen.aip.v1.label" -}}
 {{- if not $labels }}{{ skipGeneration }}{{ end -}}
@@ -6,41 +5,100 @@
 // source: {{ $file.Desc.Path }}
 package {{ .PackageName }}
 
-{{- range $labels }}
-    {{- $goName := .Key }}
-    {{- if contains "/" .Key }}{{ $goName = last (splitList "/" .Key) }}{{ end }}
-    {{- $goName = $goName | replace "-" "_" | camelcase }}
+{{- range $label := $labels }}
+    {{- $key := $label.Key }}
+    {{- $dynamicKey := $label.DynamicKey }}
+    {{- $isDynamic := ne $dynamicKey "" }}
+    {{- $vars := list }}
+    {{- if $isDynamic }}
+        {{- if ne $key "" }}{{ fail (printf "label: key and dynamic_key are mutually exclusive, got key=%q dynamic_key=%q" $key $dynamicKey) }}{{ end }}
+        {{- $vars = regexFindAll "\\{([^}]+)\\}" $dynamicKey -1 }}
+        {{- if not $vars }}{{ fail (printf "label %q: dynamic_key must contain at least one {variable} placeholder" $dynamicKey) }}{{ end }}
+        {{- $key = $dynamicKey }}
+    {{- end }}
+    {{- $goName := "" }}
+    {{- if $isDynamic }}
+        {{- $parts := list }}
+        {{- range $vars }}
+            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
+        {{- end }}
+        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
+    {{- else }}
+        {{- $goName = $key }}
+        {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
+        {{- $goName = $goName | replace "-" "_" | replace "." "_" | camelcase }}
+    {{- end }}
     type Label{{ $goName }} struct {
-    GetKey func({{ range $i, $v := .KeyVariables }}{{ if $i }}, {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }} string{{ end }}) string
-    {{- range .Values }}
+    GetKey func({{ range $i, $v := $vars }}{{ if $i }}, {{ end }}_{{ trimPrefix "{" $v | trimSuffix "}" | replace "-" "_" | camelcase | untitle }} string{{ end }}) string
+    {{- range $label.Values }}
         {{ . | replace "-" "_" | camelcase }} string
     {{- end }}
     }
 {{- end }}
 
 type LabelSet struct {
-{{- range $labels }}
-    {{- $goName := .Key }}
-    {{- if contains "/" .Key }}{{ $goName = last (splitList "/" .Key) }}{{ end }}
-    {{- $goName = $goName | replace "-" "_" | camelcase }}
+{{- range $label := $labels }}
+    {{- $key := $label.Key }}
+    {{- $dynamicKey := $label.DynamicKey }}
+    {{- $isDynamic := ne $dynamicKey "" }}
+    {{- $vars := list }}
+    {{- if $isDynamic }}
+        {{- $vars = regexFindAll "\\{([^}]+)\\}" $dynamicKey -1 }}
+        {{- $key = $dynamicKey }}
+    {{- end }}
+    {{- $goName := "" }}
+    {{- if $isDynamic }}
+        {{- $parts := list }}
+        {{- range $vars }}
+            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
+        {{- end }}
+        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
+    {{- else }}
+        {{- $goName = $key }}
+        {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
+        {{- $goName = $goName | replace "-" "_" | replace "." "_" | camelcase }}
+    {{- end }}
     {{ $goName }} Label{{ $goName }}
 {{- end }}
 }
 
 var Labels = LabelSet{
-{{- range $labels }}
-    {{- $goName := .Key }}
-    {{- if contains "/" .Key }}{{ $goName = last (splitList "/" .Key) }}{{ end }}
-    {{- $goName = $goName | replace "-" "_" | camelcase }}
-    {{ $goName }}: Label{{ $goName }}{
-    GetKey: func({{ range $i, $v := .KeyVariables }}{{ if $i }}, {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }} string{{ end }}) string {
-    {{- if .KeyVariables }}
-        return "{{ .Key }}" + "." + {{ range $i, $v := .KeyVariables }}{{ if $i }} + "." + {{ end }}_{{ $v | replace "-" "_" | camelcase | untitle }}{{ end }}
+{{- range $label := $labels }}
+    {{- $key := $label.Key }}
+    {{- $dynamicKey := $label.DynamicKey }}
+    {{- $isDynamic := ne $dynamicKey "" }}
+    {{- $vars := list }}
+    {{- if $isDynamic }}
+        {{- $vars = regexFindAll "\\{([^}]+)\\}" $dynamicKey -1 }}
+        {{- $key = $dynamicKey }}
+    {{- end }}
+    {{- $goName := "" }}
+    {{- if $isDynamic }}
+        {{- $parts := list }}
+        {{- range $vars }}
+            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
+        {{- end }}
+        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
     {{- else }}
-        return "{{ .Key }}"
+        {{- $goName = $key }}
+        {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
+        {{- $goName = $goName | replace "-" "_" | replace "." "_" | camelcase }}
+    {{- end }}
+    {{ $goName }}: Label{{ $goName }}{
+    GetKey: func({{ range $i, $v := $vars }}{{ if $i }}, {{ end }}_{{ trimPrefix "{" $v | trimSuffix "}" | replace "-" "_" | camelcase | untitle }} string{{ end }}) string {
+    {{- if $isDynamic }}
+        {{- $expr := $key }}
+        {{- range $vars }}
+            {{- $varName := trimPrefix "{" . | trimSuffix "}" }}
+            {{- $argName := printf "\" + _%s + \"" ($varName | replace "-" "_" | camelcase | untitle) }}
+            {{- $expr = replace . $argName $expr }}
+        {{- end }}
+        return "{{ $expr }}"
+    {{- else }}
+        return "{{ $key }}"
     {{- end }}
     },
-    {{- range .Values }}
+    {{- range $label.Values }}
         {{ . | replace "-" "_" | camelcase }}: "{{ . }}",
     {{- end }}
     },

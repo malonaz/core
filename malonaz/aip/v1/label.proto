@@ -8,14 +8,30 @@ option go_package = "github.com/malonaz/core/genproto/aip/v1";
 
 // A label definition declared by a service.
 message Label {
-  // The label key, e.g. "user.onikisu.com/last-sync".
-  string key = 1 [(buf.validate.field).string = {
-    min_len: 1
-    pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
-  }];
+  option (buf.validate.message).cel = {
+    id: "label.key_or_dynamic_key"
+    expression: "this.key != '' || this.dynamic_key != ''"
+    message: "either key or dynamic_key must be set"
+  };
 
-  // Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
-  repeated string key_variables = 2;
+  // The label key, e.g. "user.onikisu.com/last-sync".
+  string key = 1 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
+    }
+  ];
+
+  // Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
+  // These will be used in GetKey function, in the order they appear in the key.
+  string dynamic_key = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/\\{[a-zA-Z0-9_]+\\}(\\.\\{[a-zA-Z0-9_]+\\})*$"
+    }
+  ];
 
   // Human-readable description of the label's purpose.
   string description = 3 [(buf.validate.field).required = true];

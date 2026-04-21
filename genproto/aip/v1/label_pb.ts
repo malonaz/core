@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/label.proto.
  */
 export const file_malonaz_aip_v1_label: GenFile = /*@__PURE__*/
-  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEi5gEKBUxhYmVsEnYKA2tleRgBIAEoCUJpukhmcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kEhUKDWtleV92YXJpYWJsZXMYAiADKAkSGwoLZGVzY3JpcHRpb24YAyABKAlCBrpIA8gBARIxCgZ2YWx1ZXMYBCADKAlCIbpIHpIBGyIZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJEIpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
+  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEivgMKBUxhYmVsEnkKA2tleRgBIAEoCUJsukhpcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8k2AEBEngKC2R5bmFtaWNfa2V5GAIgASgJQmO6SGByWxABMldeW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/L1x7W2EtekEtWjAtOV9dK1x9KFwuXHtbYS16QS1aMC05X10rXH0pKiTYAQESGwoLZGVzY3JpcHRpb24YAyABKAlCBrpIA8gBARIxCgZ2YWx1ZXMYBCADKAlCIbpIHpIBGyIZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJDpwukhtGmsKGGxhYmVsLmtleV9vcl9keW5hbWljX2tleRIlZWl0aGVyIGtleSBvciBkeW5hbWljX2tleSBtdXN0IGJlIHNldBoodGhpcy5rZXkgIT0gJycgfHwgdGhpcy5keW5hbWljX2tleSAhPSAnJ0IpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * A label definition declared by a service.
@@ -27,11 +27,12 @@ export type Label = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
-   * Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+   * Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
+   * These will be used in GetKey function, in the order they appear in the key.
    *
-   * @generated from field: repeated string key_variables = 2;
+   * @generated from field: string dynamic_key = 2;
    */
-  keyVariables: string[];
+  dynamicKey: string;
 
   /**
    * Human-readable description of the label's purpose.
@@ -62,11 +63,12 @@ export type LabelValid = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
-   * Indicates that this key is dynamic. Order matters. Joined using `.` and appended after key.
+   * Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
+   * These will be used in GetKey function, in the order they appear in the key.
    *
-   * @generated from field: repeated string key_variables = 2;
+   * @generated from field: string dynamic_key = 2;
    */
-  keyVariables: string[];
+  dynamicKey: string;
 
   /**
    * Human-readable description of the label's purpose.
