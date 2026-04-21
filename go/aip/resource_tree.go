@@ -402,6 +402,9 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 			switch msgFullName {
 			case "google.protobuf.Timestamp":
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}})
+				// Skip well-known wrapper/recursive types that cause combinatorial explosion.
+			case "google.protobuf.Struct", "google.protobuf.Value", "google.protobuf.ListValue",
+				"google.protobuf.Any":
 			default:
 				if fieldOpts.GetAsJsonBytes() || depth > 0 {
 					elemType := &v1alpha1.Type{

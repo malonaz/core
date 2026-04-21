@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
@@ -23,11 +24,15 @@ const (
 )
 
 var (
-	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
-	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
-	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
-	dateFullName      = (&date.Date{}).ProtoReflect().Descriptor().FullName()
-	timeOfDayFullName = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
+	timestampFullName  = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	durationFullName   = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
+	fieldMaskFullName  = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
+	dateFullName       = (&date.Date{}).ProtoReflect().Descriptor().FullName()
+	timeOfDayFullName  = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
+	structFullName     = (&structpb.Struct{}).ProtoReflect().Descriptor().FullName()
+	valueFullName      = (&structpb.Value{}).ProtoReflect().Descriptor().FullName()
+	listValueFullName  = (&structpb.ListValue{}).ProtoReflect().Descriptor().FullName()
+	jsonSchemaFullName = (&jsonpb.Schema{}).ProtoReflect().Descriptor().FullName()
 )
 
 type SchemaBuilder struct {
@@ -165,6 +170,14 @@ func (b *SchemaBuilder) buildMessageSchema(
 		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}, nil
 	case timeOfDayFullName:
 		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}, nil
+	case structFullName:
+		return &jsonpb.Schema{Type: "object", Description: "JSON object (google.protobuf.Struct)"}, nil
+	case valueFullName:
+		return &jsonpb.Schema{Description: "JSON value (google.protobuf.Value)"}, nil
+	case listValueFullName:
+		return &jsonpb.Schema{Type: "array", Description: "JSON array (google.protobuf.ListValue)"}, nil
+	case jsonSchemaFullName:
+		return &jsonpb.Schema{Type: "object", Description: "JSON Schema object"}, nil
 	}
 
 	properties := make(map[string]*jsonpb.Schema)
