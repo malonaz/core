@@ -21,7 +21,6 @@ grpc_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/library/library_service/v1",
         GENERATE_GO_NATS: True,
-        GENERATE_GO_AIP_LABEL: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,

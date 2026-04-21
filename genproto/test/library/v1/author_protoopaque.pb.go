@@ -11,6 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/canonicalize/v1"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -404,7 +405,7 @@ var File_malonaz_test_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfb\a\n" +
+	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfb\a\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -431,8 +432,9 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x0eAuthorMetadata\x12\x18\n" +
 	"\acountry\x18\x01 \x01(\tR\acountry\x12>\n" +
 	"\x0femail_addresses\x18\x02 \x03(\tB\x15\xbaH\f\xd8\x01\x01\x92\x01\x06\"\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\x0eemailAddresses\x12+\n" +
-	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\x97\x01\xeaAb\n" +
-	"%library.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganizationZ0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\xd3\x01\xeaAb\n" +
+	"%library.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\x92\x95\x158\n" +
+	"\x15library.com/my-status\x12\vdummy label\x1a\bapproved\x1a\brejectedZ0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
 var file_malonaz_test_library_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_test_library_v1_author_proto_goTypes = []any{

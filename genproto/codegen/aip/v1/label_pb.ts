@@ -4,7 +4,7 @@
 
 import type { GenExtension, GenFile } from "@bufbuild/protobuf/codegenv2";
 import { extDesc, fileDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ServiceOptions } from "@bufbuild/protobuf/wkt";
+import type { FileOptions } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_descriptor } from "@bufbuild/protobuf/wkt";
 import type { Label } from "../../../aip/v1/label_pb";
 import { file_malonaz_aip_v1_label } from "../../../aip/v1/label_pb";
@@ -13,13 +13,13 @@ import { file_malonaz_aip_v1_label } from "../../../aip/v1/label_pb";
  * Describes the file malonaz/codegen/aip/v1/label.proto.
  */
 export const file_malonaz_codegen_aip_v1_label: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2xhYmVsLnByb3RvEhZtYWxvbmF6LmNvZGVnZW4uYWlwLnYxOk4KBWxhYmVsEh8uZ29vZ2xlLnByb3RvYnVmLlNlcnZpY2VPcHRpb25zGNHSAiADKAsyFS5tYWxvbmF6LmFpcC52MS5MYWJlbFIFbGFiZWxCMVovZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9haXAvdjFiBnByb3RvMw", [file_google_protobuf_descriptor, file_malonaz_aip_v1_label]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2xhYmVsLnByb3RvEhZtYWxvbmF6LmNvZGVnZW4uYWlwLnYxOksKBWxhYmVsEhwuZ29vZ2xlLnByb3RvYnVmLkZpbGVPcHRpb25zGNLSAiADKAsyFS5tYWxvbmF6LmFpcC52MS5MYWJlbFIFbGFiZWxCMVovZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9haXAvdjFiBnByb3RvMw", [file_google_protobuf_descriptor, file_malonaz_aip_v1_label]);
 
 /**
- * Labels that a service defines and uses.
+ * Labels that a package defines and uses.
  *
- * @generated from extension: repeated malonaz.aip.v1.Label label = 43345;
+ * @generated from extension: repeated malonaz.aip.v1.Label label = 43346;
  */
-export const label: GenExtension<ServiceOptions, Label[]> = /*@__PURE__*/
+export const label: GenExtension<FileOptions, Label[]> = /*@__PURE__*/
   extDesc(file_malonaz_codegen_aip_v1_label, 0);
 

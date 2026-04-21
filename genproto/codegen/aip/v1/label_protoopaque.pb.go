@@ -26,20 +26,20 @@ const (
 
 var file_malonaz_codegen_aip_v1_label_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
-		ExtendedType:  (*descriptorpb.ServiceOptions)(nil),
+		ExtendedType:  (*descriptorpb.FileOptions)(nil),
 		ExtensionType: ([]*v1.Label)(nil),
-		Field:         43345,
+		Field:         43346,
 		Name:          "malonaz.codegen.aip.v1.label",
-		Tag:           "bytes,43345,rep,name=label",
+		Tag:           "bytes,43346,rep,name=label",
 		Filename:      "malonaz/codegen/aip/v1/label.proto",
 	},
 }
 
-// Extension fields to descriptorpb.ServiceOptions.
+// Extension fields to descriptorpb.FileOptions.
 var (
-	// Labels that a service defines and uses.
+	// Labels that a package defines and uses.
 	//
-	// repeated malonaz.aip.v1.Label label = 43345;
+	// repeated malonaz.aip.v1.Label label = 43346;
 	E_Label = &file_malonaz_codegen_aip_v1_label_proto_extTypes[0]
 )
 
@@ -47,15 +47,15 @@ var File_malonaz_codegen_aip_v1_label_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_aip_v1_label_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/aip/v1/label.proto\x12\x16malonaz.codegen.aip.v1\x1a google/protobuf/descriptor.proto\x1a\x1amalonaz/aip/v1/label.proto:N\n" +
-	"\x05label\x12\x1f.google.protobuf.ServiceOptions\x18\xd1\xd2\x02 \x03(\v2\x15.malonaz.aip.v1.LabelR\x05labelB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
+	"\"malonaz/codegen/aip/v1/label.proto\x12\x16malonaz.codegen.aip.v1\x1a google/protobuf/descriptor.proto\x1a\x1amalonaz/aip/v1/label.proto:K\n" +
+	"\x05label\x12\x1c.google.protobuf.FileOptions\x18\xd2\xd2\x02 \x03(\v2\x15.malonaz.aip.v1.LabelR\x05labelB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
 
 var file_malonaz_codegen_aip_v1_label_proto_goTypes = []any{
-	(*descriptorpb.ServiceOptions)(nil), // 0: google.protobuf.ServiceOptions
-	(*v1.Label)(nil),                    // 1: malonaz.aip.v1.Label
+	(*descriptorpb.FileOptions)(nil), // 0: google.protobuf.FileOptions
+	(*v1.Label)(nil),                 // 1: malonaz.aip.v1.Label
 }
 var file_malonaz_codegen_aip_v1_label_proto_depIdxs = []int32{
-	0, // 0: malonaz.codegen.aip.v1.label:extendee -> google.protobuf.ServiceOptions
+	0, // 0: malonaz.codegen.aip.v1.label:extendee -> google.protobuf.FileOptions
 	1, // 1: malonaz.codegen.aip.v1.label:type_name -> malonaz.aip.v1.Label
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type

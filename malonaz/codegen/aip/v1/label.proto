@@ -7,7 +7,7 @@ import "malonaz/aip/v1/label.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
 
-extend google.protobuf.ServiceOptions {
-  // Labels that a service defines and uses.
-  repeated malonaz.aip.v1.Label label = 43345;
+extend google.protobuf.FileOptions {
+  // Labels that a package defines and uses.
+  repeated malonaz.aip.v1.Label label = 43346;
 }

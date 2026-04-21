@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "author.pb.go",
         "author_aip.go",
+        "author_aip_label.pb.go",
         "book.pb.go",
         "book_aip.go",
         "shelf.pb.go",

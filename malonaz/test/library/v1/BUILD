@@ -19,6 +19,7 @@ proto_library(
     additional_context = {
         GENERATE_GO_AIP: True,
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/library/v1",
+        GENERATE_GO_AIP_LABEL: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,

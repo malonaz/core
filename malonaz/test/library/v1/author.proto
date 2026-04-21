@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
+import "malonaz/codegen/aip/v1/label.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
@@ -15,6 +16,14 @@ option (google.api.resource_definition) = {
   pattern: "organizations/{organization}"
   singular: "organization"
   plural: "organizations"
+};
+option (malonaz.codegen.aip.v1.label) = {
+  key: "library.com/my-status"
+  values: [
+    "approved",
+    "rejected"
+  ]
+  description: "dummy label"
 };
 
 // Author represents a book author.
