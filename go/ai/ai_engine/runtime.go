@@ -272,8 +272,8 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		}
 
 		return &pb.ParseToolCallResponse{
-			Result: &pb.ParseToolCallResponse_ToolDiscoveryCall{
-				ToolDiscoveryCall: &aipb.ToolDiscoveryCall{
+			Result: &pb.ParseToolCallResponse_Discovery{
+				Discovery: &aipb.ToolCallDiscovery{
 					ToolSetName: targetToolSet.GetName(),
 					ToolNames:   toolNames,
 				},
@@ -316,8 +316,8 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		fieldMask, _ := pbjson.GetResponseFieldMask(toolCall.GetArguments().AsMap())
 
 		return &pb.ParseToolCallResponse{
-			Result: &pb.ParseToolCallResponse_RpcCall{
-				RpcCall: &aipb.RpcCall{
+			Result: &pb.ParseToolCallResponse_Rpc{
+				Rpc: &aipb.ToolCallRPC{
 					ServiceFullName: serviceFullName,
 					MethodFullName:  methodFullName,
 					Request:         request,
@@ -399,8 +399,8 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	}
 
 	switch result := parseToolCallResponse.GetResult().(type) {
-	case *pb.ParseToolCallResponse_RpcCall:
-		return result.RpcCall.GetRequest(), nil
+	case *pb.ParseToolCallResponse_Rpc:
+		return result.Rpc.GetRequest(), nil
 	case *pb.ParseToolCallResponse_Message:
 		return result.Message, nil
 	default:

@@ -365,8 +365,8 @@ type ParseToolCallResponse struct {
 	// Types that are valid to be assigned to Result:
 	//
 	//	*ParseToolCallResponse_Message
-	//	*ParseToolCallResponse_ToolDiscoveryCall
-	//	*ParseToolCallResponse_RpcCall
+	//	*ParseToolCallResponse_Discovery
+	//	*ParseToolCallResponse_Rpc
 	Result        isParseToolCallResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -413,19 +413,19 @@ func (x *ParseToolCallResponse) GetMessage() *structpb.Struct {
 	return nil
 }
 
-func (x *ParseToolCallResponse) GetToolDiscoveryCall() *v1.ToolDiscoveryCall {
+func (x *ParseToolCallResponse) GetDiscovery() *v1.ToolCallDiscovery {
 	if x != nil {
-		if x, ok := x.Result.(*ParseToolCallResponse_ToolDiscoveryCall); ok {
-			return x.ToolDiscoveryCall
+		if x, ok := x.Result.(*ParseToolCallResponse_Discovery); ok {
+			return x.Discovery
 		}
 	}
 	return nil
 }
 
-func (x *ParseToolCallResponse) GetRpcCall() *v1.RpcCall {
+func (x *ParseToolCallResponse) GetRpc() *v1.ToolCallRPC {
 	if x != nil {
-		if x, ok := x.Result.(*ParseToolCallResponse_RpcCall); ok {
-			return x.RpcCall
+		if x, ok := x.Result.(*ParseToolCallResponse_Rpc); ok {
+			return x.Rpc
 		}
 	}
 	return nil
@@ -439,20 +439,20 @@ func (x *ParseToolCallResponse) SetMessage(v *structpb.Struct) {
 	x.Result = &ParseToolCallResponse_Message{v}
 }
 
-func (x *ParseToolCallResponse) SetToolDiscoveryCall(v *v1.ToolDiscoveryCall) {
+func (x *ParseToolCallResponse) SetDiscovery(v *v1.ToolCallDiscovery) {
 	if v == nil {
 		x.Result = nil
 		return
 	}
-	x.Result = &ParseToolCallResponse_ToolDiscoveryCall{v}
+	x.Result = &ParseToolCallResponse_Discovery{v}
 }
 
-func (x *ParseToolCallResponse) SetRpcCall(v *v1.RpcCall) {
+func (x *ParseToolCallResponse) SetRpc(v *v1.ToolCallRPC) {
 	if v == nil {
 		x.Result = nil
 		return
 	}
-	x.Result = &ParseToolCallResponse_RpcCall{v}
+	x.Result = &ParseToolCallResponse_Rpc{v}
 }
 
 func (x *ParseToolCallResponse) HasResult() bool {
@@ -470,19 +470,19 @@ func (x *ParseToolCallResponse) HasMessage() bool {
 	return ok
 }
 
-func (x *ParseToolCallResponse) HasToolDiscoveryCall() bool {
+func (x *ParseToolCallResponse) HasDiscovery() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Result.(*ParseToolCallResponse_ToolDiscoveryCall)
+	_, ok := x.Result.(*ParseToolCallResponse_Discovery)
 	return ok
 }
 
-func (x *ParseToolCallResponse) HasRpcCall() bool {
+func (x *ParseToolCallResponse) HasRpc() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Result.(*ParseToolCallResponse_RpcCall)
+	_, ok := x.Result.(*ParseToolCallResponse_Rpc)
 	return ok
 }
 
@@ -496,22 +496,22 @@ func (x *ParseToolCallResponse) ClearMessage() {
 	}
 }
 
-func (x *ParseToolCallResponse) ClearToolDiscoveryCall() {
-	if _, ok := x.Result.(*ParseToolCallResponse_ToolDiscoveryCall); ok {
+func (x *ParseToolCallResponse) ClearDiscovery() {
+	if _, ok := x.Result.(*ParseToolCallResponse_Discovery); ok {
 		x.Result = nil
 	}
 }
 
-func (x *ParseToolCallResponse) ClearRpcCall() {
-	if _, ok := x.Result.(*ParseToolCallResponse_RpcCall); ok {
+func (x *ParseToolCallResponse) ClearRpc() {
+	if _, ok := x.Result.(*ParseToolCallResponse_Rpc); ok {
 		x.Result = nil
 	}
 }
 
 const ParseToolCallResponse_Result_not_set_case case_ParseToolCallResponse_Result = 0
 const ParseToolCallResponse_Message_case case_ParseToolCallResponse_Result = 1
-const ParseToolCallResponse_ToolDiscoveryCall_case case_ParseToolCallResponse_Result = 2
-const ParseToolCallResponse_RpcCall_case case_ParseToolCallResponse_Result = 3
+const ParseToolCallResponse_Discovery_case case_ParseToolCallResponse_Result = 2
+const ParseToolCallResponse_Rpc_case case_ParseToolCallResponse_Result = 3
 
 func (x *ParseToolCallResponse) WhichResult() case_ParseToolCallResponse_Result {
 	if x == nil {
@@ -520,10 +520,10 @@ func (x *ParseToolCallResponse) WhichResult() case_ParseToolCallResponse_Result 
 	switch x.Result.(type) {
 	case *ParseToolCallResponse_Message:
 		return ParseToolCallResponse_Message_case
-	case *ParseToolCallResponse_ToolDiscoveryCall:
-		return ParseToolCallResponse_ToolDiscoveryCall_case
-	case *ParseToolCallResponse_RpcCall:
-		return ParseToolCallResponse_RpcCall_case
+	case *ParseToolCallResponse_Discovery:
+		return ParseToolCallResponse_Discovery_case
+	case *ParseToolCallResponse_Rpc:
+		return ParseToolCallResponse_Rpc_case
 	default:
 		return ParseToolCallResponse_Result_not_set_case
 	}
@@ -535,12 +535,12 @@ type ParseToolCallResponse_builder struct {
 	// The parsed result based on the tool call type.
 
 	// Fields of oneof Result:
-	// A generic parsed message when the tool generates a protobuf message.
+	// A generic parsed message.
 	Message *structpb.Struct
 	// A request to discover additional tools from a tool set.
-	ToolDiscoveryCall *v1.ToolDiscoveryCall
-	// A request to execute an RPC method.
-	RpcCall *v1.RpcCall
+	Discovery *v1.ToolCallDiscovery
+	// A request to execute a gRPC method.
+	Rpc *v1.ToolCallRPC
 	// -- end of Result
 }
 
@@ -551,11 +551,11 @@ func (b0 ParseToolCallResponse_builder) Build() *ParseToolCallResponse {
 	if b.Message != nil {
 		x.Result = &ParseToolCallResponse_Message{b.Message}
 	}
-	if b.ToolDiscoveryCall != nil {
-		x.Result = &ParseToolCallResponse_ToolDiscoveryCall{b.ToolDiscoveryCall}
+	if b.Discovery != nil {
+		x.Result = &ParseToolCallResponse_Discovery{b.Discovery}
 	}
-	if b.RpcCall != nil {
-		x.Result = &ParseToolCallResponse_RpcCall{b.RpcCall}
+	if b.Rpc != nil {
+		x.Result = &ParseToolCallResponse_Rpc{b.Rpc}
 	}
 	return m0
 }
@@ -575,25 +575,25 @@ type isParseToolCallResponse_Result interface {
 }
 
 type ParseToolCallResponse_Message struct {
-	// A generic parsed message when the tool generates a protobuf message.
+	// A generic parsed message.
 	Message *structpb.Struct `protobuf:"bytes,1,opt,name=message,proto3,oneof"`
 }
 
-type ParseToolCallResponse_ToolDiscoveryCall struct {
+type ParseToolCallResponse_Discovery struct {
 	// A request to discover additional tools from a tool set.
-	ToolDiscoveryCall *v1.ToolDiscoveryCall `protobuf:"bytes,2,opt,name=tool_discovery_call,json=toolDiscoveryCall,proto3,oneof"`
+	Discovery *v1.ToolCallDiscovery `protobuf:"bytes,2,opt,name=discovery,proto3,oneof"`
 }
 
-type ParseToolCallResponse_RpcCall struct {
-	// A request to execute an RPC method.
-	RpcCall *v1.RpcCall `protobuf:"bytes,3,opt,name=rpc_call,json=rpcCall,proto3,oneof"`
+type ParseToolCallResponse_Rpc struct {
+	// A request to execute a gRPC method.
+	Rpc *v1.ToolCallRPC `protobuf:"bytes,3,opt,name=rpc,proto3,oneof"`
 }
 
 func (*ParseToolCallResponse_Message) isParseToolCallResponse_Result() {}
 
-func (*ParseToolCallResponse_ToolDiscoveryCall) isParseToolCallResponse_Result() {}
+func (*ParseToolCallResponse_Discovery) isParseToolCallResponse_Result() {}
 
-func (*ParseToolCallResponse_RpcCall) isParseToolCallResponse_Result() {}
+func (*ParseToolCallResponse_Rpc) isParseToolCallResponse_Result() {}
 
 // Request message for AiEngine.CreateDiscoveryTool.
 type CreateDiscoveryToolRequest struct {
@@ -902,11 +902,11 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\x89\x01\n" +
 	"\x14ParseToolCallRequest\x12<\n" +
 	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x123\n" +
-	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xdf\x01\n" +
+	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xc8\x01\n" +
 	"\x15ParseToolCallResponse\x123\n" +
-	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12R\n" +
-	"\x13tool_discovery_call\x18\x02 \x01(\v2 .malonaz.ai.v1.ToolDiscoveryCallH\x00R\x11toolDiscoveryCall\x123\n" +
-	"\brpc_call\x18\x03 \x01(\v2\x16.malonaz.ai.v1.RpcCallH\x00R\arpcCallB\b\n" +
+	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12@\n" +
+	"\tdiscovery\x18\x02 \x01(\v2 .malonaz.ai.v1.ToolCallDiscoveryH\x00R\tdiscovery\x12.\n" +
+	"\x03rpc\x18\x03 \x01(\v2\x1a.malonaz.ai.v1.ToolCallRPCH\x00R\x03rpcB\b\n" +
 	"\x06result\"\x95\x01\n" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
@@ -946,8 +946,8 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*v1.ToolCall)(nil),                   // 10: malonaz.ai.v1.ToolCall
 	(*v1.ToolSet)(nil),                    // 11: malonaz.ai.v1.ToolSet
 	(*structpb.Struct)(nil),               // 12: google.protobuf.Struct
-	(*v1.ToolDiscoveryCall)(nil),          // 13: malonaz.ai.v1.ToolDiscoveryCall
-	(*v1.RpcCall)(nil),                    // 14: malonaz.ai.v1.RpcCall
+	(*v1.ToolCallDiscovery)(nil),          // 13: malonaz.ai.v1.ToolCallDiscovery
+	(*v1.ToolCallRPC)(nil),                // 14: malonaz.ai.v1.ToolCallRPC
 	(*v1.Tool)(nil),                       // 15: malonaz.ai.v1.Tool
 	(*v1.ToolResult)(nil),                 // 16: malonaz.ai.v1.ToolResult
 }
@@ -959,8 +959,8 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	10, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
 	11, // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
 	12, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
-	13, // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.tool_discovery_call:type_name -> malonaz.ai.v1.ToolDiscoveryCall
-	14, // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc_call:type_name -> malonaz.ai.v1.RpcCall
+	13, // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discovery:type_name -> malonaz.ai.v1.ToolCallDiscovery
+	14, // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc:type_name -> malonaz.ai.v1.ToolCallRPC
 	15, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
 	9,  // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.v1.ToolSetSchemaConfiguration
 	7,  // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
@@ -990,8 +990,8 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 	}
 	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3].OneofWrappers = []any{
 		(*ParseToolCallResponse_Message)(nil),
-		(*ParseToolCallResponse_ToolDiscoveryCall)(nil),
-		(*ParseToolCallResponse_RpcCall)(nil),
+		(*ParseToolCallResponse_Discovery)(nil),
+		(*ParseToolCallResponse_Rpc)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

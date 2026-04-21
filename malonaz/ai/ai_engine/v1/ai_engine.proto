@@ -90,12 +90,12 @@ message ParseToolCallRequest {
 message ParseToolCallResponse {
   // The parsed result based on the tool call type.
   oneof result {
-    // A generic parsed message when the tool generates a protobuf message.
+    // A generic parsed message.
     google.protobuf.Struct message = 1;
     // A request to discover additional tools from a tool set.
-    ai.v1.ToolDiscoveryCall tool_discovery_call = 2;
-    // A request to execute an RPC method.
-    ai.v1.RpcCall rpc_call = 3;
+    ai.v1.ToolCallDiscovery discovery = 2;
+    // A request to execute a gRPC method.
+    ai.v1.ToolCallRPC rpc = 3;
   }
 }
 
