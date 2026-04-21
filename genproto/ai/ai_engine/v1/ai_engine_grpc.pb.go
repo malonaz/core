@@ -35,7 +35,7 @@ type AiEngineClient interface {
 	// Creates a discoverable tool set for a gRPC service.
 	// The tool set includes a discovery tool that lists available method tools,
 	// and individual tools for each method in the service.
-	CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*ToolSet, error)
+	CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*v1.ToolSet, error)
 }
 
 type aiEngineClient struct {
@@ -82,8 +82,8 @@ func (c *aiEngineClient) CreateDiscoveryTool(ctx context.Context, in *CreateDisc
 	return out, nil
 }
 
-func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*ToolSet, error) {
-	out := new(ToolSet)
+func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*v1.ToolSet, error) {
+	out := new(v1.ToolSet)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/CreateServiceToolSet", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ type AiEngineServer interface {
 	// Creates a discoverable tool set for a gRPC service.
 	// The tool set includes a discovery tool that lists available method tools,
 	// and individual tools for each method in the service.
-	CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*ToolSet, error)
+	CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*v1.ToolSet, error)
 }
 
 // UnimplementedAiEngineServer should be embedded to have forward compatible implementations.
@@ -125,7 +125,7 @@ func (UnimplementedAiEngineServer) ParseToolCall(context.Context, *ParseToolCall
 func (UnimplementedAiEngineServer) CreateDiscoveryTool(context.Context, *CreateDiscoveryToolRequest) (*v1.Tool, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDiscoveryTool not implemented")
 }
-func (UnimplementedAiEngineServer) CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*ToolSet, error) {
+func (UnimplementedAiEngineServer) CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*v1.ToolSet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceToolSet not implemented")
 }
 

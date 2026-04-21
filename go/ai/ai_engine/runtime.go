@@ -156,7 +156,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	schemaOptions = append(schemaOptions, pbjson.WithMaxDepth(maxDepth))
 
 	switch target := request.GetDescriptorReference().GetFullName().(type) {
-	case *pb.DescriptorReference_Method:
+	case *aipb.DescriptorReference_Method:
 		descriptorFullName = protoreflect.FullName(target.Method)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
@@ -182,7 +182,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 			schemaOptions = append(schemaOptions, pbjson.WithResponseSchemaMaxDepth(int(responseSchemaMaxDepth)))
 		}
 
-	case *pb.DescriptorReference_Message:
+	case *aipb.DescriptorReference_Message:
 		descriptorFullName = protoreflect.FullName(target.Message)
 		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
 		if err != nil {
@@ -246,7 +246,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		}
 
 		// Find the tool set.
-		var targetToolSet *pb.ToolSet
+		var targetToolSet *aipb.ToolSet
 		for _, toolSet := range request.GetToolSets() {
 			if toolSet.GetDiscoveryTool().GetName() == toolCall.GetName() {
 				targetToolSet = toolSet
@@ -272,8 +272,8 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		}
 
 		return &pb.ParseToolCallResponse{
-			Result: &pb.ParseToolCallResponse_DiscoverToolsRequest{
-				DiscoverToolsRequest: &pb.DiscoverToolsRequest{
+			Result: &pb.ParseToolCallResponse_ToolDiscoveryCall{
+				ToolDiscoveryCall: &aipb.ToolDiscoveryCall{
 					ToolSetName: targetToolSet.GetName(),
 					ToolNames:   toolNames,
 				},
@@ -316,8 +316,8 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 		fieldMask, _ := pbjson.GetResponseFieldMask(toolCall.GetArguments().AsMap())
 
 		return &pb.ParseToolCallResponse{
-			Result: &pb.ParseToolCallResponse_RpcRequest{
-				RpcRequest: &pb.RpcRequest{
+			Result: &pb.ParseToolCallResponse_RpcCall{
+				RpcCall: &aipb.RpcCall{
 					ServiceFullName: serviceFullName,
 					MethodFullName:  methodFullName,
 					Request:         request,
@@ -399,8 +399,8 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 	}
 
 	switch result := parseToolCallResponse.GetResult().(type) {
-	case *pb.ParseToolCallResponse_RpcRequest:
-		return result.RpcRequest.GetRequest(), nil
+	case *pb.ParseToolCallResponse_RpcCall:
+		return result.RpcCall.GetRequest(), nil
 	case *pb.ParseToolCallResponse_Message:
 		return result.Message, nil
 	default:
@@ -452,7 +452,7 @@ func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDis
 	}, nil
 }
 
-func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateServiceToolSetRequest) (*pb.ToolSet, error) {
+func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateServiceToolSetRequest) (*aipb.ToolSet, error) {
 	// Get the schema.
 	schema, err := s.getSchema(ctx)
 	if err != nil {
@@ -481,7 +481,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	var tools []*aipb.Tool
 	toolNameToDiscoverTimestamp := map[string]int64{}
 	if len(request.MethodNameToSchemaConfiguration) == 0 {
-		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
+		request.MethodNameToSchemaConfiguration = map[string]*aipb.ToolSetSchemaConfiguration{}
 	}
 	for _, methodName := range request.MethodNames {
 		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
@@ -489,8 +489,8 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			schemaConfiguration = request.SchemaConfiguration
 		}
 		createToolRequest := &pb.CreateToolRequest{
-			DescriptorReference: &pb.DescriptorReference{
-				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
+			DescriptorReference: &aipb.DescriptorReference{
+				FullName: &aipb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
 			},
 			SchemaConfiguration: schemaConfiguration,
 		}
@@ -515,7 +515,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		return nil, status.Errorf(codes.Internal, "creating discovery tool: %v", err).Err()
 	}
 
-	return &pb.ToolSet{
+	return &aipb.ToolSet{
 		Name:                        string(serviceDescriptor.FullName()),
 		DiscoveryTool:               discoveryTool,
 		Tools:                       tools,

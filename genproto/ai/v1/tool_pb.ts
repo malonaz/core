@@ -5,8 +5,8 @@
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
-import type { Value } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { FieldMask, Value } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_field_mask, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
 import type { Status } from "../../../google/rpc/status_pb";
 import { file_google_rpc_status } from "../../../google/rpc/status_pb";
 import type { Schema, SchemaValid } from "../../json/v1/schema_pb";
@@ -17,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/tool.proto.
  */
 export const file_malonaz_ai_v1_tool: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIpsCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK0AQoKVG9vbFJlc3VsdBIRCgl0b29sX25hbWUYASABKAkSFAoMdG9vbF9jYWxsX2lkGAIgASgJEhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSABCDwoGcmVzdWx0EgW6SAIIASLpAQoKVG9vbENob2ljZRI3CgRtb2RlGAEgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2hvaWNlTW9kZUIIukgFggECEAFIABITCgl0b29sX25hbWUYAiABKAlIADp8ukh5GncKJWFpLnYxLlRvb2xDaG9pY2UubW9kZV9ub3RfdW5zcGVjaWZpZWQSK21vZGUgY2Fubm90IGJlIFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQaISFoYXModGhpcy5tb2RlKSB8fCB0aGlzLm1vZGUgIT0gMEIPCgZjaG9pY2USBbpIAggBKocBCg5Ub29sQ2hvaWNlTW9kZRIgChxUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEEAASGQoVVE9PTF9DSE9JQ0VfTU9ERV9OT05FEAESGQoVVE9PTF9DSE9JQ0VfTU9ERV9BVVRPEAISHQoZVE9PTF9DSE9JQ0VfTU9ERV9SRVFVSVJFRBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIpsCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK0AQoKVG9vbFJlc3VsdBIRCgl0b29sX25hbWUYASABKAkSFAoMdG9vbF9jYWxsX2lkGAIgASgJEhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSABCDwoGcmVzdWx0EgW6SAIIASLpAQoKVG9vbENob2ljZRI3CgRtb2RlGAEgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2hvaWNlTW9kZUIIukgFggECEAFIABITCgl0b29sX25hbWUYAiABKAlIADp8ukh5GncKJWFpLnYxLlRvb2xDaG9pY2UubW9kZV9ub3RfdW5zcGVjaWZpZWQSK21vZGUgY2Fubm90IGJlIFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQaISFoYXModGhpcy5tb2RlKSB8fCB0aGlzLm1vZGUgIT0gMEIPCgZjaG9pY2USBbpIAggBIp4CCgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBEmAKH3Rvb2xfbmFtZV90b19kaXNjb3Zlcl90aW1lc3RhbXAYBCADKAsyNy5tYWxvbmF6LmFpLnYxLlRvb2xTZXQuVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkaQgogVG9vbE5hbWVUb0Rpc2NvdmVyVGltZXN0YW1wRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASLDAQoaVG9vbFNldFNjaGVtYUNvbmZpZ3VyYXRpb24SLgoKZmllbGRfbWFzaxgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2sSIQoOd2l0aF9tYXhfZGVwdGgYAiABKAVCCbpIBhoEGAooABIfChd3aXRoX3Jlc3BvbnNlX3JlYWRfbWFzaxgDIAEoCBIxCh53aXRoX3Jlc3BvbnNlX3NjaGVtYV9tYXhfZGVwdGgYBCABKAVCCbpIBhoEGAooACI+ChFUb29sRGlzY292ZXJ5Q2FsbBIVCg10b29sX3NldF9uYW1lGAEgASgJEhIKCnRvb2xfbmFtZXMYAiADKAkilwEKB1JwY0NhbGwSGQoRc2VydmljZV9mdWxsX25hbWUYASABKAkSGAoQbWV0aG9kX2Z1bGxfbmFtZRgCIAEoCRIoCgdyZXF1ZXN0GAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBItCglyZWFkX21hc2sYBCABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrIk4KE0Rlc2NyaXB0b3JSZWZlcmVuY2USEQoHbWVzc2FnZRgBIAEoCUgAEhAKBm1ldGhvZBgCIAEoCUgAQhIKCWZ1bGxfbmFtZRIFukgCCAEqhwEKDlRvb2xDaG9pY2VNb2RlEiAKHFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQQABIZChVUT09MX0NIT0lDRV9NT0RFX05PTkUQARIZChVUT09MX0NIT0lDRV9NT0RFX0FVVE8QAhIdChlUT09MX0NIT0lDRV9NT0RFX1JFUVVJUkVEEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
 
 /**
  * Represents a tool that can be called by the AI model.
@@ -305,6 +305,243 @@ export type ToolChoiceValid = ToolChoice;
  */
 export const ToolChoiceSchema: GenMessage<ToolChoice, {validType: ToolChoiceValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_tool, 3);
+
+/**
+ * Represents a discoverable set of tools.
+ *
+ * @generated from message malonaz.ai.v1.ToolSet
+ */
+export type ToolSet = Message<"malonaz.ai.v1.ToolSet"> & {
+  /**
+   * Name of this tool set.
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The tool used to discover the tools in this set.
+   *
+   * @generated from field: malonaz.ai.v1.Tool discovery_tool = 2;
+   */
+  discoveryTool?: Tool;
+
+  /**
+   * The tools available in this set.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   */
+  tools: Tool[];
+
+  /**
+   * Tracks the times at which tools were discovered.
+   *
+   * @generated from field: map<string, int64> tool_name_to_discover_timestamp = 4;
+   */
+  toolNameToDiscoverTimestamp: { [key: string]: bigint };
+};
+
+/**
+ * Represents a discoverable set of tools.
+ *
+ * @generated from message malonaz.ai.v1.ToolSet
+ */
+export type ToolSetValid = Message<"malonaz.ai.v1.ToolSet"> & {
+  /**
+   * Name of this tool set.
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The tool used to discover the tools in this set.
+   *
+   * @generated from field: malonaz.ai.v1.Tool discovery_tool = 2;
+   */
+  discoveryTool: ToolValid;
+
+  /**
+   * The tools available in this set.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   */
+  tools: ToolValid[];
+
+  /**
+   * Tracks the times at which tools were discovered.
+   *
+   * @generated from field: map<string, int64> tool_name_to_discover_timestamp = 4;
+   */
+  toolNameToDiscoverTimestamp: { [key: string]: bigint };
+};
+
+/**
+ * Describes the message malonaz.ai.v1.ToolSet.
+ * Use `create(ToolSetSchema)` to create a new message.
+ */
+export const ToolSetSchema: GenMessage<ToolSet, {validType: ToolSetValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 4);
+
+/**
+ * Configuration for a tool set schema.
+ *
+ * @generated from message malonaz.ai.v1.ToolSetSchemaConfiguration
+ */
+export type ToolSetSchemaConfiguration = Message<"malonaz.ai.v1.ToolSetSchemaConfiguration"> & {
+  /**
+   * Control which field are included in the tool schema.
+   *
+   * @generated from field: google.protobuf.FieldMask field_mask = 1;
+   */
+  fieldMask?: FieldMask;
+
+  /**
+   * Set a max depth for the schema (defaults to 5).
+   *
+   * @generated from field: int32 with_max_depth = 2;
+   */
+  withMaxDepth: number;
+
+  /**
+   * (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
+   * return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
+   * rather than being returned tool results with fields it does not need.
+   *
+   * @generated from field: bool with_response_read_mask = 3;
+   */
+  withResponseReadMask: boolean;
+
+  /**
+   * (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
+   * This can be quite verbose so use with care.
+   *
+   * @generated from field: int32 with_response_schema_max_depth = 4;
+   */
+  withResponseSchemaMaxDepth: number;
+};
+
+export type ToolSetSchemaConfigurationValid = ToolSetSchemaConfiguration;
+
+/**
+ * Describes the message malonaz.ai.v1.ToolSetSchemaConfiguration.
+ * Use `create(ToolSetSchemaConfigurationSchema)` to create a new message.
+ */
+export const ToolSetSchemaConfigurationSchema: GenMessage<ToolSetSchemaConfiguration, {validType: ToolSetSchemaConfigurationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 5);
+
+/**
+ * Represents a tool discovery call.
+ *
+ * @generated from message malonaz.ai.v1.ToolDiscoveryCall
+ */
+export type ToolDiscoveryCall = Message<"malonaz.ai.v1.ToolDiscoveryCall"> & {
+  /**
+   * Name of the tool set.
+   *
+   * @generated from field: string tool_set_name = 1;
+   */
+  toolSetName: string;
+
+  /**
+   * The names of the tools to be discovered.
+   *
+   * @generated from field: repeated string tool_names = 2;
+   */
+  toolNames: string[];
+};
+
+export type ToolDiscoveryCallValid = ToolDiscoveryCall;
+
+/**
+ * Describes the message malonaz.ai.v1.ToolDiscoveryCall.
+ * Use `create(ToolDiscoveryCallSchema)` to create a new message.
+ */
+export const ToolDiscoveryCallSchema: GenMessage<ToolDiscoveryCall, {validType: ToolDiscoveryCallValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 6);
+
+/**
+ * Represents an RPC call.
+ *
+ * @generated from message malonaz.ai.v1.RpcCall
+ */
+export type RpcCall = Message<"malonaz.ai.v1.RpcCall"> & {
+  /**
+   * The full name of the service.
+   *
+   * @generated from field: string service_full_name = 1;
+   */
+  serviceFullName: string;
+
+  /**
+   * The full name of the method.
+   *
+   * @generated from field: string method_full_name = 2;
+   */
+  methodFullName: string;
+
+  /**
+   * The request object.
+   *
+   * @generated from field: google.protobuf.Struct request = 3;
+   */
+  request?: JsonObject;
+
+  /**
+   * Optional field to specify which fields we should include in the tool result response.
+   *
+   * @generated from field: google.protobuf.FieldMask read_mask = 4;
+   */
+  readMask?: FieldMask;
+};
+
+export type RpcCallValid = RpcCall;
+
+/**
+ * Describes the message malonaz.ai.v1.RpcCall.
+ * Use `create(RpcCallSchema)` to create a new message.
+ */
+export const RpcCallSchema: GenMessage<RpcCall, {validType: RpcCallValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 7);
+
+/**
+ * A reference to a protobuf descriptor.
+ *
+ * @generated from message malonaz.ai.v1.DescriptorReference
+ */
+export type DescriptorReference = Message<"malonaz.ai.v1.DescriptorReference"> & {
+  /**
+   * The descriptor full name.
+   *
+   * @generated from oneof malonaz.ai.v1.DescriptorReference.full_name
+   */
+  fullName: {
+    /**
+     * The fully qualified name of the message.
+     *
+     * @generated from field: string message = 1;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * The fully qualified name of the method.
+     *
+     * @generated from field: string method = 2;
+     */
+    value: string;
+    case: "method";
+  } | { case: undefined; value?: undefined };
+};
+
+export type DescriptorReferenceValid = DescriptorReference;
+
+/**
+ * Describes the message malonaz.ai.v1.DescriptorReference.
+ * Use `create(DescriptorReferenceSchema)` to create a new message.
+ */
+export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validType: DescriptorReferenceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 8);
 
 /**
  * Mode for tool choice.

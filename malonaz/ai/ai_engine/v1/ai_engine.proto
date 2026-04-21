@@ -5,7 +5,6 @@ package malonaz.ai.ai_engine.v1;
 import "buf/validate/validate.proto";
 import "google/api/client.proto";
 import "google/api/resource.proto";
-import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
 import "malonaz/ai/v1/tool.proto";
 
@@ -32,7 +31,7 @@ service AiEngine {
   // Creates a discoverable tool set for a gRPC service.
   // The tool set includes a discovery tool that lists available method tools,
   // and individual tools for each method in the service.
-  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ToolSet);
+  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ai.v1.ToolSet);
 }
 
 // Request message for AiEngine.GenerateMessage.
@@ -44,7 +43,7 @@ message GenerateMessageRequest {
   };
 
   // The descriptor reference for the message to generate.
-  DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
+  ai.v1.DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
 
   // The resource name of the model to use.
   // Format: providers/{provider}/models/{model}
@@ -54,7 +53,7 @@ message GenerateMessageRequest {
   string prompt = 3;
 
   // Configuration for the schema.
-  SchemaConfiguration schema_configuration = 4;
+  ai.v1.ToolSetSchemaConfiguration schema_configuration = 4;
 }
 
 // Request message for AiEngine.CreateTool
@@ -66,10 +65,10 @@ message CreateToolRequest {
   };
 
   // The descriptor reference for which to create a tool.
-  DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
+  ai.v1.DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
 
   // Configuration for the schema.
-  SchemaConfiguration schema_configuration = 2;
+  ai.v1.ToolSetSchemaConfiguration schema_configuration = 2;
 }
 
 // Request message for AiEngine.ParseToolCall.
@@ -84,7 +83,7 @@ message ParseToolCallRequest {
   //  - targets an already discovered tool => AlreadyExists
   // if `RpcRequest`:
   //  - targets a non-discovered method => FailedPrecondition.
-  repeated ToolSet tool_sets = 2;
+  repeated ai.v1.ToolSet tool_sets = 2;
 }
 
 // Response message for AiEngine.ParseToolCall.
@@ -94,9 +93,9 @@ message ParseToolCallResponse {
     // A generic parsed message when the tool generates a protobuf message.
     google.protobuf.Struct message = 1;
     // A request to discover additional tools from a tool set.
-    DiscoverToolsRequest discover_tools_request = 2;
+    ai.v1.ToolDiscoveryCall tool_discovery_call = 2;
     // A request to execute an RPC method.
-    RpcRequest rpc_request = 3;
+    ai.v1.RpcCall rpc_call = 3;
   }
 }
 
@@ -124,81 +123,10 @@ message CreateServiceToolSetRequest {
   repeated string method_names = 2;
 
   // Configuration for the schema (applies to all tools created).
-  SchemaConfiguration schema_configuration = 3;
+  ai.v1.ToolSetSchemaConfiguration schema_configuration = 3;
 
   // Set a specific schema configuration for a method.
-  map<string, SchemaConfiguration> method_name_to_schema_configuration = 4;
-}
-
-// A reference to a protobuf descriptor.
-message DescriptorReference {
-  // The descriptor full name.
-  oneof full_name {
-    option (buf.validate.oneof).required = true;
-    // The fully qualified name of the message.
-    string message = 1;
-    // The fully qualified name of the method.
-    string method = 2;
-  }
-}
-
-// Represents a discoverable set of tools.
-message ToolSet {
-  // Name of this tool set.
-  string name = 1;
-
-  // The tool used to discover the tools in this set.
-  ai.v1.Tool discovery_tool = 2 [(buf.validate.field).required = true];
-
-  // The tools available in this set.
-  repeated ai.v1.Tool tools = 3 [(buf.validate.field).required = true];
-
-  // Tracks the times at which tools were discovered.
-  map<string, int64> tool_name_to_discover_timestamp = 4;
-}
-
-// Represents a discover tools request.
-message DiscoverToolsRequest {
-  // Name of the tool set.
-  string tool_set_name = 1;
-  // The names of the tools to be discovered.
-  repeated string tool_names = 2;
-}
-
-// Represents a request to execute a RPC request.
-message RpcRequest {
-  // The full name of the service.
-  string service_full_name = 1;
-  // The full name of the method.
-  string method_full_name = 2;
-  // The request object.
-  google.protobuf.Struct request = 3;
-  // Optional field to specify which fields we should include in the tool result response.
-  google.protobuf.FieldMask read_mask = 4;
-}
-
-// Configuration for a tool schema.
-message SchemaConfiguration {
-  // Control which field are included in the tool schema.
-  google.protobuf.FieldMask field_mask = 1;
-
-  // Set a max depth for the schema (defaults to 5).
-  int32 with_max_depth = 2 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 10
-  }];
-
-  // (ONLY WORKS FOR RPCS). If set, we inject a `response_field_mask` field in the tool schema, which allows the LLM to
-  // return a field mask to apply to the tool call result. This is useful in letting the LLM only fetch the data it needs
-  // rather than being returned tool results with fields it does not need.
-  bool with_response_read_mask = 3;
-
-  // (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
-  // This can be quite verbose so use with care.
-  int32 with_response_schema_max_depth = 4 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 10
-  }];
+  map<string, ai.v1.ToolSetSchemaConfiguration> method_name_to_schema_configuration = 4;
 }
 
 // Error detail indicating the error can be fed back to the AI for correction.
