@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"fmt"
+	"net"
+	"strconv"
+	"strings"
 
 	"github.com/malonaz/core/go/health"
 )
@@ -37,4 +40,41 @@ func (o *Opts) Endpoint() string {
 		return "unix:" + o.SocketPath
 	}
 	return fmt.Sprintf("%s:%d", o.Host, o.Port)
+}
+
+func ParseOpts(endpoint string) (*Opts, error) {
+	opts := &Opts{}
+
+	switch {
+	case strings.HasPrefix(endpoint, "unix:"):
+		opts.SocketPath = strings.TrimPrefix(endpoint, "unix:")
+		opts.DisableTLS = true
+		return opts, nil
+
+	case strings.HasPrefix(endpoint, "https://"):
+		endpoint = strings.TrimPrefix(endpoint, "https://")
+
+	case strings.HasPrefix(endpoint, "http://"):
+		endpoint = strings.TrimPrefix(endpoint, "http://")
+		opts.DisableTLS = true
+	}
+
+	host, portStr, err := net.SplitHostPort(endpoint)
+	if err != nil {
+		opts.Host = endpoint
+		if opts.DisableTLS {
+			opts.Port = 80
+		} else {
+			opts.Port = 443
+		}
+		return opts, nil
+	}
+
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, fmt.Errorf("parsing port %q: %w", portStr, err)
+	}
+	opts.Host = host
+	opts.Port = port
+	return opts, nil
 }
