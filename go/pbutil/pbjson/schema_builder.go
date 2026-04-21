@@ -173,7 +173,7 @@ func (b *SchemaBuilder) buildMessageSchema(
 	case structFullName:
 		return &jsonpb.Schema{Type: "object", Description: "JSON object (google.protobuf.Struct)"}, nil
 	case valueFullName:
-		return &jsonpb.Schema{Description: "JSON value (google.protobuf.Value)"}, nil
+		return &jsonpb.Schema{Type: "object", Description: "JSON value (google.protobuf.Value)"}, nil
 	case listValueFullName:
 		return &jsonpb.Schema{Type: "array", Description: "JSON array (google.protobuf.ListValue)"}, nil
 	case jsonSchemaFullName:
