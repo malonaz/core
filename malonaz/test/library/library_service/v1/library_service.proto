@@ -7,6 +7,7 @@ import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/aip/v1/label.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/test/library/library_service/v1/author.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
@@ -33,6 +34,10 @@ service LibraryService {
     storage: STORAGE_TYPE_FILE
   };
 
+  option (malonaz.codegen.aip.v1.label) = {
+    key: "hello-how"
+    description: "dummy label"
+  };
   // ===================== Author =====================
 
   // Creates an author.

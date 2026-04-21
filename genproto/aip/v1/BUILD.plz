@@ -1,6 +1,9 @@
 go_library(
     name = "v1",
-    srcs = ["aip.pb.go"],
+    srcs = [
+        "aip.pb.go",
+        "label.pb.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

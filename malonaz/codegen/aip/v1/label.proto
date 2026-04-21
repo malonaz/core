@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package malonaz.codegen.aip.v1;
+
+import "google/protobuf/descriptor.proto";
+import "malonaz/aip/v1/label.proto";
+
+option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
+
+extend google.protobuf.ServiceOptions {
+  // Labels that a service defines and uses.
+  repeated malonaz.aip.v1.Label label = 43345;
+}

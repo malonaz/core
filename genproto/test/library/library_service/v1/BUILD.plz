@@ -4,6 +4,7 @@ go_library(
         "author.pb.go",
         "book.pb.go",
         "library_service.pb.go",
+        "library_service_aip_label.pb.go",
         "library_service_grpc.pb.go",
         "library_service_nats.pb.go",
         "shelf.pb.go",

@@ -1,6 +1,9 @@
 proto_library(
     name = "v1",
-    srcs = ["aip.proto"],
+    srcs = [
+        "aip.proto",
+        "label.proto",
+    ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/aip/v1",
     },

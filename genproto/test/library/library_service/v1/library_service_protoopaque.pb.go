@@ -32,7 +32,7 @@ var File_malonaz_test_library_library_service_v1_library_service_proto protorefl
 
 const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a\"malonaz/test/library/v1/book.proto\x1a#malonaz/test/library/v1/shelf.proto2\xb0 \n" +
+	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a\"malonaz/test/library/v1/book.proto\x1a#malonaz/test/library/v1/shelf.proto2\xcc \n" +
 	"\x0eLibraryService\x12\xd8\x01\n" +
 	"\fCreateAuthor\x12<.malonaz.test.library.library_service.v1.CreateAuthorRequest\x1a\x1f.malonaz.test.library.v1.Author\"i\xdaA\rparent,author´-!\n" +
 	"\x1flibrary.test.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xc1\x01\n" +
@@ -72,7 +72,8 @@ const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc
 	"\tListBooks\x129.malonaz.test.library.library_service.v1.ListBooksRequest\x1a:.malonaz.test.library.library_service.v1.ListBooksResponse\"`\xdaA\x06parent´-\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{parent=organizations/*/shelves/*}/books\x12\xff\x01\n" +
 	"\rBatchGetBooks\x12=.malonaz.test.library.library_service.v1.BatchGetBooksRequest\x1a>.malonaz.test.library.library_service.v1.BatchGetBooksResponse\"o\xdaA\fparent,names´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x1a\x96\x01\xcaA\x18library.test.malonaz.com\x82\x91$9\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x1a\xb2\x01\xcaA\x18library.test.malonaz.com\x8a\x95\x15\x18\n" +
+	"\thello-how\x12\vdummy label\x82\x91$9\n" +
 	",malonaz.test.library.library_service.v1.book\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$:\n" +
 	"-malonaz.test.library.library_service.v1.shelf\x12\x05\b\x80\x9a\x9e\x018\x01@\x01BBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 

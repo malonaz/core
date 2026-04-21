@@ -24,3 +24,8 @@ export_file(
     name = "nats",
     src = "nats.tmpl",
 )
+
+export_file(
+    name = "aip_label",
+    src = "aip_label.tmpl",
+)

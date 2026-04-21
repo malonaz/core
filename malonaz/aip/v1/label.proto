@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package malonaz.aip.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/aip/v1";
+
+// A label definition declared by a service.
+message Label {
+  // The label key, e.g. "user.onikisu.com/last-sync".
+  string key = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
+  }];
+
+  // Human-readable description of the label's purpose.
+  string description = 2 [(buf.validate.field).required = true];
+
+  // Optional allowed values. If empty, any value is accepted.
+  repeated string values = 3 [(buf.validate.field).repeated.items.string = {
+    max_len: 63
+    pattern: "^[a-z0-9_\\-\\p{L}]*$"
+  }];
+}

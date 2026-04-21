@@ -1,8 +1,12 @@
 go_library(
     name = "v1",
-    srcs = ["aip.pb.go"],
+    srcs = [
+        "aip.pb.go",
+        "label.pb.go",
+    ],
     visibility = ["//..."],
     deps = [
+        "//malonaz/aip/v1",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
