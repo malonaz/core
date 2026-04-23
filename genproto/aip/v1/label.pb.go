@@ -28,8 +28,8 @@ type Label struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The label key, e.g. "user.onikisu.com/last-sync".
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
-	// These will be used in GetKey function, in the order they appear in the key.
+	// Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders.
+	// At least one {variable} is required. Variables are resolved in GetKey in declaration order.
 	DynamicKey string `protobuf:"bytes,2,opt,name=dynamic_key,json=dynamicKey,proto3" json:"dynamic_key,omitempty"`
 	// Human-readable description of the label's purpose.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
@@ -113,8 +113,8 @@ type Label_builder struct {
 
 	// The label key, e.g. "user.onikisu.com/last-sync".
 	Key string
-	// Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
-	// These will be used in GetKey function, in the order they appear in the key.
+	// Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders.
+	// At least one {variable} is required. Variables are resolved in GetKey in declaration order.
 	DynamicKey string
 	// Human-readable description of the label's purpose.
 	Description string
@@ -137,10 +137,10 @@ var File_malonaz_aip_v1_label_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_label_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/aip/v1/label.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\xe5\x03\n" +
+	"\x1amalonaz/aip/v1/label.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\xf0\x03\n" +
 	"\x05Label\x12~\n" +
-	"\x03key\x18\x01 \x01(\tBl\xbaHi\xd8\x01\x01rd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12\x84\x01\n" +
-	"\vdynamic_key\x18\x02 \x01(\tBc\xbaH`\xd8\x01\x01r[\x10\x012W^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/\\{[a-zA-Z0-9_]+\\}(\\.\\{[a-zA-Z0-9_]+\\})*$R\n" +
+	"\x03key\x18\x01 \x01(\tBl\xbaHi\xd8\x01\x01rd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12\x8f\x01\n" +
+	"\vdynamic_key\x18\x02 \x01(\tBn\xbaHk\xd8\x01\x01rf\x10\x012b^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/([a-zA-Z0-9_.-]*\\{[a-zA-Z0-9_]+\\})+[a-zA-Z0-9_.-]*$R\n" +
 	"dynamicKey\x12(\n" +
 	"\vdescription\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x129\n" +
 	"\x06values\x18\x04 \x03(\tB!\xbaH\x1e\x92\x01\x1b\"\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06values:p\xbaHm\x1ak\n" +

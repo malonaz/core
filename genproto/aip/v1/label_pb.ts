@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/label.proto.
  */
 export const file_malonaz_aip_v1_label: GenFile = /*@__PURE__*/
-  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEivgMKBUxhYmVsEnkKA2tleRgBIAEoCUJsukhpcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8k2AEBEngKC2R5bmFtaWNfa2V5GAIgASgJQmO6SGByWxABMldeW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/L1x7W2EtekEtWjAtOV9dK1x9KFwuXHtbYS16QS1aMC05X10rXH0pKiTYAQESGwoLZGVzY3JpcHRpb24YAyABKAlCBrpIA8gBARIxCgZ2YWx1ZXMYBCADKAlCIbpIHpIBGyIZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJDpwukhtGmsKGGxhYmVsLmtleV9vcl9keW5hbWljX2tleRIlZWl0aGVyIGtleSBvciBkeW5hbWljX2tleSBtdXN0IGJlIHNldBoodGhpcy5rZXkgIT0gJycgfHwgdGhpcy5keW5hbWljX2tleSAhPSAnJ0IpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
+  fileDesc("ChptYWxvbmF6L2FpcC92MS9sYWJlbC5wcm90bxIObWFsb25hei5haXAudjEiygMKBUxhYmVsEnkKA2tleRgBIAEoCUJsukhpcmQQATJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8k2AEBEoMBCgtkeW5hbWljX2tleRgCIAEoCUJuukhrcmYQATJiXlthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8oW2EtekEtWjAtOV8uLV0qXHtbYS16QS1aMC05X10rXH0pK1thLXpBLVowLTlfLi1dKiTYAQESGwoLZGVzY3JpcHRpb24YAyABKAlCBrpIA8gBARIxCgZ2YWx1ZXMYBCADKAlCIbpIHpIBGyIZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJDpwukhtGmsKGGxhYmVsLmtleV9vcl9keW5hbWljX2tleRIlZWl0aGVyIGtleSBvciBkeW5hbWljX2tleSBtdXN0IGJlIHNldBoodGhpcy5rZXkgIT0gJycgfHwgdGhpcy5keW5hbWljX2tleSAhPSAnJ0IpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * A label definition declared by a service.
@@ -27,8 +27,8 @@ export type Label = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
-   * Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
-   * These will be used in GetKey function, in the order they appear in the key.
+   * Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders.
+   * At least one {variable} is required. Variables are resolved in GetKey in declaration order.
    *
    * @generated from field: string dynamic_key = 2;
    */
@@ -63,8 +63,8 @@ export type LabelValid = Message<"malonaz.aip.v1.Label"> & {
   key: string;
 
   /**
-   * Dynamic keys use "dns.prefix/\{variable1\}.\{variable2\}".
-   * These will be used in GetKey function, in the order they appear in the key.
+   * Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders.
+   * At least one {variable} is required. Variables are resolved in GetKey in declaration order.
    *
    * @generated from field: string dynamic_key = 2;
    */
