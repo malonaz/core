@@ -148,7 +148,8 @@ func NewLabeller[R IdempotentResource](serviceClient any) (*Labeller[R], error) 
 }
 
 // Label sets the given label key=value on the resource.
-func (l *Labeller[R]) Label(ctx context.Context, resource R, labelKey, labelValue string, opts ...LabelOpt[R]) (R, error) {
+// Label sets one or more label key=value pairs on the resource.
+func (l *Labeller[R]) Label(ctx context.Context, resource R, labels map[string]string, opts ...LabelOpt[R]) (R, error) {
 	var zero R
 	var options labelOpts[R]
 	for _, opt := range opts {
@@ -162,8 +163,6 @@ func (l *Labeller[R]) Label(ctx context.Context, resource R, labelKey, labelValu
 			}
 		}
 
-		// Build a minimal update resource with only the fields needed for a label update,
-		// avoiding mutation of the caller's resource.
 		updateResource := resource.ProtoReflect().New().Interface().(R)
 		srcReflect := resource.ProtoReflect()
 		dstReflect := updateResource.ProtoReflect()
@@ -175,11 +174,12 @@ func (l *Labeller[R]) Label(ctx context.Context, resource R, labelKey, labelValu
 			}
 		}
 
-		// Deep-copy labels via maps.Clone to avoid mutating the caller's map.
 		for k, v := range resource.GetLabels() {
 			SetLabel(updateResource, k, v)
 		}
-		SetLabel(updateResource, labelKey, labelValue)
+		for k, v := range labels {
+			SetLabel(updateResource, k, v)
+		}
 
 		updatedResource, err := l.callUpdate(ctx, updateResource)
 		if err != nil {

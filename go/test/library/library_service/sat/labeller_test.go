@@ -24,7 +24,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller SetNew Author")
 
-		labelledAuthor, err := labeller.Label(ctx, author, "env", "production")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"env": "production"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"env": "production"}, labelledAuthor.Labels)
 
@@ -47,7 +47,7 @@ func TestLabeller_Author(t *testing.T) {
 		author, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
 		require.NoError(t, err)
 
-		labelledAuthor, err := labeller.Label(ctx, author, "new-key", "new-value")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"new-key": "new-value"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"existing": "value", "new-key": "new-value"}, labelledAuthor.Labels)
 
@@ -59,11 +59,11 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller Overwrite Author")
 
-		first, err := labeller.Label(ctx, author, "tier", "free")
+		first, err := labeller.Label(ctx, author, map[string]string{"tier": "free"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"tier": "free"}, first.Labels)
 
-		second, err := labeller.Label(ctx, first, "tier", "premium")
+		second, err := labeller.Label(ctx, first, map[string]string{"tier": "premium"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"tier": "premium"}, second.Labels)
 
@@ -75,30 +75,24 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller SameVal Author")
 
-		first, err := labeller.Label(ctx, author, "env", "prod")
+		first, err := labeller.Label(ctx, author, map[string]string{"env": "prod"})
 		require.NoError(t, err)
 
-		second, err := labeller.Label(ctx, first, "env", "prod")
+		second, err := labeller.Label(ctx, first, map[string]string{"env": "prod"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"env": "prod"}, second.Labels)
 		require.NotEqual(t, first.Etag, second.Etag)
 	})
 
-	t.Run("MultipleLabelsSequentially", func(t *testing.T) {
+	t.Run("MultipleLabelsAtOnce", func(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller Multi Author")
 
-		first, err := labeller.Label(ctx, author, "env", "prod")
-		require.NoError(t, err)
-
-		second, err := labeller.Label(ctx, first, "tier", "gold")
-		require.NoError(t, err)
-
-		third, err := labeller.Label(ctx, second, "region", "us-east")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"env": "prod", "tier": "gold", "region": "us-east"})
 		require.NoError(t, err)
 
 		expectedLabels := map[string]string{"env": "prod", "tier": "gold", "region": "us-east"}
-		require.Equal(t, expectedLabels, third.Labels)
+		require.Equal(t, expectedLabels, labelledAuthor.Labels)
 
 		got := getAuthor(t, author.Name)
 		require.Equal(t, expectedLabels, got.Labels)
@@ -119,7 +113,7 @@ func TestLabeller_Author(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, author.Labels)
 
-		labelledAuthor, err := labeller.Label(ctx, author, "initialized", "true")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"initialized": "true"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"initialized": "true"}, labelledAuthor.Labels)
 
@@ -131,7 +125,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller Namespaced Author")
 
-		labelledAuthor, err := labeller.Label(ctx, author, "library.com/status", "approved")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"library.com/status": "approved"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"library.com/status": "approved"}, labelledAuthor.Labels)
 
@@ -143,7 +137,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller Preserve Author")
 
-		labelledAuthor, err := labeller.Label(ctx, author, "tagged", "true")
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"tagged": "true"})
 		require.NoError(t, err)
 
 		require.Equal(t, author.Name, labelledAuthor.Name)
@@ -168,7 +162,7 @@ func TestLabeller_Author(t *testing.T) {
 		_, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
 		require.NoError(t, err)
 
-		labelledAuthor, err := labeller.Label(ctx, author, "retried", "true", aip.WithRetryOnAborted[*librarypb.Author]())
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"retried": "true"}, aip.WithRetryOnAborted[*librarypb.Author]())
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"retried": "true"}, labelledAuthor.Labels)
 
@@ -181,7 +175,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller RetryPrecon Author")
 
-		first, err := labeller.Label(ctx, author, "version", "v1")
+		first, err := labeller.Label(ctx, author, map[string]string{"version": "v1"})
 		require.NoError(t, err)
 
 		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
@@ -200,7 +194,7 @@ func TestLabeller_Author(t *testing.T) {
 			return a.Labels["version"] == "v1"
 		})
 
-		labelledAuthor, err := labeller.Label(ctx, first, "version", "v2", aip.WithRetryOnAborted[*librarypb.Author](), precondition)
+		labelledAuthor, err := labeller.Label(ctx, first, map[string]string{"version": "v2"}, aip.WithRetryOnAborted[*librarypb.Author](), precondition)
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"version": "v2"}, labelledAuthor.Labels)
 		require.Equal(t, 2, callCount)
@@ -220,7 +214,7 @@ func TestLabeller_Author(t *testing.T) {
 		_, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
 		require.NoError(t, err)
 
-		_, err = labeller.Label(ctx, author, "should-fail", "true")
+		_, err = labeller.Label(ctx, author, map[string]string{"should-fail": "true"})
 		grpcrequire.Error(t, codes.Aborted, err)
 	})
 
@@ -228,7 +222,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller PreconExists Author")
 
-		first, err := labeller.Label(ctx, author, "env", "prod")
+		first, err := labeller.Label(ctx, author, map[string]string{"env": "prod"})
 		require.NoError(t, err)
 
 		skipIfExists := aip.WithPrecondition(func(a *librarypb.Author) bool {
@@ -236,7 +230,7 @@ func TestLabeller_Author(t *testing.T) {
 			return !ok
 		})
 
-		_, err = labeller.Label(ctx, first, "env", "staging", skipIfExists)
+		_, err = labeller.Label(ctx, first, map[string]string{"env": "staging"}, skipIfExists)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 
 		got := getAuthor(t, author.Name)
@@ -247,7 +241,7 @@ func TestLabeller_Author(t *testing.T) {
 		t.Parallel()
 		author := createTestAuthor(t, organizationParent, "Labeller PreconMatch Author")
 
-		first, err := labeller.Label(ctx, author, "env", "prod")
+		first, err := labeller.Label(ctx, author, map[string]string{"env": "prod"})
 		require.NoError(t, err)
 
 		skipIfMatches := aip.WithPrecondition(func(a *librarypb.Author) bool {
@@ -255,7 +249,7 @@ func TestLabeller_Author(t *testing.T) {
 			return !(ok && v == "prod")
 		})
 
-		_, err = labeller.Label(ctx, first, "env", "prod", skipIfMatches)
+		_, err = labeller.Label(ctx, first, map[string]string{"env": "prod"}, skipIfMatches)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 
 		skipIfMatches = aip.WithPrecondition(func(a *librarypb.Author) bool {
@@ -263,7 +257,7 @@ func TestLabeller_Author(t *testing.T) {
 			return !(ok && v == "staging")
 		})
 
-		_, err = labeller.Label(ctx, first, "env", "staging", skipIfMatches)
+		_, err = labeller.Label(ctx, first, map[string]string{"env": "staging"}, skipIfMatches)
 		require.NoError(t, err)
 
 		got := getAuthor(t, author.Name)
@@ -282,7 +276,7 @@ func TestLabeller_Author(t *testing.T) {
 			return a.DeleteTime == nil
 		})
 
-		_, err = labeller.Label(ctx, deletedAuthor, "should-fail", "true", rejectDeleted)
+		_, err = labeller.Label(ctx, deletedAuthor, map[string]string{"should-fail": "true"}, rejectDeleted)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
 
@@ -294,7 +288,7 @@ func TestLabeller_Author(t *testing.T) {
 			return len(a.Labels) == 0
 		})
 
-		labelledAuthor, err := labeller.Label(ctx, author, "first", "true", requireEmpty)
+		labelledAuthor, err := labeller.Label(ctx, author, map[string]string{"first": "true"}, requireEmpty)
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"first": "true"}, labelledAuthor.Labels)
 
