@@ -10,10 +10,18 @@ type LabelMyStatus struct {
 type LabelCategoryType struct {
 	GetKey func(_category string, _type string) string
 }
+type LabelHelloCategoryType struct {
+	GetKey func(_category string, _type string) string
+}
+type LabelHelloCategoryTypeBye struct {
+	GetKey func(_category string, _type string) string
+}
 
 type LabelSet struct {
-	MyStatus     LabelMyStatus
-	CategoryType LabelCategoryType
+	MyStatus             LabelMyStatus
+	CategoryType         LabelCategoryType
+	HelloCategoryType    LabelHelloCategoryType
+	HelloCategoryTypeBye LabelHelloCategoryTypeBye
 }
 
 var Labels = LabelSet{
@@ -27,6 +35,16 @@ var Labels = LabelSet{
 	CategoryType: LabelCategoryType{
 		GetKey: func(_category string, _type string) string {
 			return "library.com/" + _category + "." + _type + ""
+		},
+	},
+	HelloCategoryType: LabelHelloCategoryType{
+		GetKey: func(_category string, _type string) string {
+			return "library.com/hello-" + _category + "." + _type + ""
+		},
+	},
+	HelloCategoryTypeBye: LabelHelloCategoryTypeBye{
+		GetKey: func(_category string, _type string) string {
+			return "library.com/hello-" + _category + "." + _type + "-bye"
 		},
 	},
 }

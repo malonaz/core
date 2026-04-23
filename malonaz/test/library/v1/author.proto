@@ -29,6 +29,14 @@ option (malonaz.codegen.aip.v1.label) = {
   dynamic_key: "library.com/{category}.{type}"
   description: "dummy label"
 };
+option (malonaz.codegen.aip.v1.label) = {
+  dynamic_key: "library.com/hello-{category}.{type}"
+  description: "dummy label 2"
+};
+option (malonaz.codegen.aip.v1.label) = {
+  dynamic_key: "library.com/hello-{category}.{type}-bye"
+  description: "dummy label 3"
+};
 
 // Author represents a book author.
 message Author {

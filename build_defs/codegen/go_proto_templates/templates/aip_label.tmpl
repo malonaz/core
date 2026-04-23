@@ -18,11 +18,10 @@ package {{ .PackageName }}
     {{- end }}
     {{- $goName := "" }}
     {{- if $isDynamic }}
-        {{- $parts := list }}
-        {{- range $vars }}
-            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
-        {{- end }}
-        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
+        {{- $pathPart := $dynamicKey }}
+        {{- if contains "/" $dynamicKey }}{{ $pathPart = last (splitList "/" $dynamicKey) }}{{ end }}
+        {{- $pathPart = regexReplaceAll "[{}]" $pathPart "" }}
+        {{- $goName = $pathPart | replace "-" "_" | replace "." "_" | camelcase }}
     {{- else }}
         {{- $goName = $key }}
         {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
@@ -48,11 +47,10 @@ type LabelSet struct {
     {{- end }}
     {{- $goName := "" }}
     {{- if $isDynamic }}
-        {{- $parts := list }}
-        {{- range $vars }}
-            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
-        {{- end }}
-        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
+        {{- $pathPart := $dynamicKey }}
+        {{- if contains "/" $dynamicKey }}{{ $pathPart = last (splitList "/" $dynamicKey) }}{{ end }}
+        {{- $pathPart = regexReplaceAll "[{}]" $pathPart "" }}
+        {{- $goName = $pathPart | replace "-" "_" | replace "." "_" | camelcase }}
     {{- else }}
         {{- $goName = $key }}
         {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
@@ -74,11 +72,10 @@ var Labels = LabelSet{
     {{- end }}
     {{- $goName := "" }}
     {{- if $isDynamic }}
-        {{- $parts := list }}
-        {{- range $vars }}
-            {{- $parts = append $parts (trimPrefix "{" . | trimSuffix "}") }}
-        {{- end }}
-        {{- $goName = join "_" $parts | replace "-" "_" | camelcase }}
+        {{- $pathPart := $dynamicKey }}
+        {{- if contains "/" $dynamicKey }}{{ $pathPart = last (splitList "/" $dynamicKey) }}{{ end }}
+        {{- $pathPart = regexReplaceAll "[{}]" $pathPart "" }}
+        {{- $goName = $pathPart | replace "-" "_" | replace "." "_" | camelcase }}
     {{- else }}
         {{- $goName = $key }}
         {{- if contains "/" $key }}{{ $goName = last (splitList "/" $key) }}{{ end }}
