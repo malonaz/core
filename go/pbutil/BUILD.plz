@@ -14,6 +14,8 @@ go_library(
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__iancoleman__strcase",
         "//third_party/go:github.com__tidwall__pretty",
+        "//third_party/go:golang.org__x__text__cases",
+        "//third_party/go:golang.org__x__text__language",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",
