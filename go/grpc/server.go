@@ -205,6 +205,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	// PRE (6): Inject context tag: allows downstream components to inject log fields via the ctx for the logging interceptor to log.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerLogContextTagInitializer())
 	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerLogContextTagInitializer())
+	// PRE (6.5): AIP logging: injects resource name fields from requests into log context.
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerAIPLogging())
+	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerAIPLogging())
 	// PRE (7): Logging interceptor.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerLogging(s.log))
 	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerLogging(s.log))

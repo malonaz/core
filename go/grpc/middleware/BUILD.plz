@@ -1,6 +1,7 @@
 go_library(
     name = "middleware",
     srcs = [
+        "aip_logging.go",
         "canonicalize.go",
         "errors.go",
         "field_mask.go",
