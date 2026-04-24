@@ -265,6 +265,7 @@
         "github.com/grpc-ecosystem/grpc-gateway/v2/runtime": "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "github.com/grpc-ecosystem/grpc-gateway/v2/utilities": "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__utilities",
         "github.com/huandu/xstrings": "//third_party/go:github.com__huandu__xstrings",
+        "github.com/iancoleman/strcase": "//third_party/go:github.com__iancoleman__strcase",
         "github.com/imdario/mergo": "//third_party/go:github.com__imdario__mergo",
         "github.com/improbable-eng/grpc-web/go/grpcweb": "//third_party/go:github.com__improbable-eng__grpc-web__go__grpcweb",
         "github.com/jackc/pgerrcode": "//third_party/go:github.com__jackc__pgerrcode",

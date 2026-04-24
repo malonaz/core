@@ -3905,6 +3905,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__iancoleman__strcase",
+    _tag = "download",
+    module = "github.com/iancoleman/strcase",
+    version = "v0.3.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__iancoleman__strcase",
+    download = ":_github.com__iancoleman__strcase#download",
+    install = ["."],
+    module = "github.com/iancoleman/strcase",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__imdario__mergo",
     _tag = "download",
     module = "github.com/imdario/mergo",

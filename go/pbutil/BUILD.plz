@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "any.go",
         "field_behavior.go",
+        "format.go",
         "marshaller.go",
         "method_names.go",
         "options.go",
@@ -11,6 +12,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__iancoleman__strcase",
         "//third_party/go:github.com__tidwall__pretty",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
@@ -27,9 +29,13 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["method_names_test.go"],
+    srcs = [
+        "format_test.go",
+        "method_names_test.go",
+    ],
     deps = [
         ":pbutil",
+        "//malonaz/test/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc",
     ],
