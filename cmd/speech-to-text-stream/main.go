@@ -84,7 +84,7 @@ func run() error {
 					Channels:      int32(*channels),
 					BitsPerSample: 16,
 				},
-				EndOfTurn: &aiservicepb.EndOfTurnConfiguration{
+				EndOfTurn: &aiservicepb.SpeechToTextStreamEndOfTurnConfiguration{
 					Threshold:      *endOfTurnThreshold,
 					EagerThreshold: *endOfTurnEagerThreshold,
 					Timeout:        durationpb.New(*endOfTurnTimeout),

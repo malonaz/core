@@ -75,12 +75,12 @@ message SpeechToTextStreamConfiguration {
   repeated string language_codes = 3;
 
   // End-of-turn detection configuration. If omitted, server applies model defaults.
-  EndOfTurnConfiguration end_of_turn = 4;
+  SpeechToTextStreamEndOfTurnConfiguration end_of_turn = 4;
 }
 
 // Configuration for end-of-turn detection.
 // Controls how the model determines when a speaker has finished their turn.
-message EndOfTurnConfiguration {
+message SpeechToTextStreamEndOfTurnConfiguration {
   option (buf.validate.message).cel = {
     id: "eager_lte_threshold"
     message: "eager_threshold must be <= threshold"

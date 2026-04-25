@@ -451,11 +451,11 @@ func (*speechToTextStreamRequest_AudioChunk) isSpeechToTextStreamRequest_Content
 
 // Configuration for speech-to-text streaming. Sent as the first message.
 type SpeechToTextStreamConfiguration struct {
-	state                    protoimpl.MessageState  `protogen:"opaque.v1"`
-	xxx_hidden_Model         string                  `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_AudioFormat   *v1.Format              `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3"`
-	xxx_hidden_LanguageCodes []string                `protobuf:"bytes,3,rep,name=language_codes,json=languageCodes,proto3"`
-	xxx_hidden_EndOfTurn     *EndOfTurnConfiguration `protobuf:"bytes,4,opt,name=end_of_turn,json=endOfTurn,proto3"`
+	state                    protoimpl.MessageState                    `protogen:"opaque.v1"`
+	xxx_hidden_Model         string                                    `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_AudioFormat   *v1.Format                                `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3"`
+	xxx_hidden_LanguageCodes []string                                  `protobuf:"bytes,3,rep,name=language_codes,json=languageCodes,proto3"`
+	xxx_hidden_EndOfTurn     *SpeechToTextStreamEndOfTurnConfiguration `protobuf:"bytes,4,opt,name=end_of_turn,json=endOfTurn,proto3"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -506,7 +506,7 @@ func (x *SpeechToTextStreamConfiguration) GetLanguageCodes() []string {
 	return nil
 }
 
-func (x *SpeechToTextStreamConfiguration) GetEndOfTurn() *EndOfTurnConfiguration {
+func (x *SpeechToTextStreamConfiguration) GetEndOfTurn() *SpeechToTextStreamEndOfTurnConfiguration {
 	if x != nil {
 		return x.xxx_hidden_EndOfTurn
 	}
@@ -525,7 +525,7 @@ func (x *SpeechToTextStreamConfiguration) SetLanguageCodes(v []string) {
 	x.xxx_hidden_LanguageCodes = v
 }
 
-func (x *SpeechToTextStreamConfiguration) SetEndOfTurn(v *EndOfTurnConfiguration) {
+func (x *SpeechToTextStreamConfiguration) SetEndOfTurn(v *SpeechToTextStreamEndOfTurnConfiguration) {
 	x.xxx_hidden_EndOfTurn = v
 }
 
@@ -563,7 +563,7 @@ type SpeechToTextStreamConfiguration_builder struct {
 	// Used for multilingual models to bias language detection.
 	LanguageCodes []string
 	// End-of-turn detection configuration. If omitted, server applies model defaults.
-	EndOfTurn *EndOfTurnConfiguration
+	EndOfTurn *SpeechToTextStreamEndOfTurnConfiguration
 }
 
 func (b0 SpeechToTextStreamConfiguration_builder) Build() *SpeechToTextStreamConfiguration {
@@ -579,7 +579,7 @@ func (b0 SpeechToTextStreamConfiguration_builder) Build() *SpeechToTextStreamCon
 
 // Configuration for end-of-turn detection.
 // Controls how the model determines when a speaker has finished their turn.
-type EndOfTurnConfiguration struct {
+type SpeechToTextStreamEndOfTurnConfiguration struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Threshold      float64                `protobuf:"fixed64,1,opt,name=threshold,proto3"`
 	xxx_hidden_EagerThreshold float64                `protobuf:"fixed64,2,opt,name=eager_threshold,json=eagerThreshold,proto3"`
@@ -588,20 +588,20 @@ type EndOfTurnConfiguration struct {
 	sizeCache                 protoimpl.SizeCache
 }
 
-func (x *EndOfTurnConfiguration) Reset() {
-	*x = EndOfTurnConfiguration{}
+func (x *SpeechToTextStreamEndOfTurnConfiguration) Reset() {
+	*x = SpeechToTextStreamEndOfTurnConfiguration{}
 	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EndOfTurnConfiguration) String() string {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EndOfTurnConfiguration) ProtoMessage() {}
+func (*SpeechToTextStreamEndOfTurnConfiguration) ProtoMessage() {}
 
-func (x *EndOfTurnConfiguration) ProtoReflect() protoreflect.Message {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -613,51 +613,51 @@ func (x *EndOfTurnConfiguration) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *EndOfTurnConfiguration) GetThreshold() float64 {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) GetThreshold() float64 {
 	if x != nil {
 		return x.xxx_hidden_Threshold
 	}
 	return 0
 }
 
-func (x *EndOfTurnConfiguration) GetEagerThreshold() float64 {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) GetEagerThreshold() float64 {
 	if x != nil {
 		return x.xxx_hidden_EagerThreshold
 	}
 	return 0
 }
 
-func (x *EndOfTurnConfiguration) GetTimeout() *durationpb.Duration {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) GetTimeout() *durationpb.Duration {
 	if x != nil {
 		return x.xxx_hidden_Timeout
 	}
 	return nil
 }
 
-func (x *EndOfTurnConfiguration) SetThreshold(v float64) {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) SetThreshold(v float64) {
 	x.xxx_hidden_Threshold = v
 }
 
-func (x *EndOfTurnConfiguration) SetEagerThreshold(v float64) {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) SetEagerThreshold(v float64) {
 	x.xxx_hidden_EagerThreshold = v
 }
 
-func (x *EndOfTurnConfiguration) SetTimeout(v *durationpb.Duration) {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) SetTimeout(v *durationpb.Duration) {
 	x.xxx_hidden_Timeout = v
 }
 
-func (x *EndOfTurnConfiguration) HasTimeout() bool {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) HasTimeout() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Timeout != nil
 }
 
-func (x *EndOfTurnConfiguration) ClearTimeout() {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) ClearTimeout() {
 	x.xxx_hidden_Timeout = nil
 }
 
-type EndOfTurnConfiguration_builder struct {
+type SpeechToTextStreamEndOfTurnConfiguration_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Confidence required to trigger a definitive EndOfTurn event.
@@ -673,8 +673,8 @@ type EndOfTurnConfiguration_builder struct {
 	Timeout *durationpb.Duration
 }
 
-func (b0 EndOfTurnConfiguration_builder) Build() *EndOfTurnConfiguration {
-	m0 := &EndOfTurnConfiguration{}
+func (b0 SpeechToTextStreamEndOfTurnConfiguration_builder) Build() *SpeechToTextStreamEndOfTurnConfiguration {
+	m0 := &SpeechToTextStreamEndOfTurnConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Threshold = b.Threshold
@@ -1237,14 +1237,14 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\rconfiguration\x18\x01 \x01(\v29.malonaz.ai.ai_service.v1.SpeechToTextStreamConfigurationH\x00R\rconfiguration\x12:\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
 	"audioChunkB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\x96\x02\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xa8\x02\n" +
 	"\x1fSpeechToTextStreamConfiguration\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12%\n" +
-	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12P\n" +
-	"\vend_of_turn\x18\x04 \x01(\v20.malonaz.ai.ai_service.v1.EndOfTurnConfigurationR\tendOfTurn\"\xfd\x02\n" +
-	"\x16EndOfTurnConfiguration\x125\n" +
+	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12b\n" +
+	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn\"\x8f\x03\n" +
+	"(SpeechToTextStreamEndOfTurnConfiguration\x125\n" +
 	"\tthreshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\tthreshold\x12@\n" +
 	"\x0feager_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eeagerThreshold\x12G\n" +
 	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x12\xbaH\x0f\xaa\x01\f\"\x02\b\n" +
@@ -1274,18 +1274,18 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_goTypes = []any{
-	(*SpeechToTextRequest)(nil),             // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest
-	(*SpeechToTextResponse)(nil),            // 1: malonaz.ai.ai_service.v1.SpeechToTextResponse
-	(*SpeechToTextStreamRequest)(nil),       // 2: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
-	(*SpeechToTextStreamConfiguration)(nil), // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
-	(*EndOfTurnConfiguration)(nil),          // 4: malonaz.ai.ai_service.v1.EndOfTurnConfiguration
-	(*SpeechToTextStreamResponse)(nil),      // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
-	(*SpeechToTextStreamTurnEvent)(nil),     // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	(*v1.Format)(nil),                       // 7: malonaz.audio.v1.Format
-	(*v1.Chunk)(nil),                        // 8: malonaz.audio.v1.Chunk
-	(*v11.ModelUsage)(nil),                  // 9: malonaz.ai.v1.ModelUsage
-	(*v11.GenerationMetrics)(nil),           // 10: malonaz.ai.v1.GenerationMetrics
-	(*durationpb.Duration)(nil),             // 11: google.protobuf.Duration
+	(*SpeechToTextRequest)(nil),                      // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest
+	(*SpeechToTextResponse)(nil),                     // 1: malonaz.ai.ai_service.v1.SpeechToTextResponse
+	(*SpeechToTextStreamRequest)(nil),                // 2: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
+	(*SpeechToTextStreamConfiguration)(nil),          // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
+	(*SpeechToTextStreamEndOfTurnConfiguration)(nil), // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
+	(*SpeechToTextStreamResponse)(nil),               // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
+	(*SpeechToTextStreamTurnEvent)(nil),              // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	(*v1.Format)(nil),                                // 7: malonaz.audio.v1.Format
+	(*v1.Chunk)(nil),                                 // 8: malonaz.audio.v1.Chunk
+	(*v11.ModelUsage)(nil),                           // 9: malonaz.ai.v1.ModelUsage
+	(*v11.GenerationMetrics)(nil),                    // 10: malonaz.ai.v1.GenerationMetrics
+	(*durationpb.Duration)(nil),                      // 11: google.protobuf.Duration
 }
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_depIdxs = []int32{
 	7,  // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_format:type_name -> malonaz.audio.v1.Format
@@ -1295,8 +1295,8 @@ var file_malonaz_ai_ai_service_v1_speech_to_text_proto_depIdxs = []int32{
 	3,  // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
 	8,  // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
 	7,  // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.audio_format:type_name -> malonaz.audio.v1.Format
-	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.EndOfTurnConfiguration
-	11, // 8: malonaz.ai.ai_service.v1.EndOfTurnConfiguration.timeout:type_name -> google.protobuf.Duration
+	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
+	11, // 8: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration.timeout:type_name -> google.protobuf.Duration
 	6,  // 9: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_start:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
 	6,  // 10: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_update:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
 	6,  // 11: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_eager_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
