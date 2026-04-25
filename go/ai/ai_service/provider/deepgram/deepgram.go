@@ -13,13 +13,13 @@ import (
 
 const (
 	defaultBaseURL       = "wss://api.deepgram.com"
-	ModelFluxGeneralEN   = "flux-general-en"
 	EncodingLinear16     = "linear16"
 	EncodingLinear32     = "linear32"
 	MessageTypeConnected = "Connected"
 	MessageTypeTurnInfo  = "TurnInfo"
 	MessageTypeError     = "Error"
 	MessageTypeFinalize  = "Finalize"
+	MessageTypeConfigure = "Configure"
 	EventUpdate          = "Update"
 	EventStartOfTurn     = "StartOfTurn"
 	EventEagerEndOfTurn  = "EagerEndOfTurn"
@@ -45,9 +45,9 @@ type ListenOptions struct {
 	Model             string
 	Encoding          string
 	SampleRate        int
-	EotTimeoutMs      int
 	EagerEotThreshold float64
 	EotThreshold      float64
+	EotTimeoutMs      int
 }
 
 type ListenConnection struct {
@@ -89,20 +89,41 @@ func (lc *ListenConnection) Finalize(ctx context.Context) error {
 	return lc.conn.Write(ctx, websocket.MessageText, data)
 }
 
+type ConfigureOptions struct {
+	Type          string            `json:"type"`
+	Thresholds    *ConfigThresholds `json:"thresholds,omitempty"`
+	Keyterms      any               `json:"keyterms,omitempty"`
+	LanguageHints []string          `json:"language_hints,omitempty"`
+}
+
+type ConfigThresholds struct {
+	EagerEotThreshold *float64 `json:"eager_eot_threshold,omitempty"`
+	EotThreshold      *float64 `json:"eot_threshold,omitempty"`
+	EotTimeoutMs      *int     `json:"eot_timeout_ms,omitempty"`
+}
+
+func (lc *ListenConnection) Configure(ctx context.Context, opts *ConfigureOptions) error {
+	opts.Type = MessageTypeConfigure
+	data, _ := json.Marshal(opts)
+	return lc.conn.Write(ctx, websocket.MessageText, data)
+}
+
 func (lc *ListenConnection) Close() error {
 	return lc.conn.Close(websocket.StatusNormalClosure, "closing")
 }
 
 type ServerMessage struct {
-	Type                string  `json:"type"`
-	RequestID           string  `json:"request_id"`
-	Event               string  `json:"event"`
-	Transcript          string  `json:"transcript"`
-	Code                string  `json:"code"`
-	Description         string  `json:"description"`
-	SequenceID          float64 `json:"sequence_id"`
-	TurnIndex           int32   `json:"turn_index"`
-	EndOfTurnConfidence float64 `json:"end_of_turn_confidence"`
+	Type                string   `json:"type"`
+	RequestID           string   `json:"request_id"`
+	Event               string   `json:"event"`
+	Transcript          string   `json:"transcript"`
+	Code                string   `json:"code"`
+	Description         string   `json:"description"`
+	SequenceID          float64  `json:"sequence_id"`
+	TurnIndex           int32    `json:"turn_index"`
+	EndOfTurnConfidence float64  `json:"end_of_turn_confidence"`
+	Languages           []string `json:"languages"`
+	LanguagesHinted     []string `json:"languages_hinted"`
 }
 
 func (lc *ListenConnection) ReceiveMessage(ctx context.Context) (*ServerMessage, error) {

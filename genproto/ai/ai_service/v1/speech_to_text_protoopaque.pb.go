@@ -396,6 +396,9 @@ type SpeechToTextStreamRequest_builder struct {
 
 	// Fields of oneof xxx_hidden_Content:
 	// Configuration for the stream. Must be sent first.
+	// Can be re-sent, mid-stream. Note that for reconfiguration,
+	// only end_of_turn and language_codes fields are applied.
+	// Model and audio_format are ignored after initial configuration.
 	Configuration *SpeechToTextStreamConfiguration
 	// Audio data chunk.
 	AudioChunk *v1.Chunk
@@ -431,6 +434,9 @@ type isSpeechToTextStreamRequest_Content interface {
 
 type speechToTextStreamRequest_Configuration struct {
 	// Configuration for the stream. Must be sent first.
+	// Can be re-sent, mid-stream. Note that for reconfiguration,
+	// only end_of_turn and language_codes fields are applied.
+	// Model and audio_format are ignored after initial configuration.
 	Configuration *SpeechToTextStreamConfiguration `protobuf:"bytes,1,opt,name=configuration,proto3,oneof"`
 }
 
@@ -443,15 +449,15 @@ func (*speechToTextStreamRequest_Configuration) isSpeechToTextStreamRequest_Cont
 
 func (*speechToTextStreamRequest_AudioChunk) isSpeechToTextStreamRequest_Content() {}
 
-// Configuration for speech to text streaming. Sent as the first message.
+// Configuration for speech-to-text streaming. Sent as the first message.
 type SpeechToTextStreamConfiguration struct {
-	state                     protoimpl.MessageState                           `protogen:"opaque.v1"`
-	xxx_hidden_Model          string                                           `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_AudioFormat    *v1.Format                                       `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3"`
-	xxx_hidden_LanguageCode   string                                           `protobuf:"bytes,3,opt,name=language_code,json=languageCode,proto3"`
-	xxx_hidden_CommitStrategy isSpeechToTextStreamConfiguration_CommitStrategy `protobuf_oneof:"commit_strategy"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                    protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Model         string                  `protobuf:"bytes,1,opt,name=model,proto3"`
+	xxx_hidden_AudioFormat   *v1.Format              `protobuf:"bytes,2,opt,name=audio_format,json=audioFormat,proto3"`
+	xxx_hidden_LanguageCodes []string                `protobuf:"bytes,3,rep,name=language_codes,json=languageCodes,proto3"`
+	xxx_hidden_EndOfTurn     *EndOfTurnConfiguration `protobuf:"bytes,4,opt,name=end_of_turn,json=endOfTurn,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *SpeechToTextStreamConfiguration) Reset() {
@@ -493,27 +499,16 @@ func (x *SpeechToTextStreamConfiguration) GetAudioFormat() *v1.Format {
 	return nil
 }
 
-func (x *SpeechToTextStreamConfiguration) GetLanguageCode() string {
+func (x *SpeechToTextStreamConfiguration) GetLanguageCodes() []string {
 	if x != nil {
-		return x.xxx_hidden_LanguageCode
-	}
-	return ""
-}
-
-func (x *SpeechToTextStreamConfiguration) GetEndOfTurn() *SpeechToTextStreamCommitStrategyEndOfTurn {
-	if x != nil {
-		if x, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_EndOfTurn); ok {
-			return x.EndOfTurn
-		}
+		return x.xxx_hidden_LanguageCodes
 	}
 	return nil
 }
 
-func (x *SpeechToTextStreamConfiguration) GetVad() *SpeechToTextStreamCommitStrategyVad {
+func (x *SpeechToTextStreamConfiguration) GetEndOfTurn() *EndOfTurnConfiguration {
 	if x != nil {
-		if x, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_Vad); ok {
-			return x.Vad
-		}
+		return x.xxx_hidden_EndOfTurn
 	}
 	return nil
 }
@@ -526,24 +521,12 @@ func (x *SpeechToTextStreamConfiguration) SetAudioFormat(v *v1.Format) {
 	x.xxx_hidden_AudioFormat = v
 }
 
-func (x *SpeechToTextStreamConfiguration) SetLanguageCode(v string) {
-	x.xxx_hidden_LanguageCode = v
+func (x *SpeechToTextStreamConfiguration) SetLanguageCodes(v []string) {
+	x.xxx_hidden_LanguageCodes = v
 }
 
-func (x *SpeechToTextStreamConfiguration) SetEndOfTurn(v *SpeechToTextStreamCommitStrategyEndOfTurn) {
-	if v == nil {
-		x.xxx_hidden_CommitStrategy = nil
-		return
-	}
-	x.xxx_hidden_CommitStrategy = &speechToTextStreamConfiguration_EndOfTurn{v}
-}
-
-func (x *SpeechToTextStreamConfiguration) SetVad(v *SpeechToTextStreamCommitStrategyVad) {
-	if v == nil {
-		x.xxx_hidden_CommitStrategy = nil
-		return
-	}
-	x.xxx_hidden_CommitStrategy = &speechToTextStreamConfiguration_Vad{v}
+func (x *SpeechToTextStreamConfiguration) SetEndOfTurn(v *EndOfTurnConfiguration) {
+	x.xxx_hidden_EndOfTurn = v
 }
 
 func (x *SpeechToTextStreamConfiguration) HasAudioFormat() bool {
@@ -553,65 +536,19 @@ func (x *SpeechToTextStreamConfiguration) HasAudioFormat() bool {
 	return x.xxx_hidden_AudioFormat != nil
 }
 
-func (x *SpeechToTextStreamConfiguration) HasCommitStrategy() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_CommitStrategy != nil
-}
-
 func (x *SpeechToTextStreamConfiguration) HasEndOfTurn() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_EndOfTurn)
-	return ok
-}
-
-func (x *SpeechToTextStreamConfiguration) HasVad() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_Vad)
-	return ok
+	return x.xxx_hidden_EndOfTurn != nil
 }
 
 func (x *SpeechToTextStreamConfiguration) ClearAudioFormat() {
 	x.xxx_hidden_AudioFormat = nil
 }
 
-func (x *SpeechToTextStreamConfiguration) ClearCommitStrategy() {
-	x.xxx_hidden_CommitStrategy = nil
-}
-
 func (x *SpeechToTextStreamConfiguration) ClearEndOfTurn() {
-	if _, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_EndOfTurn); ok {
-		x.xxx_hidden_CommitStrategy = nil
-	}
-}
-
-func (x *SpeechToTextStreamConfiguration) ClearVad() {
-	if _, ok := x.xxx_hidden_CommitStrategy.(*speechToTextStreamConfiguration_Vad); ok {
-		x.xxx_hidden_CommitStrategy = nil
-	}
-}
-
-const SpeechToTextStreamConfiguration_CommitStrategy_not_set_case case_SpeechToTextStreamConfiguration_CommitStrategy = 0
-const SpeechToTextStreamConfiguration_EndOfTurn_case case_SpeechToTextStreamConfiguration_CommitStrategy = 4
-const SpeechToTextStreamConfiguration_Vad_case case_SpeechToTextStreamConfiguration_CommitStrategy = 5
-
-func (x *SpeechToTextStreamConfiguration) WhichCommitStrategy() case_SpeechToTextStreamConfiguration_CommitStrategy {
-	if x == nil {
-		return SpeechToTextStreamConfiguration_CommitStrategy_not_set_case
-	}
-	switch x.xxx_hidden_CommitStrategy.(type) {
-	case *speechToTextStreamConfiguration_EndOfTurn:
-		return SpeechToTextStreamConfiguration_EndOfTurn_case
-	case *speechToTextStreamConfiguration_Vad:
-		return SpeechToTextStreamConfiguration_Vad_case
-	default:
-		return SpeechToTextStreamConfiguration_CommitStrategy_not_set_case
-	}
+	x.xxx_hidden_EndOfTurn = nil
 }
 
 type SpeechToTextStreamConfiguration_builder struct {
@@ -622,16 +559,11 @@ type SpeechToTextStreamConfiguration_builder struct {
 	Model string
 	// Audio format of the audio stream.
 	AudioFormat *v1.Format
-	// Optional language code to improve transcription accuracy (e.g., "en", "es").
-	LanguageCode string
-	// Strategy for committing transcript segments.
-
-	// Fields of oneof xxx_hidden_CommitStrategy:
-	// End of turn configuration.
-	EndOfTurn *SpeechToTextStreamCommitStrategyEndOfTurn
-	// Vad configuration.
-	Vad *SpeechToTextStreamCommitStrategyVad
-	// -- end of xxx_hidden_CommitStrategy
+	// Optional language hints to bias transcription accuracy (e.g., ["en", "es"]).
+	// Used for multilingual models to bias language detection.
+	LanguageCodes []string
+	// End-of-turn detection configuration. If omitted, server applies model defaults.
+	EndOfTurn *EndOfTurnConfiguration
 }
 
 func (b0 SpeechToTextStreamConfiguration_builder) Build() *SpeechToTextStreamConfiguration {
@@ -640,69 +572,36 @@ func (b0 SpeechToTextStreamConfiguration_builder) Build() *SpeechToTextStreamCon
 	_, _ = b, x
 	x.xxx_hidden_Model = b.Model
 	x.xxx_hidden_AudioFormat = b.AudioFormat
-	x.xxx_hidden_LanguageCode = b.LanguageCode
-	if b.EndOfTurn != nil {
-		x.xxx_hidden_CommitStrategy = &speechToTextStreamConfiguration_EndOfTurn{b.EndOfTurn}
-	}
-	if b.Vad != nil {
-		x.xxx_hidden_CommitStrategy = &speechToTextStreamConfiguration_Vad{b.Vad}
-	}
+	x.xxx_hidden_LanguageCodes = b.LanguageCodes
+	x.xxx_hidden_EndOfTurn = b.EndOfTurn
 	return m0
 }
 
-type case_SpeechToTextStreamConfiguration_CommitStrategy protoreflect.FieldNumber
-
-func (x case_SpeechToTextStreamConfiguration_CommitStrategy) String() string {
-	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isSpeechToTextStreamConfiguration_CommitStrategy interface {
-	isSpeechToTextStreamConfiguration_CommitStrategy()
-}
-
-type speechToTextStreamConfiguration_EndOfTurn struct {
-	// End of turn configuration.
-	EndOfTurn *SpeechToTextStreamCommitStrategyEndOfTurn `protobuf:"bytes,4,opt,name=end_of_turn,json=endOfTurn,proto3,oneof"`
-}
-
-type speechToTextStreamConfiguration_Vad struct {
-	// Vad configuration.
-	Vad *SpeechToTextStreamCommitStrategyVad `protobuf:"bytes,5,opt,name=vad,proto3,oneof"`
-}
-
-func (*speechToTextStreamConfiguration_EndOfTurn) isSpeechToTextStreamConfiguration_CommitStrategy() {
-}
-
-func (*speechToTextStreamConfiguration_Vad) isSpeechToTextStreamConfiguration_CommitStrategy() {}
-
 // Configuration for end-of-turn detection.
-type SpeechToTextStreamCommitStrategyEndOfTurn struct {
-	state                               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ConfidenceThreshold      float64                `protobuf:"fixed64,1,opt,name=confidence_threshold,json=confidenceThreshold,proto3"`
-	xxx_hidden_EagerConfidenceThreshold float64                `protobuf:"fixed64,2,opt,name=eager_confidence_threshold,json=eagerConfidenceThreshold,proto3"`
-	xxx_hidden_Timeout                  *durationpb.Duration   `protobuf:"bytes,3,opt,name=timeout,proto3"`
-	unknownFields                       protoimpl.UnknownFields
-	sizeCache                           protoimpl.SizeCache
+// Controls how the model determines when a speaker has finished their turn.
+type EndOfTurnConfiguration struct {
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Threshold      float64                `protobuf:"fixed64,1,opt,name=threshold,proto3"`
+	xxx_hidden_EagerThreshold float64                `protobuf:"fixed64,2,opt,name=eager_threshold,json=eagerThreshold,proto3"`
+	xxx_hidden_Timeout        *durationpb.Duration   `protobuf:"bytes,3,opt,name=timeout,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) Reset() {
-	*x = SpeechToTextStreamCommitStrategyEndOfTurn{}
+func (x *EndOfTurnConfiguration) Reset() {
+	*x = EndOfTurnConfiguration{}
 	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) String() string {
+func (x *EndOfTurnConfiguration) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SpeechToTextStreamCommitStrategyEndOfTurn) ProtoMessage() {}
+func (*EndOfTurnConfiguration) ProtoMessage() {}
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) ProtoReflect() protoreflect.Message {
+func (x *EndOfTurnConfiguration) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -714,205 +613,73 @@ func (x *SpeechToTextStreamCommitStrategyEndOfTurn) ProtoReflect() protoreflect.
 	return mi.MessageOf(x)
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) GetConfidenceThreshold() float64 {
+func (x *EndOfTurnConfiguration) GetThreshold() float64 {
 	if x != nil {
-		return x.xxx_hidden_ConfidenceThreshold
+		return x.xxx_hidden_Threshold
 	}
 	return 0
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) GetEagerConfidenceThreshold() float64 {
+func (x *EndOfTurnConfiguration) GetEagerThreshold() float64 {
 	if x != nil {
-		return x.xxx_hidden_EagerConfidenceThreshold
+		return x.xxx_hidden_EagerThreshold
 	}
 	return 0
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) GetTimeout() *durationpb.Duration {
+func (x *EndOfTurnConfiguration) GetTimeout() *durationpb.Duration {
 	if x != nil {
 		return x.xxx_hidden_Timeout
 	}
 	return nil
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) SetConfidenceThreshold(v float64) {
-	x.xxx_hidden_ConfidenceThreshold = v
+func (x *EndOfTurnConfiguration) SetThreshold(v float64) {
+	x.xxx_hidden_Threshold = v
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) SetEagerConfidenceThreshold(v float64) {
-	x.xxx_hidden_EagerConfidenceThreshold = v
+func (x *EndOfTurnConfiguration) SetEagerThreshold(v float64) {
+	x.xxx_hidden_EagerThreshold = v
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) SetTimeout(v *durationpb.Duration) {
+func (x *EndOfTurnConfiguration) SetTimeout(v *durationpb.Duration) {
 	x.xxx_hidden_Timeout = v
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) HasTimeout() bool {
+func (x *EndOfTurnConfiguration) HasTimeout() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Timeout != nil
 }
 
-func (x *SpeechToTextStreamCommitStrategyEndOfTurn) ClearTimeout() {
+func (x *EndOfTurnConfiguration) ClearTimeout() {
 	x.xxx_hidden_Timeout = nil
 }
 
-type SpeechToTextStreamCommitStrategyEndOfTurn_builder struct {
+type EndOfTurnConfiguration_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Confidence threshold for ending a turn.
-	ConfidenceThreshold float64
-	// Eager confidence threshold (must be <= confidence_threshold).
-	EagerConfidenceThreshold float64
-	// Maximum silence duration before forcing end of turn after speech starts.
+	// Confidence required to trigger a definitive EndOfTurn event.
+	// Higher values = more reliable detection but slightly increased latency.
+	Threshold float64
+	// Confidence required to trigger an EagerEndOfTurn event,
+	// allowing the caller to speculatively start LLM processing before
+	// the turn is definitively complete. Enables EagerEndOfTurn and
+	// TurnResumed events when set. Must be <= threshold.
+	// Warning: can increase LLM API calls by 50-70% due to speculative generation.
+	EagerThreshold float64
+	// Maximum silence duration before forcing an EndOfTurn regardless of confidence.
 	Timeout *durationpb.Duration
 }
 
-func (b0 SpeechToTextStreamCommitStrategyEndOfTurn_builder) Build() *SpeechToTextStreamCommitStrategyEndOfTurn {
-	m0 := &SpeechToTextStreamCommitStrategyEndOfTurn{}
+func (b0 EndOfTurnConfiguration_builder) Build() *EndOfTurnConfiguration {
+	m0 := &EndOfTurnConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_ConfidenceThreshold = b.ConfidenceThreshold
-	x.xxx_hidden_EagerConfidenceThreshold = b.EagerConfidenceThreshold
+	x.xxx_hidden_Threshold = b.Threshold
+	x.xxx_hidden_EagerThreshold = b.EagerThreshold
 	x.xxx_hidden_Timeout = b.Timeout
-	return m0
-}
-
-// Configuration for vad.
-type SpeechToTextStreamCommitStrategyVad struct {
-	state                         protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_SilenceThreshold   *durationpb.Duration   `protobuf:"bytes,1,opt,name=silence_threshold,json=silenceThreshold,proto3"`
-	xxx_hidden_VadThreshold       float64                `protobuf:"fixed64,2,opt,name=vad_threshold,json=vadThreshold,proto3"`
-	xxx_hidden_MinSpeechDuration  *durationpb.Duration   `protobuf:"bytes,3,opt,name=min_speech_duration,json=minSpeechDuration,proto3"`
-	xxx_hidden_MinSilenceDuration *durationpb.Duration   `protobuf:"bytes,4,opt,name=min_silence_duration,json=minSilenceDuration,proto3"`
-	unknownFields                 protoimpl.UnknownFields
-	sizeCache                     protoimpl.SizeCache
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) Reset() {
-	*x = SpeechToTextStreamCommitStrategyVad{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SpeechToTextStreamCommitStrategyVad) ProtoMessage() {}
-
-func (x *SpeechToTextStreamCommitStrategyVad) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) GetSilenceThreshold() *durationpb.Duration {
-	if x != nil {
-		return x.xxx_hidden_SilenceThreshold
-	}
-	return nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) GetVadThreshold() float64 {
-	if x != nil {
-		return x.xxx_hidden_VadThreshold
-	}
-	return 0
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) GetMinSpeechDuration() *durationpb.Duration {
-	if x != nil {
-		return x.xxx_hidden_MinSpeechDuration
-	}
-	return nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) GetMinSilenceDuration() *durationpb.Duration {
-	if x != nil {
-		return x.xxx_hidden_MinSilenceDuration
-	}
-	return nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) SetSilenceThreshold(v *durationpb.Duration) {
-	x.xxx_hidden_SilenceThreshold = v
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) SetVadThreshold(v float64) {
-	x.xxx_hidden_VadThreshold = v
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) SetMinSpeechDuration(v *durationpb.Duration) {
-	x.xxx_hidden_MinSpeechDuration = v
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) SetMinSilenceDuration(v *durationpb.Duration) {
-	x.xxx_hidden_MinSilenceDuration = v
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) HasSilenceThreshold() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_SilenceThreshold != nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) HasMinSpeechDuration() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_MinSpeechDuration != nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) HasMinSilenceDuration() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_MinSilenceDuration != nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) ClearSilenceThreshold() {
-	x.xxx_hidden_SilenceThreshold = nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) ClearMinSpeechDuration() {
-	x.xxx_hidden_MinSpeechDuration = nil
-}
-
-func (x *SpeechToTextStreamCommitStrategyVad) ClearMinSilenceDuration() {
-	x.xxx_hidden_MinSilenceDuration = nil
-}
-
-type SpeechToTextStreamCommitStrategyVad_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// Silence duration before committing transcript. Must be between 0.3s and 3.0s.
-	SilenceThreshold *durationpb.Duration
-	// Voice activity detection sensitivity. Must be between 0.1 and 0.9.
-	VadThreshold float64
-	// Minimum speech duration to consider valid. Must be between 50ms and 2000ms.
-	MinSpeechDuration *durationpb.Duration
-	// Minimum silence duration before speech is considered ended. Must be between 50ms and 2000ms.
-	MinSilenceDuration *durationpb.Duration
-}
-
-func (b0 SpeechToTextStreamCommitStrategyVad_builder) Build() *SpeechToTextStreamCommitStrategyVad {
-	m0 := &SpeechToTextStreamCommitStrategyVad{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_SilenceThreshold = b.SilenceThreshold
-	x.xxx_hidden_VadThreshold = b.VadThreshold
-	x.xxx_hidden_MinSpeechDuration = b.MinSpeechDuration
-	x.xxx_hidden_MinSilenceDuration = b.MinSilenceDuration
 	return m0
 }
 
@@ -926,7 +693,7 @@ type SpeechToTextStreamResponse struct {
 
 func (x *SpeechToTextStreamResponse) Reset() {
 	*x = SpeechToTextStreamResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -938,7 +705,7 @@ func (x *SpeechToTextStreamResponse) String() string {
 func (*SpeechToTextStreamResponse) ProtoMessage() {}
 
 func (x *SpeechToTextStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1264,7 +1031,7 @@ func (b0 SpeechToTextStreamResponse_builder) Build() *SpeechToTextStreamResponse
 type case_SpeechToTextStreamResponse_Content protoreflect.FieldNumber
 
 func (x case_SpeechToTextStreamResponse_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1324,19 +1091,23 @@ func (*speechToTextStreamResponse_ModelUsage) isSpeechToTextStreamResponse_Conte
 
 func (*speechToTextStreamResponse_GenerationMetrics) isSpeechToTextStreamResponse_Content() {}
 
-// Holds transcript events.
+// A turn-level event emitted during speech-to-text streaming.
+// Represents a discrete unit of speech from a single speaker turn,
+// carrying the evolving transcript and end-of-turn confidence as the turn progresses.
 type SpeechToTextStreamTurnEvent struct {
-	state                          protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TurnIndex           int32                  `protobuf:"varint,1,opt,name=turn_index,json=turnIndex,proto3"`
-	xxx_hidden_Transcript          string                 `protobuf:"bytes,2,opt,name=transcript,proto3"`
-	xxx_hidden_EndOfTurnConfidence float64                `protobuf:"fixed64,3,opt,name=end_of_turn_confidence,json=endOfTurnConfidence,proto3"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	state                            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TurnIndex             int32                  `protobuf:"varint,1,opt,name=turn_index,json=turnIndex,proto3"`
+	xxx_hidden_Transcript            string                 `protobuf:"bytes,2,opt,name=transcript,proto3"`
+	xxx_hidden_EndOfTurnConfidence   float64                `protobuf:"fixed64,3,opt,name=end_of_turn_confidence,json=endOfTurnConfidence,proto3"`
+	xxx_hidden_DetectedLanguageCodes []string               `protobuf:"bytes,4,rep,name=detected_language_codes,json=detectedLanguageCodes,proto3"`
+	xxx_hidden_HintedLanguageCodes   []string               `protobuf:"bytes,5,rep,name=hinted_language_codes,json=hintedLanguageCodes,proto3"`
+	unknownFields                    protoimpl.UnknownFields
+	sizeCache                        protoimpl.SizeCache
 }
 
 func (x *SpeechToTextStreamTurnEvent) Reset() {
 	*x = SpeechToTextStreamTurnEvent{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1348,7 +1119,7 @@ func (x *SpeechToTextStreamTurnEvent) String() string {
 func (*SpeechToTextStreamTurnEvent) ProtoMessage() {}
 
 func (x *SpeechToTextStreamTurnEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1380,6 +1151,20 @@ func (x *SpeechToTextStreamTurnEvent) GetEndOfTurnConfidence() float64 {
 	return 0
 }
 
+func (x *SpeechToTextStreamTurnEvent) GetDetectedLanguageCodes() []string {
+	if x != nil {
+		return x.xxx_hidden_DetectedLanguageCodes
+	}
+	return nil
+}
+
+func (x *SpeechToTextStreamTurnEvent) GetHintedLanguageCodes() []string {
+	if x != nil {
+		return x.xxx_hidden_HintedLanguageCodes
+	}
+	return nil
+}
+
 func (x *SpeechToTextStreamTurnEvent) SetTurnIndex(v int32) {
 	x.xxx_hidden_TurnIndex = v
 }
@@ -1392,6 +1177,14 @@ func (x *SpeechToTextStreamTurnEvent) SetEndOfTurnConfidence(v float64) {
 	x.xxx_hidden_EndOfTurnConfidence = v
 }
 
+func (x *SpeechToTextStreamTurnEvent) SetDetectedLanguageCodes(v []string) {
+	x.xxx_hidden_DetectedLanguageCodes = v
+}
+
+func (x *SpeechToTextStreamTurnEvent) SetHintedLanguageCodes(v []string) {
+	x.xxx_hidden_HintedLanguageCodes = v
+}
+
 type SpeechToTextStreamTurnEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -1401,6 +1194,12 @@ type SpeechToTextStreamTurnEvent_builder struct {
 	Transcript string
 	// Confidence score (0.0 to 1.0) that this turn has ended.
 	EndOfTurnConfidence float64
+	// Languages detected in the current turn, sorted by word count descending.
+	// BCP-47 codes (e.g., "en-US", "es"). Empty when no transcript is present.
+	DetectedLanguageCodes []string
+	// The language hints that were active at the time of this turn.
+	// Reflects the language_codes from the configuration.
+	HintedLanguageCodes []string
 }
 
 func (b0 SpeechToTextStreamTurnEvent_builder) Build() *SpeechToTextStreamTurnEvent {
@@ -1410,6 +1209,8 @@ func (b0 SpeechToTextStreamTurnEvent_builder) Build() *SpeechToTextStreamTurnEve
 	x.xxx_hidden_TurnIndex = b.TurnIndex
 	x.xxx_hidden_Transcript = b.Transcript
 	x.xxx_hidden_EndOfTurnConfidence = b.EndOfTurnConfidence
+	x.xxx_hidden_DetectedLanguageCodes = b.DetectedLanguageCodes
+	x.xxx_hidden_HintedLanguageCodes = b.HintedLanguageCodes
 	return m0
 }
 
@@ -1436,26 +1237,19 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\rconfiguration\x18\x01 \x01(\v29.malonaz.ai.ai_service.v1.SpeechToTextStreamConfigurationH\x00R\rconfiguration\x12:\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
 	"audioChunkB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\x96\x03\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\x96\x02\n" +
 	"\x1fSpeechToTextStreamConfiguration\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
-	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12#\n" +
-	"\rlanguage_code\x18\x03 \x01(\tR\flanguageCode\x12e\n" +
-	"\vend_of_turn\x18\x04 \x01(\v2C.malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurnH\x00R\tendOfTurn\x12Q\n" +
-	"\x03vad\x18\x05 \x01(\v2=.malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVadH\x00R\x03vadB\x18\n" +
-	"\x0fcommit_strategy\x12\x05\xbaH\x02\b\x01\"\xa4\x03\n" +
-	")SpeechToTextStreamCommitStrategyEndOfTurn\x12J\n" +
-	"\x14confidence_threshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x13confidenceThreshold\x12U\n" +
-	"\x1aeager_confidence_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x18eagerConfidenceThreshold\x12A\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\f\xbaH\t\xaa\x01\x06\"\x02\b\n" +
-	"2\x00R\atimeout:\x90\x01\xbaH\x8c\x01\x1a\x89\x01\n" +
-	"\reager_lte_eot\x12:eager_confidence_threshold must be <= confidence_threshold\x1a<this.eager_confidence_threshold <= this.confidence_threshold\"\xfd\x02\n" +
-	"#SpeechToTextStreamCommitStrategyVad\x12Z\n" +
-	"\x11silence_threshold\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\x12\xbaH\x0f\xaa\x01\f\"\x02\b\x032\x06\x10\x80Ɔ\x8f\x01R\x10silenceThreshold\x12<\n" +
-	"\rvad_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x9a\x99\x99\x99\x99\x99\xb9?R\fvadThreshold\x12\\\n" +
-	"\x13min_speech_duration\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x11\xbaH\x0e\xaa\x01\v\"\x02\b\x022\x05\x10\x80\xe1\xeb\x17R\x11minSpeechDuration\x12^\n" +
-	"\x14min_silence_duration\x18\x04 \x01(\v2\x19.google.protobuf.DurationB\x11\xbaH\x0e\xaa\x01\v\"\x02\b\x022\x05\x10\x80\xe1\xeb\x17R\x12minSilenceDuration\"\x80\x05\n" +
+	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12%\n" +
+	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12P\n" +
+	"\vend_of_turn\x18\x04 \x01(\v20.malonaz.ai.ai_service.v1.EndOfTurnConfigurationR\tendOfTurn\"\xfd\x02\n" +
+	"\x16EndOfTurnConfiguration\x125\n" +
+	"\tthreshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\tthreshold\x12@\n" +
+	"\x0feager_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eeagerThreshold\x12G\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x12\xbaH\x0f\xaa\x01\f\"\x02\b\n" +
+	"2\x06\x10\x80ʵ\xee\x01R\atimeout:\xa0\x01\xbaH\x9c\x01\x1a\x99\x01\n" +
+	"\x13eager_lte_threshold\x12$eager_threshold must be <= threshold\x1a\\!has(this.eager_threshold) || !has(this.threshold) || this.eager_threshold <= this.threshold\"\x80\x05\n" +
 	"\x1aSpeechToTextStreamResponse\x12V\n" +
 	"\n" +
 	"turn_start\x18\x01 \x01(\v25.malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEventH\x00R\tturnStart\x12X\n" +
@@ -1467,57 +1261,54 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\vmodel_usage\x18\x06 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12Q\n" +
 	"\x12generation_metrics\x18\a \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\x91\x01\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xfd\x01\n" +
 	"\x1bSpeechToTextStreamTurnEvent\x12\x1d\n" +
 	"\n" +
 	"turn_index\x18\x01 \x01(\x05R\tturnIndex\x12\x1e\n" +
 	"\n" +
 	"transcript\x18\x02 \x01(\tR\n" +
 	"transcript\x123\n" +
-	"\x16end_of_turn_confidence\x18\x03 \x01(\x01R\x13endOfTurnConfidenceB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
+	"\x16end_of_turn_confidence\x18\x03 \x01(\x01R\x13endOfTurnConfidence\x126\n" +
+	"\x17detected_language_codes\x18\x04 \x03(\tR\x15detectedLanguageCodes\x122\n" +
+	"\x15hinted_language_codes\x18\x05 \x03(\tR\x13hintedLanguageCodesB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_goTypes = []any{
-	(*SpeechToTextRequest)(nil),                       // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest
-	(*SpeechToTextResponse)(nil),                      // 1: malonaz.ai.ai_service.v1.SpeechToTextResponse
-	(*SpeechToTextStreamRequest)(nil),                 // 2: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
-	(*SpeechToTextStreamConfiguration)(nil),           // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
-	(*SpeechToTextStreamCommitStrategyEndOfTurn)(nil), // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn
-	(*SpeechToTextStreamCommitStrategyVad)(nil),       // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad
-	(*SpeechToTextStreamResponse)(nil),                // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
-	(*SpeechToTextStreamTurnEvent)(nil),               // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	(*v1.Format)(nil),                                 // 8: malonaz.audio.v1.Format
-	(*v1.Chunk)(nil),                                  // 9: malonaz.audio.v1.Chunk
-	(*v11.ModelUsage)(nil),                            // 10: malonaz.ai.v1.ModelUsage
-	(*v11.GenerationMetrics)(nil),                     // 11: malonaz.ai.v1.GenerationMetrics
-	(*durationpb.Duration)(nil),                       // 12: google.protobuf.Duration
+	(*SpeechToTextRequest)(nil),             // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest
+	(*SpeechToTextResponse)(nil),            // 1: malonaz.ai.ai_service.v1.SpeechToTextResponse
+	(*SpeechToTextStreamRequest)(nil),       // 2: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
+	(*SpeechToTextStreamConfiguration)(nil), // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
+	(*EndOfTurnConfiguration)(nil),          // 4: malonaz.ai.ai_service.v1.EndOfTurnConfiguration
+	(*SpeechToTextStreamResponse)(nil),      // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
+	(*SpeechToTextStreamTurnEvent)(nil),     // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	(*v1.Format)(nil),                       // 7: malonaz.audio.v1.Format
+	(*v1.Chunk)(nil),                        // 8: malonaz.audio.v1.Chunk
+	(*v11.ModelUsage)(nil),                  // 9: malonaz.ai.v1.ModelUsage
+	(*v11.GenerationMetrics)(nil),           // 10: malonaz.ai.v1.GenerationMetrics
+	(*durationpb.Duration)(nil),             // 11: google.protobuf.Duration
 }
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_depIdxs = []int32{
-	8,  // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_format:type_name -> malonaz.audio.v1.Format
-	9,  // 1: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	10, // 2: malonaz.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	11, // 3: malonaz.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	7,  // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_format:type_name -> malonaz.audio.v1.Format
+	8,  // 1: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	9,  // 2: malonaz.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	10, // 3: malonaz.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
 	3,  // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
-	9,  // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	8,  // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.audio_format:type_name -> malonaz.audio.v1.Format
-	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn
-	5,  // 8: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.vad:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad
-	12, // 9: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn.timeout:type_name -> google.protobuf.Duration
-	12, // 10: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad.silence_threshold:type_name -> google.protobuf.Duration
-	12, // 11: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad.min_speech_duration:type_name -> google.protobuf.Duration
-	12, // 12: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad.min_silence_duration:type_name -> google.protobuf.Duration
-	7,  // 13: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_start:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	7,  // 14: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_update:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	7,  // 15: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_eager_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	7,  // 16: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_resumed:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	7,  // 17: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	10, // 18: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	11, // 19: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	8,  // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	7,  // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.audio_format:type_name -> malonaz.audio.v1.Format
+	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.EndOfTurnConfiguration
+	11, // 8: malonaz.ai.ai_service.v1.EndOfTurnConfiguration.timeout:type_name -> google.protobuf.Duration
+	6,  // 9: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_start:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	6,  // 10: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_update:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	6,  // 11: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_eager_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	6,  // 12: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_resumed:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	6,  // 13: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	9,  // 14: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	10, // 15: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() }
@@ -1529,11 +1320,7 @@ func file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() {
 		(*speechToTextStreamRequest_Configuration)(nil),
 		(*speechToTextStreamRequest_AudioChunk)(nil),
 	}
-	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3].OneofWrappers = []any{
-		(*speechToTextStreamConfiguration_EndOfTurn)(nil),
-		(*speechToTextStreamConfiguration_Vad)(nil),
-	}
-	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6].OneofWrappers = []any{
+	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5].OneofWrappers = []any{
 		(*speechToTextStreamResponse_TurnStart)(nil),
 		(*speechToTextStreamResponse_TurnUpdate)(nil),
 		(*speechToTextStreamResponse_TurnEagerEnd)(nil),
@@ -1548,7 +1335,7 @@ func file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

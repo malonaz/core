@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/speech_to_text.proto.
  */
 export const file_malonaz_ai_ai_service_v1_speech_to_text: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvc3BlZWNoX3RvX3RleHQucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSLKAQoTU3BlZWNoVG9UZXh0UmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEjQKC2F1ZGlvX2NodW5rGAMgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0IGukgDyAEBEhUKDWxhbmd1YWdlX2NvZGUYBCABKAkimAEKFFNwZWVjaFRvVGV4dFJlc3BvbnNlEhIKCnRyYW5zY3JpcHQYASABKAkSLgoLbW9kZWxfdXNhZ2UYAiABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAMgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKxAQoZU3BlZWNoVG9UZXh0U3RyZWFtUmVxdWVzdBJSCg1jb25maWd1cmF0aW9uGAEgASgLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUNvbmZpZ3VyYXRpb25IABIuCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmtIAEIQCgdjb250ZW50EgW6SAIIASLkAgofU3BlZWNoVG9UZXh0U3RyZWFtQ29uZmlndXJhdGlvbhIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEhUKDWxhbmd1YWdlX2NvZGUYAyABKAkSWgoLZW5kX29mX3R1cm4YBCABKAsyQy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtQ29tbWl0U3RyYXRlZ3lFbmRPZlR1cm5IABJMCgN2YWQYBSABKAsyPS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtQ29tbWl0U3RyYXRlZ3lWYWRIAEIYCg9jb21taXRfc3RyYXRlZ3kSBbpIAggBIuwCCilTcGVlY2hUb1RleHRTdHJlYW1Db21taXRTdHJhdGVneUVuZE9mVHVybhI1ChRjb25maWRlbmNlX3RocmVzaG9sZBgBIAEoAUIXukgUEhIZAAAAAAAA8D8pAAAAAAAAAAASOwoaZWFnZXJfY29uZmlkZW5jZV90aHJlc2hvbGQYAiABKAFCF7pIFBISGQAAAAAAAPA/KQAAAAAAAAAAEjgKB3RpbWVvdXQYAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CDLpICaoBBiICCAoyADqQAbpIjAEaiQEKDWVhZ2VyX2x0ZV9lb3QSOmVhZ2VyX2NvbmZpZGVuY2VfdGhyZXNob2xkIG11c3QgYmUgPD0gY29uZmlkZW5jZV90aHJlc2hvbGQaPHRoaXMuZWFnZXJfY29uZmlkZW5jZV90aHJlc2hvbGQgPD0gdGhpcy5jb25maWRlbmNlX3RocmVzaG9sZCK2AgojU3BlZWNoVG9UZXh0U3RyZWFtQ29tbWl0U3RyYXRlZ3lWYWQSSAoRc2lsZW5jZV90aHJlc2hvbGQYASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CErpID6oBDCICCAMyBhCAxoaPARIuCg12YWRfdGhyZXNob2xkGAIgASgBQhe6SBQSEhnNzMzMzMzsPymamZmZmZm5PxJJChNtaW5fc3BlZWNoX2R1cmF0aW9uGAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQhG6SA6qAQsiAggCMgUQgOHrFxJKChRtaW5fc2lsZW5jZV9kdXJhdGlvbhgEIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIRukgOqgELIgIIAjIFEIDh6xcipgQKGlNwZWVjaFRvVGV4dFN0cmVhbVJlc3BvbnNlEksKCnR1cm5fc3RhcnQYASABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTAoLdHVybl91cGRhdGUYAiABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTwoOdHVybl9lYWdlcl9lbmQYAyABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTQoMdHVybl9yZXN1bWVkGAQgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEkkKCHR1cm5fZW5kGAUgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEjAKC21vZGVsX3VzYWdlGAYgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlSAASPgoSZ2VuZXJhdGlvbl9tZXRyaWNzGAcgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljc0gAQhAKB2NvbnRlbnQSBbpIAggBImUKG1NwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudBISCgp0dXJuX2luZGV4GAEgASgFEhIKCnRyYW5zY3JpcHQYAiABKAkSHgoWZW5kX29mX3R1cm5fY29uZmlkZW5jZRgDIAEoAUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvc3BlZWNoX3RvX3RleHQucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSLKAQoTU3BlZWNoVG9UZXh0UmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEjQKC2F1ZGlvX2NodW5rGAMgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0IGukgDyAEBEhUKDWxhbmd1YWdlX2NvZGUYBCABKAkimAEKFFNwZWVjaFRvVGV4dFJlc3BvbnNlEhIKCnRyYW5zY3JpcHQYASABKAkSLgoLbW9kZWxfdXNhZ2UYAiABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAMgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKxAQoZU3BlZWNoVG9UZXh0U3RyZWFtUmVxdWVzdBJSCg1jb25maWd1cmF0aW9uGAEgASgLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUNvbmZpZ3VyYXRpb25IABIuCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmtIAEIQCgdjb250ZW50EgW6SAIIASLoAQofU3BlZWNoVG9UZXh0U3RyZWFtQ29uZmlndXJhdGlvbhIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEhYKDmxhbmd1YWdlX2NvZGVzGAMgAygJEkUKC2VuZF9vZl90dXJuGAQgASgLMjAubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkVuZE9mVHVybkNvbmZpZ3VyYXRpb24i2QIKFkVuZE9mVHVybkNvbmZpZ3VyYXRpb24SKgoJdGhyZXNob2xkGAEgASgBQhe6SBQSEhnNzMzMzMzsPykAAAAAAADgPxIwCg9lYWdlcl90aHJlc2hvbGQYAiABKAFCF7pIFBISGc3MzMzMzOw/KQAAAAAAAAAAEj4KB3RpbWVvdXQYAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CErpID6oBDCICCAoyBhCAyrXuATqgAbpInAEamQEKE2VhZ2VyX2x0ZV90aHJlc2hvbGQSJGVhZ2VyX3RocmVzaG9sZCBtdXN0IGJlIDw9IHRocmVzaG9sZBpcIWhhcyh0aGlzLmVhZ2VyX3RocmVzaG9sZCkgfHwgIWhhcyh0aGlzLnRocmVzaG9sZCkgfHwgdGhpcy5lYWdlcl90aHJlc2hvbGQgPD0gdGhpcy50aHJlc2hvbGQipgQKGlNwZWVjaFRvVGV4dFN0cmVhbVJlc3BvbnNlEksKCnR1cm5fc3RhcnQYASABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTAoLdHVybl91cGRhdGUYAiABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTwoOdHVybl9lYWdlcl9lbmQYAyABKAsyNS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50SAASTQoMdHVybl9yZXN1bWVkGAQgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEkkKCHR1cm5fZW5kGAUgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEjAKC21vZGVsX3VzYWdlGAYgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlSAASPgoSZ2VuZXJhdGlvbl9tZXRyaWNzGAcgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljc0gAQhAKB2NvbnRlbnQSBbpIAggBIqUBChtTcGVlY2hUb1RleHRTdHJlYW1UdXJuRXZlbnQSEgoKdHVybl9pbmRleBgBIAEoBRISCgp0cmFuc2NyaXB0GAIgASgJEh4KFmVuZF9vZl90dXJuX2NvbmZpZGVuY2UYAyABKAESHwoXZGV0ZWN0ZWRfbGFuZ3VhZ2VfY29kZXMYBCADKAkSHQoVaGludGVkX2xhbmd1YWdlX2NvZGVzGAUgAygJQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
 
 /**
  * Request message for AiService.SpeechToText.
@@ -150,6 +150,9 @@ export type SpeechToTextStreamRequest = Message<"malonaz.ai.ai_service.v1.Speech
   content: {
     /**
      * Configuration for the stream. Must be sent first.
+     * Can be re-sent, mid-stream. Note that for reconfiguration,
+     * only end_of_turn and language_codes fields are applied.
+     * Model and audio_format are ignored after initial configuration.
      *
      * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration configuration = 1;
      */
@@ -180,6 +183,9 @@ export type SpeechToTextStreamRequestValid = Message<"malonaz.ai.ai_service.v1.S
   content: {
     /**
      * Configuration for the stream. Must be sent first.
+     * Can be re-sent, mid-stream. Note that for reconfiguration,
+     * only end_of_turn and language_codes fields are applied.
+     * Model and audio_format are ignored after initial configuration.
      *
      * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration configuration = 1;
      */
@@ -204,7 +210,7 @@ export const SpeechToTextStreamRequestSchema: GenMessage<SpeechToTextStreamReque
   messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 2);
 
 /**
- * Configuration for speech to text streaming. Sent as the first message.
+ * Configuration for speech-to-text streaming. Sent as the first message.
  *
  * @generated from message malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
  */
@@ -225,38 +231,23 @@ export type SpeechToTextStreamConfiguration = Message<"malonaz.ai.ai_service.v1.
   audioFormat?: Format;
 
   /**
-   * Optional language code to improve transcription accuracy (e.g., "en", "es").
+   * Optional language hints to bias transcription accuracy (e.g., ["en", "es"]).
+   * Used for multilingual models to bias language detection.
    *
-   * @generated from field: string language_code = 3;
+   * @generated from field: repeated string language_codes = 3;
    */
-  languageCode: string;
+  languageCodes: string[];
 
   /**
-   * Strategy for committing transcript segments.
+   * End-of-turn detection configuration. If omitted, server applies model defaults.
    *
-   * @generated from oneof malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.commit_strategy
+   * @generated from field: malonaz.ai.ai_service.v1.EndOfTurnConfiguration end_of_turn = 4;
    */
-  commitStrategy: {
-    /**
-     * End of turn configuration.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn end_of_turn = 4;
-     */
-    value: SpeechToTextStreamCommitStrategyEndOfTurn;
-    case: "endOfTurn";
-  } | {
-    /**
-     * Vad configuration.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad vad = 5;
-     */
-    value: SpeechToTextStreamCommitStrategyVad;
-    case: "vad";
-  } | { case: undefined; value?: undefined };
+  endOfTurn?: EndOfTurnConfiguration;
 };
 
 /**
- * Configuration for speech to text streaming. Sent as the first message.
+ * Configuration for speech-to-text streaming. Sent as the first message.
  *
  * @generated from message malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
  */
@@ -277,34 +268,19 @@ export type SpeechToTextStreamConfigurationValid = Message<"malonaz.ai.ai_servic
   audioFormat: FormatValid;
 
   /**
-   * Optional language code to improve transcription accuracy (e.g., "en", "es").
+   * Optional language hints to bias transcription accuracy (e.g., ["en", "es"]).
+   * Used for multilingual models to bias language detection.
    *
-   * @generated from field: string language_code = 3;
+   * @generated from field: repeated string language_codes = 3;
    */
-  languageCode: string;
+  languageCodes: string[];
 
   /**
-   * Strategy for committing transcript segments.
+   * End-of-turn detection configuration. If omitted, server applies model defaults.
    *
-   * @generated from oneof malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.commit_strategy
+   * @generated from field: malonaz.ai.ai_service.v1.EndOfTurnConfiguration end_of_turn = 4;
    */
-  commitStrategy: {
-    /**
-     * End of turn configuration.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn end_of_turn = 4;
-     */
-    value: SpeechToTextStreamCommitStrategyEndOfTurnValid;
-    case: "endOfTurn";
-  } | {
-    /**
-     * Vad configuration.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad vad = 5;
-     */
-    value: SpeechToTextStreamCommitStrategyVadValid;
-    case: "vad";
-  } | { case: undefined; value?: undefined };
+  endOfTurn?: EndOfTurnConfigurationValid;
 };
 
 /**
@@ -316,84 +292,46 @@ export const SpeechToTextStreamConfigurationSchema: GenMessage<SpeechToTextStrea
 
 /**
  * Configuration for end-of-turn detection.
+ * Controls how the model determines when a speaker has finished their turn.
  *
- * @generated from message malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn
+ * @generated from message malonaz.ai.ai_service.v1.EndOfTurnConfiguration
  */
-export type SpeechToTextStreamCommitStrategyEndOfTurn = Message<"malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn"> & {
+export type EndOfTurnConfiguration = Message<"malonaz.ai.ai_service.v1.EndOfTurnConfiguration"> & {
   /**
-   * Confidence threshold for ending a turn.
+   * Confidence required to trigger a definitive EndOfTurn event.
+   * Higher values = more reliable detection but slightly increased latency.
    *
-   * @generated from field: double confidence_threshold = 1;
+   * @generated from field: double threshold = 1;
    */
-  confidenceThreshold: number;
+  threshold: number;
 
   /**
-   * Eager confidence threshold (must be <= confidence_threshold).
+   * Confidence required to trigger an EagerEndOfTurn event,
+   * allowing the caller to speculatively start LLM processing before
+   * the turn is definitively complete. Enables EagerEndOfTurn and
+   * TurnResumed events when set. Must be <= threshold.
+   * Warning: can increase LLM API calls by 50-70% due to speculative generation.
    *
-   * @generated from field: double eager_confidence_threshold = 2;
+   * @generated from field: double eager_threshold = 2;
    */
-  eagerConfidenceThreshold: number;
+  eagerThreshold: number;
 
   /**
-   * Maximum silence duration before forcing end of turn after speech starts.
+   * Maximum silence duration before forcing an EndOfTurn regardless of confidence.
    *
    * @generated from field: google.protobuf.Duration timeout = 3;
    */
   timeout?: Duration;
 };
 
-export type SpeechToTextStreamCommitStrategyEndOfTurnValid = SpeechToTextStreamCommitStrategyEndOfTurn;
+export type EndOfTurnConfigurationValid = EndOfTurnConfiguration;
 
 /**
- * Describes the message malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyEndOfTurn.
- * Use `create(SpeechToTextStreamCommitStrategyEndOfTurnSchema)` to create a new message.
+ * Describes the message malonaz.ai.ai_service.v1.EndOfTurnConfiguration.
+ * Use `create(EndOfTurnConfigurationSchema)` to create a new message.
  */
-export const SpeechToTextStreamCommitStrategyEndOfTurnSchema: GenMessage<SpeechToTextStreamCommitStrategyEndOfTurn, {validType: SpeechToTextStreamCommitStrategyEndOfTurnValid}> = /*@__PURE__*/
+export const EndOfTurnConfigurationSchema: GenMessage<EndOfTurnConfiguration, {validType: EndOfTurnConfigurationValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 4);
-
-/**
- * Configuration for vad.
- *
- * @generated from message malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad
- */
-export type SpeechToTextStreamCommitStrategyVad = Message<"malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad"> & {
-  /**
-   * Silence duration before committing transcript. Must be between 0.3s and 3.0s.
-   *
-   * @generated from field: google.protobuf.Duration silence_threshold = 1;
-   */
-  silenceThreshold?: Duration;
-
-  /**
-   * Voice activity detection sensitivity. Must be between 0.1 and 0.9.
-   *
-   * @generated from field: double vad_threshold = 2;
-   */
-  vadThreshold: number;
-
-  /**
-   * Minimum speech duration to consider valid. Must be between 50ms and 2000ms.
-   *
-   * @generated from field: google.protobuf.Duration min_speech_duration = 3;
-   */
-  minSpeechDuration?: Duration;
-
-  /**
-   * Minimum silence duration before speech is considered ended. Must be between 50ms and 2000ms.
-   *
-   * @generated from field: google.protobuf.Duration min_silence_duration = 4;
-   */
-  minSilenceDuration?: Duration;
-};
-
-export type SpeechToTextStreamCommitStrategyVadValid = SpeechToTextStreamCommitStrategyVad;
-
-/**
- * Describes the message malonaz.ai.ai_service.v1.SpeechToTextStreamCommitStrategyVad.
- * Use `create(SpeechToTextStreamCommitStrategyVadSchema)` to create a new message.
- */
-export const SpeechToTextStreamCommitStrategyVadSchema: GenMessage<SpeechToTextStreamCommitStrategyVad, {validType: SpeechToTextStreamCommitStrategyVadValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 5);
 
 /**
  * Response message for AiService.SpeechToTextStream.
@@ -472,10 +410,12 @@ export type SpeechToTextStreamResponseValid = SpeechToTextStreamResponse;
  * Use `create(SpeechToTextStreamResponseSchema)` to create a new message.
  */
 export const SpeechToTextStreamResponseSchema: GenMessage<SpeechToTextStreamResponse, {validType: SpeechToTextStreamResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 6);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 5);
 
 /**
- * Holds transcript events.
+ * A turn-level event emitted during speech-to-text streaming.
+ * Represents a discrete unit of speech from a single speaker turn,
+ * carrying the evolving transcript and end-of-turn confidence as the turn progresses.
  *
  * @generated from message malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
  */
@@ -500,6 +440,22 @@ export type SpeechToTextStreamTurnEvent = Message<"malonaz.ai.ai_service.v1.Spee
    * @generated from field: double end_of_turn_confidence = 3;
    */
   endOfTurnConfidence: number;
+
+  /**
+   * Languages detected in the current turn, sorted by word count descending.
+   * BCP-47 codes (e.g., "en-US", "es"). Empty when no transcript is present.
+   *
+   * @generated from field: repeated string detected_language_codes = 4;
+   */
+  detectedLanguageCodes: string[];
+
+  /**
+   * The language hints that were active at the time of this turn.
+   * Reflects the language_codes from the configuration.
+   *
+   * @generated from field: repeated string hinted_language_codes = 5;
+   */
+  hintedLanguageCodes: string[];
 };
 
 export type SpeechToTextStreamTurnEventValid = SpeechToTextStreamTurnEvent;
@@ -509,5 +465,5 @@ export type SpeechToTextStreamTurnEventValid = SpeechToTextStreamTurnEvent;
  * Use `create(SpeechToTextStreamTurnEventSchema)` to create a new message.
  */
 export const SpeechToTextStreamTurnEventSchema: GenMessage<SpeechToTextStreamTurnEvent, {validType: SpeechToTextStreamTurnEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 7);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 6);
 

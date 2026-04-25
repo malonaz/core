@@ -38,6 +38,5 @@ func (c *Client) Stop() {}
 
 // Verify interface implementation
 var (
-	_ provider.TextToSpeechClient       = (*Client)(nil)
-	_ provider.SpeechToTextStreamClient = (*Client)(nil)
+	_ provider.TextToSpeechClient = (*Client)(nil)
 )

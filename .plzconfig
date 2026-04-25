@@ -131,3 +131,12 @@ cmd = run //tools/tidy:lint
 [alias "bump"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
 cmd = run //scripts:bump_core_dep
+
+[alias "postgres"]
+desc = Manage a local postgres docker image
+cmd = run //scripts:postgres_docker -- --name tsunade --port 32422
+subcommand = start
+subcommand = stop
+subcommand = reset
+subcommand = connect ai
+positionallabels = true

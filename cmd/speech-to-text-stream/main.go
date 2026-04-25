@@ -21,30 +21,16 @@ import (
 )
 
 var (
-	socket         = flag.String("socket", "/tmp/core.socket", "Unix socket path")
-	provider       = flag.String("provider", "xai", "Provider name")
-	model          = flag.String("model", "stt-streaming", "Model ID")
-	sampleRate     = flag.Int("sample-rate", 16000, "Audio sample rate in Hz")
-	channels       = flag.Int("channels", 1, "Number of audio channels")
-	chunkSize      = flag.Int("chunk-size", 1024, "Audio chunk size in frames")
-	commitStrategy = flag.String("commit-stategy", "end_of_turn", "([end_of_turn, vad])")
+	socket     = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
+	provider   = flag.String("provider", "xai", "Provider name")
+	model      = flag.String("model", "stt-streaming", "Model ID")
+	sampleRate = flag.Int("sample-rate", 16000, "Audio sample rate in Hz")
+	channels   = flag.Int("channels", 1, "Number of audio channels")
+	chunkSize  = flag.Int("chunk-size", 1024, "Audio chunk size in frames")
 
-	commitStrategyVAD = &aiservicepb.SpeechToTextStreamConfiguration_Vad{
-		Vad: &aiservicepb.SpeechToTextStreamCommitStrategyVad{
-			SilenceThreshold:   durationpb.New(500 * time.Millisecond),
-			VadThreshold:       0.5,
-			MinSpeechDuration:  durationpb.New(100 * time.Millisecond),
-			MinSilenceDuration: durationpb.New(500 * time.Millisecond),
-		},
-	}
-
-	commitStrategyEndOfTurn = &aiservicepb.SpeechToTextStreamConfiguration_EndOfTurn{
-		EndOfTurn: &aiservicepb.SpeechToTextStreamCommitStrategyEndOfTurn{
-			ConfidenceThreshold:      0.8,
-			EagerConfidenceThreshold: 0.5,
-			Timeout:                  durationpb.New(3 * time.Second),
-		},
-	}
+	endOfTurnThreshold      = flag.Float64("eot-threshold", 0.8, "End-of-turn confidence threshold")
+	endOfTurnEagerThreshold = flag.Float64("eot-eager-threshold", 0.5, "Eager end-of-turn confidence threshold")
+	endOfTurnTimeout        = flag.Duration("eot-timeout", 3*time.Second, "End-of-turn silence timeout")
 )
 
 func main() {
@@ -70,6 +56,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("creating connection: %w", err)
 	}
+	conn.WithMetadata("tsunade-api-key", "dummy")
 	if err := conn.Connect(ctx); err != nil {
 		return fmt.Errorf("connecting: %w", err)
 	}
@@ -97,16 +84,13 @@ func run() error {
 					Channels:      int32(*channels),
 					BitsPerSample: 16,
 				},
+				EndOfTurn: &aiservicepb.EndOfTurnConfiguration{
+					Threshold:      *endOfTurnThreshold,
+					EagerThreshold: *endOfTurnEagerThreshold,
+					Timeout:        durationpb.New(*endOfTurnTimeout),
+				},
 			},
 		},
-	}
-	switch *commitStrategy {
-	case "end_of_turn":
-		config.GetConfiguration().CommitStrategy = commitStrategyEndOfTurn
-	case "vad":
-		config.GetConfiguration().CommitStrategy = commitStrategyVAD
-	default:
-		return fmt.Errorf("unknown commit strategy: %s", *commitStrategy)
 	}
 
 	if err := stream.Send(config); err != nil {
@@ -120,7 +104,7 @@ func run() error {
 
 	go func() {
 		for {
-			resp, err := stream.Recv()
+			speechToTextStreamResponse, err := stream.Recv()
 			if err == io.EOF {
 				errCh <- nil
 				return
@@ -129,7 +113,7 @@ func run() error {
 				errCh <- fmt.Errorf("receiving: %w", err)
 				return
 			}
-			pbutil.MustPrintPretty(resp)
+			pbutil.MustPrintPretty(speechToTextStreamResponse)
 		}
 	}()
 
@@ -162,7 +146,7 @@ func run() error {
 					data[i*2] = byte(sample)
 					data[i*2+1] = byte(sample >> 8)
 				}
-				req := &aiservicepb.SpeechToTextStreamRequest{
+				speechToTextStreamRequest := &aiservicepb.SpeechToTextStreamRequest{
 					Content: &aiservicepb.SpeechToTextStreamRequest_AudioChunk{
 						AudioChunk: &audiopb.Chunk{
 							Index:    2,
@@ -171,7 +155,7 @@ func run() error {
 						},
 					},
 				}
-				if err := stream.Send(req); err != nil {
+				if err := stream.Send(speechToTextStreamRequest); err != nil {
 					errCh <- fmt.Errorf("sending audio: %w", err)
 					return
 				}

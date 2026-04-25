@@ -15,39 +15,27 @@ import (
 func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStreamServer) error {
 	ctx := srv.Context()
 
-	// Grab the configuration event and validate it.
+	// First message must be the stream configuration.
 	event, err := srv.Recv()
 	if err != nil {
 		return status.FromError(err, "receiving configuration event").Err()
 	}
 	configuration := event.GetConfiguration()
 	if configuration == nil {
-		return status.Errorf(codes.FailedPrecondition, "first message must be configuration", err).Err()
+		return status.Errorf(codes.FailedPrecondition, "first message must be configuration").Err()
 	}
 
+	// Resolve the provider-specific model ID.
 	getModelRequest := &aiservicepb.GetModelRequest{Name: configuration.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return status.FromError(err, "getting model").Err()
 	}
-	if model.ProviderModelId == "nova-3" {
-		return c.speechToTextStreamNova(srv, configuration)
-	}
 
+	// Deepgram only supports end-of-turn based commit strategy.
 	endOfTurnConfiguration := configuration.GetEndOfTurn()
 	if endOfTurnConfiguration == nil {
-		return status.Errorf(codes.InvalidArgument, "only supports end_of_turn commit strategy", err).Err()
-	}
-
-	if endOfTurnConfiguration.ConfidenceThreshold > 0 {
-		if endOfTurnConfiguration.ConfidenceThreshold < 0.5 || endOfTurnConfiguration.ConfidenceThreshold > 0.9 {
-			return status.Errorf(codes.InvalidArgument, "end_of_turn_confidence_threshold must be between 0.5 and 0.9").Err()
-		}
-	}
-	if endOfTurnConfiguration.EagerConfidenceThreshold > 0 {
-		if endOfTurnConfiguration.EagerConfidenceThreshold < 0.3 || endOfTurnConfiguration.EagerConfidenceThreshold > 0.9 {
-			return status.Errorf(codes.InvalidArgument, "eager_end_of_turn_confidence_threshold must be between 0.3 and 0.9").Err()
-		}
+		return status.Errorf(codes.InvalidArgument, "end_of_turn configuration is required").Err()
 	}
 
 	encoding, err := encodingFromFormat(configuration.AudioFormat)
@@ -55,6 +43,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		return status.Errorf(codes.InvalidArgument, "invalid audio format: %v", err).Err()
 	}
 
+	// Convert protobuf duration to milliseconds for Deepgram's API.
 	var eotTimeoutMs int
 	if d := endOfTurnConfiguration.GetTimeout(); d != nil {
 		eotTimeoutMs = int(d.AsDuration().Milliseconds())
@@ -64,8 +53,8 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		Model:             model.ProviderModelId,
 		Encoding:          encoding,
 		SampleRate:        int(configuration.AudioFormat.SampleRate),
-		EotThreshold:      endOfTurnConfiguration.ConfidenceThreshold,
-		EagerEotThreshold: endOfTurnConfiguration.EagerConfidenceThreshold,
+		EotThreshold:      endOfTurnConfiguration.Threshold,
+		EagerEotThreshold: endOfTurnConfiguration.EagerThreshold,
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {
@@ -73,130 +62,144 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 	}
 	defer conn.Close()
 
+	// Configure language hints if provided, sent as a post-connect configuration message.
+	if len(configuration.LanguageCodes) > 0 {
+		configureOptions := &ConfigureOptions{
+			LanguageHints: configuration.LanguageCodes,
+		}
+		if err := conn.Configure(ctx, configureOptions); err != nil {
+			return status.FromError(err, "configuring language hints").Err()
+		}
+	}
+
+	// Run audio ingestion and event forwarding concurrently; first error wins.
 	errChan := make(chan error, 2)
 	go func() {
-		if err := c.recvAudio(ctx, srv, conn); err != nil {
-			errChan <- status.FromError(err, "recv audio").Err()
-		} else {
-			errChan <- nil
-		}
+		errChan <- c.recvAudio(ctx, srv, conn)
 	}()
 	go func() {
-		if err := c.sendEvents(ctx, srv, conn); err != nil {
-			errChan <- status.FromError(err, "send events").Err()
-		} else {
-			errChan <- nil
-		}
+		errChan <- c.sendEvents(ctx, srv, conn)
 	}()
 	return <-errChan
 }
 
+// recvAudio reads audio chunks and reconfigurations from the gRPC stream and forwards them to Deepgram.
 func (c *Client) recvAudio(ctx context.Context, srv aiservicepb.AiService_SpeechToTextStreamServer, conn *ListenConnection) error {
 	for {
-		req, err := srv.Recv()
+		speechToTextStreamRequest, err := srv.Recv()
 		if err == io.EOF {
+			// Client closed the stream; finalize to flush any pending transcription.
 			return conn.Finalize(ctx)
 		}
 		if err != nil {
 			return err
 		}
-		if chunk := req.GetAudioChunk(); chunk != nil {
-			if err := conn.SendAudio(ctx, chunk.Data); err != nil {
+		switch content := speechToTextStreamRequest.Content.(type) {
+		case *aiservicepb.SpeechToTextStreamRequest_AudioChunk:
+			if err := conn.SendAudio(ctx, content.AudioChunk.Data); err != nil {
+				return err
+			}
+		case *aiservicepb.SpeechToTextStreamRequest_Configuration:
+			if err := c.applyReconfiguration(ctx, conn, content.Configuration); err != nil {
 				return err
 			}
 		}
 	}
 }
 
+// applyReconfiguration translates a gRPC reconfiguration into a Deepgram Configure control message.
+// Only set fields are forwarded; omitted fields remain unchanged on the Deepgram side.
+func (c *Client) applyReconfiguration(ctx context.Context, conn *ListenConnection, reconfiguration *aiservicepb.SpeechToTextStreamConfiguration) error {
+	configureOptions := &ConfigureOptions{
+		LanguageHints: reconfiguration.LanguageCodes,
+	}
+
+	// Forward end-of-turn threshold updates if provided.
+	if eot := reconfiguration.GetEndOfTurn(); eot != nil {
+		configureOptions.Thresholds = &ConfigThresholds{}
+		if eot.Threshold > 0 {
+			configureOptions.Thresholds.EotThreshold = &eot.Threshold
+		}
+		if eot.EagerThreshold > 0 {
+			configureOptions.Thresholds.EagerEotThreshold = &eot.EagerThreshold
+		}
+		if d := eot.GetTimeout(); d != nil {
+			eotTimeoutMs := int(d.AsDuration().Milliseconds())
+			configureOptions.Thresholds.EotTimeoutMs = &eotTimeoutMs
+		}
+	}
+
+	return conn.Configure(ctx, configureOptions)
+}
+
+// sendEvents reads turn events from Deepgram and forwards them as gRPC responses.
 func (c *Client) sendEvents(ctx context.Context, srv aiservicepb.AiService_SpeechToTextStreamServer, conn *ListenConnection) error {
 	for {
-		msg, err := conn.ReceiveMessage(ctx)
+		message, err := conn.ReceiveMessage(ctx)
 		if err != nil {
 			return err
 		}
-		switch msg.Type {
+		switch message.Type {
 		case MessageTypeError:
-			return msg.AsError()
+			return message.AsError()
 		case MessageTypeConnected:
 			continue
 		case MessageTypeTurnInfo:
-			if resp := turnInfoToResponse(msg); resp != nil {
-				if err := srv.Send(resp); err != nil {
-					return err
-				}
+			speechToTextStreamResponse := turnInfoToResponse(message)
+			if speechToTextStreamResponse == nil {
+				continue
+			}
+			if err := srv.Send(speechToTextStreamResponse); err != nil {
+				return err
 			}
 		}
 	}
 }
 
-func turnInfoToResponse(msg *ServerMessage) *aiservicepb.SpeechToTextStreamResponse {
-	switch msg.Event {
+// turnInfoToResponse maps a Deepgram TurnInfo message to the corresponding gRPC response.
+// Returns nil for unrecognized events.
+func turnInfoToResponse(message *ServerMessage) *aiservicepb.SpeechToTextStreamResponse {
+	// Deepgram returns detected and hinted languages directly on each TurnInfo.
+	turnEvent := &aiservicepb.SpeechToTextStreamTurnEvent{
+		TurnIndex:             message.TurnIndex,
+		Transcript:            message.Transcript,
+		EndOfTurnConfidence:   message.EndOfTurnConfidence,
+		DetectedLanguageCodes: message.Languages,
+		HintedLanguageCodes:   message.LanguagesHinted,
+	}
+
+	switch message.Event {
 	case EventStartOfTurn:
 		return &aiservicepb.SpeechToTextStreamResponse{
-			Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{
-				TurnStart: &aiservicepb.SpeechToTextStreamTurnEvent{
-					TurnIndex:           msg.TurnIndex,
-					Transcript:          msg.Transcript,
-					EndOfTurnConfidence: msg.EndOfTurnConfidence,
-				},
-			},
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnStart{TurnStart: turnEvent},
 		}
-
 	case EventUpdate:
 		return &aiservicepb.SpeechToTextStreamResponse{
-			Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{
-				TurnUpdate: &aiservicepb.SpeechToTextStreamTurnEvent{
-					TurnIndex:           msg.TurnIndex,
-					Transcript:          msg.Transcript,
-					EndOfTurnConfidence: msg.EndOfTurnConfidence,
-				},
-			},
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnUpdate{TurnUpdate: turnEvent},
 		}
-
 	case EventEagerEndOfTurn:
 		return &aiservicepb.SpeechToTextStreamResponse{
-			Content: &aiservicepb.SpeechToTextStreamResponse_TurnEagerEnd{
-				TurnEagerEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
-					TurnIndex:           msg.TurnIndex,
-					Transcript:          msg.Transcript,
-					EndOfTurnConfidence: msg.EndOfTurnConfidence,
-				},
-			},
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnEagerEnd{TurnEagerEnd: turnEvent},
 		}
-
 	case EventTurnResumed:
 		return &aiservicepb.SpeechToTextStreamResponse{
-			Content: &aiservicepb.SpeechToTextStreamResponse_TurnResumed{
-				TurnResumed: &aiservicepb.SpeechToTextStreamTurnEvent{
-					TurnIndex:           msg.TurnIndex,
-					Transcript:          msg.Transcript,
-					EndOfTurnConfidence: msg.EndOfTurnConfidence,
-				},
-			},
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnResumed{TurnResumed: turnEvent},
 		}
-
 	case EventEndOfTurn:
 		return &aiservicepb.SpeechToTextStreamResponse{
-			Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{
-				TurnEnd: &aiservicepb.SpeechToTextStreamTurnEvent{
-					TurnIndex:           msg.TurnIndex,
-					Transcript:          msg.Transcript,
-					EndOfTurnConfidence: msg.EndOfTurnConfidence,
-				},
-			},
+			Content: &aiservicepb.SpeechToTextStreamResponse_TurnEnd{TurnEnd: turnEvent},
 		}
-
 	}
 	return nil
 }
 
-func encodingFromFormat(f *audiopb.Format) (string, error) {
-	switch f.BitsPerSample {
+func encodingFromFormat(format *audiopb.Format) (string, error) {
+	switch format.BitsPerSample {
 	case 16:
 		return EncodingLinear16, nil
 	case 32:
 		return EncodingLinear32, nil
 	default:
-		return "", fmt.Errorf("unsupported bits per sample: %d", f.BitsPerSample)
+		return "", fmt.Errorf("unsupported bits per sample: %d", format.BitsPerSample)
 	}
 }

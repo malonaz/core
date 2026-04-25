@@ -3,7 +3,6 @@ go_library(
     srcs = [
         "deepgram.go",
         "speech_to_text_stream.go",
-        "speech_to_text_stream_nova.go",
     ],
     visibility = ["//..."],
     deps = [

@@ -10,10 +10,10 @@ local p = "providers/deepgram/models/";
       "stt": {}
     },
     {
-      "name": p + "nova-3",
-      "provider_model_id": "nova-3",
-      "description": "Multi-language real-time streaming speech-to-text with voice activity detection.",
+      "name": p + "flux-general-multi",
+      "provider_model_id": "flux-general-multi",
+      "description": "Multi-language real-time streaming speech-to-text with voice activity detection and end-of-turn prediction.",
       "stt": {}
-    }
+    },
   ]
 }

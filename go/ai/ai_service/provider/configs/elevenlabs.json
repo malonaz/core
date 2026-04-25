@@ -15,10 +15,5 @@ local p = "providers/elevenlabs/models/";
         "supported_sample_rates": [8000, 16000, 22050, 24000, 32000, 44100, 48000]
       }
     },
-    {
-      "name": p + "scribe_v2_realtime",
-      "provider_model_id": "scribe_v2_realtime",
-      "stt": {}
-    }
   ]
 }
