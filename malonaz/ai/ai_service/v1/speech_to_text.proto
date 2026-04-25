@@ -84,12 +84,12 @@ message SpeechToTextStreamEndOfTurnConfiguration {
   option (buf.validate.message).cel = {
     id: "eager_lte_threshold"
     message: "eager_threshold must be <= threshold"
-    expression: "!has(this.eager_threshold) || !has(this.threshold) || this.eager_threshold <= this.threshold"
+    expression: "!has(this.eager_confidence_threshold) || !has(this.confidence_threshold) || this.eager_confidence_threshold <= this.confidence_threshold"
   };
 
   // Confidence required to trigger a definitive EndOfTurn event.
   // Higher values = more reliable detection but slightly increased latency.
-  double threshold = 1 [(buf.validate.field).double = {
+  double confidence_threshold = 1 [(buf.validate.field).double = {
     gte: 0.5
     lte: 0.9
   }];
@@ -99,7 +99,7 @@ message SpeechToTextStreamEndOfTurnConfiguration {
   // the turn is definitively complete. Enables EagerEndOfTurn and
   // TurnResumed events when set. Must be <= threshold.
   // Warning: can increase LLM API calls by 50-70% due to speculative generation.
-  double eager_threshold = 2 [(buf.validate.field).double = {
+  double eager_confidence_threshold = 2 [(buf.validate.field).double = {
     gte: 0
     lte: 0.9
   }];

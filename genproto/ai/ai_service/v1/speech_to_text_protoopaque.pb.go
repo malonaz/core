@@ -580,12 +580,12 @@ func (b0 SpeechToTextStreamConfiguration_builder) Build() *SpeechToTextStreamCon
 // Configuration for end-of-turn detection.
 // Controls how the model determines when a speaker has finished their turn.
 type SpeechToTextStreamEndOfTurnConfiguration struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Threshold      float64                `protobuf:"fixed64,1,opt,name=threshold,proto3"`
-	xxx_hidden_EagerThreshold float64                `protobuf:"fixed64,2,opt,name=eager_threshold,json=eagerThreshold,proto3"`
-	xxx_hidden_Timeout        *durationpb.Duration   `protobuf:"bytes,3,opt,name=timeout,proto3"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ConfidenceThreshold      float64                `protobuf:"fixed64,1,opt,name=confidence_threshold,json=confidenceThreshold,proto3"`
+	xxx_hidden_EagerConfidenceThreshold float64                `protobuf:"fixed64,2,opt,name=eager_confidence_threshold,json=eagerConfidenceThreshold,proto3"`
+	xxx_hidden_Timeout                  *durationpb.Duration   `protobuf:"bytes,3,opt,name=timeout,proto3"`
+	unknownFields                       protoimpl.UnknownFields
+	sizeCache                           protoimpl.SizeCache
 }
 
 func (x *SpeechToTextStreamEndOfTurnConfiguration) Reset() {
@@ -613,16 +613,16 @@ func (x *SpeechToTextStreamEndOfTurnConfiguration) ProtoReflect() protoreflect.M
 	return mi.MessageOf(x)
 }
 
-func (x *SpeechToTextStreamEndOfTurnConfiguration) GetThreshold() float64 {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) GetConfidenceThreshold() float64 {
 	if x != nil {
-		return x.xxx_hidden_Threshold
+		return x.xxx_hidden_ConfidenceThreshold
 	}
 	return 0
 }
 
-func (x *SpeechToTextStreamEndOfTurnConfiguration) GetEagerThreshold() float64 {
+func (x *SpeechToTextStreamEndOfTurnConfiguration) GetEagerConfidenceThreshold() float64 {
 	if x != nil {
-		return x.xxx_hidden_EagerThreshold
+		return x.xxx_hidden_EagerConfidenceThreshold
 	}
 	return 0
 }
@@ -634,12 +634,12 @@ func (x *SpeechToTextStreamEndOfTurnConfiguration) GetTimeout() *durationpb.Dura
 	return nil
 }
 
-func (x *SpeechToTextStreamEndOfTurnConfiguration) SetThreshold(v float64) {
-	x.xxx_hidden_Threshold = v
+func (x *SpeechToTextStreamEndOfTurnConfiguration) SetConfidenceThreshold(v float64) {
+	x.xxx_hidden_ConfidenceThreshold = v
 }
 
-func (x *SpeechToTextStreamEndOfTurnConfiguration) SetEagerThreshold(v float64) {
-	x.xxx_hidden_EagerThreshold = v
+func (x *SpeechToTextStreamEndOfTurnConfiguration) SetEagerConfidenceThreshold(v float64) {
+	x.xxx_hidden_EagerConfidenceThreshold = v
 }
 
 func (x *SpeechToTextStreamEndOfTurnConfiguration) SetTimeout(v *durationpb.Duration) {
@@ -662,13 +662,13 @@ type SpeechToTextStreamEndOfTurnConfiguration_builder struct {
 
 	// Confidence required to trigger a definitive EndOfTurn event.
 	// Higher values = more reliable detection but slightly increased latency.
-	Threshold float64
+	ConfidenceThreshold float64
 	// Confidence required to trigger an EagerEndOfTurn event,
 	// allowing the caller to speculatively start LLM processing before
 	// the turn is definitively complete. Enables EagerEndOfTurn and
 	// TurnResumed events when set. Must be <= threshold.
 	// Warning: can increase LLM API calls by 50-70% due to speculative generation.
-	EagerThreshold float64
+	EagerConfidenceThreshold float64
 	// Maximum silence duration before forcing an EndOfTurn regardless of confidence.
 	Timeout *durationpb.Duration
 }
@@ -677,8 +677,8 @@ func (b0 SpeechToTextStreamEndOfTurnConfiguration_builder) Build() *SpeechToText
 	m0 := &SpeechToTextStreamEndOfTurnConfiguration{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Threshold = b.Threshold
-	x.xxx_hidden_EagerThreshold = b.EagerThreshold
+	x.xxx_hidden_ConfidenceThreshold = b.ConfidenceThreshold
+	x.xxx_hidden_EagerConfidenceThreshold = b.EagerConfidenceThreshold
 	x.xxx_hidden_Timeout = b.Timeout
 	return m0
 }
@@ -1243,13 +1243,13 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12%\n" +
 	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12b\n" +
-	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn\"\x8f\x03\n" +
-	"(SpeechToTextStreamEndOfTurnConfiguration\x125\n" +
-	"\tthreshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\tthreshold\x12@\n" +
-	"\x0feager_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eeagerThreshold\x12G\n" +
+	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn\"\xe6\x03\n" +
+	"(SpeechToTextStreamEndOfTurnConfiguration\x12J\n" +
+	"\x14confidence_threshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\x13confidenceThreshold\x12U\n" +
+	"\x1aeager_confidence_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x18eagerConfidenceThreshold\x12G\n" +
 	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x12\xbaH\x0f\xaa\x01\f\"\x02\b\n" +
-	"2\x06\x10\x80ʵ\xee\x01R\atimeout:\xa0\x01\xbaH\x9c\x01\x1a\x99\x01\n" +
-	"\x13eager_lte_threshold\x12$eager_threshold must be <= threshold\x1a\\!has(this.eager_threshold) || !has(this.threshold) || this.eager_threshold <= this.threshold\"\x80\x05\n" +
+	"2\x06\x10\x80ʵ\xee\x01R\atimeout:\xcd\x01\xbaH\xc9\x01\x1a\xc6\x01\n" +
+	"\x13eager_lte_threshold\x12$eager_threshold must be <= threshold\x1a\x88\x01!has(this.eager_confidence_threshold) || !has(this.confidence_threshold) || this.eager_confidence_threshold <= this.confidence_threshold\"\x80\x05\n" +
 	"\x1aSpeechToTextStreamResponse\x12V\n" +
 	"\n" +
 	"turn_start\x18\x01 \x01(\v25.malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEventH\x00R\tturnStart\x12X\n" +

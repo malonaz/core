@@ -53,8 +53,8 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		Model:             model.ProviderModelId,
 		Encoding:          encoding,
 		SampleRate:        int(configuration.AudioFormat.SampleRate),
-		EotThreshold:      endOfTurnConfiguration.Threshold,
-		EagerEotThreshold: endOfTurnConfiguration.EagerThreshold,
+		EotThreshold:      endOfTurnConfiguration.ConfidenceThreshold,
+		EagerEotThreshold: endOfTurnConfiguration.EagerConfidenceThreshold,
 		EotTimeoutMs:      eotTimeoutMs,
 	})
 	if err != nil {
@@ -117,11 +117,11 @@ func (c *Client) applyReconfiguration(ctx context.Context, conn *ListenConnectio
 	// Forward end-of-turn threshold updates if provided.
 	if eot := reconfiguration.GetEndOfTurn(); eot != nil {
 		configureOptions.Thresholds = &ConfigThresholds{}
-		if eot.Threshold > 0 {
-			configureOptions.Thresholds.EotThreshold = &eot.Threshold
+		if eot.ConfidenceThreshold > 0 {
+			configureOptions.Thresholds.EotThreshold = &eot.ConfidenceThreshold
 		}
-		if eot.EagerThreshold > 0 {
-			configureOptions.Thresholds.EagerEotThreshold = &eot.EagerThreshold
+		if eot.EagerConfidenceThreshold > 0 {
+			configureOptions.Thresholds.EagerEotThreshold = &eot.EagerConfidenceThreshold
 		}
 		if d := eot.GetTimeout(); d != nil {
 			eotTimeoutMs := int(d.AsDuration().Milliseconds())

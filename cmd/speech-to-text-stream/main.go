@@ -85,9 +85,9 @@ func run() error {
 					BitsPerSample: 16,
 				},
 				EndOfTurn: &aiservicepb.SpeechToTextStreamEndOfTurnConfiguration{
-					Threshold:      *endOfTurnThreshold,
-					EagerThreshold: *endOfTurnEagerThreshold,
-					Timeout:        durationpb.New(*endOfTurnTimeout),
+					ConfidenceThreshold:      *endOfTurnThreshold,
+					EagerConfidenceThreshold: *endOfTurnEagerThreshold,
+					Timeout:                  durationpb.New(*endOfTurnTimeout),
 				},
 			},
 		},
