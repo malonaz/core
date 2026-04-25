@@ -309,15 +309,6 @@ var stopFns []func() error
 {{- end }}
 
     {{- if eq $server.type "grpc" }}
-        register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
-        {{- range $service := $server.services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $grpc := parseGRPC $service.proto "" -}}
-            {{ $grpc.Register $serviceName }}
-        {{- end }}
-        }
-
         {{- range $interceptor := $server.interceptors -}}
             {{ if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
@@ -342,7 +333,14 @@ var stopFns []func() error
             {{ end }}
         {{- end }}
 
-	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ $server.name }}", register){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
+	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ $server.name }}"){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
+
+        {{- range $service := $server.services }}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
+            {{ $grpc := parseGRPC $service.proto "" -}}
+            {{ $grpc.Register $serviceName }}
+        {{- end }}
 
         grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
             {{- if eq $interceptor.type "session_local_context_injector" }}

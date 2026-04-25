@@ -368,6 +368,14 @@ var file_malonaz_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 		Filename:      "malonaz/codegen/aip/v1/aip.proto",
 	},
 	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*string)(nil),
+		Field:         93001,
+		Name:          "malonaz.codegen.aip.v1.read_mask_target",
+		Tag:           "bytes,93001,opt,name=read_mask_target",
+		Filename:      "malonaz/codegen/aip/v1/aip.proto",
+	},
+	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*string)(nil),
 		Field:         92000,
@@ -415,6 +423,11 @@ var (
 	//
 	// optional malonaz.codegen.aip.v1.StandardMethod standard_method = 93000;
 	E_StandardMethod = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[0]
+	// The response field that read masks are validated and applied against.
+	// When set, read masks operate on this field rather than the response message itself.
+	//
+	// optional string read_mask_target = 93001;
+	E_ReadMaskTarget = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[1]
 )
 
 // Extension fields to descriptorpb.MessageOptions.
@@ -422,23 +435,23 @@ var (
 	//	The uuid namespace for a resource.
 	//
 	// optional string uuid_namespace = 92000;
-	E_UuidNamespace = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[1]
+	E_UuidNamespace = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[2]
 	// Configuration for AIP Update RPCs, including field mask handling and authorization.
 	//
 	// optional malonaz.codegen.aip.v1.UpdateOptions update = 920013;
-	E_Update = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[2]
+	E_Update = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[3]
 	// Option for pagination.
 	//
 	// optional malonaz.codegen.aip.v1.PaginationOptions pagination = 94000;
-	E_Pagination = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[3]
+	E_Pagination = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[4]
 	// Option for ordering.
 	//
 	// optional malonaz.codegen.aip.v1.OrderingOptions ordering = 94001;
-	E_Ordering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[4]
+	E_Ordering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[5]
 	// Option for ordering.
 	//
 	// optional malonaz.codegen.aip.v1.FilteringOptions filtering = 94002;
-	E_Filtering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[5]
+	E_Filtering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[6]
 )
 
 var File_malonaz_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
@@ -459,7 +472,8 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\bresource\x18\x01 \x01(\tB4\xbaH1\xc8\x01\x01r,2*^[a-z]+\\.[a-z]+\\.[a-z0-9]+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
 	"\n" +
 	"emit_event\x18\x02 \x01(\bR\temitEvent:q\n" +
-	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:H\n" +
+	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:J\n" +
+	"\x10read_mask_target\x12\x1e.google.protobuf.MethodOptions\x18\xc9\xd6\x05 \x01(\tR\x0ereadMaskTarget:H\n" +
 	"\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\tR\ruuidNamespace:`\n" +
 	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18͓8 \x01(\v2%.malonaz.codegen.aip.v1.UpdateOptionsR\x06update:l\n" +
 	"\n" +
@@ -480,20 +494,21 @@ var file_malonaz_codegen_aip_v1_aip_proto_goTypes = []any{
 }
 var file_malonaz_codegen_aip_v1_aip_proto_depIdxs = []int32{
 	5,  // 0: malonaz.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
-	6,  // 1: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
-	6,  // 2: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	6,  // 3: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
-	6,  // 4: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
-	6,  // 5: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
-	4,  // 6: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
-	3,  // 7: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
-	1,  // 8: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
-	2,  // 9: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
-	0,  // 10: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	6,  // [6:11] is the sub-list for extension type_name
-	0,  // [0:6] is the sub-list for extension extendee
+	5,  // 1: malonaz.codegen.aip.v1.read_mask_target:extendee -> google.protobuf.MethodOptions
+	6,  // 2: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
+	6,  // 3: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	6,  // 4: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
+	6,  // 5: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
+	6,  // 6: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
+	4,  // 7: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
+	3,  // 8: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
+	1,  // 9: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
+	2,  // 10: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
+	0,  // 11: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	7,  // [7:12] is the sub-list for extension type_name
+	0,  // [0:7] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
 }
 
@@ -509,7 +524,7 @@ func file_malonaz_codegen_aip_v1_aip_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_aip_v1_aip_proto_rawDesc), len(file_malonaz_codegen_aip_v1_aip_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   5,
-			NumExtensions: 6,
+			NumExtensions: 7,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_codegen_aip_v1_aip_proto_goTypes,

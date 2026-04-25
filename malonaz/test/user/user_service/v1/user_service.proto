@@ -69,6 +69,7 @@ service UserService {
   rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
     option (google.api.http) = {get: "/v1/organizations"};
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "organizations";
   }
 
   // Gets multiple organizations in a single request.
@@ -78,6 +79,7 @@ service UserService {
     option (google.api.http) = {get: "/v1/organizations:batchGet"};
     option (google.api.method_signature) = "names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "organizations";
   }
 
   // ===================== User =====================
@@ -121,6 +123,7 @@ service UserService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/users"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "users";
   }
 
   // Gets multiple users in a single request.
@@ -130,5 +133,6 @@ service UserService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/users:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "users";
   }
 }

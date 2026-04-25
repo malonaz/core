@@ -142,7 +142,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	if so.withResponseReadMask {
 		schema.Properties[responseReadMaskKey] = &jsonpb.Schema{
 			Type:        "string",
-			Description: "Google AIP field mask: comma-separated snake_case paths to include in the response (e.g. 'field_one,field_two.nested_field'). Only specified fields are returned. Nested fields use dot notation. Omit to return all fields.",
+			Description: "Google AIP field mask: comma-separated snake_case paths to include in the response (e.g. 'field_one,field_two.nested_field'). Only specified fields are returned. Nested fields use dot notation. Use '*' to return all fields.",
 		}
 		schema.Required = append(schema.Required, responseReadMaskKey)
 	}

@@ -2,12 +2,17 @@ package middleware
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
+	gatewaypb "github.com/malonaz/core/genproto/codegen/gateway/v1"
+	"github.com/malonaz/core/go/pbutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -100,16 +105,79 @@ func propagateHeadersToOutgoingContext(ctx context.Context) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, kvPairs...)
 }
 
-func UnaryServerHeaderPropagation() grpc.UnaryServerInterceptor {
+func ForwardCustomHeaders(ctx context.Context) context.Context {
+	incomingMD, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ctx
+	}
+	var pairs []string
+	for key, values := range incomingMD {
+		if IsStandardHeader(key) {
+			continue
+		}
+		for _, value := range values {
+			pairs = append(pairs, key, value)
+		}
+	}
+	if len(pairs) == 0 {
+		return ctx
+	}
+	return metadata.AppendToOutgoingContext(ctx, pairs...)
+}
+
+// IsStandardHeader returns true if the given key is a standard gRPC/HTTP2 header:
+//   - ":"           HTTP/2 pseudo-headers (:authority, :method, :path, :scheme).
+//   - "grpc-"       gRPC reserved headers (grpc-timeout, grpc-encoding, grpc-status, etc.).
+//   - "content-type" required by gRPC, always "application/grpc".
+//   - "user-agent"   set automatically by gRPC clients.
+//   - "te"           HTTP/2 transfer encoding, always "trailers".
+//   - "authorization" standard HTTP authentication header.
+func IsStandardHeader(key string) bool {
+	return strings.HasPrefix(key, ":") || strings.HasPrefix(key, "grpc-") ||
+		key == "content-type" || key == "user-agent" || key == "te" || key == "authorization"
+}
+
+func buildProxyMethodSet(serviceDescriptors []protoreflect.ServiceDescriptor) map[string]struct{} {
+	proxyMethodSet := map[string]struct{}{}
+	for _, serviceDesc := range serviceDescriptors {
+		methods := serviceDesc.Methods()
+		for i := 0; i < methods.Len(); i++ {
+			method := methods.Get(i)
+			handlerOpts, err := pbutil.GetExtension[*gatewaypb.HandlerOpts](method.Options(), gatewaypb.E_Opts)
+			if err != nil {
+				if errors.Is(err, pbutil.ErrExtensionNotFound) {
+					continue
+				}
+				panic(fmt.Errorf("getting handler opts for %q: %w", method.FullName(), err))
+			}
+			if handlerOpts.GetProxy() != "" {
+				fullMethod := "/" + string(serviceDesc.Name()) + "/" + string(method.Name())
+				panic(fullMethod)
+				proxyMethodSet[fullMethod] = struct{}{}
+			}
+		}
+	}
+	return proxyMethodSet
+}
+
+func UnaryServerHeaderPropagation(serviceDescriptors []protoreflect.ServiceDescriptor) grpc.UnaryServerInterceptor {
+	proxyMethodSet := buildProxyMethodSet(serviceDescriptors)
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		ctx = propagateHeadersToOutgoingContext(ctx)
+		if _, ok := proxyMethodSet[info.FullMethod]; ok {
+			ctx = ForwardCustomHeaders(ctx)
+		}
 		return handler(ctx, req)
 	}
 }
 
-func StreamServerHeaderPropagation() grpc.StreamServerInterceptor {
+func StreamServerHeaderPropagation(serviceDescriptors []protoreflect.ServiceDescriptor) grpc.StreamServerInterceptor {
+	proxyMethodSet := buildProxyMethodSet(serviceDescriptors)
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := propagateHeadersToOutgoingContext(stream.Context())
+		if _, ok := proxyMethodSet[info.FullMethod]; ok {
+			ctx = ForwardCustomHeaders(ctx)
+		}
 		if ctx != stream.Context() {
 			stream = &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx}
 		}

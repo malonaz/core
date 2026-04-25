@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/aip/v1/aip.proto.
  */
 export const file_malonaz_codegen_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIjcKEVBhZ2luYXRpb25PcHRpb25zEiIKEWRlZmF1bHRfcGFnZV9zaXplGAEgASgNQge6SAQqAiAAIkEKD09yZGVyaW5nT3B0aW9ucxIVCgVwYXRocxgBIAMoCUIGukgDyAEBEhcKB2RlZmF1bHQYAiABKAlCBrpIA8gBASIeCg1VcGRhdGVPcHRpb25zEg0KBXBhdGhzGAEgAygJImwKDlN0YW5kYXJkTWV0aG9kEkYKCHJlc291cmNlGAEgASgJQjS6SDFyLDIqXlthLXpdK1wuW2Etel0rXC5bYS16MC05XSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOkgKDnV1aWRfbmFtZXNwYWNlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGODOBSABKAlSDXV1aWROYW1lc3BhY2U6YAoGdXBkYXRlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGM2TOCABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlVwZGF0ZU9wdGlvbnNSBnVwZGF0ZTpsCgpwYWdpbmF0aW9uEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLDeBSABKAsyKS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlBhZ2luYXRpb25PcHRpb25zUgpwYWdpbmF0aW9uOmYKCG9yZGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLHeBSABKAsyJy5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLk9yZGVyaW5nT3B0aW9uc1IIb3JkZXJpbmc6aQoJZmlsdGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLLeBSABKAsyKC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLkZpbHRlcmluZ09wdGlvbnNSCWZpbHRlcmluZ0IxWi9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor]);
+  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIjcKEVBhZ2luYXRpb25PcHRpb25zEiIKEWRlZmF1bHRfcGFnZV9zaXplGAEgASgNQge6SAQqAiAAIkEKD09yZGVyaW5nT3B0aW9ucxIVCgVwYXRocxgBIAMoCUIGukgDyAEBEhcKB2RlZmF1bHQYAiABKAlCBrpIA8gBASIeCg1VcGRhdGVPcHRpb25zEg0KBXBhdGhzGAEgAygJImwKDlN0YW5kYXJkTWV0aG9kEkYKCHJlc291cmNlGAEgASgJQjS6SDFyLDIqXlthLXpdK1wuW2Etel0rXC5bYS16MC05XSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOkoKEHJlYWRfbWFza190YXJnZXQSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjJ1gUgASgJUg5yZWFkTWFza1RhcmdldDpICg51dWlkX25hbWVzcGFjZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjgzgUgASgJUg11dWlkTmFtZXNwYWNlOmAKBnVwZGF0ZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjNkzggASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5VcGRhdGVPcHRpb25zUgZ1cGRhdGU6bAoKcGFnaW5hdGlvbhIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiw3gUgASgLMikubWFsb25hei5jb2RlZ2VuLmFpcC52MS5QYWdpbmF0aW9uT3B0aW9uc1IKcGFnaW5hdGlvbjpmCghvcmRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxix3gUgASgLMicubWFsb25hei5jb2RlZ2VuLmFpcC52MS5PcmRlcmluZ09wdGlvbnNSCG9yZGVyaW5nOmkKCWZpbHRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiy3gUgASgLMigubWFsb25hei5jb2RlZ2VuLmFpcC52MS5GaWx0ZXJpbmdPcHRpb25zUglmaWx0ZXJpbmdCMVovZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor]);
 
 /**
  * Options for filtering.
@@ -205,12 +205,21 @@ export const standard_method: GenExtension<MethodOptions, StandardMethod> = /*@_
   extDesc(file_malonaz_codegen_aip_v1_aip, 0);
 
 /**
+ * The response field that read masks are validated and applied against.
+ * When set, read masks operate on this field rather than the response message itself.
+ *
+ * @generated from extension: string read_mask_target = 93001;
+ */
+export const read_mask_target: GenExtension<MethodOptions, string> = /*@__PURE__*/
+  extDesc(file_malonaz_codegen_aip_v1_aip, 1);
+
+/**
  *  The uuid namespace for a resource.
  *
  * @generated from extension: string uuid_namespace = 92000;
  */
 export const uuid_namespace: GenExtension<MessageOptions, string> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 1);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 2);
 
 /**
  * Configuration for AIP Update RPCs, including field mask handling and authorization.
@@ -218,7 +227,7 @@ export const uuid_namespace: GenExtension<MessageOptions, string> = /*@__PURE__*
  * @generated from extension: malonaz.codegen.aip.v1.UpdateOptions update = 920013;
  */
 export const update: GenExtension<MessageOptions, UpdateOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 2);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 3);
 
 /**
  * Option for pagination.
@@ -226,7 +235,7 @@ export const update: GenExtension<MessageOptions, UpdateOptions> = /*@__PURE__*/
  * @generated from extension: malonaz.codegen.aip.v1.PaginationOptions pagination = 94000;
  */
 export const pagination: GenExtension<MessageOptions, PaginationOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 3);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 4);
 
 /**
  * Option for ordering.
@@ -234,7 +243,7 @@ export const pagination: GenExtension<MessageOptions, PaginationOptions> = /*@__
  * @generated from extension: malonaz.codegen.aip.v1.OrderingOptions ordering = 94001;
  */
 export const ordering: GenExtension<MessageOptions, OrderingOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 4);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 5);
 
 /**
  * Option for ordering.
@@ -242,5 +251,5 @@ export const ordering: GenExtension<MessageOptions, OrderingOptions> = /*@__PURE
  * @generated from extension: malonaz.codegen.aip.v1.FilteringOptions filtering = 94002;
  */
 export const filtering: GenExtension<MessageOptions, FilteringOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 5);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 6);
 

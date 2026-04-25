@@ -313,7 +313,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 			return nil, err
 		}
 		// Parse the field mask (if it exists).
-		fieldMask, _ := pbjson.GetResponseFieldMask(toolCall.GetArguments().AsMap())
+		fieldMask, _ := pbjson.GetResponseReadMask(toolCall.GetArguments().AsMap())
 
 		return &pb.ParseToolCallResponse{
 			Result: &pb.ParseToolCallResponse_Rpc{

@@ -74,6 +74,7 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "authors";
   }
 
   // Gets multiple authors in a single request.
@@ -83,6 +84,7 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "authors";
   }
 
   // ===================== Shelf =====================
@@ -126,6 +128,7 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "shelves";
   }
 
   // Gets multiple shelves in a single request.
@@ -135,6 +138,7 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "shelves";
   }
 
   // ===================== Book =====================
@@ -179,6 +183,7 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "books";
   }
 
   // Gets multiple books in a single request.
@@ -188,5 +193,6 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+    option (malonaz.codegen.aip.v1.read_mask_target) = "books";
   }
 }

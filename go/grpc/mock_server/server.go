@@ -29,8 +29,7 @@ func NewServer(opts *commongrpc.Opts, certsOpts *certs.Opts, name string) *Serve
 	server := &Server{
 		methodToHandler: map[string]Handler{},
 	}
-	register := func(*commongrpc.Server) {}
-	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, name, register)
+	grpcServer := commongrpc.NewServer(opts, certsOpts, &prometheus.Opts{}, name)
 	grpcServer.WithOptions(
 		grpc.CustomCodec(Codec{}), grpc.UnknownServiceHandler(server.handleRPC),
 	)

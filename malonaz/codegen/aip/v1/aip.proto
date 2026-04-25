@@ -11,6 +11,9 @@ option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
 extend google.protobuf.MethodOptions {
   // Extension for standard method.
   StandardMethod standard_method = 93000;
+  // The response field that read masks are validated and applied against.
+  // When set, read masks operate on this field rather than the response message itself.
+  string read_mask_target = 93001;
 }
 
 // Extensions for message options to configure AIP list and update behaviors.

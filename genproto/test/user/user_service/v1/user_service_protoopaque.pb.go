@@ -30,7 +30,7 @@ var File_malonaz_test_user_user_service_v1_user_service_proto protoreflect.FileD
 
 const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto2\xef\x14\n" +
+	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto2\xa3\x15\n" +
 	"\vUserService\x12\xd6\x01\n" +
 	"\x12CreateOrganization\x12<.malonaz.test.user.user_service.v1.CreateOrganizationRequest\x1a\".malonaz.test.user.v1.Organization\"^\xdaA\forganization´-$\n" +
 	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02!:\forganization\"\x11/v1/organizations\x12\xc3\x01\n" +
@@ -39,11 +39,11 @@ const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\x12UpdateOrganization\x12<.malonaz.test.user.user_service.v1.UpdateOrganizationRequest\x1a\".malonaz.test.user.v1.Organization\"\x80\x01\xdaA\x18organization,update_mask´-$\n" +
 	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x027:\forganization2'/v1/{organization.name=organizations/*}\x12\xc9\x01\n" +
 	"\x12DeleteOrganization\x12<.malonaz.test.user.user_service.v1.DeleteOrganizationRequest\x1a\".malonaz.test.user.v1.Organization\"Q\xdaA\x04name´-$\n" +
-	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/{name=organizations/*}\x12\xd1\x01\n" +
-	"\x11ListOrganizations\x12;.malonaz.test.user.user_service.v1.ListOrganizationsRequest\x1a<.malonaz.test.user.user_service.v1.ListOrganizationsResponse\"A´-$\n" +
-	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/organizations\x12\xee\x01\n" +
-	"\x15BatchGetOrganizations\x12?.malonaz.test.user.user_service.v1.BatchGetOrganizationsRequest\x1a@.malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse\"R\xdaA\x05names´-$\n" +
-	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/organizations:batchGet\x12\xbe\x01\n" +
+	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/{name=organizations/*}\x12\xe2\x01\n" +
+	"\x11ListOrganizations\x12;.malonaz.test.user.user_service.v1.ListOrganizationsRequest\x1a<.malonaz.test.user.user_service.v1.ListOrganizationsResponse\"R´-$\n" +
+	"\"user.test.malonaz.com/Organizationʴ-\rorganizations\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/organizations\x12\xff\x01\n" +
+	"\x15BatchGetOrganizations\x12?.malonaz.test.user.user_service.v1.BatchGetOrganizationsRequest\x1a@.malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse\"c\xdaA\x05names´-$\n" +
+	"\"user.test.malonaz.com/Organizationʴ-\rorganizations\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/organizations:batchGet\x12\xbe\x01\n" +
 	"\n" +
 	"CreateUser\x124.malonaz.test.user.user_service.v1.CreateUserRequest\x1a\x1a.malonaz.test.user.v1.User\"^\xdaA\vparent,user´-\x1c\n" +
 	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02*:\x04user\"\"/v1/{parent=organizations/*}/users\x12\xab\x01\n" +
@@ -54,11 +54,11 @@ const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02/:\x04user2'/v1/{user.name=organizations/*/users/*}\x12\xb1\x01\n" +
 	"\n" +
 	"DeleteUser\x124.malonaz.test.user.user_service.v1.DeleteUserRequest\x1a\x1a.malonaz.test.user.v1.User\"Q\xdaA\x04name´-\x1c\n" +
-	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02$*\"/v1/{name=organizations/*/users/*}\x12\xcb\x01\n" +
-	"\tListUsers\x123.malonaz.test.user.user_service.v1.ListUsersRequest\x1a4.malonaz.test.user.user_service.v1.ListUsersResponse\"S\xdaA\x06parent´-\x1c\n" +
-	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02$\x12\"/v1/{parent=organizations/*}/users\x12\xe6\x01\n" +
-	"\rBatchGetUsers\x127.malonaz.test.user.user_service.v1.BatchGetUsersRequest\x1a8.malonaz.test.user.user_service.v1.BatchGetUsersResponse\"b\xdaA\fparent,names´-\x1c\n" +
-	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*}/users:batchGet\x1a\x8e\x01\xcaA\x15user.test.malonaz.com\x82\x91$;\n" +
+	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02$*\"/v1/{name=organizations/*/users/*}\x12\xd4\x01\n" +
+	"\tListUsers\x123.malonaz.test.user.user_service.v1.ListUsersRequest\x1a4.malonaz.test.user.user_service.v1.ListUsersResponse\"\\\xdaA\x06parent´-\x1c\n" +
+	"\x1auser.test.malonaz.com/Userʴ-\x05users\x82\xd3\xe4\x93\x02$\x12\"/v1/{parent=organizations/*}/users\x12\xef\x01\n" +
+	"\rBatchGetUsers\x127.malonaz.test.user.user_service.v1.BatchGetUsersRequest\x1a8.malonaz.test.user.user_service.v1.BatchGetUsersResponse\"k\xdaA\fparent,names´-\x1c\n" +
+	"\x1auser.test.malonaz.com/Userʴ-\x05users\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*}/users:batchGet\x1a\x8e\x01\xcaA\x15user.test.malonaz.com\x82\x91$;\n" +
 	".malonaz.test.user.user_service.v1.organization\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$3\n" +
 	"&malonaz.test.user.user_service.v1.user\x12\x05\b\x80\x9a\x9e\x018\x01@\x01B<Z:github.com/malonaz/core/genproto/test/user/user_service/v1b\x06proto3"
 

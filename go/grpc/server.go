@@ -21,6 +21,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	grpc_reflection_v1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 
 	"github.com/malonaz/core/go/certs"
@@ -60,14 +62,15 @@ type ServerOptions struct {
 
 // Server is a gRPC server.
 type Server struct {
-	name           string
-	log            *slog.Logger
-	opts           *Opts
-	certsOpts      *certs.Opts
-	prometheusOpts *prometheus.Opts
-	register       func(*Server)
-	Raw            *grpc.Server
-	healthServer   *health.GRPCServer
+	name               string
+	log                *slog.Logger
+	opts               *Opts
+	certsOpts          *certs.Opts
+	prometheusOpts     *prometheus.Opts
+	serviceDescToImpl  map[*grpc.ServiceDesc]any
+	serviceDescriptors []protoreflect.ServiceDescriptor
+	Raw                *grpc.Server
+	healthServer       *health.GRPCServer
 
 	fdsBytes []byte
 
@@ -94,15 +97,15 @@ func (s *Server) WithLogger(logger *slog.Logger) *Server {
 }
 
 // NewServer creates and returns a new Server.
-func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
+func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string) *Server {
 	return &Server{
-		name:           name,
-		log:            slog.Default(),
-		opts:           opts,
-		certsOpts:      certsOpts,
-		prometheusOpts: prometheusOpts,
-		register:       register,
-		healthServer:   health.NewGRPCServer(opts.Health, name),
+		name:              name,
+		log:               slog.Default(),
+		opts:              opts,
+		certsOpts:         certsOpts,
+		prometheusOpts:    prometheusOpts,
+		healthServer:      health.NewGRPCServer(opts.Health, name),
+		serviceDescToImpl: map[*grpc.ServiceDesc]any{},
 	}
 }
 
@@ -161,6 +164,23 @@ func (s *Server) GracefulStop() error {
 }
 
 // Serve instantiates the gRPC server and blocks forever.
+func (s *Server) RegisterService(desc *grpc.ServiceDesc, impl any) {
+	if _, ok := s.serviceDescToImpl[desc]; ok {
+		panic(fmt.Sprintf("service already registered: %s", desc.ServiceName))
+	}
+	s.serviceDescToImpl[desc] = impl
+	descriptor, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(desc.ServiceName))
+	if err != nil {
+		panic(fmt.Errorf("finding service descriptor for %q: %w", desc.ServiceName, err))
+	}
+	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
+	if !ok {
+		panic(fmt.Errorf("descriptor for %q is not a service descriptor", desc.ServiceName))
+	}
+	s.serviceDescriptors = append(s.serviceDescriptors, serviceDescriptor)
+}
+
+// Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve(ctx context.Context) error {
 	s.log = s.log.WithGroup("grpc_server").With(
 		"name", s.name, "port", s.opts.Port, "host", s.opts.Host, "socket_path",
@@ -197,8 +217,8 @@ func (s *Server) Serve(ctx context.Context) error {
 		s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_selector.StreamServerInterceptor(prometheusServerMetrics.StreamServerInterceptor(), middleware.AllButHealth))
 	}
 	// PRE (4): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerHeaderPropagation())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerHeaderPropagation())
+	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerHeaderPropagation(s.serviceDescriptors))
+	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerHeaderPropagation(s.serviceDescriptors))
 	// PRE (5): Trailer propagator interceptor.
 	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerTrailerPropagation())
 	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerTrailerPropagation())
@@ -227,6 +247,8 @@ func (s *Server) Serve(ctx context.Context) error {
 	// POST (4): Field mask interceptor.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerFieldMask())
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerFieldMask())
+	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerReadMask(s.serviceDescriptors))
+	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerReadMask(s.serviceDescriptors))
 
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
@@ -271,7 +293,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	defer listener.Close()
 
 	s.Raw = grpc.NewServer(s.options...)
-	s.register(s)
+	for serviceDesc, impl := range s.serviceDescToImpl {
+		s.Raw.RegisterService(serviceDesc, impl)
+	}
 	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
 
 	if s.opts.EnableReflection {

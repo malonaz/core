@@ -187,7 +187,7 @@ func (t *GRPC) NewClient() (string, error) {
 }
 
 func (t *GRPC) Register(serviceName string) (string, error) {
-	return t.template("{protoImport}.Register{nameCamelCaseT}Server(server.Raw, %s)", serviceName)
+	return t.template("{protoImport}.Register{nameCamelCaseT}Server(grpcServer, %s)", serviceName)
 }
 
 func (t *GRPC) RegisterHandlerFromEndpoint() (string, error) {
