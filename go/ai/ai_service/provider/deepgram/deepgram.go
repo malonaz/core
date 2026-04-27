@@ -85,7 +85,10 @@ func (lc *ListenConnection) SendAudio(ctx context.Context, audio []byte) error {
 }
 
 func (lc *ListenConnection) Finalize(ctx context.Context) error {
-	data, _ := json.Marshal(map[string]string{"type": MessageTypeFinalize})
+	data, err := json.Marshal(map[string]string{"type": MessageTypeFinalize})
+	if err != nil {
+		return err
+	}
 	return lc.conn.Write(ctx, websocket.MessageText, data)
 }
 
@@ -104,7 +107,10 @@ type ConfigThresholds struct {
 
 func (lc *ListenConnection) Configure(ctx context.Context, opts *ConfigureOptions) error {
 	opts.Type = MessageTypeConfigure
-	data, _ := json.Marshal(opts)
+	data, err := json.Marshal(opts)
+	if err != nil {
+		return err
+	}
 	return lc.conn.Write(ctx, websocket.MessageText, data)
 }
 
