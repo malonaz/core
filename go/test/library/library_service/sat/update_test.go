@@ -1107,7 +1107,7 @@ func TestUpdate_IdempotentSameValue(t *testing.T) {
 	}, []string{"display_name"})
 
 	require.Equal(t, first.DisplayName, second.DisplayName)
-	require.NotEqual(t, first.Etag, second.Etag)
+	require.Equal(t, first.Etag, second.Etag) // Etag ignores `etag` and `update_time`.
 
 	got := getAuthor(t, original.Name)
 	grpcrequire.Equal(t, second, got)

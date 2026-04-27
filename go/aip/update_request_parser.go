@@ -30,9 +30,26 @@ type ETagResource interface {
 	GetEtag() string
 }
 
-// Compute an etag for a resource.
+// ComputeETag computes a content-based etag for a resource.
+// It excludes `etag` and `update_time` from the hash so that
+// callers can detect no-op updates by comparing etags.
 func ComputeETag(m ETagResource) (string, error) {
+	ref := m.ProtoReflect()
+	etagField := ref.Descriptor().Fields().ByName("etag")
+	updateTimeField := ref.Descriptor().Fields().ByName("update_time")
+
+	// Save and clear fields that shouldn't affect content identity.
+	oldEtag := ref.Get(etagField)
+	oldUpdateTime := ref.Get(updateTimeField)
+	ref.Clear(etagField)
+	ref.Clear(updateTimeField)
+
 	bytes, err := pbutil.MarshalDeterministic(m)
+
+	// Restore cleared fields.
+	ref.Set(etagField, oldEtag)
+	ref.Set(updateTimeField, oldUpdateTime)
+
 	if err != nil {
 		return "", err
 	}
