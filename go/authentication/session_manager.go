@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/grpc/middleware"
@@ -56,7 +55,7 @@ func GetSession(ctx context.Context) (*authenticationpb.Session, error) {
 // verifySession checks if a session has a valid signature.
 func (s *SessionManager) verify(signedSession *authenticationpb.SignedSession) (bool, error) {
 	// Marshal the session copy
-	data, err := proto.Marshal(signedSession.Session)
+	data, err := pbutil.MarshalDeterministic(signedSession.Session)
 	if err != nil {
 		return false, fmt.Errorf("marshaling session: %w", err)
 	}
@@ -73,7 +72,7 @@ func (s *SessionManager) verify(signedSession *authenticationpb.SignedSession) (
 // signSession signs a session with HMAC-SHA256
 func (s *SessionManager) sign(session *authenticationpb.Session) (*authenticationpb.SignedSession, error) {
 	// Marshal the session
-	data, err := proto.Marshal(session)
+	data, err := pbutil.MarshalDeterministic(session)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling session: %w", err)
 	}
@@ -209,7 +208,7 @@ func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ct
 	}
 
 	// Marshal the signed session.
-	bytes, err := proto.Marshal(signedSession)
+	bytes, err := pbutil.MarshalDeterministic(signedSession)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "marshaling signed session: %v", err)
 	}
