@@ -9,23 +9,21 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
+type Enum interface {
+	~int32
+	protoreflect.Enum
+}
+
 type enumMapping struct {
 	toExternal   map[int32]string
 	fromExternal map[string]int32
 }
 
-type EnumMapping[E interface {
-	~int32
-	Descriptor() protoreflect.EnumDescriptor
-}] struct {
+type EnumMapping[E Enum] struct {
 	mapping *enumMapping
 }
 
-func NewEnumMapping[E interface {
-	~int32
-	protoreflect.Enum
-	Descriptor() protoreflect.EnumDescriptor
-}]() *EnumMapping[E] {
+func NewEnumMapping[E Enum]() *EnumMapping[E] {
 	var zero E
 	desc := zero.Descriptor()
 	fullName := string(desc.FullName())
