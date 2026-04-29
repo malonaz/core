@@ -14,6 +14,7 @@ go_test(
         "middleware_hooks_test.go",
         "nats_events_test.go",
         "order_by_test.go",
+        "read_mask_test.go",
         "sat_test.go",
         "shelf_test.go",
         "update_test.go",

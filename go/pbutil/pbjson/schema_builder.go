@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -48,11 +49,11 @@ type schemaOptions struct {
 	fieldMask                  *fieldmaskpb.FieldMask
 	withResponseReadMask       bool
 	withResponseSchemaMaxDepth int
+	responseDescriptor         protoreflect.MessageDescriptor
 }
 
 type SchemaOption func(*schemaOptions)
 
-// Include a response schema in the tool description.
 func WithResponseSchemaMaxDepth(maxDepth int) SchemaOption {
 	return func(o *schemaOptions) {
 		o.withResponseSchemaMaxDepth = maxDepth
@@ -100,6 +101,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		standardMethodType = pbreflection.StandardMethodTypeUnspecified
 	case protoreflect.MethodDescriptor:
 		msg = d.Input()
+		so.responseDescriptor = d.Output()
 		var err error
 		standardMethodType, err = b.schema.GetStandardMethodType(d.FullName())
 		if err != nil {
@@ -142,7 +144,7 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 	if so.withResponseReadMask {
 		schema.Properties[responseReadMaskKey] = &jsonpb.Schema{
 			Type:        "string",
-			Description: "Google AIP field mask: comma-separated snake_case paths to include in the response (e.g. 'field_one,field_two.nested_field'). Only specified fields are returned. Nested fields use dot notation. Omit to return all fields.",
+			Description: buildResponseReadMaskDescription(so.responseDescriptor),
 		}
 		schema.Required = append(schema.Required, responseReadMaskKey)
 	}
@@ -154,6 +156,60 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		schema.Description += responseDesc
 	}
 	return schema, nil
+}
+
+// buildResponseReadMaskDescription builds a context-aware description for the response_read_mask
+// field. It inspects the response message to find the resource that the mask will be applied to,
+// mirroring the middleware's resource-finding logic.
+func buildResponseReadMaskDescription(responseDescriptor protoreflect.MessageDescriptor) string {
+	base := "Comma-separated snake_case field paths controlling which fields are returned. Uses dot notation for nested fields. Use the wildcard `*` to return all fields."
+
+	if responseDescriptor == nil {
+		return base
+	}
+
+	// Check if the response itself is a resource.
+	if hasResourceAnnotation(responseDescriptor) {
+		return base + fmt.Sprintf(" Paths are relative to the %s resource.", responseDescriptor.Name()) + buildResourceFieldExample(responseDescriptor)
+	}
+
+	// Scan one level deep for a resource field, matching the middleware's logic.
+	fields := responseDescriptor.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		if field.Kind() != protoreflect.MessageKind {
+			continue
+		}
+		if !hasResourceAnnotation(field.Message()) {
+			continue
+		}
+		resourceName := field.Message().Name()
+		if field.IsList() {
+			return base + fmt.Sprintf(" Paths are relative to each %s resource in the response (not the response envelope).", resourceName) + buildResourceFieldExample(field.Message())
+		}
+		return base + fmt.Sprintf(" Paths are relative to the %s resource in the response (not the response envelope).", resourceName) + buildResourceFieldExample(field.Message())
+	}
+
+	return base
+}
+
+// buildResourceFieldExample returns an example string showing a few field names from the resource.
+func buildResourceFieldExample(resourceDescriptor protoreflect.MessageDescriptor) string {
+	var fieldNames []string
+	fields := resourceDescriptor.Fields()
+	for i := 0; i < fields.Len() && len(fieldNames) < 3; i++ {
+		field := fields.Get(i)
+		fieldNames = append(fieldNames, string(field.Name()))
+	}
+	if len(fieldNames) == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" Example: '%s'.", strings.Join(fieldNames, ","))
+}
+
+func hasResourceAnnotation(descriptor protoreflect.MessageDescriptor) bool {
+	_, err := pbutil.GetExtension[*annotations.ResourceDescriptor](descriptor.Options(), annotations.E_Resource)
+	return err == nil
 }
 
 func (b *SchemaBuilder) buildMessageSchema(
@@ -207,12 +263,10 @@ func (b *SchemaBuilder) buildMessageSchema(
 }
 
 func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor protoreflect.FieldDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool) (*jsonpb.Schema, bool, error) {
-	// Depth chech.
 	if depth > so.maxDepth {
 		return nil, false, nil
 	}
 
-	// Construct the field path and check that it is allowed.
 	path := prefix + string(fieldDescriptor.Name())
 	if len(allowedPaths) > 0 && !isPathAllowed(path, allowedPaths) {
 		return nil, false, nil

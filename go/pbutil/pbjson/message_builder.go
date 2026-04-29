@@ -38,7 +38,7 @@ func BuildMessage(desc protoreflect.MessageDescriptor, args map[string]any) (*dy
 	return msg, nil
 }
 
-func GetResponseFieldMask(args map[string]any) (*fieldmaskpb.FieldMask, bool) {
+func GetResponseReadMask(args map[string]any) (*fieldmaskpb.FieldMask, bool) {
 	val, ok := args[responseReadMaskKey]
 	if !ok {
 		return nil, false
