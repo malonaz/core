@@ -1,6 +1,7 @@
 go_library(
     name = "aip",
     srcs = [
+        "enum_mapping.go",
         "filtering_request.go",
         "labeller.go",
         "labels.go",

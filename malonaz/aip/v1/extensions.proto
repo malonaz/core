@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package malonaz.aip.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/aip/v1";
+
+// Annotates an enum value with one or more external string representations.
+//
+// Many external systems use string identifiers for concepts that we model as
+// proto enums. This extension provides a standard way to declare bidirectional
+// mappings between our enum values and those external strings, enabling codegen
+// and runtime lookup in both directions.
+//
+// The field is repeated: when an external system uses multiple strings for the
+// same concept, list every variant so inbound mapping is exhaustive. For
+// outbound mapping, the first value is treated as the canonical representation.
+//
+// Usage:
+//
+//   import "malonaz/aip/v1/extensions.proto";
+//
+//   enum CallState {
+//     CALL_STATE_UNSPECIFIED = 0;
+//     CALL_STATE_QUEUED      = 1 [(malonaz.aip.v1.external) = "queued"];
+//     CALL_STATE_RINGING     = 2 [(malonaz.aip.v1.external) = "ringing"];
+//   }
+//
+//   // Multiple external values map to a single enum value.
+//   enum Status {
+//     STATUS_UNSPECIFIED = 0;
+//     STATUS_NEW         = 1 [
+//       (malonaz.aip.v1.external) = "New",
+//       (malonaz.aip.v1.external) = "Not Contacted"
+//     ];
+//   }
+//
+extend google.protobuf.EnumValueOptions {
+  // The external string representations that map to this enum value.
+  // First value is canonical (used for outbound serialization);
+  // all values are accepted for inbound deserialization.
+  repeated string external = 8235;
+}

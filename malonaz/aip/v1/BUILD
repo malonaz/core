@@ -2,6 +2,7 @@ proto_library(
     name = "v1",
     srcs = [
         "aip.proto",
+        "extensions.proto",
         "label.proto",
     ],
     additional_context = {
