@@ -354,12 +354,13 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 
 // The result of executing a tool call.
 type ToolResult struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ToolName   string                 `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3"`
-	xxx_hidden_ToolCallId string                 `protobuf:"bytes,2,opt,name=tool_call_id,json=toolCallId,proto3"`
-	xxx_hidden_Result     isToolResult_Result    `protobuf_oneof:"result"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ToolName    string                 `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3"`
+	xxx_hidden_ToolCallId  string                 `protobuf:"bytes,2,opt,name=tool_call_id,json=toolCallId,proto3"`
+	xxx_hidden_Annotations map[string]string      `protobuf:"bytes,6,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Result      isToolResult_Result    `protobuf_oneof:"result"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *ToolResult) Reset() {
@@ -401,6 +402,13 @@ func (x *ToolResult) GetToolCallId() string {
 	return ""
 }
 
+func (x *ToolResult) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Annotations
+	}
+	return nil
+}
+
 func (x *ToolResult) GetContent() string {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Result.(*toolResult_Content); ok {
@@ -434,6 +442,10 @@ func (x *ToolResult) SetToolName(v string) {
 
 func (x *ToolResult) SetToolCallId(v string) {
 	x.xxx_hidden_ToolCallId = v
+}
+
+func (x *ToolResult) SetAnnotations(v map[string]string) {
+	x.xxx_hidden_Annotations = v
 }
 
 func (x *ToolResult) SetContent(v string) {
@@ -537,6 +549,8 @@ type ToolResult_builder struct {
 	ToolName string
 	// ID of the tool call this message is responding to.
 	ToolCallId string
+	// Annotations.
+	Annotations map[string]string
 	// The outcome of the tool execution.
 
 	// Fields of oneof xxx_hidden_Result:
@@ -556,6 +570,7 @@ func (b0 ToolResult_builder) Build() *ToolResult {
 	_, _ = b, x
 	x.xxx_hidden_ToolName = b.ToolName
 	x.xxx_hidden_ToolCallId = b.ToolCallId
+	x.xxx_hidden_Annotations = b.Annotations
 	if b.Content != nil {
 		x.xxx_hidden_Result = &toolResult_Content{*b.Content}
 	}
@@ -1114,15 +1129,19 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\apartial\x18\x06 \x01(\bR\apartial\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xed\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x02\n" +
 	"\n" +
 	"ToolResult\x12\x1b\n" +
 	"\ttool_name\x18\x01 \x01(\tR\btoolName\x12 \n" +
 	"\ftool_call_id\x18\x02 \x01(\tR\n" +
-	"toolCallId\x12\x1a\n" +
+	"toolCallId\x12L\n" +
+	"\vannotations\x18\x06 \x03(\v2*.malonaz.ai.v1.ToolResult.AnnotationsEntryR\vannotations\x12\x1a\n" +
 	"\acontent\x18\x03 \x01(\tH\x00R\acontent\x12G\n" +
 	"\x12structured_content\x18\x04 \x01(\v2\x16.google.protobuf.ValueH\x00R\x11structuredContent\x12*\n" +
-	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusH\x00R\x05errorB\x0f\n" +
+	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusH\x00R\x05error\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x0f\n" +
 	"\x06result\x12\x05\xbaH\x02\b\x01\"\xf9\x01\n" +
 	"\n" +
 	"ToolChoice\x12=\n" +
@@ -1154,7 +1173,7 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x19TOOL_CHOICE_MODE_REQUIRED\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolChoiceMode)(0),           // 0: malonaz.ai.v1.ToolChoiceMode
 	(*Tool)(nil),                  // 1: malonaz.ai.v1.Tool
@@ -1166,32 +1185,34 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(*ToolCallRpc)(nil),           // 7: malonaz.ai.v1.ToolCallRpc
 	nil,                           // 8: malonaz.ai.v1.Tool.AnnotationsEntry
 	nil,                           // 9: malonaz.ai.v1.ToolCall.AnnotationsEntry
-	nil,                           // 10: malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	(*v1.Schema)(nil),             // 11: malonaz.json.v1.Schema
-	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
-	(*structpb.Value)(nil),        // 13: google.protobuf.Value
-	(*status.Status)(nil),         // 14: google.rpc.Status
-	(*fieldmaskpb.FieldMask)(nil), // 15: google.protobuf.FieldMask
+	nil,                           // 10: malonaz.ai.v1.ToolResult.AnnotationsEntry
+	nil,                           // 11: malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
+	(*v1.Schema)(nil),             // 12: malonaz.json.v1.Schema
+	(*structpb.Struct)(nil),       // 13: google.protobuf.Struct
+	(*structpb.Value)(nil),        // 14: google.protobuf.Value
+	(*status.Status)(nil),         // 15: google.rpc.Status
+	(*fieldmaskpb.FieldMask)(nil), // 16: google.protobuf.FieldMask
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	11, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
+	12, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
 	8,  // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
-	12, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	12, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
+	13, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	13, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
 	9,  // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
-	13, // 5: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
-	14, // 6: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
-	0,  // 7: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	1,  // 8: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
-	1,  // 9: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	10, // 10: malonaz.ai.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	12, // 11: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
-	15, // 12: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	10, // 5: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
+	14, // 6: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
+	15, // 7: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
+	0,  // 8: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	1,  // 9: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	1,  // 10: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	11, // 11: malonaz.ai.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
+	13, // 12: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
+	16, // 13: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -1214,7 +1235,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

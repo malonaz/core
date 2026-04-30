@@ -56,6 +56,9 @@ message ToolResult {
   // ID of the tool call this message is responding to.
   string tool_call_id = 2;
 
+  // Annotations.
+  map<string, string> annotations = 6;
+
   // The outcome of the tool execution.
   oneof result {
     option (buf.validate.oneof).required = true;
