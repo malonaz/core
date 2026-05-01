@@ -46,8 +46,8 @@ var (
 	chatInsertPostgresQuery              = _chatInsertPostgresQuery + postgres.SelectQuery("%s", ChatPostgresColumns)
 )
 
-func (s *Store) InsertChat(ctx context.Context, chat *model.Chat) (*model.Chat, error) {
-	query, params := postgres.InsertQuery(chatInsertPostgresQuery, chat)
+func (s *Store) InsertChat(ctx context.Context, _chat *model.Chat) (*model.Chat, error) {
+	query, params := postgres.InsertQuery(chatInsertPostgresQuery, _chat)
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -68,17 +68,16 @@ type ChatWithRequestID struct {
 
 var chatGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", ChatPostgresColumns) + ` FROM chat WHERE request_id = $1`
 
-func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, rawChat *model.Chat) (*model.Chat, error) {
-	chat := &ChatWithRequestID{
+func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, raw_chat *model.Chat) (*model.Chat, error) {
+	_chat := &ChatWithRequestID{
 		RequestID: requestID,
-		Chat:      *rawChat,
+		Chat:      *raw_chat,
 	}
-	query, params := postgres.InsertQuery(chatWithRequestIDInsertPostgresQuery, chat)
+	query, params := postgres.InsertQuery(chatWithRequestIDInsertPostgresQuery, _chat)
 
 	var inserted *model.Chat
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
-
 		// Check for existing request_id (idempotent retry)
 		rows, err := tx.Query(ctx, chatGetByRequestIDQuery, requestID)
 		if err != nil {
@@ -129,9 +128,8 @@ func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, ra
 var updateChatPostgresQuery = `UPDATE chat SET #update_clause# WHERE #where_clause# ` +
 	postgres.SelectQuery("RETURNING %s", ChatPostgresColumns)
 
-func (s *Store) UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, updateColumns []string, etag string) (*model.Chat, error) {
-	// Get update params from the object using the provided columns
-	updateParams := postgres.GetParams(chat, updateColumns...)
+func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause string, updateColumns []string, etag string) (*model.Chat, error) {
+	updateParams := postgres.GetParams(_chat, updateColumns...)
 
 	query := strings.Replace(updateChatPostgresQuery, "#update_clause#", updateClause, 1)
 	// Build WHERE clause with correct placeholders accounting for update params
@@ -141,9 +139,9 @@ func (s *Store) UpdateChat(ctx context.Context, chat *model.Chat, updateClause s
 
 	// Combine params: update params first, then WHERE clause params
 	params := append(updateParams,
-		chat.OrganizationID,
-		chat.UserID,
-		chat.ChatID,
+		_chat.OrganizationID,
+		_chat.UserID,
+		_chat.ChatID,
 	)
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
@@ -158,15 +156,15 @@ func (s *Store) UpdateChat(ctx context.Context, chat *model.Chat, updateClause s
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getChatETag(ctx, chat.OrganizationID, chat.UserID, chat.ChatID)
+				currentEtag, getEtagErr := s.getChatETag(ctx, _chat.OrganizationID, _chat.UserID, _chat.ChatID)
 				switch getEtagErr {
 				case nil:
-					if currentEtag == etag { // Should never happen.
+					if currentEtag == etag {
 						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
 					}
 					return nil, model.ErrChatETagChanged
 				case pgx.ErrNoRows:
-					return nil, model.ErrChatNotExist // Confirmed does not exist.
+					return nil, model.ErrChatNotExist
 				default:
 					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
 				}

@@ -2,8 +2,8 @@
 {{ $file := .File }}
 {{ $skip := true }}
 {{ range $message := $file.Messages -}}
-	{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
-	  {{- if $modelOpts -}}{{ $skip = false }}{{- end }}
+  {{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
+    {{- if $modelOpts -}}{{ $skip = false }}{{- end }}
 {{- end -}}
 {{ if $skip }}
 {{ skipGeneration }}
@@ -20,47 +20,48 @@
 package {{ .PackageName }}
 
 import (
-	"context"
-	"fmt"
-	"strings"
+  "context"
+  "fmt"
+  "strings"
 
-	"github.com/jackc/pgx/v5"
+  "github.com/jackc/pgx/v5"
 )
 
 {{ if doOnce "store_def" }}
 // Store is this service's db layer.
 type Store struct {
-	client *{{ fqnCore "go/postgres" "Client" }}
+  client *{{ fqnCore "go/postgres" "Client" }}
 }
 
 // New returns a new db.
 func New(client *{{ fqnCore "go/postgres" "Client" }}) *Store {
-	return &Store{client: client}
+  return &Store{client: client}
 }
 {{ end }}
 
 {{/* ################### VAR COLUMNS ################### */}}
 var (
-	{{ range $message := $file.Messages -}}
-		{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
-		  {{- if not $modelOpts -}}{{ continue }}{{- end }}
-		{{ $message.GoIdent.GoName }}PostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
-	{{- end -}}
+  {{ range $message := $file.Messages -}}
+    {{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
+      {{- if not $modelOpts -}}{{ continue }}{{- end }}
+    {{ $message.GoIdent.GoName }}PostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName | $modelGpi.Ident | qgi }}{})
+  {{- end -}}
 )
 
 {{/* ################### TYPE DEFINITIONS ################### */}}
 {{ range $message := $file.Messages -}}
-	{{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
-	{{- if not $modelOpts -}}{{ continue }}{{- end }}
-	{{- $pr := parseResourceFromMessage $message }}
+  {{- $modelOpts := getExt .Desc "malonaz.codegen.model.v1.model_opts" -}}
+  {{- if not $modelOpts -}}{{ continue }}{{- end }}
+  {{- $pr := parseResourceFromMessage $message }}
 
-	{{ $goType := $message.GoIdent.GoName }}
-	{{ $goName := $goType | untitle }}
-	{{ $goTypeFqi := $message.GoIdent.GoName | $modelGpi.Ident | qgi }}
-	{{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
-	{{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
+  {{ $goType := $message.GoIdent.GoName }}
+  {{ $goName := $goType | untitle }}
+  {{ $goParam := printf "_%s" $goName }}
+  {{ $goTypeFqi := $message.GoIdent.GoName | $modelGpi.Ident | qgi }}
+  {{ $errNotExistFqi := (printf "Err%sNotExist" $goType) | $modelGpi.Ident | qgi }}
+  {{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
   {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
-	{{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
+  {{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
   {{- $whereConditions := list }}
     {{- $placeholders := list }}
     {{- $lastIdx := sub (len $pr.PatternVariables) 1 }}
@@ -74,14 +75,14 @@ var (
         {{ end }}
     {{- end }}
   {{- $whereClause := join " AND " $whereConditions }}
-	{{- $placeholderDeclarations := (join " AND " $placeholders) }}
-	{{- $columnNames := $pr.PatternVariableIDs false }}
-	{{- $identifier := "" }}
-	{{- if not $pr.Singleton }} {{ $identifier = $pr.PatternVariableID false }}{{ end }}
-	{{ if $modelOpts.GetIdColumnName }}
-		{{ $identifier = $modelOpts.GetIdColumnName }}
-		{{ $columnNames = $columnNames | replace ($pr.PatternVariableID false) $modelOpts.GetIdColumnName }}
-	{{ end }}
+  {{- $placeholderDeclarations := (join " AND " $placeholders) }}
+  {{- $columnNames := $pr.PatternVariableIDs false }}
+  {{- $identifier := "" }}
+  {{- if not $pr.Singleton }} {{ $identifier = $pr.PatternVariableID false }}{{ end }}
+  {{ if $modelOpts.GetIdColumnName }}
+    {{ $identifier = $modelOpts.GetIdColumnName }}
+    {{ $columnNames = $columnNames | replace ($pr.PatternVariableID false) $modelOpts.GetIdColumnName }}
+  {{ end }}
   {{ $etag := $message.Desc.Fields.ByName "etag" }}
 
 {{/* ############################ ETAG GETTER ############################### */}}
@@ -96,91 +97,91 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
 }
 {{ end }}
 
-	{{/* ################### INSERT ################### */}}
-		{{- $singletonChildren := list }}
-		{{- range $childPr := $pr.Children }}
-			{{- if $childPr.Singleton }}
-				{{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-				{{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
-				{{- if $modelOpts }}
-					{{- $singletonChildren = append $singletonChildren $childPr }}
-				{{ end }}
-			{{- end }}
-		{{- end }}
+  {{/* ################### INSERT ################### */}}
+    {{- $singletonChildren := list }}
+    {{- range $childPr := $pr.Children }}
+      {{- if $childPr.Singleton }}
+        {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
+        {{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
+        {{- if $modelOpts }}
+          {{- $singletonChildren = append $singletonChildren $childPr }}
+        {{ end }}
+      {{- end }}
+    {{- end }}
 
-		{{- if $pr.Singleton }}
-			  const {{ $message.GoIdent.GoName }}InsertSingletonPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO NOTHING`
+    {{- if $pr.Singleton }}
+        const {{ $message.GoIdent.GoName }}InsertSingletonPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO NOTHING`
     {{ end }}
 
-	  var (
+    var (
       {{ $message.GoIdent.GoName }}WithRequestIDPostgresColumns = {{ fqnCore "go/postgres" "GetDBColumns" }}({{ $message.GoIdent.GoName }}WithRequestID{})
       _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = `INSERT INTO {{ $tableName }} %s VALUES %s ON CONFLICT({{ $columnNames }}) DO UPDATE SET {{ $identifier }} = EXCLUDED.{{ $identifier }} RETURNING `
-		  {{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}WithRequestIDPostgresColumns)
-		  {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
+      {{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}WithRequestIDPostgresColumns)
+      {{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery = _{{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
     )
 
-			func (s *Store) Insert{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
-				query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goName }})
-				{{ range $i, $childPr := $singletonChildren }}
-					{{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
-					{{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
-					{{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
-					query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
-				{{ end }}
+      func (s *Store) Insert{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goParam }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+        query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}InsertPostgresQuery, {{ $goParam }})
+        {{ range $i, $childPr := $singletonChildren }}
+          {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
+          {{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
+          {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
+          query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
+        {{ end }}
 
-				{{ if eq (len $singletonChildren) 0 }}
-					rows, err := s.client.Query(ctx, query, params...)
-					if err != nil {
-						return nil, err
-					}
-					row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-					if err != nil {
-						return nil, err
-					}
-					return row, nil
-				{{ else }}
-					// Execute within transaction if jobs are provided (or singleton).
-					var inserted *{{ $goTypeFqi }}
-					transactionFN := func(tx postgres.Tx) error {
-						inserted = nil
-						rows, err := tx.Query(ctx, query, params...)
-						if err != nil {
-							return err
-						}
-						inserted, err = pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-						if err != nil {
-							return err
-						}
+        {{ if eq (len $singletonChildren) 0 }}
+          rows, err := s.client.Query(ctx, query, params...)
+          if err != nil {
+            return nil, err
+          }
+          row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+          if err != nil {
+            return nil, err
+          }
+          return row, nil
+        {{ else }}
+          var inserted *{{ $goTypeFqi }}
+          transactionFN := func(tx postgres.Tx) error {
+            inserted = nil
+            // Check for existing request_id (idempotent retry)
+            rows, err := tx.Query(ctx, query, params...)
+            if err != nil {
+              return err
+            }
+            inserted, err = pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+            if err != nil {
+              return err
+            }
 
-						{{ range $i, $_ := $singletonChildren }}
-							if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
-								return err
-							}
-						{{ end }}
-						return nil
-					}
+            {{ range $i, $_ := $singletonChildren }}
+              if _, err := tx.Exec(ctx, query{{ add $i 2 }}, params{{ add $i 2 }}...); err != nil {
+                return err
+              }
+            {{ end }}
+            return nil
+          }
 
-					if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-						return nil, err
-					}
-					return inserted, nil
-				{{ end }}
-			}
+          if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+            return nil, err
+          }
+          return inserted, nil
+        {{ end }}
+      }
 
 
-			type {{ $message.GoIdent.GoName }}WithRequestID struct {
-				RequestID string `db:"request_id"`
-				{{ $goTypeFqi }}
-			}
+      type {{ $message.GoIdent.GoName }}WithRequestID struct {
+        RequestID string `db:"request_id"`
+        {{ $goTypeFqi }}
+      }
 
 var {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", {{ $goType }}PostgresColumns) + ` FROM {{ $tableName }} WHERE request_id = $1`
 
-func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goName | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
-    {{ $goName }} := &{{ $message.GoIdent.GoName }}WithRequestID{
+func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Context, requestID string, raw{{ $goParam | title }} *{{ $goTypeFqi }}{{ range $childPr := $singletonChildren }}, {{ $childPr.Desc.Singular | camelcase | untitle }} *{{ $childPr.SingularGoName | $modelGpi.Ident | qgi }}{{ end }}) (*{{ $goTypeFqi }}, error) {
+    {{ $goParam }} := &{{ $message.GoIdent.GoName }}WithRequestID{
         RequestID: requestID,
-        {{ $goType }}: *raw{{ $goName | title }},
+        {{ $goType }}: *raw{{ $goParam | title }},
     }
-    query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goName }})
+    query, params := postgres.InsertQuery({{ $message.GoIdent.GoName | untitle }}WithRequestIDInsertPostgresQuery, {{ $goParam }})
     {{ range $i, $childPr := $singletonChildren }}
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
         {{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
@@ -191,7 +192,6 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
     var inserted *{{ $goTypeFqi }}
     transactionFN := func(tx postgres.Tx) error {
         inserted = nil
-
         // Check for existing request_id (idempotent retry)
         rows, err := tx.Query(ctx, {{ $message.GoIdent.GoName | untitle }}GetByRequestIDQuery, requestID)
         if err != nil {
@@ -249,9 +249,8 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
 var update{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET #update_clause# WHERE #where_clause# ` +
   postgres.SelectQuery("RETURNING %s", {{ $goType }}PostgresColumns)
 
-func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goName }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string{{- if $etag }}, etag string{{ end }}) (*{{ $goTypeFqi }}, error) {
-  // Get update params from the object using the provided columns
-  updateParams := {{ fqnCore "go/postgres" "GetParams" }}({{ $goName }}, updateColumns...)
+func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goParam }} *{{ $goTypeFqi }}, updateClause string, updateColumns []string{{- if $etag }}, etag string{{ end }}) (*{{ $goTypeFqi }}, error) {
+  updateParams := {{ fqnCore "go/postgres" "GetParams" }}({{ $goParam }}, updateColumns...)
 
   query := strings.Replace(update{{ $message.GoIdent.GoName }}PostgresQuery, "#update_clause#", updateClause, 1)
   // Build WHERE clause with correct placeholders accounting for update params
@@ -262,7 +261,7 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
   // Combine params: update params first, then WHERE clause params
   params := append(updateParams,
     {{- range $i, $var := $pr.PatternVariables }}
-    {{ $goName }}.{{ $var | camelcase | title }}ID,
+    {{ $goParam }}.{{ $var | camelcase | title }}ID,
     {{- end }}
   )
 
@@ -282,15 +281,15 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
     if err == pgx.ErrNoRows {
       {{- if $etag }}
       if etag != "" {
-        currentEtag, getEtagErr := s.get{{ $message.GoIdent.GoName }}ETag(ctx, {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $goName }}.{{ $var | camelcase | title }}ID{{ end }})
+        currentEtag, getEtagErr := s.get{{ $message.GoIdent.GoName }}ETag(ctx, {{ range $i, $var := $pr.PatternVariables }}{{ if $i }}, {{ end }}{{ $goParam }}.{{ $var | camelcase | title }}ID{{ end }})
         switch getEtagErr {
         case nil:
-          if currentEtag == etag { // Should never happen.
+          if currentEtag == etag {
             return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
           }
           return nil, {{ (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
         case pgx.ErrNoRows:
-         return nil, {{ $errNotExistFqi }} // Confirmed does not exist.
+         return nil, {{ $errNotExistFqi }}
         default:
          return nil, fmt.Errorf("getting etag: %v", getEtagErr)
         }
@@ -303,7 +302,7 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
   return row, nil
 }
 
-	{{/* ################### DELETE ################### */}}
+  {{/* ################### DELETE ################### */}}
       {{- if $message.Desc.Fields.ByName "delete_time" }}
       var softDelete{{ $message.GoIdent.GoName }}PostgresQuery = `UPDATE {{ $tableName }} SET delete_time = COALESCE(delete_time, ${{ add (len $pr.PatternVariables) 1 }}){{- if $etag }}, etag = ${{ add (len $pr.PatternVariables) 2 }}{{- end }} WHERE {{ $placeholderDeclarations }} RETURNING (delete_time < ${{ add (len $pr.PatternVariables) 1 }}) AS was_already_deleted, ` +
   postgres.SelectQuery("%s", {{ $goType }}PostgresColumns)
@@ -400,68 +399,68 @@ func (s *Store) Update{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $goN
       }
     {{ end }}
 
-	{{/* ################### GET ################### */}}
-		func (s *Store) Get{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeFqi }}, error) {
-			query := `SELECT %s FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
-			query = postgres.SelectQuery(query, {{ $goType }}PostgresColumns)
-			rows, err := s.client.Query(ctx, query, {{ $pr.PatternVariableIDs true }})
-			if err != nil {
-				return nil, fmt.Errorf("getting {{ $goName }}: %w", err)
-			}
-			row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-			if err != nil {
-				if err == pgx.ErrNoRows {
-					return nil, {{ $errNotExistFqi }}
-				}
-				return nil, fmt.Errorf("collecting row: %w", err)
-			}
-			return row, nil
-		}
+  {{/* ################### GET ################### */}}
+    func (s *Store) Get{{ $message.GoIdent.GoName }}(ctx context.Context, {{ $pr.PatternVariableIDs true }} string) (*{{ $goTypeFqi }}, error) {
+      query := `SELECT %s FROM {{ $tableName }} WHERE {{ $placeholderDeclarations }}`
+      query = postgres.SelectQuery(query, {{ $goType }}PostgresColumns)
+      rows, err := s.client.Query(ctx, query, {{ $pr.PatternVariableIDs true }})
+      if err != nil {
+        return nil, fmt.Errorf("getting {{ $goName }}: %w", err)
+      }
+      row, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+      if err != nil {
+        if err == pgx.ErrNoRows {
+          return nil, {{ $errNotExistFqi }}
+        }
+        return nil, fmt.Errorf("collecting row: %w", err)
+      }
+      return row, nil
+    }
 
-	{{/* ################### LIST ################### */}}
-	func (s *Store) List{{ $pr.PluralGoName }}(ctx context.Context, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }} string, {{ end }}{{- if $message.Desc.Fields.ByName "delete_time" }} showDeleted bool, {{- end }} whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*{{ $goTypeFqi }}, error) {
-		if columns == nil {
-			columns = {{ $goType }}PostgresColumns
-		}
+  {{/* ################### LIST ################### */}}
+  func (s *Store) List{{ $pr.PluralGoName }}(ctx context.Context, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }} string, {{ end }}{{- if $message.Desc.Fields.ByName "delete_time" }} showDeleted bool, {{- end }} whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*{{ $goTypeFqi }}, error) {
+    if columns == nil {
+      columns = {{ $goType }}PostgresColumns
+    }
 
-		{{ if $pr.Parent }}
-			{{- range $var := $pr.Parent.PatternVariables -}}
-				if {{ $var | camelcase | untitle }}Id != "-" && {{ $var | camelcase | untitle }}Id != "" {
-					whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, fmt.Sprintf("{{ $var }}_id = $%d", len(params) + 1))
-					params = append(params, {{ $var | camelcase | untitle }}Id)
-				}
-			{{ end }}
-		{{ end }}
+    {{ if $pr.Parent }}
+      {{- range $var := $pr.Parent.PatternVariables -}}
+        if {{ $var | camelcase | untitle }}Id != "-" && {{ $var | camelcase | untitle }}Id != "" {
+          whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, fmt.Sprintf("{{ $var }}_id = $%d", len(params) + 1))
+          params = append(params, {{ $var | camelcase | untitle }}Id)
+        }
+      {{ end }}
+    {{ end }}
 
-		{{- if $message.Desc.Fields.ByName "delete_time" }}
-			// Add delete_time filter to whereClause if not showing deleted
-			if !showDeleted {
-				whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, "delete_time IS NULL")
-			}
-		{{- end }}
+    {{- if $message.Desc.Fields.ByName "delete_time" }}
+      // Add delete_time filter to whereClause if not showing deleted
+      if !showDeleted {
+        whereClause = {{ fqnCore "go/postgres" "AddToWhereClause" }}(whereClause, "delete_time IS NULL")
+      }
+    {{- end }}
 
-		query := strings.ReplaceAll("SELECT %s FROM {{ $tableName }} #where# #orderby# #pagination#", "#where#", whereClause)
-		query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-		query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-		query = postgres.SelectQuery(query, columns)
+    query := strings.ReplaceAll("SELECT %s FROM {{ $tableName }} #where# #orderby# #pagination#", "#where#", whereClause)
+    query = strings.ReplaceAll(query, "#orderby#", orderByClause)
+    query = strings.ReplaceAll(query, "#pagination#", paginationClause)
+    query = postgres.SelectQuery(query, columns)
 
-		var {{ $pr.PluralGoName | untitle }} []*{{ $goTypeFqi }}
-		transactionFN := func(tx postgres.Tx) error {
-			{{ $pr.PluralGoName | untitle }} = nil
-			rows, err := tx.Query(ctx, query, params...)
-			if err != nil {
-				if err == pgx.ErrNoRows {
-					return nil
-				}
-				return fmt.Errorf("selecting {{ $pr.PluralGoName | untitle }}: %w", err)
-			}
-			{{ $pr.PluralGoName | untitle }}, err = pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
-			if err != nil {
-				return fmt.Errorf("collecting rows: %w", err)
-			}
-			return nil
-		}
-		return {{ $pr.PluralGoName | untitle }}, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
-	}
+    var {{ $pr.PluralGoName | untitle }} []*{{ $goTypeFqi }}
+    transactionFN := func(tx postgres.Tx) error {
+      {{ $pr.PluralGoName | untitle }} = nil
+      rows, err := tx.Query(ctx, query, params...)
+      if err != nil {
+        if err == pgx.ErrNoRows {
+          return nil
+        }
+        return fmt.Errorf("selecting {{ $pr.PluralGoName | untitle }}: %w", err)
+      }
+      {{ $pr.PluralGoName | untitle }}, err = pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[{{ $goTypeFqi }}])
+      if err != nil {
+        return fmt.Errorf("collecting rows: %w", err)
+      }
+      return nil
+    }
+    return {{ $pr.PluralGoName | untitle }}, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+  }
 {{ end -}}
 {{ end }}
