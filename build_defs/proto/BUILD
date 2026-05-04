@@ -44,3 +44,13 @@ proto_build_defs(
     },
     visibility = ["PUBLIC"],
 )
+
+proto_build_defs(
+    name = "python",
+    srcs = ["python.build_defs"],
+    proto_languages = {
+        "grpc_language": ["python_grpc_language"],
+        "proto_language": ["python_proto_language"],
+    },
+    visibility = ["PUBLIC"],
+)

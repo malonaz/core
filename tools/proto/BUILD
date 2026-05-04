@@ -1,5 +1,7 @@
 package(default_visibility = ["PUBLIC"])
 
+subinclude("//build_defs/proto:python")
+
 # Protoc dependency - referenced in .plzconfig.
 protoc_binary(
     name = "protoc",
@@ -146,4 +148,23 @@ genrule(
     ],
     output_is_complete = True,
     visibility = ["PUBLIC"],
+)
+
+grpclib_protoc_plugin(
+    name = "protoc-gen-grpc-python",
+    protoclib_dep = "//third_party/python:grpclib",
+)
+
+filegroup(
+    name = "protoc-gen-python-dep",
+    exported_deps = [
+        "//third_party/python:protobuf",
+    ],
+)
+
+filegroup(
+    name = "protoc-gen-grpc-python-dep",
+    exported_deps = [
+        "//third_party/python:grpcio",
+    ],
 )
