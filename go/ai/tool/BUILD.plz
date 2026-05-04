@@ -1,0 +1,22 @@
+go_library(
+    name = "tool",
+    srcs = [
+        "annotations.go",
+        "discovery.go",
+        "parse.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai",
+        "//go/grpc/status",
+        "//go/pbutil",
+        "//go/pbutil/pbfieldmask",
+        "//go/pbutil/pbjson",
+        "//malonaz/ai/ai_engine/v1",
+        "//malonaz/ai/v1",
+        "//malonaz/json/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)

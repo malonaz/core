@@ -24,6 +24,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/ai",
+        "//go/ai/tool",
         "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
@@ -32,7 +33,6 @@ go_library(
         "//malonaz/ai/ai_engine/v1",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
-        "//malonaz/json/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
