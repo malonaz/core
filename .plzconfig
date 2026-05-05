@@ -31,6 +31,8 @@ Target = //plugins:shell
 
 [Plugin "python"]
 Target = //plugins:python
+ModuleDir = third_party.proto
+ModuleDir = third_party.python
 
 [Plugin "go"]
 Target = //plugins:go

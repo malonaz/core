@@ -165,7 +165,7 @@ filegroup(
 filegroup(
     name = "protoc-gen-grpc-python-dep",
     exported_deps = [
-        "//third_party/python:grpcio",
+        "//third_party/python:grpc",
         "//third_party/python:grpclib",
     ],
 )

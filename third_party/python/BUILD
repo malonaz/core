@@ -18,9 +18,11 @@ python_wheel(
 )
 
 pip_library(
-    name = "grpcio",
-    version = "1.80.0",
+    name = "grpc",
+    package_name = "grpcio",
     licences = ["Apache-2.0"],
+    version = "1.80.0",
+    zip_safe = False,  # Contains Cython code in a .so
     deps = [
         ":six",
     ],
@@ -28,8 +30,8 @@ pip_library(
 
 pip_library(
     name = "grpclib",
-    version = "0.4.9",
     licences = ["BSD-3-Clause"],
+    version = "0.4.9",
     deps = [
         ":h2",
         ":multidict",
@@ -43,29 +45,42 @@ python_wheel(
     version = "1.17.0",
 )
 
-
 pip_library(
     name = "h2",
-    version = "4.3.0",
     licences = ["MIT"],
+    version = "4.3.0",
     deps = [":hpack"],
 )
 
 pip_library(
     name = "hpack",
-    version = "4.1.0",
     licences = ["MIT"],
+    version = "4.1.0",
 )
 
 pip_library(
     name = "multidict",
-    version = "6.7.1",
     licences = ["Apache-2.0"],
+    version = "6.7.1",
     deps = [":hyperframe"],
 )
 
 pip_library(
     name = "hyperframe",
-    version = "6.1.0",
     licences = ["MIT"],
+    version = "6.1.0",
+)
+
+pip_library(
+    name = "typing_extensions",
+    licences = ["PSF-2.0"],
+    version = "4.15.0",
+)
+
+pip_library(
+    name = "protovalidate",
+    package_name = "protovalidate",
+    licences = ["Apache-2.0"],
+    version = "1.2.0",
+    deps = [":protobuf"],
 )
