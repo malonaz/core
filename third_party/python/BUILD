@@ -14,12 +14,12 @@ package(
 python_wheel(
     name = "protobuf",
     outs = ["google"],
-    version = "4.23.1",
+    version = "7.34.1",
 )
 
 pip_library(
     name = "grpcio",
-    version = "1.55.0",
+    version = "1.80.0",
     licences = ["Apache-2.0"],
     deps = [
         ":six",
@@ -28,7 +28,7 @@ pip_library(
 
 pip_library(
     name = "grpclib",
-    version = "0.4.4",
+    version = "0.4.9",
     licences = ["BSD-3-Clause"],
     deps = [
         ":h2",
@@ -40,33 +40,32 @@ pip_library(
 python_wheel(
     name = "six",
     outs = ["six.py"],
-    hashes = ["8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c"],
-    version = "1.14.0",
+    version = "1.17.0",
 )
 
 
 pip_library(
     name = "h2",
-    version = "4.1.0",
+    version = "4.3.0",
     licences = ["MIT"],
     deps = [":hpack"],
 )
 
 pip_library(
     name = "hpack",
-    version = "4.0.0",
+    version = "4.1.0",
     licences = ["MIT"],
 )
 
 pip_library(
     name = "multidict",
-    version = "6.0.4",
+    version = "6.7.1",
     licences = ["Apache-2.0"],
     deps = [":hyperframe"],
 )
 
 pip_library(
     name = "hyperframe",
-    version = "6.0.1",
+    version = "6.1.0",
     licences = ["MIT"],
 )
