@@ -51,6 +51,7 @@ proto_build_defs(
     proto_languages = {
         "grpc_language": ["python_grpc_language"],
         "proto_language": ["python_proto_language"],
+        "grpc_gateway_language": ["python_grpc_gateway_language"],
     },
     visibility = ["PUBLIC"],
 )

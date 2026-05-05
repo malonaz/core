@@ -90,3 +90,9 @@ def python_proto_language():
         language = "py",
         build_def = python_proto_library,
     )
+
+def python_grpc_gateway_language():
+    return proto_language(
+        language = "py",
+        build_def = python_grpc_library,
+    )
