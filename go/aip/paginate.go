@@ -61,13 +61,35 @@ func Paginate[T any](ctx context.Context, request, apiCallFunction any, opts ...
 
 func Iterator[T any](ctx context.Context, request, apiCallFunction any, opts ...grpc.CallOption) iter.Seq2[T, error] {
 	return func(yield func(T, error) bool) {
-		for items, err := range PageIterator[T](ctx, request, apiCallFunction, opts...) {
-			if err != nil {
+		done := make(chan struct{})
+		defer close(done)
+
+		type page struct {
+			items []T
+			err   error
+		}
+		pages := make(chan page, 1)
+		go func() {
+			defer close(pages)
+			for items, err := range PageIterator[T](ctx, request, apiCallFunction, opts...) {
+				select {
+				case pages <- page{items: items, err: err}:
+					if err != nil {
+						return
+					}
+				case <-done:
+					return
+				}
+			}
+		}()
+
+		for p := range pages {
+			if p.err != nil {
 				var zero T
-				yield(zero, err)
+				yield(zero, p.err)
 				return
 			}
-			for _, item := range items {
+			for _, item := range p.items {
 				if !yield(item, nil) {
 					return
 				}
