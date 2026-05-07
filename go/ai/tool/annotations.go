@@ -10,6 +10,7 @@ const (
 	AnnotationKeyNoSideEffect        = AnnotationKeyPrefix + "no-side-effect"
 	AnnotationKeyDiscoverableTool    = AnnotationKeyPrefix + "discoverable-tool"
 	AnnotationKeyGenerationFieldMask = AnnotationKeyPrefix + "generation-field-mask"
+	AnnotationKeyToolSetName         = AnnotationKeyPrefix + "tool-set-name"
 
 	// Annotation values.
 	AnnotationValueToolTypeDiscovery          = "discovery"

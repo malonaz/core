@@ -16,6 +16,15 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbjson"
 )
 
+func GetToolSetName(toolCall *aipb.ToolCall) (string, bool) {
+	annotations := toolCall.GetAnnotations()
+	if len(annotations) == 0 {
+		return "", false
+	}
+	value, ok := annotations[AnnotationKeyToolSetName]
+	return value, ok
+}
+
 func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
 	annotations := toolCall.GetAnnotations()
 	if len(annotations) == 0 {

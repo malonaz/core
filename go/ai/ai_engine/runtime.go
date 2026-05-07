@@ -310,6 +310,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		}
 	}
 
+	toolSetName := string(serviceDescriptor.FullName())
 	var tools []*aipb.Tool
 	toolNameToDiscoverTimestamp := map[string]int64{}
 	if len(request.MethodNameToSchemaConfiguration) == 0 {
@@ -332,6 +333,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		}
 		tools = append(tools, tool)
 		tool.Annotations[aitool.AnnotationKeyDiscoverableTool] = "true"
+		tool.Annotations[aitool.AnnotationKeyToolSetName] = toolSetName
 		toolNameToDiscoverTimestamp[tool.Name] = 0
 	}
 
@@ -343,7 +345,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	})
 
 	return &aipb.ToolSet{
-		Name:                        string(serviceDescriptor.FullName()),
+		Name:                        toolSetName,
 		DiscoveryTool:               discoveryTool,
 		Tools:                       tools,
 		ToolNameToDiscoverTimestamp: toolNameToDiscoverTimestamp,
