@@ -25,8 +25,8 @@ type GatewayOpts struct {
 	Port                   int      `long:"port" env:"PORT" description:"Port to serve the GRPC gateway on." default:"8080"`
 	Host                   string   `long:"host" env:"HOST" description:"Host for a client to connect to."`
 	GracefulStopTimeout    int      `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
-	AllowedIncomingHeaders []string `long:"allowed-incoming-headers" env:"ALLOWED_INCOMING_HEADERS" description:"Additional HTTP headers to forward to gRPC metadata."`
-	AllowedOutgoingHeaders []string `long:"allowed-outgoing-headers" env:"ALLOWED_OUTGOING_HEADERS" description:"gRPC metadata keys to forward as HTTP response headers."`
+	AllowedIncomingHeaders []string `long:"allowed-incoming-headers" env:"ALLOWED_INCOMING_HEADERS" description:"Additional HTTP headers to forward to gRPC metadata." env-delim:","`
+	AllowedOutgoingHeaders []string `long:"allowed-outgoing-headers" env:"ALLOWED_OUTGOING_HEADERS" description:"gRPC metadata keys to forward as HTTP response headers." env-delim:","`
 }
 
 // Returns true if this opts uses sockets.
