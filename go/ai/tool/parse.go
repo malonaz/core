@@ -10,28 +10,19 @@ import (
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 )
 
-func GetToolSetName(toolCall *aipb.ToolCall) (string, bool) {
-	annotations := toolCall.GetAnnotations()
-	if len(annotations) == 0 {
-		return "", false
-	}
-	value, ok := annotations[AnnotationKeyToolSetName]
-	return value, ok
-}
-
 func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
-	annotations := toolCall.GetAnnotations()
-	if len(annotations) == 0 {
+	toolType, ok := aip.GetAnnotation(toolCall, AnnotationKeyToolType)
+	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
-
-	switch toolType := annotations[AnnotationKeyToolType]; toolType {
+	switch toolType {
 	case AnnotationValueToolTypeDiscovery:
 		return parseDiscoveryToolCall(toolCall, toolSets)
 

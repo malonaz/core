@@ -20,6 +20,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
@@ -332,17 +333,19 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			return nil, status.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
-		tool.Annotations[aitool.AnnotationKeyDiscoverableTool] = "true"
-		tool.Annotations[aitool.AnnotationKeyToolSetName] = toolSetName
+		aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, "true")
+		aip.SetAnnotation(tool, aitool.AnnotationKeyToolSetName, toolSetName)
 		toolNameToDiscoverTimestamp[tool.Name] = 0
 	}
 
 	serviceComment := schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-	discoveryTool := aitool.CreateDiscoveryTool(&aitool.CreateDiscoveryToolRequest{
+	createDiscoveryToolRequest := &aitool.CreateDiscoveryToolRequest{
 		Name:        string(serviceDescriptor.Name()) + "_Discover",
 		Description: serviceComment,
 		Tools:       tools,
-	})
+	}
+	discoveryTool := aitool.CreateDiscoveryTool(createDiscoveryToolRequest)
+	aip.SetAnnotation(discoveryTool, aitool.AnnotationKeyToolSetName, toolSetName)
 
 	return &aipb.ToolSet{
 		Name:                        toolSetName,

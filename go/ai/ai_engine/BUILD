@@ -25,6 +25,7 @@ go_library(
     deps = [
         "//go/ai",
         "//go/ai/tool",
+        "//go/aip",
         "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",

@@ -1,7 +1,6 @@
 package tool
 
 const (
-	// Annotation keys.
 	AnnotationKeyPrefix              = "ai-engine.malonaz.com/"
 	AnnotationKeyGRPCService         = AnnotationKeyPrefix + "grpc-service"
 	AnnotationKeyGRPCMethod          = AnnotationKeyPrefix + "grpc-method"
@@ -12,7 +11,6 @@ const (
 	AnnotationKeyGenerationFieldMask = AnnotationKeyPrefix + "generation-field-mask"
 	AnnotationKeyToolSetName         = AnnotationKeyPrefix + "tool-set-name"
 
-	// Annotation values.
 	AnnotationValueToolTypeDiscovery          = "discovery"
 	AnnotationValueToolTypeGenerateMessage    = "generate-message"
 	AnnotationValueToolTypeGenerateRPCRequest = "generate-rpc-request"
