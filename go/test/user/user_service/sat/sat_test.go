@@ -1,4 +1,3 @@
-// go/test/user/user_service/sat/sat_test.go
 package sat
 
 import (
@@ -47,12 +46,6 @@ var environmentVariables = map[string]string{
 	"USER_POSTGRES_DATABASE": "user",
 	"USER_POSTGRES_USER":     "user",
 	"USER_POSTGRES_PASSWORD": "user",
-
-	"TARGET_POSTGRES_HOST":     postgresHost,
-	"TARGET_POSTGRES_PORT":     strconv.Itoa(postgresPort),
-	"TARGET_POSTGRES_DATABASE": "user",
-	"TARGET_POSTGRES_USER":     "user",
-	"TARGET_POSTGRES_PASSWORD": "user",
 }
 
 func TestMain(m *testing.M) {
@@ -97,6 +90,7 @@ func run(ctx context.Context) (func(), error) {
 			Args: []string{
 				"--mode", "init",
 				"--dir", "go/test/user/migrations",
+				"--target-namespace", "user",
 			},
 		},
 		Migrator: sat.SUT{
@@ -105,6 +99,7 @@ func run(ctx context.Context) (func(), error) {
 			Args: []string{
 				"--mode", "migrate",
 				"--dir", "go/test/user/migrations",
+				"--target-namespace", "user",
 			},
 		},
 		EnvironmentVariables: environmentVariables,

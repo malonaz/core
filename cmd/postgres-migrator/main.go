@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"reflect"
+	"strings"
 
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/logging"
@@ -12,7 +14,12 @@ import (
 	"github.com/malonaz/core/go/postgres/migrator"
 )
 
+type optsMinimal struct {
+	TargetNamespace string `long:"target-namespace" env:"TARGET_NAMESPACE" description:"Used to dynamically set the TargetPostgres namespace"`
+}
+
 var opts struct {
+	optsMinimal
 	Mode           string         `long:"mode" env:"MODE" description:"init | migrate | reset"`
 	Directory      string         `long:"dir" env:"DIR" description:"Directory containing all the migration directories to migrate"`
 	Logging        *logging.Opts  `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
@@ -29,6 +36,29 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	optsMinimal := optsMinimal{}
+	if err := flags.Parse(&optsMinimal, flags.IgnoreUnknown); err != nil {
+		return err
+	}
+	// Map TARGET_POSTGRES env-namespace to the dynamic namespace derived from TargetNamespace.
+	// e.g. if TargetNamespace is "chat-service", prefix is "CHAT_SERVICE_POSTGRES".
+	if optsMinimal.TargetNamespace != "" {
+		targetPrefix := strings.ToUpper(strings.ReplaceAll(optsMinimal.TargetNamespace, "-", "_")) + "_POSTGRES"
+		postgresOptsType := reflect.TypeOf(postgres.Opts{})
+		for i := range postgresOptsType.NumField() {
+			suffix := postgresOptsType.Field(i).Tag.Get("env")
+			if suffix == "" {
+				continue
+			}
+			key := "TARGET_POSTGRES_" + suffix
+			if os.Getenv(key) == "" {
+				if value := os.Getenv(targetPrefix + "_" + suffix); value != "" {
+					os.Setenv(key, value)
+				}
+			}
+		}
+	}
+
 	if err := flags.Parse(&opts); err != nil {
 		return err
 	}

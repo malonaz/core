@@ -46,12 +46,6 @@ var environmentVariables = map[string]string{
 	"LIBRARY_POSTGRES_DATABASE": "library",
 	"LIBRARY_POSTGRES_USER":     "library",
 	"LIBRARY_POSTGRES_PASSWORD": "library",
-	// Migration.
-	"TARGET_POSTGRES_HOST":     postgresHost,
-	"TARGET_POSTGRES_PORT":     strconv.Itoa(postgresPort),
-	"TARGET_POSTGRES_DATABASE": "library",
-	"TARGET_POSTGRES_USER":     "library",
-	"TARGET_POSTGRES_PASSWORD": "library",
 }
 
 func TestMain(m *testing.M) {
@@ -97,6 +91,7 @@ func run(ctx context.Context) (func(), error) {
 			Args: []string{
 				"--mode", "init",
 				"--dir", "go/test/library/migrations",
+				"--target-namespace", "library",
 			},
 		},
 		Migrator: sat.SUT{
@@ -105,10 +100,12 @@ func run(ctx context.Context) (func(), error) {
 			Args: []string{
 				"--mode", "migrate",
 				"--dir", "go/test/library/migrations",
+				"--target-namespace", "library",
 			},
 		},
 		EnvironmentVariables: environmentVariables,
 		Nats:                 true,
+		Debug:                true,
 	}
 	satEnvironment = sat.New(config)
 	if err := satEnvironment.Start(ctx); err != nil {
