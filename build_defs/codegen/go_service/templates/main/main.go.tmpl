@@ -149,17 +149,18 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
         {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+            {{ $database := default $dep.name $dep.database }}
             {{- if doOnce "postgres_db_client_instantiations" -}}
                 {{ "\n\n// Instantiate Postgres Connections (using one per identical endpoint)" }}
                 endpointToPostgresConnection := map[string]*{{ goImport "github.com/malonaz/core/go/postgres" }}.Client{}
             {{- end }}
-            if _, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]; !ok {
-            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ $dep.name | camelcase }}Postgres)
+            if _, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]; !ok {
+            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ $database | camelcase }}Postgres)
             if err := connection.Start(ctx); err != nil {
-            return {{ goImport "fmt" }}.Errorf("starting postgres connection ({{ $dep.name}}): %w", err)
+            return {{ goImport "fmt" }}.Errorf("starting postgres connection ({{ $database}}): %w", err)
             }
 	          defer connection.Close()
-            endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()] = connection
+            endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()] = connection
             }
         {{- end }}
     {{- end }}
@@ -169,21 +170,22 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
 {{- range $serviceManifest := $serviceManifests -}}
     {{- range $dep := $serviceManifest.dependencies -}}
         {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
-            {{- $dbKey := printf "postgres_db_client_%s_%s" $dep.name  -}}
+            {{ $database := default $dep.name $dep.database }}
+            {{- $dbKey := printf "postgres_db_client_%s_%s" $database  -}}
             {{- if doOnce $dbKey }}
                 {{- "\n" }}
-                // Instantiate {{ $dep.name }} db client.
-	              {{ $dep.name | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $dep.name | camelcase }}Postgres.Endpoint()]
+                // Instantiate {{ $database }} db client.
+	              {{ $database | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]
                 if !ok {
-                return {{ goImport "fmt" }}.Errorf("could not find postgres connection for {{ $dep.name }}")
+                return {{ goImport "fmt" }}.Errorf("could not find postgres connection for {{ $database }}")
                 }
             {{- end }}
 
             {{- /* Add health check function to all servers that use this service */ -}}
             {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
-            {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($dep.name | camelcase | untitle) -}}
+            {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($database | camelcase | untitle) -}}
             {{- range $serverName := $serverNames -}}
-                {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $dep.name -}}
+                {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $database -}}
                 {{- if doOnce $healthCheckKey -}}
                 {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
                 {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
@@ -194,9 +196,9 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
             {{- end -}}
 
             {{- if eq $dep.type "postgres_db_client" -}}
-                {{- $dbImplKey := printf "postgres_impl_%s_%s" $dep.name $dep.implementation  -}}
+                {{- $dbImplKey := printf "postgres_impl_%s_%s" $database $dep.implementation  -}}
                 {{- if doOnce $dbImplKey }}
-                    {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_"}}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $dep.name | camelcase | untitle }}PsqlClient)
+                    {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_"}}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $database | camelcase | untitle }}PsqlClient)
                 {{ end }}
             {{- end }}
         {{- end }}
@@ -281,9 +283,11 @@ var stopFns []func() error
                 {{ $grpc := parseGRPC $dep.proto $dep.name -}}
                 {{ $grpc.Client }},
             {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $dep.name | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  | replace ":" "_" }}DBClient,
+                {{ $database := default $dep.name $dep.database }}
+                {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  | replace ":" "_" }}DBClient,
             {{- else if eq $dep.type "postgres_client" }}
-                {{ $dep.name | camelcase | untitle }}PsqlClient,
+                {{ $database := default $dep.name $dep.database }}
+                {{ $database | camelcase | untitle }}PsqlClient,
             {{- else if eq $dep.type "service" }}
                 {{ $dep.name | camelcase | untitle }}Service,
             {{- else if eq $dep.type "nats" }}

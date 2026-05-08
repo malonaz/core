@@ -21,7 +21,7 @@ type optsMinimal struct {
 var opts struct {
 	optsMinimal
 	Mode           string         `long:"mode" env:"MODE" description:"init | migrate | reset"`
-	Directory      string         `long:"dir" env:"DIR" description:"Directory containing all the migration directories to migrate"`
+	Directory      string         `long:"dir" env:"DIR" description:"Directory containing all the migration directories to migrate" required:"true"`
 	Logging        *logging.Opts  `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	Postgres       *postgres.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
 	TargetPostgres *postgres.Opts `group:"Target Postgres" namespace:"target-postgres" env-namespace:"TARGET_POSTGRES"`

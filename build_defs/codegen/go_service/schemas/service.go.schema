@@ -35,6 +35,10 @@
                         "type": "string",
                         "pattern": "^[a-z0-9_-]+$"
                     },
+                    "database": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_-]+$"
+                    },
                     "implementation": {
                         "type": "string"
                     },
