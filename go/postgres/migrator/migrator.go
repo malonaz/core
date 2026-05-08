@@ -34,41 +34,47 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 	m.log = m.log.WithGroup("initializer").With("database", database, "user", user, "super_user", superUser)
 	m.log.InfoContext(ctx, "starting")
 
-	// Check if user exists
+	// Check if user exists.
 	var userExists int
-	err := m.client.QueryRow(ctx, `SELECT COUNT(1) FROM pg_roles WHERE rolname=$1`, user).Scan(&userExists)
-	if err != nil {
+	if err := m.client.QueryRow(ctx, `SELECT COUNT(1) FROM pg_roles WHERE rolname=$1`, user).Scan(&userExists); err != nil {
 		return fmt.Errorf("checking user existence: %w", err)
 	}
 
-	// Create user if it doesn't exist
+	// Create user if it doesn't exist.
 	if userExists == 0 {
 		m.log.InfoContext(ctx, "creating user")
-		if _, err = m.client.Exec(ctx, fmt.Sprintf(`CREATE USER "%s" WITH PASSWORD '%s'`, user, password)); err != nil {
+		if _, err := m.client.Exec(ctx, fmt.Sprintf(`CREATE USER "%s" WITH PASSWORD '%s'`, user, password)); err != nil {
 			return fmt.Errorf("creating user: %w", err)
 		}
 	}
 
 	// Grant user to superuser.
 	m.log.InfoContext(ctx, "granting user to superuser")
-	if _, err = m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, user, superUser)); err != nil {
+	if _, err := m.client.Exec(ctx, fmt.Sprintf(`GRANT "%s" TO "%s"`, user, superUser)); err != nil {
 		return fmt.Errorf("granting user to superuser: %w", err)
 	}
 
-	// Check if database exists
+	// Check if database exists.
 	var dbExists int
-	err = m.client.QueryRow(ctx, `SELECT COUNT(1) FROM pg_database WHERE datname=$1`, database).Scan(&dbExists)
-	if err != nil {
+	if err := m.client.QueryRow(ctx, `SELECT COUNT(1) FROM pg_database WHERE datname=$1`, database).Scan(&dbExists); err != nil {
 		return fmt.Errorf("checking database existence: %w", err)
 	}
 
-	// Create database if it doesn't exist
+	// Create database if it doesn't exist.
 	if dbExists == 0 {
 		m.log.InfoContext(ctx, "creating database")
-		if _, err = m.client.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s" WITH OWNER "%s"`, database, user)); err != nil {
+		if _, err := m.client.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s" WITH OWNER "%s"`, database, user)); err != nil {
 			return fmt.Errorf("creating database: %w", err)
 		}
 	}
+
+	// Grant CREATE on the database so the regular user can install trusted
+	// extensions (e.g. pgcrypto, pg_trgm) without superuser. Requires Postgres 13+.
+	m.log.InfoContext(ctx, "granting create on database")
+	if _, err := m.client.Exec(ctx, fmt.Sprintf(`GRANT CREATE ON DATABASE "%s" TO "%s"`, database, user)); err != nil {
+		return fmt.Errorf("granting create on database: %w", err)
+	}
+
 	m.log.InfoContext(ctx, "initializer shutting down")
 	return nil
 }
