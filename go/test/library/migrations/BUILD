@@ -1,4 +1,4 @@
-subinclude("//build_defs/codegen/postgres:migrator")
+subinclude("//build_defs/codegen/postgres:build_defs")
 
 postgres_migrations(
     name = "migrations",

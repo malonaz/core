@@ -21,9 +21,9 @@ go_test(
     ],
     data = [
         "//cmd/library-service",
+        "//cmd/postgres-migrator",
         "//go/test/library/library_service",
-        "//go/test/library/migrations:initializer",
-        "//go/test/library/migrations:migrator",
+        "//go/test/library/migrations",
     ],
     test_outputs = ["sat.log"],
     deps = [

@@ -10,9 +10,9 @@ go_test(
         "update_test.go",
     ],
     data = [
+        "//cmd/postgres-migrator",
         "//cmd/user-service",
-        "//go/test/user/migrations:initializer",
-        "//go/test/user/migrations:migrator",
+        "//go/test/user/migrations",
         "//go/test/user/user_service",
     ],
     test_outputs = ["sat.log"],

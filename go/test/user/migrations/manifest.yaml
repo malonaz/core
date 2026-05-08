@@ -1,6 +1,0 @@
-name: user
-directories:
-  - name: user
-    migrations:
-      - filename: 001_init.sql
-        hash: d35d52577f346b80392c218c2cdb87f9

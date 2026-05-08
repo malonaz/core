@@ -1,6 +1,6 @@
 package(default_visibility = ["PUBLIC"])
 
 export_file(
-    name = "migrator",
-    src = "migrator.build_defs",
+    name = "build_defs",
+    src = "build_defs",
 )

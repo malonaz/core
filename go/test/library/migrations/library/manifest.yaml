@@ -1,0 +1,3 @@
+migrations:
+  - filename: 001_init.sql
+    hash: ed96e8a76be8c4534e348aa864a325b1

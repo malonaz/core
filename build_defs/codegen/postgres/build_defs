@@ -1,0 +1,41 @@
+subinclude("//build_defs/codegen/go_service:build_defs")
+subinclude("///go//build_defs:go")
+subinclude("//build_defs:utils")
+
+def postgres_migrations(
+        name:str,
+        dirs:list,
+        visibility:list=[],
+):
+    # filegroup
+    srcs = []
+    for dir in dirs:
+        srcs += glob(f"{dir}/*.sql")
+        srcs += [f"{dir}/manifest.yaml"]
+
+    filegroup(
+        name = name,
+        srcs = srcs,
+        visibility = visibility,
+    )
+
+    # Test
+    go_template(
+        name = "migration_hash_test.go",
+        test_only = True,
+        extra_data = {
+            "dirs": ','.join([package_name() + "/" + d for d in dirs]),
+        },
+        templates = [plugin_target("//build_defs/codegen/postgres/templates:migrations_test.go.tmpl")]
+    )
+
+    go_test(
+        name = "migration_hash_test",
+        srcs = [":migration_hash_test.go"],
+        data = dirs,
+        deps = [
+            plugin_go_lib("//go/postgres/migrator/migrations"),
+            "//third_party/go:github.com__stretchr__testify__require",
+        ],
+        visibility=visibility,
+    )

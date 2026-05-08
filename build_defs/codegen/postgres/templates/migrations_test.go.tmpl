@@ -1,0 +1,11 @@
+package main
+
+func TestMigrations(t *{{ goImport "testing" }}.T) {
+	for _, migrationDirectory := range []string{{ "{" }}{{ range $dir := (.extra.dirs | splitList ",")}}"{{ $dir }}", {{ end }}{{ "}" }} {
+		migrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationDirectory)
+		{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
+		for _, migration := range migrations {
+			{{ goImport "github.com/stretchr/testify/require" }}.Equal(t, migration.ExpectedHash, migration.Hash, "Hash migration has changed.")
+		}
+	}
+}

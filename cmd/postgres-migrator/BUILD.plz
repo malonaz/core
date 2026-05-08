@@ -1,0 +1,11 @@
+go_binary(
+    name = "postgres-migrator",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/flags",
+        "//go/logging",
+        "//go/postgres",
+        "//go/postgres/migrator",
+    ],
+)

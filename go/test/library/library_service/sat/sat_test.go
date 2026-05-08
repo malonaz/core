@@ -46,6 +46,12 @@ var environmentVariables = map[string]string{
 	"LIBRARY_POSTGRES_DATABASE": "library",
 	"LIBRARY_POSTGRES_USER":     "library",
 	"LIBRARY_POSTGRES_PASSWORD": "library",
+	// Migration.
+	"TARGET_POSTGRES_HOST":     postgresHost,
+	"TARGET_POSTGRES_PORT":     strconv.Itoa(postgresPort),
+	"TARGET_POSTGRES_DATABASE": "library",
+	"TARGET_POSTGRES_USER":     "library",
+	"TARGET_POSTGRES_PASSWORD": "library",
 }
 
 func TestMain(m *testing.M) {
@@ -87,11 +93,19 @@ func run(ctx context.Context) (func(), error) {
 		},
 		Initializer: sat.SUT{
 			Name: "database-initializer",
-			Path: "go/test/library/migrations/initializer",
+			Path: "cmd/postgres-migrator/postgres-migrator",
+			Args: []string{
+				"--mode", "init",
+				"--dir", "go/test/library/migrations",
+			},
 		},
 		Migrator: sat.SUT{
 			Name: "database-migrator",
-			Path: "go/test/library/migrations/migrator",
+			Path: "cmd/postgres-migrator/postgres-migrator",
+			Args: []string{
+				"--mode", "migrate",
+				"--dir", "go/test/library/migrations",
+			},
 		},
 		EnvironmentVariables: environmentVariables,
 		Nats:                 true,
