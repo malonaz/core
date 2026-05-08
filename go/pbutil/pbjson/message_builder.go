@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
@@ -244,6 +245,35 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 
 func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (protoreflect.Value, error) {
 	switch msgDesc.FullName() {
+	case structFullName:
+		m, ok := val.(map[string]any)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected object for Struct, got %T", val)
+		}
+		s, err := structpb.NewStruct(m)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("building Struct: %w", err)
+		}
+		return protoreflect.ValueOfMessage(s.ProtoReflect()), nil
+
+	case valueFullName:
+		v, err := structpb.NewValue(val)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("building Value: %w", err)
+		}
+		return protoreflect.ValueOfMessage(v.ProtoReflect()), nil
+
+	case listValueFullName:
+		arr, ok := val.([]any)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected array for ListValue, got %T", val)
+		}
+		lv, err := structpb.NewList(arr)
+		if err != nil {
+			return protoreflect.Value{}, fmt.Errorf("building ListValue: %w", err)
+		}
+		return protoreflect.ValueOfMessage(lv.ProtoReflect()), nil
+
 	case timestampFullName:
 		s, ok := val.(string)
 		if !ok {
