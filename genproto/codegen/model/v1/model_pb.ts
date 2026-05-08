@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/model/v1/model.proto.
  */
 export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSI3CglNb2RlbE9wdHMSEgoKdGFibGVfbmFtZRgBIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgCIAEoCSKRAQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAg6ZAoKbW9kZWxfb3B0cxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjqRCABKAsyIy5tYWxvbmF6LmNvZGVnZW4ubW9kZWwudjEuTW9kZWxPcHRzUgltb2RlbE9wdHM6YwoKZmllbGRfb3B0cxIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYp/0BIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5GaWVsZE9wdHNSCWZpZWxkT3B0c0IzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL21vZGVsL3YxYgZwcm90bzM", [file_google_protobuf_descriptor]);
+  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSKRAQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAg6ZAoKbW9kZWxfb3B0cxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjqRCABKAsyIy5tYWxvbmF6LmNvZGVnZW4ubW9kZWwudjEuTW9kZWxPcHRzUgltb2RlbE9wdHM6YwoKZmllbGRfb3B0cxIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYp/0BIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5GaWVsZE9wdHNSCWZpZWxkT3B0c0IzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL21vZGVsL3YxYgZwcm90bzM", [file_google_protobuf_descriptor]);
 
 /**
  * ModelOpts defines code generation options for an entire message/model.
@@ -22,17 +22,24 @@ export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
  */
 export type ModelOpts = Message<"malonaz.codegen.model.v1.ModelOpts"> & {
   /**
+   * Set a schema. Defaults to 'public'.
+   *
+   * @generated from field: string schema_name = 1;
+   */
+  schemaName: string;
+
+  /**
    * Override the default table name for this model.
    * If not set, uses a default derived from the message name.
    *
-   * @generated from field: string table_name = 1;
+   * @generated from field: string table_name = 2;
    */
   tableName: string;
 
   /**
    * Override the id column name. Cannot be set for singletons as they have no id.
    *
-   * @generated from field: string id_column_name = 2;
+   * @generated from field: string id_column_name = 3;
    */
   idColumnName: string;
 };

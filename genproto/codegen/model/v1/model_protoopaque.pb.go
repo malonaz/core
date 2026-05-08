@@ -27,8 +27,9 @@ const (
 // Controls database mapping and which CRUD functions are generated.
 type ModelOpts struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TableName    string                 `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3"`
-	xxx_hidden_IdColumnName string                 `protobuf:"bytes,2,opt,name=id_column_name,json=idColumnName,proto3"`
+	xxx_hidden_SchemaName   string                 `protobuf:"bytes,1,opt,name=schema_name,json=schemaName,proto3"`
+	xxx_hidden_TableName    string                 `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3"`
+	xxx_hidden_IdColumnName string                 `protobuf:"bytes,3,opt,name=id_column_name,json=idColumnName,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -58,6 +59,13 @@ func (x *ModelOpts) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *ModelOpts) GetSchemaName() string {
+	if x != nil {
+		return x.xxx_hidden_SchemaName
+	}
+	return ""
+}
+
 func (x *ModelOpts) GetTableName() string {
 	if x != nil {
 		return x.xxx_hidden_TableName
@@ -72,6 +80,10 @@ func (x *ModelOpts) GetIdColumnName() string {
 	return ""
 }
 
+func (x *ModelOpts) SetSchemaName(v string) {
+	x.xxx_hidden_SchemaName = v
+}
+
 func (x *ModelOpts) SetTableName(v string) {
 	x.xxx_hidden_TableName = v
 }
@@ -83,6 +95,8 @@ func (x *ModelOpts) SetIdColumnName(v string) {
 type ModelOpts_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Set a schema. Defaults to 'public'.
+	SchemaName string
 	// Override the default table name for this model.
 	// If not set, uses a default derived from the message name.
 	TableName string
@@ -94,6 +108,7 @@ func (b0 ModelOpts_builder) Build() *ModelOpts {
 	m0 := &ModelOpts{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_SchemaName = b.SchemaName
 	x.xxx_hidden_TableName = b.TableName
 	x.xxx_hidden_IdColumnName = b.IdColumnName
 	return m0
@@ -294,11 +309,13 @@ var File_malonaz_codegen_model_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"P\n" +
-	"\tModelOpts\x12\x1d\n" +
+	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"q\n" +
+	"\tModelOpts\x12\x1f\n" +
+	"\vschema_name\x18\x01 \x01(\tR\n" +
+	"schemaName\x12\x1d\n" +
 	"\n" +
-	"table_name\x18\x01 \x01(\tR\ttableName\x12$\n" +
-	"\x0eid_column_name\x18\x02 \x01(\tR\fidColumnName\"\xd9\x01\n" +
+	"table_name\x18\x02 \x01(\tR\ttableName\x12$\n" +
+	"\x0eid_column_name\x18\x03 \x01(\tR\fidColumnName\"\xd9\x01\n" +
 	"\tFieldOpts\x12\x1f\n" +
 	"\vcolumn_name\x18\x01 \x01(\tR\n" +
 	"columnName\x12\"\n" +

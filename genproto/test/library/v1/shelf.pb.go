@@ -509,7 +509,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x85\t\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x8e\t\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -534,8 +534,9 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\vlegacy_meta\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xba\x02\xeaA^\n" +
-	"\x1elibrary.test.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\x00\x8a\x91$\xd0\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc3\x02\xeaA^\n" +
+	"\x1elibrary.test.malonaz.com/Shelf\x12,organizations/{organization}/shelves/{shelf}*\ashelves2\x05shelfҦ\x04\t\n" +
+	"\alibrary\x8a\x91$\xd0\x01\n" +
 	"-malonaz.test.library.library_service.v1.shelf\x12\x10\n" +
 	"\acreated\x12\x05genre\x1a-\n" +
 	"\aupdated\x12\x10correlation_id_2\x1a\x10shelf.genre != 1\x1a:\n" +

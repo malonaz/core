@@ -1,5 +1,7 @@
 -- malonaz/test/library/migrations/library/001_init.sql
-CREATE TABLE author (
+CREATE SCHEMA IF NOT EXISTS library;
+
+CREATE TABLE library.author (
     request_id UUID NOT NULL,
     organization_id TEXT NOT NULL,
     author_id TEXT NOT NULL,
@@ -19,7 +21,7 @@ CREATE TABLE author (
     CONSTRAINT author_request_id_unique UNIQUE (request_id)
 );
 
-CREATE TABLE shelf (
+CREATE TABLE library.shelf (
     request_id UUID NOT NULL,
     organization_id TEXT NOT NULL,
     shelf_id TEXT NOT NULL,
@@ -36,7 +38,7 @@ CREATE TABLE shelf (
     CONSTRAINT shelf_request_id_unique UNIQUE (request_id)
 );
 
-CREATE TABLE book (
+CREATE TABLE library.book (
     request_id UUID NOT NULL,
     organization_id TEXT NOT NULL,
     shelf_id TEXT NOT NULL,
@@ -53,6 +55,6 @@ CREATE TABLE book (
     etag TEXT NOT NULL,
     metadata JSONB NOT NULL,
     PRIMARY KEY (organization_id, shelf_id, book_id),
-    FOREIGN KEY (organization_id, shelf_id) REFERENCES shelf(organization_id, shelf_id),
+    FOREIGN KEY (organization_id, shelf_id) REFERENCES library.shelf(organization_id, shelf_id),
     CONSTRAINT book_request_id_unique UNIQUE (request_id)
 );

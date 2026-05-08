@@ -62,6 +62,7 @@ var (
   {{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
   {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
   {{ $tableName := ternary ($pr.SingularSnakeCase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
+  {{ if $modelOpts.GetSchemaName }}{{ $tableName = printf "%s.%s" $modelOpts.GetSchemaName $tableName }}{{ end }}
   {{- $whereConditions := list }}
     {{- $placeholders := list }}
     {{- $lastIdx := sub (len $pr.PatternVariables) 1 }}
@@ -126,6 +127,7 @@ func (s *Store) get{{ $message.GoIdent.GoName }}ETag(ctx context.Context, {{ $pr
           {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
           {{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
           {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
+          {{ if $modelOpts.GetSchemaName }}{{ $tableName = printf "%s.%s" $modelOpts.GetSchemaName $tableName }}{{ end }}
           query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
         {{ end }}
 
@@ -186,6 +188,7 @@ func (s *Store) Insert{{ $message.GoIdent.GoName }}Idempotently(ctx context.Cont
         {{- $message := getMessageUsingResourceType $childPr.Desc.Type }}
         {{- $modelOpts := getExt $message.Desc "malonaz.codegen.model.v1.model_opts" }}
         {{ $tableName := ternary ($childPr.Desc.Singular | snakecase) $modelOpts.GetTableName (empty $modelOpts.GetTableName) }}
+        {{ if $modelOpts.GetSchemaName }}{{ $tableName = printf "%s.%s" $modelOpts.GetSchemaName $tableName }}{{ end }}
         query{{ add $i 2 }}, params{{ add $i 2 }} := postgres.InsertQuery({{ $childPr.SingularGoName }}InsertSingletonPostgresQuery, {{ $childPr.Desc.Singular | camelcase | untitle }})
     {{ end }}
 

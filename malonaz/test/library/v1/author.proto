@@ -46,7 +46,7 @@ message Author {
     singular: "author"
     plural: "authors"
   };
-  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
 
   // The resource name of the author.
   // Format: organizations/{organization}/authors/{author}
