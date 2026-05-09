@@ -210,6 +210,10 @@ func (p *OrderingRequest) GetSQLOrderByClause() string {
 	return postgres.TranspileOrderBy(p.orderBy)
 }
 
+func (p *OrderingRequest) GetOrderBy() ordering.OrderBy {
+	return p.orderBy
+}
+
 // ///////////////////////////// UTILS //////////////////////////////
 func (p *OrderingRequestParser[T, R]) setOrderBy(request orderingRequest, orderBy string) {
 	// Get the protobuf message descriptor

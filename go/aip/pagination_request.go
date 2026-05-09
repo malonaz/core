@@ -95,6 +95,10 @@ func (r *PaginatedRequest) GetOffset() int64 {
 	return r.pageToken.Offset
 }
 
+func (p *PaginatedRequest) GetPageSize() int32 {
+	return p.request.GetPageSize()
+}
+
 // ///////////////////////////// UTILS //////////////////////////////
 func (p *PaginationRequestParser[T]) setPageSize(request paginationRequest, pageSize uint32) {
 	// Get the protobuf message descriptor

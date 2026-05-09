@@ -156,3 +156,7 @@ func (p *FilteringRequestParser[T, R]) setFilter(request filteringRequest, filte
 	filterField := fields.ByName("filter")
 	msgReflect.Set(filterField, protoreflect.ValueOfString(filter))
 }
+
+func (f *FilteringRequest) GetFilter() filtering.Filter {
+	return f.filter
+}
