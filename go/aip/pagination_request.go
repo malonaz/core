@@ -20,8 +20,13 @@ type paginationRequest interface {
 
 // ////////////////////////////// PARSER //////////////////////////
 type PaginationRequestParser[T paginationRequest] struct {
-	validator protovalidate.Validator
-	options   *aippb.PaginationOptions
+	validator        protovalidate.Validator
+	options          *aippb.PaginationOptions
+	parsePageTokenFn func(pagination.Request) (pagination.PageToken, error)
+}
+
+func PassthroughPageTokenParser(pagination.Request) (pagination.PageToken, error) {
+	return pagination.PageToken{}, nil
 }
 
 func MustNewPaginationRequestParser[T paginationRequest]() *PaginationRequestParser[T] {
@@ -58,13 +63,22 @@ func NewPaginationRequestParser[T paginationRequest]() (*PaginationRequestParser
 	}, nil
 }
 
+func (p *PaginationRequestParser[T]) WithPageTokenParser(fn func(pagination.Request) (pagination.PageToken, error)) *PaginationRequestParser[T] {
+	p.parsePageTokenFn = fn
+	return p
+}
+
 func (p *PaginationRequestParser[T]) Parse(request T) (*PaginatedRequest, error) {
 	if request.GetPageSize() == 0 {
 		p.setPageSize(request, p.options.DefaultPageSize)
 	}
 
-	// Parse page token.
-	pageToken, err := pagination.ParsePageToken(request)
+	parseFn := pagination.ParsePageToken
+	if p.parsePageTokenFn != nil {
+		parseFn = p.parsePageTokenFn
+	}
+
+	pageToken, err := parseFn(request)
 	if err != nil {
 		return nil, fmt.Errorf("parsing page token: %w", err)
 	}
