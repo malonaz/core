@@ -18,26 +18,42 @@ type paginationRequest interface {
 	pagination.Request
 }
 
+// ///////////////////// OPTS /////////////////
+type PaginationOpt func(*paginationOpts)
+
+type paginationOpts struct {
+	skipPageTokenDecoding bool
+}
+
+func WithSkipPageTokenDecoding() PaginationOpt {
+	return func(o *paginationOpts) {
+		o.skipPageTokenDecoding = true
+	}
+}
+
 // ////////////////////////////// PARSER //////////////////////////
 type PaginationRequestParser[T paginationRequest] struct {
-	validator        protovalidate.Validator
-	options          *aippb.PaginationOptions
-	parsePageTokenFn func(pagination.Request) (pagination.PageToken, error)
+	validator protovalidate.Validator
+	options   *aippb.PaginationOptions
+	opts      *paginationOpts
 }
 
-func PassthroughPageTokenParser(pagination.Request) (pagination.PageToken, error) {
-	return pagination.PageToken{}, nil
-}
-
-func MustNewPaginationRequestParser[T paginationRequest]() *PaginationRequestParser[T] {
-	parser, err := NewPaginationRequestParser[T]()
+// MustNewPaginationRequestParser instantiates a new pagination request parser, panicking on error.
+func MustNewPaginationRequestParser[T paginationRequest](opts ...PaginationOpt) *PaginationRequestParser[T] {
+	parser, err := NewPaginationRequestParser[T](opts...)
 	if err != nil {
 		panic(err)
 	}
 	return parser
 }
 
-func NewPaginationRequestParser[T paginationRequest]() (*PaginationRequestParser[T], error) {
+// NewPaginationRequestParser instantiates a new pagination request parser.
+func NewPaginationRequestParser[T paginationRequest](opts ...PaginationOpt) (*PaginationRequestParser[T], error) {
+	var options paginationOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	validator, err := protovalidate.New(
 		protovalidate.WithDisableLazy(),
 		protovalidate.WithMessages(&aippb.PaginationOptions{}),
@@ -46,26 +62,20 @@ func NewPaginationRequestParser[T paginationRequest]() (*PaginationRequestParser
 		return nil, fmt.Errorf("instantiated validator for pagination request parser: %v", err)
 	}
 
-	// Parse options from the generic type T
 	var zero T
-	options, err := pbutil.GetMessageOption[*aippb.PaginationOptions](zero, aippb.E_Pagination)
+	paginationOptions, err := pbutil.GetMessageOption[*aippb.PaginationOptions](zero, aippb.E_Pagination)
 	if err != nil {
 		return nil, fmt.Errorf("getting message options: %v", err)
 	}
-	// Validate options
-	if err := validator.Validate(options); err != nil {
+	if err := validator.Validate(paginationOptions); err != nil {
 		return nil, fmt.Errorf("validating options: %v", err)
 	}
 
 	return &PaginationRequestParser[T]{
 		validator: validator,
-		options:   options,
+		options:   paginationOptions,
+		opts:      &options,
 	}, nil
-}
-
-func (p *PaginationRequestParser[T]) WithPageTokenParser(fn func(pagination.Request) (pagination.PageToken, error)) *PaginationRequestParser[T] {
-	p.parsePageTokenFn = fn
-	return p
 }
 
 func (p *PaginationRequestParser[T]) Parse(request T) (*PaginatedRequest, error) {
@@ -73,14 +83,13 @@ func (p *PaginationRequestParser[T]) Parse(request T) (*PaginatedRequest, error)
 		p.setPageSize(request, p.options.DefaultPageSize)
 	}
 
-	parseFn := pagination.ParsePageToken
-	if p.parsePageTokenFn != nil {
-		parseFn = p.parsePageTokenFn
-	}
-
-	pageToken, err := parseFn(request)
-	if err != nil {
-		return nil, fmt.Errorf("parsing page token: %w", err)
+	var pageToken pagination.PageToken
+	if !p.opts.skipPageTokenDecoding {
+		var err error
+		pageToken, err = pagination.ParsePageToken(request)
+		if err != nil {
+			return nil, fmt.Errorf("parsing page token: %w", err)
+		}
 	}
 	return &PaginatedRequest{
 		request:   request,

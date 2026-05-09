@@ -6,6 +6,20 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// ///////////////////// OPTS /////////////////
+type ListRequestOpt func(*listRequestOpts)
+
+type listRequestOpts struct {
+	paginationOpts []PaginationOpt
+}
+
+func WithPaginationOpts(opts ...PaginationOpt) ListRequestOpt {
+	return func(o *listRequestOpts) {
+		o.paginationOpts = append(o.paginationOpts, opts...)
+	}
+}
+
+// ///////////////////// PARSER /////////////////
 // listRequest defines the interface of an AIP list request.
 // The R type parameter represents the Resource type being listed.
 type listRequest[R proto.Message] interface {
@@ -21,22 +35,31 @@ type ListRequestParser[T listRequest[R], R proto.Message] struct {
 	orderingParser   *OrderingRequestParser[T, R]
 }
 
-func MustNewListRequestParser[T listRequest[R], R proto.Message]() *ListRequestParser[T, R] {
-	parser, err := NewListRequestParser[T, R]()
+// list_request_parser.go
+
+// MustNewListRequestParser instantiates a new list request parser, panicking on error.
+func MustNewListRequestParser[T listRequest[R], R proto.Message](opts ...ListRequestOpt) *ListRequestParser[T, R] {
+	parser, err := NewListRequestParser[T, R](opts...)
 	if err != nil {
 		panic(err)
 	}
 	return parser
 }
 
-// NewListRequestParser instantiates and returns a new parser.
-func NewListRequestParser[T listRequest[R], R proto.Message]() (*ListRequestParser[T, R], error) {
+// NewListRequestParser instantiates a new list request parser composed of
+// filtering, pagination, and ordering sub-parsers.
+func NewListRequestParser[T listRequest[R], R proto.Message](opts ...ListRequestOpt) (*ListRequestParser[T, R], error) {
+	var options listRequestOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	filteringParser, err := NewFilteringRequestParser[T, R]()
 	if err != nil {
 		return nil, fmt.Errorf("creating filtering parser: %w", err)
 	}
 
-	paginationParser, err := NewPaginationRequestParser[T]()
+	paginationParser, err := NewPaginationRequestParser[T](options.paginationOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("creating pagination parser: %w", err)
 	}
