@@ -74,6 +74,11 @@ func (n ProviderResourceName) Type() string {
 	return "ai.malonaz.com/Provider"
 }
 
+// Pattern returns the resource name pattern for ProviderResourceName as a string.
+func (n ProviderResourceName) Pattern() string {
+	return "providers/{provider}"
+}
+
 type ModelResourceName struct {
 	Provider string
 	Model    string
@@ -151,6 +156,11 @@ func (n *ModelResourceName) UnmarshalText(text []byte) error {
 
 func (n ModelResourceName) Type() string {
 	return "ai.malonaz.com/Model"
+}
+
+// Pattern returns the resource name pattern for ModelResourceName as a string.
+func (n ModelResourceName) Pattern() string {
+	return "providers/{provider}/models/{model}"
 }
 
 func (n ModelResourceName) ProviderResourceName() ProviderResourceName {

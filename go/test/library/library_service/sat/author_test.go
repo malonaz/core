@@ -5,12 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/malonaz/core/go/grpc/middleware"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
-
-	"github.com/malonaz/core/go/grpc/middleware"
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"

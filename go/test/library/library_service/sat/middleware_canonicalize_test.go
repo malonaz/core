@@ -2,15 +2,16 @@ package sat
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
-
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
 )
 
 func TestCanonicalize_AppliedOnCreate(t *testing.T) {
@@ -205,8 +206,9 @@ func TestCanonicalize_SkippedOnCreateBook(t *testing.T) {
 	createBookRequest := &libraryservicepb.CreateBookRequest{
 		Parent: shelf.Name,
 		Book: &librarypb.Book{
-			Title:  "Canon Skip Book",
-			Author: author.Name,
+			Title:    "Canon Skip Book",
+			Author:   author.Name,
+			Duration: durationpb.New(100 * time.Second),
 			Metadata: &librarypb.BookMetadata{
 				PhoneNumber: "(415) 555-0001",
 			},

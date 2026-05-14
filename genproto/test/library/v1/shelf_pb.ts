@@ -7,8 +7,8 @@ import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import { file_malonaz_codegen_nats_v1_nats } from "../../../codegen/nats/v1/nats_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/shelf.proto.
  */
 export const file_malonaz_test_library_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEilggKBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARI0ChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhq6SAPIAQG66g8QCg5jb3JyZWxhdGlvbl9pZBLQAQoGbGFiZWxzGAkgAygLMioubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESTQoIbWV0YWRhdGEYCiABKAsyJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk1ldGFkYXRhQhO66g8PCgtsZWdhY3lfbWV0YRABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6wwLqQV4KHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhIsb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0qB3NoZWx2ZXMyBXNoZWxm0qYECQoHbGlicmFyeYqRJNABCi1tYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuc2hlbGYSEAoHY3JlYXRlZBIFZ2VucmUaLQoHdXBkYXRlZBIQY29ycmVsYXRpb25faWRfMhoQc2hlbGYuZ2VucmUgIT0gMRo6CgxnZW5yZV9jaGFuZ2USBWdlbnJlGiNzaGVsZi5nZW5yZSAhPSBwcmV2aW91c19zaGVsZi5nZW5yZSIiCgdkZWxldGVkEgVnZW5yZRIQY29ycmVsYXRpb25faWRfMiKOAgoNU2hlbGZNZXRhZGF0YRIQCghjYXBhY2l0eRgBIAEoBRINCgVkdW1teRgCIAEoCRIxCgVub3RlcxgDIAMoCzIiLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTm90ZRJQCg5hdXRob3JfdG9fbm90ZRgEIAMoCzI4Lm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGEuQXV0aG9yVG9Ob3RlRW50cnkaVwoRQXV0aG9yVG9Ob3RlRW50cnkSCwoDa2V5GAEgASgJEjEKBXZhbHVlGAIgASgLMiIubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZOb3RlOgI4ASIcCglTaGVsZk5vdGUSDwoHY29udGVudBgBIAEoCSq0AQoKU2hlbGZHZW5yZRIbChdTSEVMRl9HRU5SRV9VTlNQRUNJRklFRBAAEhcKE1NIRUxGX0dFTlJFX0ZJQ1RJT04QARIbChdTSEVMRl9HRU5SRV9OT05fRklDVElPThACEh8KG1NIRUxGX0dFTlJFX1NDSUVOQ0VfRklDVElPThADEhcKE1NIRUxGX0dFTlJFX0hJU1RPUlkQBBIZChVTSEVMRl9HRU5SRV9CSU9HUkFQSFkQBUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEiywgKBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARI0ChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhq6SAPIAQG66g8QCg5jb3JyZWxhdGlvbl9pZBIzCghkdXJhdGlvbhgJIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIGuuoPAiABEtABCgZsYWJlbHMYCiADKAsyKi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJNCghtZXRhZGF0YRgLIAEoCzImLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGFCE7rqDw8KC2xlZ2FjeV9tZXRhEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATrDAupBXgoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmEixvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfSoHc2hlbHZlczIFc2hlbGbSpgQJCgdsaWJyYXJ5ipEk0AEKLW1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5zaGVsZhIQCgdjcmVhdGVkEgVnZW5yZRotCgd1cGRhdGVkEhBjb3JyZWxhdGlvbl9pZF8yGhBzaGVsZi5nZW5yZSAhPSAxGjoKDGdlbnJlX2NoYW5nZRIFZ2VucmUaI3NoZWxmLmdlbnJlICE9IHByZXZpb3VzX3NoZWxmLmdlbnJlIiIKB2RlbGV0ZWQSBWdlbnJlEhBjb3JyZWxhdGlvbl9pZF8yIo4CCg1TaGVsZk1ldGFkYXRhEhAKCGNhcGFjaXR5GAEgASgFEg0KBWR1bW15GAIgASgJEjEKBW5vdGVzGAMgAygLMiIubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZOb3RlElAKDmF1dGhvcl90b19ub3RlGAQgAygLMjgubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZNZXRhZGF0YS5BdXRob3JUb05vdGVFbnRyeRpXChFBdXRob3JUb05vdGVFbnRyeRILCgNrZXkYASABKAkSMQoFdmFsdWUYAiABKAsyIi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZk5vdGU6AjgBIhwKCVNoZWxmTm90ZRIPCgdjb250ZW50GAEgASgJKrQBCgpTaGVsZkdlbnJlEhsKF1NIRUxGX0dFTlJFX1VOU1BFQ0lGSUVEEAASFwoTU0hFTEZfR0VOUkVfRklDVElPThABEhsKF1NIRUxGX0dFTlJFX05PTl9GSUNUSU9OEAISHwobU0hFTEZfR0VOUkVfU0NJRU5DRV9GSUNUSU9OEAMSFwoTU0hFTEZfR0VOUkVfSElTVE9SWRAEEhkKFVNIRUxGX0dFTlJFX0JJT0dSQVBIWRAFQjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Shelf represents a categorized collection of books.
@@ -83,16 +83,23 @@ export type Shelf = Message<"malonaz.test.library.v1.Shelf"> & {
   correlationId2: string;
 
   /**
+   * The duration of the book.
+   *
+   * @generated from field: google.protobuf.Duration duration = 9;
+   */
+  duration?: Duration;
+
+  /**
    * The labels on this shelf.
    *
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 10;
    */
   labels: { [key: string]: string };
 
   /**
    * Shelf metadata.
    *
-   * @generated from field: malonaz.test.library.v1.ShelfMetadata metadata = 10;
+   * @generated from field: malonaz.test.library.v1.ShelfMetadata metadata = 11;
    */
   metadata?: ShelfMetadata;
 };
@@ -161,16 +168,23 @@ export type ShelfValid = Message<"malonaz.test.library.v1.Shelf"> & {
   correlationId2: string;
 
   /**
+   * The duration of the book.
+   *
+   * @generated from field: google.protobuf.Duration duration = 9;
+   */
+  duration?: Duration;
+
+  /**
    * The labels on this shelf.
    *
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 10;
    */
   labels: { [key: string]: string };
 
   /**
    * Shelf metadata.
    *
-   * @generated from field: malonaz.test.library.v1.ShelfMetadata metadata = 10;
+   * @generated from field: malonaz.test.library.v1.ShelfMetadata metadata = 11;
    */
   metadata?: ShelfMetadataValid;
 };

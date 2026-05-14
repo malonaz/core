@@ -6284,7 +6284,7 @@ go_mod_download(
     name = "go.einride.tech__aip",
     _tag = "download",
     module = "go.einride.tech/aip",
-    version = "v0.80.0",
+    version = "v0.86.2",
     visibility = ["PUBLIC"],
 )
 

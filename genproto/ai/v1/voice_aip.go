@@ -73,3 +73,8 @@ func (n *VoiceResourceName) UnmarshalText(text []byte) error {
 func (n VoiceResourceName) Type() string {
 	return "ai.malonaz.com/Voice"
 }
+
+// Pattern returns the resource name pattern for VoiceResourceName as a string.
+func (n VoiceResourceName) Pattern() string {
+	return "voices/{voice}"
+}

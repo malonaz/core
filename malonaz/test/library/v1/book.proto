@@ -5,6 +5,7 @@ package malonaz.test.library.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -63,8 +64,11 @@ message Book {
   // The number of pages.
   int32 page_count = 8 [(buf.validate.field).int32.gte = 0];
 
+  // The duration of the book.
+  google.protobuf.Duration duration = 9;
+
   // The labels on this book.
-  map<string, string> labels = 9 [
+  map<string, string> labels = 10 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (buf.validate.field).map = {
@@ -82,10 +86,10 @@ message Book {
   ];
 
   // A checksum computed by the server based on the current value of the resource.
-  string etag = 10;
+  string etag = 11;
 
   // Book metadata.
-  BookMetadata metadata = 11 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  BookMetadata metadata = 12 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
 }
 
 // Metadata for a book.
@@ -96,4 +100,6 @@ message BookMetadata {
   string language = 2;
   // Phone number of the author of this book.
   string phone_number = 3 [(malonaz.canonicalize.v1.field).phone_number = true];
+  // The duration of the book.
+  google.protobuf.Duration duration = 4;
 }

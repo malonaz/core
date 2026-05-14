@@ -74,6 +74,11 @@ func (n OrganizationResourceName) Type() string {
 	return "library.test.malonaz.com/Organization"
 }
 
+// Pattern returns the resource name pattern for OrganizationResourceName as a string.
+func (n OrganizationResourceName) Pattern() string {
+	return "organizations/{organization}"
+}
+
 type AuthorResourceName struct {
 	Organization string
 	Author       string
@@ -151,6 +156,11 @@ func (n *AuthorResourceName) UnmarshalText(text []byte) error {
 
 func (n AuthorResourceName) Type() string {
 	return "library.test.malonaz.com/Author"
+}
+
+// Pattern returns the resource name pattern for AuthorResourceName as a string.
+func (n AuthorResourceName) Pattern() string {
+	return "organizations/{organization}/authors/{author}"
 }
 
 func (n AuthorResourceName) OrganizationResourceName() OrganizationResourceName {

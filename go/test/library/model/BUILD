@@ -17,6 +17,7 @@ go_library(
         "//go/pbutil",
         "//malonaz/test/library/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

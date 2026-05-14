@@ -3,6 +3,7 @@ package aip
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -1399,4 +1400,213 @@ func TestFilteringRequestParser_ColumnNameReplacement(t *testing.T) {
 			require.Equal(t, tc.expectedParams, whereParams)
 		})
 	}
+}
+
+func TestFilteringRequestParser_Duration(t *testing.T) {
+	t.Run("Shelf nullable duration", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+			wantErr        bool
+		}{
+			{
+				name:           "duration presence check",
+				filter:         `duration:*`,
+				expectedClause: "WHERE (duration IS NOT NULL)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "duration not present",
+				filter:         `NOT duration:*`,
+				expectedClause: "WHERE (NOT (duration IS NOT NULL))",
+				expectedParams: []any{},
+			},
+			{
+				name:           "duration equals 5s",
+				filter:         `duration = duration("5s")`,
+				expectedClause: "WHERE (duration = $1)",
+				expectedParams: []any{5 * time.Second},
+			},
+			{
+				name:           "duration greater than 1m",
+				filter:         `duration > duration("1m")`,
+				expectedClause: "WHERE (duration > $1)",
+				expectedParams: []any{time.Minute},
+			},
+			{
+				name:           "duration less than or equal 30s",
+				filter:         `duration <= duration("30s")`,
+				expectedClause: "WHERE (duration <= $1)",
+				expectedParams: []any{30 * time.Second},
+			},
+			{
+				name:           "duration range with AND",
+				filter:         `duration >= duration("10s") AND duration < duration("1h")`,
+				expectedClause: "WHERE ((duration >= $1) AND (duration < $2))",
+				expectedParams: []any{10 * time.Second, time.Hour},
+			},
+			{
+				name:           "duration combined with other fields",
+				filter:         `duration:* AND display_name = "Test"`,
+				expectedClause: "WHERE ((duration IS NOT NULL) AND (display_name = $1))",
+				expectedParams: []any{"Test"},
+			},
+			{
+				name:    "invalid duration format",
+				filter:  `duration = duration("not-a-duration")`,
+				wantErr: true,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				if tc.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book non-nullable duration", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+			wantErr        bool
+		}{
+			{
+				name:           "duration presence check",
+				filter:         `duration:*`,
+				expectedClause: "WHERE (duration IS NOT NULL)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "duration equals 5s",
+				filter:         `duration = duration("5s")`,
+				expectedClause: "WHERE (duration = $1)",
+				expectedParams: []any{5 * time.Second},
+			},
+			{
+				name:           "duration greater than 2h30m",
+				filter:         `duration > duration("2h30m")`,
+				expectedClause: "WHERE (duration > $1)",
+				expectedParams: []any{2*time.Hour + 30*time.Minute},
+			},
+			{
+				name:           "duration not equal",
+				filter:         `duration != duration("0s")`,
+				expectedClause: "WHERE (duration != $1)",
+				expectedParams: []any{time.Duration(0)},
+			},
+			{
+				name:           "duration combined with title and publication_year",
+				filter:         `duration > duration("1m") AND title = "MyBook" AND publication_year >= 2000`,
+				expectedClause: "WHERE (((duration > $1) AND (title = $2)) AND (publication_year >= $3))",
+				expectedParams: []any{time.Minute, "MyBook", int64(2000)},
+			},
+			{
+				name:    "invalid duration format",
+				filter:  `duration > duration("xyz")`,
+				wantErr: true,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				if tc.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book nested duration in metadata", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+			wantErr        bool
+		}{
+			{
+				name:           "nested duration presence check",
+				filter:         `metadata.duration:*`,
+				expectedClause: "WHERE ((REPLACE(metadata->>'duration', 's', ''))::double precision IS NOT NULL)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "nested duration equals 5s",
+				filter:         `metadata.duration = duration("5s")`,
+				expectedClause: "WHERE ((REPLACE(metadata->>'duration', 's', ''))::double precision = $1)",
+				expectedParams: []any{float64(5)},
+			},
+			{
+				name:           "nested duration greater than 1m",
+				filter:         `metadata.duration > duration("1m")`,
+				expectedClause: "WHERE ((REPLACE(metadata->>'duration', 's', ''))::double precision > $1)",
+				expectedParams: []any{float64(60)},
+			},
+			{
+				name:           "nested duration less than or equal 2h30m",
+				filter:         `metadata.duration <= duration("2h30m")`,
+				expectedClause: "WHERE ((REPLACE(metadata->>'duration', 's', ''))::double precision <= $1)",
+				expectedParams: []any{float64(9000)},
+			},
+			{
+				name:           "nested duration range",
+				filter:         `metadata.duration >= duration("10s") AND metadata.duration < duration("1h")`,
+				expectedClause: "WHERE (((REPLACE(metadata->>'duration', 's', ''))::double precision >= $1) AND ((REPLACE(metadata->>'duration', 's', ''))::double precision < $2))",
+				expectedParams: []any{float64(10), float64(3600)},
+			},
+			{
+				name:           "nested duration combined with title",
+				filter:         `metadata.duration > duration("30s") AND title = "MyBook"`,
+				expectedClause: "WHERE (((REPLACE(metadata->>'duration', 's', ''))::double precision > $1) AND (title = $2))",
+				expectedParams: []any{float64(30), "MyBook"},
+			},
+			{
+				name:    "nested duration invalid format",
+				filter:  `metadata.duration = duration("bad")`,
+				wantErr: true,
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				if tc.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }

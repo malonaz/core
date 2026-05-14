@@ -59,6 +59,7 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 		}
 		t := m.DeleteTime.AsTime()
 		DeleteTime = &t
+
 	}
 
 	var LabelsBytes []byte
@@ -121,6 +122,7 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 			return nil, fmt.Errorf("marshaling Labels: %w", err)
 		}
 	}
+
 	Metadata := &v1.ChatMetadata{}
 	if err := pbutil.Unmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("marshaling Metadata: %w", err)
@@ -134,11 +136,16 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 		Name: name,
 
 		CreateTime: CreateTime,
+
 		UpdateTime: UpdateTime,
+
 		DeleteTime: DeleteTime,
-		Etag:       m.Etag,
-		Labels:     Labels,
-		Metadata:   Metadata,
+
+		Etag: m.Etag,
+
+		Labels: Labels,
+
+		Metadata: Metadata,
 	}, nil
 }
 

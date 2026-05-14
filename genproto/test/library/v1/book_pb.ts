@@ -7,8 +7,8 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_canonicalize_v1_canonicalize } from "../../../canonicalize/v1/canonicalize_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/book.proto.
  */
 export const file_malonaz_test_library_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rLnByb3RvEhdtYWxvbmF6LnRlc3QubGlicmFyeS52MSKCBwoEQm9vaxIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSGQoFdGl0bGUYBCABKAlCCrpIB3IFEAEYgAQSOgoGYXV0aG9yGAUgASgJQir6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASzwEKBmxhYmVscxgJIAMoCzIpLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2suTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgKIAEoCRI/CghtZXRhZGF0YRgLIAEoCzIlLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tNZXRhZGF0YUIGuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6hQLqQWcKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYECQoHbGlicmFyeYqRJGIKLG1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5ib29rGicKB3VwZGF0ZWQaHGJvb2sucHVibGljYXRpb25feWVhciA+IDIwMDciCQoHZGVsZXRlZIL2LCRhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAiTwoMQm9va01ldGFkYXRhEg8KB3N1bW1hcnkYASABKAkSEAoIbGFuZ3VhZ2UYAiABKAkSHAoMcGhvbmVfbnVtYmVyGAMgASgJQgaCtRgCEAFCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("CiJtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rLnByb3RvEhdtYWxvbmF6LnRlc3QubGlicmFyeS52MSKvBwoEQm9vaxIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSGQoFdGl0bGUYBCABKAlCCrpIB3IFEAEYgAQSOgoGYXV0aG9yGAUgASgJQir6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASKwoIZHVyYXRpb24YCSABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SzwEKBmxhYmVscxgKIAMoCzIpLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2suTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgLIAEoCRI/CghtZXRhZGF0YRgMIAEoCzIlLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tNZXRhZGF0YUIGuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6hQLqQWcKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYECQoHbGlicmFyeYqRJGIKLG1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5ib29rGicKB3VwZGF0ZWQaHGJvb2sucHVibGljYXRpb25feWVhciA+IDIwMDciCQoHZGVsZXRlZIL2LCRhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAifAoMQm9va01ldGFkYXRhEg8KB3N1bW1hcnkYASABKAkSEAoIbGFuZ3VhZ2UYAiABKAkSHAoMcGhvbmVfbnVtYmVyGAMgASgJQgaCtRgCEAESKwoIZHVyYXRpb24YBCABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Book represents a book on a shelf.
@@ -86,23 +86,30 @@ export type Book = Message<"malonaz.test.library.v1.Book"> & {
   pageCount: number;
 
   /**
+   * The duration of the book.
+   *
+   * @generated from field: google.protobuf.Duration duration = 9;
+   */
+  duration?: Duration;
+
+  /**
    * The labels on this book.
    *
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 10;
    */
   labels: { [key: string]: string };
 
   /**
    * A checksum computed by the server based on the current value of the resource.
    *
-   * @generated from field: string etag = 10;
+   * @generated from field: string etag = 11;
    */
   etag: string;
 
   /**
    * Book metadata.
    *
-   * @generated from field: malonaz.test.library.v1.BookMetadata metadata = 11;
+   * @generated from field: malonaz.test.library.v1.BookMetadata metadata = 12;
    */
   metadata?: BookMetadata;
 };
@@ -172,23 +179,30 @@ export type BookValid = Message<"malonaz.test.library.v1.Book"> & {
   pageCount: number;
 
   /**
+   * The duration of the book.
+   *
+   * @generated from field: google.protobuf.Duration duration = 9;
+   */
+  duration?: Duration;
+
+  /**
    * The labels on this book.
    *
-   * @generated from field: map<string, string> labels = 9;
+   * @generated from field: map<string, string> labels = 10;
    */
   labels: { [key: string]: string };
 
   /**
    * A checksum computed by the server based on the current value of the resource.
    *
-   * @generated from field: string etag = 10;
+   * @generated from field: string etag = 11;
    */
   etag: string;
 
   /**
    * Book metadata.
    *
-   * @generated from field: malonaz.test.library.v1.BookMetadata metadata = 11;
+   * @generated from field: malonaz.test.library.v1.BookMetadata metadata = 12;
    */
   metadata?: BookMetadataValid;
 };
@@ -226,6 +240,13 @@ export type BookMetadata = Message<"malonaz.test.library.v1.BookMetadata"> & {
    * @generated from field: string phone_number = 3;
    */
   phoneNumber: string;
+
+  /**
+   * The duration of the book.
+   *
+   * @generated from field: google.protobuf.Duration duration = 4;
+   */
+  duration?: Duration;
 };
 
 export type BookMetadataValid = BookMetadata;

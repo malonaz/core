@@ -15,6 +15,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -107,10 +108,12 @@ type Shelf struct {
 	ExternalId string `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
 	// Field with custom column name.
 	CorrelationId_2 string `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3" json:"correlation_id_2,omitempty"`
+	// The duration of the book.
+	Duration *durationpb.Duration `protobuf:"bytes,9,opt,name=duration,proto3" json:"duration,omitempty"`
 	// The labels on this shelf.
-	Labels map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Shelf metadata.
-	Metadata      *ShelfMetadata `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *ShelfMetadata `protobuf:"bytes,11,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -196,6 +199,13 @@ func (x *Shelf) GetCorrelationId_2() string {
 	return ""
 }
 
+func (x *Shelf) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
 func (x *Shelf) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
@@ -242,6 +252,10 @@ func (x *Shelf) SetCorrelationId_2(v string) {
 	x.CorrelationId_2 = v
 }
 
+func (x *Shelf) SetDuration(v *durationpb.Duration) {
+	x.Duration = v
+}
+
 func (x *Shelf) SetLabels(v map[string]string) {
 	x.Labels = v
 }
@@ -271,6 +285,13 @@ func (x *Shelf) HasDeleteTime() bool {
 	return x.DeleteTime != nil
 }
 
+func (x *Shelf) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.Duration != nil
+}
+
 func (x *Shelf) HasMetadata() bool {
 	if x == nil {
 		return false
@@ -288,6 +309,10 @@ func (x *Shelf) ClearUpdateTime() {
 
 func (x *Shelf) ClearDeleteTime() {
 	x.DeleteTime = nil
+}
+
+func (x *Shelf) ClearDuration() {
+	x.Duration = nil
 }
 
 func (x *Shelf) ClearMetadata() {
@@ -314,6 +339,8 @@ type Shelf_builder struct {
 	ExternalId string
 	// Field with custom column name.
 	CorrelationId_2 string
+	// The duration of the book.
+	Duration *durationpb.Duration
 	// The labels on this shelf.
 	Labels map[string]string
 	// Shelf metadata.
@@ -332,6 +359,7 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.Genre = b.Genre
 	x.ExternalId = b.ExternalId
 	x.CorrelationId_2 = b.CorrelationId_2
+	x.Duration = b.Duration
 	x.Labels = b.Labels
 	x.Metadata = b.Metadata
 	return m0
@@ -509,7 +537,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x8e\t\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xcd\t\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -527,10 +555,11 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x06ext_id \x01R\n" +
 	"externalId\x12D\n" +
 	"\x10correlation_id_2\x18\b \x01(\tB\x1a\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x10\n" +
-	"\x0ecorrelation_idR\x0ecorrelationId2\x12\xd8\x01\n" +
-	"\x06labels\x18\t \x03(\v2*.malonaz.test.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12W\n" +
-	"\bmetadata\x18\n" +
-	" \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
+	"\x0ecorrelation_idR\x0ecorrelationId2\x12=\n" +
+	"\bduration\x18\t \x01(\v2\x19.google.protobuf.DurationB\x06\xba\xea\x0f\x02 \x01R\bduration\x12\xd8\x01\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v2*.malonaz.test.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12W\n" +
+	"\bmetadata\x18\v \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
 	"\vlegacy_meta\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -571,22 +600,24 @@ var file_malonaz_test_library_v1_shelf_proto_goTypes = []any{
 	nil,                           // 4: malonaz.test.library.v1.Shelf.LabelsEntry
 	nil,                           // 5: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
 	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
 }
 var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
-	6, // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
-	6, // 1: malonaz.test.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
-	6, // 2: malonaz.test.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
-	0, // 3: malonaz.test.library.v1.Shelf.genre:type_name -> malonaz.test.library.v1.ShelfGenre
-	4, // 4: malonaz.test.library.v1.Shelf.labels:type_name -> malonaz.test.library.v1.Shelf.LabelsEntry
-	2, // 5: malonaz.test.library.v1.Shelf.metadata:type_name -> malonaz.test.library.v1.ShelfMetadata
-	3, // 6: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
-	5, // 7: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	3, // 8: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	6,  // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
+	6,  // 1: malonaz.test.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
+	6,  // 2: malonaz.test.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
+	0,  // 3: malonaz.test.library.v1.Shelf.genre:type_name -> malonaz.test.library.v1.ShelfGenre
+	7,  // 4: malonaz.test.library.v1.Shelf.duration:type_name -> google.protobuf.Duration
+	4,  // 5: malonaz.test.library.v1.Shelf.labels:type_name -> malonaz.test.library.v1.Shelf.LabelsEntry
+	2,  // 6: malonaz.test.library.v1.Shelf.metadata:type_name -> malonaz.test.library.v1.ShelfMetadata
+	3,  // 7: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
+	5,  // 8: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	3,  // 9: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_shelf_proto_init() }

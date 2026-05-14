@@ -3,16 +3,17 @@ package sat
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
-
-	"github.com/malonaz/core/go/grpc/middleware"
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
+	"github.com/malonaz/core/go/grpc/middleware"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
 )
 
 func createTestBook(t *testing.T, shelfName, authorName, title string) *librarypb.Book {
@@ -25,6 +26,7 @@ func createTestBook(t *testing.T, shelfName, authorName, title string) *libraryp
 			Isbn:            "978-0553293357",
 			PublicationYear: 2000,
 			PageCount:       200,
+			Duration:        durationpb.New(100 * time.Second),
 			Metadata: &librarypb.BookMetadata{
 				Summary:  "A test book.",
 				Language: "en",
@@ -52,6 +54,7 @@ func TestBookCreate(t *testing.T) {
 				Isbn:            "978-0553293357",
 				PublicationYear: 1951,
 				PageCount:       244,
+				Duration:        durationpb.New(100 * time.Second),
 				Labels:          map[string]string{"genre": "scifi"},
 				Metadata: &librarypb.BookMetadata{
 					Summary:  "The first novel in Asimov's masterwork.",
@@ -402,6 +405,7 @@ func TestBookList(t *testing.T) {
 				Title:           "Old Book",
 				Author:          author.Name,
 				PublicationYear: 1800,
+				Duration:        durationpb.New(100 * time.Second),
 				Metadata:        &librarypb.BookMetadata{},
 			},
 		}
@@ -414,6 +418,7 @@ func TestBookList(t *testing.T) {
 				Title:           "New Book",
 				Author:          author.Name,
 				PublicationYear: 2020,
+				Duration:        durationpb.New(100 * time.Second),
 				Metadata:        &librarypb.BookMetadata{},
 			},
 		}
@@ -441,6 +446,7 @@ func TestBookList(t *testing.T) {
 				Title:    "ISBN Book",
 				Author:   author.Name,
 				Isbn:     "978-unique-isbn",
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{},
 			},
 		}
@@ -464,6 +470,7 @@ func TestBookList(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "French Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{Language: "fr-unique"},
 			},
 		}
@@ -487,6 +494,7 @@ func TestBookList(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Labeled Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Labels:   map[string]string{"unique-book-label": "yes"},
 				Metadata: &librarypb.BookMetadata{},
 			},
@@ -511,6 +519,7 @@ func TestBookList(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Label Value Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Labels:   map[string]string{"status": "unique-archived"},
 				Metadata: &librarypb.BookMetadata{},
 			},
@@ -550,6 +559,7 @@ func TestBookList(t *testing.T) {
 				Title:           "Complex Filter A",
 				Author:          author.Name,
 				PublicationYear: 2020,
+				Duration:        durationpb.New(100 * time.Second),
 				Metadata:        &librarypb.BookMetadata{Language: "en"},
 			},
 		}
@@ -562,6 +572,7 @@ func TestBookList(t *testing.T) {
 				Title:           "Complex Filter B",
 				Author:          author.Name,
 				PublicationYear: 2021,
+				Duration:        durationpb.New(100 * time.Second),
 				Metadata:        &librarypb.BookMetadata{Language: "en"},
 			},
 		}

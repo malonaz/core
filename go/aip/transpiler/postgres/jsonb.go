@@ -34,6 +34,9 @@ func buildJSONBObjectPath(root string, path []string) string {
 
 func buildJSONBTypedExpr(root string, path []string, exprType *expr.Type) rawSQL {
 	textPath := buildJSONBTextPath(root, path)
+	if exprType.GetWellKnown() == expr.Type_DURATION {
+		return rawSQL("(REPLACE(" + textPath + ", 's', ''))::double precision")
+	}
 	castType := postgresTypeCast(exprType)
 	if castType == "" {
 		return rawSQL(textPath)

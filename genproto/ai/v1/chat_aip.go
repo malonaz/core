@@ -74,6 +74,11 @@ func (n OrganizationResourceName) Type() string {
 	return "ai.malonaz.com/Organization"
 }
 
+// Pattern returns the resource name pattern for OrganizationResourceName as a string.
+func (n OrganizationResourceName) Pattern() string {
+	return "organizations/{organization}"
+}
+
 type UserResourceName struct {
 	Organization string
 	User         string
@@ -151,6 +156,11 @@ func (n *UserResourceName) UnmarshalText(text []byte) error {
 
 func (n UserResourceName) Type() string {
 	return "ai.malonaz.com/User"
+}
+
+// Pattern returns the resource name pattern for UserResourceName as a string.
+func (n UserResourceName) Pattern() string {
+	return "organizations/{organization}/users/{user}"
 }
 
 func (n UserResourceName) OrganizationResourceName() OrganizationResourceName {
@@ -257,6 +267,11 @@ func (n *ChatResourceName) UnmarshalText(text []byte) error {
 
 func (n ChatResourceName) Type() string {
 	return "ai.malonaz.com/Chat"
+}
+
+// Pattern returns the resource name pattern for ChatResourceName as a string.
+func (n ChatResourceName) Pattern() string {
+	return "organizations/{organization}/users/{user}/chats/{chat}"
 }
 
 func (n ChatResourceName) OrganizationResourceName() OrganizationResourceName {

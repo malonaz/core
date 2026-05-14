@@ -92,6 +92,11 @@ func (n ShelfResourceName) Type() string {
 	return "library.test.malonaz.com/Shelf"
 }
 
+// Pattern returns the resource name pattern for ShelfResourceName as a string.
+func (n ShelfResourceName) Pattern() string {
+	return "organizations/{organization}/shelves/{shelf}"
+}
+
 func (n ShelfResourceName) OrganizationResourceName() OrganizationResourceName {
 	return OrganizationResourceName{
 		Organization: n.Organization,

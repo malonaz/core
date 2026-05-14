@@ -3,8 +3,10 @@ package sat
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -308,6 +310,7 @@ func createTestBookWithTitle(t *testing.T, shelfName, authorName, title string) 
 		Book: &librarypb.Book{
 			Title:    title,
 			Author:   authorName,
+			Duration: durationpb.New(100 * time.Second),
 			Metadata: &librarypb.BookMetadata{},
 		},
 	}
@@ -324,6 +327,7 @@ func createTestBookWithYear(t *testing.T, shelfName, authorName, title string, y
 			Title:           title,
 			Author:          authorName,
 			PublicationYear: year,
+			Duration:        durationpb.New(100 * time.Second),
 			Metadata:        &librarypb.BookMetadata{},
 		},
 	}

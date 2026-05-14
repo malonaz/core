@@ -5,6 +5,7 @@ package malonaz.test.library.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
@@ -83,8 +84,11 @@ message Shelf {
     (malonaz.codegen.model.v1.field_opts).column_name = "correlation_id"
   ];
 
+  // The duration of the book.
+  google.protobuf.Duration duration = 9 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
   // The labels on this shelf.
-  map<string, string> labels = 9 [
+  map<string, string> labels = 10 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (buf.validate.field).map = {
@@ -102,7 +106,7 @@ message Shelf {
   ];
 
   // Shelf metadata.
-  ShelfMetadata metadata = 10 [
+  ShelfMetadata metadata = 11 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).column_name = "legacy_meta"
   ];

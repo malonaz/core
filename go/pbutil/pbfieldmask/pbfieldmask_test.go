@@ -357,6 +357,7 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"genre",
 		"external_id",
 		"correlation_id_2",
+		"duration",
 		"labels",
 		"metadata.capacity",
 		"metadata.dummy",
@@ -397,11 +398,13 @@ func TestFromMessage_AllFields_Book(t *testing.T) {
 		"isbn",
 		"publication_year",
 		"page_count",
+		"duration",
 		"labels",
 		"etag",
 		"metadata.summary",
 		"metadata.language",
 		"metadata.phone_number",
+		"metadata.duration",
 	}, paths)
 }
 

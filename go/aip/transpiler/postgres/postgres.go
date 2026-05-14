@@ -84,6 +84,8 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (boolExpr, error) {
 		return t.transpileNotCallExpr(e)
 	case filtering.FunctionTimestamp:
 		return nil, fmt.Errorf("timestamp function must be used in comparison context")
+	case filtering.FunctionDuration:
+		return nil, fmt.Errorf("duration function must be used in comparison context")
 	default:
 		return nil, fmt.Errorf("unsupported function call: %s", e.GetCallExpr().GetFunction())
 	}
@@ -175,6 +177,14 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 
 	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionTimestamp {
 		rhsExpr, err := t.transpileTimestampCallExpr(rhs)
+		if err != nil {
+			return nil, err
+		}
+		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
+	}
+
+	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionDuration {
+		rhsExpr, err := t.transpileDurationCallExpr(rhs, t.isJSONBPath(lhs))
 		if err != nil {
 			return nil, err
 		}
@@ -296,6 +306,29 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (sqlExpr, error) {
 		return nil, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
 	}
 	return t.addParam(timeArg), nil
+}
+
+func (t *Transpiler) transpileDurationCallExpr(e *expr.Expr, asSeconds bool) (sqlExpr, error) {
+	callExpr := e.GetCallExpr()
+	if len(callExpr.GetArgs()) != 1 {
+		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
+	}
+	constArg, ok := callExpr.GetArgs()[0].GetExprKind().(*expr.Expr_ConstExpr)
+	if !ok {
+		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+	}
+	stringArg, ok := constArg.ConstExpr.GetConstantKind().(*expr.Constant_StringValue)
+	if !ok {
+		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+	}
+	durationArg, err := time.ParseDuration(stringArg.StringValue)
+	if err != nil {
+		return nil, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
+	}
+	if asSeconds {
+		return t.addParam(durationArg.Seconds()), nil
+	}
+	return t.addParam(durationArg), nil
 }
 
 func (t *Transpiler) addParam(value any) sqlParam {

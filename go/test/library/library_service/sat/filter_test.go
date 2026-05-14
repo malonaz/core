@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
-
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
 )
 
 func createFilterAuthor(t *testing.T, parent string, opts func(*librarypb.Author)) *librarypb.Author {
@@ -1122,5 +1122,334 @@ func TestFilter_ColumnNameReplacement(t *testing.T) {
 		t.Parallel()
 		results := listShelves(`external_id = "ext-filter-123" AND correlation_id_2 = "corr-filter-456"`)
 		require.Len(t, results, 1)
+	})
+}
+
+// Add to go/test/library/library_service/sat/filter_test.go
+
+func TestFilter_Duration(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+	author := createTestAuthor(t, parent, "Duration Filter Author")
+	shelf := createTestShelf(t, parent, "Duration Filter Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	createBookWithDuration := func(title string, d time.Duration) *librarypb.Book {
+		t.Helper()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    title,
+				Author:   author.Name,
+				Duration: durationpb.New(d),
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+		return book
+	}
+
+	bookShort := createBookWithDuration("Short Book", 30*time.Second)
+	bookMedium := createBookWithDuration("Medium Book", 5*time.Minute)
+	bookLong := createBookWithDuration("Long Book", 2*time.Hour)
+
+	listBooks := func(filter string) []*librarypb.Book {
+		t.Helper()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: filter,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		return listBooksResponse.Books
+	}
+
+	t.Run("Equals", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration = duration("5m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookMedium.Name, results[0].Name)
+	})
+
+	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration > duration("1m")`)
+		require.Len(t, results, 2)
+		nameSet := map[string]bool{}
+		for _, b := range results {
+			nameSet[b.Name] = true
+		}
+		require.True(t, nameSet[bookMedium.Name])
+		require.True(t, nameSet[bookLong.Name])
+	})
+
+	t.Run("LessThan", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration < duration("1m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookShort.Name, results[0].Name)
+	})
+
+	t.Run("GreaterThanOrEqual", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration >= duration("5m")`)
+		require.Len(t, results, 2)
+	})
+
+	t.Run("LessThanOrEqual", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration <= duration("5m")`)
+		require.Len(t, results, 2)
+	})
+
+	t.Run("NotEqual", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration != duration("5m")`)
+		require.Len(t, results, 2)
+		for _, b := range results {
+			require.NotEqual(t, bookMedium.Name, b.Name)
+		}
+	})
+
+	t.Run("Range", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration > duration("1m") AND duration < duration("1h")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookMedium.Name, results[0].Name)
+	})
+
+	t.Run("Presence", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`duration:*`)
+		require.Len(t, results, 3)
+	})
+
+	t.Run("CombinedWithOtherFields", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(fmt.Sprintf(`duration > duration("1h") AND title = "%s"`, bookLong.Title))
+		require.Len(t, results, 1)
+		require.Equal(t, bookLong.Name, results[0].Name)
+	})
+
+	t.Run("InvalidDuration", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `duration > duration("not-a-duration")`,
+		}
+		_, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+}
+
+func TestFilter_NullableDuration(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+
+	createShelfWithDuration := func(name string, d *durationpb.Duration) *librarypb.Shelf {
+		t.Helper()
+		createShelfRequest := &libraryservicepb.CreateShelfRequest{
+			Parent: parent,
+			Shelf: &librarypb.Shelf{
+				DisplayName:     name,
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Duration:        d,
+				CorrelationId_2: "hello",
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+			},
+		}
+		shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+		require.NoError(t, err)
+		return shelf
+	}
+
+	shelfWithDuration := createShelfWithDuration("Shelf With Duration", durationpb.New(10*time.Minute))
+	shelfWithoutDuration := createShelfWithDuration("Shelf Without Duration", nil)
+	shelfShortDuration := createShelfWithDuration("Shelf Short Duration", durationpb.New(30*time.Second))
+
+	listShelves := func(filter string) []*librarypb.Shelf {
+		t.Helper()
+		listShelvesRequest := &libraryservicepb.ListShelvesRequest{
+			Parent: parent,
+			Filter: filter,
+		}
+		listShelvesResponse, err := libraryServiceClient.ListShelves(ctx, listShelvesRequest)
+		require.NoError(t, err)
+		return listShelvesResponse.Shelves
+	}
+
+	t.Run("PresenceCheck_HasDuration", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`duration:*`)
+		require.Len(t, results, 2)
+		nameSet := map[string]bool{}
+		for _, s := range results {
+			nameSet[s.Name] = true
+		}
+		require.True(t, nameSet[shelfWithDuration.Name])
+		require.True(t, nameSet[shelfShortDuration.Name])
+	})
+
+	t.Run("PresenceCheck_NoDuration", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`NOT duration:*`)
+		require.Len(t, results, 1)
+		require.Equal(t, shelfWithoutDuration.Name, results[0].Name)
+	})
+
+	t.Run("Equals", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`duration = duration("10m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, shelfWithDuration.Name, results[0].Name)
+	})
+
+	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`duration > duration("1m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, shelfWithDuration.Name, results[0].Name)
+	})
+
+	t.Run("LessThanOrEqual", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`duration <= duration("30s")`)
+		require.Len(t, results, 1)
+		require.Equal(t, shelfShortDuration.Name, results[0].Name)
+	})
+
+	t.Run("Range", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(`duration >= duration("1s") AND duration < duration("1m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, shelfShortDuration.Name, results[0].Name)
+	})
+
+	t.Run("CombinedWithDisplayName", func(t *testing.T) {
+		t.Parallel()
+		results := listShelves(fmt.Sprintf(`duration:* AND display_name = "%s"`, shelfWithDuration.DisplayName))
+		require.Len(t, results, 1)
+		require.Equal(t, shelfWithDuration.Name, results[0].Name)
+	})
+}
+
+func TestFilter_NestedDuration(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+	author := createTestAuthor(t, parent, "Nested Duration Author")
+	shelf := createTestShelf(t, parent, "Nested Duration Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	createBookWithMetaDuration := func(title string, d time.Duration) *librarypb.Book {
+		t.Helper()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    title,
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Metadata: &librarypb.BookMetadata{
+					Duration: durationpb.New(d),
+				},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+		return book
+	}
+
+	createBookWithoutMetaDuration := func(title string) *librarypb.Book {
+		t.Helper()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    title,
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+		return book
+	}
+
+	bookShort := createBookWithMetaDuration("Short Meta Book", 30*time.Second)
+	bookLong := createBookWithMetaDuration("Long Meta Book", 2*time.Hour)
+	bookNone := createBookWithoutMetaDuration("No Meta Duration Book")
+
+	listBooks := func(filter string) []*librarypb.Book {
+		t.Helper()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: filter,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		return listBooksResponse.Books
+	}
+
+	t.Run("Equals", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`metadata.duration = duration("30s")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookShort.Name, results[0].Name)
+	})
+
+	t.Run("GreaterThan", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`metadata.duration > duration("1m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookLong.Name, results[0].Name)
+	})
+
+	t.Run("LessThanOrEqual", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`metadata.duration <= duration("30s")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookShort.Name, results[0].Name)
+	})
+
+	t.Run("Range", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`metadata.duration >= duration("1s") AND metadata.duration < duration("1m")`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookShort.Name, results[0].Name)
+	})
+
+	t.Run("Presence", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`metadata.duration:*`)
+		require.Len(t, results, 2)
+		nameSet := map[string]bool{}
+		for _, b := range results {
+			nameSet[b.Name] = true
+		}
+		require.True(t, nameSet[bookShort.Name])
+		require.True(t, nameSet[bookLong.Name])
+		require.False(t, nameSet[bookNone.Name])
+	})
+
+	t.Run("NotPresent", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(`NOT metadata.duration:*`)
+		require.Len(t, results, 1)
+		require.Equal(t, bookNone.Name, results[0].Name)
+	})
+
+	t.Run("CombinedWithTopLevelDuration", func(t *testing.T) {
+		t.Parallel()
+		results := listBooks(fmt.Sprintf(`metadata.duration > duration("1h") AND title = "%s"`, bookLong.Title))
+		require.Len(t, results, 1)
+		require.Equal(t, bookLong.Name, results[0].Name)
+	})
+
+	t.Run("InvalidDuration", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `metadata.duration > duration("bad")`,
+		}
+		_, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
 }

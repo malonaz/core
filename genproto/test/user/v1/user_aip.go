@@ -92,6 +92,11 @@ func (n UserResourceName) Type() string {
 	return "user.test.malonaz.com/User"
 }
 
+// Pattern returns the resource name pattern for UserResourceName as a string.
+func (n UserResourceName) Pattern() string {
+	return "organizations/{organization}/users/{user}"
+}
+
 func (n UserResourceName) OrganizationResourceName() OrganizationResourceName {
 	return OrganizationResourceName{
 		Organization: n.Organization,

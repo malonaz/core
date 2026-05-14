@@ -73,3 +73,8 @@ func (n *OrganizationResourceName) UnmarshalText(text []byte) error {
 func (n OrganizationResourceName) Type() string {
 	return "user.test.malonaz.com/Organization"
 }
+
+// Pattern returns the resource name pattern for OrganizationResourceName as a string.
+func (n OrganizationResourceName) Pattern() string {
+	return "organizations/{organization}"
+}

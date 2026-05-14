@@ -10,6 +10,7 @@ import (
 	"github.com/malonaz/core/go/uuid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -320,6 +321,7 @@ func TestCreate_Book(t *testing.T) {
 				Isbn:            "978-0553293357",
 				PublicationYear: 1951,
 				PageCount:       244,
+				Duration:        durationpb.New(100 * time.Second),
 				Labels:          map[string]string{"genre": "scifi"},
 				Metadata: &librarypb.BookMetadata{
 					Summary:  "The first novel in Asimov's masterwork.",
@@ -359,6 +361,7 @@ func TestCreate_Book(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "GetMatch Create Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{Summary: "test", Language: "en"},
 			},
 		}
@@ -376,6 +379,7 @@ func TestCreate_Book(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Minimal Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{},
 			},
 		}
@@ -577,6 +581,7 @@ func TestCreate_RequestIdempotency(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Idempotent Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{},
 			},
 		}

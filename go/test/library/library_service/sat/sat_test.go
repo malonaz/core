@@ -6,12 +6,11 @@ import (
 	"strconv"
 	"testing"
 
+	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/prometheus"
 	"github.com/malonaz/core/go/sat"
 	"github.com/malonaz/core/go/uuid"
-
-	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 )
 
 var (
@@ -105,7 +104,6 @@ func run(ctx context.Context) (func(), error) {
 		},
 		EnvironmentVariables: environmentVariables,
 		Nats:                 true,
-		Debug:                true,
 	}
 	satEnvironment = sat.New(config)
 	if err := satEnvironment.Start(ctx); err != nil {

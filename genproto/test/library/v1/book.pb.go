@@ -17,6 +17,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -50,12 +51,14 @@ type Book struct {
 	PublicationYear int32 `protobuf:"varint,7,opt,name=publication_year,json=publicationYear,proto3" json:"publication_year,omitempty"`
 	// The number of pages.
 	PageCount int32 `protobuf:"varint,8,opt,name=page_count,json=pageCount,proto3" json:"page_count,omitempty"`
+	// The duration of the book.
+	Duration *durationpb.Duration `protobuf:"bytes,9,opt,name=duration,proto3" json:"duration,omitempty"`
 	// The labels on this book.
-	Labels map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// A checksum computed by the server based on the current value of the resource.
-	Etag string `protobuf:"bytes,10,opt,name=etag,proto3" json:"etag,omitempty"`
+	Etag string `protobuf:"bytes,11,opt,name=etag,proto3" json:"etag,omitempty"`
 	// Book metadata.
-	Metadata      *BookMetadata `protobuf:"bytes,11,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata      *BookMetadata `protobuf:"bytes,12,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -141,6 +144,13 @@ func (x *Book) GetPageCount() int32 {
 	return 0
 }
 
+func (x *Book) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
 func (x *Book) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
@@ -194,6 +204,10 @@ func (x *Book) SetPageCount(v int32) {
 	x.PageCount = v
 }
 
+func (x *Book) SetDuration(v *durationpb.Duration) {
+	x.Duration = v
+}
+
 func (x *Book) SetLabels(v map[string]string) {
 	x.Labels = v
 }
@@ -220,6 +234,13 @@ func (x *Book) HasUpdateTime() bool {
 	return x.UpdateTime != nil
 }
 
+func (x *Book) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.Duration != nil
+}
+
 func (x *Book) HasMetadata() bool {
 	if x == nil {
 		return false
@@ -233,6 +254,10 @@ func (x *Book) ClearCreateTime() {
 
 func (x *Book) ClearUpdateTime() {
 	x.UpdateTime = nil
+}
+
+func (x *Book) ClearDuration() {
+	x.Duration = nil
 }
 
 func (x *Book) ClearMetadata() {
@@ -260,6 +285,8 @@ type Book_builder struct {
 	PublicationYear int32
 	// The number of pages.
 	PageCount int32
+	// The duration of the book.
+	Duration *durationpb.Duration
 	// The labels on this book.
 	Labels map[string]string
 	// A checksum computed by the server based on the current value of the resource.
@@ -280,6 +307,7 @@ func (b0 Book_builder) Build() *Book {
 	x.Isbn = b.Isbn
 	x.PublicationYear = b.PublicationYear
 	x.PageCount = b.PageCount
+	x.Duration = b.Duration
 	x.Labels = b.Labels
 	x.Etag = b.Etag
 	x.Metadata = b.Metadata
@@ -294,7 +322,9 @@ type BookMetadata struct {
 	// The language of the book (e.g., "en", "fr").
 	Language string `protobuf:"bytes,2,opt,name=language,proto3" json:"language,omitempty"`
 	// Phone number of the author of this book.
-	PhoneNumber   string `protobuf:"bytes,3,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
+	PhoneNumber string `protobuf:"bytes,3,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
+	// The duration of the book.
+	Duration      *durationpb.Duration `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -345,6 +375,13 @@ func (x *BookMetadata) GetPhoneNumber() string {
 	return ""
 }
 
+func (x *BookMetadata) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
 func (x *BookMetadata) SetSummary(v string) {
 	x.Summary = v
 }
@@ -357,6 +394,21 @@ func (x *BookMetadata) SetPhoneNumber(v string) {
 	x.PhoneNumber = v
 }
 
+func (x *BookMetadata) SetDuration(v *durationpb.Duration) {
+	x.Duration = v
+}
+
+func (x *BookMetadata) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.Duration != nil
+}
+
+func (x *BookMetadata) ClearDuration() {
+	x.Duration = nil
+}
+
 type BookMetadata_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -366,6 +418,8 @@ type BookMetadata_builder struct {
 	Language string
 	// Phone number of the author of this book.
 	PhoneNumber string
+	// The duration of the book.
+	Duration *durationpb.Duration
 }
 
 func (b0 BookMetadata_builder) Build() *BookMetadata {
@@ -375,6 +429,7 @@ func (b0 BookMetadata_builder) Build() *BookMetadata {
 	x.Summary = b.Summary
 	x.Language = b.Language
 	x.PhoneNumber = b.PhoneNumber
+	x.Duration = b.Duration
 	return m0
 }
 
@@ -382,7 +437,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xf5\a\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xac\b\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -396,11 +451,12 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x04isbn\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x18\x11R\x04isbn\x12)\n" +
 	"\x10publication_year\x18\a \x01(\x05R\x0fpublicationYear\x12&\n" +
 	"\n" +
-	"page_count\x18\b \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tpageCount\x12\xd7\x01\n" +
-	"\x06labels\x18\t \x03(\v2).malonaz.test.library.v1.Book.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
-	"\x04etag\x18\n" +
-	" \x01(\tR\x04etag\x12I\n" +
-	"\bmetadata\x18\v \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	"page_count\x18\b \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tpageCount\x125\n" +
+	"\bduration\x18\t \x01(\v2\x19.google.protobuf.DurationR\bduration\x12\xd7\x01\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v2).malonaz.test.library.v1.Book.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
+	"\x04etag\x18\v \x01(\tR\x04etag\x12I\n" +
+	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x85\x02\xeaAg\n" +
@@ -408,11 +464,12 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\alibrary\x8a\x91$b\n" +
 	",malonaz.test.library.library_service.v1.book\x1a'\n" +
 	"\aupdated\x1a\x1cbook.publication_year > 2007\"\t\n" +
-	"\adeleted\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"o\n" +
+	"\adeleted\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\xa6\x01\n" +
 	"\fBookMetadata\x12\x18\n" +
 	"\asummary\x18\x01 \x01(\tR\asummary\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\x12)\n" +
-	"\fphone_number\x18\x03 \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumberB2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\fphone_number\x18\x03 \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumber\x125\n" +
+	"\bduration\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\bdurationB2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
 var file_malonaz_test_library_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_test_library_v1_book_proto_goTypes = []any{
@@ -420,17 +477,20 @@ var file_malonaz_test_library_v1_book_proto_goTypes = []any{
 	(*BookMetadata)(nil),          // 1: malonaz.test.library.v1.BookMetadata
 	nil,                           // 2: malonaz.test.library.v1.Book.LabelsEntry
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 4: google.protobuf.Duration
 }
 var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
 	3, // 0: malonaz.test.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
 	3, // 1: malonaz.test.library.v1.Book.update_time:type_name -> google.protobuf.Timestamp
-	2, // 2: malonaz.test.library.v1.Book.labels:type_name -> malonaz.test.library.v1.Book.LabelsEntry
-	1, // 3: malonaz.test.library.v1.Book.metadata:type_name -> malonaz.test.library.v1.BookMetadata
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 2: malonaz.test.library.v1.Book.duration:type_name -> google.protobuf.Duration
+	2, // 3: malonaz.test.library.v1.Book.labels:type_name -> malonaz.test.library.v1.Book.LabelsEntry
+	1, // 4: malonaz.test.library.v1.Book.metadata:type_name -> malonaz.test.library.v1.BookMetadata
+	4, // 5: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_book_proto_init() }

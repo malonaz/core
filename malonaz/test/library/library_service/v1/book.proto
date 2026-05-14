@@ -117,6 +117,7 @@ message ListBooksRequest {
       "isbn",
       "publication_year",
       "metadata.*",
+      "duration",
       "labels"
     ]
   };

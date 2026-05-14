@@ -2,17 +2,17 @@ package sat
 
 import (
 	"context"
-	"testing"
-
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
-	"github.com/malonaz/core/go/test/library/library_service"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"testing"
+	"time"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
+	"github.com/malonaz/core/go/test/library/library_service"
 )
 
 func hookContext() context.Context {
@@ -98,6 +98,7 @@ func TestHook_BookRequestHook(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Hook Request Book",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{},
 			},
 		}
@@ -134,6 +135,7 @@ func TestHook_BookResponseHook(t *testing.T) {
 			Book: &librarypb.Book{
 				Title:    "Hook BookResp List Unique 7766",
 				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
 				Metadata: &librarypb.BookMetadata{},
 			},
 		}
