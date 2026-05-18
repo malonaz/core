@@ -12,7 +12,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AiEngineClient interface {
 	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*structpb.Struct, error)
+	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error)
 	// Create a tool to generate a message.
 	CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
 	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
@@ -46,8 +45,8 @@ func NewAiEngineClient(cc grpc.ClientConnInterface) AiEngineClient {
 	return &aiEngineClient{cc}
 }
 
-func (c *aiEngineClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*structpb.Struct, error) {
-	out := new(structpb.Struct)
+func (c *aiEngineClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error) {
+	out := new(GenerateMessageResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -96,7 +95,7 @@ func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateSer
 // for forward compatibility
 type AiEngineServer interface {
 	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error)
+	GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error)
 	// Create a tool to generate a message.
 	CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error)
 	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
@@ -113,7 +112,7 @@ type AiEngineServer interface {
 type UnimplementedAiEngineServer struct {
 }
 
-func (UnimplementedAiEngineServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*structpb.Struct, error) {
+func (UnimplementedAiEngineServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
 }
 func (UnimplementedAiEngineServer) CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error) {

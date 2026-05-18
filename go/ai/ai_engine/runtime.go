@@ -9,11 +9,11 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
@@ -214,7 +214,7 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	return aitool.ParseToolCall(schemaBuilder, request.GetToolCall(), request.GetToolSets())
 }
 
-func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*structpb.Struct, error) {
+func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*pb.GenerateMessageResponse, error) {
 	createToolRequest := &pb.CreateToolRequest{
 		DescriptorReference: request.DescriptorReference,
 		SchemaConfiguration: request.SchemaConfiguration,
@@ -246,6 +246,9 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		},
 		Tools: []*aipb.Tool{tool},
 	}
+	if request.GetTextToTextConfiguration() != nil {
+		proto.Merge(textToTextRequest, request.GetTextToTextConfiguration())
+	}
 	textToTextResponse, err := s.aiServiceClient.TextToText(ctx, textToTextRequest)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "text to text: %v", err).Err()
@@ -271,14 +274,20 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		return nil, err
 	}
 
+	response := &pb.GenerateMessageResponse{
+		ModelUsage:        textToTextResponse.GetModelUsage(),
+		GenerationMetrics: textToTextResponse.GetGenerationMetrics(),
+	}
 	switch result := parseToolCallResponse.GetResult().(type) {
 	case *pb.ParseToolCallResponse_Rpc:
-		return result.Rpc.GetRequest(), nil
+		response.Message = result.Rpc.GetRequest()
 	case *pb.ParseToolCallResponse_Message:
-		return result.Message, nil
+		response.Message = result.Message
 	default:
 		return nil, status.Errorf(codes.Internal, "unexpected result type: %T", result).Err()
 	}
+
+	return response, nil
 }
 
 func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDiscoveryToolRequest) (*aipb.Tool, error) {

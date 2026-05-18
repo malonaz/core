@@ -7,6 +7,8 @@ import "google/api/client.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
+import "malonaz/ai/ai_service/v1/text_to_text.proto";
+import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/tool.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_engine/v1";
@@ -18,7 +20,7 @@ service AiEngine {
   option (google.api.default_host) = "ai.malonaz.com";
 
   // Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-  rpc GenerateMessage(GenerateMessageRequest) returns (google.protobuf.Struct);
+  rpc GenerateMessage(GenerateMessageRequest) returns (GenerateMessageResponse);
 
   // Create a tool to generate a message.
   rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool);
@@ -55,6 +57,21 @@ message GenerateMessageRequest {
 
   // Configuration for the schema.
   SchemaConfiguration schema_configuration = 4;
+
+  // Text to text configuration.
+  ai.ai_service.v1.TextToTextConfiguration text_to_text_configuration = 5;
+}
+
+// Response message for AiEngine.GenerateMessage.
+message GenerateMessageResponse {
+  // The generated message.
+  google.protobuf.Struct message = 1;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 2;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
 }
 
 // Request message for AiEngine.CreateTool

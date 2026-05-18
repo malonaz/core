@@ -14,6 +14,8 @@ import google.api.client_pb2
 import google.api.resource_pb2
 import google.protobuf.field_mask_pb2
 import google.protobuf.struct_pb2
+import malonaz.ai.ai_service.v1.text_to_text_pb2
+import malonaz.ai.v1.metrics_pb2
 import malonaz.ai.v1.tool_pb2
 import malonaz.ai.ai_engine.v1.ai_engine_pb2
 
@@ -21,7 +23,7 @@ import malonaz.ai.ai_engine.v1.ai_engine_pb2
 class AiEngineBase(abc.ABC):
 
     @abc.abstractmethod
-    async def GenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageRequest, google.protobuf.struct_pb2.Struct]') -> None:
+    async def GenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageRequest, malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -46,7 +48,7 @@ class AiEngineBase(abc.ABC):
                 self.GenerateMessage,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageRequest,
-                google.protobuf.struct_pb2.Struct,
+                malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageResponse,
             ),
             '/malonaz.ai.ai_engine.v1.AiEngine/CreateTool': grpclib.const.Handler(
                 self.CreateTool,
@@ -82,7 +84,7 @@ class AiEngineStub:
             channel,
             '/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage',
             malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageRequest,
-            google.protobuf.struct_pb2.Struct,
+            malonaz.ai.ai_engine.v1.ai_engine_pb2.GenerateMessageResponse,
         )
         self.CreateTool = grpclib.client.UnaryUnaryMethod(
             channel,

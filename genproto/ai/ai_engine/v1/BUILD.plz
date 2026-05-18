@@ -6,6 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
