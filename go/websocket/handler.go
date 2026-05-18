@@ -37,7 +37,8 @@ type Handler[Req, Resp any] struct {
 	writeChan          chan Resp
 	errChan            chan error
 	close              chan struct{}
-	writeChanClosed    sync.Once
+	drainWrites        chan struct{}
+	drainWritesOnce    sync.Once
 	writeRoutineExited chan struct{}
 	closeMutex         sync.Mutex
 	closeErr           error
@@ -150,6 +151,7 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	// Buffered to 1 so closeWithError never blocks when sending the first error.
 	h.errChan = make(chan error, 1)
 	h.close = make(chan struct{})
+	h.drainWrites = make(chan struct{})
 	h.writeRoutineExited = make(chan struct{})
 
 	h.log = h.log.WithGroup("websocket_handler").With("remote_addr", h.r.RemoteAddr, "path", h.r.URL.Path)
@@ -158,14 +160,11 @@ func (h *Handler[Req, Resp]) Start(ctx context.Context) error {
 	return nil
 }
 
-// DrainWrites closes the write channel and waits for all buffered writes to complete.
-// This allows a graceful shutdown where pending messages are flushed before the
-// connection is torn down.
+// DrainWrites signals the write goroutine to flush remaining buffered messages
+// and exit. The write channel is never closed, so concurrent senders cannot panic.
 func (h *Handler[Req, Resp]) DrainWrites(ctx context.Context) {
-	// sync.Once ensures the channel is only closed once even if DrainWrites is
-	// called concurrently.
-	h.writeChanClosed.Do(func() {
-		close(h.writeChan)
+	h.drainWritesOnce.Do(func() {
+		close(h.drainWrites)
 	})
 
 	// Wait for the write goroutine to finish draining.
@@ -228,6 +227,11 @@ func (h *Handler[Req, Resp]) closeWithError(err error) {
 			h.onCloseFN(err)
 		}
 	}
+}
+
+// Done returns a channel that is closed when the handler is shut down.
+func (h *Handler[Req, Resp]) Done() <-chan struct{} {
+	return h.close
 }
 
 // Read returns the channel that receives deserialized client messages.
@@ -337,9 +341,26 @@ func (h *Handler[Req, Resp]) read(ctx context.Context) {
 	}
 }
 
+// writeMessage marshals and writes a single message to the websocket.
+func (h *Handler[Req, Resp]) writeMessage(ctx context.Context, payload Resp) error {
+	bytes, err := json.Marshal(payload)
+	if err != nil {
+		h.log.ErrorContext(ctx, "marshaling message", "error", err)
+		h.closeWithError(fmt.Errorf("marshal error: %w", err))
+		return err
+	}
+	// coder/websocket's Write is context-aware and will unblock on cancellation.
+	if err := h.conn.Write(ctx, websocket.MessageText, bytes); err != nil {
+		h.log.ErrorContext(ctx, "writing to websocket", "error", err)
+		h.closeWithError(fmt.Errorf("write error: %w", err))
+		return err
+	}
+	return nil
+}
+
 // write drains writeChan and sends each message as JSON over the websocket. It exits
-// when the channel is closed (via DrainWrites), the context is cancelled, or an error
-// occurs.
+// when drainWrites is signalled (after flushing remaining messages), the context is
+// cancelled, or an error occurs.
 func (h *Handler[Req, Resp]) write(ctx context.Context) {
 	h.log.DebugContext(ctx, "starting write routine")
 	defer h.log.DebugContext(ctx, "exiting write routine")
@@ -352,23 +373,20 @@ func (h *Handler[Req, Resp]) write(ctx context.Context) {
 			return
 		case <-h.close:
 			return
-		case payload, ok := <-h.writeChan:
-			if !ok {
-				// writeChan was closed by DrainWrites — all buffered messages have
-				// been consumed via the channel range, so we're done.
-				return
+		case <-h.drainWrites:
+			// Drain remaining buffered messages, then exit.
+			for {
+				select {
+				case payload := <-h.writeChan:
+					if err := h.writeMessage(ctx, payload); err != nil {
+						return
+					}
+				default:
+					return
+				}
 			}
-			// Marshal manually since coder/websocket has no WriteJSON convenience method.
-			bytes, err := json.Marshal(payload)
-			if err != nil {
-				h.log.ErrorContext(ctx, "marshaling message", "error", err)
-				h.closeWithError(fmt.Errorf("marshal error: %w", err))
-				return
-			}
-			// coder/websocket's Write is context-aware and will unblock on cancellation.
-			if err := h.conn.Write(ctx, websocket.MessageText, bytes); err != nil {
-				h.log.ErrorContext(ctx, "writing to websocket", "error", err)
-				h.closeWithError(fmt.Errorf("write error: %w", err))
+		case payload := <-h.writeChan:
+			if err := h.writeMessage(ctx, payload); err != nil {
 				return
 			}
 		}
