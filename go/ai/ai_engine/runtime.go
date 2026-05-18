@@ -247,7 +247,7 @@ func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessa
 		Tools: []*aipb.Tool{tool},
 	}
 	if request.GetTextToTextConfiguration() != nil {
-		proto.Merge(textToTextRequest, request.GetTextToTextConfiguration())
+		proto.Merge(textToTextRequest.Configuration, request.GetTextToTextConfiguration())
 	}
 	textToTextResponse, err := s.aiServiceClient.TextToText(ctx, textToTextRequest)
 	if err != nil {
