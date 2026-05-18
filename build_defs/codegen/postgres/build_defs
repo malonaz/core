@@ -7,8 +7,15 @@ def postgres_migrations(
         dirs:list,
         visibility:list=[],
 ):
-    # filegroup
-    srcs = []
+    # Generate a yaml file containing the ordered list of migration dirs.
+    manifest_yaml = "\n".join([f"- {d}" for d in dirs])
+    genrule(
+        name = "_manifest",
+        outs = ["manifest.yaml"],
+        cmd = f"echo 'dirs:\n{manifest_yaml}' > $OUTS",
+    )
+
+    srcs = [":_manifest"]
     for dir in dirs:
         srcs += glob(f"{dir}/*.sql")
         srcs += [f"{dir}/manifest.yaml"]

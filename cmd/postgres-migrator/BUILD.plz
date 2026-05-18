@@ -7,5 +7,6 @@ go_binary(
         "//go/logging",
         "//go/postgres",
         "//go/postgres/migrator",
+        "//third_party/go:gopkg.in__yaml.v3",
     ],
 )

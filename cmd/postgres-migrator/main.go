@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -7,6 +8,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/logging"
@@ -27,6 +30,10 @@ var opts struct {
 	TargetPostgres *postgres.Opts `group:"Target Postgres" namespace:"target-postgres" env-namespace:"TARGET_POSTGRES"`
 }
 
+type manifest struct {
+	Dirs []string `yaml:"dirs"`
+}
+
 func main() {
 	ctx := context.Background()
 	if err := run(ctx); err != nil {
@@ -40,8 +47,6 @@ func run(ctx context.Context) error {
 	if err := flags.Parse(&optsMinimal, flags.IgnoreUnknown); err != nil {
 		return err
 	}
-	// Map TARGET_POSTGRES env-namespace to the dynamic namespace derived from TargetNamespace.
-	// e.g. if TargetNamespace is "chat-service", prefix is "CHAT_SERVICE_POSTGRES".
 	if optsMinimal.TargetNamespace != "" {
 		targetPrefix := strings.ToUpper(strings.ReplaceAll(optsMinimal.TargetNamespace, "-", "_")) + "_POSTGRES"
 		postgresOptsType := reflect.TypeOf(postgres.Opts{})
@@ -70,15 +75,9 @@ func run(ctx context.Context) error {
 	case "init":
 		return runInit(ctx)
 	case "migrate":
-		entries, err := os.ReadDir(opts.Directory)
+		migrationDirectories, err := parseMigrationDirectories(opts.Directory)
 		if err != nil {
-			return fmt.Errorf("reading directory %s: %w", opts.Directory, err)
-		}
-		var migrationDirectories []string
-		for _, entry := range entries {
-			if entry.IsDir() {
-				migrationDirectories = append(migrationDirectories, fmt.Sprintf("%s/%s", opts.Directory, entry.Name()))
-			}
+			return err
 		}
 		return runMigrate(ctx, migrationDirectories)
 	case "reset":
@@ -86,6 +85,25 @@ func run(ctx context.Context) error {
 	default:
 		return fmt.Errorf("unknown mode: %s", opts.Mode)
 	}
+}
+
+// parseMigrationDirectories reads the manifest.yaml in the given directory to determine
+// the ordered list of migration directories.
+func parseMigrationDirectories(directory string) ([]string, error) {
+	manifestPath := fmt.Sprintf("%s/manifest.yaml", directory)
+	data, err := os.ReadFile(manifestPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading manifest %s: %w", manifestPath, err)
+	}
+	manifest := &manifest{}
+	if err := yaml.Unmarshal(data, manifest); err != nil {
+		return nil, fmt.Errorf("unmarshaling manifest: %w", err)
+	}
+	migrationDirectories := make([]string, len(manifest.Dirs))
+	for i, dir := range manifest.Dirs {
+		migrationDirectories[i] = fmt.Sprintf("%s/%s", directory, dir)
+	}
+	return migrationDirectories, nil
 }
 
 func runInit(ctx context.Context) error {
