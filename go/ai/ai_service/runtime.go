@@ -157,7 +157,13 @@ func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequ
 		return nil, status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 
-	return provider.SpeechToText(ctx, request)
+	response, err := provider.SpeechToText(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	recordModelUsage(response.GetModelUsage())
+	recordGenerationMetrics(request.GetModel(), response.GetGenerationMetrics())
+	return response, nil
 }
 
 // TextToSpeechStream implements the gRPC streaming method - direct pass-through
@@ -274,6 +280,8 @@ func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequ
 	}
 
 	response.AudioChunk.Duration = durationpb.New(totalDuration)
+	recordModelUsage(response.GetModelUsage())
+	recordGenerationMetrics(request.GetModel(), response.GetGenerationMetrics())
 	return response, nil
 }
 

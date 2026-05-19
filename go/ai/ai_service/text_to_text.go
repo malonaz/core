@@ -127,6 +127,11 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		return err
 	}
 
+	response := textToTextAccumulator.Response()
+	ai.SetModelUsagePrices(response.GetModelUsage(), model.GetTtt().GetPricing())
+	recordModelUsage(response.GetModelUsage())
+	recordGenerationMetrics(request.GetModel(), response.GetGenerationMetrics())
+
 	// Wait on the errgroup.
 	if err := eg.Wait(); err != nil {
 		return err

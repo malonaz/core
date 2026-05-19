@@ -106,7 +106,6 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 			a.GenerationMetrics = &aipb.GenerationMetrics{}
 		}
 		proto.Merge(a.GenerationMetrics, c.GenerationMetrics)
-		a.GenerationMetrics.Ttfb = nil
 	}
 	return nil
 }

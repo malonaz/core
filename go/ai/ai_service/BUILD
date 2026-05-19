@@ -14,6 +14,7 @@ go_service_src(
 go_library(
     name = "ai_service",
     srcs = [
+        "metrics.go",
         "runtime.go",
         "text_to_text.go",
         "utils.go",
@@ -40,6 +41,8 @@ go_library(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/audio/v1",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
