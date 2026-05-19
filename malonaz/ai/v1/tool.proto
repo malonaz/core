@@ -122,9 +122,6 @@ message ToolSet {
 
   // The tools available in this set.
   repeated Tool tools = 3 [(buf.validate.field).required = true];
-
-  // Tracks the times at which tools were discovered.
-  map<string, int64> tool_name_to_discover_timestamp = 4;
 }
 
 // A parsed tool call representing a request to discover tools from a tool set.

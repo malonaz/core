@@ -70,6 +70,29 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		toolNameToTool[tool.Name] = tool
 	}
 
+	// Process tool set discoveries.
+	for _, message := range request.GetMessages() {
+		for _, toolCall := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
+			toolType, ok := aip.GetAnnotation(toolCall, AnnotationKeyToolType)
+			if ok && toolType == ai.AnnotationValueToolTypeDiscovery {
+				var found bool
+				for _, toolSet := range request.GetToolSets() {
+					if toolSet.GetDiscoveryTool().GetName() == toolCall.GetName() {
+						args := toolCall.GetArguments().AsMap()
+						toolNamesRaw, _ := args["tools"].([]any)
+						toolNameSet := map[string]struct{}{}
+						for _, name := range toolNamesRaw {
+							if s, ok := name.(string); ok {
+								toolNameSet[s] = struct{}{}
+								toolNames = append(toolNames, s)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// Instantiate the text to text accumulator if it doesn't exist in context.
 	var textToTextAccumulator *ai.TextToTextAccumulator
 	if v, ok := ctx.Value(tttAccumulatorKey{}).(*ai.TextToTextAccumulator); ok {
@@ -249,6 +272,7 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 		Model:         request.Model,
 		Messages:      request.Messages,
 		Tools:         request.Tools,
+		ToolSets:      request.ToolSets,
 		Configuration: request.Configuration,
 		Labels:        request.Labels,
 	}

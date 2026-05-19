@@ -89,6 +89,9 @@ message TextToTextRequest {
   // Tools available for the model to call.
   repeated .malonaz.ai.v1.Tool tools = 4;
 
+  // Tool sets available for the model to call.
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 7;
+
   // Additional configuration.
   TextToTextConfiguration configuration = 5;
 
@@ -164,6 +167,9 @@ message TextToTextStreamRequest {
 
   // Tools available for the model to call.
   repeated .malonaz.ai.v1.Tool tools = 4;
+
+  // Tool sets available for the model to call.
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 7;
 
   // Additional configuration.
   TextToTextConfiguration configuration = 5;

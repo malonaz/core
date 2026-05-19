@@ -351,6 +351,8 @@ type TextToTextRequest struct {
 	Messages []*v1.Message `protobuf:"bytes,3,rep,name=messages,proto3" json:"messages,omitempty"`
 	// Tools available for the model to call.
 	Tools []*v1.Tool `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
+	// Tool sets available for the model to call.
+	ToolSets []*v1.ToolSet `protobuf:"bytes,7,rep,name=tool_sets,json=toolSets,proto3" json:"tool_sets,omitempty"`
 	// Additional configuration.
 	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
 	// Labels to merge onto the chat's labels.
@@ -412,6 +414,13 @@ func (x *TextToTextRequest) GetTools() []*v1.Tool {
 	return nil
 }
 
+func (x *TextToTextRequest) GetToolSets() []*v1.ToolSet {
+	if x != nil {
+		return x.ToolSets
+	}
+	return nil
+}
+
 func (x *TextToTextRequest) GetConfiguration() *TextToTextConfiguration {
 	if x != nil {
 		return x.Configuration
@@ -440,6 +449,10 @@ func (x *TextToTextRequest) SetMessages(v []*v1.Message) {
 
 func (x *TextToTextRequest) SetTools(v []*v1.Tool) {
 	x.Tools = v
+}
+
+func (x *TextToTextRequest) SetToolSets(v []*v1.ToolSet) {
+	x.ToolSets = v
 }
 
 func (x *TextToTextRequest) SetConfiguration(v *TextToTextConfiguration) {
@@ -474,6 +487,8 @@ type TextToTextRequest_builder struct {
 	Messages []*v1.Message
 	// Tools available for the model to call.
 	Tools []*v1.Tool
+	// Tool sets available for the model to call.
+	ToolSets []*v1.ToolSet
 	// Additional configuration.
 	Configuration *TextToTextConfiguration
 	// Labels to merge onto the chat's labels.
@@ -488,6 +503,7 @@ func (b0 TextToTextRequest_builder) Build() *TextToTextRequest {
 	x.Model = b.Model
 	x.Messages = b.Messages
 	x.Tools = b.Tools
+	x.ToolSets = b.ToolSets
 	x.Configuration = b.Configuration
 	x.Labels = b.Labels
 	return m0
@@ -647,6 +663,8 @@ type TextToTextStreamRequest struct {
 	Messages []*v1.Message `protobuf:"bytes,3,rep,name=messages,proto3" json:"messages,omitempty"`
 	// Tools available for the model to call.
 	Tools []*v1.Tool `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
+	// Tool sets available for the model to call.
+	ToolSets []*v1.ToolSet `protobuf:"bytes,7,rep,name=tool_sets,json=toolSets,proto3" json:"tool_sets,omitempty"`
 	// Additional configuration.
 	Configuration *TextToTextConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3" json:"configuration,omitempty"`
 	// Labels to merge onto the chat's labels.
@@ -708,6 +726,13 @@ func (x *TextToTextStreamRequest) GetTools() []*v1.Tool {
 	return nil
 }
 
+func (x *TextToTextStreamRequest) GetToolSets() []*v1.ToolSet {
+	if x != nil {
+		return x.ToolSets
+	}
+	return nil
+}
+
 func (x *TextToTextStreamRequest) GetConfiguration() *TextToTextConfiguration {
 	if x != nil {
 		return x.Configuration
@@ -736,6 +761,10 @@ func (x *TextToTextStreamRequest) SetMessages(v []*v1.Message) {
 
 func (x *TextToTextStreamRequest) SetTools(v []*v1.Tool) {
 	x.Tools = v
+}
+
+func (x *TextToTextStreamRequest) SetToolSets(v []*v1.ToolSet) {
+	x.ToolSets = v
 }
 
 func (x *TextToTextStreamRequest) SetConfiguration(v *TextToTextConfiguration) {
@@ -770,6 +799,8 @@ type TextToTextStreamRequest_builder struct {
 	Messages []*v1.Message
 	// Tools available for the model to call.
 	Tools []*v1.Tool
+	// Tool sets available for the model to call.
+	ToolSets []*v1.ToolSet
 	// Additional configuration.
 	Configuration *TextToTextConfiguration
 	// Labels to merge onto the chat's labels.
@@ -784,6 +815,7 @@ func (b0 TextToTextStreamRequest_builder) Build() *TextToTextStreamRequest {
 	x.Model = b.Model
 	x.Messages = b.Messages
 	x.Tools = b.Tools
+	x.ToolSets = b.ToolSets
 	x.Configuration = b.Configuration
 	x.Labels = b.Labels
 	return m0
@@ -1087,14 +1119,15 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"\x15ImageGenerationConfig\x12_\n" +
 	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
 	"\n" +
-	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xd9\x04\n" +
+	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\x8e\x05\n" +
 	"\x11TextToTextRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
 	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
 	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
-	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12W\n" +
+	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x123\n" +
+	"\ttool_sets\x18\a \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\x12W\n" +
 	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\x12\xdd\x01\n" +
 	"\x06labels\x18\x06 \x03(\v27.malonaz.ai.ai_service.v1.TextToTextRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
@@ -1106,14 +1139,15 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"stopReason\x12:\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xe5\x04\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\x9a\x05\n" +
 	"\x17TextToTextStreamRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
 	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12<\n" +
 	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageB\b\xbaH\x05\x92\x01\x02\b\x01R\bmessages\x12)\n" +
-	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12W\n" +
+	"\x05tools\x18\x04 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x123\n" +
+	"\ttool_sets\x18\a \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\x12W\n" +
 	"\rconfiguration\x18\x05 \x01(\v21.malonaz.ai.ai_service.v1.TextToTextConfigurationR\rconfiguration\x12\xe3\x01\n" +
 	"\x06labels\x18\x06 \x03(\v2=.malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
@@ -1152,9 +1186,10 @@ var file_malonaz_ai_ai_service_v1_text_to_text_proto_goTypes = []any{
 	(v1.ReasoningEffort)(0),          // 10: malonaz.ai.v1.ReasoningEffort
 	(*v1.Message)(nil),               // 11: malonaz.ai.v1.Message
 	(*v1.Tool)(nil),                  // 12: malonaz.ai.v1.Tool
-	(*v1.ModelUsage)(nil),            // 13: malonaz.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),     // 14: malonaz.ai.v1.GenerationMetrics
-	(*v1.Block)(nil),                 // 15: malonaz.ai.v1.Block
+	(*v1.ToolSet)(nil),               // 13: malonaz.ai.v1.ToolSet
+	(*v1.ModelUsage)(nil),            // 14: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),     // 15: malonaz.ai.v1.GenerationMetrics
+	(*v1.Block)(nil),                 // 16: malonaz.ai.v1.Block
 }
 var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
 	9,  // 0: malonaz.ai.ai_service.v1.TextToTextConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
@@ -1162,25 +1197,27 @@ var file_malonaz_ai_ai_service_v1_text_to_text_proto_depIdxs = []int32{
 	2,  // 2: malonaz.ai.ai_service.v1.TextToTextConfiguration.image_config:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfig
 	11, // 3: malonaz.ai.ai_service.v1.TextToTextRequest.messages:type_name -> malonaz.ai.v1.Message
 	12, // 4: malonaz.ai.ai_service.v1.TextToTextRequest.tools:type_name -> malonaz.ai.v1.Tool
-	1,  // 5: malonaz.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	7,  // 6: malonaz.ai.ai_service.v1.TextToTextRequest.labels:type_name -> malonaz.ai.ai_service.v1.TextToTextRequest.LabelsEntry
-	11, // 7: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
-	0,  // 8: malonaz.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	13, // 9: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	14, // 10: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	11, // 11: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
-	12, // 12: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
-	1,  // 13: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
-	8,  // 14: malonaz.ai.ai_service.v1.TextToTextStreamRequest.labels:type_name -> malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntry
-	15, // 15: malonaz.ai.ai_service.v1.TextToTextStreamResponse.block:type_name -> malonaz.ai.v1.Block
-	0,  // 16: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
-	13, // 17: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	14, // 18: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	13, // 5: malonaz.ai.ai_service.v1.TextToTextRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	1,  // 6: malonaz.ai.ai_service.v1.TextToTextRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
+	7,  // 7: malonaz.ai.ai_service.v1.TextToTextRequest.labels:type_name -> malonaz.ai.ai_service.v1.TextToTextRequest.LabelsEntry
+	11, // 8: malonaz.ai.ai_service.v1.TextToTextResponse.message:type_name -> malonaz.ai.v1.Message
+	0,  // 9: malonaz.ai.ai_service.v1.TextToTextResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	14, // 10: malonaz.ai.ai_service.v1.TextToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	15, // 11: malonaz.ai.ai_service.v1.TextToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	11, // 12: malonaz.ai.ai_service.v1.TextToTextStreamRequest.messages:type_name -> malonaz.ai.v1.Message
+	12, // 13: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tools:type_name -> malonaz.ai.v1.Tool
+	13, // 14: malonaz.ai.ai_service.v1.TextToTextStreamRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	1,  // 15: malonaz.ai.ai_service.v1.TextToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToTextConfiguration
+	8,  // 16: malonaz.ai.ai_service.v1.TextToTextStreamRequest.labels:type_name -> malonaz.ai.ai_service.v1.TextToTextStreamRequest.LabelsEntry
+	16, // 17: malonaz.ai.ai_service.v1.TextToTextStreamResponse.block:type_name -> malonaz.ai.v1.Block
+	0,  // 18: malonaz.ai.ai_service.v1.TextToTextStreamResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.TextToTextStopReason
+	14, // 19: malonaz.ai.ai_service.v1.TextToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	15, // 20: malonaz.ai.ai_service.v1.TextToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_text_to_text_proto_init() }

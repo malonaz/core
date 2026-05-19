@@ -839,11 +839,9 @@ type ToolSet struct {
 	// The tool used to discover the tools in this set.
 	DiscoveryTool *Tool `protobuf:"bytes,2,opt,name=discovery_tool,json=discoveryTool,proto3" json:"discovery_tool,omitempty"`
 	// The tools available in this set.
-	Tools []*Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	// Tracks the times at which tools were discovered.
-	ToolNameToDiscoverTimestamp map[string]int64 `protobuf:"bytes,4,rep,name=tool_name_to_discover_timestamp,json=toolNameToDiscoverTimestamp,proto3" json:"tool_name_to_discover_timestamp,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	unknownFields               protoimpl.UnknownFields
-	sizeCache                   protoimpl.SizeCache
+	Tools         []*Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ToolSet) Reset() {
@@ -892,13 +890,6 @@ func (x *ToolSet) GetTools() []*Tool {
 	return nil
 }
 
-func (x *ToolSet) GetToolNameToDiscoverTimestamp() map[string]int64 {
-	if x != nil {
-		return x.ToolNameToDiscoverTimestamp
-	}
-	return nil
-}
-
 func (x *ToolSet) SetName(v string) {
 	x.Name = v
 }
@@ -909,10 +900,6 @@ func (x *ToolSet) SetDiscoveryTool(v *Tool) {
 
 func (x *ToolSet) SetTools(v []*Tool) {
 	x.Tools = v
-}
-
-func (x *ToolSet) SetToolNameToDiscoverTimestamp(v map[string]int64) {
-	x.ToolNameToDiscoverTimestamp = v
 }
 
 func (x *ToolSet) HasDiscoveryTool() bool {
@@ -935,8 +922,6 @@ type ToolSet_builder struct {
 	DiscoveryTool *Tool
 	// The tools available in this set.
 	Tools []*Tool
-	// Tracks the times at which tools were discovered.
-	ToolNameToDiscoverTimestamp map[string]int64
 }
 
 func (b0 ToolSet_builder) Build() *ToolSet {
@@ -946,7 +931,6 @@ func (b0 ToolSet_builder) Build() *ToolSet {
 	x.Name = b.Name
 	x.DiscoveryTool = b.DiscoveryTool
 	x.Tools = b.Tools
-	x.ToolNameToDiscoverTimestamp = b.ToolNameToDiscoverTimestamp
 	return m0
 }
 
@@ -1198,15 +1182,11 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x04mode\x18\x01 \x01(\x0e2\x1d.malonaz.ai.v1.ToolChoiceModeB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\x04mode\x12\x1d\n" +
 	"\ttool_name\x18\x02 \x01(\tH\x00R\btoolName:|\xbaHy\x1aw\n" +
 	"%ai.v1.ToolChoice.mode_not_unspecified\x12+mode cannot be TOOL_CHOICE_MODE_UNSPECIFIED\x1a!!has(this.mode) || this.mode != 0B\x0f\n" +
-	"\x06choice\x12\x05\xbaH\x02\b\x01\"\xe3\x02\n" +
+	"\x06choice\x12\x05\xbaH\x02\b\x01\"\x94\x01\n" +
 	"\aToolSet\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12B\n" +
 	"\x0ediscovery_tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\x12}\n" +
-	"\x1ftool_name_to_discover_timestamp\x18\x04 \x03(\v27.malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntryR\x1btoolNameToDiscoverTimestamp\x1aN\n" +
-	" ToolNameToDiscoverTimestampEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"V\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"V\n" +
 	"\x11ToolCallDiscovery\x12\"\n" +
 	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
@@ -1223,7 +1203,7 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x19TOOL_CHOICE_MODE_REQUIRED\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolChoiceMode)(0),           // 0: malonaz.ai.v1.ToolChoiceMode
 	(*Tool)(nil),                  // 1: malonaz.ai.v1.Tool
@@ -1236,33 +1216,31 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	nil,                           // 8: malonaz.ai.v1.Tool.AnnotationsEntry
 	nil,                           // 9: malonaz.ai.v1.ToolCall.AnnotationsEntry
 	nil,                           // 10: malonaz.ai.v1.ToolResult.AnnotationsEntry
-	nil,                           // 11: malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	(*v1.Schema)(nil),             // 12: malonaz.json.v1.Schema
-	(*structpb.Struct)(nil),       // 13: google.protobuf.Struct
-	(*structpb.Value)(nil),        // 14: google.protobuf.Value
-	(*status.Status)(nil),         // 15: google.rpc.Status
-	(*fieldmaskpb.FieldMask)(nil), // 16: google.protobuf.FieldMask
+	(*v1.Schema)(nil),             // 11: malonaz.json.v1.Schema
+	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
+	(*structpb.Value)(nil),        // 13: google.protobuf.Value
+	(*status.Status)(nil),         // 14: google.rpc.Status
+	(*fieldmaskpb.FieldMask)(nil), // 15: google.protobuf.FieldMask
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	12, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
+	11, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
 	8,  // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
-	13, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	13, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
+	12, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	12, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
 	9,  // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
 	10, // 5: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
-	14, // 6: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
-	15, // 7: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
+	13, // 6: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
+	14, // 7: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
 	0,  // 8: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
 	1,  // 9: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
 	1,  // 10: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	11, // 11: malonaz.ai.v1.ToolSet.tool_name_to_discover_timestamp:type_name -> malonaz.ai.v1.ToolSet.ToolNameToDiscoverTimestampEntry
-	13, // 12: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
-	16, // 13: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	12, // 11: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
+	15, // 12: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -1285,7 +1263,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
