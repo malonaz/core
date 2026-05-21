@@ -80,12 +80,10 @@ func (se *scopedExecution) FuncMap() template.FuncMap {
 		"qualifiedGoIdent": se.qualifiedGoIdent,
 		"qgi":              se.qualifiedGoIdent,
 
-		"parseRPC":                 parseRPC,
-		"parseResource":            parseResource,
-		"parseResourceFromMessage": parseResourceFromMessage,
-		"getMessageUsingResourceType": func(resourceType string) *protogen.Message {
-			return resourceTypeToMessage[resourceType]
-		},
+		"parseRPC":                    parseRPC,
+		"parseResource":               parseResource,
+		"parseResourceFromMessage":    parseResourceFromMessage,
+		"getMessageUsingResourceType": getMessageUsingResourceType,
 
 		"getExt":      getExt,
 		"columnName":  columnName,
