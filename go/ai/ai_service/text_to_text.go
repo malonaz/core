@@ -15,6 +15,7 @@ import (
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 	"github.com/malonaz/core/go/grpc/status"
 )
@@ -65,30 +66,47 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	toolNameToTool := make(map[string]*aipb.Tool, len(request.Tools))
-	for _, tool := range request.Tools {
+	// Create a mapping from tool set name to tool name to tool.
+	toolSetNameToToolNameToTool := make(map[string]map[string]*aipb.Tool, len(request.GetToolSets()))
+	for _, toolSet := range request.GetToolSets() {
+		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
+		for _, tool := range toolSet.GetTools() {
+			toolNameToTool[tool.GetName()] = tool
+		}
+		toolSetNameToToolNameToTool[toolSet.GetName()] = toolNameToTool
+	}
+
+	// Create a mapping of tool name to tool.
+	toolNameToTool := make(map[string]*aipb.Tool, len(request.GetTools()))
+	for _, tool := range request.GetTools() {
 		toolNameToTool[tool.Name] = tool
 	}
 
 	// Process tool set discoveries.
-	for _, message := range request.GetMessages() {
-		for _, toolCall := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
-			toolType, ok := aip.GetAnnotation(toolCall, AnnotationKeyToolType)
-			if ok && toolType == ai.AnnotationValueToolTypeDiscovery {
-				var found bool
-				for _, toolSet := range request.GetToolSets() {
-					if toolSet.GetDiscoveryTool().GetName() == toolCall.GetName() {
-						args := toolCall.GetArguments().AsMap()
-						toolNamesRaw, _ := args["tools"].([]any)
-						toolNameSet := map[string]struct{}{}
-						for _, name := range toolNamesRaw {
-							if s, ok := name.(string); ok {
-								toolNameSet[s] = struct{}{}
-								toolNames = append(toolNames, s)
-							}
-						}
-					}
+	for i, message := range request.GetMessages() {
+		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
+			toolCall := block.GetToolCall()
+			toolType, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType)
+			if !ok || toolType != aitool.AnnotationValueToolTypeDiscovery {
+				continue
+			}
+			toolCallDiscovery, err := aitool.ParseDiscoveryToolCall(toolCall)
+			if err != nil {
+				return status.Errorf(codes.InvalidArgument, "parsing message %d block %d tool call discovery", i, j).Err()
+			}
+			if _, ok := toolSetNameToToolNameToTool[toolCallDiscovery.GetToolSetName()]; !ok {
+				return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool set %q", i, j, toolCallDiscovery.GetToolSetName()).Err()
+			}
+			for _, toolName := range toolCallDiscovery.GetToolNames() {
+				tool, ok := toolSetNameToToolNameToTool[toolCallDiscovery.GetToolSetName()][toolName]
+				if !ok {
+					return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool %q in tool set %q", i, j, toolName, toolCallDiscovery.GetToolSetName()).Err()
 				}
+				if _, ok := toolNameToTool[tool.GetName()]; ok {
+					continue
+				}
+				toolNameToTool[tool.GetName()] = tool
+				request.Tools = append(request.Tools, tool)
 			}
 		}
 	}
@@ -137,9 +155,9 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	})
 
 	// Filter out deleted messages.
-	allMessages := request.GetMessages()
+	messages := request.GetMessages()
 	request.Messages = nil
-	for _, message := range allMessages {
+	for _, message := range messages {
 		if message.GetDeleteTime() == nil {
 			request.Messages = append(request.Messages, message)
 		}

@@ -1,21 +1,39 @@
 package tool
 
 import (
-	"fmt"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 )
+
+func ParseDiscoveryToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallDiscovery, error) {
+	args := toolCall.GetArguments().AsMap()
+	toolNamesRaw, _ := args["tools"].([]any)
+	var toolNames []string
+	for _, name := range toolNamesRaw {
+		if s, ok := name.(string); ok {
+			toolNames = append(toolNames, s)
+		}
+	}
+
+	toolSetName, ok := toolCall.GetAnnotations()[AnnotationKeyToolSetName]
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", AnnotationKeyToolSetName).Err()
+	}
+
+	return &aipb.ToolCallDiscovery{
+		ToolSetName: toolSetName,
+		ToolNames:   toolNames,
+	}, nil
+}
 
 func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
 	toolType, ok := aip.GetAnnotation(toolCall, AnnotationKeyToolType)
@@ -64,19 +82,6 @@ func parseDiscoveryToolCall(toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (
 		return nil, status.Errorf(codes.NotFound, "tool %q not found", toolCall.GetName()).Err()
 	}
 
-	for _, toolName := range toolNames {
-		discoverTimestamp, ok := targetToolSet.ToolNameToDiscoverTimestamp[toolName]
-		if !ok {
-			return nil, status.Errorf(codes.NotFound, "tool %q not found in tool set", toolName).Err()
-		}
-		if discoverTimestamp > 0 {
-			return nil, status.Errorf(codes.AlreadyExists, "tool %q already discovered", toolName).
-				WithDetails(&pb.ParseToolCallRecoverableError{
-					ToolResult: ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), fmt.Errorf("tool already discovered")),
-				}).Err()
-		}
-	}
-
 	return &pb.ParseToolCallResponse{
 		Result: &pb.ParseToolCallResponse_Discovery{
 			Discovery: &aipb.ToolCallDiscovery{
@@ -103,12 +108,11 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 	if _, ok := annotations[AnnotationKeyDiscoverableTool]; ok {
 		var found bool
 		for _, toolSet := range toolSets {
-			if discoverTimestamp, ok := toolSet.GetToolNameToDiscoverTimestamp()[toolCall.GetName()]; ok {
-				if discoverTimestamp == 0 {
-					return nil, status.Errorf(codes.FailedPrecondition, "tool %q has not been discovered", toolCall.GetName()).Err()
+			for _, tool := range toolSet.GetTools() {
+				if toolCall.GetName() == tool.GetName() {
+					found = true
+					break
 				}
-				found = true
-				break
 			}
 		}
 		if !found {
