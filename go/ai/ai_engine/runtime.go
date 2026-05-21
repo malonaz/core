@@ -313,11 +313,35 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		return nil, status.Errorf(codes.InvalidArgument, "%s is not a service", request.ServiceFullName).Err()
 	}
 
-	if len(request.MethodNames) == 0 {
+	// Get all service methods.
+	var serviceMethodNames []string
+	serviceMethodNameSet := make(map[string]struct{}, len(request.MethodNames))
+	{
 		methods := serviceDescriptor.Methods()
 		for i := 0; i < methods.Len(); i++ {
-			request.MethodNames = append(request.MethodNames, string(methods.Get(i).Name()))
+			serviceMethodName := string(methods.Get(i).Name())
+			serviceMethodNames = append(serviceMethodNames, serviceMethodName)
+			serviceMethodNameSet[serviceMethodName] = struct{}{}
 		}
+	}
+
+	// If no methods are specified, use all methods.
+	if len(request.MethodNames) == 0 {
+		request.MethodNames = serviceMethodNames
+	}
+
+	// Validate arguments.
+	for methodName := range request.MethodNameToSchemaConfiguration {
+		if _, ok := serviceMethodNameSet[methodName]; !ok {
+			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in method_name_to_schema_configuration", methodName).Err()
+		}
+	}
+	discoveredMethodNameSet := make(map[string]struct{}, len(request.GetDiscoveredMethodNames()))
+	for _, methodName := range request.GetDiscoveredMethodNames() {
+		if _, ok := serviceMethodNameSet[methodName]; !ok {
+			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in discovered_method_names", methodName).Err()
+		}
+		discoveredMethodNameSet[methodName] = struct{}{}
 	}
 
 	toolSetName := string(serviceDescriptor.FullName())
@@ -326,7 +350,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	if len(request.MethodNameToSchemaConfiguration) == 0 {
 		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
 	}
-	for _, methodName := range request.MethodNames {
+	for i, methodName := range request.MethodNames {
 		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
 		if schemaConfiguration == nil {
 			schemaConfiguration = request.SchemaConfiguration
@@ -344,7 +368,12 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		tools = append(tools, tool)
 		aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, "true")
 		aip.SetAnnotation(tool, aitool.AnnotationKeyToolSetName, toolSetName)
-		toolNameToDiscoverTimestamp[tool.Name] = 0
+
+		var discoverTimestamp int64
+		if _, ok := discoveredMethodNameSet[methodName]; ok {
+			discoverTimestamp = int64(i)
+		}
+		toolNameToDiscoverTimestamp[tool.Name] = discoverTimestamp
 	}
 
 	serviceComment := schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline)

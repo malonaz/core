@@ -145,6 +145,9 @@ message CreateServiceToolSetRequest {
 
   // Set a specific schema configuration for a method.
   map<string, SchemaConfiguration> method_name_to_schema_configuration = 4;
+
+  // Any method listed here will be auto-discovered.
+  repeated string discovered_method_names = 5;
 }
 
 // Error detail indicating the error can be fed back to the AI for correction.

@@ -815,6 +815,7 @@ type CreateServiceToolSetRequest struct {
 	xxx_hidden_MethodNames                     []string                        `protobuf:"bytes,2,rep,name=method_names,json=methodNames,proto3"`
 	xxx_hidden_SchemaConfiguration             *SchemaConfiguration            `protobuf:"bytes,3,opt,name=schema_configuration,json=schemaConfiguration,proto3"`
 	xxx_hidden_MethodNameToSchemaConfiguration map[string]*SchemaConfiguration `protobuf:"bytes,4,rep,name=method_name_to_schema_configuration,json=methodNameToSchemaConfiguration,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_DiscoveredMethodNames           []string                        `protobuf:"bytes,5,rep,name=discovered_method_names,json=discoveredMethodNames,proto3"`
 	unknownFields                              protoimpl.UnknownFields
 	sizeCache                                  protoimpl.SizeCache
 }
@@ -872,6 +873,13 @@ func (x *CreateServiceToolSetRequest) GetMethodNameToSchemaConfiguration() map[s
 	return nil
 }
 
+func (x *CreateServiceToolSetRequest) GetDiscoveredMethodNames() []string {
+	if x != nil {
+		return x.xxx_hidden_DiscoveredMethodNames
+	}
+	return nil
+}
+
 func (x *CreateServiceToolSetRequest) SetServiceFullName(v string) {
 	x.xxx_hidden_ServiceFullName = v
 }
@@ -886,6 +894,10 @@ func (x *CreateServiceToolSetRequest) SetSchemaConfiguration(v *SchemaConfigurat
 
 func (x *CreateServiceToolSetRequest) SetMethodNameToSchemaConfiguration(v map[string]*SchemaConfiguration) {
 	x.xxx_hidden_MethodNameToSchemaConfiguration = v
+}
+
+func (x *CreateServiceToolSetRequest) SetDiscoveredMethodNames(v []string) {
+	x.xxx_hidden_DiscoveredMethodNames = v
 }
 
 func (x *CreateServiceToolSetRequest) HasSchemaConfiguration() bool {
@@ -913,6 +925,8 @@ type CreateServiceToolSetRequest_builder struct {
 	SchemaConfiguration *SchemaConfiguration
 	// Set a specific schema configuration for a method.
 	MethodNameToSchemaConfiguration map[string]*SchemaConfiguration
+	// Any method listed here will be auto-discovered.
+	DiscoveredMethodNames []string
 }
 
 func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetRequest {
@@ -923,6 +937,7 @@ func (b0 CreateServiceToolSetRequest_builder) Build() *CreateServiceToolSetReque
 	x.xxx_hidden_MethodNames = b.MethodNames
 	x.xxx_hidden_SchemaConfiguration = b.SchemaConfiguration
 	x.xxx_hidden_MethodNameToSchemaConfiguration = b.MethodNameToSchemaConfiguration
+	x.xxx_hidden_DiscoveredMethodNames = b.DiscoveredMethodNames
 	return m0
 }
 
@@ -1318,12 +1333,13 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
 	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\x82\x04\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\xba\x04\n" +
 	"\x1bCreateServiceToolSetRequest\x122\n" +
 	"\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceFullName\x12!\n" +
 	"\fmethod_names\x18\x02 \x03(\tR\vmethodNames\x12_\n" +
 	"\x14schema_configuration\x18\x03 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration\x12\xa7\x01\n" +
-	"#method_name_to_schema_configuration\x18\x04 \x03(\v2Y.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntryR\x1fmethodNameToSchemaConfiguration\x1a\x80\x01\n" +
+	"#method_name_to_schema_configuration\x18\x04 \x03(\v2Y.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntryR\x1fmethodNameToSchemaConfiguration\x126\n" +
+	"\x17discovered_method_names\x18\x05 \x03(\tR\x15discoveredMethodNames\x1a\x80\x01\n" +
 	"$MethodNameToSchemaConfigurationEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12B\n" +
 	"\x05value\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x05value:\x028\x01\"c\n" +
