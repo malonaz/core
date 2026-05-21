@@ -4,6 +4,23 @@ local p = "providers/anthropic/models/";
   "provider_id":  "anthropic",
   "models":  [
     {
+      "name": p + "claude-opus-4.7",
+      "provider_model_id": "claude-opus-4-7",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1000000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 5,
+          "output_token_price_per_million": 25,
+          "input_token_cache_read_price_per_million": 0.5,
+          "input_token_cache_write_price_per_million": 6.25
+        }
+      }
+    },
+
+    {
       "name": p + "claude-sonnet-4.6",
       "provider_model_id": "claude-sonnet-4-6",
       "ttt": {
