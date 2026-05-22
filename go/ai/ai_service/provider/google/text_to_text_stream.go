@@ -1,10 +1,14 @@
 package google
 
 import (
+	"bytes"
+	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -26,6 +30,8 @@ const (
 	blockTypeToolCall = "tool_call"
 )
 
+// TextToTextStream handles a streaming text-to-text generation request using the Google GenAI API.
+// It converts proto messages to genai contents, streams the response, and sends blocks back to the caller.
 func (c *Client) TextToTextStream(
 	request *aiservicepb.TextToTextStreamRequest,
 	srv aiservicepb.AiService_TextToTextStreamServer,
@@ -37,7 +43,7 @@ func (c *Client) TextToTextStream(
 		return err
 	}
 
-	contents, systemInstruction, err := buildContents(request.Messages)
+	contents, systemInstruction, err := c.buildContents(ctx, request.Messages)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "building contents: %v", err).Err()
 	}
@@ -50,6 +56,7 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
+	// Enable image output modality if image config is provided.
 	if imageConfig := request.GetConfiguration().GetImageConfig(); imageConfig != nil {
 		config.ResponseModalities = []string{string(genai.MediaModalityText), string(genai.MediaModalityImage)}
 		config.ImageConfig = &genai.ImageConfig{
@@ -67,6 +74,7 @@ func (c *Client) TextToTextStream(
 		config.Temperature = &temp
 	}
 
+	// Configure extended thinking/reasoning if the model supports it.
 	if model.GetTtt().GetReasoning() {
 		thinkingConfig, err := buildThinkingConfig(model, request.GetConfiguration().GetReasoningEffort())
 		if err != nil {
@@ -100,12 +108,13 @@ func (c *Client) TextToTextStream(
 	var sentTtfb bool
 	var stopReason aiservicepb.TextToTextStopReason
 
-	// Dynamic block indexing.
+	// Track block indexing to coalesce consecutive blocks of the same type.
 	var currentBlockIndex int64 = -1
 	var currentBlockType string
 
 	for resp, err := range generateContentStream {
 		if err != nil {
+			// Map Google API errors to gRPC status codes for consistent error handling.
 			if apiError, ok := errors.AsType[genai.APIError](err); ok {
 				return status.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
 			}
@@ -116,6 +125,7 @@ func (c *Client) TextToTextStream(
 			break
 		}
 
+		// Send time-to-first-byte metric on the first chunk.
 		if !sentTtfb {
 			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
 				Ttfb: durationpb.New(time.Since(startTime)),
@@ -136,12 +146,13 @@ func (c *Client) TextToTextStream(
 			}
 
 			for _, part := range candidate.Content.Parts {
-				// Handle thought signature for any part type.
 				var signature string
 				if len(part.ThoughtSignature) > 0 {
 					signature = base64.StdEncoding.EncodeToString(part.ThoughtSignature)
 				}
 
+				// Handle text and thought blocks, coalescing consecutive blocks of the same type
+				// into the same block index.
 				if part.Text != "" {
 					if part.Thought {
 						if currentBlockType != blockTypeThought {
@@ -166,6 +177,7 @@ func (c *Client) TextToTextStream(
 					}
 				}
 
+				// Images always get their own block index since they can't be coalesced.
 				if part.InlineData != nil {
 					currentBlockIndex++
 					currentBlockType = blockTypeImage
@@ -179,6 +191,8 @@ func (c *Client) TextToTextStream(
 					})
 				}
 
+				// Handle function calls, which may arrive as partial args across multiple chunks
+				// or as complete calls in a single chunk.
 				if part.FunctionCall != nil {
 					fc := part.FunctionCall
 
@@ -188,6 +202,7 @@ func (c *Client) TextToTextStream(
 					}
 
 					if len(fc.PartialArgs) > 0 {
+						// Streaming partial args mode: accumulate individual arg paths.
 						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
@@ -215,6 +230,7 @@ func (c *Client) TextToTextStream(
 							cs.SendBlocks(ctx, block)
 						}
 					} else if fc.WillContinue != nil && *fc.WillContinue {
+						// Streaming JSON args mode: the call will continue in future chunks.
 						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
@@ -236,6 +252,7 @@ func (c *Client) TextToTextStream(
 						block.Signature = signature
 						cs.SendBlocks(ctx, block)
 					} else if tca.Has(currentBlockIndex) && currentBlockType == blockTypeToolCall {
+						// Final chunk of a streaming tool call: finalize the accumulated call.
 						tca.StartOrUpdate(currentBlockIndex, fc.ID, fc.Name)
 						if fc.Args != nil {
 							argsJSON, err := json.Marshal(fc.Args)
@@ -251,6 +268,7 @@ func (c *Client) TextToTextStream(
 						block.Signature = signature
 						cs.SendBlocks(ctx, block)
 					} else {
+						// Non-streaming tool call: complete call in a single chunk.
 						if currentBlockType != blockTypeToolCall {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
@@ -288,6 +306,7 @@ func (c *Client) TextToTextStream(
 		}
 	}
 
+	// Emit any tool calls that were still accumulating when the stream ended.
 	toolCalls, err := tca.BuildRemaining()
 	if err != nil {
 		return err
@@ -298,6 +317,7 @@ func (c *Client) TextToTextStream(
 		cs.SendStopReason(ctx, stopReason)
 	}
 
+	// Send time-to-last-byte metric.
 	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
 		Ttlb: durationpb.New(time.Since(startTime)),
 	})
@@ -309,14 +329,16 @@ func (c *Client) TextToTextStream(
 	return nil
 }
 
-func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
+// buildContents converts proto messages to genai contents, extracting system instructions separately
+// since the GenAI API treats them as a top-level config field rather than a message in the conversation.
+func (c *Client) buildContents(ctx context.Context, messages []*aipb.Message) ([]*genai.Content, string, error) {
 	var contents []*genai.Content
 	var systemInstruction string
 
-	for i, msg := range messages {
-		switch msg.Role {
+	for i, message := range messages {
+		switch message.Role {
 		case aipb.Role_ROLE_SYSTEM:
-			for j, block := range msg.Blocks {
+			for j, block := range message.Blocks {
 				switch content := block.Content.(type) {
 				case *aipb.Block_Text:
 					if systemInstruction != "" {
@@ -329,7 +351,7 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 			}
 
 		case aipb.Role_ROLE_USER:
-			parts, err := buildUserParts(msg.Blocks)
+			parts, err := c.buildUserParts(ctx, message.Blocks)
 			if err != nil {
 				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
 			}
@@ -339,7 +361,7 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 			})
 
 		case aipb.Role_ROLE_ASSISTANT:
-			parts, err := buildAssistantParts(msg.Blocks)
+			parts, err := c.buildAssistantParts(ctx, message.Blocks)
 			if err != nil {
 				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
 			}
@@ -349,7 +371,7 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 			})
 
 		case aipb.Role_ROLE_TOOL:
-			for j, block := range msg.Blocks {
+			for j, block := range message.Blocks {
 				switch content := block.Content.(type) {
 				case *aipb.Block_ToolResult:
 					toolContent, err := buildToolResultContent(content.ToolResult)
@@ -363,14 +385,16 @@ func buildContents(messages []*aipb.Message) ([]*genai.Content, string, error) {
 			}
 
 		default:
-			return nil, "", fmt.Errorf("message [%d]: unexpected role %v", i, msg.Role)
+			return nil, "", fmt.Errorf("message [%d]: unexpected role %v", i, message.Role)
 		}
 	}
 
 	return contents, systemInstruction, nil
 }
 
-func buildUserParts(blocks []*aipb.Block) ([]*genai.Part, error) {
+// buildUserParts converts user message blocks into genai parts.
+// Images are uploaded via the Files API using content-addressable naming.
+func (c *Client) buildUserParts(ctx context.Context, blocks []*aipb.Block) ([]*genai.Part, error) {
 	parts := make([]*genai.Part, 0, len(blocks))
 
 	for j, block := range blocks {
@@ -379,7 +403,7 @@ func buildUserParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 			parts = append(parts, &genai.Part{Text: content.Text})
 
 		case *aipb.Block_Image:
-			part, err := buildImagePart(content.Image)
+			part, err := c.buildImagePart(ctx, content.Image)
 			if err != nil {
 				return nil, fmt.Errorf("block [%d]: %w", j, err)
 			}
@@ -393,45 +417,66 @@ func buildUserParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 	return parts, nil
 }
 
-func buildImagePart(img *aipb.Image) (*genai.Part, error) {
+// buildImagePart uploads image data (inline or from URL) to the Files API using a content-addressable
+// file name derived from a SHA-256 hash. This ensures deduplication across requests.
+func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Part, error) {
 	switch source := img.Source.(type) {
 	case *aipb.Image_Data:
 		if img.MediaType == "" {
 			return nil, fmt.Errorf("media_type required for image data")
 		}
-		return &genai.Part{
-			InlineData: &genai.Blob{
-				MIMEType: img.MediaType,
-				Data:     source.Data,
-			},
-		}, nil
+		return c.uploadAndBuildPart(ctx, source.Data, img.MediaType)
 
 	case *aipb.Image_Url:
-		if len(source.Url) > 5 && source.Url[:5] == "data:" {
-			return &genai.Part{
-				InlineData: &genai.Blob{
-					MIMEType: img.MediaType,
-					Data:     []byte(source.Url),
-				},
-			}, nil
+		httpResponse, err := http.Get(source.Url)
+		if err != nil {
+			return nil, fmt.Errorf("downloading image from URL: %w", err)
 		}
-		return &genai.Part{
-			FileData: &genai.FileData{
-				FileURI:  source.Url,
-				MIMEType: img.MediaType,
-			},
-		}, nil
+		defer httpResponse.Body.Close()
+		data, err := io.ReadAll(httpResponse.Body)
+		if err != nil {
+			return nil, fmt.Errorf("reading image response body: %w", err)
+		}
+		mediaType := img.MediaType
+		if mediaType == "" {
+			mediaType = httpResponse.Header.Get("Content-Type")
+		}
+		return c.uploadAndBuildPart(ctx, data, mediaType)
 
 	default:
 		return nil, fmt.Errorf("unknown image source type: %T", source)
 	}
 }
 
-func buildAssistantParts(blocks []*aipb.Block) ([]*genai.Part, error) {
+// uploadAndBuildPart uploads data to the Files API with a content-addressable name (SHA-256 hash).
+// It first checks if the file already exists to avoid redundant uploads.
+func (c *Client) uploadAndBuildPart(ctx context.Context, data []byte, mimeType string) (*genai.Part, error) {
+	hash := sha256.Sum256(data)
+	fileName := fmt.Sprintf("files/%x", hash)
+
+	// Try to reuse an existing upload to avoid redundant file transfers.
+	file, err := c.client.Files.Get(ctx, fileName, nil)
+	if err == nil {
+		return genai.NewPartFromFile(*file), nil
+	}
+
+	uploadFileConfig := &genai.UploadFileConfig{
+		Name:     fileName,
+		MIMEType: mimeType,
+	}
+	file, err = c.client.Files.Upload(ctx, bytes.NewReader(data), uploadFileConfig)
+	if err != nil {
+		return nil, fmt.Errorf("uploading file: %w", err)
+	}
+	return genai.NewPartFromFile(*file), nil
+}
+
+// buildAssistantParts converts assistant message blocks into genai parts, preserving
+// thought signatures for multi-turn reasoning continuity.
+func (c *Client) buildAssistantParts(ctx context.Context, blocks []*aipb.Block) ([]*genai.Part, error) {
 	var parts []*genai.Part
 
 	for j, block := range blocks {
-		// Decode thought signature if present.
 		var thoughtSignature []byte
 		if block.Signature != "" {
 			decoded, err := base64.StdEncoding.DecodeString(block.Signature)
@@ -469,7 +514,7 @@ func buildAssistantParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 			})
 
 		case *aipb.Block_Image:
-			imagePart, err := buildImagePart(content.Image)
+			imagePart, err := c.buildImagePart(ctx, content.Image)
 			if err != nil {
 				return nil, fmt.Errorf("block [%d]: building image part: %w", j, err)
 			}
@@ -484,6 +529,8 @@ func buildAssistantParts(blocks []*aipb.Block) ([]*genai.Part, error) {
 	return parts, nil
 }
 
+// buildToolResultContent wraps a tool result into a genai Content with a FunctionResponse.
+// Uses "output" as the key for successful results and "error" for failures.
 func buildToolResultContent(tr *aipb.ToolResult) (*genai.Content, error) {
 	content, err := ai.ParseToolResult(tr)
 	if err != nil {
@@ -507,6 +554,8 @@ func buildToolResultContent(tr *aipb.ToolResult) (*genai.Content, error) {
 	}, nil
 }
 
+// buildTools converts proto tool definitions to genai function declarations.
+// All declarations are grouped into a single genai.Tool per the API convention.
 func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 	functionDeclarations := make([]*genai.FunctionDeclaration, 0, len(tools))
 
@@ -524,6 +573,8 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 	}, nil
 }
 
+// buildToolConfig maps our tool choice configuration to the GenAI FunctionCallingConfig,
+// supporting none/auto/required modes and specific tool name targeting.
 func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration) (*genai.ToolConfig, error) {
 	functionCallingConfig := &genai.FunctionCallingConfig{}
 	streamPartialToolCalls := configuration.GetStreamPartialToolCalls()
@@ -540,6 +591,7 @@ func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration) (*genai
 			case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO:
 				functionCallingConfig.Mode = genai.FunctionCallingConfigModeAuto
 
+			// GenAI uses "Any" to mean "must call at least one function".
 			case aipb.ToolChoiceMode_TOOL_CHOICE_MODE_REQUIRED:
 				functionCallingConfig.Mode = genai.FunctionCallingConfigModeAny
 
@@ -561,6 +613,8 @@ func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration) (*genai
 	}, nil
 }
 
+// buildThinkingConfig creates a thinking config from model provider settings.
+// Models can use either a token budget or a named thinking level, configured via provider_settings.
 func buildThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort) (*genai.ThinkingConfig, error) {
 	providerSettings := model.GetProviderSettings()
 	if providerSettings == nil {
@@ -595,6 +649,8 @@ func buildThinkingConfig(model *aipb.Model, reasoningEffort aipb.ReasoningEffort
 	return config, nil
 }
 
+// buildModelUsage converts GenAI usage metadata into our ModelUsage proto, splitting tokens
+// by modality (text vs image) and accounting for cached tokens to avoid double-counting.
 func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsageMetadata) (*aipb.ModelUsage, error) {
 	modelUsage := &aipb.ModelUsage{
 		Model: modelName,
@@ -603,6 +659,7 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 	var inputImageTokens, outputImageTokens, cacheReadImageTokens int32
 	var inputTextTokens, outputTextTokens, cacheReadTextTokens int32
 
+	// Fall back to aggregate counts when per-modality details aren't available.
 	if len(usage.PromptTokensDetails) > 0 {
 		for _, detail := range usage.PromptTokensDetails {
 			switch detail.Modality {
@@ -642,6 +699,7 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 		cacheReadTextTokens = usage.CachedContentTokenCount
 	}
 
+	// Report uncached input tokens only (cached tokens are reported separately for pricing).
 	if inputTextTokens > 0 {
 		uncachedTextTokens := inputTextTokens - cacheReadTextTokens
 		if uncachedTextTokens < 0 {
@@ -666,6 +724,8 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 	return modelUsage, nil
 }
 
+// finishReasonToPb maps GenAI finish reasons to our proto stop reasons.
+// Safety/content-policy reasons map to REFUSAL; everything else maps to END_TURN or MAX_TOKENS.
 var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{
 	genai.FinishReason(""):                   aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
 	genai.FinishReasonStop:                   aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
@@ -686,6 +746,8 @@ var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{
 	genai.FinishReasonImageOther:             aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
 }
 
+// resolvePartialArgValue extracts the typed value from a PartialArg, which uses a union-like
+// encoding where only one of the value fields is set.
 func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 	if partialArg.NULLValue != "" {
 		return nil
@@ -699,6 +761,7 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 	return partialArg.StringValue
 }
 
+// grpcCodeFromHTTPStatus maps HTTP status codes to gRPC codes for Google API error translation.
 func grpcCodeFromHTTPStatus(status int) codes.Code {
 	switch status {
 	case http.StatusBadRequest:

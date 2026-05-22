@@ -138,7 +138,8 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	}
 
 	// Update the chat.
-	chat.Metadata.Messages = append(allMessages, textToTextAccumulator.Response().GetMessage())
+	chat.Metadata.Messages = append(allMessages, response.GetMessage())
+	redactInlineImageData(chat.Metadata.Messages)
 	chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
 	for k, v := range request.Labels {
 		aip.SetLabel(chat, k, v)
@@ -276,4 +277,18 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	}
 
 	return accumulator.Response(), nil
+}
+
+// Add this function at the bottom of the file:
+
+func redactInlineImageData(messages []*aipb.Message) {
+	for _, message := range messages {
+		for _, block := range message.GetBlocks() {
+			if img := block.GetImage(); img != nil {
+				if _, ok := img.Source.(*aipb.Image_Data); ok {
+					img.Source = &aipb.Image_Data{Data: nil}
+				}
+			}
+		}
+	}
 }
