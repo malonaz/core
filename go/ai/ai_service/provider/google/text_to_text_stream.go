@@ -1,9 +1,7 @@
 package google
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -417,15 +415,21 @@ func (c *Client) buildUserParts(ctx context.Context, blocks []*aipb.Block) ([]*g
 	return parts, nil
 }
 
-// buildImagePart uploads image data (inline or from URL) to the Files API using a content-addressable
-// file name derived from a SHA-256 hash. This ensures deduplication across requests.
+// buildImagePart converts an image proto to a genai Part with inline data.
+// URL-sourced images are downloaded and submitted as inline data.
 func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Part, error) {
+	if img.MediaType == "" {
+		return nil, fmt.Errorf("media_type required for image data")
+	}
+
 	switch source := img.Source.(type) {
 	case *aipb.Image_Data:
-		if img.MediaType == "" {
-			return nil, fmt.Errorf("media_type required for image data")
-		}
-		return c.uploadAndBuildPart(ctx, source.Data, img.MediaType)
+		return &genai.Part{
+			InlineData: &genai.Blob{
+				Data:     source.Data,
+				MIMEType: img.MediaType,
+			},
+		}, nil
 
 	case *aipb.Image_Url:
 		httpResponse, err := http.Get(source.Url)
@@ -437,38 +441,16 @@ func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Pa
 		if err != nil {
 			return nil, fmt.Errorf("reading image response body: %w", err)
 		}
-		mediaType := img.MediaType
-		if mediaType == "" {
-			mediaType = httpResponse.Header.Get("Content-Type")
-		}
-		return c.uploadAndBuildPart(ctx, data, mediaType)
+		return &genai.Part{
+			InlineData: &genai.Blob{
+				Data:     data,
+				MIMEType: img.MediaType,
+			},
+		}, nil
 
 	default:
 		return nil, fmt.Errorf("unknown image source type: %T", source)
 	}
-}
-
-// uploadAndBuildPart uploads data to the Files API with a content-addressable name (SHA-256 hash).
-// It first checks if the file already exists to avoid redundant uploads.
-func (c *Client) uploadAndBuildPart(ctx context.Context, data []byte, mimeType string) (*genai.Part, error) {
-	hash := sha256.Sum256(data)
-	fileName := fmt.Sprintf("files/%x", hash)
-
-	// Try to reuse an existing upload to avoid redundant file transfers.
-	file, err := c.client.Files.Get(ctx, fileName, nil)
-	if err == nil {
-		return genai.NewPartFromFile(*file), nil
-	}
-
-	uploadFileConfig := &genai.UploadFileConfig{
-		Name:     fileName,
-		MIMEType: mimeType,
-	}
-	file, err = c.client.Files.Upload(ctx, bytes.NewReader(data), uploadFileConfig)
-	if err != nil {
-		return nil, fmt.Errorf("uploading file: %w", err)
-	}
-	return genai.NewPartFromFile(*file), nil
 }
 
 // buildAssistantParts converts assistant message blocks into genai parts, preserving
