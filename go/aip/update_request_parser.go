@@ -8,7 +8,9 @@ import (
 
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/pbutil"
@@ -28,11 +30,23 @@ var (
 type ETagResource interface {
 	proto.Message
 	GetEtag() string
+	GetUpdateTime() *timestamppb.Timestamp
 }
 
-// Compute an etag for a resource.
+// ComputeETag computes a deterministic ETag for a resource by hashing its serialized form,
+// excluding update_time and etag fields to ensure the tag reflects only meaningful state changes.
 func ComputeETag(m ETagResource) (string, error) {
-	bytes, err := pbutil.MarshalDeterministic(m)
+	clone := proto.CloneOf(m)
+	ref := clone.ProtoReflect()
+	fields := ref.Descriptor().Fields()
+	for _, name := range []string{"update_time", "etag"} {
+		f := fields.ByName(protoreflect.Name(name))
+		if f == nil {
+			return "", fmt.Errorf("message %s missing required field %q for ETag computation", ref.Descriptor().FullName(), name)
+		}
+		ref.Clear(f)
+	}
+	bytes, err := pbutil.MarshalDeterministic(clone)
 	if err != nil {
 		return "", err
 	}
@@ -106,7 +120,7 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 	var zero T
 	options, err := pbutil.GetMessageOption[*aippb.UpdateOptions](zero, aippb.E_Update)
 	if err != nil {
-		return nil, fmt.Errorf("getting update options: %w", err)
+		return nil, fmt.Errorf("getting update options: %v", err)
 	}
 	if options == nil {
 		return nil, fmt.Errorf("%T must define UpdateOptions", zero)
@@ -114,20 +128,18 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 
 	// Validate the paths.
 	var zeroResource R
-	sanitizedPaths := make([]string, 0, len(options.GetPaths()))
-	for _, path := range options.GetPaths() {
-		if _, ok := updateRequestParserInvalidPathSet[path]; ok {
-			return nil, fmt.Errorf("cannot use protected path: %s", path)
+	if len(options.GetPaths()) > 0 {
+		for _, path := range options.GetPaths() {
+			if _, ok := updateRequestParserInvalidPathSet[path]; ok {
+				return nil, fmt.Errorf("cannot use protected path: %s", path)
+			}
 		}
-		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
-	}
-	if len(sanitizedPaths) > 0 {
-		if err := pbfieldmask.FromPaths(sanitizedPaths...).Validate(zeroResource); err != nil {
+		if err := pbfieldmask.FromPaths(options.GetPaths()...).Validate(zeroResource); err != nil {
 			return nil, fmt.Errorf("validating paths: %w", err)
 		}
 	}
 
-	// Build tree to get column name mappings (without nested path transformation).
+	// Build tree to get column name mappings.
 	tree, err := BuildResourceTree[R](WithAllowedPaths([]string{"*"}))
 	if err != nil {
 		return nil, fmt.Errorf("building resource tree: %w", err)
@@ -158,8 +170,9 @@ func NewUpdateRequestParser[T updateRequest, R proto.Message]() (*UpdateRequestP
 		protoPathToColumn[node.Path] = columnName
 
 		// Auto-generate mappings for fields stored as JSON or Proto bytes.
+		// A path like "metadata" maps all descendants to the "metadata" column.
 		if node.AsJsonBytes || node.AsProtoBytes {
-			mappings[node.Path+".*"] = columnName
+			mappings[node.Path] = columnName
 		}
 	}
 
@@ -196,12 +209,10 @@ func (p *UpdateRequestParser[T, R]) Parse(request T) (*ParsedUpdateRequest, erro
 			return nil, fmt.Errorf("unauthorized update mask path: %s", path)
 		}
 
-		// Check against configured fields to see if there is a match.
+		// Check against configured mappings to see if there is a match.
 		mappingFound := false
 		for mappingFrom, mappingTo := range p.mappings {
 			if p.match(mappingFrom, path) {
-				// Add the mapped update mapping to the set and list.
-				// Translate mapped path to column name if applicable.
 				columnName := p.translateToColumnName(mappingTo)
 				if _, ok := updateColumnNameSet[columnName]; !ok {
 					updateColumnNameSet[columnName] = struct{}{}
@@ -236,15 +247,12 @@ func (p *UpdateRequestParser[T, R]) translateToColumnName(path string) string {
 	return path
 }
 
-// Helper method to check if a fieldPath matches a from considering wildcard.
+// match checks if fieldPath is equal to or a descendant of mappingFrom.
 func (p *UpdateRequestParser[T, R]) match(mappingFrom string, fieldPath string) bool {
-	if strings.HasSuffix(mappingFrom, ".*") {
-		// If from is a wildcard pattern, strip the wildcard and compare prefixes.
-		prefix := strings.TrimSuffix(mappingFrom, "*")
-		return strings.HasPrefix(fieldPath, prefix)
+	if mappingFrom == fieldPath {
+		return true
 	}
-	// If from is not a wildcard pattern, compare them directly.
-	return mappingFrom == fieldPath
+	return strings.HasPrefix(fieldPath, mappingFrom+".")
 }
 
 var updateRequestForbiddenPathSet = map[string]struct{}{
@@ -253,21 +261,42 @@ var updateRequestForbiddenPathSet = map[string]struct{}{
 	"delete_time": {},
 }
 
-// Helper method to check if a fieldPath is authorized considering wildcard.
+// isAuthorizedPath checks if fieldPath is authorized. A configured path "foo"
+// authorizes "foo" itself and any descendant like "foo.bar" or "foo.`my key`".
 func (p *UpdateRequestParser[T, R]) isAuthorizedPath(fieldPath string) bool {
 	if _, ok := updateRequestForbiddenPathSet[fieldPath]; ok {
 		return false
 	}
+	// Strip backtick quoting to extract the base path for matching.
+	basePath := stripBackticks(fieldPath)
 	for _, path := range p.paths {
-		if strings.HasSuffix(path, ".*") {
-			// If authorizedPath is a wildcard pattern, strip the wildcard and compare prefixes.
-			prefix := strings.TrimSuffix(path, "*")
-			if strings.HasPrefix(fieldPath, prefix) {
-				return true
-			}
-		} else if path == fieldPath {
-			return true // Exact match.
+		if path == basePath || strings.HasPrefix(basePath, path+".") {
+			return true
 		}
 	}
 	return false
+}
+
+// stripBackticks removes backtick quoting from a field path, replacing
+// backtick-quoted segments with their unquoted content. This allows
+// "labels.`my key`" to be matched against the authorized path "labels".
+func stripBackticks(fieldPath string) string {
+	if !strings.Contains(fieldPath, "`") {
+		return fieldPath
+	}
+	var sb strings.Builder
+	for i := 0; i < len(fieldPath); i++ {
+		if fieldPath[i] == '`' {
+			end := strings.IndexByte(fieldPath[i+1:], '`')
+			if end == -1 {
+				sb.WriteString(fieldPath[i+1:])
+				break
+			}
+			sb.WriteString(fieldPath[i+1 : i+1+end])
+			i += end + 1
+		} else {
+			sb.WriteByte(fieldPath[i])
+		}
+	}
+	return sb.String()
 }

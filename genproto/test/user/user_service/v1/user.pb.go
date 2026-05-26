@@ -795,19 +795,17 @@ const file_malonaz_test_user_user_service_v1_user_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"N\n" +
 	"\x0eGetUserRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1auser.test.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x04name\"\xa6\x02\n" +
+	"\x1auser.test.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x04name\"\x9a\x02\n" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1a.malonaz.test.user.v1.UserB\x06\xbaH\x03\xd8\x01\x03R\x04user\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\x93\x01\xbaHB\x1a@\n" +
-	"\x12user.name_required\x12\x15user.name must be set\x1a\x13has(this.user.name)\xea\x9c\xc1\x03I\n" +
+	"updateMask:\x87\x01\xbaHB\x1a@\n" +
+	"\x12user.name_required\x12\x15user.name must be set\x1a\x13has(this.user.name)\xea\x9c\xc1\x03=\n" +
 	"\fdisplay_name\n" +
 	"\remail_address\n" +
 	"\fphone_number\n" +
 	"\x06labels\n" +
-	"\bmetadata\n" +
-	"\n" +
-	"metadata.*\"\x8a\x01\n" +
+	"\bmetadata\"\x8a\x01\n" +
 	"\x11DeleteUserRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1auser.test.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +

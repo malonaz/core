@@ -754,25 +754,24 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"Q\n" +
 	"\x0eGetBookRequest\x12?\n" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\"\x9f\x02\n" +
+	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\"\x9d\x02\n" +
 	"\x11UpdateBookRequest\x129\n" +
 	"\x04book\x18\x01 \x01(\v2\x1d.malonaz.test.library.v1.BookB\x06\xbaH\x03\xd8\x01\x03R\x04book\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\x89\x01\xbaHB\x1a@\n" +
-	"\x12book.name_required\x12\x15book.name must be set\x1a\x13has(this.book.name)\xea\x9c\xc1\x03?\n" +
+	"updateMask:\x87\x01\xbaHB\x1a@\n" +
+	"\x12book.name_required\x12\x15book.name must be set\x1a\x13has(this.book.name)\xea\x9c\xc1\x03=\n" +
 	"\x05title\n" +
 	"\x06author\n" +
 	"\x04isbn\n" +
 	"\x10publication_year\n" +
 	"\n" +
 	"page_count\n" +
-	"\n" +
-	"metadata.*\"\x8d\x01\n" +
+	"\bmetadata\"\x8d\x01\n" +
 	"\x11DeleteBookRequest\x12?\n" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xee\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xec\x02\n" +
 	"\x10ListBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -781,17 +780,16 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\tpage_size\x18\x04 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x05 \x01(\tR\tpageToken:\x98\x01\x82\xf3-\x02\bd\x8a\xf3-E\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:\x96\x01\x82\xf3-\x02\bd\x8a\xf3-E\n" +
 	"\vcreate_time\n" +
 	"\vupdate_time\n" +
 	"\x05title\n" +
-	"\x10publication_year\x12\x10create_time desc\x92\xf3-E\n" +
+	"\x10publication_year\x12\x10create_time desc\x92\xf3-C\n" +
 	"\x05title\n" +
 	"\x06author\n" +
 	"\x04isbn\n" +
 	"\x10publication_year\n" +
-	"\n" +
-	"metadata.*\n" +
+	"\bmetadata\n" +
 	"\bduration\n" +
 	"\x06labels\"p\n" +
 	"\x11ListBooksResponse\x123\n" +

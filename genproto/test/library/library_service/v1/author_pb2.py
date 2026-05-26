@@ -30,7 +30,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.test.library.v1 import author_pb2 as malonaz_dot_test_dot_library_dot_v1_dot_author__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/test/library/library_service/v1/author.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/test/library/v1/author.proto\"\x85\x02\n\x13\x43reateAuthorRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x38\n\tauthor_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x37\n\x06\x61uthor\x18\x03 \x01(\x0b\x32\x1f.malonaz.test.library.v1.AuthorB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"O\n\x10GetAuthorRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01\"\xae\x02\n\x13UpdateAuthorRequest\x12\x37\n\x06\x61uthor\x18\x01 \x01(\x0b\x32\x1f.malonaz.test.library.v1.AuthorB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\xa4\x01\xbaHH\x1a\x46\n\x14\x61uthor.name_required\x12\x17\x61uthor.name must be set\x1a\x15has(this.author.name)\xea\x9c\xc1\x03T\n\x0c\x64isplay_name\n\tbiography\n\remail_address\n\x0cphone_number\n\x06labels\n\x08metadata\n\nmetadata.*\"w\n\x13\x44\x65leteAuthorRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x91\x02\n\x12ListAuthorsRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:K\x82\xf3-\x02\x08\x64\x8a\xf3-:\n\x0b\x63reate_time\n\x0bupdate_time\n\x0c\x64isplay_name\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"`\n\x13ListAuthorsResponse\x12\x30\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x1f.malonaz.test.library.v1.Author\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x9c\x01\n\x16\x42\x61tchGetAuthorsRequest\x12:\n\x06parent\x18\x01 \x01(\tB*\xfa\x41\'\n%library.test.malonaz.com/Organization\x12\x46\n\x05names\x18\x02 \x03(\tB7\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"K\n\x17\x42\x61tchGetAuthorsResponse\x12\x30\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x1f.malonaz.test.library.v1.AuthorBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/test/library/library_service/v1/author.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/test/library/v1/author.proto\"\x85\x02\n\x13\x43reateAuthorRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x38\n\tauthor_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x37\n\x06\x61uthor\x18\x03 \x01(\x0b\x32\x1f.malonaz.test.library.v1.AuthorB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"O\n\x10GetAuthorRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01\"\xa2\x02\n\x13UpdateAuthorRequest\x12\x37\n\x06\x61uthor\x18\x01 \x01(\x0b\x32\x1f.malonaz.test.library.v1.AuthorB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\x98\x01\xbaHH\x1a\x46\n\x14\x61uthor.name_required\x12\x17\x61uthor.name must be set\x1a\x15has(this.author.name)\xea\x9c\xc1\x03H\n\x0c\x64isplay_name\n\tbiography\n\remail_address\n\x0cphone_number\n\x06labels\n\x08metadata\"w\n\x13\x44\x65leteAuthorRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x91\x02\n\x12ListAuthorsRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:K\x82\xf3-\x02\x08\x64\x8a\xf3-:\n\x0b\x63reate_time\n\x0bupdate_time\n\x0c\x64isplay_name\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"`\n\x13ListAuthorsResponse\x12\x30\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x1f.malonaz.test.library.v1.Author\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x9c\x01\n\x16\x42\x61tchGetAuthorsRequest\x12:\n\x06parent\x18\x01 \x01(\tB*\xfa\x41\'\n%library.test.malonaz.com/Organization\x12\x46\n\x05names\x18\x02 \x03(\tB7\xfa\x41!\n\x1flibrary.test.malonaz.com/Author\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"K\n\x17\x42\x61tchGetAuthorsResponse\x12\x30\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x1f.malonaz.test.library.v1.AuthorBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -53,7 +53,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATEAUTHORREQUEST'].fields_by_name['update_mask']._loaded_options = None
   _globals['_UPDATEAUTHORREQUEST'].fields_by_name['update_mask']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATEAUTHORREQUEST']._loaded_options = None
-  _globals['_UPDATEAUTHORREQUEST']._serialized_options = b'\272HH\032F\n\024author.name_required\022\027author.name must be set\032\025has(this.author.name)\352\234\301\003T\n\014display_name\n\tbiography\n\remail_address\n\014phone_number\n\006labels\n\010metadata\n\nmetadata.*'
+  _globals['_UPDATEAUTHORREQUEST']._serialized_options = b'\272HH\032F\n\024author.name_required\022\027author.name must be set\032\025has(this.author.name)\352\234\301\003H\n\014display_name\n\tbiography\n\remail_address\n\014phone_number\n\006labels\n\010metadata'
   _globals['_DELETEAUTHORREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETEAUTHORREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A!\n\037library.test.malonaz.com/Author\272H\003\310\001\001'
   _globals['_LISTAUTHORSREQUEST'].fields_by_name['parent']._loaded_options = None
@@ -71,15 +71,15 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETAUTHORREQUEST']._serialized_start=556
   _globals['_GETAUTHORREQUEST']._serialized_end=635
   _globals['_UPDATEAUTHORREQUEST']._serialized_start=638
-  _globals['_UPDATEAUTHORREQUEST']._serialized_end=940
-  _globals['_DELETEAUTHORREQUEST']._serialized_start=942
-  _globals['_DELETEAUTHORREQUEST']._serialized_end=1061
-  _globals['_LISTAUTHORSREQUEST']._serialized_start=1064
-  _globals['_LISTAUTHORSREQUEST']._serialized_end=1337
-  _globals['_LISTAUTHORSRESPONSE']._serialized_start=1339
-  _globals['_LISTAUTHORSRESPONSE']._serialized_end=1435
-  _globals['_BATCHGETAUTHORSREQUEST']._serialized_start=1438
-  _globals['_BATCHGETAUTHORSREQUEST']._serialized_end=1594
-  _globals['_BATCHGETAUTHORSRESPONSE']._serialized_start=1596
-  _globals['_BATCHGETAUTHORSRESPONSE']._serialized_end=1671
+  _globals['_UPDATEAUTHORREQUEST']._serialized_end=928
+  _globals['_DELETEAUTHORREQUEST']._serialized_start=930
+  _globals['_DELETEAUTHORREQUEST']._serialized_end=1049
+  _globals['_LISTAUTHORSREQUEST']._serialized_start=1052
+  _globals['_LISTAUTHORSREQUEST']._serialized_end=1325
+  _globals['_LISTAUTHORSRESPONSE']._serialized_start=1327
+  _globals['_LISTAUTHORSRESPONSE']._serialized_end=1423
+  _globals['_BATCHGETAUTHORSREQUEST']._serialized_start=1426
+  _globals['_BATCHGETAUTHORSREQUEST']._serialized_end=1582
+  _globals['_BATCHGETAUTHORSRESPONSE']._serialized_start=1584
+  _globals['_BATCHGETAUTHORSRESPONSE']._serialized_end=1659
 # @@protoc_insertion_point(module_scope)

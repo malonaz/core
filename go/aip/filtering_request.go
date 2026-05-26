@@ -2,7 +2,6 @@ package aip
 
 import (
 	"fmt"
-	"strings"
 
 	"go.einride.tech/aip/filtering"
 	"google.golang.org/protobuf/proto"
@@ -13,8 +12,6 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
-
-var LogRequest = false
 
 type filteringRequest interface {
 	proto.Message
@@ -42,11 +39,7 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 	}
 
 	var zeroResource R
-	sanitizedPaths := make([]string, 0, len(filteringOptions.GetPaths()))
-	for _, path := range filteringOptions.GetPaths() {
-		sanitizedPaths = append(sanitizedPaths, strings.TrimSuffix(path, ".*"))
-	}
-	if err := pbfieldmask.FromPaths(sanitizedPaths...).Validate(zeroResource); err != nil {
+	if err := pbfieldmask.FromPaths(filteringOptions.GetPaths()...).Validate(zeroResource); err != nil {
 		return nil, fmt.Errorf("validating paths: %w", err)
 	}
 
@@ -71,7 +64,6 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 
 		if node.ExprType != nil {
 			declarationOptions = append(declarationOptions, filtering.DeclareIdent(replacementPath, node.ExprType))
-			// Add has overload for presence check (field:*)
 			declarationOptions = append(declarationOptions,
 				filtering.DeclareFunction(filtering.FunctionHas,
 					filtering.NewFunctionOverload(
@@ -85,7 +77,6 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 		}
 		if node.EnumType != nil {
 			declarationOptions = append(declarationOptions, filtering.DeclareEnumIdent(replacementPath, node.EnumType))
-			// Add has overload for enum presence check
 			declarationOptions = append(declarationOptions,
 				filtering.DeclareFunction(filtering.FunctionHas,
 					filtering.NewFunctionOverload(
@@ -127,9 +118,6 @@ func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, erro
 	whereClause, whereParams, err := postgres.TranspileFilter(filter)
 	if err != nil {
 		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
-	}
-	if LogRequest {
-		fmt.Println(whereClause, whereParams, "hi")
 	}
 	return &FilteringRequest{
 		request:     request,

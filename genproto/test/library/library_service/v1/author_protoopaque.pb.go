@@ -769,20 +769,18 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"U\n" +
 	"\x10GetAuthorRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01R\x04name\"\xc2\x02\n" +
+	"\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01R\x04name\"\xb6\x02\n" +
 	"\x13UpdateAuthorRequest\x12?\n" +
 	"\x06author\x18\x01 \x01(\v2\x1f.malonaz.test.library.v1.AuthorB\x06\xbaH\x03\xd8\x01\x03R\x06author\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\xa4\x01\xbaHH\x1aF\n" +
-	"\x14author.name_required\x12\x17author.name must be set\x1a\x15has(this.author.name)\xea\x9c\xc1\x03T\n" +
+	"updateMask:\x98\x01\xbaHH\x1aF\n" +
+	"\x14author.name_required\x12\x17author.name must be set\x1a\x15has(this.author.name)\xea\x9c\xc1\x03H\n" +
 	"\fdisplay_name\n" +
 	"\tbiography\n" +
 	"\remail_address\n" +
 	"\fphone_number\n" +
 	"\x06labels\n" +
-	"\bmetadata\n" +
-	"\n" +
-	"metadata.*\"\x91\x01\n" +
+	"\bmetadata\"\x91\x01\n" +
 	"\x13DeleteAuthorRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +

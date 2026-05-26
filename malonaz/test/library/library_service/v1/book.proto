@@ -64,7 +64,7 @@ message UpdateBookRequest {
       "isbn",
       "publication_year",
       "page_count",
-      "metadata.*"
+      "metadata"
     ]
   };
   option (buf.validate.message).cel = {
@@ -116,7 +116,7 @@ message ListBooksRequest {
       "author",
       "isbn",
       "publication_year",
-      "metadata.*",
+      "metadata",
       "duration",
       "labels"
     ]

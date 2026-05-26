@@ -63,8 +63,7 @@ message UpdateUserRequest {
       "email_address",
       "phone_number",
       "labels",
-      "metadata",
-      "metadata.*"
+      "metadata"
     ]
   };
   option (buf.validate.message).cel = {

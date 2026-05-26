@@ -36,20 +36,17 @@ func MustNewOrderingRequestParser[T orderingRequest, R proto.Message]() *Orderin
 }
 
 func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRequestParser[T, R], error) {
-	// Parse options from the generic type T
 	var zero T
 	options, err := pbutil.GetMessageOption[*aippb.OrderingOptions](zero, aippb.E_Ordering)
 	if err != nil {
 		return nil, fmt.Errorf("getting message options: %v", err)
 	}
 
-	// Extract out the default ordering paths.
 	var zeroResource R
 	if err := pbfieldmask.FromPaths(options.GetPaths()...).Validate(zeroResource); err != nil {
 		return nil, fmt.Errorf("validating paths: %w", err)
 	}
 
-	// Create a tree and explore.
 	tree, err := BuildResourceTree[R](WithAllowedPaths(options.GetPaths()))
 	if err != nil {
 		return nil, err
@@ -66,7 +63,6 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 		pathToAllow: pathToAllow,
 	}
 
-	// Call parse on the zero value, triggering the default() clause.
 	request := zero.ProtoReflect().New().Interface().(T)
 	if _, err := parser.Parse(request); err != nil {
 		return nil, fmt.Errorf("invalid default %q: %w", options.GetDefault(), err)

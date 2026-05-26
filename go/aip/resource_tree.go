@@ -223,13 +223,15 @@ func (t *Tree) Add(n *Node) {
 	t.Nodes = append(t.Nodes, n)
 }
 
-// IsPathAllowed checks if a path is allowed for filtering based on the configured paths.
-// Returns true if:
-// - No paths are configured (AllowedPathSet is empty), meaning all paths are allowed
-// - The path exactly matches an allowed path
-// - The path matches a wildcard pattern (e.g., "nested.*" allows "nested.field1")
-// - The path is a parent of an allowed path (e.g., "nested" is allowed if "nested.field1" is allowed)
-// - The path is a parent of an allowed path (e.g., "nested" is allowed if "nested.field1" is allowed)
+// IsPathAllowed reports whether the given node's path is permitted by the
+// tree's configured allowed paths. A path is considered allowed if:
+//   - The tree is configured with the wildcard "*" (all paths allowed).
+//   - The path exactly matches a configured allowed path.
+//   - A proper ancestor of the path is a configured allowed path, meaning
+//     the allowed path implicitly covers all descendants (e.g. "metadata"
+//     allows "metadata.country", "metadata.email_addresses", etc.).
+//
+// Returns false if no allowed paths are configured.
 func (t *Tree) IsPathAllowed(node *Node) bool {
 	if len(t.AllowedPathSet) == 0 {
 		return false
@@ -238,19 +240,17 @@ func (t *Tree) IsPathAllowed(node *Node) bool {
 		return true
 	}
 
-	// Check exact match.
 	path := node.Path
+
 	if _, ok := t.AllowedPathSet[path]; ok {
 		return true
 	}
 
-	// Check wildcard matches
-	// For path "nested.field1", check if "nested.*" is allowed
-	// For path "nested.deep.field", check both "nested.*" and "nested.deep.*"
+	// Walk up the path hierarchy checking each ancestor.
 	parts := strings.Split(path, ".")
-	for i := 1; i <= len(parts); i++ {
-		wildcardPath := strings.Join(parts[:i], ".") + ".*"
-		if _, ok := t.AllowedPathSet[wildcardPath]; ok {
+	for i := 1; i < len(parts); i++ {
+		parent := strings.Join(parts[:i], ".")
+		if _, ok := t.AllowedPathSet[parent]; ok {
 			return true
 		}
 	}

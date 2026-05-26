@@ -1107,7 +1107,7 @@ func TestUpdate_IdempotentSameValue(t *testing.T) {
 	}, []string{"display_name"})
 
 	require.Equal(t, first.DisplayName, second.DisplayName)
-	require.NotEqual(t, first.Etag, second.Etag)
+	require.Equal(t, first.Etag, second.Etag)
 
 	got := getAuthor(t, original.Name)
 	grpcrequire.Equal(t, second, got)
@@ -1214,5 +1214,172 @@ func TestUpdate_GetMatchesUpdateResponse(t *testing.T) {
 		require.Equal(t, "updated summary", got.Metadata.Summary)
 		require.Equal(t, "fr", got.Metadata.Language)
 		require.Equal(t, "+14155550199", got.Metadata.PhoneNumber)
+	})
+}
+
+func TestUpdate_BacktickMapKeys(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+
+	t.Run("AddKeyWithSpace", func(t *testing.T) {
+		t.Parallel()
+		author := validAuthor()
+		author.DisplayName = "Backtick Space Author"
+		author.Labels = map[string]string{"existing": "value"}
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: author,
+		}
+		original, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{"malonaz.com/my-key": "my-value"},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`malonaz.com/my-key`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		require.Equal(t, "my-value", updatedAuthor.Labels["malonaz.com/my-key"])
+		require.Equal(t, "value", updatedAuthor.Labels["existing"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+
+	t.Run("AddKeyWithDots", func(t *testing.T) {
+		t.Parallel()
+		author := validAuthor()
+		author.DisplayName = "Backtick Dots Author"
+		author.Labels = map[string]string{"simple": "kept"}
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: author,
+		}
+		original, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{"my.dotted.key": "dotted-value"},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`my.dotted.key`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		require.Equal(t, "dotted-value", updatedAuthor.Labels["my.dotted.key"])
+		require.Equal(t, "kept", updatedAuthor.Labels["simple"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+
+	t.Run("UpdateExistingBacktickKey", func(t *testing.T) {
+		t.Parallel()
+		author := validAuthor()
+		author.DisplayName = "Backtick Update Author"
+		author.Labels = map[string]string{"malonaz.com/my-key": "old-value", "other": "unchanged"}
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: author,
+		}
+		original, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{"malonaz.com/my-key": "new-value"},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`malonaz.com/my-key`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		require.Equal(t, "new-value", updatedAuthor.Labels["malonaz.com/my-key"])
+		require.Equal(t, "unchanged", updatedAuthor.Labels["other"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+
+	t.Run("RemoveBacktickKey", func(t *testing.T) {
+		t.Parallel()
+		author := validAuthor()
+		author.DisplayName = "Backtick Remove Author"
+		author.Labels = map[string]string{"malonaz.com/my-key": "to-remove", "keep": "this"}
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: author,
+		}
+		original, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`malonaz.com/my-key`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		_, hasKey := updatedAuthor.Labels["malonaz.com/my-key"]
+		require.False(t, hasKey)
+		require.Equal(t, "this", updatedAuthor.Labels["keep"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+
+	t.Run("MultipleBacktickKeys", func(t *testing.T) {
+		t.Parallel()
+		author := validAuthor()
+		author.DisplayName = "Backtick Multi Author"
+		author.Labels = map[string]string{"untouched": "yes"}
+		createAuthorRequest := &libraryservicepb.CreateAuthorRequest{
+			Parent: organizationParent,
+			Author: author,
+		}
+		original, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
+		require.NoError(t, err)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{"malonaz.com/key-one": "val1", "key.two": "val2"},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`malonaz.com/key-one`", "labels.`key.two`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		require.Equal(t, "val1", updatedAuthor.Labels["malonaz.com/key-one"])
+		require.Equal(t, "val2", updatedAuthor.Labels["key.two"])
+		require.Equal(t, "yes", updatedAuthor.Labels["untouched"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+
+	t.Run("AddBacktickKeyToNilLabels", func(t *testing.T) {
+		t.Parallel()
+		original := createTestAuthor(t, organizationParent, "Backtick NilLabels Author")
+		require.Empty(t, original.Labels)
+
+		updateAuthorRequest := &libraryservicepb.UpdateAuthorRequest{
+			Author: &librarypb.Author{
+				Name:   original.Name,
+				Labels: map[string]string{"malonaz.com/my-key": "initialized"},
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"labels.`malonaz.com/my-key`"}},
+		}
+		updatedAuthor, err := libraryServiceClient.UpdateAuthor(ctx, updateAuthorRequest)
+		require.NoError(t, err)
+		require.Equal(t, "initialized", updatedAuthor.Labels["malonaz.com/my-key"])
+
+		got := getAuthor(t, original.Name)
+		grpcrequire.Equal(t, updatedAuthor, got)
 	})
 }

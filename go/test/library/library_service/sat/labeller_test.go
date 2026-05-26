@@ -81,7 +81,7 @@ func TestLabeller_Author(t *testing.T) {
 		second, err := labeller.Label(ctx, first, map[string]string{"env": "prod"})
 		require.NoError(t, err)
 		require.Equal(t, map[string]string{"env": "prod"}, second.Labels)
-		require.NotEqual(t, first.Etag, second.Etag)
+		require.Equal(t, first.Etag, second.Etag)
 	})
 
 	t.Run("MultipleLabelsAtOnce", func(t *testing.T) {

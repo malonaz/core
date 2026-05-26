@@ -63,7 +63,10 @@ message UpdateShelfRequest {
       "genre",
       "correlation_id_2",
       "external_id",
-      "metadata.*"
+      "metadata.capacity",
+      "metadata.dummy",
+      "metadata.notes",
+      "metadata.author_to_note"
     ]
   };
   option (buf.validate.message).cel = {
