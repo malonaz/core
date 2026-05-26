@@ -1649,4 +1649,161 @@ func TestUpdate_Precondition_Book(t *testing.T) {
 		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
+
+	// In update_test.go, replace the three PreconditionOnLabels_NilLabels tests with:
+
+	t.Run("PreconditionOnLabels_Has", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Has Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"status": "draft"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Published Title",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `has(previous_book.labels.status) && previous_book.labels["status"] == "draft"`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "Published Title", updatedBook.Title)
+	})
+
+	t.Run("PreconditionOnLabels_Has_Fails", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Has Fail Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"status": "published"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `has(previous_book.labels.status) && previous_book.labels["status"] == "draft"`,
+		}
+		_, err = libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_Has_NilLabels", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon Has NilLabels Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `has(previous_book.labels.status)`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_Has_MissingKey", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Has Missing Key Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"other": "value"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `has(previous_book.labels.status)`,
+		}
+		_, err = libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_Has_BacktickKey", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Has Backtick Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"malonaz.com/my-key": "present"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Backtick Has Passed",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `"malonaz.com/my-key" in previous_book.labels`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "Backtick Has Passed", updatedBook.Title)
+	})
+
+	t.Run("PreconditionOnLabels_Has_BacktickKey_Missing", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Has Backtick Missing Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"other": "value"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `"malonaz.com/my-key" in previous_book.labels`,
+		}
+		_, err = libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
 }
