@@ -8,7 +8,6 @@ go_test(
         "create_test.go",
         "delete_test.go",
         "filter_test.go",
-        "labeller_test.go",
         "labels_test.go",
         "middleware_canonicalize_test.go",
         "middleware_hooks_test.go",

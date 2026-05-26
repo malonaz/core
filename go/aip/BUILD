@@ -4,7 +4,6 @@ go_library(
         "annotations.go",
         "enum_mapping.go",
         "filtering_request.go",
-        "labeller.go",
         "labels.go",
         "list_request_parser.go",
         "ordering_request.go",
@@ -21,7 +20,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/aip/transpiler/postgres",
-        "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
         "//go/uuid",
@@ -34,7 +32,6 @@ go_library(
         "//third_party/go:go.einride.tech__aip__pagination",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc",
-        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
