@@ -1806,4 +1806,20 @@ func TestUpdate_Precondition_Book(t *testing.T) {
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
 
+	t.Run("PreconditionOnLabels_In_NilLabels", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon In NilLabels Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `"status" in previous_book.labels`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
 }
