@@ -39,6 +39,11 @@ func New(fm *fieldmaskpb.FieldMask) *FieldMask {
 	}
 }
 
+// QuoteKey wraps a map key in backticks for use in field mask paths.
+func QuoteKey(key string) string {
+	return "`" + key + "`"
+}
+
 // FromPaths creates a FieldMask from a variadic list of dot-separated field paths.
 func FromPaths(paths ...string) *FieldMask {
 	return New(&fieldmaskpb.FieldMask{Paths: paths})
