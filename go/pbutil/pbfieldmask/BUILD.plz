@@ -1,10 +1,13 @@
 go_library(
     name = "pbfieldmask",
-    srcs = ["pbfieldmask.go"],
+    srcs = [
+        "pbfieldmask.go",
+        "update.go",
+        "validate.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//third_party/go:github.com__mennanov__fmutils",
-        "//third_party/go:go.einride.tech__aip__fieldmask",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
@@ -15,7 +18,11 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["pbfieldmask_test.go"],
+    srcs = [
+        "pbfieldmask_test.go",
+        "update_test.go",
+        "validate_test.go",
+    ],
     deps = [
         ":pbfieldmask",
         "//go/grpc/require",

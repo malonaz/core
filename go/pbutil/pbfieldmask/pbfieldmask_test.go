@@ -1,3 +1,4 @@
+// file: go/pbutil/pbfieldmask/pbfieldmask_test.go
 package pbfieldmask
 
 import (
@@ -107,35 +108,6 @@ func TestContains(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			require.Equal(t, tc.expected, FromPaths(tc.paths...).Contains(tc.query))
-		})
-	}
-}
-
-func TestValidate(t *testing.T) {
-	tests := []struct {
-		name    string
-		paths   []string
-		wantErr bool
-	}{
-		{"valid single", []string{"name"}, false},
-		{"valid enum", []string{"genre"}, false},
-		{"valid nested", []string{"metadata.capacity"}, false},
-		{"valid multiple", []string{"name", "display_name", "genre"}, false},
-		{"valid map", []string{"labels"}, false},
-		{"valid wildcard", []string{"*"}, false},
-		{"invalid field", []string{"nonexistent"}, true},
-		{"invalid nested", []string{"metadata.nonexistent"}, true},
-		{"invalid deep", []string{"metadata.capacity.foo"}, true},
-		{"wildcard with others", []string{"*", "name"}, true},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			err := FromPaths(tc.paths...).Validate(&pb.Shelf{})
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
 		})
 	}
 }
@@ -477,132 +449,22 @@ func TestFromMessage_OnlySet(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestSplitPathSegments(t *testing.T) {
 	tests := []struct {
 		name     string
-		dest     *pb.Shelf
-		src      *pb.Shelf
-		paths    []string
-		expected *pb.Shelf
+		path     string
+		expected []string
 	}{
-		{
-			name:     "single field",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Old"},
-			src:      &pb.Shelf{DisplayName: "New"},
-			paths:    []string{"display_name"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "New"},
-		},
-		{
-			name:     "multiple fields",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Old", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION},
-			src:      &pb.Shelf{DisplayName: "New", Genre: pb.ShelfGenre_SHELF_GENRE_HISTORY},
-			paths:    []string{"display_name", "genre"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "New", Genre: pb.ShelfGenre_SHELF_GENRE_HISTORY},
-		},
-		{
-			name:     "nested subfield preserves siblings",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 50, Dummy: "old"}},
-			src:      &pb.Shelf{Metadata: &pb.ShelfMetadata{Capacity: 100}},
-			paths:    []string{"metadata.capacity"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 100, Dummy: "old"}},
-		},
-		{
-			name:     "entire nested message replaces all subfields",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 50, Dummy: "old"}},
-			src:      &pb.Shelf{Metadata: &pb.ShelfMetadata{Capacity: 200}},
-			paths:    []string{"metadata"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 200}},
-		},
-		{
-			name:     "clear field with zero value",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Fiction"},
-			src:      &pb.Shelf{},
-			paths:    []string{"display_name"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1"},
-		},
-		{
-			name:     "clear nested message",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 50}},
-			src:      &pb.Shelf{},
-			paths:    []string{"metadata"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1"},
-		},
-		{
-			name:     "set nested when dest is nil",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1"},
-			src:      &pb.Shelf{Metadata: &pb.ShelfMetadata{Capacity: 100, Dummy: "new"}},
-			paths:    []string{"metadata"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 100, Dummy: "new"}},
-		},
-		{
-			name:     "update nested subfield when dest nested is nil",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1"},
-			src:      &pb.Shelf{Metadata: &pb.ShelfMetadata{Capacity: 100}},
-			paths:    []string{"metadata.capacity"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 100}},
-		},
-		{
-			name:     "multiple nested subfields",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 50, Dummy: "old"}},
-			src:      &pb.Shelf{Metadata: &pb.ShelfMetadata{Capacity: 200, Dummy: "new"}},
-			paths:    []string{"metadata.capacity", "metadata.dummy"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Metadata: &pb.ShelfMetadata{Capacity: 200, Dummy: "new"}},
-		},
-		{
-			name:     "timestamp field",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", CreateTime: timestamppb.New(time.Unix(1000, 0))},
-			src:      &pb.Shelf{CreateTime: timestamppb.New(time.Unix(2000, 0))},
-			paths:    []string{"create_time"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", CreateTime: timestamppb.New(time.Unix(2000, 0))},
-		},
-		{
-			name:     "enum field",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION},
-			src:      &pb.Shelf{Genre: pb.ShelfGenre_SHELF_GENRE_NON_FICTION},
-			paths:    []string{"genre"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Genre: pb.ShelfGenre_SHELF_GENRE_NON_FICTION},
-		},
-		{
-			name:     "map field",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Labels: map[string]string{"old": "val"}},
-			src:      &pb.Shelf{Labels: map[string]string{"new": "val"}},
-			paths:    []string{"labels"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", Labels: map[string]string{"new": "val"}},
-		},
-		{
-			name:     "clear map field",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", Labels: map[string]string{"k": "v"}},
-			src:      &pb.Shelf{},
-			paths:    []string{"labels"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1"},
-		},
-		{
-			name:     "wildcard replaces all",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Old", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION},
-			src:      &pb.Shelf{Name: "organizations/1/shelves/2", DisplayName: "New"},
-			paths:    []string{"*"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/2", DisplayName: "New"},
-		},
-		{
-			name:     "field not in mask unchanged",
-			dest:     &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Old", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION},
-			src:      &pb.Shelf{Name: "organizations/1/shelves/2", DisplayName: "New", Genre: pb.ShelfGenre_SHELF_GENRE_HISTORY},
-			paths:    []string{"display_name"},
-			expected: &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "New", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION},
-		},
+		{"simple", "name", []string{"name"}},
+		{"dotted", "metadata.capacity", []string{"metadata", "capacity"}},
+		{"backtick key", "labels.`my key`", []string{"labels", "my key"}},
+		{"backtick key with dots", "labels.`my.dotted.key`", []string{"labels", "my.dotted.key"}},
+		{"backtick then more", "labels.`key`.sub", []string{"labels", "key", "sub"}},
+		{"multiple dots", "a.b.c.d", []string{"a", "b", "c", "d"}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			FromPaths(tc.paths...).Update(tc.dest, tc.src)
-			grpcrequire.Equal(t, tc.expected, tc.dest)
+			require.Equal(t, tc.expected, splitPathSegments(tc.path))
 		})
 	}
-}
-
-func TestUpdate_EmptyMask_CopiesNonZeroOnly(t *testing.T) {
-	dest := &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "Old", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION}
-	src := &pb.Shelf{DisplayName: "New"}
-	FromPaths().Update(dest, src)
-	expected := &pb.Shelf{Name: "organizations/1/shelves/1", DisplayName: "New", Genre: pb.ShelfGenre_SHELF_GENRE_FICTION}
-	grpcrequire.Equal(t, expected, dest)
 }

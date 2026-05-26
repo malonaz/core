@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/mennanov/fmutils"
-	"go.einride.tech/aip/fieldmask"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -15,7 +14,13 @@ import (
 )
 
 // WildcardPath is the special "*" path that matches all fields.
-const WildcardPath = fieldmask.WildcardPath
+const WildcardPath = "*"
+
+// IsFullReplacement reports whether a field mask contains the special wildcard path,
+// meaning full replacement (the equivalent of PUT).
+func IsFullReplacement(fm *fieldmaskpb.FieldMask) bool {
+	return len(fm.GetPaths()) == 1 && fm.GetPaths()[0] == WildcardPath
+}
 
 // FieldMask wraps a protobuf FieldMask with lazy-initialized nested mask support
 // for efficient filtering and pruning operations.
@@ -131,7 +136,7 @@ func (m *FieldMask) Contains(path string) bool {
 // Validate checks that every path in the mask corresponds to a valid field
 // on the given proto message type.
 func (m *FieldMask) Validate(message proto.Message) error {
-	return fieldmask.Validate(m.pb, message)
+	return validate(m.pb, message)
 }
 
 // MustValidate is like Validate but panics on error. Returns the mask for chaining.
@@ -147,7 +152,7 @@ func (m *FieldMask) MustValidate(message proto.Message) *FieldMask {
 // by reference. If the mask is empty, only non-zero values from src are copied.
 // The wildcard "*" path triggers a full replacement of all fields in dest.
 func (m *FieldMask) Update(dest, src proto.Message) {
-	fieldmask.Update(m.Proto(), dest, src)
+	update(m.Proto(), dest, src)
 }
 
 // Apply retains only the fields specified by the mask, clearing everything else.
