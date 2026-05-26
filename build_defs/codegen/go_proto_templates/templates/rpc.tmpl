@@ -287,7 +287,23 @@ package {{ .PackageName }}
             }
 
         {{- else if $rpc.Update }}
+            {{- $hasPrecondition := $method.Input.Desc.Fields.ByName "precondition" }}
             var update{{ $resourceGoName }}RequestParser = {{ fqnCore "go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
+            {{ if $hasPrecondition }}
+            var update{{ $resourceGoName }}CELEnv = func() *{{ fqn "github.com/google/cel-go/cel" "Env" }} {
+                env, err := {{ fqn "github.com/google/cel-go/cel" "NewEnv" }}(
+                    {{ fqn "github.com/google/cel-go/ext" "Protos" }}(),
+                    {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ qgi $rpc.Message.GoIdent }}{}),
+                    {{ fqn "github.com/google/cel-go/cel" "Variable" }}("previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
+                    {{ fqn "github.com/google/cel-go/cel" "Variable" }}("{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
+                )
+                if err != nil {
+                    panic({{ fqn "fmt" "Sprintf" }}("creating update {{ $resourceGoName }} CEL environment: %v", err))
+                }
+                return env
+            }()
+            {{ end }}
+
             func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
             if len(request.GetUpdateMask().GetPaths()) == 0 {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
@@ -328,6 +344,37 @@ package {{ .PackageName }}
             if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
             }
+
+            {{ if $hasPrecondition }}
+            if request.Precondition != "" {
+                ast, issues := update{{ $resourceGoName }}CELEnv.Compile(request.Precondition)
+                if issues != nil && issues.Err() != nil {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "compiling precondition: %v", issues.Err()).Err()
+                }
+                if ast.OutputType() != {{ fqn "github.com/google/cel-go/cel" "BoolType" }} {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "precondition must return bool, got %v", ast.OutputType()).Err()
+                }
+                prg, err := update{{ $resourceGoName }}CELEnv.Program(ast)
+                if err != nil {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "creating precondition program: %v", err).Err()
+                }
+                out, _, err := prg.Eval(map[string]any{
+                    "previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}": existing{{ $resourceGoName }},
+                    "{{ $rpc.Message.GoIdent.GoName | snakecase }}": patched{{ $resourceGoName }},
+                })
+                if err != nil {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "evaluating precondition: %v", err).Err()
+                }
+                result, ok := out.Value().(bool)
+                if !ok {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "precondition returned non-bool type %T", out.Value()).Err()
+                }
+                if !result {
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "FailedPrecondition" }}, "precondition not met").Err()
+                }
+            }
+            {{ end }}
+
             {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
                 // Set the update time.
 	              patched{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()

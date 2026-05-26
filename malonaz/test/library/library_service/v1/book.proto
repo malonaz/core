@@ -78,6 +78,9 @@ message UpdateBookRequest {
 
   // The list of fields to update.
   google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+
+  // A precondition for update.
+  string precondition = 3;
 }
 
 // Request message for LibraryService.DeleteBook.

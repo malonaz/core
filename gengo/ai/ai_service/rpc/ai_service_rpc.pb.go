@@ -191,6 +191,7 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 	if err := protovalidate.Validate(patchedChat); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
 	}
+
 	// Set the update time.
 	patchedChat.UpdateTime = timestamppb.Now()
 

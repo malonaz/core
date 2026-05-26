@@ -27,6 +27,8 @@ go_library(
         "//malonaz/test/library/library_service/v1",
         "//malonaz/test/library/v1",
         "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__google__cel-go__cel",
+        "//third_party/go:github.com__google__cel-go__ext",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",

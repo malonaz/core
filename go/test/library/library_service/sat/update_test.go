@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
@@ -1381,5 +1382,271 @@ func TestUpdate_BacktickMapKeys(t *testing.T) {
 
 		got := getAuthor(t, original.Name)
 		grpcrequire.Equal(t, updatedAuthor, got)
+	})
+}
+
+func TestUpdate_Precondition_Book(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Precondition Book Author")
+	shelf := createTestShelf(t, organizationParent, "Precondition Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	t.Run("PassingPrecondition", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon Pass Book")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Precon Pass Updated",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `previous_book.title == "Precon Pass Book"`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "Precon Pass Updated", updatedBook.Title)
+	})
+
+	t.Run("FailingPrecondition", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon Fail Book")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `previous_book.title == "Wrong Title"`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+
+		got := getBook(t, book.Name)
+		require.Equal(t, "Precon Fail Book", got.Title)
+	})
+
+	t.Run("PreconditionOnPatchedResource", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBookWithYear(t, shelf.Name, author.Name, "Precon Patched Book", 2000)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:            book.Name,
+				PublicationYear: 1800,
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"publication_year"}},
+			Precondition: `book.publication_year >= 1900`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+
+		got := getBook(t, book.Name)
+		require.Equal(t, int32(2000), got.PublicationYear)
+	})
+
+	t.Run("PreconditionOnPatchedResource_Passes", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBookWithYear(t, shelf.Name, author.Name, "Precon Patched Pass", 2000)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:            book.Name,
+				PublicationYear: 2025,
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"publication_year"}},
+			Precondition: `book.publication_year >= 1900`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, int32(2025), updatedBook.PublicationYear)
+	})
+
+	t.Run("PreconditionComparingBothResources", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBookWithYear(t, shelf.Name, author.Name, "Precon Both Book", 2000)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:            book.Name,
+				PublicationYear: 2025,
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"publication_year"}},
+			Precondition: `book.publication_year > previous_book.publication_year`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, int32(2025), updatedBook.PublicationYear)
+	})
+
+	t.Run("PreconditionComparingBothResources_Fails", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBookWithYear(t, shelf.Name, author.Name, "Precon Both Fail", 2025)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:            book.Name,
+				PublicationYear: 2000,
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"publication_year"}},
+			Precondition: `book.publication_year > previous_book.publication_year`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("InvalidCELExpression", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon Invalid CEL")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `invalid %%% syntax`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("NonBoolCELExpression", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon NonBool CEL")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `book.title`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("EmptyPrecondition_Succeeds", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon Empty Book")
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "No Precondition",
+			},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "No Precondition", updatedBook.Title)
+	})
+
+	t.Run("PreconditionOnLabels", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Labels Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"status": "draft"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Published Title",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `previous_book.labels["status"] == "draft"`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "Published Title", updatedBook.Title)
+	})
+
+	t.Run("PreconditionOnLabels_Fails", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon Labels Fail Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"status": "published"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `previous_book.labels["status"] == "draft"`,
+		}
+		_, err = libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_NilLabels", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon NilLabels Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `previous_book.labels["status"] == "draft"`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("PreconditionOnLabels_NilLabels", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon NilLabels Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `"status" in previous_book.labels && previous_book.labels["status"] == "draft"`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_NilLabels_HasMacro", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon HasMacro Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `has(previous_book.labels) && "status" in previous_book.labels && previous_book.labels["status"] == "draft"`,
+		}
+		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
 }
