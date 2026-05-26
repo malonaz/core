@@ -54,6 +54,15 @@ func FromString(s string) *FieldMask {
 	return FromPaths(strings.Split(s, ",")...)
 }
 
+// WithLabels appends "labels.`key`" paths for each provided key to the mask.
+func (m *FieldMask) WithLabels(keys ...string) *FieldMask {
+	paths := m.pb.GetPaths()
+	for _, key := range keys {
+		paths = append(paths, "labels."+QuoteKey(key))
+	}
+	return FromPaths(paths...)
+}
+
 // getNestedMask lazily initializes and returns the nested mask representation,
 // which enables efficient per-field filtering and pruning on proto messages.
 func (m *FieldMask) getNestedMask() fmutils.NestedMask {
