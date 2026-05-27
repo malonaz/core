@@ -7,6 +7,7 @@ go_test(
         "book_test.go",
         "create_test.go",
         "delete_test.go",
+        "etag_test.go",
         "filter_test.go",
         "labels_test.go",
         "middleware_canonicalize_test.go",
