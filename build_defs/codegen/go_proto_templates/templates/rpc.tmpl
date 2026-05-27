@@ -264,7 +264,7 @@ package {{ .PackageName }}
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists").Err()
             }
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $resourceGoName | snakecase }}: %v", err).Err()
+		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $resourceGoName | snakecase }}").Err()
 	          }
 
             {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
@@ -417,7 +417,7 @@ package {{ .PackageName }}
                 return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                 }
             {{ end }}
-            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "inserting {{ $pr.Desc.Singular }}: %v", err).Err()
+            return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $pr.Desc.Singular }}").Err()
             }
 
             {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
@@ -505,7 +505,7 @@ package {{ .PackageName }}
                 }
                 return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} already deleted").Err()
                 }
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "soft deleting {{ $pr.Desc.Singular }}: %v", err).Err()
+                return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "soft deleting {{ $pr.Desc.Singular }}").Err()
                 }
 
                 // STEP 3: Convert to protobuf and return.
@@ -537,7 +537,7 @@ package {{ .PackageName }}
                     return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
                   }
                 {{ end }}
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "deleting {{ $pr.Desc.Singular }}: %v", err).Err()
+                return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "deleting {{ $pr.Desc.Singular }}").Err()
                 }
 
              {{ if $natsEventOpts.GetDeleted }}
@@ -572,7 +572,7 @@ package {{ .PackageName }}
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "getting {{ $pr.Desc.Singular }}: %v", err).Err()
+		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "getting {{ $pr.Desc.Singular }}").Err()
 	          }
 
 		        {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
@@ -634,7 +634,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
     // Retrieve from the database
     db{{ $pr.PluralGoName }}, err := s.store.List{{ $pr.PluralGoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}true, {{ end }}whereClause, "", "", nil, whereParams...)
     if err != nil {
-        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "batch getting {{ $resourceGoName | snakecase }}: %v", err).Err()
+        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "batch getting {{ $resourceGoName | snakecase }}").Err()
     }
     if len(db{{ $pr.PluralGoName }}) != len(request.Names) {
        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "expected %d {{ $pr.Desc.Plural }}, found %d", len(request.Names), len(db{{ $pr.PluralGoName }})).Err()
@@ -687,7 +687,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
             // Retrieve from the database.
             {{ $resourceDbName }}s, err := s.store.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "listing {{ $resourceGoName | snakecase }}: %v", err).Err()
+		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "listing {{ $pr.PluralGoName | snakecase }}").Err()
 	          }
 	          nextPageToken := parsedRequest.GetNextPageToken(len({{ $resourceDbName }}s))
 	          if nextPageToken != "" {
