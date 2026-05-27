@@ -62,9 +62,26 @@ func injectResourceReferenceFields(ctx context.Context, reflectMessage protorefl
 		key := prefix + fieldName
 
 		if field.Kind() == protoreflect.StringKind {
-			_, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
-			if err != nil {
-				continue
+			_, refErr := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
+			if refErr != nil {
+				// Also check for IDENTIFIER field behavior on resource messages.
+				if !nested || fieldName != "name" {
+					continue
+				}
+				behaviors, behaviorErr := pbutil.GetExtension[[]annotations.FieldBehavior](field.Options(), annotations.E_FieldBehavior)
+				if behaviorErr != nil {
+					continue
+				}
+				isIdentifier := false
+				for _, b := range behaviors {
+					if b == annotations.FieldBehavior_IDENTIFIER {
+						isIdentifier = true
+						break
+					}
+				}
+				if !isIdentifier {
+					continue
+				}
 			}
 			InjectLogFields(ctx, key, reflectMessage.Get(field).String())
 			continue
