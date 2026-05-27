@@ -1822,4 +1822,77 @@ func TestUpdate_Precondition_Book(t *testing.T) {
 		_, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
+
+	t.Run("PreconditionOnLabels_NotIn", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon NotIn Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"other": "value"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "NotIn Passed",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `!("status" in previous_book.labels)`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "NotIn Passed", updatedBook.Title)
+	})
+
+	t.Run("PreconditionOnLabels_NotIn_Fails", func(t *testing.T) {
+		t.Parallel()
+		createBookRequest := &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			Book: &librarypb.Book{
+				Title:    "Precon NotIn Fail Book",
+				Author:   author.Name,
+				Duration: durationpb.New(100 * time.Second),
+				Labels:   map[string]string{"status": "exists"},
+				Metadata: &librarypb.BookMetadata{},
+			},
+		}
+		book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+		require.NoError(t, err)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "Should Not Apply",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `!("status" in previous_book.labels)`,
+		}
+		_, err = libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+	})
+
+	t.Run("PreconditionOnLabels_NotIn_NilLabels", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Precon NotIn NilLabels Book")
+		require.Empty(t, book.Labels)
+
+		updateBookRequest := &libraryservicepb.UpdateBookRequest{
+			Book: &librarypb.Book{
+				Name:  book.Name,
+				Title: "NotIn NilLabels Passed",
+			},
+			UpdateMask:   &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+			Precondition: `!("status" in previous_book.labels)`,
+		}
+		updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "NotIn NilLabels Passed", updatedBook.Title)
+	})
 }

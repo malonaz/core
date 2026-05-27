@@ -15,9 +15,19 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// maxStackDepth controls how many stack frames are captured in DebugInfo
-// when creating errors via Errorf. A value of 0 disables stack capture entirely.
-var maxStackDepth = 5
+var (
+	// maxStackDepth controls how many stack frames are captured in DebugInfo
+	// when creating errors via Errorf. A value of 0 disables stack capture entirely.
+	maxStackDepth = 5
+
+	noiseFramePrefixes = []string{
+		"google.golang.org/grpc.",
+		"github.com/grpc-ecosystem/",
+		"github.com/malonaz/core/go/grpc/middleware.",
+		"buf.build/go/protovalidate.",
+		"runtime.",
+	}
+)
 
 // SetErrorMaxStackDepth configures the number of stack frames captured in the
 // DebugInfo detail attached to errors created by Errorf.
@@ -60,15 +70,22 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 	if maxStackDepth > 0 {
 		stackEntries := make([]string, 0, maxStackDepth)
 
-		for i := 0; i < maxStackDepth; i++ {
+		for i, skipped := 0, 0; len(stackEntries) < maxStackDepth; i++ {
 			pc, file, line, ok := runtime.Caller(i + 1)
 			if !ok {
 				break
 			}
 			fn := runtime.FuncForPC(pc)
-			funcName := "unknown"
-			if fn != nil {
-				funcName = fn.Name()
+			if fn == nil {
+				continue
+			}
+			funcName := fn.Name()
+			if isNoiseFrame(funcName) {
+				skipped++
+				if skipped > 20 {
+					break
+				}
+				continue
 			}
 			stackEntries = append(stackEntries, fmt.Sprintf("%s %s:%d", funcName, filepath.Base(file), line))
 		}
@@ -151,4 +168,13 @@ func (e *Error) Proto() *spb.Status {
 // This is typically the final call in an RPC handler's error return path.
 func (e *Error) Err() error {
 	return e.Status().Err()
+}
+
+func isNoiseFrame(funcName string) bool {
+	for _, prefix := range noiseFramePrefixes {
+		if len(funcName) >= len(prefix) && funcName[:len(prefix)] == prefix {
+			return true
+		}
+	}
+	return false
 }
