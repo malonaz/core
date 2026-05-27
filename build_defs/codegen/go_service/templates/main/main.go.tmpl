@@ -86,6 +86,21 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
     {{- end -}}
 {{- end -}}
 
+{{- $serverNameToServiceNameToServedProtos := dict -}}
+{{- range $server := .servers -}}
+    {{- if eq $server.type "grpc" -}}
+        {{- range $service := $server.services -}}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $existing := index $serverNameToServiceNameToServedProtos $server.name | default (dict) -}}
+            {{- $protos := index $existing $serviceManifest.name | default (list) -}}
+            {{- $protos = append $protos $service.proto -}}
+            {{- $existing = set $existing $serviceManifest.name $protos -}}
+            {{- $serverNameToServiceNameToServedProtos = set $serverNameToServiceNameToServedProtos $server.name $existing -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+
 {{- $serverNameToServiceNameToHealthCheckFunctions := dict -}}
 
 {{- /* DEPENDENCIES GRPC CONNECTIONS*/ -}}
@@ -131,9 +146,12 @@ errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
                 {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
             {{ end }}
 
-            {{- /* Add health check function to all servers that use this service */ -}}
+            {{- /* Add health check function to all servers that use this service, unless self-referential */ -}}
             {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
             {{- range $serverName := $serverNames -}}
+                {{- $serviceNameToServedProtos := index $serverNameToServiceNameToServedProtos $serverName | default (dict) -}}
+                {{- $servedProtos := index $serviceNameToServedProtos $serviceManifest.name | default (list) -}}
+                {{- if has $dep.proto $servedProtos -}}{{- continue -}}{{- end -}}
                 {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
                 {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
                 {{- $updatedHealthChecks := append $existingHealthChecks $grpc.HealthCheck -}}
