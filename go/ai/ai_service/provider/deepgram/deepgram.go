@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/coder/websocket"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
 const (
+	pingIntervalDuration = 30 * time.Second
 	defaultBaseURL       = "wss://api.deepgram.com"
 	EncodingLinear16     = "linear16"
 	EncodingLinear32     = "linear32"
@@ -146,6 +148,21 @@ func (lc *ListenConnection) ReceiveMessage(ctx context.Context) (*ServerMessage,
 
 func (m *ServerMessage) AsError() error {
 	return fmt.Errorf("deepgram error [%s]: %s", m.Code, m.Description)
+}
+
+func (lc *ListenConnection) keepAlive(ctx context.Context) {
+	ticker := time.NewTicker(pingIntervalDuration)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := lc.conn.Ping(ctx); err != nil {
+				return
+			}
+		}
+	}
 }
 
 var _ provider.SpeechToTextStreamClient = (*Client)(nil)

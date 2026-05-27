@@ -86,6 +86,7 @@ func (c *Client) SpeechToTextStream(srv aiservicepb.AiService_SpeechToTextStream
 		err := c.sendEvents(ctx, srv, conn)
 		errChan <- err
 	}()
+	go conn.keepAlive(ctx)
 
 	if err := <-errChan; err != nil {
 		return status.FromError(err, "streaming speech to text").Err()
