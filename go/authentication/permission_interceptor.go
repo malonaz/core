@@ -224,6 +224,8 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 	// Check the permissions for non public methods.
 	if _, ok := i.publicMethodSet[fullMethod]; !ok {
 		switch identity := session.GetIdentity().(type) {
+		case *authenticationpb.Session_JwtIdentity:
+			return nil, status.Errorf(codes.PermissionDenied, "JWT identity has no service account permissions for %q", fullMethod).Err()
 		case *authenticationpb.Session_ServiceAccountIdentity:
 			serviceAccountID := identity.ServiceAccountIdentity.GetServiceAccountId()
 			methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccountID]

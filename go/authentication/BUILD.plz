@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "external_api_key_authentication.go",
         "internal_service_authentication.go",
+        "jwt_authentication.go",
         "permission_interceptor.go",
         "session_manager.go",
         "utils.go",
@@ -17,6 +18,8 @@ go_library(
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",
+        "//third_party/go:github.com__lestrrat-go__jwx__v2__jwk",
+        "//third_party/go:github.com__lestrrat-go__jwx__v2__jwt",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
@@ -25,6 +28,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

@@ -256,14 +256,12 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 	case *authenticationpb.Session_AnonymousIdentity:
 		fields = append(fields, "session_type", "anonymous")
 
-	case *authenticationpb.Session_UserIdentity:
-		fields = append(fields, "session_type", "user")
-		if identity.UserIdentity.OrganizationId != "" {
-			fields = append(fields, "organization_id", identity.UserIdentity.OrganizationId)
+	case *authenticationpb.Session_JwtIdentity:
+		fields = append(fields, "session_type", "jwt")
+		for logField, value := range identity.JwtIdentity.LogFields {
+			fields = append(fields, logField, value)
 		}
-		if identity.UserIdentity.UserId != "" {
-			fields = append(fields, "user_id", identity.UserIdentity.UserId)
-		}
+
 	case *authenticationpb.Session_ServiceAccountIdentity:
 		fields = append(fields, "session_type", "service_account")
 		if identity.ServiceAccountIdentity.ServiceAccountId != "" {
