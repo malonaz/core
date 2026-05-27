@@ -23,7 +23,7 @@ var (
 	noiseFramePrefixes = []string{
 		"google.golang.org/grpc.",
 		"github.com/grpc-ecosystem/",
-		"github.com/malonaz/core/go/grpc/middleware.",
+		"github.com/malonaz/core/go/grpc",
 		"buf.build/go/protovalidate.",
 		"runtime.",
 	}
@@ -70,7 +70,7 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 	if maxStackDepth > 0 {
 		stackEntries := make([]string, 0, maxStackDepth)
 
-		for i, skipped := 0, 0; len(stackEntries) < maxStackDepth; i++ {
+		for i := 0; len(stackEntries) < maxStackDepth; i++ {
 			pc, file, line, ok := runtime.Caller(i + 1)
 			if !ok {
 				break
@@ -81,10 +81,6 @@ func Errorf(code codes.Code, message string, params ...any) *Error {
 			}
 			funcName := fn.Name()
 			if isNoiseFrame(funcName) {
-				skipped++
-				if skipped > 20 {
-					break
-				}
 				continue
 			}
 			stackEntries = append(stackEntries, fmt.Sprintf("%s %s:%d", funcName, filepath.Base(file), line))
