@@ -25,7 +25,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 
 func (s *Service) start(ctx context.Context) (func(), error) {
 	// Base matcher.
-	matcher := func(ctx context.Context, callMetadata *middleware.CallMetadata) bool {
+	matcher := func(ctx context.Context, method string) bool {
 		return len(metadata.ValueFromIncomingContext(ctx, MetadataKeyEnableHook)) > 0
 	}
 

@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
@@ -15,12 +14,7 @@ import (
 
 func UnaryServerCanonicalize() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		callMetadata := newServerCallMetadata(info.FullMethod, nil, req)
-		skip, err := shouldSkipCanonicalization(callMetadata)
-		if err != nil {
-			return nil, err
-		}
-		if skip {
+		if shouldSkipCanonicalization(ctx) {
 			return handler(ctx, req)
 		}
 		if message, ok := req.(proto.Message); ok {
@@ -34,12 +28,7 @@ func UnaryServerCanonicalize() grpc.UnaryServerInterceptor {
 
 func StreamServerCanonicalize() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		callMetadata := newServerCallMetadata(info.FullMethod, info, nil)
-		skip, err := shouldSkipCanonicalization(callMetadata)
-		if err != nil {
-			return err
-		}
-		if skip {
+		if shouldSkipCanonicalization(stream.Context()) {
 			return handler(srv, stream)
 		}
 		return handler(srv, &canonicalizeServerStream{ServerStream: stream})
@@ -71,13 +60,18 @@ func (s *canonicalizeServerStream) RecvMsg(m any) error {
 	return nil
 }
 
-func shouldSkipCanonicalization(callMetadata *CallMetadata) (bool, error) {
-	skip, err := pbutil.GetMethodOption[bool](callMetadata.FullMethod(), canonicalizepb.E_Skip)
+func shouldSkipCanonicalization(ctx context.Context) bool {
+	methodDescriptor, ok := MethodDescriptorFromContext(ctx)
+	if !ok {
+		return false
+	}
+	skip, err := pbutil.GetExtension[bool](methodDescriptor.Options(), canonicalizepb.E_Skip)
 	if err != nil {
 		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return false, nil
+			return false
 		}
-		return false, fmt.Errorf("get method option: %w", err)
+		// Log but don't fail the RPC for a missing option.
+		return false
 	}
-	return skip, nil
+	return skip
 }
