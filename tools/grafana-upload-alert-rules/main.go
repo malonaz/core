@@ -138,7 +138,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 	config := &Config{}
-	bytes, err = jsonnet.EvaluateSnippet(string(bytes))
+	bytes, err = jsonnet.EvaluateSnippet(string(bytes), jsonnet.WithEnvVariables())
 	if err != nil {
 		slog.ErrorContext(ctx, "evaluating snippet", "error", err)
 		return err
