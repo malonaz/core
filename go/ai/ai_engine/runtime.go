@@ -371,7 +371,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 
 		var discoverTimestamp int64
 		if _, ok := discoveredMethodNameSet[methodName]; ok {
-			discoverTimestamp = int64(i)
+			discoverTimestamp = int64(i + 1)
 		}
 		toolNameToDiscoverTimestamp[tool.Name] = discoverTimestamp
 	}
