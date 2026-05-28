@@ -286,124 +286,31 @@ package {{ .PackageName }}
             return {{ $resourceGoName | untitle }}, nil
             }
 
-        {{- else if $rpc.Update }}
-            {{- $hasPrecondition := $method.Input.Desc.Fields.ByName "precondition" }}
-            var update{{ $resourceGoName }}RequestParser = {{ fqnCore "go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
-            {{ if $hasPrecondition }}
-            var update{{ $resourceGoName }}CELEnv = func() *{{ fqn "github.com/google/cel-go/cel" "Env" }} {
-                env, err := {{ fqn "github.com/google/cel-go/cel" "NewEnv" }}(
-                    {{ fqn "github.com/google/cel-go/ext" "Protos" }}(),
-                    {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ qgi $rpc.Message.GoIdent }}{}),
-                    {{ fqn "github.com/google/cel-go/cel" "Variable" }}("previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
-                    {{ fqn "github.com/google/cel-go/cel" "Variable" }}("{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
-                )
-                if err != nil {
-                    panic({{ fqn "fmt" "Sprintf" }}("creating update {{ $resourceGoName }} CEL environment: %v", err))
-                }
-                return env
-            }()
-            {{ end }}
+{{- else if $rpc.Update }}
+    {{- $hasPrecondition := $method.Input.Desc.Fields.ByName "precondition" }}
+    var update{{ $resourceGoName }}RequestParser = {{ fqnCore "go/aip" "MustNewUpdateRequestParser" }}[*{{ qgi $method.Input.GoIdent }}, *{{ qgi $rpc.Message.GoIdent }}]()
+    {{ if $hasPrecondition }}
+    var update{{ $resourceGoName }}CELEnv = func() *{{ fqn "github.com/google/cel-go/cel" "Env" }} {
+        env, err := {{ fqn "github.com/google/cel-go/cel" "NewEnv" }}(
+            {{ fqn "github.com/google/cel-go/ext" "Protos" }}(),
+            {{ fqn "github.com/google/cel-go/cel" "Types" }}(&{{ qgi $rpc.Message.GoIdent }}{}),
+            {{ fqn "github.com/google/cel-go/cel" "Variable" }}("previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
+            {{ fqn "github.com/google/cel-go/cel" "Variable" }}("{{ $rpc.Message.GoIdent.GoName | snakecase }}", {{ fqn "github.com/google/cel-go/cel" "ObjectType" }}("{{ $rpc.Message.Desc.FullName }}")),
+        )
+        if err != nil {
+            panic({{ fqn "fmt" "Sprintf" }}("creating update {{ $resourceGoName }} CEL environment: %v", err))
+        }
+        return env
+    }()
+    {{ end }}
 
-            func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
-            if len(request.GetUpdateMask().GetPaths()) == 0 {
-            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
-            }
-            if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.{{ $resourceGoName }}.Name) {
-            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
-            }
-
-            // STEP 1: Parse request.
-	          parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request)
-	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err).Err()
-	          }
-
-            // STEP 2: retrieve existing resource.
-            get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.{{ $resourceGoName }}.Name }
-            existing{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
-            if err != nil {
-            return nil, err
-            }
-            {{- if $softDeletable }}
-                // Verify that the resource is not soft deleted.
-                if existing{{ $resourceGoName }}.DeleteTime != nil {
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
-                }
-            {{- end }}
-            {{- if $etag }}
-                // Capture the etag. If it is not set, use the latest available etag.
-                etag := request.Get{{ $resourceGoName }}().GetEtag()
-                if etag  == "" {
-                etag = existing{{ $resourceGoName }}.GetEtag()
-                }
-            {{- end }}
-
-            // STEP 3: Patch the existing resource.
-            patched{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "CloneOf" }}(existing{{ $resourceGoName }})
-	          parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }})
-            if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
-            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
-            }
-
-            {{ if $hasPrecondition }}
-            if request.Precondition != "" {
-                ast, issues := update{{ $resourceGoName }}CELEnv.Compile(request.Precondition)
-                if issues != nil && issues.Err() != nil {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "compiling precondition: %v", issues.Err()).Err()
-                }
-                if ast.OutputType() != {{ fqn "github.com/google/cel-go/cel" "BoolType" }} {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "precondition must return bool, got %v", ast.OutputType()).Err()
-                }
-                prg, err := update{{ $resourceGoName }}CELEnv.Program(ast)
-                if err != nil {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "creating precondition program: %v", err).Err()
-                }
-                out, _, err := prg.Eval(map[string]any{
-                    "previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}": existing{{ $resourceGoName }},
-                    "{{ $rpc.Message.GoIdent.GoName | snakecase }}": patched{{ $resourceGoName }},
-                })
-                if err != nil {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "evaluating precondition: %v", err).Err()
-                }
-                result, ok := out.Value().(bool)
-                if !ok {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "precondition returned non-bool type %T", out.Value()).Err()
-                }
-                if !result {
-                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "FailedPrecondition" }}, "precondition not met").Err()
-                }
-            }
-            {{ end }}
-
-            {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
-                // Set the update time.
-	              patched{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
-            {{- end }}
-            {{ if $etag }}
-                { // Compute the new etag.
-                var err error
-                patched{{ $resourceGoName }}.Etag, err = {{ fqnCore "go/aip" "ComputeETag" }}(patched{{ $resourceGoName }})
-                if err != nil {
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing new etag: %v", err).Err()
-                }
-                }
-            {{ end }}
-
-            // STEP 4: Insert patched resource.
-	          {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(patched{{ $resourceGoName }})
-	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
-	          }
-	          db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(){{ if $etag }}, etag{{ end }})
-            if err != nil {
-            if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
-            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
-            }
-            {{ if $etag }}
-                if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
-                if request.Get{{ $resourceGoName }}().GetEtag() == "" {
-                // Request did not specify an ETag => we return a UNAVAILABLE status instead of an ABORTED error.
-                // Client should retry on UNAVAILABLE errors.
+    {{ if $etag }}
+func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+    for {
+        response, err := s.{{ $method.GoName | untitle }}(ctx, request)
+        if err != nil {
+            if request.Get{{ $resourceGoName }}().GetEtag() == "" && {{ fqnCore "go/grpc/status" "HasCode" }}(err, {{ fqn "google.golang.org/grpc/codes" "Aborted" }}) {
+                // Request did not specify an ETag => we retry.
                 // In order to understand why we still use ETag in the db layer, consider the following situation:
                 //  > `resource.metadata` is stored as JSONB in the store.
                 //  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
@@ -412,33 +319,142 @@ package {{ .PackageName }}
                 //  > Request B reads the resource and patches it.
                 //  > Request A persists the patched resource, followed by by Request B.
                 //  > Request A's changes are lost.
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Unavailable" }}, "ETag changed").Err()
+                select {
+                case <-ctx.Done():
+                    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Canceled" }}, "context canceled while retrying update").Err()
+                default:
+                    continue
                 }
-                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
-                }
-            {{ end }}
-            return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $pr.Desc.Singular }}").Err()
             }
+            return nil, err
+        }
+        return response, nil
+    }
+}
+    {{ end }}
 
-            {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
-		        if err != nil {
-			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
-		        }
+    func (s *{{ $serverGoName }}) {{ if $etag }}{{ $method.GoName | untitle }}{{ else }}{{ $method.GoName }}{{ end }}(ctx {{ fqn "context" "Context" }}, request *{{ qgi $method.Input.GoIdent }}) (*{{ qgi $method.Output.GoIdent }}, error) {
+    if len(request.GetUpdateMask().GetPaths()) == 0 {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "missing update_mask.paths").Err()
+    }
+    if {{ fqn "go.einride.tech/aip/resourcename" "ContainsWildcard" }}(request.{{ $resourceGoName }}.Name) {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "cannot use wildcard").Err()
+    }
+
+    // STEP 1: Parse request.
+    parsedRequest, err := update{{ $resourceGoName }}RequestParser.Parse(request)
+    if err != nil {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing request: %v", err).Err()
+    }
+
+    // STEP 2: retrieve existing resource.
+    get{{ $resourceGoName }}Request := &{{ (printf "Get%sRequest" $resourceGoName) | $file.GoImportPath.Ident | qgi }}{ Name: request.{{ $resourceGoName }}.Name }
+    existing{{ $resourceGoName }}, err := s.Get{{ $resourceGoName }}(ctx, get{{ $resourceGoName }}Request)
+    if err != nil {
+    return nil, err
+    }
+    {{- if $softDeletable }}
+        // Verify that the resource is not soft deleted.
+        if existing{{ $resourceGoName }}.DeleteTime != nil {
+        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+        }
+    {{- end }}
+    {{- if $etag }}
+        // Capture the etag. If it is not set, use the latest available etag.
+        etag := request.Get{{ $resourceGoName }}().GetEtag()
+        if etag  == "" {
+        etag = existing{{ $resourceGoName }}.GetEtag()
+        }
+    {{- end }}
+
+    // STEP 3: Patch the existing resource.
+    patched{{ $resourceGoName }} := {{ fqn "google.golang.org/protobuf/proto" "CloneOf" }}(existing{{ $resourceGoName }})
+    parsedRequest.ApplyFieldMask(patched{{ $resourceGoName }}, request.{{ $resourceGoName }})
+    if err := {{ fqn "buf.build/go/protovalidate" "Validate" }}(patched{{ $resourceGoName }}); err != nil {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "validating patched resource: %v", err).Err()
+    }
+
+    {{ if $hasPrecondition }}
+    if request.Precondition != "" {
+        ast, issues := update{{ $resourceGoName }}CELEnv.Compile(request.Precondition)
+        if issues != nil && issues.Err() != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "compiling precondition: %v", issues.Err()).Err()
+        }
+        if ast.OutputType() != {{ fqn "github.com/google/cel-go/cel" "BoolType" }} {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "precondition must return bool, got %v", ast.OutputType()).Err()
+        }
+        prg, err := update{{ $resourceGoName }}CELEnv.Program(ast)
+        if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "creating precondition program: %v", err).Err()
+        }
+        out, _, err := prg.Eval(map[string]any{
+            "previous_{{ $rpc.Message.GoIdent.GoName | snakecase }}": existing{{ $resourceGoName }},
+            "{{ $rpc.Message.GoIdent.GoName | snakecase }}": patched{{ $resourceGoName }},
+        })
+        if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "evaluating precondition: %v", err).Err()
+        }
+        result, ok := out.Value().(bool)
+        if !ok {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "precondition returned non-bool type %T", out.Value()).Err()
+        }
+        if !result {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "FailedPrecondition" }}, "precondition not met").Err()
+        }
+    }
+    {{ end }}
+
+    {{- if $rpc.Message.Desc.Fields.ByName "update_time" }}
+        // Set the update time.
+        patched{{ $resourceGoName }}.UpdateTime = {{ fqn "google.golang.org/protobuf/types/known/timestamppb" "Now" }}()
+    {{- end }}
+    {{ if $etag }}
+        { // Compute the new etag.
+        var err error
+        patched{{ $resourceGoName }}.Etag, err = {{ fqnCore "go/aip" "ComputeETag" }}(patched{{ $resourceGoName }})
+        if err != nil {
+        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "computing new etag: %v", err).Err()
+        }
+        }
+    {{ end }}
+
+    // STEP 4: Insert patched resource.
+    {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(patched{{ $resourceGoName }})
+    if err != nil {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
+    }
+    db{{ $modelGoName }}, err := s.store.Update{{ $resourceGoName }}(ctx, {{ $modelGoName | untitle }}, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(){{ if $etag }}, etag{{ end }})
+    if err != nil {
+    if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
+    }
+    {{ if $etag }}
+        if {{ fqn "errors" "Is" }}(err, {{ $errEtagChangedFqi }}) {
+        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Aborted" }}, "ETag changed").Err()
+        }
+    {{ end }}
+    return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $pr.Desc.Singular }}").Err()
+    }
+
+    {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
+    if err != nil {
+    return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+    }
 
 
-            {{ if $natsEventOpts.GetUpdated }}
-                // STEP 5: Publish events.
-                {{- range $eventOpt := $natsEventOpts.GetUpdated }}
-                    { // Subject `{{ $eventOpt.GetSubject }}`
-                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
-                    if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask()); err != nil {
-                    return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
-                    }
-                    }
-                {{ end }}
-           {{ end }}
-            return {{ $resourceGoName | untitle }}, nil
-           }
+    {{ if $natsEventOpts.GetUpdated }}
+        // STEP 5: Publish events.
+        {{- range $eventOpt := $natsEventOpts.GetUpdated }}
+            { // Subject `{{ $eventOpt.GetSubject }}`
+            subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+            if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask()); err != nil {
+            return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
+            }
+            }
+        {{ end }}
+   {{ end }}
+    return {{ $resourceGoName | untitle }}, nil
+   }
 
             {{- else if $rpc.Delete }}
                 {{ if $natsEventOpts.GetDeleted }}

@@ -116,7 +116,7 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 		if errors.Is(err, model.ErrChatAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "chat already exists").Err()
 		}
-		return nil, status.Errorf(codes.Internal, "inserting chat: %v", err).Err()
+		return nil, status.FromError(err, "inserting chat").Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
@@ -143,7 +143,7 @@ func (s *aiService_ChatServer) GetChat(ctx context.Context, request *v1.GetChatR
 		if errors.Is(err, model.ErrChatNotExist) {
 			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
 		}
-		return nil, status.Errorf(codes.Internal, "getting chat: %v", err).Err()
+		return nil, status.FromError(err, "getting chat").Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
@@ -156,6 +156,33 @@ func (s *aiService_ChatServer) GetChat(ctx context.Context, request *v1.GetChatR
 var updateChatRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateChatRequest, *v11.Chat]()
 
 func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
+	for {
+		response, err := s.updateChat(ctx, request)
+		if err != nil {
+			if request.GetChat().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.UpdateChatRequest) (*v11.Chat, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -215,23 +242,10 @@ func (s *aiService_ChatServer) UpdateChat(ctx context.Context, request *v1.Updat
 		}
 
 		if errors.Is(err, model.ErrChatETagChanged) {
-			if request.GetChat().GetEtag() == "" {
-				// Request did not specify an ETag => we return a UNAVAILABLE status instead of an ABORTED error.
-				// Client should retry on UNAVAILABLE errors.
-				// In order to understand why we still use ETag in the db layer, consider the following situation:
-				//  > `resource.metadata` is stored as JSONB in the store.
-				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
-				//  > Request B wants to update `resource.metadata.field2` aand does not care about ETag.
-				//  > Request A reads the resource and patches it.
-				//  > Request B reads the resource and patches it.
-				//  > Request A persists the patched resource, followed by by Request B.
-				//  > Request A's changes are lost.
-				return nil, status.Errorf(codes.Unavailable, "ETag changed").Err()
-			}
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
 
-		return nil, status.Errorf(codes.Internal, "inserting chat: %v", err).Err()
+		return nil, status.FromError(err, "inserting chat").Err()
 	}
 
 	chat, err := dbChatModel.ToPb()
@@ -284,7 +298,7 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 			}
 			return nil, status.Errorf(codes.NotFound, "chat already deleted").Err()
 		}
-		return nil, status.Errorf(codes.Internal, "soft deleting chat: %v", err).Err()
+		return nil, status.FromError(err, "soft deleting chat").Err()
 	}
 
 	// STEP 3: Convert to protobuf and return.
@@ -318,7 +332,7 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	// Retrieve from the database.
 	dbChats, err := s.store.ListChats(ctx, organizationId, userId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "listing chat: %v", err).Err()
+		return nil, status.FromError(err, "listing chats").Err()
 	}
 	nextPageToken := parsedRequest.GetNextPageToken(len(dbChats))
 	if nextPageToken != "" {
