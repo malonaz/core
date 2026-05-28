@@ -47,6 +47,12 @@ def grafana_alert_rule(name:str, src:str, folder:str, rule_group:str, deps:list=
     )
 
 def grafana_alert_config(name:str, src:str, deps:list=[], visibility:list=[]):
+    if not src.startswith(':') and not src.startswith('//'):
+        src_target = filegroup(
+            name = f"_{name}_src",
+            srcs = [src],
+        )
+        src = src_target
     grafana_upload_alert_rules_tool = plugin_target("//tools/grafana-upload-alert-rules")
     return sh_cmd(
         labels = ["grafana-alert-config-upload"],
