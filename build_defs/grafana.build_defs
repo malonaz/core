@@ -17,6 +17,23 @@ def golang_grafana_dashboard(name:str, binary:str, folder:str, deps:list=[], vis
         visibility = visibility,
     )
 
+def golang_grafana_alert_rule(name:str, binary:str, folder:str, rule_group:str, deps:list=[], visibility:list=[]):
+    json = genrule(
+        name = f"{name}_json",
+        srcs = [binary],
+        outs = [f"{name}.json"],
+        cmd = "$SRCS > $OUT",
+        labels = ["grafana-alert-rule"],
+    )
+    return grafana_alert_rule(
+        name = name,
+        src = json,
+        folder = folder,
+        rule_group = rule_group,
+        deps = deps,
+        visibility = visibility,
+    )
+
 def grafana_dashboard(name:str, src:str, folder:str, deps:list=[], visibility:list=[]):
     grafana_upload_dashboard_tool = plugin_target("//tools/grafana-upload-dashboard")
     return sh_cmd(
