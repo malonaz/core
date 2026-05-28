@@ -30,3 +30,31 @@ def grafana_dashboard(name:str, src:str, folder:str, deps:list=[], visibility:li
             f"--dashboard-filepath $(out_location {src})",
         ]),
     )
+
+def grafana_alert_rule(name:str, src:str, folder:str, rule_group:str, deps:list=[], visibility:list=[]):
+    grafana_upload_alert_rules_tool = plugin_target("//tools/grafana-upload-alert-rules")
+    return sh_cmd(
+        labels = ["grafana-alert-rule-upload"],
+        name = f"{name}_push",
+        srcs = [src, grafana_upload_alert_rules_tool],
+        expand_env_vars = False,
+        cmd = ' '.join([
+            f"$(out_location {grafana_upload_alert_rules_tool})",
+            f"--folder {folder}",
+            f"--rule-group {rule_group}",
+            f"--alert-rule-filepath $(out_location {src})",
+        ]),
+    )
+
+def grafana_alert_config(name:str, src:str, deps:list=[], visibility:list=[]):
+    grafana_upload_alert_rules_tool = plugin_target("//tools/grafana-upload-alert-rules")
+    return sh_cmd(
+        labels = ["grafana-alert-config-upload"],
+        name = f"{name}_push",
+        srcs = [src, grafana_upload_alert_rules_tool],
+        expand_env_vars = False,
+        cmd = ' '.join([
+            f"$(out_location {grafana_upload_alert_rules_tool})",
+            f"--config-filepath $(out_location {src})",
+        ]),
+    )
