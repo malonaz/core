@@ -72,6 +72,10 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
 		for _, tool := range toolSet.GetTools() {
 			toolNameToTool[tool.GetName()] = tool
+			// Tool is prediscovered => add it to request tools.
+			if val, _ := aip.GetAnnotation(tool, aitool.AnnotationKeyPreDiscoveredTool); val == aip.LabelValueTrue {
+				request.Tools = append(request.Tools, tool)
+			}
 		}
 		toolSetNameToToolNameToTool[toolSet.GetName()] = toolNameToTool
 	}
@@ -79,7 +83,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	// Create a mapping of tool name to tool.
 	toolNameToTool := make(map[string]*aipb.Tool, len(request.GetTools()))
 	for _, tool := range request.GetTools() {
-		toolNameToTool[tool.Name] = tool
+		toolNameToTool[tool.GetName()] = tool
 	}
 
 	// Process tool set discoveries.
@@ -179,7 +183,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	}
 
 	// Update the chat.
-	chat.Metadata.Messages = append(allMessages, response.GetMessage())
+	chat.Metadata.Messages = append(messages, response.GetMessage())
 	redactInlineImageData(chat.Metadata.Messages)
 	chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
 	for k, v := range request.Labels {
