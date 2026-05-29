@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"strings"
 
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
@@ -90,25 +91,45 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 	for i, message := range request.GetMessages() {
 		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
 			toolCall := block.GetToolCall()
-			toolType, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType)
-			if !ok || toolType != aitool.AnnotationValueToolTypeDiscovery {
+			// Is this a discovery tool call.
+			toolSetName, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolSetName)
+			if !ok {
 				continue
 			}
-			toolCallDiscovery, err := aitool.ParseDiscoveryToolCall(toolCall)
-			if err != nil {
-				return status.Errorf(codes.InvalidArgument, "parsing message %d block %d tool call discovery", i, j).Err()
+			if _, ok := toolSetNameToToolNameToTool[toolSetName]; !ok {
+				return status.Errorf(
+					codes.InvalidArgument,
+					"message %d block %d has unknown tool set %q",
+					i, j, toolSetName,
+				).Err()
 			}
-			if _, ok := toolSetNameToToolNameToTool[toolCallDiscovery.GetToolSetName()]; !ok {
-				return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool set %q", i, j, toolCallDiscovery.GetToolSetName()).Err()
+
+			// Which tools did the call discover?
+			discoveredToolsString, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyDiscoveredTools)
+			if !ok {
+				continue
 			}
-			for _, toolName := range toolCallDiscovery.GetToolNames() {
-				tool, ok := toolSetNameToToolNameToTool[toolCallDiscovery.GetToolSetName()][toolName]
+			discoveredTools := strings.Split(discoveredToolsString, ",")
+			for _, discoveredTool := range discoveredTools {
+				// Find the tool.
+				tool, ok := toolSetNameToToolNameToTool[toolSetName][discoveredTool]
 				if !ok {
-					return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool %q in tool set %q", i, j, toolName, toolCallDiscovery.GetToolSetName()).Err()
+					return status.Errorf(
+						codes.InvalidArgument,
+						"message %d block %d has unknown tool %q in tool set %q",
+						i, j, discoveredTool, toolSetName,
+					).Err()
 				}
+				// Throw an error if the tool was already discovered.
 				if _, ok := toolNameToTool[tool.GetName()]; ok {
-					continue
+					return status.Errorf(
+						codes.InvalidArgument,
+						"message %d block %d has already discovered tool %q in tool set %q",
+						i, j, discoveredTool, toolSetName,
+					).Err()
 				}
+
+				// Add the tools to the discovered tools.
 				toolNameToTool[tool.GetName()] = tool
 				request.Tools = append(request.Tools, tool)
 			}
@@ -129,6 +150,7 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 		model:                            model,
 		modelUsage:                       &aipb.ModelUsage{},
 		toolNameToTool:                   toolNameToTool,
+		toolSetNameToToolNameToTool:      toolSetNameToToolNameToTool,
 		toolCallIDToToolCall:             map[string]*aipb.ToolCall{},
 	}
 
@@ -201,28 +223,12 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 
 type tttStreamWrapper struct {
 	pb.AiService_TextToTextStreamServer
-	textToTextAccumulator *ai.TextToTextAccumulator
-	model                 *aipb.Model
-	modelUsage            *aipb.ModelUsage
-	toolNameToTool        map[string]*aipb.Tool
-	toolCallIDToToolCall  map[string]*aipb.ToolCall
-}
-
-func (w *tttStreamWrapper) copyToolAnnotations(toolCall *aipb.ToolCall) bool {
-	// We always instantiate tool calls annotations.
-	if toolCall.Annotations == nil {
-		toolCall.Annotations = map[string]string{}
-	}
-
-	// Find the target tool.
-	tool, ok := w.toolNameToTool[toolCall.Name]
-	if !ok {
-		return false
-	}
-
-	// Copy annotations.
-	maps.Copy(toolCall.Annotations, tool.GetAnnotations())
-	return true
+	textToTextAccumulator       *ai.TextToTextAccumulator
+	model                       *aipb.Model
+	modelUsage                  *aipb.ModelUsage
+	toolNameToTool              map[string]*aipb.Tool
+	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool
+	toolCallIDToToolCall        map[string]*aipb.ToolCall
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
@@ -252,6 +258,45 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 
 			// Copy annotations.
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
+		}
+
+		// Annotate discovery tool calls.
+		if toolCall := c.Block.GetToolCall(); toolCall != nil {
+			toolSetName, isDiscovery := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolSetName)
+			if isDiscovery {
+				toolNameToToolInSet, ok := w.toolSetNameToToolNameToTool[toolSetName]
+				if !ok {
+					return status.Errorf(codes.Internal, "tool call references unknown tool set %q", toolSetName).
+						WithDetails(&aipb.ToolCallRecoverableError{
+							ToolCallBlock:   c.Block,
+							ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool set %q", toolSetName))),
+						}).Err()
+				}
+
+				discoveryResult, err := aitool.ParseDiscoveryToolCall(toolCall)
+				if err != nil {
+					return err
+				}
+				for _, discoveredToolName := range discoveryResult.GetToolNames() {
+					discoveredTool, ok := toolNameToToolInSet[discoveredToolName]
+					if !ok {
+						return status.Errorf(codes.Internal, "discovery references unknown tool %q in tool set %q", discoveredToolName, toolSetName).
+							WithDetails(&aipb.ToolCallRecoverableError{
+								ToolCallBlock:   c.Block,
+								ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool %q in tool set %q", discoveredToolName, toolSetName))),
+							}).Err()
+					}
+					if _, alreadyDiscovered := w.toolNameToTool[discoveredTool.GetName()]; alreadyDiscovered {
+						return status.Errorf(codes.Internal, "tool %q in tool set %q already discovered", discoveredToolName, toolSetName).
+							WithDetails(&aipb.ToolCallRecoverableError{
+								ToolCallBlock:   c.Block,
+								ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("tool %q already discovered", discoveredToolName))),
+							}).Err()
+					}
+					w.toolNameToTool[discoveredTool.GetName()] = discoveredTool
+				}
+				toolCall.Annotations[aitool.AnnotationKeyDiscoveredTools] = strings.Join(discoveryResult.GetToolNames(), ",")
+			}
 		}
 
 		// Dedupe partial tool calls.

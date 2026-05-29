@@ -30,6 +30,8 @@ const (
 	AnnotationKeyToolSetName = AnnotationKeyPrefix + "tool-set-name"
 	// When "true", indicates this tool is pre-discovered and available without requiring a discovery tool call.
 	AnnotationKeyPreDiscoveredTool = AnnotationKeyPrefix + "pre-discovered-tool"
+	// The comma-separated list of tool names returned by a discovery tool call.
+	AnnotationKeyDiscoveredTools = AnnotationKeyPrefix + "discovered-tools"
 
 	// --- Tool type values ---
 
