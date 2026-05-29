@@ -216,7 +216,9 @@ type ToolCall struct {
 	// Annotations populated from the tool that created this tool call.
 	Annotations map[string]string `protobuf:"bytes,5,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// If true, this is a partial tool call.
-	Partial       bool `protobuf:"varint,6,opt,name=partial,proto3" json:"partial,omitempty"`
+	Partial bool `protobuf:"varint,6,opt,name=partial,proto3" json:"partial,omitempty"`
+	// A server-generated ToolCallResult. Currently only used by tool call discovery.
+	Result        *ToolResult `protobuf:"bytes,7,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -288,6 +290,13 @@ func (x *ToolCall) GetPartial() bool {
 	return false
 }
 
+func (x *ToolCall) GetResult() *ToolResult {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
 func (x *ToolCall) SetId(v string) {
 	x.Id = v
 }
@@ -312,6 +321,10 @@ func (x *ToolCall) SetPartial(v bool) {
 	x.Partial = v
 }
 
+func (x *ToolCall) SetResult(v *ToolResult) {
+	x.Result = v
+}
+
 func (x *ToolCall) HasArguments() bool {
 	if x == nil {
 		return false
@@ -326,12 +339,23 @@ func (x *ToolCall) HasExtraFields() bool {
 	return x.ExtraFields != nil
 }
 
+func (x *ToolCall) HasResult() bool {
+	if x == nil {
+		return false
+	}
+	return x.Result != nil
+}
+
 func (x *ToolCall) ClearArguments() {
 	x.Arguments = nil
 }
 
 func (x *ToolCall) ClearExtraFields() {
 	x.ExtraFields = nil
+}
+
+func (x *ToolCall) ClearResult() {
+	x.Result = nil
 }
 
 type ToolCall_builder struct {
@@ -349,6 +373,8 @@ type ToolCall_builder struct {
 	Annotations map[string]string
 	// If true, this is a partial tool call.
 	Partial bool
+	// A server-generated ToolCallResult. Currently only used by tool call discovery.
+	Result *ToolResult
 }
 
 func (b0 ToolCall_builder) Build() *ToolCall {
@@ -361,6 +387,7 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 	x.ExtraFields = b.ExtraFields
 	x.Annotations = b.Annotations
 	x.Partial = b.Partial
+	x.Result = b.Result
 	return m0
 }
 
@@ -1153,14 +1180,15 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vannotations\x18\x04 \x03(\v2$.malonaz.ai.v1.Tool.AnnotationsEntryR\vannotations\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x92\x03\n" +
 	"\bToolCall\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\x12:\n" +
 	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12J\n" +
 	"\vannotations\x18\x05 \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryR\vannotations\x12\x18\n" +
-	"\apartial\x18\x06 \x01(\bR\apartial\x1a>\n" +
+	"\apartial\x18\x06 \x01(\bR\apartial\x121\n" +
+	"\x06result\x18\a \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x02\n" +
@@ -1228,19 +1256,20 @@ var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
 	12, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
 	12, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
 	9,  // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
-	10, // 5: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
-	13, // 6: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
-	14, // 7: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
-	0,  // 8: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	1,  // 9: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
-	1,  // 10: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	12, // 11: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
-	15, // 12: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	3,  // 5: malonaz.ai.v1.ToolCall.result:type_name -> malonaz.ai.v1.ToolResult
+	10, // 6: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
+	13, // 7: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
+	14, // 8: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
+	0,  // 9: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	1,  // 10: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	1,  // 11: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	12, // 12: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
+	15, // 13: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }

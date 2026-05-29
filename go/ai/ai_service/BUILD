@@ -33,6 +33,7 @@ go_library(
         "//go/ai/ai_service/provider/xai",
         "//go/ai/ai_service/rpc",
         "//go/ai/store",
+        "//go/ai/tool",
         "//go/aip",
         "//go/grpc/grpcinproc",
         "//go/grpc/status",

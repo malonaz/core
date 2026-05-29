@@ -344,13 +344,13 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		discoveredMethodNameSet[methodName] = struct{}{}
 	}
 
-	toolSetName := string(serviceDescriptor.FullName())
-	var tools []*aipb.Tool
-	toolNameToDiscoverTimestamp := map[string]int64{}
 	if len(request.MethodNameToSchemaConfiguration) == 0 {
 		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
 	}
-	for i, methodName := range request.MethodNames {
+	toolSetName := string(serviceDescriptor.FullName())
+	var tools []*aipb.Tool
+	var discoverableTools []*aipb.Tool
+	for _, methodName := range request.MethodNames {
 		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
 		if schemaConfiguration == nil {
 			schemaConfiguration = request.SchemaConfiguration
@@ -366,29 +366,30 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			return nil, status.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
-		aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, "true")
 		aip.SetAnnotation(tool, aitool.AnnotationKeyToolSetName, toolSetName)
-
-		var discoverTimestamp int64
 		if _, ok := discoveredMethodNameSet[methodName]; ok {
-			discoverTimestamp = int64(i + 1)
+			// Tool is pre-discovered.
+			aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, aip.LabelValueFalse)
+			aip.SetAnnotation(tool, aitool.AnnotationKeyPreDiscoveredTool, aip.LabelValueTrue)
+		} else {
+			// Tool is discoverable.
+			aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, aip.LabelValueTrue)
+			discoverableTools = append(discoverableTools, tool)
 		}
-		toolNameToDiscoverTimestamp[tool.Name] = discoverTimestamp
 	}
 
 	serviceComment := schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline)
 	createDiscoveryToolRequest := &aitool.CreateDiscoveryToolRequest{
 		Name:        string(serviceDescriptor.Name()) + "_Discover",
 		Description: serviceComment,
-		Tools:       tools,
+		Tools:       discoverableTools,
 	}
 	discoveryTool := aitool.CreateDiscoveryTool(createDiscoveryToolRequest)
 	aip.SetAnnotation(discoveryTool, aitool.AnnotationKeyToolSetName, toolSetName)
 
 	return &aipb.ToolSet{
-		Name:                        toolSetName,
-		DiscoveryTool:               discoveryTool,
-		Tools:                       tools,
-		ToolNameToDiscoverTimestamp: toolNameToDiscoverTimestamp,
+		Name:          toolSetName,
+		DiscoveryTool: discoveryTool,
+		Tools:         tools,
 	}, nil
 }

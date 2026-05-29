@@ -46,6 +46,9 @@ message ToolCall {
 
   // If true, this is a partial tool call.
   bool partial = 6;
+
+  // A server-generated ToolCallResult. Currently only used by tool call discovery.
+  ToolResult result = 7;
 }
 
 // The result of executing a tool call.
