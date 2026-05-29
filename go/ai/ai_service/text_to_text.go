@@ -32,7 +32,6 @@ var (
 type tttAccumulatorKey struct{}
 
 func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
-	originalRequest = proto.Clone(originalRequest).(*pb.TextToTextStreamRequest)
 	accumulator, _ := srv.Context().Value(tttAccumulatorKey{}).(*ai.TextToTextAccumulator)
 	if accumulator == nil {
 		accumulator = ai.NewTextToTextAccumulator()
@@ -40,14 +39,17 @@ func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, 
 
 	var blockIndexOffset int64
 	for {
-		request := proto.Clone(originalRequest).(*pb.TextToTextStreamRequest)
+		request := proto.CloneOf(originalRequest)
+		if len(accumulator.Message.GetBlocks()) > 0 {
+			request.Messages = append(request.Messages, proto.CloneOf(accumulator.Message))
+		}
 		if err := s.textToTextStream(request, srv, accumulator, blockIndexOffset); err != nil {
 			return err
 		}
 
 		// Check if we need to loop again.
 		var loop bool
-		for _, block := range accumulator.Message.Blocks {
+		for _, block := range accumulator.Message.GetBlocks() {
 			if block.Index < blockIndexOffset {
 				continue
 			}
@@ -59,9 +61,7 @@ func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, 
 		if !loop {
 			return nil
 		}
-
 		blockIndexOffset = int64(len(accumulator.Message.Blocks))
-		originalRequest.Messages = append(originalRequest.Messages, accumulator.Response().GetMessage())
 	}
 }
 
@@ -279,6 +279,14 @@ type tttStreamWrapper struct {
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
+	if c, ok := resp.GetContent().(*pb.TextToTextStreamResponse_Block); ok && w.blockIndexOffset > 0 {
+		block := proto.CloneOf(c.Block)
+		block.Index += w.blockIndexOffset
+		resp = &pb.TextToTextStreamResponse{
+			Content: &pb.TextToTextStreamResponse_Block{Block: block},
+		}
+	}
+
 	if c, ok := resp.GetContent().(*pb.TextToTextStreamResponse_Block); ok {
 		c.Block.Index += w.blockIndexOffset
 	}
@@ -311,8 +319,10 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
 			// Annotate discovery tool calls.
-			if !toolCall.GetPartial() && aip.HasAnnotation(toolCall, aitool.AnnotationKeyToolSetName) {
-				toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
+			if !toolCall.GetPartial() {
+				if toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType == aitool.AnnotationValueToolTypeDiscovery {
+					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
+				}
 			}
 		}
 
