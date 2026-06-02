@@ -29,7 +29,7 @@ var (
 )
 
 func parseConfig(path string, config proto.Message) error {
-	bytes, err := jsonnet.EvaluateFile(path)
+	bytes, err := jsonnet.EvaluateFile(path, jsonnet.WithEnvVariables())
 	if err != nil {
 		return fmt.Errorf("failed to evaluate config file %s: %w", path, err)
 	}
