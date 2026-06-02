@@ -643,10 +643,10 @@ func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
 			expectedParams: []any{"%Kingdom"},
 		},
 		{
-			name:           "wildcard in middle only is literal",
+			name:           "wildcard in middle",
 			filter:         `display_name = "pre*fix"`,
-			expectedClause: "WHERE (display_name = $1)",
-			expectedParams: []any{"pre*fix"},
+			expectedClause: "WHERE (display_name LIKE $1)",
+			expectedParams: []any{"pre%fix"},
 		},
 		{
 			name:           "wildcard with AND",

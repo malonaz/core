@@ -694,7 +694,7 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	var examples []string
 
 	if resourceMsg != nil {
-		var hasString, hasBool, hasEnum, hasTimestamp bool
+		var hasString, hasBool, hasEnum, hasTimestamp, hasDuration bool
 
 		pathSet := make(map[string]struct{})
 		for _, p := range paths {
@@ -729,9 +729,17 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 					hasEnum = true
 				}
 			case protoreflect.MessageKind:
-				if field.Message().FullName() == "google.protobuf.Timestamp" && !hasTimestamp {
-					examples = append(examples, fmt.Sprintf(`%s > "2024-01-01T00:00:00Z"`, name))
-					hasTimestamp = true
+				switch field.Message().FullName() {
+				case "google.protobuf.Timestamp":
+					if !hasTimestamp {
+						examples = append(examples, fmt.Sprintf(`%s > "2024-01-01T00:00:00Z"`, name))
+						hasTimestamp = true
+					}
+				case "google.protobuf.Duration":
+					if !hasDuration {
+						examples = append(examples, fmt.Sprintf(`%s > duration("10s")`, name))
+						hasDuration = true
+					}
 				}
 			}
 		}
@@ -749,15 +757,15 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	if len(examples) == 0 {
 		return fmt.Sprintf(`**Filtering (AIP-160)**
 Filterable fields: %s
-Wildcards: leading '*' (e.g. field="*suffix") and trailing '*' (e.g. field="prefix*") supported.
-Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, strings.Join(paths, ", "))
+Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
+Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, strings.Join(paths, ", "))
 	}
 
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
 	return fmt.Sprintf(`**Filtering (AIP-160)**
 %s
-Wildcards: leading '*' (e.g. field="*suffix") and trailing '*' (e.g. field="prefix*") supported.
-Note: boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted.`, exampleStr)
+Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
+Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, exampleStr)
 }
 
 func formatOrderingDoc(paths []string, defaultOrder string) string {

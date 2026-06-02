@@ -221,10 +221,8 @@ func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
 func (t *Transpiler) transpileSubstringMatchExpr(e *expr.Expr) (boolExpr, error) {
 	lhs := e.GetCallExpr().GetArgs()[0]
 	rhsString, _ := getStringConstValue(e.GetCallExpr().GetArgs()[1])
-
-	trimmed := strings.TrimPrefix(strings.TrimSuffix(rhsString, "*"), "*")
-	if strings.Contains(trimmed, "*") {
-		return nil, fmt.Errorf("wildcard only supported in leading or trailing positions")
+	if strings.Trim(rhsString, "*") == "" {
+		return nil, fmt.Errorf("wildcard pattern must contain non-wildcard characters")
 	}
 
 	var lhsExpr sqlExpr

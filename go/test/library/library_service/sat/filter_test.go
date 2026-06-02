@@ -276,10 +276,14 @@ func TestFilter_WildcardStrings(t *testing.T) {
 		}
 	})
 
-	t.Run("MiddleWildcard_TreatedAsLiteral", func(t *testing.T) {
+	t.Run("MiddleWildcard", func(t *testing.T) {
 		t.Parallel()
 		results := listAuthors(t, parent, `display_name = "Wild*Jones"`)
-		require.Empty(t, results)
+		require.Len(t, results, 2)
+		for _, r := range results {
+			require.True(t, strings.HasPrefix(r.DisplayName, "Wild"))
+			require.True(t, strings.HasSuffix(r.DisplayName, "Jones"))
+		}
 	})
 
 	t.Run("WildcardNoMatch", func(t *testing.T) {

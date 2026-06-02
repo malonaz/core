@@ -7,7 +7,7 @@ import (
 )
 
 func isWildcardPattern(s string) bool {
-	return strings.HasPrefix(s, "*") || strings.HasSuffix(s, "*")
+	return strings.Contains(s, "*")
 }
 
 func toLIKEPattern(s string) string {
