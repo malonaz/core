@@ -351,6 +351,11 @@ var stopFns []func() error
                 if err != nil {
                 return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
                 }
+            {{ else if eq $interceptor.type "jwt_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(ctx, opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                if err != nil {
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                }
             {{ else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
                 if err != nil {
@@ -373,6 +378,8 @@ var stopFns []func() error
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "internal_service_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+            {{- else if eq $interceptor.type "jwt_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
             {{- else if eq $interceptor.type "session_log_injector" }}
@@ -389,6 +396,8 @@ var stopFns []func() error
             {{- else if eq $interceptor.type "external_api_key_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
             {{- else if eq $interceptor.type "internal_service_authentication" }}
+                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+            {{- else if eq $interceptor.type "jwt_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
             {{- else if eq $interceptor.type "permission_authentication" }}
                 {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
