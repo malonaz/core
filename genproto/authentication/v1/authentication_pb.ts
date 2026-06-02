@@ -13,7 +13,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/authentication/v1/authentication.proto.
  */
 export const file_malonaz_authentication_v1_authentication: GenFile = /*@__PURE__*/
-  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIusCChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBIlEKEEp3dENvbmZpZ3VyYXRpb24SPQoHaXNzdWVycxgBIAMoCzIkLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SXNzdWVyQga6SAPIAQEilwIKCUp3dElzc3VlchISCgJpZBgBIAEoCUIGukgDyAEBEhYKBmlzc3VlchgCIAEoCUIGukgDyAEBEhgKCGF1ZGllbmNlGAMgASgJQga6SAPIAQESGAoIandrc191cmkYBCABKAlCBrpIA8gBARJpCh1sb2dfZmllbGRfdG9fY2xhaW1zX2pzb25fcGF0aBgFIAMoCzJCLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SXNzdWVyLkxvZ0ZpZWxkVG9DbGFpbXNKc29uUGF0aEVudHJ5Gj8KHUxvZ0ZpZWxkVG9DbGFpbXNKc29uUGF0aEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiagobU2VydmljZUFjY291bnRDb25maWd1cmF0aW9uEksKEHNlcnZpY2VfYWNjb3VudHMYASADKAsyKS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50Qga6SAPIAQEirQMKDlNlcnZpY2VBY2NvdW50EhIKAmlkGAEgASgJQga6SAPIAQESRwoEdHlwZRgCIAEoDjItLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRUeXBlQgq6SAeCAQQQASAAEhoKCHJvbGVfaWRzGAMgAygJQgi6SAWSAQIYARIdCgtwZXJtaXNzaW9ucxgEIAMoCUIIukgFkgECGAES0wEKBmxhYmVscxgFIAMoCzI1Lm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnQuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiZgoEUm9sZRIKCgJpZBgBIAEoCRIdCgtwZXJtaXNzaW9ucxgCIAMoCUIIukgFkgECGAESJAoSaW5oZXJpdGVkX3JvbGVfaWRzGAMgAygJQgi6SAWSAQIYARINCgVzY29wZRgEIAEoCSJXCg1TaWduZWRTZXNzaW9uEjMKB3Nlc3Npb24YASABKAsyIi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb24SEQoJc2lnbmF0dXJlGAIgASgMIoUFCgdTZXNzaW9uEgoKAmlkGAEgASgJEi8KC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI+Cgxqd3RfaWRlbnRpdHkYAyABKAsyJi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElkZW50aXR5SAASVQoYc2VydmljZV9hY2NvdW50X2lkZW50aXR5GAQgASgLMjEubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudElkZW50aXR5SAASSgoSYW5vbnltb3VzX2lkZW50aXR5GAggASgLMiwubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Bbm9ueW1vdXNJZGVudGl0eUgAEhIKCmF1dGhvcml6ZWQYBSABKAgSzAEKBmxhYmVscxgGIAMoCzIuLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbi5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSPAoIbWV0YWRhdGEYByABKAsyKi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb25NZXRhZGF0YRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQgoKCGlkZW50aXR5IhMKEUFub255bW91c0lkZW50aXR5IjYKC0p3dElkZW50aXR5EicKBmNsYWltcxgBIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QijQEKFlNlcnZpY2VBY2NvdW50SWRlbnRpdHkSGgoSc2VydmljZV9hY2NvdW50X2lkGAEgASgJElcKFHNlcnZpY2VfYWNjb3VudF90eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAAirQEKD1Nlc3Npb25NZXRhZGF0YRISCgppcF9hZGRyZXNzGAEgASgJEhIKCnVzZXJfYWdlbnQYAiABKAkSFwoPY2xpZW50X3BsYXRmb3JtGAMgASgJEkAKDmNsaWVudF92ZXJzaW9uGAQgASgLMigubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5DbGllbnRWZXJzaW9uEhcKD2NsaWVudF90aW1lem9uZRgFIAEoCSI8Cg1DbGllbnRWZXJzaW9uEg0KBW1ham9yGAEgASgFEg0KBW1pbm9yGAIgASgFEg0KBXBhdGNoGAMgASgFKocBChJTZXJ2aWNlQWNjb3VudFR5cGUSJAogU0VSVklDRV9BQ0NPVU5UX1RZUEVfVU5TUEVDSUZJRUQQABIgChxTRVJWSUNFX0FDQ09VTlRfVFlQRV9BUElfS0VZEAESKQolU0VSVklDRV9BQ0NPVU5UX1RZUEVfSU5URVJOQUxfU0VSVklDRRACQjRaMmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1dGhlbnRpY2F0aW9uL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIqYDChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBEjkKC2p3dF9pc3N1ZXJzGAQgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIiUQoQSnd0Q29uZmlndXJhdGlvbhI9Cgdpc3N1ZXJzGAEgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXJCBrpIA8gBASKVAgoJSnd0SXNzdWVyEhIKAmlkGAEgASgJQga6SAPIAQESFgoGaXNzdWVyGAIgASgJQga6SAPIAQESGAoIYXVkaWVuY2UYAyABKAlCBrpIA8gBARIYCghqd2tzX3VyaRgEIAEoCUIGukgDyAEBEmcKG21ldGhvZF90b19hdXRob3JpemF0aW9uX2NlbBgGIAMoCzJCLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SXNzdWVyLk1ldGhvZFRvQXV0aG9yaXphdGlvbkNlbEVudHJ5Gj8KHU1ldGhvZFRvQXV0aG9yaXphdGlvbkNlbEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiagobU2VydmljZUFjY291bnRDb25maWd1cmF0aW9uEksKEHNlcnZpY2VfYWNjb3VudHMYASADKAsyKS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50Qga6SAPIAQEirQMKDlNlcnZpY2VBY2NvdW50EhIKAmlkGAEgASgJQga6SAPIAQESRwoEdHlwZRgCIAEoDjItLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRUeXBlQgq6SAeCAQQQASAAEhoKCHJvbGVfaWRzGAMgAygJQgi6SAWSAQIYARIdCgtwZXJtaXNzaW9ucxgEIAMoCUIIukgFkgECGAES0wEKBmxhYmVscxgFIAMoCzI1Lm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnQuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiZgoEUm9sZRIKCgJpZBgBIAEoCRIdCgtwZXJtaXNzaW9ucxgCIAMoCUIIukgFkgECGAESJAoSaW5oZXJpdGVkX3JvbGVfaWRzGAMgAygJQgi6SAWSAQIYARINCgVzY29wZRgEIAEoCSJXCg1TaWduZWRTZXNzaW9uEjMKB3Nlc3Npb24YASABKAsyIi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb24SEQoJc2lnbmF0dXJlGAIgASgMIoUFCgdTZXNzaW9uEgoKAmlkGAEgASgJEi8KC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI+Cgxqd3RfaWRlbnRpdHkYAyABKAsyJi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElkZW50aXR5SAASVQoYc2VydmljZV9hY2NvdW50X2lkZW50aXR5GAQgASgLMjEubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudElkZW50aXR5SAASSgoSYW5vbnltb3VzX2lkZW50aXR5GAggASgLMiwubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Bbm9ueW1vdXNJZGVudGl0eUgAEhIKCmF1dGhvcml6ZWQYBSABKAgSzAEKBmxhYmVscxgGIAMoCzIuLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbi5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSPAoIbWV0YWRhdGEYByABKAsyKi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb25NZXRhZGF0YRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQgoKCGlkZW50aXR5IhMKEUFub255bW91c0lkZW50aXR5IkkKC0p3dElkZW50aXR5EhEKCWlzc3Vlcl9pZBgBIAEoCRInCgZjbGFpbXMYAiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Io0BChZTZXJ2aWNlQWNjb3VudElkZW50aXR5EhoKEnNlcnZpY2VfYWNjb3VudF9pZBgBIAEoCRJXChRzZXJ2aWNlX2FjY291bnRfdHlwZRgCIAEoDjItLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRUeXBlQgq6SAeCAQQQASAAIq0BCg9TZXNzaW9uTWV0YWRhdGESEgoKaXBfYWRkcmVzcxgBIAEoCRISCgp1c2VyX2FnZW50GAIgASgJEhcKD2NsaWVudF9wbGF0Zm9ybRgDIAEoCRJACg5jbGllbnRfdmVyc2lvbhgEIAEoCzIoLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuQ2xpZW50VmVyc2lvbhIXCg9jbGllbnRfdGltZXpvbmUYBSABKAkiPAoNQ2xpZW50VmVyc2lvbhINCgVtYWpvchgBIAEoBRINCgVtaW5vchgCIAEoBRINCgVwYXRjaBgDIAEoBSqHAQoSU2VydmljZUFjY291bnRUeXBlEiQKIFNFUlZJQ0VfQUNDT1VOVF9UWVBFX1VOU1BFQ0lGSUVEEAASIAocU0VSVklDRV9BQ0NPVU5UX1RZUEVfQVBJX0tFWRABEikKJVNFUlZJQ0VfQUNDT1VOVF9UWVBFX0lOVEVSTkFMX1NFUlZJQ0UQAkI0WjJnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9hdXRoZW50aWNhdGlvbi92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * Configuration for roles.
@@ -44,6 +44,13 @@ export type PermissionConfiguration = Message<"malonaz.authentication.v1.Permiss
    * @generated from field: repeated string public_methods = 3;
    */
   publicMethods: string[];
+
+  /**
+   * List of trusted JWT issuers.
+   *
+   * @generated from field: repeated malonaz.authentication.v1.JwtIssuer jwt_issuers = 4;
+   */
+  jwtIssuers: JwtIssuer[];
 };
 
 /**
@@ -75,6 +82,13 @@ export type PermissionConfigurationValid = Message<"malonaz.authentication.v1.Pe
    * @generated from field: repeated string public_methods = 3;
    */
   publicMethods: string[];
+
+  /**
+   * List of trusted JWT issuers.
+   *
+   * @generated from field: repeated malonaz.authentication.v1.JwtIssuer jwt_issuers = 4;
+   */
+  jwtIssuers: JwtIssuerValid[];
 };
 
 /**
@@ -154,12 +168,14 @@ export type JwtIssuer = Message<"malonaz.authentication.v1.JwtIssuer"> & {
   jwksUri: string;
 
   /**
-   * Mapping of log field name to JSON path into the claims struct.
-   * E.g., {"user_id": "sub", "org_id": "firebase.tenant", "email": "email"}.
+   * Maps a full RPC method name to a CEL expression authorizing access.
+   * The expression has access to `claims` (the JWT claims) and `request`
+   * (the RPC request message). Must evaluate to a bool.
+   * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
-   * @generated from field: map<string, string> log_field_to_claims_json_path = 5;
+   * @generated from field: map<string, string> method_to_authorization_cel = 6;
    */
-  logFieldToClaimsJsonPath: { [key: string]: string };
+  methodToAuthorizationCel: { [key: string]: string };
 };
 
 /**
@@ -197,12 +213,14 @@ export type JwtIssuerValid = Message<"malonaz.authentication.v1.JwtIssuer"> & {
   jwksUri: string;
 
   /**
-   * Mapping of log field name to JSON path into the claims struct.
-   * E.g., {"user_id": "sub", "org_id": "firebase.tenant", "email": "email"}.
+   * Maps a full RPC method name to a CEL expression authorizing access.
+   * The expression has access to `claims` (the JWT claims) and `request`
+   * (the RPC request message). Must evaluate to a bool.
+   * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
-   * @generated from field: map<string, string> log_field_to_claims_json_path = 5;
+   * @generated from field: map<string, string> method_to_authorization_cel = 6;
    */
-  logFieldToClaimsJsonPath: { [key: string]: string };
+  methodToAuthorizationCel: { [key: string]: string };
 };
 
 /**
@@ -535,9 +553,16 @@ export const AnonymousIdentitySchema: GenMessage<AnonymousIdentity, {validType: 
  */
 export type JwtIdentity = Message<"malonaz.authentication.v1.JwtIdentity"> & {
   /**
+   * The id of the issuer that minted this token.
+   *
+   * @generated from field: string issuer_id = 1;
+   */
+  issuerId: string;
+
+  /**
    * The verified claims from the JWT token.
    *
-   * @generated from field: google.protobuf.Struct claims = 1;
+   * @generated from field: google.protobuf.Struct claims = 2;
    */
   claims?: JsonObject;
 };

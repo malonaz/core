@@ -85,6 +85,8 @@ type PermissionConfiguration struct {
 	// List of RPC methods that can be accessed without authentication
 	// (e.g., "/api.v1.AuthService/Login").
 	PublicMethods []string `protobuf:"bytes,3,rep,name=public_methods,json=publicMethods,proto3" json:"public_methods,omitempty"`
+	// List of trusted JWT issuers.
+	JwtIssuers    []*JwtIssuer `protobuf:"bytes,4,rep,name=jwt_issuers,json=jwtIssuers,proto3" json:"jwt_issuers,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -135,6 +137,13 @@ func (x *PermissionConfiguration) GetPublicMethods() []string {
 	return nil
 }
 
+func (x *PermissionConfiguration) GetJwtIssuers() []*JwtIssuer {
+	if x != nil {
+		return x.JwtIssuers
+	}
+	return nil
+}
+
 func (x *PermissionConfiguration) SetServiceAccounts(v []*ServiceAccount) {
 	x.ServiceAccounts = v
 }
@@ -145,6 +154,10 @@ func (x *PermissionConfiguration) SetRoles(v []*Role) {
 
 func (x *PermissionConfiguration) SetPublicMethods(v []string) {
 	x.PublicMethods = v
+}
+
+func (x *PermissionConfiguration) SetJwtIssuers(v []*JwtIssuer) {
+	x.JwtIssuers = v
 }
 
 type PermissionConfiguration_builder struct {
@@ -159,6 +172,8 @@ type PermissionConfiguration_builder struct {
 	// List of RPC methods that can be accessed without authentication
 	// (e.g., "/api.v1.AuthService/Login").
 	PublicMethods []string
+	// List of trusted JWT issuers.
+	JwtIssuers []*JwtIssuer
 }
 
 func (b0 PermissionConfiguration_builder) Build() *PermissionConfiguration {
@@ -168,6 +183,7 @@ func (b0 PermissionConfiguration_builder) Build() *PermissionConfiguration {
 	x.ServiceAccounts = b.ServiceAccounts
 	x.Roles = b.Roles
 	x.PublicMethods = b.PublicMethods
+	x.JwtIssuers = b.JwtIssuers
 	return m0
 }
 
@@ -242,9 +258,11 @@ type JwtIssuer struct {
 	Audience string `protobuf:"bytes,3,opt,name=audience,proto3" json:"audience,omitempty"`
 	// URL of the issuer's public key endpoint for token verification.
 	JwksUri string `protobuf:"bytes,4,opt,name=jwks_uri,json=jwksUri,proto3" json:"jwks_uri,omitempty"`
-	// Mapping of log field name to JSON path into the claims struct.
-	// E.g., {"user_id": "sub", "org_id": "firebase.tenant", "email": "email"}.
-	LogFieldToClaimsJsonPath map[string]string `protobuf:"bytes,5,rep,name=log_field_to_claims_json_path,json=logFieldToClaimsJsonPath,proto3" json:"log_field_to_claims_json_path,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Maps a full RPC method name to a CEL expression authorizing access.
+	// The expression has access to `claims` (the JWT claims) and `request`
+	// (the RPC request message). Must evaluate to a bool.
+	// E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
+	MethodToAuthorizationCel map[string]string `protobuf:"bytes,6,rep,name=method_to_authorization_cel,json=methodToAuthorizationCel,proto3" json:"method_to_authorization_cel,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -302,9 +320,9 @@ func (x *JwtIssuer) GetJwksUri() string {
 	return ""
 }
 
-func (x *JwtIssuer) GetLogFieldToClaimsJsonPath() map[string]string {
+func (x *JwtIssuer) GetMethodToAuthorizationCel() map[string]string {
 	if x != nil {
-		return x.LogFieldToClaimsJsonPath
+		return x.MethodToAuthorizationCel
 	}
 	return nil
 }
@@ -325,8 +343,8 @@ func (x *JwtIssuer) SetJwksUri(v string) {
 	x.JwksUri = v
 }
 
-func (x *JwtIssuer) SetLogFieldToClaimsJsonPath(v map[string]string) {
-	x.LogFieldToClaimsJsonPath = v
+func (x *JwtIssuer) SetMethodToAuthorizationCel(v map[string]string) {
+	x.MethodToAuthorizationCel = v
 }
 
 type JwtIssuer_builder struct {
@@ -340,9 +358,11 @@ type JwtIssuer_builder struct {
 	Audience string
 	// URL of the issuer's public key endpoint for token verification.
 	JwksUri string
-	// Mapping of log field name to JSON path into the claims struct.
-	// E.g., {"user_id": "sub", "org_id": "firebase.tenant", "email": "email"}.
-	LogFieldToClaimsJsonPath map[string]string
+	// Maps a full RPC method name to a CEL expression authorizing access.
+	// The expression has access to `claims` (the JWT claims) and `request`
+	// (the RPC request message). Must evaluate to a bool.
+	// E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
+	MethodToAuthorizationCel map[string]string
 }
 
 func (b0 JwtIssuer_builder) Build() *JwtIssuer {
@@ -353,7 +373,7 @@ func (b0 JwtIssuer_builder) Build() *JwtIssuer {
 	x.Issuer = b.Issuer
 	x.Audience = b.Audience
 	x.JwksUri = b.JwksUri
-	x.LogFieldToClaimsJsonPath = b.LogFieldToClaimsJsonPath
+	x.MethodToAuthorizationCel = b.MethodToAuthorizationCel
 	return m0
 }
 
@@ -1151,8 +1171,10 @@ func (b0 AnonymousIdentity_builder) Build() *AnonymousIdentity {
 // Identity derived from a verified JWT token.
 type JwtIdentity struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The id of the issuer that minted this token.
+	IssuerId string `protobuf:"bytes,1,opt,name=issuer_id,json=issuerId,proto3" json:"issuer_id,omitempty"`
 	// The verified claims from the JWT token.
-	Claims        *structpb.Struct `protobuf:"bytes,1,opt,name=claims,proto3" json:"claims,omitempty"`
+	Claims        *structpb.Struct `protobuf:"bytes,2,opt,name=claims,proto3" json:"claims,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1182,11 +1204,22 @@ func (x *JwtIdentity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *JwtIdentity) GetIssuerId() string {
+	if x != nil {
+		return x.IssuerId
+	}
+	return ""
+}
+
 func (x *JwtIdentity) GetClaims() *structpb.Struct {
 	if x != nil {
 		return x.Claims
 	}
 	return nil
+}
+
+func (x *JwtIdentity) SetIssuerId(v string) {
+	x.IssuerId = v
 }
 
 func (x *JwtIdentity) SetClaims(v *structpb.Struct) {
@@ -1207,6 +1240,8 @@ func (x *JwtIdentity) ClearClaims() {
 type JwtIdentity_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The id of the issuer that minted this token.
+	IssuerId string
 	// The verified claims from the JWT token.
 	Claims *structpb.Struct
 }
@@ -1215,6 +1250,7 @@ func (b0 JwtIdentity_builder) Build() *JwtIdentity {
 	m0 := &JwtIdentity{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.IssuerId = b.IssuerId
 	x.Claims = b.Claims
 	return m0
 }
@@ -1534,22 +1570,24 @@ var File_malonaz_authentication_v1_authentication_proto protoreflect.FileDescrip
 
 const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\n" +
-	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x93\x03\n" +
+	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xda\x03\n" +
 	"\x17PermissionConfiguration\x12\xbd\x01\n" +
 	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountBg\xbaHd\xba\x01^\n" +
 	"\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1cthis.map(sa, sa.id).unique()\xc8\x01\x01R\x0fserviceAccounts\x12\x86\x01\n" +
 	"\x05roles\x18\x02 \x03(\v2\x1f.malonaz.authentication.v1.RoleBO\xbaHL\xba\x01F\n" +
 	"\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\xc8\x01\x01R\x05roles\x12/\n" +
-	"\x0epublic_methods\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\rpublicMethods\"Z\n" +
+	"\x0epublic_methods\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\rpublicMethods\x12E\n" +
+	"\vjwt_issuers\x18\x04 \x03(\v2$.malonaz.authentication.v1.JwtIssuerR\n" +
+	"jwtIssuers\"Z\n" +
 	"\x10JwtConfiguration\x12F\n" +
-	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\xdd\x02\n" +
+	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\xdb\x02\n" +
 	"\tJwtIssuer\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1e\n" +
 	"\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06issuer\x12\"\n" +
 	"\baudience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\baudience\x12!\n" +
-	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12\x83\x01\n" +
-	"\x1dlog_field_to_claims_json_path\x18\x05 \x03(\v2B.malonaz.authentication.v1.JwtIssuer.LogFieldToClaimsJsonPathEntryR\x18logFieldToClaimsJsonPath\x1aK\n" +
-	"\x1dLogFieldToClaimsJsonPathEntry\x12\x10\n" +
+	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12\x81\x01\n" +
+	"\x1bmethod_to_authorization_cel\x18\x06 \x03(\v2B.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntryR\x18methodToAuthorizationCel\x1aK\n" +
+	"\x1dMethodToAuthorizationCelEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"{\n" +
 	"\x1bServiceAccountConfiguration\x12\\\n" +
@@ -1589,9 +1627,10 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
 	"\bidentity\"\x13\n" +
-	"\x11AnonymousIdentity\">\n" +
-	"\vJwtIdentity\x12/\n" +
-	"\x06claims\x18\x01 \x01(\v2\x17.google.protobuf.StructR\x06claims\"\xb3\x01\n" +
+	"\x11AnonymousIdentity\"[\n" +
+	"\vJwtIdentity\x12\x1b\n" +
+	"\tissuer_id\x18\x01 \x01(\tR\bissuerId\x12/\n" +
+	"\x06claims\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x06claims\"\xb3\x01\n" +
 	"\x16ServiceAccountIdentity\x12,\n" +
 	"\x12service_account_id\x18\x01 \x01(\tR\x10serviceAccountId\x12k\n" +
 	"\x14service_account_type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
@@ -1630,7 +1669,7 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(*ServiceAccountIdentity)(nil),      // 11: malonaz.authentication.v1.ServiceAccountIdentity
 	(*SessionMetadata)(nil),             // 12: malonaz.authentication.v1.SessionMetadata
 	(*ClientVersion)(nil),               // 13: malonaz.authentication.v1.ClientVersion
-	nil,                                 // 14: malonaz.authentication.v1.JwtIssuer.LogFieldToClaimsJsonPathEntry
+	nil,                                 // 14: malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry
 	nil,                                 // 15: malonaz.authentication.v1.ServiceAccount.LabelsEntry
 	nil,                                 // 16: malonaz.authentication.v1.Session.LabelsEntry
 	(*timestamppb.Timestamp)(nil),       // 17: google.protobuf.Timestamp
@@ -1639,26 +1678,27 @@ var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
 	5,  // 0: malonaz.authentication.v1.PermissionConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
 	6,  // 1: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
-	3,  // 2: malonaz.authentication.v1.JwtConfiguration.issuers:type_name -> malonaz.authentication.v1.JwtIssuer
-	14, // 3: malonaz.authentication.v1.JwtIssuer.log_field_to_claims_json_path:type_name -> malonaz.authentication.v1.JwtIssuer.LogFieldToClaimsJsonPathEntry
-	5,  // 4: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
-	0,  // 5: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	15, // 6: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
-	8,  // 7: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
-	17, // 8: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
-	10, // 9: malonaz.authentication.v1.Session.jwt_identity:type_name -> malonaz.authentication.v1.JwtIdentity
-	11, // 10: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
-	9,  // 11: malonaz.authentication.v1.Session.anonymous_identity:type_name -> malonaz.authentication.v1.AnonymousIdentity
-	16, // 12: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
-	12, // 13: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
-	18, // 14: malonaz.authentication.v1.JwtIdentity.claims:type_name -> google.protobuf.Struct
-	0,  // 15: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	13, // 16: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	3,  // 2: malonaz.authentication.v1.PermissionConfiguration.jwt_issuers:type_name -> malonaz.authentication.v1.JwtIssuer
+	3,  // 3: malonaz.authentication.v1.JwtConfiguration.issuers:type_name -> malonaz.authentication.v1.JwtIssuer
+	14, // 4: malonaz.authentication.v1.JwtIssuer.method_to_authorization_cel:type_name -> malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry
+	5,  // 5: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
+	0,  // 6: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	15, // 7: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	8,  // 8: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
+	17, // 9: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	10, // 10: malonaz.authentication.v1.Session.jwt_identity:type_name -> malonaz.authentication.v1.JwtIdentity
+	11, // 11: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
+	9,  // 12: malonaz.authentication.v1.Session.anonymous_identity:type_name -> malonaz.authentication.v1.AnonymousIdentity
+	16, // 13: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
+	12, // 14: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
+	18, // 15: malonaz.authentication.v1.JwtIdentity.claims:type_name -> google.protobuf.Struct
+	0,  // 16: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	13, // 17: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_authentication_v1_authentication_proto_init() }

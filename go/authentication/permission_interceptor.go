@@ -27,6 +27,7 @@ type PermissionAuthenticationInterceptor struct {
 	sessionManager              *SessionManager
 	serviceAccountIDToMethodSet map[string]map[string]struct{}
 	publicMethodSet             map[string]struct{}
+	issuerIDToAuthorizer        map[string]*jwtAuthorizer
 }
 
 // compileWildcardPermission converts a glob-style permission pattern into a compiled regexp.
@@ -136,10 +137,21 @@ func NewPermissionAuthenticationInterceptor(
 		publicMethodSet[method] = struct{}{}
 	}
 
+	// Compile CEL authorizers per issuer.
+	issuerIDToAuthorizer := make(map[string]*jwtAuthorizer, len(configuration.GetJwtIssuers()))
+	for _, jwtIssuer := range configuration.GetJwtIssuers() {
+		authorizer, err := newJwtAuthorizer(jwtIssuer)
+		if err != nil {
+			return nil, err
+		}
+		issuerIDToAuthorizer[jwtIssuer.Id] = authorizer
+	}
+
 	return &PermissionAuthenticationInterceptor{
 		sessionManager:              sessionManager,
 		serviceAccountIDToMethodSet: serviceAccountIDToMethodSet,
 		publicMethodSet:             publicMethodSet,
+		issuerIDToAuthorizer:        issuerIDToAuthorizer,
 	}, nil
 }
 
@@ -178,7 +190,7 @@ func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticat
 	return permissions, nil
 }
 
-func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string) (context.Context, error) {
+func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, fullMethod string, request any) (context.Context, error) {
 	signedSession, err := getSignedSessionFromLocalContext(ctx)
 	if err != nil {
 		if !errors.Is(err, ErrSignedSessionNotFound) {
@@ -225,7 +237,21 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 	if _, ok := i.publicMethodSet[fullMethod]; !ok {
 		switch identity := session.GetIdentity().(type) {
 		case *authenticationpb.Session_JwtIdentity:
-			return nil, status.Errorf(codes.PermissionDenied, "JWT identity has no service account permissions for %q", fullMethod).Err()
+			issuerID := identity.JwtIdentity.GetIssuerId()
+			authorizer, ok := i.issuerIDToAuthorizer[issuerID]
+			if !ok {
+				return nil, status.Errorf(codes.Unauthenticated, "unknown issuer %q", issuerID).Err()
+			}
+			allowed, err := authorizer.authorize(fullMethod, identity.JwtIdentity.GetClaims(), request)
+			if err != nil {
+				if errors.Is(err, ErrMethodNotConfigured) {
+					return nil, status.Errorf(codes.PermissionDenied, "no authorization rule for %q", fullMethod).Err()
+				}
+				return nil, status.Errorf(codes.Internal, "evaluating authorization: %v", err).Err()
+			}
+			if !allowed {
+				return nil, status.Errorf(codes.PermissionDenied, "not authorized for %q", fullMethod).Err()
+			}
 		case *authenticationpb.Session_ServiceAccountIdentity:
 			serviceAccountID := identity.ServiceAccountIdentity.GetServiceAccountId()
 			methodSet, ok := i.serviceAccountIDToMethodSet[serviceAccountID]
@@ -255,7 +281,7 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 // Unary implements the authentication unary interceptor.
 func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		ctx, err := i.authenticate(ctx, info.FullMethod)
+		ctx, err := i.authenticate(ctx, info.FullMethod, request)
 		if err != nil {
 			return nil, err
 		}
@@ -267,7 +293,7 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 // Stream implements the authentication stream interceptor.
 func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx, err := i.authenticate(stream.Context(), info.FullMethod)
+		ctx, err := i.authenticate(stream.Context(), info.FullMethod, request)
 		if err != nil {
 			return err
 		}

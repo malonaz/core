@@ -35,6 +35,9 @@ message PermissionConfiguration {
   // List of RPC methods that can be accessed without authentication
   // (e.g., "/api.v1.AuthService/Login").
   repeated string public_methods = 3 [(buf.validate.field).repeated.unique = true];
+
+  // List of trusted JWT issuers.
+  repeated JwtIssuer jwt_issuers = 4;
 }
 
 // Configuration for JWT authentication.
@@ -53,9 +56,11 @@ message JwtIssuer {
   string audience = 3 [(buf.validate.field).required = true];
   // URL of the issuer's public key endpoint for token verification.
   string jwks_uri = 4 [(buf.validate.field).required = true];
-  // Mapping of log field name to JSON path into the claims struct.
-  // E.g., {"user_id": "sub", "org_id": "firebase.tenant", "email": "email"}.
-  map<string, string> log_field_to_claims_json_path = 5;
+  // Maps a full RPC method name to a CEL expression authorizing access.
+  // The expression has access to `claims` (the JWT claims) and `request`
+  // (the RPC request message). Must evaluate to a bool.
+  // E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
+  map<string, string> method_to_authorization_cel = 6;
 }
 
 // Configuration for service accounts.
@@ -189,8 +194,10 @@ message AnonymousIdentity {}
 
 // Identity derived from a verified JWT token.
 message JwtIdentity {
+  // The id of the issuer that minted this token.
+  string issuer_id = 1;
   // The verified claims from the JWT token.
-  google.protobuf.Struct claims = 1;
+  google.protobuf.Struct claims = 2;
 }
 
 // Identity of a service account

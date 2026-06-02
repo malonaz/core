@@ -258,8 +258,8 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 
 	case *authenticationpb.Session_JwtIdentity:
 		fields = append(fields, "session_type", "jwt")
-		for logField, value := range identity.JwtIdentity.LogFields {
-			fields = append(fields, logField, value)
+		for claim, value := range identity.JwtIdentity.GetClaims().AsMap() {
+			fields = append(fields, "claim."+claim, fmt.Sprintf("%v", value))
 		}
 
 	case *authenticationpb.Session_ServiceAccountIdentity:
