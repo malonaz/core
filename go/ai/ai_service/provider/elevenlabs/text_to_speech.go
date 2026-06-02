@@ -126,6 +126,7 @@ func (c *Client) TextToSpeechStream(
 
 	// Stream audio chunks
 	buffer := make([]byte, 4096)
+	var remainder []byte // carries a split 16-bit sample across reads
 	var totalDuration time.Duration
 	var chunkIndex uint32
 	for {
@@ -145,14 +146,23 @@ func (c *Client) TextToSpeechStream(
 			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
 		}
 
-		// Calculate audio duration for this chunk
-		chunkDuration, err := audio.CalculatePCMDuration(audioFormat, bytesRead)
+		// Prepend leftover byte so 16-bit samples never straddle a chunk.
+		data := append(remainder, buffer[:bytesRead]...)
+		remainder = nil
+		if len(data)%2 != 0 {
+			remainder = []byte{data[len(data)-1]}
+			data = data[:len(data)-1]
+		}
+		if len(data) == 0 {
+			continue
+		}
+
+		chunkDuration, err := audio.CalculatePCMDuration(audioFormat, len(data))
 		if err != nil {
 			return err
 		}
 		totalDuration += chunkDuration
 
-		// Create and send audio chunk
 		chunkIndex++
 		var captureTime *timestamppb.Timestamp
 		if chunkIndex == 1 {
@@ -162,9 +172,9 @@ func (c *Client) TextToSpeechStream(
 			Index:       chunkIndex,
 			CaptureTime: captureTime,
 			Duration:    durationpb.New(chunkDuration),
-			Data:        make([]byte, bytesRead),
+			Data:        make([]byte, len(data)),
 		}
-		copy(audioChunk.Data, buffer[:bytesRead])
+		copy(audioChunk.Data, data)
 
 		if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
 			Content: &aiservicepb.TextToSpeechStreamResponse_AudioChunk{
