@@ -12,6 +12,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -78,6 +79,7 @@ type PermissionConfiguration struct {
 	xxx_hidden_ServiceAccounts *[]*ServiceAccount     `protobuf:"bytes,1,rep,name=service_accounts,json=serviceAccounts,proto3"`
 	xxx_hidden_Roles           *[]*Role               `protobuf:"bytes,2,rep,name=roles,proto3"`
 	xxx_hidden_PublicMethods   []string               `protobuf:"bytes,3,rep,name=public_methods,json=publicMethods,proto3"`
+	xxx_hidden_JwtIssuers      *[]*JwtIssuer          `protobuf:"bytes,4,rep,name=jwt_issuers,json=jwtIssuers,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -132,6 +134,15 @@ func (x *PermissionConfiguration) GetPublicMethods() []string {
 	return nil
 }
 
+func (x *PermissionConfiguration) GetJwtIssuers() []*JwtIssuer {
+	if x != nil {
+		if x.xxx_hidden_JwtIssuers != nil {
+			return *x.xxx_hidden_JwtIssuers
+		}
+	}
+	return nil
+}
+
 func (x *PermissionConfiguration) SetServiceAccounts(v []*ServiceAccount) {
 	x.xxx_hidden_ServiceAccounts = &v
 }
@@ -142,6 +153,10 @@ func (x *PermissionConfiguration) SetRoles(v []*Role) {
 
 func (x *PermissionConfiguration) SetPublicMethods(v []string) {
 	x.xxx_hidden_PublicMethods = v
+}
+
+func (x *PermissionConfiguration) SetJwtIssuers(v []*JwtIssuer) {
+	x.xxx_hidden_JwtIssuers = &v
 }
 
 type PermissionConfiguration_builder struct {
@@ -156,6 +171,8 @@ type PermissionConfiguration_builder struct {
 	// List of RPC methods that can be accessed without authentication
 	// (e.g., "/api.v1.AuthService/Login").
 	PublicMethods []string
+	// List of trusted JWT issuers.
+	JwtIssuers []*JwtIssuer
 }
 
 func (b0 PermissionConfiguration_builder) Build() *PermissionConfiguration {
@@ -165,6 +182,208 @@ func (b0 PermissionConfiguration_builder) Build() *PermissionConfiguration {
 	x.xxx_hidden_ServiceAccounts = &b.ServiceAccounts
 	x.xxx_hidden_Roles = &b.Roles
 	x.xxx_hidden_PublicMethods = b.PublicMethods
+	x.xxx_hidden_JwtIssuers = &b.JwtIssuers
+	return m0
+}
+
+// Configuration for JWT authentication.
+type JwtConfiguration struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Issuers *[]*JwtIssuer          `protobuf:"bytes,1,rep,name=issuers,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *JwtConfiguration) Reset() {
+	*x = JwtConfiguration{}
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JwtConfiguration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JwtConfiguration) ProtoMessage() {}
+
+func (x *JwtConfiguration) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *JwtConfiguration) GetIssuers() []*JwtIssuer {
+	if x != nil {
+		if x.xxx_hidden_Issuers != nil {
+			return *x.xxx_hidden_Issuers
+		}
+	}
+	return nil
+}
+
+func (x *JwtConfiguration) SetIssuers(v []*JwtIssuer) {
+	x.xxx_hidden_Issuers = &v
+}
+
+type JwtConfiguration_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// List of trusted JWT issuers.
+	Issuers []*JwtIssuer
+}
+
+func (b0 JwtConfiguration_builder) Build() *JwtConfiguration {
+	m0 := &JwtConfiguration{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Issuers = &b.Issuers
+	return m0
+}
+
+// A trusted JWT issuer.
+type JwtIssuer struct {
+	state                               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3"`
+	xxx_hidden_Issuer                   string                 `protobuf:"bytes,2,opt,name=issuer,proto3"`
+	xxx_hidden_Audience                 string                 `protobuf:"bytes,3,opt,name=audience,proto3"`
+	xxx_hidden_JwksUri                  string                 `protobuf:"bytes,4,opt,name=jwks_uri,json=jwksUri,proto3"`
+	xxx_hidden_ClaimsRewriteCel         string                 `protobuf:"bytes,5,opt,name=claims_rewrite_cel,json=claimsRewriteCel,proto3"`
+	xxx_hidden_MethodToAuthorizationCel map[string]string      `protobuf:"bytes,6,rep,name=method_to_authorization_cel,json=methodToAuthorizationCel,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields                       protoimpl.UnknownFields
+	sizeCache                           protoimpl.SizeCache
+}
+
+func (x *JwtIssuer) Reset() {
+	*x = JwtIssuer{}
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JwtIssuer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JwtIssuer) ProtoMessage() {}
+
+func (x *JwtIssuer) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *JwtIssuer) GetId() string {
+	if x != nil {
+		return x.xxx_hidden_Id
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetIssuer() string {
+	if x != nil {
+		return x.xxx_hidden_Issuer
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetAudience() string {
+	if x != nil {
+		return x.xxx_hidden_Audience
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetJwksUri() string {
+	if x != nil {
+		return x.xxx_hidden_JwksUri
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetClaimsRewriteCel() string {
+	if x != nil {
+		return x.xxx_hidden_ClaimsRewriteCel
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetMethodToAuthorizationCel() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_MethodToAuthorizationCel
+	}
+	return nil
+}
+
+func (x *JwtIssuer) SetId(v string) {
+	x.xxx_hidden_Id = v
+}
+
+func (x *JwtIssuer) SetIssuer(v string) {
+	x.xxx_hidden_Issuer = v
+}
+
+func (x *JwtIssuer) SetAudience(v string) {
+	x.xxx_hidden_Audience = v
+}
+
+func (x *JwtIssuer) SetJwksUri(v string) {
+	x.xxx_hidden_JwksUri = v
+}
+
+func (x *JwtIssuer) SetClaimsRewriteCel(v string) {
+	x.xxx_hidden_ClaimsRewriteCel = v
+}
+
+func (x *JwtIssuer) SetMethodToAuthorizationCel(v map[string]string) {
+	x.xxx_hidden_MethodToAuthorizationCel = v
+}
+
+type JwtIssuer_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Unique identifier for this issuer.
+	Id string
+	// The expected `iss` claim value (e.g., "https://securetoken.google.com/my-project").
+	Issuer string
+	// The expected `aud` claim value.
+	Audience string
+	// URL of the issuer's public key endpoint for token verification.
+	JwksUri string
+	// CEL expression that rewrites the raw JWT claims into a normalized map.
+	// Has access to `claims` (the raw JWT claims). Must evaluate to a map.
+	// The result replaces the claims stored on the session.
+	// E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
+	ClaimsRewriteCel string
+	// Maps a full RPC method name to a CEL expression authorizing access.
+	// The expression has access to `claims` (the JWT claims) and `request`
+	// (the RPC request message). Must evaluate to a bool.
+	// E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
+	MethodToAuthorizationCel map[string]string
+}
+
+func (b0 JwtIssuer_builder) Build() *JwtIssuer {
+	m0 := &JwtIssuer{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Issuer = b.Issuer
+	x.xxx_hidden_Audience = b.Audience
+	x.xxx_hidden_JwksUri = b.JwksUri
+	x.xxx_hidden_ClaimsRewriteCel = b.ClaimsRewriteCel
+	x.xxx_hidden_MethodToAuthorizationCel = b.MethodToAuthorizationCel
 	return m0
 }
 
@@ -178,7 +397,7 @@ type ServiceAccountConfiguration struct {
 
 func (x *ServiceAccountConfiguration) Reset() {
 	*x = ServiceAccountConfiguration{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[1]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -190,7 +409,7 @@ func (x *ServiceAccountConfiguration) String() string {
 func (*ServiceAccountConfiguration) ProtoMessage() {}
 
 func (x *ServiceAccountConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[1]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -245,7 +464,7 @@ type ServiceAccount struct {
 
 func (x *ServiceAccount) Reset() {
 	*x = ServiceAccount{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[2]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +476,7 @@ func (x *ServiceAccount) String() string {
 func (*ServiceAccount) ProtoMessage() {}
 
 func (x *ServiceAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[2]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +584,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -377,7 +596,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +690,7 @@ type SignedSession struct {
 
 func (x *SignedSession) Reset() {
 	*x = SignedSession{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -483,7 +702,7 @@ func (x *SignedSession) String() string {
 func (*SignedSession) ProtoMessage() {}
 
 func (x *SignedSession) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +783,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[5]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -576,7 +795,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[5]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -601,10 +820,10 @@ func (x *Session) GetCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Session) GetUserIdentity() *UserIdentity {
+func (x *Session) GetJwtIdentity() *JwtIdentity {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Identity.(*session_UserIdentity); ok {
-			return x.UserIdentity
+		if x, ok := x.xxx_hidden_Identity.(*session_JwtIdentity); ok {
+			return x.JwtIdentity
 		}
 	}
 	return nil
@@ -657,12 +876,12 @@ func (x *Session) SetCreateTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_CreateTime = v
 }
 
-func (x *Session) SetUserIdentity(v *UserIdentity) {
+func (x *Session) SetJwtIdentity(v *JwtIdentity) {
 	if v == nil {
 		x.xxx_hidden_Identity = nil
 		return
 	}
-	x.xxx_hidden_Identity = &session_UserIdentity{v}
+	x.xxx_hidden_Identity = &session_JwtIdentity{v}
 }
 
 func (x *Session) SetServiceAccountIdentity(v *ServiceAccountIdentity) {
@@ -707,11 +926,11 @@ func (x *Session) HasIdentity() bool {
 	return x.xxx_hidden_Identity != nil
 }
 
-func (x *Session) HasUserIdentity() bool {
+func (x *Session) HasJwtIdentity() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Identity.(*session_UserIdentity)
+	_, ok := x.xxx_hidden_Identity.(*session_JwtIdentity)
 	return ok
 }
 
@@ -746,8 +965,8 @@ func (x *Session) ClearIdentity() {
 	x.xxx_hidden_Identity = nil
 }
 
-func (x *Session) ClearUserIdentity() {
-	if _, ok := x.xxx_hidden_Identity.(*session_UserIdentity); ok {
+func (x *Session) ClearJwtIdentity() {
+	if _, ok := x.xxx_hidden_Identity.(*session_JwtIdentity); ok {
 		x.xxx_hidden_Identity = nil
 	}
 }
@@ -769,7 +988,7 @@ func (x *Session) ClearMetadata() {
 }
 
 const Session_Identity_not_set_case case_Session_Identity = 0
-const Session_UserIdentity_case case_Session_Identity = 3
+const Session_JwtIdentity_case case_Session_Identity = 3
 const Session_ServiceAccountIdentity_case case_Session_Identity = 4
 const Session_AnonymousIdentity_case case_Session_Identity = 8
 
@@ -778,8 +997,8 @@ func (x *Session) WhichIdentity() case_Session_Identity {
 		return Session_Identity_not_set_case
 	}
 	switch x.xxx_hidden_Identity.(type) {
-	case *session_UserIdentity:
-		return Session_UserIdentity_case
+	case *session_JwtIdentity:
+		return Session_JwtIdentity_case
 	case *session_ServiceAccountIdentity:
 		return Session_ServiceAccountIdentity_case
 	case *session_AnonymousIdentity:
@@ -796,14 +1015,14 @@ type Session_builder struct {
 	Id string
 	// Time at which this session was created.
 	CreateTime *timestamppb.Timestamp
-	// Identity that owns this session (mutually exclusive)
+	// Identity that owns this session.
 
 	// Fields of oneof xxx_hidden_Identity:
-	// Human user identity
-	UserIdentity *UserIdentity
-	// Service account identity for programmatic access
+	// Human user identity.
+	JwtIdentity *JwtIdentity
+	// Service account identity for programmatic access.
 	ServiceAccountIdentity *ServiceAccountIdentity
-	// Anonymous identity for public method access
+	// Anonymous identity for public method access.
 	AnonymousIdentity *AnonymousIdentity
 	// -- end of xxx_hidden_Identity
 	// An authorized session does not get checked again method permissions.
@@ -825,8 +1044,8 @@ func (b0 Session_builder) Build() *Session {
 	_, _ = b, x
 	x.xxx_hidden_Id = b.Id
 	x.xxx_hidden_CreateTime = b.CreateTime
-	if b.UserIdentity != nil {
-		x.xxx_hidden_Identity = &session_UserIdentity{b.UserIdentity}
+	if b.JwtIdentity != nil {
+		x.xxx_hidden_Identity = &session_JwtIdentity{b.JwtIdentity}
 	}
 	if b.ServiceAccountIdentity != nil {
 		x.xxx_hidden_Identity = &session_ServiceAccountIdentity{b.ServiceAccountIdentity}
@@ -843,7 +1062,7 @@ func (b0 Session_builder) Build() *Session {
 type case_Session_Identity protoreflect.FieldNumber
 
 func (x case_Session_Identity) String() string {
-	md := file_malonaz_authentication_v1_authentication_proto_msgTypes[5].Descriptor()
+	md := file_malonaz_authentication_v1_authentication_proto_msgTypes[7].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -854,22 +1073,22 @@ type isSession_Identity interface {
 	isSession_Identity()
 }
 
-type session_UserIdentity struct {
-	// Human user identity
-	UserIdentity *UserIdentity `protobuf:"bytes,3,opt,name=user_identity,json=userIdentity,proto3,oneof"`
+type session_JwtIdentity struct {
+	// Human user identity.
+	JwtIdentity *JwtIdentity `protobuf:"bytes,3,opt,name=jwt_identity,json=jwtIdentity,proto3,oneof"`
 }
 
 type session_ServiceAccountIdentity struct {
-	// Service account identity for programmatic access
+	// Service account identity for programmatic access.
 	ServiceAccountIdentity *ServiceAccountIdentity `protobuf:"bytes,4,opt,name=service_account_identity,json=serviceAccountIdentity,proto3,oneof"`
 }
 
 type session_AnonymousIdentity struct {
-	// Anonymous identity for public method access
+	// Anonymous identity for public method access.
 	AnonymousIdentity *AnonymousIdentity `protobuf:"bytes,8,opt,name=anonymous_identity,json=anonymousIdentity,proto3,oneof"`
 }
 
-func (*session_UserIdentity) isSession_Identity() {}
+func (*session_JwtIdentity) isSession_Identity() {}
 
 func (*session_ServiceAccountIdentity) isSession_Identity() {}
 
@@ -884,7 +1103,7 @@ type AnonymousIdentity struct {
 
 func (x *AnonymousIdentity) Reset() {
 	*x = AnonymousIdentity{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +1115,7 @@ func (x *AnonymousIdentity) String() string {
 func (*AnonymousIdentity) ProtoMessage() {}
 
 func (x *AnonymousIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[6]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -919,30 +1138,30 @@ func (b0 AnonymousIdentity_builder) Build() *AnonymousIdentity {
 	return m0
 }
 
-// Identity of a human user
-type UserIdentity struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_OrganizationId string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3"`
-	xxx_hidden_UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+// Identity derived from a verified JWT token.
+type JwtIdentity struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_IssuerId string                 `protobuf:"bytes,1,opt,name=issuer_id,json=issuerId,proto3"`
+	xxx_hidden_Claims   *structpb.Struct       `protobuf:"bytes,2,opt,name=claims,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
-func (x *UserIdentity) Reset() {
-	*x = UserIdentity{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
+func (x *JwtIdentity) Reset() {
+	*x = JwtIdentity{}
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UserIdentity) String() string {
+func (x *JwtIdentity) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserIdentity) ProtoMessage() {}
+func (*JwtIdentity) ProtoMessage() {}
 
-func (x *UserIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[7]
+func (x *JwtIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,43 +1172,54 @@ func (x *UserIdentity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UserIdentity) GetOrganizationId() string {
+func (x *JwtIdentity) GetIssuerId() string {
 	if x != nil {
-		return x.xxx_hidden_OrganizationId
+		return x.xxx_hidden_IssuerId
 	}
 	return ""
 }
 
-func (x *UserIdentity) GetUserId() string {
+func (x *JwtIdentity) GetClaims() *structpb.Struct {
 	if x != nil {
-		return x.xxx_hidden_UserId
+		return x.xxx_hidden_Claims
 	}
-	return ""
+	return nil
 }
 
-func (x *UserIdentity) SetOrganizationId(v string) {
-	x.xxx_hidden_OrganizationId = v
+func (x *JwtIdentity) SetIssuerId(v string) {
+	x.xxx_hidden_IssuerId = v
 }
 
-func (x *UserIdentity) SetUserId(v string) {
-	x.xxx_hidden_UserId = v
+func (x *JwtIdentity) SetClaims(v *structpb.Struct) {
+	x.xxx_hidden_Claims = v
 }
 
-type UserIdentity_builder struct {
+func (x *JwtIdentity) HasClaims() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Claims != nil
+}
+
+func (x *JwtIdentity) ClearClaims() {
+	x.xxx_hidden_Claims = nil
+}
+
+type JwtIdentity_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The id of the organization the user belongs to.
-	OrganizationId string
-	// A unique idenfier for this user.
-	UserId string
+	// The id of the issuer that minted this token.
+	IssuerId string
+	// The verified claims from the JWT token.
+	Claims *structpb.Struct
 }
 
-func (b0 UserIdentity_builder) Build() *UserIdentity {
-	m0 := &UserIdentity{}
+func (b0 JwtIdentity_builder) Build() *JwtIdentity {
+	m0 := &JwtIdentity{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_OrganizationId = b.OrganizationId
-	x.xxx_hidden_UserId = b.UserId
+	x.xxx_hidden_IssuerId = b.IssuerId
+	x.xxx_hidden_Claims = b.Claims
 	return m0
 }
 
@@ -1004,7 +1234,7 @@ type ServiceAccountIdentity struct {
 
 func (x *ServiceAccountIdentity) Reset() {
 	*x = ServiceAccountIdentity{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1016,7 +1246,7 @@ func (x *ServiceAccountIdentity) String() string {
 func (*ServiceAccountIdentity) ProtoMessage() {}
 
 func (x *ServiceAccountIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[8]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1082,7 +1312,7 @@ type SessionMetadata struct {
 
 func (x *SessionMetadata) Reset() {
 	*x = SessionMetadata{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1094,7 +1324,7 @@ func (x *SessionMetadata) String() string {
 func (*SessionMetadata) ProtoMessage() {}
 
 func (x *SessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[9]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1214,7 +1444,7 @@ type ClientVersion struct {
 
 func (x *ClientVersion) Reset() {
 	*x = ClientVersion{}
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1226,7 +1456,7 @@ func (x *ClientVersion) String() string {
 func (*ClientVersion) ProtoMessage() {}
 
 func (x *ClientVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[10]
+	mi := &file_malonaz_authentication_v1_authentication_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1295,13 +1525,27 @@ var File_malonaz_authentication_v1_authentication_proto protoreflect.FileDescrip
 
 const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\n" +
-	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x93\x03\n" +
+	".malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xda\x03\n" +
 	"\x17PermissionConfiguration\x12\xbd\x01\n" +
 	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountBg\xbaHd\xba\x01^\n" +
 	"\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1cthis.map(sa, sa.id).unique()\xc8\x01\x01R\x0fserviceAccounts\x12\x86\x01\n" +
 	"\x05roles\x18\x02 \x03(\v2\x1f.malonaz.authentication.v1.RoleBO\xbaHL\xba\x01F\n" +
 	"\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\xc8\x01\x01R\x05roles\x12/\n" +
-	"\x0epublic_methods\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\rpublicMethods\"{\n" +
+	"\x0epublic_methods\x18\x03 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\rpublicMethods\x12E\n" +
+	"\vjwt_issuers\x18\x04 \x03(\v2$.malonaz.authentication.v1.JwtIssuerR\n" +
+	"jwtIssuers\"Z\n" +
+	"\x10JwtConfiguration\x12F\n" +
+	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\x89\x03\n" +
+	"\tJwtIssuer\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1e\n" +
+	"\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06issuer\x12\"\n" +
+	"\baudience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\baudience\x12!\n" +
+	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12,\n" +
+	"\x12claims_rewrite_cel\x18\x05 \x01(\tR\x10claimsRewriteCel\x12\x81\x01\n" +
+	"\x1bmethod_to_authorization_cel\x18\x06 \x03(\v2B.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntryR\x18methodToAuthorizationCel\x1aK\n" +
+	"\x1dMethodToAuthorizationCelEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"{\n" +
 	"\x1bServiceAccountConfiguration\x12\\\n" +
 	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceAccounts\"\xe1\x03\n" +
 	"\x0eServiceAccount\x12\x16\n" +
@@ -1321,12 +1565,12 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x05scope\x18\x04 \x01(\tR\x05scope\"k\n" +
 	"\rSignedSession\x12<\n" +
 	"\asession\x18\x01 \x01(\v2\".malonaz.authentication.v1.SessionR\asession\x12\x1c\n" +
-	"\tsignature\x18\x02 \x01(\fR\tsignature\"\xfa\x05\n" +
+	"\tsignature\x18\x02 \x01(\fR\tsignature\"\xf7\x05\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"createTime\x12N\n" +
-	"\ruser_identity\x18\x03 \x01(\v2'.malonaz.authentication.v1.UserIdentityH\x00R\fuserIdentity\x12m\n" +
+	"createTime\x12K\n" +
+	"\fjwt_identity\x18\x03 \x01(\v2&.malonaz.authentication.v1.JwtIdentityH\x00R\vjwtIdentity\x12m\n" +
 	"\x18service_account_identity\x18\x04 \x01(\v21.malonaz.authentication.v1.ServiceAccountIdentityH\x00R\x16serviceAccountIdentity\x12]\n" +
 	"\x12anonymous_identity\x18\b \x01(\v2,.malonaz.authentication.v1.AnonymousIdentityH\x00R\x11anonymousIdentity\x12\x1e\n" +
 	"\n" +
@@ -1339,10 +1583,10 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
 	"\bidentity\"\x13\n" +
-	"\x11AnonymousIdentity\"P\n" +
-	"\fUserIdentity\x12'\n" +
-	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xb3\x01\n" +
+	"\x11AnonymousIdentity\"[\n" +
+	"\vJwtIdentity\x12\x1b\n" +
+	"\tissuer_id\x18\x01 \x01(\tR\bissuerId\x12/\n" +
+	"\x06claims\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x06claims\"\xb3\x01\n" +
 	"\x16ServiceAccountIdentity\x12,\n" +
 	"\x12service_account_id\x18\x01 \x01(\tR\x10serviceAccountId\x12k\n" +
 	"\x14service_account_type\x18\x02 \x01(\x0e2-.malonaz.authentication.v1.ServiceAccountTypeB\n" +
@@ -1365,44 +1609,52 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"%SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE\x10\x02B4Z2github.com/malonaz/core/genproto/authentication/v1b\x06proto3"
 
 var file_malonaz_authentication_v1_authentication_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_malonaz_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_malonaz_authentication_v1_authentication_proto_goTypes = []any{
 	(ServiceAccountType)(0),             // 0: malonaz.authentication.v1.ServiceAccountType
 	(*PermissionConfiguration)(nil),     // 1: malonaz.authentication.v1.PermissionConfiguration
-	(*ServiceAccountConfiguration)(nil), // 2: malonaz.authentication.v1.ServiceAccountConfiguration
-	(*ServiceAccount)(nil),              // 3: malonaz.authentication.v1.ServiceAccount
-	(*Role)(nil),                        // 4: malonaz.authentication.v1.Role
-	(*SignedSession)(nil),               // 5: malonaz.authentication.v1.SignedSession
-	(*Session)(nil),                     // 6: malonaz.authentication.v1.Session
-	(*AnonymousIdentity)(nil),           // 7: malonaz.authentication.v1.AnonymousIdentity
-	(*UserIdentity)(nil),                // 8: malonaz.authentication.v1.UserIdentity
-	(*ServiceAccountIdentity)(nil),      // 9: malonaz.authentication.v1.ServiceAccountIdentity
-	(*SessionMetadata)(nil),             // 10: malonaz.authentication.v1.SessionMetadata
-	(*ClientVersion)(nil),               // 11: malonaz.authentication.v1.ClientVersion
-	nil,                                 // 12: malonaz.authentication.v1.ServiceAccount.LabelsEntry
-	nil,                                 // 13: malonaz.authentication.v1.Session.LabelsEntry
-	(*timestamppb.Timestamp)(nil),       // 14: google.protobuf.Timestamp
+	(*JwtConfiguration)(nil),            // 2: malonaz.authentication.v1.JwtConfiguration
+	(*JwtIssuer)(nil),                   // 3: malonaz.authentication.v1.JwtIssuer
+	(*ServiceAccountConfiguration)(nil), // 4: malonaz.authentication.v1.ServiceAccountConfiguration
+	(*ServiceAccount)(nil),              // 5: malonaz.authentication.v1.ServiceAccount
+	(*Role)(nil),                        // 6: malonaz.authentication.v1.Role
+	(*SignedSession)(nil),               // 7: malonaz.authentication.v1.SignedSession
+	(*Session)(nil),                     // 8: malonaz.authentication.v1.Session
+	(*AnonymousIdentity)(nil),           // 9: malonaz.authentication.v1.AnonymousIdentity
+	(*JwtIdentity)(nil),                 // 10: malonaz.authentication.v1.JwtIdentity
+	(*ServiceAccountIdentity)(nil),      // 11: malonaz.authentication.v1.ServiceAccountIdentity
+	(*SessionMetadata)(nil),             // 12: malonaz.authentication.v1.SessionMetadata
+	(*ClientVersion)(nil),               // 13: malonaz.authentication.v1.ClientVersion
+	nil,                                 // 14: malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry
+	nil,                                 // 15: malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	nil,                                 // 16: malonaz.authentication.v1.Session.LabelsEntry
+	(*timestamppb.Timestamp)(nil),       // 17: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),             // 18: google.protobuf.Struct
 }
 var file_malonaz_authentication_v1_authentication_proto_depIdxs = []int32{
-	3,  // 0: malonaz.authentication.v1.PermissionConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
-	4,  // 1: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
-	3,  // 2: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
-	0,  // 3: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	12, // 4: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
-	6,  // 5: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
-	14, // 6: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
-	8,  // 7: malonaz.authentication.v1.Session.user_identity:type_name -> malonaz.authentication.v1.UserIdentity
-	9,  // 8: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
-	7,  // 9: malonaz.authentication.v1.Session.anonymous_identity:type_name -> malonaz.authentication.v1.AnonymousIdentity
-	13, // 10: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
-	10, // 11: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
-	0,  // 12: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
-	11, // 13: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	5,  // 0: malonaz.authentication.v1.PermissionConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
+	6,  // 1: malonaz.authentication.v1.PermissionConfiguration.roles:type_name -> malonaz.authentication.v1.Role
+	3,  // 2: malonaz.authentication.v1.PermissionConfiguration.jwt_issuers:type_name -> malonaz.authentication.v1.JwtIssuer
+	3,  // 3: malonaz.authentication.v1.JwtConfiguration.issuers:type_name -> malonaz.authentication.v1.JwtIssuer
+	14, // 4: malonaz.authentication.v1.JwtIssuer.method_to_authorization_cel:type_name -> malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry
+	5,  // 5: malonaz.authentication.v1.ServiceAccountConfiguration.service_accounts:type_name -> malonaz.authentication.v1.ServiceAccount
+	0,  // 6: malonaz.authentication.v1.ServiceAccount.type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	15, // 7: malonaz.authentication.v1.ServiceAccount.labels:type_name -> malonaz.authentication.v1.ServiceAccount.LabelsEntry
+	8,  // 8: malonaz.authentication.v1.SignedSession.session:type_name -> malonaz.authentication.v1.Session
+	17, // 9: malonaz.authentication.v1.Session.create_time:type_name -> google.protobuf.Timestamp
+	10, // 10: malonaz.authentication.v1.Session.jwt_identity:type_name -> malonaz.authentication.v1.JwtIdentity
+	11, // 11: malonaz.authentication.v1.Session.service_account_identity:type_name -> malonaz.authentication.v1.ServiceAccountIdentity
+	9,  // 12: malonaz.authentication.v1.Session.anonymous_identity:type_name -> malonaz.authentication.v1.AnonymousIdentity
+	16, // 13: malonaz.authentication.v1.Session.labels:type_name -> malonaz.authentication.v1.Session.LabelsEntry
+	12, // 14: malonaz.authentication.v1.Session.metadata:type_name -> malonaz.authentication.v1.SessionMetadata
+	18, // 15: malonaz.authentication.v1.JwtIdentity.claims:type_name -> google.protobuf.Struct
+	0,  // 16: malonaz.authentication.v1.ServiceAccountIdentity.service_account_type:type_name -> malonaz.authentication.v1.ServiceAccountType
+	13, // 17: malonaz.authentication.v1.SessionMetadata.client_version:type_name -> malonaz.authentication.v1.ClientVersion
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_authentication_v1_authentication_proto_init() }
@@ -1410,8 +1662,8 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 	if File_malonaz_authentication_v1_authentication_proto != nil {
 		return
 	}
-	file_malonaz_authentication_v1_authentication_proto_msgTypes[5].OneofWrappers = []any{
-		(*session_UserIdentity)(nil),
+	file_malonaz_authentication_v1_authentication_proto_msgTypes[7].OneofWrappers = []any{
+		(*session_JwtIdentity)(nil),
 		(*session_ServiceAccountIdentity)(nil),
 		(*session_AnonymousIdentity)(nil),
 	}
@@ -1421,7 +1673,7 @@ func file_malonaz_authentication_v1_authentication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_authentication_v1_authentication_proto_rawDesc), len(file_malonaz_authentication_v1_authentication_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
