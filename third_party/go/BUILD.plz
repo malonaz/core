@@ -3625,6 +3625,21 @@ go_module(
 )
 
 go_module(
+    name = "github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__auth",
+    download = ":_github.com__grpc-ecosystem__go-grpc-middleware__v2#download",
+    install = ["interceptors/auth"],
+    module = "github.com/grpc-ecosystem/go-grpc-middleware/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__metadata",
+        ":google.golang.org__grpc__status",
+        "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
+    ],
+)
+
+go_module(
     name = "github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__logging",
     download = ":_github.com__grpc-ecosystem__go-grpc-middleware__v2#download",
     install = ["interceptors/logging"],

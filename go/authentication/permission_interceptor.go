@@ -293,7 +293,7 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 // Stream implements the authentication stream interceptor.
 func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx, err := i.authenticate(stream.Context(), info.FullMethod, request)
+		ctx, err := i.authenticate(stream.Context(), info.FullMethod, nil)
 		if err != nil {
 			return err
 		}

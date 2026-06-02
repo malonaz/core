@@ -254,6 +254,7 @@ type JwtIssuer struct {
 	xxx_hidden_Issuer                   string                 `protobuf:"bytes,2,opt,name=issuer,proto3"`
 	xxx_hidden_Audience                 string                 `protobuf:"bytes,3,opt,name=audience,proto3"`
 	xxx_hidden_JwksUri                  string                 `protobuf:"bytes,4,opt,name=jwks_uri,json=jwksUri,proto3"`
+	xxx_hidden_ClaimsRewriteCel         string                 `protobuf:"bytes,5,opt,name=claims_rewrite_cel,json=claimsRewriteCel,proto3"`
 	xxx_hidden_MethodToAuthorizationCel map[string]string      `protobuf:"bytes,6,rep,name=method_to_authorization_cel,json=methodToAuthorizationCel,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields                       protoimpl.UnknownFields
 	sizeCache                           protoimpl.SizeCache
@@ -312,6 +313,13 @@ func (x *JwtIssuer) GetJwksUri() string {
 	return ""
 }
 
+func (x *JwtIssuer) GetClaimsRewriteCel() string {
+	if x != nil {
+		return x.xxx_hidden_ClaimsRewriteCel
+	}
+	return ""
+}
+
 func (x *JwtIssuer) GetMethodToAuthorizationCel() map[string]string {
 	if x != nil {
 		return x.xxx_hidden_MethodToAuthorizationCel
@@ -335,6 +343,10 @@ func (x *JwtIssuer) SetJwksUri(v string) {
 	x.xxx_hidden_JwksUri = v
 }
 
+func (x *JwtIssuer) SetClaimsRewriteCel(v string) {
+	x.xxx_hidden_ClaimsRewriteCel = v
+}
+
 func (x *JwtIssuer) SetMethodToAuthorizationCel(v map[string]string) {
 	x.xxx_hidden_MethodToAuthorizationCel = v
 }
@@ -350,6 +362,11 @@ type JwtIssuer_builder struct {
 	Audience string
 	// URL of the issuer's public key endpoint for token verification.
 	JwksUri string
+	// CEL expression that rewrites the raw JWT claims into a normalized map.
+	// Has access to `claims` (the raw JWT claims). Must evaluate to a map.
+	// The result replaces the claims stored on the session.
+	// E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
+	ClaimsRewriteCel string
 	// Maps a full RPC method name to a CEL expression authorizing access.
 	// The expression has access to `claims` (the JWT claims) and `request`
 	// (the RPC request message). Must evaluate to a bool.
@@ -365,6 +382,7 @@ func (b0 JwtIssuer_builder) Build() *JwtIssuer {
 	x.xxx_hidden_Issuer = b.Issuer
 	x.xxx_hidden_Audience = b.Audience
 	x.xxx_hidden_JwksUri = b.JwksUri
+	x.xxx_hidden_ClaimsRewriteCel = b.ClaimsRewriteCel
 	x.xxx_hidden_MethodToAuthorizationCel = b.MethodToAuthorizationCel
 	return m0
 }
@@ -1517,12 +1535,13 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\vjwt_issuers\x18\x04 \x03(\v2$.malonaz.authentication.v1.JwtIssuerR\n" +
 	"jwtIssuers\"Z\n" +
 	"\x10JwtConfiguration\x12F\n" +
-	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\xdb\x02\n" +
+	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\x89\x03\n" +
 	"\tJwtIssuer\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1e\n" +
 	"\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06issuer\x12\"\n" +
 	"\baudience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\baudience\x12!\n" +
-	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12\x81\x01\n" +
+	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12,\n" +
+	"\x12claims_rewrite_cel\x18\x05 \x01(\tR\x10claimsRewriteCel\x12\x81\x01\n" +
 	"\x1bmethod_to_authorization_cel\x18\x06 \x03(\v2B.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntryR\x18methodToAuthorizationCel\x1aK\n" +
 	"\x1dMethodToAuthorizationCelEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

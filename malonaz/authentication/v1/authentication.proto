@@ -56,6 +56,11 @@ message JwtIssuer {
   string audience = 3 [(buf.validate.field).required = true];
   // URL of the issuer's public key endpoint for token verification.
   string jwks_uri = 4 [(buf.validate.field).required = true];
+  // CEL expression that rewrites the raw JWT claims into a normalized map.
+  // Has access to `claims` (the raw JWT claims). Must evaluate to a map.
+  // The result replaces the claims stored on the session.
+  // E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
+  string claims_rewrite_cel = 5;
   // Maps a full RPC method name to a CEL expression authorizing access.
   // The expression has access to `claims` (the JWT claims) and `request`
   // (the RPC request message). Must evaluate to a bool.

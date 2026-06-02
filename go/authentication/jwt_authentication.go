@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/cel-go/cel"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -23,13 +24,13 @@ import (
 )
 
 type JwtAuthenticationInterceptorOpts struct {
-	MetadataHeader string `long:"metadata-header" env:"METADATA_HEADER" description:"The header for JWT authentication" default:"authorization"`
-	Config         string `long:"config" env:"CONFIG" description:"Path to the JWT authentication configuration file" required:"true"`
+	Config string `long:"config" env:"CONFIG" description:"Path to the JWT authentication configuration file" required:"true"`
 }
 
 type jwtIssuer struct {
-	config   *authenticationpb.JwtIssuer
-	keyCache *jwk.Cache
+	config               *authenticationpb.JwtIssuer
+	keyCache             *jwk.Cache
+	claimsRewriteProgram cel.Program // nil if no rewrite configured
 }
 
 type JwtAuthenticationInterceptor struct {
@@ -58,9 +59,26 @@ func NewJwtAuthenticationInterceptor(
 		if _, err := keyCache.Refresh(ctx, issuerConfig.JwksUri); err != nil {
 			return nil, fmt.Errorf("fetching JWKS from %q for issuer %q: %w", issuerConfig.JwksUri, issuerConfig.Id, err)
 		}
+
+		var claimsRewriteProgram cel.Program
+		if issuerConfig.GetClaimsRewriteCel() != "" {
+			environment, err := cel.NewEnv(cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)))
+			if err != nil {
+				return nil, fmt.Errorf("creating CEL environment for issuer %q: %w", issuerConfig.Id, err)
+			}
+			ast, issues := environment.Compile(issuerConfig.ClaimsRewriteCel)
+			if issues != nil && issues.Err() != nil {
+				return nil, fmt.Errorf("compiling claims rewrite CEL for issuer %q: %w", issuerConfig.Id, issues.Err())
+			}
+			claimsRewriteProgram, err = environment.Program(ast)
+			if err != nil {
+				return nil, fmt.Errorf("building claims rewrite CEL program for issuer %q: %w", issuerConfig.Id, err)
+			}
+		}
 		issuerToJwtIssuer[issuerConfig.Issuer] = &jwtIssuer{
-			config:   issuerConfig,
-			keyCache: keyCache,
+			config:               issuerConfig,
+			keyCache:             keyCache,
+			claimsRewriteProgram: claimsRewriteProgram,
 		}
 	}
 
@@ -72,21 +90,16 @@ func NewJwtAuthenticationInterceptor(
 }
 
 func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (context.Context, error) {
-	values := metadata.ValueFromIncomingContext(ctx, i.opts.MetadataHeader)
-	if len(values) == 0 {
-		return ctx, nil
+	rawToken, err := grpc_auth.AuthFromMD(ctx, "bearer")
+	if err != nil {
+		// No/invalid bearer token; defer to other authentication methods.
+		if status.HasCode(err, codes.Unauthenticated) {
+			return ctx, nil
+		}
+		return nil, err
 	}
-	if len(values) != 1 {
-		return nil, status.Errorf(codes.Unauthenticated, "expected 1 authorization header, got %d", len(values)).Err()
-	}
-
-	bearerToken := values[0]
-	if !strings.HasPrefix(bearerToken, "Bearer ") {
-		return nil, status.Errorf(codes.Unauthenticated, "authorization header must start with 'Bearer '").Err()
-	}
-	rawToken := strings.TrimPrefix(bearerToken, "Bearer ")
 	if rawToken == "" {
-		return nil, status.Errorf(codes.Unauthenticated, "empty bearer token").Err()
+		return ctx, nil
 	}
 
 	// Parse without verification first to extract the issuer.
@@ -100,13 +113,11 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return nil, status.Errorf(codes.Unauthenticated, "untrusted issuer %q", unverifiedToken.Issuer()).Err()
 	}
 
-	// Fetch the key set from cache.
 	keySet, err := jwtIssuer.keyCache.Get(ctx, jwtIssuer.config.JwksUri)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "fetching JWKS: %v", err).Err()
 	}
 
-	// Parse and verify the token.
 	verifiedToken, err := jwt.Parse([]byte(rawToken),
 		jwt.WithKeySet(keySet),
 		jwt.WithIssuer(jwtIssuer.config.Issuer),
@@ -116,7 +127,6 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return nil, status.Errorf(codes.Unauthenticated, "verifying JWT: %v", err).Err()
 	}
 
-	// Convert claims to structpb.
 	claimsMap, err := verifiedToken.AsMap(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting JWT claims to map: %v", err).Err()
@@ -124,6 +134,21 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 	claims, err := structpb.NewStruct(claimsMap)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting claims to struct: %v", err).Err()
+	}
+
+	if jwtIssuer.claimsRewriteProgram != nil {
+		output, _, err := jwtIssuer.claimsRewriteProgram.Eval(map[string]any{"claims": claims.AsMap()})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "rewriting claims: %v", err).Err()
+		}
+		rewrittenMap, ok := output.Value().(map[string]any)
+		if !ok {
+			return nil, status.Errorf(codes.Internal, "claims rewrite CEL did not return a map").Err()
+		}
+		claims, err = structpb.NewStruct(rewrittenMap)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting rewritten claims to struct: %v", err).Err()
+		}
 	}
 
 	sessionMetadata, err := extractSessionMetadataFromContext(ctx)
@@ -147,7 +172,7 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return nil, status.Errorf(codes.Internal, "signing session: %v", err).Err()
 	}
 
-	ctx = removeFromIncomingContext(ctx, i.opts.MetadataHeader)
+	ctx = removeFromIncomingContext(ctx, "authorization")
 
 	isUpdate := false
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)

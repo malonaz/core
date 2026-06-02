@@ -246,6 +246,7 @@
         "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors",
+        "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__auth",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__logging",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__protovalidate",
         "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery": "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__recovery",

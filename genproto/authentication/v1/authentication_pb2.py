@@ -27,7 +27,7 @@ from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n.malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x03\n\x17PermissionConfiguration\x12\xac\x01\n\x10service_accounts\x18\x01 \x03(\x0b\x32).malonaz.authentication.v1.ServiceAccountBg\xbaHd\xba\x01^\n\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1cthis.map(sa, sa.id).unique()\xc8\x01\x01\x12\x7f\n\x05roles\x18\x02 \x03(\x0b\x32\x1f.malonaz.authentication.v1.RoleBO\xbaHL\xba\x01\x46\n\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\xc8\x01\x01\x12 \n\x0epublic_methods\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\x39\n\x0bjwt_issuers\x18\x04 \x03(\x0b\x32$.malonaz.authentication.v1.JwtIssuer\"Q\n\x10JwtConfiguration\x12=\n\x07issuers\x18\x01 \x03(\x0b\x32$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01\"\x95\x02\n\tJwtIssuer\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x18\n\x08\x61udience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x18\n\x08jwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12g\n\x1bmethod_to_authorization_cel\x18\x06 \x03(\x0b\x32\x42.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry\x1a?\n\x1dMethodToAuthorizationCelEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"j\n\x1bServiceAccountConfiguration\x12K\n\x10service_accounts\x18\x01 \x03(\x0b\x32).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01\"\xad\x03\n\x0eServiceAccount\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12G\n\x04type\x18\x02 \x01(\x0e\x32-.malonaz.authentication.v1.ServiceAccountTypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\x1a\n\x08role_ids\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\x1d\n\x0bpermissions\x18\x04 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\xd3\x01\n\x06labels\x18\x05 \x03(\x0b\x32\x35.malonaz.authentication.v1.ServiceAccount.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"f\n\x04Role\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1d\n\x0bpermissions\x18\x02 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12$\n\x12inherited_role_ids\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\r\n\x05scope\x18\x04 \x01(\t\"W\n\rSignedSession\x12\x33\n\x07session\x18\x01 \x01(\x0b\x32\".malonaz.authentication.v1.Session\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"\x85\x05\n\x07Session\x12\n\n\x02id\x18\x01 \x01(\t\x12/\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12>\n\x0cjwt_identity\x18\x03 \x01(\x0b\x32&.malonaz.authentication.v1.JwtIdentityH\x00\x12U\n\x18service_account_identity\x18\x04 \x01(\x0b\x32\x31.malonaz.authentication.v1.ServiceAccountIdentityH\x00\x12J\n\x12\x61nonymous_identity\x18\x08 \x01(\x0b\x32,.malonaz.authentication.v1.AnonymousIdentityH\x00\x12\x12\n\nauthorized\x18\x05 \x01(\x08\x12\xcc\x01\n\x06labels\x18\x06 \x03(\x0b\x32..malonaz.authentication.v1.Session.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12<\n\x08metadata\x18\x07 \x01(\x0b\x32*.malonaz.authentication.v1.SessionMetadata\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\n\n\x08identity\"\x13\n\x11\x41nonymousIdentity\"I\n\x0bJwtIdentity\x12\x11\n\tissuer_id\x18\x01 \x01(\t\x12\'\n\x06\x63laims\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x8d\x01\n\x16ServiceAccountIdentity\x12\x1a\n\x12service_account_id\x18\x01 \x01(\t\x12W\n\x14service_account_type\x18\x02 \x01(\x0e\x32-.malonaz.authentication.v1.ServiceAccountTypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\"\xad\x01\n\x0fSessionMetadata\x12\x12\n\nip_address\x18\x01 \x01(\t\x12\x12\n\nuser_agent\x18\x02 \x01(\t\x12\x17\n\x0f\x63lient_platform\x18\x03 \x01(\t\x12@\n\x0e\x63lient_version\x18\x04 \x01(\x0b\x32(.malonaz.authentication.v1.ClientVersion\x12\x17\n\x0f\x63lient_timezone\x18\x05 \x01(\t\"<\n\rClientVersion\x12\r\n\x05major\x18\x01 \x01(\x05\x12\r\n\x05minor\x18\x02 \x01(\x05\x12\r\n\x05patch\x18\x03 \x01(\x05*\x87\x01\n\x12ServiceAccountType\x12$\n SERVICE_ACCOUNT_TYPE_UNSPECIFIED\x10\x00\x12 \n\x1cSERVICE_ACCOUNT_TYPE_API_KEY\x10\x01\x12)\n%SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE\x10\x02\x42\x34Z2github.com/malonaz/core/genproto/authentication/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n.malonaz/authentication/v1/authentication.proto\x12\x19malonaz.authentication.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x03\n\x17PermissionConfiguration\x12\xac\x01\n\x10service_accounts\x18\x01 \x03(\x0b\x32).malonaz.authentication.v1.ServiceAccountBg\xbaHd\xba\x01^\n\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1cthis.map(sa, sa.id).unique()\xc8\x01\x01\x12\x7f\n\x05roles\x18\x02 \x03(\x0b\x32\x1f.malonaz.authentication.v1.RoleBO\xbaHL\xba\x01\x46\n\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\xc8\x01\x01\x12 \n\x0epublic_methods\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\x39\n\x0bjwt_issuers\x18\x04 \x03(\x0b\x32$.malonaz.authentication.v1.JwtIssuer\"Q\n\x10JwtConfiguration\x12=\n\x07issuers\x18\x01 \x03(\x0b\x32$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01\"\xb1\x02\n\tJwtIssuer\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x18\n\x08\x61udience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x18\n\x08jwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1a\n\x12\x63laims_rewrite_cel\x18\x05 \x01(\t\x12g\n\x1bmethod_to_authorization_cel\x18\x06 \x03(\x0b\x32\x42.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntry\x1a?\n\x1dMethodToAuthorizationCelEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"j\n\x1bServiceAccountConfiguration\x12K\n\x10service_accounts\x18\x01 \x03(\x0b\x32).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01\"\xad\x03\n\x0eServiceAccount\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12G\n\x04type\x18\x02 \x01(\x0e\x32-.malonaz.authentication.v1.ServiceAccountTypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\x1a\n\x08role_ids\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\x1d\n\x0bpermissions\x18\x04 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\xd3\x01\n\x06labels\x18\x05 \x03(\x0b\x32\x35.malonaz.authentication.v1.ServiceAccount.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"f\n\x04Role\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1d\n\x0bpermissions\x18\x02 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12$\n\x12inherited_role_ids\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x12\r\n\x05scope\x18\x04 \x01(\t\"W\n\rSignedSession\x12\x33\n\x07session\x18\x01 \x01(\x0b\x32\".malonaz.authentication.v1.Session\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"\x85\x05\n\x07Session\x12\n\n\x02id\x18\x01 \x01(\t\x12/\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12>\n\x0cjwt_identity\x18\x03 \x01(\x0b\x32&.malonaz.authentication.v1.JwtIdentityH\x00\x12U\n\x18service_account_identity\x18\x04 \x01(\x0b\x32\x31.malonaz.authentication.v1.ServiceAccountIdentityH\x00\x12J\n\x12\x61nonymous_identity\x18\x08 \x01(\x0b\x32,.malonaz.authentication.v1.AnonymousIdentityH\x00\x12\x12\n\nauthorized\x18\x05 \x01(\x08\x12\xcc\x01\n\x06labels\x18\x06 \x03(\x0b\x32..malonaz.authentication.v1.Session.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12<\n\x08metadata\x18\x07 \x01(\x0b\x32*.malonaz.authentication.v1.SessionMetadata\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\n\n\x08identity\"\x13\n\x11\x41nonymousIdentity\"I\n\x0bJwtIdentity\x12\x11\n\tissuer_id\x18\x01 \x01(\t\x12\'\n\x06\x63laims\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x8d\x01\n\x16ServiceAccountIdentity\x12\x1a\n\x12service_account_id\x18\x01 \x01(\t\x12W\n\x14service_account_type\x18\x02 \x01(\x0e\x32-.malonaz.authentication.v1.ServiceAccountTypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\"\xad\x01\n\x0fSessionMetadata\x12\x12\n\nip_address\x18\x01 \x01(\t\x12\x12\n\nuser_agent\x18\x02 \x01(\t\x12\x17\n\x0f\x63lient_platform\x18\x03 \x01(\t\x12@\n\x0e\x63lient_version\x18\x04 \x01(\x0b\x32(.malonaz.authentication.v1.ClientVersion\x12\x17\n\x0f\x63lient_timezone\x18\x05 \x01(\t\"<\n\rClientVersion\x12\r\n\x05major\x18\x01 \x01(\x05\x12\r\n\x05minor\x18\x02 \x01(\x05\x12\r\n\x05patch\x18\x03 \x01(\x05*\x87\x01\n\x12ServiceAccountType\x12$\n SERVICE_ACCOUNT_TYPE_UNSPECIFIED\x10\x00\x12 \n\x1cSERVICE_ACCOUNT_TYPE_API_KEY\x10\x01\x12)\n%SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE\x10\x02\x42\x34Z2github.com/malonaz/core/genproto/authentication/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -77,38 +77,38 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SESSION'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$'
   _globals['_SERVICEACCOUNTIDENTITY'].fields_by_name['service_account_type']._loaded_options = None
   _globals['_SERVICEACCOUNTIDENTITY'].fields_by_name['service_account_type']._serialized_options = b'\272H\007\202\001\004\020\001 \000'
-  _globals['_SERVICEACCOUNTTYPE']._serialized_start=2817
-  _globals['_SERVICEACCOUNTTYPE']._serialized_end=2952
+  _globals['_SERVICEACCOUNTTYPE']._serialized_start=2845
+  _globals['_SERVICEACCOUNTTYPE']._serialized_end=2980
   _globals['_PERMISSIONCONFIGURATION']._serialized_start=170
   _globals['_PERMISSIONCONFIGURATION']._serialized_end=592
   _globals['_JWTCONFIGURATION']._serialized_start=594
   _globals['_JWTCONFIGURATION']._serialized_end=675
   _globals['_JWTISSUER']._serialized_start=678
-  _globals['_JWTISSUER']._serialized_end=955
-  _globals['_JWTISSUER_METHODTOAUTHORIZATIONCELENTRY']._serialized_start=892
-  _globals['_JWTISSUER_METHODTOAUTHORIZATIONCELENTRY']._serialized_end=955
-  _globals['_SERVICEACCOUNTCONFIGURATION']._serialized_start=957
-  _globals['_SERVICEACCOUNTCONFIGURATION']._serialized_end=1063
-  _globals['_SERVICEACCOUNT']._serialized_start=1066
-  _globals['_SERVICEACCOUNT']._serialized_end=1495
-  _globals['_SERVICEACCOUNT_LABELSENTRY']._serialized_start=1450
-  _globals['_SERVICEACCOUNT_LABELSENTRY']._serialized_end=1495
-  _globals['_ROLE']._serialized_start=1497
-  _globals['_ROLE']._serialized_end=1599
-  _globals['_SIGNEDSESSION']._serialized_start=1601
-  _globals['_SIGNEDSESSION']._serialized_end=1688
-  _globals['_SESSION']._serialized_start=1691
-  _globals['_SESSION']._serialized_end=2336
-  _globals['_SESSION_LABELSENTRY']._serialized_start=1450
-  _globals['_SESSION_LABELSENTRY']._serialized_end=1495
-  _globals['_ANONYMOUSIDENTITY']._serialized_start=2338
-  _globals['_ANONYMOUSIDENTITY']._serialized_end=2357
-  _globals['_JWTIDENTITY']._serialized_start=2359
-  _globals['_JWTIDENTITY']._serialized_end=2432
-  _globals['_SERVICEACCOUNTIDENTITY']._serialized_start=2435
-  _globals['_SERVICEACCOUNTIDENTITY']._serialized_end=2576
-  _globals['_SESSIONMETADATA']._serialized_start=2579
-  _globals['_SESSIONMETADATA']._serialized_end=2752
-  _globals['_CLIENTVERSION']._serialized_start=2754
-  _globals['_CLIENTVERSION']._serialized_end=2814
+  _globals['_JWTISSUER']._serialized_end=983
+  _globals['_JWTISSUER_METHODTOAUTHORIZATIONCELENTRY']._serialized_start=920
+  _globals['_JWTISSUER_METHODTOAUTHORIZATIONCELENTRY']._serialized_end=983
+  _globals['_SERVICEACCOUNTCONFIGURATION']._serialized_start=985
+  _globals['_SERVICEACCOUNTCONFIGURATION']._serialized_end=1091
+  _globals['_SERVICEACCOUNT']._serialized_start=1094
+  _globals['_SERVICEACCOUNT']._serialized_end=1523
+  _globals['_SERVICEACCOUNT_LABELSENTRY']._serialized_start=1478
+  _globals['_SERVICEACCOUNT_LABELSENTRY']._serialized_end=1523
+  _globals['_ROLE']._serialized_start=1525
+  _globals['_ROLE']._serialized_end=1627
+  _globals['_SIGNEDSESSION']._serialized_start=1629
+  _globals['_SIGNEDSESSION']._serialized_end=1716
+  _globals['_SESSION']._serialized_start=1719
+  _globals['_SESSION']._serialized_end=2364
+  _globals['_SESSION_LABELSENTRY']._serialized_start=1478
+  _globals['_SESSION_LABELSENTRY']._serialized_end=1523
+  _globals['_ANONYMOUSIDENTITY']._serialized_start=2366
+  _globals['_ANONYMOUSIDENTITY']._serialized_end=2385
+  _globals['_JWTIDENTITY']._serialized_start=2387
+  _globals['_JWTIDENTITY']._serialized_end=2460
+  _globals['_SERVICEACCOUNTIDENTITY']._serialized_start=2463
+  _globals['_SERVICEACCOUNTIDENTITY']._serialized_end=2604
+  _globals['_SESSIONMETADATA']._serialized_start=2607
+  _globals['_SESSIONMETADATA']._serialized_end=2780
+  _globals['_CLIENTVERSION']._serialized_start=2782
+  _globals['_CLIENTVERSION']._serialized_end=2842
 # @@protoc_insertion_point(module_scope)
