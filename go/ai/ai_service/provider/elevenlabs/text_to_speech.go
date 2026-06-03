@@ -130,58 +130,59 @@ func (c *Client) TextToSpeechStream(
 	var totalDuration time.Duration
 	var chunkIndex uint32
 	for {
-		bytesRead, err := response.Body.Read(buffer)
-		if err != nil {
-			if err == io.EOF {
+		bytesRead, readErr := response.Body.Read(buffer)
+
+		// Process any bytes we received before checking for errors,
+		// because Read can return n > 0 alongside io.EOF.
+		if bytesRead > 0 {
+			// Record time to first byte
+			if generationMetrics.Ttfb == nil {
+				generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
+			}
+
+			// Prepend leftover byte so 16-bit samples never straddle a chunk.
+			data := append(remainder, buffer[:bytesRead]...)
+			remainder = nil
+			if len(data)%2 != 0 {
+				remainder = []byte{data[len(data)-1]}
+				data = data[:len(data)-1]
+			}
+
+			if len(data) > 0 {
+				chunkDuration, err := audio.CalculatePCMDuration(audioFormat, len(data))
+				if err != nil {
+					return err
+				}
+				totalDuration += chunkDuration
+
+				chunkIndex++
+				var captureTime *timestamppb.Timestamp
+				if chunkIndex == 1 {
+					captureTime = timestamppb.Now()
+				}
+				audioChunk := &audiopb.Chunk{
+					Index:       chunkIndex,
+					CaptureTime: captureTime,
+					Duration:    durationpb.New(chunkDuration),
+					Data:        make([]byte, len(data)),
+				}
+				copy(audioChunk.Data, data)
+
+				if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
+					Content: &aiservicepb.TextToSpeechStreamResponse_AudioChunk{
+						AudioChunk: audioChunk,
+					},
+				}); err != nil {
+					return status.FromError(err, "sending audio chunk").Err()
+				}
+			}
+		}
+
+		if readErr != nil {
+			if readErr == io.EOF {
 				break
 			}
-			return status.FromError(err, "reading response body").Err()
-		}
-		if bytesRead == 0 {
-			continue
-		}
-
-		// Record time to first byte
-		if generationMetrics.Ttfb == nil {
-			generationMetrics.Ttfb = durationpb.New(time.Since(startTime))
-		}
-
-		// Prepend leftover byte so 16-bit samples never straddle a chunk.
-		data := append(remainder, buffer[:bytesRead]...)
-		remainder = nil
-		if len(data)%2 != 0 {
-			remainder = []byte{data[len(data)-1]}
-			data = data[:len(data)-1]
-		}
-		if len(data) == 0 {
-			continue
-		}
-
-		chunkDuration, err := audio.CalculatePCMDuration(audioFormat, len(data))
-		if err != nil {
-			return err
-		}
-		totalDuration += chunkDuration
-
-		chunkIndex++
-		var captureTime *timestamppb.Timestamp
-		if chunkIndex == 1 {
-			captureTime = timestamppb.Now()
-		}
-		audioChunk := &audiopb.Chunk{
-			Index:       chunkIndex,
-			CaptureTime: captureTime,
-			Duration:    durationpb.New(chunkDuration),
-			Data:        make([]byte, len(data)),
-		}
-		copy(audioChunk.Data, data)
-
-		if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
-			Content: &aiservicepb.TextToSpeechStreamResponse_AudioChunk{
-				AudioChunk: audioChunk,
-			},
-		}); err != nil {
-			return status.FromError(err, "sending audio chunk").Err()
+			return status.FromError(readErr, "reading response body").Err()
 		}
 	}
 
