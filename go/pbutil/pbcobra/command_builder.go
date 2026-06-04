@@ -363,21 +363,24 @@ func (b *CommandBuilder) addFlagWithPrefix(
 }
 
 func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.MethodDescriptor) error {
-	req := dynamicpb.NewMessage(method.Input())
+	request := dynamicpb.NewMessage(method.Input())
 
 	fields := method.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		if err := b.setFieldWithPrefix(req, fields.Get(i), cmd, "", 0); err != nil {
+		if err := b.setFieldWithPrefix(request, fields.Get(i), cmd, "", 0); err != nil {
 			return err
 		}
 	}
 
-	resp, err := b.invoker.Invoke(cmd.Context(), method, req)
+	if method.IsStreamingServer() {
+		return b.invoker.InvokeServerStream(cmd.Context(), method, request, b.responseHandler)
+	}
+
+	response, err := b.invoker.Invoke(cmd.Context(), method, request)
 	if err != nil {
 		return err
 	}
-
-	return b.responseHandler(resp)
+	return b.responseHandler(response)
 }
 
 func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, cmd *cobra.Command, prefix string, depth int) error {
