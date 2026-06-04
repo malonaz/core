@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/ext"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -62,7 +63,11 @@ func NewJwtAuthenticationInterceptor(
 
 		var claimsRewriteProgram cel.Program
 		if issuerConfig.GetClaimsRewriteCel() != "" {
-			environment, err := cel.NewEnv(cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)))
+			environment, err := cel.NewEnv(
+				cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)),
+				ext.Protos(),
+				ext.Strings(),
+			)
 			if err != nil {
 				return nil, fmt.Errorf("creating CEL environment for issuer %q: %w", issuerConfig.Id, err)
 			}
