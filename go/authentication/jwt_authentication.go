@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -146,7 +147,11 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "rewriting claims: %v", err).Err()
 		}
-		rewrittenJSON, err := json.Marshal(output.Value())
+		nativeValue, err := output.ConvertToNative(reflect.TypeOf(map[string]any{}))
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting rewritten claims to native: %v", err).Err()
+		}
+		rewrittenJSON, err := json.Marshal(nativeValue)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "marshaling rewritten claims: %v", err).Err()
 		}
