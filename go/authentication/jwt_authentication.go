@@ -132,13 +132,13 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return nil, status.Errorf(codes.Unauthenticated, "verifying JWT: %v", err).Err()
 	}
 
-	claimsMap, err := verifiedToken.AsMap(ctx)
+	claimsJSON, err := json.Marshal(verifiedToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting JWT claims to map: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "marshaling JWT claims: %v", err).Err()
 	}
-	claims, err := structpb.NewStruct(claimsMap)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting claims to struct: %v", err).Err()
+	claims := &structpb.Struct{}
+	if err := claims.UnmarshalJSON(claimsJSON); err != nil {
+		return nil, status.Errorf(codes.Internal, "unmarshaling JWT claims into struct: %v", err).Err()
 	}
 
 	if jwtIssuer.claimsRewriteProgram != nil {
@@ -146,13 +146,13 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "rewriting claims: %v", err).Err()
 		}
-		rewrittenMap, ok := output.Value().(map[string]any)
-		if !ok {
-			return nil, status.Errorf(codes.Internal, "claims rewrite CEL did not return a map").Err()
-		}
-		claims, err = structpb.NewStruct(rewrittenMap)
+		rewrittenJSON, err := json.Marshal(output.Value())
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting rewritten claims to struct: %v", err).Err()
+			return nil, status.Errorf(codes.Internal, "marshaling rewritten claims: %v", err).Err()
+		}
+		claims = &structpb.Struct{}
+		if err := claims.UnmarshalJSON(rewrittenJSON); err != nil {
+			return nil, status.Errorf(codes.Internal, "unmarshaling rewritten claims into struct: %v", err).Err()
 		}
 	}
 
