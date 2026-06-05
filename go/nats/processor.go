@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	defaultFetchTimeout = 5 * time.Second
+	defaultFetchTimeout = 1 * time.Second
 	defaultBatchSize    = 1
 	defaultAckWait      = 10 * time.Second
 )
