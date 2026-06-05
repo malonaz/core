@@ -1,3 +1,4 @@
+// permission_interceptor.go
 package authentication
 
 import (
@@ -11,8 +12,10 @@ import (
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/grpc/middleware"
@@ -131,7 +134,7 @@ func NewPermissionAuthenticationInterceptor(
 		}
 	}
 
-	// Build skip methods set
+	// Build skip methods set.
 	publicMethodSet := make(map[string]struct{}, len(configuration.PublicMethods))
 	for _, method := range configuration.PublicMethods {
 		publicMethodSet[method] = struct{}{}
@@ -156,9 +159,9 @@ func NewPermissionAuthenticationInterceptor(
 }
 
 // getPermissionSetForRole recursively collects all permissions for a role,
-// including permissions from inherited roles
+// including permissions from inherited roles.
 func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticationpb.Role, visited map[string]bool) (map[string]struct{}, error) {
-	// Prevent infinite loops in case of circular inheritance
+	// Prevent infinite loops in case of circular inheritance.
 	if visited[roleID] {
 		return nil, fmt.Errorf("circular role inheritance detected: role %q", roleID)
 	}
@@ -171,12 +174,12 @@ func getPermissionSetForRole(roleID string, roleIDToRole map[string]*authenticat
 
 	permissions := make(map[string]struct{})
 
-	// Add direct permissions
+	// Add direct permissions.
 	for _, permission := range role.Permissions {
 		permissions[permission] = struct{}{}
 	}
 
-	// Add inherited permissions
+	// Add inherited permissions.
 	for _, inheritedRoleID := range role.InheritedRoleIds {
 		inheritedPermissions, err := getPermissionSetForRole(inheritedRoleID, roleIDToRole, visited)
 		if err != nil {
@@ -228,12 +231,13 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		return nil, status.Errorf(codes.Unauthenticated, "invalid session signature").Err()
 	}
 	session := signedSession.Session
+
 	// The session is already authorized, we do not re-check permissions.
 	if session.Authorized {
 		return ctx, nil
 	}
 
-	// Check the permissions for non public methods.
+	// Check the permissions for non-public methods.
 	if _, ok := i.publicMethodSet[fullMethod]; !ok {
 		switch identity := session.GetIdentity().(type) {
 		case *authenticationpb.Session_JwtIdentity:
@@ -291,23 +295,36 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 }
 
 // Stream implements the authentication stream interceptor.
-// For server-streaming RPCs (single client request), it wraps the stream to
-// intercept the initial RecvMsg and run CEL authorization against the request.
+// For server-streaming RPCs (single client request), we peek the request message
+// before the handler runs so that CEL authorization has access to it and the
+// session is marked authorized before any downstream RPCs are made.
 // For client-streaming and bidi-streaming RPCs, JWT authentication is not
 // supported because there is no single request message to authorize against.
 func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		// Server-stream only (single client message): wrap the stream to intercept
-		// the request message during RecvMsg for CEL authorization.
+		// Server-stream only: peek the single client request so we can authorize
+		// before the handler executes. This ensures the session carries
+		// Authorized=true for any downstream RPCs the handler makes.
 		if info.IsServerStream && !info.IsClientStream {
-			wrappedStream := &authorizingServerStream{
+			inputDescriptor, err := resolveMethodInputDescriptor(info.FullMethod)
+			if err != nil {
+				return status.Errorf(codes.Internal, "resolving method input descriptor: %v", err).Err()
+			}
+			wrappedStream := &peekedServerStream{
 				WrappedServerStream: grpc_middleware.WrappedServerStream{
 					ServerStream:   stream,
 					WrappedContext: stream.Context(),
 				},
-				interceptor: i,
-				fullMethod:  info.FullMethod,
 			}
+			request := dynamicpb.NewMessage(inputDescriptor)
+			if err := wrappedStream.peekRequest(request); err != nil {
+				return err
+			}
+			ctx, err := i.authenticate(stream.Context(), info.FullMethod, request)
+			if err != nil {
+				return err
+			}
+			wrappedStream.WrappedContext = ctx
 			return handler(srv, wrappedStream)
 		}
 
@@ -329,28 +346,35 @@ func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerIntercep
 	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
-// authorizingServerStream wraps a server stream to intercept the first RecvMsg
-// call. For server-streaming RPCs, gRPC calls RecvMsg internally to deserialize
-// the client's single request before invoking the handler. This lets us run
-// CEL authorization against the fully-populated request message.
-type authorizingServerStream struct {
+// peekedServerStream wraps a server stream to buffer the first request message.
+// This allows the interceptor to read the request for authorization before the
+// generated handler calls RecvMsg. On the first RecvMsg call from the handler,
+// the buffered message is replayed via proto.Merge; subsequent calls delegate
+// to the underlying stream.
+type peekedServerStream struct {
 	grpc_middleware.WrappedServerStream
-	interceptor *PermissionAuthenticationInterceptor
-	fullMethod  string
-	authorized  bool
+	peekedRequest proto.Message
 }
 
-func (s *authorizingServerStream) RecvMsg(m any) error {
-	if err := s.ServerStream.RecvMsg(m); err != nil {
+// peekRequest reads the first message from the underlying stream and buffers it.
+// Must be called exactly once before the handler runs.
+func (s *peekedServerStream) peekRequest(message proto.Message) error {
+	if err := s.ServerStream.RecvMsg(message); err != nil {
 		return err
 	}
-	if !s.authorized {
-		s.authorized = true
-		ctx, err := s.interceptor.authenticate(s.WrappedContext, s.fullMethod, m)
-		if err != nil {
-			return err
-		}
-		s.WrappedContext = ctx
-	}
+	s.peekedRequest = message
 	return nil
+}
+
+// RecvMsg replays the buffered request on the first call, then delegates to the
+// underlying stream for any subsequent calls.
+func (s *peekedServerStream) RecvMsg(message any) error {
+	if s.peekedRequest != nil {
+		protoMessage := message.(proto.Message)
+		proto.Reset(protoMessage)
+		proto.Merge(protoMessage, s.peekedRequest)
+		s.peekedRequest = nil
+		return nil
+	}
+	return s.ServerStream.RecvMsg(message)
 }
