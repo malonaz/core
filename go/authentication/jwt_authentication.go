@@ -13,6 +13,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc"
@@ -31,8 +32,9 @@ type JwtAuthenticationInterceptorOpts struct {
 
 type jwtIssuer struct {
 	config               *authenticationpb.JwtIssuer
-	keyCache             *jwk.Cache
-	claimsRewriteProgram cel.Program // nil if no rewrite configured
+	keyCache             *jwk.Cache // non-nil for JWKS URI issuers
+	symmetricKey         []byte     // non-nil for symmetric key issuers
+	claimsRewriteProgram cel.Program
 }
 
 type JwtAuthenticationInterceptor struct {
@@ -53,16 +55,23 @@ func NewJwtAuthenticationInterceptor(
 
 	issuerToJwtIssuer := make(map[string]*jwtIssuer, len(configuration.Issuers))
 	for _, issuerConfig := range configuration.Issuers {
-		keyCache := jwk.NewCache(ctx)
-		if err := keyCache.Register(issuerConfig.JwksUri, jwk.WithMinRefreshInterval(15*time.Minute)); err != nil {
-			return nil, fmt.Errorf("registering JWKS URI %q for issuer %q: %w", issuerConfig.JwksUri, issuerConfig.Id, err)
-		}
-		// Eagerly fetch keys to fail fast on misconfiguration.
-		if _, err := keyCache.Refresh(ctx, issuerConfig.JwksUri); err != nil {
-			return nil, fmt.Errorf("fetching JWKS from %q for issuer %q: %w", issuerConfig.JwksUri, issuerConfig.Id, err)
+		issuer := &jwtIssuer{config: issuerConfig}
+
+		switch keySource := issuerConfig.GetKeySource().(type) {
+		case *authenticationpb.JwtIssuer_JwksUri:
+			issuer.keyCache = jwk.NewCache(ctx)
+			if err := issuer.keyCache.Register(keySource.JwksUri, jwk.WithMinRefreshInterval(15*time.Minute)); err != nil {
+				return nil, fmt.Errorf("registering JWKS URI %q for issuer %q: %w", keySource.JwksUri, issuerConfig.Id, err)
+			}
+			if _, err := issuer.keyCache.Refresh(ctx, keySource.JwksUri); err != nil {
+				return nil, fmt.Errorf("fetching JWKS from %q for issuer %q: %w", keySource.JwksUri, issuerConfig.Id, err)
+			}
+		case *authenticationpb.JwtIssuer_SymmetricKey:
+			issuer.symmetricKey = []byte(keySource.SymmetricKey)
+		default:
+			return nil, fmt.Errorf("issuer %q: key_source is required", issuerConfig.Id)
 		}
 
-		var claimsRewriteProgram cel.Program
 		if issuerConfig.GetClaimsRewriteCel() != "" {
 			environment, err := cel.NewEnv(
 				cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)),
@@ -76,16 +85,12 @@ func NewJwtAuthenticationInterceptor(
 			if issues != nil && issues.Err() != nil {
 				return nil, fmt.Errorf("compiling claims rewrite CEL for issuer %q: %w", issuerConfig.Id, issues.Err())
 			}
-			claimsRewriteProgram, err = environment.Program(ast)
+			issuer.claimsRewriteProgram, err = environment.Program(ast)
 			if err != nil {
 				return nil, fmt.Errorf("building claims rewrite CEL program for issuer %q: %w", issuerConfig.Id, err)
 			}
 		}
-		issuerToJwtIssuer[issuerConfig.Issuer] = &jwtIssuer{
-			config:               issuerConfig,
-			keyCache:             keyCache,
-			claimsRewriteProgram: claimsRewriteProgram,
-		}
+		issuerToJwtIssuer[issuerConfig.Issuer] = issuer
 	}
 
 	return &JwtAuthenticationInterceptor{
@@ -98,7 +103,6 @@ func NewJwtAuthenticationInterceptor(
 func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (context.Context, error) {
 	rawToken, err := grpc_auth.AuthFromMD(ctx, "bearer")
 	if err != nil {
-		// No/invalid bearer token; defer to other authentication methods.
 		if status.HasCode(err, codes.Unauthenticated) {
 			return ctx, nil
 		}
@@ -108,7 +112,6 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return ctx, nil
 	}
 
-	// Parse without verification first to extract the issuer.
 	unverifiedToken, err := jwt.Parse([]byte(rawToken), jwt.WithVerify(false))
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "parsing JWT: %v", err).Err()
@@ -119,16 +122,25 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 		return nil, status.Errorf(codes.Unauthenticated, "untrusted issuer %q", unverifiedToken.Issuer()).Err()
 	}
 
-	keySet, err := jwtIssuer.keyCache.Get(ctx, jwtIssuer.config.JwksUri)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "fetching JWKS: %v", err).Err()
+	var verifiedToken jwt.Token
+	switch {
+	case jwtIssuer.symmetricKey != nil:
+		verifiedToken, err = jwt.Parse([]byte(rawToken),
+			jwt.WithKey(jwa.HS256, jwtIssuer.symmetricKey),
+			jwt.WithIssuer(jwtIssuer.config.Issuer),
+			jwt.WithAudience(jwtIssuer.config.Audience),
+		)
+	case jwtIssuer.keyCache != nil:
+		keySet, fetchErr := jwtIssuer.keyCache.Get(ctx, jwtIssuer.config.GetJwksUri())
+		if fetchErr != nil {
+			return nil, status.Errorf(codes.Internal, "fetching JWKS: %v", fetchErr).Err()
+		}
+		verifiedToken, err = jwt.Parse([]byte(rawToken),
+			jwt.WithKeySet(keySet),
+			jwt.WithIssuer(jwtIssuer.config.Issuer),
+			jwt.WithAudience(jwtIssuer.config.Audience),
+		)
 	}
-
-	verifiedToken, err := jwt.Parse([]byte(rawToken),
-		jwt.WithKeySet(keySet),
-		jwt.WithIssuer(jwtIssuer.config.Issuer),
-		jwt.WithAudience(jwtIssuer.config.Audience),
-	)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "verifying JWT: %v", err).Err()
 	}
@@ -188,7 +200,6 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }
 
-// resolveJsonPath traverses a nested map using a dot-separated path.
 func resolveJsonPath(claimsMap map[string]any, path string) (string, bool) {
 	parts := strings.Split(path, ".")
 	var current any = claimsMap
@@ -218,7 +229,6 @@ func resolveJsonPath(claimsMap map[string]any, path string) (string, bool) {
 	}
 }
 
-// Unary implements the JWT authentication unary interceptor.
 func (i *JwtAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	interceptor := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		ctx, err := i.authenticateJwt(ctx)
@@ -230,7 +240,6 @@ func (i *JwtAuthenticationInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
 }
 
-// Stream implements the JWT authentication stream interceptor.
 func (i *JwtAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()

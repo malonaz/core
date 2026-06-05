@@ -13,7 +13,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/authentication/v1/authentication.proto.
  */
 export const file_malonaz_authentication_v1_authentication: GenFile = /*@__PURE__*/
-  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIqYDChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBEjkKC2p3dF9pc3N1ZXJzGAQgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIiUQoQSnd0Q29uZmlndXJhdGlvbhI9Cgdpc3N1ZXJzGAEgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXJCBrpIA8gBASKxAgoJSnd0SXNzdWVyEhIKAmlkGAEgASgJQga6SAPIAQESFgoGaXNzdWVyGAIgASgJQga6SAPIAQESGAoIYXVkaWVuY2UYAyABKAlCBrpIA8gBARIYCghqd2tzX3VyaRgEIAEoCUIGukgDyAEBEhoKEmNsYWltc19yZXdyaXRlX2NlbBgFIAEoCRJnChttZXRob2RfdG9fYXV0aG9yaXphdGlvbl9jZWwYBiADKAsyQi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElzc3Vlci5NZXRob2RUb0F1dGhvcml6YXRpb25DZWxFbnRyeRo/Ch1NZXRob2RUb0F1dGhvcml6YXRpb25DZWxFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBImoKG1NlcnZpY2VBY2NvdW50Q29uZmlndXJhdGlvbhJLChBzZXJ2aWNlX2FjY291bnRzGAEgAygLMikubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudEIGukgDyAEBIq0DCg5TZXJ2aWNlQWNjb3VudBISCgJpZBgBIAEoCUIGukgDyAEBEkcKBHR5cGUYAiABKA4yLS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50VHlwZUIKukgHggEEEAEgABIaCghyb2xlX2lkcxgDIAMoCUIIukgFkgECGAESHQoLcGVybWlzc2lvbnMYBCADKAlCCLpIBZIBAhgBEtMBCgZsYWJlbHMYBSADKAsyNS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50LkxhYmVsc0VudHJ5QosBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBImYKBFJvbGUSCgoCaWQYASABKAkSHQoLcGVybWlzc2lvbnMYAiADKAlCCLpIBZIBAhgBEiQKEmluaGVyaXRlZF9yb2xlX2lkcxgDIAMoCUIIukgFkgECGAESDQoFc2NvcGUYBCABKAkiVwoNU2lnbmVkU2Vzc2lvbhIzCgdzZXNzaW9uGAEgASgLMiIubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXNzaW9uEhEKCXNpZ25hdHVyZRgCIAEoDCKFBQoHU2Vzc2lvbhIKCgJpZBgBIAEoCRIvCgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASPgoMand0X2lkZW50aXR5GAMgASgLMiYubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJZGVudGl0eUgAElUKGHNlcnZpY2VfYWNjb3VudF9pZGVudGl0eRgEIAEoCzIxLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRJZGVudGl0eUgAEkoKEmFub255bW91c19pZGVudGl0eRgIIAEoCzIsLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuQW5vbnltb3VzSWRlbnRpdHlIABISCgphdXRob3JpemVkGAUgASgIEswBCgZsYWJlbHMYBiADKAsyLi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb24uTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokEjwKCG1ldGFkYXRhGAcgASgLMioubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXNzaW9uTWV0YWRhdGEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUIKCghpZGVudGl0eSITChFBbm9ueW1vdXNJZGVudGl0eSJJCgtKd3RJZGVudGl0eRIRCglpc3N1ZXJfaWQYASABKAkSJwoGY2xhaW1zGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKNAQoWU2VydmljZUFjY291bnRJZGVudGl0eRIaChJzZXJ2aWNlX2FjY291bnRfaWQYASABKAkSVwoUc2VydmljZV9hY2NvdW50X3R5cGUYAiABKA4yLS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50VHlwZUIKukgHggEEEAEgACKtAQoPU2Vzc2lvbk1ldGFkYXRhEhIKCmlwX2FkZHJlc3MYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRIXCg9jbGllbnRfcGxhdGZvcm0YAyABKAkSQAoOY2xpZW50X3ZlcnNpb24YBCABKAsyKC5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkNsaWVudFZlcnNpb24SFwoPY2xpZW50X3RpbWV6b25lGAUgASgJIjwKDUNsaWVudFZlcnNpb24SDQoFbWFqb3IYASABKAUSDQoFbWlub3IYAiABKAUSDQoFcGF0Y2gYAyABKAUqhwEKElNlcnZpY2VBY2NvdW50VHlwZRIkCiBTRVJWSUNFX0FDQ09VTlRfVFlQRV9VTlNQRUNJRklFRBAAEiAKHFNFUlZJQ0VfQUNDT1VOVF9UWVBFX0FQSV9LRVkQARIpCiVTRVJWSUNFX0FDQ09VTlRfVFlQRV9JTlRFUk5BTF9TRVJWSUNFEAJCNFoyZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYXV0aGVudGljYXRpb24vdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIqYDChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBEjkKC2p3dF9pc3N1ZXJzGAQgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIiUQoQSnd0Q29uZmlndXJhdGlvbhI9Cgdpc3N1ZXJzGAEgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXJCBrpIA8gBASLZAgoJSnd0SXNzdWVyEhIKAmlkGAEgASgJQga6SAPIAQESFgoGaXNzdWVyGAIgASgJQga6SAPIAQESGAoIYXVkaWVuY2UYAyABKAlCBrpIA8gBARISCghqd2tzX3VyaRgEIAEoCUgAEhcKDXN5bW1ldHJpY19rZXkYBSABKAlIABIaChJjbGFpbXNfcmV3cml0ZV9jZWwYBiABKAkSZwobbWV0aG9kX3RvX2F1dGhvcml6YXRpb25fY2VsGAcgAygLMkIubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIuTWV0aG9kVG9BdXRob3JpemF0aW9uQ2VsRW50cnkaPwodTWV0aG9kVG9BdXRob3JpemF0aW9uQ2VsRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUITCgprZXlfc291cmNlEgW6SAIIASJqChtTZXJ2aWNlQWNjb3VudENvbmZpZ3VyYXRpb24SSwoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCBrpIA8gBASKtAwoOU2VydmljZUFjY291bnQSEgoCaWQYASABKAlCBrpIA8gBARJHCgR0eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAASGgoIcm9sZV9pZHMYAyADKAlCCLpIBZIBAhgBEh0KC3Blcm1pc3Npb25zGAQgAygJQgi6SAWSAQIYARLTAQoGbGFiZWxzGAUgAygLMjUubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudC5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJmCgRSb2xlEgoKAmlkGAEgASgJEh0KC3Blcm1pc3Npb25zGAIgAygJQgi6SAWSAQIYARIkChJpbmhlcml0ZWRfcm9sZV9pZHMYAyADKAlCCLpIBZIBAhgBEg0KBXNjb3BlGAQgASgJIlcKDVNpZ25lZFNlc3Npb24SMwoHc2Vzc2lvbhgBIAEoCzIiLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbhIRCglzaWduYXR1cmUYAiABKAwihQUKB1Nlc3Npb24SCgoCaWQYASABKAkSLwoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEj4KDGp3dF9pZGVudGl0eRgDIAEoCzImLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SWRlbnRpdHlIABJVChhzZXJ2aWNlX2FjY291bnRfaWRlbnRpdHkYBCABKAsyMS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50SWRlbnRpdHlIABJKChJhbm9ueW1vdXNfaWRlbnRpdHkYCCABKAsyLC5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkFub255bW91c0lkZW50aXR5SAASEgoKYXV0aG9yaXplZBgFIAEoCBLMAQoGbGFiZWxzGAYgAygLMi4ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXNzaW9uLkxhYmVsc0VudHJ5QosBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJBI8CghtZXRhZGF0YRgHIAEoCzIqLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbk1ldGFkYXRhGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFCCgoIaWRlbnRpdHkiEwoRQW5vbnltb3VzSWRlbnRpdHkiSQoLSnd0SWRlbnRpdHkSEQoJaXNzdWVyX2lkGAEgASgJEicKBmNsYWltcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QijQEKFlNlcnZpY2VBY2NvdW50SWRlbnRpdHkSGgoSc2VydmljZV9hY2NvdW50X2lkGAEgASgJElcKFHNlcnZpY2VfYWNjb3VudF90eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAAirQEKD1Nlc3Npb25NZXRhZGF0YRISCgppcF9hZGRyZXNzGAEgASgJEhIKCnVzZXJfYWdlbnQYAiABKAkSFwoPY2xpZW50X3BsYXRmb3JtGAMgASgJEkAKDmNsaWVudF92ZXJzaW9uGAQgASgLMigubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5DbGllbnRWZXJzaW9uEhcKD2NsaWVudF90aW1lem9uZRgFIAEoCSI8Cg1DbGllbnRWZXJzaW9uEg0KBW1ham9yGAEgASgFEg0KBW1pbm9yGAIgASgFEg0KBXBhdGNoGAMgASgFKocBChJTZXJ2aWNlQWNjb3VudFR5cGUSJAogU0VSVklDRV9BQ0NPVU5UX1RZUEVfVU5TUEVDSUZJRUQQABIgChxTRVJWSUNFX0FDQ09VTlRfVFlQRV9BUElfS0VZEAESKQolU0VSVklDRV9BQ0NPVU5UX1RZUEVfSU5URVJOQUxfU0VSVklDRRACQjRaMmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1dGhlbnRpY2F0aW9uL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * Configuration for roles.
@@ -161,11 +161,28 @@ export type JwtIssuer = Message<"malonaz.authentication.v1.JwtIssuer"> & {
   audience: string;
 
   /**
-   * URL of the issuer's public key endpoint for token verification.
+   * Key source for token verification.
    *
-   * @generated from field: string jwks_uri = 4;
+   * @generated from oneof malonaz.authentication.v1.JwtIssuer.key_source
    */
-  jwksUri: string;
+  keySource: {
+    /**
+     * URL of the issuer's public key endpoint for token verification.
+     *
+     * @generated from field: string jwks_uri = 4;
+     */
+    value: string;
+    case: "jwksUri";
+  } | {
+    /**
+     * Symmetric key (HMAC-SHA256) for token verification and minting.
+     * Used for self-issued tokens (e.g., magic links).
+     *
+     * @generated from field: string symmetric_key = 5;
+     */
+    value: string;
+    case: "symmetricKey";
+  } | { case: undefined; value?: undefined };
 
   /**
    * CEL expression that rewrites the raw JWT claims into a normalized map.
@@ -173,7 +190,7 @@ export type JwtIssuer = Message<"malonaz.authentication.v1.JwtIssuer"> & {
    * The result replaces the claims stored on the session.
    * E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
    *
-   * @generated from field: string claims_rewrite_cel = 5;
+   * @generated from field: string claims_rewrite_cel = 6;
    */
   claimsRewriteCel: string;
 
@@ -183,7 +200,7 @@ export type JwtIssuer = Message<"malonaz.authentication.v1.JwtIssuer"> & {
    * (the RPC request message). Must evaluate to a bool.
    * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
-   * @generated from field: map<string, string> method_to_authorization_cel = 6;
+   * @generated from field: map<string, string> method_to_authorization_cel = 7;
    */
   methodToAuthorizationCel: { [key: string]: string };
 };
@@ -216,11 +233,28 @@ export type JwtIssuerValid = Message<"malonaz.authentication.v1.JwtIssuer"> & {
   audience: string;
 
   /**
-   * URL of the issuer's public key endpoint for token verification.
+   * Key source for token verification.
    *
-   * @generated from field: string jwks_uri = 4;
+   * @generated from oneof malonaz.authentication.v1.JwtIssuer.key_source
    */
-  jwksUri: string;
+  keySource: {
+    /**
+     * URL of the issuer's public key endpoint for token verification.
+     *
+     * @generated from field: string jwks_uri = 4;
+     */
+    value: string;
+    case: "jwksUri";
+  } | {
+    /**
+     * Symmetric key (HMAC-SHA256) for token verification and minting.
+     * Used for self-issued tokens (e.g., magic links).
+     *
+     * @generated from field: string symmetric_key = 5;
+     */
+    value: string;
+    case: "symmetricKey";
+  } | { case: undefined; value?: undefined };
 
   /**
    * CEL expression that rewrites the raw JWT claims into a normalized map.
@@ -228,7 +262,7 @@ export type JwtIssuerValid = Message<"malonaz.authentication.v1.JwtIssuer"> & {
    * The result replaces the claims stored on the session.
    * E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
    *
-   * @generated from field: string claims_rewrite_cel = 5;
+   * @generated from field: string claims_rewrite_cel = 6;
    */
   claimsRewriteCel: string;
 
@@ -238,7 +272,7 @@ export type JwtIssuerValid = Message<"malonaz.authentication.v1.JwtIssuer"> & {
    * (the RPC request message). Must evaluate to a bool.
    * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
-   * @generated from field: map<string, string> method_to_authorization_cel = 6;
+   * @generated from field: map<string, string> method_to_authorization_cel = 7;
    */
   methodToAuthorizationCel: { [key: string]: string };
 };

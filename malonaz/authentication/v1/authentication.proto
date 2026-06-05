@@ -54,18 +54,27 @@ message JwtIssuer {
   string issuer = 2 [(buf.validate.field).required = true];
   // The expected `aud` claim value.
   string audience = 3 [(buf.validate.field).required = true];
-  // URL of the issuer's public key endpoint for token verification.
-  string jwks_uri = 4 [(buf.validate.field).required = true];
+
+  // Key source for token verification.
+  oneof key_source {
+    option (buf.validate.oneof).required = true;
+    // URL of the issuer's public key endpoint for token verification.
+    string jwks_uri = 4;
+    // Symmetric key (HMAC-SHA256) for token verification and minting.
+    // Used for self-issued tokens (e.g., magic links).
+    string symmetric_key = 5;
+  }
+
   // CEL expression that rewrites the raw JWT claims into a normalized map.
   // Has access to `claims` (the raw JWT claims). Must evaluate to a map.
   // The result replaces the claims stored on the session.
   // E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
-  string claims_rewrite_cel = 5;
+  string claims_rewrite_cel = 6;
   // Maps a full RPC method name to a CEL expression authorizing access.
   // The expression has access to `claims` (the JWT claims) and `request`
   // (the RPC request message). Must evaluate to a bool.
   // E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
-  map<string, string> method_to_authorization_cel = 6;
+  map<string, string> method_to_authorization_cel = 7;
 }
 
 // Configuration for service accounts.

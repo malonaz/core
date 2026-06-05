@@ -253,9 +253,9 @@ type JwtIssuer struct {
 	xxx_hidden_Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3"`
 	xxx_hidden_Issuer                   string                 `protobuf:"bytes,2,opt,name=issuer,proto3"`
 	xxx_hidden_Audience                 string                 `protobuf:"bytes,3,opt,name=audience,proto3"`
-	xxx_hidden_JwksUri                  string                 `protobuf:"bytes,4,opt,name=jwks_uri,json=jwksUri,proto3"`
-	xxx_hidden_ClaimsRewriteCel         string                 `protobuf:"bytes,5,opt,name=claims_rewrite_cel,json=claimsRewriteCel,proto3"`
-	xxx_hidden_MethodToAuthorizationCel map[string]string      `protobuf:"bytes,6,rep,name=method_to_authorization_cel,json=methodToAuthorizationCel,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_KeySource                isJwtIssuer_KeySource  `protobuf_oneof:"key_source"`
+	xxx_hidden_ClaimsRewriteCel         string                 `protobuf:"bytes,6,opt,name=claims_rewrite_cel,json=claimsRewriteCel,proto3"`
+	xxx_hidden_MethodToAuthorizationCel map[string]string      `protobuf:"bytes,7,rep,name=method_to_authorization_cel,json=methodToAuthorizationCel,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields                       protoimpl.UnknownFields
 	sizeCache                           protoimpl.SizeCache
 }
@@ -308,7 +308,18 @@ func (x *JwtIssuer) GetAudience() string {
 
 func (x *JwtIssuer) GetJwksUri() string {
 	if x != nil {
-		return x.xxx_hidden_JwksUri
+		if x, ok := x.xxx_hidden_KeySource.(*jwtIssuer_JwksUri); ok {
+			return x.JwksUri
+		}
+	}
+	return ""
+}
+
+func (x *JwtIssuer) GetSymmetricKey() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_KeySource.(*jwtIssuer_SymmetricKey); ok {
+			return x.SymmetricKey
+		}
 	}
 	return ""
 }
@@ -340,7 +351,11 @@ func (x *JwtIssuer) SetAudience(v string) {
 }
 
 func (x *JwtIssuer) SetJwksUri(v string) {
-	x.xxx_hidden_JwksUri = v
+	x.xxx_hidden_KeySource = &jwtIssuer_JwksUri{v}
+}
+
+func (x *JwtIssuer) SetSymmetricKey(v string) {
+	x.xxx_hidden_KeySource = &jwtIssuer_SymmetricKey{v}
 }
 
 func (x *JwtIssuer) SetClaimsRewriteCel(v string) {
@@ -349,6 +364,63 @@ func (x *JwtIssuer) SetClaimsRewriteCel(v string) {
 
 func (x *JwtIssuer) SetMethodToAuthorizationCel(v map[string]string) {
 	x.xxx_hidden_MethodToAuthorizationCel = v
+}
+
+func (x *JwtIssuer) HasKeySource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_KeySource != nil
+}
+
+func (x *JwtIssuer) HasJwksUri() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_KeySource.(*jwtIssuer_JwksUri)
+	return ok
+}
+
+func (x *JwtIssuer) HasSymmetricKey() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_KeySource.(*jwtIssuer_SymmetricKey)
+	return ok
+}
+
+func (x *JwtIssuer) ClearKeySource() {
+	x.xxx_hidden_KeySource = nil
+}
+
+func (x *JwtIssuer) ClearJwksUri() {
+	if _, ok := x.xxx_hidden_KeySource.(*jwtIssuer_JwksUri); ok {
+		x.xxx_hidden_KeySource = nil
+	}
+}
+
+func (x *JwtIssuer) ClearSymmetricKey() {
+	if _, ok := x.xxx_hidden_KeySource.(*jwtIssuer_SymmetricKey); ok {
+		x.xxx_hidden_KeySource = nil
+	}
+}
+
+const JwtIssuer_KeySource_not_set_case case_JwtIssuer_KeySource = 0
+const JwtIssuer_JwksUri_case case_JwtIssuer_KeySource = 4
+const JwtIssuer_SymmetricKey_case case_JwtIssuer_KeySource = 5
+
+func (x *JwtIssuer) WhichKeySource() case_JwtIssuer_KeySource {
+	if x == nil {
+		return JwtIssuer_KeySource_not_set_case
+	}
+	switch x.xxx_hidden_KeySource.(type) {
+	case *jwtIssuer_JwksUri:
+		return JwtIssuer_JwksUri_case
+	case *jwtIssuer_SymmetricKey:
+		return JwtIssuer_SymmetricKey_case
+	default:
+		return JwtIssuer_KeySource_not_set_case
+	}
 }
 
 type JwtIssuer_builder struct {
@@ -360,8 +432,15 @@ type JwtIssuer_builder struct {
 	Issuer string
 	// The expected `aud` claim value.
 	Audience string
+	// Key source for token verification.
+
+	// Fields of oneof xxx_hidden_KeySource:
 	// URL of the issuer's public key endpoint for token verification.
-	JwksUri string
+	JwksUri *string
+	// Symmetric key (HMAC-SHA256) for token verification and minting.
+	// Used for self-issued tokens (e.g., magic links).
+	SymmetricKey *string
+	// -- end of xxx_hidden_KeySource
 	// CEL expression that rewrites the raw JWT claims into a normalized map.
 	// Has access to `claims` (the raw JWT claims). Must evaluate to a map.
 	// The result replaces the claims stored on the session.
@@ -381,11 +460,45 @@ func (b0 JwtIssuer_builder) Build() *JwtIssuer {
 	x.xxx_hidden_Id = b.Id
 	x.xxx_hidden_Issuer = b.Issuer
 	x.xxx_hidden_Audience = b.Audience
-	x.xxx_hidden_JwksUri = b.JwksUri
+	if b.JwksUri != nil {
+		x.xxx_hidden_KeySource = &jwtIssuer_JwksUri{*b.JwksUri}
+	}
+	if b.SymmetricKey != nil {
+		x.xxx_hidden_KeySource = &jwtIssuer_SymmetricKey{*b.SymmetricKey}
+	}
 	x.xxx_hidden_ClaimsRewriteCel = b.ClaimsRewriteCel
 	x.xxx_hidden_MethodToAuthorizationCel = b.MethodToAuthorizationCel
 	return m0
 }
+
+type case_JwtIssuer_KeySource protoreflect.FieldNumber
+
+func (x case_JwtIssuer_KeySource) String() string {
+	md := file_malonaz_authentication_v1_authentication_proto_msgTypes[2].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isJwtIssuer_KeySource interface {
+	isJwtIssuer_KeySource()
+}
+
+type jwtIssuer_JwksUri struct {
+	// URL of the issuer's public key endpoint for token verification.
+	JwksUri string `protobuf:"bytes,4,opt,name=jwks_uri,json=jwksUri,proto3,oneof"`
+}
+
+type jwtIssuer_SymmetricKey struct {
+	// Symmetric key (HMAC-SHA256) for token verification and minting.
+	// Used for self-issued tokens (e.g., magic links).
+	SymmetricKey string `protobuf:"bytes,5,opt,name=symmetric_key,json=symmetricKey,proto3,oneof"`
+}
+
+func (*jwtIssuer_JwksUri) isJwtIssuer_KeySource() {}
+
+func (*jwtIssuer_SymmetricKey) isJwtIssuer_KeySource() {}
 
 // Configuration for service accounts.
 type ServiceAccountConfiguration struct {
@@ -1535,17 +1648,20 @@ const file_malonaz_authentication_v1_authentication_proto_rawDesc = "" +
 	"\vjwt_issuers\x18\x04 \x03(\v2$.malonaz.authentication.v1.JwtIssuerR\n" +
 	"jwtIssuers\"Z\n" +
 	"\x10JwtConfiguration\x12F\n" +
-	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\x89\x03\n" +
+	"\aissuers\x18\x01 \x03(\v2$.malonaz.authentication.v1.JwtIssuerB\x06\xbaH\x03\xc8\x01\x01R\aissuers\"\xbf\x03\n" +
 	"\tJwtIssuer\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1e\n" +
 	"\x06issuer\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06issuer\x12\"\n" +
-	"\baudience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\baudience\x12!\n" +
-	"\bjwks_uri\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\ajwksUri\x12,\n" +
-	"\x12claims_rewrite_cel\x18\x05 \x01(\tR\x10claimsRewriteCel\x12\x81\x01\n" +
-	"\x1bmethod_to_authorization_cel\x18\x06 \x03(\v2B.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntryR\x18methodToAuthorizationCel\x1aK\n" +
+	"\baudience\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\baudience\x12\x1b\n" +
+	"\bjwks_uri\x18\x04 \x01(\tH\x00R\ajwksUri\x12%\n" +
+	"\rsymmetric_key\x18\x05 \x01(\tH\x00R\fsymmetricKey\x12,\n" +
+	"\x12claims_rewrite_cel\x18\x06 \x01(\tR\x10claimsRewriteCel\x12\x81\x01\n" +
+	"\x1bmethod_to_authorization_cel\x18\a \x03(\v2B.malonaz.authentication.v1.JwtIssuer.MethodToAuthorizationCelEntryR\x18methodToAuthorizationCel\x1aK\n" +
 	"\x1dMethodToAuthorizationCelEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"{\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x13\n" +
+	"\n" +
+	"key_source\x12\x05\xbaH\x02\b\x01\"{\n" +
 	"\x1bServiceAccountConfiguration\x12\\\n" +
 	"\x10service_accounts\x18\x01 \x03(\v2).malonaz.authentication.v1.ServiceAccountB\x06\xbaH\x03\xc8\x01\x01R\x0fserviceAccounts\"\xe1\x03\n" +
 	"\x0eServiceAccount\x12\x16\n" +
@@ -1661,6 +1777,10 @@ func init() { file_malonaz_authentication_v1_authentication_proto_init() }
 func file_malonaz_authentication_v1_authentication_proto_init() {
 	if File_malonaz_authentication_v1_authentication_proto != nil {
 		return
+	}
+	file_malonaz_authentication_v1_authentication_proto_msgTypes[2].OneofWrappers = []any{
+		(*jwtIssuer_JwksUri)(nil),
+		(*jwtIssuer_SymmetricKey)(nil),
 	}
 	file_malonaz_authentication_v1_authentication_proto_msgTypes[7].OneofWrappers = []any{
 		(*session_JwtIdentity)(nil),
