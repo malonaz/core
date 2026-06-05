@@ -295,53 +295,40 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 }
 
 // Stream implements the authentication stream interceptor.
-// For server-streaming RPCs (single client request), we peek the request message
-// before the handler runs so that CEL authorization has access to it and the
-// session is marked authorized before any downstream RPCs are made.
-// For client-streaming and bidi-streaming RPCs, JWT authentication is not
-// supported because there is no single request message to authorize against.
+// For all stream types, we peek the first client request so that CEL
+// authorization rules can evaluate against it. The only exception is
+// bidi streams, where we pass a nil request to authenticate() because
+// either side may send first so we cannot reliably peek a request.
 func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		// Server-stream only: peek the single client request so we can authorize
-		// before the handler executes. This ensures the session carries
-		// Authorized=true for any downstream RPCs the handler makes.
-		if info.IsServerStream && !info.IsClientStream {
+		wrappedStream := &peekedServerStream{
+			WrappedServerStream: grpc_middleware.WrappedServerStream{
+				ServerStream:   stream,
+				WrappedContext: stream.Context(),
+			},
+		}
+
+		// Peek the first client request for non-bidi streams so authenticate()
+		// can evaluate CEL authorization rules against it.
+		var request proto.Message
+		isBidi := info.IsClientStream && info.IsServerStream
+		if !isBidi {
 			inputDescriptor, err := resolveMethodInputDescriptor(info.FullMethod)
 			if err != nil {
 				return status.Errorf(codes.Internal, "resolving method input descriptor: %v", err).Err()
 			}
-			wrappedStream := &peekedServerStream{
-				WrappedServerStream: grpc_middleware.WrappedServerStream{
-					ServerStream:   stream,
-					WrappedContext: stream.Context(),
-				},
-			}
-			request := dynamicpb.NewMessage(inputDescriptor)
+			request = dynamicpb.NewMessage(inputDescriptor)
 			if err := wrappedStream.peekRequest(request); err != nil {
 				return err
 			}
-			ctx, err := i.authenticate(stream.Context(), info.FullMethod, request)
-			if err != nil {
-				return err
-			}
-			wrappedStream.WrappedContext = ctx
-			return handler(srv, wrappedStream)
 		}
 
-		// Client-streaming or bidi-streaming: reject JWT sessions since we cannot
-		// authorize against a single request message.
-		signedSession, _ := getSignedSessionFromLocalContext(stream.Context())
-		if signedSession != nil {
-			if _, isJwt := signedSession.Session.GetIdentity().(*authenticationpb.Session_JwtIdentity); isJwt {
-				return status.Errorf(codes.Unimplemented, "JWT authentication is not supported for client-streaming or bidi-streaming RPCs").Err()
-			}
-		}
-
-		ctx, err := i.authenticate(stream.Context(), info.FullMethod, nil)
+		ctx, err := i.authenticate(stream.Context(), info.FullMethod, request)
 		if err != nil {
 			return err
 		}
-		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
+		wrappedStream.WrappedContext = ctx
+		return handler(srv, wrappedStream)
 	}
 	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
 }
