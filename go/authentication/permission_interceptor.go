@@ -291,8 +291,35 @@ func (i *PermissionAuthenticationInterceptor) Unary() grpc.UnaryServerIntercepto
 }
 
 // Stream implements the authentication stream interceptor.
+// For server-streaming RPCs (single client request), it wraps the stream to
+// intercept the initial RecvMsg and run CEL authorization against the request.
+// For client-streaming and bidi-streaming RPCs, JWT authentication is not
+// supported because there is no single request message to authorize against.
 func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		// Server-stream only (single client message): wrap the stream to intercept
+		// the request message during RecvMsg for CEL authorization.
+		if info.IsServerStream && !info.IsClientStream {
+			wrappedStream := &authorizingServerStream{
+				WrappedServerStream: grpc_middleware.WrappedServerStream{
+					ServerStream:   stream,
+					WrappedContext: stream.Context(),
+				},
+				interceptor: i,
+				fullMethod:  info.FullMethod,
+			}
+			return handler(srv, wrappedStream)
+		}
+
+		// Client-streaming or bidi-streaming: reject JWT sessions since we cannot
+		// authorize against a single request message.
+		signedSession, _ := getSignedSessionFromLocalContext(stream.Context())
+		if signedSession != nil {
+			if _, isJwt := signedSession.Session.GetIdentity().(*authenticationpb.Session_JwtIdentity); isJwt {
+				return status.Errorf(codes.Unimplemented, "JWT authentication is not supported for client-streaming or bidi-streaming RPCs").Err()
+			}
+		}
+
 		ctx, err := i.authenticate(stream.Context(), info.FullMethod, nil)
 		if err != nil {
 			return err
@@ -300,4 +327,30 @@ func (i *PermissionAuthenticationInterceptor) Stream() grpc.StreamServerIntercep
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
 	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
+}
+
+// authorizingServerStream wraps a server stream to intercept the first RecvMsg
+// call. For server-streaming RPCs, gRPC calls RecvMsg internally to deserialize
+// the client's single request before invoking the handler. This lets us run
+// CEL authorization against the fully-populated request message.
+type authorizingServerStream struct {
+	grpc_middleware.WrappedServerStream
+	interceptor *PermissionAuthenticationInterceptor
+	fullMethod  string
+	authorized  bool
+}
+
+func (s *authorizingServerStream) RecvMsg(m any) error {
+	if err := s.ServerStream.RecvMsg(m); err != nil {
+		return err
+	}
+	if !s.authorized {
+		s.authorized = true
+		ctx, err := s.interceptor.authenticate(s.WrappedContext, s.fullMethod, m)
+		if err != nil {
+			return err
+		}
+		s.WrappedContext = ctx
+	}
+	return nil
 }
