@@ -1,10 +1,14 @@
+// File: /home/malon/core/go/nats/processor.go
+
 package nats
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
@@ -24,9 +28,20 @@ type Message[T proto.Message] struct {
 	Timestamp time.Time
 	Headers   map[string][]string
 	Payload   T
+	natsMsg   jetstream.Msg
 }
 
-type ProcessorFunc[T proto.Message] func(ctx context.Context, messages []*Message[T]) error
+// Ack acknowledges the message.
+func (m *Message[T]) Ack() error {
+	return m.natsMsg.Ack()
+}
+
+// Nak negatively acknowledges the message, requesting redelivery.
+func (m *Message[T]) Nak() error {
+	return m.natsMsg.Nak()
+}
+
+type ProcessorFunc[T proto.Message] func(ctx context.Context, message *Message[T]) error
 
 type ProcessorConfig struct {
 	Subjects             []*Subject
@@ -41,23 +56,38 @@ type ProcessorConfig struct {
 	DeliverFromLatest bool
 }
 
+type ProcessorOpt[T proto.Message] func(*Processor[T])
+
+// WithGroupKey groups messages by the returned key. Messages within a group are processed
+// serially in the order they were received; groups are processed in parallel.
+func WithGroupKey[T proto.Message](keyFunc func(*Message[T]) string) ProcessorOpt[T] {
+	return func(p *Processor[T]) {
+		p.groupKeyFunc = keyFunc
+	}
+}
+
 type Processor[T proto.Message] struct {
 	log           *slog.Logger
 	client        *Client
 	config        *ProcessorConfig
 	processorFunc ProcessorFunc[T]
+	groupKeyFunc  func(*Message[T]) string
 	consumer      jetstream.Consumer
 	routine       *routine.Routine
 	metrics       bool
 }
 
-func NewProcessor[T proto.Message](client *Client, config *ProcessorConfig, processorFunc ProcessorFunc[T]) *Processor[T] {
-	return &Processor[T]{
+func NewProcessor[T proto.Message](client *Client, config *ProcessorConfig, processorFunc ProcessorFunc[T], opts ...ProcessorOpt[T]) *Processor[T] {
+	p := &Processor[T]{
 		log:           slog.Default(),
 		client:        client,
 		config:        config,
 		processorFunc: processorFunc,
 	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
 }
 
 func (p *Processor[T]) WithLogger(logger *slog.Logger) *Processor[T] {
@@ -70,7 +100,7 @@ func (p *Processor[T]) WithMetrics() *Processor[T] {
 	return p
 }
 
-// Checks the health of this routine.
+// HealthCheck checks the health of this routine.
 func (p *Processor[T]) HealthCheck(ctx context.Context) error {
 	return p.routine.HealthCheck(ctx)
 }
@@ -128,7 +158,6 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		}
 
 		var messages []*Message[T]
-		var natsMessages []jetstream.Msg
 		for natsMessage := range messageBatch.Messages() {
 			payload := p.newPayload()
 			if err := pbutil.Unmarshal(natsMessage.Data(), payload); err != nil {
@@ -147,8 +176,8 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 				Timestamp: metadata.Timestamp,
 				Headers:   natsMessage.Headers(),
 				Payload:   payload,
+				natsMsg:   natsMessage,
 			})
-			natsMessages = append(natsMessages, natsMessage)
 		}
 
 		if err := messageBatch.Error(); err != nil {
@@ -162,19 +191,56 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, ackWait)
 		defer cancel()
 
-		if err := p.processorFunc(ctxWithTimeout, messages); err != nil {
-			for _, natsMessage := range natsMessages {
-				if nakErr := natsMessage.Nak(); nakErr != nil {
-					p.log.Error("naking message after processing failure", "error", nakErr)
+		// Group messages. Without a groupKeyFunc, each message is its own group.
+		var groups [][]*Message[T]
+		if p.groupKeyFunc != nil {
+			keyToGroupIndex := make(map[string]int)
+			for _, message := range messages {
+				key := p.groupKeyFunc(message)
+				if groupIndex, ok := keyToGroupIndex[key]; ok {
+					groups[groupIndex] = append(groups[groupIndex], message)
+				} else {
+					keyToGroupIndex[key] = len(groups)
+					groups = append(groups, []*Message[T]{message})
 				}
 			}
-			return fmt.Errorf("processing messages: %w", err)
+		} else {
+			for _, message := range messages {
+				groups = append(groups, []*Message[T]{message})
+			}
 		}
 
-		for _, natsMessage := range natsMessages {
-			if err := natsMessage.Ack(); err != nil {
-				return fmt.Errorf("acking message: %w", err)
-			}
+		// Process groups in parallel; messages within a group serially.
+		var mu sync.Mutex
+		var errs []error
+
+		var wg sync.WaitGroup
+		for _, group := range groups {
+			wg.Add(1)
+			go func(group []*Message[T]) {
+				defer wg.Done()
+				for i, message := range group {
+					if err := p.processorFunc(ctxWithTimeout, message); err != nil {
+						mu.Lock()
+						errs = append(errs, err)
+						mu.Unlock()
+						for _, remaining := range group[i:] {
+							if nakErr := remaining.Nak(); nakErr != nil {
+								p.log.Error("naking message", "error", nakErr)
+							}
+						}
+						return
+					}
+					if ackErr := message.Ack(); ackErr != nil {
+						p.log.Error("acking message", "error", ackErr)
+					}
+				}
+			}(group)
+		}
+		wg.Wait()
+
+		if len(errs) > 0 {
+			return fmt.Errorf("processing messages: %w", errors.Join(errs...))
 		}
 		return nil
 	}
@@ -210,15 +276,5 @@ func (p *Processor[T]) newPayload() T {
 func (p *Processor[T]) Close() {
 	if p.routine != nil {
 		p.routine.Close()
-	}
-}
-
-func Payloads[T proto.Message](messages []*Message[T]) func(func(int, T) bool) {
-	return func(yield func(int, T) bool) {
-		for i, message := range messages {
-			if !yield(i, message.Payload) {
-				return
-			}
-		}
 	}
 }

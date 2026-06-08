@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	natsEventCheckInterval = 10 * time.Millisecond
-	natsEventCheckTimeout  = 100 * time.Millisecond
+	natsEventCheckInterval = 100 * time.Millisecond
+	natsEventCheckTimeout  = 2 * time.Second
 )
 
 type shelfCreatedEvent struct {
@@ -86,18 +86,17 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().Get()},
 		ConsumerName: "test-shelf-created-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+		BatchSize:    100,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			shelfNameToCreatedEvents[shelf.Name] = append(shelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
-				Shelf: shelf,
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		shelfNameToCreatedEvents[shelf.Name] = append(shelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
+			Shelf: shelf,
+		})
 		return nil
 	})
 	require.NoError(t, createdProcessor.Start(ctx))
@@ -105,24 +104,23 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfUpdatedSubject().Get()},
 		ConsumerName: "test-shelf-updated-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+		BatchSize:    100,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			shelfNameToUpdatedEvents[shelf.Name] = append(shelfNameToUpdatedEvents[shelf.Name], &shelfUpdatedEvent{
-				Shelf:         shelf,
-				PreviousShelf: previousShelf,
-				UpdateMask:    message.Payload.GetUpdateMask(),
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		shelfNameToUpdatedEvents[shelf.Name] = append(shelfNameToUpdatedEvents[shelf.Name], &shelfUpdatedEvent{
+			Shelf:         shelf,
+			PreviousShelf: previousShelf,
+			UpdateMask:    message.Payload.GetUpdateMask(),
+		})
 		return nil
 	})
 	require.NoError(t, updatedProcessor.Start(ctx))
@@ -130,18 +128,17 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfDeletedSubject().Get()},
 		ConsumerName: "test-shelf-deleted-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+		BatchSize:    100,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			shelfNameToDeletedEvents[shelf.Name] = append(shelfNameToDeletedEvents[shelf.Name], &shelfDeletedEvent{
-				Shelf: shelf,
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		shelfNameToDeletedEvents[shelf.Name] = append(shelfNameToDeletedEvents[shelf.Name], &shelfDeletedEvent{
+			Shelf: shelf,
+		})
 		return nil
 	})
 	require.NoError(t, deletedProcessor.Start(ctx))
@@ -153,18 +150,16 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre)).Get()},
 		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
 		defer filteredMu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			filteredShelfNameToCreatedEvents[shelf.Name] = append(filteredShelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
-				Shelf: shelf,
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		filteredShelfNameToCreatedEvents[shelf.Name] = append(filteredShelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
+			Shelf: shelf,
+		})
 		return nil
 	})
 	require.NoError(t, filteredProcessor.Start(ctx))
@@ -585,18 +580,16 @@ func TestNatsEvents_Book(t *testing.T) {
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.Get().Subject("created.>")},
 		ConsumerName: "test-book-created-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			bookNameToCreatedEvents[book.Name] = append(bookNameToCreatedEvents[book.Name], &bookCreatedEvent{
-				Book: book,
-			})
+		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		bookNameToCreatedEvents[book.Name] = append(bookNameToCreatedEvents[book.Name], &bookCreatedEvent{
+			Book: book,
+		})
 		return nil
 	})
 	require.NoError(t, createdProcessor.Start(ctx))
@@ -604,24 +597,22 @@ func TestNatsEvents_Book(t *testing.T) {
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.GetBookUpdatedSubject().Get()},
 		ConsumerName: "test-book-updated-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			previousBook, err := aip.ParseEventPreviousResource[*librarypb.Book](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			bookNameToUpdatedEvents[book.Name] = append(bookNameToUpdatedEvents[book.Name], &bookUpdatedEvent{
-				Book:         book,
-				PreviousBook: previousBook,
-				UpdateMask:   message.Payload.GetUpdateMask(),
-			})
+		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		previousBook, err := aip.ParseEventPreviousResource[*librarypb.Book](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		bookNameToUpdatedEvents[book.Name] = append(bookNameToUpdatedEvents[book.Name], &bookUpdatedEvent{
+			Book:         book,
+			PreviousBook: previousBook,
+			UpdateMask:   message.Payload.GetUpdateMask(),
+		})
 		return nil
 	})
 	require.NoError(t, updatedProcessor.Start(ctx))
@@ -629,18 +620,16 @@ func TestNatsEvents_Book(t *testing.T) {
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{bookStream.GetBookDeletedSubject().Get()},
 		ConsumerName: "test-book-deleted-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			bookNameToDeletedEvents[book.Name] = append(bookNameToDeletedEvents[book.Name], &bookDeletedEvent{
-				Book: book,
-			})
+		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		bookNameToDeletedEvents[book.Name] = append(bookNameToDeletedEvents[book.Name], &bookDeletedEvent{
+			Book: book,
+		})
 		return nil
 	})
 	require.NoError(t, deletedProcessor.Start(ctx))
@@ -791,24 +780,22 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	genreChangeProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{shelfStream.GetShelfGenreChangeSubject().Get()},
 		ConsumerName: "test-shelf-genre-change-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			shelfNameToGenreChangeEvents[shelf.Name] = append(shelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
-				Shelf:         shelf,
-				PreviousShelf: previousShelf,
-				UpdateMask:    message.Payload.GetUpdateMask(),
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		shelfNameToGenreChangeEvents[shelf.Name] = append(shelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
+			Shelf:         shelf,
+			PreviousShelf: previousShelf,
+			UpdateMask:    message.Payload.GetUpdateMask(),
+		})
 		return nil
 	})
 	require.NoError(t, genreChangeProcessor.Start(ctx))
@@ -819,24 +806,22 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
 		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfGenreChangeSubject().WithGenre(targetGenre)).Get()},
 		ConsumerName: "test-shelf-genre-change-filtered-" + consumerSuffix,
-	}, func(_ context.Context, messages []*nats.Message[*aippb.ResourceEvent]) error {
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
 		defer filteredMu.Unlock()
-		for _, message := range messages {
-			shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
-			if err != nil {
-				panic(err)
-			}
-			filteredShelfNameToGenreChangeEvents[shelf.Name] = append(filteredShelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
-				Shelf:         shelf,
-				PreviousShelf: previousShelf,
-				UpdateMask:    message.Payload.GetUpdateMask(),
-			})
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
 		}
+		previousShelf, err := aip.ParseEventPreviousResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		filteredShelfNameToGenreChangeEvents[shelf.Name] = append(filteredShelfNameToGenreChangeEvents[shelf.Name], &shelfUpdatedEvent{
+			Shelf:         shelf,
+			PreviousShelf: previousShelf,
+			UpdateMask:    message.Payload.GetUpdateMask(),
+		})
 		return nil
 	})
 	require.NoError(t, filteredProcessor.Start(ctx))
