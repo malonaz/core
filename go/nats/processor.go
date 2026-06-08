@@ -60,7 +60,7 @@ type ProcessorOpt[T proto.Message] func(*Processor[T])
 
 // WithGroupKey groups messages by the returned key. Messages within a group are processed
 // serially in the order they were received; groups are processed in parallel.
-func WithGroupKey[T proto.Message](keyFunc func(*Message[T]) string) ProcessorOpt[T] {
+func WithGroupKey[T proto.Message](keyFunc func(*Message[T]) (string, error)) ProcessorOpt[T] {
 	return func(p *Processor[T]) {
 		p.groupKeyFunc = keyFunc
 	}
@@ -71,7 +71,7 @@ type Processor[T proto.Message] struct {
 	client        *Client
 	config        *ProcessorConfig
 	processorFunc ProcessorFunc[T]
-	groupKeyFunc  func(*Message[T]) string
+	groupKeyFunc  func(*Message[T]) (string, error)
 	consumer      jetstream.Consumer
 	routine       *routine.Routine
 	metrics       bool
@@ -196,7 +196,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		if p.groupKeyFunc != nil {
 			keyToGroupIndex := make(map[string]int)
 			for _, message := range messages {
-				key := p.groupKeyFunc(message)
+				key, err := p.groupKeyFunc(message)
+				if err != nil {
+					if nakErr := message.Nak(); nakErr != nil {
+						p.log.Error("naking message after group key failure", "error", nakErr)
+					}
+					return fmt.Errorf("computing group key: %w", err)
+				}
 				if groupIndex, ok := keyToGroupIndex[key]; ok {
 					groups[groupIndex] = append(groups[groupIndex], message)
 				} else {
@@ -276,5 +282,15 @@ func (p *Processor[T]) newPayload() T {
 func (p *Processor[T]) Close() {
 	if p.routine != nil {
 		p.routine.Close()
+	}
+}
+
+func Payloads[T proto.Message](messages []*Message[T]) func(func(int, T) bool) {
+	return func(yield func(int, T) bool) {
+		for i, message := range messages {
+			if !yield(i, message.Payload) {
+				return
+			}
+		}
 	}
 }
