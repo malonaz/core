@@ -1,6 +1,7 @@
 go_library(
     name = "nats",
     srcs = [
+        "errors.go",
         "nats.go",
         "processor.go",
         "stream.go",

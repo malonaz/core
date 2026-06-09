@@ -225,9 +225,28 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 				defer wg.Done()
 				for i, message := range group {
 					if err := p.processorFunc(ctxWithTimeout, message); err != nil {
+						var processingError *ProcessingError
+						if errors.As(err, &processingError) {
+							switch processingError.action {
+							case ActionTerm:
+								if termErr := message.natsMsg.Term(); termErr != nil {
+									p.log.Error("terming message", "error", termErr, "cause", processingError.err)
+								}
+							case ActionNakWithDelay:
+								if nakErr := message.natsMsg.NakWithDelay(processingError.delay); nakErr != nil {
+									p.log.Error("naking message with delay", "error", nakErr, "cause", processingError.err)
+								}
+							default:
+								if nakErr := message.nak(); nakErr != nil {
+									p.log.Error("naking message", "error", nakErr, "cause", processingError.err)
+								}
+							}
+							continue
+						}
 						mu.Lock()
 						errs = append(errs, err)
 						mu.Unlock()
+						// Nak remaining messages in the group to preserve ordering guarantees.
 						for _, remaining := range group[i:] {
 							if nakErr := remaining.nak(); nakErr != nil {
 								p.log.Error("naking message", "error", nakErr)
