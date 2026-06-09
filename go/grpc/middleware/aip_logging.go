@@ -48,6 +48,8 @@ func injectAIPLogFields(ctx context.Context, message proto.Message) {
 	injectResourceReferenceFields(ctx, message.ProtoReflect(), "", false)
 }
 
+// aip_logging.go
+
 func injectResourceReferenceFields(ctx context.Context, reflectMessage protoreflect.Message, prefix string, nested bool) {
 	descriptor := reflectMessage.Descriptor()
 	fields := descriptor.Fields()
@@ -59,12 +61,11 @@ func injectResourceReferenceFields(ctx context.Context, reflectMessage protorefl
 		}
 
 		fieldName := string(field.Name())
-		key := prefix + fieldName
+		key := "grpc.request." + prefix + fieldName
 
 		if field.Kind() == protoreflect.StringKind {
 			_, refErr := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
 			if refErr != nil {
-				// Also check for IDENTIFIER field behavior on resource messages.
 				if !nested || fieldName != "name" {
 					continue
 				}
