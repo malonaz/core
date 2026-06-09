@@ -282,13 +282,3 @@ func (p *Processor[T]) Close() {
 		p.routine.Close()
 	}
 }
-
-func Payloads[T proto.Message](messages []*Message[T]) func(func(int, T) bool) {
-	return func(yield func(int, T) bool) {
-		for i, message := range messages {
-			if !yield(i, message.Payload) {
-				return
-			}
-		}
-	}
-}
