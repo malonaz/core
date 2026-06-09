@@ -1,5 +1,3 @@
-// File: /home/malon/core/go/nats/processor.go
-
 package nats
 
 import (
@@ -31,13 +29,13 @@ type Message[T proto.Message] struct {
 	natsMsg   jetstream.Msg
 }
 
-// Ack acknowledges the message.
-func (m *Message[T]) Ack() error {
+// Acknowledges the message.
+func (m *Message[T]) ack() error {
 	return m.natsMsg.Ack()
 }
 
-// Nak negatively acknowledges the message, requesting redelivery.
-func (m *Message[T]) Nak() error {
+// Negatively acknowledges the message, requesting redelivery.
+func (m *Message[T]) nak() error {
 	return m.natsMsg.Nak()
 }
 
@@ -198,7 +196,7 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 			for _, message := range messages {
 				key, err := p.groupKeyFunc(message)
 				if err != nil {
-					if nakErr := message.Nak(); nakErr != nil {
+					if nakErr := message.nak(); nakErr != nil {
 						p.log.Error("naking message after group key failure", "error", nakErr)
 					}
 					return fmt.Errorf("computing group key: %w", err)
@@ -231,13 +229,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 						errs = append(errs, err)
 						mu.Unlock()
 						for _, remaining := range group[i:] {
-							if nakErr := remaining.Nak(); nakErr != nil {
+							if nakErr := remaining.nak(); nakErr != nil {
 								p.log.Error("naking message", "error", nakErr)
 							}
 						}
 						return
 					}
-					if ackErr := message.Ack(); ackErr != nil {
+					if ackErr := message.ack(); ackErr != nil {
 						p.log.Error("acking message", "error", ackErr)
 					}
 				}
