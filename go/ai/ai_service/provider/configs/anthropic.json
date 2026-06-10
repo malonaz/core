@@ -4,6 +4,22 @@ local p = "providers/anthropic/models/";
   "provider_id":  "anthropic",
   "models":  [
     {
+      "name": p + "claude-fable-5",
+      "provider_model_id": "claude-fable-5",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1000000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 10,
+          "output_token_price_per_million": 50,
+          "input_token_cache_read_price_per_million": 1,
+          "input_token_cache_write_price_per_million": 12.5
+        }
+      }
+    },
+    {
       "name": p + "claude-opus-4.8",
       "provider_model_id": "claude-opus-4-8",
       "ttt": {
