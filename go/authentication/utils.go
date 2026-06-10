@@ -100,3 +100,30 @@ func parseClientVersion(raw string) (*authenticationpb.ClientVersion, error) {
 		Patch: int32(patch),
 	}, nil
 }
+
+// CompareClientVersion compares the session's client version against the given
+// major.minor.patch. Returns -1, 0, or 1 if the client version is less than,
+// equal to, or greater than the specified version. Returns -1 if no version is present.
+func CompareClientVersion(session *authenticationpb.Session, major, minor, patch int32) int {
+	clientVersion := session.GetMetadata().GetClientVersion()
+	if clientVersion == nil {
+		return -1
+	}
+	if clientVersion.Major != major {
+		return cmp(clientVersion.Major, major)
+	}
+	if clientVersion.Minor != minor {
+		return cmp(clientVersion.Minor, minor)
+	}
+	return cmp(clientVersion.Patch, patch)
+}
+
+func cmp(a, b int32) int {
+	if a < b {
+		return -1
+	}
+	if a > b {
+		return 1
+	}
+	return 0
+}
