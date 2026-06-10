@@ -526,7 +526,7 @@ go_mod_download(
     name = "github.com__anthropics__anthropic-sdk-go",
     _tag = "download",
     module = "github.com/anthropics/anthropic-sdk-go",
-    version = "v1.19.0",
+    version = "v1.50.1",
     visibility = ["PUBLIC"],
 )
 
@@ -537,10 +537,13 @@ go_module(
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__anthropics__anthropic-sdk-go__config",
         ":github.com__anthropics__anthropic-sdk-go__internal__apierror",
         ":github.com__anthropics__anthropic-sdk-go__internal__apiform",
         ":github.com__anthropics__anthropic-sdk-go__internal__apijson",
         ":github.com__anthropics__anthropic-sdk-go__internal__apiquery",
+        ":github.com__anthropics__anthropic-sdk-go__internal__auth",
+        ":github.com__anthropics__anthropic-sdk-go__internal__encoding__json",
         ":github.com__anthropics__anthropic-sdk-go__internal__paramutil",
         ":github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
         ":github.com__anthropics__anthropic-sdk-go__option",
@@ -551,8 +554,21 @@ go_module(
         ":github.com__anthropics__anthropic-sdk-go__packages__ssestream",
         ":github.com__anthropics__anthropic-sdk-go__shared",
         ":github.com__anthropics__anthropic-sdk-go__shared__constant",
+        ":github.com__invopop__jsonschema",
+        ":github.com__pb33f__ordered-map__v2",
+        ":github.com__standard-webhooks__standard-webhooks__libraries__go",
         ":github.com__tidwall__gjson",
+        ":golang.org__x__sync__errgroup",
     ],
+)
+
+go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__config",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["config"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__anthropics__anthropic-sdk-go__internal"],
 )
 
 go_module(
@@ -573,6 +589,7 @@ go_module(
     deps = [
         ":github.com__anthropics__anthropic-sdk-go__internal__apijson",
         ":github.com__anthropics__anthropic-sdk-go__packages__respjson",
+        ":github.com__anthropics__anthropic-sdk-go__shared",
     ],
 )
 
@@ -592,6 +609,7 @@ go_module(
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__anthropics__anthropic-sdk-go__internal__encoding__json",
         ":github.com__anthropics__anthropic-sdk-go__packages__param",
         ":github.com__anthropics__anthropic-sdk-go__packages__respjson",
         ":github.com__tidwall__gjson",
@@ -606,6 +624,19 @@ go_module(
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
     deps = [":github.com__anthropics__anthropic-sdk-go__packages__param"],
+)
+
+go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__internal__auth",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["internal/auth"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__config",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal",
+    ],
 )
 
 go_module(
@@ -672,6 +703,8 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__tidwall__sjson",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__config",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__auth",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
     ],
 )
@@ -728,7 +761,7 @@ go_module(
     install = ["packages/ssestream"],
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = ["//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apierror"],
 )
 
 go_module(
@@ -789,6 +822,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__bahlo__generic-list-go",
+    _tag = "download",
+    module = "github.com/bahlo/generic-list-go",
+    version = "v0.2.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__bahlo__generic-list-go",
+    download = ":_github.com__bahlo__generic-list-go#download",
+    install = ["."],
+    module = "github.com/bahlo/generic-list-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__bazelbuild__buildtools",
     _tag = "download",
     module = "github.com/peterebden/buildtools",
@@ -827,6 +877,23 @@ go_module(
     download = ":_github.com__beorn7__perks#download",
     install = ["quantile"],
     module = "github.com/beorn7/perks",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__buger__jsonparser",
+    _tag = "download",
+    module = "github.com/buger/jsonparser",
+    version = "v1.1.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__buger__jsonparser",
+    download = ":_github.com__buger__jsonparser#download",
+    install = ["."],
+    module = "github.com/buger/jsonparser",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -3982,6 +4049,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__invopop__jsonschema",
+    _tag = "download",
+    module = "github.com/invopop/jsonschema",
+    version = "v0.14.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__invopop__jsonschema",
+    download = ":_github.com__invopop__jsonschema#download",
+    install = ["."],
+    module = "github.com/invopop/jsonschema",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__pb33f__ordered-map__v2"],
+)
+
+go_mod_download(
     name = "github.com__jackc__pgerrcode",
     _tag = "download",
     module = "github.com/jackc/pgerrcode",
@@ -5678,6 +5762,27 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__pb33f__ordered-map__v2",
+    _tag = "download",
+    module = "github.com/pb33f/ordered-map/v2",
+    version = "v2.3.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__pb33f__ordered-map__v2",
+    download = ":_github.com__pb33f__ordered-map__v2#download",
+    install = ["."],
+    module = "github.com/pb33f/ordered-map/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.yaml.in__yaml__v4",
+        "//third_party/go:github.com__bahlo__generic-list-go",
+        "//third_party/go:github.com__buger__jsonparser",
+    ],
+)
+
+go_mod_download(
     name = "github.com__pion__randutil",
     _tag = "download",
     module = "github.com/pion/randutil",
@@ -5988,8 +6093,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -6509,6 +6614,23 @@ go_module(
         "//third_party/go:github.com__spiffe__go-spiffe__v2__svid__jwtsvid",
         "//third_party/go:github.com__spiffe__go-spiffe__v2__svid__x509svid",
     ],
+)
+
+go_mod_download(
+    name = "github.com__standard-webhooks__standard-webhooks__libraries",
+    _tag = "download",
+    module = "github.com/standard-webhooks/standard-webhooks/libraries",
+    version = "v0.0.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__standard-webhooks__standard-webhooks__libraries__go",
+    download = ":_github.com__standard-webhooks__standard-webhooks__libraries#download",
+    install = ["go"],
+    module = "github.com/standard-webhooks/standard-webhooks/libraries",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -7363,6 +7485,23 @@ go_module(
     download = ":_go.yaml.in__yaml__v3#download",
     install = ["."],
     module = "go.yaml.in/yaml/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "go.yaml.in__yaml__v4",
+    _tag = "download",
+    module = "go.yaml.in/yaml/v4",
+    version = "v4.0.0-rc.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.yaml.in__yaml__v4",
+    download = ":_go.yaml.in__yaml__v4#download",
+    install = ["."],
+    module = "go.yaml.in/yaml/v4",
     visibility = ["PUBLIC"],
     deps = [],
 )

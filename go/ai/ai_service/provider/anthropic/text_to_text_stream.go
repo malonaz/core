@@ -159,6 +159,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	defer cs.Close()
 
 	tca := provider.NewToolCallAccumulator()
+	redactedThinkingIndexSet := map[int64]struct{}{}
 	var sentTtfb bool
 
 	for messageStream.Next() && cs.Err() == nil {
@@ -196,7 +197,9 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				}
 			case anthropic.TextBlock:
 			case anthropic.ThinkingBlock:
+				redactedThinkingIndexSet[variant.Index] = struct{}{}
 			case anthropic.RedactedThinkingBlock:
+				redactedThinkingIndexSet[variant.Index] = struct{}{}
 			case anthropic.ServerToolUseBlock:
 			case anthropic.WebSearchToolResultBlock:
 			default:
@@ -208,6 +211,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			case anthropic.TextDelta:
 				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Text{Text: delta.Text}})
 			case anthropic.ThinkingDelta:
+				delete(redactedThinkingIndexSet, variant.Index)
 				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: delta.Thinking}})
 			case anthropic.SignatureDelta:
 				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: delta.Signature})
@@ -225,6 +229,9 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			}
 
 		case anthropic.ContentBlockStopEvent:
+			if _, ok := redactedThinkingIndexSet[variant.Index]; ok {
+				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: "Thinking... [redacted]"}})
+			}
 			if tca.Has(variant.Index) {
 				block, err := tca.Build(variant.Index)
 				if err != nil {

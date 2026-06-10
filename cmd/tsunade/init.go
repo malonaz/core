@@ -31,7 +31,7 @@ func setup(ctx context.Context) error {
 	for _, database := range databases {
 		dir := "/etc/tsunade/migrations"
 		if env == "" {
-			dir = "plz-out/gen/sgpt/migrations"
+			dir = "plz-out/gen/go/ai/migrations"
 		}
 		initializer := binary.MustNew(
 			binPath,
