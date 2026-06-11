@@ -70,6 +70,14 @@
                                 },
                                 "gateway": {
                                     "type": "boolean"
+                                },
+                                "services": {
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "items": {
+                                        "type": "string",
+                                        "pattern": "^[A-Za-z0-9]+$"
+                                    }
                                 }
                             }
                         }

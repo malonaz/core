@@ -9,52 +9,93 @@ import (
 
 const coreRepo = "github.com/malonaz/core/go"
 
-var targetToGRPC = map[string]*GRPC{}
+var targetToGRPCs = map[string][]*GRPC{}
 
-// Contains all the information about a grpc server.
+// Contains all the information about a grpc service.
 type GRPC struct {
 	target       string
 	replacements map[string]string
 }
 
-// Target is a proto target with a single service name.
-func parseGRPC(target, depName string) (*GRPC, error) {
-	if grpc, ok := targetToGRPC[target]; ok {
-		return grpc, nil
+// parseGRPCs resolves a proto target into one *GRPC per service.
+// services filters which services to instantiate; nil or empty means all services in the library.
+// It accepts `any` because template data (YAML lists, sprig's `list`) arrives as []any.
+func parseGRPCs(target, depName string, services any) ([]*GRPC, error) {
+	requestedServiceNames, err := toStringSlice(services)
+	if err != nil {
+		return nil, err
+	}
+	cacheKey := target + "|" + depName + "|" + strings.Join(requestedServiceNames, ",")
+	if grpcs, ok := targetToGRPCs[cacheKey]; ok {
+		return grpcs, nil
 	}
 	_, filenames, err := parseTarget(target)
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse the service name from the files.
-	var serviceName string
+	// Collect all service names defined across the target's files.
+	var serviceNames []string
 	for _, filename := range filenames {
 		bytes, err := readFile(filename)
 		if err != nil {
 			return nil, err
 		}
-		content := string(bytes)
-		// Find the service definition
-		matches := serviceRegex.FindStringSubmatch(content)
-		if len(matches) != 2 {
-			continue
+		for _, match := range serviceRegex.FindAllStringSubmatch(string(bytes), -1) {
+			serviceNames = append(serviceNames, match[1])
 		}
-		candidateServiceName := matches[1]
-		if serviceName != "" {
-			return nil, fmt.Errorf("found multiple service definition: [%s, %s]", serviceName, candidateServiceName)
-		}
-		serviceName = candidateServiceName
 	}
-	if serviceName == "" {
-		return nil, fmt.Errorf("no service found")
+	if len(serviceNames) == 0 {
+		return nil, fmt.Errorf("no service found in %s", target)
 	}
 
-	displayName := serviceName
-	if depName != "" {
-		displayName = xstrings.ToPascalCase(depName)
+	// Filter down to the requested services, defaulting to all of them.
+	selectedServiceNames := serviceNames
+	if len(requestedServiceNames) > 0 {
+		serviceNameSet := map[string]bool{}
+		for _, serviceName := range serviceNames {
+			serviceNameSet[serviceName] = true
+		}
+		for _, requestedServiceName := range requestedServiceNames {
+			if !serviceNameSet[requestedServiceName] {
+				return nil, fmt.Errorf("service %q not found in %s (available: [%s])", requestedServiceName, target, strings.Join(serviceNames, ", "))
+			}
+		}
+		selectedServiceNames = requestedServiceNames
 	}
 
+	grpcs := make([]*GRPC, 0, len(selectedServiceNames))
+	for _, serviceName := range selectedServiceNames {
+		// Each service is fully independent (own opts, connection, client, health check)
+		// because two services from one library may be served by different servers.
+		// The dep name prefixes the service name when selecting multiple services so
+		// that two deps pointing at the same library cannot collide.
+		displayName := serviceName
+		switch {
+		case depName != "" && len(selectedServiceNames) > 1:
+			displayName = xstrings.ToPascalCase(depName) + serviceName
+		case depName != "":
+			displayName = xstrings.ToPascalCase(depName)
+		}
+		grpcs = append(grpcs, newGRPC(target, serviceName, displayName))
+	}
+	targetToGRPCs[cacheKey] = grpcs
+	return grpcs, nil
+}
+
+// parseGRPC retains the single-service contract for proto libraries defining exactly one service.
+func parseGRPC(target, depName string) (*GRPC, error) {
+	grpcs, err := parseGRPCs(target, depName, nil)
+	if err != nil {
+		return nil, err
+	}
+	if len(grpcs) != 1 {
+		return nil, fmt.Errorf("found %d services in %s: use parseGRPCs", len(grpcs), target)
+	}
+	return grpcs[0], nil
+}
+
+func newGRPC(target, serviceName, displayName string) *GRPC {
 	nameCamelCase := strings.ToLower(serviceName[:1]) + serviceName[1:]
 	nameCamelCaseT := strings.Title(serviceName)
 	nameCamelCaseUpper := strings.ToUpper(nameCamelCase)
@@ -95,12 +136,31 @@ func parseGRPC(target, depName string) (*GRPC, error) {
 		"healthCheck":   displayNameCamelCase + "HealthCheck",
 		"client":        displayNameCamelCase + "Client",
 	}
-	grpc := &GRPC{
+	return &GRPC{
 		target:       target,
 		replacements: m,
 	}
-	targetToGRPC[target] = grpc
-	return grpc, nil
+}
+
+func toStringSlice(v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	switch t := v.(type) {
+	case []string:
+		return t, nil
+	case []any:
+		out := make([]string, 0, len(t))
+		for _, item := range t {
+			s, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf("expected string, got %T", item)
+			}
+			out = append(out, s)
+		}
+		return out, nil
+	}
+	return nil, fmt.Errorf("expected list of strings, got %T", v)
 }
 
 func (t *GRPC) getReplacements(grpcImport, protoImport bool) (map[string]string, error) {

@@ -3,15 +3,79 @@ syntax = "proto3";
 package malonaz.test.library.library_service.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
 
-// Request message for LibraryService.CreateShelf.
+// ShelfService provides CRUD operations for managing shelves.
+service ShelfService {
+  option (google.api.default_host) = "library.test.malonaz.com";
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.test.library.library_service.v1.shelf"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
+
+  // Creates a shelf.
+  rpc CreateShelf(CreateShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/shelves"
+      body: "shelf"
+    };
+    option (google.api.method_signature) = "parent,shelf";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Gets a shelf.
+  rpc GetShelf(GetShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Updates a shelf.
+  rpc UpdateShelf(UpdateShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    option (google.api.http) = {
+      patch: "/v1/{shelf.name=organizations/*/shelves/*}"
+      body: "shelf"
+    };
+    option (google.api.method_signature) = "shelf,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Deletes a shelf.
+  rpc DeleteShelf(DeleteShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Lists shelves.
+  rpc ListShelves(ListShelvesRequest) returns (ListShelvesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Gets multiple shelves in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetShelves(BatchGetShelvesRequest) returns (BatchGetShelvesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+}
+
+// Request message for ShelfService.CreateShelf.
 message CreateShelfRequest {
   // The parent organization.
   // Format: organizations/{organization}
@@ -44,7 +108,7 @@ message CreateShelfRequest {
   bool validate_only = 5;
 }
 
-// Request message for LibraryService.GetShelf.
+// Request message for ShelfService.GetShelf.
 message GetShelfRequest {
   // The resource name of the shelf to retrieve.
   // Format: organizations/{organization}/shelves/{shelf}
@@ -55,7 +119,7 @@ message GetShelfRequest {
   ];
 }
 
-// Request message for LibraryService.UpdateShelf.
+// Request message for ShelfService.UpdateShelf.
 message UpdateShelfRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
@@ -82,7 +146,7 @@ message UpdateShelfRequest {
   google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
 }
 
-// Request message for LibraryService.DeleteShelf.
+// Request message for ShelfService.DeleteShelf.
 message DeleteShelfRequest {
   // The resource name of the shelf to delete.
   // Format: organizations/{organization}/shelves/{shelf}
@@ -97,7 +161,7 @@ message DeleteShelfRequest {
   bool allow_missing = 2;
 }
 
-// Request message for LibraryService.ListShelves.
+// Request message for ShelfService.ListShelves.
 message ListShelvesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
   option (malonaz.codegen.aip.v1.ordering) = {
@@ -135,7 +199,7 @@ message ListShelvesRequest {
   string page_token = 6;
 }
 
-// Response message for LibraryService.ListShelves.
+// Response message for ShelfService.ListShelves.
 message ListShelvesResponse {
   // The list of shelves.
   repeated malonaz.test.library.v1.Shelf shelves = 1;
@@ -144,7 +208,7 @@ message ListShelvesResponse {
   string next_page_token = 2;
 }
 
-// Request message for LibraryService.BatchGetShelves.
+// Request message for ShelfService.BatchGetShelves.
 message BatchGetShelvesRequest {
   // The parent organization that owns the shelves.
   // Format: organizations/{organization}
@@ -166,7 +230,7 @@ message BatchGetShelvesRequest {
   ];
 }
 
-// Response message for LibraryService.BatchGetShelves.
+// Response message for ShelfService.BatchGetShelves.
 message BatchGetShelvesResponse {
   // Shelves requested.
   repeated malonaz.test.library.v1.Shelf shelves = 1;

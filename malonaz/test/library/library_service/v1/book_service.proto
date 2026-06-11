@@ -3,15 +3,82 @@ syntax = "proto3";
 package malonaz.test.library.library_service.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/test/library/v1/book.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
 
-// Request message for LibraryService.CreateBook.
+// BookService provides CRUD operations for managing books.
+service BookService {
+  option (google.api.default_host) = "library.test.malonaz.com";
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.test.library.library_service.v1.book"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
+
+  // creates a book.
+  rpc CreateBook(CreateBookRequest) returns (malonaz.test.library.v1.Book) {
+    option (malonaz.canonicalize.v1.skip) = true;
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*}/books"
+      body: "book"
+    };
+    option (google.api.method_signature) = "parent,book";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Gets a book.
+  rpc GetBook(GetBookRequest) returns (malonaz.test.library.v1.Book) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*/books/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Updates a book.
+  rpc UpdateBook(UpdateBookRequest) returns (malonaz.test.library.v1.Book) {
+    option (google.api.http) = {
+      patch: "/v1/{book.name=organizations/*/shelves/*/books/*}"
+      body: "book"
+    };
+    option (google.api.method_signature) = "book,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Deletes a book.
+  rpc DeleteBook(DeleteBookRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*/books/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Lists books.
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Gets multiple books in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetBooks(BatchGetBooksRequest) returns (BatchGetBooksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+}
+
+// Request message for BookService.CreateBook.
 message CreateBookRequest {
   // The parent shelf.
   // Format: organizations/{organization}/shelves/{shelf}
@@ -44,7 +111,7 @@ message CreateBookRequest {
   bool validate_only = 5;
 }
 
-// Request message for LibraryService.GetBook.
+// Request message for BookService.GetBook.
 message GetBookRequest {
   // The resource name of the book to retrieve.
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}
@@ -55,7 +122,7 @@ message GetBookRequest {
   ];
 }
 
-// Request message for LibraryService.UpdateBook.
+// Request message for BookService.UpdateBook.
 message UpdateBookRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
@@ -83,7 +150,7 @@ message UpdateBookRequest {
   string precondition = 3;
 }
 
-// Request message for LibraryService.DeleteBook.
+// Request message for BookService.DeleteBook.
 message DeleteBookRequest {
   // The resource name of the book to delete.
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}
@@ -101,7 +168,7 @@ message DeleteBookRequest {
   string etag = 3;
 }
 
-// Request message for LibraryService.ListBooks.
+// Request message for BookService.ListBooks.
 message ListBooksRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
   option (malonaz.codegen.aip.v1.ordering) = {
@@ -149,7 +216,7 @@ message ListBooksRequest {
   string page_token = 5;
 }
 
-// Response message for LibraryService.ListBooks.
+// Response message for BookService.ListBooks.
 message ListBooksResponse {
   // The list of books.
   repeated malonaz.test.library.v1.Book books = 1;
@@ -158,7 +225,7 @@ message ListBooksResponse {
   string next_page_token = 2;
 }
 
-// Request message for LibraryService.BatchGetBooks.
+// Request message for BookService.BatchGetBooks.
 message BatchGetBooksRequest {
   // The parent shelf that owns the books.
   // Format: organizations/{organization}/shelves/{shelf}
@@ -180,7 +247,7 @@ message BatchGetBooksRequest {
   ];
 }
 
-// Response message for LibraryService.BatchGetBooks.
+// Response message for BookService.BatchGetBooks.
 message BatchGetBooksResponse {
   // Books requested.
   repeated malonaz.test.library.v1.Book books = 1;

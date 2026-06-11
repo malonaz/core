@@ -10,13 +10,11 @@ import (
 
 type Service struct {
 	*runtime
-	log                *slog.Logger
-	opts               *Opts
-	withServiceAccount func(context.Context) context.Context
-
+	log                    *slog.Logger
+	opts                   *Opts
+	withServiceAccount     func(context.Context) context.Context
 	serverReflectionClient serverreflectionpb.ServerReflectionClient
-
-	aiServiceClient aiservicepb.AiServiceClient
+	aiServiceClient        aiservicepb.AiServiceClient
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -27,24 +25,19 @@ func (s *Service) WithLogger(logger *slog.Logger) *Service {
 // New instantiates and returns a new service.
 func New(
 	opts *Opts,
-
 	serverReflectionClient serverreflectionpb.ServerReflectionClient,
-
 	aiServiceClient aiservicepb.AiServiceClient,
-
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating runtime: %w", err)
 	}
 	return &Service{
-		runtime: runtime,
-		log:     slog.Default(),
-		opts:    opts,
-
+		runtime:                runtime,
+		log:                    slog.Default(),
+		opts:                   opts,
 		serverReflectionClient: serverReflectionClient,
-
-		aiServiceClient: aiServiceClient,
+		aiServiceClient:        aiServiceClient,
 	}, nil
 }
 

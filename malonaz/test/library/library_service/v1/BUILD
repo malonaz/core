@@ -1,10 +1,9 @@
 filegroup(
     name = "proto",
     srcs = [
-        "author.proto",
-        "book.proto",
-        "library_service.proto",
-        "shelf.proto",
+        "author_service.proto",
+        "book_service.proto",
+        "shelf_service.proto",
     ],
     test_only = True,
     visibility = ["PUBLIC"],
@@ -13,10 +12,9 @@ filegroup(
 grpc_library(
     name = "v1",
     srcs = [
-        "author.proto",
-        "book.proto",
-        "library_service.proto",
-        "shelf.proto",
+        "author_service.proto",
+        "book_service.proto",
+        "shelf_service.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/library/library_service/v1",

@@ -35,8 +35,9 @@ var (
 			return true
 		},
 
-		"parseYaml": parseYaml,
-		"parseGRPC": parseGRPC,
+		"parseYaml":  parseYaml,
+		"parseGRPC":  parseGRPC,
+		"parseGRPCs": parseGRPCs,
 
 		"plzGoImport":      plzGoImport,
 		"plzGoImportAlias": plzGoImportAlias,

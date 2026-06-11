@@ -15,7 +15,9 @@ import (
 
 var (
 	ctx                  = context.Background()
-	libraryServiceClient libraryservicepb.LibraryServiceClient
+	shelfServiceClient libraryservicepb.ShelfServiceClient
+	authorServiceClient libraryservicepb.AuthorServiceClient
+	bookServiceClient libraryservicepb.BookServiceClient
 	satEnvironment       *sat.SAT
 )
 

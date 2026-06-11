@@ -3,10 +3,19 @@ includeRuntime: false
 implementation: //go/test/library/library_service
 codegens:
   - type: rpc
-    name: library-service
+    name: shelf-service
     store: library
     implementation: //go/test/library/library_service/rpc
     nats: true
+  - type: rpc
+    name: book-service
+    store: library
+    implementation: //go/test/library/library_service/rpc
+    nats: true
+  - type: rpc
+    name: author-service
+    store: library
+    implementation: //go/test/library/library_service/rpc
 dependencies:
   - type: nats
   - type: postgres_db_client

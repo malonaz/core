@@ -3,6 +3,8 @@ syntax = "proto3";
 package malonaz.test.library.library_service.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
@@ -11,7 +13,62 @@ import "malonaz/test/library/v1/author.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
 
-// Request message for LibraryService.CreateAuthor.
+// AuthorService provides CRUD operations for managing authors.
+service AuthorService {
+  option (google.api.default_host) = "library.test.malonaz.com";
+
+  // Creates an author.
+  rpc CreateAuthor(CreateAuthorRequest) returns (malonaz.test.library.v1.Author) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/authors"
+      body: "author"
+    };
+    option (google.api.method_signature) = "parent,author";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // Gets an author.
+  rpc GetAuthor(GetAuthorRequest) returns (malonaz.test.library.v1.Author) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/authors/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // Updates an author.
+  rpc UpdateAuthor(UpdateAuthorRequest) returns (malonaz.test.library.v1.Author) {
+    option (google.api.http) = {
+      patch: "/v1/{author.name=organizations/*/authors/*}"
+      body: "author"
+    };
+    option (google.api.method_signature) = "author,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // Deletes an author.
+  rpc DeleteAuthor(DeleteAuthorRequest) returns (malonaz.test.library.v1.Author) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/authors/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // Lists authors.
+  rpc ListAuthors(ListAuthorsRequest) returns (ListAuthorsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // Gets multiple authors in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetAuthors(BatchGetAuthorsRequest) returns (BatchGetAuthorsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+}
+
+// Request message for AuthorService.CreateAuthor.
 message CreateAuthorRequest {
   // The parent organization.
   // Format: organizations/{organization}
@@ -44,7 +101,7 @@ message CreateAuthorRequest {
   bool validate_only = 5;
 }
 
-// Request message for LibraryService.GetAuthor.
+// Request message for AuthorService.GetAuthor.
 message GetAuthorRequest {
   // The resource name of the author to retrieve.
   // Format: organizations/{organization}/authors/{author}
@@ -55,7 +112,7 @@ message GetAuthorRequest {
   ];
 }
 
-// Request message for LibraryService.UpdateAuthor.
+// Request message for AuthorService.UpdateAuthor.
 message UpdateAuthorRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
@@ -80,7 +137,7 @@ message UpdateAuthorRequest {
   google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
 }
 
-// Request message for LibraryService.DeleteAuthor.
+// Request message for AuthorService.DeleteAuthor.
 message DeleteAuthorRequest {
   // The resource name of the author to delete.
   // Format: organizations/{organization}/authors/{author}
@@ -98,7 +155,7 @@ message DeleteAuthorRequest {
   string etag = 3;
 }
 
-// Request message for LibraryService.ListAuthors.
+// Request message for AuthorService.ListAuthors.
 message ListAuthorsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
   option (malonaz.codegen.aip.v1.ordering) = {
@@ -140,7 +197,7 @@ message ListAuthorsRequest {
   string page_token = 6;
 }
 
-// Response message for LibraryService.ListAuthors.
+// Response message for AuthorService.ListAuthors.
 message ListAuthorsResponse {
   // The list of authors.
   repeated malonaz.test.library.v1.Author authors = 1;
@@ -149,7 +206,7 @@ message ListAuthorsResponse {
   string next_page_token = 2;
 }
 
-// Request message for LibraryService.BatchGetAuthors.
+// Request message for AuthorService.BatchGetAuthors.
 message BatchGetAuthorsRequest {
   // The parent organization that owns the authors.
   // Format: organizations/{organization}
@@ -171,7 +228,7 @@ message BatchGetAuthorsRequest {
   ];
 }
 
-// Response message for LibraryService.BatchGetAuthors.
+// Response message for AuthorService.BatchGetAuthors.
 message BatchGetAuthorsResponse {
   // Authors requested.
   repeated malonaz.test.library.v1.Author authors = 1;

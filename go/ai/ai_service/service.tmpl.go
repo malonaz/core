@@ -27,7 +27,6 @@ func (s *Service) WithLogger(logger *slog.Logger) *Service {
 func New(
 	opts *Opts,
 	aiPostgresStore *store.Store,
-
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
