@@ -3,20 +3,51 @@
 package v1
 
 import (
-	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
-	pbutil "github.com/malonaz/core/go/pbutil"
+	nats "github.com/malonaz/core/go/nats"
 	sync "sync"
 )
 
 var (
-	libraryServiceStreamOptionsOnce sync.Once
-	libraryServiceStreamOptionsVal  []*v1.StreamOptions
+	libraryServiceBookStreamOnce sync.Once
+	libraryServiceBookStreamVal  *LibraryServiceBookStream
 )
 
-func GetLibraryServiceStreamOptions() []*v1.StreamOptions {
-	libraryServiceStreamOptionsOnce.Do(func() {
-		libraryServiceStreamOptionsVal = pbutil.Must(pbutil.GetServiceOption[[]*v1.StreamOptions](LibraryService_ServiceDesc.ServiceName, v11.E_Stream))
+type LibraryServiceBookStream struct {
+	stream *nats.Stream
+}
+
+func GetLibraryServiceBookStream() *LibraryServiceBookStream {
+	libraryServiceBookStreamOnce.Do(func() {
+		libraryServiceBookStreamVal = &LibraryServiceBookStream{
+			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.book"}),
+		}
 	})
-	return libraryServiceStreamOptionsVal
+	return libraryServiceBookStreamVal
+}
+
+func (s *LibraryServiceBookStream) Get() *nats.Stream {
+	return s.stream
+}
+
+var (
+	libraryServiceShelfStreamOnce sync.Once
+	libraryServiceShelfStreamVal  *LibraryServiceShelfStream
+)
+
+type LibraryServiceShelfStream struct {
+	stream *nats.Stream
+}
+
+func GetLibraryServiceShelfStream() *LibraryServiceShelfStream {
+	libraryServiceShelfStreamOnce.Do(func() {
+		libraryServiceShelfStreamVal = &LibraryServiceShelfStream{
+			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.shelf"}),
+		}
+	})
+	return libraryServiceShelfStreamVal
+}
+
+func (s *LibraryServiceShelfStream) Get() *nats.Stream {
+	return s.stream
 }

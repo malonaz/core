@@ -5,6 +5,7 @@
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
+import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Any, FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_any, file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
@@ -13,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/aip.proto.
  */
 export const file_malonaz_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxIrwDCg1SZXNvdXJjZUV2ZW50EjsKBHR5cGUYBCABKA4yIS5tYWxvbmF6LmFpcC52MS5SZXNvdXJjZUV2ZW50VHlwZUIKukgHggEEEAEgABImCghyZXNvdXJjZRgBIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkSLwoRcHJldmlvdXNfcmVzb3VyY2UYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Ei8KC3VwZGF0ZV9tYXNrGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzazrjAbpI3wEa3AEKOHVwZGF0ZWRfZXZlbnRfcmVxdWlyZXNfcHJldmlvdXNfcmVzb3VyY2VfYW5kX3VwZGF0ZV9tYXNrElZwcmV2aW91c19yZXNvdXJjZSBhbmQgdXBkYXRlX21hc2sgbXVzdCBiZSBzZXQgd2hlbiB0eXBlIGlzIFJFU09VUkNFX0VWRU5UX1RZUEVfVVBEQVRFRBpIdGhpcy50eXBlICE9IDIgfHwgKGhhcyh0aGlzLnByZXZpb3VzX3Jlc291cmNlKSAmJiBoYXModGhpcy51cGRhdGVfbWFzaykpKpsBChFSZXNvdXJjZUV2ZW50VHlwZRIjCh9SRVNPVVJDRV9FVkVOVF9UWVBFX1VOU1BFQ0lGSUVEEAASHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9DUkVBVEVEEAESHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9VUERBVEVEEAISHwobUkVTT1VSQ0VfRVZFTlRfVFlQRV9ERUxFVEVEEANCKVonZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_any, file_google_protobuf_field_mask]);
+  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxItgDCg1SZXNvdXJjZUV2ZW50EhoKBG5hbWUYASABKAlCDPpBAwoBKrpIA8gBARI7CgR0eXBlGAIgASgOMiEubWFsb25hei5haXAudjEuUmVzb3VyY2VFdmVudFR5cGVCCrpIB4IBBBABIAASJgoIcmVzb3VyY2UYAyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Ei8KEXByZXZpb3VzX3Jlc291cmNlGAQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueRIvCgt1cGRhdGVfbWFzaxgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2s64wG6SN8BGtwBCjh1cGRhdGVkX2V2ZW50X3JlcXVpcmVzX3ByZXZpb3VzX3Jlc291cmNlX2FuZF91cGRhdGVfbWFzaxJWcHJldmlvdXNfcmVzb3VyY2UgYW5kIHVwZGF0ZV9tYXNrIG11c3QgYmUgc2V0IHdoZW4gdHlwZSBpcyBSRVNPVVJDRV9FVkVOVF9UWVBFX1VQREFURUQaSHRoaXMudHlwZSAhPSAyIHx8IChoYXModGhpcy5wcmV2aW91c19yZXNvdXJjZSkgJiYgaGFzKHRoaXMudXBkYXRlX21hc2spKSqbAQoRUmVzb3VyY2VFdmVudFR5cGUSIwofUkVTT1VSQ0VfRVZFTlRfVFlQRV9VTlNQRUNJRklFRBAAEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfQ1JFQVRFRBABEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfVVBEQVRFRBACEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfREVMRVRFRBADQilaJ2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask]);
 
 /**
  * A resource lifecycle event.
@@ -24,33 +25,80 @@ export type ResourceEvent = Message<"malonaz.aip.v1.ResourceEvent"> & {
   /**
    * The type of event.
    *
-   * @generated from field: malonaz.aip.v1.ResourceEventType type = 4;
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The type of event.
+   *
+   * @generated from field: malonaz.aip.v1.ResourceEventType type = 2;
    */
   type: ResourceEventType;
 
   /**
    * The resource after the event.
    *
-   * @generated from field: google.protobuf.Any resource = 1;
+   * @generated from field: google.protobuf.Any resource = 3;
    */
   resource?: Any;
 
   /**
    * The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
    *
-   * @generated from field: google.protobuf.Any previous_resource = 2;
+   * @generated from field: google.protobuf.Any previous_resource = 4;
    */
   previousResource?: Any;
 
   /**
    * The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
    *
-   * @generated from field: google.protobuf.FieldMask update_mask = 3;
+   * @generated from field: google.protobuf.FieldMask update_mask = 5;
    */
   updateMask?: FieldMask;
 };
 
-export type ResourceEventValid = ResourceEvent;
+/**
+ * A resource lifecycle event.
+ *
+ * @generated from message malonaz.aip.v1.ResourceEvent
+ */
+export type ResourceEventValid = Message<"malonaz.aip.v1.ResourceEvent"> & {
+  /**
+   * The type of event.
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The type of event.
+   *
+   * @generated from field: malonaz.aip.v1.ResourceEventType type = 2;
+   */
+  type: ResourceEventType;
+
+  /**
+   * The resource after the event.
+   *
+   * @generated from field: google.protobuf.Any resource = 3;
+   */
+  resource?: Any;
+
+  /**
+   * The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
+   *
+   * @generated from field: google.protobuf.Any previous_resource = 4;
+   */
+  previousResource?: Any;
+
+  /**
+   * The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
+   *
+   * @generated from field: google.protobuf.FieldMask update_mask = 5;
+   */
+  updateMask?: FieldMask;
+};
 
 /**
  * Describes the message malonaz.aip.v1.ResourceEvent.

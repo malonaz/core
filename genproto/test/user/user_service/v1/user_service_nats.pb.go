@@ -3,20 +3,51 @@
 package v1
 
 import (
-	v11 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
-	pbutil "github.com/malonaz/core/go/pbutil"
+	nats "github.com/malonaz/core/go/nats"
 	sync "sync"
 )
 
 var (
-	userServiceStreamOptionsOnce sync.Once
-	userServiceStreamOptionsVal  []*v1.StreamOptions
+	userServiceOrganizationStreamOnce sync.Once
+	userServiceOrganizationStreamVal  *UserServiceOrganizationStream
 )
 
-func GetUserServiceStreamOptions() []*v1.StreamOptions {
-	userServiceStreamOptionsOnce.Do(func() {
-		userServiceStreamOptionsVal = pbutil.Must(pbutil.GetServiceOption[[]*v1.StreamOptions](UserService_ServiceDesc.ServiceName, v11.E_Stream))
+type UserServiceOrganizationStream struct {
+	stream *nats.Stream
+}
+
+func GetUserServiceOrganizationStream() *UserServiceOrganizationStream {
+	userServiceOrganizationStreamOnce.Do(func() {
+		userServiceOrganizationStreamVal = &UserServiceOrganizationStream{
+			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.organization"}),
+		}
 	})
-	return userServiceStreamOptionsVal
+	return userServiceOrganizationStreamVal
+}
+
+func (s *UserServiceOrganizationStream) Get() *nats.Stream {
+	return s.stream
+}
+
+var (
+	userServiceUserStreamOnce sync.Once
+	userServiceUserStreamVal  *UserServiceUserStream
+)
+
+type UserServiceUserStream struct {
+	stream *nats.Stream
+}
+
+func GetUserServiceUserStream() *UserServiceUserStream {
+	userServiceUserStreamOnce.Do(func() {
+		userServiceUserStreamVal = &UserServiceUserStream{
+			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.user"}),
+		}
+	})
+	return userServiceUserStreamVal
+}
+
+func (s *UserServiceUserStream) Get() *nats.Stream {
+	return s.stream
 }

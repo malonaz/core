@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.aip.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/resource.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/field_mask.proto";
 
@@ -29,14 +30,21 @@ message ResourceEvent {
   };
 
   // The type of event.
-  ResourceEventType type = 4 [(buf.validate.field).enum = {
+  string name = 1 [
+    (google.api.resource_reference).type = "*",
+    (buf.validate.field).required = true
+  ];
+
+  // The type of event.
+  ResourceEventType type = 2 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
+
   // The resource after the event.
-  google.protobuf.Any resource = 1;
+  google.protobuf.Any resource = 3;
   // The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
-  google.protobuf.Any previous_resource = 2;
+  google.protobuf.Any previous_resource = 4;
   // The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
-  google.protobuf.FieldMask update_mask = 3;
+  google.protobuf.FieldMask update_mask = 5;
 }

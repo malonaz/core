@@ -11,6 +11,7 @@ proto_library(
     labels = ["copy_generated_code:malonaz:genproto"],
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",
     ],
 )

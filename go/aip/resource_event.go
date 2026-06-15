@@ -11,13 +11,19 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
+type Resource interface {
+	proto.Message
+	GetName() string
+}
+
 // NewResourceCreatedEvent constructs a ResourceCreatedEvent by marshaling the given resource into an Any.
-func NewResourceCreatedEvent[R proto.Message](resource R) (*aippb.ResourceEvent, error) {
+func NewResourceCreatedEvent[R Resource](resource R) (*aippb.ResourceEvent, error) {
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling %s to Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
 	}
 	return &aippb.ResourceEvent{
+		Name:     resource.GetName(),
 		Type:     aippb.ResourceEventType_RESOURCE_EVENT_TYPE_CREATED,
 		Resource: resourceAny,
 	}, nil
@@ -25,7 +31,7 @@ func NewResourceCreatedEvent[R proto.Message](resource R) (*aippb.ResourceEvent,
 
 // NewResourceUpdatedEvent constructs a ResourceUpdatedEvent by marshaling the current and previous resource
 // into Any fields, along with the update mask describing which fields were modified.
-func NewResourceUpdatedEvent[R proto.Message](resource, previousResource R, updateMask *fieldmaskpb.FieldMask) (*aippb.ResourceEvent, error) {
+func NewResourceUpdatedEvent[R Resource](resource, previousResource R, updateMask *fieldmaskpb.FieldMask) (*aippb.ResourceEvent, error) {
 	fullName := resource.ProtoReflect().Descriptor().FullName()
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
@@ -36,6 +42,7 @@ func NewResourceUpdatedEvent[R proto.Message](resource, previousResource R, upda
 		return nil, fmt.Errorf("marshaling previous %s to Any: %w", fullName, err)
 	}
 	return &aippb.ResourceEvent{
+		Name:             resource.GetName(),
 		Type:             aippb.ResourceEventType_RESOURCE_EVENT_TYPE_UPDATED,
 		Resource:         resourceAny,
 		PreviousResource: previousResourceAny,
@@ -44,12 +51,13 @@ func NewResourceUpdatedEvent[R proto.Message](resource, previousResource R, upda
 }
 
 // NewResourceDeletedEvent constructs a ResourceDeletedEvent by marshaling the given resource into an Any.
-func NewResourceDeletedEvent[R proto.Message](resource R) (*aippb.ResourceEvent, error) {
+func NewResourceDeletedEvent[R Resource](resource R) (*aippb.ResourceEvent, error) {
 	resourceAny, err := anypb.New(resource)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling %s to Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
 	}
 	return &aippb.ResourceEvent{
+		Name:     resource.GetName(),
 		Type:     aippb.ResourceEventType_RESOURCE_EVENT_TYPE_DELETED,
 		Resource: resourceAny,
 	}, nil

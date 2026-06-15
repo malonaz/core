@@ -73,7 +73,7 @@ func (s *OrganizationCreatedSubject) Publish(ctx context.Context, natsClient *na
 
 func (s *OrganizationCreatedSubject) set(resource *Organization) error {
 	var OrganizationID string
-	if err := resourcenamoe.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
 		return fmt.Errorf("parsing resource name: %v", err)
 	}
 	if _, err := s.WithOrganization(OrganizationID); err != nil {

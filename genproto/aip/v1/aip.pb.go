@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -81,13 +82,15 @@ func (x ResourceEventType) Number() protoreflect.EnumNumber {
 type ResourceEvent struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The type of event.
-	Type ResourceEventType `protobuf:"varint,4,opt,name=type,proto3,enum=malonaz.aip.v1.ResourceEventType" json:"type,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The type of event.
+	Type ResourceEventType `protobuf:"varint,2,opt,name=type,proto3,enum=malonaz.aip.v1.ResourceEventType" json:"type,omitempty"`
 	// The resource after the event.
-	Resource *anypb.Any `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	Resource *anypb.Any `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
 	// The resource before the event. Only set for RESOURCE_EVENT_TYPE_UPDATED.
-	PreviousResource *anypb.Any `protobuf:"bytes,2,opt,name=previous_resource,json=previousResource,proto3" json:"previous_resource,omitempty"`
+	PreviousResource *anypb.Any `protobuf:"bytes,4,opt,name=previous_resource,json=previousResource,proto3" json:"previous_resource,omitempty"`
 	// The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,5,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -117,6 +120,13 @@ func (x *ResourceEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *ResourceEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 func (x *ResourceEvent) GetType() ResourceEventType {
 	if x != nil {
 		return x.Type
@@ -143,6 +153,10 @@ func (x *ResourceEvent) GetUpdateMask() *fieldmaskpb.FieldMask {
 		return x.UpdateMask
 	}
 	return nil
+}
+
+func (x *ResourceEvent) SetName(v string) {
+	x.Name = v
 }
 
 func (x *ResourceEvent) SetType(v ResourceEventType) {
@@ -198,6 +212,8 @@ type ResourceEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The type of event.
+	Name string
+	// The type of event.
 	Type ResourceEventType
 	// The resource after the event.
 	Resource *anypb.Any
@@ -211,6 +227,7 @@ func (b0 ResourceEvent_builder) Build() *ResourceEvent {
 	m0 := &ResourceEvent{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Name = b.Name
 	x.Type = b.Type
 	x.Resource = b.Resource
 	x.PreviousResource = b.PreviousResource
@@ -222,13 +239,15 @@ var File_malonaz_aip_v1_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/aip/v1/aip.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\"\xea\x03\n" +
-	"\rResourceEvent\x12A\n" +
-	"\x04type\x18\x04 \x01(\x0e2!.malonaz.aip.v1.ResourceEventTypeB\n" +
+	"\x18malonaz/aip/v1/aip.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\"\x8c\x04\n" +
+	"\rResourceEvent\x12 \n" +
+	"\x04name\x18\x01 \x01(\tB\f\xfaA\x03\n" +
+	"\x01*\xbaH\x03\xc8\x01\x01R\x04name\x12A\n" +
+	"\x04type\x18\x02 \x01(\x0e2!.malonaz.aip.v1.ResourceEventTypeB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\x120\n" +
-	"\bresource\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bresource\x12A\n" +
-	"\x11previous_resource\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\x10previousResource\x12;\n" +
-	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"\bresource\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\bresource\x12A\n" +
+	"\x11previous_resource\x18\x04 \x01(\v2\x14.google.protobuf.AnyR\x10previousResource\x12;\n" +
+	"\vupdate_mask\x18\x05 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask:\xe3\x01\xbaH\xdf\x01\x1a\xdc\x01\n" +
 	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))*\x9b\x01\n" +
 	"\x11ResourceEventType\x12#\n" +

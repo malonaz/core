@@ -13,17 +13,34 @@ package {{ .PackageName }}
     {{- if not $streams }}{{ continue }}{{ end }}
     {{- $skip = false }}
 
-    var (
-    {{ printf "%sStreamOptions" $service.GoName | untitle }}Once {{ fqn "sync" "Once" }}
-    {{ printf "%sStreamOptions" $service.GoName | untitle }}Val []*{{ fqnCore "genproto/nats/v1" "StreamOptions" }}
-    )
+    {{- range $streamOpts := $streams }}
+        {{- $streamFQN := $streamOpts.GetName }}
+        {{- $streamSuffix := regexReplaceAll "^.*\\.v[0-9]+\\." $streamFQN "" | replace "." "-" | camelcase }}
+        {{- $streamGoName := printf "%s%sStream" $service.GoName $streamSuffix }}
+        {{- $streamVarName := $streamGoName | untitle }}
 
-    func Get{{ $service.GoName }}StreamOptions() []*{{ fqnCore "genproto/nats/v1" "StreamOptions" }} {
-    {{ printf "%sStreamOptions" $service.GoName | untitle }}Once.Do(func() {
-    {{ printf "%sStreamOptions" $service.GoName | untitle }}Val = {{ fqnCore "go/pbutil" "Must" }}({{ fqnCore "go/pbutil" "GetServiceOption" }}[[]*{{ fqnCore "genproto/nats/v1" "StreamOptions" }}]({{ $service.GoName }}_ServiceDesc.ServiceName, {{ fqnCore "genproto/codegen/nats/v1" "E_Stream" }}))
-    })
-    return {{ printf "%sStreamOptions" $service.GoName | untitle }}Val
-    }
+        var (
+        {{ $streamVarName }}Once {{ fqn "sync" "Once" }}
+        {{ $streamVarName }}Val *{{ $streamGoName }}
+        )
+
+        type {{ $streamGoName }} struct {
+        stream *{{ fqnCore "go/nats" "Stream" }}
+        }
+
+        func Get{{ $streamGoName }}() *{{ $streamGoName }} {
+        {{ $streamVarName }}Once.Do(func() {
+        {{ $streamVarName }}Val = &{{ $streamGoName }}{
+        stream: {{ fqnCore "go/nats" "NewStream" }}(&{{ fqnCore "genproto/nats/v1" "StreamOptions" }}{Name: "{{ $streamFQN }}"}),
+        }
+        })
+        return {{ $streamVarName }}Val
+        }
+
+        func (s *{{ $streamGoName }}) Get() *{{ fqnCore "go/nats" "Stream" }} {
+        return s.stream
+        }
+    {{- end }}
 {{ end }}
 
 {{ if $skip }}{{ skipGeneration }}{{ end }}
