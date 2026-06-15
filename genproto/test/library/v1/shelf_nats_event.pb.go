@@ -10,6 +10,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
+	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -89,14 +90,14 @@ func (s *ShelfCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 }
 
 func (s *ShelfCreatedSubject) set(resource *Shelf) error {
-	resourceName := &ShelfResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &OrganizationID, &ShelfID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {
@@ -194,14 +195,14 @@ func (s *ShelfDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 }
 
 func (s *ShelfDeletedSubject) set(resource *Shelf) error {
-	resourceName := &ShelfResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &OrganizationID, &ShelfID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {
@@ -312,14 +313,14 @@ func (s *ShelfUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 }
 
 func (s *ShelfUpdatedSubject) set(resource *Shelf) error {
-	resourceName := &ShelfResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &OrganizationID, &ShelfID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
 	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
@@ -421,14 +422,14 @@ func (s *ShelfGenreChangeSubject) Publish(ctx context.Context, natsClient *nats.
 }
 
 func (s *ShelfGenreChangeSubject) set(resource *Shelf) error {
-	resourceName := &ShelfResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &OrganizationID, &ShelfID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {

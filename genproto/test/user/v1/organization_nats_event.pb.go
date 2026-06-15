@@ -8,6 +8,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
+	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -71,11 +72,11 @@ func (s *OrganizationCreatedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationCreatedSubject) set(resource *Organization) error {
-	resourceName := &OrganizationResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID string
+	if err := resourcenamoe.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
 	return nil
@@ -134,11 +135,11 @@ func (s *OrganizationDeletedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationDeletedSubject) set(resource *Organization) error {
-	resourceName := &OrganizationResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
 	return nil
@@ -197,11 +198,11 @@ func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationUpdatedSubject) set(resource *Organization) error {
-	resourceName := &OrganizationResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
 	return nil

@@ -10,6 +10,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
+	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -89,17 +90,17 @@ func (s *BookDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *BookDeletedSubject) set(resource *Book) error {
-	resourceName := &BookResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID, BookID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}/books/{book}", &OrganizationID, &ShelfID, &BookID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
-	if _, err := s.WithBook(resourceName.Book); err != nil {
+	if _, err := s.WithBook(BookID); err != nil {
 		return err
 	}
 	return nil
@@ -198,17 +199,17 @@ func (s *BookUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *BookUpdatedSubject) set(resource *Book) error {
-	resourceName := &BookResourceName{}
-	if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-		return fmt.Errorf("unmarshaling resource name: %w", err)
+	var OrganizationID, ShelfID, BookID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}/books/{book}", &OrganizationID, &ShelfID, &BookID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(resourceName.Organization); err != nil {
+	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(resourceName.Shelf); err != nil {
+	if _, err := s.WithShelf(ShelfID); err != nil {
 		return err
 	}
-	if _, err := s.WithBook(resourceName.Book); err != nil {
+	if _, err := s.WithBook(BookID); err != nil {
 		return err
 	}
 	return nil

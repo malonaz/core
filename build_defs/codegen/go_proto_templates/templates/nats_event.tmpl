@@ -156,12 +156,12 @@ package {{ .PackageName }}
             }
 
             func (s *{{ $structName }}) set(resource *{{ qgi $message.GoIdent }}) error {
-            resourceName := &{{ qgi $message.GoIdent }}ResourceName{}
-            if err := resourceName.UnmarshalString(resource.GetName()); err != nil {
-            return {{ fqn "fmt" "Errorf" }}("unmarshaling resource name: %w", err)
+            var {{ range $i, $id := $parsedResource.PatternVariables }}{{ if $i }}, {{ end }}{{ $id | camelcase }}ID{{ end }} string
+            if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(resource.GetName(), "{{ $parsedResource.Pattern }}"{{ range $id := $parsedResource.PatternVariables }}, &{{ $id | camelcase }}ID{{ end }}); err != nil {
+              return {{ fqn "fmt" "Errorf" }}("parsing resource name: %v", err)
             }
             {{- range $patternVar := $parsedResource.PatternVariables }}
-                if _, err := s.With{{ $patternVar | camelcase }}(resourceName.{{ $patternVar | camelcase }}); err != nil {
+                if _, err := s.With{{ $patternVar | camelcase }}({{ $patternVar | camelcase }}ID); err != nil {
                 return err
                 }
             {{- end }}
