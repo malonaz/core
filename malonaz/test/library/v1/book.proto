@@ -23,7 +23,7 @@ message Book {
     plural: "books"
   };
   option (malonaz.codegen.nats.v1.event) = {
-    stream: "malonaz.test.library.library_service.v1.book"
+    stream: "malonaz.test.library.v1.book"
     updated: {
       subject: "updated"
       cel: "book.publication_year > 2007"

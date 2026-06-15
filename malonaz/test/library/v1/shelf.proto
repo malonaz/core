@@ -21,7 +21,7 @@ message Shelf {
     plural: "shelves"
   };
   option (malonaz.codegen.nats.v1.event) = {
-    stream: "malonaz.test.library.library_service.v1.shelf"
+    stream: "malonaz.test.library.v1.shelf"
     created: {
       subject: "created"
       subject_fields: ["genre"]

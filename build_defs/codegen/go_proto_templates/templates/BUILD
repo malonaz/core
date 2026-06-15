@@ -26,6 +26,11 @@ export_file(
 )
 
 export_file(
+    name = "nats_event",
+    src = "nats_event.tmpl",
+)
+
+export_file(
     name = "aip_label",
     src = "aip_label.tmpl",
 )

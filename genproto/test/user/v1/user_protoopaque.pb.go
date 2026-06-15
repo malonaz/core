@@ -345,7 +345,7 @@ var File_malonaz_test_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb7\a\n" +
+	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xaa\a\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -365,9 +365,9 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xb3\x01\xeaAT\n" +
-	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\v\x12\x05user_\x1a\x02id\x8a\x91$I\n" +
-	"&malonaz.test.user.user_service.v1.user\x12\t\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa6\x01\xeaAT\n" +
+	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\v\x12\x05user_\x1a\x02id\x8a\x91$<\n" +
+	"\x19malonaz.test.user.v1.user\x12\t\n" +
 	"\acreated\x1a\t\n" +
 	"\aupdated\"\t\n" +
 	"\adeleted\"Y\n" +

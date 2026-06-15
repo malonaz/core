@@ -8,15 +8,12 @@
 package {{ .PackageName }}
 
 {{- $serviceInterfaces := dict }}
-{{- $serviceToNatsStreamNames := dict }}
+{{- $serviceToNatsStreamOpts := dict }}
 {{- $resourceTypeToRequiresNatsClient := dict }}
 {{- range $service := $file.Services }}
     {{ $natsStreamOpts := getExt $service.Desc "malonaz.codegen.nats.v1.stream" }}
     {{ if $natsStreamOpts }}
-        {{ range $opts := $natsStreamOpts }}
-            {{ $natsStreamName := $opts.GetName | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
-            {{ $serviceToNatsStreamNames = set $serviceToNatsStreamNames $service.GoName (append (default list (get $serviceToNatsStreamNames $service.GoName)) $natsStreamName) }}
-        {{ end }}
+        {{ $serviceToNatsStreamOpts = set $serviceToNatsStreamOpts $service.GoName $natsStreamOpts }}
     {{ end }}
     {{- $resourceList := list }}
     {{- range $method := $service.Methods }}
@@ -52,9 +49,9 @@ package {{ .PackageName }}
     {{- end }}
     }
 
-    {{ $natsStreamNames := get $serviceToNatsStreamNames $serviceName }}
+    {{ $natsStreamOpts := get $serviceToNatsStreamOpts $serviceName }}
     type {{ $serviceName }}Server struct {
-    {{ if $natsStreamNames }}
+    {{ if $natsStreamOpts }}
         natsClient *{{ fqnCore "go/nats" "Client"}}
     {{ end }}
     {{- range $pr := $resources }}
@@ -64,10 +61,10 @@ package {{ .PackageName }}
 
 
 
-    {{ $natsStreamNames := get $serviceToNatsStreamNames $serviceName }}
-    func New{{ $serviceName }}Server(store {{ $serviceName | untitle }}Store{{ if $natsStreamNames }}, natsClient *{{ fqnCore "go/nats" "Client" }}{{ end }}) *{{ $serviceName }}Server {
+    {{ $natsStreamOpts := get $serviceToNatsStreamOpts $serviceName }}
+    func New{{ $serviceName }}Server(store {{ $serviceName | untitle }}Store{{ if $natsStreamOpts }}, natsClient *{{ fqnCore "go/nats" "Client" }}{{ end }}) *{{ $serviceName }}Server {
     return &{{ $serviceName }}Server{
-    {{ if $natsStreamNames }}
+    {{ if $natsStreamOpts }}
         natsClient: natsClient,
     {{ end }}
     {{- range $pr := $resources }}
@@ -77,12 +74,16 @@ package {{ .PackageName }}
     }
 
     func (s *{{ $serviceName }}Server) Start(ctx {{ fqn "context" "Context"}}) error {
-    {{ if $natsStreamNames }}
-        {{ range $natsStreamName := $natsStreamNames }}
-            if _, err := s.natsClient.CreateOrUpdateStream(ctx, {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $serviceName $natsStreamName)) }}().Get()); err != nil {
-			      return {{ fqn "fmt"  "Errorf" }}("creating stream: %w", err)
-		        }
-        {{ end }}
+    {{ if $natsStreamOpts }}
+        streamOptionsList, err := {{ fqnCore "go/pbutil" "GetServiceOption" }}[[]*{{ fqnCore "genproto/nats/v1" "StreamOptions" }}]({{ qgi ($file.GoImportPath.Ident (printf "%s_ServiceDesc" $serviceName)) }}.ServiceName, {{ fqnCore "genproto/codegen/nats/v1" "E_Stream" }})
+        if err != nil {
+        return {{ fqn "fmt" "Errorf" }}("getting stream options: %w", err)
+        }
+        for _, streamOptions := range streamOptionsList {
+            if _, err := s.natsClient.CreateOrUpdateStream(ctx, {{ fqnCore "go/nats" "NewStream" }}(streamOptions)); err != nil {
+            return {{ fqn "fmt"  "Errorf" }}("creating stream %q: %w", streamOptions.GetName(), err)
+            }
+        }
     {{ end }}
     return nil
     }
@@ -96,7 +97,6 @@ package {{ .PackageName }}
         {{ if not $rpc }}{{ continue }}{{ end }}
         {{ $pr := $rpc.ParsedResource }}
         {{ $natsEventOpts := getExt $rpc.Message.Desc "malonaz.codegen.nats.v1.event" }}
-        {{ $natsStreamName := $natsEventOpts.GetStream | trimPrefix (toString $file.Desc.Package) | trimPrefix "." | replace "." "-" | camelcase | printf "%sStream" }}
         {{ $storeInterface := printf "%s_%sStore" ($service.Desc.Name | toString | camelcase | untitle) $pr.SingularGoName }}
         {{- $resourceGoName := $pr.SingularGoName }}
         {{- $modelGoName := printf "%sModel" $resourceGoName }}
@@ -108,11 +108,18 @@ package {{ .PackageName }}
         {{ $errEtagChangedFqi := (printf "Err%sETagChanged" $goType) | $modelGpi.Ident | qgi }}
         {{ $errAlreadyExistsFqi := (printf "Err%sAlreadyExists" $goType) | $modelGpi.Ident | qgi }}
         {{ $errAlreadyDeletedFqi := (printf "Err%sAlreadyDeleted" $goType) | $modelGpi.Ident | qgi }}
+        {{- /* Helper to reference subject accessors from the resource package */ -}}
+        {{ $resourcePkg := $rpc.Message.GoIdent.GoImportPath }}
+        {{- /* Derive the stream Go name for this resource's nats event config */ -}}
+        {{- $natsStreamGoName := "" }}
+        {{- if $natsEventOpts }}
+            {{- $natsStreamGoName = regexReplaceAll "^.*\\.v[0-9]+\\." $natsEventOpts.GetStream "" | replace "." "-" | camelcase | printf "%sStream" }}
+        {{- end }}
         {{- $singletonChildren := list }}
         {{- range $childPr := $pr.Children }}
             {{- if $childPr.Singleton }}
-	              {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
-	              {{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
+                {{- $childMessage := getMessageUsingResourceType $childPr.Desc.Type }}
+                {{- $modelOpts := getExt $childMessage.Desc "malonaz.codegen.model.v1.model_opts" }}
                 {{- if $modelOpts }}
                     {{- $singletonChildren = append $singletonChildren $childPr }}
                 {{ end }}
@@ -185,7 +192,7 @@ package {{ .PackageName }}
             {{ if $pr.Parent }}
                 var {{ $pr.Parent.PatternVariableIDs true }} string
                 if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
-		            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
+                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
                 }
             {{ end }}
             request.{{ $resourceGoName }}.Name = {{ fqn "go.einride.tech/aip/resourcename" "Sprint" }}("{{ $pr.Pattern }}", {{ $pr.PatternVariableIDs true }})
@@ -218,9 +225,9 @@ package {{ .PackageName }}
             {{ "\n" }}
             // STEP 3: Convert the resource to the database representation.
             {{ $modelGoName | untitle }}, err := {{ $parseFromPb }}(request.{{ $resourceGoName }})
-	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
-	          }
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from pb to model: %v", err).Err()
+            }
 
             {{- range $childPr := $singletonChildren }}
                 // Instantiate child singleton resource: {{ $childPr.Type }}
@@ -248,8 +255,8 @@ package {{ .PackageName }}
                 {{ $parseFromPb := (printf "%sFromPb" $childMessage.GoIdent.GoName) | $modelGpi.Ident | qgi }}
                 {{ $childResourceGoName | untitle }}Model, err := {{ $parseFromPb }}({{ $childResourceGoName | untitle }})
                 if err != nil {
-		            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childPr.Desc.Singular }} from pb to model: %v", err).Err()
-	              }
+                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $childPr.Desc.Singular }} from pb to model: %v", err).Err()
+                }
             {{ end }}
 
             {{- if $method.Input.Desc.Fields.ByName "validate_only" }}
@@ -264,19 +271,19 @@ package {{ .PackageName }}
             if {{ fqn "errors" "Is" }}(err, {{ $errAlreadyExistsFqi }}) {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "AlreadyExists" }}, "{{ $pr.Desc.Singular }} already exists").Err()
             }
-		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $resourceGoName | snakecase }}").Err()
-	          }
+            return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "inserting {{ $resourceGoName | snakecase }}").Err()
+            }
 
             {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
-		        if err != nil {
-			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
-		        }
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+            }
 
             {{ if $natsEventOpts.GetCreated }}
                 // STEP 5: Publish events.
                 {{- range $eventOpt := $natsEventOpts.GetCreated }}
                     { // Subject `{{ $eventOpt.GetSubject }}`
-                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+                    subject := {{ qgi ($resourcePkg.Ident (printf "Get%s" $natsStreamGoName)) }}().Get{{ $eventOpt.GetSubject | camelcase }}Subject()
                     if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}); err != nil {
                     return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
                     }
@@ -446,7 +453,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
         // STEP 5: Publish events.
         {{- range $eventOpt := $natsEventOpts.GetUpdated }}
             { // Subject `{{ $eventOpt.GetSubject }}`
-            subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+            subject := {{ qgi ($resourcePkg.Ident (printf "Get%s" $natsStreamGoName)) }}().Get{{ $eventOpt.GetSubject | camelcase }}Subject()
             if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}, existing{{ $resourceGoName }}, request.GetUpdateMask()); err != nil {
             return nil, status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
             }
@@ -461,7 +468,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
                     func (s *{{ $serverGoName }}) publishResourceDeletedEvent(ctx {{ fqn "context" "Context" }}, {{ $rpc.Message.GoIdent.GoName | untitle }} *{{ qgi $rpc.Message.GoIdent }}) error {
                 {{- range $eventOpt := $natsEventOpts.GetDeleted }}
                     { // Subject `{{ $eventOpt.GetSubject }}`
-                    subject := {{ qgi ($file.GoImportPath.Ident (printf "Get%s%s" $service.GoName $natsStreamName)) }}().Get{{ $resourceGoName }}{{ $eventOpt.GetSubject | camelcase }}Subject()
+                    subject := {{ qgi ($resourcePkg.Ident (printf "Get%s" $natsStreamGoName)) }}().Get{{ $eventOpt.GetSubject | camelcase }}Subject()
                     if err := subject.Publish(ctx, s.natsClient, {{ $resourceGoName | untitle }}); err != nil {
                     return status.Errorf(codes.Internal, "publishing {{ $eventOpt.GetSubject }} event: %v", err).Err()
                     }
@@ -527,7 +534,7 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
                 // STEP 3: Convert to protobuf and return.
                 {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
                 if err != nil {
-			          return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
                 }
 
             {{ if $natsEventOpts.GetDeleted }}
@@ -560,8 +567,8 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
               // STEP 5: Publish event.
                 {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
                 if err != nil {
-			             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
-		            }
+                   return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+                }
                 if err := s.publishResourceDeletedEvent(ctx, {{ $resourceGoName | untitle }}); err != nil {
                    return nil, err
                 }
@@ -579,22 +586,22 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
 
             {{ $pr.PatternVariableIDs true }}, err := {{ $parseName }}(request.Name)
             if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "parsing name: %v", err).Err()
             }
 
             // Retrieve from the database.
             db{{ $modelGoName }}, err := s.store.{{ $method.GoName }}(ctx, {{ $pr.PatternVariableIDs true }})
-	          if err != nil {
+            if err != nil {
             if {{ fqn "errors" "Is" }}(err, {{ $errNotExistFqi }}) {
             return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "NotFound" }}, "{{ $pr.Desc.Singular }} does not exist").Err()
             }
-		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "getting {{ $pr.Desc.Singular }}").Err()
-	          }
+            return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "getting {{ $pr.Desc.Singular }}").Err()
+            }
 
-		        {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
-		        if err != nil {
-			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
-		        }
+            {{ $resourceGoName | untitle }}, err := db{{ $modelGoName }}.ToPb()
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting {{ $pr.Desc.Singular }} from model to pb: %v", err).Err()
+            }
             return {{ $resourceGoName | untitle }}, nil
             }
 
@@ -688,37 +695,37 @@ func (s *{{ $serverGoName }}) {{ $method.GoName }}(ctx {{ fqn "context" "Context
                 // Parse parent names
                 var {{ $pr.Parent.PatternVariableIDs true }} string
                 if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(request.Parent, "{{ $pr.Parent.Pattern }}", {{ $pr.Parent.PatternVariableIDPtrs }}); err != nil {
-		            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
+                return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, "invalid parent name: %v", err).Err()
                 }
             {{ end }}
 
             // Parse request
             parsedRequest, err := {{ $method.Input.GoIdent.GoName | untitle }}Parser.Parse(request)
-	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error()).Err()
-	          }
-	          whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "InvalidArgument" }}, err.Error()).Err()
+            }
+            whereClause, whereParams := parsedRequest.GetSQLWhereClause()
             var dbColumns []string
 
             // Retrieve from the database.
             {{ $resourceDbName }}s, err := s.store.{{ $method.GoName }}(ctx, {{ if $pr.Parent }}{{ $pr.Parent.PatternVariableIDs true }},{{ end }} {{ if $softDeletable }}request.ShowDeleted, {{ end }}whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
-	          if err != nil {
-		        return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "listing {{ $pr.PluralGoName | snakecase }}").Err()
-	          }
-	          nextPageToken := parsedRequest.GetNextPageToken(len({{ $resourceDbName }}s))
-	          if nextPageToken != "" {
-		        {{ $resourceDbName }}s = {{ $resourceDbName }}s[:len({{ $resourceDbName }}s)-1]
-	          }
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "FromError" }}(err, "listing {{ $pr.PluralGoName | snakecase }}").Err()
+            }
+            nextPageToken := parsedRequest.GetNextPageToken(len({{ $resourceDbName }}s))
+            if nextPageToken != "" {
+            {{ $resourceDbName }}s = {{ $resourceDbName }}s[:len({{ $resourceDbName }}s)-1]
+            }
 
             // Convert back to proto.
             {{ $pr.PluralGoName | untitle }} := make([]*{{ qgi $rpc.Message.GoIdent }}, 0, len({{ $resourceDbName }}s))
-	          for _, {{ $resourceDbName }} := range {{ $resourceDbName }}s {
-		        {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
-		        if err != nil {
-			      return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to {{ $resourceGoName }}: %v", err).Err()
-		        }
-		        {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
-	          }
+            for _, {{ $resourceDbName }} := range {{ $resourceDbName }}s {
+            {{ $resourceGoName | untitle }}, err := {{ $resourceDbName }}.ToPb()
+            if err != nil {
+            return nil, {{ fqnCore "go/grpc/status" "Errorf" }}({{ fqn "google.golang.org/grpc/codes" "Internal" }}, "converting model.{{ $resourceGoName }} to {{ $resourceGoName }}: %v", err).Err()
+            }
+            {{ $pr.PluralGoName | untitle }} = append({{ $pr.PluralGoName | untitle }}, {{ $resourceGoName | untitle }})
+            }
 
             // Create and return response.
             return &{{ qgi $method.Output.GoIdent }}{

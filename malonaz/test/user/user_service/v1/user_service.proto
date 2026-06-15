@@ -17,13 +17,13 @@ option go_package = "github.com/malonaz/core/genproto/test/user/user_service/v1"
 service UserService {
   option (google.api.default_host) = "user.test.malonaz.com";
   option (malonaz.codegen.nats.v1.stream) = {
-    name: "malonaz.test.user.user_service.v1.organization"
+    name: "malonaz.test.user.v1.organization"
     max_age: {seconds: 2592000}
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE
   };
   option (malonaz.codegen.nats.v1.stream) = {
-    name: "malonaz.test.user.user_service.v1.user"
+    name: "malonaz.test.user.v1.user"
     max_age: {seconds: 2592000}
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE

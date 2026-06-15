@@ -15,8 +15,9 @@ proto_library(
         "user.proto",
     ],
     additional_context = {
-        GENERATE_GO_AIP: True,
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/user/v1",
+        GENERATE_GO_AIP: True,
+        GENERATE_GO_NATS_EVENT: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,

@@ -20,7 +20,7 @@ message Organization {
     plural: "organizations"
   };
   option (malonaz.codegen.nats.v1.event) = {
-    stream: "malonaz.test.user.user_service.v1.organization"
+    stream: "malonaz.test.user.v1.organization"
     created: {subject: "created"}
     updated: {subject: "updated"}
     deleted: {subject: "deleted"}

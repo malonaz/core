@@ -21,7 +21,7 @@ message User {
     plural: "users"
   };
   option (malonaz.codegen.nats.v1.event) = {
-    stream: "malonaz.test.user.user_service.v1.user"
+    stream: "malonaz.test.user.v1.user"
     created: {subject: "created"}
     updated: {subject: "updated"}
     deleted: {subject: "deleted"}

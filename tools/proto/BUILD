@@ -112,6 +112,7 @@ filegroup(
         "//go/aip",
         "//go/nats",
         "//go/pbutil",
+        "//malonaz/nats/v1",
         "//third_party/go:github.com__google__cel-go__cel",
         "//third_party/go:github.com__google__cel-go__ext",
     ],

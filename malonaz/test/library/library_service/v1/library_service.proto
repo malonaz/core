@@ -21,13 +21,13 @@ option go_package = "github.com/malonaz/core/genproto/test/library/library_servi
 service LibraryService {
   option (google.api.default_host) = "library.test.malonaz.com";
   option (malonaz.codegen.nats.v1.stream) = {
-    name: "malonaz.test.library.library_service.v1.book"
+    name: "malonaz.test.library.v1.book"
     max_age: {seconds: 2592000}
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE
   };
   option (malonaz.codegen.nats.v1.stream) = {
-    name: "malonaz.test.library.library_service.v1.shelf"
+    name: "malonaz.test.library.v1.shelf"
     max_age: {seconds: 2592000}
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE

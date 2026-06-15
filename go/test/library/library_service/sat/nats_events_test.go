@@ -73,7 +73,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	organizationParent := getOrganizationParent()
 	consumerSuffix := uuid.MustNewV7().String()
 
-	shelfStream := libraryservicepb.GetLibraryServiceShelfStream()
+	shelfStream := librarypb.GetShelfStream()
 
 	var mu sync.Mutex
 	shelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
@@ -84,7 +84,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetShelfCreatedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetCreatedSubject().Get()},
 		ConsumerName: "test-shelf-created-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -102,7 +102,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetShelfUpdatedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetUpdatedSubject().Get()},
 		ConsumerName: "test-shelf-updated-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -126,7 +126,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetShelfDeletedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetDeletedSubject().Get()},
 		ConsumerName: "test-shelf-deleted-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -148,7 +148,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	var filteredMu sync.Mutex
 	filteredShelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfCreatedSubject().WithGenre(targetGenre)).Get()},
+		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetCreatedSubject().WithGenre(targetGenre)).Get()},
 		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
@@ -567,7 +567,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	organizationParent := getOrganizationParent()
 	consumerSuffix := uuid.MustNewV7().String()
 
-	bookStream := libraryservicepb.GetLibraryServiceBookStream()
+	bookStream := librarypb.GetBookStream()
 
 	var mu sync.Mutex
 	bookNameToCreatedEvents := map[string][]*bookCreatedEvent{}
@@ -595,7 +595,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.GetBookUpdatedSubject().Get()},
+		Subjects:     []*nats.Subject{bookStream.GetUpdatedSubject().Get()},
 		ConsumerName: "test-book-updated-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -618,7 +618,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.GetBookDeletedSubject().Get()},
+		Subjects:     []*nats.Subject{bookStream.GetDeletedSubject().Get()},
 		ConsumerName: "test-book-deleted-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -769,7 +769,7 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	organizationParent := getOrganizationParent()
 	consumerSuffix := uuid.MustNewV7().String()
 
-	shelfStream := libraryservicepb.GetLibraryServiceShelfStream()
+	shelfStream := librarypb.GetShelfStream()
 
 	var mu sync.Mutex
 	shelfNameToGenreChangeEvents := map[string][]*shelfUpdatedEvent{}
@@ -778,7 +778,7 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	require.NoError(t, err)
 
 	genreChangeProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetShelfGenreChangeSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetGenreChangeSubject().Get()},
 		ConsumerName: "test-shelf-genre-change-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -804,7 +804,7 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	var filteredMu sync.Mutex
 	filteredShelfNameToGenreChangeEvents := map[string][]*shelfUpdatedEvent{}
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetShelfGenreChangeSubject().WithGenre(targetGenre)).Get()},
+		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetGenreChangeSubject().WithGenre(targetGenre)).Get()},
 		ConsumerName: "test-shelf-genre-change-filtered-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
@@ -980,5 +980,85 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 			defer filteredMu.Unlock()
 			return len(filteredShelfNameToGenreChangeEvents[shelf.Name]) > 0
 		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+}
+
+// Add this test at the end of the file, before the closing of the file
+
+func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
+	t.Parallel()
+	organizationParent1 := getOrganizationParent()
+	organizationParent2 := getOrganizationParent()
+	consumerSuffix := uuid.MustNewV7().String()
+
+	organizationResourceName1 := &librarypb.OrganizationResourceName{}
+	require.NoError(t, organizationResourceName1.UnmarshalString(organizationParent1))
+	organizationResourceName2 := &librarypb.OrganizationResourceName{}
+	require.NoError(t, organizationResourceName2.UnmarshalString(organizationParent2))
+
+	shelfStream := librarypb.GetShelfStream()
+
+	var mu sync.Mutex
+	shelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
+
+	natsClient, err := satEnvironment.GetNatsClient(ctx)
+	require.NoError(t, err)
+
+	filteredSubject, err := shelfStream.GetCreatedSubject().WithOrganization(organizationResourceName1.Organization)
+	require.NoError(t, err)
+
+	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{filteredSubject.Get()},
+		ConsumerName: "test-shelf-created-org-" + consumerSuffix,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
+		mu.Lock()
+		defer mu.Unlock()
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		shelfNameToCreatedEvents[shelf.Name] = append(shelfNameToCreatedEvents[shelf.Name], &shelfCreatedEvent{
+			Shelf: shelf,
+		})
+		return nil
+	})
+	require.NoError(t, filteredProcessor.Start(ctx))
+
+	t.Run("MatchingOrganization_ReceivesEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent1, "Org Match Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToCreatedEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		mu.Lock()
+		defer mu.Unlock()
+		require.Len(t, shelfNameToCreatedEvents[shelf.Name], 1)
+		require.Equal(t, shelf.Name, shelfNameToCreatedEvents[shelf.Name][0].Shelf.Name)
+	})
+
+	t.Run("NonMatchingOrganization_NoEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent2, "Org NoMatch Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+		canary := createTestShelf(t, organizationParent1, "Org Canary Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToCreatedEvents[canary.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		mu.Lock()
+		defer mu.Unlock()
+		require.Empty(t, shelfNameToCreatedEvents[shelf.Name])
+	})
+
+	t.Run("WithOrganization_EmptyString_ReturnsError", func(t *testing.T) {
+		t.Parallel()
+		_, err := shelfStream.GetCreatedSubject().WithOrganization("")
+		require.Error(t, err)
 	})
 }
