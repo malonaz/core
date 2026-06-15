@@ -8,7 +8,6 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
-	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -37,16 +36,7 @@ func (s *OrganizationStream) Get() *nats.Stream {
 }
 
 type OrganizationCreatedSubject struct {
-	stream        *OrganizationStream
-	_organization *string
-}
-
-func (s *OrganizationCreatedSubject) WithOrganization(v string) (*OrganizationCreatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
+	stream *OrganizationStream
 }
 
 func (s *OrganizationCreatedSubject) evaluate(resource *Organization) (bool, error) {
@@ -72,26 +62,11 @@ func (s *OrganizationCreatedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationCreatedSubject) set(resource *Organization) error {
-	var OrganizationID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *OrganizationCreatedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		"created",
-	}
+	tokens := []string{"created"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 
@@ -100,16 +75,7 @@ func (s *OrganizationStream) GetCreatedSubject() *OrganizationCreatedSubject {
 }
 
 type OrganizationDeletedSubject struct {
-	stream        *OrganizationStream
-	_organization *string
-}
-
-func (s *OrganizationDeletedSubject) WithOrganization(v string) (*OrganizationDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
+	stream *OrganizationStream
 }
 
 func (s *OrganizationDeletedSubject) evaluate(resource *Organization) (bool, error) {
@@ -135,26 +101,11 @@ func (s *OrganizationDeletedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationDeletedSubject) set(resource *Organization) error {
-	var OrganizationID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *OrganizationDeletedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		"deleted",
-	}
+	tokens := []string{"deleted"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 
@@ -163,16 +114,7 @@ func (s *OrganizationStream) GetDeletedSubject() *OrganizationDeletedSubject {
 }
 
 type OrganizationUpdatedSubject struct {
-	stream        *OrganizationStream
-	_organization *string
-}
-
-func (s *OrganizationUpdatedSubject) WithOrganization(v string) (*OrganizationUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
+	stream *OrganizationStream
 }
 
 func (s *OrganizationUpdatedSubject) evaluate(resource *Organization, previousResource *Organization, updateMask *fieldmaskpb.FieldMask) (bool, error) {
@@ -198,26 +140,11 @@ func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, natsClient *na
 }
 
 func (s *OrganizationUpdatedSubject) set(resource *Organization) error {
-	var OrganizationID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}", &OrganizationID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *OrganizationUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		"updated",
-	}
+	tokens := []string{"updated"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 

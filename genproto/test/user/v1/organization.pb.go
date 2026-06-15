@@ -239,9 +239,9 @@ const file_malonaz_test_user_v1_organization_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xae\x01\xeaA_\n" +
 	"\"user.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganizationҦ\x04\x00\x8a\x91$D\n" +
-	"!malonaz.test.user.v1.organization\x12\t\n" +
-	"\acreated\x1a\t\n" +
-	"\aupdated\"\t\n" +
+	"!malonaz.test.user.v1.organization\x1a\t\n" +
+	"\acreated\"\t\n" +
+	"\aupdated*\t\n" +
 	"\adeletedB/Z-github.com/malonaz/core/genproto/test/user/v1b\x06proto3"
 
 var file_malonaz_test_user_v1_organization_proto_msgTypes = make([]protoimpl.MessageInfo, 2)

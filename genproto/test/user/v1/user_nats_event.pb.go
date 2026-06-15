@@ -8,7 +8,6 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
-	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -37,24 +36,7 @@ func (s *UserStream) Get() *nats.Stream {
 }
 
 type UserCreatedSubject struct {
-	stream        *UserStream
-	_organization *string
-	_user         *string
-}
-
-func (s *UserCreatedSubject) WithOrganization(v string) (*UserCreatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
-}
-func (s *UserCreatedSubject) WithUser(v string) (*UserCreatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("user must be set")
-	}
-	s._user = &v
-	return s, nil
+	stream *UserStream
 }
 
 func (s *UserCreatedSubject) evaluate(resource *User) (bool, error) {
@@ -80,35 +62,11 @@ func (s *UserCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *UserCreatedSubject) set(resource *User) error {
-	var OrganizationID, UserID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/users/{user}", &OrganizationID, &UserID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithUser(UserID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *UserCreatedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._user != nil {
-				return *s._user
-			}
-			return "*"
-		}(),
-		"created",
-	}
+	tokens := []string{"created"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 
@@ -117,24 +75,7 @@ func (s *UserStream) GetCreatedSubject() *UserCreatedSubject {
 }
 
 type UserDeletedSubject struct {
-	stream        *UserStream
-	_organization *string
-	_user         *string
-}
-
-func (s *UserDeletedSubject) WithOrganization(v string) (*UserDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
-}
-func (s *UserDeletedSubject) WithUser(v string) (*UserDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("user must be set")
-	}
-	s._user = &v
-	return s, nil
+	stream *UserStream
 }
 
 func (s *UserDeletedSubject) evaluate(resource *User) (bool, error) {
@@ -160,35 +101,11 @@ func (s *UserDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *UserDeletedSubject) set(resource *User) error {
-	var OrganizationID, UserID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/users/{user}", &OrganizationID, &UserID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithUser(UserID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *UserDeletedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._user != nil {
-				return *s._user
-			}
-			return "*"
-		}(),
-		"deleted",
-	}
+	tokens := []string{"deleted"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 
@@ -197,24 +114,7 @@ func (s *UserStream) GetDeletedSubject() *UserDeletedSubject {
 }
 
 type UserUpdatedSubject struct {
-	stream        *UserStream
-	_organization *string
-	_user         *string
-}
-
-func (s *UserUpdatedSubject) WithOrganization(v string) (*UserUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
-}
-func (s *UserUpdatedSubject) WithUser(v string) (*UserUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("user must be set")
-	}
-	s._user = &v
-	return s, nil
+	stream *UserStream
 }
 
 func (s *UserUpdatedSubject) evaluate(resource *User, previousResource *User, updateMask *fieldmaskpb.FieldMask) (bool, error) {
@@ -240,35 +140,11 @@ func (s *UserUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *UserUpdatedSubject) set(resource *User) error {
-	var OrganizationID, UserID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/users/{user}", &OrganizationID, &UserID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithUser(UserID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *UserUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._user != nil {
-				return *s._user
-			}
-			return "*"
-		}(),
-		"updated",
-	}
+	tokens := []string{"updated"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 

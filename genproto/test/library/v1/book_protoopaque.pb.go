@@ -444,8 +444,8 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf5\x01\xeaAg\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\t\n" +
 	"\alibrary\x8a\x91$R\n" +
-	"\x1cmalonaz.test.library.v1.book\x1a'\n" +
-	"\aupdated\x1a\x1cbook.publication_year > 2007\"\t\n" +
+	"\x1cmalonaz.test.library.v1.book\"'\n" +
+	"\aupdated\x1a\x1cbook.publication_year > 2007*\t\n" +
 	"\adeleted\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\xa6\x01\n" +
 	"\fBookMetadata\x12\x18\n" +
 	"\asummary\x18\x01 \x01(\tR\asummary\x12\x1a\n" +

@@ -58,6 +58,18 @@ package {{ .PackageName }}
 
     {{- $parsedResource := parseResourceFromMessage $message }}
 
+    {{- /* Build a set of pattern variable names for validation. */ -}}
+    {{- $patternVarSet := dict }}
+    {{- range $patternVar := $parsedResource.PatternVariables }}
+        {{- $patternVarSet = set $patternVarSet $patternVar true }}
+    {{- end }}
+
+    {{- /* Validate resource_segments against pattern variables. */ -}}
+    {{- $resourceSegments := $natsEventOpts.GetResourceSegments }}
+    {{- range $segment := $resourceSegments }}
+        {{- if not (hasKey $patternVarSet $segment) }}{{ fail (printf "resource_segment %q references unknown resource name segment on %s (pattern: %s)" $segment $message.GoIdent.GoName $parsedResource.Pattern) }}{{ end }}
+    {{- end }}
+
     {{- $eventTypeToEventOpts := dict }}
     {{- if $natsEventOpts.GetCreated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Created" $natsEventOpts.GetCreated }}{{ end }}
     {{- if $natsEventOpts.GetUpdated }}{{ $eventTypeToEventOpts = set $eventTypeToEventOpts "Updated" $natsEventOpts.GetUpdated }}{{ end }}
@@ -68,14 +80,19 @@ package {{ .PackageName }}
             {{- $structName := printf "%s%sSubject" $message.GoIdent.GoName ($eventOpt.GetSubject | camelcase) }}
             {{- $celProgramVar := printf "%s%sCELProgram" $message.GoIdent.GoName ($eventOpt.GetSubject | camelcase) | untitle }}
 
-            type {{ $structName }} struct {
-            stream *{{ $streamGoName }}
-            {{- range $patternVar := $parsedResource.PatternVariables }}
-                _{{ $patternVar | camelcase | untitle }} *string
-            {{- end }}
+            {{- /* Validate subject_fields against proto fields. */ -}}
             {{- range $subjectField := $eventOpt.GetSubjectFields }}
                 {{- $field := getFieldByName $message $subjectField }}
                 {{- if not $field }}{{ fail (printf "subject_field %q not found on message %s" $subjectField $message.GoIdent.GoName) }}{{ end }}
+            {{- end }}
+
+            type {{ $structName }} struct {
+            stream *{{ $streamGoName }}
+            {{- range $segment := $resourceSegments }}
+                _{{ $segment | camelcase | untitle }} *string
+            {{- end }}
+            {{- range $subjectField := $eventOpt.GetSubjectFields }}
+                {{- $field := getFieldByName $message $subjectField }}
                 {{- if $field.Enum }}
                     _{{ $field.GoName | untitle }} *{{ qgi $field.Enum.GoIdent }}
                 {{- else }}
@@ -84,16 +101,18 @@ package {{ .PackageName }}
             {{- end }}
             }
 
-            {{- range $patternVar := $parsedResource.PatternVariables }}
-                func (s *{{ $structName }}) With{{ $patternVar | camelcase }}(v string) (*{{ $structName }}, error) {
+            {{- /* With* methods for resource segments. */ -}}
+            {{- range $segment := $resourceSegments }}
+                func (s *{{ $structName }}) With{{ $segment | camelcase }}(v string) (*{{ $structName }}, error) {
                 if v == "" {
-                return nil, {{ fqn "fmt" "Errorf" }}("{{ $patternVar }} must be set")
+                return nil, {{ fqn "fmt" "Errorf" }}("{{ $segment }} must be set")
                 }
-                s._{{ $patternVar | camelcase | untitle }} = &v
+                s._{{ $segment | camelcase | untitle }} = &v
                 return s, nil
                 }
             {{- end }}
 
+            {{- /* With* methods for subject fields. */ -}}
             {{- range $subjectField := $eventOpt.GetSubjectFields }}
                 {{- $field := getFieldByName $message $subjectField }}
                 {{- if $field.Enum }}
@@ -156,14 +175,16 @@ package {{ .PackageName }}
             }
 
             func (s *{{ $structName }}) set(resource *{{ qgi $message.GoIdent }}) error {
-            var {{ range $i, $id := $parsedResource.PatternVariables }}{{ if $i }}, {{ end }}{{ $id | camelcase }}ID{{ end }} string
-            if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(resource.GetName(), "{{ $parsedResource.Pattern }}"{{ range $id := $parsedResource.PatternVariables }}, &{{ $id | camelcase }}ID{{ end }}); err != nil {
-              return {{ fqn "fmt" "Errorf" }}("parsing resource name: %v", err)
-            }
-            {{- range $patternVar := $parsedResource.PatternVariables }}
-                if _, err := s.With{{ $patternVar | camelcase }}({{ $patternVar | camelcase }}ID); err != nil {
-                return err
+            {{- if $resourceSegments }}
+                var {{ range $i, $patternVar := $parsedResource.PatternVariables }}{{ if $i }}, {{ end }}{{ $patternVar | camelcase }}ID{{ end }} string
+                if err := {{ fqn "go.einride.tech/aip/resourcename" "Sscan" }}(resource.GetName(), "{{ $parsedResource.Pattern }}"{{ range $patternVar := $parsedResource.PatternVariables }}, &{{ $patternVar | camelcase }}ID{{ end }}); err != nil {
+                  return {{ fqn "fmt" "Errorf" }}("parsing resource name: %v", err)
                 }
+                {{- range $segment := $resourceSegments }}
+                    if _, err := s.With{{ $segment | camelcase }}({{ $segment | camelcase }}ID); err != nil {
+                    return err
+                    }
+                {{- end }}
             {{- end }}
             {{- range $subjectField := $eventOpt.GetSubjectFields }}
                 {{- $field := getFieldByName $message $subjectField }}
@@ -176,15 +197,18 @@ package {{ .PackageName }}
 
             func (s *{{ $structName }}) Get() *{{ fqnCore "go/nats" "Subject" }} {
             tokens := []string{
-            {{- range $patternVar := $parsedResource.PatternVariables }}
+            {{- /* Resource segments first. */ -}}
+            {{- range $segment := $resourceSegments }}
                 func() string {
-                if s._{{ $patternVar | camelcase | untitle }} != nil {
-                return *s._{{ $patternVar | camelcase | untitle }}
+                if s._{{ $segment | camelcase | untitle }} != nil {
+                return *s._{{ $segment | camelcase | untitle }}
                 }
                 return "*"
                 }(),
             {{- end }}
+            {{- /* Then the event subject. */ -}}
             "{{ $eventOpt.GetSubject | lower }}",
+            {{- /* Then subject fields. */ -}}
             {{- range $subjectField := $eventOpt.GetSubjectFields }}
                 {{- $field := getFieldByName $message $subjectField }}
                 func() string {

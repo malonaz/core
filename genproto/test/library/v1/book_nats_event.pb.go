@@ -10,7 +10,6 @@ import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	aip "github.com/malonaz/core/go/aip"
 	nats "github.com/malonaz/core/go/nats"
-	resourcename "go.einride.tech/aip/resourcename"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	strings "strings"
 	sync "sync"
@@ -39,32 +38,7 @@ func (s *BookStream) Get() *nats.Stream {
 }
 
 type BookDeletedSubject struct {
-	stream        *BookStream
-	_organization *string
-	_shelf        *string
-	_book         *string
-}
-
-func (s *BookDeletedSubject) WithOrganization(v string) (*BookDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
-}
-func (s *BookDeletedSubject) WithShelf(v string) (*BookDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
-	return s, nil
-}
-func (s *BookDeletedSubject) WithBook(v string) (*BookDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("book must be set")
-	}
-	s._book = &v
-	return s, nil
+	stream *BookStream
 }
 
 func (s *BookDeletedSubject) evaluate(resource *Book) (bool, error) {
@@ -90,44 +64,11 @@ func (s *BookDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *BookDeletedSubject) set(resource *Book) error {
-	var OrganizationID, ShelfID, BookID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}/books/{book}", &OrganizationID, &ShelfID, &BookID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
-	if _, err := s.WithBook(BookID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *BookDeletedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._book != nil {
-				return *s._book
-			}
-			return "*"
-		}(),
-		"deleted",
-	}
+	tokens := []string{"deleted"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 
@@ -136,32 +77,7 @@ func (s *BookStream) GetDeletedSubject() *BookDeletedSubject {
 }
 
 type BookUpdatedSubject struct {
-	stream        *BookStream
-	_organization *string
-	_shelf        *string
-	_book         *string
-}
-
-func (s *BookUpdatedSubject) WithOrganization(v string) (*BookUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
-	s._organization = &v
-	return s, nil
-}
-func (s *BookUpdatedSubject) WithShelf(v string) (*BookUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
-	return s, nil
-}
-func (s *BookUpdatedSubject) WithBook(v string) (*BookUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("book must be set")
-	}
-	s._book = &v
-	return s, nil
+	stream *BookStream
 }
 
 func (s *BookUpdatedSubject) evaluate(resource *Book, previousResource *Book, updateMask *fieldmaskpb.FieldMask) (bool, error) {
@@ -199,44 +115,11 @@ func (s *BookUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 }
 
 func (s *BookUpdatedSubject) set(resource *Book) error {
-	var OrganizationID, ShelfID, BookID string
-	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}/books/{book}", &OrganizationID, &ShelfID, &BookID); err != nil {
-		return fmt.Errorf("parsing resource name: %v", err)
-	}
-	if _, err := s.WithOrganization(OrganizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
-	if _, err := s.WithBook(BookID); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *BookUpdatedSubject) Get() *nats.Subject {
-	tokens := []string{
-		func() string {
-			if s._organization != nil {
-				return *s._organization
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		func() string {
-			if s._book != nil {
-				return *s._book
-			}
-			return "*"
-		}(),
-		"updated",
-	}
+	tokens := []string{"updated"}
 	return s.stream.stream.Subject(strings.Join(tokens, "."))
 }
 

@@ -41,7 +41,6 @@ func (s *ShelfStream) Get() *nats.Stream {
 type ShelfCreatedSubject struct {
 	stream        *ShelfStream
 	_organization *string
-	_shelf        *string
 	_genre        *ShelfGenre
 }
 
@@ -50,13 +49,6 @@ func (s *ShelfCreatedSubject) WithOrganization(v string) (*ShelfCreatedSubject, 
 		return nil, fmt.Errorf("organization must be set")
 	}
 	s._organization = &v
-	return s, nil
-}
-func (s *ShelfCreatedSubject) WithShelf(v string) (*ShelfCreatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
 	return s, nil
 }
 func (s *ShelfCreatedSubject) WithGenre(v ShelfGenre) (*ShelfCreatedSubject, error) {
@@ -97,9 +89,6 @@ func (s *ShelfCreatedSubject) set(resource *Shelf) error {
 	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {
 		return err
 	}
@@ -113,14 +102,7 @@ func (s *ShelfCreatedSubject) Get() *nats.Subject {
 				return *s._organization
 			}
 			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		"created",
+		}(), "created",
 		func() string {
 			if s._genre != nil {
 				return strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_"))
@@ -138,7 +120,6 @@ func (s *ShelfStream) GetCreatedSubject() *ShelfCreatedSubject {
 type ShelfDeletedSubject struct {
 	stream           *ShelfStream
 	_organization    *string
-	_shelf           *string
 	_genre           *ShelfGenre
 	_correlationId_2 *string
 }
@@ -148,13 +129,6 @@ func (s *ShelfDeletedSubject) WithOrganization(v string) (*ShelfDeletedSubject, 
 		return nil, fmt.Errorf("organization must be set")
 	}
 	s._organization = &v
-	return s, nil
-}
-func (s *ShelfDeletedSubject) WithShelf(v string) (*ShelfDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
 	return s, nil
 }
 func (s *ShelfDeletedSubject) WithGenre(v ShelfGenre) (*ShelfDeletedSubject, error) {
@@ -202,9 +176,6 @@ func (s *ShelfDeletedSubject) set(resource *Shelf) error {
 	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {
 		return err
 	}
@@ -221,14 +192,7 @@ func (s *ShelfDeletedSubject) Get() *nats.Subject {
 				return *s._organization
 			}
 			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		"deleted",
+		}(), "deleted",
 		func() string {
 			if s._genre != nil {
 				return strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_"))
@@ -252,7 +216,6 @@ func (s *ShelfStream) GetDeletedSubject() *ShelfDeletedSubject {
 type ShelfUpdatedSubject struct {
 	stream           *ShelfStream
 	_organization    *string
-	_shelf           *string
 	_correlationId_2 *string
 }
 
@@ -261,13 +224,6 @@ func (s *ShelfUpdatedSubject) WithOrganization(v string) (*ShelfUpdatedSubject, 
 		return nil, fmt.Errorf("organization must be set")
 	}
 	s._organization = &v
-	return s, nil
-}
-func (s *ShelfUpdatedSubject) WithShelf(v string) (*ShelfUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
 	return s, nil
 }
 func (s *ShelfUpdatedSubject) WithCorrelationId2(v string) (*ShelfUpdatedSubject, error) {
@@ -320,9 +276,6 @@ func (s *ShelfUpdatedSubject) set(resource *Shelf) error {
 	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
 	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
 		return err
 	}
@@ -336,14 +289,7 @@ func (s *ShelfUpdatedSubject) Get() *nats.Subject {
 				return *s._organization
 			}
 			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		"updated",
+		}(), "updated",
 		func() string {
 			if s._correlationId_2 != nil {
 				return *s._correlationId_2
@@ -361,7 +307,6 @@ func (s *ShelfStream) GetUpdatedSubject() *ShelfUpdatedSubject {
 type ShelfGenreChangeSubject struct {
 	stream        *ShelfStream
 	_organization *string
-	_shelf        *string
 	_genre        *ShelfGenre
 }
 
@@ -370,13 +315,6 @@ func (s *ShelfGenreChangeSubject) WithOrganization(v string) (*ShelfGenreChangeS
 		return nil, fmt.Errorf("organization must be set")
 	}
 	s._organization = &v
-	return s, nil
-}
-func (s *ShelfGenreChangeSubject) WithShelf(v string) (*ShelfGenreChangeSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("shelf must be set")
-	}
-	s._shelf = &v
 	return s, nil
 }
 func (s *ShelfGenreChangeSubject) WithGenre(v ShelfGenre) (*ShelfGenreChangeSubject, error) {
@@ -429,9 +367,6 @@ func (s *ShelfGenreChangeSubject) set(resource *Shelf) error {
 	if _, err := s.WithOrganization(OrganizationID); err != nil {
 		return err
 	}
-	if _, err := s.WithShelf(ShelfID); err != nil {
-		return err
-	}
 	if _, err := s.WithGenre(resource.Genre); err != nil {
 		return err
 	}
@@ -445,14 +380,7 @@ func (s *ShelfGenreChangeSubject) Get() *nats.Subject {
 				return *s._organization
 			}
 			return "*"
-		}(),
-		func() string {
-			if s._shelf != nil {
-				return *s._shelf
-			}
-			return "*"
-		}(),
-		"genre_change",
+		}(), "genre_change",
 		func() string {
 			if s._genre != nil {
 				return strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_"))

@@ -15,96 +15,106 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/nats/v1/nats.proto.
  */
 export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSLgAQoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEjwKB2NyZWF0ZWQYAiADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgDIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAQgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zIlIKEkV2ZW50TWV0aG9kT3B0aW9ucxIXCgdzdWJqZWN0GAEgASgJQga6SAPIAQESFgoOc3ViamVjdF9maWVsZHMYAiADKAkSCwoDY2VsGAMgASgJOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSL7AQoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zIlIKEkV2ZW50TWV0aG9kT3B0aW9ucxIXCgdzdWJqZWN0GAEgASgJQga6SAPIAQESFgoOc3ViamVjdF9maWVsZHMYAiADKAkSCwoDY2VsGAMgASgJOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
 
 /**
- * Options controlling which NATS events are generated for a resource.
- * Each field corresponds to a standard AIP method. When set, the code
- * generator produces a typed event message and publishes it on the
- * resource's NATS subject after the method completes successfully.
+ * Extension to annotate a protobuf resource message with NATS event generation options.
+ * When set, the code generator emits typed NATS JetStream event messages
+ * for the specified standard AIP methods (create, update, delete).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
 export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
   /**
-   * Sets the stream on which events will be published.
-   * If omitted, the FQN of the message this annotation is attached to will be used.
+   * The stream on which events will be published.
    *
    * @generated from field: string stream = 1;
    */
   stream: string;
 
   /**
-   * Options for the created event, published when a resource is created via its Create method.
-   * Produces a <Resource>CreatedEvent containing the newly created resource.
+   * Resource name segments prepended before the event subject token.
+   * Each value must match a segment from the resource's name pattern.
+   * For example, given pattern "organizations/{organization}/shelves/{shelf}",
+   * specifying ["organization"] produces subjects like `<organization_id>.<subject>`.
+   * Multiple segments are prepended in order: `<seg1>.<seg2>.<subject>`.
+   *
+   * @generated from field: repeated string resource_segments = 2;
+   */
+  resourceSegments: string[];
+
+  /**
+   * Options for created events, published when a resource is created via its Create method.
    * If unset, no created event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions created = 2;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions created = 3;
    */
   created: EventMethodOptions[];
 
   /**
-   * Options for the updated event, published when a resource is updated via its Update method.
-   * Produces a <Resource>UpdatedEvent containing the previous state, the new
-   * state, and the field mask that was applied.
+   * Options for updated events, published when a resource is updated via its Update method.
    * If unset, no updated event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions updated = 3;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions updated = 4;
    */
   updated: EventMethodOptions[];
 
   /**
-   * Options for the deleted event, published when a resource is deleted via its Delete method.
-   * Produces a <Resource>DeletedEvent containing the resource at deletion time.
+   * Options for deleted events, published when a resource is deleted via its Delete method.
    * If unset, no deleted event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 4;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 5;
    */
   deleted: EventMethodOptions[];
 };
 
 /**
- * Options controlling which NATS events are generated for a resource.
- * Each field corresponds to a standard AIP method. When set, the code
- * generator produces a typed event message and publishes it on the
- * resource's NATS subject after the method completes successfully.
+ * Extension to annotate a protobuf resource message with NATS event generation options.
+ * When set, the code generator emits typed NATS JetStream event messages
+ * for the specified standard AIP methods (create, update, delete).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
 export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
   /**
-   * Sets the stream on which events will be published.
-   * If omitted, the FQN of the message this annotation is attached to will be used.
+   * The stream on which events will be published.
    *
    * @generated from field: string stream = 1;
    */
   stream: string;
 
   /**
-   * Options for the created event, published when a resource is created via its Create method.
-   * Produces a <Resource>CreatedEvent containing the newly created resource.
+   * Resource name segments prepended before the event subject token.
+   * Each value must match a segment from the resource's name pattern.
+   * For example, given pattern "organizations/{organization}/shelves/{shelf}",
+   * specifying ["organization"] produces subjects like `<organization_id>.<subject>`.
+   * Multiple segments are prepended in order: `<seg1>.<seg2>.<subject>`.
+   *
+   * @generated from field: repeated string resource_segments = 2;
+   */
+  resourceSegments: string[];
+
+  /**
+   * Options for created events, published when a resource is created via its Create method.
    * If unset, no created event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions created = 2;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions created = 3;
    */
   created: EventMethodOptionsValid[];
 
   /**
-   * Options for the updated event, published when a resource is updated via its Update method.
-   * Produces a <Resource>UpdatedEvent containing the previous state, the new
-   * state, and the field mask that was applied.
+   * Options for updated events, published when a resource is updated via its Update method.
    * If unset, no updated event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions updated = 3;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions updated = 4;
    */
   updated: EventMethodOptionsValid[];
 
   /**
-   * Options for the deleted event, published when a resource is deleted via its Delete method.
-   * Produces a <Resource>DeletedEvent containing the resource at deletion time.
+   * Options for deleted events, published when a resource is deleted via its Delete method.
    * If unset, no deleted event is generated.
    *
-   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 4;
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 5;
    */
   deleted: EventMethodOptionsValid[];
 };
@@ -123,37 +133,34 @@ export const EventOptionsSchema: GenMessage<EventOptions, {validType: EventOptio
  */
 export type EventMethodOptions = Message<"malonaz.codegen.nats.v1.EventMethodOptions"> & {
   /**
-   * The subject of this event.
+   * The event type token in the subject (e.g., "created", "updated", "deleted").
    *
    * @generated from field: string subject = 1;
    */
   subject: string;
 
   /**
-   * Fields to inject as subject tokens, appended in order after the event type.
-   * For example, specifying ["provider_id"] produces subjects like
-   * `<stream>.<subject>.<provider_id_value>`.
-   * Multiple fields are appended in order: `<stream>.<subject>.<field1_value>.<field2_value>`.
-   *
-   * Each referenced field must have a non-empty strirng representation
-   * as its value must always be present.
+   * Proto fields appended after the subject token.
+   * Each value must reference a field on the resource message.
+   * For example, specifying ["genre"] produces subjects like
+   * `<resource_segments...>.<subject>.<genre_value>`.
+   * Multiple fields are appended in order.
    *
    * String fields are used as-is.
-   * Enum fields have their type prefix stripped and the remainder is lower_cased
-   * (e.g. PROVIDER_TYPE_AWS -> aws).
+   * Enum fields have their type prefix stripped and the remainder is lowercased
+   * (e.g., SHELF_GENRE_FICTION -> fiction).
    *
    * @generated from field: repeated string subject_fields = 2;
    */
   subjectFields: string[];
 
   /**
-   * Optional CEL expression evaluated against the resource event message.
+   * Optional CEL expression evaluated before publishing.
    * If present, the event is only published when the expression evaluates to true.
-   * The expression has access to:
-   *   `this.resource` => on `created`, `updated` & `deleted` events.
-   *   `this.previous_resource` => on `updated` events.
-   *   `this.update_mask` => on `updated` events.
-   * Example: "this.resource.status == 'ACTIVE' && this.resource.provider_id != ''"
+   * Available variables:
+   *   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+   *   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
+   *   - `update_mask` on updated events.
    *
    * @generated from field: string cel = 3;
    */
@@ -167,37 +174,34 @@ export type EventMethodOptions = Message<"malonaz.codegen.nats.v1.EventMethodOpt
  */
 export type EventMethodOptionsValid = Message<"malonaz.codegen.nats.v1.EventMethodOptions"> & {
   /**
-   * The subject of this event.
+   * The event type token in the subject (e.g., "created", "updated", "deleted").
    *
    * @generated from field: string subject = 1;
    */
   subject: string;
 
   /**
-   * Fields to inject as subject tokens, appended in order after the event type.
-   * For example, specifying ["provider_id"] produces subjects like
-   * `<stream>.<subject>.<provider_id_value>`.
-   * Multiple fields are appended in order: `<stream>.<subject>.<field1_value>.<field2_value>`.
-   *
-   * Each referenced field must have a non-empty strirng representation
-   * as its value must always be present.
+   * Proto fields appended after the subject token.
+   * Each value must reference a field on the resource message.
+   * For example, specifying ["genre"] produces subjects like
+   * `<resource_segments...>.<subject>.<genre_value>`.
+   * Multiple fields are appended in order.
    *
    * String fields are used as-is.
-   * Enum fields have their type prefix stripped and the remainder is lower_cased
-   * (e.g. PROVIDER_TYPE_AWS -> aws).
+   * Enum fields have their type prefix stripped and the remainder is lowercased
+   * (e.g., SHELF_GENRE_FICTION -> fiction).
    *
    * @generated from field: repeated string subject_fields = 2;
    */
   subjectFields: string[];
 
   /**
-   * Optional CEL expression evaluated against the resource event message.
+   * Optional CEL expression evaluated before publishing.
    * If present, the event is only published when the expression evaluates to true.
-   * The expression has access to:
-   *   `this.resource` => on `created`, `updated` & `deleted` events.
-   *   `this.previous_resource` => on `updated` events.
-   *   `this.update_mask` => on `updated` events.
-   * Example: "this.resource.status == 'ACTIVE' && this.resource.provider_id != ''"
+   * Available variables:
+   *   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+   *   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
+   *   - `update_mask` on updated events.
    *
    * @generated from field: string cel = 3;
    */

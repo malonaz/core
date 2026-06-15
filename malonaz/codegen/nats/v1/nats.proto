@@ -24,56 +24,54 @@ extend google.protobuf.MessageOptions {
   EventOptions event = 74001;
 }
 
-// Options controlling which NATS events are generated for a resource.
-// Each field corresponds to a standard AIP method. When set, the code
-// generator produces a typed event message and publishes it on the
-// resource's NATS subject after the method completes successfully.
+// Extension to annotate a protobuf resource message with NATS event generation options.
+// When set, the code generator emits typed NATS JetStream event messages
+// for the specified standard AIP methods (create, update, delete).
 message EventOptions {
-  // Sets the stream on which events will be published.
-  // If omitted, the FQN of the message this annotation is attached to will be used.
+  // The stream on which events will be published.
   string stream = 1 [(buf.validate.field).required = true];
 
-  // Options for the created event, published when a resource is created via its Create method.
-  // Produces a <Resource>CreatedEvent containing the newly created resource.
+  // Resource name segments prepended before the event subject token.
+  // Each value must match a segment from the resource's name pattern.
+  // For example, given pattern "organizations/{organization}/shelves/{shelf}",
+  // specifying ["organization"] produces subjects like `<organization_id>.<subject>`.
+  // Multiple segments are prepended in order: `<seg1>.<seg2>.<subject>`.
+  repeated string resource_segments = 2;
+
+  // Options for created events, published when a resource is created via its Create method.
   // If unset, no created event is generated.
-  repeated EventMethodOptions created = 2;
+  repeated EventMethodOptions created = 3;
 
-  // Options for the updated event, published when a resource is updated via its Update method.
-  // Produces a <Resource>UpdatedEvent containing the previous state, the new
-  // state, and the field mask that was applied.
+  // Options for updated events, published when a resource is updated via its Update method.
   // If unset, no updated event is generated.
-  repeated EventMethodOptions updated = 3;
+  repeated EventMethodOptions updated = 4;
 
-  // Options for the deleted event, published when a resource is deleted via its Delete method.
-  // Produces a <Resource>DeletedEvent containing the resource at deletion time.
+  // Options for deleted events, published when a resource is deleted via its Delete method.
   // If unset, no deleted event is generated.
-  repeated EventMethodOptions deleted = 4;
+  repeated EventMethodOptions deleted = 5;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.
 message EventMethodOptions {
-  // The subject of this event.
+  // The event type token in the subject (e.g., "created", "updated", "deleted").
   string subject = 1 [(buf.validate.field).required = true];
 
-  // Fields to inject as subject tokens, appended in order after the event type.
-  // For example, specifying ["provider_id"] produces subjects like
-  // `<stream>.<subject>.<provider_id_value>`.
-  // Multiple fields are appended in order: `<stream>.<subject>.<field1_value>.<field2_value>`.
-  //
-  // Each referenced field must have a non-empty strirng representation
-  // as its value must always be present.
+  // Proto fields appended after the subject token.
+  // Each value must reference a field on the resource message.
+  // For example, specifying ["genre"] produces subjects like
+  // `<resource_segments...>.<subject>.<genre_value>`.
+  // Multiple fields are appended in order.
   //
   // String fields are used as-is.
-  // Enum fields have their type prefix stripped and the remainder is lower_cased
-  // (e.g. PROVIDER_TYPE_AWS -> aws).
+  // Enum fields have their type prefix stripped and the remainder is lowercased
+  // (e.g., SHELF_GENRE_FICTION -> fiction).
   repeated string subject_fields = 2;
 
-  // Optional CEL expression evaluated against the resource event message.
+  // Optional CEL expression evaluated before publishing.
   // If present, the event is only published when the expression evaluates to true.
-  // The expression has access to:
-  //   `this.resource` => on `created`, `updated` & `deleted` events.
-  //   `this.previous_resource` => on `updated` events.
-  //   `this.update_mask` => on `updated` events.
-  // Example: "this.resource.status == 'ACTIVE' && this.resource.provider_id != ''"
+  // Available variables:
+  //   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+  //   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
+  //   - `update_mask` on updated events.
   string cel = 3;
 }

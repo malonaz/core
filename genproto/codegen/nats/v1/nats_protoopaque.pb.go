@@ -25,18 +25,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Options controlling which NATS events are generated for a resource.
-// Each field corresponds to a standard AIP method. When set, the code
-// generator produces a typed event message and publishes it on the
-// resource's NATS subject after the method completes successfully.
+// Extension to annotate a protobuf resource message with NATS event generation options.
+// When set, the code generator emits typed NATS JetStream event messages
+// for the specified standard AIP methods (create, update, delete).
 type EventOptions struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Stream  string                 `protobuf:"bytes,1,opt,name=stream,proto3"`
-	xxx_hidden_Created *[]*EventMethodOptions `protobuf:"bytes,2,rep,name=created,proto3"`
-	xxx_hidden_Updated *[]*EventMethodOptions `protobuf:"bytes,3,rep,name=updated,proto3"`
-	xxx_hidden_Deleted *[]*EventMethodOptions `protobuf:"bytes,4,rep,name=deleted,proto3"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Stream           string                 `protobuf:"bytes,1,opt,name=stream,proto3"`
+	xxx_hidden_ResourceSegments []string               `protobuf:"bytes,2,rep,name=resource_segments,json=resourceSegments,proto3"`
+	xxx_hidden_Created          *[]*EventMethodOptions `protobuf:"bytes,3,rep,name=created,proto3"`
+	xxx_hidden_Updated          *[]*EventMethodOptions `protobuf:"bytes,4,rep,name=updated,proto3"`
+	xxx_hidden_Deleted          *[]*EventMethodOptions `protobuf:"bytes,5,rep,name=deleted,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *EventOptions) Reset() {
@@ -71,6 +71,13 @@ func (x *EventOptions) GetStream() string {
 	return ""
 }
 
+func (x *EventOptions) GetResourceSegments() []string {
+	if x != nil {
+		return x.xxx_hidden_ResourceSegments
+	}
+	return nil
+}
+
 func (x *EventOptions) GetCreated() []*EventMethodOptions {
 	if x != nil {
 		if x.xxx_hidden_Created != nil {
@@ -102,6 +109,10 @@ func (x *EventOptions) SetStream(v string) {
 	x.xxx_hidden_Stream = v
 }
 
+func (x *EventOptions) SetResourceSegments(v []string) {
+	x.xxx_hidden_ResourceSegments = v
+}
+
 func (x *EventOptions) SetCreated(v []*EventMethodOptions) {
 	x.xxx_hidden_Created = &v
 }
@@ -117,20 +128,21 @@ func (x *EventOptions) SetDeleted(v []*EventMethodOptions) {
 type EventOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Sets the stream on which events will be published.
-	// If omitted, the FQN of the message this annotation is attached to will be used.
+	// The stream on which events will be published.
 	Stream string
-	// Options for the created event, published when a resource is created via its Create method.
-	// Produces a <Resource>CreatedEvent containing the newly created resource.
+	// Resource name segments prepended before the event subject token.
+	// Each value must match a segment from the resource's name pattern.
+	// For example, given pattern "organizations/{organization}/shelves/{shelf}",
+	// specifying ["organization"] produces subjects like `<organization_id>.<subject>`.
+	// Multiple segments are prepended in order: `<seg1>.<seg2>.<subject>`.
+	ResourceSegments []string
+	// Options for created events, published when a resource is created via its Create method.
 	// If unset, no created event is generated.
 	Created []*EventMethodOptions
-	// Options for the updated event, published when a resource is updated via its Update method.
-	// Produces a <Resource>UpdatedEvent containing the previous state, the new
-	// state, and the field mask that was applied.
+	// Options for updated events, published when a resource is updated via its Update method.
 	// If unset, no updated event is generated.
 	Updated []*EventMethodOptions
-	// Options for the deleted event, published when a resource is deleted via its Delete method.
-	// Produces a <Resource>DeletedEvent containing the resource at deletion time.
+	// Options for deleted events, published when a resource is deleted via its Delete method.
 	// If unset, no deleted event is generated.
 	Deleted []*EventMethodOptions
 }
@@ -140,6 +152,7 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Stream = b.Stream
+	x.xxx_hidden_ResourceSegments = b.ResourceSegments
 	x.xxx_hidden_Created = &b.Created
 	x.xxx_hidden_Updated = &b.Updated
 	x.xxx_hidden_Deleted = &b.Deleted
@@ -217,29 +230,24 @@ func (x *EventMethodOptions) SetCel(v string) {
 type EventMethodOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The subject of this event.
+	// The event type token in the subject (e.g., "created", "updated", "deleted").
 	Subject string
-	// Fields to inject as subject tokens, appended in order after the event type.
-	// For example, specifying ["provider_id"] produces subjects like
-	// `<stream>.<subject>.<provider_id_value>`.
-	// Multiple fields are appended in order: `<stream>.<subject>.<field1_value>.<field2_value>`.
-	//
-	// Each referenced field must have a non-empty strirng representation
-	// as its value must always be present.
+	// Proto fields appended after the subject token.
+	// Each value must reference a field on the resource message.
+	// For example, specifying ["genre"] produces subjects like
+	// `<resource_segments...>.<subject>.<genre_value>`.
+	// Multiple fields are appended in order.
 	//
 	// String fields are used as-is.
-	// Enum fields have their type prefix stripped and the remainder is lower_cased
-	// (e.g. PROVIDER_TYPE_AWS -> aws).
+	// Enum fields have their type prefix stripped and the remainder is lowercased
+	// (e.g., SHELF_GENRE_FICTION -> fiction).
 	SubjectFields []string
-	// Optional CEL expression evaluated against the resource event message.
+	// Optional CEL expression evaluated before publishing.
 	// If present, the event is only published when the expression evaluates to true.
-	// The expression has access to:
-	//
-	//	`this.resource` => on `created`, `updated` & `deleted` events.
-	//	`this.previous_resource` => on `updated` events.
-	//	`this.update_mask` => on `updated` events.
-	//
-	// Example: "this.resource.status == 'ACTIVE' && this.resource.provider_id != ”"
+	// Available variables:
+	//   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+	//   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
+	//   - `update_mask` on updated events.
 	Cel string
 }
 
@@ -292,12 +300,13 @@ var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\x83\x02\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xb0\x02\n" +
 	"\fEventOptions\x12\x1e\n" +
-	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12E\n" +
-	"\acreated\x18\x02 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
-	"\aupdated\x18\x03 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
-	"\adeleted\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"o\n" +
+	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12+\n" +
+	"\x11resource_segments\x18\x02 \x03(\tR\x10resourceSegments\x12E\n" +
+	"\acreated\x18\x03 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
+	"\aupdated\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
+	"\adeleted\x18\x05 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"o\n" +
 	"\x12EventMethodOptions\x12 \n" +
 	"\asubject\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12%\n" +
 	"\x0esubject_fields\x18\x02 \x03(\tR\rsubjectFields\x12\x10\n" +

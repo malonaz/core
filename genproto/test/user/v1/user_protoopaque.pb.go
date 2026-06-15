@@ -367,9 +367,9 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa6\x01\xeaAT\n" +
 	"\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userҦ\x04\v\x12\x05user_\x1a\x02id\x8a\x91$<\n" +
-	"\x19malonaz.test.user.v1.user\x12\t\n" +
-	"\acreated\x1a\t\n" +
-	"\aupdated\"\t\n" +
+	"\x19malonaz.test.user.v1.user\x1a\t\n" +
+	"\acreated\"\t\n" +
+	"\aupdated*\t\n" +
 	"\adeleted\"Y\n" +
 	"\fUserMetadata\x12-\n" +
 	"\x12preferred_language\x18\x01 \x01(\tR\x11preferredLanguage\x12\x1a\n" +
