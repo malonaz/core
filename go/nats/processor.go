@@ -179,6 +179,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		}
 
 		if err := messageBatch.Error(); err != nil {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			// Fetch timeout with no messages is normal (idle consumer).
+			if len(messages) == 0 {
+				return nil
+			}
 			return fmt.Errorf("consuming message batch: %w", err)
 		}
 
