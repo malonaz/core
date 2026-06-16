@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package malonaz.codegen.model.v1;
 
+import "google/api/resource.proto";
 import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/malonaz/core/genproto/codegen/model/v1";
@@ -63,4 +64,15 @@ message FieldOpts {
   // If true, treat this field as a pgvector type for vector similarity search.
   // The field will use the pgvector.Vector type for PostgreSQL vector operations.
   bool pg_vector = 7;
+
+  // If set, this field is populated via a JOIN and is output-only.
+  Join join = 8;
+}
+
+// Configures a field that is populated via a JOIN.
+message Join {
+  // Required. The parent resource type to join on.
+  string parent = 1 [(google.api.resource_reference).type = "*"];
+  // Required. The field name on the parent message to join.
+  string field = 2;
 }

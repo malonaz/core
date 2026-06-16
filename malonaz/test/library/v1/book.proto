@@ -90,6 +90,16 @@ message Book {
 
   // Book metadata.
   BookMetadata metadata = 12 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+
+  // Join on parent.
+  string shelf_external_id = 13 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "library.test.malonaz.com/Shelf"
+      field: "external_id"
+    }
+  ];
 }
 
 // Metadata for a book.

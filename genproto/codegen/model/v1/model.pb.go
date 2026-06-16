@@ -9,6 +9,7 @@
 package v1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
@@ -141,7 +142,9 @@ type FieldOpts struct {
 	Embed bool `protobuf:"varint,6,opt,name=embed,proto3" json:"embed,omitempty"`
 	// If true, treat this field as a pgvector type for vector similarity search.
 	// The field will use the pgvector.Vector type for PostgreSQL vector operations.
-	PgVector      bool `protobuf:"varint,7,opt,name=pg_vector,json=pgVector,proto3" json:"pg_vector,omitempty"`
+	PgVector bool `protobuf:"varint,7,opt,name=pg_vector,json=pgVector,proto3" json:"pg_vector,omitempty"`
+	// If set, this field is populated via a JOIN and is output-only.
+	Join          *Join `protobuf:"bytes,8,opt,name=join,proto3" json:"join,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -220,6 +223,13 @@ func (x *FieldOpts) GetPgVector() bool {
 	return false
 }
 
+func (x *FieldOpts) GetJoin() *Join {
+	if x != nil {
+		return x.Join
+	}
+	return nil
+}
+
 func (x *FieldOpts) SetColumnName(v string) {
 	x.ColumnName = v
 }
@@ -248,6 +258,21 @@ func (x *FieldOpts) SetPgVector(v bool) {
 	x.PgVector = v
 }
 
+func (x *FieldOpts) SetJoin(v *Join) {
+	x.Join = v
+}
+
+func (x *FieldOpts) HasJoin() bool {
+	if x == nil {
+		return false
+	}
+	return x.Join != nil
+}
+
+func (x *FieldOpts) ClearJoin() {
+	x.Join = nil
+}
+
 type FieldOpts_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -271,6 +296,8 @@ type FieldOpts_builder struct {
 	// If true, treat this field as a pgvector type for vector similarity search.
 	// The field will use the pgvector.Vector type for PostgreSQL vector operations.
 	PgVector bool
+	// If set, this field is populated via a JOIN and is output-only.
+	Join *Join
 }
 
 func (b0 FieldOpts_builder) Build() *FieldOpts {
@@ -284,6 +311,83 @@ func (b0 FieldOpts_builder) Build() *FieldOpts {
 	x.Skip = b.Skip
 	x.Embed = b.Embed
 	x.PgVector = b.PgVector
+	x.Join = b.Join
+	return m0
+}
+
+// Configures a field that is populated via a JOIN.
+type Join struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Required. The parent resource type to join on.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// Required. The field name on the parent message to join.
+	Field         string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Join) Reset() {
+	*x = Join{}
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Join) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Join) ProtoMessage() {}
+
+func (x *Join) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Join) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *Join) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *Join) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *Join) SetField(v string) {
+	x.Field = v
+}
+
+type Join_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Required. The parent resource type to join on.
+	Parent string
+	// Required. The field name on the parent message to join.
+	Field string
+}
+
+func (b0 Join_builder) Build() *Join {
+	m0 := &Join{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Field = b.Field
 	return m0
 }
 
@@ -326,13 +430,13 @@ var File_malonaz_codegen_model_v1_model_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a google/protobuf/descriptor.proto\"q\n" +
+	"$malonaz/codegen/model/v1/model.proto\x12\x18malonaz.codegen.model.v1\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\"q\n" +
 	"\tModelOpts\x12\x1f\n" +
 	"\vschema_name\x18\x01 \x01(\tR\n" +
 	"schemaName\x12\x1d\n" +
 	"\n" +
 	"table_name\x18\x02 \x01(\tR\ttableName\x12$\n" +
-	"\x0eid_column_name\x18\x03 \x01(\tR\fidColumnName\"\xd9\x01\n" +
+	"\x0eid_column_name\x18\x03 \x01(\tR\fidColumnName\"\x8d\x02\n" +
 	"\tFieldOpts\x12\x1f\n" +
 	"\vcolumn_name\x18\x01 \x01(\tR\n" +
 	"columnName\x12\"\n" +
@@ -341,29 +445,36 @@ const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\bnullable\x18\x04 \x01(\bR\bnullable\x12\x12\n" +
 	"\x04skip\x18\x05 \x01(\bR\x04skip\x12\x14\n" +
 	"\x05embed\x18\x06 \x01(\bR\x05embed\x12\x1b\n" +
-	"\tpg_vector\x18\a \x01(\bR\bpgVector:d\n" +
+	"\tpg_vector\x18\a \x01(\bR\bpgVector\x122\n" +
+	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"<\n" +
+	"\x04Join\x12\x1e\n" +
+	"\x06parent\x18\x01 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*R\x06parent\x12\x14\n" +
+	"\x05field\x18\x02 \x01(\tR\x05field:d\n" +
 	"\n" +
 	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2#.malonaz.codegen.model.v1.ModelOptsR\tmodelOpts:c\n" +
 	"\n" +
 	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2#.malonaz.codegen.model.v1.FieldOptsR\tfieldOptsB3Z1github.com/malonaz/core/genproto/codegen/model/v1b\x06proto3"
 
-var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_codegen_model_v1_model_proto_goTypes = []any{
 	(*ModelOpts)(nil),                   // 0: malonaz.codegen.model.v1.ModelOpts
 	(*FieldOpts)(nil),                   // 1: malonaz.codegen.model.v1.FieldOpts
-	(*descriptorpb.MessageOptions)(nil), // 2: google.protobuf.MessageOptions
-	(*descriptorpb.FieldOptions)(nil),   // 3: google.protobuf.FieldOptions
+	(*Join)(nil),                        // 2: malonaz.codegen.model.v1.Join
+	(*descriptorpb.MessageOptions)(nil), // 3: google.protobuf.MessageOptions
+	(*descriptorpb.FieldOptions)(nil),   // 4: google.protobuf.FieldOptions
 }
 var file_malonaz_codegen_model_v1_model_proto_depIdxs = []int32{
-	2, // 0: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
-	3, // 1: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
-	0, // 2: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
-	1, // 3: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	2, // [2:4] is the sub-list for extension type_name
-	0, // [0:2] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: malonaz.codegen.model.v1.FieldOpts.join:type_name -> malonaz.codegen.model.v1.Join
+	3, // 1: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
+	4, // 2: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
+	0, // 3: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
+	1, // 4: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	3, // [3:5] is the sub-list for extension type_name
+	1, // [1:3] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_model_v1_model_proto_init() }
@@ -377,7 +488,7 @@ func file_malonaz_codegen_model_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_model_v1_model_proto_rawDesc), len(file_malonaz_codegen_model_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 2,
 			NumServices:   0,
 		},

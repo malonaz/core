@@ -234,7 +234,12 @@ func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.Updat
 		if errors.Is(err, model.ErrChatETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
+<<<<<<< HEAD
 		return nil, status.FromError(err, "inserting chat").Err()
+=======
+
+		return nil, status.FromError(err, "updating chat").Err()
+>>>>>>> 17480d7 (initial commit)
 	}
 
 	chat, err := dbChatModel.ToPb()

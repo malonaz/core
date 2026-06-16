@@ -45,6 +45,7 @@ type Book struct {
 	xxx_hidden_Labels          map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Etag            string                 `protobuf:"bytes,11,opt,name=etag,proto3"`
 	xxx_hidden_Metadata        *BookMetadata          `protobuf:"bytes,12,opt,name=metadata,proto3"`
+	xxx_hidden_ShelfExternalId string                 `protobuf:"bytes,13,opt,name=shelf_external_id,json=shelfExternalId,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -158,6 +159,13 @@ func (x *Book) GetMetadata() *BookMetadata {
 	return nil
 }
 
+func (x *Book) GetShelfExternalId() string {
+	if x != nil {
+		return x.xxx_hidden_ShelfExternalId
+	}
+	return ""
+}
+
 func (x *Book) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -204,6 +212,10 @@ func (x *Book) SetEtag(v string) {
 
 func (x *Book) SetMetadata(v *BookMetadata) {
 	x.xxx_hidden_Metadata = v
+}
+
+func (x *Book) SetShelfExternalId(v string) {
+	x.xxx_hidden_ShelfExternalId = v
 }
 
 func (x *Book) HasCreateTime() bool {
@@ -279,6 +291,8 @@ type Book_builder struct {
 	Etag string
 	// Book metadata.
 	Metadata *BookMetadata
+	// Join on parent.
+	ShelfExternalId string
 }
 
 func (b0 Book_builder) Build() *Book {
@@ -297,6 +311,7 @@ func (b0 Book_builder) Build() *Book {
 	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_ShelfExternalId = b.ShelfExternalId
 	return m0
 }
 
@@ -419,7 +434,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9c\b\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x82\t\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -438,7 +453,9 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x06labels\x18\n" +
 	" \x03(\v2).malonaz.test.library.v1.Book.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
 	"\x04etag\x18\v \x01(\tR\x04etag\x12I\n" +
-	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x12d\n" +
+	"\x11shelf_external_id\x18\r \x01(\tB8\xe0A\x03\xba\xea\x0f1 \x01B-\n" +
+	"\x1elibrary.test.malonaz.com/Shelf\x12\vexternal_idR\x0fshelfExternalId\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf5\x01\xeaAg\n" +

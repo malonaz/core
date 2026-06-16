@@ -73,12 +73,27 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
 		ChatID:         ChatID,
+<<<<<<< HEAD
 		CreateTime:     m.CreateTime.AsTime(),
 		UpdateTime:     m.UpdateTime.AsTime(),
 		DeleteTime:     DeleteTime,
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
 		Metadata:       MetadataBytes,
+=======
+
+		CreateTime: m.CreateTime.AsTime(),
+
+		UpdateTime: m.UpdateTime.AsTime(),
+
+		DeleteTime: DeleteTime,
+
+		Etag: m.Etag,
+
+		Labels: LabelsBytes,
+
+		Metadata: MetadataBytes,
+>>>>>>> 17480d7 (initial commit)
 	}, nil
 }
 
