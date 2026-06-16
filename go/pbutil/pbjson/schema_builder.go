@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -30,6 +31,7 @@ var (
 	fieldMaskFullName  = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 	dateFullName       = (&date.Date{}).ProtoReflect().Descriptor().FullName()
 	timeOfDayFullName  = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
+	moneyFullName      = (&money.Money{}).ProtoReflect().Descriptor().FullName()
 	structFullName     = (&structpb.Struct{}).ProtoReflect().Descriptor().FullName()
 	valueFullName      = (&structpb.Value{}).ProtoReflect().Descriptor().FullName()
 	listValueFullName  = (&structpb.ListValue{}).ProtoReflect().Descriptor().FullName()
@@ -226,6 +228,8 @@ func (b *SchemaBuilder) buildMessageSchema(
 		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}, nil
 	case timeOfDayFullName:
 		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}, nil
+	case moneyFullName:
+		return &jsonpb.Schema{Type: "string", Description: "ISO 4217 currency code followed by amount, e.g. 'USD 25.50', 'EUR -1.75', 'JPY 1000'"}, nil
 	case structFullName:
 		return &jsonpb.Schema{Type: "object", Description: "JSON object (google.protobuf.Struct)"}, nil
 	case valueFullName:

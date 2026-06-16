@@ -588,6 +588,7 @@
         "google.golang.org/genproto/googleapis/rpc/errdetails": "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
         "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
+        "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
         "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday",
         "google.golang.org/grpc": "//third_party/go:google.golang.org__grpc",
@@ -722,6 +723,7 @@
         "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/proto:google__api__expr__v1alpha1",
         "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
         "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
+        "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
         "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday"
     }

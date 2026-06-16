@@ -2,10 +2,12 @@ package pbjson
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -332,6 +334,59 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 		return protoreflect.ValueOfMessage((&timeofday.TimeOfDay{
 			Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second()),
 		}).ProtoReflect()), nil
+
+	case moneyFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for Money, got %T", val)
+		}
+		parts := strings.SplitN(s, " ", 2)
+		if len(parts) != 2 {
+			return protoreflect.Value{}, fmt.Errorf("invalid Money format %q, expected '<currency> <amount>' e.g. 'USD 25.50'", s)
+		}
+		currencyCode := parts[0]
+		amountStr := parts[1]
+		negative := strings.HasPrefix(amountStr, "-")
+		if negative {
+			amountStr = amountStr[1:]
+		}
+		var whole int64
+		var nanos int32
+		if dotIdx := strings.Index(amountStr, "."); dotIdx == -1 {
+			v, err := strconv.ParseInt(amountStr, 10, 64)
+			if err != nil {
+				return protoreflect.Value{}, fmt.Errorf("invalid Money amount %q: %w", parts[1], err)
+			}
+			whole = v
+		} else {
+			v, err := strconv.ParseInt(amountStr[:dotIdx], 10, 64)
+			if err != nil {
+				return protoreflect.Value{}, fmt.Errorf("invalid Money units %q: %w", parts[1], err)
+			}
+			whole = v
+			fracStr := amountStr[dotIdx+1:]
+			if len(fracStr) > 9 {
+				fracStr = fracStr[:9]
+			}
+			n, err := strconv.ParseInt(fracStr, 10, 32)
+			if err != nil {
+				return protoreflect.Value{}, fmt.Errorf("invalid Money nanos %q: %w", parts[1], err)
+			}
+			for i := len(fracStr); i < 9; i++ {
+				n *= 10
+			}
+			nanos = int32(n)
+		}
+		if negative {
+			whole = -whole
+			nanos = -nanos
+		}
+		m := &money.Money{
+			CurrencyCode: currencyCode,
+			Units:        whole,
+			Nanos:        nanos,
+		}
+		return protoreflect.ValueOfMessage(m.ProtoReflect()), nil
 
 	default:
 		nested, ok := val.(map[string]any)
