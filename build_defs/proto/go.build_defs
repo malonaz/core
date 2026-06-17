@@ -121,27 +121,33 @@ def go_proto_library(
             '--go-aip_opt=paths=source_relative',
         ]
 
-    protoc_go_templates = []
-
     if additional_context and GENERATE_GO_NATS in additional_context:
-        protoc_go_templates += [plugin_target("//build_defs/codegen/go_proto_templates/templates:nats")]
         go_deps += [CONFIG.CORE.PROTOC_GEN_NATS_GO_DEP]
+        tools["protoc_gen_core_nats"] = [CONFIG.CORE.PROTOC_GEN_CORE]
+        plugin_out_keys += ['core_nats_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-core_nats="`which $TOOLS_PROTOC_GEN_CORE_NATS`"',
+            '--core_nats_out="$OUT_DIR"',
+            '--core_nats_opt=paths=source_relative,plugin=nats',
+        ]
 
     if additional_context and GENERATE_GO_NATS_EVENT in additional_context:
-        protoc_go_templates += [plugin_target("//build_defs/codegen/go_proto_templates/templates:nats_event")]
         go_deps += [CONFIG.CORE.PROTOC_GEN_NATS_GO_DEP]
+        tools["protoc_gen_core_nats_events"] = [CONFIG.CORE.PROTOC_GEN_CORE]
+        plugin_out_keys += ['core_nats_events_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-core_nats_events="`which $TOOLS_PROTOC_GEN_CORE_NATS_EVENTS`"',
+            '--core_nats_events_out="$OUT_DIR"',
+            '--core_nats_events_opt=paths=source_relative,plugin=nats_event',
+        ]
 
     if additional_context and GENERATE_GO_AIP_LABEL in additional_context:
-        protoc_go_templates += [plugin_target("//build_defs/codegen/go_proto_templates/templates:aip_label")]
-
-    if len(protoc_go_templates) > 0:
-        tools["protoc_templates"] = [CONFIG.CORE.PROTOC_GEN_TEMPLATES_GO]
-        deps += protoc_go_templates
-        plugin_out_keys += ['templates_out']
+        tools["protoc_gen_core_label"] = [CONFIG.CORE.PROTOC_GEN_CORE]
+        plugin_out_keys += ['core_label_out']
         plugin_flags += [
-            '--plugin=protoc-gen-templates="`which $TOOLS_PROTOC_TEMPLATES`"',
-            '--templates_out="$OUT_DIR"',
-            f'--templates_opt=paths=source_relative,' + ','.join([f"template=$(location {t})" for t in protoc_go_templates]),
+            '--plugin=protoc-gen-core_label="`which $TOOLS_PROTOC_GEN_CORE_LABEL`"',
+            '--core_label_out="$OUT_DIR"',
+            '--core_label_opt=paths=source_relative,plugin=aip_label',
         ]
 
     protoc = protoc_rule(

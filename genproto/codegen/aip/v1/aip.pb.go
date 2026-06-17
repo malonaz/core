@@ -290,7 +290,7 @@ func (b0 UpdateOptions_builder) Build() *UpdateOptions {
 }
 
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
-// The protoc-templates plugin uses this to generate appropriate server and client code.
+// The protoc-gen-api plugin uses this to generate appropriate server and client code.
 type StandardMethod struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource type this method operates on (e.g., "example.com/User").

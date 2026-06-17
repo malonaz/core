@@ -1,0 +1,9 @@
+go_library(
+    name = "protofield",
+    srcs = ["protofield.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+    ],
+)

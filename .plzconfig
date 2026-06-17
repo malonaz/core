@@ -96,9 +96,9 @@ DefaultValue = //tools/proto:protoc-gen-go-nats-dep
 ConfigKey = ProtocGenCobraGoDep
 DefaultValue = //tools/proto:protoc-gen-go-cobra-dep
 
-[PluginConfig "protoc_gen_templates_go"]
-ConfigKey = ProtocGenTemplatesGo
-DefaultValue = //tools/protoc-templates
+[PluginConfig "protoc_gen_core"]
+ConfigKey = ProtocGenCore
+DefaultValue = //tools/protoc-gen-core
 
 [PluginConfig "validate_schema"]
 ConfigKey = ValidateSchema

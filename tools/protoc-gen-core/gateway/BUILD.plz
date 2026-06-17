@@ -1,0 +1,11 @@
+go_library(
+    name = "gateway",
+    srcs = ["gateway.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/codegen/gateway/v1",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//tools/protoc-gen-core/plugin",
+    ],
+)

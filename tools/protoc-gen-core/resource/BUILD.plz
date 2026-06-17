@@ -1,0 +1,21 @@
+go_library(
+    name = "resource",
+    srcs = [
+        "parsed.go",
+        "registry.go",
+        "rpc.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/codegen/aip/v1",
+        "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:go.einride.tech__aip__reflect__aipreflect",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__internal__strs",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/proto:google__api__annotations",
+    ],
+)

@@ -1,10 +1,10 @@
-subinclude("//build_defs/codegen/go_proto_templates:build_defs")
+subinclude("//build_defs/codegen/protoc_gen_core:build_defs")
 
-go_proto_template_library(
+go_protoc_gen_core(
     name = "codegen",
     srcs = ["//malonaz/ai/v1:proto"],
     labels = ["copy_generated_code:go:gengo"],
-    template = "//build_defs/codegen/go_proto_templates/templates:model",
+    plugin = "model",
     deps = ["//malonaz/ai/v1"],
 )
 

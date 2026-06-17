@@ -1,14 +1,14 @@
-subinclude("//build_defs/codegen/go_proto_templates:build_defs")
+subinclude("//build_defs/codegen/protoc_gen_core:build_defs")
 
-go_proto_template_library(
+go_protoc_gen_core(
     name = "codegen",
     srcs = ["//malonaz/test/library/library_service/v1:proto"],
     additional_context = {
-        GO_PROTO_TEMPLATES_GO_IMPORT_PATHS: {
+        GO_PROTOC_GEN_CORE_GO_IMPORT_PATHS: {
             "model": "//go/test/library/model",
         },
     },
-    template = "//build_defs/codegen/go_proto_templates/templates:rpc",
+    plugin = "rpc",
     test_only = True,
     deps = ["//malonaz/test/library/library_service/v1"],
 )

@@ -23,7 +23,7 @@ This repository provides:
 
 ### Code Generation (`build_defs/codegen/`)
 
-- **Proto Templates** (`go_proto_templates/`): Custom protobuf code generation
+- **Proto Templates** (`protoc_gen_core/`): Custom protobuf code generation
   - Model layer generation with database mapping
   - Service layer with AIP (API Improvement Proposals) compliance
   - Database access layer generation
@@ -90,7 +90,7 @@ Development and build tooling:
   - **`protoc-gen-grpc-gateway`**: HTTP/JSON to gRPC gateway generator
   - **`protoc-gen-cobra`**: CLI command generator for protobuf services
   - **`protoc-gen-validate-go-dep`**: Protocol buffer validation support
-- **`protoc-templates`**: Custom protobuf code generation engine
+- **`protoc-gen-api`**: Custom protobuf code generation engine
 - **`template`**: Generic template processing tool
 - **`tidy`**: Code formatting and dependency management
 - **`validate-schema`**: JSON/YAML schema validation

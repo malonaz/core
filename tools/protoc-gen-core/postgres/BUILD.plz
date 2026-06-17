@@ -1,0 +1,20 @@
+go_library(
+    name = "postgres",
+    srcs = [
+        "delete.go",
+        "get.go",
+        "insert.go",
+        "list.go",
+        "postgres.go",
+        "update.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/codegen/model/v1",
+        "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//tools/protoc-gen-core/plugin",
+        "//tools/protoc-gen-core/resource",
+    ],
+)

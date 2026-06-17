@@ -1,0 +1,13 @@
+go_library(
+    name = "aip",
+    srcs = ["labels.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/aip/v1",
+        "//malonaz/codegen/aip/v1",
+        "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//tools/protoc-gen-core/plugin",
+    ],
+)

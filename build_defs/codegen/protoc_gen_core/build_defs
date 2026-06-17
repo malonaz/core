@@ -1,0 +1,124 @@
+subinclude(
+    "///proto//build_defs/sdk",
+    "///go//build_defs:go",
+    "//build_defs/proto:go",
+)
+
+GO_PROTOC_GEN_CORE_PACKAGE_NAME = "protoc_gen_core_package_name"
+GO_PROTOC_GEN_CORE_GO_IMPORT_PATHS = "protoc_gen_aip_go_import_paths"
+
+def go_protoc_gen_core(
+        name:str,
+        plugin: str,
+        srcs:list,
+        deps:list=[],
+        visibility:list=None,
+        labels:list&features&tags=[],
+        test_only:bool&testonly=False,
+        root_dir:str='',
+        protoc_flags:list=[],
+        is_complete:bool=False,
+        additional_context:dict=None,
+):
+    """Compile a .proto file to generate code for golang.
+
+    Args:
+      name (str): Name of the rule
+      srcs (list): Input .proto files.
+      deps (list): Dependencies (other grpc_library or proto_library rules)
+      visibility (list): Visibility specification for the rule.
+      labels (list): List of labels to apply to this rule.
+      test_only (bool): If True, this rule can only be used by test rules.
+      root_dir (str): The directory that the protos are compiled relative to. Useful if your
+                      proto files have import statements that are not relative to the repo root.
+      protoc_flags (list): Additional flags to pass to protoc.
+      additional_context (dict): Additional context.
+    """
+
+    # Set the package name.
+    base_path = get_base_path()
+    package_name = basename(base_path)
+    if additional_context and GO_PROTOC_GEN_CORE_PACKAGE_NAME in additional_context:
+        package_name = additional_context[GO_PROTOC_GEN_CORE_PACKAGE_NAME]
+
+    templates_opts_args = [
+        "paths=source_relative",
+        f"plugin={plugin}",
+        f"import-path=$PKG",
+        f"package-name={package_name}",
+    ]
+    if CONFIG.GO.IMPORT_PATH:
+        templates_opts_args += [f"go-import-path=" + CONFIG.GO.IMPORT_PATH]
+    if additional_context and GO_PROTOC_GEN_CORE_GO_IMPORT_PATHS in additional_context:
+        for k, v in additional_context[GO_PROTOC_GEN_CORE_GO_IMPORT_PATHS].items():
+            package, _ = decompose(v)
+            templates_opts_args += [f"additional-go-import-paths={k}:{package}"]
+
+    templates_opts_arg = '--core_opt=' + ','.join(templates_opts_args)
+
+    tools = {"protoc_gen_core": CONFIG.CORE.PROTOC_GEN_CORE}
+    plugin_flags = [
+        '--plugin=protoc-gen-core="`which $TOOLS_PROTOC_GEN_CORE`"',
+        '--core_out="$OUT_DIR"',
+        templates_opts_arg,
+    ]
+
+    # We support label 'srcs', which causes us issues as protoc uses `source_relative`
+    # and outputs the files in the wrong directories. We correct that here.
+    _pre_build_go_path_mapping = go_path_mapping(["core_out"])
+    src_package_names = []
+    for src in srcs:
+        if src.startswith("//"):
+            src_package_name, _ = decompose(src)
+            src_package_names += [src_package_name]
+    src_package_names = sorted(src_package_names, key=len, reverse=True)
+
+    def _pre_build(rule_name):
+        _pre_build_go_path_mapping(rule_name)
+        if len(src_package_names) == 0:
+            return
+        replacement = ' && '.join([f'(mv -f go/{pn}/* out_dir; true)' for pn in src_package_names])
+        new_cmd = get_command(rule_name)
+        new_cmd = new_cmd.replace(f'(mv -f go/{base_path}/* out_dir; true)', replacement)
+        set_command(rule_name, new_cmd)
+
+    protoc = protoc_rule(
+        name = name,
+        srcs = srcs,
+        language = "go",
+        tools = tools,
+        protoc_flags = protoc_flags,
+        plugin_flags = plugin_flags,
+        labels = labels + go_mapping_labels(name, srcs, root_dir),
+        test_only = test_only,
+        root_dir = root_dir,
+        deps = deps + [
+            filegroup(
+                name = name,
+                tag = "protoc_wkt",
+                exported_deps = [CONFIG.PROTO.PROTOC_TOOL],
+                test_only = test_only,
+                requires = ["proto"],
+            )
+        ],
+        visibility = visibility,
+        pre_build = _pre_build,
+    )
+
+    if is_complete:
+        go_library(
+            name = f"_{name}#go",
+            srcs = [protoc],
+            deps = deps,
+            test_only = test_only,
+            labels = labels,
+            visibility = visibility,
+            import_path = go_import_path(name, root_dir, additional_context),
+        )
+
+    return filegroup(
+        name = name,
+        srcs = [protoc],
+        visibility = visibility,
+        test_only = test_only,
+    )

@@ -141,7 +141,7 @@ export const UpdateOptionsSchema: GenMessage<UpdateOptions, {validType: UpdateOp
 
 /**
  * Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
- * The protoc-templates plugin uses this to generate appropriate server and client code.
+ * The protoc-gen-api plugin uses this to generate appropriate server and client code.
  *
  * @generated from message malonaz.codegen.aip.v1.StandardMethod
  */
@@ -166,7 +166,7 @@ export type StandardMethod = Message<"malonaz.codegen.aip.v1.StandardMethod"> & 
 
 /**
  * Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
- * The protoc-templates plugin uses this to generate appropriate server and client code.
+ * The protoc-gen-api plugin uses this to generate appropriate server and client code.
  *
  * @generated from message malonaz.codegen.aip.v1.StandardMethod
  */
