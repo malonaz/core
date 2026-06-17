@@ -9,6 +9,7 @@ go_test(
         "delete_test.go",
         "etag_test.go",
         "filter_test.go",
+        "join_test.go",
         "labels_test.go",
         "middleware_canonicalize_test.go",
         "middleware_hooks_test.go",

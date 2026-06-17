@@ -121,7 +121,9 @@ message ListBooksRequest {
       "publication_year",
       "metadata",
       "duration",
-      "labels"
+      "labels",
+      "shelf_external_id",
+      "shelf_genre"
     ]
   };
 

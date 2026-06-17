@@ -31,7 +31,7 @@ var (
 )
 
 func (s *Store) getChatETag(ctx context.Context, organizationId, userId, chatId string) (string, error) {
-	query := `SELECT etag FROM chat WHERE chat.organization_id = $1 AND chat.user_id = $2 AND chat.chat_id = $3`
+	query := `SELECT etag FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
 	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId)
 	if err != nil {
 		return "", err
@@ -129,7 +129,7 @@ func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause 
 
 	query := strings.Replace(updateChatPostgresQuery, "#update_clause#", updateClause, 1)
 	numUpdateParams := len(updateParams)
-	whereClause := fmt.Sprintf("chat.organization_id = $%d AND chat.user_id = $%d AND chat.chat_id = $%d", numUpdateParams+1, numUpdateParams+2, numUpdateParams+3)
+	whereClause := fmt.Sprintf("organization_id = $%d AND user_id = $%d AND chat_id = $%d", numUpdateParams+1, numUpdateParams+2, numUpdateParams+3)
 	query = strings.Replace(query, "#where_clause#", whereClause, 1)
 
 	params := append(updateParams,
@@ -171,7 +171,7 @@ func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause 
 	return row, nil
 }
 
-var softDeleteChatPostgresQuery = `UPDATE chat SET delete_time = COALESCE(delete_time, $4), etag = $5 WHERE chat.organization_id = $1 AND chat.user_id = $2 AND chat.chat_id = $3 RETURNING (delete_time < $4) AS was_already_deleted, ` +
+var softDeleteChatPostgresQuery = `UPDATE chat SET delete_time = COALESCE(delete_time, $4), etag = $5 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 RETURNING (delete_time < $4) AS was_already_deleted, ` +
 	postgres.SelectQuery("%s", ChatReturnColumns)
 
 type softDeleteChatResult struct {
@@ -218,7 +218,7 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 }
 
 func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error) {
-	query := `SELECT %s FROM chat WHERE chat.organization_id = $1 AND chat.user_id = $2 AND chat.chat_id = $3`
+	query := `SELECT %s FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
 	query = postgres.SelectQuery(query, ChatReadColumns)
 	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId)
 	if err != nil {
@@ -240,16 +240,16 @@ func (s *Store) ListChats(ctx context.Context, organizationId, userId string, sh
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat.organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 	if userId != "-" && userId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat.user_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("user_id = $%d", len(params)+1))
 		params = append(params, userId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "chat.delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
 	}
 
 	query := strings.ReplaceAll("SELECT %s FROM chat #where# #orderby# #pagination#", "#where#", whereClause)
