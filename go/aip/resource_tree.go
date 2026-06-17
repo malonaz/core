@@ -103,8 +103,10 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	}
 
 	{
-		modelOpts, _ := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
-		tree.IDColumnName = modelOpts.GetIdColumnName()
+		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
+		if err == nil && modelOpts != nil {
+			tree.IDColumnName = modelOpts.GetIdColumnName()
+		}
 	}
 
 	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
@@ -332,10 +334,6 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		AsProtoBytes: depth == 0 && fieldOpts.GetAsProtoBytes(),
 		IsRepeated:   fieldDesc.IsList(),
 		IsMap:        fieldDesc.IsMap(),
-	}
-	if f := fieldOpts.GetJoin().GetField(); f != "" {
-		node.ColumnName = "library.shelf." + f
-
 	}
 	t.Add(node)
 
