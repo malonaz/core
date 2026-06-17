@@ -8,14 +8,24 @@ import (
 
 func TestGetDBColumns(t *testing.T) {
 	type sample struct {
-		B int    `db:"ya"`
-		A int    `db:"yo"`
-		C string `db:"bla"`
+		B int    `db:"public.my_table.ya" schema:"public" table:"my_table"`
+		A int    `db:"public.my_table.yo" schema:"public" table:"my_table"`
+		C string `db:"public.my_table.bla" schema:"public" table:"my_table"`
 		D []string
 		E int  `dbbb:"notThisOne"`
-		f bool `db:"notThisOneEither"`
+		f bool `db:"public.my_table.notThisOneEither" schema:"public" table:"my_table"`
 	}
 	tags := GetDBColumns(sample{})
+	require.Equal(t, []string{"public.my_table.ya", "public.my_table.yo", "public.my_table.bla"}, tags)
+}
+
+func TestGetDBColumnsUnqualified(t *testing.T) {
+	type sample struct {
+		B int    `db:"library.shelf.ya" schema:"library" table:"shelf"`
+		A int    `db:"library.shelf.yo" schema:"library" table:"shelf"`
+		C string `db:"library.shelf.bla" schema:"library" table:"shelf"`
+	}
+	tags := GetDBColumns(sample{}, WithUnqualifiedColumns())
 	require.Equal(t, []string{"ya", "yo", "bla"}, tags)
 }
 
@@ -36,44 +46,44 @@ func GetNewNullString(t *testing.T) {
 
 func TestGetDBColumnsEmbedded(t *testing.T) {
 	type EmbeddedStruct struct {
-		EmbeddedField1 string `db:"embedded_1"`
-		EmbeddedField2 int    `db:"embedded_2"`
+		EmbeddedField1 string `db:"public.parent.embedded_1" schema:"public" table:"parent"`
+		EmbeddedField2 int    `db:"public.parent.embedded_2" schema:"public" table:"parent"`
 	}
 
 	type ParentStruct struct {
 		EmbeddedStruct
-		ParentField1 int    `db:"parent_1"`
-		ParentField2 string `db:"parent_2"`
+		ParentField1 int    `db:"public.parent.parent_1" schema:"public" table:"parent"`
+		ParentField2 string `db:"public.parent.parent_2" schema:"public" table:"parent"`
 		NonTagField  float64
 	}
 
 	t.Run("AllFieldsNoExceptions", func(t *testing.T) {
 		tags := GetDBColumns(ParentStruct{})
-		expectedTags := []string{"embedded_1", "embedded_2", "parent_1", "parent_2"}
+		expectedTags := []string{"public.parent.embedded_1", "public.parent.embedded_2", "public.parent.parent_1", "public.parent.parent_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
 	t.Run("ExcludeEmbeddedFields", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, ExceptColumns("embedded_1", "embedded_2"))
-		expectedTags := []string{"parent_1", "parent_2"}
+		tags := GetDBColumns(ParentStruct{}, ExceptColumns("public.parent.embedded_1", "public.parent.embedded_2"))
+		expectedTags := []string{"public.parent.parent_1", "public.parent.parent_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
 	t.Run("ExcludeParentFields", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, ExceptColumns("parent_1", "parent_2"))
-		expectedTags := []string{"embedded_1", "embedded_2"}
+		tags := GetDBColumns(ParentStruct{}, ExceptColumns("public.parent.parent_1", "public.parent.parent_2"))
+		expectedTags := []string{"public.parent.embedded_1", "public.parent.embedded_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
 	t.Run("ExcludeAllFields", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, ExceptColumns("embedded_1", "embedded_2", "parent_1", "parent_2"))
+		tags := GetDBColumns(ParentStruct{}, ExceptColumns("public.parent.embedded_1", "public.parent.embedded_2", "public.parent.parent_1", "public.parent.parent_2"))
 		expectedTags := []string{}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
 	t.Run("ExcludeNonexistentField", func(t *testing.T) {
 		tags := GetDBColumns(ParentStruct{}, ExceptColumns("nonexistent_field"))
-		expectedTags := []string{"embedded_1", "embedded_2", "parent_1", "parent_2"}
+		expectedTags := []string{"public.parent.embedded_1", "public.parent.embedded_2", "public.parent.parent_1", "public.parent.parent_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
@@ -88,7 +98,7 @@ func TestGetDBColumnsEmbedded(t *testing.T) {
 
 	t.Run("MixedExcludeWithNonTaggedField", func(t *testing.T) {
 		tags := GetDBColumns(ParentStruct{}, ExceptColumns("nonexistent_field", "NonTagField"))
-		expectedTags := []string{"embedded_1", "embedded_2", "parent_1", "parent_2"}
+		expectedTags := []string{"public.parent.embedded_1", "public.parent.embedded_2", "public.parent.parent_1", "public.parent.parent_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
@@ -102,15 +112,15 @@ func TestGetDBColumnsEmbedded(t *testing.T) {
 		require.Panics(t, fn, "the function should panic when non-struct parameter is passed")
 	})
 
-	t.Run("WithTablePrefix", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, WithTablePrefix("my_table"))
-		expectedTags := []string{"my_table.embedded_1", "my_table.embedded_2", "my_table.parent_1", "my_table.parent_2"}
+	t.Run("WithUnqualifiedColumns", func(t *testing.T) {
+		tags := GetDBColumns(ParentStruct{}, WithUnqualifiedColumns())
+		expectedTags := []string{"embedded_1", "embedded_2", "parent_1", "parent_2"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 
-	t.Run("WithTablePrefixAndExcept", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, WithTablePrefix("t"), ExceptColumns("parent_2"))
-		expectedTags := []string{"t.embedded_1", "t.embedded_2", "t.parent_1"}
+	t.Run("WithUnqualifiedColumnsAndExcept", func(t *testing.T) {
+		tags := GetDBColumns(ParentStruct{}, WithUnqualifiedColumns(), ExceptColumns("public.parent.parent_2"))
+		expectedTags := []string{"embedded_1", "embedded_2", "parent_1"}
 		require.ElementsMatch(t, expectedTags, tags)
 	})
 }

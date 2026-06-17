@@ -10,14 +10,15 @@ func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
 	if mc.pr.Singleton {
-		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
+		g.P(fmt.Sprintf("var %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`",
+			mc.goType, mc.fqTableName, mc.onConflictColumns()))
 		g.P()
 	}
 
 	g.P("var (")
 	g.P(fmt.Sprintf("  %sWithRequestIDPostgresColumns = %s(%sWithRequestID{})", mc.goType, mc.postgres("GetDBColumns"), mc.goType))
 	g.P(fmt.Sprintf("  _%sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s RETURNING `",
-		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier))
+		mc.goName, mc.fqTableName, mc.onConflictColumns(), mc.identifier, mc.identifier))
 	g.P(fmt.Sprintf("  %sWithRequestIDInsertPostgresQuery = _%sInsertPostgresQuery + %s(\"%%s\", %sWithRequestIDPostgresColumns)",
 		mc.goName, mc.goName, mc.postgres("SelectQuery"), mc.goType))
 	g.P(fmt.Sprintf("  %sInsertPostgresQuery = _%sInsertPostgresQuery + %s(\"%%s\", %sPostgresColumns)",
@@ -98,8 +99,8 @@ func (mc *msgCtx) generateWithRequestIDStruct() {
 	g.P("}")
 	g.P()
 
-	g.P(fmt.Sprintf("var %sGetByRequestIDQuery = `SELECT ` + %s(\"%%s\", %sPostgresColumns) + ` FROM %s WHERE request_id = $1`",
-		mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.tableName))
+	g.P(fmt.Sprintf("var %sGetByRequestIDQuery = `SELECT ` + %s(\"%%s\", %sPostgresColumns) + ` FROM %s WHERE %s = $1`",
+		mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.fqTableName, mc.fqCol("request_id")))
 	g.P()
 }
 

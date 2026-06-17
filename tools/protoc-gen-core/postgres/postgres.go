@@ -84,6 +84,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	for _, mm := range messages {
 		goType := mm.message.GoIdent.GoName
 		g.P("  ", goType, "PostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(goType), "{})")
+		g.P("  ", goType, "UnqualifiedPostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(goType), "{}, ", postgresPkg.Ident("WithUnqualifiedColumns"), "())")
 	}
 	g.P(")")
 	g.P()
@@ -126,7 +127,6 @@ type singletonChild struct {
 	modelOpts *modelpb.ModelOpts
 }
 
-// msgCtx holds all precomputed values for generating postgres code for a single message.
 type msgCtx struct {
 	gen *generator
 	g   *protogen.GeneratedFile
@@ -145,10 +145,11 @@ type msgCtx struct {
 	errAlreadyDeleted string
 	errETagChanged    string
 
+	schemaName       string
 	tableName        string
+	fqTableName      string
 	whereClause      string
 	placeholderDecls string
-	columnNames      string
 	identifier       string
 
 	hasEtag       bool
@@ -161,13 +162,17 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	goType := message.GoIdent.GoName
 	goName := untitle(goType)
 
+	schemaName := "public"
+	if modelOpts.GetSchemaName() != "" {
+		schemaName = modelOpts.GetSchemaName()
+	}
+
 	tableName := pr.SingularSnakeCase()
 	if modelOpts.GetTableName() != "" {
 		tableName = modelOpts.GetTableName()
 	}
-	if modelOpts.GetSchemaName() != "" {
-		tableName = modelOpts.GetSchemaName() + "." + tableName
-	}
+
+	fqTableName := schemaName + "." + tableName
 
 	patternVars := pr.PatternVariables
 	lastIdx := len(patternVars) - 1
@@ -178,11 +183,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		if i == lastIdx && modelOpts.GetIdColumnName() != "" {
 			col = modelOpts.GetIdColumnName()
 		}
-		whereConditions = append(whereConditions, fmt.Sprintf("%s = $%%d", col))
-		placeholderConditions = append(placeholderConditions, fmt.Sprintf("%s = $%d", col, i+1))
+		fqCol := fqTableName + "." + col
+		whereConditions = append(whereConditions, fmt.Sprintf("%s = $%%d", fqCol))
+		placeholderConditions = append(placeholderConditions, fmt.Sprintf("%s = $%d", fqCol, i+1))
 	}
 
-	columnNames := pr.PatternVariableIDs(false)
 	identifier := ""
 	if !pr.Singleton {
 		id, err := pr.PatternVariableID(false)
@@ -192,12 +197,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		identifier = id
 	}
 	if modelOpts.GetIdColumnName() != "" {
-		id, err := pr.PatternVariableID(false)
-		if err != nil {
-			return nil, err
-		}
 		identifier = modelOpts.GetIdColumnName()
-		columnNames = strings.Replace(columnNames, id, modelOpts.GetIdColumnName(), 1)
 	}
 
 	var singletonChildren []singletonChild
@@ -231,10 +231,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 
+		schemaName:       schemaName,
 		tableName:        tableName,
+		fqTableName:      fqTableName,
 		whereClause:      strings.Join(whereConditions, " AND "),
 		placeholderDecls: strings.Join(placeholderConditions, " AND "),
-		columnNames:      columnNames,
 		identifier:       identifier,
 
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
@@ -244,7 +245,6 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}, nil
 }
 
-// Shorthand ident helpers on msgCtx for commonly used packages.
 func (mc *msgCtx) pgx(name string) string      { return mc.gen.ident(pgxPkg, name) }
 func (mc *msgCtx) postgres(name string) string { return mc.gen.ident(postgresPkg, name) }
 func (mc *msgCtx) fmtI(name string) string     { return mc.gen.ident(fmtPkg, name) }
@@ -270,14 +270,22 @@ func (mc *msgCtx) patternVarIDUntitled() string {
 	return strings.Join(parts, ", ")
 }
 
-// generateETagGetter emits the private etag lookup helper when the message has an etag field.
+func (mc *msgCtx) fqCol(column string) string {
+	return mc.fqTableName + "." + column
+}
+
+// unqualifiedColumnsVar returns the variable name for the unqualified columns slice.
+func (mc *msgCtx) unqualifiedColumnsVar() string {
+	return mc.goType + "UnqualifiedPostgresColumns"
+}
+
 func (mc *msgCtx) generateETagGetter() {
 	if !mc.hasEtag {
 		return
 	}
 	g := mc.g
 	g.P(fmt.Sprintf("func (s *Store) get%sETag(ctx context.Context, %s string) (string, error) {", mc.goType, mc.patternVarIDsGoTrue()))
-	g.P(fmt.Sprintf("  query := `SELECT etag FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
+	g.P(fmt.Sprintf("  query := `SELECT %s FROM %s WHERE %s`", mc.fqCol("etag"), mc.fqTableName, mc.placeholderDecls))
 	g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
 	g.P("  if err != nil {")
 	g.P("    return \"\", err")
@@ -287,7 +295,6 @@ func (mc *msgCtx) generateETagGetter() {
 	g.P()
 }
 
-// generateETagCheck emits the etag mismatch detection block used inside ErrNoRows handlers.
 func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string) {
 	g := mc.g
 	g.P("      if etag != \"\" {")
@@ -318,4 +325,19 @@ func title(s string) string {
 		return s
 	}
 	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// onConflictColumns returns the unqualified pattern variable ID columns for ON CONFLICT clauses.
+func (mc *msgCtx) onConflictColumns() string {
+	patternVars := mc.pr.PatternVariables
+	lastIdx := len(patternVars) - 1
+	var parts []string
+	for i, v := range patternVars {
+		col := v + "_id"
+		if i == lastIdx && mc.modelOpts.GetIdColumnName() != "" {
+			col = mc.modelOpts.GetIdColumnName()
+		}
+		parts = append(parts, col)
+	}
+	return strings.Join(parts, ", ")
 }

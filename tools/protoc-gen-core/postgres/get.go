@@ -9,7 +9,7 @@ func (mc *msgCtx) generateGet() {
 
 	g.P(fmt.Sprintf("func (s *Store) Get%s(ctx context.Context, %s string) (*%s, error) {",
 		mc.goType, mc.patternVarIDsGoTrue(), mc.goTypeFqi))
-	g.P(fmt.Sprintf("  query := `SELECT %%s FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
+	g.P(fmt.Sprintf("  query := `SELECT %%s FROM %s WHERE %s`", mc.fqTableName, mc.placeholderDecls))
 	g.P(fmt.Sprintf("  query = %s(query, %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
 	g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
 	g.P("  if err != nil {")

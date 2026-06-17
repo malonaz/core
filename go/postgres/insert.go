@@ -17,7 +17,8 @@ func InsertQuery(sqlQueryTemplate string, objectToInsert any, dbColumns ...strin
 	if len(dbColumns) == 0 {
 		dbColumns = tags
 	}
-	query := generateInsertQuery(sqlQueryTemplate, dbColumns, 1)
+	unqualifiedColumns := unqualifyColumns(reflect.ValueOf(objectToInsert), dbColumns)
+	query := generateInsertQuery(sqlQueryTemplate, unqualifiedColumns, 1)
 	return query, params
 }
 
@@ -31,8 +32,80 @@ func BatchInsertQuery(sqlQueryTemplate string, objectsToInsertSlice any, dbColum
 	if len(dbColumns) == 0 {
 		dbColumns = tags
 	}
-	query := generateInsertQuery(sqlQueryTemplate, dbColumns, objectsToInsertSliceValue.Len())
+	elem := objectsToInsertSliceValue.Index(0)
+	if elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
+	unqualifiedColumns := unqualifyColumns(elem, dbColumns)
+	query := generateInsertQuery(sqlQueryTemplate, unqualifiedColumns, objectsToInsertSliceValue.Len())
 	return query, params
+}
+
+// unqualifyColumns strips the schema.table. prefix from fully qualified db tags
+// by looking up the schema and table struct tags for each field.
+func unqualifyColumns(object reflect.Value, dbColumns []string) []string {
+	if object.Kind() == reflect.Ptr {
+		object = object.Elem()
+	}
+	if object.Kind() != reflect.Struct {
+		return dbColumns
+	}
+
+	dbTagToUnqualified := buildDBTagToUnqualified(object.Type())
+
+	result := make([]string, len(dbColumns))
+	for i, col := range dbColumns {
+		if unqualified, ok := dbTagToUnqualified[col]; ok {
+			result[i] = unqualified
+		} else {
+			result[i] = col
+		}
+	}
+	return result
+}
+
+// buildDBTagToUnqualified builds a map from fully qualified db tag to the bare column name.
+func buildDBTagToUnqualified(t reflect.Type) map[string]string {
+	result := make(map[string]string)
+	buildDBTagToUnqualifiedRecursive(t, result)
+	return result
+}
+
+func buildDBTagToUnqualifiedRecursive(t reflect.Type, result map[string]string) {
+	for i := 0; i < t.NumField(); i++ {
+		fieldInfo := t.Field(i)
+
+		if fieldInfo.PkgPath != "" {
+			continue
+		}
+
+		if fieldInfo.Anonymous && fieldInfo.Type.Kind() == reflect.Struct {
+			buildDBTagToUnqualifiedRecursive(fieldInfo.Type, result)
+			continue
+		}
+
+		dbTag, hasDB := fieldInfo.Tag.Lookup("db")
+		if !hasDB {
+			continue
+		}
+
+		schema := fieldInfo.Tag.Get("schema")
+		table := fieldInfo.Tag.Get("table")
+
+		if schema == "" && table == "" {
+			result[dbTag] = dbTag
+			continue
+		}
+
+		prefix := ""
+		if schema != "" {
+			prefix = schema + "."
+		}
+		if table != "" {
+			prefix += table + "."
+		}
+		result[dbTag] = strings.TrimPrefix(dbTag, prefix)
+	}
 }
 
 func generateInsertQuery(template string, columns []string, numObjects int) string {
@@ -60,12 +133,10 @@ func GetParams(object any, dbColumns ...string) []any {
 }
 
 func getParams(objects reflect.Value, dbColumns []string) ([]string, []any) {
-	// Initialize parameters container and column names list
 	params := make([]any, 0)
 	var columns []string
 
 	if len(dbColumns) == 0 {
-		// We will collect column names dynamically if not provided
 		columns = collectColumnNames(objects.Index(0).Elem())
 	} else {
 		columns = dbColumns
@@ -125,6 +196,8 @@ func findFieldByTag(object reflect.Value, tagToFind string) (any, bool) {
 	return findFieldByTagRecursive(object, tagToFind)
 }
 
+// go/postgres/insert.go - replace findFieldByTagRecursive (around line 157)
+
 func findFieldByTagRecursive(object reflect.Value, tagToFind string) (any, bool) {
 	t := object.Type()
 	for i := 0; i < object.NumField(); i++ {
@@ -141,8 +214,25 @@ func findFieldByTagRecursive(object reflect.Value, tagToFind string) (any, bool)
 			}
 		} else {
 			tag, exists := fieldInfo.Tag.Lookup("db")
-			if exists && tag == tagToFind {
+			if !exists {
+				continue
+			}
+			if tag == tagToFind {
 				return field.Interface(), true
+			}
+			schema := fieldInfo.Tag.Get("schema")
+			table := fieldInfo.Tag.Get("table")
+			if schema != "" || table != "" {
+				prefix := ""
+				if schema != "" {
+					prefix = schema + "."
+				}
+				if table != "" {
+					prefix += table + "."
+				}
+				if strings.TrimPrefix(tag, prefix) == tagToFind {
+					return field.Interface(), true
+				}
 			}
 		}
 	}

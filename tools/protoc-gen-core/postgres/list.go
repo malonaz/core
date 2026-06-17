@@ -31,8 +31,8 @@ func (mc *msgCtx) generateList() {
 		for _, v := range mc.pr.Parent.PatternVariables {
 			camel := untitle(xstrings.ToCamelCase(v))
 			g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", camel, camel))
-			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s_id = $%%d\", len(params) + 1))",
-				mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), v))
+			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s = $%%d\", len(params) + 1))",
+				mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), mc.fqCol(v+"_id")))
 			g.P(fmt.Sprintf("    params = append(params, %sId)", camel))
 			g.P("  }")
 		}
@@ -41,13 +41,13 @@ func (mc *msgCtx) generateList() {
 
 	if mc.hasDeleteTime {
 		g.P("  if !showDeleted {")
-		g.P(fmt.Sprintf("    whereClause = %s(whereClause, \"delete_time IS NULL\")", mc.postgres("AddToWhereClause")))
+		g.P(fmt.Sprintf("    whereClause = %s(whereClause, \"%s IS NULL\")", mc.postgres("AddToWhereClause"), mc.fqCol("delete_time")))
 		g.P("  }")
 		g.P()
 	}
 
 	g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s #where# #orderby# #pagination#\", \"#where#\", whereClause)",
-		mc.stringsI("ReplaceAll"), mc.tableName))
+		mc.stringsI("ReplaceAll"), mc.fqTableName))
 	g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
 	g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
 	g.P(fmt.Sprintf("  query = %s(query, columns)", mc.postgres("SelectQuery")))

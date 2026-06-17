@@ -10,7 +10,7 @@ import (
 func (mc *msgCtx) generateUpdate() {
 	g := mc.g
 
-	g.P(fmt.Sprintf("var update%sPostgresQuery = `UPDATE %s SET #update_clause# WHERE #where_clause# ` +", mc.goType, mc.tableName))
+	g.P(fmt.Sprintf("var update%sPostgresQuery = `UPDATE %s SET #update_clause# WHERE #where_clause# ` +", mc.goType, mc.fqTableName))
 	g.P(fmt.Sprintf("  %s(\"RETURNING %%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
 	g.P()
 
@@ -43,8 +43,8 @@ func (mc *msgCtx) generateUpdate() {
 
 	if mc.hasEtag {
 		g.P("  if etag != \"\" {")
-		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND %s = $%%d RETURNING\", len(params)+1), 1)",
+			mc.stringsI("Replace"), mc.fmtI("Sprintf"), mc.fqCol("etag")))
 		g.P("    params = append(params, etag)")
 		g.P("  }")
 	}

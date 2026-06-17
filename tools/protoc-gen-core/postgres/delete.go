@@ -20,8 +20,8 @@ func (mc *msgCtx) generateSoftDelete() {
 	if mc.hasEtag {
 		etagSet = fmt.Sprintf(", etag = $%d", numVars+2)
 	}
-	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = COALESCE(delete_time, $%d)%s WHERE %s RETURNING (delete_time < $%d) AS was_already_deleted, ` +",
-		mc.goType, mc.tableName, numVars+1, etagSet, mc.placeholderDecls, numVars+1))
+	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = COALESCE(%s, $%d)%s WHERE %s RETURNING (%s < $%d) AS was_already_deleted, ` +",
+		mc.goType, mc.fqTableName, mc.fqCol("delete_time"), numVars+1, etagSet, mc.placeholderDecls, mc.fqCol("delete_time"), numVars+1))
 	g.P(fmt.Sprintf("  %s(\"%%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
 	g.P()
 
@@ -47,8 +47,8 @@ func (mc *msgCtx) generateSoftDelete() {
 
 	if mc.hasEtag {
 		g.P("  if etag != \"\" {")
-		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND %s = $%%d RETURNING\", len(params)+1), 1)",
+			mc.stringsI("Replace"), mc.fmtI("Sprintf"), mc.fqCol("etag")))
 		g.P("    params = append(params, etag)")
 		g.P("  }")
 	}
@@ -78,7 +78,7 @@ func (mc *msgCtx) generateSoftDelete() {
 func (mc *msgCtx) generateHardDelete() {
 	g := mc.g
 
-	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s ` +", mc.goType, mc.tableName, mc.placeholderDecls))
+	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s ` +", mc.goType, mc.fqTableName, mc.placeholderDecls))
 	g.P(fmt.Sprintf("  %s(\"RETURNING %%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
 	g.P()
 
@@ -93,8 +93,8 @@ func (mc *msgCtx) generateHardDelete() {
 
 	if mc.hasEtag {
 		g.P("  if etag != \"\" {")
-		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND %s = $%%d RETURNING\", len(params)+1), 1)",
+			mc.stringsI("Replace"), mc.fmtI("Sprintf"), mc.fqCol("etag")))
 		g.P("    params = append(params, etag)")
 		g.P("  }")
 	}

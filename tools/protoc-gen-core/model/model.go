@@ -153,6 +153,33 @@ func (m *Model) ResourceIDFields() []string {
 	return ids
 }
 
+// schemaName returns the schema for this model, defaulting to "public".
+func (m *Model) schemaName() string {
+	if s := m.ModelOpts.GetSchemaName(); s != "" {
+		return s
+	}
+	return "public"
+}
+
+// tableName returns the table name for this model.
+func (m *Model) tableName() string {
+	if t := m.ModelOpts.GetTableName(); t != "" {
+		return t
+	}
+	return m.ParsedResource.SingularSnakeCase()
+}
+
+// fqColumn returns the fully qualified column: schema.table.column.
+func (m *Model) fqColumn(column string) string {
+	return m.schemaName() + "." + m.tableName() + "." + column
+}
+
+// structTag returns the full struct tag string for a field.
+func (m *Model) structTag(column string) string {
+	return fmt.Sprintf("`db:\"%s\" schema:\"%s\" table:\"%s\"`",
+		m.fqColumn(column), m.schemaName(), m.tableName())
+}
+
 // --- code generation ---
 
 func (m *Model) ErrorVarsDef() string {
@@ -185,9 +212,9 @@ func (m *Model) StructDef() (string, error) {
 			if m.ParsedResource.Singleton {
 				return "", fmt.Errorf("singleton resource %s declares an id_column_name", m.ParsedResource.Desc.Type)
 			}
-			fmt.Fprintf(&b, "\t%s string `db:\"%s\"`\n", fieldName, m.ModelOpts.IdColumnName)
+			fmt.Fprintf(&b, "\t%s string %s\n", fieldName, m.structTag(m.ModelOpts.IdColumnName))
 		} else {
-			fmt.Fprintf(&b, "\t%s string `db:\"%s_id\"`\n", fieldName, patternVariables[i])
+			fmt.Fprintf(&b, "\t%s string %s\n", fieldName, m.structTag(patternVariables[i]+"_id"))
 		}
 	}
 
@@ -207,7 +234,7 @@ func (m *Model) StructDef() (string, error) {
 			return "", fmt.Errorf("resolving type for %s: %w", field.ProtoField.GoName, err)
 		}
 
-		fmt.Fprintf(&b, "\t%s %s `db:\"%s\"`\n", field.ProtoField.GoName, typeName, columnTag)
+		fmt.Fprintf(&b, "\t%s %s %s\n", field.ProtoField.GoName, typeName, m.structTag(columnTag))
 	}
 
 	b.WriteString("}\n")

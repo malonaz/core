@@ -15,16 +15,16 @@ ON CONFLICT (column_name) DO NOTHING
 `
 
 type Sample struct {
-	B int    `db:"ya"`
-	a int    `db:"yo"`
-	C string `db:"bla"`
+	B int    `db:"public.table_name.ya" schema:"public" table:"table_name"`
+	a int    `db:"public.table_name.yo" schema:"public" table:"table_name"`
+	C string `db:"public.table_name.bla" schema:"public" table:"table_name"`
 	D []string
 	e int           `dbbb:"notthisone"`
-	F pq.Int64Array `db:"pqarray"`
+	F pq.Int64Array `db:"public.table_name.pqarray" schema:"public" table:"table_name"`
 }
 
 type Wrapper struct {
-	Field string `db:"field"`
+	Field string `db:"public.table_name.field" schema:"public" table:"table_name"`
 	Sample
 }
 
@@ -54,13 +54,13 @@ var (
 func TestGetParams(t *testing.T) {
 	t.Run("SingleObjectNoColumns", func(t *testing.T) {
 		tags, params := getParams(reflect.ValueOf(singleSample), []string{})
-		require.Equal(t, []string{"ya", "bla", "pqarray"}, tags)
+		require.Equal(t, []string{"public.table_name.ya", "public.table_name.bla", "public.table_name.pqarray"}, tags)
 		require.Equal(t, []any{sample1.B, sample1.C, sample1.F}, params)
 	})
 
 	t.Run("TwoObjectNoColumns", func(t *testing.T) {
 		tags, params := getParams(reflect.ValueOf(twoSamples), []string{})
-		require.Equal(t, []string{"ya", "bla", "pqarray"}, tags)
+		require.Equal(t, []string{"public.table_name.ya", "public.table_name.bla", "public.table_name.pqarray"}, tags)
 		expectedParams := []any{
 			sample1.B, sample1.C, sample1.F,
 			sample2.B, sample2.C, sample2.F,
@@ -69,39 +69,41 @@ func TestGetParams(t *testing.T) {
 	})
 
 	t.Run("SingleObjectWithSingleColumn", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(singleSample), []string{"ya"})
+		tags, params := getParams(reflect.ValueOf(singleSample), []string{"public.table_name.ya"})
 		require.Equal(t, []string{}, tags)
 		require.Equal(t, []any{sample1.B}, params)
 	})
 
 	t.Run("SingleObjectWithMultipleColumns", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(singleSample), []string{"ya", "pqarray"})
+		tags, params := getParams(reflect.ValueOf(singleSample), []string{"public.table_name.ya", "public.table_name.pqarray"})
 		require.Equal(t, []string{}, tags)
 		require.Equal(t, []any{sample1.B, sample1.F}, params)
 	})
 
 	t.Run("TwoObjectWithSingleColumn", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(twoSamples), []string{"ya"})
+		tags, params := getParams(reflect.ValueOf(twoSamples), []string{"public.table_name.ya"})
 		require.Equal(t, []string{}, tags)
 		require.Equal(t, []any{sample1.B, sample2.B}, params)
 	})
 
 	t.Run("TwoObjectWithMultipleColumnsWithInverseOrder", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(twoSamples), []string{"pqarray", "ya"})
+		tags, params := getParams(reflect.ValueOf(twoSamples), []string{"public.table_name.pqarray", "public.table_name.ya"})
 		require.Equal(t, []string{}, tags)
 		require.Equal(t, []any{sample1.F, sample1.B, sample2.F, sample2.B}, params)
 	})
 
 	t.Run("SpecifyDbTagOfUnexportedField", func(t *testing.T) {
-		fn1 := func() { getParams(reflect.ValueOf(singleSample), []string{"yo"}) }
-		fn2 := func() { getParams(reflect.ValueOf(singleSample), []string{"ya", "yo"}) }
+		fn1 := func() { getParams(reflect.ValueOf(singleSample), []string{"public.table_name.yo"}) }
+		fn2 := func() {
+			getParams(reflect.ValueOf(singleSample), []string{"public.table_name.ya", "public.table_name.yo"})
+		}
 		require.Panics(t, fn1)
 		require.Panics(t, fn2)
 	})
 
 	t.Run("SpecifyNonExistentDbTag", func(t *testing.T) {
 		fn1 := func() { getParams(reflect.ValueOf(singleSample), []string{"malon"}) }
-		fn2 := func() { getParams(reflect.ValueOf(singleSample), []string{"ya", "whatyouwant"}) }
+		fn2 := func() { getParams(reflect.ValueOf(singleSample), []string{"public.table_name.ya", "whatyouwant"}) }
 		require.Panics(t, fn1)
 		require.Panics(t, fn2)
 	})
@@ -162,7 +164,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("SingleColumn", func(t *testing.T) {
-		query, params := InsertQuery(sqlInsertQueryExample, sample1, "pqarray")
+		query, params := InsertQuery(sqlInsertQueryExample, sample1, "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (pqarray)
 VALUES ($1)
@@ -173,7 +175,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("MultipleColumns", func(t *testing.T) {
-		query, params := InsertQuery(sqlInsertQueryExample, sample1, "ya", "pqarray")
+		query, params := InsertQuery(sqlInsertQueryExample, sample1, "public.table_name.ya", "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (ya,pqarray)
 VALUES ($1,$2)
@@ -184,7 +186,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("MultipleColumnsWithInverseOrder", func(t *testing.T) {
-		query, params := InsertQuery(sqlInsertQueryExample, sample1, "pqarray", "ya")
+		query, params := InsertQuery(sqlInsertQueryExample, sample1, "public.table_name.pqarray", "public.table_name.ya")
 		expectedQuery := `
 INSERT INTO table_name (pqarray,ya)
 VALUES ($1,$2)
@@ -208,7 +210,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("SingleObjectSingleColumn", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "pqarray")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (pqarray)
 VALUES ($1)
@@ -219,7 +221,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("SingleObjectMultipleColumns", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "ya", "pqarray")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "public.table_name.ya", "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (ya,pqarray)
 VALUES ($1,$2)
@@ -230,7 +232,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("SingleObjectMultipleColumnsWithInverseOrder", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "pqarray", "ya")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, singleSample, "public.table_name.pqarray", "public.table_name.ya")
 		expectedQuery := `
 INSERT INTO table_name (pqarray,ya)
 VALUES ($1,$2)
@@ -256,7 +258,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("TwoObjectsTwoColumn", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "pqarray")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (pqarray)
 VALUES ($1),($2)
@@ -267,7 +269,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("TwoObjectsMultipleColumns", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "ya", "pqarray")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "public.table_name.ya", "public.table_name.pqarray")
 		expectedQuery := `
 INSERT INTO table_name (ya,pqarray)
 VALUES ($1,$2),($3,$4)
@@ -282,7 +284,7 @@ ON CONFLICT (column_name) DO NOTHING
 	})
 
 	t.Run("TwoObjectsMultipleColumnsWithInverseOrder", func(t *testing.T) {
-		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "pqarray", "ya")
+		query, params := BatchInsertQuery(sqlInsertQueryExample, twoSamples, "public.table_name.pqarray", "public.table_name.ya")
 		expectedQuery := `
 INSERT INTO table_name (pqarray,ya)
 VALUES ($1,$2),($3,$4)
@@ -311,26 +313,26 @@ func TestGetParamsWithEmbeddedFields(t *testing.T) {
 
 	t.Run("SingleObjectWithEmbeddedNoColumns", func(t *testing.T) {
 		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{})
-		require.Equal(t, []string{"field", "ya", "bla", "pqarray"}, tags)
+		require.Equal(t, []string{"public.table_name.field", "public.table_name.ya", "public.table_name.bla", "public.table_name.pqarray"}, tags)
 		expectedParams := []any{wrapperSample.Field, wrapperSample.B, wrapperSample.C, wrapperSample.F}
 		require.Equal(t, expectedParams, params)
 	})
 
 	t.Run("SingleObjectWithEmbeddedSpecificColumns", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"field", "ya", "pqarray"})
+		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"public.table_name.field", "public.table_name.ya", "public.table_name.pqarray"})
 		require.Equal(t, []string{}, tags)
 		expectedParams := []any{wrapperSample.Field, wrapperSample.B, wrapperSample.F}
 		require.Equal(t, expectedParams, params)
 	})
 
 	t.Run("EmbeddedFieldTagOverNoEmbeddedFieldTagSpecified", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"field"})
+		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"public.table_name.field"})
 		require.Equal(t, []string{}, tags)
 		require.Equal(t, []any{wrapperSample.Field}, params)
 	})
 
 	t.Run("EmbeddedFieldNotSpecifiedButOtherEmbeddedFieldsAre", func(t *testing.T) {
-		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"ya", "bla"})
+		tags, params := getParams(reflect.ValueOf(singleWrapperSample), []string{"public.table_name.ya", "public.table_name.bla"})
 		require.Equal(t, []string{}, tags)
 		expectedParams := []any{wrapperSample.B, wrapperSample.C}
 		require.Equal(t, expectedParams, params)
