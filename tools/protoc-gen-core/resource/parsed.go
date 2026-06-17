@@ -77,10 +77,6 @@ func (pr *ParsedResource) SingularSnakeCase() string {
 	return strs.JSONSnakeCase(pr.Desc.Singular)
 }
 
-func (pr *ParsedResource) PluralSnakeCase() string {
-	return strs.JSONSnakeCase(pr.Desc.Plural)
-}
-
 // Parse recursively resolves a resource descriptor into a ParsedResource.
 func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) (*ParsedResource, error) {
 	if val, ok := reg.ParsedResourceTypeToParsedResource[resourceDescriptor.Type]; ok {
