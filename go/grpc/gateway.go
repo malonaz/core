@@ -144,6 +144,13 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		runtime.WithMetadata(gatewayCookie.forwardInOption),
 		runtime.WithMetadata(g.gatewayOptionsMetadata),
 		runtime.WithMetadata(httpMethodMetadata),
+		runtime.WithMetadata(func(_ context.Context, r *http.Request) metadata.MD {
+			token := r.URL.Query().Get("access_token")
+			if token == "" {
+				return nil
+			}
+			return metadata.Pairs("authorization", "Bearer "+token)
+		}),
 	)
 	g.options = append(g.options, withCustomMarshalers()...)
 
