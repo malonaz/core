@@ -106,15 +106,14 @@ func (s *Server) GracefulStop() error {
 		return nil
 	}
 	s.log.Info("gracefully stopping HTTP Server")
+	s.healthServer.Shutdown()
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	err := s.httpServer.Shutdown(ctx)
-	if err == context.DeadlineExceeded {
-		s.log.Warn("graceful shutdown timed out")
-		// Force close any remaining connections
-		return s.Stop()
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		s.log.Warn("graceful shutdown failed, forcing", "error", err)
+		return s.httpServer.Close()
 	}
-	return err
+	return nil
 }
