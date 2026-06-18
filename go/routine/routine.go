@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"reflect"
 	"sync"
 	"time"
@@ -53,6 +54,7 @@ type Routine struct {
 	ticker               *time.Ticker
 	signals              []reflect.SelectCase
 	maxConsecutiveErrors int
+	startupJitter        time.Duration
 }
 
 // New instantiates and return a new Routine.
@@ -107,6 +109,12 @@ func (r *Routine) WithTicker(duration time.Duration) *Routine {
 	r.ticker = time.NewTicker(duration)
 	signal := reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(r.ticker.C)}
 	r.signals = append(r.signals, signal)
+	return r
+}
+
+// WithStartupJitter adds a random delay before each execution to spread load.
+func (r *Routine) WithStartupJitter(d time.Duration) *Routine {
+	r.startupJitter = d
 	return r
 }
 
@@ -201,6 +209,15 @@ func (r *Routine) start(ctx context.Context) error {
 			}
 		}
 	}()
+
+	// Apply startup jitter.
+	if r.startupJitter > 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Duration(rand.Int64N(int64(r.startupJitter)))):
+		}
+	}
 
 	for {
 		if err := fn(ctx); err != nil {
