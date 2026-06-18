@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/money.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
@@ -102,4 +103,55 @@ message BookMetadata {
   string phone_number = 3 [(malonaz.canonicalize.v1.field).phone_number = true];
   // The duration of the book.
   google.protobuf.Duration duration = 4;
+}
+
+// Dummy message.
+message Dummy {
+  // Subtotal across all line items before tax, fees, and discount.
+  google.type.Money subtotal = 1;
+
+  // Total tax computed from taxable line items and the tax rate.
+  google.type.Money tax = 2;
+
+  // A plain string field.
+  string title = 3;
+
+  // A plain int32 field.
+  int32 quantity = 4;
+
+  // A plain double field.
+  double rate = 5;
+
+  // A plain bool field.
+  bool active = 6;
+
+  // A timestamp field.
+  google.protobuf.Timestamp expire_time = 7;
+
+  // A duration field.
+  google.protobuf.Duration duration = 8;
+
+  // A repeated string field.
+  repeated string tags = 9;
+
+  // A map field.
+  map<string, string> labels = 10;
+
+  // A nested message field.
+  BookMetadata metadata = 11;
+
+  // An adjustment applied to the dummy.
+  DummyAdjustment adjustment = 12;
+}
+
+// A value expressed as either a fixed monetary amount or a percentage.
+message DummyAdjustment {
+  // The kind.
+  oneof kind {
+    // A fixed monetary amount.
+    google.type.Money amount = 1;
+
+    // A percentage value (0.0-100.0).
+    double percentage = 2;
+  }
 }

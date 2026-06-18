@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../google/api/field_beh
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Money } from "../../../../google/type/money_pb";
+import { file_google_type_money } from "../../../../google/type/money_pb";
 import { file_malonaz_canonicalize_v1_canonicalize } from "../../../canonicalize/v1/canonicalize_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
@@ -19,7 +21,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/book.proto.
  */
 export const file_malonaz_test_library_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rLnByb3RvEhdtYWxvbmF6LnRlc3QubGlicmFyeS52MSKfBwoEQm9vaxIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSGQoFdGl0bGUYBCABKAlCCrpIB3IFEAEYgAQSOgoGYXV0aG9yGAUgASgJQir6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASKwoIZHVyYXRpb24YCSABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SzwEKBmxhYmVscxgKIAMoCzIpLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2suTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgLIAEoCRI/CghtZXRhZGF0YRgMIAEoCzIlLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tNZXRhZGF0YUIGuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE69QHqQWcKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYECQoHbGlicmFyeYqRJFIKHG1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLmJvb2siJwoHdXBkYXRlZBocYm9vay5wdWJsaWNhdGlvbl95ZWFyID4gMjAwNyoJCgdkZWxldGVkgvYsJGExYjJjM2Q0LWU1ZjYtNzg5MC1hYmNkLWVmMTIzNDU2Nzg5MCJ8CgxCb29rTWV0YWRhdGESDwoHc3VtbWFyeRgBIAEoCRIQCghsYW5ndWFnZRgCIAEoCRIcCgxwaG9uZV9udW1iZXIYAyABKAlCBoK1GAIQARIrCghkdXJhdGlvbhgEIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("CiJtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rLnByb3RvEhdtYWxvbmF6LnRlc3QubGlicmFyeS52MSKfBwoEQm9vaxIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSGQoFdGl0bGUYBCABKAlCCrpIB3IFEAEYgAQSOgoGYXV0aG9yGAUgASgJQir6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoEaXNibhgGIAEoCUIHukgEcgIYERIYChBwdWJsaWNhdGlvbl95ZWFyGAcgASgFEhsKCnBhZ2VfY291bnQYCCABKAVCB7pIBBoCKAASKwoIZHVyYXRpb24YCSABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SzwEKBmxhYmVscxgKIAMoCzIpLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2suTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgLIAEoCRI/CghtZXRhZGF0YRgMIAEoCzIlLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tNZXRhZGF0YUIGuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE69QHqQWcKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEjlvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS9ib29rcy97Ym9va30qBWJvb2tzMgRib29r0qYECQoHbGlicmFyeYqRJFIKHG1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLmJvb2siJwoHdXBkYXRlZBocYm9vay5wdWJsaWNhdGlvbl95ZWFyID4gMjAwNyoJCgdkZWxldGVkgvYsJGExYjJjM2Q0LWU1ZjYtNzg5MC1hYmNkLWVmMTIzNDU2Nzg5MCJ8CgxCb29rTWV0YWRhdGESDwoHc3VtbWFyeRgBIAEoCRIQCghsYW5ndWFnZRgCIAEoCRIcCgxwaG9uZV9udW1iZXIYAyABKAlCBoK1GAIQARIrCghkdXJhdGlvbhgEIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiLbAwoFRHVtbXkSJAoIc3VidG90YWwYASABKAsyEi5nb29nbGUudHlwZS5Nb25leRIfCgN0YXgYAiABKAsyEi5nb29nbGUudHlwZS5Nb25leRINCgV0aXRsZRgDIAEoCRIQCghxdWFudGl0eRgEIAEoBRIMCgRyYXRlGAUgASgBEg4KBmFjdGl2ZRgGIAEoCBIvCgtleHBpcmVfdGltZRgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoIZHVyYXRpb24YCCABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SDAoEdGFncxgJIAMoCRI6CgZsYWJlbHMYCiADKAsyKi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5EdW1teS5MYWJlbHNFbnRyeRI3CghtZXRhZGF0YRgLIAEoCzIlLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tNZXRhZGF0YRI8CgphZGp1c3RtZW50GAwgASgLMigubWFsb25hei50ZXN0LmxpYnJhcnkudjEuRHVtbXlBZGp1c3RtZW50Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiVQoPRHVtbXlBZGp1c3RtZW50EiQKBmFtb3VudBgBIAEoCzISLmdvb2dsZS50eXBlLk1vbmV5SAASFAoKcGVyY2VudGFnZRgCIAEoAUgAQgYKBGtpbmRCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_type_money, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Book represents a book on a shelf.
@@ -257,4 +259,143 @@ export type BookMetadataValid = BookMetadata;
  */
 export const BookMetadataSchema: GenMessage<BookMetadata, {validType: BookMetadataValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_v1_book, 1);
+
+/**
+ * Dummy message.
+ *
+ * @generated from message malonaz.test.library.v1.Dummy
+ */
+export type Dummy = Message<"malonaz.test.library.v1.Dummy"> & {
+  /**
+   * Subtotal across all line items before tax, fees, and discount.
+   *
+   * @generated from field: google.type.Money subtotal = 1;
+   */
+  subtotal?: Money;
+
+  /**
+   * Total tax computed from taxable line items and the tax rate.
+   *
+   * @generated from field: google.type.Money tax = 2;
+   */
+  tax?: Money;
+
+  /**
+   * A plain string field.
+   *
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * A plain int32 field.
+   *
+   * @generated from field: int32 quantity = 4;
+   */
+  quantity: number;
+
+  /**
+   * A plain double field.
+   *
+   * @generated from field: double rate = 5;
+   */
+  rate: number;
+
+  /**
+   * A plain bool field.
+   *
+   * @generated from field: bool active = 6;
+   */
+  active: boolean;
+
+  /**
+   * A timestamp field.
+   *
+   * @generated from field: google.protobuf.Timestamp expire_time = 7;
+   */
+  expireTime?: Timestamp;
+
+  /**
+   * A duration field.
+   *
+   * @generated from field: google.protobuf.Duration duration = 8;
+   */
+  duration?: Duration;
+
+  /**
+   * A repeated string field.
+   *
+   * @generated from field: repeated string tags = 9;
+   */
+  tags: string[];
+
+  /**
+   * A map field.
+   *
+   * @generated from field: map<string, string> labels = 10;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * A nested message field.
+   *
+   * @generated from field: malonaz.test.library.v1.BookMetadata metadata = 11;
+   */
+  metadata?: BookMetadata;
+
+  /**
+   * An adjustment applied to the dummy.
+   *
+   * @generated from field: malonaz.test.library.v1.DummyAdjustment adjustment = 12;
+   */
+  adjustment?: DummyAdjustment;
+};
+
+export type DummyValid = Dummy;
+
+/**
+ * Describes the message malonaz.test.library.v1.Dummy.
+ * Use `create(DummySchema)` to create a new message.
+ */
+export const DummySchema: GenMessage<Dummy, {validType: DummyValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_v1_book, 2);
+
+/**
+ * A value expressed as either a fixed monetary amount or a percentage.
+ *
+ * @generated from message malonaz.test.library.v1.DummyAdjustment
+ */
+export type DummyAdjustment = Message<"malonaz.test.library.v1.DummyAdjustment"> & {
+  /**
+   * The kind.
+   *
+   * @generated from oneof malonaz.test.library.v1.DummyAdjustment.kind
+   */
+  kind: {
+    /**
+     * A fixed monetary amount.
+     *
+     * @generated from field: google.type.Money amount = 1;
+     */
+    value: Money;
+    case: "amount";
+  } | {
+    /**
+     * A percentage value (0.0-100.0).
+     *
+     * @generated from field: double percentage = 2;
+     */
+    value: number;
+    case: "percentage";
+  } | { case: undefined; value?: undefined };
+};
+
+export type DummyAdjustmentValid = DummyAdjustment;
+
+/**
+ * Describes the message malonaz.test.library.v1.DummyAdjustment.
+ * Use `create(DummyAdjustmentSchema)` to create a new message.
+ */
+export const DummyAdjustmentSchema: GenMessage<DummyAdjustment, {validType: DummyAdjustmentValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_v1_book, 3);
 

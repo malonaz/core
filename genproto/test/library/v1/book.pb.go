@@ -15,6 +15,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -433,11 +434,500 @@ func (b0 BookMetadata_builder) Build() *BookMetadata {
 	return m0
 }
 
+// Dummy message.
+type Dummy struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Subtotal across all line items before tax, fees, and discount.
+	Subtotal *money.Money `protobuf:"bytes,1,opt,name=subtotal,proto3" json:"subtotal,omitempty"`
+	// Total tax computed from taxable line items and the tax rate.
+	Tax *money.Money `protobuf:"bytes,2,opt,name=tax,proto3" json:"tax,omitempty"`
+	// A plain string field.
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// A plain int32 field.
+	Quantity int32 `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	// A plain double field.
+	Rate float64 `protobuf:"fixed64,5,opt,name=rate,proto3" json:"rate,omitempty"`
+	// A plain bool field.
+	Active bool `protobuf:"varint,6,opt,name=active,proto3" json:"active,omitempty"`
+	// A timestamp field.
+	ExpireTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	// A duration field.
+	Duration *durationpb.Duration `protobuf:"bytes,8,opt,name=duration,proto3" json:"duration,omitempty"`
+	// A repeated string field.
+	Tags []string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	// A map field.
+	Labels map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// A nested message field.
+	Metadata *BookMetadata `protobuf:"bytes,11,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// An adjustment applied to the dummy.
+	Adjustment    *DummyAdjustment `protobuf:"bytes,12,opt,name=adjustment,proto3" json:"adjustment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Dummy) Reset() {
+	*x = Dummy{}
+	mi := &file_malonaz_test_library_v1_book_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Dummy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Dummy) ProtoMessage() {}
+
+func (x *Dummy) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_v1_book_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Dummy) GetSubtotal() *money.Money {
+	if x != nil {
+		return x.Subtotal
+	}
+	return nil
+}
+
+func (x *Dummy) GetTax() *money.Money {
+	if x != nil {
+		return x.Tax
+	}
+	return nil
+}
+
+func (x *Dummy) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Dummy) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *Dummy) GetRate() float64 {
+	if x != nil {
+		return x.Rate
+	}
+	return 0
+}
+
+func (x *Dummy) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+func (x *Dummy) GetExpireTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpireTime
+	}
+	return nil
+}
+
+func (x *Dummy) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
+func (x *Dummy) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *Dummy) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *Dummy) GetMetadata() *BookMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Dummy) GetAdjustment() *DummyAdjustment {
+	if x != nil {
+		return x.Adjustment
+	}
+	return nil
+}
+
+func (x *Dummy) SetSubtotal(v *money.Money) {
+	x.Subtotal = v
+}
+
+func (x *Dummy) SetTax(v *money.Money) {
+	x.Tax = v
+}
+
+func (x *Dummy) SetTitle(v string) {
+	x.Title = v
+}
+
+func (x *Dummy) SetQuantity(v int32) {
+	x.Quantity = v
+}
+
+func (x *Dummy) SetRate(v float64) {
+	x.Rate = v
+}
+
+func (x *Dummy) SetActive(v bool) {
+	x.Active = v
+}
+
+func (x *Dummy) SetExpireTime(v *timestamppb.Timestamp) {
+	x.ExpireTime = v
+}
+
+func (x *Dummy) SetDuration(v *durationpb.Duration) {
+	x.Duration = v
+}
+
+func (x *Dummy) SetTags(v []string) {
+	x.Tags = v
+}
+
+func (x *Dummy) SetLabels(v map[string]string) {
+	x.Labels = v
+}
+
+func (x *Dummy) SetMetadata(v *BookMetadata) {
+	x.Metadata = v
+}
+
+func (x *Dummy) SetAdjustment(v *DummyAdjustment) {
+	x.Adjustment = v
+}
+
+func (x *Dummy) HasSubtotal() bool {
+	if x == nil {
+		return false
+	}
+	return x.Subtotal != nil
+}
+
+func (x *Dummy) HasTax() bool {
+	if x == nil {
+		return false
+	}
+	return x.Tax != nil
+}
+
+func (x *Dummy) HasExpireTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.ExpireTime != nil
+}
+
+func (x *Dummy) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.Duration != nil
+}
+
+func (x *Dummy) HasMetadata() bool {
+	if x == nil {
+		return false
+	}
+	return x.Metadata != nil
+}
+
+func (x *Dummy) HasAdjustment() bool {
+	if x == nil {
+		return false
+	}
+	return x.Adjustment != nil
+}
+
+func (x *Dummy) ClearSubtotal() {
+	x.Subtotal = nil
+}
+
+func (x *Dummy) ClearTax() {
+	x.Tax = nil
+}
+
+func (x *Dummy) ClearExpireTime() {
+	x.ExpireTime = nil
+}
+
+func (x *Dummy) ClearDuration() {
+	x.Duration = nil
+}
+
+func (x *Dummy) ClearMetadata() {
+	x.Metadata = nil
+}
+
+func (x *Dummy) ClearAdjustment() {
+	x.Adjustment = nil
+}
+
+type Dummy_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Subtotal across all line items before tax, fees, and discount.
+	Subtotal *money.Money
+	// Total tax computed from taxable line items and the tax rate.
+	Tax *money.Money
+	// A plain string field.
+	Title string
+	// A plain int32 field.
+	Quantity int32
+	// A plain double field.
+	Rate float64
+	// A plain bool field.
+	Active bool
+	// A timestamp field.
+	ExpireTime *timestamppb.Timestamp
+	// A duration field.
+	Duration *durationpb.Duration
+	// A repeated string field.
+	Tags []string
+	// A map field.
+	Labels map[string]string
+	// A nested message field.
+	Metadata *BookMetadata
+	// An adjustment applied to the dummy.
+	Adjustment *DummyAdjustment
+}
+
+func (b0 Dummy_builder) Build() *Dummy {
+	m0 := &Dummy{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Subtotal = b.Subtotal
+	x.Tax = b.Tax
+	x.Title = b.Title
+	x.Quantity = b.Quantity
+	x.Rate = b.Rate
+	x.Active = b.Active
+	x.ExpireTime = b.ExpireTime
+	x.Duration = b.Duration
+	x.Tags = b.Tags
+	x.Labels = b.Labels
+	x.Metadata = b.Metadata
+	x.Adjustment = b.Adjustment
+	return m0
+}
+
+// A value expressed as either a fixed monetary amount or a percentage.
+type DummyAdjustment struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The kind.
+	//
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*DummyAdjustment_Amount
+	//	*DummyAdjustment_Percentage
+	Kind          isDummyAdjustment_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DummyAdjustment) Reset() {
+	*x = DummyAdjustment{}
+	mi := &file_malonaz_test_library_v1_book_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DummyAdjustment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DummyAdjustment) ProtoMessage() {}
+
+func (x *DummyAdjustment) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_v1_book_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *DummyAdjustment) GetKind() isDummyAdjustment_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *DummyAdjustment) GetAmount() *money.Money {
+	if x != nil {
+		if x, ok := x.Kind.(*DummyAdjustment_Amount); ok {
+			return x.Amount
+		}
+	}
+	return nil
+}
+
+func (x *DummyAdjustment) GetPercentage() float64 {
+	if x != nil {
+		if x, ok := x.Kind.(*DummyAdjustment_Percentage); ok {
+			return x.Percentage
+		}
+	}
+	return 0
+}
+
+func (x *DummyAdjustment) SetAmount(v *money.Money) {
+	if v == nil {
+		x.Kind = nil
+		return
+	}
+	x.Kind = &DummyAdjustment_Amount{v}
+}
+
+func (x *DummyAdjustment) SetPercentage(v float64) {
+	x.Kind = &DummyAdjustment_Percentage{v}
+}
+
+func (x *DummyAdjustment) HasKind() bool {
+	if x == nil {
+		return false
+	}
+	return x.Kind != nil
+}
+
+func (x *DummyAdjustment) HasAmount() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Kind.(*DummyAdjustment_Amount)
+	return ok
+}
+
+func (x *DummyAdjustment) HasPercentage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Kind.(*DummyAdjustment_Percentage)
+	return ok
+}
+
+func (x *DummyAdjustment) ClearKind() {
+	x.Kind = nil
+}
+
+func (x *DummyAdjustment) ClearAmount() {
+	if _, ok := x.Kind.(*DummyAdjustment_Amount); ok {
+		x.Kind = nil
+	}
+}
+
+func (x *DummyAdjustment) ClearPercentage() {
+	if _, ok := x.Kind.(*DummyAdjustment_Percentage); ok {
+		x.Kind = nil
+	}
+}
+
+const DummyAdjustment_Kind_not_set_case case_DummyAdjustment_Kind = 0
+const DummyAdjustment_Amount_case case_DummyAdjustment_Kind = 1
+const DummyAdjustment_Percentage_case case_DummyAdjustment_Kind = 2
+
+func (x *DummyAdjustment) WhichKind() case_DummyAdjustment_Kind {
+	if x == nil {
+		return DummyAdjustment_Kind_not_set_case
+	}
+	switch x.Kind.(type) {
+	case *DummyAdjustment_Amount:
+		return DummyAdjustment_Amount_case
+	case *DummyAdjustment_Percentage:
+		return DummyAdjustment_Percentage_case
+	default:
+		return DummyAdjustment_Kind_not_set_case
+	}
+}
+
+type DummyAdjustment_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The kind.
+
+	// Fields of oneof Kind:
+	// A fixed monetary amount.
+	Amount *money.Money
+	// A percentage value (0.0-100.0).
+	Percentage *float64
+	// -- end of Kind
+}
+
+func (b0 DummyAdjustment_builder) Build() *DummyAdjustment {
+	m0 := &DummyAdjustment{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Amount != nil {
+		x.Kind = &DummyAdjustment_Amount{b.Amount}
+	}
+	if b.Percentage != nil {
+		x.Kind = &DummyAdjustment_Percentage{*b.Percentage}
+	}
+	return m0
+}
+
+type case_DummyAdjustment_Kind protoreflect.FieldNumber
+
+func (x case_DummyAdjustment_Kind) String() string {
+	md := file_malonaz_test_library_v1_book_proto_msgTypes[3].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isDummyAdjustment_Kind interface {
+	isDummyAdjustment_Kind()
+}
+
+type DummyAdjustment_Amount struct {
+	// A fixed monetary amount.
+	Amount *money.Money `protobuf:"bytes,1,opt,name=amount,proto3,oneof"`
+}
+
+type DummyAdjustment_Percentage struct {
+	// A percentage value (0.0-100.0).
+	Percentage float64 `protobuf:"fixed64,2,opt,name=percentage,proto3,oneof"`
+}
+
+func (*DummyAdjustment_Amount) isDummyAdjustment_Kind() {}
+
+func (*DummyAdjustment_Percentage) isDummyAdjustment_Kind() {}
+
 var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9c\b\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9c\b\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -469,28 +959,66 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\asummary\x18\x01 \x01(\tR\asummary\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\x12)\n" +
 	"\fphone_number\x18\x03 \x01(\tB\x06\x82\xb5\x18\x02\x10\x01R\vphoneNumber\x125\n" +
-	"\bduration\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\bdurationB2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\bduration\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\xcf\x04\n" +
+	"\x05Dummy\x12.\n" +
+	"\bsubtotal\x18\x01 \x01(\v2\x12.google.type.MoneyR\bsubtotal\x12$\n" +
+	"\x03tax\x18\x02 \x01(\v2\x12.google.type.MoneyR\x03tax\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1a\n" +
+	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x12\n" +
+	"\x04rate\x18\x05 \x01(\x01R\x04rate\x12\x16\n" +
+	"\x06active\x18\x06 \x01(\bR\x06active\x12;\n" +
+	"\vexpire_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"expireTime\x125\n" +
+	"\bduration\x18\b \x01(\v2\x19.google.protobuf.DurationR\bduration\x12\x12\n" +
+	"\x04tags\x18\t \x03(\tR\x04tags\x12B\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v2*.malonaz.test.library.v1.Dummy.LabelsEntryR\x06labels\x12A\n" +
+	"\bmetadata\x18\v \x01(\v2%.malonaz.test.library.v1.BookMetadataR\bmetadata\x12H\n" +
+	"\n" +
+	"adjustment\x18\f \x01(\v2(.malonaz.test.library.v1.DummyAdjustmentR\n" +
+	"adjustment\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"i\n" +
+	"\x0fDummyAdjustment\x12,\n" +
+	"\x06amount\x18\x01 \x01(\v2\x12.google.type.MoneyH\x00R\x06amount\x12 \n" +
+	"\n" +
+	"percentage\x18\x02 \x01(\x01H\x00R\n" +
+	"percentageB\x06\n" +
+	"\x04kindB2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
-var file_malonaz_test_library_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_test_library_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_test_library_v1_book_proto_goTypes = []any{
 	(*Book)(nil),                  // 0: malonaz.test.library.v1.Book
 	(*BookMetadata)(nil),          // 1: malonaz.test.library.v1.BookMetadata
-	nil,                           // 2: malonaz.test.library.v1.Book.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 4: google.protobuf.Duration
+	(*Dummy)(nil),                 // 2: malonaz.test.library.v1.Dummy
+	(*DummyAdjustment)(nil),       // 3: malonaz.test.library.v1.DummyAdjustment
+	nil,                           // 4: malonaz.test.library.v1.Book.LabelsEntry
+	nil,                           // 5: malonaz.test.library.v1.Dummy.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
+	(*money.Money)(nil),           // 8: google.type.Money
 }
 var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
-	3, // 0: malonaz.test.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.test.library.v1.Book.update_time:type_name -> google.protobuf.Timestamp
-	4, // 2: malonaz.test.library.v1.Book.duration:type_name -> google.protobuf.Duration
-	2, // 3: malonaz.test.library.v1.Book.labels:type_name -> malonaz.test.library.v1.Book.LabelsEntry
-	1, // 4: malonaz.test.library.v1.Book.metadata:type_name -> malonaz.test.library.v1.BookMetadata
-	4, // 5: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6,  // 0: malonaz.test.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
+	6,  // 1: malonaz.test.library.v1.Book.update_time:type_name -> google.protobuf.Timestamp
+	7,  // 2: malonaz.test.library.v1.Book.duration:type_name -> google.protobuf.Duration
+	4,  // 3: malonaz.test.library.v1.Book.labels:type_name -> malonaz.test.library.v1.Book.LabelsEntry
+	1,  // 4: malonaz.test.library.v1.Book.metadata:type_name -> malonaz.test.library.v1.BookMetadata
+	7,  // 5: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
+	8,  // 6: malonaz.test.library.v1.Dummy.subtotal:type_name -> google.type.Money
+	8,  // 7: malonaz.test.library.v1.Dummy.tax:type_name -> google.type.Money
+	6,  // 8: malonaz.test.library.v1.Dummy.expire_time:type_name -> google.protobuf.Timestamp
+	7,  // 9: malonaz.test.library.v1.Dummy.duration:type_name -> google.protobuf.Duration
+	5,  // 10: malonaz.test.library.v1.Dummy.labels:type_name -> malonaz.test.library.v1.Dummy.LabelsEntry
+	1,  // 11: malonaz.test.library.v1.Dummy.metadata:type_name -> malonaz.test.library.v1.BookMetadata
+	3,  // 12: malonaz.test.library.v1.Dummy.adjustment:type_name -> malonaz.test.library.v1.DummyAdjustment
+	8,  // 13: malonaz.test.library.v1.DummyAdjustment.amount:type_name -> google.type.Money
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_book_proto_init() }
@@ -498,13 +1026,17 @@ func file_malonaz_test_library_v1_book_proto_init() {
 	if File_malonaz_test_library_v1_book_proto != nil {
 		return
 	}
+	file_malonaz_test_library_v1_book_proto_msgTypes[3].OneofWrappers = []any{
+		(*DummyAdjustment_Amount)(nil),
+		(*DummyAdjustment_Percentage)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_v1_book_proto_rawDesc), len(file_malonaz_test_library_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
