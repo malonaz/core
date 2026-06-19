@@ -5,7 +5,6 @@ import (
 
 	"go.einride.tech/aip/filtering"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/aip/transpiler/postgres"
@@ -19,8 +18,10 @@ type filteringRequest interface {
 }
 
 type FilteringRequestParser[T filteringRequest, R proto.Message] struct {
-	declarations *filtering.Declarations
-	tree         *Tree
+	declarations      *filtering.Declarations
+	macroDeclarations *filtering.Declarations
+	macros            []filtering.Macro
+	tree              *Tree
 }
 
 func MustNewFilteringRequestParser[T filteringRequest, R proto.Message]() *FilteringRequestParser[T, R] {
@@ -48,73 +49,115 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 		return nil, err
 	}
 
-	var declarationOptions []filtering.DeclarationOption
-
-	// Declare boolean constants
-	declarationOptions = append(declarationOptions,
-		filtering.DeclareIdent("true", filtering.TypeBool),
-		filtering.DeclareIdent("false", filtering.TypeBool),
+	var (
+		sharedDeclarationOptions []filtering.DeclarationOption // Shared declarations.
+		declarationOptions       []filtering.DeclarationOption // ident declarations matching proto fields.
+		macroDeclarationOptions  []filtering.DeclarationOption // ident declarations matching db column names.
+		macros                   []filtering.Macro
 	)
 
+	// Declare boolean constants
+	sharedDeclarationOptions = append(sharedDeclarationOptions,
+		filtering.DeclareIdent("true", filtering.TypeBool),
+		filtering.DeclareIdent("false", filtering.TypeBool),
+		filtering.DeclareStandardFunctions(),
+	)
+
+	identNameToFQN := map[string]string{}
 	for node := range tree.FilterableNodes() {
-		replacementPath := node.Path
-		if node.ReplacementPath != "" {
-			replacementPath = node.ReplacementPath
+		if node.ExprType == nil && node.EnumType == nil {
+			continue
 		}
 
-		if node.ExprType != nil {
-			declarationOptions = append(declarationOptions, filtering.DeclareIdent(replacementPath, node.ExprType))
-			declarationOptions = append(declarationOptions,
-				filtering.DeclareFunction(filtering.FunctionHas,
-					filtering.NewFunctionOverload(
-						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, replacementPath),
-						filtering.TypeBool,
-						node.ExprType,
-						filtering.TypeString,
-					),
-				),
-			)
+		fqn := node.Path
+		if node.ReplacementPath != "" {
+			fqn = node.ReplacementPath
 		}
-		if node.EnumType != nil {
-			declarationOptions = append(declarationOptions, filtering.DeclareEnumIdent(replacementPath, node.EnumType))
-			declarationOptions = append(declarationOptions,
-				filtering.DeclareFunction(filtering.FunctionHas,
-					filtering.NewFunctionOverload(
-						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, replacementPath),
-						filtering.TypeBool,
-						filtering.TypeEnum(node.EnumType),
-						filtering.TypeString,
-					),
+		fqn = node.TableName + "." + fqn
+		identNameToFQN[node.Path] = fqn
+
+		if node.ExprType != nil {
+			ident := filtering.DeclareIdent(node.Path, node.ExprType)
+			function := filtering.DeclareFunction(filtering.FunctionHas,
+				filtering.NewFunctionOverload(
+					fmt.Sprintf("%s_%s_string", filtering.FunctionHas, node.Path),
+					filtering.TypeBool, node.ExprType, filtering.TypeString,
 				),
 			)
+			declarationOptions = append(declarationOptions, ident, function)
+			{
+				ident := filtering.DeclareIdent(fqn, node.ExprType)
+				function := filtering.DeclareFunction(filtering.FunctionHas,
+					filtering.NewFunctionOverload(
+						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, fqn),
+						filtering.TypeBool, node.ExprType, filtering.TypeString,
+					),
+				)
+				macroDeclarationOptions = append(macroDeclarationOptions, ident, function)
+			}
+		}
+
+		if node.EnumType != nil {
+			ident := filtering.DeclareEnumIdent(node.Path, node.EnumType)
+			function := filtering.DeclareFunction(filtering.FunctionHas,
+				filtering.NewFunctionOverload(
+					fmt.Sprintf("%s_%s_string", filtering.FunctionHas, node.Path),
+					filtering.TypeBool, filtering.TypeEnum(node.EnumType), filtering.TypeString,
+				),
+			)
+			declarationOptions = append(declarationOptions, ident, function)
+			{
+				ident := filtering.DeclareEnumIdent(fqn, node.EnumType)
+				function := filtering.DeclareFunction(filtering.FunctionHas,
+					filtering.NewFunctionOverload(
+						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, fqn),
+						filtering.TypeBool, filtering.TypeEnum(node.EnumType), filtering.TypeString,
+					),
+				)
+				macroDeclarationOptions = append(macroDeclarationOptions, ident, function)
+			}
 		}
 	}
 
-	declarationOptions = append(declarationOptions, filtering.DeclareStandardFunctions())
+	macros = append(macros, func(cursor *filtering.Cursor) {
+		identExpr := cursor.Expr().GetIdentExpr()
+		if fqn, ok := identNameToFQN[identExpr.GetName()]; ok {
+			cursor.Replace(filtering.Text(fqn))
+		}
+	})
+
+	declarationOptions = append(declarationOptions, sharedDeclarationOptions...)
+	macroDeclarationOptions = append(macroDeclarationOptions, sharedDeclarationOptions...)
 
 	declarations, err := filtering.NewDeclarations(declarationOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("creating filter declarations: %w", err)
 	}
 
+	macroDeclarations, err := filtering.NewDeclarations(macroDeclarationOptions...)
+	if err != nil {
+		return nil, fmt.Errorf("creating filter macro declarations: %w", err)
+	}
+
 	return &FilteringRequestParser[T, R]{
-		declarations: declarations,
-		tree:         tree,
+		declarations:      declarations,
+		macroDeclarations: macroDeclarations,
+		macros:            macros,
+		tree:              tree,
 	}, nil
 }
 
 func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, error) {
-	filterClause := request.GetFilter()
-	for node := range p.tree.FilterableNodes() {
-		filterClause = node.ApplyReplacement(filterClause)
-	}
-	p.setFilter(request, filterClause)
-
 	filter, err := filtering.ParseFilter(request, p.declarations)
 	if err != nil {
 		return nil, fmt.Errorf("parsing filter: %w", err)
 	}
-
+	if filter.CheckedExpr != nil {
+		filter, err = filtering.ApplyMacros(filter, p.macroDeclarations, p.macros...)
+		if err != nil {
+			return nil, fmt.Errorf("applying macros: %w", err)
+		}
+	}
 	whereClause, whereParams, err := postgres.TranspileFilter(filter)
 	if err != nil {
 		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
@@ -136,13 +179,6 @@ type FilteringRequest struct {
 
 func (f *FilteringRequest) GetSQLWhereClause() (string, []any) {
 	return f.whereClause, f.whereParams
-}
-
-func (p *FilteringRequestParser[T, R]) setFilter(request filteringRequest, filter string) {
-	msgReflect := request.ProtoReflect()
-	fields := msgReflect.Descriptor().Fields()
-	filterField := fields.ByName("filter")
-	msgReflect.Set(filterField, protoreflect.ValueOfString(filter))
 }
 
 func (f *FilteringRequest) GetFilter() filtering.Filter {

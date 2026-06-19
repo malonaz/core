@@ -12,6 +12,7 @@ import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
+import "malonaz/test/library/v1/shelf.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
 
@@ -91,6 +92,27 @@ message Book {
 
   // Book metadata.
   BookMetadata metadata = 12 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+
+  /*
+     // Join on parent.
+     string shelf_external_id = 13 [
+       (google.api.field_behavior) = OUTPUT_ONLY,
+       (malonaz.codegen.model.v1.field_opts).nullable = true,
+       (malonaz.codegen.model.v1.field_opts).join = {
+         parent: "library.test.malonaz.com/Shelf"
+         field: "external_id"
+       }
+     ];
+
+     // The genre of books on this shelf.
+     ShelfGenre shelf_genre = 14 [
+       (google.api.field_behavior) = OUTPUT_ONLY,
+       (malonaz.codegen.model.v1.field_opts).join = {
+         parent: "library.test.malonaz.com/Shelf"
+         field: "genre"
+       }
+     ];
+  */
 }
 
 // Metadata for a book.

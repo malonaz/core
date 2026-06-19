@@ -79,8 +79,6 @@ func (t *Transpiler) isJSONBPath(e *expr.Expr) bool {
 	if e.GetSelectExpr() != nil {
 		return true
 	}
-	if identExpr := e.GetIdentExpr(); identExpr != nil {
-		return strings.Contains(identExpr.GetName(), ".")
-	}
-	return false
+	// The first '.' is the table prefix.
+	return strings.Count(e.GetIdentExpr().GetName(), ".") > 1
 }

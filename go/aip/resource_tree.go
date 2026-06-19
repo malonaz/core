@@ -12,6 +12,7 @@ import (
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
@@ -22,11 +23,16 @@ const (
 	defaultMaxDepth = 10
 )
 
+// TreeConfig holds configuration for building a resource tree.
 type TreeConfig struct {
 	maxDepth     int
 	allowedPaths []string
+	registry     *protoregistry.Files
 }
 
+// Tree represents the parsed structure of a protobuf resource message,
+// including all its fields as nodes with metadata about types, column mappings,
+// and allowed paths for filtering/ordering/updating.
 type Tree struct {
 	Config         *TreeConfig
 	Resource       *ParsedResource
@@ -34,22 +40,37 @@ type Tree struct {
 	AllowedPathSet map[string]struct{}
 	Nodes          []*Node
 	IDColumnName   string
+	Registry       *protoregistry.Files
 }
 
+// TreeOption configures how a resource tree is built.
 type TreeOption func(*TreeConfig)
 
+// WithMaxDepth sets the maximum depth for exploring nested message fields.
 func WithMaxDepth(maxDepth int) TreeOption {
 	return func(tc *TreeConfig) {
 		tc.maxDepth = maxDepth
 	}
 }
 
+// WithAllowedPaths restricts which field paths are considered allowed.
+// Use "*" to allow all paths.
 func WithAllowedPaths(paths []string) TreeOption {
 	return func(tc *TreeConfig) {
 		tc.allowedPaths = paths
 	}
 }
 
+// WithRegistry sets the protobuf file registry used to resolve cross-message
+// references (e.g. join parent resources). Defaults to protoregistry.GlobalFiles.
+func WithRegistry(registry *protoregistry.Files) TreeOption {
+	return func(tc *TreeConfig) {
+		tc.registry = registry
+	}
+}
+
+// BuildResourceTreeFromDescriptor builds a tree from a raw message descriptor
+// without requiring a concrete Go type. Useful for dynamic/codegen scenarios.
 func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
 	for _, opt := range opts {
@@ -75,6 +96,9 @@ func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opt
 	return tree, nil
 }
 
+// BuildResourceTree builds a tree for a concrete protobuf resource type.
+// It parses the resource descriptor, model options, and field options to
+// produce nodes with column name mappings and replacement paths.
 func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
 	for _, opt := range opts {
@@ -102,10 +126,15 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		tree.Resource = resource
 	}
 
+	// Extract model options for table name and ID column overrides.
+	defaultTableName := tree.Resource.Singular
 	{
 		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
 		if err == nil && modelOpts != nil {
 			tree.IDColumnName = modelOpts.GetIdColumnName()
+			if modelOpts.GetTableName() != "" {
+				defaultTableName = modelOpts.GetTableName()
+			}
 		}
 	}
 
@@ -121,16 +150,27 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 
 	tree.SortAsc()
 
+	// Second pass: assign table names, column name replacements, and allowed paths.
 	fieldPathToReplacement := map[string]string{}
 	for _, node := range tree.Nodes {
 		node.AllowedPath = tree.IsPathAllowed(node)
 
+		// Assign the table name to top-level nodes. Join fields use the
+		// resolved parent resource's table; all others use the default.
+		if node.JoinTableName != "" {
+			node.TableName = node.JoinTableName
+		} else {
+			node.TableName = defaultTableName
+		}
+
 		replacementPath := node.Path
 
+		// Apply column name override for top-level nodes.
 		if node.Depth == 0 && node.ColumnName != "" {
 			replacementPath = node.ColumnName
 		}
 
+		// Nested nodes inherit replacements from their root node.
 		if node.Depth > 0 {
 			rootNodePath := node.RootNodePath()
 			if rootNodeReplacement, ok := fieldPathToReplacement[rootNodePath]; ok {
@@ -148,10 +188,13 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	return tree, nil
 }
 
+// OrderableNodes returns an iterator over nodes that can be used in ORDER BY clauses.
 func (t *Tree) OrderableNodes() iter.Seq[*Node] {
 	return t.FilterableNodes()
 }
 
+// FilterableNodes returns an iterator over nodes that can be used in filter expressions.
+// Excludes IDENTIFIER and INPUT_ONLY fields.
 func (t *Tree) FilterableNodes() iter.Seq[*Node] {
 	return func(yield func(*Node) bool) {
 		for node := range t.allowedNodes() {
@@ -165,6 +208,8 @@ func (t *Tree) FilterableNodes() iter.Seq[*Node] {
 	}
 }
 
+// UpdatableNodes returns an iterator over nodes that can be updated.
+// Excludes IDENTIFIER, OUTPUT_ONLY, and IMMUTABLE fields.
 func (t *Tree) UpdatableNodes() iter.Seq[*Node] {
 	return func(yield func(*Node) bool) {
 		for node := range t.allowedNodes() {
@@ -196,6 +241,10 @@ func newTree(config *TreeConfig) (*Tree, error) {
 	if config.maxDepth == 0 {
 		config.maxDepth = defaultMaxDepth
 	}
+	if config.registry == nil {
+		config.registry = protoregistry.GlobalFiles
+	}
+
 	var allowAllPaths bool
 	allowedPathSet := make(map[string]struct{}, len(config.allowedPaths))
 	for _, allowedPath := range config.allowedPaths {
@@ -212,13 +261,16 @@ func newTree(config *TreeConfig) (*Tree, error) {
 		Config:         config,
 		AllowAllPaths:  allowAllPaths,
 		AllowedPathSet: allowedPathSet,
+		Registry:       config.registry,
 	}, nil
 }
 
+// SortAsc sorts nodes by depth in ascending order.
 func (t *Tree) SortAsc() {
 	slices.SortFunc(t.Nodes, func(a, b *Node) int { return a.Depth - b.Depth })
 }
 
+// Add appends a node to the tree.
 func (t *Tree) Add(n *Node) {
 	t.Nodes = append(t.Nodes, n)
 }
@@ -258,8 +310,11 @@ func (t *Tree) IsPathAllowed(node *Node) bool {
 	return false
 }
 
+// Node represents a single field in the resource tree, carrying all metadata
+// needed for SQL generation, filtering declarations, and update parsing.
 type Node struct {
 	Depth            int
+	TableName        string
 	ColumnName       string
 	Path             string
 	Nullable         bool
@@ -270,17 +325,22 @@ type Node struct {
 	FieldBehaviorSet map[annotationspb.FieldBehavior]struct{}
 	IsRepeated       bool
 	IsMap            bool
+	// JoinTableName is set for fields populated via a JOIN; it holds the
+	// resolved table name of the parent resource referenced by the join.
+	JoinTableName string
 
 	AllowedPath           bool
 	ReplacementPath       string
 	ReplacementPathRegexp *regexp.Regexp
 }
 
+// HasFieldBehavior returns true if the node has the given field behavior annotation.
 func (n *Node) HasFieldBehavior(fb annotationspb.FieldBehavior) bool {
 	_, ok := n.FieldBehaviorSet[fb]
 	return ok
 }
 
+// RootNodePath returns the top-level field name for a potentially nested path.
 func (n *Node) RootNodePath() string {
 	if idx := strings.Index(n.Path, "."); idx != -1 {
 		return n.Path[:idx]
@@ -293,11 +353,8 @@ func getReplacementPathRegexp(path string) *regexp.Regexp {
 }
 
 // ApplyReplacement replaces all occurrences of a field path in the clause with its replacement.
-// The field is treated as an atomic unit - dots are literal separators, not regex wildcards.
-// A field matches only when:
-//   - It starts at a word boundary
-//   - It ends at a word boundary
-//   - It's NOT followed by a dot (which would make it part of a longer path)
+// The field is treated as an atomic unit — it matches only at word boundaries and
+// is NOT followed by a dot (which would make it part of a longer path).
 func (n *Node) ApplyReplacement(clause string) string {
 	if n.ReplacementPath == "" {
 		return clause
@@ -310,6 +367,8 @@ func (n *Node) ApplyReplacement(clause string) string {
 	return result
 }
 
+// Explore recursively walks a field descriptor and adds nodes to the tree.
+// It handles scalars, enums, maps, well-known types, and nested messages.
 func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor, depth int) error {
 	if depth == t.Config.maxDepth {
 		return nil
@@ -325,15 +384,26 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		return nil
 	}
 
+	// Resolve join table name from the parent resource if this is a join field.
+	var joinTableName string
+	if join := fieldOpts.GetJoin(); join != nil {
+		tableName, err := resolveJoinTableName(t.Registry, join)
+		if err != nil {
+			return fmt.Errorf("resolving join table for %s: %v", fieldName, err)
+		}
+		joinTableName = tableName
+	}
+
 	node := &Node{
-		Depth:        depth,
-		Path:         fieldPath,
-		Nullable:     fieldOpts.GetNullable(),
-		ColumnName:   fieldOpts.GetColumnName(),
-		AsJsonBytes:  depth == 0 && fieldOpts.GetAsJsonBytes(),
-		AsProtoBytes: depth == 0 && fieldOpts.GetAsProtoBytes(),
-		IsRepeated:   fieldDesc.IsList(),
-		IsMap:        fieldDesc.IsMap(),
+		Depth:         depth,
+		Path:          fieldPath,
+		Nullable:      fieldOpts.GetNullable(),
+		ColumnName:    fieldOpts.GetColumnName(),
+		AsJsonBytes:   depth == 0 && fieldOpts.GetAsJsonBytes(),
+		AsProtoBytes:  depth == 0 && fieldOpts.GetAsProtoBytes(),
+		IsRepeated:    fieldDesc.IsList(),
+		IsMap:         fieldDesc.IsMap(),
+		JoinTableName: joinTableName,
 	}
 	t.Add(node)
 
@@ -348,7 +418,7 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		}
 	}
 
-	// Helper to wrap type in list if repeated
+	// wrapIfRepeated wraps a type in a list type when the field is repeated.
 	wrapIfRepeated := func(elemType *v1alpha1.Type) *v1alpha1.Type {
 		if node.IsRepeated {
 			return &v1alpha1.Type{
@@ -404,7 +474,7 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}})
 			case "google.protobuf.Duration":
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_DURATION}})
-				// Skip well-known wrapper/recursive types that cause combinatorial explosion.
+			// Skip well-known wrapper/recursive types that cause combinatorial explosion.
 			case "google.protobuf.Struct", "google.protobuf.Value", "google.protobuf.ListValue",
 				"google.protobuf.Any":
 			default:
@@ -430,4 +500,52 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 	}
 
 	return nil
+}
+
+// resolveJoinTableName resolves the database table name for a join field's parent resource.
+// It looks up the parent resource type in the registry, extracts the singular name from
+// its resource descriptor as the default table name, then checks for a model_opts.table_name override.
+func resolveJoinTableName(registry *protoregistry.Files, join *modelpb.Join) (string, error) {
+	parentMsg, err := findMessageByResourceType(registry, join.GetParent())
+	if err != nil {
+		return "", err
+	}
+
+	resourceDescriptor, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](parentMsg.Options(), annotationspb.E_Resource)
+	if err != nil {
+		return "", fmt.Errorf("getting resource descriptor: %v", err)
+	}
+	tableName := resourceDescriptor.GetSingular()
+
+	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMsg.Options(), modelpb.E_ModelOpts)
+	if err == nil && modelOpts != nil && modelOpts.GetTableName() != "" {
+		tableName = modelOpts.GetTableName()
+	}
+
+	return tableName, nil
+}
+
+// findMessageByResourceType scans all files in the registry for a message
+// whose google.api.resource type matches the given resource type string.
+func findMessageByResourceType(registry *protoregistry.Files, resourceType string) (protoreflect.MessageDescriptor, error) {
+	var found protoreflect.MessageDescriptor
+	registry.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		msgs := fd.Messages()
+		for i := 0; i < msgs.Len(); i++ {
+			msg := msgs.Get(i)
+			rd, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](msg.Options(), annotationspb.E_Resource)
+			if err != nil || rd == nil {
+				continue
+			}
+			if rd.GetType() == resourceType {
+				found = msg
+				return false
+			}
+		}
+		return true
+	})
+	if found == nil {
+		return nil, fmt.Errorf("message with resource type %q not found", resourceType)
+	}
+	return found, nil
 }
