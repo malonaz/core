@@ -19,15 +19,15 @@ var ErrChatAlreadyDeleted = errors.New("chat already deleted")
 var ErrChatETagChanged = errors.New("chat etag changed")
 
 type Chat struct {
-	OrganizationID string     `db:"organization_id"`
-	UserID         string     `db:"user_id"`
-	ChatID         string     `db:"chat_id"`
-	CreateTime     time.Time  `db:"create_time"`
-	UpdateTime     time.Time  `db:"update_time"`
-	DeleteTime     *time.Time `db:"delete_time"`
-	Etag           string     `db:"etag"`
-	Labels         []byte     `db:"labels"`
-	Metadata       []byte     `db:"metadata"`
+	OrganizationID string     `db:"organization_id" schema:"public" table:"chat"`
+	UserID         string     `db:"user_id" schema:"public" table:"chat"`
+	ChatID         string     `db:"chat_id" schema:"public" table:"chat"`
+	CreateTime     time.Time  `db:"create_time" schema:"public" table:"chat"`
+	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"chat"`
+	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"chat"`
+	Etag           string     `db:"etag" schema:"public" table:"chat"`
+	Labels         []byte     `db:"labels" schema:"public" table:"chat"`
+	Metadata       []byte     `db:"metadata" schema:"public" table:"chat"`
 }
 
 func ChatFromPb(m *v1.Chat) (*Chat, error) {

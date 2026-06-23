@@ -10,20 +10,67 @@ func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
 	if mc.pr.Singleton {
-		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
+		if mc.hasJoins {
+			g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
+		} else {
+			g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
+		}
 		g.P()
 	}
 
+	writeColumns := mc.writeColumns()
+
 	g.P("var (")
 	g.P(fmt.Sprintf("  %sWithRequestIDPostgresColumns = %s(%sWithRequestID{})", mc.goType, mc.postgres("GetDBColumns"), mc.goType))
+	if mc.hasJoins {
+		exceptArgs := mc.exceptColumnsArgs()
+		g.P(fmt.Sprintf("  %sWithRequestIDWritePostgresColumns = %s(%sWithRequestID{}, %s(%s))",
+			mc.goType, mc.postgres("GetDBColumns"), mc.goType, mc.postgres("ExceptColumns"), exceptArgs))
+	}
 	g.P(fmt.Sprintf("  _%sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s RETURNING `",
 		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier))
-	g.P(fmt.Sprintf("  %sWithRequestIDInsertPostgresQuery = _%sInsertPostgresQuery + %s(\"%%s\", %sWithRequestIDPostgresColumns)",
-		mc.goName, mc.goName, mc.postgres("SelectQuery"), mc.goType))
-	g.P(fmt.Sprintf("  %sInsertPostgresQuery = _%sInsertPostgresQuery + %s(\"%%s\", %sPostgresColumns)",
-		mc.goName, mc.goName, mc.postgres("SelectQuery"), mc.goType))
+
+	withReqIDWriteCols := mc.goType + "WithRequestIDPostgresColumns"
+	if mc.hasJoins {
+		withReqIDWriteCols = mc.goType + "WithRequestIDWritePostgresColumns"
+	}
+	withReqIDReturning := mc.returningExpr(withReqIDWriteCols)
+	g.P(fmt.Sprintf("  %sWithRequestIDInsertPostgresQuery = _%sInsertPostgresQuery + %s",
+		mc.goName, mc.goName, withReqIDReturning))
+
+	returning := mc.returningExpr(writeColumns)
+	g.P(fmt.Sprintf("  %sInsertPostgresQuery = _%sInsertPostgresQuery + %s",
+		mc.goName, mc.goName, returning))
+
 	g.P(")")
 	g.P()
+}
+
+func (mc *msgCtx) singletonChildHasJoins(sc singletonChild) bool {
+	joinTables, err := parseJoinFields(sc.message, "")
+	if err != nil {
+		return false
+	}
+	return len(joinTables) > 0
+}
+
+func (mc *msgCtx) singletonChildWriteColumns(sc singletonChild) string {
+	if mc.singletonChildHasJoins(sc) {
+		return sc.pr.SingularGoName() + "WritePostgresColumns"
+	}
+	return ""
+}
+
+func (mc *msgCtx) generateSingletonInsertQuery(idx int, sc singletonChild) {
+	g := mc.g
+	insertQuery := mc.postgres("InsertQuery")
+	childParam := untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular))
+	writeCols := mc.singletonChildWriteColumns(sc)
+	if writeCols != "" {
+		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s, %s...)", idx, idx, insertQuery, sc.pr.SingularGoName(), childParam, writeCols))
+	} else {
+		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", idx, idx, insertQuery, sc.pr.SingularGoName(), childParam))
+	}
 }
 
 func (mc *msgCtx) generateInsert() {
@@ -37,10 +84,13 @@ func (mc *msgCtx) generateInsert() {
 	sig += fmt.Sprintf(") (*%s, error) {", mc.goTypeFqi)
 	g.P(sig)
 
-	g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
+	if mc.hasJoins {
+		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s, %s...)", insertQuery, mc.goName, mc.goParam, mc.writeColumns()))
+	} else {
+		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
+	}
 	for i, sc := range mc.singletonChildren {
-		childParam := untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular))
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", i+2, i+2, insertQuery, sc.pr.SingularGoName(), childParam))
+		mc.generateSingletonInsertQuery(i+2, sc)
 	}
 	g.P()
 
@@ -98,8 +148,13 @@ func (mc *msgCtx) generateWithRequestIDStruct() {
 	g.P("}")
 	g.P()
 
-	g.P(fmt.Sprintf("var %sGetByRequestIDQuery = `SELECT ` + %s(\"%%s\", %sPostgresColumns) + ` FROM %s WHERE request_id = $1`",
-		mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.tableName))
+	if mc.hasJoins {
+		g.P(fmt.Sprintf("var %sGetByRequestIDQuery = %s(`SELECT %%s FROM %s ` + %sJoinClause + ` WHERE %s.request_id = $1`, %s(%s, %q) + %sJoinSelectExprs)",
+			mc.goName, mc.fmtI("Sprintf"), mc.tableName, mc.goName, mc.bareTableName, mc.postgres("QualifyColumns"), mc.writeColumns(), mc.bareTableName, mc.goName))
+	} else {
+		g.P(fmt.Sprintf("var %sGetByRequestIDQuery = `SELECT ` + %s(\"%%s\", %sPostgresColumns) + ` FROM %s WHERE request_id = $1`",
+			mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.tableName))
+	}
 	g.P()
 }
 
@@ -109,6 +164,11 @@ func (mc *msgCtx) generateInsertIdempotently() {
 	collectOneRow := mc.pgx("CollectOneRow")
 	rowToAddrLax := mc.pgx("RowToAddrOfStructByNameLax")
 	errNoRows := mc.pgx("ErrNoRows")
+
+	withReqIDWriteCols := mc.goType + "WithRequestIDPostgresColumns"
+	if mc.hasJoins {
+		withReqIDWriteCols = mc.goType + "WithRequestIDWritePostgresColumns"
+	}
 
 	sig := fmt.Sprintf("func (s *Store) Insert%sIdempotently(ctx context.Context, requestID string, raw%s *%s",
 		mc.goType, title(mc.goParam), mc.goTypeFqi)
@@ -122,11 +182,14 @@ func (mc *msgCtx) generateInsertIdempotently() {
 	g.P("    RequestID: requestID,")
 	g.P(fmt.Sprintf("    %s: *raw%s,", mc.goType, title(mc.goParam)))
 	g.P("  }")
-	g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
+	if mc.hasJoins {
+		g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s, %s...)", insertQuery, mc.goName, mc.goParam, withReqIDWriteCols))
+	} else {
+		g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
+	}
 
 	for i, sc := range mc.singletonChildren {
-		childParam := untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular))
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", i+2, i+2, insertQuery, sc.pr.SingularGoName(), childParam))
+		mc.generateSingletonInsertQuery(i+2, sc)
 	}
 	g.P()
 

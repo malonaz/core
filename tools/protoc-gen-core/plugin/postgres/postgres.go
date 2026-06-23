@@ -1,3 +1,4 @@
+// tools/protoc-gen-core/plugin/postgres/postgres.go
 package postgres
 
 import (
@@ -80,18 +81,29 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		g.P()
 	}
 
-	g.P("var (")
-	for _, mm := range messages {
-		goType := mm.message.GoIdent.GoName
-		g.P("  ", goType, "PostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(goType), "{})")
-	}
-	g.P(")")
-	g.P()
-
+	var msgCtxs []*msgCtx
 	for _, mm := range messages {
 		mc, err := gen.newMsgCtx(mm.message, mm.modelOpts, mm.pr)
 		if err != nil {
 			return fmt.Errorf("building context for %s: %w", mm.message.GoIdent.GoName, err)
+		}
+		msgCtxs = append(msgCtxs, mc)
+	}
+
+	g.P("var (")
+	for _, mc := range msgCtxs {
+		g.P("  ", mc.goType, "PostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(mc.goType), "{})")
+		if mc.hasJoins {
+			exceptArgs := mc.exceptColumnsArgs()
+			g.P("  ", mc.goType, "WritePostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(mc.goType), "{}, ", postgresPkg.Ident("ExceptColumns"), "(", exceptArgs, "))")
+		}
+	}
+	g.P(")")
+	g.P()
+
+	for _, mc := range msgCtxs {
+		if mc.hasJoins {
+			mc.generateJoinVars()
 		}
 		mc.generateETagGetter()
 		mc.generateInsertVars()
@@ -101,6 +113,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateUpdate()
 		mc.generateDelete()
 		mc.generateGet()
+		mc.generateBatchGet()
 		mc.generateList()
 	}
 
@@ -126,7 +139,23 @@ type singletonChild struct {
 	modelOpts *modelpb.ModelOpts
 }
 
-// msgCtx holds all precomputed values for generating postgres code for a single message.
+type joinFieldInfo struct {
+	dbTag      string
+	joinColumn string
+}
+
+type joinCondition struct {
+	parentColumn string
+	childColumn  string
+}
+
+type joinTableInfo struct {
+	qualifiedTable string
+	bareTable      string
+	fields         []joinFieldInfo
+	conditions     []joinCondition
+}
+
 type msgCtx struct {
 	gen *generator
 	g   *protogen.GeneratedFile
@@ -146,6 +175,7 @@ type msgCtx struct {
 	errETagChanged    string
 
 	tableName        string
+	bareTableName    string
 	whereClause      string
 	placeholderDecls string
 	columnNames      string
@@ -155,6 +185,13 @@ type msgCtx struct {
 	hasDeleteTime bool
 
 	singletonChildren []singletonChild
+
+	hasJoins   bool
+	joinTables []joinTableInfo
+
+	joinSubqueryExpr string
+	joinSelectExprs  string
+	joinClause       string
 }
 
 func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.ModelOpts, pr *resource.ParsedResource) (*msgCtx, error) {
@@ -167,6 +204,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 	if modelOpts.GetSchemaName() != "" {
 		tableName = modelOpts.GetSchemaName() + "." + tableName
+	}
+
+	bareTableName := tableName
+	if i := strings.LastIndex(tableName, "."); i >= 0 {
+		bareTableName = tableName[i+1:]
 	}
 
 	patternVars := pr.PatternVariables
@@ -200,6 +242,8 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		columnNames = strings.Replace(columnNames, id, modelOpts.GetIdColumnName(), 1)
 	}
 
+	hasDeleteTime := message.Desc.Fields().ByName("delete_time") != nil
+
 	var singletonChildren []singletonChild
 	for _, childPr := range pr.Children {
 		if !childPr.Singleton {
@@ -213,7 +257,29 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		if err != nil {
 			continue
 		}
+
+		childHasDeleteTime := childMessage.Desc.Fields().ByName("delete_time") != nil
+		if hasDeleteTime != childHasDeleteTime {
+			if hasDeleteTime {
+				return nil, fmt.Errorf("singleton child %s must have a delete_time field because its parent %s is soft-deletable", childPr.Desc.Type, goType)
+			}
+			return nil, fmt.Errorf("singleton child %s has a delete_time field but its parent %s is not soft-deletable", childPr.Desc.Type, goType)
+		}
+
 		singletonChildren = append(singletonChildren, singletonChild{pr: childPr, message: childMessage, modelOpts: childModelOpts})
+	}
+
+	joinTables, err := parseJoinFields(message, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("parsing join fields for %s: %w", goType, err)
+	}
+	hasJoins := len(joinTables) > 0
+
+	var joinSubqueryExpr, joinSelectExprs, joinClauseStr string
+	if hasJoins {
+		joinSubqueryExpr = buildJoinSubqueryExpr(joinTables, bareTableName)
+		joinSelectExprs = buildJoinSelectExprs(joinTables)
+		joinClauseStr = buildJoinClause(joinTables, bareTableName)
 	}
 
 	return &msgCtx{
@@ -232,19 +298,195 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 
 		tableName:        tableName,
+		bareTableName:    bareTableName,
 		whereClause:      strings.Join(whereConditions, " AND "),
 		placeholderDecls: strings.Join(placeholderConditions, " AND "),
 		columnNames:      columnNames,
 		identifier:       identifier,
 
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
-		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
+		hasDeleteTime: hasDeleteTime,
 
 		singletonChildren: singletonChildren,
+
+		hasJoins:         hasJoins,
+		joinTables:       joinTables,
+		joinSubqueryExpr: joinSubqueryExpr,
+		joinSelectExprs:  joinSelectExprs,
+		joinClause:       joinClauseStr,
 	}, nil
 }
 
-// Shorthand ident helpers on msgCtx for commonly used packages.
+func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTableInfo, error) {
+	type parentKey struct {
+		resourceType   string
+		qualifiedTable string
+	}
+	var parentOrder []parentKey
+	parentToInfo := map[string]*joinTableInfo{}
+
+	for _, field := range message.Fields {
+		fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
+		if err != nil {
+			if errors.Is(err, pbutil.ErrExtensionNotFound) {
+				continue
+			}
+			return nil, fmt.Errorf("getting field_opts for %s: %w", field.Desc.Name(), err)
+		}
+		join := fieldOpts.GetJoin()
+		if join == nil {
+			continue
+		}
+
+		parentMessage, err := resource.GetMessageByResourceType(join.Parent)
+		if err != nil {
+			return nil, fmt.Errorf("resolving join parent resource %q: %w", join.Parent, err)
+		}
+
+		parentModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMessage.Desc.Options(), modelpb.E_ModelOpts)
+		if err != nil {
+			return nil, fmt.Errorf("getting model_opts for join parent %q: %w", join.Parent, err)
+		}
+
+		parentPR, err := resource.ParseFromMessage(parentMessage)
+		if err != nil {
+			return nil, fmt.Errorf("parsing join parent resource %q: %w", join.Parent, err)
+		}
+
+		joinColumn := join.Field
+		for _, parentField := range parentMessage.Fields {
+			if parentField.Desc.TextName() == join.Field {
+				parentFieldOpts, extErr := pbutil.GetExtension[*modelpb.FieldOpts](parentField.Desc.Options(), modelpb.E_FieldOpts)
+				if extErr != nil && !errors.Is(extErr, pbutil.ErrExtensionNotFound) {
+					return nil, fmt.Errorf("getting field_opts for parent field %q: %w", join.Field, extErr)
+				}
+				if parentFieldOpts.GetColumnName() != "" {
+					joinColumn = parentFieldOpts.GetColumnName()
+				}
+				break
+			}
+		}
+
+		info, exists := parentToInfo[join.Parent]
+		if !exists {
+			parentTable := parentPR.SingularSnakeCase()
+			if parentModelOpts.GetTableName() != "" {
+				parentTable = parentModelOpts.GetTableName()
+			}
+			qualifiedParentTable := parentTable
+			if parentModelOpts.GetSchemaName() != "" {
+				qualifiedParentTable = parentModelOpts.GetSchemaName() + "." + parentTable
+			}
+
+			var conditions []joinCondition
+			parentVars := parentPR.PatternVariables
+			parentLastIdx := len(parentVars) - 1
+			for i, v := range parentVars {
+				parentCol := v + "_id"
+				if i == parentLastIdx && parentModelOpts.GetIdColumnName() != "" {
+					parentCol = parentModelOpts.GetIdColumnName()
+				}
+				childCol := v + "_id"
+				conditions = append(conditions, joinCondition{
+					parentColumn: parentCol,
+					childColumn:  childCol,
+				})
+			}
+
+			info = &joinTableInfo{
+				qualifiedTable: qualifiedParentTable,
+				bareTable:      parentTable,
+				conditions:     conditions,
+			}
+			parentToInfo[join.Parent] = info
+			parentOrder = append(parentOrder, parentKey{resourceType: join.Parent, qualifiedTable: qualifiedParentTable})
+		}
+
+		info.fields = append(info.fields, joinFieldInfo{
+			dbTag:      string(field.Desc.Name()),
+			joinColumn: joinColumn,
+		})
+	}
+
+	result := make([]joinTableInfo, 0, len(parentOrder))
+	for _, pk := range parentOrder {
+		result = append(result, *parentToInfo[pk.resourceType])
+	}
+	return result, nil
+}
+
+func buildJoinSubqueryExpr(joinTables []joinTableInfo, childBareTable string) string {
+	var parts []string
+	for _, jt := range joinTables {
+		var whereParts []string
+		for _, c := range jt.conditions {
+			whereParts = append(whereParts, fmt.Sprintf("%s.%s = %s.%s", jt.bareTable, c.parentColumn, childBareTable, c.childColumn))
+		}
+		whereStr := strings.Join(whereParts, " AND ")
+
+		for _, f := range jt.fields {
+			parts = append(parts, fmt.Sprintf("(SELECT %s.%s FROM %s WHERE %s) AS %s",
+				jt.bareTable, f.joinColumn, jt.qualifiedTable, whereStr, f.dbTag))
+		}
+	}
+	return "," + strings.Join(parts, ",")
+}
+
+func buildJoinSelectExprs(joinTables []joinTableInfo) string {
+	var parts []string
+	for _, jt := range joinTables {
+		for _, f := range jt.fields {
+			parts = append(parts, fmt.Sprintf("%s.%s AS %s", jt.bareTable, f.joinColumn, f.dbTag))
+		}
+	}
+	return "," + strings.Join(parts, ",")
+}
+
+func buildJoinClause(joinTables []joinTableInfo, childBareTable string) string {
+	var parts []string
+	for _, jt := range joinTables {
+		var onParts []string
+		for _, c := range jt.conditions {
+			onParts = append(onParts, fmt.Sprintf("%s.%s = %s.%s", jt.bareTable, c.parentColumn, childBareTable, c.childColumn))
+		}
+		parts = append(parts, fmt.Sprintf("INNER JOIN %s ON %s", jt.qualifiedTable, strings.Join(onParts, " AND ")))
+	}
+	return strings.Join(parts, " ")
+}
+
+func (mc *msgCtx) exceptColumnsArgs() string {
+	var args []string
+	for _, jt := range mc.joinTables {
+		for _, f := range jt.fields {
+			args = append(args, fmt.Sprintf("%q", f.dbTag))
+		}
+	}
+	return strings.Join(args, ", ")
+}
+
+func (mc *msgCtx) generateJoinVars() {
+	g := mc.g
+	g.P(fmt.Sprintf("var %sJoinSubqueryExpr = `%s`", mc.goName, mc.joinSubqueryExpr))
+	g.P(fmt.Sprintf("var %sJoinSelectExprs = `%s`", mc.goName, mc.joinSelectExprs))
+	g.P(fmt.Sprintf("var %sJoinClause = `%s`", mc.goName, mc.joinClause))
+	g.P()
+}
+
+func (mc *msgCtx) writeColumns() string {
+	if mc.hasJoins {
+		return mc.goType + "WritePostgresColumns"
+	}
+	return mc.goType + "PostgresColumns"
+}
+
+func (mc *msgCtx) returningExpr(columnsVar string) string {
+	expr := fmt.Sprintf("%s(\"%%s\", %s)", mc.postgres("SelectQuery"), columnsVar)
+	if mc.hasJoins {
+		expr += fmt.Sprintf(" + %sJoinSubqueryExpr", mc.goName)
+	}
+	return expr
+}
+
 func (mc *msgCtx) pgx(name string) string      { return mc.gen.ident(pgxPkg, name) }
 func (mc *msgCtx) postgres(name string) string { return mc.gen.ident(postgresPkg, name) }
 func (mc *msgCtx) fmtI(name string) string     { return mc.gen.ident(fmtPkg, name) }
@@ -270,7 +512,23 @@ func (mc *msgCtx) patternVarIDUntitled() string {
 	return strings.Join(parts, ", ")
 }
 
-// generateETagGetter emits the private etag lookup helper when the message has an etag field.
+func (mc *msgCtx) qualifiedPlaceholderDecls() string {
+	if !mc.hasJoins {
+		return mc.placeholderDecls
+	}
+	patternVars := mc.pr.PatternVariables
+	lastIdx := len(patternVars) - 1
+	var conditions []string
+	for i, v := range patternVars {
+		col := v + "_id"
+		if i == lastIdx && mc.modelOpts.GetIdColumnName() != "" {
+			col = mc.modelOpts.GetIdColumnName()
+		}
+		conditions = append(conditions, fmt.Sprintf("%s.%s = $%d", mc.bareTableName, col, i+1))
+	}
+	return strings.Join(conditions, " AND ")
+}
+
 func (mc *msgCtx) generateETagGetter() {
 	if !mc.hasEtag {
 		return
@@ -287,23 +545,54 @@ func (mc *msgCtx) generateETagGetter() {
 	g.P()
 }
 
-// generateETagCheck emits the etag mismatch detection block used inside ErrNoRows handlers.
-func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string) {
+func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string, inTransaction bool) {
 	g := mc.g
+	retPrefix := "return nil, "
+	if inTransaction {
+		retPrefix = "return "
+	}
 	g.P("      if etag != \"\" {")
 	g.P(fmt.Sprintf("        currentEtag, getEtagErr := s.get%sETag(ctx, %s)", mc.goType, patternVarArgs))
 	g.P("        switch getEtagErr {")
 	g.P("        case nil:")
 	g.P("          if currentEtag == etag {")
-	g.P("            return nil, ", mc.fmtI("Errorf"), "(\"", operation, " matched no rows but etag unchanged: expected etag mismatch\")")
+	g.P("            ", retPrefix, mc.fmtI("Errorf"), "(\"", operation, " matched no rows but etag unchanged: expected etag mismatch\")")
 	g.P("          }")
-	g.P(fmt.Sprintf("          return nil, %s", mc.errETagChanged))
+	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errETagChanged))
 	g.P(fmt.Sprintf("        case %s:", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("          return nil, %s", mc.errNotExist))
+	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errNotExist))
 	g.P("        default:")
-	g.P("          return nil, ", mc.fmtI("Errorf"), "(\"getting etag: %v\", getEtagErr)")
+	g.P("          ", retPrefix, mc.fmtI("Errorf"), "(\"getting etag: %v\", getEtagErr)")
 	g.P("        }")
 	g.P("      }")
+}
+
+// singletonChildTableName resolves the fully qualified table name for a singleton child.
+func (mc *msgCtx) singletonChildTableName(sc singletonChild) string {
+	tableName := sc.pr.SingularSnakeCase()
+	if sc.modelOpts.GetTableName() != "" {
+		tableName = sc.modelOpts.GetTableName()
+	}
+	if sc.modelOpts.GetSchemaName() != "" {
+		tableName = sc.modelOpts.GetSchemaName() + "." + tableName
+	}
+	return tableName
+}
+
+// singletonChildPlaceholderDecls builds WHERE conditions for a singleton child
+// using the parent's pattern variable IDs.
+func (mc *msgCtx) singletonChildPlaceholderDecls(sc singletonChild) string {
+	patternVars := mc.pr.PatternVariables
+	lastIdx := len(patternVars) - 1
+	var conditions []string
+	for i, v := range patternVars {
+		col := v + "_id"
+		if i == lastIdx && sc.modelOpts.GetIdColumnName() != "" {
+			col = sc.modelOpts.GetIdColumnName()
+		}
+		conditions = append(conditions, fmt.Sprintf("%s = $%d", col, i+1))
+	}
+	return strings.Join(conditions, " AND ")
 }
 
 func untitle(s string) string {

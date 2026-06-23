@@ -15,14 +15,18 @@ func (mc *msgCtx) generateDelete() {
 func (mc *msgCtx) generateSoftDelete() {
 	g := mc.g
 	numVars := len(mc.pr.PatternVariables)
+	writeColumns := mc.writeColumns()
 
 	etagSet := ""
 	if mc.hasEtag {
 		etagSet = fmt.Sprintf(", etag = $%d", numVars+2)
 	}
+
+	returningExpr := mc.returningExpr(writeColumns)
+
 	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = COALESCE(delete_time, $%d)%s WHERE %s RETURNING (delete_time < $%d) AS was_already_deleted, ` +",
 		mc.goType, mc.tableName, numVars+1, etagSet, mc.placeholderDecls, numVars+1))
-	g.P(fmt.Sprintf("  %s(\"%%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("  %s", returningExpr))
 	g.P()
 
 	g.P(fmt.Sprintf("type softDelete%sResult struct {", mc.goType))
@@ -53,6 +57,19 @@ func (mc *msgCtx) generateSoftDelete() {
 		g.P("  }")
 	}
 
+	if len(mc.singletonChildren) > 0 {
+		mc.generateSoftDeleteWithTransaction()
+	} else {
+		mc.generateSoftDeleteDirect()
+	}
+
+	g.P("}")
+	g.P()
+}
+
+func (mc *msgCtx) generateSoftDeleteDirect() {
+	g := mc.g
+
 	g.P("  rows, err := s.client.Query(ctx, query, params...)")
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(\"soft deleting %s: %%w\", err)", mc.fmtI("Errorf"), mc.goName))
@@ -61,7 +78,7 @@ func (mc *msgCtx) generateSoftDelete() {
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
 	if mc.hasEtag {
-		mc.generateETagCheck("soft delete", mc.patternVarIDUntitled())
+		mc.generateETagCheck("soft delete", mc.patternVarIDUntitled(), false)
 	}
 	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
 	g.P("    }")
@@ -71,15 +88,55 @@ func (mc *msgCtx) generateSoftDelete() {
 	g.P(fmt.Sprintf("    return nil, %s", mc.errAlreadyDeleted))
 	g.P("  }")
 	g.P(fmt.Sprintf("  return &row.%s, nil", mc.goType))
-	g.P("}")
+}
+
+func (mc *msgCtx) generateSoftDeleteWithTransaction() {
+	g := mc.g
+
+	g.P(fmt.Sprintf("  var result *%s", mc.goTypeFqi))
+	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
+	g.P("    result = nil")
+	g.P("    rows, err := tx.Query(ctx, query, params...)")
+	g.P("    if err != nil {")
+	g.P(fmt.Sprintf("      return %s(\"soft deleting %s: %%w\", err)", mc.fmtI("Errorf"), mc.goName))
+	g.P("    }")
+	g.P(fmt.Sprintf("    row, err := %s(rows, %s[softDelete%sResult])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goType))
+	g.P("    if err != nil {")
+	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
+	if mc.hasEtag {
+		mc.generateETagCheck("soft delete", mc.patternVarIDUntitled(), true)
+	}
+	g.P(fmt.Sprintf("        return %s", mc.errNotExist))
+	g.P("      }")
+	g.P("      return err")
+	g.P("    }")
+	g.P("    if row.WasAlreadyDeleted {")
+	g.P(fmt.Sprintf("      return %s", mc.errAlreadyDeleted))
+	g.P("    }")
+	g.P(fmt.Sprintf("    result = &row.%s", mc.goType))
 	g.P()
+
+	// Soft-delete singleton children within the same transaction.
+	for _, sc := range mc.singletonChildren {
+		mc.generateChildSoftDeleteExec(sc)
+	}
+
+	g.P("    return nil")
+	g.P("  }")
+	g.P()
+	g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("ReadCommitted")))
+	g.P("    return nil, err")
+	g.P("  }")
+	g.P("  return result, nil")
 }
 
 func (mc *msgCtx) generateHardDelete() {
 	g := mc.g
+	writeColumns := mc.writeColumns()
+	returningExpr := mc.returningExpr(writeColumns)
 
-	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s ` +", mc.goType, mc.tableName, mc.placeholderDecls))
-	g.P(fmt.Sprintf("  %s(\"RETURNING %%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s RETURNING ` + ", mc.goType, mc.tableName, mc.placeholderDecls))
+	g.P(returningExpr)
 	g.P()
 
 	etagParam := ""
@@ -99,6 +156,19 @@ func (mc *msgCtx) generateHardDelete() {
 		g.P("  }")
 	}
 
+	if len(mc.singletonChildren) > 0 {
+		mc.generateHardDeleteWithTransaction()
+	} else {
+		mc.generateHardDeleteDirect()
+	}
+
+	g.P("}")
+	g.P()
+}
+
+func (mc *msgCtx) generateHardDeleteDirect() {
+	g := mc.g
+
 	g.P("  rows, err := s.client.Query(ctx, query, params...)")
 	g.P("  if err != nil {")
 	g.P("    return nil, err")
@@ -107,13 +177,71 @@ func (mc *msgCtx) generateHardDelete() {
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
 	if mc.hasEtag {
-		mc.generateETagCheck("delete", mc.patternVarIDUntitled())
+		mc.generateETagCheck("delete", mc.patternVarIDUntitled(), false)
 	}
 	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
 	g.P("  return row, nil")
-	g.P("}")
+}
+
+func (mc *msgCtx) generateHardDeleteWithTransaction() {
+	g := mc.g
+
+	g.P(fmt.Sprintf("  var deleted *%s", mc.goTypeFqi))
+	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
+	g.P("    deleted = nil")
+
+	// Hard-delete singleton children first to respect FK constraints.
+	for _, sc := range mc.singletonChildren {
+		mc.generateChildHardDeleteExec(sc)
+	}
+
+	g.P("    rows, err := tx.Query(ctx, query, params...)")
+	g.P("    if err != nil {")
+	g.P("      return err")
+	g.P("    }")
+	g.P(fmt.Sprintf("    deleted, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
+	g.P("    if err != nil {")
+	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
+	if mc.hasEtag {
+		mc.generateETagCheck("delete", mc.patternVarIDUntitled(), true)
+	}
+	g.P(fmt.Sprintf("        return %s", mc.errNotExist))
+	g.P("      }")
+	g.P("      return err")
+	g.P("    }")
+	g.P("    return nil")
+	g.P("  }")
 	g.P()
+	g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("ReadCommitted")))
+	g.P("    return nil, err")
+	g.P("  }")
+	g.P("  return deleted, nil")
+}
+
+// generateChildSoftDeleteExec emits a soft-delete Exec for a singleton child inside a transaction.
+func (mc *msgCtx) generateChildSoftDeleteExec(sc singletonChild) {
+	g := mc.g
+	childTable := mc.singletonChildTableName(sc)
+	childPlaceholders := mc.singletonChildPlaceholderDecls(sc)
+	numParentVars := len(mc.pr.PatternVariables)
+
+	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `UPDATE %s SET delete_time = COALESCE(delete_time, $%d) WHERE %s`, %s, deleteTime); err != nil {",
+		childTable, numParentVars+1, childPlaceholders, mc.patternVarIDsGoTrue()))
+	g.P(fmt.Sprintf("      return %s(\"soft deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), sc.pr.SingularGoName()))
+	g.P("    }")
+}
+
+// generateChildHardDeleteExec emits a hard-delete Exec for a singleton child inside a transaction.
+func (mc *msgCtx) generateChildHardDeleteExec(sc singletonChild) {
+	g := mc.g
+	childTable := mc.singletonChildTableName(sc)
+	childPlaceholders := mc.singletonChildPlaceholderDecls(sc)
+
+	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `DELETE FROM %s WHERE %s`, %s); err != nil {",
+		childTable, childPlaceholders, mc.patternVarIDsGoTrue()))
+	g.P(fmt.Sprintf("      return %s(\"deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), sc.pr.SingularGoName()))
+	g.P("    }")
 }

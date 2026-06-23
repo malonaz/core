@@ -7,6 +7,8 @@ go_library(
         "user.pb.go",
         "user_aip.go",
         "user_nats_event.pb.go",
+        "user_profile.pb.go",
+        "user_profile_aip.go",
     ],
     visibility = ["//..."],
     deps = [

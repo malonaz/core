@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package malonaz.test.user.user_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/user/v1/user_profile.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/user/user_service/v1";
+
+// Request message for UserService.GetUserProfile.
+message GetUserProfileRequest {
+  // The resource name of the user profile to retrieve.
+  // Format: organizations/{organization}/users/{user}/profile
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/UserProfile"
+  ];
+}
+
+// Request message for UserService.UpdateUserProfile.
+message UpdateUserProfileRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "bio",
+      "avatar_url",
+      "labels",
+      "metadata"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "user_profile.name_required"
+    message: "user_profile.name must be set"
+    expression: "has(this.user_profile.name)"
+  };
+
+  // The user profile to update.
+  malonaz.test.user.v1.UserProfile user_profile = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for UserService.ListUserProfiles.
+message ListUserProfilesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent user to list user profiles for.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/User"
+  ];
+
+  // @autogen
+  string filter = 2;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 3;
+
+  // @autogen.
+  string order_by = 4;
+
+  // Requested page size.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListUserProfiles` call.
+  string page_token = 6;
+}
+
+// Response message for UserService.ListUserProfiles.
+message ListUserProfilesResponse {
+  // The list of user profiles.
+  repeated malonaz.test.user.v1.UserProfile user_profiles = 1;
+
+  // A token to retrieve the next page.
+  string next_page_token = 2;
+}
+
+// Request message for UserService.BatchGetUserProfiles.
+message BatchGetUserProfilesRequest {
+  // The parent user that owns the user profiles.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).type = "user.test.malonaz.com/User"];
+
+  // The resource names of the user profiles to retrieve.
+  // Format: organizations/{organization}/users/{user}/profile
+  // A maximum of 1000 user profiles can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "user.test.malonaz.com/UserProfile"
+  ];
+}
+
+// Response message for UserService.BatchGetUserProfiles.
+message BatchGetUserProfilesResponse {
+  // User profiles requested.
+  repeated malonaz.test.user.v1.UserProfile user_profiles = 1;
+}

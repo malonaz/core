@@ -346,6 +346,14 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 	g.P(fmt.Sprintf("  Get%s(ctx %s, %s string) (*%s, error)",
 		resourceGoName, gen.ident(contextPkg, "Context"), pr.PatternVariableIDs(true), goTypeQgi))
 
+	// BatchGet.
+	batchGetSig := fmt.Sprintf("  BatchGet%s(ctx %s", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
+	for _, v := range pr.PatternVariables {
+		batchGetSig += fmt.Sprintf(", %sIds []string", xstrings.ToCamelCase(v))
+	}
+	batchGetSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
+	g.P(batchGetSig)
+
 	// List
 	listSig := fmt.Sprintf("  List%s(ctx %s, ", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
 	if pr.Parent != nil {

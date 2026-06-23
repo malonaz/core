@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "organization.proto",
         "user.proto",
+        "user_profile.proto",
         "user_service.proto",
     ],
     test_only = True,
@@ -14,6 +15,7 @@ grpc_library(
     srcs = [
         "organization.proto",
         "user.proto",
+        "user_profile.proto",
         "user_service.proto",
     ],
     additional_context = {

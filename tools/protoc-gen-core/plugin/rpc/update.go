@@ -164,7 +164,7 @@ func (mc *methodCtx) generateUpdate() error {
 			mc.statusErrorf(), mc.codes("Aborted")))
 		g.P("    }")
 	}
-	g.P(fmt.Sprintf("    return nil, %s(err, \"inserting %s\").Err()",
+	g.P(fmt.Sprintf("    return nil, %s(err, \"updating %s\").Err()",
 		mc.statusFromError(), pr.Desc.Singular))
 	g.P("  }")
 	g.P()

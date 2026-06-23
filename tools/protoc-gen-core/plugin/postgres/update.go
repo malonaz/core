@@ -9,9 +9,11 @@ import (
 
 func (mc *msgCtx) generateUpdate() {
 	g := mc.g
+	writeColumns := mc.writeColumns()
+	returning := mc.returningExpr(writeColumns)
 
-	g.P(fmt.Sprintf("var update%sPostgresQuery = `UPDATE %s SET #update_clause# WHERE #where_clause# ` +", mc.goType, mc.tableName))
-	g.P(fmt.Sprintf("  %s(\"RETURNING %%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("var update%sPostgresQuery = `UPDATE %s SET #update_clause# WHERE #where_clause# RETURNING ` +", mc.goType, mc.tableName))
+	g.P(returning)
 	g.P()
 
 	etagParam := ""
@@ -58,7 +60,7 @@ func (mc *msgCtx) generateUpdate() {
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
 	if mc.hasEtag {
-		mc.generateETagCheck("update", mc.patternVarFieldAccess())
+		mc.generateETagCheck("update", mc.patternVarFieldAccess(), false)
 	}
 	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
 	g.P("    }")

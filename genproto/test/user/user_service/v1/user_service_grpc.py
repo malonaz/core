@@ -15,8 +15,10 @@ import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.codegen.nats.v1.nats_pb2
 import malonaz.test.user.user_service.v1.organization_pb2
 import malonaz.test.user.user_service.v1.user_pb2
+import malonaz.test.user.user_service.v1.user_profile_pb2
 import malonaz.test.user.v1.organization_pb2
 import malonaz.test.user.v1.user_pb2
+import malonaz.test.user.v1.user_profile_pb2
 import malonaz.test.user.user_service.v1.user_service_pb2
 
 
@@ -68,6 +70,22 @@ class UserServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetUsers(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersRequest, malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetUserProfile(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_profile_pb2.GetUserProfileRequest, malonaz.test.user.v1.user_profile_pb2.UserProfile]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateUserProfile(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_profile_pb2.UpdateUserProfileRequest, malonaz.test.user.v1.user_profile_pb2.UserProfile]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListUserProfiles(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesRequest, malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetUserProfiles(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesRequest, malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -143,6 +161,30 @@ class UserServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersRequest,
                 malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersResponse,
+            ),
+            '/malonaz.test.user.user_service.v1.UserService/GetUserProfile': grpclib.const.Handler(
+                self.GetUserProfile,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.user_profile_pb2.GetUserProfileRequest,
+                malonaz.test.user.v1.user_profile_pb2.UserProfile,
+            ),
+            '/malonaz.test.user.user_service.v1.UserService/UpdateUserProfile': grpclib.const.Handler(
+                self.UpdateUserProfile,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.user_profile_pb2.UpdateUserProfileRequest,
+                malonaz.test.user.v1.user_profile_pb2.UserProfile,
+            ),
+            '/malonaz.test.user.user_service.v1.UserService/ListUserProfiles': grpclib.const.Handler(
+                self.ListUserProfiles,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesRequest,
+                malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesResponse,
+            ),
+            '/malonaz.test.user.user_service.v1.UserService/BatchGetUserProfiles': grpclib.const.Handler(
+                self.BatchGetUserProfiles,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesRequest,
+                malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesResponse,
             ),
         }
 
@@ -221,4 +263,28 @@ class UserServiceStub:
             '/malonaz.test.user.user_service.v1.UserService/BatchGetUsers',
             malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersRequest,
             malonaz.test.user.user_service.v1.user_pb2.BatchGetUsersResponse,
+        )
+        self.GetUserProfile = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/GetUserProfile',
+            malonaz.test.user.user_service.v1.user_profile_pb2.GetUserProfileRequest,
+            malonaz.test.user.v1.user_profile_pb2.UserProfile,
+        )
+        self.UpdateUserProfile = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/UpdateUserProfile',
+            malonaz.test.user.user_service.v1.user_profile_pb2.UpdateUserProfileRequest,
+            malonaz.test.user.v1.user_profile_pb2.UserProfile,
+        )
+        self.ListUserProfiles = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/ListUserProfiles',
+            malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesRequest,
+            malonaz.test.user.user_service.v1.user_profile_pb2.ListUserProfilesResponse,
+        )
+        self.BatchGetUserProfiles = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/BatchGetUserProfiles',
+            malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesRequest,
+            malonaz.test.user.user_service.v1.user_profile_pb2.BatchGetUserProfilesResponse,
         )

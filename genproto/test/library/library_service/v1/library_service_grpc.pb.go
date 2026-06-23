@@ -38,6 +38,14 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error)
+	// Gets an author profile.
+	GetAuthorProfile(ctx context.Context, in *GetAuthorProfileRequest, opts ...grpc.CallOption) (*v1.AuthorProfile, error)
+	// Updates an author profile.
+	UpdateAuthorProfile(ctx context.Context, in *UpdateAuthorProfileRequest, opts ...grpc.CallOption) (*v1.AuthorProfile, error)
+	// Lists author profiles.
+	ListAuthorProfiles(ctx context.Context, in *ListAuthorProfilesRequest, opts ...grpc.CallOption) (*ListAuthorProfilesResponse, error)
+	// Gets multiple author profiles in a single request.
+	BatchGetAuthorProfiles(ctx context.Context, in *BatchGetAuthorProfilesRequest, opts ...grpc.CallOption) (*BatchGetAuthorProfilesResponse, error)
 	// Creates a shelf.
 	CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -66,6 +74,14 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
+	// Gets a book review.
+	GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error)
+	// Updates a book review.
+	UpdateBookReview(ctx context.Context, in *UpdateBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error)
+	// Lists book reviews.
+	ListBookReviews(ctx context.Context, in *ListBookReviewsRequest, opts ...grpc.CallOption) (*ListBookReviewsResponse, error)
+	// Gets multiple book reviews in a single request.
+	BatchGetBookReviews(ctx context.Context, in *BatchGetBookReviewsRequest, opts ...grpc.CallOption) (*BatchGetBookReviewsResponse, error)
 }
 
 type libraryServiceClient struct {
@@ -124,6 +140,42 @@ func (c *libraryServiceClient) ListAuthors(ctx context.Context, in *ListAuthorsR
 func (c *libraryServiceClient) BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error) {
 	out := new(BatchGetAuthorsResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) GetAuthorProfile(ctx context.Context, in *GetAuthorProfileRequest, opts ...grpc.CallOption) (*v1.AuthorProfile, error) {
+	out := new(v1.AuthorProfile)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UpdateAuthorProfile(ctx context.Context, in *UpdateAuthorProfileRequest, opts ...grpc.CallOption) (*v1.AuthorProfile, error) {
+	out := new(v1.AuthorProfile)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) ListAuthorProfiles(ctx context.Context, in *ListAuthorProfilesRequest, opts ...grpc.CallOption) (*ListAuthorProfilesResponse, error) {
+	out := new(ListAuthorProfilesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetAuthorProfiles(ctx context.Context, in *BatchGetAuthorProfilesRequest, opts ...grpc.CallOption) (*BatchGetAuthorProfilesResponse, error) {
+	out := new(BatchGetAuthorProfilesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthorProfiles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -238,6 +290,42 @@ func (c *libraryServiceClient) BatchGetBooks(ctx context.Context, in *BatchGetBo
 	return out, nil
 }
 
+func (c *libraryServiceClient) GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error) {
+	out := new(v1.BookReview)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/GetBookReview", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UpdateBookReview(ctx context.Context, in *UpdateBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error) {
+	out := new(v1.BookReview)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) ListBookReviews(ctx context.Context, in *ListBookReviewsRequest, opts ...grpc.CallOption) (*ListBookReviewsResponse, error) {
+	out := new(ListBookReviewsResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetBookReviews(ctx context.Context, in *BatchGetBookReviewsRequest, opts ...grpc.CallOption) (*BatchGetBookReviewsResponse, error) {
+	out := new(BatchGetBookReviewsResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/BatchGetBookReviews", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility
@@ -256,6 +344,14 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error)
+	// Gets an author profile.
+	GetAuthorProfile(context.Context, *GetAuthorProfileRequest) (*v1.AuthorProfile, error)
+	// Updates an author profile.
+	UpdateAuthorProfile(context.Context, *UpdateAuthorProfileRequest) (*v1.AuthorProfile, error)
+	// Lists author profiles.
+	ListAuthorProfiles(context.Context, *ListAuthorProfilesRequest) (*ListAuthorProfilesResponse, error)
+	// Gets multiple author profiles in a single request.
+	BatchGetAuthorProfiles(context.Context, *BatchGetAuthorProfilesRequest) (*BatchGetAuthorProfilesResponse, error)
 	// Creates a shelf.
 	CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -284,6 +380,14 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
+	// Gets a book review.
+	GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error)
+	// Updates a book review.
+	UpdateBookReview(context.Context, *UpdateBookReviewRequest) (*v1.BookReview, error)
+	// Lists book reviews.
+	ListBookReviews(context.Context, *ListBookReviewsRequest) (*ListBookReviewsResponse, error)
+	// Gets multiple book reviews in a single request.
+	BatchGetBookReviews(context.Context, *BatchGetBookReviewsRequest) (*BatchGetBookReviewsResponse, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have forward compatible implementations.
@@ -307,6 +411,18 @@ func (UnimplementedLibraryServiceServer) ListAuthors(context.Context, *ListAutho
 }
 func (UnimplementedLibraryServiceServer) BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchGetAuthors not implemented")
+}
+func (UnimplementedLibraryServiceServer) GetAuthorProfile(context.Context, *GetAuthorProfileRequest) (*v1.AuthorProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthorProfile not implemented")
+}
+func (UnimplementedLibraryServiceServer) UpdateAuthorProfile(context.Context, *UpdateAuthorProfileRequest) (*v1.AuthorProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAuthorProfile not implemented")
+}
+func (UnimplementedLibraryServiceServer) ListAuthorProfiles(context.Context, *ListAuthorProfilesRequest) (*ListAuthorProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuthorProfiles not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetAuthorProfiles(context.Context, *BatchGetAuthorProfilesRequest) (*BatchGetAuthorProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetAuthorProfiles not implemented")
 }
 func (UnimplementedLibraryServiceServer) CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateShelf not implemented")
@@ -343,6 +459,18 @@ func (UnimplementedLibraryServiceServer) ListBooks(context.Context, *ListBooksRe
 }
 func (UnimplementedLibraryServiceServer) BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchGetBooks not implemented")
+}
+func (UnimplementedLibraryServiceServer) GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBookReview not implemented")
+}
+func (UnimplementedLibraryServiceServer) UpdateBookReview(context.Context, *UpdateBookReviewRequest) (*v1.BookReview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBookReview not implemented")
+}
+func (UnimplementedLibraryServiceServer) ListBookReviews(context.Context, *ListBookReviewsRequest) (*ListBookReviewsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBookReviews not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetBookReviews(context.Context, *BatchGetBookReviewsRequest) (*BatchGetBookReviewsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetBookReviews not implemented")
 }
 
 // UnsafeLibraryServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -460,6 +588,78 @@ func _LibraryService_BatchGetAuthors_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).BatchGetAuthors(ctx, req.(*BatchGetAuthorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_GetAuthorProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthorProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).GetAuthorProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).GetAuthorProfile(ctx, req.(*GetAuthorProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UpdateAuthorProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAuthorProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UpdateAuthorProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UpdateAuthorProfile(ctx, req.(*UpdateAuthorProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_ListAuthorProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuthorProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ListAuthorProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ListAuthorProfiles(ctx, req.(*ListAuthorProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetAuthorProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetAuthorProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetAuthorProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthorProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetAuthorProfiles(ctx, req.(*BatchGetAuthorProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -680,6 +880,78 @@ func _LibraryService_BatchGetBooks_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_GetBookReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBookReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).GetBookReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/GetBookReview",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).GetBookReview(ctx, req.(*GetBookReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UpdateBookReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBookReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UpdateBookReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UpdateBookReview(ctx, req.(*UpdateBookReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_ListBookReviews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBookReviewsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ListBookReviews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ListBookReviews(ctx, req.(*ListBookReviewsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetBookReviews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetBookReviewsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetBookReviews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/BatchGetBookReviews",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetBookReviews(ctx, req.(*BatchGetBookReviewsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -710,6 +982,22 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetAuthors",
 			Handler:    _LibraryService_BatchGetAuthors_Handler,
+		},
+		{
+			MethodName: "GetAuthorProfile",
+			Handler:    _LibraryService_GetAuthorProfile_Handler,
+		},
+		{
+			MethodName: "UpdateAuthorProfile",
+			Handler:    _LibraryService_UpdateAuthorProfile_Handler,
+		},
+		{
+			MethodName: "ListAuthorProfiles",
+			Handler:    _LibraryService_ListAuthorProfiles_Handler,
+		},
+		{
+			MethodName: "BatchGetAuthorProfiles",
+			Handler:    _LibraryService_BatchGetAuthorProfiles_Handler,
 		},
 		{
 			MethodName: "CreateShelf",
@@ -758,6 +1046,22 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetBooks",
 			Handler:    _LibraryService_BatchGetBooks_Handler,
+		},
+		{
+			MethodName: "GetBookReview",
+			Handler:    _LibraryService_GetBookReview_Handler,
+		},
+		{
+			MethodName: "UpdateBookReview",
+			Handler:    _LibraryService_UpdateBookReview_Handler,
+		},
+		{
+			MethodName: "ListBookReviews",
+			Handler:    _LibraryService_ListBookReviews_Handler,
+		},
+		{
+			MethodName: "BatchGetBookReviews",
+			Handler:    _LibraryService_BatchGetBookReviews_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

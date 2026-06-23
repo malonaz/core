@@ -377,6 +377,8 @@ func TestFromMessage_AllFields_Book(t *testing.T) {
 		"metadata.language",
 		"metadata.phone_number",
 		"metadata.duration",
+		"shelf_genre",
+		"shelf_external_id",
 	}, paths)
 }
 

@@ -8,8 +8,10 @@ import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/test/user/user_service/v1/organization.proto";
 import "malonaz/test/user/user_service/v1/user.proto";
+import "malonaz/test/user/user_service/v1/user_profile.proto";
 import "malonaz/test/user/v1/organization.proto";
 import "malonaz/test/user/v1/user.proto";
+import "malonaz/test/user/v1/user_profile.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/user/user_service/v1";
 
@@ -130,5 +132,38 @@ service UserService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/users:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // ===================== UserProfile (Singleton) =====================
+
+  // Gets a user profile.
+  rpc GetUserProfile(GetUserProfileRequest) returns (malonaz.test.user.v1.UserProfile) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/profile}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/UserProfile";
+  }
+
+  // Updates a user profile.
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (malonaz.test.user.v1.UserProfile) {
+    option (google.api.http) = {
+      patch: "/v1/{user_profile.name=organizations/*/users/*/profile}"
+      body: "user_profile"
+    };
+    option (google.api.method_signature) = "user_profile,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/UserProfile";
+  }
+
+  // Lists user profiles.
+  rpc ListUserProfiles(ListUserProfilesRequest) returns (ListUserProfilesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/profiles"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/UserProfile";
+  }
+
+  // Gets multiple user profiles in a single request.
+  rpc BatchGetUserProfiles(BatchGetUserProfilesRequest) returns (BatchGetUserProfilesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/profiles:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/UserProfile";
   }
 }

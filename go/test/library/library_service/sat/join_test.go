@@ -1,6 +1,5 @@
 package sat
 
-/*
 import (
 	"testing"
 	"time"
@@ -500,4 +499,86 @@ func TestJoin_FilterByShelfExternalId(t *testing.T) {
 		require.Empty(t, listBooksResponse.Books)
 	})
 }
-*/
+
+// Add to go/test/library/library_service/sat/join_test.go
+
+func TestJoin_ReturnedOnAllBookMethods(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+
+	createShelfRequest := &libraryservicepb.CreateShelfRequest{
+		Parent: organizationParent,
+		Shelf: &librarypb.Shelf{
+			DisplayName:     "Join Methods Shelf",
+			Genre:           librarypb.ShelfGenre_SHELF_GENRE_HISTORY,
+			ExternalId:      "ext-methods-test",
+			CorrelationId_2: "hello",
+			Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+		},
+	}
+	shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+	require.NoError(t, err)
+
+	author := createTestAuthor(t, organizationParent, "Join Methods Author")
+
+	assertJoinFields := func(t *testing.T, book *librarypb.Book) {
+		t.Helper()
+		require.Equal(t, "ext-methods-test", book.ShelfExternalId)
+		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_HISTORY, book.ShelfGenre)
+	}
+
+	// CreateBook
+	createBookRequest := &libraryservicepb.CreateBookRequest{
+		Parent: shelf.Name,
+		Book: &librarypb.Book{
+			Title:    "Join Methods Book",
+			Author:   author.Name,
+			Duration: durationpb.New(100 * time.Second),
+			Metadata: &librarypb.BookMetadata{},
+		},
+	}
+	book, err := libraryServiceClient.CreateBook(ctx, createBookRequest)
+	require.NoError(t, err)
+	assertJoinFields(t, book)
+
+	// GetBook
+	getBookRequest := &libraryservicepb.GetBookRequest{
+		Name: book.Name,
+	}
+	gotBook, err := libraryServiceClient.GetBook(ctx, getBookRequest)
+	require.NoError(t, err)
+	assertJoinFields(t, gotBook)
+
+	// UpdateBook
+	updateBookRequest := &libraryservicepb.UpdateBookRequest{
+		Book: &librarypb.Book{
+			Name:  book.Name,
+			Title: "Join Methods Book Updated",
+		},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+	}
+	updatedBook, err := libraryServiceClient.UpdateBook(ctx, updateBookRequest)
+	require.NoError(t, err)
+	assertJoinFields(t, updatedBook)
+
+	// ListBooks
+	listBooksRequest := &libraryservicepb.ListBooksRequest{
+		Parent: shelf.Name,
+	}
+	listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+	require.NoError(t, err)
+	require.NotEmpty(t, listBooksResponse.Books)
+	for _, listedBook := range listBooksResponse.Books {
+		assertJoinFields(t, listedBook)
+	}
+
+	// BatchGetBooks
+	batchGetBooksRequest := &libraryservicepb.BatchGetBooksRequest{
+		Parent: shelf.Name,
+		Names:  []string{book.Name},
+	}
+	batchGetBooksResponse, err := libraryServiceClient.BatchGetBooks(ctx, batchGetBooksRequest)
+	require.NoError(t, err)
+	require.Len(t, batchGetBooksResponse.Books, 1)
+	assertJoinFields(t, batchGetBooksResponse.Books[0])
+}

@@ -9,10 +9,14 @@ import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 import "malonaz/test/library/library_service/v1/author.proto";
+import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
+import "malonaz/test/library/library_service/v1/book_review.proto";
 import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/author.proto";
+import "malonaz/test/library/v1/author_profile.proto";
 import "malonaz/test/library/v1/book.proto";
+import "malonaz/test/library/v1/book_review.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
@@ -83,6 +87,39 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
+  // ===================== AuthorProfile (Singleton) =====================
+
+  // Gets an author profile.
+  rpc GetAuthorProfile(GetAuthorProfileRequest) returns (malonaz.test.library.v1.AuthorProfile) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/authors/*/profile}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/AuthorProfile";
+  }
+
+  // Updates an author profile.
+  rpc UpdateAuthorProfile(UpdateAuthorProfileRequest) returns (malonaz.test.library.v1.AuthorProfile) {
+    option (google.api.http) = {
+      patch: "/v1/{author_profile.name=organizations/*/authors/*/profile}"
+      body: "author_profile"
+    };
+    option (google.api.method_signature) = "author_profile,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/AuthorProfile";
+  }
+
+  // Lists author profiles.
+  rpc ListAuthorProfiles(ListAuthorProfilesRequest) returns (ListAuthorProfilesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/authors/*}/profiles"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/AuthorProfile";
+  }
+
+  // Gets multiple author profiles in a single request.
+  rpc BatchGetAuthorProfiles(BatchGetAuthorProfilesRequest) returns (BatchGetAuthorProfilesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/authors/*}/profiles:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/AuthorProfile";
   }
 
   // ===================== Shelf =====================
@@ -188,5 +225,38 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // ===================== BookReview (Singleton) =====================
+
+  // Gets a book review.
+  rpc GetBookReview(GetBookReviewRequest) returns (malonaz.test.library.v1.BookReview) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*/books/*/review}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
+  }
+
+  // Updates a book review.
+  rpc UpdateBookReview(UpdateBookReviewRequest) returns (malonaz.test.library.v1.BookReview) {
+    option (google.api.http) = {
+      patch: "/v1/{book_review.name=organizations/*/shelves/*/books/*/review}"
+      body: "book_review"
+    };
+    option (google.api.method_signature) = "book_review,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
+  }
+
+  // Lists book reviews.
+  rpc ListBookReviews(ListBookReviewsRequest) returns (ListBookReviewsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/reviews"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
+  }
+
+  // Gets multiple book reviews in a single request.
+  rpc BatchGetBookReviews(BatchGetBookReviewsRequest) returns (BatchGetBookReviewsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/reviews:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
   }
 }

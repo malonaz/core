@@ -126,7 +126,6 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		tree.Resource = resource
 	}
 
-	// Extract model options for table name and ID column overrides.
 	defaultTableName := tree.Resource.Singular
 	{
 		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
@@ -140,6 +139,16 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 
 	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
 	fields := resourceDescriptor.Fields()
+
+	fieldPathToJoin := map[string]*modelpb.Join{}
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		fOpts, fErr := pbutil.GetExtension[*modelpb.FieldOpts](field.Options(), modelpb.E_FieldOpts)
+		if fErr == nil && fOpts.GetJoin() != nil {
+			fieldPathToJoin[field.TextName()] = fOpts.GetJoin()
+		}
+	}
+
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
 		fieldName := field.TextName()
@@ -150,27 +159,29 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 
 	tree.SortAsc()
 
-	// Second pass: assign table names, column name replacements, and allowed paths.
 	fieldPathToReplacement := map[string]string{}
 	for _, node := range tree.Nodes {
 		node.AllowedPath = tree.IsPathAllowed(node)
 
-		// Assign the table name to top-level nodes. Join fields use the
-		// resolved parent resource's table; all others use the default.
 		if node.JoinTableName != "" {
 			node.TableName = node.JoinTableName
+			if join, ok := fieldPathToJoin[node.Path]; ok && node.ColumnName == "" {
+				joinColName, err := resolveJoinFieldColumnName(tree.Registry, join)
+				if err != nil {
+					return nil, fmt.Errorf("resolving join column name for %s: %v", node.Path, err)
+				}
+				node.ColumnName = joinColName
+			}
 		} else {
 			node.TableName = defaultTableName
 		}
 
 		replacementPath := node.Path
 
-		// Apply column name override for top-level nodes.
 		if node.Depth == 0 && node.ColumnName != "" {
 			replacementPath = node.ColumnName
 		}
 
-		// Nested nodes inherit replacements from their root node.
 		if node.Depth > 0 {
 			rootNodePath := node.RootNodePath()
 			if rootNodeReplacement, ok := fieldPathToReplacement[rootNodePath]; ok {
@@ -548,4 +559,31 @@ func findMessageByResourceType(registry *protoregistry.Files, resourceType strin
 		return nil, fmt.Errorf("message with resource type %q not found", resourceType)
 	}
 	return found, nil
+}
+
+// resolveJoinFieldColumnName resolves the database column name for a joined field
+// by looking up the referenced field on the parent message. Returns the field's
+// column_name override if set, otherwise the field's proto name.
+func resolveJoinFieldColumnName(registry *protoregistry.Files, join *modelpb.Join) (string, error) {
+	parentMsg, err := findMessageByResourceType(registry, join.GetParent())
+	if err != nil {
+		return "", err
+	}
+
+	fieldName := join.GetField()
+	fieldDesc := parentMsg.Fields().ByName(protoreflect.Name(fieldName))
+	if fieldDesc == nil {
+		return "", fmt.Errorf("field %q not found on parent %q", fieldName, join.GetParent())
+	}
+
+	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](fieldDesc.Options(), modelpb.E_FieldOpts)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return "", fmt.Errorf("getting field opts for %s: %v", fieldName, err)
+	}
+
+	if fieldOpts.GetColumnName() != "" {
+		return fieldOpts.GetColumnName(), nil
+	}
+
+	return fieldName, nil
 }

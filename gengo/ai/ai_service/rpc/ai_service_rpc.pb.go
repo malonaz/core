@@ -43,6 +43,7 @@ type aiService_ChatStore interface {
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)
 	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, deleteTime time.Time) (*model.Chat, error)
 	GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error)
+	BatchGetChats(ctx context.Context, organizationIds []string, userIds []string, chatIds []string) ([]*model.Chat, error)
 	ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Chat, error)
 }
 
@@ -234,7 +235,7 @@ func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.Updat
 		if errors.Is(err, model.ErrChatETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 		}
-		return nil, status.FromError(err, "inserting chat").Err()
+		return nil, status.FromError(err, "updating chat").Err()
 	}
 
 	chat, err := dbChatModel.ToPb()

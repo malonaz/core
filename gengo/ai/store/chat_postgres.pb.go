@@ -118,8 +118,8 @@ func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, ra
 	return inserted, nil
 }
 
-var updateChatPostgresQuery = `UPDATE chat SET #update_clause# WHERE #where_clause# ` +
-	postgres.SelectQuery("RETURNING %s", ChatPostgresColumns)
+var updateChatPostgresQuery = `UPDATE chat SET #update_clause# WHERE #where_clause# RETURNING ` +
+	postgres.SelectQuery("%s", ChatPostgresColumns)
 
 func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause string, updateColumns []string, etag string) (*model.Chat, error) {
 	updateParams := postgres.GetParams(_chat, updateColumns...)
@@ -231,6 +231,42 @@ func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId stri
 	return row, nil
 }
 
+func (s *Store) BatchGetChats(ctx context.Context, organizationIds []string, userIds []string, chatIds []string) ([]*model.Chat, error) {
+	n := len(organizationIds)
+	if len(userIds) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(chatIds) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	orClauses := make([]string, n)
+	params := make([]any, 0, n*3)
+	for i := 0; i < n; i++ {
+		base := i * 3
+		conditions := make([]string, 3)
+		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("user_id = $%d", base+2)
+		conditions[2] = fmt.Sprintf("chat_id = $%d", base+3)
+		params = append(params, organizationIds[i])
+		params = append(params, userIds[i])
+		params = append(params, chatIds[i])
+		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
+	}
+	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
+
+	query := fmt.Sprintf("SELECT %s FROM chat %s", postgres.SelectQuery("%s", ChatPostgresColumns), whereClause)
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("batch getting chat: %w", err)
+	}
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
+}
+
 func (s *Store) ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Chat, error) {
 	if columns == nil {
 		columns = ChatPostgresColumns
@@ -262,7 +298,7 @@ func (s *Store) ListChats(ctx context.Context, organizationId, userId string, sh
 			if err == v5.ErrNoRows {
 				return nil
 			}
-			return fmt.Errorf("selecting chats: %w", err)
+			return fmt.Errorf("selecting chats [%!s(MISSING)]: %w", query, err)
 		}
 		chats, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
 		if err != nil {

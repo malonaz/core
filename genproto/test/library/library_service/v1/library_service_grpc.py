@@ -16,10 +16,14 @@ import malonaz.canonicalize.v1.canonicalize_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.codegen.nats.v1.nats_pb2
 import malonaz.test.library.library_service.v1.author_pb2
+import malonaz.test.library.library_service.v1.author_profile_pb2
 import malonaz.test.library.library_service.v1.book_pb2
+import malonaz.test.library.library_service.v1.book_review_pb2
 import malonaz.test.library.library_service.v1.shelf_pb2
 import malonaz.test.library.v1.author_pb2
+import malonaz.test.library.v1.author_profile_pb2
 import malonaz.test.library.v1.book_pb2
+import malonaz.test.library.v1.book_review_pb2
 import malonaz.test.library.v1.shelf_pb2
 import malonaz.test.library.library_service.v1.library_service_pb2
 
@@ -48,6 +52,22 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetAuthors(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest, malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetAuthorProfile(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_profile_pb2.GetAuthorProfileRequest, malonaz.test.library.v1.author_profile_pb2.AuthorProfile]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateAuthorProfile(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_profile_pb2.UpdateAuthorProfileRequest, malonaz.test.library.v1.author_profile_pb2.AuthorProfile]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListAuthorProfiles(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesRequest, malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetAuthorProfiles(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesRequest, malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -98,6 +118,22 @@ class LibraryServiceBase(abc.ABC):
     async def BatchGetBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest, malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse]') -> None:
         pass
 
+    @abc.abstractmethod
+    async def GetBookReview(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.GetBookReviewRequest, malonaz.test.library.v1.book_review_pb2.BookReview]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateBookReview(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.UpdateBookReviewRequest, malonaz.test.library.v1.book_review_pb2.BookReview]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListBookReviews(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsRequest, malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetBookReviews(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest, malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse]') -> None:
+        pass
+
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
         return {
             '/malonaz.test.library.library_service.v1.LibraryService/CreateAuthor': grpclib.const.Handler(
@@ -135,6 +171,30 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile': grpclib.const.Handler(
+                self.GetAuthorProfile,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_profile_pb2.GetAuthorProfileRequest,
+                malonaz.test.library.v1.author_profile_pb2.AuthorProfile,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile': grpclib.const.Handler(
+                self.UpdateAuthorProfile,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_profile_pb2.UpdateAuthorProfileRequest,
+                malonaz.test.library.v1.author_profile_pb2.AuthorProfile,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles': grpclib.const.Handler(
+                self.ListAuthorProfiles,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesRequest,
+                malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthorProfiles': grpclib.const.Handler(
+                self.BatchGetAuthorProfiles,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesRequest,
+                malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesResponse,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/CreateShelf': grpclib.const.Handler(
                 self.CreateShelf,
@@ -208,6 +268,30 @@ class LibraryServiceBase(abc.ABC):
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
             ),
+            '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview': grpclib.const.Handler(
+                self.GetBookReview,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_review_pb2.GetBookReviewRequest,
+                malonaz.test.library.v1.book_review_pb2.BookReview,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview': grpclib.const.Handler(
+                self.UpdateBookReview,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_review_pb2.UpdateBookReviewRequest,
+                malonaz.test.library.v1.book_review_pb2.BookReview,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews': grpclib.const.Handler(
+                self.ListBookReviews,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsRequest,
+                malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetBookReviews': grpclib.const.Handler(
+                self.BatchGetBookReviews,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest,
+                malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse,
+            ),
         }
 
 
@@ -249,6 +333,30 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors',
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+        )
+        self.GetAuthorProfile = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile',
+            malonaz.test.library.library_service.v1.author_profile_pb2.GetAuthorProfileRequest,
+            malonaz.test.library.v1.author_profile_pb2.AuthorProfile,
+        )
+        self.UpdateAuthorProfile = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile',
+            malonaz.test.library.library_service.v1.author_profile_pb2.UpdateAuthorProfileRequest,
+            malonaz.test.library.v1.author_profile_pb2.AuthorProfile,
+        )
+        self.ListAuthorProfiles = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles',
+            malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesRequest,
+            malonaz.test.library.library_service.v1.author_profile_pb2.ListAuthorProfilesResponse,
+        )
+        self.BatchGetAuthorProfiles = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthorProfiles',
+            malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesRequest,
+            malonaz.test.library.library_service.v1.author_profile_pb2.BatchGetAuthorProfilesResponse,
         )
         self.CreateShelf = grpclib.client.UnaryUnaryMethod(
             channel,
@@ -321,4 +429,28 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetBooks',
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
+        )
+        self.GetBookReview = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview',
+            malonaz.test.library.library_service.v1.book_review_pb2.GetBookReviewRequest,
+            malonaz.test.library.v1.book_review_pb2.BookReview,
+        )
+        self.UpdateBookReview = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview',
+            malonaz.test.library.library_service.v1.book_review_pb2.UpdateBookReviewRequest,
+            malonaz.test.library.v1.book_review_pb2.BookReview,
+        )
+        self.ListBookReviews = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews',
+            malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsRequest,
+            malonaz.test.library.library_service.v1.book_review_pb2.ListBookReviewsResponse,
+        )
+        self.BatchGetBookReviews = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetBookReviews',
+            malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest,
+            malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse,
         )

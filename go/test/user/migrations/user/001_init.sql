@@ -29,3 +29,18 @@ CREATE TABLE user_ (
     FOREIGN KEY (organization_id) REFERENCES organization(organization_id),
     CONSTRAINT user_request_id_unique UNIQUE (request_id)
 );
+
+CREATE TABLE user_profile (
+    organization_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    delete_time TIMESTAMP,
+    bio TEXT NOT NULL,
+    avatar_url TEXT NOT NULL,
+    etag TEXT NOT NULL,
+    labels JSONB,
+    metadata JSONB,
+    PRIMARY KEY (organization_id, user_id),
+    FOREIGN KEY (organization_id, user_id) REFERENCES user_(organization_id, id)
+);

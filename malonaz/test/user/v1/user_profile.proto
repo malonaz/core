@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package malonaz.test.user.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/user/v1";
+
+// UserProfile is a singleton child of User, auto-created with its parent.
+message UserProfile {
+  option (google.api.resource) = {
+    type: "user.test.malonaz.com/UserProfile"
+    pattern: "organizations/{organization}/users/{user}/profile"
+    singular: "userProfile"
+    plural: "userProfiles"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+
+  // The resource name of the user profile.
+  // Format: organizations/{organization}/users/{user}/profile
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A short bio for the profile.
+  string bio = 5;
+
+  // The avatar URL.
+  string avatar_url = 6 [(buf.validate.field).string.max_len = 2048];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 7;
+
+  // The labels on this user profile.
+  map<string, string> labels = 8 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // User profile metadata.
+  UserProfileMetadata metadata = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // Join on parent user: display_name.
+  string user_display_name = 10 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "user.test.malonaz.com/User"
+      field: "display_name"
+    }
+  ];
+
+  // Join on parent user: email_address.
+  string user_email_address = 11 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "user.test.malonaz.com/User"
+      field: "email_address"
+    }
+  ];
+
+  // Join on parent organization: display_name.
+  string organization_display_name = 12 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "user.test.malonaz.com/Organization"
+      field: "display_name"
+    }
+  ];
+}
+
+// Metadata for a user profile.
+message UserProfileMetadata {
+  // Preferred theme (e.g., "dark", "light").
+  string preferred_theme = 1;
+}

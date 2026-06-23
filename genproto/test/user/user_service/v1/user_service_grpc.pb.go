@@ -51,6 +51,14 @@ type UserServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetUsers(ctx context.Context, in *BatchGetUsersRequest, opts ...grpc.CallOption) (*BatchGetUsersResponse, error)
+	// Gets a user profile.
+	GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*v1.UserProfile, error)
+	// Updates a user profile.
+	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*v1.UserProfile, error)
+	// Lists user profiles.
+	ListUserProfiles(ctx context.Context, in *ListUserProfilesRequest, opts ...grpc.CallOption) (*ListUserProfilesResponse, error)
+	// Gets multiple user profiles in a single request.
+	BatchGetUserProfiles(ctx context.Context, in *BatchGetUserProfilesRequest, opts ...grpc.CallOption) (*BatchGetUserProfilesResponse, error)
 }
 
 type userServiceClient struct {
@@ -169,6 +177,42 @@ func (c *userServiceClient) BatchGetUsers(ctx context.Context, in *BatchGetUsers
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*v1.UserProfile, error) {
+	out := new(v1.UserProfile)
+	err := c.cc.Invoke(ctx, "/malonaz.test.user.user_service.v1.UserService/GetUserProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*v1.UserProfile, error) {
+	out := new(v1.UserProfile)
+	err := c.cc.Invoke(ctx, "/malonaz.test.user.user_service.v1.UserService/UpdateUserProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListUserProfiles(ctx context.Context, in *ListUserProfilesRequest, opts ...grpc.CallOption) (*ListUserProfilesResponse, error) {
+	out := new(ListUserProfilesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.user.user_service.v1.UserService/ListUserProfiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) BatchGetUserProfiles(ctx context.Context, in *BatchGetUserProfilesRequest, opts ...grpc.CallOption) (*BatchGetUserProfilesResponse, error) {
+	out := new(BatchGetUserProfilesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.user.user_service.v1.UserService/BatchGetUserProfiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -201,6 +245,14 @@ type UserServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetUsers(context.Context, *BatchGetUsersRequest) (*BatchGetUsersResponse, error)
+	// Gets a user profile.
+	GetUserProfile(context.Context, *GetUserProfileRequest) (*v1.UserProfile, error)
+	// Updates a user profile.
+	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*v1.UserProfile, error)
+	// Lists user profiles.
+	ListUserProfiles(context.Context, *ListUserProfilesRequest) (*ListUserProfilesResponse, error)
+	// Gets multiple user profiles in a single request.
+	BatchGetUserProfiles(context.Context, *BatchGetUserProfilesRequest) (*BatchGetUserProfilesResponse, error)
 }
 
 // UnimplementedUserServiceServer should be embedded to have forward compatible implementations.
@@ -242,6 +294,18 @@ func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersReque
 }
 func (UnimplementedUserServiceServer) BatchGetUsers(context.Context, *BatchGetUsersRequest) (*BatchGetUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchGetUsers not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserProfile(context.Context, *GetUserProfileRequest) (*v1.UserProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserProfile not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*v1.UserProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserProfile not implemented")
+}
+func (UnimplementedUserServiceServer) ListUserProfiles(context.Context, *ListUserProfilesRequest) (*ListUserProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserProfiles not implemented")
+}
+func (UnimplementedUserServiceServer) BatchGetUserProfiles(context.Context, *BatchGetUserProfilesRequest) (*BatchGetUserProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetUserProfiles not implemented")
 }
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -471,6 +535,78 @@ func _UserService_BatchGetUsers_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.user.user_service.v1.UserService/GetUserProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserProfile(ctx, req.(*GetUserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUserProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.user.user_service.v1.UserService/UpdateUserProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUserProfile(ctx, req.(*UpdateUserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListUserProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListUserProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.user.user_service.v1.UserService/ListUserProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListUserProfiles(ctx, req.(*ListUserProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_BatchGetUserProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetUserProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BatchGetUserProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.user.user_service.v1.UserService/BatchGetUserProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BatchGetUserProfiles(ctx, req.(*BatchGetUserProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -525,6 +661,22 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetUsers",
 			Handler:    _UserService_BatchGetUsers_Handler,
+		},
+		{
+			MethodName: "GetUserProfile",
+			Handler:    _UserService_GetUserProfile_Handler,
+		},
+		{
+			MethodName: "UpdateUserProfile",
+			Handler:    _UserService_UpdateUserProfile_Handler,
+		},
+		{
+			MethodName: "ListUserProfiles",
+			Handler:    _UserService_ListUserProfiles_Handler,
+		},
+		{
+			MethodName: "BatchGetUserProfiles",
+			Handler:    _UserService_BatchGetUserProfiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

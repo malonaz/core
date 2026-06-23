@@ -2,11 +2,9 @@ package rpc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
-
-	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 func (mc *methodCtx) generateBatchGet() error {
@@ -14,8 +12,6 @@ func (mc *methodCtx) generateBatchGet() error {
 	method := mc.mi.method
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-
-	modelOpts, _ := pbutil.GetExtension[*modelpb.ModelOpts](mc.mi.rpc.Message.Desc.Options(), modelpb.E_ModelOpts)
 
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
@@ -32,8 +28,10 @@ func (mc *methodCtx) generateBatchGet() error {
 		g.P()
 	}
 
-	g.P("  orClauses := make([]string, len(request.GetNames()))")
-	g.P(fmt.Sprintf("  whereParams := make([]any, 0, len(request.GetNames()) * %d)", len(pr.PatternVariables)))
+	for _, v := range pr.PatternVariables {
+		camel := xstrings.ToCamelCase(v)
+		g.P(fmt.Sprintf("  %sIds := make([]string, len(request.GetNames()))", camel))
+	}
 	g.P()
 
 	g.P("  for i, name := range request.Names {")
@@ -54,37 +52,23 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"parsing name %%s: %%v\", name, err).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
-	g.P()
 
-	g.P(fmt.Sprintf("    conditions := make([]string, %d)", len(pr.PatternVariables)))
-	lastIdx := len(pr.PatternVariables) - 1
-	for idx, v := range pr.PatternVariables {
-		dbColumn := xstrings.ToSnakeCase(v) + "_id"
-		if idx == lastIdx && modelOpts.GetIdColumnName() != "" {
-			dbColumn = modelOpts.GetIdColumnName()
-		}
-		g.P(fmt.Sprintf("    conditions[%d] = \"%s = $\" + %s(len(whereParams) + %d)",
-			idx, dbColumn, mc.gen.ident(strconvPkg, "Itoa"), idx+1))
+	for _, v := range pr.PatternVariables {
+		camel := xstrings.ToCamelCase(v)
+		g.P(fmt.Sprintf("    %sIds[i] = %sId", camel, camel))
 	}
-	g.P(fmt.Sprintf("    whereParams = append(whereParams, %s)", pr.PatternVariableIDs(true)))
-	g.P(fmt.Sprintf("    orClauses[i] = \"(\" + %s(conditions, \" AND \") + \")\"",
-		mc.gen.ident(stringsPkg, "Join")))
+
 	g.P("  }")
-	g.P(fmt.Sprintf("  whereClause := \"WHERE \" + %s(orClauses, \" OR \")",
-		mc.gen.ident(stringsPkg, "Join")))
 	g.P()
 
-	// Retrieve from DB.
-	listArgs := "ctx, "
-	if pr.Parent != nil {
-		listArgs += pr.Parent.PatternVariableIDs(true) + ", "
+	var storeArgs []string
+	storeArgs = append(storeArgs, "ctx")
+	for _, v := range pr.PatternVariables {
+		camel := xstrings.ToCamelCase(v)
+		storeArgs = append(storeArgs, camel+"Ids")
 	}
-	if mc.softDeletable {
-		listArgs += "true, "
-	}
-	listArgs += "whereClause, \"\", \"\", nil, whereParams..."
-	g.P(fmt.Sprintf("  db%s, err := s.store.List%s(%s)",
-		pr.PluralGoName(), pr.PluralGoName(), listArgs))
+	g.P(fmt.Sprintf("  db%s, err := s.store.BatchGet%s(%s)",
+		pr.PluralGoName(), pr.PluralGoName(), strings.Join(storeArgs, ", ")))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(err, \"batch getting %s\").Err()",
 		mc.statusFromError(), xstrings.ToSnakeCase(resourceGoName)))
@@ -95,7 +79,6 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P("  }")
 	g.P()
 
-	// Convert to proto and build ordered result.
 	g.P(fmt.Sprintf("  %sNameTo%s := make(map[string]*%s, len(request.Names))",
 		xstrings.ToCamelCase(resourceGoName), resourceGoName, mc.protoType()))
 	g.P(fmt.Sprintf("  for _, db%s := range db%s {", mc.modelGoName, pr.PluralGoName()))
