@@ -1,6 +1,7 @@
 go_library(
     name = "postgres",
     srcs = [
+        "batch_get.go",
         "delete.go",
         "get.go",
         "insert.go",

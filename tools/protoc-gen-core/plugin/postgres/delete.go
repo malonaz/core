@@ -15,14 +15,18 @@ func (mc *msgCtx) generateDelete() {
 func (mc *msgCtx) generateSoftDelete() {
 	g := mc.g
 	numVars := len(mc.pr.PatternVariables)
+	writeColumns := mc.writeColumns()
 
 	etagSet := ""
 	if mc.hasEtag {
 		etagSet = fmt.Sprintf(", etag = $%d", numVars+2)
 	}
+
+	returningExpr := mc.returningExpr(writeColumns)
+
 	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = COALESCE(delete_time, $%d)%s WHERE %s RETURNING (delete_time < $%d) AS was_already_deleted, ` +",
 		mc.goType, mc.tableName, numVars+1, etagSet, mc.placeholderDecls, numVars+1))
-	g.P(fmt.Sprintf("  %s(\"%%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("  %s", returningExpr))
 	g.P()
 
 	g.P(fmt.Sprintf("type softDelete%sResult struct {", mc.goType))
@@ -77,9 +81,11 @@ func (mc *msgCtx) generateSoftDelete() {
 
 func (mc *msgCtx) generateHardDelete() {
 	g := mc.g
+	writeColumns := mc.writeColumns()
+	returningExpr := mc.returningExpr(writeColumns)
 
-	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s ` +", mc.goType, mc.tableName, mc.placeholderDecls))
-	g.P(fmt.Sprintf("  %s(\"RETURNING %%s\", %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("var delete%sPostgresQuery = `DELETE FROM %s WHERE %s RETURNING ` + ", mc.goType, mc.tableName, mc.placeholderDecls))
+	g.P(returningExpr)
 	g.P()
 
 	etagParam := ""

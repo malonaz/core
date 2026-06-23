@@ -80,18 +80,30 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		g.P()
 	}
 
-	g.P("var (")
-	for _, mm := range messages {
-		goType := mm.message.GoIdent.GoName
-		g.P("  ", goType, "PostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(goType), "{})")
-	}
-	g.P(")")
-	g.P()
-
+	// Pre-compute msgCtx for all messages so we can generate the var block correctly.
+	var msgCtxs []*msgCtx
 	for _, mm := range messages {
 		mc, err := gen.newMsgCtx(mm.message, mm.modelOpts, mm.pr)
 		if err != nil {
 			return fmt.Errorf("building context for %s: %w", mm.message.GoIdent.GoName, err)
+		}
+		msgCtxs = append(msgCtxs, mc)
+	}
+
+	g.P("var (")
+	for _, mc := range msgCtxs {
+		g.P("  ", mc.goType, "PostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(mc.goType), "{})")
+		if mc.hasJoins {
+			exceptArgs := mc.exceptColumnsArgs()
+			g.P("  ", mc.goType, "WritePostgresColumns = ", postgresPkg.Ident("GetDBColumns"), "(", modelImportPath.Ident(mc.goType), "{}, ", postgresPkg.Ident("ExceptColumns"), "(", exceptArgs, "))")
+		}
+	}
+	g.P(")")
+	g.P()
+
+	for _, mc := range msgCtxs {
+		if mc.hasJoins {
+			mc.generateJoinVars()
 		}
 		mc.generateETagGetter()
 		mc.generateInsertVars()
@@ -101,6 +113,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateUpdate()
 		mc.generateDelete()
 		mc.generateGet()
+		mc.generateBatchGet()
 		mc.generateList()
 	}
 
@@ -126,6 +139,26 @@ type singletonChild struct {
 	modelOpts *modelpb.ModelOpts
 }
 
+// joinFieldInfo describes a single field populated via a JOIN.
+type joinFieldInfo struct {
+	dbTag      string // proto text name used as db tag, e.g. "shelf_external_id"
+	joinColumn string // actual column on the parent table, e.g. "external_id"
+}
+
+// joinCondition describes a single column match in a JOIN ON clause.
+type joinCondition struct {
+	parentColumn string // column on the parent (join) table
+	childColumn  string // column on the child (main) table
+}
+
+// joinTableInfo groups all join fields from the same parent table.
+type joinTableInfo struct {
+	qualifiedTable string // e.g. "library.shelf"
+	bareTable      string // e.g. "shelf"
+	fields         []joinFieldInfo
+	conditions     []joinCondition
+}
+
 // msgCtx holds all precomputed values for generating postgres code for a single message.
 type msgCtx struct {
 	gen *generator
@@ -146,6 +179,7 @@ type msgCtx struct {
 	errETagChanged    string
 
 	tableName        string
+	bareTableName    string // unqualified table name, e.g. "book"
 	whereClause      string
 	placeholderDecls string
 	columnNames      string
@@ -155,6 +189,15 @@ type msgCtx struct {
 	hasDeleteTime bool
 
 	singletonChildren []singletonChild
+
+	// Join support.
+	hasJoins   bool
+	joinTables []joinTableInfo
+
+	// Pre-computed SQL fragments for join support.
+	joinSubqueryExpr string // appended to RETURNING in write queries
+	joinSelectExprs  string // appended to SELECT in read queries, e.g. ",shelf.col AS alias"
+	joinClause       string // INNER JOIN ... for read queries
 }
 
 func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.ModelOpts, pr *resource.ParsedResource) (*msgCtx, error) {
@@ -167,6 +210,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 	if modelOpts.GetSchemaName() != "" {
 		tableName = modelOpts.GetSchemaName() + "." + tableName
+	}
+
+	bareTableName := tableName
+	if i := strings.LastIndex(tableName, "."); i >= 0 {
+		bareTableName = tableName[i+1:]
 	}
 
 	patternVars := pr.PatternVariables
@@ -216,6 +264,21 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		singletonChildren = append(singletonChildren, singletonChild{pr: childPr, message: childMessage, modelOpts: childModelOpts})
 	}
 
+	// Parse join fields from message field options.
+	joinTables, err := parseJoinFields(message, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("parsing join fields for %s: %w", goType, err)
+	}
+	hasJoins := len(joinTables) > 0
+
+	// Pre-compute SQL fragments for joins.
+	var joinSubqueryExpr, joinSelectExprs, joinClauseStr string
+	if hasJoins {
+		joinSubqueryExpr = buildJoinSubqueryExpr(joinTables, bareTableName)
+		joinSelectExprs = buildJoinSelectExprs(joinTables)
+		joinClauseStr = buildJoinClause(joinTables, bareTableName)
+	}
+
 	return &msgCtx{
 		gen:     gen,
 		g:       gen.g,
@@ -232,6 +295,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 
 		tableName:        tableName,
+		bareTableName:    bareTableName,
 		whereClause:      strings.Join(whereConditions, " AND "),
 		placeholderDecls: strings.Join(placeholderConditions, " AND "),
 		columnNames:      columnNames,
@@ -241,7 +305,196 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
 
 		singletonChildren: singletonChildren,
+
+		hasJoins:         hasJoins,
+		joinTables:       joinTables,
+		joinSubqueryExpr: joinSubqueryExpr,
+		joinSelectExprs:  joinSelectExprs,
+		joinClause:       joinClauseStr,
 	}, nil
+}
+
+// parseJoinFields inspects message fields for join annotations and groups them by parent table.
+func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTableInfo, error) {
+	// parentType -> joinTableInfo (preserves insertion order via slice)
+	type parentKey struct {
+		resourceType   string
+		qualifiedTable string
+	}
+	var parentOrder []parentKey
+	parentToInfo := map[string]*joinTableInfo{}
+
+	for _, field := range message.Fields {
+		fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
+		if err != nil {
+			if errors.Is(err, pbutil.ErrExtensionNotFound) {
+				continue
+			}
+			return nil, fmt.Errorf("getting field_opts for %s: %w", field.Desc.Name(), err)
+		}
+		join := fieldOpts.GetJoin()
+		if join == nil {
+			continue
+		}
+
+		parentMessage, err := resource.GetMessageByResourceType(join.Parent)
+		if err != nil {
+			return nil, fmt.Errorf("resolving join parent resource %q: %w", join.Parent, err)
+		}
+
+		parentModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMessage.Desc.Options(), modelpb.E_ModelOpts)
+		if err != nil {
+			return nil, fmt.Errorf("getting model_opts for join parent %q: %w", join.Parent, err)
+		}
+
+		parentPR, err := resource.ParseFromMessage(parentMessage)
+		if err != nil {
+			return nil, fmt.Errorf("parsing join parent resource %q: %w", join.Parent, err)
+		}
+
+		// Resolve the parent field's column name.
+		joinColumn := join.Field
+		for _, parentField := range parentMessage.Fields {
+			if parentField.Desc.TextName() == join.Field {
+				parentFieldOpts, extErr := pbutil.GetExtension[*modelpb.FieldOpts](parentField.Desc.Options(), modelpb.E_FieldOpts)
+				if extErr != nil && !errors.Is(extErr, pbutil.ErrExtensionNotFound) {
+					return nil, fmt.Errorf("getting field_opts for parent field %q: %w", join.Field, extErr)
+				}
+				if parentFieldOpts.GetColumnName() != "" {
+					joinColumn = parentFieldOpts.GetColumnName()
+				}
+				break
+			}
+		}
+
+		info, exists := parentToInfo[join.Parent]
+		if !exists {
+			// Build qualified table name for the parent.
+			parentTable := parentPR.SingularSnakeCase()
+			if parentModelOpts.GetTableName() != "" {
+				parentTable = parentModelOpts.GetTableName()
+			}
+			qualifiedParentTable := parentTable
+			if parentModelOpts.GetSchemaName() != "" {
+				qualifiedParentTable = parentModelOpts.GetSchemaName() + "." + parentTable
+			}
+
+			// Build ON conditions from the parent's pattern variables.
+			var conditions []joinCondition
+			parentVars := parentPR.PatternVariables
+			parentLastIdx := len(parentVars) - 1
+			for i, v := range parentVars {
+				parentCol := v + "_id"
+				if i == parentLastIdx && parentModelOpts.GetIdColumnName() != "" {
+					parentCol = parentModelOpts.GetIdColumnName()
+				}
+				childCol := v + "_id"
+				conditions = append(conditions, joinCondition{
+					parentColumn: parentCol,
+					childColumn:  childCol,
+				})
+			}
+
+			info = &joinTableInfo{
+				qualifiedTable: qualifiedParentTable,
+				bareTable:      parentTable,
+				conditions:     conditions,
+			}
+			parentToInfo[join.Parent] = info
+			parentOrder = append(parentOrder, parentKey{resourceType: join.Parent, qualifiedTable: qualifiedParentTable})
+		}
+
+		info.fields = append(info.fields, joinFieldInfo{
+			dbTag:      string(field.Desc.Name()),
+			joinColumn: joinColumn,
+		})
+	}
+
+	result := make([]joinTableInfo, 0, len(parentOrder))
+	for _, pk := range parentOrder {
+		result = append(result, *parentToInfo[pk.resourceType])
+	}
+	return result, nil
+}
+
+// buildJoinSubqueryExpr builds scalar subqueries for RETURNING in write queries.
+func buildJoinSubqueryExpr(joinTables []joinTableInfo, childBareTable string) string {
+	var parts []string
+	for _, jt := range joinTables {
+		var whereParts []string
+		for _, c := range jt.conditions {
+			whereParts = append(whereParts, fmt.Sprintf("%s.%s = %s.%s", jt.bareTable, c.parentColumn, childBareTable, c.childColumn))
+		}
+		whereStr := strings.Join(whereParts, " AND ")
+
+		for _, f := range jt.fields {
+			parts = append(parts, fmt.Sprintf("(SELECT %s.%s FROM %s WHERE %s) AS %s",
+				jt.bareTable, f.joinColumn, jt.qualifiedTable, whereStr, f.dbTag))
+		}
+	}
+	return "," + strings.Join(parts, ",")
+}
+
+// buildJoinSelectExprs builds the extra SELECT expressions for read queries.
+func buildJoinSelectExprs(joinTables []joinTableInfo) string {
+	var parts []string
+	for _, jt := range joinTables {
+		for _, f := range jt.fields {
+			parts = append(parts, fmt.Sprintf("%s.%s AS %s", jt.bareTable, f.joinColumn, f.dbTag))
+		}
+	}
+	return "," + strings.Join(parts, ",")
+}
+
+// buildJoinClause builds the INNER JOIN clause for read queries.
+func buildJoinClause(joinTables []joinTableInfo, childBareTable string) string {
+	var parts []string
+	for _, jt := range joinTables {
+		var onParts []string
+		for _, c := range jt.conditions {
+			onParts = append(onParts, fmt.Sprintf("%s.%s = %s.%s", jt.bareTable, c.parentColumn, childBareTable, c.childColumn))
+		}
+		parts = append(parts, fmt.Sprintf("INNER JOIN %s ON %s", jt.qualifiedTable, strings.Join(onParts, " AND ")))
+	}
+	return strings.Join(parts, " ")
+}
+
+// exceptColumnsArgs returns the quoted join field db tags for ExceptColumns(...).
+func (mc *msgCtx) exceptColumnsArgs() string {
+	var args []string
+	for _, jt := range mc.joinTables {
+		for _, f := range jt.fields {
+			args = append(args, fmt.Sprintf("%q", f.dbTag))
+		}
+	}
+	return strings.Join(args, ", ")
+}
+
+// generateJoinVars emits pre-computed join SQL fragments as package-level vars.
+func (mc *msgCtx) generateJoinVars() {
+	g := mc.g
+	g.P(fmt.Sprintf("var %sJoinSubqueryExpr = `%s`", mc.goName, mc.joinSubqueryExpr))
+	g.P(fmt.Sprintf("var %sJoinSelectExprs = `%s`", mc.goName, mc.joinSelectExprs))
+	g.P(fmt.Sprintf("var %sJoinClause = `%s`", mc.goName, mc.joinClause))
+	g.P()
+}
+
+// writeColumns returns the Go expression for the columns to use in write operations.
+func (mc *msgCtx) writeColumns() string {
+	if mc.hasJoins {
+		return mc.goType + "WritePostgresColumns"
+	}
+	return mc.goType + "PostgresColumns"
+}
+
+// returningExpr returns the Go expression that builds the full RETURNING column list,
+// including join subqueries when present.
+func (mc *msgCtx) returningExpr(columnsVar string) string {
+	expr := fmt.Sprintf("%s(\"%%s\", %s)", mc.postgres("SelectQuery"), columnsVar)
+	if mc.hasJoins {
+		expr += fmt.Sprintf(" + %sJoinSubqueryExpr", mc.goName)
+	}
+	return expr
 }
 
 // Shorthand ident helpers on msgCtx for commonly used packages.
@@ -268,6 +521,24 @@ func (mc *msgCtx) patternVarIDUntitled() string {
 		parts = append(parts, camel+"Id")
 	}
 	return strings.Join(parts, ", ")
+}
+
+// qualifiedPlaceholderDecls returns WHERE conditions with bare table name prefix for read queries with joins.
+func (mc *msgCtx) qualifiedPlaceholderDecls() string {
+	if !mc.hasJoins {
+		return mc.placeholderDecls
+	}
+	patternVars := mc.pr.PatternVariables
+	lastIdx := len(patternVars) - 1
+	var conditions []string
+	for i, v := range patternVars {
+		col := v + "_id"
+		if i == lastIdx && mc.modelOpts.GetIdColumnName() != "" {
+			col = mc.modelOpts.GetIdColumnName()
+		}
+		conditions = append(conditions, fmt.Sprintf("%s.%s = $%d", mc.bareTableName, col, i+1))
+	}
+	return strings.Join(conditions, " AND ")
 }
 
 // generateETagGetter emits the private etag lookup helper when the message has an etag field.
