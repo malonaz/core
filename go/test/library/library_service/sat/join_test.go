@@ -398,106 +398,106 @@ func TestJoin_BothFieldsTogether(t *testing.T) {
 // Add to the end of go/test/library/library_service/sat/join_test.go
 
 func TestJoin_FilterByShelfGenre(t *testing.T) {
-  t.Parallel()
-  organizationParent := getOrganizationParent()
-  author := createTestAuthor(t, organizationParent, "Join Filter Genre Author")
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Join Filter Genre Author")
 
-  shelfFiction := createTestShelf(t, organizationParent, "Join Filter Fiction Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
-  shelfHistory := createTestShelf(t, organizationParent, "Join Filter History Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+	shelfFiction := createTestShelf(t, organizationParent, "Join Filter Fiction Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	shelfHistory := createTestShelf(t, organizationParent, "Join Filter History Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
 
-  createTestBook(t, shelfFiction.Name, author.Name, "Join Filter Fiction Book")
-  createTestBook(t, shelfHistory.Name, author.Name, "Join Filter History Book")
+	createTestBook(t, shelfFiction.Name, author.Name, "Join Filter Fiction Book")
+	createTestBook(t, shelfHistory.Name, author.Name, "Join Filter History Book")
 
-  t.Run("ExactMatch", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: "organizations/-/shelves/-",
-      Filter: `shelf_genre = SHELF_GENRE_FICTION`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    for _, book := range listBooksResponse.Books {
-      require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, book.ShelfGenre)
-    }
-  })
+	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: "organizations/-/shelves/-",
+			Filter: `shelf_genre = SHELF_GENRE_FICTION`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		for _, book := range listBooksResponse.Books {
+			require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, book.ShelfGenre)
+		}
+	})
 
-  t.Run("NotEqual", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: "organizations/-/shelves/-",
-      Filter: `shelf_genre != SHELF_GENRE_FICTION`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    for _, book := range listBooksResponse.Books {
-      require.NotEqual(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, book.ShelfGenre)
-    }
-  })
+	t.Run("NotEqual", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: "organizations/-/shelves/-",
+			Filter: `shelf_genre != SHELF_GENRE_FICTION`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		for _, book := range listBooksResponse.Books {
+			require.NotEqual(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, book.ShelfGenre)
+		}
+	})
 }
 
 func TestJoin_FilterByShelfExternalId(t *testing.T) {
-  t.Parallel()
-  organizationParent := getOrganizationParent()
-  author := createTestAuthor(t, organizationParent, "Join Filter ExtId Author")
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Join Filter ExtId Author")
 
-  createShelfRequest := &libraryservicepb.CreateShelfRequest{
-    Parent: organizationParent,
-    Shelf: &librarypb.Shelf{
-      DisplayName:     "Join Filter ExtId Shelf",
-      Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-      ExternalId:      "ext-filter-unique-99",
-      CorrelationId_2: "hello",
-      Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
-    },
-  }
-  shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
-  require.NoError(t, err)
+	createShelfRequest := &libraryservicepb.CreateShelfRequest{
+		Parent: organizationParent,
+		Shelf: &librarypb.Shelf{
+			DisplayName:     "Join Filter ExtId Shelf",
+			Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+			ExternalId:      "ext-filter-unique-99",
+			CorrelationId_2: "hello",
+			Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+		},
+	}
+	shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+	require.NoError(t, err)
 
-  createTestBook(t, shelf.Name, author.Name, "Join Filter ExtId Book")
+	createTestBook(t, shelf.Name, author.Name, "Join Filter ExtId Book")
 
-  t.Run("ExactMatch", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: shelf.Name,
-      Filter: `shelf_external_id = "ext-filter-unique-99"`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    require.Len(t, listBooksResponse.Books, 1)
-    require.Equal(t, "ext-filter-unique-99", listBooksResponse.Books[0].ShelfExternalId)
-  })
+	t.Run("ExactMatch", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `shelf_external_id = "ext-filter-unique-99"`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 1)
+		require.Equal(t, "ext-filter-unique-99", listBooksResponse.Books[0].ShelfExternalId)
+	})
 
-  t.Run("WildcardMatch", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: shelf.Name,
-      Filter: `shelf_external_id = "ext-filter-unique*"`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    require.Len(t, listBooksResponse.Books, 1)
-  })
+	t.Run("WildcardMatch", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `shelf_external_id = "ext-filter-unique*"`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 1)
+	})
 
-  t.Run("Presence", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: shelf.Name,
-      Filter: `shelf_external_id:*`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    require.Len(t, listBooksResponse.Books, 1)
-  })
+	t.Run("Presence", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `shelf_external_id:*`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 1)
+	})
 
-  t.Run("NoMatch", func(t *testing.T) {
-    t.Parallel()
-    listBooksRequest := &libraryservicepb.ListBooksRequest{
-      Parent: shelf.Name,
-      Filter: `shelf_external_id = "nonexistent-ext-id"`,
-    }
-    listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
-    require.NoError(t, err)
-    require.Empty(t, listBooksResponse.Books)
-  })
+	t.Run("NoMatch", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent: shelf.Name,
+			Filter: `shelf_external_id = "nonexistent-ext-id"`,
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Empty(t, listBooksResponse.Books)
+	})
 }
 */

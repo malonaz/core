@@ -4,9 +4,14 @@ import (
 	"reflect"
 )
 
+type exceptTagMatch struct {
+	key   string
+	value string
+}
+
 type GetDBColumnsOpts struct {
-	except    map[string]struct{}
-	namespace string
+	except           map[string]struct{}
+	exceptTagMatches []exceptTagMatch
 }
 
 type GetDBColumnsOption func(*GetDBColumnsOpts)
@@ -19,9 +24,9 @@ func ExceptColumns(columns ...string) GetDBColumnsOption {
 	}
 }
 
-func WithTablePrefix(table string) GetDBColumnsOption {
+func ExceptTagMatch(key, value string) GetDBColumnsOption {
 	return func(o *GetDBColumnsOpts) {
-		o.namespace = table
+		o.exceptTagMatches = append(o.exceptTagMatches, exceptTagMatch{key: key, value: value})
 	}
 }
 
@@ -37,6 +42,17 @@ func GetDBColumns(object any, opts ...GetDBColumnsOption) []string {
 		panic("object must be a struct passed by value")
 	}
 
+	for _, match := range o.exceptTagMatches {
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			if tagValue, ok := field.Tag.Lookup(match.key); ok && tagValue == match.value {
+				if dbTag, ok := field.Tag.Lookup("db"); ok {
+					o.except[dbTag] = struct{}{}
+				}
+			}
+		}
+	}
+
 	sliceType := reflect.SliceOf(reflect.PointerTo(t))
 	slice := reflect.New(sliceType).Elem()
 	instancePtr := reflect.New(t)
@@ -50,11 +66,7 @@ func GetDBColumns(object any, opts ...GetDBColumnsOption) []string {
 		if _, ok := o.except[tag]; ok {
 			continue
 		}
-		if o.namespace != "" {
-			tags = append(tags, o.namespace+"."+tag)
-		} else {
-			tags = append(tags, tag)
-		}
+		tags = append(tags, tag)
 	}
 	return tags
 }

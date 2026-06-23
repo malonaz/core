@@ -101,16 +101,4 @@ func TestGetDBColumnsEmbedded(t *testing.T) {
 		fn := func() { GetDBColumns(123) }
 		require.Panics(t, fn, "the function should panic when non-struct parameter is passed")
 	})
-
-	t.Run("WithTablePrefix", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, WithTablePrefix("my_table"))
-		expectedTags := []string{"my_table.embedded_1", "my_table.embedded_2", "my_table.parent_1", "my_table.parent_2"}
-		require.ElementsMatch(t, expectedTags, tags)
-	})
-
-	t.Run("WithTablePrefixAndExcept", func(t *testing.T) {
-		tags := GetDBColumns(ParentStruct{}, WithTablePrefix("t"), ExceptColumns("parent_2"))
-		expectedTags := []string{"t.embedded_1", "t.embedded_2", "t.parent_1"}
-		require.ElementsMatch(t, expectedTags, tags)
-	})
 }

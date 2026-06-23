@@ -192,11 +192,6 @@ func (m *Model) StructDef() (string, error) {
 	}
 
 	for _, field := range m.ActiveFields() {
-		columnTag, err := m.columnName(field.ProtoField)
-		if err != nil {
-			return "", fmt.Errorf("resolving column name for %s: %w", field.ProtoField.GoName, err)
-		}
-
 		if field.FieldOpts.GetEmbed() {
 			fmt.Fprintf(&b, "\t%s%s\n", goName, field.ProtoField.GoName)
 			continue
@@ -205,6 +200,16 @@ func (m *Model) StructDef() (string, error) {
 		typeName, err := m.resolveFieldType(field.ProtoField, field.FieldOpts, pgvector)
 		if err != nil {
 			return "", fmt.Errorf("resolving type for %s: %w", field.ProtoField.GoName, err)
+		}
+
+		if field.FieldOpts.GetJoin() != nil {
+			fmt.Fprintf(&b, "\t%s %s `db:\"%s\" external:\"true\"`\n", field.ProtoField.GoName, typeName, field.ProtoField.Desc.TextName())
+			continue
+		}
+
+		columnTag, err := m.columnName(field.ProtoField)
+		if err != nil {
+			return "", fmt.Errorf("resolving column name for %s: %w", field.ProtoField.GoName, err)
 		}
 
 		fmt.Fprintf(&b, "\t%s %s `db:\"%s\"`\n", field.ProtoField.GoName, typeName, columnTag)
