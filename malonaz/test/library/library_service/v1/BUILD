@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "author.proto",
         "book.proto",
+        "book_review.proto",
         "library_service.proto",
         "shelf.proto",
     ],
@@ -15,6 +16,7 @@ grpc_library(
     srcs = [
         "author.proto",
         "book.proto",
+        "book_review.proto",
         "library_service.proto",
         "shelf.proto",
     ],

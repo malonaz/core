@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package malonaz.test.library.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/v1";
+
+// BookReview is a singleton child of Book, auto-created with its parent.
+message BookReview {
+  option (google.api.resource) = {
+    type: "library.test.malonaz.com/BookReview"
+    pattern: "organizations/{organization}/shelves/{shelf}/books/{book}/review"
+    singular: "bookReview"
+    plural: "bookReviews"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
+
+  // The resource name of the book review.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/review
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The rating (1-5).
+  int32 rating = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 5
+  }];
+
+  // The review comment.
+  string comment = 6;
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 7;
+
+  // The labels on this book review.
+  map<string, string> labels = 8 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Book review metadata.
+  BookReviewMetadata metadata = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // Join on parent book: title.
+  string book_title = 10 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "library.test.malonaz.com/Book"
+      field: "title"
+    }
+  ];
+
+  // Join on parent book: publication year.
+  int32 book_publication_year = 11 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).join = {
+      parent: "library.test.malonaz.com/Book"
+      field: "publication_year"
+    }
+  ];
+}
+
+// Metadata for a book review.
+message BookReviewMetadata {
+  // The name of the reviewer.
+  string reviewer_name = 1;
+}

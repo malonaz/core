@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "author.pb.go",
         "book.pb.go",
+        "book_review.pb.go",
         "library_service.pb.go",
         "library_service_grpc.pb.go",
         "library_service_nats.pb.go",

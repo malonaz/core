@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "author.proto",
         "book.proto",
+        "book_review.proto",
         "shelf.proto",
     ],
     test_only = True,
@@ -14,6 +15,7 @@ proto_library(
     srcs = [
         "author.proto",
         "book.proto",
+        "book_review.proto",
         "shelf.proto",
     ],
     additional_context = {

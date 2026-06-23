@@ -60,3 +60,19 @@ CREATE TABLE library.book (
     FOREIGN KEY (organization_id, shelf_id) REFERENCES library.shelf(organization_id, shelf_id),
     CONSTRAINT book_request_id_unique UNIQUE (request_id)
 );
+
+CREATE TABLE library.book_review (
+    organization_id TEXT NOT NULL,
+    shelf_id TEXT NOT NULL,
+    book_id TEXT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    delete_time TIMESTAMP,
+    rating INT NOT NULL DEFAULT 0,
+    comment TEXT NOT NULL DEFAULT '',
+    etag TEXT NOT NULL,
+    labels JSONB,
+    metadata JSONB,
+    PRIMARY KEY (organization_id, shelf_id, book_id),
+    FOREIGN KEY (organization_id, shelf_id, book_id) REFERENCES library.book(organization_id, shelf_id, book_id)
+);

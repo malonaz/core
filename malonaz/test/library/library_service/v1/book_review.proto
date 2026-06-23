@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/v1/book_review.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// Request message for LibraryService.GetBookReview.
+message GetBookReviewRequest {
+  // The resource name of the book review to retrieve.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/review
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/BookReview"
+  ];
+}
+
+// Request message for LibraryService.UpdateBookReview.
+message UpdateBookReviewRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "rating",
+      "comment",
+      "labels",
+      "metadata"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "book_review.name_required"
+    message: "book_review.name must be set"
+    expression: "has(this.book_review.name)"
+  };
+
+  // The book review to update.
+  malonaz.test.library.v1.BookReview book_review = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for LibraryService.ListBookReviews.
+message ListBookReviewsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time",
+      "rating"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent book to list book reviews for.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book"
+  ];
+
+  // @autogen
+  string filter = 2;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 3;
+
+  // @autogen.
+  string order_by = 4;
+
+  // Requested page size.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListBookReviews` call.
+  string page_token = 6;
+}
+
+// Response message for LibraryService.ListBookReviews.
+message ListBookReviewsResponse {
+  // The list of book reviews.
+  repeated malonaz.test.library.v1.BookReview book_reviews = 1;
+
+  // A token to retrieve the next page.
+  string next_page_token = 2;
+}
+
+// Request message for LibraryService.BatchGetBookReviews.
+message BatchGetBookReviewsRequest {
+  // The parent book that owns the book reviews.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string parent = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Book"];
+
+  // The resource names of the book reviews to retrieve.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/review
+  // A maximum of 1000 book reviews can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "library.test.malonaz.com/BookReview"
+  ];
+}
+
+// Response message for LibraryService.BatchGetBookReviews.
+message BatchGetBookReviewsResponse {
+  // Book reviews requested.
+  repeated malonaz.test.library.v1.BookReview book_reviews = 1;
+}
