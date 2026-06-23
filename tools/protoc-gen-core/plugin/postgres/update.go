@@ -60,7 +60,7 @@ func (mc *msgCtx) generateUpdate() {
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
 	if mc.hasEtag {
-		mc.generateETagCheck("update", mc.patternVarFieldAccess())
+		mc.generateETagCheck("update", mc.patternVarFieldAccess(), false)
 	}
 	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
 	g.P("    }")

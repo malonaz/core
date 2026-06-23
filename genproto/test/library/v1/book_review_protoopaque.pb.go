@@ -32,14 +32,13 @@ type BookReview struct {
 	xxx_hidden_Name                string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_CreateTime          *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
 	xxx_hidden_UpdateTime          *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
-	xxx_hidden_DeleteTime          *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
-	xxx_hidden_Rating              int32                  `protobuf:"varint,5,opt,name=rating,proto3"`
-	xxx_hidden_Comment             string                 `protobuf:"bytes,6,opt,name=comment,proto3"`
-	xxx_hidden_Etag                string                 `protobuf:"bytes,7,opt,name=etag,proto3"`
-	xxx_hidden_Labels              map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Metadata            *BookReviewMetadata    `protobuf:"bytes,9,opt,name=metadata,proto3"`
-	xxx_hidden_BookTitle           string                 `protobuf:"bytes,10,opt,name=book_title,json=bookTitle,proto3"`
-	xxx_hidden_BookPublicationYear int32                  `protobuf:"varint,11,opt,name=book_publication_year,json=bookPublicationYear,proto3"`
+	xxx_hidden_Rating              int32                  `protobuf:"varint,4,opt,name=rating,proto3"`
+	xxx_hidden_Comment             string                 `protobuf:"bytes,5,opt,name=comment,proto3"`
+	xxx_hidden_Etag                string                 `protobuf:"bytes,6,opt,name=etag,proto3"`
+	xxx_hidden_Labels              map[string]string      `protobuf:"bytes,7,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Metadata            *BookReviewMetadata    `protobuf:"bytes,8,opt,name=metadata,proto3"`
+	xxx_hidden_BookTitle           string                 `protobuf:"bytes,9,opt,name=book_title,json=bookTitle,proto3"`
+	xxx_hidden_BookPublicationYear int32                  `protobuf:"varint,10,opt,name=book_publication_year,json=bookPublicationYear,proto3"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -86,13 +85,6 @@ func (x *BookReview) GetCreateTime() *timestamppb.Timestamp {
 func (x *BookReview) GetUpdateTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_UpdateTime
-	}
-	return nil
-}
-
-func (x *BookReview) GetDeleteTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.xxx_hidden_DeleteTime
 	}
 	return nil
 }
@@ -158,10 +150,6 @@ func (x *BookReview) SetUpdateTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_UpdateTime = v
 }
 
-func (x *BookReview) SetDeleteTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_DeleteTime = v
-}
-
 func (x *BookReview) SetRating(v int32) {
 	x.xxx_hidden_Rating = v
 }
@@ -204,13 +192,6 @@ func (x *BookReview) HasUpdateTime() bool {
 	return x.xxx_hidden_UpdateTime != nil
 }
 
-func (x *BookReview) HasDeleteTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_DeleteTime != nil
-}
-
 func (x *BookReview) HasMetadata() bool {
 	if x == nil {
 		return false
@@ -224,10 +205,6 @@ func (x *BookReview) ClearCreateTime() {
 
 func (x *BookReview) ClearUpdateTime() {
 	x.xxx_hidden_UpdateTime = nil
-}
-
-func (x *BookReview) ClearDeleteTime() {
-	x.xxx_hidden_DeleteTime = nil
 }
 
 func (x *BookReview) ClearMetadata() {
@@ -244,8 +221,6 @@ type BookReview_builder struct {
 	CreateTime *timestamppb.Timestamp
 	// The last update timestamp.
 	UpdateTime *timestamppb.Timestamp
-	// The deletion timestamp.
-	DeleteTime *timestamppb.Timestamp
 	// The rating (1-5).
 	Rating int32
 	// The review comment.
@@ -269,7 +244,6 @@ func (b0 BookReview_builder) Build() *BookReview {
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_CreateTime = b.CreateTime
 	x.xxx_hidden_UpdateTime = b.UpdateTime
-	x.xxx_hidden_DeleteTime = b.DeleteTime
 	x.xxx_hidden_Rating = b.Rating
 	x.xxx_hidden_Comment = b.Comment
 	x.xxx_hidden_Etag = b.Etag
@@ -343,26 +317,24 @@ var File_malonaz_test_library_v1_book_review_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_review_proto_rawDesc = "" +
 	"\n" +
-	")malonaz/test/library/v1/book_review.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x84\b\n" +
+	")malonaz/test/library/v1/book_review.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xbc\a\n" +
 	"\n" +
 	"BookReview\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"createTime\x12@\n" +
 	"\vupdate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
-	"updateTime\x12F\n" +
-	"\vdelete_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
-	"deleteTime\x12!\n" +
-	"\x06rating\x18\x05 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\x05(\x00R\x06rating\x12\x18\n" +
-	"\acomment\x18\x06 \x01(\tR\acomment\x12\x12\n" +
-	"\x04etag\x18\a \x01(\tR\x04etag\x12\xdd\x01\n" +
-	"\x06labels\x18\b \x03(\v2/.malonaz.test.library.v1.BookReview.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12Q\n" +
-	"\bmetadata\x18\t \x01(\v2+.malonaz.test.library.v1.BookReviewMetadataB\b\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x12N\n" +
+	"updateTime\x12!\n" +
+	"\x06rating\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\x05(\x00R\x06rating\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\x12\x12\n" +
+	"\x04etag\x18\x06 \x01(\tR\x04etag\x12\xdd\x01\n" +
+	"\x06labels\x18\a \x03(\v2/.malonaz.test.library.v1.BookReview.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12Q\n" +
+	"\bmetadata\x18\b \x01(\v2+.malonaz.test.library.v1.BookReviewMetadataB\b\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x12N\n" +
 	"\n" +
-	"book_title\x18\n" +
-	" \x01(\tB/\xe0A\x03\xba\xea\x0f(B&\n" +
+	"book_title\x18\t \x01(\tB/\xe0A\x03\xba\xea\x0f(B&\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\x05titleR\tbookTitle\x12n\n" +
-	"\x15book_publication_year\x18\v \x01(\x05B:\xe0A\x03\xba\xea\x0f3B1\n" +
+	"\x15book_publication_year\x18\n" +
+	" \x01(\x05B:\xe0A\x03\xba\xea\x0f3B1\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\x10publication_yearR\x13bookPublicationYear\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -383,14 +355,13 @@ var file_malonaz_test_library_v1_book_review_proto_goTypes = []any{
 var file_malonaz_test_library_v1_book_review_proto_depIdxs = []int32{
 	3, // 0: malonaz.test.library.v1.BookReview.create_time:type_name -> google.protobuf.Timestamp
 	3, // 1: malonaz.test.library.v1.BookReview.update_time:type_name -> google.protobuf.Timestamp
-	3, // 2: malonaz.test.library.v1.BookReview.delete_time:type_name -> google.protobuf.Timestamp
-	2, // 3: malonaz.test.library.v1.BookReview.labels:type_name -> malonaz.test.library.v1.BookReview.LabelsEntry
-	1, // 4: malonaz.test.library.v1.BookReview.metadata:type_name -> malonaz.test.library.v1.BookReviewMetadata
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	2, // 2: malonaz.test.library.v1.BookReview.labels:type_name -> malonaz.test.library.v1.BookReview.LabelsEntry
+	1, // 3: malonaz.test.library.v1.BookReview.metadata:type_name -> malonaz.test.library.v1.BookReviewMetadata
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_book_review_proto_init() }

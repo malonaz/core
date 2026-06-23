@@ -18,7 +18,8 @@ go_test(
         "read_mask_test.go",
         "sat_test.go",
         "shelf_test.go",
-        "singleton_test.go",
+        "singleton_hard_deletable_test.go",
+        "singleton_soft_deletable_test.go",
         "update_test.go",
     ],
     data = [

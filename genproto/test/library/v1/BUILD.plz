@@ -4,6 +4,8 @@ go_library(
         "author.pb.go",
         "author_aip.go",
         "author_aip_label.pb.go",
+        "author_profile.pb.go",
+        "author_profile_aip.go",
         "book.pb.go",
         "book_aip.go",
         "book_nats_event.pb.go",

@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "organization.pb.go",
         "user.pb.go",
+        "user_profile.pb.go",
         "user_service.pb.go",
         "user_service_grpc.pb.go",
         "user_service_nats.pb.go",

@@ -1,3 +1,4 @@
+// tools/protoc-gen-core/plugin/postgres/postgres.go
 package postgres
 
 import (
@@ -80,7 +81,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		g.P()
 	}
 
-	// Pre-compute msgCtx for all messages so we can generate the var block correctly.
 	var msgCtxs []*msgCtx
 	for _, mm := range messages {
 		mc, err := gen.newMsgCtx(mm.message, mm.modelOpts, mm.pr)
@@ -139,27 +139,23 @@ type singletonChild struct {
 	modelOpts *modelpb.ModelOpts
 }
 
-// joinFieldInfo describes a single field populated via a JOIN.
 type joinFieldInfo struct {
-	dbTag      string // proto text name used as db tag, e.g. "shelf_external_id"
-	joinColumn string // actual column on the parent table, e.g. "external_id"
+	dbTag      string
+	joinColumn string
 }
 
-// joinCondition describes a single column match in a JOIN ON clause.
 type joinCondition struct {
-	parentColumn string // column on the parent (join) table
-	childColumn  string // column on the child (main) table
+	parentColumn string
+	childColumn  string
 }
 
-// joinTableInfo groups all join fields from the same parent table.
 type joinTableInfo struct {
-	qualifiedTable string // e.g. "library.shelf"
-	bareTable      string // e.g. "shelf"
+	qualifiedTable string
+	bareTable      string
 	fields         []joinFieldInfo
 	conditions     []joinCondition
 }
 
-// msgCtx holds all precomputed values for generating postgres code for a single message.
 type msgCtx struct {
 	gen *generator
 	g   *protogen.GeneratedFile
@@ -179,7 +175,7 @@ type msgCtx struct {
 	errETagChanged    string
 
 	tableName        string
-	bareTableName    string // unqualified table name, e.g. "book"
+	bareTableName    string
 	whereClause      string
 	placeholderDecls string
 	columnNames      string
@@ -190,14 +186,12 @@ type msgCtx struct {
 
 	singletonChildren []singletonChild
 
-	// Join support.
 	hasJoins   bool
 	joinTables []joinTableInfo
 
-	// Pre-computed SQL fragments for join support.
-	joinSubqueryExpr string // appended to RETURNING in write queries
-	joinSelectExprs  string // appended to SELECT in read queries, e.g. ",shelf.col AS alias"
-	joinClause       string // INNER JOIN ... for read queries
+	joinSubqueryExpr string
+	joinSelectExprs  string
+	joinClause       string
 }
 
 func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.ModelOpts, pr *resource.ParsedResource) (*msgCtx, error) {
@@ -248,6 +242,8 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		columnNames = strings.Replace(columnNames, id, modelOpts.GetIdColumnName(), 1)
 	}
 
+	hasDeleteTime := message.Desc.Fields().ByName("delete_time") != nil
+
 	var singletonChildren []singletonChild
 	for _, childPr := range pr.Children {
 		if !childPr.Singleton {
@@ -261,17 +257,24 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		if err != nil {
 			continue
 		}
+
+		childHasDeleteTime := childMessage.Desc.Fields().ByName("delete_time") != nil
+		if hasDeleteTime != childHasDeleteTime {
+			if hasDeleteTime {
+				return nil, fmt.Errorf("singleton child %s must have a delete_time field because its parent %s is soft-deletable", childPr.Desc.Type, goType)
+			}
+			return nil, fmt.Errorf("singleton child %s has a delete_time field but its parent %s is not soft-deletable", childPr.Desc.Type, goType)
+		}
+
 		singletonChildren = append(singletonChildren, singletonChild{pr: childPr, message: childMessage, modelOpts: childModelOpts})
 	}
 
-	// Parse join fields from message field options.
 	joinTables, err := parseJoinFields(message, tableName)
 	if err != nil {
 		return nil, fmt.Errorf("parsing join fields for %s: %w", goType, err)
 	}
 	hasJoins := len(joinTables) > 0
 
-	// Pre-compute SQL fragments for joins.
 	var joinSubqueryExpr, joinSelectExprs, joinClauseStr string
 	if hasJoins {
 		joinSubqueryExpr = buildJoinSubqueryExpr(joinTables, bareTableName)
@@ -302,7 +305,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		identifier:       identifier,
 
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
-		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
+		hasDeleteTime: hasDeleteTime,
 
 		singletonChildren: singletonChildren,
 
@@ -314,9 +317,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}, nil
 }
 
-// parseJoinFields inspects message fields for join annotations and groups them by parent table.
 func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTableInfo, error) {
-	// parentType -> joinTableInfo (preserves insertion order via slice)
 	type parentKey struct {
 		resourceType   string
 		qualifiedTable string
@@ -352,7 +353,6 @@ func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTa
 			return nil, fmt.Errorf("parsing join parent resource %q: %w", join.Parent, err)
 		}
 
-		// Resolve the parent field's column name.
 		joinColumn := join.Field
 		for _, parentField := range parentMessage.Fields {
 			if parentField.Desc.TextName() == join.Field {
@@ -369,7 +369,6 @@ func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTa
 
 		info, exists := parentToInfo[join.Parent]
 		if !exists {
-			// Build qualified table name for the parent.
 			parentTable := parentPR.SingularSnakeCase()
 			if parentModelOpts.GetTableName() != "" {
 				parentTable = parentModelOpts.GetTableName()
@@ -379,7 +378,6 @@ func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTa
 				qualifiedParentTable = parentModelOpts.GetSchemaName() + "." + parentTable
 			}
 
-			// Build ON conditions from the parent's pattern variables.
 			var conditions []joinCondition
 			parentVars := parentPR.PatternVariables
 			parentLastIdx := len(parentVars) - 1
@@ -417,7 +415,6 @@ func parseJoinFields(message *protogen.Message, childTableName string) ([]joinTa
 	return result, nil
 }
 
-// buildJoinSubqueryExpr builds scalar subqueries for RETURNING in write queries.
 func buildJoinSubqueryExpr(joinTables []joinTableInfo, childBareTable string) string {
 	var parts []string
 	for _, jt := range joinTables {
@@ -435,7 +432,6 @@ func buildJoinSubqueryExpr(joinTables []joinTableInfo, childBareTable string) st
 	return "," + strings.Join(parts, ",")
 }
 
-// buildJoinSelectExprs builds the extra SELECT expressions for read queries.
 func buildJoinSelectExprs(joinTables []joinTableInfo) string {
 	var parts []string
 	for _, jt := range joinTables {
@@ -446,7 +442,6 @@ func buildJoinSelectExprs(joinTables []joinTableInfo) string {
 	return "," + strings.Join(parts, ",")
 }
 
-// buildJoinClause builds the INNER JOIN clause for read queries.
 func buildJoinClause(joinTables []joinTableInfo, childBareTable string) string {
 	var parts []string
 	for _, jt := range joinTables {
@@ -459,7 +454,6 @@ func buildJoinClause(joinTables []joinTableInfo, childBareTable string) string {
 	return strings.Join(parts, " ")
 }
 
-// exceptColumnsArgs returns the quoted join field db tags for ExceptColumns(...).
 func (mc *msgCtx) exceptColumnsArgs() string {
 	var args []string
 	for _, jt := range mc.joinTables {
@@ -470,7 +464,6 @@ func (mc *msgCtx) exceptColumnsArgs() string {
 	return strings.Join(args, ", ")
 }
 
-// generateJoinVars emits pre-computed join SQL fragments as package-level vars.
 func (mc *msgCtx) generateJoinVars() {
 	g := mc.g
 	g.P(fmt.Sprintf("var %sJoinSubqueryExpr = `%s`", mc.goName, mc.joinSubqueryExpr))
@@ -479,7 +472,6 @@ func (mc *msgCtx) generateJoinVars() {
 	g.P()
 }
 
-// writeColumns returns the Go expression for the columns to use in write operations.
 func (mc *msgCtx) writeColumns() string {
 	if mc.hasJoins {
 		return mc.goType + "WritePostgresColumns"
@@ -487,8 +479,6 @@ func (mc *msgCtx) writeColumns() string {
 	return mc.goType + "PostgresColumns"
 }
 
-// returningExpr returns the Go expression that builds the full RETURNING column list,
-// including join subqueries when present.
 func (mc *msgCtx) returningExpr(columnsVar string) string {
 	expr := fmt.Sprintf("%s(\"%%s\", %s)", mc.postgres("SelectQuery"), columnsVar)
 	if mc.hasJoins {
@@ -497,7 +487,6 @@ func (mc *msgCtx) returningExpr(columnsVar string) string {
 	return expr
 }
 
-// Shorthand ident helpers on msgCtx for commonly used packages.
 func (mc *msgCtx) pgx(name string) string      { return mc.gen.ident(pgxPkg, name) }
 func (mc *msgCtx) postgres(name string) string { return mc.gen.ident(postgresPkg, name) }
 func (mc *msgCtx) fmtI(name string) string     { return mc.gen.ident(fmtPkg, name) }
@@ -523,7 +512,6 @@ func (mc *msgCtx) patternVarIDUntitled() string {
 	return strings.Join(parts, ", ")
 }
 
-// qualifiedPlaceholderDecls returns WHERE conditions with bare table name prefix for read queries with joins.
 func (mc *msgCtx) qualifiedPlaceholderDecls() string {
 	if !mc.hasJoins {
 		return mc.placeholderDecls
@@ -541,7 +529,6 @@ func (mc *msgCtx) qualifiedPlaceholderDecls() string {
 	return strings.Join(conditions, " AND ")
 }
 
-// generateETagGetter emits the private etag lookup helper when the message has an etag field.
 func (mc *msgCtx) generateETagGetter() {
 	if !mc.hasEtag {
 		return
@@ -558,23 +545,54 @@ func (mc *msgCtx) generateETagGetter() {
 	g.P()
 }
 
-// generateETagCheck emits the etag mismatch detection block used inside ErrNoRows handlers.
-func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string) {
+func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string, inTransaction bool) {
 	g := mc.g
+	retPrefix := "return nil, "
+	if inTransaction {
+		retPrefix = "return "
+	}
 	g.P("      if etag != \"\" {")
 	g.P(fmt.Sprintf("        currentEtag, getEtagErr := s.get%sETag(ctx, %s)", mc.goType, patternVarArgs))
 	g.P("        switch getEtagErr {")
 	g.P("        case nil:")
 	g.P("          if currentEtag == etag {")
-	g.P("            return nil, ", mc.fmtI("Errorf"), "(\"", operation, " matched no rows but etag unchanged: expected etag mismatch\")")
+	g.P("            ", retPrefix, mc.fmtI("Errorf"), "(\"", operation, " matched no rows but etag unchanged: expected etag mismatch\")")
 	g.P("          }")
-	g.P(fmt.Sprintf("          return nil, %s", mc.errETagChanged))
+	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errETagChanged))
 	g.P(fmt.Sprintf("        case %s:", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("          return nil, %s", mc.errNotExist))
+	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errNotExist))
 	g.P("        default:")
-	g.P("          return nil, ", mc.fmtI("Errorf"), "(\"getting etag: %v\", getEtagErr)")
+	g.P("          ", retPrefix, mc.fmtI("Errorf"), "(\"getting etag: %v\", getEtagErr)")
 	g.P("        }")
 	g.P("      }")
+}
+
+// singletonChildTableName resolves the fully qualified table name for a singleton child.
+func (mc *msgCtx) singletonChildTableName(sc singletonChild) string {
+	tableName := sc.pr.SingularSnakeCase()
+	if sc.modelOpts.GetTableName() != "" {
+		tableName = sc.modelOpts.GetTableName()
+	}
+	if sc.modelOpts.GetSchemaName() != "" {
+		tableName = sc.modelOpts.GetSchemaName() + "." + tableName
+	}
+	return tableName
+}
+
+// singletonChildPlaceholderDecls builds WHERE conditions for a singleton child
+// using the parent's pattern variable IDs.
+func (mc *msgCtx) singletonChildPlaceholderDecls(sc singletonChild) string {
+	patternVars := mc.pr.PatternVariables
+	lastIdx := len(patternVars) - 1
+	var conditions []string
+	for i, v := range patternVars {
+		col := v + "_id"
+		if i == lastIdx && sc.modelOpts.GetIdColumnName() != "" {
+			col = sc.modelOpts.GetIdColumnName()
+		}
+		conditions = append(conditions, fmt.Sprintf("%s = $%d", col, i+1))
+	}
+	return strings.Join(conditions, " AND ")
 }
 
 func untitle(s string) string {

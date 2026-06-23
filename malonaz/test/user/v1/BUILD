@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "organization.proto",
         "user.proto",
+        "user_profile.proto",
     ],
     test_only = True,
     visibility = ["PUBLIC"],
@@ -13,6 +14,7 @@ proto_library(
     srcs = [
         "organization.proto",
         "user.proto",
+        "user_profile.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/user/v1",

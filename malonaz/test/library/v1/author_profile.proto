@@ -10,39 +10,41 @@ import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
 
-// BookReview is a singleton child of Book, auto-created with its parent.
-message BookReview {
+// AuthorProfile is a singleton child of Author, auto-created with its parent.
+message AuthorProfile {
   option (google.api.resource) = {
-    type: "library.test.malonaz.com/BookReview"
-    pattern: "organizations/{organization}/shelves/{shelf}/books/{book}/review"
-    singular: "bookReview"
-    plural: "bookReviews"
+    type: "library.test.malonaz.com/AuthorProfile"
+    pattern: "organizations/{organization}/authors/{author}/profile"
+    singular: "authorProfile"
+    plural: "authorProfiles"
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
 
-  // The resource name of the book review.
-  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/review
+  // The resource name of the author profile.
+  // Format: organizations/{organization}/authors/{author}/profile
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // The creation timestamp.
   google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
   // The last update timestamp.
   google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 
-  // The rating (1-5).
-  int32 rating = 4 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 5
-  }];
+  // A short bio for the profile.
+  string bio = 5;
 
-  // The review comment.
-  string comment = 5;
+  // The website URL.
+  string website = 6 [(buf.validate.field).string.max_len = 2048];
 
   // A checksum computed by the server based on the current value of the resource.
-  string etag = 6;
+  string etag = 7;
 
-  // The labels on this book review.
-  map<string, string> labels = 7 [
+  // The labels on this author profile.
+  map<string, string> labels = 8 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (buf.validate.field).map = {
@@ -59,33 +61,33 @@ message BookReview {
     }
   ];
 
-  // Book review metadata.
-  BookReviewMetadata metadata = 8 [
+  // Author profile metadata.
+  AuthorProfileMetadata metadata = 9 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 
-  // Join on parent book: title.
-  string book_title = 9 [
+  // Join on parent author: display_name.
+  string author_display_name = 10 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Book"
-      field: "title"
+      parent: "library.test.malonaz.com/Author"
+      field: "display_name"
     }
   ];
 
-  // Join on parent book: publication year.
-  int32 book_publication_year = 10 [
+  // Join on parent author: email_address.
+  string author_email_address = 11 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Book"
-      field: "publication_year"
+      parent: "library.test.malonaz.com/Author"
+      field: "email_address"
     }
   ];
 }
 
-// Metadata for a book review.
-message BookReviewMetadata {
-  // The name of the reviewer.
-  string reviewer_name = 1;
+// Metadata for an author profile.
+message AuthorProfileMetadata {
+  // Preferred language of the author.
+  string preferred_language = 1;
 }

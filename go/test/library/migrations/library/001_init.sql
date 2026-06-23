@@ -76,3 +76,18 @@ CREATE TABLE library.book_review (
     PRIMARY KEY (organization_id, shelf_id, book_id),
     FOREIGN KEY (organization_id, shelf_id, book_id) REFERENCES library.book(organization_id, shelf_id, book_id)
 );
+
+CREATE TABLE library.author_profile (
+    organization_id TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    delete_time TIMESTAMP,
+    bio TEXT NOT NULL DEFAULT '',
+    website TEXT NOT NULL DEFAULT '',
+    etag TEXT NOT NULL,
+    labels JSONB,
+    metadata JSONB,
+    PRIMARY KEY (organization_id, author_id),
+    FOREIGN KEY (organization_id, author_id) REFERENCES library.author(organization_id, author_id)
+);

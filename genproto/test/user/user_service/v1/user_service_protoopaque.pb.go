@@ -30,7 +30,7 @@ var File_malonaz_test_user_user_service_v1_user_service_proto protoreflect.FileD
 
 const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto2\xd4\x14\n" +
+	"4malonaz/test/user/user_service/v1/user_service.proto\x12!malonaz.test.user.user_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/user/user_service/v1/organization.proto\x1a,malonaz/test/user/user_service/v1/user.proto\x1a4malonaz/test/user/user_service/v1/user_profile.proto\x1a'malonaz/test/user/v1/organization.proto\x1a\x1fmalonaz/test/user/v1/user.proto\x1a'malonaz/test/user/v1/user_profile.proto2\xb3\x1c\n" +
 	"\vUserService\x12\xd6\x01\n" +
 	"\x12CreateOrganization\x12<.malonaz.test.user.user_service.v1.CreateOrganizationRequest\x1a\".malonaz.test.user.v1.Organization\"^\xdaA\forganization´-$\n" +
 	"\"user.test.malonaz.com/Organization\x82\xd3\xe4\x93\x02!:\forganization\"\x11/v1/organizations\x12\xc3\x01\n" +
@@ -58,7 +58,15 @@ const file_malonaz_test_user_user_service_v1_user_service_proto_rawDesc = "" +
 	"\tListUsers\x123.malonaz.test.user.user_service.v1.ListUsersRequest\x1a4.malonaz.test.user.user_service.v1.ListUsersResponse\"S\xdaA\x06parent´-\x1c\n" +
 	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02$\x12\"/v1/{parent=organizations/*}/users\x12\xe6\x01\n" +
 	"\rBatchGetUsers\x127.malonaz.test.user.user_service.v1.BatchGetUsersRequest\x1a8.malonaz.test.user.user_service.v1.BatchGetUsersResponse\"b\xdaA\fparent,names´-\x1c\n" +
-	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*}/users:batchGet\x1at\xcaA\x15user.test.malonaz.com\x82\x91$.\n" +
+	"\x1auser.test.malonaz.com/User\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*}/users:batchGet\x12\xcf\x01\n" +
+	"\x0eGetUserProfile\x128.malonaz.test.user.user_service.v1.GetUserProfileRequest\x1a!.malonaz.test.user.v1.UserProfile\"`\xdaA\x04name´-#\n" +
+	"!user.test.malonaz.com/UserProfile\x82\xd3\xe4\x93\x02,\x12*/v1/{name=organizations/*/users/*/profile}\x12\x85\x02\n" +
+	"\x11UpdateUserProfile\x12;.malonaz.test.user.user_service.v1.UpdateUserProfileRequest\x1a!.malonaz.test.user.v1.UserProfile\"\x8f\x01\xdaA\x18user_profile,update_mask´-#\n" +
+	"!user.test.malonaz.com/UserProfile\x82\xd3\xe4\x93\x02G:\fuser_profile27/v1/{user_profile.name=organizations/*/users/*/profile}\x12\xf2\x01\n" +
+	"\x10ListUserProfiles\x12:.malonaz.test.user.user_service.v1.ListUserProfilesRequest\x1a;.malonaz.test.user.user_service.v1.ListUserProfilesResponse\"e\xdaA\x06parent´-#\n" +
+	"!user.test.malonaz.com/UserProfile\x82\xd3\xe4\x93\x02/\x12-/v1/{parent=organizations/*/users/*}/profiles\x12\x8d\x02\n" +
+	"\x14BatchGetUserProfiles\x12>.malonaz.test.user.user_service.v1.BatchGetUserProfilesRequest\x1a?.malonaz.test.user.user_service.v1.BatchGetUserProfilesResponse\"t\xdaA\fparent,names´-#\n" +
+	"!user.test.malonaz.com/UserProfile\x82\xd3\xe4\x93\x028\x126/v1/{parent=organizations/*/users/*}/profiles:batchGet\x1at\xcaA\x15user.test.malonaz.com\x82\x91$.\n" +
 	"!malonaz.test.user.v1.organization\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$&\n" +
 	"\x19malonaz.test.user.v1.user\x12\x05\b\x80\x9a\x9e\x018\x01@\x01B<Z:github.com/malonaz/core/genproto/test/user/user_service/v1b\x06proto3"
 
@@ -75,12 +83,19 @@ var file_malonaz_test_user_user_service_v1_user_service_proto_goTypes = []any{
 	(*DeleteUserRequest)(nil),             // 9: malonaz.test.user.user_service.v1.DeleteUserRequest
 	(*ListUsersRequest)(nil),              // 10: malonaz.test.user.user_service.v1.ListUsersRequest
 	(*BatchGetUsersRequest)(nil),          // 11: malonaz.test.user.user_service.v1.BatchGetUsersRequest
-	(*v1.Organization)(nil),               // 12: malonaz.test.user.v1.Organization
-	(*ListOrganizationsResponse)(nil),     // 13: malonaz.test.user.user_service.v1.ListOrganizationsResponse
-	(*BatchGetOrganizationsResponse)(nil), // 14: malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse
-	(*v1.User)(nil),                       // 15: malonaz.test.user.v1.User
-	(*ListUsersResponse)(nil),             // 16: malonaz.test.user.user_service.v1.ListUsersResponse
-	(*BatchGetUsersResponse)(nil),         // 17: malonaz.test.user.user_service.v1.BatchGetUsersResponse
+	(*GetUserProfileRequest)(nil),         // 12: malonaz.test.user.user_service.v1.GetUserProfileRequest
+	(*UpdateUserProfileRequest)(nil),      // 13: malonaz.test.user.user_service.v1.UpdateUserProfileRequest
+	(*ListUserProfilesRequest)(nil),       // 14: malonaz.test.user.user_service.v1.ListUserProfilesRequest
+	(*BatchGetUserProfilesRequest)(nil),   // 15: malonaz.test.user.user_service.v1.BatchGetUserProfilesRequest
+	(*v1.Organization)(nil),               // 16: malonaz.test.user.v1.Organization
+	(*ListOrganizationsResponse)(nil),     // 17: malonaz.test.user.user_service.v1.ListOrganizationsResponse
+	(*BatchGetOrganizationsResponse)(nil), // 18: malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse
+	(*v1.User)(nil),                       // 19: malonaz.test.user.v1.User
+	(*ListUsersResponse)(nil),             // 20: malonaz.test.user.user_service.v1.ListUsersResponse
+	(*BatchGetUsersResponse)(nil),         // 21: malonaz.test.user.user_service.v1.BatchGetUsersResponse
+	(*v1.UserProfile)(nil),                // 22: malonaz.test.user.v1.UserProfile
+	(*ListUserProfilesResponse)(nil),      // 23: malonaz.test.user.user_service.v1.ListUserProfilesResponse
+	(*BatchGetUserProfilesResponse)(nil),  // 24: malonaz.test.user.user_service.v1.BatchGetUserProfilesResponse
 }
 var file_malonaz_test_user_user_service_v1_user_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.test.user.user_service.v1.UserService.CreateOrganization:input_type -> malonaz.test.user.user_service.v1.CreateOrganizationRequest
@@ -95,20 +110,28 @@ var file_malonaz_test_user_user_service_v1_user_service_proto_depIdxs = []int32{
 	9,  // 9: malonaz.test.user.user_service.v1.UserService.DeleteUser:input_type -> malonaz.test.user.user_service.v1.DeleteUserRequest
 	10, // 10: malonaz.test.user.user_service.v1.UserService.ListUsers:input_type -> malonaz.test.user.user_service.v1.ListUsersRequest
 	11, // 11: malonaz.test.user.user_service.v1.UserService.BatchGetUsers:input_type -> malonaz.test.user.user_service.v1.BatchGetUsersRequest
-	12, // 12: malonaz.test.user.user_service.v1.UserService.CreateOrganization:output_type -> malonaz.test.user.v1.Organization
-	12, // 13: malonaz.test.user.user_service.v1.UserService.GetOrganization:output_type -> malonaz.test.user.v1.Organization
-	12, // 14: malonaz.test.user.user_service.v1.UserService.UpdateOrganization:output_type -> malonaz.test.user.v1.Organization
-	12, // 15: malonaz.test.user.user_service.v1.UserService.DeleteOrganization:output_type -> malonaz.test.user.v1.Organization
-	13, // 16: malonaz.test.user.user_service.v1.UserService.ListOrganizations:output_type -> malonaz.test.user.user_service.v1.ListOrganizationsResponse
-	14, // 17: malonaz.test.user.user_service.v1.UserService.BatchGetOrganizations:output_type -> malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse
-	15, // 18: malonaz.test.user.user_service.v1.UserService.CreateUser:output_type -> malonaz.test.user.v1.User
-	15, // 19: malonaz.test.user.user_service.v1.UserService.GetUser:output_type -> malonaz.test.user.v1.User
-	15, // 20: malonaz.test.user.user_service.v1.UserService.UpdateUser:output_type -> malonaz.test.user.v1.User
-	15, // 21: malonaz.test.user.user_service.v1.UserService.DeleteUser:output_type -> malonaz.test.user.v1.User
-	16, // 22: malonaz.test.user.user_service.v1.UserService.ListUsers:output_type -> malonaz.test.user.user_service.v1.ListUsersResponse
-	17, // 23: malonaz.test.user.user_service.v1.UserService.BatchGetUsers:output_type -> malonaz.test.user.user_service.v1.BatchGetUsersResponse
-	12, // [12:24] is the sub-list for method output_type
-	0,  // [0:12] is the sub-list for method input_type
+	12, // 12: malonaz.test.user.user_service.v1.UserService.GetUserProfile:input_type -> malonaz.test.user.user_service.v1.GetUserProfileRequest
+	13, // 13: malonaz.test.user.user_service.v1.UserService.UpdateUserProfile:input_type -> malonaz.test.user.user_service.v1.UpdateUserProfileRequest
+	14, // 14: malonaz.test.user.user_service.v1.UserService.ListUserProfiles:input_type -> malonaz.test.user.user_service.v1.ListUserProfilesRequest
+	15, // 15: malonaz.test.user.user_service.v1.UserService.BatchGetUserProfiles:input_type -> malonaz.test.user.user_service.v1.BatchGetUserProfilesRequest
+	16, // 16: malonaz.test.user.user_service.v1.UserService.CreateOrganization:output_type -> malonaz.test.user.v1.Organization
+	16, // 17: malonaz.test.user.user_service.v1.UserService.GetOrganization:output_type -> malonaz.test.user.v1.Organization
+	16, // 18: malonaz.test.user.user_service.v1.UserService.UpdateOrganization:output_type -> malonaz.test.user.v1.Organization
+	16, // 19: malonaz.test.user.user_service.v1.UserService.DeleteOrganization:output_type -> malonaz.test.user.v1.Organization
+	17, // 20: malonaz.test.user.user_service.v1.UserService.ListOrganizations:output_type -> malonaz.test.user.user_service.v1.ListOrganizationsResponse
+	18, // 21: malonaz.test.user.user_service.v1.UserService.BatchGetOrganizations:output_type -> malonaz.test.user.user_service.v1.BatchGetOrganizationsResponse
+	19, // 22: malonaz.test.user.user_service.v1.UserService.CreateUser:output_type -> malonaz.test.user.v1.User
+	19, // 23: malonaz.test.user.user_service.v1.UserService.GetUser:output_type -> malonaz.test.user.v1.User
+	19, // 24: malonaz.test.user.user_service.v1.UserService.UpdateUser:output_type -> malonaz.test.user.v1.User
+	19, // 25: malonaz.test.user.user_service.v1.UserService.DeleteUser:output_type -> malonaz.test.user.v1.User
+	20, // 26: malonaz.test.user.user_service.v1.UserService.ListUsers:output_type -> malonaz.test.user.user_service.v1.ListUsersResponse
+	21, // 27: malonaz.test.user.user_service.v1.UserService.BatchGetUsers:output_type -> malonaz.test.user.user_service.v1.BatchGetUsersResponse
+	22, // 28: malonaz.test.user.user_service.v1.UserService.GetUserProfile:output_type -> malonaz.test.user.v1.UserProfile
+	22, // 29: malonaz.test.user.user_service.v1.UserService.UpdateUserProfile:output_type -> malonaz.test.user.v1.UserProfile
+	23, // 30: malonaz.test.user.user_service.v1.UserService.ListUserProfiles:output_type -> malonaz.test.user.user_service.v1.ListUserProfilesResponse
+	24, // 31: malonaz.test.user.user_service.v1.UserService.BatchGetUserProfiles:output_type -> malonaz.test.user.user_service.v1.BatchGetUserProfilesResponse
+	16, // [16:32] is the sub-list for method output_type
+	0,  // [0:16] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -121,6 +144,7 @@ func file_malonaz_test_user_user_service_v1_user_service_proto_init() {
 	}
 	file_malonaz_test_user_user_service_v1_organization_proto_init()
 	file_malonaz_test_user_user_service_v1_user_proto_init()
+	file_malonaz_test_user_user_service_v1_user_profile_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

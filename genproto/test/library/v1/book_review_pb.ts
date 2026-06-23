@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/book_review.proto.
  */
 export const file_malonaz_test_library_v1_book_review: GenFile = /*@__PURE__*/
-  fileDesc("CiltYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rX3Jldmlldy5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEihQcKCkJvb2tSZXZpZXcSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEhkKBnJhdGluZxgFIAEoBUIJukgGGgQYBSgAEg8KB2NvbW1lbnQYBiABKAkSDAoEZXRhZxgHIAEoCRLVAQoGbGFiZWxzGAggAygLMi8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9va1Jldmlldy5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJHCghtZXRhZGF0YRgJIAEoCzIrLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tSZXZpZXdNZXRhZGF0YUIIuuoPBBABIAESQwoKYm9va190aXRsZRgKIAEoCUIv4EEDuuoPKEImCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIFdGl0bGUSWQoVYm9va19wdWJsaWNhdGlvbl95ZWFyGAsgASgFQjrgQQO66g8zQjEKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEhBwdWJsaWNhdGlvbl95ZWFyGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6kQHqQYABCiNsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va1JldmlldxJAb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0vYm9va3Mve2Jvb2t9L3JldmlldyoLYm9va1Jldmlld3MyCmJvb2tSZXZpZXfSpgQJCgdsaWJyYXJ5IisKEkJvb2tSZXZpZXdNZXRhZGF0YRIVCg1yZXZpZXdlcl9uYW1lGAEgASgJQjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiltYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rX3Jldmlldy5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEiyQYKCkJvb2tSZXZpZXcSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEhkKBnJhdGluZxgEIAEoBUIJukgGGgQYBSgAEg8KB2NvbW1lbnQYBSABKAkSDAoEZXRhZxgGIAEoCRLVAQoGbGFiZWxzGAcgAygLMi8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9va1Jldmlldy5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJHCghtZXRhZGF0YRgIIAEoCzIrLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tSZXZpZXdNZXRhZGF0YUIIuuoPBBABIAESQwoKYm9va190aXRsZRgJIAEoCUIv4EEDuuoPKEImCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIFdGl0bGUSWQoVYm9va19wdWJsaWNhdGlvbl95ZWFyGAogASgFQjrgQQO66g8zQjEKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEhBwdWJsaWNhdGlvbl95ZWFyGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6kQHqQYABCiNsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va1JldmlldxJAb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0vYm9va3Mve2Jvb2t9L3JldmlldyoLYm9va1Jldmlld3MyCmJvb2tSZXZpZXfSpgQJCgdsaWJyYXJ5IisKEkJvb2tSZXZpZXdNZXRhZGF0YRIVCg1yZXZpZXdlcl9uYW1lGAEgASgJQjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
 
 /**
  * BookReview is a singleton child of Book, auto-created with its parent.
@@ -47,58 +47,51 @@ export type BookReview = Message<"malonaz.test.library.v1.BookReview"> & {
   updateTime?: Timestamp;
 
   /**
-   * The deletion timestamp.
-   *
-   * @generated from field: google.protobuf.Timestamp delete_time = 4;
-   */
-  deleteTime?: Timestamp;
-
-  /**
    * The rating (1-5).
    *
-   * @generated from field: int32 rating = 5;
+   * @generated from field: int32 rating = 4;
    */
   rating: number;
 
   /**
    * The review comment.
    *
-   * @generated from field: string comment = 6;
+   * @generated from field: string comment = 5;
    */
   comment: string;
 
   /**
    * A checksum computed by the server based on the current value of the resource.
    *
-   * @generated from field: string etag = 7;
+   * @generated from field: string etag = 6;
    */
   etag: string;
 
   /**
    * The labels on this book review.
    *
-   * @generated from field: map<string, string> labels = 8;
+   * @generated from field: map<string, string> labels = 7;
    */
   labels: { [key: string]: string };
 
   /**
    * Book review metadata.
    *
-   * @generated from field: malonaz.test.library.v1.BookReviewMetadata metadata = 9;
+   * @generated from field: malonaz.test.library.v1.BookReviewMetadata metadata = 8;
    */
   metadata?: BookReviewMetadata;
 
   /**
    * Join on parent book: title.
    *
-   * @generated from field: string book_title = 10;
+   * @generated from field: string book_title = 9;
    */
   bookTitle: string;
 
   /**
    * Join on parent book: publication year.
    *
-   * @generated from field: int32 book_publication_year = 11;
+   * @generated from field: int32 book_publication_year = 10;
    */
   bookPublicationYear: number;
 };
