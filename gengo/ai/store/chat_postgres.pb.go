@@ -298,7 +298,7 @@ func (s *Store) ListChats(ctx context.Context, organizationId, userId string, sh
 			if err == v5.ErrNoRows {
 				return nil
 			}
-			return fmt.Errorf("selecting chats [%!s(MISSING)]: %w", query, err)
+			return fmt.Errorf("selecting chats: %w", err)
 		}
 		chats, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
 		if err != nil {

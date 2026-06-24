@@ -82,7 +82,7 @@ func (mc *msgCtx) generateList() {
 	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
 	g.P("        return nil")
 	g.P("      }")
-	g.P(fmt.Sprintf("      return %s(\"selecting %s [%s]: %%w\", query, err)", mc.fmtI("Errorf"), pluralUntitled))
+	g.P(fmt.Sprintf("      return %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
 	g.P("    }")
 	g.P(fmt.Sprintf("    %s, err = %s(rows, %s[%s])", pluralUntitled, mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("    if err != nil {")
