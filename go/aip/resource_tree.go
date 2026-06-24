@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/huandu/xstrings"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
@@ -126,7 +127,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		tree.Resource = resource
 	}
 
-	defaultTableName := tree.Resource.Singular
+	defaultTableName := xstrings.ToSnakeCase(tree.Resource.Singular)
 	{
 		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
 		if err == nil && modelOpts != nil {
@@ -526,7 +527,7 @@ func resolveJoinTableName(registry *protoregistry.Files, join *modelpb.Join) (st
 	if err != nil {
 		return "", fmt.Errorf("getting resource descriptor: %v", err)
 	}
-	tableName := resourceDescriptor.GetSingular()
+	tableName := xstrings.ToSnakeCase(resourceDescriptor.GetSingular())
 
 	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMsg.Options(), modelpb.E_ModelOpts)
 	if err == nil && modelOpts != nil && modelOpts.GetTableName() != "" {

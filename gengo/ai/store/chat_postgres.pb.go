@@ -73,20 +73,7 @@ func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, ra
 	var inserted *model.Chat
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
-		rows, err := tx.Query(ctx, chatGetByRequestIDQuery, requestID)
-		if err != nil {
-			return err
-		}
-		existing, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
-		if err == nil {
-			inserted = existing
-			return nil
-		}
-		if err != v5.ErrNoRows {
-			return err
-		}
-
-		rows, err = tx.Query(ctx, query, params...)
+		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}

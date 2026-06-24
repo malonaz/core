@@ -25,6 +25,7 @@ type OrderingRequestParser[T orderingRequest, R proto.Message] struct {
 	options     *aippb.OrderingOptions
 	tree        *Tree
 	pathToAllow map[string]bool
+	pathToNode  map[string]*Node
 }
 
 func MustNewOrderingRequestParser[T orderingRequest, R proto.Message]() *OrderingRequestParser[T, R] {
@@ -53,14 +54,17 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 	}
 
 	pathToAllow := map[string]bool{}
+	pathToNode := map[string]*Node{}
 	for _, node := range tree.Nodes {
 		pathToAllow[node.Path] = node.AllowedPath
+		pathToNode[node.Path] = node
 	}
 
 	parser := &OrderingRequestParser[T, R]{
 		options:     options,
 		tree:        tree,
 		pathToAllow: pathToAllow,
+		pathToNode:  pathToNode,
 	}
 
 	request := zero.ProtoReflect().New().Interface().(T)
@@ -71,44 +75,28 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 }
 
 func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error) {
-	// Set default order_by if not specified
 	if request.GetOrderBy() == "" {
 		p.setOrderBy(request, p.options.Default)
 	}
-	orderByClause := request.GetOrderBy()
 
-	// First pass to validate.
-	{
-		orderBy, err := ordering.ParseOrderBy(request)
-		if err != nil {
-			return nil, fmt.Errorf("parsing order by: %w", err)
-		}
+	// Expand "name" to composite key fields before parsing.
+	p.setOrderBy(request, p.expandNameField(request.GetOrderBy()))
 
-		for _, field := range orderBy.Fields {
-			allow, ok := p.pathToAllow[field.Path]
-			if !ok {
-				return nil, fmt.Errorf("invalid order path %s", field.Path)
-			}
-			if !allow {
-				return nil, fmt.Errorf("ordering by path %s not allowed", field.Path)
-			}
-		}
-	}
-
-	// Expand "name" field to composite key fields before other replacements
-	orderByClause = p.expandNameField(orderByClause)
-
-	// Apply the replacement.
-	for node := range p.tree.OrderableNodes() {
-		orderByClause = node.ApplyReplacement(orderByClause)
-	}
-	orderByClause = strings.ReplaceAll(orderByClause, "@", ".")
-	p.setOrderBy(request, orderByClause)
-
-	// Second pass to transpile.
 	orderBy, err := ordering.ParseOrderBy(request)
 	if err != nil {
 		return nil, fmt.Errorf("parsing order by: %w", err)
+	}
+
+	// Validate and resolve each field to its fully qualified column name.
+	for i, field := range orderBy.Fields {
+		allow, ok := p.pathToAllow[field.Path]
+		if !ok {
+			return nil, fmt.Errorf("invalid order path %s", field.Path)
+		}
+		if !allow {
+			return nil, fmt.Errorf("ordering by path %s not allowed", field.Path)
+		}
+		orderBy.Fields[i].Path = p.resolveFieldPath(field.Path)
 	}
 
 	return &OrderingRequest{
@@ -117,20 +105,34 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 	}, nil
 }
 
+// resolveFieldPath converts a proto field path to a fully qualified table.column reference.
+func (p *OrderingRequestParser[T, R]) resolveFieldPath(path string) string {
+	node, ok := p.pathToNode[path]
+	if !ok {
+		return path
+	}
+
+	columnName := path
+	if node.ReplacementPath != "" {
+		columnName = node.ReplacementPath
+	}
+
+	if node.TableName != "" {
+		return node.TableName + "." + columnName
+	}
+	return columnName
+}
+
 // expandNameField expands occurrences of "name" in the order by clause to the composite key fields.
-// For example, "name desc" becomes "organization_id desc, user_id desc, chat_id desc"
-// For singleton resources (where the resource itself has no ID), it expands to parent fields only.
 func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) string {
 	if p.tree.Resource == nil {
 		return orderByClause
 	}
 
-	// Check if "name" is an allowed path - if not, don't expand (let validation fail normally)
 	if !p.pathToAllow["name"] {
 		return orderByClause
 	}
 
-	// Parse the order by clause to find "name" fields
 	parts := strings.Split(orderByClause, ",")
 	var expandedParts []string
 
@@ -140,7 +142,6 @@ func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) stri
 			continue
 		}
 
-		// Parse field and direction
 		tokens := strings.Fields(part)
 		if len(tokens) == 0 {
 			continue
@@ -153,10 +154,8 @@ func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) stri
 		}
 
 		if fieldPath == "name" {
-			// Expand to composite key fields
-			compositeFields := p.getCompositeKeyFields()
-			for _, cf := range compositeFields {
-				expandedParts = append(expandedParts, cf+direction)
+			for _, compositeField := range p.getCompositeKeyFields() {
+				expandedParts = append(expandedParts, compositeField+direction)
 			}
 		} else {
 			expandedParts = append(expandedParts, part)
@@ -167,10 +166,6 @@ func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) stri
 }
 
 // getCompositeKeyFields returns the list of ID column names for the resource's composite key.
-// For a resource with pattern "organizations/{organization}/users/{user}/chats/{chat}",
-// this returns ["organization_id", "user_id", "chat_id"].
-// For singleton resources, the resource's own ID is excluded.
-// If the resource has a custom id_column_name in model_opts, that is used for the resource's own ID.
 func (p *OrderingRequestParser[T, R]) getCompositeKeyFields() []string {
 	if p.tree.Resource == nil {
 		return nil
@@ -182,12 +177,9 @@ func (p *OrderingRequestParser[T, R]) getCompositeKeyFields() []string {
 
 	for _, variable := range patternVars {
 		var columnName string
-		// Check if this is the resource's own ID (matches singular name)
 		if variable == singular && p.tree.IDColumnName != "" {
-			// Use custom id_column_name from model_opts
 			columnName = p.tree.IDColumnName
 		} else {
-			// Default: convert pattern variable to column name (e.g., "organization" -> "organization_id")
 			columnName = variable + "_id"
 		}
 		fields = append(fields, columnName)
@@ -212,11 +204,8 @@ func (p *OrderingRequest) GetOrderBy() ordering.OrderBy {
 
 // ///////////////////////////// UTILS //////////////////////////////
 func (p *OrderingRequestParser[T, R]) setOrderBy(request orderingRequest, orderBy string) {
-	// Get the protobuf message descriptor
 	msgReflect := request.ProtoReflect()
-	// Get the field descriptor for "order_by"
 	fields := msgReflect.Descriptor().Fields()
 	orderByField := fields.ByName("order_by")
-	// Set the order_by value
 	msgReflect.Set(orderByField, protoreflect.ValueOfString(orderBy))
 }

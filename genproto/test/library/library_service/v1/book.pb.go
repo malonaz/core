@@ -813,7 +813,7 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x8c\x03\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x9f\x03\n" +
 	"\x10ListBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -822,11 +822,12 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\tpage_size\x18\x04 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x05 \x01(\tR\tpageToken:\xb6\x01\x82\xf3-\x02\bd\x8a\xf3-E\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:\xc9\x01\x82\xf3-\x02\bd\x8a\xf3-X\n" +
 	"\vcreate_time\n" +
 	"\vupdate_time\n" +
 	"\x05title\n" +
-	"\x10publication_year\x12\x10create_time desc\x92\xf3-c\n" +
+	"\x10publication_year\n" +
+	"\x11shelf_external_id\x12\x10create_time desc\x92\xf3-c\n" +
 	"\x05title\n" +
 	"\x06author\n" +
 	"\x04isbn\n" +

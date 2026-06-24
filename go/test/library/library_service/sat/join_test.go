@@ -394,8 +394,6 @@ func TestJoin_BothFieldsTogether(t *testing.T) {
 	})
 }
 
-// Add to the end of go/test/library/library_service/sat/join_test.go
-
 func TestJoin_FilterByShelfGenre(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
@@ -581,4 +579,67 @@ func TestJoin_ReturnedOnAllBookMethods(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, batchGetBooksResponse.Books, 1)
 	assertJoinFields(t, batchGetBooksResponse.Books[0])
+}
+
+func TestJoin_OrderByShelfExternalId(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Join OrderBy ExtId Author")
+
+	createShelfRequestA := &libraryservicepb.CreateShelfRequest{
+		Parent: organizationParent,
+		Shelf: &librarypb.Shelf{
+			DisplayName:     "Join OrderBy Shelf A",
+			Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+			ExternalId:      "ext-order-aaa",
+			CorrelationId_2: "hello",
+			Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+		},
+	}
+	shelfA, err := libraryServiceClient.CreateShelf(ctx, createShelfRequestA)
+	require.NoError(t, err)
+
+	createShelfRequestB := &libraryservicepb.CreateShelfRequest{
+		Parent: organizationParent,
+		Shelf: &librarypb.Shelf{
+			DisplayName:     "Join OrderBy Shelf B",
+			Genre:           librarypb.ShelfGenre_SHELF_GENRE_HISTORY,
+			ExternalId:      "ext-order-zzz",
+			CorrelationId_2: "hello",
+			Metadata:        &librarypb.ShelfMetadata{Capacity: 50},
+		},
+	}
+	shelfB, err := libraryServiceClient.CreateShelf(ctx, createShelfRequestB)
+	require.NoError(t, err)
+
+	bookA := createTestBook(t, shelfA.Name, author.Name, "Join OrderBy Book A")
+	bookB := createTestBook(t, shelfB.Name, author.Name, "Join OrderBy Book B")
+
+	t.Run("Ascending", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent:  "organizations/-/shelves/-",
+			Filter:  `shelf_external_id = "ext-order-*"`,
+			OrderBy: "shelf_external_id asc",
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 2)
+		require.Equal(t, bookA.Name, listBooksResponse.Books[0].Name)
+		require.Equal(t, bookB.Name, listBooksResponse.Books[1].Name)
+	})
+
+	t.Run("Descending", func(t *testing.T) {
+		t.Parallel()
+		listBooksRequest := &libraryservicepb.ListBooksRequest{
+			Parent:  "organizations/-/shelves/-",
+			Filter:  `shelf_external_id = "ext-order-*"`,
+			OrderBy: "shelf_external_id desc",
+		}
+		listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
+		require.NoError(t, err)
+		require.Len(t, listBooksResponse.Books, 2)
+		require.Equal(t, bookB.Name, listBooksResponse.Books[0].Name)
+		require.Equal(t, bookA.Name, listBooksResponse.Books[1].Name)
+	})
 }

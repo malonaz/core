@@ -109,7 +109,8 @@ message ListBooksRequest {
       "create_time",
       "update_time",
       "title",
-      "publication_year"
+      "publication_year",
+      "shelf_external_id"
     ]
     default: "create_time desc"
   };

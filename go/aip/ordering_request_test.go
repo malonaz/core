@@ -46,32 +46,32 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 		{
 			name:               "default order by when empty",
 			orderBy:            "",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.create_time DESC NULLS LAST",
 		},
 		{
 			name:               "single field ascending",
 			orderBy:            "create_time asc",
-			expectedOrderBySQL: "ORDER BY create_time ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.create_time ASC NULLS LAST",
 		},
 		{
 			name:               "single field descending",
 			orderBy:            "create_time desc",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.create_time DESC NULLS LAST",
 		},
 		{
 			name:               "single field implicit ascending",
 			orderBy:            "update_time",
-			expectedOrderBySQL: "ORDER BY update_time ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.update_time ASC NULLS LAST",
 		},
 		{
 			name:               "multiple fields mixed order",
 			orderBy:            "create_time desc, update_time asc",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST, update_time ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.create_time DESC NULLS LAST, author.update_time ASC NULLS LAST",
 		},
 		{
 			name:               "all allowed fields",
 			orderBy:            "create_time asc, update_time desc, display_name asc",
-			expectedOrderBySQL: "ORDER BY create_time ASC NULLS LAST, update_time DESC NULLS LAST, display_name ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY author.create_time ASC NULLS LAST, author.update_time DESC NULLS LAST, author.display_name ASC NULLS LAST",
 		},
 		{
 			name:                 "unauthorized field",
@@ -131,27 +131,27 @@ func TestOrderingRequestParser_Parse_Books(t *testing.T) {
 		{
 			name:               "default order by",
 			orderBy:            "",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY book.create_time DESC NULLS LAST",
 		},
 		{
 			name:               "title ascending",
 			orderBy:            "title asc",
-			expectedOrderBySQL: "ORDER BY title ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY book.title ASC NULLS LAST",
 		},
 		{
 			name:               "publication_year descending",
 			orderBy:            "publication_year desc",
-			expectedOrderBySQL: "ORDER BY publication_year DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY book.publication_year DESC NULLS LAST",
 		},
 		{
 			name:               "multiple book-specific fields",
 			orderBy:            "title asc, publication_year desc",
-			expectedOrderBySQL: "ORDER BY title ASC NULLS LAST, publication_year DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY book.title ASC NULLS LAST, book.publication_year DESC NULLS LAST",
 		},
 		{
 			name:               "all allowed book fields",
 			orderBy:            "create_time desc, update_time asc, title desc, publication_year asc",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST, update_time ASC NULLS LAST, title DESC NULLS LAST, publication_year ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY book.create_time DESC NULLS LAST, book.update_time ASC NULLS LAST, book.title DESC NULLS LAST, book.publication_year ASC NULLS LAST",
 		},
 		{
 			name:    "field not in book ordering paths",
@@ -208,32 +208,32 @@ func TestOrderingRequestParser_SQLTranspilation(t *testing.T) {
 		{
 			name:        "ascending includes ASC keyword",
 			orderBy:     "create_time asc",
-			expectedSQL: "ORDER BY create_time ASC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time ASC NULLS LAST",
 		},
 		{
 			name:        "descending includes DESC keyword",
 			orderBy:     "create_time desc",
-			expectedSQL: "ORDER BY create_time DESC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time DESC NULLS LAST",
 		},
 		{
 			name:        "multiple fields mixed directions",
 			orderBy:     "create_time desc, display_name asc",
-			expectedSQL: "ORDER BY create_time DESC NULLS LAST, display_name ASC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time DESC NULLS LAST, author.display_name ASC NULLS LAST",
 		},
 		{
 			name:        "all ascending",
 			orderBy:     "create_time asc, update_time asc",
-			expectedSQL: "ORDER BY create_time ASC NULLS LAST, update_time ASC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time ASC NULLS LAST, author.update_time ASC NULLS LAST",
 		},
 		{
 			name:        "all descending",
 			orderBy:     "create_time desc, update_time desc",
-			expectedSQL: "ORDER BY create_time DESC NULLS LAST, update_time DESC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time DESC NULLS LAST, author.update_time DESC NULLS LAST",
 		},
 		{
 			name:        "three fields alternating",
 			orderBy:     "create_time desc, update_time asc, display_name desc",
-			expectedSQL: "ORDER BY create_time DESC NULLS LAST, update_time ASC NULLS LAST, display_name DESC NULLS LAST",
+			expectedSQL: "ORDER BY author.create_time DESC NULLS LAST, author.update_time ASC NULLS LAST, author.display_name DESC NULLS LAST",
 		},
 	}
 
@@ -328,21 +328,21 @@ func TestOrderingRequestParser_ImplicitDirection(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time"}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 
 	t.Run("implicit ascending multiple fields", func(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time, update_time"}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time ASC NULLS LAST, update_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time ASC NULLS LAST, author.update_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 
 	t.Run("mixed implicit and explicit", func(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time, update_time desc, display_name"}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time ASC NULLS LAST, update_time DESC NULLS LAST, display_name ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time ASC NULLS LAST, author.update_time DESC NULLS LAST, author.display_name ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 }
 
@@ -354,21 +354,21 @@ func TestOrderingRequestParser_EdgeCases(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "  create_time   desc  "}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time DESC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time DESC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 
 	t.Run("repeated field same direction", func(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc, create_time asc"}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time ASC NULLS LAST, create_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time ASC NULLS LAST, author.create_time ASC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 
 	t.Run("repeated field different directions", func(t *testing.T) {
 		request := &libraryservicepb.ListAuthorsRequest{OrderBy: "create_time asc, create_time desc"}
 		parsedRequest, err := parser.Parse(request)
 		require.NoError(t, err)
-		require.Equal(t, "ORDER BY create_time ASC NULLS LAST, create_time DESC NULLS LAST", parsedRequest.GetSQLOrderByClause())
+		require.Equal(t, "ORDER BY author.create_time ASC NULLS LAST, author.create_time DESC NULLS LAST", parsedRequest.GetSQLOrderByClause())
 	})
 }
 
@@ -412,32 +412,32 @@ func TestOrderingRequestParser_ColumnNameReplacement(t *testing.T) {
 		{
 			name:               "external_id uses ext_id column ascending",
 			orderBy:            "external_id asc",
-			expectedOrderBySQL: "ORDER BY ext_id ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.ext_id ASC NULLS LAST",
 		},
 		{
 			name:               "external_id uses ext_id column descending",
 			orderBy:            "external_id desc",
-			expectedOrderBySQL: "ORDER BY ext_id DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.ext_id DESC NULLS LAST",
 		},
 		{
 			name:               "correlation_id_2 uses correlation_id column",
 			orderBy:            "correlation_id_2 desc",
-			expectedOrderBySQL: "ORDER BY correlation_id DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.correlation_id DESC NULLS LAST",
 		},
 		{
 			name:               "multiple renamed columns",
 			orderBy:            "external_id asc, correlation_id_2 desc",
-			expectedOrderBySQL: "ORDER BY ext_id ASC NULLS LAST, correlation_id DESC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.ext_id ASC NULLS LAST, shelf.correlation_id DESC NULLS LAST",
 		},
 		{
 			name:               "mixed standard and renamed columns",
 			orderBy:            "display_name asc, external_id desc, create_time asc",
-			expectedOrderBySQL: "ORDER BY display_name ASC NULLS LAST, ext_id DESC NULLS LAST, create_time ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.display_name ASC NULLS LAST, shelf.ext_id DESC NULLS LAST, shelf.create_time ASC NULLS LAST",
 		},
 		{
 			name:               "renamed column with standard columns",
 			orderBy:            "create_time desc, correlation_id_2 asc",
-			expectedOrderBySQL: "ORDER BY create_time DESC NULLS LAST, correlation_id ASC NULLS LAST",
+			expectedOrderBySQL: "ORDER BY shelf.create_time DESC NULLS LAST, shelf.correlation_id ASC NULLS LAST",
 		},
 	}
 

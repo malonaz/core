@@ -27,6 +27,7 @@ go_library(
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:go.einride.tech__aip__pagination",
