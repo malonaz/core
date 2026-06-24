@@ -280,19 +280,21 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 	if err != nil {
 		return nil, false, fmt.Errorf("getting field behavior: %w", err)
 	}
-	if fieldBehavior.OutputOnly {
+
+	mustIncludeFieldSchema := len(allowedPaths) > 0 // We always respect the allowed path (specified by the mask).
+	if fieldBehavior.OutputOnly && !mustIncludeFieldSchema {
 		return nil, false, nil
 	}
 
 	var isRequired bool
 	switch methodType {
 	case pbreflection.StandardMethodTypeCreate:
-		if fieldBehavior.Identifier {
+		if fieldBehavior.Identifier && !mustIncludeFieldSchema {
 			return nil, false, nil
 		}
 		isRequired = fieldBehavior.Required
 	case pbreflection.StandardMethodTypeUpdate:
-		if fieldBehavior.Immutable {
+		if fieldBehavior.Immutable && !mustIncludeFieldSchema {
 			return nil, false, nil
 		}
 		isRequired = fieldBehavior.Identifier
