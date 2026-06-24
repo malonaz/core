@@ -30,6 +30,32 @@ local p = "providers/google/models/";
     },
 
     {
+      "name": p + "gemini-3.1-flash-image",
+      "provider_model_id": "gemini-3.1-flash-image",
+      "description": "High-quality image generation and conversational editing at mainstream pricing and low latency. High-efficiency counterpart to Gemini 3 Pro Image, optimized for speed and high-volume developer use cases. Supports new output resolutions (0.5K-4K), image search grounding, and extended aspect ratios. Visit the Image generation page for full coverage of features and capabilities.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": false,
+        "context_token_limit": 131072,
+        "output_token_limit": 32768,
+        "pricing": {
+          "input_token_price_per_million": 0.25,
+          "output_token_price_per_million": 1.5,
+          "input_image_token_price_per_million": 0.25,
+          "output_image_token_price_per_million": 60
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.1-flash-image-preview",
       "provider_model_id": "gemini-3.1-flash-image-preview",
       "description": "High-quality image generation and conversational editing at mainstream pricing and low latency. High-efficiency counterpart to Gemini 3 Pro Image, optimized for speed and high-volume developer use cases. Supports new output resolutions (0.5K-4K), image search grounding, and extended aspect ratios.",
