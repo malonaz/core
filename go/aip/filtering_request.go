@@ -17,6 +17,19 @@ type filteringRequest interface {
 	filtering.Request
 }
 
+type FilteringRequestOpt func(*filteringRequestOpts)
+
+type filteringRequestOpts struct {
+	withFQN bool
+}
+
+// WithFQN prepends table names to column references in generated SQL.
+func WithFQN() FilteringRequestOpt {
+	return func(o *filteringRequestOpts) {
+		o.withFQN = true
+	}
+}
+
 type FilteringRequestParser[T filteringRequest, R proto.Message] struct {
 	declarations      *filtering.Declarations
 	macroDeclarations *filtering.Declarations
@@ -24,15 +37,20 @@ type FilteringRequestParser[T filteringRequest, R proto.Message] struct {
 	tree              *Tree
 }
 
-func MustNewFilteringRequestParser[T filteringRequest, R proto.Message]() *FilteringRequestParser[T, R] {
-	parser, err := NewFilteringRequestParser[T, R]()
+func MustNewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...FilteringRequestOpt) *FilteringRequestParser[T, R] {
+	parser, err := NewFilteringRequestParser[T, R](opts...)
 	if err != nil {
 		panic(err)
 	}
 	return parser
 }
 
-func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*FilteringRequestParser[T, R], error) {
+func NewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...FilteringRequestOpt) (*FilteringRequestParser[T, R], error) {
+	var options filteringRequestOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	var zero T
 	filteringOptions, err := pbutil.GetMessageOption[*aippb.FilteringOptions](zero, aippb.E_Filtering)
 	if err != nil {
@@ -73,7 +91,9 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message]() (*Filterin
 		if node.ReplacementPath != "" {
 			fqn = node.ReplacementPath
 		}
-		fqn = node.TableName + "." + fqn
+		if options.withFQN {
+			fqn = node.TableName + "." + fqn
+		}
 		identNameToFQN[node.Path] = fqn
 
 		if node.ExprType != nil {

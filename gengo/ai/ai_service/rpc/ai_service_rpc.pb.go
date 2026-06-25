@@ -298,7 +298,7 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	return chat, nil
 }
 
-var listChatsRequestParser = aip.MustNewListRequestParser[*v1.ListChatsRequest, *v11.Chat]()
+var listChatsRequestParser = aip.MustNewListRequestParser[*v1.ListChatsRequest, *v11.Chat](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
 func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListChatsRequest) (*v1.ListChatsResponse, error) {
 	// Parse parent names

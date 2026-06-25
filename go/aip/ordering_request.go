@@ -20,35 +20,55 @@ type orderingRequest interface {
 	ordering.Request
 }
 
+// ////////////////////////////// OPTS //////////////////////////
+type OrderingRequestOpt func(*orderingRequestOpts)
+
+type orderingRequestOpts struct {
+	withFQN bool
+}
+
+// WithOrderingFQN prepends table names to column references in ORDER BY SQL.
+func WithOrderingFQN() OrderingRequestOpt {
+	return func(o *orderingRequestOpts) {
+		o.withFQN = true
+	}
+}
+
 // ////////////////////////////// PARSER //////////////////////////
 type OrderingRequestParser[T orderingRequest, R proto.Message] struct {
 	options     *aippb.OrderingOptions
 	tree        *Tree
 	pathToAllow map[string]bool
 	pathToNode  map[string]*Node
+	withFQN     bool
 }
 
-func MustNewOrderingRequestParser[T orderingRequest, R proto.Message]() *OrderingRequestParser[T, R] {
-	parser, err := NewOrderingRequestParser[T, R]()
+func MustNewOrderingRequestParser[T orderingRequest, R proto.Message](opts ...OrderingRequestOpt) *OrderingRequestParser[T, R] {
+	parser, err := NewOrderingRequestParser[T, R](opts...)
 	if err != nil {
 		panic(err)
 	}
 	return parser
 }
 
-func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRequestParser[T, R], error) {
+func NewOrderingRequestParser[T orderingRequest, R proto.Message](opts ...OrderingRequestOpt) (*OrderingRequestParser[T, R], error) {
+	var options orderingRequestOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	var zero T
-	options, err := pbutil.GetMessageOption[*aippb.OrderingOptions](zero, aippb.E_Ordering)
+	orderingOptions, err := pbutil.GetMessageOption[*aippb.OrderingOptions](zero, aippb.E_Ordering)
 	if err != nil {
 		return nil, fmt.Errorf("getting message options: %v", err)
 	}
 
 	var zeroResource R
-	if err := pbfieldmask.FromPaths(options.GetPaths()...).Validate(zeroResource); err != nil {
+	if err := pbfieldmask.FromPaths(orderingOptions.GetPaths()...).Validate(zeroResource); err != nil {
 		return nil, fmt.Errorf("validating paths: %w", err)
 	}
 
-	tree, err := BuildResourceTree[R](WithAllowedPaths(options.GetPaths()))
+	tree, err := BuildResourceTree[R](WithAllowedPaths(orderingOptions.GetPaths()))
 	if err != nil {
 		return nil, err
 	}
@@ -61,15 +81,16 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message]() (*OrderingRe
 	}
 
 	parser := &OrderingRequestParser[T, R]{
-		options:     options,
+		options:     orderingOptions,
 		tree:        tree,
 		pathToAllow: pathToAllow,
 		pathToNode:  pathToNode,
+		withFQN:     options.withFQN,
 	}
 
 	request := zero.ProtoReflect().New().Interface().(T)
 	if _, err := parser.Parse(request); err != nil {
-		return nil, fmt.Errorf("invalid default %q: %w", options.GetDefault(), err)
+		return nil, fmt.Errorf("invalid default %q: %w", orderingOptions.GetDefault(), err)
 	}
 	return parser, nil
 }
@@ -87,7 +108,7 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 		return nil, fmt.Errorf("parsing order by: %w", err)
 	}
 
-	// Validate and resolve each field to its fully qualified column name.
+	// Validate and resolve each field to its column name (optionally fully qualified).
 	for i, field := range orderBy.Fields {
 		allow, ok := p.pathToAllow[field.Path]
 		if !ok {
@@ -105,7 +126,8 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 	}, nil
 }
 
-// resolveFieldPath converts a proto field path to a fully qualified table.column reference.
+// resolveFieldPath converts a proto field path to a column reference,
+// optionally qualified with the table name when WithOrderingFQN is set.
 func (p *OrderingRequestParser[T, R]) resolveFieldPath(path string) string {
 	node, ok := p.pathToNode[path]
 	if !ok {
@@ -117,7 +139,7 @@ func (p *OrderingRequestParser[T, R]) resolveFieldPath(path string) string {
 		columnName = node.ReplacementPath
 	}
 
-	if node.TableName != "" {
+	if p.withFQN && node.TableName != "" {
 		return node.TableName + "." + columnName
 	}
 	return columnName

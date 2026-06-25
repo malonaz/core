@@ -13,9 +13,14 @@ func (mc *methodCtx) generateList() {
 	resourceGoName := mc.resourceGoName
 
 	// List request parser.
-	g.P(fmt.Sprintf("var %sParser = %s[*%s, *%s]()",
+	g.P(fmt.Sprintf("var %sParser = %s[*%s, *%s](%s(%s()), %s(%s()))",
 		xstrings.ToCamelCase(method.Input.GoIdent.GoName),
-		mc.gen.ident(aipPkg, "MustNewListRequestParser"), mc.inputType(), mc.protoType()))
+		mc.gen.ident(aipPkg, "MustNewListRequestParser"), mc.inputType(), mc.protoType(),
+		mc.gen.ident(aipPkg, "WithFilteringOpts"),
+		mc.gen.ident(aipPkg, "WithFQN"),
+		mc.gen.ident(aipPkg, "WithOrderingOpts"),
+		mc.gen.ident(aipPkg, "WithOrderingFQN"),
+	))
 	g.P()
 
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",

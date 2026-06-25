@@ -24,21 +24,21 @@ func TestFilteringRequestParser_NewParser(t *testing.T) {
 		{
 			name: "valid parser creation - Author",
 			createParser: func() error {
-				_, err := NewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 				return err
 			},
 		},
 		{
 			name: "valid parser creation - Shelf",
 			createParser: func() error {
-				_, err := NewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 				return err
 			},
 		},
 		{
 			name: "valid parser creation - Book",
 			createParser: func() error {
-				_, err := NewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+				_, err := NewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 				return err
 			},
 		},
@@ -57,7 +57,7 @@ func TestFilteringRequestParser_NewParser(t *testing.T) {
 }
 
 func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -103,7 +103,7 @@ func TestFilteringRequestParser_BasicFieldFilters(t *testing.T) {
 }
 
 func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -191,7 +191,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 }
 
 func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -267,7 +267,7 @@ func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
 }
 
 func TestFilteringRequestParser_OperatorPrecedence(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -309,7 +309,7 @@ func TestFilteringRequestParser_OperatorPrecedence(t *testing.T) {
 
 func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 	t.Run("Author metadata", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -348,7 +348,7 @@ func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 	})
 
 	t.Run("Shelf metadata with integer", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -389,7 +389,7 @@ func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 	})
 
 	t.Run("Book metadata strings", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -426,7 +426,7 @@ func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 
 func TestFilteringRequestParser_HasOperator(t *testing.T) {
 	t.Run("Author fields", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -544,7 +544,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 	})
 
 	t.Run("Shelf enum field", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -573,7 +573,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 	})
 
 	t.Run("Book integer field", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -603,7 +603,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 }
 
 func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -679,7 +679,7 @@ func TestFilteringRequestParser_WildcardStringMatching(t *testing.T) {
 }
 
 func TestFilteringRequestParser_Timestamps(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -772,7 +772,7 @@ func TestFilteringRequestParser_Timestamps(t *testing.T) {
 }
 
 func TestFilteringRequestParser_Enums(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -866,7 +866,7 @@ func TestFilteringRequestParser_Enums(t *testing.T) {
 
 func TestFilteringRequestParser_TypeValidation(t *testing.T) {
 	t.Run("Author type mismatches", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 		tests := []struct {
 			name   string
@@ -888,7 +888,7 @@ func TestFilteringRequestParser_TypeValidation(t *testing.T) {
 	})
 
 	t.Run("Book type mismatches", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name   string
@@ -910,7 +910,7 @@ func TestFilteringRequestParser_TypeValidation(t *testing.T) {
 	})
 
 	t.Run("Shelf type mismatches", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 		tests := []struct {
 			name   string
@@ -937,7 +937,7 @@ func TestFilteringRequestParser_TypeValidation(t *testing.T) {
 }
 
 func TestFilteringRequestParser_ErrorCases(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 	tests := []struct {
 		name   string
@@ -996,7 +996,7 @@ func TestFilteringRequestParser_ErrorCases(t *testing.T) {
 
 func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 	t.Run("Author complex filters", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -1055,7 +1055,7 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 	})
 
 	t.Run("Shelf complex filters with enum", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -1090,7 +1090,7 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 	})
 
 	t.Run("Book complex filters with integers", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -1126,7 +1126,7 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 }
 
 func TestFilteringRequestParser_SelectivePaths(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 	t.Run("allowed paths work", func(t *testing.T) {
 		tests := []struct {
@@ -1338,7 +1338,7 @@ func TestApplyReplacement(t *testing.T) {
 }
 
 func TestFilteringRequestParser_ColumnNameReplacement(t *testing.T) {
-	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 	tests := []struct {
 		name           string
@@ -1404,7 +1404,7 @@ func TestFilteringRequestParser_ColumnNameReplacement(t *testing.T) {
 
 func TestFilteringRequestParser_Duration(t *testing.T) {
 	t.Run("Shelf nullable duration", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -1479,7 +1479,7 @@ func TestFilteringRequestParser_Duration(t *testing.T) {
 	})
 
 	t.Run("Book non-nullable duration", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name           string
@@ -1542,7 +1542,7 @@ func TestFilteringRequestParser_Duration(t *testing.T) {
 	})
 
 	t.Run("Book nested duration in metadata", func(t *testing.T) {
-		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
 
 		tests := []struct {
 			name           string

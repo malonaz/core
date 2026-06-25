@@ -11,11 +11,25 @@ type ListRequestOpt func(*listRequestOpts)
 
 type listRequestOpts struct {
 	paginationOpts []PaginationOpt
+	filteringOpts  []FilteringRequestOpt
+	orderingOpts   []OrderingRequestOpt
 }
 
 func WithPaginationOpts(opts ...PaginationOpt) ListRequestOpt {
 	return func(o *listRequestOpts) {
 		o.paginationOpts = append(o.paginationOpts, opts...)
+	}
+}
+
+func WithFilteringOpts(opts ...FilteringRequestOpt) ListRequestOpt {
+	return func(o *listRequestOpts) {
+		o.filteringOpts = append(o.filteringOpts, opts...)
+	}
+}
+
+func WithOrderingOpts(opts ...OrderingRequestOpt) ListRequestOpt {
+	return func(o *listRequestOpts) {
+		o.orderingOpts = append(o.orderingOpts, opts...)
 	}
 }
 
@@ -35,8 +49,6 @@ type ListRequestParser[T listRequest[R], R proto.Message] struct {
 	orderingParser   *OrderingRequestParser[T, R]
 }
 
-// list_request_parser.go
-
 // MustNewListRequestParser instantiates a new list request parser, panicking on error.
 func MustNewListRequestParser[T listRequest[R], R proto.Message](opts ...ListRequestOpt) *ListRequestParser[T, R] {
 	parser, err := NewListRequestParser[T, R](opts...)
@@ -54,7 +66,7 @@ func NewListRequestParser[T listRequest[R], R proto.Message](opts ...ListRequest
 		opt(&options)
 	}
 
-	filteringParser, err := NewFilteringRequestParser[T, R]()
+	filteringParser, err := NewFilteringRequestParser[T, R](options.filteringOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("creating filtering parser: %w", err)
 	}
@@ -64,7 +76,7 @@ func NewListRequestParser[T listRequest[R], R proto.Message](opts ...ListRequest
 		return nil, fmt.Errorf("creating pagination parser: %w", err)
 	}
 
-	orderingParser, err := NewOrderingRequestParser[T, R]()
+	orderingParser, err := NewOrderingRequestParser[T, R](options.orderingOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("creating ordering parser: %w", err)
 	}

@@ -11,21 +11,21 @@ import (
 
 func TestOrderingRequestParser_NewParser(t *testing.T) {
 	t.Run("ListAuthorsRequest", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser)
 		require.Equal(t, "create_time desc", parser.options.Default)
 	})
 
 	t.Run("ListBooksRequest", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser)
 		require.Equal(t, "create_time desc", parser.options.Default)
 	})
 
 	t.Run("ListShelvesRequest", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser)
 		require.Equal(t, "create_time desc", parser.options.Default)
@@ -33,7 +33,7 @@ func TestOrderingRequestParser_NewParser(t *testing.T) {
 }
 
 func TestOrderingRequestParser_Parse(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -119,7 +119,7 @@ func TestOrderingRequestParser_Parse(t *testing.T) {
 }
 
 func TestOrderingRequestParser_Parse_Books(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithOrderingFQN())
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -176,7 +176,7 @@ func TestOrderingRequestParser_Parse_Books(t *testing.T) {
 }
 
 func TestOrderingRequestParser_DefaultOrderByInjection(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	t.Run("empty order_by receives default", func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestOrderingRequestParser_DefaultOrderByInjection(t *testing.T) {
 }
 
 func TestOrderingRequestParser_SQLTranspilation(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -249,21 +249,21 @@ func TestOrderingRequestParser_SQLTranspilation(t *testing.T) {
 
 func TestOrderingRequestParser_DifferentResourceHierarchies(t *testing.T) {
 	t.Run("Author - two level hierarchy", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser.tree.Resource)
 		require.Equal(t, "author", parser.tree.Resource.Singular)
 	})
 
 	t.Run("Book - three level hierarchy", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser.tree.Resource)
 		require.Equal(t, "book", parser.tree.Resource.Singular)
 	})
 
 	t.Run("Shelf - two level hierarchy", func(t *testing.T) {
-		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+		parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithOrderingFQN())
 		require.NoError(t, err)
 		require.NotNil(t, parser.tree.Resource)
 		require.Equal(t, "shelf", parser.tree.Resource.Singular)
@@ -271,10 +271,10 @@ func TestOrderingRequestParser_DifferentResourceHierarchies(t *testing.T) {
 }
 
 func TestOrderingRequestParser_PathAllowValidation(t *testing.T) {
-	authorParser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	authorParser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
-	bookParser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book]()
+	bookParser, err := NewOrderingRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithOrderingFQN())
 	require.NoError(t, err)
 
 	t.Run("author allows display_name", func(t *testing.T) {
@@ -321,7 +321,7 @@ func TestOrderingRequestParser_PathAllowValidation(t *testing.T) {
 }
 
 func TestOrderingRequestParser_ImplicitDirection(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	t.Run("implicit ascending single field", func(t *testing.T) {
@@ -347,7 +347,7 @@ func TestOrderingRequestParser_ImplicitDirection(t *testing.T) {
 }
 
 func TestOrderingRequestParser_EdgeCases(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	t.Run("whitespace handling", func(t *testing.T) {
@@ -375,13 +375,13 @@ func TestOrderingRequestParser_EdgeCases(t *testing.T) {
 func TestOrderingRequestParser_MustNewPanicsOnInvalidConfig(t *testing.T) {
 	t.Run("valid config does not panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
-			MustNewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+			MustNewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 		})
 	})
 }
 
 func TestOrderingRequestParser_RequestMutation(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithOrderingFQN())
 	require.NoError(t, err)
 
 	t.Run("empty request gets default set", func(t *testing.T) {
@@ -400,7 +400,7 @@ func TestOrderingRequestParser_RequestMutation(t *testing.T) {
 }
 
 func TestOrderingRequestParser_ColumnNameReplacement(t *testing.T) {
-	parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf]()
+	parser, err := NewOrderingRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithOrderingFQN())
 	require.NoError(t, err)
 
 	tests := []struct {

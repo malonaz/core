@@ -253,7 +253,10 @@ func TestPaginationRequestParser_MustNew(t *testing.T) {
 }
 
 func TestPaginationRequestParser_ListRequestParser(t *testing.T) {
-	parser := MustNewListRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author]()
+	parser := MustNewListRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](
+		WithFilteringOpts(WithFQN()),
+		WithOrderingOpts(WithOrderingFQN()),
+	)
 
 	request := &libraryservicepb.ListAuthorsRequest{
 		PageSize: 50,
