@@ -59,7 +59,7 @@
                         "minItems": 1,
                         "items": {
                             "type": "object",
-                            "required": ["manifest", "proto", "service"],
+                            "required": ["manifest"],
                             "additionalProperties": false,
                             "properties": {
                                 "proto": {
@@ -78,74 +78,19 @@
                             }
                         }
                     }
-                }
-            }
-        },
-        "openAI": {
-            "type": "boolean"
-        },
-        "k8s": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["dockerImage"],
-            "properties": {
-                "dockerImage": {
-                    "type": "string"
                 },
-                "replicas": {
-                    "type": "integer"
-                },
-                "requestMemory": {
-                    "type": "string",
-                    "pattern": "^[0-9]+[KMGTPi]+$"
-                },
-                "requestCpu": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "pattern": "^[0-9]+m$"
-                        },
-                        {
-                            "type": "integer"
+                "if": {
+                    "properties": {
+                        "type": {
+                            "const": "grpc"
                         }
-                    ]
-                },
-                "limitMemory": {
-                    "type": "string",
-                    "pattern": "^[0-9]+[KMGTPi]+$"
-                },
-                "limitCpu": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "pattern": "^[0-9]+m$"
-                        },
-                        {
-                            "type": "integer"
-                        }
-                    ]
-                },
-                "args": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
                     }
                 },
-                "env": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": ["name", "secret", "key"],
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "secret": {
-                                "type": "string"
-                            },
-                            "key": {
-                                "type": "string"
+                "then": {
+                    "properties": {
+                        "services": {
+                            "items": {
+                                "required": ["manifest", "proto", "service"]
                             }
                         }
                     }
