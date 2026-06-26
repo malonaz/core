@@ -5,6 +5,7 @@ filegroup(
         "author_profile.proto",
         "book.proto",
         "book_review.proto",
+        "bookmark.proto",
         "shelf.proto",
     ],
     test_only = True,
@@ -18,6 +19,7 @@ proto_library(
         "author_profile.proto",
         "book.proto",
         "book_review.proto",
+        "bookmark.proto",
         "shelf.proto",
     ],
     additional_context = {

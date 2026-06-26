@@ -10,7 +10,6 @@ import (
 
 type Service struct {
 	*runtime
-	// Embedded codegen.
 	*rpc.AiServiceServer
 	log                *slog.Logger
 	opts               *Opts
@@ -23,7 +22,6 @@ func (s *Service) WithLogger(logger *slog.Logger) *Service {
 	return s
 }
 
-// New instantiates and returns a new service.
 func New(
 	opts *Opts,
 	aiPostgresStore *store.Store,

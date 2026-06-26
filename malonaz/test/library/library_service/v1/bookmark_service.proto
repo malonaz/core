@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/library_service/v1/bookmark.proto";
+import "malonaz/test/library/v1/bookmark.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// BookmarkService provides CRUD operations for managing bookmarks within books.
+service BookmarkService {
+  option (google.api.default_host) = "library.test.malonaz.com";
+
+  // Creates a bookmark.
+  rpc CreateBookmark(CreateBookmarkRequest) returns (malonaz.test.library.v1.Bookmark) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks"
+      body: "bookmark"
+    };
+    option (google.api.method_signature) = "parent,bookmark";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
+  // Gets a bookmark.
+  rpc GetBookmark(GetBookmarkRequest) returns (malonaz.test.library.v1.Bookmark) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
+  // Updates a bookmark.
+  rpc UpdateBookmark(UpdateBookmarkRequest) returns (malonaz.test.library.v1.Bookmark) {
+    option (google.api.http) = {
+      patch: "/v1/{bookmark.name=organizations/*/shelves/*/books/*/bookmarks/*}"
+      body: "bookmark"
+    };
+    option (google.api.method_signature) = "bookmark,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
+  // Deletes a bookmark.
+  rpc DeleteBookmark(DeleteBookmarkRequest) returns (malonaz.test.library.v1.Bookmark) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
+  // Lists bookmarks.
+  rpc ListBookmarks(ListBookmarksRequest) returns (ListBookmarksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
+  // Gets multiple bookmarks in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetBookmarks(BatchGetBookmarksRequest) returns (BatchGetBookmarksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+}

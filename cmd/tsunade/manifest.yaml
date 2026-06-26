@@ -12,4 +12,5 @@ servers:
       - type: session_outgoing_context_injector
     services:
       - proto: //malonaz/ai/ai_service/v1
+        service: ai-service
         manifest: //go/ai/ai_service:manifest

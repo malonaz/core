@@ -24,477 +24,488 @@ package main
 {{- end -}}
 
 var opts struct {
-{{ template "mainOpts" . }}
+    {{ template "mainOpts" . }}
 }
 
 
 func main() {
-ctx := {{ goImport "context" }}.Background()
-if err := run(ctx); err != nil {
-{{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
-{{ goImport "os" }}.Exit(1)
-}
+    ctx := {{ goImport "context" }}.Background()
+    if err := run(ctx); err != nil {
+        {{ goImport "log/slog" }}.ErrorContext(ctx, "running", "error", err)
+        {{ goImport "os" }}.Exit(1)
+    }
 }
 
 func run(ctx {{ goImport "context" }}.Context) error {
-{{ goImport "math/rand" }}.Seed({{ goImport "time"}}.Now().UnixNano())
-if err := {{ goImport "github.com/malonaz/core/go/flags" }}.Parse(&opts); err != nil {
-return err
-}
-if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
-return err
-}
-{{ if .setup }}
+    {{ goImport "math/rand" }}.Seed({{ goImport "time"}}.Now().UnixNano())
+    if err := {{ goImport "github.com/malonaz/core/go/flags" }}.Parse(&opts); err != nil {
+        return err
+    }
+    if err := {{ goImport "github.com/malonaz/core/go/logging" }}.Init(opts.Logging); err != nil {
+        return err
+    }
+    {{ if .setup }}
     if err := setup(ctx); err != nil {
-    return {{ goImport "fmt" }}.Errorf("setup: %w", err)
+        return {{ goImport "fmt" }}.Errorf("setup: %w", err)
+    }
+    {{ end }}
+
+    prometheusServer := {{ goImport "github.com/malonaz/core/go/prometheus" }}.NewServer(opts.Prometheus)
+    go prometheusServer.Start(ctx)
+    defer prometheusServer.Stop(ctx)
+
+    {{ if $requiresSessionManager }}
+    sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
+    {{ end }}
+
+    errChan := make(chan error, 1)
+    runServer := func(ctx {{ goImport "context" }}.Context, serverName string, serveFn func({{ goImport "context" }}.Context) error) {
+        go func() {
+            if err := serveFn(ctx); err != nil {
+                errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
+            }
+        }()
     }
 
-{{ end }}
-prometheusServer := {{ goImport "github.com/malonaz/core/go/prometheus" }}.NewServer(opts.Prometheus)
-go prometheusServer.Start(ctx)
-defer prometheusServer.Stop(ctx)
-{{ if $requiresSessionManager }}
-    sessionManager := {{ goImport "github.com/malonaz/core/go/authentication" }}.NewSessionManager(opts.SessionManager)
-{{ end }}
-
-errChan := make(chan error, 1)
-runServer := func(ctx {{ goImport "context" }}.Context, serverName string, serveFn func({{ goImport "context" }}.Context) error) {
-go func() {
-if err := serveFn(ctx); err != nil {
-errChan <- {{ goImport "fmt" }}.Errorf("serving %s: %w", serverName, err)
-                               }
-                               }()
-                               }
-
-                               {{- /* GATHER SERVICE MANIFESTS */ -}}
-                               {{- $serviceManifests := list -}}
-                               {{- $serviceNameToServerNames := dict -}}
-                               {{- range $server := .servers -}}
-                               {{- range $service := $server.services -}}
-                               {{- $serviceManifest := parseYaml $service.manifest -}}
-                               {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-                               {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-                               {{- $updatedServers := append $existingServers $server.name -}}
-                               {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
-                               {{- end -}}
-                               {{- if $server.manifest -}}
-                               {{- $serviceManifest := parseYaml $server.manifest -}}
-                               {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-        {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-        {{- $updatedServers := append $existingServers $server.name -}}
-        {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
-    {{- end -}}
-{{- end -}}
-
-{{- $serverNameToServiceNameToServedProtos := dict -}}
-{{- range $server := .servers -}}
-    {{- if eq $server.type "grpc" -}}
+    {{- /* GATHER SERVICE MANIFESTS */ -}}
+    {{- $serviceManifests := list -}}
+    {{- $serviceNameToServerNames := dict -}}
+    {{- range $server := .servers -}}
         {{- range $service := $server.services -}}
             {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $existing := index $serverNameToServiceNameToServedProtos $server.name | default (dict) -}}
-            {{- $protos := index $existing $serviceManifest.name | default (list) -}}
-            {{- $protos = append $protos $service.proto -}}
-            {{- $existing = set $existing $serviceManifest.name $protos -}}
-            {{- $serverNameToServiceNameToServedProtos = set $serverNameToServiceNameToServedProtos $server.name $existing -}}
+            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
+            {{- $updatedServers := append $existingServers $server.name -}}
+            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+        {{- end -}}
+        {{- if $server.manifest -}}
+            {{- $serviceManifest := parseYaml $server.manifest -}}
+            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
+            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
+            {{- $updatedServers := append $existingServers $server.name -}}
+            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
         {{- end -}}
     {{- end -}}
-{{- end -}}
 
-
-{{- $serverNameToServiceNameToHealthCheckFunctions := dict -}}
-
-{{- /* DEPENDENCIES GRPC CONNECTIONS*/ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-
-        {{- if eq $dep.type "grpc_client" -}}
-            {{- if doOnce "grpc_conns_instantiations" -}}
-                {{ "\n\n// Instantiate GRPC Connections (using one per identical endpoint)\n" -}}
-                endpointToGRPCConnection := map[string]*{{ goImport "github.com/malonaz/core/go/grpc" }}.Connection{}
+    {{- $serverNameToServiceNameToServedProtos := dict -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpc" -}}
+            {{- range $service := $server.services -}}
+                {{- $serviceManifest := parseYaml $service.manifest -}}
+                {{- $existing := index $serverNameToServiceNameToServedProtos $server.name | default (dict) -}}
+                {{- $protos := index $existing $serviceManifest.name | default (list) -}}
+                {{- $protos = append $protos $service.proto -}}
+                {{- $existing = set $existing $serviceManifest.name $protos -}}
+                {{- $serverNameToServiceNameToServedProtos = set $serverNameToServiceNameToServedProtos $server.name $existing -}}
             {{- end -}}
+        {{- end -}}
+    {{- end -}}
 
-            {{- if doOnce (printf "grpc_conn_deps_%s" $dep.proto) -}}
-                {{ $grpc := parseGRPC $dep.proto $dep.name }}
-                if _, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
-                connection, err := {{ $grpc.NewConnection }}
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
-                }
-                if err := connection.Connect(ctx); err != nil {
-                return {{ goImport "fmt" }}.Errorf("connecting [%s]: %v", "{{ $dep.proto }}", err)
-                }
-                defer connection.Close()
-                endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
+    {{- $serverNameToServiceNameToHealthCheckFunctions := dict -}}
+
+    {{- /* DEPENDENCIES GRPC CONNECTIONS */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "grpc_client" -}}
+                {{- if doOnce "grpc_conns_instantiations" -}}
+                    {{ "\n\n// Instantiate GRPC Connections (using one per identical endpoint)\n" -}}
+                    endpointToGRPCConnection := map[string]*{{ goImport "github.com/malonaz/core/go/grpc" }}.Connection{}
+                {{- end -}}
+
+                {{- if doOnce (printf "grpc_conn_deps_%s_%s" $dep.proto $dep.service) -}}
+                    {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
+                    if _, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
+                        connection, err := {{ $grpc.NewConnection }}
+                        if err != nil {
+                            return {{ goImport "fmt" }}.Errorf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
+                        }
+                        if err := connection.Connect(ctx); err != nil {
+                            return {{ goImport "fmt" }}.Errorf("connecting [%s]: %v", "{{ $dep.proto }}", err)
+                        }
+                        defer connection.Close()
+                        endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    {{- /* DEPENDENCIES GRPC CLIENTS */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "grpc_client" -}}
+                {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
+                {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients" -}}{{- end -}}
+                {{- if doOnce (printf "grpc_deps_%s_%s" $dep.proto $dep.service) }}
+                    {{ $grpc.Connection }}, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
+                    if !ok {
+                        return {{ goImport "fmt" }}.Errorf("could not find grpc connection on for {{ $grpc.HumanName }}")
+                    }
+                    {{ $grpc.Client }} := {{ $grpc.NewClient }}
+                    {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
+                {{ end }}
+
+                {{- /* Add health check function to all servers that use this service, unless self-referential */ -}}
+                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+                {{- range $serverName := $serverNames -}}
+                    {{- $serviceNameToServedProtos := index $serverNameToServiceNameToServedProtos $serverName | default (dict) -}}
+                    {{- $servedProtos := index $serviceNameToServedProtos $serviceManifest.name | default (list) -}}
+                    {{- if has $dep.proto $servedProtos -}}{{- continue -}}{{- end -}}
+                    {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
+                    {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
+                    {{- $updatedHealthChecks := append $existingHealthChecks $grpc.HealthCheck -}}
+                    {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
+                    {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+                {{- end -}}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    {{- /* DEPENDENCIES POSTGRES CONNECTIONS */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+                {{ $database := default $dep.name $dep.database }}
+                {{- if doOnce "postgres_db_client_instantiations" -}}
+                    {{ "\n\n// Instantiate Postgres Connections (using one per identical endpoint)" }}
+                    endpointToPostgresConnection := map[string]*{{ goImport "github.com/malonaz/core/go/postgres" }}.Client{}
+                {{- end }}
+                if _, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]; !ok {
+                    connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ $database | camelcase }}Postgres)
+                    if err := connection.Start(ctx); err != nil {
+                        return {{ goImport "fmt" }}.Errorf("starting postgres connection ({{ $database }}): %w", err)
+                    }
+                    defer connection.Close()
+                    endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()] = connection
                 }
             {{- end }}
         {{- end }}
     {{- end }}
-{{- end }}
 
-{{- /* DEPENDENCIES GRPC CLIENTS*/ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if eq $dep.type "grpc_client" -}}
-            {{ $grpc := parseGRPC $dep.proto $dep.name }}
-            {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients" -}}{{- end -}}
-            {{- if doOnce (printf "grpc_deps_%s" $dep.proto) }}
-                {{ $grpc.Connection }}, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
-                if !ok {
-                return {{ goImport "fmt" }}.Errorf("could not find grpc connection on for {{ $grpc.HumanName}}")
-                }
-                {{ $grpc.Client }} := {{ $grpc.NewClient }}
-                {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
-            {{ end }}
+    {{- /* DEPENDENCIES POSTGRES */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
+                {{ $database := default $dep.name $dep.database }}
+                {{- $dbKey := printf "postgres_db_client_%s_%s" $database -}}
+                {{- if doOnce $dbKey }}
+                    {{- "\n" }}
+                    // Instantiate {{ $database }} db client.
+                    {{ $database | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]
+                    if !ok {
+                        return {{ goImport "fmt" }}.Errorf("could not find postgres connection for {{ $database }}")
+                    }
+                {{- end }}
 
-            {{- /* Add health check function to all servers that use this service, unless self-referential */ -}}
-            {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
-            {{- range $serverName := $serverNames -}}
-                {{- $serviceNameToServedProtos := index $serverNameToServiceNameToServedProtos $serverName | default (dict) -}}
-                {{- $servedProtos := index $serviceNameToServedProtos $serviceManifest.name | default (list) -}}
-                {{- if has $dep.proto $servedProtos -}}{{- continue -}}{{- end -}}
-                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
-                {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                {{- $updatedHealthChecks := append $existingHealthChecks $grpc.HealthCheck -}}
-                {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
-                {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
-            {{- end -}}
+                {{- /* Add health check function to all servers that use this service */ -}}
+                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+                {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($database | camelcase | untitle) -}}
+                {{- range $serverName := $serverNames -}}
+                    {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $database -}}
+                    {{- if doOnce $healthCheckKey -}}
+                        {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
+                        {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
+                        {{- $updatedHealthChecks := append $existingHealthChecks $healthCheckFn -}}
+                        {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
+                        {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+                    {{- end -}}
+                {{- end -}}
+
+                {{- if eq $dep.type "postgres_db_client" -}}
+                    {{- $dbImplKey := printf "postgres_impl_%s_%s" $database $dep.implementation -}}
+                    {{- if doOnce $dbImplKey }}
+                        {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $database | camelcase | untitle }}PsqlClient)
+                    {{ end }}
+                {{- end }}
+            {{- end }}
         {{- end }}
     {{- end }}
-{{- end }}
 
+    {{- /* DEPENDENCIES NATS CLIENT */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "nats" -}}
+                {{- if doOnce "nats_client_instantiation" }}
 
-{{- /* DEPENDENCIES POSTGRES Connections*/ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
-            {{ $database := default $dep.name $dep.database }}
-            {{- if doOnce "postgres_db_client_instantiations" -}}
-                {{ "\n\n// Instantiate Postgres Connections (using one per identical endpoint)" }}
-                endpointToPostgresConnection := map[string]*{{ goImport "github.com/malonaz/core/go/postgres" }}.Client{}
-            {{- end }}
-            if _, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]; !ok {
-            connection := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(opts.{{ $database | camelcase }}Postgres)
-            if err := connection.Start(ctx); err != nil {
-            return {{ goImport "fmt" }}.Errorf("starting postgres connection ({{ $database}}): %w", err)
-            }
-	          defer connection.Close()
-            endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()] = connection
-            }
-        {{- end }}
-    {{- end }}
-{{- end }}
-
-{{- /* DEPENDENCIES POSTGRES*/ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
-            {{ $database := default $dep.name $dep.database }}
-            {{- $dbKey := printf "postgres_db_client_%s_%s" $database  -}}
-            {{- if doOnce $dbKey }}
-                {{- "\n" }}
-                // Instantiate {{ $database }} db client.
-	              {{ $database | camelcase | untitle }}PsqlClient, ok := endpointToPostgresConnection[opts.{{ $database | camelcase }}Postgres.Endpoint()]
-                if !ok {
-                return {{ goImport "fmt" }}.Errorf("could not find postgres connection for {{ $database }}")
-                }
-            {{- end }}
-
-            {{- /* Add health check function to all servers that use this service */ -}}
-            {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
-            {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($database | camelcase | untitle) -}}
-            {{- range $serverName := $serverNames -}}
-                {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $database -}}
-                {{- if doOnce $healthCheckKey -}}
-                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $serverName | default (dict) -}}
-                {{- $existingHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-                {{- $updatedHealthChecks := append $existingHealthChecks $healthCheckFn -}}
-                {{- $serverHealthChecks = set $serverHealthChecks $serviceManifest.name $updatedHealthChecks -}}
-                {{- $serverNameToServiceNameToHealthCheckFunctions = set $serverNameToServiceNameToHealthCheckFunctions $serverName $serverHealthChecks -}}
+                    // Instantiate NATS client.
+                    natsClient, err := {{ goImport "github.com/malonaz/core/go/nats" }}.NewClient(opts.Nats)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating nats client: %w", err)
+                    }
+                    if err := natsClient.Start(ctx); err != nil {
+                        return {{ goImport "fmt" }}.Errorf("starting nats client: %w", err)
+                    }
+                    defer natsClient.Close()
                 {{- end -}}
             {{- end -}}
+        {{- end -}}
+    {{- end }}
 
-            {{- if eq $dep.type "postgres_db_client" -}}
-                {{- $dbImplKey := printf "postgres_impl_%s_%s" $database $dep.implementation  -}}
-                {{- if doOnce $dbImplKey }}
-                    {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_"}}DBClient := {{ plzGoImport $dep.implementation }}.New({{ $database | camelcase | untitle }}PsqlClient)
+    {{- /* DEPENDENCIES BASE SERVICES */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $dep := $serviceManifest.dependencies -}}
+            {{- if eq $dep.type "service" -}}
+                {{- $key := printf "base_service_%s" $dep.name -}}
+                {{- if doOnce $key }}
+                    {{- "\n" }}
+                    // Instantiate {{ $dep.name }} service.
+                    {{ $dep.name | camelcase | untitle }}Service, err := {{ plzGoImport $dep.implementation }}.New(opts.{{ $dep.name | camelcase }}Service)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
+                    }
+                    {
+                        cleanup, err := {{ $dep.name | camelcase | untitle }}Service.Start(ctx, nil)
+                        if err != nil {
+                            return {{ goImport "fmt" }}.Errorf("starting {{ $dep.name }} service: %v", err)
+                        }
+                        defer cleanup()
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
+    var gracefulStopFns []func() error
+    var stopFns []func() error
+
+    {{ range $server := .servers }}
+        {{ $services := $server.services | default list }}
+        {{ if eq $server.type "processor" }}
+            {{ $services = append $services $server }}
+        {{ end }}
+
+        // Start {{ $server.name | camelcase }} Server
+        {
+        {{- /* INSTANTIATE SERVICES */ -}}
+        {{- range $service := $services }}
+            {{- $serviceManifest := parseYaml $service.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+            {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
+
+            {{ if $requiresSessionManager }}
+            {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
+            if err != nil {
+                return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
+            }
+            {{ else }}
+            {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
+            {{ end }}
+
+            {{ "\n" }}// Instantiate {{ $serviceName }}.
+            {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
+                opts.{{ $serviceName | title }},
+                {{- range $dep := $serviceManifest.dependencies }}
+                    {{- if eq $dep.type "grpc_client" }}
+                        {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}
+                        {{ $grpc.Client }},
+                    {{- else if eq $dep.type "postgres_db_client" }}
+                        {{ $database := default $dep.name $dep.database }}
+                        {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient,
+                    {{- else if eq $dep.type "postgres_client" }}
+                        {{ $database := default $dep.name $dep.database }}
+                        {{ $database | camelcase | untitle }}PsqlClient,
+                    {{- else if eq $dep.type "service" }}
+                        {{ $dep.name | camelcase | untitle }}Service,
+                    {{- else if eq $dep.type "nats" }}
+                        natsClient,
+                    {{- end }}
+                {{- end }}
+            )
+            if err != nil {
+                return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
+            }
+
+            // Start {{ $serviceName }} service.
+            {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+            if err != nil {
+                return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
+            }
+            defer {{ $serviceName }}Cleanup()
+        {{- end }}
+
+        {{- if eq $server.type "processor" }}
+            {{- $serviceManifest := parseYaml $server.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+            healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
+        {{- end }}
+
+        {{- if eq $server.type "grpc" }}
+            register := func(server *{{ goImport "github.com/malonaz/core/go/grpc" }}.Server) {
+                {{- range $service := $server.services }}
+                    {{- $serviceManifest := parseYaml $service.manifest -}}
+                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                    {{ $grpc := parseGRPC $service.proto $service.service -}}
+                    {{ $grpc.Register $serviceName }}
+                {{- end }}
+            }
+
+            {{- range $interceptor := $server.interceptors -}}
+                {{ if eq $interceptor.type "external_api_key_authentication" }}
+                    {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                    }
+                {{ else if eq $interceptor.type "internal_service_authentication" }}
+                    {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                    }
+                {{ else if eq $interceptor.type "jwt_authentication" }}
+                    {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(ctx, opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                    }
+                {{ else if eq $interceptor.type "permission_authentication" }}
+                    {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
+                    if err != nil {
+                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
+                    }
+                {{ else if eq $interceptor.type "session_local_context_injector" -}}
+                {{ else if eq $interceptor.type "session_log_injector" -}}
+                {{ else if eq $interceptor.type "session_outgoing_context_injector" -}}
+                {{ else }}
+                    {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
                 {{ end }}
             {{- end }}
-        {{- end }}
-    {{- end }}
-{{- end }}
 
-{{- /* DEPENDENCIES NATS CLIENT */ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if eq $dep.type "nats" -}}
-            {{- if doOnce "nats_client_instantiation" }}
-
-// Instantiate NATS client.
-natsClient, err := {{ goImport "github.com/malonaz/core/go/nats" }}.NewClient(opts.Nats)
-if err != nil {
-return {{ goImport "fmt" }}.Errorf("instantiating nats client: %w", err)
-}
-if err := natsClient.Start(ctx); err != nil {
-return {{ goImport "fmt" }}.Errorf("starting nats client: %w", err)
-}
-defer natsClient.Close()
-            {{- end -}}
-        {{- end -}}
-    {{- end -}}
-{{- end }}
-
-{{- /* DEPENDENCIES BASE SERVICES*/ -}}
-{{- range $serviceManifest := $serviceManifests -}}
-    {{- range $dep := $serviceManifest.dependencies -}}
-        {{- if eq $dep.type "service" -}}
-            {{- $key := printf "base_service_%s" $dep.name  -}}
-            {{- if doOnce $key }}
-                {{- "\n" }}
-                // Instantiate {{ $dep.name }} service.
-	              {{ $dep.name | camelcase | untitle }}Service, err := {{ plzGoImport $dep.implementation }}.New(opts.{{ $dep.name | camelcase }}Service)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
-                }
-                {
-                cleanup, err := {{ $dep.name | camelcase | untitle }}Service.Start(ctx, nil)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("starting {{ $dep.name }} service: %v", err)
-                }
-                defer cleanup()
-                }
-            {{- end }}
-        {{- end }}
-    {{- end }}
-{{- end }}
-
-healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
-var gracefulStopFns []func() error
-var stopFns []func() error
-
-{{ range $server := .servers }}
-    {{ $services := $server.services | default list }}
-    {{ if eq $server.type "processor" }}
-     {{ $services = append $services $server }}
-    {{ end }}
-    // Start {{ $server.name | camelcase }} Server
-    {
-    {{- /* INSTANTIATE SERVICES*/ -}}
-    {{- range $service := $services }}
-        {{- $serviceManifest := parseYaml $service.manifest -}}
-        {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-        {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
-
-        {{ if $requiresSessionManager }}
-        {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
-        if err != nil {
-        return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
-        }
-        {{ else }}
-        {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context {return ctx}
-        {{ end }}
-
-        {{ "\n" }}// Instantiate {{ $serviceName }}.
-        {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
-        opts.{{ $serviceName | title }},
-        {{- range $dep := $serviceManifest.dependencies }}
-            {{- if eq $dep.type "grpc_client" }}
-                {{ $grpc := parseGRPC $dep.proto $dep.name -}}
-                {{ $grpc.Client }},
-            {{- else if eq $dep.type "postgres_db_client" }}
-                {{ $database := default $dep.name $dep.database }}
-                {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_"  | replace ":" "_" }}DBClient,
-            {{- else if eq $dep.type "postgres_client" }}
-                {{ $database := default $dep.name $dep.database }}
-                {{ $database | camelcase | untitle }}PsqlClient,
-            {{- else if eq $dep.type "service" }}
-                {{ $dep.name | camelcase | untitle }}Service,
-            {{- else if eq $dep.type "nats" }}
-                 natsClient,
-            {{- end }}
-        {{- end }}
-        )
-        if err != nil {
-        return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
-        }
-        // Start {{ $serviceName }} service.
-        {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
-        if err != nil {
-        return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
-        }
-        defer {{ $serviceName }}Cleanup()
-    {{- end }}
-
-{{- if eq $server.type "processor" }}
-    {{- $serviceManifest := parseYaml $server.manifest -}}
-    {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-    healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
-{{- end }}
-
-    {{- if eq $server.type "grpc" }}
-        register := func(server *{{ goImport "github.com/malonaz/core/go/grpc"}}.Server) {
-        {{- range $service := $server.services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $grpc := parseGRPC $service.proto "" -}}
-            {{ $grpc.Register $serviceName }}
-        {{- end }}
-        }
-
-        {{- range $interceptor := $server.interceptors -}}
-            {{ if eq $interceptor.type "external_api_key_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
-                }
-            {{ else if eq $interceptor.type "internal_service_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
-                }
-            {{ else if eq $interceptor.type "jwt_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(ctx, opts.{{ $interceptor.type | camelcase }}, sessionManager)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
-                }
-            {{ else if eq $interceptor.type "permission_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor, err := {{ goImport "github.com/malonaz/core/go/authentication" }}.New{{ $interceptor.type | camelcase }}Interceptor(opts.{{ $interceptor.type | camelcase }}, sessionManager)
-                if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $interceptor.type | replace "_" " " }} interceptor: %v", err)
-                }
-            {{ else if eq $interceptor.type "session_local_context_injector" }} {{- /*session manager method*/ -}}
-            {{ else if eq $interceptor.type "session_log_injector" }} {{- /*session manager method*/ -}}
-            {{ else if eq $interceptor.type "session_outgoing_context_injector" }} {{- /*session manager method*/ -}}
-            {{ else }}
-                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-            {{ end }}
-        {{- end }}
-
-	      grpcServer := {{ goImport "github.com/malonaz/core/go/grpc"}}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ $server.name }}", register){{ if $server.descriptorSet }}.WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes){{ end }}
-
-        grpcServer.WithUnaryInterceptors({{- range $interceptor := $server.interceptors -}}
-            {{- if eq $interceptor.type "session_local_context_injector" }}
-                sessionManager.UnaryServerLocalContextInjectorInterceptor(),
-            {{- else if eq $interceptor.type "external_api_key_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
-            {{- else if eq $interceptor.type "internal_service_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
-            {{- else if eq $interceptor.type "jwt_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
-            {{- else if eq $interceptor.type "permission_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
-            {{- else if eq $interceptor.type "session_log_injector" }}
-                sessionManager.UnaryServerLogInjectorInterceptor(),
-            {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
-                sessionManager.UnaryServerOutgoingContextInjectorInterceptor(),
-            {{ else }}
-                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-            {{- end -}}
-        {{- end -}}).
-        WithStreamInterceptors({{- range $interceptor := $server.interceptors -}}
-            {{- if eq $interceptor.type "session_local_context_injector" }}
-                sessionManager.StreamServerLocalContextInjectorInterceptor(),
-            {{- else if eq $interceptor.type "external_api_key_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
-            {{- else if eq $interceptor.type "internal_service_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
-            {{- else if eq $interceptor.type "jwt_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
-            {{- else if eq $interceptor.type "permission_authentication" }}
-                {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
-            {{- else if eq $interceptor.type "session_log_injector" }}
-                sessionManager.StreamServerLogInjectorInterceptor(),
-            {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
-                sessionManager.StreamServerOutgoingContextInjectorInterceptor(),
-            {{ else }}
-                {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
-            {{- end -}}
-        {{- end -}})
-        gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
-        stopFns = append(stopFns, grpcServer.Stop)
-        {{- range $service := $server.services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $grpc := parseGRPC $service.proto "" -}}
-            {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name | default (dict) -}}
-            {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
-            grpcServer.GetHealthServer().RegisterService(
-            {{- $grpc.ServiceDescriptionName -}},
-            {{- range $healthCheckFn := $serviceHealthChecks -}}
-                {{ $healthCheckFn }},
-            {{- end -}}
-            )
-        {{- end }}
-        healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
-        runServer(ctx, "{{ $server.name }}", grpcServer.Serve)
-
-        {{- $hasGateway := false -}}
-        {{- range $service := $server.services -}}
-            {{- if $service.gateway -}}
-                {{- $grpc := parseGRPC $service.proto "" -}}
-                {{- if doOnce $server.name }}
-                    {{ $hasGateway = true }}
-                    // GRPC gateway handlers.
-                    var registerHandlers =[]{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
+            grpcServer := {{ goImport "github.com/malonaz/core/go/grpc" }}.NewServer(opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, "{{ $server.name }}", register)
+                {{- if $server.descriptorSet -}}
+                    .WithFileDescriptorSet({{ $server.name | camelcase | untitle }}DescriptorSetBytes)
                 {{- end }}
-                {{ $grpc.RegisterHandlerFromEndpoint }},
-            {{ end }}
-        {{ end }}
-        {{- if $hasGateway -}}
-            }
-            grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
-            runServer(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
-        {{- end }}
-    {{- end }}
 
-    {{- if eq $server.type "http" }}
-        register := func(server *{{ goImport "github.com/malonaz/core/go/http"}}.Server) {
-        {{- range $service := $server.services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{ $serviceName }}.RegisterRoutes(server)
+            grpcServer.WithUnaryInterceptors(
+                {{- range $interceptor := $server.interceptors -}}
+                    {{- if eq $interceptor.type "session_local_context_injector" }}
+                        sessionManager.UnaryServerLocalContextInjectorInterceptor(),
+                    {{- else if eq $interceptor.type "external_api_key_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+                    {{- else if eq $interceptor.type "internal_service_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+                    {{- else if eq $interceptor.type "jwt_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+                    {{- else if eq $interceptor.type "permission_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Unary(),
+                    {{- else if eq $interceptor.type "session_log_injector" }}
+                        sessionManager.UnaryServerLogInjectorInterceptor(),
+                    {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
+                        sessionManager.UnaryServerOutgoingContextInjectorInterceptor(),
+                    {{ else }}
+                        {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+                    {{- end -}}
+                {{- end -}}
+            ).
+            WithStreamInterceptors(
+                {{- range $interceptor := $server.interceptors -}}
+                    {{- if eq $interceptor.type "session_local_context_injector" }}
+                        sessionManager.StreamServerLocalContextInjectorInterceptor(),
+                    {{- else if eq $interceptor.type "external_api_key_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+                    {{- else if eq $interceptor.type "internal_service_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+                    {{- else if eq $interceptor.type "jwt_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+                    {{- else if eq $interceptor.type "permission_authentication" }}
+                        {{ $interceptor.type | camelcase | untitle }}Interceptor.Stream(),
+                    {{- else if eq $interceptor.type "session_log_injector" }}
+                        sessionManager.StreamServerLogInjectorInterceptor(),
+                    {{- else if eq $interceptor.type "session_outgoing_context_injector" }}
+                        sessionManager.StreamServerOutgoingContextInjectorInterceptor(),
+                    {{ else }}
+                        {{ fail (printf "Unknown interceptor type: %s" $interceptor.type) }}
+                    {{- end -}}
+                {{- end -}}
+            )
+
+            gracefulStopFns = append(gracefulStopFns, grpcServer.GracefulStop)
+            stopFns = append(stopFns, grpcServer.Stop)
+
+            {{- range $service := $server.services }}
+                {{- $serviceManifest := parseYaml $service.manifest -}}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                {{ $grpc := parseGRPC $service.proto $service.service -}}
+                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name | default (dict) -}}
+                {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) -}}
+                grpcServer.GetHealthServer().RegisterService(
+                    {{- $grpc.ServiceDescriptionName -}},
+                    {{- range $healthCheckFn := $serviceHealthChecks -}}
+                        {{ $healthCheckFn }},
+                    {{- end -}}
+                )
+            {{- end }}
+
+            healthServer.RegisterService("{{ $server.name }}", grpcServer.GetHealthServer().CheckFn())
+            runServer(ctx, "{{ $server.name }}", grpcServer.Serve)
+
+            {{- $hasGateway := false -}}
+            {{- range $service := $server.services -}}
+                {{- if $service.gateway -}}
+                    {{- $grpc := parseGRPC $service.proto $service.service -}}
+                    {{- if doOnce $server.name }}
+                        {{ $hasGateway = true }}
+                        // GRPC gateway handlers.
+                        var registerHandlers = []{{ goImport "github.com/malonaz/core/go/grpc" }}.RegisterHandler{
+                    {{- end }}
+                    {{ $grpc.RegisterHandlerFromEndpoint }},
+                {{ end }}
+            {{ end }}
+            {{- if $hasGateway -}}
+                }
+                grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
+                runServer(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
+            {{- end }}
+        {{- end }}
+
+        {{- if eq $server.type "http" }}
+            register := func(server *{{ goImport "github.com/malonaz/core/go/http" }}.Server) {
+                {{- range $service := $server.services }}
+                    {{- $serviceManifest := parseYaml $service.manifest -}}
+                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                    {{ $serviceName }}.RegisterRoutes(server)
+                {{- end }}
+            }
+
+            httpServer := {{ goImport "github.com/malonaz/core/go/http" }}.NewServer(opts.{{ $server.name | camelcase }}HTTP, "{{ $server.name }}", register)
+            gracefulStopFns = append(gracefulStopFns, httpServer.GracefulStop)
+            stopFns = append(stopFns, httpServer.Stop)
+
+            {{- range $service := $server.services }}
+                {{- $serviceManifest := parseYaml $service.manifest -}}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name | default (dict) -}}
+                {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) }}
+                httpServer.GetHealthServer().RegisterService(
+                    "{{- $serviceName | kebabcase }}",
+                    {{- range $healthCheckFn := $serviceHealthChecks -}}
+                        {{ $healthCheckFn }},
+                    {{- end -}}
+                )
+            {{- end }}
+
+            healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
+            runServer(ctx, "{{ $server.name }}", httpServer.Serve)
+        {{- end }}
+
+        {{- if eq $server.type "grpcwebproxy" }}
+            grpcWebProxyServer := {{ goImport "github.com/malonaz/core/go/grpc/grpcwebproxy" }}.NewServer(opts.{{ $server.name | camelcase }}GRPCWebProxy, opts.Certs, opts.Prometheus)
+            gracefulStopFns = append(gracefulStopFns, grpcWebProxyServer.GracefulStop)
+            stopFns = append(stopFns, grpcWebProxyServer.Stop)
+            healthServer.RegisterService("{{ $server.name }}", grpcWebProxyServer.HealthCheckFn())
+            runServer(ctx, "{{ $server.name }}", grpcWebProxyServer.Serve)
         {{- end }}
         }
-
-	      httpServer := {{ goImport "github.com/malonaz/core/go/http"}}.NewServer(opts.{{ $server.name | camelcase }}HTTP, "{{ $server.name }}", register)
-        gracefulStopFns = append(gracefulStopFns, httpServer.GracefulStop)
-        stopFns = append(stopFns, httpServer.Stop)
-        {{- range $service := $server.services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle}}
-            {{- $serverHealthChecks := index $serverNameToServiceNameToHealthCheckFunctions $server.name | default (dict) -}}
-            {{- $serviceHealthChecks := index $serverHealthChecks $serviceManifest.name | default (list) }}
-            httpServer.GetHealthServer().RegisterService(
-            "{{- $serviceName | kebabcase}}",
-            {{- range $healthCheckFn := $serviceHealthChecks -}}
-                {{ $healthCheckFn }},
-            {{- end -}}
-            )
-        {{- end }}
-        healthServer.RegisterService("{{ $server.name }}", httpServer.GetHealthServer().CheckFn())
-        runServer(ctx, "{{ $server.name }}", httpServer.Serve)
     {{- end }}
 
-{{- if eq $server.type "grpcwebproxy" }}
-    grpcWebProxyServer := {{ goImport "github.com/malonaz/core/go/grpc/grpcwebproxy"}}.NewServer(opts.{{ $server.name | camelcase }}GRPCWebProxy, opts.Certs, opts.Prometheus)
-    gracefulStopFns = append(gracefulStopFns, grpcWebProxyServer.GracefulStop)
-    stopFns = append(stopFns, grpcWebProxyServer.Stop)
-    healthServer.RegisterService("{{ $server.name }}", grpcWebProxyServer.HealthCheckFn())
-    runServer(ctx, "{{ $server.name }}", grpcWebProxyServer.Serve)
-{{- end }}
-    }
-{{- end }}
+    // Setup health check.
+    go healthServer.Serve(ctx)
 
-
-// Setup health check.
-go healthServer.Serve(ctx)
-
-gracefulStopFns = append(gracefulStopFns, func() error {
-healthServer.Shutdown()
-return nil
-})
-healthServer.MarkReady()
-  handleSignals(ctx, errChan, gracefulStopFns, stopFns)
-  return nil
+    gracefulStopFns = append(gracefulStopFns, func() error {
+        healthServer.Shutdown()
+        return nil
+    })
+    healthServer.MarkReady()
+    handleSignals(ctx, errChan, gracefulStopFns, stopFns)
+    return nil
 }
 
 {{ template "shutdownOpts" . }}

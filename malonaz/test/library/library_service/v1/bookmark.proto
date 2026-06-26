@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/v1/bookmark.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// Request message for BookmarkService.CreateBookmark.
+message CreateBookmarkRequest {
+  // The parent book.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book"
+  ];
+
+  // The ID to use for the resource.
+  string bookmark_id = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    }
+  ];
+
+  // The bookmark to create.
+  malonaz.test.library.v1.Bookmark bookmark = 3 [(buf.validate.field).required = true];
+
+  // A unique identifier for this request.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for BookmarkService.GetBookmark.
+message GetBookmarkRequest {
+  // The resource name of the bookmark to retrieve.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark"
+  ];
+}
+
+// Request message for BookmarkService.UpdateBookmark.
+message UpdateBookmarkRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "page_number",
+      "display_name",
+      "note",
+      "labels"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "bookmark.name_required"
+    message: "bookmark.name must be set"
+    expression: "has(this.bookmark.name)"
+  };
+
+  // The bookmark to update.
+  malonaz.test.library.v1.Bookmark bookmark = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for BookmarkService.DeleteBookmark.
+message DeleteBookmarkRequest {
+  // The resource name of the bookmark to delete.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark"
+  ];
+
+  // If true, and the bookmark is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for BookmarkService.ListBookmarks.
+message ListBookmarksRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time",
+      "page_number",
+      "display_name"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent book to list bookmarks for.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book"
+  ];
+
+  // @autogen
+  string filter = 2;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 3;
+
+  // @autogen.
+  string order_by = 4;
+
+  // Requested page size.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListBookmarks` call.
+  string page_token = 6;
+}
+
+// Response message for BookmarkService.ListBookmarks.
+message ListBookmarksResponse {
+  // The list of bookmarks.
+  repeated malonaz.test.library.v1.Bookmark bookmarks = 1;
+
+  // A token to retrieve the next page.
+  string next_page_token = 2;
+}
+
+// Request message for BookmarkService.BatchGetBookmarks.
+message BatchGetBookmarksRequest {
+  // The parent book that owns the bookmarks.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string parent = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Book"];
+
+  // The resource names of the bookmarks to retrieve.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  // A maximum of 1000 bookmarks can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark"
+  ];
+}
+
+// Response message for BookmarkService.BatchGetBookmarks.
+message BatchGetBookmarksResponse {
+  // Bookmarks requested.
+  repeated malonaz.test.library.v1.Bookmark bookmarks = 1;
+}

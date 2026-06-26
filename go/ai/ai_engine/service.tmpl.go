@@ -24,7 +24,6 @@ func (s *Service) WithLogger(logger *slog.Logger) *Service {
 	return s
 }
 
-// New instantiates and returns a new service.
 func New(
 	opts *Opts,
 

@@ -1,30 +1,30 @@
 {{- define "mainOpts" -}}
     {{- $core := "github.com/malonaz/core/go" -}}
-	  // Core service options
-	  Logging         *{{ goImport (printf "%s/logging" $core) }}.Opts            `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
-	  Health         *{{ goImport (printf "%s/health" $core) }}.Opts            `group:"Health" namespace:"health" env-namespace:"HEALTH"`
-	  Prometheus     *{{ goImport (printf "%s/prometheus" $core) }}.Opts        `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
-    Certs          *{{ goImport (printf "%s/certs" $core) }}.Opts           `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
+
+    // Core service options
+    Logging    *{{ goImport (printf "%s/logging" $core) }}.Opts    `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
+    Health     *{{ goImport (printf "%s/health" $core) }}.Opts     `group:"Health" namespace:"health" env-namespace:"HEALTH"`
+    Prometheus *{{ goImport (printf "%s/prometheus" $core) }}.Opts `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
+    Certs      *{{ goImport (printf "%s/certs" $core) }}.Opts      `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
 
     {{- /* CHECK IF ANY GRPC SERVER REQUIRES AUTHENTICATION */ -}}
-
-	  {{- range $server := .servers -}}
-	      {{- if eq $server.type "grpc" -}}
-	          {{- range $interceptor := $server.interceptors -}}
-	              {{- if eq $interceptor.type "permission_authentication" -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpc" -}}
+            {{- range $interceptor := $server.interceptors -}}
+                {{- if eq $interceptor.type "permission_authentication" -}}
                     {{- if doOnce "sessionManagerOpts" }}
-                        SessionManager          *{{ goImport (printf "%s/authentication" $core) }}.SessionManagerOpts           `group:"Session Manager" namespace:"session-manager" env-namespace:"SESSION_MANAGER"`
+                        SessionManager *{{ goImport (printf "%s/authentication" $core) }}.SessionManagerOpts `group:"Session Manager" namespace:"session-manager" env-namespace:"SESSION_MANAGER"`
                     {{ end }}
                     {{- if doOnce $interceptor.type }}
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}
                 {{ end }}
-	              {{- if eq $interceptor.type "external_api_key_authentication" -}}
+                {{- if eq $interceptor.type "external_api_key_authentication" -}}
                     {{- if doOnce $interceptor.type }}
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}
                 {{ end }}
-	              {{- if eq $interceptor.type "internal_service_authentication" -}}
+                {{- if eq $interceptor.type "internal_service_authentication" -}}
                     {{- if doOnce $interceptor.type }}
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}
@@ -34,9 +34,9 @@
                         {{ $interceptor.type | camelcase }} *{{ goImport (printf "%s/authentication" $core) }}.{{ $interceptor.type | camelcase }}InterceptorOpts `group:"{{ $interceptor.type | replace "_" " " | title }}" namespace:"{{ $interceptor.type | kebabcase }}" env-namespace:"{{ $interceptor.type | snakecase | upper }}"`
                     {{ end }}
                 {{ end }}
-	          {{- end -}}
-	      {{- end -}}
-	  {{- end }}
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
 
     {{- /* GATHER SERVICE MANIFESTS */ -}}
     {{- $serviceManifests := list -}}
@@ -51,25 +51,25 @@
     {{- end -}}
 
     {{- /* BASE SERVICE DEPS OPTIONS */ -}}
-	  {{- range $serviceManifest := $serviceManifests -}}
-	      {{- if $serviceManifest.dependencies -}}
-	          {{- range $dep := $serviceManifest.dependencies -}}
-	              {{- if eq $dep.type "service" -}}
-                    {{- if doOnce "base_service_opts" -}}{{"\n\n// Base service opts"}}{{- end -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- if $serviceManifest.dependencies -}}
+            {{- range $dep := $serviceManifest.dependencies -}}
+                {{- if eq $dep.type "service" -}}
+                    {{- if doOnce "base_service_opts" -}}{{ "\n\n// Base service opts" }}{{- end -}}
                     {{- if doOnce (printf "base_service_opts_%s" $dep.implementation) }}
                         {{ $dep.name | camelcase }}Service *{{ plzGoImport $dep.implementation }}.Opts `group:"{{ $dep.name | title }} Service" namespace:"{{ $dep.name | kebabcase }}-service" env-namespace:"{{ $dep.name | snakecase | upper }}_SERVICE"`
-	                  {{- end }}
-	              {{- end }}
-	          {{- end }}
-	      {{- end }}
-	  {{- end }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
 
     {{- /* POSTGRES DATABASE OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests -}}
         {{- range $dep := $serviceManifest.dependencies -}}
             {{- if or (eq $dep.type "postgres_db_client") (eq $dep.type "postgres_client") -}}
                 {{ $database := default $dep.name $dep.database }}
-                {{- if doOnce "postgres_db_client_opts" -}}{{"\n\n// Postgres client options"}}{{- end -}}
+                {{- if doOnce "postgres_db_client_opts" -}}{{ "\n\n// Postgres client options" }}{{- end -}}
                 {{- $dbKey := printf "postgres_db_opts_%s" $database -}}
                 {{- if doOnce $dbKey }}
                     {{ $database | camelcase }}Postgres *{{ goImport (printf "%s/postgres" $core) }}.Opts `group:"{{ $database | title }} Postgres" namespace:"{{ $database | kebabcase }}-postgres" env-namespace:"{{ $database | snakecase | upper }}_POSTGRES"`
@@ -91,19 +91,19 @@
     {{- end }}
 
     {{- /* GRPC CLIENT OPTIONS */ -}}
-	  {{- range $serviceManifest := $serviceManifests -}}
-	      {{- if $serviceManifest.dependencies -}}
-	          {{- range $dep := $serviceManifest.dependencies -}}
-	              {{- if eq $dep.type "grpc_client" -}}
-                    {{- if doOnce "grpc_client_opts" -}}{{"\n\n// gRPC client options"}}{{- end -}}
-                    {{- if doOnce (printf "grpc_client_opts_%s" $dep.proto) -}}
-                        {{ $grpc := parseGRPC $dep.proto $dep.name }}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- if $serviceManifest.dependencies -}}
+            {{- range $dep := $serviceManifest.dependencies -}}
+                {{- if eq $dep.type "grpc_client" -}}
+                    {{- if doOnce "grpc_client_opts" -}}{{ "\n\n// gRPC client options" }}{{- end -}}
+                    {{- if doOnce (printf "grpc_client_opts_%s_%s" $dep.proto $dep.service) -}}
+                        {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
                         {{ $grpc.Opts }}
-	                  {{- end }}
-	              {{- end }}
-	          {{- end }}
-	      {{- end }}
-	  {{- end }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
 
     {{- /* GRPC SERVER OPTIONS */ -}}
     {{- range $server := .servers -}}
@@ -112,7 +112,7 @@
             {{ $server.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $server.name | camelcase }} GRPC (Server)" namespace:"{{ $server.name | kebabcase }}-grpc" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC"`
             {{ $hasGrpcGateway := false }}
             {{ range $service := $server.services }}
-                {{ if $service.gateway }} {{ $hasGrpcGateway = true }}{{ break }}{{ end }}
+                {{ if $service.gateway }}{{ $hasGrpcGateway = true }}{{ break }}{{ end }}
             {{ end }}
             {{ if $hasGrpcGateway }}
                 {{ $server.name | camelcase }}GRPCGateway *{{ goImport (printf "%s/grpc" $core) }}.GatewayOpts `group:"{{ $server.name | camelcase }} GRPC Gateway" namespace:"{{ $server.name | kebabcase }}-grpc-gateway" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC_GATEWAY"`
@@ -128,7 +128,7 @@
         {{- end -}}
     {{- end }}
 
-    {{- /* SERVER OPTIONS */ -}}
+    {{- /* HTTP SERVER OPTIONS */ -}}
     {{- range $server := .servers -}}
         {{- if eq $server.type "http" -}}
             {{- if doOnce "http_server_option_comment" }}{{ "\n\n// HTTP server options" }}{{ end }}
@@ -138,7 +138,7 @@
 
     {{- /* SERVICE OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests }}
-        {{- if doOnce "service_opts" -}}{{"\n\n// Service options"}}{{- end -}}
+        {{- if doOnce "service_opts" -}}{{ "\n\n// Service options" }}{{- end -}}
         {{- $serviceKey := printf "service_opts_%s" $serviceManifest.name -}}
         {{- if doOnce $serviceKey }}
             {{- $serviceName := $serviceManifest.name | camelcase | title }}

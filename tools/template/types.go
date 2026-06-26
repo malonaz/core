@@ -11,64 +11,64 @@ const coreRepo = "github.com/malonaz/core/go"
 
 var targetToGRPC = map[string]*GRPC{}
 
-// Contains all the information about a grpc server.
 type GRPC struct {
 	target       string
 	replacements map[string]string
 }
 
-// Target is a proto target with a single service name.
-func parseGRPC(target, depName string) (*GRPC, error) {
-	if grpc, ok := targetToGRPC[target]; ok {
+func parseGRPC(target, service string, displayName ...string) (*GRPC, error) {
+	cacheKey := target + ":" + service
+	if grpc, ok := targetToGRPC[cacheKey]; ok {
 		return grpc, nil
 	}
+
+	servicePascal := xstrings.ToPascalCase(service)
+
 	_, filenames, err := parseTarget(target)
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse the service name from the files.
-	var serviceName string
+	var found bool
 	for _, filename := range filenames {
 		bytes, err := readFile(filename)
 		if err != nil {
 			return nil, err
 		}
-		content := string(bytes)
-		// Find the service definition
-		matches := serviceRegex.FindStringSubmatch(content)
-		if len(matches) != 2 {
-			continue
+		for _, match := range serviceRegex.FindAllStringSubmatch(string(bytes), -1) {
+			if len(match) == 2 && match[1] == servicePascal {
+				found = true
+				break
+			}
 		}
-		candidateServiceName := matches[1]
-		if serviceName != "" {
-			return nil, fmt.Errorf("found multiple service definition: [%s, %s]", serviceName, candidateServiceName)
+		if found {
+			break
 		}
-		serviceName = candidateServiceName
 	}
-	if serviceName == "" {
-		return nil, fmt.Errorf("no service found")
+	if !found {
+		return nil, fmt.Errorf("service %q (%s) not found in target %s", service, servicePascal, target)
 	}
 
-	displayName := serviceName
-	if depName != "" {
-		displayName = xstrings.ToPascalCase(depName)
+	display := service
+	if len(displayName) > 0 && displayName[0] != "" {
+		display = displayName[0]
 	}
+	displayPascal := xstrings.ToPascalCase(display)
 
-	nameCamelCase := strings.ToLower(serviceName[:1]) + serviceName[1:]
-	nameCamelCaseT := strings.Title(serviceName)
+	nameCamelCase := strings.ToLower(servicePascal[:1]) + servicePascal[1:]
+	nameCamelCaseT := strings.Title(servicePascal)
 	nameCamelCaseUpper := strings.ToUpper(nameCamelCase)
 	nameSnakeCase := xstrings.ToSnakeCase(nameCamelCase)
 	nameSnakeCaseUpper := strings.ToUpper(nameSnakeCase)
-	nameKebabCase := xstrings.ToKebabCase(serviceName)
+	nameKebabCase := xstrings.ToKebabCase(servicePascal)
 	nameHumanCaseT := strings.Title(strings.ReplaceAll(nameKebabCase, "-", " "))
 
-	displayNameCamelCase := strings.ToLower(displayName[:1]) + displayName[1:]
-	displayNameCamelCaseT := strings.Title(displayName)
+	displayNameCamelCase := strings.ToLower(displayPascal[:1]) + displayPascal[1:]
+	displayNameCamelCaseT := strings.Title(displayPascal)
 	displayNameCamelCaseUpper := strings.ToUpper(displayNameCamelCase)
 	displayNameSnakeCase := xstrings.ToSnakeCase(displayNameCamelCase)
 	displayNameSnakeCaseUpper := strings.ToUpper(displayNameSnakeCase)
-	displayNameKebabCase := xstrings.ToKebabCase(displayName)
+	displayNameKebabCase := xstrings.ToKebabCase(displayPascal)
 	displayNameHumanCaseT := strings.Title(strings.ReplaceAll(displayNameKebabCase, "-", " "))
 
 	m := map[string]string{
@@ -89,7 +89,6 @@ func parseGRPC(target, depName string) (*GRPC, error) {
 		"displayNameKebabCase":      displayNameKebabCase,
 		"displayNameHumanCaseT":     displayNameHumanCaseT,
 
-		// Higher level functions.
 		"optsFieldName": displayNameCamelCaseT + "GRPC",
 		"connection":    displayNameCamelCase + "Connection",
 		"healthCheck":   displayNameCamelCase + "HealthCheck",
@@ -99,7 +98,7 @@ func parseGRPC(target, depName string) (*GRPC, error) {
 		target:       target,
 		replacements: m,
 	}
-	targetToGRPC[target] = grpc
+	targetToGRPC[cacheKey] = grpc
 	return grpc, nil
 }
 
@@ -128,7 +127,6 @@ func (t *GRPC) getReplacements(grpcImport, protoImport bool) (map[string]string,
 	return m, nil
 }
 
-// replaceTemplate replaces all {key} occurrences in template with corresponding values from the map
 func (t *GRPC) template(template string, params ...any) (string, error) {
 	template = fmt.Sprintf(template, params...)
 	grpcImport := strings.Contains(template, "{grpcImport}")
@@ -145,7 +143,6 @@ func (t *GRPC) template(template string, params ...any) (string, error) {
 	return result, nil
 }
 
-// //////////////////////////// Methods to be used in templates are below ///////////////////////////
 func (t *GRPC) ServiceDescriptionName() (string, error) {
 	return t.template("{protoImport}.{nameCamelCaseT}_ServiceDesc.ServiceName")
 }

@@ -59,11 +59,15 @@
                         "minItems": 1,
                         "items": {
                             "type": "object",
-                            "required": ["manifest"],
+                            "required": ["manifest", "proto", "service"],
                             "additionalProperties": false,
                             "properties": {
                                 "proto": {
                                     "type": "string"
+                                },
+                                "service": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
                                 },
                                 "manifest": {
                                     "type": "string"

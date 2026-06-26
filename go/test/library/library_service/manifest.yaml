@@ -7,6 +7,10 @@ codegens:
     store: library
     implementation: //go/test/library/library_service/rpc
     nats: true
+  - type: rpc
+    name: bookmark-service
+    store: library
+    implementation: //go/test/library/library_service/rpc
 dependencies:
   - type: nats
   - type: postgres_db_client
