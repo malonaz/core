@@ -13,7 +13,6 @@ import (
 	"github.com/malonaz/core/go/aip"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/nats"
-	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/uuid"
 
 	aippb "github.com/malonaz/core/genproto/aip/v1"
@@ -84,7 +83,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetCreatedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetCreatedSubject().MustGet()},
 		ConsumerName: "test-shelf-created-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -102,7 +101,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetUpdatedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetUpdatedSubject().MustGet()},
 		ConsumerName: "test-shelf-updated-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -126,7 +125,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetDeletedSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetDeletedSubject().MustGet()},
 		ConsumerName: "test-shelf-deleted-" + consumerSuffix,
 		BatchSize:    100,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
@@ -148,7 +147,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	var filteredMu sync.Mutex
 	filteredShelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetCreatedSubject().WithGenre(targetGenre)).Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetCreatedSubject().WithGenre(targetGenre).MustGet()},
 		ConsumerName: "test-shelf-created-genre-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
@@ -595,7 +594,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, createdProcessor.Start(ctx))
 
 	updatedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.GetUpdatedSubject().Get()},
+		Subjects:     []*nats.Subject{bookStream.GetUpdatedSubject().MustGet()},
 		ConsumerName: "test-book-updated-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -618,7 +617,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, updatedProcessor.Start(ctx))
 
 	deletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.GetDeletedSubject().Get()},
+		Subjects:     []*nats.Subject{bookStream.GetDeletedSubject().MustGet()},
 		ConsumerName: "test-book-deleted-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -778,7 +777,7 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	require.NoError(t, err)
 
 	genreChangeProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{shelfStream.GetGenreChangeSubject().Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetGenreChangeSubject().MustGet()},
 		ConsumerName: "test-shelf-genre-change-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -804,7 +803,7 @@ func TestNatsEvents_ShelfGenreChange(t *testing.T) {
 	var filteredMu sync.Mutex
 	filteredShelfNameToGenreChangeEvents := map[string][]*shelfUpdatedEvent{}
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{pbutil.Must(shelfStream.GetGenreChangeSubject().WithGenre(targetGenre)).Get()},
+		Subjects:     []*nats.Subject{shelfStream.GetGenreChangeSubject().WithGenre(targetGenre).MustGet()},
 		ConsumerName: "test-shelf-genre-change-filtered-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		filteredMu.Lock()
@@ -1004,11 +1003,10 @@ func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
 	natsClient, err := satEnvironment.GetNatsClient(ctx)
 	require.NoError(t, err)
 
-	filteredSubject, err := shelfStream.GetCreatedSubject().WithOrganization(organizationResourceName1.Organization)
-	require.NoError(t, err)
+	filteredSubject := shelfStream.GetCreatedSubject().WithOrganization(organizationResourceName1.Organization)
 
 	filteredProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{filteredSubject.Get()},
+		Subjects:     []*nats.Subject{filteredSubject.MustGet()},
 		ConsumerName: "test-shelf-created-org-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -1058,7 +1056,7 @@ func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
 
 	t.Run("WithOrganization_EmptyString_ReturnsError", func(t *testing.T) {
 		t.Parallel()
-		_, err := shelfStream.GetCreatedSubject().WithOrganization("")
+		_, err := shelfStream.GetCreatedSubject().WithOrganization("").Get()
 		require.Error(t, err)
 	})
 }

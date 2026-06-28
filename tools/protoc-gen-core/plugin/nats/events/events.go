@@ -222,12 +222,9 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 	// With* methods for resource segments.
 	for _, seg := range resourceSegments {
 		goField := xstrings.ToCamelCase(seg)
-		g.P("func (s *", structName, ") With", xstrings.ToPascalCase(seg), "(v string) (*", structName, ", error) {")
-		g.P("  if v == \"\" {")
-		g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", seg, " must be set\")")
-		g.P("  }")
+		g.P("func (s *", structName, ") With", xstrings.ToPascalCase(seg), "(v string) *", structName, " {")
 		g.P("  s._", goField, " = &v")
-		g.P("  return s, nil")
+		g.P("  return s")
 		g.P("}")
 		g.P()
 	}
@@ -237,20 +234,14 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 		field := fieldByTextName(message, sf)
 		if field.Enum != nil {
 			enumType := gen.g.QualifiedGoIdent(field.Enum.GoIdent)
-			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v ", enumType, ") (*", structName, ", error) {")
-			g.P("  if v == 0 {")
-			g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", sf, " must be set\")")
-			g.P("  }")
+			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v ", enumType, ") *", structName, " {")
 			g.P("  s._", xstrings.ToCamelCase(field.GoName), " = &v")
-			g.P("  return s, nil")
+			g.P("  return s")
 			g.P("}")
 		} else {
-			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v string) (*", structName, ", error) {")
-			g.P("  if v == \"\" {")
-			g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", sf, " must be set\")")
-			g.P("  }")
+			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v string) *", structName, " {")
 			g.P("  s._", xstrings.ToCamelCase(field.GoName), " = &v")
-			g.P("  return s, nil")
+			g.P("  return s")
 			g.P("}")
 		}
 		g.P()
@@ -301,6 +292,10 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 	g.P("  if err := s.set(resource); err != nil {")
 	g.P("    return err")
 	g.P("  }")
+	g.P("  subject, err := s.Get()")
+	g.P("  if err != nil {")
+	g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"getting subject: %w\", err)")
+	g.P("  }")
 	if eventType == "Updated" {
 		g.P("  event, err := ", gen.ident(aipPkg, "NewResourceUpdatedEvent"), "(resource, previousResource, updateMask)")
 	} else if eventType == "Created" {
@@ -311,7 +306,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 	g.P("  if err != nil {")
 	g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"constructing resource event: %w\", err)")
 	g.P("  }")
-	g.P("  return natsClient.Publish(ctx, s.Get(), event)")
+	g.P("  return natsClient.Publish(ctx, subject, event)")
 	g.P("}")
 	g.P()
 
@@ -331,23 +326,39 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 		g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"parsing resource name: %v\", err)")
 		g.P("  }")
 		for _, seg := range resourceSegments {
-			g.P("  if _, err := s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID); err != nil {")
-			g.P("    return err")
-			g.P("  }")
+			g.P("  s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID)")
 		}
 	}
 	for _, sf := range subjectFields {
 		field := fieldByTextName(message, sf)
-		g.P("  if _, err := s.With", xstrings.ToPascalCase(sf), "(resource.", field.GoName, "); err != nil {")
-		g.P("    return err")
-		g.P("  }")
+		g.P("  s.With", xstrings.ToPascalCase(sf), "(resource.", field.GoName, ")")
 	}
 	g.P("  return nil")
 	g.P("}")
 	g.P()
 
-	// Get method.
-	g.P("func (s *", structName, ") Get() *", gen.ident(natsCPkg, "Subject"), " {")
+	// Get method — validates set fields are non-empty, uses "*" for unset fields.
+	g.P("func (s *", structName, ") Get() (*", gen.ident(natsCPkg, "Subject"), ", error) {")
+	for _, seg := range resourceSegments {
+		goField := xstrings.ToCamelCase(seg)
+		g.P("  if s._", goField, " != nil && *s._", goField, " == \"\" {")
+		g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", seg, " must not be empty\")")
+		g.P("  }")
+	}
+
+	for _, sf := range subjectFields {
+		field := fieldByTextName(message, sf)
+		goField := xstrings.ToCamelCase(field.GoName)
+		if field.Enum != nil {
+			g.P("  if s._", goField, " != nil && *s._", goField, " == 0 {")
+			g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", sf, " must not be unspecified\")")
+			g.P("  }")
+		} else {
+			g.P("  if s._", goField, " != nil && *s._", goField, " == \"\" {")
+			g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", sf, " must not be empty\")")
+			g.P("  }")
+		}
+	}
 	g.P("  tokens := []string{")
 	for _, seg := range resourceSegments {
 		goField := xstrings.ToCamelCase(seg)
@@ -375,7 +386,17 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 		g.P("    }(),")
 	}
 	g.P("  }")
-	g.P("  return s.stream.stream.Subject(", gen.ident(stringsPkg, "Join"), "(tokens, \".\"))")
+	g.P("  return s.stream.stream.Subject(", gen.ident(stringsPkg, "Join"), "(tokens, \".\")), nil")
+	g.P("}")
+	g.P()
+
+	// MustGet method.
+	g.P("func (s *", structName, ") MustGet() *", gen.ident(natsCPkg, "Subject"), " {")
+	g.P("  subject, err := s.Get()")
+	g.P("  if err != nil {")
+	g.P("    panic(err)")
+	g.P("  }")
+	g.P("  return subject")
 	g.P("}")
 	g.P()
 

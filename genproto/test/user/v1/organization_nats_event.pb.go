@@ -54,22 +54,34 @@ func (s *OrganizationCreatedSubject) Publish(ctx context.Context, natsClient *na
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceCreatedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationCreatedSubject) set(resource *Organization) error {
 	return nil
 }
 
-func (s *OrganizationCreatedSubject) Get() *nats.Subject {
+func (s *OrganizationCreatedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"created",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *OrganizationCreatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *OrganizationStream) GetCreatedSubject() *OrganizationCreatedSubject {
@@ -95,22 +107,34 @@ func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, natsClient *na
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationUpdatedSubject) set(resource *Organization) error {
 	return nil
 }
 
-func (s *OrganizationUpdatedSubject) Get() *nats.Subject {
+func (s *OrganizationUpdatedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"updated",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *OrganizationUpdatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *OrganizationStream) GetUpdatedSubject() *OrganizationUpdatedSubject {
@@ -136,22 +160,34 @@ func (s *OrganizationDeletedSubject) Publish(ctx context.Context, natsClient *na
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceDeletedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationDeletedSubject) set(resource *Organization) error {
 	return nil
 }
 
-func (s *OrganizationDeletedSubject) Get() *nats.Subject {
+func (s *OrganizationDeletedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"deleted",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *OrganizationDeletedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *OrganizationStream) GetDeletedSubject() *OrganizationDeletedSubject {

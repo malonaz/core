@@ -54,22 +54,34 @@ func (s *UserCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceCreatedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserCreatedSubject) set(resource *User) error {
 	return nil
 }
 
-func (s *UserCreatedSubject) Get() *nats.Subject {
+func (s *UserCreatedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"created",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *UserCreatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *UserStream) GetCreatedSubject() *UserCreatedSubject {
@@ -95,22 +107,34 @@ func (s *UserUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserUpdatedSubject) set(resource *User) error {
 	return nil
 }
 
-func (s *UserUpdatedSubject) Get() *nats.Subject {
+func (s *UserUpdatedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"updated",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *UserUpdatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *UserStream) GetUpdatedSubject() *UserUpdatedSubject {
@@ -136,22 +160,34 @@ func (s *UserDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceDeletedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserDeletedSubject) set(resource *User) error {
 	return nil
 }
 
-func (s *UserDeletedSubject) Get() *nats.Subject {
+func (s *UserDeletedSubject) Get() (*nats.Subject, error) {
 	tokens := []string{
 		"deleted",
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *UserDeletedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *UserStream) GetDeletedSubject() *UserDeletedSubject {

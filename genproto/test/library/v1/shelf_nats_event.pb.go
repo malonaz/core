@@ -44,20 +44,14 @@ type ShelfCreatedSubject struct {
 	_genre        *ShelfGenre
 }
 
-func (s *ShelfCreatedSubject) WithOrganization(v string) (*ShelfCreatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
+func (s *ShelfCreatedSubject) WithOrganization(v string) *ShelfCreatedSubject {
 	s._organization = &v
-	return s, nil
+	return s
 }
 
-func (s *ShelfCreatedSubject) WithGenre(v ShelfGenre) (*ShelfCreatedSubject, error) {
-	if v == 0 {
-		return nil, fmt.Errorf("genre must be set")
-	}
+func (s *ShelfCreatedSubject) WithGenre(v ShelfGenre) *ShelfCreatedSubject {
 	s._genre = &v
-	return s, nil
+	return s
 }
 
 func (s *ShelfCreatedSubject) evaluate(resource *Shelf) (bool, error) {
@@ -75,11 +69,15 @@ func (s *ShelfCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceCreatedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *ShelfCreatedSubject) set(resource *Shelf) error {
@@ -87,16 +85,18 @@ func (s *ShelfCreatedSubject) set(resource *Shelf) error {
 	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &organizationID, &shelfID); err != nil {
 		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(organizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithGenre(resource.Genre); err != nil {
-		return err
-	}
+	s.WithOrganization(organizationID)
+	s.WithGenre(resource.Genre)
 	return nil
 }
 
-func (s *ShelfCreatedSubject) Get() *nats.Subject {
+func (s *ShelfCreatedSubject) Get() (*nats.Subject, error) {
+	if s._organization != nil && *s._organization == "" {
+		return nil, fmt.Errorf("organization must not be empty")
+	}
+	if s._genre != nil && *s._genre == 0 {
+		return nil, fmt.Errorf("genre must not be unspecified")
+	}
 	tokens := []string{
 		func() string {
 			if s._organization != nil {
@@ -112,7 +112,15 @@ func (s *ShelfCreatedSubject) Get() *nats.Subject {
 			return "*"
 		}(),
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *ShelfCreatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *ShelfStream) GetCreatedSubject() *ShelfCreatedSubject {
@@ -125,20 +133,14 @@ type ShelfUpdatedSubject struct {
 	_correlationId2 *string
 }
 
-func (s *ShelfUpdatedSubject) WithOrganization(v string) (*ShelfUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
+func (s *ShelfUpdatedSubject) WithOrganization(v string) *ShelfUpdatedSubject {
 	s._organization = &v
-	return s, nil
+	return s
 }
 
-func (s *ShelfUpdatedSubject) WithCorrelationId2(v string) (*ShelfUpdatedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("correlation_id_2 must be set")
-	}
+func (s *ShelfUpdatedSubject) WithCorrelationId2(v string) *ShelfUpdatedSubject {
 	s._correlationId2 = &v
-	return s, nil
+	return s
 }
 
 func (s *ShelfUpdatedSubject) evaluate(resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) (bool, error) {
@@ -168,11 +170,15 @@ func (s *ShelfUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *ShelfUpdatedSubject) set(resource *Shelf) error {
@@ -180,16 +186,18 @@ func (s *ShelfUpdatedSubject) set(resource *Shelf) error {
 	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &organizationID, &shelfID); err != nil {
 		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(organizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
-		return err
-	}
+	s.WithOrganization(organizationID)
+	s.WithCorrelationId2(resource.CorrelationId_2)
 	return nil
 }
 
-func (s *ShelfUpdatedSubject) Get() *nats.Subject {
+func (s *ShelfUpdatedSubject) Get() (*nats.Subject, error) {
+	if s._organization != nil && *s._organization == "" {
+		return nil, fmt.Errorf("organization must not be empty")
+	}
+	if s._correlationId2 != nil && *s._correlationId2 == "" {
+		return nil, fmt.Errorf("correlation_id_2 must not be empty")
+	}
 	tokens := []string{
 		func() string {
 			if s._organization != nil {
@@ -205,7 +213,15 @@ func (s *ShelfUpdatedSubject) Get() *nats.Subject {
 			return "*"
 		}(),
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *ShelfUpdatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *ShelfStream) GetUpdatedSubject() *ShelfUpdatedSubject {
@@ -218,20 +234,14 @@ type ShelfGenreChangeSubject struct {
 	_genre        *ShelfGenre
 }
 
-func (s *ShelfGenreChangeSubject) WithOrganization(v string) (*ShelfGenreChangeSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
+func (s *ShelfGenreChangeSubject) WithOrganization(v string) *ShelfGenreChangeSubject {
 	s._organization = &v
-	return s, nil
+	return s
 }
 
-func (s *ShelfGenreChangeSubject) WithGenre(v ShelfGenre) (*ShelfGenreChangeSubject, error) {
-	if v == 0 {
-		return nil, fmt.Errorf("genre must be set")
-	}
+func (s *ShelfGenreChangeSubject) WithGenre(v ShelfGenre) *ShelfGenreChangeSubject {
 	s._genre = &v
-	return s, nil
+	return s
 }
 
 func (s *ShelfGenreChangeSubject) evaluate(resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) (bool, error) {
@@ -261,11 +271,15 @@ func (s *ShelfGenreChangeSubject) Publish(ctx context.Context, natsClient *nats.
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceUpdatedEvent(resource, previousResource, updateMask)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *ShelfGenreChangeSubject) set(resource *Shelf) error {
@@ -273,16 +287,18 @@ func (s *ShelfGenreChangeSubject) set(resource *Shelf) error {
 	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &organizationID, &shelfID); err != nil {
 		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(organizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithGenre(resource.Genre); err != nil {
-		return err
-	}
+	s.WithOrganization(organizationID)
+	s.WithGenre(resource.Genre)
 	return nil
 }
 
-func (s *ShelfGenreChangeSubject) Get() *nats.Subject {
+func (s *ShelfGenreChangeSubject) Get() (*nats.Subject, error) {
+	if s._organization != nil && *s._organization == "" {
+		return nil, fmt.Errorf("organization must not be empty")
+	}
+	if s._genre != nil && *s._genre == 0 {
+		return nil, fmt.Errorf("genre must not be unspecified")
+	}
 	tokens := []string{
 		func() string {
 			if s._organization != nil {
@@ -298,7 +314,15 @@ func (s *ShelfGenreChangeSubject) Get() *nats.Subject {
 			return "*"
 		}(),
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *ShelfGenreChangeSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *ShelfStream) GetGenreChangeSubject() *ShelfGenreChangeSubject {
@@ -312,28 +336,19 @@ type ShelfDeletedSubject struct {
 	_correlationId2 *string
 }
 
-func (s *ShelfDeletedSubject) WithOrganization(v string) (*ShelfDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("organization must be set")
-	}
+func (s *ShelfDeletedSubject) WithOrganization(v string) *ShelfDeletedSubject {
 	s._organization = &v
-	return s, nil
+	return s
 }
 
-func (s *ShelfDeletedSubject) WithGenre(v ShelfGenre) (*ShelfDeletedSubject, error) {
-	if v == 0 {
-		return nil, fmt.Errorf("genre must be set")
-	}
+func (s *ShelfDeletedSubject) WithGenre(v ShelfGenre) *ShelfDeletedSubject {
 	s._genre = &v
-	return s, nil
+	return s
 }
 
-func (s *ShelfDeletedSubject) WithCorrelationId2(v string) (*ShelfDeletedSubject, error) {
-	if v == "" {
-		return nil, fmt.Errorf("correlation_id_2 must be set")
-	}
+func (s *ShelfDeletedSubject) WithCorrelationId2(v string) *ShelfDeletedSubject {
 	s._correlationId2 = &v
-	return s, nil
+	return s
 }
 
 func (s *ShelfDeletedSubject) evaluate(resource *Shelf) (bool, error) {
@@ -351,11 +366,15 @@ func (s *ShelfDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err := s.set(resource); err != nil {
 		return err
 	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
 	event, err := aip.NewResourceDeletedEvent(resource)
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, s.Get(), event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *ShelfDeletedSubject) set(resource *Shelf) error {
@@ -363,19 +382,22 @@ func (s *ShelfDeletedSubject) set(resource *Shelf) error {
 	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &organizationID, &shelfID); err != nil {
 		return fmt.Errorf("parsing resource name: %v", err)
 	}
-	if _, err := s.WithOrganization(organizationID); err != nil {
-		return err
-	}
-	if _, err := s.WithGenre(resource.Genre); err != nil {
-		return err
-	}
-	if _, err := s.WithCorrelationId2(resource.CorrelationId_2); err != nil {
-		return err
-	}
+	s.WithOrganization(organizationID)
+	s.WithGenre(resource.Genre)
+	s.WithCorrelationId2(resource.CorrelationId_2)
 	return nil
 }
 
-func (s *ShelfDeletedSubject) Get() *nats.Subject {
+func (s *ShelfDeletedSubject) Get() (*nats.Subject, error) {
+	if s._organization != nil && *s._organization == "" {
+		return nil, fmt.Errorf("organization must not be empty")
+	}
+	if s._genre != nil && *s._genre == 0 {
+		return nil, fmt.Errorf("genre must not be unspecified")
+	}
+	if s._correlationId2 != nil && *s._correlationId2 == "" {
+		return nil, fmt.Errorf("correlation_id_2 must not be empty")
+	}
 	tokens := []string{
 		func() string {
 			if s._organization != nil {
@@ -397,7 +419,15 @@ func (s *ShelfDeletedSubject) Get() *nats.Subject {
 			return "*"
 		}(),
 	}
-	return s.stream.stream.Subject(strings.Join(tokens, "."))
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *ShelfDeletedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
 }
 
 func (s *ShelfStream) GetDeletedSubject() *ShelfDeletedSubject {

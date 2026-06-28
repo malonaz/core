@@ -35,7 +35,6 @@ go_test(
         "//go/grpc/middleware",
         "//go/grpc/require",
         "//go/nats",
-        "//go/pbutil",
         "//go/prometheus",
         "//go/sat",
         "//go/test/library/library_service",
