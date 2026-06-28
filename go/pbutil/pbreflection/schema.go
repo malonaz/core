@@ -604,6 +604,7 @@ func (s *Schema) augmentMethodComments() error {
 								resourceMessageDescriptor,
 								aip.WithAllowedPaths(filteringOptions.GetPaths()),
 								aip.WithMaxDepth(3),
+								aip.WithRegistry(s.files),
 							)
 							if err != nil {
 								errRangeFiles = err

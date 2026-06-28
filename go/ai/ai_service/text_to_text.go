@@ -28,7 +28,6 @@ var (
 	}
 )
 
-// context key
 type tttAccumulatorKey struct{}
 
 func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
@@ -37,63 +36,16 @@ func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, 
 		accumulator = ai.NewTextToTextAccumulator()
 	}
 
-	var blockIndexOffset int64
-	for {
-		request := proto.CloneOf(originalRequest)
-		if len(accumulator.Message.GetBlocks()) > 0 {
-			request.Messages = append(request.Messages, proto.CloneOf(accumulator.Message))
-		}
-		if err := s.textToTextStream(request, srv, accumulator, blockIndexOffset); err != nil {
-			return err
-		}
-
-		// Check if we need to loop again.
-		var loop bool
-		for _, block := range accumulator.Message.GetBlocks() {
-			if block.Index < blockIndexOffset {
-				continue
-			}
-			if block.GetToolCall().GetResult() != nil {
-				loop = true
-				break
-			}
-		}
-		if !loop {
-			return nil
-		}
-		blockIndexOffset = int64(len(accumulator.Message.Blocks))
-	}
+	return s.textToTextStream(originalRequest, srv, accumulator)
 }
 
-// textToTextStream executes a single turn of text-to-text streaming. It uses the provided
-// accumulator to collect stream events, and applies blockIndexOffset to ensure block indices
-// are globally unique across multiple turns.
 func (s *Service) textToTextStream(
 	request *pb.TextToTextStreamRequest,
 	srv pb.AiService_TextToTextStreamServer,
 	accumulator *ai.TextToTextAccumulator,
-	blockIndexOffset int64,
 ) error {
 	ctx := srv.Context()
 
-	// Reconstruct messages to insert tool result messages for prior discovery tool calls.
-	var reconstructedMessages []*aipb.Message
-	for _, message := range request.GetMessages() {
-		reconstructedMessages = append(reconstructedMessages, message)
-		var toolResultBlocks []*aipb.Block
-		for _, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
-			toolResult := block.GetToolCall().GetResult()
-			if toolResult != nil {
-				toolResultBlocks = append(toolResultBlocks, ai.NewToolResultBlock(toolResult))
-			}
-		}
-		if len(toolResultBlocks) > 0 {
-			reconstructedMessages = append(reconstructedMessages, ai.NewToolMessage(toolResultBlocks...))
-		}
-	}
-	request.Messages = reconstructedMessages
-
-	// Resolve provider and model.
 	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
 	if err != nil {
 		return err
@@ -102,7 +54,6 @@ func (s *Service) textToTextStream(
 		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
 	}
 
-	// Apply default configuration.
 	if request.Configuration == nil {
 		request.Configuration = &pb.TextToTextConfiguration{}
 	}
@@ -110,15 +61,13 @@ func (s *Service) textToTextStream(
 		request.Configuration.MaxTokens = model.Ttt.OutputTokenLimit
 	}
 
-	// Validate model capabilities against request.
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
 		return status.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
-	if len(request.Tools) > 0 && !model.GetTtt().GetToolCall() {
+	if (len(request.GetTools()) > 0 || len(request.GetToolSets()) > 0) && !model.GetTtt().GetToolCall() {
 		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	// Build tool set index: tool set name -> tool name -> tool.
 	toolSetNameToToolNameToTool := make(map[string]map[string]*aipb.Tool, len(request.GetToolSets()))
 	for _, toolSet := range request.GetToolSets() {
 		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
@@ -130,38 +79,27 @@ func (s *Service) textToTextStream(
 			}
 		}
 		toolSetNameToToolNameToTool[toolSet.GetName()] = toolNameToTool
-		// Only add the discovery tool if some tools in the set are not pre-discovered.
 		if len(discoveredTools) != len(toolSet.GetTools()) {
 			request.Tools = append(request.Tools, toolSet.DiscoveryTool)
 		}
 		request.Tools = append(request.Tools, discoveredTools...)
 	}
 
-	// Build tool name index.
 	toolNameToTool := make(map[string]*aipb.Tool, len(request.GetTools()))
 	for _, tool := range request.GetTools() {
 		toolNameToTool[tool.GetName()] = tool
 	}
 
-	// Replay prior discovery tool calls to rebuild the set of available tools.
+	// Process discovery tool call results.
 	for i, message := range request.GetMessages() {
-		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
-			toolCall := block.GetToolCall()
-			toolType, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType)
-			if !ok || toolType != aitool.AnnotationValueToolTypeDiscovery {
-				continue
-			}
-
-			toolSetName, ok := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolSetName)
+		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
+			toolResult := block.GetToolResult()
+			toolSetName, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyToolSetName)
 			if !ok {
 				continue
 			}
 			if _, ok := toolSetNameToToolNameToTool[toolSetName]; !ok {
 				return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool set %q", i, j, toolSetName).Err()
-			}
-			toolResult := toolCall.GetResult()
-			if toolResult == nil {
-				return status.Errorf(codes.Internal, "message %d block %d has discovery tool call to %q with no result", i, j, toolSetName).Err()
 			}
 			discoveredToolsString, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyDiscoveredTools)
 			if !ok {
@@ -181,7 +119,6 @@ func (s *Service) textToTextStream(
 		}
 	}
 
-	// Filter out deleted messages.
 	messages := request.GetMessages()
 	request.Messages = nil
 	for _, message := range messages {
@@ -190,7 +127,6 @@ func (s *Service) textToTextStream(
 		}
 	}
 
-	// Get or create chat.
 	var chatRn *aipb.ChatResourceName
 	if request.GetParent() == "" {
 		chatRn = new(textToTextDefaultUserRn.ChatResourceName(aip.NewSystemGeneratedBase32ResourceID()))
@@ -224,7 +160,6 @@ func (s *Service) textToTextStream(
 		return nil
 	})
 
-	// Stream the response from the provider.
 	wrapper := &tttStreamWrapper{
 		AiService_TextToTextStreamServer: srv,
 		textToTextAccumulator:            accumulator,
@@ -233,7 +168,6 @@ func (s *Service) textToTextStream(
 		toolNameToTool:                   toolNameToTool,
 		toolSetNameToToolNameToTool:      toolSetNameToToolNameToTool,
 		toolCallIDToToolCall:             map[string]*aipb.ToolCall{},
-		blockIndexOffset:                 blockIndexOffset,
 	}
 
 	if err := provider.TextToTextStream(request, wrapper); err != nil {
@@ -245,12 +179,10 @@ func (s *Service) textToTextStream(
 	recordModelUsage(response.GetModelUsage())
 	recordGenerationMetrics(request.GetModel(), response.GetGenerationMetrics())
 
-	// Wait for chat creation.
 	if err := eg.Wait(); err != nil {
 		return err
 	}
 
-	// Persist messages and model usage to the chat.
 	chat.Metadata.Messages = append(messages, response.GetMessage())
 	redactInlineImageData(chat.Metadata.Messages)
 	chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
@@ -275,22 +207,9 @@ type tttStreamWrapper struct {
 	toolNameToTool              map[string]*aipb.Tool
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool
 	toolCallIDToToolCall        map[string]*aipb.ToolCall
-	blockIndexOffset            int64
 }
 
 func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
-	if c, ok := resp.GetContent().(*pb.TextToTextStreamResponse_Block); ok && w.blockIndexOffset > 0 {
-		block := proto.CloneOf(c.Block)
-		block.Index += w.blockIndexOffset
-		resp = &pb.TextToTextStreamResponse{
-			Content: &pb.TextToTextStreamResponse_Block{Block: block},
-		}
-	}
-
-	if c, ok := resp.GetContent().(*pb.TextToTextStreamResponse_Block); ok {
-		c.Block.Index += w.blockIndexOffset
-	}
-
 	switch c := resp.GetContent().(type) {
 	case *pb.TextToTextStreamResponse_Block:
 		var toolCall *aipb.ToolCall
@@ -301,11 +220,9 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			toolCall = c.Block.GetPartialToolCall()
 		}
 		if toolCall != nil {
-			// We always instantiate tool calls annotations.
 			if toolCall.Annotations == nil {
 				toolCall.Annotations = map[string]string{}
 			}
-			// Find the target tool.
 			tool, ok := w.toolNameToTool[toolCall.Name]
 			if !ok {
 				return status.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
@@ -315,10 +232,8 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 					}).Err()
 			}
 
-			// Copy annotations.
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
-			// Annotate discovery tool calls.
 			if !toolCall.GetPartial() {
 				if toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType == aitool.AnnotationValueToolTypeDiscovery {
 					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
@@ -326,7 +241,6 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			}
 		}
 
-		// Dedupe partial tool calls.
 		if partialToolCall := c.Block.GetPartialToolCall(); partialToolCall != nil {
 			if last, ok := w.toolCallIDToToolCall[partialToolCall.Id]; ok && proto.Equal(last, partialToolCall) {
 				return nil
@@ -335,14 +249,10 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 		}
 
 	case *pb.TextToTextStreamResponse_ModelUsage:
-		// Check if the model usage is empty.
 		if ai.IsModelUsageEmpty(c.ModelUsage) {
 			return nil
 		}
-		// Merge the incoming model usage onto the base model usage.
 		proto.Merge(w.modelUsage, c.ModelUsage)
-
-		// Set the model usage pricing.
 		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
 		resp = &pb.TextToTextStreamResponse{
 			Content: &pb.TextToTextStreamResponse_ModelUsage{
@@ -357,9 +267,7 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 	return w.AiService_TextToTextStreamServer.Send(resp)
 }
 
-// TextToText collects all streamed text chunks into a single response
 func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
-	// Convert to streaming request
 	streamRequest := &pb.TextToTextStreamRequest{
 		Parent:        request.Parent,
 		Model:         request.Model,
@@ -372,7 +280,6 @@ func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest)
 	accumulator := ai.NewTextToTextAccumulator()
 	ctx = context.WithValue(ctx, tttAccumulatorKey{}, accumulator)
 
-	// Create a local streaming client using grpcinproc
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
 		pb.TextToTextStreamRequest,
 		pb.TextToTextStreamResponse,
@@ -440,7 +347,9 @@ func processDiscoveryToolCall(
 		validToolNames = append(validToolNames, discoveredToolName)
 	}
 
-	annotations := map[string]string{}
+	annotations := map[string]string{
+		aitool.AnnotationKeyToolSetName: toolSetName,
+	}
 	if len(validToolNames) > 0 {
 		annotations[aitool.AnnotationKeyDiscoveredTools] = strings.Join(validToolNames, ",")
 	}
