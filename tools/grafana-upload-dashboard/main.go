@@ -39,11 +39,15 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	importDashboardRequest := &models.ImportDashboardRequest{
-		Dashboard: map[string]any{},
-	}
-	if err := json.Unmarshal(bytes, &importDashboardRequest.Dashboard); err != nil {
-		return err
+
+	var dashboards []map[string]any
+	if json.Unmarshal(bytes, &dashboards) != nil {
+		// Not an array — treat as a single dashboard object.
+		single := map[string]any{}
+		if err := json.Unmarshal(bytes, &single); err != nil {
+			return err
+		}
+		dashboards = []map[string]any{single}
 	}
 
 	folder, err := client.CreateFolderIfNotExist(ctx, opts.Folder)
@@ -51,12 +55,17 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	importDashboardRequest.Overwrite = true
-	importDashboardRequest.FolderUID = folder.UID
-	response, err := client.Dashboards.ImportDashboard(importDashboardRequest)
-	if err != nil {
-		return err
+	for _, dashboard := range dashboards {
+		importDashboardRequest := &models.ImportDashboardRequest{
+			Dashboard: dashboard,
+			Overwrite: true,
+			FolderUID: folder.UID,
+		}
+		response, err := client.Dashboards.ImportDashboard(importDashboardRequest)
+		if err != nil {
+			return err
+		}
+		slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", client.BaseURL()+response.Payload.ImportedURL)
 	}
-	slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", client.BaseURL()+response.Payload.ImportedURL)
 	return nil
 }
