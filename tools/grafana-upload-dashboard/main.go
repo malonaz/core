@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/grafana/grafana-openapi-client-go/models"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/grafana"
@@ -42,7 +43,6 @@ func run(ctx context.Context) error {
 
 	var dashboards []map[string]any
 	if json.Unmarshal(bytes, &dashboards) != nil {
-		// Not an array — treat as a single dashboard object.
 		single := map[string]any{}
 		if err := json.Unmarshal(bytes, &single); err != nil {
 			return err
@@ -55,17 +55,21 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	eg, _ := errgroup.WithContext(ctx)
 	for _, dashboard := range dashboards {
-		importDashboardRequest := &models.ImportDashboardRequest{
-			Dashboard: dashboard,
-			Overwrite: true,
-			FolderUID: folder.UID,
-		}
-		response, err := client.Dashboards.ImportDashboard(importDashboardRequest)
-		if err != nil {
-			return err
-		}
-		slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", client.BaseURL()+response.Payload.ImportedURL)
+		eg.Go(func() error {
+			importDashboardRequest := &models.ImportDashboardRequest{
+				Dashboard: dashboard,
+				Overwrite: true,
+				FolderUID: folder.UID,
+			}
+			response, err := client.Dashboards.ImportDashboard(importDashboardRequest)
+			if err != nil {
+				return err
+			}
+			slog.InfoContext(ctx, "uploaded dashboard", "folder", folder.Title, "title", response.Payload.Title, "url", client.BaseURL()+response.Payload.ImportedURL)
+			return nil
+		})
 	}
-	return nil
+	return eg.Wait()
 }

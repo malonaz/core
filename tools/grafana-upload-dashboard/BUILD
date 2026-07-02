@@ -6,5 +6,6 @@ go_binary(
         "//go/flags",
         "//go/grafana",
         "//third_party/go:github.com__grafana__grafana-openapi-client-go__models",
+        "//third_party/go:golang.org__x__sync__errgroup",
     ],
 )
