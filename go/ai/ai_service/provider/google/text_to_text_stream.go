@@ -179,14 +179,9 @@ func (c *Client) TextToTextStream(
 				if part.InlineData != nil {
 					currentBlockIndex++
 					currentBlockType = blockTypeImage
-					cs.SendBlocks(ctx, &aipb.Block{
-						Index: currentBlockIndex,
-						Content: &aipb.Block_Image{Image: &aipb.Image{
-							Source:    &aipb.Image_Data{Data: part.InlineData.Data},
-							MediaType: part.InlineData.MIMEType,
-						}},
-						Signature: signature,
-					})
+					documentBlock := ai.NewDocumentBlock(ai.NewDocumentFromData(part.InlineData.Data, part.InlineData.MIMEType))
+					documentBlock.Index = currentBlockIndex
+					documentBlock.Signature = signature
 				}
 
 				// Handle function calls, which may arrive as partial args across multiple chunks
@@ -400,8 +395,8 @@ func (c *Client) buildUserParts(ctx context.Context, blocks []*aipb.Block) ([]*g
 		case *aipb.Block_Text:
 			parts = append(parts, &genai.Part{Text: content.Text})
 
-		case *aipb.Block_Image:
-			part, err := c.buildImagePart(ctx, content.Image)
+		case *aipb.Block_Document:
+			part, err := c.buildDocumentPart(ctx, content.Document)
 			if err != nil {
 				return nil, fmt.Errorf("block [%d]: %w", j, err)
 			}
@@ -415,15 +410,15 @@ func (c *Client) buildUserParts(ctx context.Context, blocks []*aipb.Block) ([]*g
 	return parts, nil
 }
 
-// buildImagePart converts an image proto to a genai Part with inline data.
+// buildDocumentPart converts an image proto to a genai Part with inline data.
 // URL-sourced images are downloaded and submitted as inline data.
-func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Part, error) {
+func (c *Client) buildDocumentPart(ctx context.Context, img *aipb.Document) (*genai.Part, error) {
 	if img.MediaType == "" {
 		return nil, fmt.Errorf("media_type required for image data")
 	}
 
 	switch source := img.Source.(type) {
-	case *aipb.Image_Data:
+	case *aipb.Document_Data:
 		return &genai.Part{
 			InlineData: &genai.Blob{
 				Data:     source.Data,
@@ -431,7 +426,7 @@ func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Pa
 			},
 		}, nil
 
-	case *aipb.Image_Url:
+	case *aipb.Document_Url:
 		httpResponse, err := http.Get(source.Url)
 		if err != nil {
 			return nil, fmt.Errorf("downloading image from URL: %w", err)
@@ -495,8 +490,8 @@ func (c *Client) buildAssistantParts(ctx context.Context, blocks []*aipb.Block) 
 				ThoughtSignature: thoughtSignature,
 			})
 
-		case *aipb.Block_Image:
-			imagePart, err := c.buildImagePart(ctx, content.Image)
+		case *aipb.Block_Document:
+			imagePart, err := c.buildDocumentPart(ctx, content.Document)
 			if err != nil {
 				return nil, fmt.Errorf("block [%d]: building image part: %w", j, err)
 			}

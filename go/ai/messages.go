@@ -18,7 +18,7 @@ const (
 	BlockTypeThought
 	BlockTypeToolCall
 	BlockTypeToolResult
-	BlockTypeImage
+	BlockTypeDocument
 )
 
 func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
@@ -61,17 +61,20 @@ func NewToolResultBlock(toolResult *aipb.ToolResult) *aipb.Block {
 	return &aipb.Block{Content: &aipb.Block_ToolResult{ToolResult: toolResult}}
 }
 
-func NewImageBlock(image *aipb.Image) *aipb.Block {
-	return &aipb.Block{Content: &aipb.Block_Image{Image: image}}
+func NewDocumentBlock(document *aipb.Document) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_Document{Document: document}}
 }
 
-func NewImageFromURL(url string) *aipb.Image {
-	return &aipb.Image{Source: &aipb.Image_Url{Url: url}}
+func NewDocumentFromURL(url, mediaType string) *aipb.Document {
+	return &aipb.Document{
+		Source:    &aipb.Document_Url{Url: url},
+		MediaType: mediaType,
+	}
 }
 
-func NewImageFromData(data []byte, mediaType string) *aipb.Image {
-	return &aipb.Image{
-		Source:    &aipb.Image_Data{Data: data},
+func NewDocumentFromData(data []byte, mediaType string) *aipb.Document {
+	return &aipb.Document{
+		Source:    &aipb.Document_Data{Data: data},
 		MediaType: mediaType,
 	}
 }
@@ -139,8 +142,8 @@ func FilterBlocks(blocks []*aipb.Block, blockTypes ...BlockType) []*aipb.Block {
 			bt = BlockTypeToolCall
 		case *aipb.Block_ToolResult:
 			bt = BlockTypeToolResult
-		case *aipb.Block_Image:
-			bt = BlockTypeImage
+		case *aipb.Block_Document:
+			bt = BlockTypeDocument
 		}
 		if _, ok := typeSet[bt]; ok {
 			filteredBlocks = append(filteredBlocks, block)

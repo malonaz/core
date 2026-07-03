@@ -59,10 +59,10 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 			}
 			existing.Thought += content.Thought
 
-		case *aipb.Block_Image:
+		case *aipb.Block_Document:
 			if block.Content != nil {
-				if _, ok := block.Content.(*aipb.Block_Image); !ok {
-					return fmt.Errorf("block %d: received image content but block has type %T", c.Block.Index, block.Content)
+				if _, ok := block.Content.(*aipb.Block_Document); !ok {
+					return fmt.Errorf("block %d: received document content but block has type %T", c.Block.Index, block.Content)
 				}
 			}
 			block.Content = content

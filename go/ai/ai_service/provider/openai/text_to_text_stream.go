@@ -286,25 +286,44 @@ func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUn
 			switch content := block.Content.(type) {
 			case *aipb.Block_Text:
 				contentParts = append(contentParts, openai.TextContentPart(content.Text))
-			case *aipb.Block_Image:
-				img := content.Image
-				var url string
-				switch s := img.Source.(type) {
-				case *aipb.Image_Url:
-					url = s.Url
-				case *aipb.Image_Data:
-					url = fmt.Sprintf("data:%s;base64,%s", img.MediaType, base64.StdEncoding.EncodeToString(s.Data))
-				default:
-					return nil, fmt.Errorf("block [%d]: unknown image source type %T", i, s)
+			case *aipb.Block_Document:
+				document := content.Document
+				if document.MediaType == "application/pdf" {
+					var fileData openai.ChatCompletionContentPartFileFileParam
+					switch source := document.Source.(type) {
+					case *aipb.Document_Url:
+						fileData = openai.ChatCompletionContentPartFileFileParam{
+							FileData: openai.String(source.Url),
+							Filename: openai.String("document.pdf"),
+						}
+					case *aipb.Document_Data:
+						fileData = openai.ChatCompletionContentPartFileFileParam{
+							FileData: openai.String(fmt.Sprintf("data:application/pdf;base64,%s", base64.StdEncoding.EncodeToString(source.Data))),
+							Filename: openai.String("document.pdf"),
+						}
+					default:
+						return nil, fmt.Errorf("block [%d]: unknown document source type %T", i, source)
+					}
+					contentParts = append(contentParts, openai.ChatCompletionContentPartUnionParam{
+						OfFile: &openai.ChatCompletionContentPartFileParam{
+							File: fileData,
+						},
+					})
+				} else {
+					var url string
+					switch source := document.Source.(type) {
+					case *aipb.Document_Url:
+						url = source.Url
+					case *aipb.Document_Data:
+						url = fmt.Sprintf("data:%s;base64,%s", document.MediaType, base64.StdEncoding.EncodeToString(source.Data))
+					default:
+						return nil, fmt.Errorf("block [%d]: unknown document source type %T", i, source)
+					}
+					contentParts = append(contentParts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+						URL:    url,
+						Detail: string(openai.ImageFileDetailAuto),
+					}))
 				}
-				detail, ok := imageQualityToOpenAI[img.Quality]
-				if !ok {
-					return nil, fmt.Errorf("block [%d]: unknown image quality: %s", i, img.Quality)
-				}
-				contentParts = append(contentParts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
-					URL:    url,
-					Detail: detail,
-				}))
 			default:
 				return nil, fmt.Errorf("block [%d]: unexpected block type %T for USER role", i, content)
 			}
@@ -339,8 +358,8 @@ func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUn
 					toolCall.OfFunction.SetExtraFields(map[string]any{"extra_content": tc.ExtraFields.AsMap()})
 				}
 				ofAssistant.ToolCalls = append(ofAssistant.ToolCalls, toolCall)
-			case *aipb.Block_Image:
-				return nil, fmt.Errorf("block [%d]: images not supported in assistant messages", i)
+			case *aipb.Block_Document:
+				return nil, fmt.Errorf("block [%d]: documents not supported in assistant messages", i)
 			default:
 				return nil, fmt.Errorf("block [%d]: unexpected block type %T for ASSISTANT role", i, content)
 			}
@@ -473,11 +492,4 @@ var openAIFinishReasonToPb = map[string]aiservicepb.TextToTextStopReason{
 	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
 	"tool_calls":    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
 	"function_call": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-}
-
-var imageQualityToOpenAI = map[aipb.ImageQuality]string{
-	aipb.ImageQuality_IMAGE_QUALITY_UNSPECIFIED: "auto",
-	aipb.ImageQuality_IMAGE_QUALITY_AUTO:        "auto",
-	aipb.ImageQuality_IMAGE_QUALITY_LOW:         "low",
-	aipb.ImageQuality_IMAGE_QUALITY_HIGH:        "high",
 }

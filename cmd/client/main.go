@@ -21,21 +21,21 @@ import (
 )
 
 var (
-	socket          = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
-	model           = flag.String("model", "providers/anthropic/models/claude-sonnet-4-20250514", "Model resource name")
-	systemMessage   = flag.String("system", "You are a helpful assistant.", "System message")
-	userMessage     = flag.String("message", "", "User message (empty for interactive mode)")
-	maxTokens       = flag.Int("max-tokens", 10000, "Max tokens to generate")
-	temperature     = flag.Float64("temperature", 1.0, "Temperature 0.0-2.0")
-	reasoningEffort = flag.String("reasoning", "", "Reasoning effort: LOW, MEDIUM, HIGH")
-	useTool         = flag.Bool("use-tool", false, "Enable tool calling with a sample weather tool")
-	stream          = flag.Bool("stream", true, "Use streaming API")
-	imagePath       = flag.String("image", "", "Path to an image file to include in the message")
-	imageURL        = flag.String("image-url", "", "URL of an image to include in the message")
-	generateImage   = flag.Bool("generate-image", false, "Enable image generation (requires compatible model)")
-	imageAspect     = flag.String("image-aspect", "1:1", "Aspect ratio for generated images")
-	imageSize       = flag.String("image-size", "", "Image size: 1K, 2K, 4K (Gemini 3 Pro Image only)")
-	imageOutput     = flag.String("image-output", "generated.png", "Output path for generated images")
+	socket           = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
+	model            = flag.String("model", "providers/anthropic/models/claude-sonnet-4-20250514", "Model resource name")
+	systemMessage    = flag.String("system", "You are a helpful assistant.", "System message")
+	userMessage      = flag.String("message", "", "User message (empty for interactive mode)")
+	maxTokens        = flag.Int("max-tokens", 10000, "Max tokens to generate")
+	temperature      = flag.Float64("temperature", 1.0, "Temperature 0.0-2.0")
+	reasoningEffort  = flag.String("reasoning", "", "Reasoning effort: LOW, MEDIUM, HIGH")
+	useTool          = flag.Bool("use-tool", false, "Enable tool calling with a sample weather tool")
+	stream           = flag.Bool("stream", true, "Use streaming API")
+	documentPath     = flag.String("document", "", "Path to an document file to include in the message")
+	documentURL      = flag.String("document-url", "", "URL of an document to include in the message")
+	generateDocument = flag.Bool("generate-document", false, "Enable document generation (requires compatible model)")
+	documentAspect   = flag.String("document-aspect", "1:1", "Aspect ratio for generated documents")
+	documentSize     = flag.String("document-size", "", "Document size: 1K, 2K, 4K (Gemini 3 Pro Document only)")
+	documentOutput   = flag.String("document-output", "generated.png", "Output path for generated documents")
 )
 
 const (
@@ -95,7 +95,7 @@ func runInteractive(ctx context.Context, client aiservicepb.AiServiceClient) err
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("\n%sEntering multi-turn mode. Type 'exit' to quit.%s\n\n", colorGreen, colorReset)
 
-	imageIndex := 0
+	documentIndex := 0
 	for {
 		fmt.Printf("%sYou: %s", colorGreen, colorReset)
 		os.Stdout.Sync()
@@ -122,7 +122,7 @@ func runInteractive(ctx context.Context, client aiservicepb.AiServiceClient) err
 		fmt.Printf("%sAssistant: %s", colorCyan, colorReset)
 		os.Stdout.Sync()
 
-		assistantMsg, err := sendMessage(ctx, client, messages, &imageIndex)
+		assistantMsg, err := sendMessage(ctx, client, messages, &documentIndex)
 		if err != nil {
 			fmt.Printf("\n%sError: %v%s\n", "\033[1;31m", err, colorReset)
 			messages = messages[:len(messages)-1]
@@ -136,7 +136,7 @@ func runInteractive(ctx context.Context, client aiservicepb.AiServiceClient) err
 	return nil
 }
 
-func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messages []*aipb.Message, imageIndex *int) (*aipb.Message, error) {
+func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messages []*aipb.Message, documentIndex *int) (*aipb.Message, error) {
 	config, err := buildConfig()
 	if err != nil {
 		return nil, err
@@ -182,8 +182,8 @@ func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messag
 			if c.Block.GetToolCall() != nil {
 				fmt.Printf("\n[Tool Call: %s]\n", c.Block.GetToolCall().Name)
 			}
-			if c.Block.GetImage() != nil {
-				saveGeneratedImage(c.Block.GetImage(), imageIndex)
+			if c.Block.GetDocument() != nil {
+				saveGeneratedDocument(c.Block.GetDocument(), documentIndex)
 			}
 
 		case *aiservicepb.TextToTextStreamResponse_StopReason:
@@ -214,7 +214,7 @@ type blockAccumulator struct {
 	text      strings.Builder
 	thought   strings.Builder
 	toolCall  *aipb.ToolCall
-	image     *aipb.Image
+	document  *aipb.Document
 }
 
 func getOrCreateAccumulator(m map[int64]*blockAccumulator, index int64) *blockAccumulator {
@@ -239,8 +239,8 @@ func (a *blockAccumulator) merge(block *aipb.Block) {
 	if block.GetToolCall() != nil {
 		a.toolCall = block.GetToolCall()
 	}
-	if block.GetImage() != nil {
-		a.image = block.GetImage()
+	if block.GetDocument() != nil {
+		a.document = block.GetDocument()
 	}
 }
 
@@ -255,8 +255,8 @@ func (a *blockAccumulator) toBlock() *aipb.Block {
 		block.Content = &aipb.Block_Thought{Thought: a.thought.String()}
 	} else if a.toolCall != nil {
 		block.Content = &aipb.Block_ToolCall{ToolCall: a.toolCall}
-	} else if a.image != nil {
-		block.Content = &aipb.Block_Image{Image: a.image}
+	} else if a.document != nil {
+		block.Content = &aipb.Block_Document{Document: a.document}
 	}
 	return block
 }
@@ -301,14 +301,14 @@ func printRequestInfo() {
 	if *reasoningEffort != "" {
 		fmt.Printf("│ Reasoning: REASONING_EFFORT_%s\n", *reasoningEffort)
 	}
-	if *imagePath != "" {
-		fmt.Printf("│ Image: %s\n", *imagePath)
+	if *documentPath != "" {
+		fmt.Printf("│ Document: %s\n", *documentPath)
 	}
-	if *imageURL != "" {
-		fmt.Printf("│ Image URL: %s\n", *imageURL)
+	if *documentURL != "" {
+		fmt.Printf("│ Document URL: %s\n", *documentURL)
 	}
-	if *generateImage {
-		fmt.Printf("│ Generate Image: true (aspect=%s, size=%s, output=%s)\n", *imageAspect, *imageSize, *imageOutput)
+	if *generateDocument {
+		fmt.Printf("│ Generate Document: true (aspect=%s, size=%s, output=%s)\n", *documentAspect, *documentSize, *documentOutput)
 	}
 	fmt.Printf("│ Stream: %v\n", *stream)
 	fmt.Println("└─────────────────────────────────────────────────────────")
@@ -336,9 +336,9 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 		config.ReasoningEffort = effort
 	}
 
-	if *generateImage {
+	if *generateDocument {
 		config.ImageConfig = &aiservicepb.ImageGenerationConfig{
-			AspectRatio: *imageAspect,
+			AspectRatio: *documentAspect,
 			ImageSize:   *imageSize,
 		}
 	}
@@ -358,16 +358,16 @@ func buildMessages() ([]*aipb.Message, error) {
 	var blocks []*aipb.Block
 	blocks = append(blocks, ai.NewTextBlock(*userMessage))
 
-	if *imagePath != "" {
-		imageBlock, err := buildImageBlockFromFile(*imagePath)
+	if *documentPath != "" {
+		documentBlock, err := buildDocumentBlockFromFile(*documentPath)
 		if err != nil {
-			return nil, fmt.Errorf("building image block from file: %w", err)
+			return nil, fmt.Errorf("building document block from file: %w", err)
 		}
-		blocks = append(blocks, imageBlock)
+		blocks = append(blocks, documentBlock)
 	}
 
-	if *imageURL != "" {
-		blocks = append(blocks, ai.NewImageBlock(ai.NewImageFromURL(*imageURL)))
+	if *documentURL != "" {
+		blocks = append(blocks, ai.NewDocumentBlock(ai.NewDocumentFromURL(*documentURL, "")))
 	}
 
 	return []*aipb.Message{
@@ -376,15 +376,15 @@ func buildMessages() ([]*aipb.Message, error) {
 	}, nil
 }
 
-func buildImageBlockFromFile(path string) (*aipb.Block, error) {
+func buildDocumentBlockFromFile(path string) (*aipb.Block, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("reading image file: %w", err)
+		return nil, fmt.Errorf("reading document file: %w", err)
 	}
 
 	mediaType := detectMediaType(path)
 
-	return ai.NewImageBlock(ai.NewImageFromData(data, mediaType)), nil
+	return ai.NewDocumentBlock(ai.NewDocumentFromData(data, mediaType)), nil
 }
 
 func detectMediaType(path string) string {
@@ -430,7 +430,7 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return fmt.Errorf("calling TextToTextStream: %w", err)
 	}
 
-	imageIndex := 0
+	documentIndex := 0
 	for {
 		response, err := stream.Recv()
 		if err == io.EOF {
@@ -440,7 +440,7 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 			return fmt.Errorf("receiving stream: %w", err)
 		}
 
-		handleStreamResponse(response, &imageIndex)
+		handleStreamResponse(response, &documentIndex)
 	}
 
 	fmt.Println()
@@ -476,7 +476,7 @@ func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {
 	return nil
 }
 
-func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageIndex *int) {
+func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, documentIndex *int) {
 	switch content := response.Content.(type) {
 	case *aiservicepb.TextToTextStreamResponse_Block:
 		block := content.Block
@@ -495,8 +495,8 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageI
 			fmt.Println("Partial Tool Call:")
 			pbutil.MustPrintPretty(block)
 		}
-		if block.GetImage() != nil {
-			saveGeneratedImage(block.GetImage(), imageIndex)
+		if block.GetDocument() != nil {
+			saveGeneratedDocument(block.GetDocument(), documentIndex)
 		}
 
 	case *aiservicepb.TextToTextStreamResponse_StopReason:
@@ -522,9 +522,9 @@ func handleUnaryResponse(response *aiservicepb.TextToTextResponse) {
 			if block.GetToolCall() != nil {
 				fmt.Printf("\n[Tool Call: %s(%v)]\n", block.GetToolCall().Name, block.GetToolCall().Arguments)
 			}
-			if block.GetImage() != nil {
-				imageIndex := 0
-				saveGeneratedImage(block.GetImage(), &imageIndex)
+			if block.GetDocument() != nil {
+				documentIndex := 0
+				saveGeneratedDocument(block.GetDocument(), &documentIndex)
 			}
 		}
 	}
@@ -540,21 +540,21 @@ func handleUnaryResponse(response *aiservicepb.TextToTextResponse) {
 	}
 }
 
-func saveGeneratedImage(img *aipb.Image, index *int) {
+func saveGeneratedDocument(img *aipb.Document, index *int) {
 	if img == nil {
 		return
 	}
 
 	var data []byte
 	switch src := img.Source.(type) {
-	case *aipb.Image_Data:
+	case *aipb.Document_Data:
 		data = src.Data
 	default:
-		fmt.Printf("[Image received but not raw data, skipping save]\n")
+		fmt.Printf("[Document received but not raw data, skipping save]\n")
 		return
 	}
 
-	outputPath := *imageOutput
+	outputPath := *documentOutput
 	if *index > 0 {
 		ext := ".png"
 		base := outputPath
@@ -568,11 +568,11 @@ func saveGeneratedImage(img *aipb.Image, index *int) {
 	}
 
 	if err := os.WriteFile(outputPath, data, 0644); err != nil {
-		fmt.Printf("[Error saving image: %v]\n", err)
+		fmt.Printf("[Error saving document: %v]\n", err)
 		return
 	}
 
-	fmt.Printf("\n[Image saved: %s (%d bytes, %s)]\n", outputPath, len(data), img.MediaType)
+	fmt.Printf("\n[Document saved: %s (%d bytes, %s)]\n", outputPath, len(data), img.MediaType)
 	*index++
 }
 

@@ -50,24 +50,34 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				switch content := block.Content.(type) {
 				case *aipb.Block_Text:
 					contentBlocks = append(contentBlocks, anthropic.NewTextBlock(content.Text))
-				case *aipb.Block_Image:
-					img := content.Image
-					switch source := img.Source.(type) {
-					case *aipb.Image_Url:
-						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.URLImageSourceParam{
-							URL: source.Url,
-						}))
-					case *aipb.Image_Data:
-						mediaType := anthropic.Base64ImageSourceMediaType(img.MediaType)
-						if _, ok := imageSourceMediaTypeSet[mediaType]; !ok {
-							return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unsupported media type %s", i, j, img.MediaType).Err()
+				case *aipb.Block_Document:
+					document := content.Document
+					mediaType := anthropic.Base64ImageSourceMediaType(document.MediaType)
+					if _, ok := imageSourceMediaTypeSet[mediaType]; ok {
+						switch source := document.Source.(type) {
+						case *aipb.Document_Url:
+							contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.URLImageSourceParam{URL: source.Url}))
+						case *aipb.Document_Data:
+							contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.Base64ImageSourceParam{
+								Data:      base64.StdEncoding.EncodeToString(source.Data),
+								MediaType: mediaType,
+							}))
+						default:
+							return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected image source type %T", i, j, source).Err()
 						}
-						contentBlocks = append(contentBlocks, anthropic.NewImageBlock(anthropic.Base64ImageSourceParam{
-							Data:      base64.StdEncoding.EncodeToString(source.Data),
-							MediaType: mediaType,
-						}))
-					default:
-						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected image source type %T", i, j, source).Err()
+					} else if document.MediaType == "application/pdf" {
+						switch source := document.Source.(type) {
+						case *aipb.Document_Url:
+							contentBlocks = append(contentBlocks, anthropic.NewDocumentBlock(anthropic.URLPDFSourceParam{URL: source.Url}))
+						case *aipb.Document_Data:
+							contentBlocks = append(contentBlocks, anthropic.NewDocumentBlock(anthropic.Base64PDFSourceParam{
+								Data: base64.StdEncoding.EncodeToString(source.Data),
+							}))
+						default:
+							return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected PDF source type %T", i, j, source).Err()
+						}
+					} else {
+						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unsupported document media type %q", i, j, document.MediaType).Err()
 					}
 				default:
 					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for USER role", i, j, content).Err()

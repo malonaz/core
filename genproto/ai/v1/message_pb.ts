@@ -16,7 +16,7 @@ import type { JsonObject, Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/message.proto.
  */
 export const file_malonaz_ai_v1_message: GenFile = /*@__PURE__*/
-  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEilAkKB01lc3NhZ2USOgoLY3JlYXRlX3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQK6SAPIAQESLwoLZGVsZXRlX3RpbWUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjwKC2Fubm90YXRpb25zGAIgAygLMicubWFsb25hei5haS52MS5NZXNzYWdlLkFubm90YXRpb25zRW50cnkSwAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSLQoEcm9sZRgDIAEoDjITLm1hbG9uYXouYWkudjEuUm9sZUIKukgHggEEEAEgABIkCgZibG9ja3MYBCADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOuIEukjeBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGt8BChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSXUFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgcGFydGlhbF90b29sX2NhbGwsIG9yIGltYWdlIGJsb2NrcxpndGhpcy5yb2xlICE9IDIgfHwgdGhpcy5ibG9ja3MuYWxsKGIsIGhhcyhiLnRob3VnaHQpIHx8IGhhcyhiLnRleHQpIHx8IGhhcyhiLnRvb2xfY2FsbCkgfHwgaGFzKGIuaW1hZ2UpKRqHAQoQdXNlcl9yb2xlX2Jsb2NrcxIwVVNFUiBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgb3IgaW1hZ2UgYmxvY2tzGkF0aGlzLnJvbGUgIT0gMyB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkgfHwgaGFzKGIuaW1hZ2UpKRp8ChB0b29sX3JvbGVfYmxvY2tzEi5UT09MIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdG9vbF9yZXN1bHQgYmxvY2tzGjh0aGlzLnJvbGUgIT0gNCB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudG9vbF9yZXN1bHQpKSLDBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIlCgVpbWFnZRgJIAEoCzIULm1hbG9uYXouYWkudjEuSW1hZ2VIADr9AbpI+QEa9gEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqdAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5pbWFnZSlCCQoHY29udGVudCKAAgoFSW1hZ2USDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAkSNgoHcXVhbGl0eRgEIAEoDjIbLm1hbG9uYXouYWkudjEuSW1hZ2VRdWFsaXR5Qgi6SAWCAQIQATp7ukh4GnYKImltYWdlX3JlcXVpcmVzX21lZGlhX3R5cGVfZm9yX2RhdGESJm1lZGlhX3R5cGUgaXMgcmVxdWlyZWQgd2hlbiB1c2luZyBkYXRhGighaGFzKHRoaXMuZGF0YSkgfHwgdGhpcy5tZWRpYV90eXBlICE9ICcnQg8KBnNvdXJjZRIFukgCCAEqowEKD1JlYXNvbmluZ0VmZm9ydBIgChxSRUFTT05JTkdfRUZGT1JUX1VOU1BFQ0lGSUVEEAASHAoYUkVBU09OSU5HX0VGRk9SVF9ERUZBVUxUEAESGAoUUkVBU09OSU5HX0VGRk9SVF9MT1cQAhIbChdSRUFTT05JTkdfRUZGT1JUX01FRElVTRADEhkKFVJFQVNPTklOR19FRkZPUlRfSElHSBAEKl8KBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg8KC1JPTEVfU1lTVEVNEAESEgoOUk9MRV9BU1NJU1RBTlQQAhINCglST0xFX1VTRVIQAxINCglST0xFX1RPT0wQBCp0CgxJbWFnZVF1YWxpdHkSHQoZSU1BR0VfUVVBTElUWV9VTlNQRUNJRklFRBAAEhYKEklNQUdFX1FVQUxJVFlfQVVUTxABEhUKEUlNQUdFX1FVQUxJVFlfTE9XEAISFgoSSU1BR0VfUVVBTElUWV9ISUdIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_ai_v1_tool]);
+  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEioAkKB01lc3NhZ2USOgoLY3JlYXRlX3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQK6SAPIAQESLwoLZGVsZXRlX3RpbWUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjwKC2Fubm90YXRpb25zGAIgAygLMicubWFsb25hei5haS52MS5NZXNzYWdlLkFubm90YXRpb25zRW50cnkSwAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSLQoEcm9sZRgDIAEoDjITLm1hbG9uYXouYWkudjEuUm9sZUIKukgHggEEEAEgABIkCgZibG9ja3MYBCADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOu4EukjqBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGuUBChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSYEFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgcGFydGlhbF90b29sX2NhbGwsIG9yIGRvY3VtZW50IGJsb2NrcxpqdGhpcy5yb2xlICE9IDIgfHwgdGhpcy5ibG9ja3MuYWxsKGIsIGhhcyhiLnRob3VnaHQpIHx8IGhhcyhiLnRleHQpIHx8IGhhcyhiLnRvb2xfY2FsbCkgfHwgaGFzKGIuZG9jdW1lbnQpKRqNAQoQdXNlcl9yb2xlX2Jsb2NrcxIzVVNFUiBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgb3IgZG9jdW1lbnQgYmxvY2tzGkR0aGlzLnJvbGUgIT0gMyB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkgfHwgaGFzKGIuZG9jdW1lbnQpKRp8ChB0b29sX3JvbGVfYmxvY2tzEi5UT09MIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdG9vbF9yZXN1bHQgYmxvY2tzGjh0aGlzLnJvbGUgIT0gNCB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudG9vbF9yZXN1bHQpKSLMBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIrCghkb2N1bWVudBgJIAEoCzIXLm1hbG9uYXouYWkudjEuRG9jdW1lbnRIADqAArpI/AEa+QEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqgAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5kb2N1bWVudClCCQoHY29udGVudCLOAQoIRG9jdW1lbnQSDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAk6frpIexp5CiVkb2N1bWVudF9yZXF1aXJlc19tZWRpYV90eXBlX2Zvcl9kYXRhEiZtZWRpYV90eXBlIGlzIHJlcXVpcmVkIHdoZW4gdXNpbmcgZGF0YRooIWhhcyh0aGlzLmRhdGEpIHx8IHRoaXMubWVkaWFfdHlwZSAhPSAnJ0IPCgZzb3VyY2USBbpIAggBKqMBCg9SZWFzb25pbmdFZmZvcnQSIAocUkVBU09OSU5HX0VGRk9SVF9VTlNQRUNJRklFRBAAEhwKGFJFQVNPTklOR19FRkZPUlRfREVGQVVMVBABEhgKFFJFQVNPTklOR19FRkZPUlRfTE9XEAISGwoXUkVBU09OSU5HX0VGRk9SVF9NRURJVU0QAxIZChVSRUFTT05JTkdfRUZGT1JUX0hJR0gQBCpfCgRSb2xlEhQKEFJPTEVfVU5TUEVDSUZJRUQQABIPCgtST0xFX1NZU1RFTRABEhIKDlJPTEVfQVNTSVNUQU5UEAISDQoJUk9MRV9VU0VSEAMSDQoJUk9MRV9UT09MEARCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_ai_v1_tool]);
 
 /**
  * Wrapper message representing any message type in a multi-turn conversation.
@@ -201,12 +201,12 @@ export type Block = Message$1<"malonaz.ai.v1.Block"> & {
     case: "toolResult";
   } | {
     /**
-     * Image block.
+     * Document block.
      *
-     * @generated from field: malonaz.ai.v1.Image image = 9;
+     * @generated from field: malonaz.ai.v1.Document document = 9;
      */
-    value: Image;
-    case: "image";
+    value: Document;
+    case: "document";
   } | { case: undefined; value?: undefined };
 };
 
@@ -284,12 +284,12 @@ export type BlockValid = Message$1<"malonaz.ai.v1.Block"> & {
     case: "toolResult";
   } | {
     /**
-     * Image block.
+     * Document block.
      *
-     * @generated from field: malonaz.ai.v1.Image image = 9;
+     * @generated from field: malonaz.ai.v1.Document document = 9;
      */
-    value: ImageValid;
-    case: "image";
+    value: DocumentValid;
+    case: "document";
   } | { case: undefined; value?: undefined };
 };
 
@@ -301,19 +301,19 @@ export const BlockSchema: GenMessage<Block, {validType: BlockValid}> = /*@__PURE
   messageDesc(file_malonaz_ai_v1_message, 1);
 
 /**
- * An image block.
+ * An document block.
  *
- * @generated from message malonaz.ai.v1.Image
+ * @generated from message malonaz.ai.v1.Document
  */
-export type Image = Message$1<"malonaz.ai.v1.Image"> & {
+export type Document = Message$1<"malonaz.ai.v1.Document"> & {
   /**
-   * The image source.
+   * The document source.
    *
-   * @generated from oneof malonaz.ai.v1.Image.source
+   * @generated from oneof malonaz.ai.v1.Document.source
    */
   source: {
     /**
-     * Raw image bytes.
+     * Raw document bytes.
      *
      * @generated from field: bytes data = 1;
      */
@@ -321,7 +321,7 @@ export type Image = Message$1<"malonaz.ai.v1.Image"> & {
     case: "data";
   } | {
     /**
-     * URL to the image. Supports both HTTPS URLs and data URLs
+     * URL to the document. Supports both HTTPS URLs and data URLs
      * (e.g., "data:image/png;base64,...").
      *
      * @generated from field: string url = 2;
@@ -331,28 +331,21 @@ export type Image = Message$1<"malonaz.ai.v1.Image"> & {
   } | { case: undefined; value?: undefined };
 
   /**
-   * MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
+   * MIME type of the document (e.g., "image/png", "application/pdf").
    * Required when using `data`, optional when using `url`.
    *
    * @generated from field: string media_type = 3;
    */
   mediaType: string;
-
-  /**
-   * Quality of the image.
-   *
-   * @generated from field: malonaz.ai.v1.ImageQuality quality = 4;
-   */
-  quality: ImageQuality;
 };
 
-export type ImageValid = Image;
+export type DocumentValid = Document;
 
 /**
- * Describes the message malonaz.ai.v1.Image.
- * Use `create(ImageSchema)` to create a new message.
+ * Describes the message malonaz.ai.v1.Document.
+ * Use `create(DocumentSchema)` to create a new message.
  */
-export const ImageSchema: GenMessage<Image, {validType: ImageValid}> = /*@__PURE__*/
+export const DocumentSchema: GenMessage<Document, {validType: DocumentValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_message, 2);
 
 /**
@@ -460,45 +453,4 @@ export enum Role {
  */
 export const RoleSchema: GenEnum<Role> = /*@__PURE__*/
   enumDesc(file_malonaz_ai_v1_message, 1);
-
-/**
- * Controls the fidelity level for image processing in vision requests.
- *
- * @generated from enum malonaz.ai.v1.ImageQuality
- */
-export enum ImageQuality {
-  /**
-   * Unspecified quality. The provider will use its default setting.
-   *
-   * @generated from enum value: IMAGE_QUALITY_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * Automatic quality selection based on image size and content.
-   *
-   * @generated from enum value: IMAGE_QUALITY_AUTO = 1;
-   */
-  AUTO = 1,
-
-  /**
-   * Low fidelity processing for faster, cheaper responses.
-   *
-   * @generated from enum value: IMAGE_QUALITY_LOW = 2;
-   */
-  LOW = 2,
-
-  /**
-   * High fidelity processing for detailed image analysis.
-   *
-   * @generated from enum value: IMAGE_QUALITY_HIGH = 3;
-   */
-  HIGH = 3,
-}
-
-/**
- * Describes the enum malonaz.ai.v1.ImageQuality.
- */
-export const ImageQualitySchema: GenEnum<ImageQuality> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_v1_message, 2);
 
