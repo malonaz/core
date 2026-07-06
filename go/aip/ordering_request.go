@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/huandu/xstrings"
 	"go.einride.tech/aip/ordering"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -36,11 +37,13 @@ func WithOrderingFQN() OrderingRequestOpt {
 
 // ////////////////////////////// PARSER //////////////////////////
 type OrderingRequestParser[T orderingRequest, R proto.Message] struct {
-	options     *aippb.OrderingOptions
-	tree        *Tree
-	pathToAllow map[string]bool
-	pathToNode  map[string]*Node
-	withFQN     bool
+	options               *aippb.OrderingOptions
+	tree                  *Tree
+	pathToAllow           map[string]bool
+	pathToNode            map[string]*Node
+	withFQN               bool
+	compositeKeyColumnSet map[string]struct{}
+	tableName             string
 }
 
 func MustNewOrderingRequestParser[T orderingRequest, R proto.Message](opts ...OrderingRequestOpt) *OrderingRequestParser[T, R] {
@@ -80,12 +83,29 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message](opts ...Orderi
 		pathToNode[node.Path] = node
 	}
 
+	// Resolve the resource's table name from any non-joined node.
+	var tableName string
+	for _, node := range tree.Nodes {
+		if node.JoinTableName == "" {
+			tableName = node.TableName
+			break
+		}
+	}
+
 	parser := &OrderingRequestParser[T, R]{
 		options:     orderingOptions,
 		tree:        tree,
 		pathToAllow: pathToAllow,
 		pathToNode:  pathToNode,
 		withFQN:     options.withFQN,
+		tableName:   tableName,
+	}
+
+	// Columns produced by expanding "name" are DB columns, not proto paths,
+	// so they must bypass proto-path validation in Parse.
+	parser.compositeKeyColumnSet = map[string]struct{}{}
+	for _, columnName := range parser.getCompositeKeyFields() {
+		parser.compositeKeyColumnSet[columnName] = struct{}{}
 	}
 
 	request := zero.ProtoReflect().New().Interface().(T)
@@ -110,6 +130,13 @@ func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error)
 
 	// Validate and resolve each field to its column name (optionally fully qualified).
 	for i, field := range orderBy.Fields {
+		// Composite key columns come from "name" expansion and are implicitly allowed.
+		if _, ok := p.compositeKeyColumnSet[field.Path]; ok {
+			if p.withFQN && p.tableName != "" {
+				orderBy.Fields[i].Path = p.tableName + "." + field.Path
+			}
+			continue
+		}
 		allow, ok := p.pathToAllow[field.Path]
 		if !ok {
 			return nil, fmt.Errorf("invalid order path %s", field.Path)
@@ -187,22 +214,26 @@ func (p *OrderingRequestParser[T, R]) expandNameField(orderByClause string) stri
 	return strings.Join(expandedParts, ", ")
 }
 
-// getCompositeKeyFields returns the list of ID column names for the resource's composite key.
+// getCompositeKeyFields returns the ID column names for the resource's composite key.
+// This mirrors the codegen in protoc-gen-core/plugin/model: parent pattern variables
+// map to "<variable>_id"; the resource's own ID column (last variable on non-singleton
+// resources) is derived from the singular (e.g. {revision} on "quoteRevision" ->
+// "quote_revision_id"), with the model's id_column_name override taking precedence.
 func (p *OrderingRequestParser[T, R]) getCompositeKeyFields() []string {
 	if p.tree.Resource == nil {
 		return nil
 	}
 
-	var fields []string
-	patternVars := p.tree.Resource.PatternVariables
-	singular := p.tree.Resource.Singular
-
-	for _, variable := range patternVars {
-		var columnName string
-		if variable == singular && p.tree.IDColumnName != "" {
-			columnName = p.tree.IDColumnName
-		} else {
-			columnName = variable + "_id"
+	patternVariables := p.tree.Resource.PatternVariables
+	fields := make([]string, 0, len(patternVariables))
+	for i, variable := range patternVariables {
+		columnName := variable + "_id"
+		isLast := i == len(patternVariables)-1
+		if isLast && !p.tree.Resource.Singleton {
+			columnName = xstrings.ToSnakeCase(p.tree.Resource.Singular) + "_id"
+			if p.tree.IDColumnName != "" {
+				columnName = p.tree.IDColumnName
+			}
 		}
 		fields = append(fields, columnName)
 	}

@@ -44,22 +44,24 @@ func ParseResource(resourceDescriptor *annotationspb.ResourceDescriptor) (*Parse
 	}
 	pattern := resourceDescriptor.Pattern[0]
 
-	// Extract pattern variables.
+	// Extract pattern variables. A resource is a singleton iff its pattern ends
+	// in a literal segment (e.g. ".../activity"); the variable name does not
+	// need to match the singular (e.g. {revision} on singular "quoteRevision").
 	var sc resourcename.Scanner
-	singleton := true
-	hasParent := false
 	var patternVariables []string
+	lastSegmentIsVariable := false
 	sc.Init(pattern)
 	for sc.Scan() {
+		lastSegmentIsVariable = sc.Segment().IsVariable()
 		if sc.Segment().IsVariable() {
-			patternVariable := string(sc.Segment().Literal())
-			patternVariables = append(patternVariables, patternVariable)
-			if patternVariable == resourceDescriptor.Singular {
-				singleton = false
-			} else {
-				hasParent = true
-			}
+			patternVariables = append(patternVariables, string(sc.Segment().Literal()))
 		}
+	}
+	singleton := !lastSegmentIsVariable
+	// Parents are all variables except the resource's own (the last one, when not a singleton).
+	hasParent := len(patternVariables) > 0
+	if !singleton {
+		hasParent = len(patternVariables) > 1
 	}
 
 	parsedResource := &ParsedResource{
