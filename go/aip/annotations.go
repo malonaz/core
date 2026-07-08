@@ -2,18 +2,19 @@ package aip
 
 import (
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type Annotatable interface {
 	proto.Message
 	GetAnnotations() map[string]string
+	SetAnnotations(map[string]string)
 }
 
 func SetAnnotation(resource Annotatable, key, value string) {
 	annotations := resource.GetAnnotations()
 	if annotations == nil {
-		annotations = initializeAnnotations(resource)
+		annotations = map[string]string{}
+		resource.SetAnnotations(annotations)
 	}
 	annotations[key] = value
 }
@@ -38,22 +39,4 @@ func DeleteAnnotation(resource Annotatable, key string) {
 		return
 	}
 	delete(annotations, key)
-}
-
-func initializeAnnotations(resource Annotatable) map[string]string {
-	reflectMessage := resource.ProtoReflect()
-	descriptor := reflectMessage.Descriptor()
-	annotationsField := descriptor.Fields().ByName("annotations")
-	if annotationsField == nil {
-		panic("annotation: resource does not have an 'annotations' field")
-	}
-	if annotationsField.Kind() != protoreflect.MessageKind || !annotationsField.IsMap() {
-		panic("annotation: 'annotations' field is not a map type")
-	}
-	reflectMessage.Mutable(annotationsField)
-	annotations := resource.GetAnnotations()
-	if annotations == nil {
-		panic("annotation: failed to initialize annotations map")
-	}
-	return annotations
 }

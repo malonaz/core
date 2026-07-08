@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -16,12 +15,14 @@ const (
 type Labellable interface {
 	proto.Message
 	GetLabels() map[string]string
+	SetLabels(map[string]string)
 }
 
 func SetLabel(resource Labellable, key, value string) {
 	labels := resource.GetLabels()
 	if labels == nil {
-		labels = initializeLabels(resource)
+		labels = map[string]string{}
+		resource.SetLabels(labels)
 	}
 	labels[key] = value
 }
@@ -46,35 +47,6 @@ func DeleteLabel(resource Labellable, key string) {
 		return
 	}
 	delete(labels, key)
-}
-
-func initializeLabels(resource Labellable) map[string]string {
-	msg, ok := resource.(proto.Message)
-	if !ok {
-		panic("label: resource does not implement proto.Message")
-	}
-
-	reflectMsg := msg.ProtoReflect()
-	descriptor := reflectMsg.Descriptor()
-	fields := descriptor.Fields()
-
-	labelsField := fields.ByName("labels")
-	if labelsField == nil {
-		panic("label: resource does not have a 'labels' field")
-	}
-
-	if labelsField.Kind() != protoreflect.MessageKind || !labelsField.IsMap() {
-		panic("label: 'labels' field is not a map type")
-	}
-
-	reflectMsg.Mutable(labelsField)
-
-	labels := resource.GetLabels()
-	if labels == nil {
-		panic("label: failed to initialize labels map")
-	}
-
-	return labels
 }
 
 func LabelBool(b bool) string {

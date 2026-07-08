@@ -39,7 +39,7 @@ message FilteringOptions {
 // Options for pagination.
 message PaginationOptions {
   // The default number of items to return per page.
-  uint32 default_page_size = 1 [(buf.validate.field).uint32.gt = 0];
+  int32 default_page_size = 1 [(buf.validate.field).int32.gt = 0];
 }
 
 // Options for ordering.

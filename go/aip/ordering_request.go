@@ -7,7 +7,6 @@ import (
 	"github.com/huandu/xstrings"
 	"go.einride.tech/aip/ordering"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/aip/transpiler/postgres"
@@ -19,6 +18,7 @@ import (
 type orderingRequest interface {
 	proto.Message
 	ordering.Request
+	SetOrderBy(string)
 }
 
 // ////////////////////////////// OPTS //////////////////////////
@@ -117,11 +117,11 @@ func NewOrderingRequestParser[T orderingRequest, R proto.Message](opts ...Orderi
 
 func (p *OrderingRequestParser[T, R]) Parse(request T) (*OrderingRequest, error) {
 	if request.GetOrderBy() == "" {
-		p.setOrderBy(request, p.options.Default)
+		request.SetOrderBy(p.options.Default)
 	}
 
 	// Expand "name" to composite key fields before parsing.
-	p.setOrderBy(request, p.expandNameField(request.GetOrderBy()))
+	request.SetOrderBy(p.expandNameField(request.GetOrderBy()))
 
 	orderBy, err := ordering.ParseOrderBy(request)
 	if err != nil {
@@ -253,12 +253,4 @@ func (p *OrderingRequest) GetSQLOrderByClause() string {
 
 func (p *OrderingRequest) GetOrderBy() ordering.OrderBy {
 	return p.orderBy
-}
-
-// ///////////////////////////// UTILS //////////////////////////////
-func (p *OrderingRequestParser[T, R]) setOrderBy(request orderingRequest, orderBy string) {
-	msgReflect := request.ProtoReflect()
-	fields := msgReflect.Descriptor().Fields()
-	orderByField := fields.ByName("order_by")
-	msgReflect.Set(orderByField, protoreflect.ValueOfString(orderBy))
 }

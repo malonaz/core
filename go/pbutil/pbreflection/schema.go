@@ -644,7 +644,7 @@ func (s *Schema) augmentMethodComments() error {
 					return false
 				}
 				if paginationOptions != nil {
-					methodExtras = append(methodExtras, formatPaginationDoc(paginationOptions.DefaultPageSize))
+					methodExtras = append(methodExtras, formatPaginationDoc(paginationOptions.GetDefaultPageSize()))
 					if !messageSeen {
 						if field := input.Fields().ByName("page_size"); field != nil {
 							s.comments[string(field.FullName())] = fmt.Sprintf("Page size (default: %d)", paginationOptions.DefaultPageSize)
@@ -776,7 +776,7 @@ Default: %s
 Use 'field desc' for descending order.`, strings.Join(paths, ", "), defaultOrder)
 }
 
-func formatPaginationDoc(defaultSize uint32) string {
+func formatPaginationDoc(defaultSize int32) string {
 	return fmt.Sprintf(`**Pagination (AIP-158)**
 Default page size: %d
 Use page_token from response to fetch next page.`, defaultSize)

@@ -15,6 +15,7 @@ import (
 type filteringRequest interface {
 	proto.Message
 	filtering.Request
+	SetFilter(string)
 }
 
 type FilteringRequestOpt func(*filteringRequestOpts)

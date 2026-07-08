@@ -13,7 +13,7 @@ func TestPaginationRequestParser_NewParser(t *testing.T) {
 	parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
 	require.NoError(t, err)
 	require.NotNil(t, parser)
-	require.Equal(t, uint32(100), parser.options.DefaultPageSize)
+	require.Equal(t, int32(100), parser.options.DefaultPageSize)
 }
 
 func TestPaginationRequestParser_Parse(t *testing.T) {
@@ -160,7 +160,7 @@ func TestPaginationRequestParser_DifferentResources(t *testing.T) {
 	t.Run("ListAuthorsRequest", func(t *testing.T) {
 		parser, err := NewPaginationRequestParser[*libraryservicepb.ListAuthorsRequest]()
 		require.NoError(t, err)
-		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
+		require.Equal(t, int32(100), parser.options.DefaultPageSize)
 
 		request := &libraryservicepb.ListAuthorsRequest{}
 		parsedRequest, err := parser.Parse(request)
@@ -171,7 +171,7 @@ func TestPaginationRequestParser_DifferentResources(t *testing.T) {
 	t.Run("ListBooksRequest", func(t *testing.T) {
 		parser, err := NewPaginationRequestParser[*libraryservicepb.ListBooksRequest]()
 		require.NoError(t, err)
-		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
+		require.Equal(t, int32(100), parser.options.DefaultPageSize)
 
 		request := &libraryservicepb.ListBooksRequest{}
 		parsedRequest, err := parser.Parse(request)
@@ -182,7 +182,7 @@ func TestPaginationRequestParser_DifferentResources(t *testing.T) {
 	t.Run("ListShelvesRequest", func(t *testing.T) {
 		parser, err := NewPaginationRequestParser[*libraryservicepb.ListShelvesRequest]()
 		require.NoError(t, err)
-		require.Equal(t, uint32(100), parser.options.DefaultPageSize)
+		require.Equal(t, int32(100), parser.options.DefaultPageSize)
 
 		request := &libraryservicepb.ListShelvesRequest{}
 		parsedRequest, err := parser.Parse(request)

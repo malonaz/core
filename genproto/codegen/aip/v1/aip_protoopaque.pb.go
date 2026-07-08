@@ -87,7 +87,7 @@ func (b0 FilteringOptions_builder) Build() *FilteringOptions {
 // Options for pagination.
 type PaginationOptions struct {
 	state                      protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_DefaultPageSize uint32                 `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3"`
+	xxx_hidden_DefaultPageSize int32                  `protobuf:"varint,1,opt,name=default_page_size,json=defaultPageSize,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -117,14 +117,14 @@ func (x *PaginationOptions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *PaginationOptions) GetDefaultPageSize() uint32 {
+func (x *PaginationOptions) GetDefaultPageSize() int32 {
 	if x != nil {
 		return x.xxx_hidden_DefaultPageSize
 	}
 	return 0
 }
 
-func (x *PaginationOptions) SetDefaultPageSize(v uint32) {
+func (x *PaginationOptions) SetDefaultPageSize(v int32) {
 	x.xxx_hidden_DefaultPageSize = v
 }
 
@@ -132,7 +132,7 @@ type PaginationOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The default number of items to return per page.
-	DefaultPageSize uint32
+	DefaultPageSize int32
 }
 
 func (b0 PaginationOptions_builder) Build() *PaginationOptions {
@@ -449,7 +449,7 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x10FilteringOptions\x12\x14\n" +
 	"\x05paths\x18\x01 \x03(\tR\x05paths\"H\n" +
 	"\x11PaginationOptions\x123\n" +
-	"\x11default_page_size\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x0fdefaultPageSize\"Q\n" +
+	"\x11default_page_size\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\x0fdefaultPageSize\"Q\n" +
 	"\x0fOrderingOptions\x12\x1c\n" +
 	"\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01R\x05paths\x12 \n" +
 	"\adefault\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\adefault\"%\n" +

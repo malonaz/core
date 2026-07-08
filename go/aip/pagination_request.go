@@ -6,7 +6,6 @@ import (
 	"buf.build/go/protovalidate"
 	"go.einride.tech/aip/pagination"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/pbutil"
@@ -16,6 +15,7 @@ import (
 type paginationRequest interface {
 	proto.Message
 	pagination.Request
+	SetPageSize(int32)
 }
 
 // ///////////////////// OPTS /////////////////
@@ -80,7 +80,7 @@ func NewPaginationRequestParser[T paginationRequest](opts ...PaginationOpt) (*Pa
 
 func (p *PaginationRequestParser[T]) Parse(request T) (*PaginatedRequest, error) {
 	if request.GetPageSize() == 0 {
-		p.setPageSize(request, p.options.DefaultPageSize)
+		request.SetPageSize(p.options.DefaultPageSize)
 	}
 
 	var pageToken pagination.PageToken
@@ -120,15 +120,4 @@ func (r *PaginatedRequest) GetOffset() int64 {
 
 func (p *PaginatedRequest) GetPageSize() int32 {
 	return p.request.GetPageSize()
-}
-
-// ///////////////////////////// UTILS //////////////////////////////
-func (p *PaginationRequestParser[T]) setPageSize(request paginationRequest, pageSize uint32) {
-	// Get the protobuf message descriptor
-	msgReflect := request.ProtoReflect()
-	// Get the field descriptor for "page_size"
-	fields := msgReflect.Descriptor().Fields()
-	pageSizeField := fields.ByName("page_size")
-	// Set the page_size value
-	msgReflect.Set(pageSizeField, protoreflect.ValueOfInt32(int32(pageSize)))
 }
