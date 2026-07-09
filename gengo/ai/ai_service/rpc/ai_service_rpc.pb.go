@@ -68,6 +68,9 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 	}
 
 	var organizationId, userId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}

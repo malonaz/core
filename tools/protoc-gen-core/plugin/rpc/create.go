@@ -44,6 +44,10 @@ func (mc *methodCtx) generateCreate() error {
 
 	if pr.Parent != nil {
 		g.P(fmt.Sprintf("  var %s string", pr.Parent.PatternVariableIDs(true)))
+		g.P(fmt.Sprintf("  if %s(request.Parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("  }")
 		g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
 			mc.gen.ident(resourcenamePkg, "Sscan"), pr.Parent.Pattern, pr.Parent.PatternVariableIDPtrs()))
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
