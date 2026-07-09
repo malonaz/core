@@ -22,12 +22,14 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
+	coregrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
 type JwtAuthenticationInterceptorOpts struct {
-	Config string `long:"config" env:"CONFIG" description:"Path to the JWT authentication configuration file" required:"true"`
+	Config     string `long:"config" env:"CONFIG" description:"Path to the JWT authentication configuration file" required:"true"`
+	CookieName string `long:"cookie-name" env:"COOKIE_NAME" description:"Cookie name to read a JWT from when no bearer token is present." default:"access_token"`
 }
 
 type jwtIssuer struct {
@@ -101,11 +103,8 @@ func NewJwtAuthenticationInterceptor(
 }
 
 func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (context.Context, error) {
-	rawToken, err := grpc_auth.AuthFromMD(ctx, "bearer")
+	rawToken, err := i.extractRawToken(ctx)
 	if err != nil {
-		if status.HasCode(err, codes.Unauthenticated) {
-			return ctx, nil
-		}
 		return nil, err
 	}
 	if rawToken == "" {
@@ -198,6 +197,38 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 
 	isUpdate := false
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
+}
+
+// extractRawToken returns the JWT from the bearer header, falling back to cookies
+// (both grpc-gateway binary cookies and grpc-web raw cookie headers).
+func (i *JwtAuthenticationInterceptor) extractRawToken(ctx context.Context) (string, error) {
+	rawToken, err := grpc_auth.AuthFromMD(ctx, "bearer")
+	if err != nil && !status.HasCode(err, codes.Unauthenticated) {
+		return "", err
+	}
+	if rawToken != "" {
+		return rawToken, nil
+	}
+	if i.opts.CookieName == "" {
+		return "", nil
+	}
+
+	// grpc-gateway forwards cookies as binary HttpCookie protos.
+	gatewayCookie := &coregrpc.GatewayCookie{}
+	httpCookie, err := gatewayCookie.GetHTTPCookie(ctx, i.opts.CookieName)
+	if err != nil {
+		return "", status.Errorf(codes.Unauthenticated, "reading gateway cookie: %v", err).Err()
+	}
+	if httpCookie != nil {
+		return httpCookie.Value, nil
+	}
+
+	// grpc-web clients send the raw Cookie header.
+	webCookie := coregrpc.WebCookie{}
+	if httpCookie := webCookie.GetHTTPCookie(ctx, i.opts.CookieName); httpCookie != nil {
+		return httpCookie.Value, nil
+	}
+	return "", nil
 }
 
 func resolveJsonPath(claimsMap map[string]any, path string) (string, bool) {

@@ -12,6 +12,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/grpc",
         "//go/grpc/middleware",
         "//go/grpc/status",
         "//go/jsonnet",
