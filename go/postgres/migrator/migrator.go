@@ -143,5 +143,8 @@ func (m *Migrator) applyMigration(ctx context.Context, migration *migrations.Mig
 		_, err = tx.Exec(ctx, migration.SQLQuery)
 		return err
 	}
-	return !alreadyApplied, m.client.ExecuteTransaction(ctx, postgres.Serializable, transactionFN)
+	if err := m.client.ExecuteTransaction(ctx, postgres.Serializable, transactionFN); err != nil {
+		return false, err
+	}
+	return !alreadyApplied, nil
 }

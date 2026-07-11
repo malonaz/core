@@ -1,7 +1,9 @@
 package migrator
 
+// Explicitly schema-qualified: relying on search_path breaks when a schema
+// matching the connecting user's name is created by a migration.
 const creationMigrationTableQuery = `
-CREATE TABLE IF NOT EXISTS migration(
+CREATE TABLE IF NOT EXISTS public.migration(
   directory TEXT NOT NULL,
   filename TEXT NOT NULL,
   hash TEXT NOT NULL,
@@ -10,6 +12,6 @@ CREATE TABLE IF NOT EXISTS migration(
 )
 `
 const insertMigrationByHashQuery = `
-INSERT INTO migration (directory, filename, hash) VALUES ($1, $2, $3) 
+INSERT INTO public.migration (directory, filename, hash) VALUES ($1, $2, $3)
 ON CONFLICT(directory, filename, hash) DO NOTHING
 `
