@@ -175,6 +175,9 @@ func (s *Server) buildGRPCProxyServer() *grpc.Server {
 		md, _ := metadata.FromIncomingContext(ctx)
 		outCtx, _ := context.WithCancel(ctx)
 		mdCopy := md.Copy()
+		if userAgents := mdCopy.Get("user-agent"); len(userAgents) > 0 {
+			mdCopy.Set("x-forwarded-user-agent", userAgents...)
+		}
 		delete(mdCopy, "user-agent")
 		delete(mdCopy, "connection")
 		outCtx = metadata.NewOutgoingContext(outCtx, mdCopy)

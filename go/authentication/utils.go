@@ -45,16 +45,25 @@ func parseConfig(path string, config proto.Message) error {
 func extractSessionMetadataFromContext(ctx context.Context) (*authenticationpb.SessionMetadata, error) {
 	sessionMetadata := &authenticationpb.SessionMetadata{}
 
-	if p, ok := peer.FromContext(ctx); ok {
-		sessionMetadata.IpAddress = p.Addr.String()
-	}
-
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
+		if p, ok := peer.FromContext(ctx); ok {
+			sessionMetadata.IpAddress = p.Addr.String()
+		}
 		return sessionMetadata, nil
 	}
 
-	if values := md.Get("user-agent"); len(values) > 0 {
+	if values := md.Get("x-forwarded-for"); len(values) > 0 {
+		sessionMetadata.IpAddress = strings.TrimSpace(strings.SplitN(values[0], ",", 2)[0])
+	} else if p, ok := peer.FromContext(ctx); ok {
+		sessionMetadata.IpAddress = p.Addr.String()
+	}
+
+	if values := md.Get("grpcgateway-user-agent"); len(values) > 0 {
+		sessionMetadata.UserAgent = values[0]
+	} else if values := md.Get("x-forwarded-user-agent"); len(values) > 0 {
+		sessionMetadata.UserAgent = values[0]
+	} else if values := md.Get("user-agent"); len(values) > 0 {
 		sessionMetadata.UserAgent = values[0]
 	}
 
