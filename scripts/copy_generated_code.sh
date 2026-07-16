@@ -49,7 +49,25 @@ for target in "${sorted_targets[@]}"; do
     CLAIMED_FILES["$file"]=1
 
     rel_path="${file#plz-out/gen/}"
-    [[ -n "$strip_prefix" ]] && rel_path="${rel_path#$strip_prefix/}"
+    if [[ -n "$strip_prefix" ]]; then
+      rel_path="${rel_path#$strip_prefix/}"
+      # output path may equal the prefix exactly (directory outputs)
+      [[ "$rel_path" == "$strip_prefix" ]] && rel_path=""
+    fi
+
+    # build outputs can be directories; copy them recursively
+    if [[ -d "$file" ]]; then
+      target_dir="$dest_dir${rel_path:+/$rel_path}"
+      mkdir -p "$target_dir"
+      cp -rf "$file/." "$target_dir/"
+      # register every file inside so stale-cleanup doesn't delete them
+      while read -r copied; do
+        dest_file="$target_dir/${copied#$file/}"
+        ACTIVE_FILES["$dest_file"]=1
+      done < <(find "$file" -type f)
+      echo "✓ Copied ${rel_path:-.}/ -> $target_dir/"
+      continue
+    fi
 
     dir=$(dirname "$rel_path")
     filename=$(basename "$file")
