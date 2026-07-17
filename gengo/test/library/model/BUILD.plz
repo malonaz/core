@@ -6,6 +6,7 @@ go_library(
         "book_model.pb.go",
         "book_review_model.pb.go",
         "bookmark_model.pb.go",
+        "note_model.pb.go",
         "shelf_model.pb.go",
     ],
     visibility = ["//..."],

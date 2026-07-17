@@ -8,7 +8,7 @@ filegroup(
         "bookmark.proto",
         "bookmark_service.proto",
         "library_service.proto",
-        #"note.proto",
+        "note.proto",
         "shelf.proto",
     ],
     test_only = True,
@@ -25,7 +25,7 @@ grpc_library(
         "bookmark.proto",
         "bookmark_service.proto",
         "library_service.proto",
-        #"note.proto",
+        "note.proto",
         "shelf.proto",
     ],
     additional_context = {

@@ -91,3 +91,25 @@ CREATE TABLE library.author_profile (
     PRIMARY KEY (organization_id, author_id),
     FOREIGN KEY (organization_id, author_id) REFERENCES library.author(organization_id, author_id)
 );
+
+CREATE TABLE library.note (
+    request_id UUID NOT NULL,
+    organization_id TEXT NOT NULL,
+    -- Pattern-specific parents: at most one is set; both NULL for the
+    -- organization-level pattern organizations/{organization}/notes/{note}.
+    author_id TEXT,
+    shelf_id TEXT,
+    note_id TEXT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    delete_time TIMESTAMP,
+    display_name TEXT NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    labels JSONB,
+    etag TEXT NOT NULL,
+    CONSTRAINT note_identity_unique UNIQUE NULLS NOT DISTINCT (organization_id, author_id, shelf_id, note_id),
+    CONSTRAINT note_request_id_unique UNIQUE (request_id),
+    CONSTRAINT note_single_parent CHECK (num_nonnulls(author_id, shelf_id) <= 1),
+    FOREIGN KEY (organization_id, author_id) REFERENCES library.author(organization_id, author_id),
+    FOREIGN KEY (organization_id, shelf_id) REFERENCES library.shelf(organization_id, shelf_id)
+);

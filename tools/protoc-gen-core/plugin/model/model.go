@@ -45,7 +45,11 @@ func Generate(file *protogen.File, generatedFile *protogen.GeneratedFile, packag
 			return err
 		}
 		generatedFile.P(s)
-		generatedFile.P(m.ParseNameDef())
+		s, err = m.ParseNameDef()
+		if err != nil {
+			return err
+		}
+		generatedFile.P(s)
 	}
 	return nil
 }
@@ -54,7 +58,8 @@ type Model struct {
 	Message        *protogen.Message
 	ModelOpts      *modelpb.ModelOpts
 	ParsedResource *resource.ParsedResource
-	Pattern        *resource.ParsedPattern
+	Patterns       []*resource.ParsedPattern
+	MultiPattern   bool
 	Table          schema.Table
 	Bindings       []schema.ColumnBinding
 	Fields         []*Field
@@ -82,12 +87,7 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		return nil, fmt.Errorf("parsing resource from message %s: %w", message.GoIdent.GoName, err)
 	}
 
-	pattern, err := parsedResource.SinglePattern()
-	if err != nil {
-		return nil, err
-	}
-
-	bindings, err := schema.ColumnBindings(pattern, modelOpts)
+	bindings, err := schema.UnionColumnBindings(parsedResource, modelOpts)
 	if err != nil {
 		return nil, fmt.Errorf("resolving column bindings for %s: %w", message.GoIdent.GoName, err)
 	}
@@ -101,7 +101,8 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		Message:        message,
 		ModelOpts:      modelOpts,
 		ParsedResource: parsedResource,
-		Pattern:        pattern,
+		Patterns:       parsedResource.Patterns,
+		MultiPattern:   len(parsedResource.Patterns) > 1,
 		Table:          schema.TableOf(parsedResource, modelOpts),
 		Bindings:       bindings,
 		Fields:         fields,
@@ -168,6 +169,14 @@ func (m *Model) resourceIDFieldNames() []string {
 	return names
 }
 
+func (m *Model) bindingsByVariable() map[string]schema.ColumnBinding {
+	variableToBinding := make(map[string]schema.ColumnBinding, len(m.Bindings))
+	for _, binding := range m.Bindings {
+		variableToBinding[binding.Variable] = binding
+	}
+	return variableToBinding
+}
+
 // --- code generation ---
 
 func (m *Model) ErrorVarsDef() string {
@@ -193,8 +202,14 @@ func (m *Model) StructDef() (string, error) {
 	fmt.Fprintf(&b, "type %s struct {\n", goName)
 
 	for _, binding := range m.Bindings {
-		fmt.Fprintf(&b, "\t%s string `db:\"%s\" schema:\"%s\" table:\"%s\"`\n",
-			binding.GoFieldName(), binding.Column, m.Table.SchemaOrPublic(), m.Table.Name)
+		// Pattern-specific identifiers are nullable: a row only populates the
+		// identifiers of the pattern its name was created under.
+		goType := "string"
+		if !binding.Shared {
+			goType = "*string"
+		}
+		fmt.Fprintf(&b, "\t%s %s `db:\"%s\" schema:\"%s\" table:\"%s\"`\n",
+			binding.GoFieldName(), goType, binding.Column, m.Table.SchemaOrPublic(), m.Table.Name)
 	}
 
 	for _, field := range m.ActiveFields() {
@@ -255,6 +270,18 @@ func (m *Model) FromPbDef() (string, error) {
 		fmt.Fprintf(&b, "\tif err != nil {\n")
 		fmt.Fprintf(&b, "\t\treturn nil, err\n")
 		fmt.Fprintf(&b, "\t}\n\n")
+
+		// Pattern-specific identifiers persist as NULL when absent.
+		for _, binding := range m.Bindings {
+			if binding.Shared {
+				continue
+			}
+			fieldName := binding.GoFieldName()
+			fmt.Fprintf(&b, "\tvar %sPtr *string\n", fieldName)
+			fmt.Fprintf(&b, "\tif %s != \"\" {\n", fieldName)
+			fmt.Fprintf(&b, "\t\t%sPtr = &%s\n", fieldName, fieldName)
+			fmt.Fprintf(&b, "\t}\n")
+		}
 	}
 
 	for _, field := range m.ActiveFields() {
@@ -268,8 +295,12 @@ func (m *Model) FromPbDef() (string, error) {
 	}
 
 	fmt.Fprintf(&b, "\treturn &%s{\n", goName)
-	for _, idField := range resourceIDFields {
-		fmt.Fprintf(&b, "\t\t%s: %s,\n", idField, idField)
+	for _, binding := range m.Bindings {
+		valueName := binding.GoFieldName()
+		if !binding.Shared {
+			valueName += "Ptr"
+		}
+		fmt.Fprintf(&b, "\t\t%s: %s,\n", binding.GoFieldName(), valueName)
 	}
 	for _, field := range m.ActiveFields() {
 		fieldPrefix := ""
@@ -301,11 +332,19 @@ func (m *Model) ToPbDef() (string, error) {
 		}
 	}
 
-	fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), m.Pattern.Value)
-	for _, idField := range m.resourceIDFieldNames() {
-		fmt.Fprintf(&b, ", m.%s", idField)
+	if m.MultiPattern {
+		nameCode, err := m.multiPatternNameConstruction()
+		if err != nil {
+			return "", err
+		}
+		b.WriteString(nameCode)
+	} else {
+		fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), m.Patterns[0].Value)
+		for _, idField := range m.resourceIDFieldNames() {
+			fmt.Fprintf(&b, ", m.%s", idField)
+		}
+		fmt.Fprintf(&b, ")\n")
 	}
-	fmt.Fprintf(&b, ")\n")
 	fmt.Fprintf(&b, "\tif err := %s(name); err != nil {\n", m.fqn("go.einride.tech/aip/resourcename", "Validate"))
 	fmt.Fprintf(&b, "\t\treturn nil, fmt.Errorf(\"validating resource name: %%w\", err)\n")
 	fmt.Fprintf(&b, "\t}\n")
@@ -321,7 +360,63 @@ func (m *Model) ToPbDef() (string, error) {
 	return b.String(), nil
 }
 
-func (m *Model) ParseNameDef() string {
+// multiPatternNameConstruction emits a switch selecting the resource name
+// pattern from whichever pattern-specific identifiers are set.
+func (m *Model) multiPatternNameConstruction() (string, error) {
+	var b strings.Builder
+	variableToBinding := m.bindingsByVariable()
+	sprint := m.fqn("go.einride.tech/aip/resourcename", "Sprint")
+
+	fmt.Fprintf(&b, "\tvar name string\n")
+	fmt.Fprintf(&b, "\tswitch {\n")
+	var defaultPattern *resource.ParsedPattern
+	for _, pattern := range m.Patterns {
+		var conditions []string
+		for _, variable := range pattern.Variables {
+			binding := variableToBinding[variable]
+			if !binding.Shared {
+				conditions = append(conditions, fmt.Sprintf("m.%s != nil", binding.GoFieldName()))
+			}
+		}
+		if len(conditions) == 0 {
+			if defaultPattern != nil {
+				return "", fmt.Errorf("multiple patterns of %s have no discriminating variable", m.GoName())
+			}
+			defaultPattern = pattern
+			continue
+		}
+		fmt.Fprintf(&b, "\tcase %s:\n", strings.Join(conditions, " && "))
+		fmt.Fprintf(&b, "\t\tname = %s(\"%s\"%s)\n", sprint, pattern.Value, m.sprintArgs(pattern, variableToBinding))
+	}
+	fmt.Fprintf(&b, "\tdefault:\n")
+	if defaultPattern != nil {
+		fmt.Fprintf(&b, "\t\tname = %s(\"%s\"%s)\n", sprint, defaultPattern.Value, m.sprintArgs(defaultPattern, variableToBinding))
+	} else {
+		fmt.Fprintf(&b, "\t\treturn nil, %s(\"cannot determine resource name pattern for %s\")\n",
+			m.fqn("fmt", "Errorf"), m.ParsedResource.SingularSnakeCase())
+	}
+	fmt.Fprintf(&b, "\t}\n")
+	return b.String(), nil
+}
+
+func (m *Model) sprintArgs(pattern *resource.ParsedPattern, variableToBinding map[string]schema.ColumnBinding) string {
+	var b strings.Builder
+	for _, variable := range pattern.Variables {
+		binding := variableToBinding[variable]
+		if binding.Shared {
+			fmt.Fprintf(&b, ", m.%s", binding.GoFieldName())
+		} else {
+			fmt.Fprintf(&b, ", *m.%s", binding.GoFieldName())
+		}
+	}
+	return b.String()
+}
+
+func (m *Model) ParseNameDef() (string, error) {
+	if m.MultiPattern {
+		return m.multiPatternParseNameDef()
+	}
+
 	var b strings.Builder
 	goName := m.GoName()
 	resourceIDFields := m.resourceIDFieldNames()
@@ -340,7 +435,7 @@ func (m *Model) ParseNameDef() string {
 		addrArgs[i] = "&" + idField
 	}
 	fmt.Fprintf(&b, "\tif err := %s(name, \"%s\", %s); err != nil {\n",
-		m.fqn("go.einride.tech/aip/resourcename", "Sscan"), m.Pattern.Value, strings.Join(addrArgs, ", "))
+		m.fqn("go.einride.tech/aip/resourcename", "Sscan"), m.Patterns[0].Value, strings.Join(addrArgs, ", "))
 
 	emptyStrings := make([]string, len(resourceIDFields))
 	for i := range emptyStrings {
@@ -352,7 +447,63 @@ func (m *Model) ParseNameDef() string {
 
 	fmt.Fprintf(&b, "\treturn %s, nil\n", strings.Join(resourceIDFields, ", "))
 	fmt.Fprintf(&b, "}\n")
-	return b.String()
+	return b.String(), nil
+}
+
+// multiPatternParseNameDef emits a parser attempting each pattern in
+// declaration order, returning "" for the identifiers absent from the matched
+// pattern.
+func (m *Model) multiPatternParseNameDef() (string, error) {
+	var b strings.Builder
+	goName := m.GoName()
+	unionFields := m.resourceIDFieldNames()
+	variableToBinding := m.bindingsByVariable()
+	sscan := m.fqn("go.einride.tech/aip/resourcename", "Sscan")
+
+	returnTypes := make([]string, len(unionFields))
+	for i := range unionFields {
+		returnTypes[i] = "string"
+	}
+	returnTypes = append(returnTypes, "error")
+	fmt.Fprintf(&b, "func Parse%sName(name string) (%s) {\n", goName, strings.Join(returnTypes, ", "))
+
+	for _, pattern := range m.Patterns {
+		patternFields := make([]string, len(pattern.Variables))
+		patternFieldSet := map[string]bool{}
+		for i, variable := range pattern.Variables {
+			patternFields[i] = variableToBinding[variable].GoFieldName()
+			patternFieldSet[patternFields[i]] = true
+		}
+		addrArgs := make([]string, len(patternFields))
+		for i, patternField := range patternFields {
+			addrArgs[i] = "&" + patternField
+		}
+		returns := make([]string, 0, len(unionFields)+1)
+		for _, unionField := range unionFields {
+			if patternFieldSet[unionField] {
+				returns = append(returns, unionField)
+			} else {
+				returns = append(returns, `""`)
+			}
+		}
+		returns = append(returns, "nil")
+
+		fmt.Fprintf(&b, "\t{\n")
+		fmt.Fprintf(&b, "\t\tvar %s string\n", strings.Join(patternFields, ", "))
+		fmt.Fprintf(&b, "\t\tif err := %s(name, \"%s\", %s); err == nil {\n", sscan, pattern.Value, strings.Join(addrArgs, ", "))
+		fmt.Fprintf(&b, "\t\t\treturn %s\n", strings.Join(returns, ", "))
+		fmt.Fprintf(&b, "\t\t}\n")
+		fmt.Fprintf(&b, "\t}\n")
+	}
+
+	emptyStrings := make([]string, len(unionFields))
+	for i := range emptyStrings {
+		emptyStrings[i] = `""`
+	}
+	fmt.Fprintf(&b, "\treturn %s, %s(\"parsing resource name: %%q does not match any pattern of %s\", name)\n",
+		strings.Join(emptyStrings, ", "), m.fqn("fmt", "Errorf"), m.ParsedResource.SingularSnakeCase())
+	fmt.Fprintf(&b, "}\n")
+	return b.String(), nil
 }
 
 // --- field type resolution ---

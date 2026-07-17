@@ -6,6 +6,7 @@ go_library(
         "book_postgres.pb.go",
         "book_review_postgres.pb.go",
         "bookmark_postgres.pb.go",
+        "note_postgres.pb.go",
         "shelf_postgres.pb.go",
     ],
     visibility = ["//..."],

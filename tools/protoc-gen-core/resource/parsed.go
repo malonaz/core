@@ -84,6 +84,69 @@ func (pr *ParsedResource) SinglePattern() (*ParsedPattern, error) {
 	return pr.Patterns[0], nil
 }
 
+// UnionVariable is a variable in the union of a resource's pattern variables.
+type UnionVariable struct {
+	// Name is the snake_case variable name.
+	Name string
+	// Shared is true when the variable appears in every pattern of the resource.
+	Shared bool
+}
+
+// UnionVariables returns the union of the pattern variables across all
+// patterns of the resource. Variables are ordered by first appearance across
+// patterns, except the resource's own identifier which is always last.
+// Multi-pattern singleton resources are not supported.
+func (pr *ParsedResource) UnionVariables() ([]UnionVariable, error) {
+	if len(pr.Patterns) == 0 {
+		return nil, fmt.Errorf("resource %s has no patterns", pr.Desc.Type)
+	}
+	if len(pr.Patterns) == 1 {
+		pattern := pr.Patterns[0]
+		variables := make([]UnionVariable, len(pattern.Variables))
+		for i, variable := range pattern.Variables {
+			variables[i] = UnionVariable{Name: variable, Shared: true}
+		}
+		return variables, nil
+	}
+	for _, pattern := range pr.Patterns {
+		if pattern.Singleton {
+			return nil, fmt.Errorf("multi-pattern singleton resource %s is not supported", pr.Desc.Type)
+		}
+		if len(pattern.Variables) == 0 {
+			return nil, fmt.Errorf("pattern %q of resource %s has no variables", pattern.Value, pr.Desc.Type)
+		}
+	}
+
+	// All patterns must end on the same identifier variable.
+	ownID := pr.Patterns[0].Variables[len(pr.Patterns[0].Variables)-1]
+	variableToCount := map[string]int{}
+	var order []string
+	for _, pattern := range pr.Patterns {
+		lastVariable := pattern.Variables[len(pattern.Variables)-1]
+		if lastVariable != ownID {
+			return nil, fmt.Errorf("patterns of resource %s disagree on the identifier variable: %q vs %q", pr.Desc.Type, ownID, lastVariable)
+		}
+		seen := map[string]bool{}
+		for _, variable := range pattern.Variables {
+			if seen[variable] {
+				return nil, fmt.Errorf("pattern %q of resource %s repeats variable %q", pattern.Value, pr.Desc.Type, variable)
+			}
+			seen[variable] = true
+			if variableToCount[variable] == 0 && variable != ownID {
+				order = append(order, variable)
+			}
+			variableToCount[variable]++
+		}
+	}
+
+	variables := make([]UnionVariable, 0, len(order)+1)
+	for _, variable := range order {
+		variables = append(variables, UnionVariable{Name: variable, Shared: variableToCount[variable] == len(pr.Patterns)})
+	}
+	variables = append(variables, UnionVariable{Name: ownID, Shared: true})
+	return variables, nil
+}
+
 func (pr *ParsedResource) patternByValue(value string) *ParsedPattern {
 	for _, pattern := range pr.Patterns {
 		if pattern.Value == value {

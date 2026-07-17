@@ -14,6 +14,7 @@ go_test(
         "middleware_canonicalize_test.go",
         "middleware_hooks_test.go",
         "nats_events_test.go",
+        "note_test.go",
         "order_by_test.go",
         "read_mask_test.go",
         "sat_test.go",

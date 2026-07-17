@@ -53,6 +53,9 @@ type ColumnBinding struct {
 	Variable string
 	// Column is the database column holding the variable's ID, e.g. "shelf_id".
 	Column string
+	// Shared is true when the variable appears in every pattern of the
+	// resource; non-shared variables are stored as nullable columns.
+	Shared bool
 }
 
 // GoFieldName returns the Go struct field name of the binding, e.g. "ShelfID".
@@ -76,7 +79,30 @@ func ColumnBindings(pattern *resource.ParsedPattern, modelOpts *modelpb.ModelOpt
 		if idColumnName != "" && i == len(pattern.Variables)-1 {
 			column = idColumnName
 		}
-		bindings[i] = ColumnBinding{Variable: variable, Column: column}
+		bindings[i] = ColumnBinding{Variable: variable, Column: column, Shared: true}
+	}
+	return bindings, nil
+}
+
+// UnionColumnBindings returns the database column bound to each variable of
+// the union of the resource's patterns. Variables shared by every pattern map
+// to non-nullable columns; pattern-specific variables map to nullable columns.
+func UnionColumnBindings(parsedResource *resource.ParsedResource, modelOpts *modelpb.ModelOpts) ([]ColumnBinding, error) {
+	if len(parsedResource.Patterns) == 1 {
+		return ColumnBindings(parsedResource.Patterns[0], modelOpts)
+	}
+	unionVariables, err := parsedResource.UnionVariables()
+	if err != nil {
+		return nil, err
+	}
+	idColumnName := modelOpts.GetIdColumnName()
+	bindings := make([]ColumnBinding, len(unionVariables))
+	for i, unionVariable := range unionVariables {
+		column := unionVariable.Name + "_id"
+		if idColumnName != "" && i == len(unionVariables)-1 {
+			column = idColumnName
+		}
+		bindings[i] = ColumnBinding{Variable: unionVariable.Name, Column: column, Shared: unionVariable.Shared}
 	}
 	return bindings, nil
 }

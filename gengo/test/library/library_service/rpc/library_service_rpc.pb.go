@@ -34,6 +34,7 @@ type libraryServiceStore interface {
 	libraryService_ShelfStore
 	libraryService_BookStore
 	libraryService_BookReviewStore
+	libraryService_NoteStore
 }
 
 type LibraryServiceServer struct {
@@ -43,6 +44,7 @@ type LibraryServiceServer struct {
 	*libraryService_ShelfServer
 	*libraryService_BookServer
 	*libraryService_BookReviewServer
+	*libraryService_NoteServer
 }
 
 func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client) *LibraryServiceServer {
@@ -53,6 +55,7 @@ func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client)
 		libraryService_ShelfServer:         newLibraryService_ShelfServer(store, natsClient),
 		libraryService_BookServer:          newLibraryService_BookServer(store, natsClient),
 		libraryService_BookReviewServer:    newLibraryService_BookReviewServer(store),
+		libraryService_NoteServer:          newLibraryService_NoteServer(store),
 	}
 }
 
@@ -1694,5 +1697,401 @@ func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Contex
 
 	return &v11.BatchGetBookReviewsResponse{
 		BookReviews: bookReviews,
+	}, nil
+}
+
+type libraryService_NoteStore interface {
+	InsertNoteIdempotently(ctx context.Context, requestID string, note *model.Note) (*model.Note, error)
+	UpdateNote(ctx context.Context, note *model.Note, updateClause string, columns []string, etag string) (*model.Note, error)
+	SoftDeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string, deleteTime time.Time) (*model.Note, error)
+	GetNote(ctx context.Context, organizationId, authorId, shelfId, noteId string) (*model.Note, error)
+	BatchGetNotes(ctx context.Context, organizationIds []string, authorIds []string, shelfIds []string, noteIds []string) ([]*model.Note, error)
+	ListNotes(ctx context.Context, organizationId, authorId, shelfId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Note, error)
+}
+
+type libraryService_NoteServer struct {
+	store libraryService_NoteStore
+}
+
+func newLibraryService_NoteServer(store libraryService_NoteStore) *libraryService_NoteServer {
+	return &libraryService_NoteServer{
+		store: store,
+	}
+}
+
+func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*v13.Note, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	noteId := request.NoteId
+	if noteId == "" {
+		noteId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId, authorId, shelfId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	switch {
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Note.Name = resourcename.Sprint("organizations/{organization}/notes/{note}", organizationId, noteId)
+	case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Note.Name = resourcename.Sprint("organizations/{organization}/authors/{author}/notes/{note}", organizationId, authorId, noteId)
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Note.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}/notes/{note}", organizationId, shelfId, noteId)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// STEP 2: Instantiate timestamps.
+	// Check for x-migration-request header
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+		if request.Note.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else {
+		request.Note.CreateTime = timestamppb.Now()
+	}
+	request.Note.UpdateTime = request.Note.CreateTime
+
+	{ // Capture the Etag.
+		var err error
+		request.Note.Etag, err = aip.ComputeETag(request.Note)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	noteModel, err := model.NoteFromPb(request.Note)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from pb to model: %v", err).Err()
+	}
+
+	if request.ValidateOnly {
+		return request.Note, nil
+	}
+
+	// STEP 4: Insert the resource idempotently.
+	dbNoteModel, err := s.store.InsertNoteIdempotently(ctx, request.RequestId, noteModel)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "note already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting note").Err()
+	}
+
+	note, err := dbNoteModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+	}
+
+	return note, nil
+}
+
+func (s *libraryService_NoteServer) GetNote(ctx context.Context, request *v11.GetNoteRequest) (*v13.Note, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbNoteModel, err := s.store.GetNote(ctx, organizationId, authorId, shelfId, noteId)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteNotExist) {
+			return nil, status.Errorf(codes.NotFound, "note does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting note").Err()
+	}
+
+	note, err := dbNoteModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+	}
+	return note, nil
+}
+
+var updateNoteRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateNoteRequest, *v13.Note]()
+
+func (s *libraryService_NoteServer) UpdateNote(ctx context.Context, request *v11.UpdateNoteRequest) (*v13.Note, error) {
+	for {
+		response, err := s.updateNote(ctx, request)
+		if err != nil {
+			if request.GetNote().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v11.UpdateNoteRequest) (*v13.Note, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Note.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateNoteRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getNoteRequest := &v11.GetNoteRequest{Name: request.Note.Name}
+	existingNote, err := s.GetNote(ctx, getNoteRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Verify that the resource is not soft deleted
+	if existingNote.DeleteTime != nil {
+		return nil, status.Errorf(codes.NotFound, "note does not exist").Err()
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetNote().GetEtag()
+	if etag == "" {
+		etag = existingNote.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedNote := proto.CloneOf(existingNote)
+	parsedRequest.ApplyFieldMask(patchedNote, request.Note)
+	if err := protovalidate.Validate(patchedNote); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedNote.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedNote.Etag, err = aip.ComputeETag(patchedNote)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	noteModel, err := model.NoteFromPb(patchedNote)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from pb to model: %v", err).Err()
+	}
+	dbNoteModel, err := s.store.UpdateNote(ctx, noteModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteNotExist) {
+			return nil, status.Errorf(codes.NotFound, "note does not exist").Err()
+		}
+		if errors.Is(err, model.ErrNoteETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating note").Err()
+	}
+
+	note, err := dbNoteModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+	}
+
+	return note, nil
+}
+
+func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11.DeleteNoteRequest) (*v13.Note, error) {
+	// STEP 1: Parse resource name.
+	organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	deleteTime := time.Now().UTC()
+	// Compute the new Etag.
+	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+	Note, err := s.GetNote(ctx, getNoteRequest)
+	if err != nil {
+		return nil, err
+	}
+	Note.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(Note)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Soft delete the resource.
+	dbNoteModel, err := s.store.SoftDeleteNote(ctx, organizationId, authorId, shelfId, noteId, request.GetEtag(), newEtag, deleteTime)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteNotExist) {
+			return nil, status.Errorf(codes.NotFound, "note does not exist").Err()
+		}
+		if errors.Is(err, model.ErrNoteETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		if errors.Is(err, model.ErrNoteAlreadyDeleted) {
+			if request.AllowMissing {
+				getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+				note, err := s.GetNote(ctx, getNoteRequest)
+				if err != nil {
+					return nil, err
+				}
+				return note, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "note already deleted").Err()
+		}
+		return nil, status.FromError(err, "soft deleting note").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	note, err := dbNoteModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+	}
+
+	return note, nil
+}
+
+var listNotesRequestParser = aip.MustNewListRequestParser[*v11.ListNotesRequest, *v13.Note](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.ListNotesRequest) (*v11.ListNotesResponse, error) {
+	// Parse parent names
+	var organizationId, authorId, shelfId string
+	switch {
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listNotesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbNotes, err := s.store.ListNotes(ctx, organizationId, authorId, shelfId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing notes").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbNotes))
+	if nextPageToken != "" {
+		dbNotes = dbNotes[:len(dbNotes)-1]
+	}
+
+	// Convert back to proto.
+	notes := make([]*v13.Note, 0, len(dbNotes))
+	for _, dbNote := range dbNotes {
+		note, err := dbNote.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Note to Note: %v", err).Err()
+		}
+		notes = append(notes, note)
+	}
+
+	// Create and return response.
+	return &v11.ListNotesResponse{
+		Notes:         notes,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v11.BatchGetNotesRequest) (*v11.BatchGetNotesResponse, error) {
+	if request.Parent != "" {
+		switch {
+		case resourcename.Match("organizations/{organization}", request.Parent), resourcename.Match("organizations/{organization}/authors/{author}", request.Parent), resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	authorIds := make([]string, len(request.GetNames()))
+	shelfIds := make([]string, len(request.GetNames()))
+	noteIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		authorIds[i] = authorId
+		shelfIds[i] = shelfId
+		noteIds[i] = noteId
+	}
+
+	dbNotes, err := s.store.BatchGetNotes(ctx, organizationIds, authorIds, shelfIds, noteIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting note").Err()
+	}
+	if len(dbNotes) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d notes, found %d", len(request.Names), len(dbNotes)).Err()
+	}
+
+	noteNameToNote := make(map[string]*v13.Note, len(request.Names))
+	for _, dbNoteModel := range dbNotes {
+		note, err := dbNoteModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+		}
+		noteNameToNote[note.Name] = note
+	}
+
+	notes := make([]*v13.Note, 0, len(dbNotes))
+	for _, name := range request.Names {
+		note, ok := noteNameToNote[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		notes = append(notes, note)
+	}
+
+	return &v11.BatchGetNotesResponse{
+		Notes: notes,
 	}, nil
 }

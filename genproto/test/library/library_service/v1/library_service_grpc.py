@@ -19,11 +19,13 @@ import malonaz.test.library.library_service.v1.author_pb2
 import malonaz.test.library.library_service.v1.author_profile_pb2
 import malonaz.test.library.library_service.v1.book_pb2
 import malonaz.test.library.library_service.v1.book_review_pb2
+import malonaz.test.library.library_service.v1.note_pb2
 import malonaz.test.library.library_service.v1.shelf_pb2
 import malonaz.test.library.v1.author_pb2
 import malonaz.test.library.v1.author_profile_pb2
 import malonaz.test.library.v1.book_pb2
 import malonaz.test.library.v1.book_review_pb2
+import malonaz.test.library.v1.note_pb2
 import malonaz.test.library.v1.shelf_pb2
 import malonaz.test.library.library_service.v1.library_service_pb2
 
@@ -132,6 +134,30 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetBookReviews(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest, malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateNote(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.CreateNoteRequest, malonaz.test.library.v1.note_pb2.Note]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetNote(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.GetNoteRequest, malonaz.test.library.v1.note_pb2.Note]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateNote(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.UpdateNoteRequest, malonaz.test.library.v1.note_pb2.Note]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteNote(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.DeleteNoteRequest, malonaz.test.library.v1.note_pb2.Note]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest, malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -291,6 +317,42 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest,
                 malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/CreateNote': grpclib.const.Handler(
+                self.CreateNote,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.CreateNoteRequest,
+                malonaz.test.library.v1.note_pb2.Note,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/GetNote': grpclib.const.Handler(
+                self.GetNote,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.GetNoteRequest,
+                malonaz.test.library.v1.note_pb2.Note,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateNote': grpclib.const.Handler(
+                self.UpdateNote,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.UpdateNoteRequest,
+                malonaz.test.library.v1.note_pb2.Note,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/DeleteNote': grpclib.const.Handler(
+                self.DeleteNote,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.DeleteNoteRequest,
+                malonaz.test.library.v1.note_pb2.Note,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ListNotes': grpclib.const.Handler(
+                self.ListNotes,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest,
+                malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes': grpclib.const.Handler(
+                self.BatchGetNotes,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
+                malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
             ),
         }
 
@@ -453,4 +515,40 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetBookReviews',
             malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsRequest,
             malonaz.test.library.library_service.v1.book_review_pb2.BatchGetBookReviewsResponse,
+        )
+        self.CreateNote = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/CreateNote',
+            malonaz.test.library.library_service.v1.note_pb2.CreateNoteRequest,
+            malonaz.test.library.v1.note_pb2.Note,
+        )
+        self.GetNote = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/GetNote',
+            malonaz.test.library.library_service.v1.note_pb2.GetNoteRequest,
+            malonaz.test.library.v1.note_pb2.Note,
+        )
+        self.UpdateNote = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateNote',
+            malonaz.test.library.library_service.v1.note_pb2.UpdateNoteRequest,
+            malonaz.test.library.v1.note_pb2.Note,
+        )
+        self.DeleteNote = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/DeleteNote',
+            malonaz.test.library.library_service.v1.note_pb2.DeleteNoteRequest,
+            malonaz.test.library.v1.note_pb2.Note,
+        )
+        self.ListNotes = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ListNotes',
+            malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest,
+            malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse,
+        )
+        self.BatchGetNotes = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes',
+            malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
+            malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
         )

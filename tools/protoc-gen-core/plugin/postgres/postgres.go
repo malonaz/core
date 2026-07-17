@@ -1,4 +1,3 @@
-// tools/protoc-gen-core/plugin/postgres/postgres.go
 package postgres
 
 import (
@@ -180,7 +179,9 @@ type msgCtx struct {
 	message   *protogen.Message
 	modelOpts *modelpb.ModelOpts
 	pr        *resource.ParsedResource
-	pattern   *resource.ParsedPattern
+
+	multiPattern bool
+	singleton    bool
 
 	goType  string
 	goName  string
@@ -193,6 +194,7 @@ type msgCtx struct {
 	errETagChanged    string
 
 	columnBindings   []schema.ColumnBinding
+	parentBindings   []schema.ColumnBinding
 	tableName        string
 	bareTableName    string
 	whereClause      string
@@ -217,13 +219,14 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	goType := message.GoIdent.GoName
 	goName := untitle(goType)
 
-	pattern, err := pr.SinglePattern()
-	if err != nil {
-		return nil, err
+	multiPattern := len(pr.Patterns) > 1
+	singleton := false
+	if !multiPattern {
+		singleton = pr.Patterns[0].Singleton
 	}
 
 	table := schema.TableOf(pr, modelOpts)
-	bindings, err := schema.ColumnBindings(pattern, modelOpts)
+	bindings, err := schema.UnionColumnBindings(pr, modelOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -235,8 +238,17 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 
 	identifier := ""
-	if !pattern.Singleton {
+	if !singleton && len(bindings) > 0 {
 		identifier = bindings[len(bindings)-1].Column
+	}
+
+	// Parent identifiers: a singleton's identity is exactly its parent's; a
+	// collection resource's parent identifiers are everything but its own.
+	var parentBindings []schema.ColumnBinding
+	if singleton {
+		parentBindings = bindings
+	} else if len(bindings) > 1 {
+		parentBindings = bindings[:len(bindings)-1]
 	}
 
 	children, err := schema.SingletonChildren(message, pr)
@@ -258,6 +270,15 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 	hasJoins := len(joins) > 0
 
+	if multiPattern {
+		if hasJoins {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot declare joins", goType)
+		}
+		if len(singletonChildren) > 0 {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", goType)
+		}
+	}
+
 	var joinSubqueryExpr, joinSelectExprs, joinClauseStr string
 	if hasJoins {
 		joinSubqueryExpr = buildJoinSubqueryExpr(joins, table.Name)
@@ -268,7 +289,10 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	return &msgCtx{
 		gen:     gen,
 		g:       gen.g,
-		message: message, modelOpts: modelOpts, pr: pr, pattern: pattern,
+		message: message, modelOpts: modelOpts, pr: pr,
+
+		multiPattern: multiPattern,
+		singleton:    singleton,
 
 		goType:  goType,
 		goName:  goName,
@@ -281,6 +305,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 
 		columnBindings:   bindings,
+		parentBindings:   parentBindings,
 		tableName:        table.Qualified(),
 		bareTableName:    table.Name,
 		whereClause:      strings.Join(whereConditions, " AND "),
@@ -377,15 +402,17 @@ func (mc *msgCtx) postgres(name string) string { return mc.gen.ident(postgresPkg
 func (mc *msgCtx) fmtI(name string) string     { return mc.gen.ident(fmtPkg, name) }
 func (mc *msgCtx) stringsI(name string) string { return mc.gen.ident(stringsPkg, name) }
 
-func (mc *msgCtx) patternVarIDsGoTrue() string { return mc.pattern.VariableIDs(true) }
+// idParamName returns the Go parameter name of an identifier, e.g. "shelfId".
+func idParamName(binding schema.ColumnBinding) string {
+	return untitle(xstrings.ToCamelCase(binding.Variable)) + "Id"
+}
 
-// parentColumnBindings returns the bindings of the parent's identifiers on
-// this resource's table. Parent variables are a prefix of the resource's own.
-func (mc *msgCtx) parentColumnBindings() []schema.ColumnBinding {
-	if mc.pattern.Parent == nil {
-		return nil
+func (mc *msgCtx) patternVarIDsGoTrue() string {
+	parts := make([]string, len(mc.columnBindings))
+	for i, binding := range mc.columnBindings {
+		parts[i] = idParamName(binding)
 	}
-	return mc.columnBindings[:len(mc.pattern.Parent.Variables)]
+	return strings.Join(parts, ", ")
 }
 
 func (mc *msgCtx) patternVarFieldAccess() string {
@@ -397,11 +424,7 @@ func (mc *msgCtx) patternVarFieldAccess() string {
 }
 
 func (mc *msgCtx) patternVarIDUntitled() string {
-	parts := make([]string, len(mc.columnBindings))
-	for i, binding := range mc.columnBindings {
-		parts[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Id"
-	}
-	return strings.Join(parts, ", ")
+	return mc.patternVarIDsGoTrue()
 }
 
 func (mc *msgCtx) qualifiedPlaceholderDecls() string {
@@ -415,14 +438,46 @@ func (mc *msgCtx) qualifiedPlaceholderDecls() string {
 	return strings.Join(conditions, " AND ")
 }
 
+// emitIDConditionAppends emits code appending WHERE conditions and params for
+// each identifier column. Non-shared identifiers with an empty value are
+// matched against NULL, since only the identifiers of the pattern a row was
+// created under are populated. Expects `conditions []string` and `params
+// []any` to be in scope.
+func (mc *msgCtx) emitIDConditionAppends(indent string, exprFor func(schema.ColumnBinding) string) {
+	g := mc.g
+	for _, binding := range mc.columnBindings {
+		expr := exprFor(binding)
+		if binding.Shared {
+			g.P(indent, "params = append(params, ", expr, ")")
+			g.P(indent, "conditions = append(conditions, ", mc.fmtI("Sprintf"), "(\"", binding.Column, " = $%d\", len(params)))")
+		} else {
+			g.P(indent, "if ", expr, " != \"\" {")
+			g.P(indent, "  params = append(params, ", expr, ")")
+			g.P(indent, "  conditions = append(conditions, ", mc.fmtI("Sprintf"), "(\"", binding.Column, " = $%d\", len(params)))")
+			g.P(indent, "} else {")
+			g.P(indent, "  conditions = append(conditions, \"", binding.Column, " IS NULL\")")
+			g.P(indent, "}")
+		}
+	}
+}
+
 func (mc *msgCtx) generateETagGetter() {
 	if !mc.hasEtag {
 		return
 	}
 	g := mc.g
 	g.P(fmt.Sprintf("func (s *Store) get%sETag(ctx context.Context, %s string) (string, error) {", mc.goType, mc.patternVarIDsGoTrue()))
-	g.P(fmt.Sprintf("  query := `SELECT etag FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
-	g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
+	if mc.multiPattern {
+		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
+		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
+		mc.emitIDConditionAppends("  ", idParamName)
+		g.P(fmt.Sprintf("  query := %s(\"SELECT etag FROM %s WHERE %%s\", %s(conditions, \" AND \"))",
+			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join")))
+		g.P("  rows, err := s.client.Query(ctx, query, params...)")
+	} else {
+		g.P(fmt.Sprintf("  query := `SELECT etag FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
+		g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
+	}
 	g.P("  if err != nil {")
 	g.P("    return \"\", err")
 	g.P("  }")

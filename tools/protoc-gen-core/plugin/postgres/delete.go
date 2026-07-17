@@ -13,6 +13,11 @@ func (mc *msgCtx) generateDelete() {
 }
 
 func (mc *msgCtx) generateSoftDelete() {
+	if mc.multiPattern {
+		mc.generateMultiPatternSoftDelete()
+		return
+	}
+
 	g := mc.g
 	numVars := len(mc.columnBindings)
 	writeColumns := mc.writeColumns()
@@ -29,11 +34,7 @@ func (mc *msgCtx) generateSoftDelete() {
 	g.P(fmt.Sprintf("  %s", returningExpr))
 	g.P()
 
-	g.P(fmt.Sprintf("type softDelete%sResult struct {", mc.goType))
-	g.P("  WasAlreadyDeleted bool `db:\"was_already_deleted\"`")
-	g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
-	g.P("}")
-	g.P()
+	mc.generateSoftDeleteResultStruct()
 
 	etagParam := ""
 	if mc.hasEtag {
@@ -62,6 +63,55 @@ func (mc *msgCtx) generateSoftDelete() {
 	} else {
 		mc.generateSoftDeleteDirect()
 	}
+
+	g.P("}")
+	g.P()
+}
+
+func (mc *msgCtx) generateSoftDeleteResultStruct() {
+	g := mc.g
+	g.P(fmt.Sprintf("type softDelete%sResult struct {", mc.goType))
+	g.P("  WasAlreadyDeleted bool `db:\"was_already_deleted\"`")
+	g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
+	g.P("}")
+	g.P()
+}
+
+// generateMultiPatternSoftDelete builds the WHERE clause and parameter indexes
+// at runtime, matching unset pattern-specific identifiers against NULL.
+func (mc *msgCtx) generateMultiPatternSoftDelete() {
+	g := mc.g
+	returningExpr := mc.returningExpr(mc.writeColumns())
+
+	mc.generateSoftDeleteResultStruct()
+
+	etagParam := ""
+	if mc.hasEtag {
+		etagParam = ", etag, newEtag string"
+	}
+	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s, deleteTime %s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), etagParam, mc.gen.ident(timePkg, "Time"), mc.goTypeFqi))
+	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
+	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+3))
+	mc.emitIDConditionAppends("  ", idParamName)
+	g.P("  deleteTimeIndex := len(params) + 1")
+	g.P("  params = append(params, deleteTime)")
+	if mc.hasEtag {
+		g.P("  newEtagIndex := len(params) + 1")
+		g.P("  params = append(params, newEtag)")
+		g.P(fmt.Sprintf("  query := %s(\"UPDATE %s SET delete_time = COALESCE(delete_time, $%%d), etag = $%%d WHERE %%s RETURNING (delete_time < $%%d) AS was_already_deleted, \", deleteTimeIndex, newEtagIndex, %s(conditions, \" AND \"), deleteTimeIndex) + %s",
+			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
+		g.P("  if etag != \"\" {")
+		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
+			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+		g.P("    params = append(params, etag)")
+		g.P("  }")
+	} else {
+		g.P(fmt.Sprintf("  query := %s(\"UPDATE %s SET delete_time = COALESCE(delete_time, $%%d) WHERE %%s RETURNING (delete_time < $%%d) AS was_already_deleted, \", deleteTimeIndex, %s(conditions, \" AND \"), deleteTimeIndex) + %s",
+			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
+	}
+
+	mc.generateSoftDeleteDirect()
 
 	g.P("}")
 	g.P()
@@ -131,6 +181,11 @@ func (mc *msgCtx) generateSoftDeleteWithTransaction() {
 }
 
 func (mc *msgCtx) generateHardDelete() {
+	if mc.multiPattern {
+		mc.generateMultiPatternHardDelete()
+		return
+	}
+
 	g := mc.g
 	writeColumns := mc.writeColumns()
 	returningExpr := mc.returningExpr(writeColumns)
@@ -161,6 +216,37 @@ func (mc *msgCtx) generateHardDelete() {
 	} else {
 		mc.generateHardDeleteDirect()
 	}
+
+	g.P("}")
+	g.P()
+}
+
+// generateMultiPatternHardDelete builds the WHERE clause at runtime, matching
+// unset pattern-specific identifiers against NULL.
+func (mc *msgCtx) generateMultiPatternHardDelete() {
+	g := mc.g
+	returningExpr := mc.returningExpr(mc.writeColumns())
+
+	etagParam := ""
+	if mc.hasEtag {
+		etagParam = ", etag string"
+	}
+	g.P(fmt.Sprintf("func (s *Store) Delete%s(ctx context.Context, %s string%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), etagParam, mc.goTypeFqi))
+	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
+	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+1))
+	mc.emitIDConditionAppends("  ", idParamName)
+	g.P(fmt.Sprintf("  query := %s(\"DELETE FROM %s WHERE %%s RETURNING \", %s(conditions, \" AND \")) + %s",
+		mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
+	if mc.hasEtag {
+		g.P("  if etag != \"\" {")
+		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
+			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+		g.P("    params = append(params, etag)")
+		g.P("  }")
+	}
+
+	mc.generateHardDeleteDirect()
 
 	g.P("}")
 	g.P()

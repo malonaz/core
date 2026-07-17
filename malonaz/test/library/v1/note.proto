@@ -14,6 +14,7 @@ option go_package = "github.com/malonaz/core/genproto/test/library/v1";
 message Note {
   option (google.api.resource) = {
     type: "library.test.malonaz.com/Note"
+    pattern: "organizations/{organization}/notes/{note}"
     pattern: "organizations/{organization}/authors/{author}/notes/{note}"
     pattern: "organizations/{organization}/shelves/{shelf}/notes/{note}"
     singular: "note"

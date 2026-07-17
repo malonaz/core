@@ -16,7 +16,26 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
-	if mc.pattern.Parent != nil {
+	if mc.multiPattern {
+		// Validate the parent against each parent pattern; per-name parent
+		// enforcement happens through HasParent below.
+		parents := mc.uniqueParentPatterns()
+		if len(parents) > 0 {
+			matchCalls := make([]string, len(parents))
+			for i, parent := range parents {
+				matchCalls[i] = fmt.Sprintf("%s(\"%s\", request.Parent)", mc.gen.ident(resourcenamePkg, "Match"), parent.Value)
+			}
+			g.P("  if request.Parent != \"\" {")
+			g.P("    switch {")
+			g.P(fmt.Sprintf("    case %s:", strings.Join(matchCalls, ", ")))
+			g.P("    default:")
+			g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
+				mc.statusErrorf(), mc.codes("InvalidArgument")))
+			g.P("    }")
+			g.P("  }")
+			g.P()
+		}
+	} else if mc.pattern.Parent != nil {
 		parent := mc.pattern.Parent
 		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
 		g.P("  if request.Parent != \"\" {")
@@ -29,9 +48,8 @@ func (mc *methodCtx) generateBatchGet() error {
 		g.P()
 	}
 
-	for _, v := range mc.pattern.Variables {
-		camel := xstrings.ToCamelCase(v)
-		g.P(fmt.Sprintf("  %sIds := make([]string, len(request.GetNames()))", camel))
+	for _, varName := range mc.varNames() {
+		g.P(fmt.Sprintf("  %sIds := make([]string, len(request.GetNames()))", varName))
 	}
 	g.P()
 
@@ -41,22 +59,21 @@ func (mc *methodCtx) generateBatchGet() error {
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
 
-	if mc.pattern.Parent != nil {
+	if mc.multiPattern || mc.pattern.Parent != nil {
 		g.P("    if request.Parent != \"\" && !" + mc.gen.ident(resourcenamePkg, "HasParent") + "(name, request.Parent) {")
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"name %%q does not have parent %%q\", name, request.Parent).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("    }")
 	}
 
-	g.P(fmt.Sprintf("    %s, err := %s(name)", mc.pattern.VariableIDs(true), mc.parseName))
+	g.P(fmt.Sprintf("    %s, err := %s(name)", mc.idParams(), mc.parseName))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"parsing name %%s: %%v\", name, err).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
 
-	for _, v := range mc.pattern.Variables {
-		camel := xstrings.ToCamelCase(v)
-		g.P(fmt.Sprintf("    %sIds[i] = %sId", camel, camel))
+	for _, varName := range mc.varNames() {
+		g.P(fmt.Sprintf("    %sIds[i] = %sId", varName, varName))
 	}
 
 	g.P("  }")
@@ -64,9 +81,8 @@ func (mc *methodCtx) generateBatchGet() error {
 
 	var storeArgs []string
 	storeArgs = append(storeArgs, "ctx")
-	for _, v := range mc.pattern.Variables {
-		camel := xstrings.ToCamelCase(v)
-		storeArgs = append(storeArgs, camel+"Ids")
+	for _, varName := range mc.varNames() {
+		storeArgs = append(storeArgs, varName+"Ids")
 	}
 	g.P(fmt.Sprintf("  db%s, err := s.store.BatchGet%s(%s)",
 		pr.PluralGoName(), pr.PluralGoName(), strings.Join(storeArgs, ", ")))

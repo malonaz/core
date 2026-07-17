@@ -3,6 +3,7 @@ package rpc
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -252,8 +253,13 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 
 // generateResourceLevel emits the per-resource store interface, server struct, and constructor.
 func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) error {
+	mc, err := gen.newMethodCtx(si, mi)
+	if err != nil {
+		return err
+	}
+
 	g := gen.g
-	pr := mi.rpc.ParsedResource
+	pr := mc.pr
 	svcName := xstrings.ToPascalCase(si.service.GoName)
 	svcNameUntitled := xstrings.ToCamelCase(si.service.GoName)
 	resourceGoName := pr.SingularGoName()
@@ -261,19 +267,6 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	serverNameUntitled := fmt.Sprintf("%s_%sServer", svcNameUntitled, resourceGoName)
 	serverName := fmt.Sprintf("%s_%sServer", svcName, resourceGoName)
 	goTypeQgi := gen.modelIdent(mi.rpc.Message.GoIdent.GoName)
-
-	pattern, err := pr.SinglePattern()
-	if err != nil {
-		return err
-	}
-
-	softDeletable := mi.rpc.Message.Desc.Fields().ByName("delete_time") != nil
-	hasEtag := mi.rpc.Message.Desc.Fields().ByName("etag") != nil
-
-	singletonChildren, err := schema.SingletonChildren(mi.rpc.Message, pr)
-	if err != nil {
-		return err
-	}
 
 	// Determine hasRequestID by scanning all create methods for this resource.
 	hasRequestID := false
@@ -304,7 +297,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		insertSig += "requestID string, "
 	}
 	insertSig += fmt.Sprintf("%s *%s", xstrings.ToCamelCase(resourceGoName), goTypeQgi)
-	for _, child := range singletonChildren {
+	for _, child := range mc.singletonChildren {
 		insertSig += fmt.Sprintf(", %s *%s", xstrings.ToCamelCase(child.Resource.SingularGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
 	}
 	insertSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
@@ -313,26 +306,26 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	// Update
 	updateSig := fmt.Sprintf("  Update%s(ctx %s, %s *%s, updateClause string, columns []string",
 		resourceGoName, gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(resourceGoName), goTypeQgi)
-	if hasEtag {
+	if mc.hasEtag {
 		updateSig += ", etag string"
 	}
 	updateSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 	g.P(updateSig)
 
 	// Delete (only for non-singletons).
-	if !pattern.Singleton {
-		if softDeletable {
+	if !mc.singleton {
+		if mc.softDeletable {
 			deleteSig := fmt.Sprintf("  SoftDelete%s(ctx %s, %s string",
-				resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true))
-			if hasEtag {
+				resourceGoName, gen.ident(contextPkg, "Context"), mc.idParams())
+			if mc.hasEtag {
 				deleteSig += ", etag, newEtag string"
 			}
 			deleteSig += fmt.Sprintf(", deleteTime %s) (*%s, error)", gen.ident(timePkg, "Time"), goTypeQgi)
 			g.P(deleteSig)
 		} else {
 			deleteSig := fmt.Sprintf("  Delete%s(ctx %s, %s string",
-				resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true))
-			if hasEtag {
+				resourceGoName, gen.ident(contextPkg, "Context"), mc.idParams())
+			if mc.hasEtag {
 				deleteSig += ", etag string"
 			}
 			deleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
@@ -342,22 +335,22 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// Get
 	g.P(fmt.Sprintf("  Get%s(ctx %s, %s string) (*%s, error)",
-		resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true), goTypeQgi))
+		resourceGoName, gen.ident(contextPkg, "Context"), mc.idParams(), goTypeQgi))
 
 	// BatchGet.
 	batchGetSig := fmt.Sprintf("  BatchGet%s(ctx %s", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
-	for _, v := range pattern.Variables {
-		batchGetSig += fmt.Sprintf(", %sIds []string", xstrings.ToCamelCase(v))
+	for _, varName := range mc.varNames() {
+		batchGetSig += fmt.Sprintf(", %sIds []string", varName)
 	}
 	batchGetSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
 	g.P(batchGetSig)
 
 	// List
 	listSig := fmt.Sprintf("  List%s(ctx %s, ", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
-	if pattern.Parent != nil {
-		listSig += pattern.Parent.VariableIDs(true) + " string, "
+	if parentIDNames := mc.parentIDNames(); len(parentIDNames) > 0 {
+		listSig += strings.Join(parentIDNames, ", ") + " string, "
 	}
-	if softDeletable {
+	if mc.softDeletable {
 		listSig += "showDeleted bool, "
 	}
 	listSig += fmt.Sprintf("whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*%s, error)", goTypeQgi)
@@ -425,8 +418,13 @@ type methodCtx struct {
 	si *serviceInfo
 	mi *methodInfo
 
-	pr             *resource.ParsedResource
+	pr *resource.ParsedResource
+	// pattern is only set for single-pattern resources.
 	pattern        *resource.ParsedPattern
+	patterns       []*resource.ParsedPattern
+	unionVars      []resource.UnionVariable
+	multiPattern   bool
+	singleton      bool
 	resourceGoName string
 	serverGoName   string
 	modelGoName    string
@@ -452,7 +450,13 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	goType := mi.rpc.Message.GoIdent.GoName
 	svcNameUntitled := xstrings.ToCamelCase(si.service.GoName)
 
-	pattern, err := pr.SinglePattern()
+	multiPattern := len(pr.Patterns) > 1
+	var pattern *resource.ParsedPattern
+	if !multiPattern {
+		pattern = pr.Patterns[0]
+	}
+
+	unionVars, err := pr.UnionVariables()
 	if err != nil {
 		return nil, err
 	}
@@ -467,6 +471,20 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		return nil, err
 	}
 
+	if multiPattern {
+		if len(singletonChildren) > 0 {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", pr.Desc.Type)
+		}
+		if mi.natsEventOpts != nil {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot declare nats events", pr.Desc.Type)
+		}
+		for _, p := range pr.Patterns {
+			if p.Parent == nil {
+				return nil, fmt.Errorf("multi-pattern resource %s has parentless pattern %q; not supported", pr.Desc.Type, p.Value)
+			}
+		}
+	}
+
 	return &methodCtx{
 		gen: gen,
 		g:   gen.g,
@@ -475,6 +493,10 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 
 		pr:             pr,
 		pattern:        pattern,
+		patterns:       pr.Patterns,
+		unionVars:      unionVars,
+		multiPattern:   multiPattern,
+		singleton:      pattern != nil && pattern.Singleton,
 		resourceGoName: resourceGoName,
 		serverGoName:   fmt.Sprintf("%s_%sServer", svcNameUntitled, resourceGoName),
 		modelGoName:    resourceGoName + "Model",
@@ -493,6 +515,94 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		singletonChildren: singletonChildren,
 		natsStreamGoName:  natsStreamGoName,
 	}, nil
+}
+
+// --- identity helpers ---
+
+// varNames returns the camelCase base name of each union identifier variable,
+// e.g. ["organization", "author", "shelf", "note"].
+func (mc *methodCtx) varNames() []string {
+	names := make([]string, len(mc.unionVars))
+	for i, unionVariable := range mc.unionVars {
+		names[i] = xstrings.ToCamelCase(unionVariable.Name)
+	}
+	return names
+}
+
+// idNames returns the Go parameter name of each union identifier, e.g.
+// ["organizationId", "authorId", "shelfId", "noteId"].
+func (mc *methodCtx) idNames() []string {
+	names := mc.varNames()
+	for i := range names {
+		names[i] += "Id"
+	}
+	return names
+}
+
+func (mc *methodCtx) idParams() string {
+	return strings.Join(mc.idNames(), ", ")
+}
+
+// parentIDNames returns the identifier parameters of the resource's parents: a
+// singleton's identity is exactly its parent's; a collection resource's parent
+// identifiers are everything but its own.
+func (mc *methodCtx) parentIDNames() []string {
+	names := mc.idNames()
+	if mc.singleton {
+		return names
+	}
+	if len(names) == 0 {
+		return nil
+	}
+	return names[:len(names)-1]
+}
+
+func (mc *methodCtx) sharedVariableSet() map[string]bool {
+	set := make(map[string]bool, len(mc.unionVars))
+	for _, unionVariable := range mc.unionVars {
+		if unionVariable.Shared {
+			set[unionVariable.Name] = true
+		}
+	}
+	return set
+}
+
+// patternDiscriminatorIDNames returns the identifier parameters unique to the
+// given pattern, used to select the pattern at runtime.
+func (mc *methodCtx) patternDiscriminatorIDNames(pattern *resource.ParsedPattern) []string {
+	sharedVariableSet := mc.sharedVariableSet()
+	var names []string
+	for _, variable := range pattern.Variables {
+		if !sharedVariableSet[variable] {
+			names = append(names, xstrings.ToCamelCase(variable)+"Id")
+		}
+	}
+	return names
+}
+
+// patternIDArgs returns the identifier arguments of the pattern in pattern order.
+func (mc *methodCtx) patternIDArgs(pattern *resource.ParsedPattern) string {
+	names := make([]string, len(pattern.Variables))
+	for i, variable := range pattern.Variables {
+		names[i] = xstrings.ToCamelCase(variable) + "Id"
+	}
+	return strings.Join(names, ", ")
+}
+
+// uniqueParentPatterns returns the distinct parent patterns of the resource's
+// patterns, in declaration order.
+func (mc *methodCtx) uniqueParentPatterns() []*resource.ParsedPattern {
+	seen := map[string]bool{}
+	var parents []*resource.ParsedPattern
+	for _, pattern := range mc.patterns {
+		parent := pattern.Parent
+		if parent == nil || seen[parent.Value] {
+			continue
+		}
+		seen[parent.Value] = true
+		parents = append(parents, parent)
+	}
+	return parents
 }
 
 // --- helpers ---

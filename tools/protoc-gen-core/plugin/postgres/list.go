@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
 )
@@ -12,8 +13,12 @@ func (mc *msgCtx) generateList() {
 	pluralUntitled := untitle(pluralGoName)
 
 	parentParam := ""
-	if mc.pattern.Parent != nil {
-		parentParam = mc.pattern.Parent.VariableIDs(true) + " string, "
+	if len(mc.parentBindings) > 0 {
+		names := make([]string, len(mc.parentBindings))
+		for i, binding := range mc.parentBindings {
+			names[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Id"
+		}
+		parentParam = strings.Join(names, ", ") + " string, "
 	}
 	showDeletedParam := ""
 	if mc.hasDeleteTime {
@@ -37,8 +42,10 @@ func (mc *msgCtx) generateList() {
 		colPrefix = mc.bareTableName + "."
 	}
 
-	if mc.pattern.Parent != nil {
-		for _, binding := range mc.parentColumnBindings() {
+	if len(mc.parentBindings) > 0 {
+		// Empty pattern-specific identifiers are simply not filtered on: a row
+		// only populates the identifiers of the pattern it was created under.
+		for _, binding := range mc.parentBindings {
 			paramName := untitle(xstrings.ToCamelCase(binding.Variable))
 			g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", paramName, paramName))
 			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s = $%%d\", len(params) + 1))",

@@ -13,6 +13,8 @@ go_library(
         "book_review_aip.go",
         "bookmark.pb.go",
         "bookmark_aip.go",
+        "note.pb.go",
+        "note_aip.go",
         "shelf.pb.go",
         "shelf_aip.go",
         "shelf_nats_event.pb.go",

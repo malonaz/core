@@ -82,6 +82,20 @@ type LibraryServiceClient interface {
 	ListBookReviews(ctx context.Context, in *ListBookReviewsRequest, opts ...grpc.CallOption) (*ListBookReviewsResponse, error)
 	// Gets multiple book reviews in a single request.
 	BatchGetBookReviews(ctx context.Context, in *BatchGetBookReviewsRequest, opts ...grpc.CallOption) (*BatchGetBookReviewsResponse, error)
+	// Creates a note.
+	CreateNote(ctx context.Context, in *CreateNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
+	// Gets a note.
+	GetNote(ctx context.Context, in *GetNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
+	// Updates a note.
+	UpdateNote(ctx context.Context, in *UpdateNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
+	// Deletes a note.
+	DeleteNote(ctx context.Context, in *DeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
+	// Lists notes.
+	ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error)
+	// Gets multiple notes in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error)
 }
 
 type libraryServiceClient struct {
@@ -326,6 +340,60 @@ func (c *libraryServiceClient) BatchGetBookReviews(ctx context.Context, in *Batc
 	return out, nil
 }
 
+func (c *libraryServiceClient) CreateNote(ctx context.Context, in *CreateNoteRequest, opts ...grpc.CallOption) (*v1.Note, error) {
+	out := new(v1.Note)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/CreateNote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) GetNote(ctx context.Context, in *GetNoteRequest, opts ...grpc.CallOption) (*v1.Note, error) {
+	out := new(v1.Note)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/GetNote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UpdateNote(ctx context.Context, in *UpdateNoteRequest, opts ...grpc.CallOption) (*v1.Note, error) {
+	out := new(v1.Note)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/UpdateNote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) DeleteNote(ctx context.Context, in *DeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error) {
+	out := new(v1.Note)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/DeleteNote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error) {
+	out := new(ListNotesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/ListNotes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error) {
+	out := new(BatchGetNotesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility
@@ -388,6 +456,20 @@ type LibraryServiceServer interface {
 	ListBookReviews(context.Context, *ListBookReviewsRequest) (*ListBookReviewsResponse, error)
 	// Gets multiple book reviews in a single request.
 	BatchGetBookReviews(context.Context, *BatchGetBookReviewsRequest) (*BatchGetBookReviewsResponse, error)
+	// Creates a note.
+	CreateNote(context.Context, *CreateNoteRequest) (*v1.Note, error)
+	// Gets a note.
+	GetNote(context.Context, *GetNoteRequest) (*v1.Note, error)
+	// Updates a note.
+	UpdateNote(context.Context, *UpdateNoteRequest) (*v1.Note, error)
+	// Deletes a note.
+	DeleteNote(context.Context, *DeleteNoteRequest) (*v1.Note, error)
+	// Lists notes.
+	ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error)
+	// Gets multiple notes in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have forward compatible implementations.
@@ -471,6 +553,24 @@ func (UnimplementedLibraryServiceServer) ListBookReviews(context.Context, *ListB
 }
 func (UnimplementedLibraryServiceServer) BatchGetBookReviews(context.Context, *BatchGetBookReviewsRequest) (*BatchGetBookReviewsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchGetBookReviews not implemented")
+}
+func (UnimplementedLibraryServiceServer) CreateNote(context.Context, *CreateNoteRequest) (*v1.Note, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNote not implemented")
+}
+func (UnimplementedLibraryServiceServer) GetNote(context.Context, *GetNoteRequest) (*v1.Note, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNote not implemented")
+}
+func (UnimplementedLibraryServiceServer) UpdateNote(context.Context, *UpdateNoteRequest) (*v1.Note, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateNote not implemented")
+}
+func (UnimplementedLibraryServiceServer) DeleteNote(context.Context, *DeleteNoteRequest) (*v1.Note, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteNote not implemented")
+}
+func (UnimplementedLibraryServiceServer) ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNotes not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetNotes not implemented")
 }
 
 // UnsafeLibraryServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -952,6 +1052,114 @@ func _LibraryService_BatchGetBookReviews_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_CreateNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).CreateNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/CreateNote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).CreateNote(ctx, req.(*CreateNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_GetNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).GetNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/GetNote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).GetNote(ctx, req.(*GetNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UpdateNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UpdateNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/UpdateNote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UpdateNote(ctx, req.(*UpdateNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_DeleteNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).DeleteNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/DeleteNote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).DeleteNote(ctx, req.(*DeleteNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_ListNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNotesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ListNotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/ListNotes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ListNotes(ctx, req.(*ListNotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetNotesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetNotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetNotes(ctx, req.(*BatchGetNotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1062,6 +1270,30 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetBookReviews",
 			Handler:    _LibraryService_BatchGetBookReviews_Handler,
+		},
+		{
+			MethodName: "CreateNote",
+			Handler:    _LibraryService_CreateNote_Handler,
+		},
+		{
+			MethodName: "GetNote",
+			Handler:    _LibraryService_GetNote_Handler,
+		},
+		{
+			MethodName: "UpdateNote",
+			Handler:    _LibraryService_UpdateNote_Handler,
+		},
+		{
+			MethodName: "DeleteNote",
+			Handler:    _LibraryService_DeleteNote_Handler,
+		},
+		{
+			MethodName: "ListNotes",
+			Handler:    _LibraryService_ListNotes_Handler,
+		},
+		{
+			MethodName: "BatchGetNotes",
+			Handler:    _LibraryService_BatchGetNotes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

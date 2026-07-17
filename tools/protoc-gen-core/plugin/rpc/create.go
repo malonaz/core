@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
 )
@@ -25,9 +26,16 @@ func (mc *methodCtx) generateCreate() error {
 		g.P("  }")
 	}
 
-	patternVarID, err := mc.pattern.VariableID(true)
-	if err != nil {
-		return err
+	var patternVarID string
+	if mc.multiPattern {
+		idNames := mc.idNames()
+		patternVarID = idNames[len(idNames)-1]
+	} else {
+		var err error
+		patternVarID, err = mc.pattern.VariableID(true)
+		if err != nil {
+			return err
+		}
 	}
 	g.P(fmt.Sprintf("  %s := request.%sId", patternVarID, resourceGoName))
 	g.P(fmt.Sprintf("  if %s == \"\" {", patternVarID))
@@ -35,24 +43,30 @@ func (mc *methodCtx) generateCreate() error {
 	g.P("  }")
 	g.P()
 
-	if mc.pattern.Parent != nil {
-		parent := mc.pattern.Parent
-		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
-		g.P(fmt.Sprintf("  if %s(request.Parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
-		g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()",
-			mc.statusErrorf(), mc.codes("InvalidArgument")))
-		g.P("  }")
-		g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
-			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
-		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
-			mc.statusErrorf(), mc.codes("InvalidArgument")))
-		g.P("  }")
+	if mc.multiPattern {
+		if err := mc.generateMultiPatternCreateName(); err != nil {
+			return err
+		}
+	} else {
+		if mc.pattern.Parent != nil {
+			parent := mc.pattern.Parent
+			g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
+			g.P(fmt.Sprintf("  if %s(request.Parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+			g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()",
+				mc.statusErrorf(), mc.codes("InvalidArgument")))
+			g.P("  }")
+			g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
+				mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
+			g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
+				mc.statusErrorf(), mc.codes("InvalidArgument")))
+			g.P("  }")
+			g.P()
+		}
+
+		g.P(fmt.Sprintf("  request.%s.Name = %s(\"%s\", %s)",
+			resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), mc.pattern.Value, mc.pattern.VariableIDs(true)))
 		g.P()
 	}
-
-	g.P(fmt.Sprintf("  request.%s.Name = %s(\"%s\", %s)",
-		resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), mc.pattern.Value, mc.pattern.VariableIDs(true)))
-	g.P()
 
 	// STEP 2: Instantiate timestamps.
 	g.P("  // STEP 2: Instantiate timestamps.")
@@ -176,6 +190,48 @@ func (mc *methodCtx) generateCreate() error {
 
 	g.P(fmt.Sprintf("  return %s, nil", xstrings.ToCamelCase(resourceGoName)))
 	g.P("}")
+	g.P()
+	return nil
+}
+
+// generateMultiPatternCreateName parses the parent against each pattern's
+// parent pattern and builds the resource name directly in the matching case.
+func (mc *methodCtx) generateMultiPatternCreateName() error {
+	g := mc.g
+	resourceGoName := mc.resourceGoName
+	parentIDNames := mc.parentIDNames()
+
+	// Each parent pattern must map to exactly one resource pattern, otherwise
+	// the parent alone cannot determine the resource name.
+	parentValueSet := map[string]bool{}
+	for _, pattern := range mc.patterns {
+		if parentValueSet[pattern.Parent.Value] {
+			return fmt.Errorf("patterns of resource %s share parent pattern %q; cannot determine the resource name from the parent", mc.pr.Desc.Type, pattern.Parent.Value)
+		}
+		parentValueSet[pattern.Parent.Value] = true
+	}
+
+	g.P(fmt.Sprintf("  var %s string", strings.Join(parentIDNames, ", ")))
+	g.P(fmt.Sprintf("  if %s(request.Parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+	g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()",
+		mc.statusErrorf(), mc.codes("InvalidArgument")))
+	g.P("  }")
+	g.P("  switch {")
+	for _, pattern := range mc.patterns {
+		parent := pattern.Parent
+		g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
+		g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",
+			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
+		g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("    }")
+		g.P(fmt.Sprintf("    request.%s.Name = %s(\"%s\", %s)",
+			resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), pattern.Value, mc.patternIDArgs(pattern)))
+	}
+	g.P("  default:")
+	g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
+		mc.statusErrorf(), mc.codes("InvalidArgument")))
+	g.P("  }")
 	g.P()
 	return nil
 }

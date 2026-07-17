@@ -12,14 +12,14 @@ import "malonaz/test/library/library_service/v1/author.proto";
 import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
 import "malonaz/test/library/library_service/v1/book_review.proto";
+import "malonaz/test/library/library_service/v1/note.proto";
 import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/author.proto";
 import "malonaz/test/library/v1/author_profile.proto";
 import "malonaz/test/library/v1/book.proto";
 import "malonaz/test/library/v1/book_review.proto";
+import "malonaz/test/library/v1/note.proto";
 import "malonaz/test/library/v1/shelf.proto";
-//import "malonaz/test/library/library_service/v1/note.proto";
-//import "malonaz/test/library/v1/note.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
 
@@ -260,5 +260,77 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/reviews:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
+  }
+
+  // ===================== Note (Multi-parent: Author | Shelf) =====================
+
+  // Creates a note.
+  rpc CreateNote(CreateNoteRequest) returns (malonaz.test.library.v1.Note) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/authors/*}/notes"
+      body: "note"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/shelves/*}/notes"
+        body: "note"
+      }
+    };
+    option (google.api.method_signature) = "parent,note";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Gets a note.
+  rpc GetNote(GetNoteRequest) returns (malonaz.test.library.v1.Note) {
+    option (google.api.http) = {
+      get: "/v1/{name=organizations/*/authors/*/notes/*}"
+      additional_bindings: {get: "/v1/{name=organizations/*/shelves/*/notes/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Updates a note.
+  rpc UpdateNote(UpdateNoteRequest) returns (malonaz.test.library.v1.Note) {
+    option (google.api.http) = {
+      patch: "/v1/{note.name=organizations/*/authors/*/notes/*}"
+      body: "note"
+      additional_bindings: {
+        patch: "/v1/{note.name=organizations/*/shelves/*/notes/*}"
+        body: "note"
+      }
+    };
+    option (google.api.method_signature) = "note,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Deletes a note.
+  rpc DeleteNote(DeleteNoteRequest) returns (malonaz.test.library.v1.Note) {
+    option (google.api.http) = {
+      delete: "/v1/{name=organizations/*/authors/*/notes/*}"
+      additional_bindings: {delete: "/v1/{name=organizations/*/shelves/*/notes/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Lists notes.
+  rpc ListNotes(ListNotesRequest) returns (ListNotesResponse) {
+    option (google.api.http) = {
+      get: "/v1/{parent=organizations/*/authors/*}/notes"
+      additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes"}
+    };
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Gets multiple notes in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetNotes(BatchGetNotesRequest) returns (BatchGetNotesResponse) {
+    option (google.api.http) = {
+      get: "/v1/{parent=organizations/*/authors/*}/notes:batchGet"
+      additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes:batchGet"}
+    };
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
   }
 }

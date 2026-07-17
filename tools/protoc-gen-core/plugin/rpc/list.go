@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/huandu/xstrings"
 )
@@ -26,7 +27,27 @@ func (mc *methodCtx) generateList() {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
-	if mc.pattern.Parent != nil {
+	if mc.multiPattern {
+		// The parent can follow any of the resource's parent patterns; the
+		// identifiers of the unmatched patterns stay empty and are not filtered on.
+		parentIDNames := mc.parentIDNames()
+		g.P("// Parse parent names")
+		g.P(fmt.Sprintf("  var %s string", strings.Join(parentIDNames, ", ")))
+		g.P("  switch {")
+		for _, parent := range mc.uniqueParentPatterns() {
+			g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
+			g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",
+				mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
+			g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
+				mc.statusErrorf(), mc.codes("InvalidArgument")))
+			g.P("    }")
+		}
+		g.P("  default:")
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("  }")
+		g.P()
+	} else if mc.pattern.Parent != nil {
 		parent := mc.pattern.Parent
 		g.P("// Parse parent names")
 		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
@@ -53,8 +74,8 @@ func (mc *methodCtx) generateList() {
 	g.P("  // Retrieve from the database.")
 	dbName := "db" + resourceGoName
 	listArgs := "ctx, "
-	if mc.pattern.Parent != nil {
-		listArgs += mc.pattern.Parent.VariableIDs(true) + ", "
+	if parentIDNames := mc.parentIDNames(); len(parentIDNames) > 0 {
+		listArgs += strings.Join(parentIDNames, ", ") + ", "
 	}
 	if mc.softDeletable {
 		listArgs += "request.ShowDeleted, "
