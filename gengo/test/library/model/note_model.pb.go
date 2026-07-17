@@ -136,23 +136,26 @@ func (m *Note) ToPb() (*v1.Note, error) {
 }
 
 func ParseNoteName(name string) (string, string, string, string, error) {
-	{
+	switch {
+	case resourcename.Match("organizations/{organization}/notes/{note}", name):
 		var OrganizationID, NoteID string
-		if err := resourcename.Sscan(name, "organizations/{organization}/notes/{note}", &OrganizationID, &NoteID); err == nil {
-			return OrganizationID, "", "", NoteID, nil
+		if err := resourcename.Sscan(name, "organizations/{organization}/notes/{note}", &OrganizationID, &NoteID); err != nil {
+			return "", "", "", "", fmt.Errorf("parsing resource name: %v", err)
 		}
-	}
-	{
+		return OrganizationID, "", "", NoteID, nil
+	case resourcename.Match("organizations/{organization}/authors/{author}/notes/{note}", name):
 		var OrganizationID, AuthorID, NoteID string
-		if err := resourcename.Sscan(name, "organizations/{organization}/authors/{author}/notes/{note}", &OrganizationID, &AuthorID, &NoteID); err == nil {
-			return OrganizationID, AuthorID, "", NoteID, nil
+		if err := resourcename.Sscan(name, "organizations/{organization}/authors/{author}/notes/{note}", &OrganizationID, &AuthorID, &NoteID); err != nil {
+			return "", "", "", "", fmt.Errorf("parsing resource name: %v", err)
 		}
-	}
-	{
+		return OrganizationID, AuthorID, "", NoteID, nil
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}/notes/{note}", name):
 		var OrganizationID, ShelfID, NoteID string
-		if err := resourcename.Sscan(name, "organizations/{organization}/shelves/{shelf}/notes/{note}", &OrganizationID, &ShelfID, &NoteID); err == nil {
-			return OrganizationID, "", ShelfID, NoteID, nil
+		if err := resourcename.Sscan(name, "organizations/{organization}/shelves/{shelf}/notes/{note}", &OrganizationID, &ShelfID, &NoteID); err != nil {
+			return "", "", "", "", fmt.Errorf("parsing resource name: %v", err)
 		}
+		return OrganizationID, "", ShelfID, NoteID, nil
+	default:
+		return "", "", "", "", fmt.Errorf("parsing resource name: %q does not match any pattern of note", name)
 	}
-	return "", "", "", "", fmt.Errorf("parsing resource name: %q does not match any pattern of note", name)
 }

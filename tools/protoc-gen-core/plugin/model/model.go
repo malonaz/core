@@ -459,6 +459,7 @@ func (m *Model) multiPatternParseNameDef() (string, error) {
 	unionFields := m.resourceIDFieldNames()
 	variableToBinding := m.bindingsByVariable()
 	sscan := m.fqn("go.einride.tech/aip/resourcename", "Sscan")
+	match := m.fqn("go.einride.tech/aip/resourcename", "Match")
 
 	returnTypes := make([]string, len(unionFields))
 	for i := range unionFields {
@@ -467,6 +468,12 @@ func (m *Model) multiPatternParseNameDef() (string, error) {
 	returnTypes = append(returnTypes, "error")
 	fmt.Fprintf(&b, "func Parse%sName(name string) (%s) {\n", goName, strings.Join(returnTypes, ", "))
 
+	emptyStrings := make([]string, len(unionFields))
+	for i := range emptyStrings {
+		emptyStrings[i] = `""`
+	}
+
+	fmt.Fprintf(&b, "\tswitch {\n")
 	for _, pattern := range m.Patterns {
 		patternFields := make([]string, len(pattern.Variables))
 		patternFieldSet := map[string]bool{}
@@ -488,20 +495,18 @@ func (m *Model) multiPatternParseNameDef() (string, error) {
 		}
 		returns = append(returns, "nil")
 
-		fmt.Fprintf(&b, "\t{\n")
+		fmt.Fprintf(&b, "\tcase %s(\"%s\", name):\n", match, pattern.Value)
 		fmt.Fprintf(&b, "\t\tvar %s string\n", strings.Join(patternFields, ", "))
-		fmt.Fprintf(&b, "\t\tif err := %s(name, \"%s\", %s); err == nil {\n", sscan, pattern.Value, strings.Join(addrArgs, ", "))
-		fmt.Fprintf(&b, "\t\t\treturn %s\n", strings.Join(returns, ", "))
+		fmt.Fprintf(&b, "\t\tif err := %s(name, \"%s\", %s); err != nil {\n", sscan, pattern.Value, strings.Join(addrArgs, ", "))
+		fmt.Fprintf(&b, "\t\t\treturn %s, %s(\"parsing resource name: %%v\", err)\n",
+			strings.Join(emptyStrings, ", "), m.fqn("fmt", "Errorf"))
 		fmt.Fprintf(&b, "\t\t}\n")
-		fmt.Fprintf(&b, "\t}\n")
+		fmt.Fprintf(&b, "\t\treturn %s\n", strings.Join(returns, ", "))
 	}
-
-	emptyStrings := make([]string, len(unionFields))
-	for i := range emptyStrings {
-		emptyStrings[i] = `""`
-	}
-	fmt.Fprintf(&b, "\treturn %s, %s(\"parsing resource name: %%q does not match any pattern of %s\", name)\n",
+	fmt.Fprintf(&b, "\tdefault:\n")
+	fmt.Fprintf(&b, "\t\treturn %s, %s(\"parsing resource name: %%q does not match any pattern of %s\", name)\n",
 		strings.Join(emptyStrings, ", "), m.fqn("fmt", "Errorf"), m.ParsedResource.SingularSnakeCase())
+	fmt.Fprintf(&b, "\t}\n")
 	fmt.Fprintf(&b, "}\n")
 	return b.String(), nil
 }

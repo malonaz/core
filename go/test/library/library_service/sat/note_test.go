@@ -820,6 +820,7 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 
 	authorNote := createTestNote(t, author.Name, "Isolation Author Note")
 	shelfNote := createTestNote(t, shelf.Name, "Isolation Shelf Note")
+	orgNote := createTestNote(t, organizationParent, "Isolation Org Note")
 
 	t.Run("AuthorParentOnlySeesAuthorNotes", func(t *testing.T) {
 		t.Parallel()
@@ -855,6 +856,18 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 		require.True(t, nameSet[shelfNote.Name])
 	})
 
+	t.Run("ReturnedNamesMatchParentPattern", func(t *testing.T) {
+		t.Parallel()
+		results := listNotes(t, author.Name, "")
+		for _, note := range results {
+			require.True(t, strings.HasPrefix(note.Name, author.Name+"/notes/"))
+		}
+		results = listNotes(t, shelf.Name, "")
+		for _, note := range results {
+			require.True(t, strings.HasPrefix(note.Name, shelf.Name+"/notes/"))
+		}
+	})
+
 	t.Run("WildcardParent_OtherOrganizationExcluded", func(t *testing.T) {
 		t.Parallel()
 		otherOrganizationParent := getOrganizationParent()
@@ -864,6 +877,18 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 		results := listNotes(t, organizationParent+"/authors/-", "")
 		for _, note := range results {
 			require.NotEqual(t, otherNote.Name, note.Name)
+		}
+	})
+
+	t.Run("OrganizationNoteExcludedFromAuthorAndShelf", func(t *testing.T) {
+		t.Parallel()
+		authorResults := listNotes(t, author.Name, "")
+		for _, note := range authorResults {
+			require.NotEqual(t, orgNote.Name, note.Name)
+		}
+		shelfResults := listNotes(t, shelf.Name, "")
+		for _, note := range shelfResults {
+			require.NotEqual(t, orgNote.Name, note.Name)
 		}
 	})
 
