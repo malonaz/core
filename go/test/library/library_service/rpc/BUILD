@@ -8,6 +8,7 @@ go_protoc_gen_core(
             "model": "//go/test/library/model",
         },
     },
+    labels = ["copy_generated_code:go:gengo"],
     plugin = "rpc",
     test_only = True,
     deps = ["//malonaz/test/library/library_service/v1"],

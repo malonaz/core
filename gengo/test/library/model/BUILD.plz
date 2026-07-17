@@ -1,0 +1,19 @@
+go_library(
+    name = "model",
+    srcs = [
+        "author_model.pb.go",
+        "author_profile_model.pb.go",
+        "book_model.pb.go",
+        "book_review_model.pb.go",
+        "bookmark_model.pb.go",
+        "shelf_model.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/test/library/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

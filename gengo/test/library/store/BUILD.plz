@@ -1,0 +1,17 @@
+go_library(
+    name = "store",
+    srcs = [
+        "author_postgres.pb.go",
+        "author_profile_postgres.pb.go",
+        "book_postgres.pb.go",
+        "book_review_postgres.pb.go",
+        "bookmark_postgres.pb.go",
+        "shelf_postgres.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/postgres",
+        "//go/test/library/model",
+        "//third_party/go:github.com__jackc__pgx__v5",
+    ],
+)
