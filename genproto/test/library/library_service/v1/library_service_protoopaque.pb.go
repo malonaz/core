@@ -32,7 +32,7 @@ var File_malonaz_test_library_library_service_v1_library_service_proto protorefl
 
 const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\xe7=\n" +
+	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\xeb?\n" +
 	"\x0eLibraryService\x12\xd8\x01\n" +
 	"\fCreateAuthor\x12<.malonaz.test.library.library_service.v1.CreateAuthorRequest\x1a\x1f.malonaz.test.library.v1.Author\"i\xdaA\rparent,author´-!\n" +
 	"\x1flibrary.test.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xc1\x01\n" +
@@ -88,22 +88,22 @@ const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc
 	"\x0fListBookReviews\x12?.malonaz.test.library.library_service.v1.ListBookReviewsRequest\x1a@.malonaz.test.library.library_service.v1.ListBookReviewsResponse\"p\xdaA\x06parent´-%\n" +
 	"#library.test.malonaz.com/BookReview\x82\xd3\xe4\x93\x028\x126/v1/{parent=organizations/*/shelves/*/books/*}/reviews\x12\xa1\x02\n" +
 	"\x13BatchGetBookReviews\x12C.malonaz.test.library.library_service.v1.BatchGetBookReviewsRequest\x1aD.malonaz.test.library.library_service.v1.BatchGetBookReviewsResponse\"\x7f\xdaA\fparent,names´-%\n" +
-	"#library.test.malonaz.com/BookReview\x82\xd3\xe4\x93\x02A\x12?/v1/{parent=organizations/*/shelves/*/books/*}/reviews:batchGet\x12\x8b\x02\n" +
+	"#library.test.malonaz.com/BookReview\x82\xd3\xe4\x93\x02A\x12?/v1/{parent=organizations/*/shelves/*/books/*}/reviews:batchGet\x12\xb8\x02\n" +
 	"\n" +
-	"CreateNote\x12:.malonaz.test.library.library_service.v1.CreateNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xa1\x01\xdaA\vparent,note´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02j:\x04noteZ4:\x04note\",/v1/{parent=organizations/*/shelves/*}/notes\",/v1/{parent=organizations/*/authors/*}/notes\x12\xf2\x01\n" +
-	"\aGetNote\x127.malonaz.test.library.library_service.v1.GetNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\x8e\x01\xdaA\x04name´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02^Z.\x12,/v1/{name=organizations/*/shelves/*/notes/*}\x12,/v1/{name=organizations/*/authors/*/notes/*}\x12\x9a\x02\n" +
+	"CreateNote\x12:.malonaz.test.library.library_service.v1.CreateNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xce\x01\xdaA\vparent,note´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\x96\x01:\x04noteZ4:\x04note\",/v1/{parent=organizations/*/authors/*}/notesZ4:\x04note\",/v1/{parent=organizations/*/shelves/*}/notes\"\"/v1/{parent=organizations/*}/notes\x12\x99\x02\n" +
+	"\aGetNote\x127.malonaz.test.library.library_service.v1.GetNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xb5\x01\xdaA\x04name´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\x84\x01Z.\x12,/v1/{name=organizations/*/authors/*/notes/*}Z.\x12,/v1/{name=organizations/*/shelves/*/notes/*}\x12\"/v1/{name=organizations/*/notes/*}\x12\xcc\x02\n" +
 	"\n" +
-	"UpdateNote\x12:.malonaz.test.library.library_service.v1.UpdateNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xb0\x01\xdaA\x10note,update_mask´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02t:\x04noteZ9:\x04note21/v1/{note.name=organizations/*/shelves/*/notes/*}21/v1/{note.name=organizations/*/authors/*/notes/*}\x12\xf8\x01\n" +
+	"UpdateNote\x12:.malonaz.test.library.library_service.v1.UpdateNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xe2\x01\xdaA\x10note,update_mask´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\xa5\x01:\x04noteZ9:\x04note21/v1/{note.name=organizations/*/authors/*/notes/*}Z9:\x04note21/v1/{note.name=organizations/*/shelves/*/notes/*}2'/v1/{note.name=organizations/*/notes/*}\x12\x9f\x02\n" +
 	"\n" +
-	"DeleteNote\x12:.malonaz.test.library.library_service.v1.DeleteNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\x8e\x01\xdaA\x04name´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02^Z.*,/v1/{name=organizations/*/shelves/*/notes/*}*,/v1/{name=organizations/*/authors/*/notes/*}\x12\x95\x02\n" +
-	"\tListNotes\x129.malonaz.test.library.library_service.v1.ListNotesRequest\x1a:.malonaz.test.library.library_service.v1.ListNotesResponse\"\x90\x01\xdaA\x06parent´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02^Z.\x12,/v1/{parent=organizations/*/shelves/*}/notes\x12,/v1/{parent=organizations/*/authors/*}/notes\x12\xb9\x02\n" +
-	"\rBatchGetNotes\x12=.malonaz.test.library.library_service.v1.BatchGetNotesRequest\x1a>.malonaz.test.library.library_service.v1.BatchGetNotesResponse\"\xa8\x01\xdaA\fparent,names´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02pZ7\x125/v1/{parent=organizations/*/shelves/*}/notes:batchGet\x125/v1/{parent=organizations/*/authors/*}/notes:batchGet\x1av\xcaA\x18library.test.malonaz.com\x82\x91$)\n" +
+	"DeleteNote\x12:.malonaz.test.library.library_service.v1.DeleteNoteRequest\x1a\x1d.malonaz.test.library.v1.Note\"\xb5\x01\xdaA\x04name´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\x84\x01Z.*,/v1/{name=organizations/*/authors/*/notes/*}Z.*,/v1/{name=organizations/*/shelves/*/notes/*}*\"/v1/{name=organizations/*/notes/*}\x12\xbc\x02\n" +
+	"\tListNotes\x129.malonaz.test.library.library_service.v1.ListNotesRequest\x1a:.malonaz.test.library.library_service.v1.ListNotesResponse\"\xb7\x01\xdaA\x06parent´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\x84\x01Z.\x12,/v1/{parent=organizations/*/authors/*}/notesZ.\x12,/v1/{parent=organizations/*/shelves/*}/notes\x12\"/v1/{parent=organizations/*}/notes\x12\xe9\x02\n" +
+	"\rBatchGetNotes\x12=.malonaz.test.library.library_service.v1.BatchGetNotesRequest\x1a>.malonaz.test.library.library_service.v1.BatchGetNotesResponse\"\xd8\x01\xdaA\fparent,names´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\x82\xd3\xe4\x93\x02\x9f\x01Z7\x125/v1/{parent=organizations/*/authors/*}/notes:batchGetZ7\x125/v1/{parent=organizations/*/shelves/*}/notes:batchGet\x12+/v1/{parent=organizations/*}/notes:batchGet\x1av\xcaA\x18library.test.malonaz.com\x82\x91$)\n" +
 	"\x1cmalonaz.test.library.v1.book\x12\x05\b\x80\x9a\x9e\x018\x01@\x01\x82\x91$*\n" +
 	"\x1dmalonaz.test.library.v1.shelf\x12\x05\b\x80\x9a\x9e\x018\x01@\x01BBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 

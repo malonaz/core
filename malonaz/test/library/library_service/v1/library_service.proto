@@ -262,13 +262,17 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/BookReview";
   }
 
-  // ===================== Note (Multi-parent: Author | Shelf) =====================
+  // ===================== Note (Multi-parent: Organization | Author | Shelf) =====================
 
   // Creates a note.
   rpc CreateNote(CreateNoteRequest) returns (malonaz.test.library.v1.Note) {
     option (google.api.http) = {
-      post: "/v1/{parent=organizations/*/authors/*}/notes"
+      post: "/v1/{parent=organizations/*}/notes"
       body: "note"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/authors/*}/notes"
+        body: "note"
+      }
       additional_bindings: {
         post: "/v1/{parent=organizations/*/shelves/*}/notes"
         body: "note"
@@ -281,7 +285,8 @@ service LibraryService {
   // Gets a note.
   rpc GetNote(GetNoteRequest) returns (malonaz.test.library.v1.Note) {
     option (google.api.http) = {
-      get: "/v1/{name=organizations/*/authors/*/notes/*}"
+      get: "/v1/{name=organizations/*/notes/*}"
+      additional_bindings: {get: "/v1/{name=organizations/*/authors/*/notes/*}"}
       additional_bindings: {get: "/v1/{name=organizations/*/shelves/*/notes/*}"}
     };
     option (google.api.method_signature) = "name";
@@ -291,8 +296,12 @@ service LibraryService {
   // Updates a note.
   rpc UpdateNote(UpdateNoteRequest) returns (malonaz.test.library.v1.Note) {
     option (google.api.http) = {
-      patch: "/v1/{note.name=organizations/*/authors/*/notes/*}"
+      patch: "/v1/{note.name=organizations/*/notes/*}"
       body: "note"
+      additional_bindings: {
+        patch: "/v1/{note.name=organizations/*/authors/*/notes/*}"
+        body: "note"
+      }
       additional_bindings: {
         patch: "/v1/{note.name=organizations/*/shelves/*/notes/*}"
         body: "note"
@@ -305,7 +314,8 @@ service LibraryService {
   // Deletes a note.
   rpc DeleteNote(DeleteNoteRequest) returns (malonaz.test.library.v1.Note) {
     option (google.api.http) = {
-      delete: "/v1/{name=organizations/*/authors/*/notes/*}"
+      delete: "/v1/{name=organizations/*/notes/*}"
+      additional_bindings: {delete: "/v1/{name=organizations/*/authors/*/notes/*}"}
       additional_bindings: {delete: "/v1/{name=organizations/*/shelves/*/notes/*}"}
     };
     option (google.api.method_signature) = "name";
@@ -315,7 +325,8 @@ service LibraryService {
   // Lists notes.
   rpc ListNotes(ListNotesRequest) returns (ListNotesResponse) {
     option (google.api.http) = {
-      get: "/v1/{parent=organizations/*/authors/*}/notes"
+      get: "/v1/{parent=organizations/*}/notes"
+      additional_bindings: {get: "/v1/{parent=organizations/*/authors/*}/notes"}
       additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes"}
     };
     option (google.api.method_signature) = "parent";
@@ -327,7 +338,8 @@ service LibraryService {
   // See: https://google.aip.dev/231 (Batch methods: Get).
   rpc BatchGetNotes(BatchGetNotesRequest) returns (BatchGetNotesResponse) {
     option (google.api.http) = {
-      get: "/v1/{parent=organizations/*/authors/*}/notes:batchGet"
+      get: "/v1/{parent=organizations/*}/notes:batchGet"
+      additional_bindings: {get: "/v1/{parent=organizations/*/authors/*}/notes:batchGet"}
       additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes:batchGet"}
     };
     option (google.api.method_signature) = "parent,names";
