@@ -589,7 +589,7 @@ func (mc *methodCtx) uniqueParentPatterns() []*resource.ParsedPattern {
 		seen[parent.Value] = true
 		parents = append(parents, parent)
 	}
-	return parents
+	return resource.SortPatternsBySpecificity(parents)
 }
 
 // --- helpers ---

@@ -53,16 +53,17 @@ func (mc *msgCtx) generateList() {
 				g.P("  }")
 				continue
 			}
-			// Non-shared parent identifiers: an empty value means the matched
-			// parent pattern lacks this segment, so the row must not populate it.
-			g.P(fmt.Sprintf("  if %sId != \"-\" {", paramName))
-			g.P(fmt.Sprintf("    if %sId != \"\" {", paramName))
-			g.P(fmt.Sprintf("      whereClause = %s(whereClause, %s(\"%s%s = $%%d\", len(params) + 1))",
+			// Non-shared parent identifiers: "" means the matched parent
+			// pattern lacks this segment, so the row must not populate it;
+			// "-" means any populated value.
+			g.P(fmt.Sprintf("  if %sId == \"-\" {", paramName))
+			g.P(fmt.Sprintf("    whereClause = %s(whereClause, \"%s%s IS NOT NULL\")", mc.postgres("AddToWhereClause"), colPrefix, binding.Column))
+			g.P(fmt.Sprintf("  } else if %sId != \"\" {", paramName))
+			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s = $%%d\", len(params) + 1))",
 				mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), colPrefix, binding.Column))
-			g.P(fmt.Sprintf("      params = append(params, %sId)", paramName))
-			g.P("    } else {")
-			g.P(fmt.Sprintf("      whereClause = %s(whereClause, \"%s%s IS NULL\")", mc.postgres("AddToWhereClause"), colPrefix, binding.Column))
-			g.P("    }")
+			g.P(fmt.Sprintf("    params = append(params, %sId)", paramName))
+			g.P("  } else {")
+			g.P(fmt.Sprintf("    whereClause = %s(whereClause, \"%s%s IS NULL\")", mc.postgres("AddToWhereClause"), colPrefix, binding.Column))
 			g.P("  }")
 		}
 		g.P()

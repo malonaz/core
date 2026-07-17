@@ -339,21 +339,21 @@ func (s *Store) ListNotes(ctx context.Context, organizationId, authorId, shelfId
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
-	if authorId != "-" {
-		if authorId != "" {
-			whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author_id = $%d", len(params)+1))
-			params = append(params, authorId)
-		} else {
-			whereClause = postgres.AddToWhereClause(whereClause, "author_id IS NULL")
-		}
+	if authorId == "-" {
+		whereClause = postgres.AddToWhereClause(whereClause, "author_id IS NOT NULL")
+	} else if authorId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author_id = $%d", len(params)+1))
+		params = append(params, authorId)
+	} else {
+		whereClause = postgres.AddToWhereClause(whereClause, "author_id IS NULL")
 	}
-	if shelfId != "-" {
-		if shelfId != "" {
-			whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf_id = $%d", len(params)+1))
-			params = append(params, shelfId)
-		} else {
-			whereClause = postgres.AddToWhereClause(whereClause, "shelf_id IS NULL")
-		}
+	if shelfId == "-" {
+		whereClause = postgres.AddToWhereClause(whereClause, "shelf_id IS NOT NULL")
+	} else if shelfId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf_id = $%d", len(params)+1))
+		params = append(params, shelfId)
+	} else {
+		whereClause = postgres.AddToWhereClause(whereClause, "shelf_id IS NULL")
 	}
 
 	if !showDeleted {

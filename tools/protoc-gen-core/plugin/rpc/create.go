@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 func (mc *methodCtx) generateCreate() error {
@@ -196,6 +198,8 @@ func (mc *methodCtx) generateCreate() error {
 
 // generateMultiPatternCreateName parses the parent against each pattern's
 // parent pattern and builds the resource name directly in the matching case.
+// Parents are matched most-specific first, so a literal segment aliasing a
+// variable segment resolves to the literal pattern.
 func (mc *methodCtx) generateMultiPatternCreateName() error {
 	g := mc.g
 	resourceGoName := mc.resourceGoName
@@ -217,7 +221,7 @@ func (mc *methodCtx) generateMultiPatternCreateName() error {
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("  }")
 	g.P("  switch {")
-	for _, pattern := range mc.patterns {
+	for _, pattern := range resource.SortPatternsBySpecificity(mc.patterns) {
 		parent := pattern.Parent
 		g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
 		g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",

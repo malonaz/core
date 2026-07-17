@@ -330,3 +330,21 @@ func GetMessageByResourceType(resourceType string) (*protogen.Message, error) {
 	}
 	return nil, fmt.Errorf("could not find message %q", resourceType)
 }
+
+// LiteralSegmentCount returns the number of literal (non-variable) segments of the pattern.
+func LiteralSegmentCount(pattern *ParsedPattern) int {
+	return strings.Count(pattern.Value, "/") + 1 - len(pattern.Variables)
+}
+
+// SortPatternsBySpecificity orders patterns so a name matching several
+// patterns hits the most specific one first: more literal segments first.
+// Patterns with different segment counts never both match a name, so the
+// sort is stable to otherwise preserve declaration order.
+func SortPatternsBySpecificity(patterns []*ParsedPattern) []*ParsedPattern {
+	sorted := make([]*ParsedPattern, len(patterns))
+	copy(sorted, patterns)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return LiteralSegmentCount(sorted[i]) > LiteralSegmentCount(sorted[j])
+	})
+	return sorted
+}

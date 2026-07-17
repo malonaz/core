@@ -1746,11 +1746,6 @@ func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11
 		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
 	switch {
-	case resourcename.Match("organizations/{organization}", request.Parent):
-		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
-		}
-		request.Note.Name = resourcename.Sprint("organizations/{organization}/notes/{note}", organizationId, noteId)
 	case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
@@ -1761,6 +1756,11 @@ func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 		}
 		request.Note.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}/notes/{note}", organizationId, shelfId, noteId)
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Note.Name = resourcename.Sprint("organizations/{organization}/notes/{note}", organizationId, noteId)
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 	}
@@ -1999,16 +1999,16 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 	// Parse parent names
 	var organizationId, authorId, shelfId string
 	switch {
-	case resourcename.Match("organizations/{organization}", request.Parent):
-		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
-		}
 	case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 		}
 	case resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 		}
 	default:
@@ -2053,7 +2053,7 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v11.BatchGetNotesRequest) (*v11.BatchGetNotesResponse, error) {
 	if request.Parent != "" {
 		switch {
-		case resourcename.Match("organizations/{organization}", request.Parent), resourcename.Match("organizations/{organization}/authors/{author}", request.Parent), resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+		case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent), resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent), resourcename.Match("organizations/{organization}", request.Parent):
 		default:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 		}

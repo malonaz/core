@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -362,19 +361,18 @@ func (m *Model) ToPbDef() (string, error) {
 }
 
 // multiPatternNameConstruction emits a switch selecting the resource name
-// pattern from whichever pattern-specific identifiers are set.
+// pattern from whichever pattern-specific identifiers are set. Patterns are
+// matched most-specific first: a row satisfying a deeper pattern's
+// identifiers also satisfies every prefix pattern's identifiers.
 func (m *Model) multiPatternNameConstruction() (string, error) {
 	var b strings.Builder
 	variableToBinding := m.bindingsByVariable()
 	sprint := m.fqn("go.einride.tech/aip/resourcename", "Sprint")
 
-	type patternCase struct {
-		pattern    *resource.ParsedPattern
-		conditions []string
-	}
-	var cases []patternCase
+	fmt.Fprintf(&b, "\tvar name string\n")
+	fmt.Fprintf(&b, "\tswitch {\n")
 	var defaultPattern *resource.ParsedPattern
-	for _, pattern := range m.Patterns {
+	for _, pattern := range resource.SortPatternsBySpecificity(m.Patterns) {
 		var conditions []string
 		for _, variable := range pattern.Variables {
 			binding := variableToBinding[variable]
@@ -389,19 +387,8 @@ func (m *Model) multiPatternNameConstruction() (string, error) {
 			defaultPattern = pattern
 			continue
 		}
-		cases = append(cases, patternCase{pattern: pattern, conditions: conditions})
-	}
-	// Most specific patterns first: a row satisfying a deeper pattern's
-	// identifiers also satisfies every prefix pattern's identifiers.
-	sort.SliceStable(cases, func(i, j int) bool {
-		return len(cases[i].conditions) > len(cases[j].conditions)
-	})
-
-	fmt.Fprintf(&b, "\tvar name string\n")
-	fmt.Fprintf(&b, "\tswitch {\n")
-	for _, patternCase := range cases {
-		fmt.Fprintf(&b, "\tcase %s:\n", strings.Join(patternCase.conditions, " && "))
-		fmt.Fprintf(&b, "\t\tname = %s(\"%s\"%s)\n", sprint, patternCase.pattern.Value, m.sprintArgs(patternCase.pattern, variableToBinding))
+		fmt.Fprintf(&b, "\tcase %s:\n", strings.Join(conditions, " && "))
+		fmt.Fprintf(&b, "\t\tname = %s(\"%s\"%s)\n", sprint, pattern.Value, m.sprintArgs(pattern, variableToBinding))
 	}
 	fmt.Fprintf(&b, "\tdefault:\n")
 	if defaultPattern != nil {
