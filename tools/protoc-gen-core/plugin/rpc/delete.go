@@ -20,6 +20,12 @@ func (mc *methodCtx) generateDelete() error {
 	g.P(fmt.Sprintf("func (s *%s) Delete%s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, resourceGoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
+	g.P(fmt.Sprintf("  if %s(request.Name) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+	g.P(fmt.Sprintf("    return nil, %s(%s, \"cannot use wildcard\").Err()",
+		mc.statusErrorf(), mc.codes("InvalidArgument")))
+	g.P("  }")
+	g.P()
+
 	// STEP 1: Parse resource name.
 	g.P("  // STEP 1: Parse resource name.")
 	g.P(fmt.Sprintf("  %s, err := %s(request.Name)", mc.idParams(), mc.parseName))

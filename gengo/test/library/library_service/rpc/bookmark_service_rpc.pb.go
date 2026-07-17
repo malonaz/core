@@ -250,6 +250,10 @@ func (s *bookmarkService_BookmarkServer) updateBookmark(ctx context.Context, req
 }
 
 func (s *bookmarkService_BookmarkServer) DeleteBookmark(ctx context.Context, request *v1.DeleteBookmarkRequest) (*v11.Bookmark, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, shelfId, bookId, bookmarkId, err := model.ParseBookmarkName(request.Name)
 	if err != nil {

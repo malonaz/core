@@ -290,6 +290,10 @@ func (s *userService_OrganizationServer) publishResourceDeletedEvent(ctx context
 }
 
 func (s *userService_OrganizationServer) DeleteOrganization(ctx context.Context, request *v11.DeleteOrganizationRequest) (*v13.Organization, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, err := model.ParseOrganizationName(request.Name)
 	if err != nil {
@@ -687,6 +691,10 @@ func (s *userService_UserServer) publishResourceDeletedEvent(ctx context.Context
 }
 
 func (s *userService_UserServer) DeleteUser(ctx context.Context, request *v11.DeleteUserRequest) (*v13.User, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, userId, err := model.ParseUserName(request.Name)
 	if err != nil {

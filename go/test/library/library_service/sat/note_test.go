@@ -218,7 +218,7 @@ func TestNoteCreate_UnderOrganization(t *testing.T) {
 		require.NotNil(t, deletedNote.DeleteTime)
 	})
 
-	t.Run("OrganizationParentListsAllNotesInOrganization", func(t *testing.T) {
+	t.Run("OrganizationParentListsOnlyOrganizationNotes", func(t *testing.T) {
 		t.Parallel()
 		scopedOrganizationParent := getOrganizationParent()
 		author := createTestAuthor(t, scopedOrganizationParent, "Org List Author")
@@ -227,16 +227,19 @@ func TestNoteCreate_UnderOrganization(t *testing.T) {
 		authorNote := createTestNote(t, author.Name, "Author Scoped Note")
 		shelfNote := createTestNote(t, shelf.Name, "Shelf Scoped Note")
 
-		// The organization pattern carries no author/shelf discriminator, so
-		// nothing is filtered on them: all notes in the organization are listed.
+		// Per AIP, the organization parent only lists notes created directly
+		// under the organization pattern; author- and shelf-parented notes are
+		// distinct collections and must not leak into it.
 		results := listNotes(t, scopedOrganizationParent, "")
+		require.Len(t, results, 1)
+		require.Equal(t, orgNote.Name, results[0].Name)
+
 		nameSet := map[string]bool{}
 		for _, note := range results {
 			nameSet[note.Name] = true
 		}
-		require.True(t, nameSet[orgNote.Name])
-		require.True(t, nameSet[authorNote.Name])
-		require.True(t, nameSet[shelfNote.Name])
+		require.False(t, nameSet[authorNote.Name])
+		require.False(t, nameSet[shelfNote.Name])
 	})
 }
 
@@ -807,6 +810,24 @@ func TestNoteDelete(t *testing.T) {
 		_, err := libraryServiceClient.DeleteNote(ctx, deleteNoteRequest)
 		grpcrequire.Error(t, codes.NotFound, err)
 	})
+
+	t.Run("OrgNoteDelete_DoesNotCascadeToAuthorNote", func(t *testing.T) {
+		t.Parallel()
+		scopedOrganizationParent := getOrganizationParent()
+		author := createTestAuthor(t, scopedOrganizationParent, "Note Cascade Author")
+		organizationNote := createTestNote(t, scopedOrganizationParent, "Cascade Org Note")
+		authorNote := createTestNote(t, author.Name, "Cascade Author Note")
+
+		deleteNoteRequest := &libraryservicepb.DeleteNoteRequest{Name: organizationNote.Name}
+		deletedNote, err := libraryServiceClient.DeleteNote(ctx, deleteNoteRequest)
+		require.NoError(t, err)
+		require.NotNil(t, deletedNote.DeleteTime)
+
+		// The author note lives in a distinct collection: it must survive untouched.
+		gotAuthorNote := getNote(t, authorNote.Name)
+		require.Nil(t, gotAuthorNote.DeleteTime)
+		grpcrequire.Equal(t, authorNote, gotAuthorNote)
+	})
 }
 
 // ===================== List =====================
@@ -836,6 +857,15 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 		require.Equal(t, shelfNote.Name, results[0].Name)
 	})
 
+	t.Run("OrganizationParentOnlySeesOrganizationNotes", func(t *testing.T) {
+		t.Parallel()
+		// Per AIP, each pattern is its own collection: the organization parent
+		// must not surface author- or shelf-parented notes.
+		results := listNotes(t, organizationParent, "")
+		require.Len(t, results, 1)
+		require.Equal(t, orgNote.Name, results[0].Name)
+	})
+
 	t.Run("OtherAuthorSeesNothing", func(t *testing.T) {
 		t.Parallel()
 		otherAuthor := createTestAuthor(t, organizationParent, "Note List Other Author")
@@ -843,17 +873,21 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 		require.Empty(t, results)
 	})
 
-	t.Run("WildcardAuthorParent_SpansParentsWithinOrganization", func(t *testing.T) {
+	t.Run("WildcardAuthorParent_SpansAuthorsOnly", func(t *testing.T) {
 		t.Parallel()
-		// The unmatched pattern's identifier is not filtered on, so a wildcard
-		// author parent lists every note in the organization.
+		// A wildcard author parent spans every author in the organization, but
+		// stays within the author collection: shelf-parented notes are excluded.
+		otherAuthor := createTestAuthor(t, organizationParent, "Note List Wildcard Author")
+		otherAuthorNote := createTestNote(t, otherAuthor.Name, "Wildcard Other Author Note")
+
 		results := listNotes(t, organizationParent+"/authors/-", "")
 		nameSet := map[string]bool{}
 		for _, note := range results {
 			nameSet[note.Name] = true
 		}
 		require.True(t, nameSet[authorNote.Name])
-		require.True(t, nameSet[shelfNote.Name])
+		require.True(t, nameSet[otherAuthorNote.Name])
+		require.False(t, nameSet[shelfNote.Name])
 	})
 
 	t.Run("ReturnedNamesMatchParentPattern", func(t *testing.T) {
@@ -865,6 +899,10 @@ func TestNoteList_ParentIsolation(t *testing.T) {
 		results = listNotes(t, shelf.Name, "")
 		for _, note := range results {
 			require.True(t, strings.HasPrefix(note.Name, shelf.Name+"/notes/"))
+		}
+		results = listNotes(t, organizationParent, "")
+		for _, note := range results {
+			require.True(t, strings.HasPrefix(note.Name, organizationParent+"/notes/"))
 		}
 	})
 

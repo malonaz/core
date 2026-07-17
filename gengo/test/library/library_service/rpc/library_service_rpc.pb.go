@@ -301,6 +301,10 @@ func (s *libraryService_AuthorServer) updateAuthor(ctx context.Context, request 
 }
 
 func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request *v11.DeleteAuthorRequest) (*v13.Author, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, authorId, err := model.ParseAuthorName(request.Name)
 	if err != nil {
@@ -891,6 +895,10 @@ func (s *libraryService_ShelfServer) publishResourceDeletedEvent(ctx context.Con
 }
 
 func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v11.DeleteShelfRequest) (*v13.Shelf, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, shelfId, err := model.ParseShelfName(request.Name)
 	if err != nil {
@@ -1321,6 +1329,10 @@ func (s *libraryService_BookServer) publishResourceDeletedEvent(ctx context.Cont
 }
 
 func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11.DeleteBookRequest) (*emptypb.Empty, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, shelfId, bookId, err := model.ParseBookName(request.Name)
 	if err != nil {
@@ -1926,6 +1938,10 @@ func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v11
 }
 
 func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11.DeleteNoteRequest) (*v13.Note, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(request.Name)
 	if err != nil {

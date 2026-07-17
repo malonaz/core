@@ -250,6 +250,10 @@ func (s *aiService_ChatServer) updateChat(ctx context.Context, request *v1.Updat
 }
 
 func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.DeleteChatRequest) (*v11.Chat, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
 	// STEP 1: Parse resource name.
 	organizationId, userId, chatId, err := model.ParseChatName(request.Name)
 	if err != nil {
