@@ -243,28 +243,33 @@ func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) 
 }
 
 // linkParentPattern resolves the parent resource's pattern prefixing the given
-// pattern, if any, and links it.
+// pattern, if any, and links it. Candidate prefixes are tried most specific
+// first; the first one backed by a registered resource wins.
 func linkParentPattern(reg *Registry, parsedPattern *ParsedPattern) error {
-	parentEnd, hasParent := parentPatternEnd(parsedPattern.variableEnds, parsedPattern.Singleton)
-	if !hasParent {
+	ends := parentPatternEnds(parsedPattern.Value, parsedPattern.variableEnds, parsedPattern.Singleton)
+	if len(ends) == 0 {
 		return nil
 	}
-
-	parentPatternValue := parsedPattern.Value[:parentEnd]
-	parentDescriptor, ok := reg.ResourcePatternToResourceDescriptor[parentPatternValue]
-	if !ok {
-		return fmt.Errorf("no resource descriptor found for parent pattern %q", parentPatternValue)
+	var lastErr error
+	for _, end := range ends {
+		parentPatternValue := parsedPattern.Value[:end]
+		parentDescriptor, ok := reg.ResourcePatternToResourceDescriptor[parentPatternValue]
+		if !ok {
+			lastErr = fmt.Errorf("no resource descriptor found for parent pattern %q", parentPatternValue)
+			continue
+		}
+		parentResource, err := Parse(reg, parentDescriptor)
+		if err != nil {
+			return fmt.Errorf("parsing (parent) resource descriptor %s: %w", parentDescriptor.Type, err)
+		}
+		parentPattern := parentResource.patternByValue(parentPatternValue)
+		if parentPattern == nil {
+			return fmt.Errorf("parent resource %s does not declare pattern %q", parentDescriptor.Type, parentPatternValue)
+		}
+		parsedPattern.Parent = parentPattern
+		return nil
 	}
-	parentResource, err := Parse(reg, parentDescriptor)
-	if err != nil {
-		return fmt.Errorf("parsing (parent) resource descriptor %s: %w", parentDescriptor.Type, err)
-	}
-	parentPattern := parentResource.patternByValue(parentPatternValue)
-	if parentPattern == nil {
-		return fmt.Errorf("parent resource %s does not declare pattern %q", parentDescriptor.Type, parentPatternValue)
-	}
-	parsedPattern.Parent = parentPattern
-	return nil
+	return lastErr
 }
 
 // scanPattern resolves a pattern's variables from the registered sub-pattern
@@ -291,21 +296,44 @@ func scanPattern(reg *Registry, pattern string) (variables []string, variableEnd
 	return variables, variableEnds, !lastSegmentIsVariable, nil
 }
 
-// parentPatternEnd returns the end offset of the pattern prefix identifying
-// the immediate parent, if any. A singleton's parent pattern ends at the
-// singleton's final variable; a collection resource's parent pattern ends at
-// its second-to-last variable.
-func parentPatternEnd(variableEnds []int, singleton bool) (int, bool) {
+// parentPatternEnds returns candidate end offsets of the pattern prefix
+// identifying the immediate parent, most specific first. A collection
+// resource may be parented by a singleton sitting on literal segments, e.g.
+// ".../contacts/{contact}/activity/events/{event}" is parented by
+// ".../contacts/{contact}/activity", so the prefix obtained by stripping the
+// final "collection/{id}" segment pair is tried before the variable-based prefix.
+func parentPatternEnds(pattern string, variableEnds []int, singleton bool) []int {
 	if singleton {
 		if len(variableEnds) == 0 {
-			return 0, false
+			return nil
 		}
-		return variableEnds[len(variableEnds)-1], true
+		return []int{variableEnds[len(variableEnds)-1]}
 	}
-	if len(variableEnds) < 2 {
-		return 0, false
+	if len(variableEnds) == 0 {
+		return nil
 	}
-	return variableEnds[len(variableEnds)-2], true
+
+	var sc resourcename.Scanner
+	sc.Init(pattern)
+	var segmentEnds []int
+	for sc.Scan() {
+		segmentEnds = append(segmentEnds, sc.End())
+	}
+
+	var ends []int
+	// Prefix obtained by stripping the final "collection/{id}" segment pair.
+	if len(segmentEnds) >= 3 {
+		ends = append(ends, segmentEnds[len(segmentEnds)-3])
+	}
+	// Prefix ending at the second-to-last variable, kept as a fallback for
+	// patterns whose literal-segment prefix is not a registered resource.
+	if len(variableEnds) >= 2 {
+		end := variableEnds[len(variableEnds)-2]
+		if len(ends) == 0 || ends[0] != end {
+			ends = append(ends, end)
+		}
+	}
+	return ends
 }
 
 // ParseFromMessage resolves a ParsedResource from a protogen message.

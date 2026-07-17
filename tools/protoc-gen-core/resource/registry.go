@@ -147,18 +147,17 @@ func (reg *Registry) registerAncestors() {
 			if err != nil {
 				continue
 			}
-			parentEnd, hasParent := parentPatternEnd(variableEnds, singleton)
-			if !hasParent {
-				continue
+			for _, end := range parentPatternEnds(pattern, variableEnds, singleton) {
+				parentDescriptor, ok := reg.ResourcePatternToResourceDescriptor[pattern[:end]]
+				if !ok {
+					continue
+				}
+				if reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type] == nil {
+					reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type] = map[string]struct{}{}
+				}
+				reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type][resourceType] = struct{}{}
+				break // Most specific parent wins.
 			}
-			parentDescriptor, ok := reg.ResourcePatternToResourceDescriptor[pattern[:parentEnd]]
-			if !ok {
-				continue
-			}
-			if reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type] == nil {
-				reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type] = map[string]struct{}{}
-			}
-			reg.ResourceTypeToChildResourceTypeSet[parentDescriptor.Type][resourceType] = struct{}{}
 		}
 	}
 }
