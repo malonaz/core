@@ -567,19 +567,6 @@ func (mc *methodCtx) sharedVariableSet() map[string]bool {
 	return set
 }
 
-// patternDiscriminatorIDNames returns the identifier parameters unique to the
-// given pattern, used to select the pattern at runtime.
-func (mc *methodCtx) patternDiscriminatorIDNames(pattern *resource.ParsedPattern) []string {
-	sharedVariableSet := mc.sharedVariableSet()
-	var names []string
-	for _, variable := range pattern.Variables {
-		if !sharedVariableSet[variable] {
-			names = append(names, xstrings.ToCamelCase(variable)+"Id")
-		}
-	}
-	return names
-}
-
 // patternIDArgs returns the identifier arguments of the pattern in pattern order.
 func (mc *methodCtx) patternIDArgs(pattern *resource.ParsedPattern) string {
 	names := make([]string, len(pattern.Variables))
