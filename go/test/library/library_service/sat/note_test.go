@@ -1214,4 +1214,164 @@ func TestNoteBatchGet(t *testing.T) {
 		_, err := libraryServiceClient.BatchGetNotes(ctx, batchGetNotesRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
+
+	t.Run("WildcardParent_DirectChildrenAllowed", func(t *testing.T) {
+		t.Parallel()
+		batchGetNotesRequest := &libraryservicepb.BatchGetNotesRequest{
+			Parent: "organizations/-/authors/-",
+			Names:  []string{authorNote1.Name, authorNote2.Name},
+		}
+		batchGetNotesResponse, err := libraryServiceClient.BatchGetNotes(ctx, batchGetNotesRequest)
+		require.NoError(t, err)
+		require.Len(t, batchGetNotesResponse.Notes, 2)
+	})
+
+	t.Run("WildcardParent_DeeperPatternRejected", func(t *testing.T) {
+		t.Parallel()
+		// organizations/- identifies the organization-level collection; an
+		// author-parented note is not a direct child of it.
+		batchGetNotesRequest := &libraryservicepb.BatchGetNotesRequest{
+			Parent: "organizations/-",
+			Names:  []string{authorNote1.Name},
+		}
+		_, err := libraryServiceClient.BatchGetNotes(ctx, batchGetNotesRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("AncestorParent_NotDirectChild_Rejected", func(t *testing.T) {
+		t.Parallel()
+		batchGetNotesRequest := &libraryservicepb.BatchGetNotesRequest{
+			Parent: organizationParent,
+			Names:  []string{authorNote1.Name},
+		}
+		_, err := libraryServiceClient.BatchGetNotes(ctx, batchGetNotesRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+}
+
+// ===================== Multi-pattern semantics =====================
+
+// TestNoteMultiPattern_SameIDAcrossParents creates notes sharing one ID under
+// all three patterns and verifies every operation stays scoped to its own
+// pattern. This exercises the NULL-matching of pattern-specific identifier
+// columns: a bug there makes operations hit a sibling pattern's row.
+func TestNoteMultiPattern_SameIDAcrossParents(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "MultiPattern SameID Author")
+	shelf := createTestShelf(t, organizationParent, "MultiPattern SameID Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	noteID := "shared-" + uuid.MustNewV7().String()[:8]
+	createWithID := func(parent, displayName string) *librarypb.Note {
+		t.Helper()
+		createNoteRequest := &libraryservicepb.CreateNoteRequest{
+			Parent: parent,
+			NoteId: noteID,
+			Note:   &librarypb.Note{DisplayName: displayName},
+		}
+		note, err := libraryServiceClient.CreateNote(ctx, createNoteRequest)
+		require.NoError(t, err)
+		return note
+	}
+
+	organizationNote := createWithID(organizationParent, "Org Copy")
+	authorNote := createWithID(author.Name, "Author Copy")
+	shelfNote := createWithID(shelf.Name, "Shelf Copy")
+
+	// Names must round-trip through the exact parent pattern.
+	require.Equal(t, organizationParent+"/notes/"+noteID, organizationNote.Name)
+	require.Equal(t, author.Name+"/notes/"+noteID, authorNote.Name)
+	require.Equal(t, shelf.Name+"/notes/"+noteID, shelfNote.Name)
+
+	// Get must return the pattern's own row, not a sibling's.
+	require.Equal(t, "Org Copy", getNote(t, organizationNote.Name).DisplayName)
+	require.Equal(t, "Author Copy", getNote(t, authorNote.Name).DisplayName)
+	require.Equal(t, "Shelf Copy", getNote(t, shelfNote.Name).DisplayName)
+
+	// BatchGet across patterns must map each name to its own row.
+	batchGetNotesRequest := &libraryservicepb.BatchGetNotesRequest{
+		Names: []string{shelfNote.Name, organizationNote.Name, authorNote.Name},
+	}
+	batchGetNotesResponse, err := libraryServiceClient.BatchGetNotes(ctx, batchGetNotesRequest)
+	require.NoError(t, err)
+	require.Len(t, batchGetNotesResponse.Notes, 3)
+	require.Equal(t, "Shelf Copy", batchGetNotesResponse.Notes[0].DisplayName)
+	require.Equal(t, "Org Copy", batchGetNotesResponse.Notes[1].DisplayName)
+	require.Equal(t, "Author Copy", batchGetNotesResponse.Notes[2].DisplayName)
+
+	// Update must only touch the targeted pattern's row.
+	updated := updateNote(t, &librarypb.Note{Name: organizationNote.Name, Content: "org only"}, []string{"content"})
+	require.Equal(t, organizationNote.Name, updated.Name)
+	require.Empty(t, getNote(t, authorNote.Name).Content)
+	require.Empty(t, getNote(t, shelfNote.Name).Content)
+
+	// Delete must only touch the targeted pattern's row.
+	deleteNoteRequest := &libraryservicepb.DeleteNoteRequest{Name: authorNote.Name}
+	deletedNote, err := libraryServiceClient.DeleteNote(ctx, deleteNoteRequest)
+	require.NoError(t, err)
+	require.NotNil(t, deletedNote.DeleteTime)
+	require.Nil(t, getNote(t, organizationNote.Name).DeleteTime)
+	require.Nil(t, getNote(t, shelfNote.Name).DeleteTime)
+}
+
+// TestNoteList_WildcardParents verifies wildcard segments on pattern-specific
+// parents mean "any populated value": rows from other patterns — including
+// the shallower organization pattern, whose parent columns are NULL — must
+// never leak into a wildcard listing.
+func TestNoteList_WildcardParents(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	authorA := createTestAuthor(t, organizationParent, "Wildcard Author A")
+	authorB := createTestAuthor(t, organizationParent, "Wildcard Author B")
+	shelf := createTestShelf(t, organizationParent, "Wildcard Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	organizationNote := createTestNote(t, organizationParent, "Wildcard Org Note")
+	authorANote := createTestNote(t, authorA.Name, "Wildcard Author A Note")
+	authorBNote := createTestNote(t, authorB.Name, "Wildcard Author B Note")
+	shelfNote := createTestNote(t, shelf.Name, "Wildcard Shelf Note")
+
+	collectNoteNameSet := func(t *testing.T, parent string) map[string]bool {
+		t.Helper()
+		noteNameSet := map[string]bool{}
+		for _, note := range listNotes(t, parent, "") {
+			noteNameSet[note.Name] = true
+		}
+		return noteNameSet
+	}
+
+	t.Run("AuthorWildcard_OnlyAuthorNotes", func(t *testing.T) {
+		t.Parallel()
+		noteNameSet := collectNoteNameSet(t, organizationParent+"/authors/-")
+		require.True(t, noteNameSet[authorANote.Name])
+		require.True(t, noteNameSet[authorBNote.Name])
+		require.False(t, noteNameSet[organizationNote.Name], "organization-level note leaked into authors/- listing")
+		require.False(t, noteNameSet[shelfNote.Name])
+	})
+
+	t.Run("ShelfWildcard_OnlyShelfNotes", func(t *testing.T) {
+		t.Parallel()
+		noteNameSet := collectNoteNameSet(t, organizationParent+"/shelves/-")
+		require.True(t, noteNameSet[shelfNote.Name])
+		require.False(t, noteNameSet[organizationNote.Name], "organization-level note leaked into shelves/- listing")
+		require.False(t, noteNameSet[authorANote.Name])
+		require.False(t, noteNameSet[authorBNote.Name])
+	})
+
+	t.Run("OrganizationWildcard_OnlyOrganizationNotes", func(t *testing.T) {
+		t.Parallel()
+		noteNameSet := collectNoteNameSet(t, "organizations/-")
+		require.True(t, noteNameSet[organizationNote.Name])
+		require.False(t, noteNameSet[authorANote.Name])
+		require.False(t, noteNameSet[shelfNote.Name])
+	})
+
+	t.Run("OrganizationAndAuthorWildcard", func(t *testing.T) {
+		t.Parallel()
+		noteNameSet := collectNoteNameSet(t, "organizations/-/authors/-")
+		require.True(t, noteNameSet[authorANote.Name])
+		require.True(t, noteNameSet[authorBNote.Name])
+		require.False(t, noteNameSet[organizationNote.Name], "organization-level note leaked into organizations/-/authors/- listing")
+		require.False(t, noteNameSet[shelfNote.Name])
+	})
 }

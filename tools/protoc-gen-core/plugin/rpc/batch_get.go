@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 func (mc *methodCtx) generateBatchGet() error {
@@ -17,24 +19,23 @@ func (mc *methodCtx) generateBatchGet() error {
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
 	if mc.multiPattern {
-		// Validate the parent against each parent pattern; per-name parent
-		// enforcement happens through HasParent below.
-		parents := mc.uniqueParentPatterns()
-		if len(parents) > 0 {
-			matchCalls := make([]string, len(parents))
-			for i, parent := range parents {
-				matchCalls[i] = fmt.Sprintf("%s(\"%s\", request.Parent)", mc.gen.ident(resourcenamePkg, "Match"), parent.Value)
-			}
-			g.P("  if request.Parent != \"\" {")
-			g.P("    switch {")
-			g.P(fmt.Sprintf("    case %s:", strings.Join(matchCalls, ", ")))
-			g.P("    default:")
-			g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
-				mc.statusErrorf(), mc.codes("InvalidArgument")))
-			g.P("    }")
-			g.P("  }")
-			g.P()
+		// Resolve which resource pattern the parent identifies (wildcard
+		// segments allowed); each name under this parent must match that
+		// pattern exactly. HasParent alone is a prefix check and would accept
+		// names from deeper patterns.
+		g.P("  var parentPatternValue string")
+		g.P("  if request.Parent != \"\" {")
+		g.P("    switch {")
+		for _, pattern := range resource.SortPatternsBySpecificity(mc.patterns) {
+			g.P(fmt.Sprintf("    case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), pattern.Parent.Value))
+			g.P(fmt.Sprintf("      parentPatternValue = \"%s\"", pattern.Value))
 		}
+		g.P("    default:")
+		g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("    }")
+		g.P("  }")
+		g.P()
 	} else if mc.pattern.Parent != nil {
 		parent := mc.pattern.Parent
 		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
@@ -59,7 +60,18 @@ func (mc *methodCtx) generateBatchGet() error {
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
 
-	if mc.multiPattern || mc.pattern.Parent != nil {
+	if mc.multiPattern {
+		g.P("    if request.Parent != \"\" {")
+		g.P(fmt.Sprintf("      if !%s(name, request.Parent) {", mc.gen.ident(resourcenamePkg, "HasParent")))
+		g.P(fmt.Sprintf("        return nil, %s(%s, \"name %%q does not have parent %%q\", name, request.Parent).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("      }")
+		g.P(fmt.Sprintf("      if !%s(parentPatternValue, name) {", mc.gen.ident(resourcenamePkg, "Match")))
+		g.P(fmt.Sprintf("        return nil, %s(%s, \"name %%q is not a direct child of parent %%q\", name, request.Parent).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("      }")
+		g.P("    }")
+	} else if mc.pattern.Parent != nil {
 		g.P("    if request.Parent != \"\" && !" + mc.gen.ident(resourcenamePkg, "HasParent") + "(name, request.Parent) {")
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"name %%q does not have parent %%q\", name, request.Parent).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))

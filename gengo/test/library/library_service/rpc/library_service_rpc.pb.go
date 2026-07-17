@@ -2051,9 +2051,15 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 }
 
 func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v11.BatchGetNotesRequest) (*v11.BatchGetNotesResponse, error) {
+	var parentPatternValue string
 	if request.Parent != "" {
 		switch {
-		case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent), resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent), resourcename.Match("organizations/{organization}", request.Parent):
+		case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
+			parentPatternValue = "organizations/{organization}/authors/{author}/notes/{note}"
+		case resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+			parentPatternValue = "organizations/{organization}/shelves/{shelf}/notes/{note}"
+		case resourcename.Match("organizations/{organization}", request.Parent):
+			parentPatternValue = "organizations/{organization}/notes/{note}"
 		default:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 		}
@@ -2068,8 +2074,13 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 		if resourcename.ContainsWildcard(name) {
 			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
 		}
-		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
-			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		if request.Parent != "" {
+			if !resourcename.HasParent(name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+			}
+			if !resourcename.Match(parentPatternValue, name) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q is not a direct child of parent %q", name, request.Parent).Err()
+			}
 		}
 		organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(name)
 		if err != nil {
