@@ -528,6 +528,89 @@ func trimCommentLines(s string) string {
 	return strings.TrimSpace(strings.Join(lines, "\n"))
 }
 
+// parentPatternsOf returns the parent name pattern of each of the resource's
+// patterns, i.e. each pattern with the resource's own trailing segments
+// removed. Non-singleton patterns end in "collection/{id}" (two segments);
+// singleton patterns end in a literal segment (one segment).
+func parentPatternsOf(resourceDescriptor *annotations.ResourceDescriptor) []string {
+	seen := map[string]bool{}
+	var parents []string
+	for _, pattern := range resourceDescriptor.GetPattern() {
+		segments := strings.Split(pattern, "/")
+		strip := 2
+		if !strings.HasSuffix(segments[len(segments)-1], "}") {
+			strip = 1
+		}
+		if len(segments) <= strip {
+			continue
+		}
+		parent := strings.Join(segments[:len(segments)-strip], "/")
+		if seen[parent] {
+			continue
+		}
+		seen[parent] = true
+		parents = append(parents, parent)
+	}
+	return parents
+}
+
+// wildcardFormats returns the deduplicated wildcard form of each pattern,
+// with every variable segment replaced by '-'.
+func wildcardFormats(patterns []string) []string {
+	seen := map[string]bool{}
+	var formats []string
+	for _, pattern := range patterns {
+		format := resourcePatternWildcard.ReplaceAllString(pattern, "-")
+		if seen[format] {
+			continue
+		}
+		seen[format] = true
+		formats = append(formats, format)
+	}
+	return formats
+}
+
+// augmentParentFieldComment documents the accepted parent formats on the
+// given parent field, covering every pattern of the referenced resource. The
+// field may reference the parent resource directly (type) or reference the
+// child resource (child_type), in which case the parent patterns are derived
+// from the child's patterns.
+func (s *Schema) augmentParentFieldComment(field protoreflect.FieldDescriptor) error {
+	resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
+	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return nil
+		}
+		return fmt.Errorf("getting resource reference for %q: %w", field.FullName(), err)
+	}
+
+	var parentPatterns []string
+	switch {
+	case resourceReference.GetType() != "":
+		resourceDescriptor, ok := s.GetResourceDescriptor(resourceReference.GetType())
+		if !ok {
+			return fmt.Errorf("getting resource descriptor for %q", resourceReference.GetType())
+		}
+		parentPatterns = resourceDescriptor.GetPattern()
+	case resourceReference.GetChildType() != "":
+		resourceDescriptor, ok := s.GetResourceDescriptor(resourceReference.GetChildType())
+		if !ok {
+			return fmt.Errorf("getting resource descriptor for %q", resourceReference.GetChildType())
+		}
+		parentPatterns = parentPatternsOf(resourceDescriptor)
+	}
+
+	formats := wildcardFormats(parentPatterns)
+	switch len(formats) {
+	case 0:
+	case 1:
+		s.comments[string(field.FullName())] += fmt.Sprintf("\nWildcard '-' can be used for any segment: e.g. %s", formats[0])
+	default:
+		s.comments[string(field.FullName())] += fmt.Sprintf("\nAccepted parent formats (wildcard '-' can be used for any segment): %s", strings.Join(formats, ", "))
+	}
+	return nil
+}
+
 func (s *Schema) augmentMethodComments() error {
 	var errRangeFiles error
 
@@ -564,22 +647,9 @@ func (s *Schema) augmentMethodComments() error {
 				// Parent field wildcard support
 				if !messageSeen {
 					if field := input.Fields().ByName("parent"); field != nil {
-						resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
-						if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
-							errRangeFiles = fmt.Errorf("getting resource reference for %q: %w", field.FullName(), err)
+						if err := s.augmentParentFieldComment(field); err != nil {
+							errRangeFiles = err
 							return false
-						}
-						if resourceReference.GetType() != "" {
-							resourceDescriptor, ok := s.GetResourceDescriptor(resourceReference.GetType())
-							if !ok {
-								errRangeFiles = fmt.Errorf("getting resource descriptor for %q", resourceReference.GetType())
-								return false
-							}
-							if len(resourceDescriptor.GetPattern()) > 0 {
-								pattern := resourceDescriptor.GetPattern()[0]
-								wildcardPattern := resourcePatternWildcard.ReplaceAllString(pattern, "-")
-								s.comments[string(field.FullName())] += fmt.Sprintf("\nWildcard '-' can be used for any segment: e.g. %s", wildcardPattern)
-							}
 						}
 					}
 				}
