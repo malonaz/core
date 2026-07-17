@@ -1,3 +1,4 @@
+// tools/protoc-gen-core/plugin/postgres/postgres.go
 package postgres
 
 import (
@@ -144,7 +145,7 @@ type childCtx struct {
 }
 
 func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error) {
-	bindings, err := schema.ColumnBindings(child.Resource, child.ModelOpts)
+	bindings, err := schema.ColumnBindings(child.Pattern, child.ModelOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +180,7 @@ type msgCtx struct {
 	message   *protogen.Message
 	modelOpts *modelpb.ModelOpts
 	pr        *resource.ParsedResource
+	pattern   *resource.ParsedPattern
 
 	goType  string
 	goName  string
@@ -215,8 +217,13 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	goType := message.GoIdent.GoName
 	goName := untitle(goType)
 
+	pattern, err := pr.SinglePattern()
+	if err != nil {
+		return nil, err
+	}
+
 	table := schema.TableOf(pr, modelOpts)
-	bindings, err := schema.ColumnBindings(pr, modelOpts)
+	bindings, err := schema.ColumnBindings(pattern, modelOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +235,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 
 	identifier := ""
-	if !pr.Singleton {
+	if !pattern.Singleton {
 		identifier = bindings[len(bindings)-1].Column
 	}
 
@@ -261,7 +268,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	return &msgCtx{
 		gen:     gen,
 		g:       gen.g,
-		message: message, modelOpts: modelOpts, pr: pr,
+		message: message, modelOpts: modelOpts, pr: pr, pattern: pattern,
 
 		goType:  goType,
 		goName:  goName,
@@ -370,15 +377,15 @@ func (mc *msgCtx) postgres(name string) string { return mc.gen.ident(postgresPkg
 func (mc *msgCtx) fmtI(name string) string     { return mc.gen.ident(fmtPkg, name) }
 func (mc *msgCtx) stringsI(name string) string { return mc.gen.ident(stringsPkg, name) }
 
-func (mc *msgCtx) patternVarIDsGoTrue() string { return mc.pr.PatternVariableIDs(true) }
+func (mc *msgCtx) patternVarIDsGoTrue() string { return mc.pattern.VariableIDs(true) }
 
 // parentColumnBindings returns the bindings of the parent's identifiers on
 // this resource's table. Parent variables are a prefix of the resource's own.
 func (mc *msgCtx) parentColumnBindings() []schema.ColumnBinding {
-	if mc.pr.Parent == nil {
+	if mc.pattern.Parent == nil {
 		return nil
 	}
-	return mc.columnBindings[:len(mc.pr.Parent.PatternVariables)]
+	return mc.columnBindings[:len(mc.pattern.Parent.Variables)]
 }
 
 func (mc *msgCtx) patternVarFieldAccess() string {

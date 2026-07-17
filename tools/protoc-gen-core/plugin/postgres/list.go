@@ -12,8 +12,8 @@ func (mc *msgCtx) generateList() {
 	pluralUntitled := untitle(pluralGoName)
 
 	parentParam := ""
-	if mc.pr.Parent != nil {
-		parentParam = mc.pr.Parent.PatternVariableIDs(true) + " string, "
+	if mc.pattern.Parent != nil {
+		parentParam = mc.pattern.Parent.VariableIDs(true) + " string, "
 	}
 	showDeletedParam := ""
 	if mc.hasDeleteTime {
@@ -37,7 +37,7 @@ func (mc *msgCtx) generateList() {
 		colPrefix = mc.bareTableName + "."
 	}
 
-	if mc.pr.Parent != nil {
+	if mc.pattern.Parent != nil {
 		for _, binding := range mc.parentColumnBindings() {
 			paramName := untitle(xstrings.ToCamelCase(binding.Variable))
 			g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", paramName, paramName))

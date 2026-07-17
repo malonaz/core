@@ -13,40 +13,38 @@ import (
 	"google.golang.org/protobuf/internal/strs"
 )
 
-// ParsedResource is a fully resolved resource with its hierarchy and pattern variables.
-type ParsedResource struct {
-	Desc             *annotationspb.ResourceDescriptor
-	Type             string
-	Pattern          string
-	Singleton        bool
-	PatternVariables []string
-
-	Parent   *ParsedResource
-	Children []*ParsedResource
+// ParsedPattern is one resource name pattern of a resource, with its variables
+// and its position in the resource hierarchy resolved.
+type ParsedPattern struct {
+	// Resource is the resource this pattern belongs to.
+	Resource *ParsedResource
+	// Value is the raw pattern, e.g. "organizations/{organization}/shelves/{shelf}".
+	Value string
+	// Variables are the snake_case pattern variables, e.g. ["organization", "shelf"].
+	Variables []string
+	// Singleton is true when the pattern ends on a literal segment.
+	Singleton bool
+	// Parent is the parent resource's pattern prefixing this one; nil at the root.
+	Parent *ParsedPattern
 }
 
-func (pr *ParsedResource) PatternVariable() (string, error) {
-	if pr.Singleton {
-		return "", fmt.Errorf("called PatternVariable on singleton resource")
+// VariableID returns the pattern's own identifier variable, e.g. "shelfId".
+// Singletons have no identifier of their own.
+func (p *ParsedPattern) VariableID(goStyle bool) (string, error) {
+	if p.Singleton {
+		return "", fmt.Errorf("singleton pattern %q has no identifier variable", p.Value)
 	}
-	return pr.Desc.Singular, nil
-}
-
-func (pr *ParsedResource) PatternVariableID(goStyle bool) (string, error) {
-	val, err := pr.PatternVariable()
-	if err != nil {
-		return "", err
-	}
-	val += "Id"
+	val := p.Resource.Desc.Singular + "Id"
 	if goStyle {
 		return val, nil
 	}
 	return xstrings.ToSnakeCase(val), nil
 }
 
-func (pr *ParsedResource) PatternVariableIDs(goStyle bool) string {
-	vals := make([]string, 0, len(pr.PatternVariables))
-	for _, v := range pr.PatternVariables {
+// VariableIDs returns the comma-separated identifier variables of the pattern.
+func (p *ParsedPattern) VariableIDs(goStyle bool) string {
+	vals := make([]string, 0, len(p.Variables))
+	for _, v := range p.Variables {
 		val := v + "_id"
 		if goStyle {
 			val = xstrings.ToCamelCase(val)
@@ -56,13 +54,39 @@ func (pr *ParsedResource) PatternVariableIDs(goStyle bool) string {
 	return strings.Join(vals, ", ")
 }
 
-func (pr *ParsedResource) PatternVariableIDPtrs() string {
-	vals := make([]string, 0, len(pr.PatternVariables))
-	for _, v := range pr.PatternVariables {
-		val := "&" + xstrings.ToCamelCase(v+"_id")
-		vals = append(vals, val)
+// VariableIDPtrs returns the comma-separated addresses of the pattern's identifier variables.
+func (p *ParsedPattern) VariableIDPtrs() string {
+	vals := make([]string, 0, len(p.Variables))
+	for _, v := range p.Variables {
+		vals = append(vals, "&"+xstrings.ToCamelCase(v+"_id"))
 	}
 	return strings.Join(vals, ", ")
+}
+
+// ParsedResource is a fully resolved resource with its patterns and children.
+type ParsedResource struct {
+	Desc     *annotationspb.ResourceDescriptor
+	Type     string
+	Patterns []*ParsedPattern
+	Children []*ParsedResource
+}
+
+// SinglePattern returns the resource's only pattern. Generators that do not
+// yet support multi-pattern resources use this as an explicit guard.
+func (pr *ParsedResource) SinglePattern() (*ParsedPattern, error) {
+	if len(pr.Patterns) != 1 {
+		return nil, fmt.Errorf("resource %s has %d patterns; multi-pattern resources are not supported here", pr.Desc.Type, len(pr.Patterns))
+	}
+	return pr.Patterns[0], nil
+}
+
+func (pr *ParsedResource) patternByValue(value string) *ParsedPattern {
+	for _, pattern := range pr.Patterns {
+		if pattern.Value == value {
+			return pattern
+		}
+	}
+	return nil
 }
 
 func (pr *ParsedResource) SingularGoName() string {
@@ -89,61 +113,27 @@ func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) 
 	if resourceDescriptor.Plural == "" {
 		return nil, fmt.Errorf("resource descriptor %s must define `plural`", resourceDescriptor.Type)
 	}
-
 	t := resourceDescriptor.GetType()
 	if t == "" {
 		return nil, fmt.Errorf("no resource type")
 	}
-	resourceType := aipreflect.ResourceType(t).Type()
-
-	if len(resourceDescriptor.Pattern) != 1 {
-		return nil, fmt.Errorf("we only support resources with single patterns")
+	if len(resourceDescriptor.Pattern) == 0 {
+		return nil, fmt.Errorf("resource descriptor %s declares no patterns", resourceDescriptor.Type)
 	}
-	pattern := resourceDescriptor.Pattern[0]
-
-	var sc resourcename.Scanner
-	var lastSegmentIsVariable bool
-	var patternVariables []string
-	sc.Init(pattern)
-	for sc.Scan() {
-		if sc.Segment().IsVariable() {
-			subPattern := pattern[:sc.End()]
-			rd, ok := reg.ResourcePatternToResourceDescriptor[subPattern]
-			if !ok {
-				return nil, fmt.Errorf("no resource descriptor found for sub-pattern %q in pattern %q", subPattern, pattern)
-			}
-			patternVariables = append(patternVariables, xstrings.ToSnakeCase(rd.Singular))
-			lastSegmentIsVariable = true
-		} else {
-			lastSegmentIsVariable = false
-		}
-	}
-	singleton := !lastSegmentIsVariable
-	hasParent := len(patternVariables) > 1 || (singleton && len(patternVariables) > 0)
 
 	parsedResource := &ParsedResource{
-		Desc:             resourceDescriptor,
-		Type:             resourceType,
-		Pattern:          pattern,
-		Singleton:        singleton,
-		PatternVariables: patternVariables,
+		Desc: resourceDescriptor,
+		Type: aipreflect.ResourceType(t).Type(),
 	}
+	// Memoize before recursing: parents and children may refer back to this resource.
 	reg.ParsedResourceTypeToParsedResource[resourceDescriptor.Type] = parsedResource
 
-	if hasParent {
-		parentResourceType, ok := reg.ResourceTypeToParentResourceType[resourceDescriptor.Type]
-		if !ok {
-			return nil, fmt.Errorf("could not find %s's parent resource type", resourceDescriptor.Type)
-		}
-		parentResourceDescriptor, ok := reg.ResourceTypeToResourceDescriptor[parentResourceType]
-		if !ok {
-			return nil, fmt.Errorf("resource descriptor %s not found", parentResourceType)
-		}
-		var err error
-		parsedResource.Parent, err = Parse(reg, parentResourceDescriptor)
+	for _, pattern := range resourceDescriptor.Pattern {
+		parsedPattern, err := parsePattern(reg, parsedResource, pattern)
 		if err != nil {
-			return nil, fmt.Errorf("parsing (parent) resource descriptor %s: %v", parentResourceType, err)
+			return nil, fmt.Errorf("parsing pattern %q of resource %s: %w", pattern, resourceDescriptor.Type, err)
 		}
+		parsedResource.Patterns = append(parsedResource.Patterns, parsedPattern)
 	}
 
 	for childResourceType := range reg.ResourceTypeToChildResourceTypeSet[resourceDescriptor.Type] {
@@ -153,7 +143,7 @@ func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) 
 		}
 		child, err := Parse(reg, childResourceDescriptor)
 		if err != nil {
-			return nil, fmt.Errorf("parsing (child) resource descriptor %s: %v", childResourceType, err)
+			return nil, fmt.Errorf("parsing (child) resource descriptor %s: %w", childResourceType, err)
 		}
 		parsedResource.Children = append(parsedResource.Children, child)
 	}
@@ -162,6 +152,84 @@ func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) 
 		return parsedResource.Children[i].Type < parsedResource.Children[j].Type
 	})
 	return parsedResource, nil
+}
+
+// parsePattern resolves a single pattern of a resource, linking it to the
+// parent resource's pattern that prefixes it.
+func parsePattern(reg *Registry, parsedResource *ParsedResource, pattern string) (*ParsedPattern, error) {
+	variables, variableEnds, singleton, err := scanPattern(reg, pattern)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedPattern := &ParsedPattern{
+		Resource:  parsedResource,
+		Value:     pattern,
+		Variables: variables,
+		Singleton: singleton,
+	}
+
+	parentEnd, hasParent := parentPatternEnd(variableEnds, singleton)
+	if !hasParent {
+		return parsedPattern, nil
+	}
+
+	parentPatternValue := pattern[:parentEnd]
+	parentDescriptor, ok := reg.ResourcePatternToResourceDescriptor[parentPatternValue]
+	if !ok {
+		return nil, fmt.Errorf("no resource descriptor found for parent pattern %q", parentPatternValue)
+	}
+	parentResource, err := Parse(reg, parentDescriptor)
+	if err != nil {
+		return nil, fmt.Errorf("parsing (parent) resource descriptor %s: %w", parentDescriptor.Type, err)
+	}
+	parentPattern := parentResource.patternByValue(parentPatternValue)
+	if parentPattern == nil {
+		return nil, fmt.Errorf("parent resource %s does not declare pattern %q", parentDescriptor.Type, parentPatternValue)
+	}
+	parsedPattern.Parent = parentPattern
+	return parsedPattern, nil
+}
+
+// scanPattern resolves a pattern's variables from the registered sub-pattern
+// descriptors, alongside each variable's end offset within the pattern and
+// whether the pattern is a singleton (i.e. it ends on a literal segment).
+func scanPattern(reg *Registry, pattern string) (variables []string, variableEnds []int, singleton bool, err error) {
+	var sc resourcename.Scanner
+	sc.Init(pattern)
+	lastSegmentIsVariable := false
+	for sc.Scan() {
+		if !sc.Segment().IsVariable() {
+			lastSegmentIsVariable = false
+			continue
+		}
+		subPattern := pattern[:sc.End()]
+		rd, ok := reg.ResourcePatternToResourceDescriptor[subPattern]
+		if !ok {
+			return nil, nil, false, fmt.Errorf("no resource descriptor found for sub-pattern %q in pattern %q", subPattern, pattern)
+		}
+		variables = append(variables, xstrings.ToSnakeCase(rd.Singular))
+		variableEnds = append(variableEnds, sc.End())
+		lastSegmentIsVariable = true
+	}
+	return variables, variableEnds, !lastSegmentIsVariable, nil
+}
+
+// parentPatternEnd returns the end offset of the pattern prefix identifying
+// the immediate parent, if any. A singleton's parent pattern ends at the
+// singleton's final variable; a collection resource's parent pattern ends at
+// its second-to-last variable.
+func parentPatternEnd(variableEnds []int, singleton bool) (int, bool) {
+	if singleton {
+		if len(variableEnds) == 0 {
+			return 0, false
+		}
+		return variableEnds[len(variableEnds)-1], true
+	}
+	if len(variableEnds) < 2 {
+		return 0, false
+	}
+	return variableEnds[len(variableEnds)-2], true
 }
 
 // ParseFromMessage resolves a ParsedResource from a protogen message.

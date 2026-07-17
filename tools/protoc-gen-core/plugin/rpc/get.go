@@ -21,7 +21,7 @@ func (mc *methodCtx) generateGet() {
 	g.P("  }")
 	g.P()
 
-	g.P(fmt.Sprintf("  %s, err := %s(request.Name)", pr.PatternVariableIDs(true), mc.parseName))
+	g.P(fmt.Sprintf("  %s, err := %s(request.Name)", mc.pattern.VariableIDs(true), mc.parseName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"parsing name: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
@@ -30,7 +30,7 @@ func (mc *methodCtx) generateGet() {
 
 	g.P("  // Retrieve from the database.")
 	g.P(fmt.Sprintf("  db%s, err := s.store.%s(ctx, %s)",
-		mc.modelGoName, method.GoName, pr.PatternVariableIDs(true)))
+		mc.modelGoName, method.GoName, mc.pattern.VariableIDs(true)))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",

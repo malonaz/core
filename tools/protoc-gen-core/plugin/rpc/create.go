@@ -25,7 +25,7 @@ func (mc *methodCtx) generateCreate() error {
 		g.P("  }")
 	}
 
-	patternVarID, err := pr.PatternVariableID(true)
+	patternVarID, err := mc.pattern.VariableID(true)
 	if err != nil {
 		return err
 	}
@@ -35,14 +35,15 @@ func (mc *methodCtx) generateCreate() error {
 	g.P("  }")
 	g.P()
 
-	if pr.Parent != nil {
-		g.P(fmt.Sprintf("  var %s string", pr.Parent.PatternVariableIDs(true)))
+	if mc.pattern.Parent != nil {
+		parent := mc.pattern.Parent
+		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
 		g.P(fmt.Sprintf("  if %s(request.Parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("  }")
 		g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
-			mc.gen.ident(resourcenamePkg, "Sscan"), pr.Parent.Pattern, pr.Parent.PatternVariableIDPtrs()))
+			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("  }")
@@ -50,7 +51,7 @@ func (mc *methodCtx) generateCreate() error {
 	}
 
 	g.P(fmt.Sprintf("  request.%s.Name = %s(\"%s\", %s)",
-		resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), pr.Pattern, pr.PatternVariableIDs(true)))
+		resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), mc.pattern.Value, mc.pattern.VariableIDs(true)))
 	g.P()
 
 	// STEP 2: Instantiate timestamps.
@@ -102,7 +103,7 @@ func (mc *methodCtx) generateCreate() error {
 
 		g.P(fmt.Sprintf("  %s := &%s{", xstrings.ToCamelCase(childGoName), mc.gen.qgi(child.Message.GoIdent)))
 		g.P(fmt.Sprintf("    Name: %s(\"%s\", %s),",
-			mc.gen.ident(resourcenamePkg, "Sprint"), child.Resource.Pattern, child.Resource.PatternVariableIDs(true)))
+			mc.gen.ident(resourcenamePkg, "Sprint"), child.Pattern.Value, child.Pattern.VariableIDs(true)))
 		g.P(fmt.Sprintf("    CreateTime: request.%s.CreateTime,", resourceGoName))
 		g.P(fmt.Sprintf("    UpdateTime: request.%s.UpdateTime,", resourceGoName))
 		g.P("  }")

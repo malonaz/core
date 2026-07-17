@@ -42,7 +42,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	type eventMessage struct {
 		message   *protogen.Message
 		opts      *natspb.EventOptions
-		pr        *resource.ParsedResource
+		pattern   *resource.ParsedPattern
 		streamFQN string
 	}
 
@@ -63,6 +63,10 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if err != nil {
 			return fmt.Errorf("parsing resource from message %s: %w", message.GoIdent.GoName, err)
 		}
+		pattern, err := pr.SinglePattern()
+		if err != nil {
+			return err
+		}
 
 		streamFQN := eventOpts.GetStream()
 		if _, ok := streamFQNToGoName[streamFQN]; !ok {
@@ -73,7 +77,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		eventMessages = append(eventMessages, eventMessage{
 			message:   message,
 			opts:      eventOpts,
-			pr:        pr,
+			pattern:   pattern,
 			streamFQN: streamFQN,
 		})
 	}
@@ -97,21 +101,21 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		streamGoName := streamFQNToGoName[em.streamFQN]
 
 		patternVarSet := map[string]bool{}
-		for _, v := range em.pr.PatternVariables {
+		for _, v := range em.pattern.Variables {
 			patternVarSet[v] = true
 		}
 
 		for _, seg := range em.opts.GetResourceSegments() {
 			if !patternVarSet[seg] {
 				return fmt.Errorf("resource_segment %q references unknown resource name segment on %s (pattern: %s)",
-					seg, em.message.GoIdent.GoName, em.pr.Pattern)
+					seg, em.message.GoIdent.GoName, em.pattern.Value)
 			}
 		}
 
 		eventTypeMap := collectEventTypes(em.opts)
 		for _, et := range eventTypeMap {
 			for _, methodOpt := range et.opts {
-				if err := generateSubjectStruct(gen, em.message, em.pr, em.opts, streamGoName, et.eventType, methodOpt); err != nil {
+				if err := generateSubjectStruct(gen, em.message, em.pattern, em.opts, streamGoName, et.eventType, methodOpt); err != nil {
 					return err
 				}
 			}
@@ -148,7 +152,7 @@ func collectEventTypes(eventOpts *natspb.EventOptions) []eventTypeEntry {
 	return result
 }
 
-func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resource.ParsedResource, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {
+func generateSubjectStruct(gen *generator, message *protogen.Message, pattern *resource.ParsedPattern, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {
 	g := gen.g
 	structName := message.GoIdent.GoName + xstrings.ToPascalCase(methodOpt.GetSubject()) + "Subject"
 	celProgramVar := xstrings.ToCamelCase(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
@@ -273,8 +277,8 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 	// set method.
 	g.P("func (s *", structName, ") set(resource *", protoType, ") error {")
 	if len(resourceSegments) > 0 {
-		varDecls := make([]string, 0, len(pr.PatternVariables))
-		for _, pv := range pr.PatternVariables {
+		varDecls := make([]string, 0, len(pattern.Variables))
+		for _, pv := range pattern.Variables {
 			varDecls = append(varDecls, xstrings.ToCamelCase(pv)+"ID")
 		}
 		g.P("  var ", strings.Join(varDecls, ", "), " string")
@@ -282,7 +286,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resour
 		for _, v := range varDecls {
 			addrArgs += ", &" + v
 		}
-		g.P("  if err := ", gen.ident(resnPkg, "Sscan"), "(resource.GetName(), \"", pr.Pattern, "\"", addrArgs, "); err != nil {")
+		g.P("  if err := ", gen.ident(resnPkg, "Sscan"), "(resource.GetName(), \"", pattern.Value, "\"", addrArgs, "); err != nil {")
 		g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"parsing resource name: %v\", err)")
 		g.P("  }")
 		for _, seg := range resourceSegments {

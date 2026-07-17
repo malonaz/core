@@ -16,11 +16,12 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
-	if pr.Parent != nil {
-		g.P(fmt.Sprintf("  var %s string", pr.Parent.PatternVariableIDs(true)))
+	if mc.pattern.Parent != nil {
+		parent := mc.pattern.Parent
+		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
 		g.P("  if request.Parent != \"\" {")
 		g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",
-			mc.gen.ident(resourcenamePkg, "Sscan"), pr.Parent.Pattern, pr.Parent.PatternVariableIDPtrs()))
+			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("    }")
@@ -28,7 +29,7 @@ func (mc *methodCtx) generateBatchGet() error {
 		g.P()
 	}
 
-	for _, v := range pr.PatternVariables {
+	for _, v := range mc.pattern.Variables {
 		camel := xstrings.ToCamelCase(v)
 		g.P(fmt.Sprintf("  %sIds := make([]string, len(request.GetNames()))", camel))
 	}
@@ -40,20 +41,20 @@ func (mc *methodCtx) generateBatchGet() error {
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
 
-	if pr.Parent != nil {
+	if mc.pattern.Parent != nil {
 		g.P("    if request.Parent != \"\" && !" + mc.gen.ident(resourcenamePkg, "HasParent") + "(name, request.Parent) {")
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"name %%q does not have parent %%q\", name, request.Parent).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("    }")
 	}
 
-	g.P(fmt.Sprintf("    %s, err := %s(name)", pr.PatternVariableIDs(true), mc.parseName))
+	g.P(fmt.Sprintf("    %s, err := %s(name)", mc.pattern.VariableIDs(true), mc.parseName))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"parsing name %%s: %%v\", name, err).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("    }")
 
-	for _, v := range pr.PatternVariables {
+	for _, v := range mc.pattern.Variables {
 		camel := xstrings.ToCamelCase(v)
 		g.P(fmt.Sprintf("    %sIds[i] = %sId", camel, camel))
 	}
@@ -63,7 +64,7 @@ func (mc *methodCtx) generateBatchGet() error {
 
 	var storeArgs []string
 	storeArgs = append(storeArgs, "ctx")
-	for _, v := range pr.PatternVariables {
+	for _, v := range mc.pattern.Variables {
 		camel := xstrings.ToCamelCase(v)
 		storeArgs = append(storeArgs, camel+"Ids")
 	}

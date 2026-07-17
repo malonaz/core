@@ -61,19 +61,19 @@ func (b ColumnBinding) GoFieldName() string {
 	return strings.ToUpper(camelCase[:1]) + camelCase[1:] + "ID"
 }
 
-// ColumnBindings returns the database column bound to each pattern variable of
-// the resource. The id_column_name override applies to the resource's own
+// ColumnBindings returns the database column bound to each variable of the
+// pattern. The id_column_name override applies to the resource's own
 // identifier — the final pattern variable — and is invalid on singletons,
 // which have no identifier of their own.
-func ColumnBindings(parsedResource *resource.ParsedResource, modelOpts *modelpb.ModelOpts) ([]ColumnBinding, error) {
+func ColumnBindings(pattern *resource.ParsedPattern, modelOpts *modelpb.ModelOpts) ([]ColumnBinding, error) {
 	idColumnName := modelOpts.GetIdColumnName()
-	if idColumnName != "" && parsedResource.Singleton {
-		return nil, fmt.Errorf("singleton resource %s declares an id_column_name", parsedResource.Desc.Type)
+	if idColumnName != "" && pattern.Singleton {
+		return nil, fmt.Errorf("singleton resource %s declares an id_column_name", pattern.Resource.Desc.Type)
 	}
-	bindings := make([]ColumnBinding, len(parsedResource.PatternVariables))
-	for i, variable := range parsedResource.PatternVariables {
+	bindings := make([]ColumnBinding, len(pattern.Variables))
+	for i, variable := range pattern.Variables {
 		column := variable + "_id"
-		if idColumnName != "" && i == len(parsedResource.PatternVariables)-1 {
+		if idColumnName != "" && i == len(pattern.Variables)-1 {
 			column = idColumnName
 		}
 		bindings[i] = ColumnBinding{Variable: variable, Column: column}
@@ -220,7 +220,11 @@ func joinConditions(parentType string) ([]JoinCondition, error) {
 	if err != nil {
 		return nil, err
 	}
-	parentBindings, err := ColumnBindings(parent.resource, parent.modelOpts)
+	parentPattern, err := parent.resource.SinglePattern()
+	if err != nil {
+		return nil, fmt.Errorf("join parent %q: %w", parentType, err)
+	}
+	parentBindings, err := ColumnBindings(parentPattern, parent.modelOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +238,10 @@ func joinConditions(parentType string) ([]JoinCondition, error) {
 // SingletonChild is a persisted singleton child resource, created and deleted
 // alongside its parent.
 type SingletonChild struct {
-	Resource  *resource.ParsedResource
+	Resource *resource.ParsedResource
+	// Pattern is the child's singleton pattern parented by the resource it was
+	// resolved against. Its variables are exactly the parent's identifiers.
+	Pattern   *resource.ParsedPattern
 	Message   *protogen.Message
 	ModelOpts *modelpb.ModelOpts
 }
@@ -251,7 +258,8 @@ func SingletonChildren(parentMessage *protogen.Message, parent *resource.ParsedR
 	parentSoftDeletable := parentMessage.Desc.Fields().ByName("delete_time") != nil
 	var children []SingletonChild
 	for _, childResource := range parent.Children {
-		if !childResource.Singleton {
+		childPattern := singletonPatternUnder(childResource, parent)
+		if childPattern == nil {
 			continue
 		}
 		childMessage, err := resource.GetMessageByResourceType(childResource.Desc.Type)
@@ -272,7 +280,23 @@ func SingletonChildren(parentMessage *protogen.Message, parent *resource.ParsedR
 			}
 			return nil, fmt.Errorf("singleton child %s has a delete_time field but its parent %s is not soft-deletable", childResource.Desc.Type, parent.Desc.Type)
 		}
-		children = append(children, SingletonChild{Resource: childResource, Message: childMessage, ModelOpts: childModelOpts})
+		children = append(children, SingletonChild{
+			Resource:  childResource,
+			Pattern:   childPattern,
+			Message:   childMessage,
+			ModelOpts: childModelOpts,
+		})
 	}
 	return children, nil
+}
+
+// singletonPatternUnder returns the child's singleton pattern parented by the
+// given resource, if any.
+func singletonPatternUnder(child, parent *resource.ParsedResource) *resource.ParsedPattern {
+	for _, pattern := range child.Patterns {
+		if pattern.Singleton && pattern.Parent != nil && pattern.Parent.Resource.Desc.GetType() == parent.Desc.GetType() {
+			return pattern
+		}
+	}
+	return nil
 }

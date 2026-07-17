@@ -10,7 +10,6 @@ import (
 func (mc *methodCtx) generateDelete() error {
 	g := mc.g
 	method := mc.mi.method
-	pr := mc.pr
 	resourceGoName := mc.resourceGoName
 
 	// Publish helper for deleted events.
@@ -23,7 +22,7 @@ func (mc *methodCtx) generateDelete() error {
 
 	// STEP 1: Parse resource name.
 	g.P("  // STEP 1: Parse resource name.")
-	g.P(fmt.Sprintf("  %s, err := %s(request.Name)", pr.PatternVariableIDs(true), mc.parseName))
+	g.P(fmt.Sprintf("  %s, err := %s(request.Name)", mc.pattern.VariableIDs(true), mc.parseName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"parsing name: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
@@ -71,7 +70,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 
 	// STEP 2: Soft delete.
 	g.P("  // STEP 2: Soft delete the resource.")
-	deleteArgs := fmt.Sprintf("ctx, %s", pr.PatternVariableIDs(true))
+	deleteArgs := fmt.Sprintf("ctx, %s", mc.pattern.VariableIDs(true))
 	if mc.hasEtag {
 		deleteArgs += ", request.GetEtag(), newEtag"
 	}
@@ -141,8 +140,8 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	// STEP 2: Hard delete.
 	g.P("  // STEP 2: Hard delete the resource.")
 	deleteArgs := "ctx"
-	if len(pr.PatternVariables) > 0 {
-		deleteArgs += ", " + pr.PatternVariableIDs(true)
+	if len(mc.pattern.Variables) > 0 {
+		deleteArgs += ", " + mc.pattern.VariableIDs(true)
 	}
 	if mc.hasEtag {
 		deleteArgs += ", request.GetEtag()"

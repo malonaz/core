@@ -262,6 +262,11 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	serverName := fmt.Sprintf("%s_%sServer", svcName, resourceGoName)
 	goTypeQgi := gen.modelIdent(mi.rpc.Message.GoIdent.GoName)
 
+	pattern, err := pr.SinglePattern()
+	if err != nil {
+		return err
+	}
+
 	softDeletable := mi.rpc.Message.Desc.Fields().ByName("delete_time") != nil
 	hasEtag := mi.rpc.Message.Desc.Fields().ByName("etag") != nil
 
@@ -315,10 +320,10 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	g.P(updateSig)
 
 	// Delete (only for non-singletons).
-	if !pr.Singleton {
+	if !pattern.Singleton {
 		if softDeletable {
 			deleteSig := fmt.Sprintf("  SoftDelete%s(ctx %s, %s string",
-				resourceGoName, gen.ident(contextPkg, "Context"), pr.PatternVariableIDs(true))
+				resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true))
 			if hasEtag {
 				deleteSig += ", etag, newEtag string"
 			}
@@ -326,7 +331,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 			g.P(deleteSig)
 		} else {
 			deleteSig := fmt.Sprintf("  Delete%s(ctx %s, %s string",
-				resourceGoName, gen.ident(contextPkg, "Context"), pr.PatternVariableIDs(true))
+				resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true))
 			if hasEtag {
 				deleteSig += ", etag string"
 			}
@@ -337,11 +342,11 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// Get
 	g.P(fmt.Sprintf("  Get%s(ctx %s, %s string) (*%s, error)",
-		resourceGoName, gen.ident(contextPkg, "Context"), pr.PatternVariableIDs(true), goTypeQgi))
+		resourceGoName, gen.ident(contextPkg, "Context"), pattern.VariableIDs(true), goTypeQgi))
 
 	// BatchGet.
 	batchGetSig := fmt.Sprintf("  BatchGet%s(ctx %s", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
-	for _, v := range pr.PatternVariables {
+	for _, v := range pattern.Variables {
 		batchGetSig += fmt.Sprintf(", %sIds []string", xstrings.ToCamelCase(v))
 	}
 	batchGetSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
@@ -349,8 +354,8 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// List
 	listSig := fmt.Sprintf("  List%s(ctx %s, ", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
-	if pr.Parent != nil {
-		listSig += pr.Parent.PatternVariableIDs(true) + " string, "
+	if pattern.Parent != nil {
+		listSig += pattern.Parent.VariableIDs(true) + " string, "
 	}
 	if softDeletable {
 		listSig += "showDeleted bool, "
@@ -421,6 +426,7 @@ type methodCtx struct {
 	mi *methodInfo
 
 	pr             *resource.ParsedResource
+	pattern        *resource.ParsedPattern
 	resourceGoName string
 	serverGoName   string
 	modelGoName    string
@@ -446,6 +452,11 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	goType := mi.rpc.Message.GoIdent.GoName
 	svcNameUntitled := xstrings.ToCamelCase(si.service.GoName)
 
+	pattern, err := pr.SinglePattern()
+	if err != nil {
+		return nil, err
+	}
+
 	var natsStreamGoName string
 	if mi.natsEventOpts != nil {
 		natsStreamGoName = nats.StreamGoName(mi.natsEventOpts.GetStream())
@@ -463,6 +474,7 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		mi:  mi,
 
 		pr:             pr,
+		pattern:        pattern,
 		resourceGoName: resourceGoName,
 		serverGoName:   fmt.Sprintf("%s_%sServer", svcNameUntitled, resourceGoName),
 		modelGoName:    resourceGoName + "Model",

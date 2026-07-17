@@ -7,7 +7,7 @@ import (
 func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
-	if mc.pr.Singleton {
+	if mc.pattern.Singleton {
 		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
 		g.P()
 	}

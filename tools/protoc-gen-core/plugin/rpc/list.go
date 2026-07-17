@@ -26,11 +26,12 @@ func (mc *methodCtx) generateList() {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
-	if pr.Parent != nil {
+	if mc.pattern.Parent != nil {
+		parent := mc.pattern.Parent
 		g.P("// Parse parent names")
-		g.P(fmt.Sprintf("  var %s string", pr.Parent.PatternVariableIDs(true)))
+		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
 		g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
-			mc.gen.ident(resourcenamePkg, "Sscan"), pr.Parent.Pattern, pr.Parent.PatternVariableIDPtrs()))
+			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("  }")
@@ -52,8 +53,8 @@ func (mc *methodCtx) generateList() {
 	g.P("  // Retrieve from the database.")
 	dbName := "db" + resourceGoName
 	listArgs := "ctx, "
-	if pr.Parent != nil {
-		listArgs += pr.Parent.PatternVariableIDs(true) + ", "
+	if mc.pattern.Parent != nil {
+		listArgs += mc.pattern.Parent.VariableIDs(true) + ", "
 	}
 	if mc.softDeletable {
 		listArgs += "request.ShowDeleted, "

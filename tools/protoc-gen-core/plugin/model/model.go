@@ -54,6 +54,7 @@ type Model struct {
 	Message        *protogen.Message
 	ModelOpts      *modelpb.ModelOpts
 	ParsedResource *resource.ParsedResource
+	Pattern        *resource.ParsedPattern
 	Table          schema.Table
 	Bindings       []schema.ColumnBinding
 	Fields         []*Field
@@ -81,7 +82,12 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		return nil, fmt.Errorf("parsing resource from message %s: %w", message.GoIdent.GoName, err)
 	}
 
-	bindings, err := schema.ColumnBindings(parsedResource, modelOpts)
+	pattern, err := parsedResource.SinglePattern()
+	if err != nil {
+		return nil, err
+	}
+
+	bindings, err := schema.ColumnBindings(pattern, modelOpts)
 	if err != nil {
 		return nil, fmt.Errorf("resolving column bindings for %s: %w", message.GoIdent.GoName, err)
 	}
@@ -95,6 +101,7 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		Message:        message,
 		ModelOpts:      modelOpts,
 		ParsedResource: parsedResource,
+		Pattern:        pattern,
 		Table:          schema.TableOf(parsedResource, modelOpts),
 		Bindings:       bindings,
 		Fields:         fields,
@@ -294,8 +301,7 @@ func (m *Model) ToPbDef() (string, error) {
 		}
 	}
 
-	pattern := m.ParsedResource.Pattern
-	fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), pattern)
+	fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), m.Pattern.Value)
 	for _, idField := range m.resourceIDFieldNames() {
 		fmt.Fprintf(&b, ", m.%s", idField)
 	}
@@ -319,7 +325,6 @@ func (m *Model) ParseNameDef() string {
 	var b strings.Builder
 	goName := m.GoName()
 	resourceIDFields := m.resourceIDFieldNames()
-	pattern := m.ParsedResource.Pattern
 
 	returnTypes := make([]string, len(resourceIDFields))
 	for i := range resourceIDFields {
@@ -335,7 +340,7 @@ func (m *Model) ParseNameDef() string {
 		addrArgs[i] = "&" + idField
 	}
 	fmt.Fprintf(&b, "\tif err := %s(name, \"%s\", %s); err != nil {\n",
-		m.fqn("go.einride.tech/aip/resourcename", "Sscan"), pattern, strings.Join(addrArgs, ", "))
+		m.fqn("go.einride.tech/aip/resourcename", "Sscan"), m.Pattern.Value, strings.Join(addrArgs, ", "))
 
 	emptyStrings := make([]string, len(resourceIDFields))
 	for i := range emptyStrings {
