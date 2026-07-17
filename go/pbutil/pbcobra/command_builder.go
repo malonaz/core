@@ -1,6 +1,7 @@
 package pbcobra
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -159,7 +160,9 @@ func (b *CommandBuilder) buildMethodCommand(methodDescriptor protoreflect.Method
 	methodName := string(methodDescriptor.Name())
 	fields := methodDescriptor.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		b.addFlagWithPrefix(cmd, standardMethodType, fields.Get(i), "", 0, methodName)
+		if err := b.addFlagWithPrefix(cmd, standardMethodType, fields.Get(i), "", 0, methodName); err != nil {
+			return nil, fmt.Errorf("adding flag for field %q: %w", fields.Get(i).FullName(), err)
+		}
 	}
 	return cmd, nil
 }
@@ -318,7 +321,9 @@ func (b *CommandBuilder) addFlagWithPrefix(
 			nestedFields := fieldDescriptor.Message().Fields()
 			nestedPrefix := name + "."
 			for i := 0; i < nestedFields.Len(); i++ {
-				b.addFlagWithPrefix(cmd, standardMethodType, nestedFields.Get(i), nestedPrefix, depth+1, methodName)
+				if err := b.addFlagWithPrefix(cmd, standardMethodType, nestedFields.Get(i), nestedPrefix, depth+1, methodName); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -663,21 +668,85 @@ func parseScalar(field protoreflect.FieldDescriptor, s string) (protoreflect.Val
 	}
 }
 
+// parentPatternsOf returns the parent name pattern of each of the resource's
+// patterns, i.e. each pattern with the resource's own trailing segments
+// removed. Non-singleton patterns end in "collection/{id}" (two segments);
+// singleton patterns end in a literal segment (one segment).
+func parentPatternsOf(resourceDescriptor *annotations.ResourceDescriptor) []string {
+	seen := map[string]bool{}
+	var parents []string
+	for _, pattern := range resourceDescriptor.GetPattern() {
+		segments := strings.Split(pattern, "/")
+		strip := 2
+		if !strings.HasSuffix(segments[len(segments)-1], "}") {
+			strip = 1
+		}
+		if len(segments) <= strip {
+			continue
+		}
+		parent := strings.Join(segments[:len(segments)-strip], "/")
+		if seen[parent] {
+			continue
+		}
+		seen[parent] = true
+		parents = append(parents, parent)
+	}
+	return parents
+}
+
+// wildcardFormats returns the deduplicated wildcard form of each pattern,
+// with every variable segment replaced by '-'.
+func wildcardFormats(patterns []string) []string {
+	seen := map[string]bool{}
+	var formats []string
+	for _, pattern := range patterns {
+		format := patternSegmentRegexp.ReplaceAllString(pattern, "-")
+		if seen[format] {
+			continue
+		}
+		seen[format] = true
+		formats = append(formats, format)
+	}
+	return formats
+}
+
+// getParentDefault resolves a wildcard default for a parent flag. The parent
+// field may reference the parent resource directly (type) or reference the
+// child resource (child_type), in which case parent patterns are derived from
+// the child's patterns. A default is only returned when it is unambiguous,
+// i.e. a single wildcard format exists across all patterns; otherwise the
+// flag keeps no default and the accepted formats are documented in its help
+// text (via the pbreflection comment augmentation).
 func (b *CommandBuilder) getParentDefault(fieldDescriptor protoreflect.FieldDescriptor) (string, error) {
 	resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](fieldDescriptor.Options(), annotations.E_ResourceReference)
 	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return "", nil
+		}
 		return "", fmt.Errorf("getting resource reference: %w", err)
 	}
-	resourceType := resourceReference.GetType()
-	if resourceType == "" {
-		return "", fmt.Errorf("resource reference has no type")
+
+	var parentPatterns []string
+	switch {
+	case resourceReference.GetType() != "":
+		resourceDescriptor, ok := b.schema.GetResourceDescriptor(resourceReference.GetType())
+		if !ok {
+			return "", fmt.Errorf("resource descriptor not found for %q", resourceReference.GetType())
+		}
+		parentPatterns = resourceDescriptor.GetPattern()
+	case resourceReference.GetChildType() != "":
+		resourceDescriptor, ok := b.schema.GetResourceDescriptor(resourceReference.GetChildType())
+		if !ok {
+			return "", fmt.Errorf("resource descriptor not found for %q", resourceReference.GetChildType())
+		}
+		parentPatterns = parentPatternsOf(resourceDescriptor)
+	default:
+		return "", nil
 	}
-	resourceDescriptor, ok := b.schema.GetResourceDescriptor(resourceType)
-	if !ok {
-		return "", fmt.Errorf("resource descriptor not found for %q", resourceType)
+
+	formats := wildcardFormats(parentPatterns)
+	if len(formats) != 1 {
+		return "", nil
 	}
-	if len(resourceDescriptor.GetPattern()) == 0 {
-		return "", fmt.Errorf("resource descriptor %q has no patterns", resourceType)
-	}
-	return patternSegmentRegexp.ReplaceAllString(resourceDescriptor.GetPattern()[0], "-"), nil
+	return formats[0], nil
 }
