@@ -9,22 +9,20 @@ import (
 
 func (mc *msgCtx) generateBatchGet() {
 	g := mc.g
-	patternVars := mc.pr.PatternVariables
-	lastIdx := len(patternVars) - 1
+	bindings := mc.columnBindings
 
-	var params []string
-	for _, v := range patternVars {
-		params = append(params, untitle(xstrings.ToCamelCase(v))+"Ids []string")
+	params := make([]string, len(bindings))
+	for i, binding := range bindings {
+		params[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids []string"
 	}
-	paramList := strings.Join(params, ", ")
 
 	g.P(fmt.Sprintf("func (s *Store) BatchGet%s(ctx context.Context, %s) ([]*%s, error) {",
-		mc.pr.PluralGoName(), paramList, mc.goTypeFqi))
+		mc.pr.PluralGoName(), strings.Join(params, ", "), mc.goTypeFqi))
 
-	firstName := untitle(xstrings.ToCamelCase(patternVars[0])) + "Ids"
+	firstName := untitle(xstrings.ToCamelCase(bindings[0].Variable)) + "Ids"
 	g.P(fmt.Sprintf("  n := len(%s)", firstName))
-	for _, v := range patternVars[1:] {
-		name := untitle(xstrings.ToCamelCase(v)) + "Ids"
+	for _, binding := range bindings[1:] {
+		name := untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids"
 		g.P(fmt.Sprintf("  if len(%s) != n {", name))
 		g.P(fmt.Sprintf("    return nil, %s(\"mismatched slice lengths\")", mc.fmtI("Errorf")))
 		g.P("  }")
@@ -36,27 +34,23 @@ func (mc *msgCtx) generateBatchGet() {
 	g.P()
 
 	g.P("  orClauses := make([]string, n)")
-	g.P(fmt.Sprintf("  params := make([]any, 0, n*%d)", len(patternVars)))
+	g.P(fmt.Sprintf("  params := make([]any, 0, n*%d)", len(bindings)))
 	g.P("  for i := 0; i < n; i++ {")
-	g.P(fmt.Sprintf("    base := i*%d", len(patternVars)))
-	g.P(fmt.Sprintf("    conditions := make([]string, %d)", len(patternVars)))
+	g.P(fmt.Sprintf("    base := i*%d", len(bindings)))
+	g.P(fmt.Sprintf("    conditions := make([]string, %d)", len(bindings)))
 
 	colPrefix := ""
 	if mc.hasJoins {
 		colPrefix = mc.bareTableName + "."
 	}
 
-	for idx, v := range patternVars {
-		col := v + "_id"
-		if idx == lastIdx && mc.modelOpts.GetIdColumnName() != "" {
-			col = mc.modelOpts.GetIdColumnName()
-		}
+	for idx, binding := range bindings {
 		g.P(fmt.Sprintf("    conditions[%d] = %s(\"%s%s = $%%d\", base+%d)",
-			idx, mc.fmtI("Sprintf"), colPrefix, col, idx+1))
+			idx, mc.fmtI("Sprintf"), colPrefix, binding.Column, idx+1))
 	}
 
-	for _, v := range patternVars {
-		paramName := untitle(xstrings.ToCamelCase(v)) + "Ids"
+	for _, binding := range bindings {
+		paramName := untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids"
 		g.P(fmt.Sprintf("    params = append(params, %s[i])", paramName))
 	}
 

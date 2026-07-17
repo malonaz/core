@@ -3,8 +3,6 @@ package postgres
 import (
 	"fmt"
 	"strings"
-
-	"github.com/huandu/xstrings"
 )
 
 func (mc *msgCtx) generateUpdate() {
@@ -26,9 +24,9 @@ func (mc *msgCtx) generateUpdate() {
 	g.P()
 	g.P(fmt.Sprintf("  query := %s(update%sPostgresQuery, \"#update_clause#\", updateClause, 1)", mc.stringsI("Replace"), mc.goType))
 
-	var whereArgs []string
-	for i := range mc.pr.PatternVariables {
-		whereArgs = append(whereArgs, fmt.Sprintf("numUpdateParams+%d", i+1))
+	whereArgs := make([]string, len(mc.columnBindings))
+	for i := range mc.columnBindings {
+		whereArgs[i] = fmt.Sprintf("numUpdateParams+%d", i+1)
 	}
 	g.P("  numUpdateParams := len(updateParams)")
 	g.P(fmt.Sprintf("  whereClause := %s(\"%s\", %s)", mc.fmtI("Sprintf"), mc.whereClause, strings.Join(whereArgs, ", ")))
@@ -36,9 +34,8 @@ func (mc *msgCtx) generateUpdate() {
 	g.P()
 
 	g.P("  params := append(updateParams,")
-	for _, v := range mc.pr.PatternVariables {
-		camel := xstrings.ToCamelCase(v)
-		g.P(fmt.Sprintf("    %s.%sID,", mc.goParam, title(camel)))
+	for _, binding := range mc.columnBindings {
+		g.P(fmt.Sprintf("    %s.%s,", mc.goParam, binding.GoFieldName()))
 	}
 	g.P("  )")
 	g.P()

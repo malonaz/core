@@ -18,6 +18,8 @@ import "malonaz/test/library/v1/author_profile.proto";
 import "malonaz/test/library/v1/book.proto";
 import "malonaz/test/library/v1/book_review.proto";
 import "malonaz/test/library/v1/shelf.proto";
+//import "malonaz/test/library/library_service/v1/note.proto";
+//import "malonaz/test/library/v1/note.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
 

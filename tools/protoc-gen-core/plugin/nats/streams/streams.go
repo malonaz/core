@@ -3,41 +3,20 @@ package streams
 import (
 	"errors"
 	"fmt"
-	"regexp"
-	"strings"
 
-	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
 	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 )
-
-var (
-	syncPkg     = protogen.GoImportPath("sync")
-	natsCPkg    = protogen.GoImportPath("github.com/malonaz/core/go/nats")
-	natsOptsPkg = protogen.GoImportPath("github.com/malonaz/core/genproto/nats/v1")
-
-	versionPrefixRe = regexp.MustCompile(`^.*\.v[0-9]+\.`)
-)
-
-type generator struct {
-	g *protogen.GeneratedFile
-}
-
-func (gen *generator) ident(path protogen.GoImportPath, name string) string {
-	return gen.g.QualifiedGoIdent(protogen.GoIdent{GoName: name, GoImportPath: path})
-}
 
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
-	gen := &generator{g: g}
-
 	type streamEntry struct {
-		fqn         string
-		goName      string
-		serviceName string
+		fqn    string
+		goName string
 	}
 
 	var streams []streamEntry
@@ -52,22 +31,14 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			return fmt.Errorf("getting stream extension for %s: %w", service.GoName, err)
 		}
 
-		for _, streamOpts := range streamOptionsList {
-			streamFQN := streamOpts.GetName()
-			streamSuffix := versionPrefixRe.ReplaceAllString(streamFQN, "")
-			streamSuffix = strings.ReplaceAll(streamSuffix, ".", "-")
-			streamGoName := service.GoName + xstrings.ToPascalCase(streamSuffix) + "Stream"
-
+		for _, streamOptions := range streamOptionsList {
+			streamFQN := streamOptions.GetName()
+			streamGoName := service.GoName + nats.StreamGoName(streamFQN)
 			if seen[streamGoName] {
 				continue
 			}
 			seen[streamGoName] = true
-
-			streams = append(streams, streamEntry{
-				fqn:         streamFQN,
-				goName:      streamGoName,
-				serviceName: service.GoName,
-			})
+			streams = append(streams, streamEntry{fqn: streamFQN, goName: streamGoName})
 		}
 	}
 
@@ -81,35 +52,8 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	g.P("package ", packageName)
 	g.P()
 
-	for _, s := range streams {
-		varName := xstrings.ToCamelCase(s.goName)
-
-		g.P("var (")
-		g.P("  ", varName, "Once ", gen.ident(syncPkg, "Once"))
-		g.P("  ", varName, "Val *", s.goName)
-		g.P(")")
-		g.P()
-
-		g.P("type ", s.goName, " struct {")
-		g.P("  stream *", gen.ident(natsCPkg, "Stream"))
-		g.P("}")
-		g.P()
-
-		g.P("func Get", s.goName, "() *", s.goName, " {")
-		g.P("  ", varName, "Once.Do(func() {")
-		g.P("    ", varName, "Val = &", s.goName, "{")
-		g.P("      stream: ", gen.ident(natsCPkg, "NewStream"), "(&", gen.ident(natsOptsPkg, "StreamOptions"), "{Name: \"", s.fqn, "\"}),")
-		g.P("    }")
-		g.P("  })")
-		g.P("  return ", varName, "Val")
-		g.P("}")
-		g.P()
-
-		g.P("func (s *", s.goName, ") Get() *", gen.ident(natsCPkg, "Stream"), " {")
-		g.P("  return s.stream")
-		g.P("}")
-		g.P()
+	for _, stream := range streams {
+		nats.GenerateStreamSingleton(g, stream.fqn, stream.goName)
 	}
-
 	return nil
 }

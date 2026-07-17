@@ -14,7 +14,7 @@ func (mc *msgCtx) generateDelete() {
 
 func (mc *msgCtx) generateSoftDelete() {
 	g := mc.g
-	numVars := len(mc.pr.PatternVariables)
+	numVars := len(mc.columnBindings)
 	writeColumns := mc.writeColumns()
 
 	etagSet := ""
@@ -117,8 +117,8 @@ func (mc *msgCtx) generateSoftDeleteWithTransaction() {
 	g.P()
 
 	// Soft-delete singleton children within the same transaction.
-	for _, sc := range mc.singletonChildren {
-		mc.generateChildSoftDeleteExec(sc)
+	for _, cc := range mc.singletonChildren {
+		mc.generateChildSoftDeleteExec(cc)
 	}
 
 	g.P("    return nil")
@@ -194,8 +194,8 @@ func (mc *msgCtx) generateHardDeleteWithTransaction() {
 	g.P("    deleted = nil")
 
 	// Hard-delete singleton children first to respect FK constraints.
-	for _, sc := range mc.singletonChildren {
-		mc.generateChildHardDeleteExec(sc)
+	for _, cc := range mc.singletonChildren {
+		mc.generateChildHardDeleteExec(cc)
 	}
 
 	g.P("    rows, err := tx.Query(ctx, query, params...)")
@@ -222,26 +222,22 @@ func (mc *msgCtx) generateHardDeleteWithTransaction() {
 }
 
 // generateChildSoftDeleteExec emits a soft-delete Exec for a singleton child inside a transaction.
-func (mc *msgCtx) generateChildSoftDeleteExec(sc singletonChild) {
+func (mc *msgCtx) generateChildSoftDeleteExec(cc *childCtx) {
 	g := mc.g
-	childTable := mc.singletonChildTableName(sc)
-	childPlaceholders := mc.singletonChildPlaceholderDecls(sc)
-	numParentVars := len(mc.pr.PatternVariables)
+	numParentVars := len(mc.columnBindings)
 
 	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `UPDATE %s SET delete_time = COALESCE(delete_time, $%d) WHERE %s`, %s, deleteTime); err != nil {",
-		childTable, numParentVars+1, childPlaceholders, mc.patternVarIDsGoTrue()))
-	g.P(fmt.Sprintf("      return %s(\"soft deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), sc.pr.SingularGoName()))
+		cc.tableName, numParentVars+1, cc.placeholderDecls, mc.patternVarIDsGoTrue()))
+	g.P(fmt.Sprintf("      return %s(\"soft deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), cc.Resource.SingularGoName()))
 	g.P("    }")
 }
 
 // generateChildHardDeleteExec emits a hard-delete Exec for a singleton child inside a transaction.
-func (mc *msgCtx) generateChildHardDeleteExec(sc singletonChild) {
+func (mc *msgCtx) generateChildHardDeleteExec(cc *childCtx) {
 	g := mc.g
-	childTable := mc.singletonChildTableName(sc)
-	childPlaceholders := mc.singletonChildPlaceholderDecls(sc)
 
 	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `DELETE FROM %s WHERE %s`, %s); err != nil {",
-		childTable, childPlaceholders, mc.patternVarIDsGoTrue()))
-	g.P(fmt.Sprintf("      return %s(\"deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), sc.pr.SingularGoName()))
+		cc.tableName, cc.placeholderDecls, mc.patternVarIDsGoTrue()))
+	g.P(fmt.Sprintf("      return %s(\"deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), cc.Resource.SingularGoName()))
 	g.P("    }")
 }

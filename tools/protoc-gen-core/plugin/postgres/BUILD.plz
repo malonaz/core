@@ -17,5 +17,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
         "//tools/protoc-gen-core/plugin",
         "//tools/protoc-gen-core/resource",
+        "//tools/protoc-gen-core/schema",
     ],
 )

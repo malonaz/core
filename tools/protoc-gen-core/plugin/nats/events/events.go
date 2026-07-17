@@ -11,6 +11,7 @@ import (
 	natspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
@@ -23,7 +24,6 @@ var (
 	celExtPkg    = protogen.GoImportPath("github.com/google/cel-go/ext")
 	fieldmaskPkg = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
 	natsCPkg     = protogen.GoImportPath("github.com/malonaz/core/go/nats")
-	natsOptsPkg  = protogen.GoImportPath("github.com/malonaz/core/genproto/nats/v1")
 	aipPkg       = protogen.GoImportPath("github.com/malonaz/core/go/aip")
 	resnPkg      = protogen.GoImportPath("go.einride.tech/aip/resourcename")
 )
@@ -46,7 +46,8 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		streamFQN string
 	}
 
-	streamNameToGoName := map[string]string{}
+	streamFQNToGoName := map[string]string{}
+	var streamFQNs []string
 	var eventMessages []eventMessage
 
 	for _, message := range file.Messages {
@@ -64,8 +65,9 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 
 		streamFQN := eventOpts.GetStream()
-		if _, ok := streamNameToGoName[streamFQN]; !ok {
-			streamNameToGoName[streamFQN] = streamGoNameFromFQN(streamFQN)
+		if _, ok := streamFQNToGoName[streamFQN]; !ok {
+			streamFQNToGoName[streamFQN] = nats.StreamGoName(streamFQN)
+			streamFQNs = append(streamFQNs, streamFQN)
 		}
 
 		eventMessages = append(eventMessages, eventMessage{
@@ -86,12 +88,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	g.P("package ", packageName)
 	g.P()
 
-	for streamFQN, streamGoName := range streamNameToGoName {
-		generateStreamSingleton(gen, streamFQN, streamGoName)
+	// Streams are emitted in first-seen order to keep the output deterministic.
+	for _, streamFQN := range streamFQNs {
+		nats.GenerateStreamSingleton(g, streamFQN, streamFQNToGoName[streamFQN])
 	}
 
 	for _, em := range eventMessages {
-		streamGoName := streamNameToGoName[em.streamFQN]
+		streamGoName := streamFQNToGoName[em.streamFQN]
 
 		patternVarSet := map[string]bool{}
 		for _, v := range em.pr.PatternVariables {
@@ -126,18 +129,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	return nil
 }
 
-func streamGoNameFromFQN(streamFQN string) string {
-	suffix := streamFQN
-	parts := strings.Split(streamFQN, ".")
-	for i, p := range parts {
-		if len(p) > 1 && p[0] == 'v' && p[1] >= '0' && p[1] <= '9' {
-			suffix = strings.Join(parts[i+1:], ".")
-			break
-		}
-	}
-	return xstrings.ToPascalCase(strings.ReplaceAll(suffix, ".", "-")) + "Stream"
-}
-
 type eventTypeEntry struct {
 	eventType string
 	opts      []*natspb.EventMethodOptions
@@ -155,37 +146,6 @@ func collectEventTypes(eventOpts *natspb.EventOptions) []eventTypeEntry {
 		result = append(result, eventTypeEntry{eventType: "Deleted", opts: opts})
 	}
 	return result
-}
-
-func generateStreamSingleton(gen *generator, streamFQN, streamGoName string) {
-	g := gen.g
-	varName := xstrings.ToCamelCase(streamGoName)
-
-	g.P("var (")
-	g.P("  ", varName, "Once ", gen.ident(syncPkg, "Once"))
-	g.P("  ", varName, "Val *", streamGoName)
-	g.P(")")
-	g.P()
-
-	g.P("type ", streamGoName, " struct {")
-	g.P("  stream *", gen.ident(natsCPkg, "Stream"))
-	g.P("}")
-	g.P()
-
-	g.P("func Get", streamGoName, "() *", streamGoName, " {")
-	g.P("  ", varName, "Once.Do(func() {")
-	g.P("    ", varName, "Val = &", streamGoName, "{")
-	g.P("      stream: ", gen.ident(natsCPkg, "NewStream"), "(&", gen.ident(natsOptsPkg, "StreamOptions"), "{Name: \"", streamFQN, "\"}),")
-	g.P("    }")
-	g.P("  })")
-	g.P("  return ", varName, "Val")
-	g.P("}")
-	g.P()
-
-	g.P("func (s *", streamGoName, ") Get() *", gen.ident(natsCPkg, "Stream"), " {")
-	g.P("  return s.stream")
-	g.P("}")
-	g.P()
 }
 
 func generateSubjectStruct(gen *generator, message *protogen.Message, pr *resource.ParsedResource, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {

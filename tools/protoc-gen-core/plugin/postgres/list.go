@@ -23,15 +23,13 @@ func (mc *msgCtx) generateList() {
 	g.P(fmt.Sprintf("func (s *Store) List%s(ctx context.Context, %s%swhereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*%s, error) {",
 		pluralGoName, parentParam, showDeletedParam, mc.goTypeFqi))
 
+	g.P("  if columns == nil {")
 	if mc.hasJoins {
-		g.P("  if columns == nil {")
 		g.P(fmt.Sprintf("    columns = %s", mc.writeColumns()))
-		g.P("  }")
 	} else {
-		g.P("  if columns == nil {")
 		g.P(fmt.Sprintf("    columns = %sPostgresColumns", mc.goType))
-		g.P("  }")
 	}
+	g.P("  }")
 	g.P()
 
 	colPrefix := ""
@@ -40,12 +38,12 @@ func (mc *msgCtx) generateList() {
 	}
 
 	if mc.pr.Parent != nil {
-		for _, v := range mc.pr.Parent.PatternVariables {
-			camel := untitle(xstrings.ToCamelCase(v))
-			g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", camel, camel))
-			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s_id = $%%d\", len(params) + 1))",
-				mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), colPrefix, v))
-			g.P(fmt.Sprintf("    params = append(params, %sId)", camel))
+		for _, binding := range mc.parentColumnBindings() {
+			paramName := untitle(xstrings.ToCamelCase(binding.Variable))
+			g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", paramName, paramName))
+			g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s = $%%d\", len(params) + 1))",
+				mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), colPrefix, binding.Column))
+			g.P(fmt.Sprintf("    params = append(params, %sId)", paramName))
 			g.P("  }")
 		}
 		g.P()

@@ -2,19 +2,13 @@ package postgres
 
 import (
 	"fmt"
-
-	"github.com/huandu/xstrings"
 )
 
 func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
 	if mc.pr.Singleton {
-		if mc.hasJoins {
-			g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
-		} else {
-			g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
-		}
+		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
 		g.P()
 	}
 
@@ -46,30 +40,13 @@ func (mc *msgCtx) generateInsertVars() {
 	g.P()
 }
 
-func (mc *msgCtx) singletonChildHasJoins(sc singletonChild) bool {
-	joinTables, err := parseJoinFields(sc.message, "")
-	if err != nil {
-		return false
-	}
-	return len(joinTables) > 0
-}
-
-func (mc *msgCtx) singletonChildWriteColumns(sc singletonChild) string {
-	if mc.singletonChildHasJoins(sc) {
-		return sc.pr.SingularGoName() + "WritePostgresColumns"
-	}
-	return ""
-}
-
-func (mc *msgCtx) generateSingletonInsertQuery(idx int, sc singletonChild) {
+func (mc *msgCtx) generateSingletonInsertQuery(idx int, cc *childCtx) {
 	g := mc.g
 	insertQuery := mc.postgres("InsertQuery")
-	childParam := untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular))
-	writeCols := mc.singletonChildWriteColumns(sc)
-	if writeCols != "" {
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s, %s...)", idx, idx, insertQuery, sc.pr.SingularGoName(), childParam, writeCols))
+	if cc.writeColumnsVar != "" {
+		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s, %s...)", idx, idx, insertQuery, cc.goType, cc.paramName, cc.writeColumnsVar))
 	} else {
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", idx, idx, insertQuery, sc.pr.SingularGoName(), childParam))
+		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", idx, idx, insertQuery, cc.goType, cc.paramName))
 	}
 }
 
@@ -78,8 +55,8 @@ func (mc *msgCtx) generateInsert() {
 	insertQuery := mc.postgres("InsertQuery")
 
 	sig := fmt.Sprintf("func (s *Store) Insert%s(ctx context.Context, %s *%s", mc.goType, mc.goParam, mc.goTypeFqi)
-	for _, sc := range mc.singletonChildren {
-		sig += fmt.Sprintf(", %s *%s", untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular)), mc.gen.modelIdent(sc.pr.SingularGoName()))
+	for _, cc := range mc.singletonChildren {
+		sig += fmt.Sprintf(", %s *%s", cc.paramName, mc.gen.modelIdent(cc.goType))
 	}
 	sig += fmt.Sprintf(") (*%s, error) {", mc.goTypeFqi)
 	g.P(sig)
@@ -89,8 +66,8 @@ func (mc *msgCtx) generateInsert() {
 	} else {
 		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
 	}
-	for i, sc := range mc.singletonChildren {
-		mc.generateSingletonInsertQuery(i+2, sc)
+	for i, cc := range mc.singletonChildren {
+		mc.generateSingletonInsertQuery(i+2, cc)
 	}
 	g.P()
 
@@ -171,8 +148,8 @@ func (mc *msgCtx) generateInsertIdempotently() {
 
 	sig := fmt.Sprintf("func (s *Store) Insert%sIdempotently(ctx context.Context, requestID string, raw%s *%s",
 		mc.goType, title(mc.goParam), mc.goTypeFqi)
-	for _, sc := range mc.singletonChildren {
-		sig += fmt.Sprintf(", %s *%s", untitle(xstrings.ToCamelCase(sc.pr.Desc.Singular)), mc.gen.modelIdent(sc.pr.SingularGoName()))
+	for _, cc := range mc.singletonChildren {
+		sig += fmt.Sprintf(", %s *%s", cc.paramName, mc.gen.modelIdent(cc.goType))
 	}
 	sig += fmt.Sprintf(") (*%s, error) {", mc.goTypeFqi)
 	g.P(sig)
@@ -187,8 +164,8 @@ func (mc *msgCtx) generateInsertIdempotently() {
 		g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
 	}
 
-	for i, sc := range mc.singletonChildren {
-		mc.generateSingletonInsertQuery(i+2, sc)
+	for i, cc := range mc.singletonChildren {
+		mc.generateSingletonInsertQuery(i+2, cc)
 	}
 	g.P()
 

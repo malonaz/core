@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
@@ -13,6 +12,7 @@ import (
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/protofield"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
+	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
 func Generate(file *protogen.File, generatedFile *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
@@ -54,6 +54,8 @@ type Model struct {
 	Message        *protogen.Message
 	ModelOpts      *modelpb.ModelOpts
 	ParsedResource *resource.ParsedResource
+	Table          schema.Table
+	Bindings       []schema.ColumnBinding
 	Fields         []*Field
 	generatedFile  *protogen.GeneratedFile
 }
@@ -79,6 +81,11 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		return nil, fmt.Errorf("parsing resource from message %s: %w", message.GoIdent.GoName, err)
 	}
 
+	bindings, err := schema.ColumnBindings(parsedResource, modelOpts)
+	if err != nil {
+		return nil, fmt.Errorf("resolving column bindings for %s: %w", message.GoIdent.GoName, err)
+	}
+
 	fields, err := parseFields(message)
 	if err != nil {
 		return nil, fmt.Errorf("parsing fields for %s: %w", message.GoIdent.GoName, err)
@@ -88,6 +95,8 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 		Message:        message,
 		ModelOpts:      modelOpts,
 		ParsedResource: parsedResource,
+		Table:          schema.TableOf(parsedResource, modelOpts),
+		Bindings:       bindings,
 		Fields:         fields,
 		generatedFile:  generatedFile,
 	}, nil
@@ -133,20 +142,6 @@ func (m *Model) HasEtag() bool {
 	return m.Message.Desc.Fields().ByName("etag") != nil
 }
 
-func (m *Model) SchemaName() string {
-	if m.ModelOpts.SchemaName != "" {
-		return m.ModelOpts.SchemaName
-	}
-	return "public"
-}
-
-func (m *Model) TableName() string {
-	if m.ModelOpts.TableName != "" {
-		return m.ModelOpts.TableName
-	}
-	return m.ParsedResource.SingularSnakeCase()
-}
-
 func (m *Model) ActiveFields() []*Field {
 	var result []*Field
 	for _, field := range m.Fields {
@@ -158,63 +153,12 @@ func (m *Model) ActiveFields() []*Field {
 	return result
 }
 
-func (m *Model) ResourceIDFields() []string {
-	var ids []string
-	for _, variable := range m.ParsedResource.PatternVariables {
-		camelCase := xstrings.ToCamelCase(variable)
-		ids = append(ids, strings.ToUpper(camelCase[:1])+camelCase[1:]+"ID")
+func (m *Model) resourceIDFieldNames() []string {
+	names := make([]string, len(m.Bindings))
+	for i, binding := range m.Bindings {
+		names[i] = binding.GoFieldName()
 	}
-	return ids
-}
-
-// resolveJoinInfo looks up the parent resource's model opts and field opts for a joined field.
-func resolveJoinInfo(join *modelpb.Join) (schema, table, column string, parentFieldNullable bool, err error) {
-	parentMessage, err := resource.GetMessageByResourceType(join.Parent)
-	if err != nil {
-		return "", "", "", false, fmt.Errorf("resolving join parent resource %q: %w", join.Parent, err)
-	}
-
-	parentModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMessage.Desc.Options(), modelpb.E_ModelOpts)
-	if err != nil {
-		return "", "", "", false, fmt.Errorf("getting model_opts for join parent %q: %w", join.Parent, err)
-	}
-
-	parentParsedResource, err := resource.ParseFromMessage(parentMessage)
-	if err != nil {
-		return "", "", "", false, fmt.Errorf("parsing join parent resource %q: %w", join.Parent, err)
-	}
-
-	schema = "public"
-	if parentModelOpts.SchemaName != "" {
-		schema = parentModelOpts.SchemaName
-	}
-	table = parentParsedResource.SingularSnakeCase()
-	if parentModelOpts.TableName != "" {
-		table = parentModelOpts.TableName
-	}
-
-	// Find the field on the parent message to determine the column name and nullability.
-	var found bool
-	for _, parentField := range parentMessage.Fields {
-		if parentField.Desc.TextName() == join.Field {
-			column = join.Field
-			parentFieldOpts, extErr := pbutil.GetExtension[*modelpb.FieldOpts](parentField.Desc.Options(), modelpb.E_FieldOpts)
-			if extErr != nil && !errors.Is(extErr, pbutil.ErrExtensionNotFound) {
-				return "", "", "", false, fmt.Errorf("getting field_opts for parent field %q: %w", join.Field, extErr)
-			}
-			if parentFieldOpts.GetColumnName() != "" {
-				column = parentFieldOpts.GetColumnName()
-			}
-			parentFieldNullable = parentFieldOpts.GetNullable()
-			found = true
-			break
-		}
-	}
-	if !found {
-		return "", "", "", false, fmt.Errorf("field %q not found on parent resource %q", join.Field, join.Parent)
-	}
-
-	return schema, table, column, parentFieldNullable, nil
+	return names
 }
 
 // --- code generation ---
@@ -241,18 +185,9 @@ func (m *Model) StructDef() (string, error) {
 
 	fmt.Fprintf(&b, "type %s struct {\n", goName)
 
-	patternVariables := m.ParsedResource.PatternVariables
-	resourceIDFields := m.ResourceIDFields()
-	for i, fieldName := range resourceIDFields {
-		lastIdx := len(patternVariables) - 1
-		if i == lastIdx && m.ModelOpts.IdColumnName != "" {
-			if m.ParsedResource.Singleton {
-				return "", fmt.Errorf("singleton resource %s declares an id_column_name", m.ParsedResource.Desc.Type)
-			}
-			fmt.Fprintf(&b, "\t%s string `db:\"%s\" schema:\"%s\" table:\"%s\"`\n", fieldName, m.ModelOpts.IdColumnName, m.SchemaName(), m.TableName())
-		} else {
-			fmt.Fprintf(&b, "\t%s string `db:\"%s_id\" schema:\"%s\" table:\"%s\"`\n", fieldName, patternVariables[i], m.SchemaName(), m.TableName())
-		}
+	for _, binding := range m.Bindings {
+		fmt.Fprintf(&b, "\t%s string `db:\"%s\" schema:\"%s\" table:\"%s\"`\n",
+			binding.GoFieldName(), binding.Column, m.Table.SchemaOrPublic(), m.Table.Name)
 	}
 
 	for _, field := range m.ActiveFields() {
@@ -267,19 +202,19 @@ func (m *Model) StructDef() (string, error) {
 		}
 
 		if join := field.FieldOpts.GetJoin(); join != nil {
-			joinSchema, joinTable, joinColumn, parentFieldNullable, err := resolveJoinInfo(join)
+			target, err := schema.ResolveJoin(join)
 			if err != nil {
-				return "", fmt.Errorf("resolving join info for %s: %w", field.ProtoField.GoName, err)
+				return "", fmt.Errorf("resolving join for %s: %w", field.ProtoField.GoName, err)
 			}
 			fieldNullable := field.FieldOpts.GetNullable()
-			if fieldNullable != parentFieldNullable {
+			if fieldNullable != target.Nullable {
 				return "", fmt.Errorf(
 					"field %s has nullable=%v but parent field %q on %q has nullable=%v; they must match",
-					field.ProtoField.GoName, fieldNullable, join.Field, join.Parent, parentFieldNullable,
+					field.ProtoField.GoName, fieldNullable, join.Field, join.Parent, target.Nullable,
 				)
 			}
 			fmt.Fprintf(&b, "\t%s %s `db:\"%s\" external:\"true\" join_schema:\"%s\" join_table:\"%s\" join_column:\"%s\"`\n",
-				field.ProtoField.GoName, typeName, field.ProtoField.Desc.TextName(), joinSchema, joinTable, joinColumn)
+				field.ProtoField.GoName, typeName, field.ProtoField.Desc.TextName(), target.Table.SchemaOrPublic(), target.Table.Name, target.Column)
 			continue
 		}
 
@@ -288,7 +223,8 @@ func (m *Model) StructDef() (string, error) {
 			return "", fmt.Errorf("resolving column name for %s: %w", field.ProtoField.GoName, err)
 		}
 
-		fmt.Fprintf(&b, "\t%s %s `db:\"%s\" schema:\"%s\" table:\"%s\"`\n", field.ProtoField.GoName, typeName, columnTag, m.SchemaName(), m.TableName())
+		fmt.Fprintf(&b, "\t%s %s `db:\"%s\" schema:\"%s\" table:\"%s\"`\n",
+			field.ProtoField.GoName, typeName, columnTag, m.Table.SchemaOrPublic(), m.Table.Name)
 	}
 
 	b.WriteString("}\n")
@@ -306,7 +242,7 @@ func (m *Model) FromPbDef() (string, error) {
 	fmt.Fprintf(&b, "\t\treturn nil, fmt.Errorf(\"FromPb requires `name` to be set\")\n")
 	fmt.Fprintf(&b, "\t}\n\n")
 
-	resourceIDFields := m.ResourceIDFields()
+	resourceIDFields := m.resourceIDFieldNames()
 	if len(resourceIDFields) > 0 {
 		fmt.Fprintf(&b, "\t%s, err := Parse%sName(m.Name)\n", strings.Join(resourceIDFields, ", "), goName)
 		fmt.Fprintf(&b, "\tif err != nil {\n")
@@ -359,9 +295,8 @@ func (m *Model) ToPbDef() (string, error) {
 	}
 
 	pattern := m.ParsedResource.Pattern
-	resourceIDFields := m.ResourceIDFields()
 	fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), pattern)
-	for _, idField := range resourceIDFields {
+	for _, idField := range m.resourceIDFieldNames() {
 		fmt.Fprintf(&b, ", m.%s", idField)
 	}
 	fmt.Fprintf(&b, ")\n")
@@ -383,7 +318,7 @@ func (m *Model) ToPbDef() (string, error) {
 func (m *Model) ParseNameDef() string {
 	var b strings.Builder
 	goName := m.GoName()
-	resourceIDFields := m.ResourceIDFields()
+	resourceIDFields := m.resourceIDFieldNames()
 	pattern := m.ParsedResource.Pattern
 
 	returnTypes := make([]string, len(resourceIDFields))

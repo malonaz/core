@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/huandu/xstrings"
-
-	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 func (mc *methodCtx) generateCreate() error {
@@ -15,11 +13,6 @@ func (mc *methodCtx) generateCreate() error {
 	resourceGoName := mc.resourceGoName
 
 	hasRequestID := method.Input.Desc.Fields().ByName("request_id") != nil
-
-	singletonChildren, err := getSingletonChildren(pr)
-	if err != nil {
-		return err
-	}
 
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
@@ -103,39 +96,35 @@ func (mc *methodCtx) generateCreate() error {
 	g.P("  }")
 	g.P()
 
-	// Singleton children.
-	for _, childPr := range singletonChildren {
-		childMessage, err := resource.GetMessageByResourceType(childPr.Desc.Type)
-		if err != nil {
-			return fmt.Errorf("getting message for child resource %s: %w", childPr.Desc.Type, err)
-		}
-		childGoName := childPr.SingularGoName()
+	// Singleton children are created alongside their parent.
+	for _, child := range mc.singletonChildren {
+		childGoName := child.Resource.SingularGoName()
 
-		g.P(fmt.Sprintf("  %s := &%s{", xstrings.ToCamelCase(childGoName), mc.gen.qgi(childMessage.GoIdent)))
+		g.P(fmt.Sprintf("  %s := &%s{", xstrings.ToCamelCase(childGoName), mc.gen.qgi(child.Message.GoIdent)))
 		g.P(fmt.Sprintf("    Name: %s(\"%s\", %s),",
-			mc.gen.ident(resourcenamePkg, "Sprint"), childPr.Pattern, childPr.PatternVariableIDs(true)))
+			mc.gen.ident(resourcenamePkg, "Sprint"), child.Resource.Pattern, child.Resource.PatternVariableIDs(true)))
 		g.P(fmt.Sprintf("    CreateTime: request.%s.CreateTime,", resourceGoName))
 		g.P(fmt.Sprintf("    UpdateTime: request.%s.UpdateTime,", resourceGoName))
 		g.P("  }")
 
-		if childMessage.Desc.Fields().ByName("etag") != nil {
+		if child.Message.Desc.Fields().ByName("etag") != nil {
 			g.P("  {")
 			g.P("    var err error")
 			g.P(fmt.Sprintf("    %s.Etag, err = %s(%s)",
 				xstrings.ToCamelCase(childGoName), mc.gen.ident(aipPkg, "ComputeETag"), xstrings.ToCamelCase(childGoName)))
 			g.P("    if err != nil {")
 			g.P(fmt.Sprintf("      return nil, %s(%s, \"computing %%s etag: %%v\", \"%s\", err).Err()",
-				mc.statusErrorf(), mc.codes("Internal"), childPr.Desc.Singular))
+				mc.statusErrorf(), mc.codes("Internal"), child.Resource.Desc.Singular))
 			g.P("    }")
 			g.P("  }")
 		}
 
-		childParseFromPb := mc.gen.modelIdent(childMessage.GoIdent.GoName + "FromPb")
+		childParseFromPb := mc.gen.modelIdent(child.Message.GoIdent.GoName + "FromPb")
 		g.P(fmt.Sprintf("  %sModel, err := %s(%s)",
 			xstrings.ToCamelCase(childGoName), childParseFromPb, xstrings.ToCamelCase(childGoName)))
 		g.P("  if err != nil {")
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from pb to model: %%v\", err).Err()",
-			mc.statusErrorf(), mc.codes("Internal"), childPr.Desc.Singular))
+			mc.statusErrorf(), mc.codes("Internal"), child.Resource.Desc.Singular))
 		g.P("  }")
 		g.P()
 	}
@@ -159,8 +148,8 @@ func (mc *methodCtx) generateCreate() error {
 		insertCall += "request.RequestId, "
 	}
 	insertCall += xstrings.ToCamelCase(mc.modelGoName)
-	for _, childPr := range singletonChildren {
-		insertCall += ", " + xstrings.ToCamelCase(childPr.SingularGoName()) + "Model"
+	for _, child := range mc.singletonChildren {
+		insertCall += ", " + xstrings.ToCamelCase(child.Resource.SingularGoName()) + "Model"
 	}
 	insertCall += ")"
 	g.P(insertCall)

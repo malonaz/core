@@ -3,26 +3,23 @@ package rpc
 import (
 	"errors"
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
-	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
+	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
 var (
 	contextPkg      = protogen.GoImportPath("context")
 	fmtPkg          = protogen.GoImportPath("fmt")
 	errorsPkg       = protogen.GoImportPath("errors")
-	stringsPkg      = protogen.GoImportPath("strings")
-	strconvPkg      = protogen.GoImportPath("strconv")
 	timePkg         = protogen.GoImportPath("time")
 	statusPkg       = protogen.GoImportPath("github.com/malonaz/core/go/grpc/status")
 	codesPkg        = protogen.GoImportPath("google.golang.org/grpc/codes")
@@ -40,8 +37,6 @@ var (
 	natsCodegenPkg  = protogen.GoImportPath("github.com/malonaz/core/genproto/codegen/nats/v1")
 	celPkg          = protogen.GoImportPath("github.com/google/cel-go/cel")
 	celExtPkg       = protogen.GoImportPath("github.com/google/cel-go/ext")
-
-	versionPrefixRe = regexp.MustCompile(`^.*\.v[0-9]+\.`)
 )
 
 // serviceInfo holds the collected info for a single service.
@@ -144,7 +139,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 
 		if !generatedResources[pr.Desc.Singular] {
 			generatedResources[pr.Desc.Singular] = true
-			if err := gen.generateResourceLevel(si, mi, file); err != nil {
+			if err := gen.generateResourceLevel(si, mi); err != nil {
 				return err
 			}
 		}
@@ -256,7 +251,7 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 }
 
 // generateResourceLevel emits the per-resource store interface, server struct, and constructor.
-func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, file *protogen.File) error {
+func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) error {
 	g := gen.g
 	pr := mi.rpc.ParsedResource
 	svcName := xstrings.ToPascalCase(si.service.GoName)
@@ -270,7 +265,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 	softDeletable := mi.rpc.Message.Desc.Fields().ByName("delete_time") != nil
 	hasEtag := mi.rpc.Message.Desc.Fields().ByName("etag") != nil
 
-	singletonChildren, err := getSingletonChildren(pr)
+	singletonChildren, err := schema.SingletonChildren(mi.rpc.Message, pr)
 	if err != nil {
 		return err
 	}
@@ -279,18 +274,16 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 	hasRequestID := false
 	for _, method := range si.service.Methods {
 		rpc, err := resource.ParseRPC(method)
-		if err != nil || rpc == nil {
+		if err != nil {
+			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
+		}
+		if rpc == nil {
 			continue
 		}
 		if rpc.Create && rpc.ParsedResource.Desc.Singular == pr.Desc.Singular {
 			hasRequestID = method.Input.Desc.Fields().ByName("request_id") != nil
 			break
 		}
-	}
-
-	natsEventOpts, err := getNatsEventOpts(mi.rpc.Message)
-	if err != nil {
-		return err
 	}
 
 	// Store interface.
@@ -306,8 +299,8 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 		insertSig += "requestID string, "
 	}
 	insertSig += fmt.Sprintf("%s *%s", xstrings.ToCamelCase(resourceGoName), goTypeQgi)
-	for _, childPr := range singletonChildren {
-		insertSig += fmt.Sprintf(", %s *%s", xstrings.ToCamelCase(childPr.SingularGoName()), gen.modelIdent(childPr.SingularGoName()))
+	for _, child := range singletonChildren {
+		insertSig += fmt.Sprintf(", %s *%s", xstrings.ToCamelCase(child.Resource.SingularGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
 	}
 	insertSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 	g.P(insertSig)
@@ -371,7 +364,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 	// Server struct.
 	g.P(fmt.Sprintf("type %s struct {", serverNameUntitled))
 	g.P(fmt.Sprintf("  store %s", storeIface))
-	if natsEventOpts != nil {
+	if mi.natsEventOpts != nil {
 		g.P(fmt.Sprintf("  natsClient *%s", gen.ident(natsPkg, "Client")))
 	}
 	g.P("}")
@@ -379,14 +372,14 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 
 	// Constructor.
 	constructorNats := ""
-	if natsEventOpts != nil {
+	if mi.natsEventOpts != nil {
 		constructorNats = fmt.Sprintf(", natsClient *%s", gen.ident(natsPkg, "Client"))
 	}
 	g.P(fmt.Sprintf("func new%s(store %s%s) *%s {",
 		serverName, storeIface, constructorNats, serverNameUntitled))
 	g.P(fmt.Sprintf("  return &%s{", serverNameUntitled))
 	g.P("    store: store,")
-	if natsEventOpts != nil {
+	if mi.natsEventOpts != nil {
 		g.P("    natsClient: natsClient,")
 	}
 	g.P("  }")
@@ -398,7 +391,10 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo, fil
 
 // generateMethod dispatches to the appropriate per-RPC generator.
 func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
-	mc := gen.newMethodCtx(si, mi)
+	mc, err := gen.newMethodCtx(si, mi)
+	if err != nil {
+		return err
+	}
 	switch {
 	case mi.rpc.Create:
 		return mc.generateCreate()
@@ -440,11 +436,11 @@ type methodCtx struct {
 	softDeletable bool
 	hasEtag       bool
 
-	singletonChildren []*resource.ParsedResource
+	singletonChildren []schema.SingletonChild
 	natsStreamGoName  string
 }
 
-func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) *methodCtx {
+func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx, error) {
 	pr := mi.rpc.ParsedResource
 	resourceGoName := pr.SingularGoName()
 	goType := mi.rpc.Message.GoIdent.GoName
@@ -452,10 +448,13 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) *methodCtx {
 
 	var natsStreamGoName string
 	if mi.natsEventOpts != nil {
-		natsStreamGoName = deriveNatsStreamGoName(mi.natsEventOpts.GetStream())
+		natsStreamGoName = nats.StreamGoName(mi.natsEventOpts.GetStream())
 	}
 
-	singletonChildren, _ := getSingletonChildren(pr)
+	singletonChildren, err := schema.SingletonChildren(mi.rpc.Message, pr)
+	if err != nil {
+		return nil, err
+	}
 
 	return &methodCtx{
 		gen: gen,
@@ -481,7 +480,7 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) *methodCtx {
 
 		singletonChildren: singletonChildren,
 		natsStreamGoName:  natsStreamGoName,
-	}
+	}, nil
 }
 
 // --- helpers ---
@@ -497,25 +496,6 @@ func (mc *methodCtx) inputType() string        { return mc.gen.qgi(mc.mi.method.
 func (mc *methodCtx) outputType() string       { return mc.gen.qgi(mc.mi.method.Output.GoIdent) }
 func (mc *methodCtx) protoType() string        { return mc.gen.qgi(mc.mi.rpc.Message.GoIdent) }
 
-func getSingletonChildren(pr *resource.ParsedResource) ([]*resource.ParsedResource, error) {
-	var result []*resource.ParsedResource
-	for _, childPr := range pr.Children {
-		if !childPr.Singleton {
-			continue
-		}
-		childMessage, err := resource.GetMessageByResourceType(childPr.Desc.Type)
-		if err != nil {
-			continue
-		}
-		_, mErr := pbutil.GetExtension[*modelpb.ModelOpts](childMessage.Desc.Options(), modelpb.E_ModelOpts)
-		if mErr != nil {
-			continue
-		}
-		result = append(result, childPr)
-	}
-	return result, nil
-}
-
 func getNatsEventOpts(message *protogen.Message) (*codegennatspb.EventOptions, error) {
 	opts, err := pbutil.GetExtension[*codegennatspb.EventOptions](message.Desc.Options(), codegennatspb.E_Event)
 	if err != nil {
@@ -525,11 +505,4 @@ func getNatsEventOpts(message *protogen.Message) (*codegennatspb.EventOptions, e
 		return nil, fmt.Errorf("getting nats event opts for %s: %w", message.GoIdent.GoName, err)
 	}
 	return opts, nil
-}
-
-func deriveNatsStreamGoName(stream string) string {
-	s := versionPrefixRe.ReplaceAllString(stream, "")
-	s = strings.ReplaceAll(s, ".", "-")
-	s = xstrings.ToPascalCase(s)
-	return s + "Stream"
 }
