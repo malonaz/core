@@ -539,16 +539,17 @@ func resolveJoinSourceMessage(registry *protoregistry.Files, msgDesc protoreflec
 	return nil, fmt.Errorf("join must set exactly one of parent or reference")
 }
 
-// resolveJoinAlias resolves the table qualifier a joined field is emitted
-// under, matching the alias produced by the postgres generator: the joined
-// table's name for parent joins, the reference field name for reference joins.
+// go/aip/resource_tree.go
 func resolveJoinAlias(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (string, error) {
+	// Reference joins are aliased by the reference field name; the source
+	// message is irrelevant here and may not exist in the registry.
+	if join.GetReference() != "" {
+		return join.GetReference(), nil
+	}
+
 	sourceMsg, err := resolveJoinSourceMessage(registry, msgDesc, join)
 	if err != nil {
 		return "", err
-	}
-	if join.GetReference() != "" {
-		return join.GetReference(), nil
 	}
 
 	resourceDescriptor, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](sourceMsg.Options(), annotationspb.E_Resource)
