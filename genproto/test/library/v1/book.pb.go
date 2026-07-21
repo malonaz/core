@@ -979,10 +979,10 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	" \x03(\v2).malonaz.test.library.v1.Book.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
 	"\x04etag\x18\v \x01(\tR\x04etag\x12I\n" +
 	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x12d\n" +
-	"\x11shelf_external_id\x18\r \x01(\tB8\xe0A\x03\xba\xea\x0f1 \x01B-\n" +
-	"\x1elibrary.test.malonaz.com/Shelf\x12\vexternal_idR\x0fshelfExternalId\x12v\n" +
-	"\vshelf_genre\x18\x0e \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB0\xe0A\x03\xba\xea\x0f)B'\n" +
-	"\x1elibrary.test.malonaz.com/Shelf\x12\x05genreR\n" +
+	"\x11shelf_external_id\x18\r \x01(\tB8\xe0A\x03\xba\xea\x0f1 \x01B-\x12\vexternal_id\n" +
+	"\x1elibrary.test.malonaz.com/ShelfR\x0fshelfExternalId\x12v\n" +
+	"\vshelf_genre\x18\x0e \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB0\xe0A\x03\xba\xea\x0f)B'\x12\x05genre\n" +
+	"\x1elibrary.test.malonaz.com/ShelfR\n" +
 	"shelfGenre\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

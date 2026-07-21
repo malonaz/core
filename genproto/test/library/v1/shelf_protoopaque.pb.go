@@ -90,20 +90,22 @@ func (x ShelfGenre) Number() protoreflect.EnumNumber {
 
 // Shelf represents a categorized collection of books.
 type Shelf struct {
-	state                      protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name            string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_CreateTime      *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_UpdateTime      *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
-	xxx_hidden_DeleteTime      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
-	xxx_hidden_DisplayName     string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3"`
-	xxx_hidden_Genre           ShelfGenre             `protobuf:"varint,6,opt,name=genre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
-	xxx_hidden_ExternalId      string                 `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3"`
-	xxx_hidden_CorrelationId_2 string                 `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3"`
-	xxx_hidden_Duration        *durationpb.Duration   `protobuf:"bytes,9,opt,name=duration,proto3"`
-	xxx_hidden_Labels          map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Metadata        *ShelfMetadata         `protobuf:"bytes,11,opt,name=metadata,proto3"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name              string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_CreateTime        *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_DeleteTime        *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
+	xxx_hidden_DisplayName       string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3"`
+	xxx_hidden_Genre             ShelfGenre             `protobuf:"varint,6,opt,name=genre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
+	xxx_hidden_ExternalId        string                 `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3"`
+	xxx_hidden_CorrelationId_2   string                 `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3"`
+	xxx_hidden_Duration          *durationpb.Duration   `protobuf:"bytes,9,opt,name=duration,proto3"`
+	xxx_hidden_Labels            map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Metadata          *ShelfMetadata         `protobuf:"bytes,11,opt,name=metadata,proto3"`
+	xxx_hidden_BestBook          string                 `protobuf:"bytes,12,opt,name=best_book,json=bestBook,proto3"`
+	xxx_hidden_BestBookPageCount int32                  `protobuf:"varint,13,opt,name=best_book_page_count,json=bestBookPageCount,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *Shelf) Reset() {
@@ -208,6 +210,20 @@ func (x *Shelf) GetMetadata() *ShelfMetadata {
 	return nil
 }
 
+func (x *Shelf) GetBestBook() string {
+	if x != nil {
+		return x.xxx_hidden_BestBook
+	}
+	return ""
+}
+
+func (x *Shelf) GetBestBookPageCount() int32 {
+	if x != nil {
+		return x.xxx_hidden_BestBookPageCount
+	}
+	return 0
+}
+
 func (x *Shelf) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -250,6 +266,14 @@ func (x *Shelf) SetLabels(v map[string]string) {
 
 func (x *Shelf) SetMetadata(v *ShelfMetadata) {
 	x.xxx_hidden_Metadata = v
+}
+
+func (x *Shelf) SetBestBook(v string) {
+	x.xxx_hidden_BestBook = v
+}
+
+func (x *Shelf) SetBestBookPageCount(v int32) {
+	x.xxx_hidden_BestBookPageCount = v
 }
 
 func (x *Shelf) HasCreateTime() bool {
@@ -333,6 +357,10 @@ type Shelf_builder struct {
 	Labels map[string]string
 	// Shelf metadata.
 	Metadata *ShelfMetadata
+	// Resource reference to the best book on this shelf.
+	BestBook string
+	// The page count of the best book.
+	BestBookPageCount int32
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -350,6 +378,8 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.xxx_hidden_Duration = b.Duration
 	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_BestBook = b.BestBook
+	x.xxx_hidden_BestBookPageCount = b.BestBookPageCount
 	return m0
 }
 
@@ -522,7 +552,8 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xcb\t\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xe1\n" +
+	"\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -545,7 +576,11 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x06labels\x18\n" +
 	" \x03(\v2*.malonaz.test.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12W\n" +
 	"\bmetadata\x18\v \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
-	"\vlegacy_meta\x10\x01R\bmetadata\x1a9\n" +
+	"\vlegacy_meta\x10\x01R\bmetadata\x12?\n" +
+	"\tbest_book\x18\f \x01(\tB\"\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/BookR\bbestBook\x12S\n" +
+	"\x14best_book_page_count\x18\r \x01(\x05B\"\xe0A\x03\xba\xea\x0f\x1b \x01B\x17\x12\n" +
+	"page_count\x1a\tbest_bookR\x11bestBookPageCount\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc1\x02\xeaA^\n" +

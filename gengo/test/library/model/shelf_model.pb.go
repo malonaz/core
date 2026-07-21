@@ -19,18 +19,20 @@ var ErrShelfNotExist = errors.New("shelf does not exist")
 var ErrShelfAlreadyDeleted = errors.New("shelf already deleted")
 
 type Shelf struct {
-	OrganizationID  string         `db:"organization_id" schema:"library" table:"shelf"`
-	ShelfID         string         `db:"shelf_id" schema:"library" table:"shelf"`
-	CreateTime      time.Time      `db:"create_time" schema:"library" table:"shelf"`
-	UpdateTime      time.Time      `db:"update_time" schema:"library" table:"shelf"`
-	DeleteTime      *time.Time     `db:"delete_time" schema:"library" table:"shelf"`
-	DisplayName     string         `db:"display_name" schema:"library" table:"shelf"`
-	Genre           int16          `db:"genre" schema:"library" table:"shelf"`
-	ExternalId      *string        `db:"ext_id" schema:"library" table:"shelf"`
-	CorrelationId_2 string         `db:"correlation_id" schema:"library" table:"shelf"`
-	Duration        *time.Duration `db:"duration" schema:"library" table:"shelf"`
-	Labels          []byte         `db:"labels" schema:"library" table:"shelf"`
-	Metadata        []byte         `db:"legacy_meta" schema:"library" table:"shelf"`
+	OrganizationID    string         `db:"organization_id" schema:"library" table:"shelf"`
+	ShelfID           string         `db:"shelf_id" schema:"library" table:"shelf"`
+	CreateTime        time.Time      `db:"create_time" schema:"library" table:"shelf"`
+	UpdateTime        time.Time      `db:"update_time" schema:"library" table:"shelf"`
+	DeleteTime        *time.Time     `db:"delete_time" schema:"library" table:"shelf"`
+	DisplayName       string         `db:"display_name" schema:"library" table:"shelf"`
+	Genre             int16          `db:"genre" schema:"library" table:"shelf"`
+	ExternalId        *string        `db:"ext_id" schema:"library" table:"shelf"`
+	CorrelationId_2   string         `db:"correlation_id" schema:"library" table:"shelf"`
+	Duration          *time.Duration `db:"duration" schema:"library" table:"shelf"`
+	Labels            []byte         `db:"labels" schema:"library" table:"shelf"`
+	Metadata          []byte         `db:"legacy_meta" schema:"library" table:"shelf"`
+	BestBook          string         `db:"best_book" schema:"library" table:"shelf"`
+	BestBookPageCount *int32         `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -84,19 +86,25 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Metadata: %w", err)
 	}
+	var BestBookPageCount *int32
+	if m.BestBookPageCount != 0 {
+		BestBookPageCount = &m.BestBookPageCount
+	}
 	return &Shelf{
-		OrganizationID:  OrganizationID,
-		ShelfID:         ShelfID,
-		CreateTime:      m.CreateTime.AsTime(),
-		UpdateTime:      m.UpdateTime.AsTime(),
-		DeleteTime:      DeleteTime,
-		DisplayName:     m.DisplayName,
-		Genre:           int16(m.Genre),
-		ExternalId:      ExternalId,
-		CorrelationId_2: m.CorrelationId_2,
-		Duration:        Duration,
-		Labels:          LabelsBytes,
-		Metadata:        MetadataBytes,
+		OrganizationID:    OrganizationID,
+		ShelfID:           ShelfID,
+		CreateTime:        m.CreateTime.AsTime(),
+		UpdateTime:        m.UpdateTime.AsTime(),
+		DeleteTime:        DeleteTime,
+		DisplayName:       m.DisplayName,
+		Genre:             int16(m.Genre),
+		ExternalId:        ExternalId,
+		CorrelationId_2:   m.CorrelationId_2,
+		Duration:          Duration,
+		Labels:            LabelsBytes,
+		Metadata:          MetadataBytes,
+		BestBook:          m.BestBook,
+		BestBookPageCount: BestBookPageCount,
 	}, nil
 }
 
@@ -140,22 +148,28 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 	if err := pbutil.JSONUnmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
 	}
+	var BestBookPageCount int32
+	if m.BestBookPageCount != nil {
+		BestBookPageCount = *m.BestBookPageCount
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Shelf{
-		Name:            name,
-		CreateTime:      CreateTime,
-		UpdateTime:      UpdateTime,
-		DeleteTime:      DeleteTime,
-		DisplayName:     m.DisplayName,
-		Genre:           v1.ShelfGenre(m.Genre),
-		ExternalId:      ExternalId,
-		CorrelationId_2: m.CorrelationId_2,
-		Duration:        Duration,
-		Labels:          Labels,
-		Metadata:        Metadata,
+		Name:              name,
+		CreateTime:        CreateTime,
+		UpdateTime:        UpdateTime,
+		DeleteTime:        DeleteTime,
+		DisplayName:       m.DisplayName,
+		Genre:             v1.ShelfGenre(m.Genre),
+		ExternalId:        ExternalId,
+		CorrelationId_2:   m.CorrelationId_2,
+		Duration:          Duration,
+		Labels:            Labels,
+		Metadata:          Metadata,
+		BestBook:          m.BestBook,
+		BestBookPageCount: BestBookPageCount,
 	}, nil
 }
 

@@ -111,6 +111,21 @@ message Shelf {
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).column_name = "legacy_meta"
   ];
+
+  // Resource reference to the best book on this shelf.
+  string best_book = 12 [(google.api.resource_reference).type = "library.test.malonaz.com/Book"];
+
+  // The page count of the best book.
+  int32 best_book_page_count = 13 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        reference: "best_book"
+        field: "page_count"
+      }
+    }
+  ];
 }
 
 // Metadata for a shelf.

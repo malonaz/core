@@ -17,6 +17,7 @@ go_test(
         "note_test.go",
         "order_by_test.go",
         "read_mask_test.go",
+        "reference_join_test.go",
         "sat_test.go",
         "shelf_test.go",
         "singleton_hard_deletable_test.go",

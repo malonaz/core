@@ -16,9 +16,9 @@ var (
 	BookReviewWritePostgresColumns = postgres.GetDBColumns(model.BookReview{}, postgres.ExceptColumns("book_title", "book_publication_year"))
 )
 
-var bookReviewJoinSubqueryExpr = `,(SELECT book.title FROM library.book WHERE book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id) AS book_title,(SELECT book.publication_year FROM library.book WHERE book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id) AS book_publication_year`
+var bookReviewJoinSubqueryExpr = `,(SELECT book.title FROM library.book AS book WHERE book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id) AS book_title,(SELECT book.publication_year FROM library.book AS book WHERE book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id) AS book_publication_year`
 var bookReviewJoinSelectExprs = `,book.title AS book_title,book.publication_year AS book_publication_year`
-var bookReviewJoinClause = `INNER JOIN library.book ON book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id`
+var bookReviewJoinClause = `INNER JOIN library.book AS book ON book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id`
 
 func (s *Store) getBookReviewETag(ctx context.Context, organizationId, shelfId, bookId string) (string, error) {
 	query := `SELECT etag FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`

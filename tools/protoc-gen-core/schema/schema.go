@@ -9,7 +9,10 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
@@ -116,90 +119,158 @@ func Columns(bindings []ColumnBinding) []string {
 	return columns
 }
 
-// JoinTarget is the parent table and column backing a single joined field.
+// JoinTarget is the joined table and column backing a single joined field.
 type JoinTarget struct {
-	Table    Table
+	Table Table
+	// Alias is the table alias the join is emitted under. Parent joins use
+	// the table name; reference joins use the reference field name so two
+	// joins against the same table cannot collide.
+	Alias    string
 	Column   string
 	Nullable bool
 }
 
-// JoinCondition equates a parent table column with a child table column.
+// JoinCondition equates a column on the joined table with an expression on
+// the child table.
 type JoinCondition struct {
-	ParentColumn string
-	ChildColumn  string
+	// SourceColumn is the column on the joined table.
+	SourceColumn string
+	// ChildExpr is a printf template with a single %s placeholder for the
+	// child table qualifier, e.g. "%s.organization_id" or
+	// "split_part(%s.active_revision, '/', 12)".
+	ChildExpr string
 }
 
-// JoinField is a child column populated from a parent table column.
+// Render returns the SQL condition, qualifying both sides.
+func (c JoinCondition) Render(alias, childTable string) string {
+	return fmt.Sprintf("%s.%s = %s", alias, c.SourceColumn, fmt.Sprintf(c.ChildExpr, childTable))
+}
+
+// JoinField is a child column populated from a joined table column.
 type JoinField struct {
 	// Alias is the column alias on the child, i.e. the proto field name.
 	Alias string
-	// Column is the backing column on the parent table.
+	// Column is the backing column on the joined table.
 	Column string
 }
 
-// Join groups all joined fields of a message against one parent resource.
+// Join groups all joined fields of a message against one join source.
 type Join struct {
-	ParentType string
-	Table      Table
+	// Key identifies the join source: the parent resource type or the
+	// reference field name.
+	Key   string
+	Table Table
+	// Alias is the table alias the join is emitted under.
+	Alias string
+	// Left is true when the join is emitted as a LEFT JOIN: reference joins
+	// on nullable fields.
+	Left       bool
 	Conditions []JoinCondition
 	Fields     []JoinField
 }
 
-// joinParent bundles everything resolvable from a join's parent resource type.
-type joinParent struct {
+// joinSource bundles everything resolvable from a join's source resource type.
+type joinSource struct {
 	message   *protogen.Message
 	modelOpts *modelpb.ModelOpts
 	resource  *resource.ParsedResource
 }
 
-func resolveJoinParent(parentType string) (*joinParent, error) {
-	parentMessage, err := resource.GetMessageByResourceType(parentType)
+func resolveJoinSource(sourceType string) (*joinSource, error) {
+	sourceMessage, err := resource.GetMessageByResourceType(sourceType)
 	if err != nil {
-		return nil, fmt.Errorf("resolving join parent resource %q: %w", parentType, err)
+		return nil, fmt.Errorf("resolving join source resource %q: %w", sourceType, err)
 	}
-	parentModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMessage.Desc.Options(), modelpb.E_ModelOpts)
+	sourceModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](sourceMessage.Desc.Options(), modelpb.E_ModelOpts)
 	if err != nil {
-		return nil, fmt.Errorf("getting model_opts for join parent %q: %w", parentType, err)
+		return nil, fmt.Errorf("getting model_opts for join source %q: %w", sourceType, err)
 	}
-	parentResource, err := resource.ParseFromMessage(parentMessage)
+	sourceResource, err := resource.ParseFromMessage(sourceMessage)
 	if err != nil {
-		return nil, fmt.Errorf("parsing join parent resource %q: %w", parentType, err)
+		return nil, fmt.Errorf("parsing join source resource %q: %w", sourceType, err)
 	}
-	return &joinParent{message: parentMessage, modelOpts: parentModelOpts, resource: parentResource}, nil
+	return &joinSource{message: sourceMessage, modelOpts: sourceModelOpts, resource: sourceResource}, nil
 }
 
-// ResolveJoin resolves the parent table and column of a join annotation.
-func ResolveJoin(join *modelpb.Join) (*JoinTarget, error) {
-	parent, err := resolveJoinParent(join.GetParent())
-	if err != nil {
-		return nil, err
+// resolveReferenceSource resolves the resource referenced by a resource-name
+// field via its google.api.resource_reference annotation.
+func resolveReferenceSource(referenceField *protogen.Field) (*joinSource, error) {
+	name := referenceField.Desc.TextName()
+	if referenceField.Desc.Kind() != protoreflect.StringKind || referenceField.Desc.IsList() {
+		return nil, fmt.Errorf("reference field %q must be a singular string", name)
 	}
-	for _, parentField := range parent.message.Fields {
-		if parentField.Desc.TextName() != join.GetField() {
+	options := referenceField.Desc.Options()
+	if options == nil || !proto.HasExtension(options, annotationspb.E_ResourceReference) {
+		return nil, fmt.Errorf("reference field %q must declare a google.api.resource_reference", name)
+	}
+	reference, ok := proto.GetExtension(options, annotationspb.E_ResourceReference).(*annotationspb.ResourceReference)
+	if !ok || reference.GetType() == "" || reference.GetType() == "*" {
+		return nil, fmt.Errorf("reference field %q must declare a concrete resource_reference type", name)
+	}
+	return resolveJoinSource(reference.GetType())
+}
+
+func fieldByTextName(message *protogen.Message, name string) *protogen.Field {
+	for _, field := range message.Fields {
+		if field.Desc.TextName() == name {
+			return field
+		}
+	}
+	return nil
+}
+
+// ResolveJoin resolves the joined table, alias and column of a join annotation.
+func ResolveJoin(message *protogen.Message, join *modelpb.Join) (*JoinTarget, error) {
+	var source *joinSource
+	var alias string
+	switch {
+	case join.GetParent() != "":
+		var err error
+		if source, err = resolveJoinSource(join.GetParent()); err != nil {
+			return nil, err
+		}
+		alias = TableOf(source.resource, source.modelOpts).Name
+	case join.GetReference() != "":
+		referenceField := fieldByTextName(message, join.GetReference())
+		if referenceField == nil {
+			return nil, fmt.Errorf("reference field %q not found on %s", join.GetReference(), message.Desc.FullName())
+		}
+		var err error
+		if source, err = resolveReferenceSource(referenceField); err != nil {
+			return nil, err
+		}
+		alias = join.GetReference()
+	default:
+		return nil, fmt.Errorf("join must set exactly one of parent or reference")
+	}
+
+	for _, sourceField := range source.message.Fields {
+		if sourceField.Desc.TextName() != join.GetField() {
 			continue
 		}
-		parentFieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](parentField.Desc.Options(), modelpb.E_FieldOpts)
+		sourceFieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](sourceField.Desc.Options(), modelpb.E_FieldOpts)
 		if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return nil, fmt.Errorf("getting field_opts for parent field %q: %w", join.GetField(), err)
+			return nil, fmt.Errorf("getting field_opts for joined field %q: %w", join.GetField(), err)
 		}
 		column := join.GetField()
-		if parentFieldOpts.GetColumnName() != "" {
-			column = parentFieldOpts.GetColumnName()
+		if sourceFieldOpts.GetColumnName() != "" {
+			column = sourceFieldOpts.GetColumnName()
 		}
 		return &JoinTarget{
-			Table:    TableOf(parent.resource, parent.modelOpts),
+			Table:    TableOf(source.resource, source.modelOpts),
+			Alias:    alias,
 			Column:   column,
-			Nullable: parentFieldOpts.GetNullable(),
+			Nullable: sourceFieldOpts.GetNullable(),
 		}, nil
 	}
-	return nil, fmt.Errorf("field %q not found on parent resource %q", join.GetField(), join.GetParent())
+	return nil, fmt.Errorf("field %q not found on joined resource %q", join.GetField(), source.resource.Desc.Type)
 }
 
-// ParseJoins collects a message's join annotations, grouped by parent resource
-// in field-declaration order.
+// ParseJoins collects a message's join annotations, grouped by join source in
+// field-declaration order.
 func ParseJoins(message *protogen.Message) ([]Join, error) {
-	var parentTypes []string
-	parentTypeToJoin := map[string]*Join{}
+	var keys []string
+	keyToJoin := map[string]*Join{}
 
 	for _, field := range message.Fields {
 		fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
@@ -214,35 +285,54 @@ func ParseJoins(message *protogen.Message) ([]Join, error) {
 			continue
 		}
 
-		target, err := ResolveJoin(joinOpts)
+		target, err := ResolveJoin(message, joinOpts)
 		if err != nil {
 			return nil, fmt.Errorf("resolving join for field %s: %w", field.Desc.Name(), err)
 		}
 
-		join, ok := parentTypeToJoin[joinOpts.GetParent()]
+		key := joinKey(joinOpts)
+		join, ok := keyToJoin[key]
 		if !ok {
-			conditions, err := joinConditions(joinOpts.GetParent())
+			join = &Join{Key: key, Table: target.Table, Alias: target.Alias}
+			switch {
+			case joinOpts.GetParent() != "":
+				join.Conditions, err = parentJoinConditions(joinOpts.GetParent())
+			case joinOpts.GetReference() != "":
+				join.Conditions, err = referenceJoinConditions(message, joinOpts.GetReference())
+				join.Left = fieldOpts.GetNullable()
+			}
 			if err != nil {
 				return nil, err
 			}
-			join = &Join{ParentType: joinOpts.GetParent(), Table: target.Table, Conditions: conditions}
-			parentTypeToJoin[joinOpts.GetParent()] = join
-			parentTypes = append(parentTypes, joinOpts.GetParent())
+			keyToJoin[key] = join
+			keys = append(keys, key)
+		}
+		// One reference join is a single LEFT/INNER decision, so all of its
+		// fields must agree on nullability.
+		if joinOpts.GetReference() != "" && join.Left != fieldOpts.GetNullable() {
+			return nil, fmt.Errorf("fields joined via reference %q disagree on nullable", joinOpts.GetReference())
 		}
 		join.Fields = append(join.Fields, JoinField{Alias: string(field.Desc.Name()), Column: target.Column})
 	}
 
-	joins := make([]Join, 0, len(parentTypes))
-	for _, parentType := range parentTypes {
-		joins = append(joins, *parentTypeToJoin[parentType])
+	joins := make([]Join, 0, len(keys))
+	for _, key := range keys {
+		joins = append(joins, *keyToJoin[key])
 	}
 	return joins, nil
 }
 
-// joinConditions equates each of the parent's identifier columns with the
-// child's corresponding foreign key column.
-func joinConditions(parentType string) ([]JoinCondition, error) {
-	parent, err := resolveJoinParent(parentType)
+func joinKey(join *modelpb.Join) string {
+	if join.GetParent() != "" {
+		return "parent:" + join.GetParent()
+	}
+	return "reference:" + join.GetReference()
+}
+
+// parentJoinConditions equates each of the parent's identifier columns with
+// the child's corresponding foreign key column.
+func parentJoinConditions(parentType string) ([]JoinCondition, error) {
+	parent, err := resolveJoinSource(parentType)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +346,87 @@ func joinConditions(parentType string) ([]JoinCondition, error) {
 	}
 	conditions := make([]JoinCondition, len(parentBindings))
 	for i, binding := range parentBindings {
-		conditions[i] = JoinCondition{ParentColumn: binding.Column, ChildColumn: binding.Variable + "_id"}
+		conditions[i] = JoinCondition{SourceColumn: binding.Column, ChildExpr: "%s." + binding.Variable + "_id"}
+	}
+	return conditions, nil
+}
+
+// referenceJoinConditions equates the shared identifier columns of the
+// referencing and referenced resources, and extracts the referenced
+// resource's own identifier from the stored resource name.
+func referenceJoinConditions(message *protogen.Message, referenceFieldName string) ([]JoinCondition, error) {
+	referenceField := fieldByTextName(message, referenceFieldName)
+	if referenceField == nil {
+		return nil, fmt.Errorf("reference field %q not found on %s", referenceFieldName, message.Desc.FullName())
+	}
+	source, err := resolveReferenceSource(referenceField)
+	if err != nil {
+		return nil, err
+	}
+
+	ownModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](message.Desc.Options(), modelpb.E_ModelOpts)
+	if err != nil {
+		return nil, fmt.Errorf("getting model_opts for %s: %w", message.Desc.FullName(), err)
+	}
+	ownResource, err := resource.ParseFromMessage(message)
+	if err != nil {
+		return nil, err
+	}
+	ownPattern, err := ownResource.SinglePattern()
+	if err != nil {
+		return nil, err
+	}
+	sourcePattern, err := source.resource.SinglePattern()
+	if err != nil {
+		return nil, fmt.Errorf("join reference %q: %w", referenceFieldName, err)
+	}
+	if sourcePattern.Singleton {
+		return nil, fmt.Errorf("join reference %q targets singleton resource %s", referenceFieldName, source.resource.Desc.Type)
+	}
+	if !strings.HasPrefix(sourcePattern.Value, ownPattern.Value+"/") {
+		return nil, fmt.Errorf("referenced resource pattern %q does not extend %q", sourcePattern.Value, ownPattern.Value)
+	}
+
+	ownBindings, err := ColumnBindings(ownPattern, ownModelOpts)
+	if err != nil {
+		return nil, err
+	}
+	variableToOwnColumn := make(map[string]string, len(ownBindings))
+	for _, binding := range ownBindings {
+		variableToOwnColumn[binding.Variable] = binding.Column
+	}
+	sourceBindings, err := ColumnBindings(sourcePattern, source.modelOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	referenceFieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](referenceField.Desc.Options(), modelpb.E_FieldOpts)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return nil, fmt.Errorf("getting field_opts for reference field %q: %w", referenceFieldName, err)
+	}
+	referenceColumn := referenceField.Desc.TextName()
+	if referenceFieldOpts.GetColumnName() != "" {
+		referenceColumn = referenceFieldOpts.GetColumnName()
+	}
+
+	conditions := make([]JoinCondition, 0, len(sourceBindings))
+	for i, sourceBinding := range sourceBindings {
+		// The referenced resource's own identifier is the last segment of the
+		// stored name; the segment index is static from the pattern. An empty
+		// reference extracts "" and matches nothing.
+		if i == len(sourceBindings)-1 {
+			segmentIndex := strings.Count(sourcePattern.Value, "/") + 1
+			conditions = append(conditions, JoinCondition{
+				SourceColumn: sourceBinding.Column,
+				ChildExpr:    fmt.Sprintf("split_part(%%s.%s, '/', %d)", referenceColumn, segmentIndex),
+			})
+			continue
+		}
+		ownColumn, ok := variableToOwnColumn[sourceBinding.Variable]
+		if !ok {
+			return nil, fmt.Errorf("referenced resource variable %q has no identifier column on %s", sourceBinding.Variable, message.Desc.FullName())
+		}
+		conditions = append(conditions, JoinCondition{SourceColumn: sourceBinding.Column, ChildExpr: "%s." + ownColumn})
 	}
 	return conditions, nil
 }

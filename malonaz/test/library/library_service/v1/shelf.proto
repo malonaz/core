@@ -63,6 +63,7 @@ message UpdateShelfRequest {
       "genre",
       "correlation_id_2",
       "external_id",
+      "best_book",
       "metadata.capacity",
       "metadata.dummy",
       "metadata.notes",

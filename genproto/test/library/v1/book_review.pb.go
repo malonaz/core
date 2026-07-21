@@ -343,11 +343,11 @@ const file_malonaz_test_library_v1_book_review_proto_rawDesc = "" +
 	"\x06labels\x18\a \x03(\v2/.malonaz.test.library.v1.BookReview.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12Q\n" +
 	"\bmetadata\x18\b \x01(\v2+.malonaz.test.library.v1.BookReviewMetadataB\b\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x12N\n" +
 	"\n" +
-	"book_title\x18\t \x01(\tB/\xe0A\x03\xba\xea\x0f(B&\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x12\x05titleR\tbookTitle\x12n\n" +
+	"book_title\x18\t \x01(\tB/\xe0A\x03\xba\xea\x0f(B&\x12\x05title\n" +
+	"\x1dlibrary.test.malonaz.com/BookR\tbookTitle\x12n\n" +
 	"\x15book_publication_year\x18\n" +
-	" \x01(\x05B:\xe0A\x03\xba\xea\x0f3B1\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x12\x10publication_yearR\x13bookPublicationYear\x1a9\n" +
+	" \x01(\x05B:\xe0A\x03\xba\xea\x0f3B1\x12\x10publication_year\n" +
+	"\x1dlibrary.test.malonaz.com/BookR\x13bookPublicationYear\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x91\x01\xeaA\x80\x01\n" +

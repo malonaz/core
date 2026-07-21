@@ -388,12 +388,12 @@ const file_malonaz_test_user_v1_user_profile_proto_rawDesc = "" +
 	"\x06labels\x18\b \x03(\v2-.malonaz.test.user.v1.UserProfile.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12O\n" +
 	"\bmetadata\x18\t \x01(\v2).malonaz.test.user.v1.UserProfileMetadataB\b\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x12_\n" +
 	"\x11user_display_name\x18\n" +
-	" \x01(\tB3\xe0A\x03\xba\xea\x0f,B*\n" +
-	"\x1auser.test.malonaz.com/User\x12\fdisplay_nameR\x0fuserDisplayName\x12b\n" +
-	"\x12user_email_address\x18\v \x01(\tB4\xe0A\x03\xba\xea\x0f-B+\n" +
-	"\x1auser.test.malonaz.com/User\x12\remail_addressR\x10userEmailAddress\x12w\n" +
-	"\x19organization_display_name\x18\f \x01(\tB;\xe0A\x03\xba\xea\x0f4B2\n" +
-	"\"user.test.malonaz.com/Organization\x12\fdisplay_nameR\x17organizationDisplayName\x1a9\n" +
+	" \x01(\tB3\xe0A\x03\xba\xea\x0f,B*\x12\fdisplay_name\n" +
+	"\x1auser.test.malonaz.com/UserR\x0fuserDisplayName\x12b\n" +
+	"\x12user_email_address\x18\v \x01(\tB4\xe0A\x03\xba\xea\x0f-B+\x12\remail_address\n" +
+	"\x1auser.test.malonaz.com/UserR\x10userEmailAddress\x12w\n" +
+	"\x19organization_display_name\x18\f \x01(\tB;\xe0A\x03\xba\xea\x0f4B2\x12\fdisplay_name\n" +
+	"\"user.test.malonaz.com/OrganizationR\x17organizationDisplayName\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:x\xeaAq\n" +

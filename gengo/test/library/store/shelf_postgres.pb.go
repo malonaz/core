@@ -13,18 +13,24 @@ import (
 )
 
 var (
-	ShelfPostgresColumns = postgres.GetDBColumns(model.Shelf{})
+	ShelfPostgresColumns      = postgres.GetDBColumns(model.Shelf{})
+	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count"))
 )
 
+var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count`
+var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count`
+var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)`
+
 var (
-	ShelfWithRequestIDPostgresColumns     = postgres.GetDBColumns(ShelfWithRequestID{})
-	_shelfInsertPostgresQuery             = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING `
-	shelfWithRequestIDInsertPostgresQuery = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWithRequestIDPostgresColumns)
-	shelfInsertPostgresQuery              = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfPostgresColumns)
+	ShelfWithRequestIDPostgresColumns      = postgres.GetDBColumns(ShelfWithRequestID{})
+	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count"))
+	_shelfInsertPostgresQuery              = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING `
+	shelfWithRequestIDInsertPostgresQuery  = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWithRequestIDWritePostgresColumns) + shelfJoinSubqueryExpr
+	shelfInsertPostgresQuery               = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
 )
 
 func (s *Store) InsertShelf(ctx context.Context, _shelf *model.Shelf) (*model.Shelf, error) {
-	query, params := postgres.InsertQuery(shelfInsertPostgresQuery, _shelf)
+	query, params := postgres.InsertQuery(shelfInsertPostgresQuery, _shelf, ShelfWritePostgresColumns...)
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -42,14 +48,14 @@ type ShelfWithRequestID struct {
 	model.Shelf
 }
 
-var shelfGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", ShelfPostgresColumns) + ` FROM library.shelf WHERE request_id = $1`
+var shelfGetByRequestIDQuery = fmt.Sprintf(`SELECT %s FROM library.shelf `+shelfJoinClause+` WHERE shelf.request_id = $1`, postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
 
 func (s *Store) InsertShelfIdempotently(ctx context.Context, requestID string, raw_shelf *model.Shelf) (*model.Shelf, error) {
 	_shelf := &ShelfWithRequestID{
 		RequestID: requestID,
 		Shelf:     *raw_shelf,
 	}
-	query, params := postgres.InsertQuery(shelfWithRequestIDInsertPostgresQuery, _shelf)
+	query, params := postgres.InsertQuery(shelfWithRequestIDInsertPostgresQuery, _shelf, ShelfWithRequestIDWritePostgresColumns...)
 
 	var inserted *model.Shelf
 	transactionFN := func(tx postgres.Tx) error {
@@ -87,7 +93,7 @@ func (s *Store) InsertShelfIdempotently(ctx context.Context, requestID string, r
 }
 
 var updateShelfPostgresQuery = `UPDATE library.shelf SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", ShelfPostgresColumns)
+	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
 
 func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClause string, updateColumns []string) (*model.Shelf, error) {
 	updateParams := postgres.GetParams(_shelf, updateColumns...)
@@ -117,7 +123,7 @@ func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClau
 }
 
 var softDeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND shelf_id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", ShelfPostgresColumns)
+	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
 
 type softDeleteShelfResult struct {
 	WasAlreadyDeleted bool `db:"was_already_deleted"`
@@ -145,8 +151,8 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 }
 
 func (s *Store) GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
-	query := `SELECT %s FROM library.shelf WHERE organization_id = $1 AND shelf_id = $2`
-	query = postgres.SelectQuery(query, ShelfPostgresColumns)
+	query := `SELECT %s FROM library.shelf ` + shelfJoinClause + ` WHERE shelf.organization_id = $1 AND shelf.shelf_id = $2`
+	query = fmt.Sprintf(query, postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
 	rows, err := s.client.Query(ctx, query, organizationId, shelfId)
 	if err != nil {
 		return nil, fmt.Errorf("getting shelf: %w", err)
@@ -175,15 +181,15 @@ func (s *Store) BatchGetShelves(ctx context.Context, organizationIds []string, s
 	for i := 0; i < n; i++ {
 		base := i * 2
 		conditions := make([]string, 2)
-		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
-		conditions[1] = fmt.Sprintf("shelf_id = $%d", base+2)
+		conditions[0] = fmt.Sprintf("shelf.organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("shelf.shelf_id = $%d", base+2)
 		params = append(params, organizationIds[i])
 		params = append(params, shelfIds[i])
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.shelf %s", postgres.SelectQuery("%s", ShelfPostgresColumns), whereClause)
+	query := fmt.Sprintf("SELECT %s FROM library.shelf "+shelfJoinClause+" %s", postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs, whereClause)
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -194,22 +200,22 @@ func (s *Store) BatchGetShelves(ctx context.Context, organizationIds []string, s
 
 func (s *Store) ListShelves(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Shelf, error) {
 	if columns == nil {
-		columns = ShelfPostgresColumns
+		columns = ShelfWritePostgresColumns
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "shelf.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.shelf #where# #orderby# #pagination#", "#where#", whereClause)
+	query := strings.ReplaceAll("SELECT %s FROM library.shelf "+shelfJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
 	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
 	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
+	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "shelf")+shelfJoinSelectExprs)
 
 	var shelves []*model.Shelf
 	transactionFN := func(tx postgres.Tx) error {

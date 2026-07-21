@@ -17,9 +17,9 @@ var (
 	UserProfileWritePostgresColumns = postgres.GetDBColumns(model.UserProfile{}, postgres.ExceptColumns("user_display_name", "user_email_address", "organization_display_name"))
 )
 
-var userProfileJoinSubqueryExpr = `,(SELECT user_.display_name FROM user_ WHERE user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id) AS user_display_name,(SELECT user_.email_address FROM user_ WHERE user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id) AS user_email_address,(SELECT organization.display_name FROM organization WHERE organization.organization_id = user_profile.organization_id) AS organization_display_name`
+var userProfileJoinSubqueryExpr = `,(SELECT user_.display_name FROM user_ AS user_ WHERE user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id) AS user_display_name,(SELECT user_.email_address FROM user_ AS user_ WHERE user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id) AS user_email_address,(SELECT organization.display_name FROM organization AS organization WHERE organization.organization_id = user_profile.organization_id) AS organization_display_name`
 var userProfileJoinSelectExprs = `,user_.display_name AS user_display_name,user_.email_address AS user_email_address,organization.display_name AS organization_display_name`
-var userProfileJoinClause = `INNER JOIN user_ ON user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id INNER JOIN organization ON organization.organization_id = user_profile.organization_id`
+var userProfileJoinClause = `INNER JOIN user_ AS user_ ON user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id INNER JOIN organization AS organization ON organization.organization_id = user_profile.organization_id`
 
 func (s *Store) getUserProfileETag(ctx context.Context, organizationId, userId string) (string, error) {
 	query := `SELECT etag FROM user_profile WHERE organization_id = $1 AND user_id = $2`

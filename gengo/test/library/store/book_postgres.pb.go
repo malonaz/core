@@ -16,9 +16,9 @@ var (
 	BookWritePostgresColumns = postgres.GetDBColumns(model.Book{}, postgres.ExceptColumns("shelf_external_id", "shelf_genre"))
 )
 
-var bookJoinSubqueryExpr = `,(SELECT shelf.ext_id FROM library.shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_external_id,(SELECT shelf.genre FROM library.shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_genre`
+var bookJoinSubqueryExpr = `,(SELECT shelf.ext_id FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_external_id,(SELECT shelf.genre FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_genre`
 var bookJoinSelectExprs = `,shelf.ext_id AS shelf_external_id,shelf.genre AS shelf_genre`
-var bookJoinClause = `INNER JOIN library.shelf ON shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id`
+var bookJoinClause = `INNER JOIN library.shelf AS shelf ON shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id`
 
 func (s *Store) getBookETag(ctx context.Context, organizationId, shelfId, bookId string) (string, error) {
 	query := `SELECT etag FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`

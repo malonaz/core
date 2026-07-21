@@ -17,9 +17,9 @@ var (
 	AuthorProfileWritePostgresColumns = postgres.GetDBColumns(model.AuthorProfile{}, postgres.ExceptColumns("author_display_name", "author_email_address"))
 )
 
-var authorProfileJoinSubqueryExpr = `,(SELECT author.display_name FROM library.author WHERE author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id) AS author_display_name,(SELECT author.email_address FROM library.author WHERE author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id) AS author_email_address`
+var authorProfileJoinSubqueryExpr = `,(SELECT author.display_name FROM library.author AS author WHERE author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id) AS author_display_name,(SELECT author.email_address FROM library.author AS author WHERE author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id) AS author_email_address`
 var authorProfileJoinSelectExprs = `,author.display_name AS author_display_name,author.email_address AS author_email_address`
-var authorProfileJoinClause = `INNER JOIN library.author ON author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id`
+var authorProfileJoinClause = `INNER JOIN library.author AS author ON author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id`
 
 func (s *Store) getAuthorProfileETag(ctx context.Context, organizationId, authorId string) (string, error) {
 	query := `SELECT etag FROM library.author_profile WHERE organization_id = $1 AND author_id = $2`

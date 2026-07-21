@@ -300,7 +300,7 @@ func (b0 FieldOpts_builder) Build() *FieldOpts {
 // Configures a field that is populated via a JOIN.
 type Join struct {
 	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Source isJoin_Source          `protobuf_oneof:"source"`
 	xxx_hidden_Field  string                 `protobuf:"bytes,2,opt,name=field,proto3"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -333,7 +333,18 @@ func (x *Join) ProtoReflect() protoreflect.Message {
 
 func (x *Join) GetParent() string {
 	if x != nil {
-		return x.xxx_hidden_Parent
+		if x, ok := x.xxx_hidden_Source.(*join_Parent); ok {
+			return x.Parent
+		}
+	}
+	return ""
+}
+
+func (x *Join) GetReference() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*join_Reference); ok {
+			return x.Reference
+		}
 	}
 	return ""
 }
@@ -346,19 +357,91 @@ func (x *Join) GetField() string {
 }
 
 func (x *Join) SetParent(v string) {
-	x.xxx_hidden_Parent = v
+	x.xxx_hidden_Source = &join_Parent{v}
+}
+
+func (x *Join) SetReference(v string) {
+	x.xxx_hidden_Source = &join_Reference{v}
 }
 
 func (x *Join) SetField(v string) {
 	x.xxx_hidden_Field = v
 }
 
+func (x *Join) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Source != nil
+}
+
+func (x *Join) HasParent() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*join_Parent)
+	return ok
+}
+
+func (x *Join) HasReference() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*join_Reference)
+	return ok
+}
+
+func (x *Join) ClearSource() {
+	x.xxx_hidden_Source = nil
+}
+
+func (x *Join) ClearParent() {
+	if _, ok := x.xxx_hidden_Source.(*join_Parent); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+func (x *Join) ClearReference() {
+	if _, ok := x.xxx_hidden_Source.(*join_Reference); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+const Join_Source_not_set_case case_Join_Source = 0
+const Join_Parent_case case_Join_Source = 1
+const Join_Reference_case case_Join_Source = 3
+
+func (x *Join) WhichSource() case_Join_Source {
+	if x == nil {
+		return Join_Source_not_set_case
+	}
+	switch x.xxx_hidden_Source.(type) {
+	case *join_Parent:
+		return Join_Parent_case
+	case *join_Reference:
+		return Join_Reference_case
+	default:
+		return Join_Source_not_set_case
+	}
+}
+
 type Join_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Required. The parent resource type to join on.
-	Parent string
-	// Required. The field name on the parent message to join.
+	// Required. The source of the join.
+
+	// Fields of oneof xxx_hidden_Source:
+	// The parent resource type to join on. The join conditions equate the
+	// parent's identifier columns with this resource's foreign key columns.
+	Parent *string
+	// The name of a field on *this* message holding a resource name
+	// reference (annotated with google.api.resource_reference). The
+	// referenced resource's type is resolved from that annotation. The join
+	// conditions equate the shared identifier columns and extract the final
+	// identifier from the stored name.
+	Reference *string
+	// -- end of xxx_hidden_Source
+	// Required. The field name on the joined message to populate from.
 	Field string
 }
 
@@ -366,10 +449,48 @@ func (b0 Join_builder) Build() *Join {
 	m0 := &Join{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Parent = b.Parent
+	if b.Parent != nil {
+		x.xxx_hidden_Source = &join_Parent{*b.Parent}
+	}
+	if b.Reference != nil {
+		x.xxx_hidden_Source = &join_Reference{*b.Reference}
+	}
 	x.xxx_hidden_Field = b.Field
 	return m0
 }
+
+type case_Join_Source protoreflect.FieldNumber
+
+func (x case_Join_Source) String() string {
+	md := file_malonaz_codegen_model_v1_model_proto_msgTypes[2].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isJoin_Source interface {
+	isJoin_Source()
+}
+
+type join_Parent struct {
+	// The parent resource type to join on. The join conditions equate the
+	// parent's identifier columns with this resource's foreign key columns.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3,oneof"`
+}
+
+type join_Reference struct {
+	// The name of a field on *this* message holding a resource name
+	// reference (annotated with google.api.resource_reference). The
+	// referenced resource's type is resolved from that annotation. The join
+	// conditions equate the shared identifier columns and extract the final
+	// identifier from the stored name.
+	Reference string `protobuf:"bytes,3,opt,name=reference,proto3,oneof"`
+}
+
+func (*join_Parent) isJoin_Source() {}
+
+func (*join_Reference) isJoin_Source() {}
 
 var file_malonaz_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
@@ -426,11 +547,13 @@ const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\x04skip\x18\x05 \x01(\bR\x04skip\x12\x14\n" +
 	"\x05embed\x18\x06 \x01(\bR\x05embed\x12\x1b\n" +
 	"\tpg_vector\x18\a \x01(\bR\bpgVector\x122\n" +
-	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"<\n" +
-	"\x04Join\x12\x1e\n" +
+	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"h\n" +
+	"\x04Join\x12 \n" +
 	"\x06parent\x18\x01 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*R\x06parent\x12\x14\n" +
-	"\x05field\x18\x02 \x01(\tR\x05field:d\n" +
+	"\x01*H\x00R\x06parent\x12\x1e\n" +
+	"\treference\x18\x03 \x01(\tH\x00R\treference\x12\x14\n" +
+	"\x05field\x18\x02 \x01(\tR\x05fieldB\b\n" +
+	"\x06source:d\n" +
 	"\n" +
 	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2#.malonaz.codegen.model.v1.ModelOptsR\tmodelOpts:c\n" +
 	"\n" +
@@ -461,6 +584,10 @@ func init() { file_malonaz_codegen_model_v1_model_proto_init() }
 func file_malonaz_codegen_model_v1_model_proto_init() {
 	if File_malonaz_codegen_model_v1_model_proto != nil {
 		return
+	}
+	file_malonaz_codegen_model_v1_model_proto_msgTypes[2].OneofWrappers = []any{
+		(*join_Parent)(nil),
+		(*join_Reference)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

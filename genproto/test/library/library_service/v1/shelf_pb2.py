@@ -30,7 +30,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.test.library.v1 import shelf_pb2 as malonaz_dot_test_dot_library_dot_v1_dot_shelf__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/library/library_service/v1/shelf.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a#malonaz/test/library/v1/shelf.proto\"\x81\x02\n\x12\x43reateShelfRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x37\n\x08shelf_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x35\n\x05shelf\x18\x03 \x01(\x0b\x32\x1e.malonaz.test.library.v1.ShelfB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"M\n\x0fGetShelfRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\"\xd5\x02\n\x12UpdateShelfRequest\x12\x35\n\x05shelf\x18\x01 \x01(\x0b\x32\x1e.malonaz.test.library.v1.ShelfB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\xce\x01\xbaHE\x1a\x43\n\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03\x80\x01\n\x0c\x64isplay_name\n\x05genre\n\x10\x63orrelation_id_2\n\x0b\x65xternal_id\n\x11metadata.capacity\n\x0emetadata.dummy\n\x0emetadata.notes\n\x17metadata.author_to_note\"g\n\x12\x44\x65leteShelfRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\"\xec\x01\n\x12ListShelvesRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:&\x82\xf3-\x02\x08\x64\x8a\xf3-\x15\n\x01*\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"_\n\x13ListShelvesResponse\x12/\n\x07shelves\x18\x01 \x03(\x0b\x32\x1e.malonaz.test.library.v1.Shelf\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x9b\x01\n\x16\x42\x61tchGetShelvesRequest\x12:\n\x06parent\x18\x01 \x01(\tB*\xfa\x41\'\n%library.test.malonaz.com/Organization\x12\x45\n\x05names\x18\x02 \x03(\tB6\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"J\n\x17\x42\x61tchGetShelvesResponse\x12/\n\x07shelves\x18\x01 \x03(\x0b\x32\x1e.malonaz.test.library.v1.ShelfBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/library/library_service/v1/shelf.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a#malonaz/test/library/v1/shelf.proto\"\x81\x02\n\x12\x43reateShelfRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x37\n\x08shelf_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x35\n\x05shelf\x18\x03 \x01(\x0b\x32\x1e.malonaz.test.library.v1.ShelfB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"M\n\x0fGetShelfRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\"\xe0\x02\n\x12UpdateShelfRequest\x12\x35\n\x05shelf\x18\x01 \x01(\x0b\x32\x1e.malonaz.test.library.v1.ShelfB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\xd9\x01\xbaHE\x1a\x43\n\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03\x8b\x01\n\x0c\x64isplay_name\n\x05genre\n\x10\x63orrelation_id_2\n\x0b\x65xternal_id\n\tbest_book\n\x11metadata.capacity\n\x0emetadata.dummy\n\x0emetadata.notes\n\x17metadata.author_to_note\"g\n\x12\x44\x65leteShelfRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\"\xec\x01\n\x12ListShelvesRequest\x12\x43\n\x06parent\x18\x01 \x01(\tB3\xe0\x41\x02\xfa\x41\'\n%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:&\x82\xf3-\x02\x08\x64\x8a\xf3-\x15\n\x01*\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"_\n\x13ListShelvesResponse\x12/\n\x07shelves\x18\x01 \x03(\x0b\x32\x1e.malonaz.test.library.v1.Shelf\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x9b\x01\n\x16\x42\x61tchGetShelvesRequest\x12:\n\x06parent\x18\x01 \x01(\tB*\xfa\x41\'\n%library.test.malonaz.com/Organization\x12\x45\n\x05names\x18\x02 \x03(\tB6\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"J\n\x17\x42\x61tchGetShelvesResponse\x12/\n\x07shelves\x18\x01 \x03(\x0b\x32\x1e.malonaz.test.library.v1.ShelfBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -53,7 +53,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATESHELFREQUEST'].fields_by_name['update_mask']._loaded_options = None
   _globals['_UPDATESHELFREQUEST'].fields_by_name['update_mask']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATESHELFREQUEST']._loaded_options = None
-  _globals['_UPDATESHELFREQUEST']._serialized_options = b'\272HE\032C\n\023shelf.name_required\022\026shelf.name must be set\032\024has(this.shelf.name)\352\234\301\003\200\001\n\014display_name\n\005genre\n\020correlation_id_2\n\013external_id\n\021metadata.capacity\n\016metadata.dummy\n\016metadata.notes\n\027metadata.author_to_note'
+  _globals['_UPDATESHELFREQUEST']._serialized_options = b'\272HE\032C\n\023shelf.name_required\022\026shelf.name must be set\032\024has(this.shelf.name)\352\234\301\003\213\001\n\014display_name\n\005genre\n\020correlation_id_2\n\013external_id\n\tbest_book\n\021metadata.capacity\n\016metadata.dummy\n\016metadata.notes\n\027metadata.author_to_note'
   _globals['_DELETESHELFREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETESHELFREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A \n\036library.test.malonaz.com/Shelf\272H\003\310\001\001'
   _globals['_LISTSHELVESREQUEST'].fields_by_name['parent']._loaded_options = None
@@ -71,15 +71,15 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETSHELFREQUEST']._serialized_start=550
   _globals['_GETSHELFREQUEST']._serialized_end=627
   _globals['_UPDATESHELFREQUEST']._serialized_start=630
-  _globals['_UPDATESHELFREQUEST']._serialized_end=971
-  _globals['_DELETESHELFREQUEST']._serialized_start=973
-  _globals['_DELETESHELFREQUEST']._serialized_end=1076
-  _globals['_LISTSHELVESREQUEST']._serialized_start=1079
-  _globals['_LISTSHELVESREQUEST']._serialized_end=1315
-  _globals['_LISTSHELVESRESPONSE']._serialized_start=1317
-  _globals['_LISTSHELVESRESPONSE']._serialized_end=1412
-  _globals['_BATCHGETSHELVESREQUEST']._serialized_start=1415
-  _globals['_BATCHGETSHELVESREQUEST']._serialized_end=1570
-  _globals['_BATCHGETSHELVESRESPONSE']._serialized_start=1572
-  _globals['_BATCHGETSHELVESRESPONSE']._serialized_end=1646
+  _globals['_UPDATESHELFREQUEST']._serialized_end=982
+  _globals['_DELETESHELFREQUEST']._serialized_start=984
+  _globals['_DELETESHELFREQUEST']._serialized_end=1087
+  _globals['_LISTSHELVESREQUEST']._serialized_start=1090
+  _globals['_LISTSHELVESREQUEST']._serialized_end=1326
+  _globals['_LISTSHELVESRESPONSE']._serialized_start=1328
+  _globals['_LISTSHELVESRESPONSE']._serialized_end=1423
+  _globals['_BATCHGETSHELVESREQUEST']._serialized_start=1426
+  _globals['_BATCHGETSHELVESREQUEST']._serialized_end=1581
+  _globals['_BATCHGETSHELVESRESPONSE']._serialized_start=1583
+  _globals['_BATCHGETSHELVESRESPONSE']._serialized_end=1657
 # @@protoc_insertion_point(module_scope)

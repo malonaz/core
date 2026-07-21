@@ -331,6 +331,8 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"correlation_id_2",
 		"duration",
 		"labels",
+		"best_book",
+		"best_book_page_count",
 		"metadata.capacity",
 		"metadata.dummy",
 		"metadata.notes",

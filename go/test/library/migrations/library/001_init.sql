@@ -31,6 +31,7 @@ CREATE TABLE library.shelf (
     display_name TEXT NOT NULL,
     genre SMALLINT NOT NULL,
     ext_id TEXT,
+    best_book TEXT,
     correlation_id TEXT NOT NULL,
     duration BIGINT,
     labels JSONB,

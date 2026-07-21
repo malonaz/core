@@ -224,19 +224,24 @@ func (m *Model) StructDef() (string, error) {
 		}
 
 		if join := field.FieldOpts.GetJoin(); join != nil {
-			target, err := schema.ResolveJoin(join)
+			target, err := schema.ResolveJoin(m.Message, join)
 			if err != nil {
 				return "", fmt.Errorf("resolving join for %s: %w", field.ProtoField.GoName, err)
 			}
 			fieldNullable := field.FieldOpts.GetNullable()
-			if fieldNullable != target.Nullable {
+			// Parent joins are INNER joins: the field mirrors the parent
+			// column's nullability. Reference joins derive the join kind from
+			// the field itself (nullable => LEFT JOIN), so no parity applies.
+			if join.GetParent() != "" && fieldNullable != target.Nullable {
 				return "", fmt.Errorf(
 					"field %s has nullable=%v but parent field %q on %q has nullable=%v; they must match",
-					field.ProtoField.GoName, fieldNullable, join.Field, join.Parent, target.Nullable,
+					field.ProtoField.GoName, fieldNullable, join.GetField(), join.GetParent(), target.Nullable,
 				)
 			}
+			// join_table carries the join alias so runtime filter
+			// qualification resolves against the emitted alias.
 			fmt.Fprintf(&b, "\t%s %s `db:\"%s\" external:\"true\" join_schema:\"%s\" join_table:\"%s\" join_column:\"%s\"`\n",
-				field.ProtoField.GoName, typeName, field.ProtoField.Desc.TextName(), target.Table.SchemaOrPublic(), target.Table.Name, target.Column)
+				field.ProtoField.GoName, typeName, field.ProtoField.Desc.TextName(), target.Table.SchemaOrPublic(), target.Alias, target.Column)
 			continue
 		}
 

@@ -358,10 +358,10 @@ const file_malonaz_test_library_v1_author_profile_proto_rawDesc = "" +
 	"\x06labels\x18\b \x03(\v22.malonaz.test.library.v1.AuthorProfile.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12T\n" +
 	"\bmetadata\x18\t \x01(\v2..malonaz.test.library.v1.AuthorProfileMetadataB\b\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x12h\n" +
 	"\x13author_display_name\x18\n" +
-	" \x01(\tB8\xe0A\x03\xba\xea\x0f1B/\n" +
-	"\x1flibrary.test.malonaz.com/Author\x12\fdisplay_nameR\x11authorDisplayName\x12k\n" +
-	"\x14author_email_address\x18\v \x01(\tB9\xe0A\x03\xba\xea\x0f2B0\n" +
-	"\x1flibrary.test.malonaz.com/Author\x12\remail_addressR\x12authorEmailAddress\x1a9\n" +
+	" \x01(\tB8\xe0A\x03\xba\xea\x0f1B/\x12\fdisplay_name\n" +
+	"\x1flibrary.test.malonaz.com/AuthorR\x11authorDisplayName\x12k\n" +
+	"\x14author_email_address\x18\v \x01(\tB9\xe0A\x03\xba\xea\x0f2B0\x12\remail_address\n" +
+	"\x1flibrary.test.malonaz.com/AuthorR\x12authorEmailAddress\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x8e\x01\xeaA~\n" +

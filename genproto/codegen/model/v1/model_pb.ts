@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/model/v1/model.proto.
  */
 export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIi0KBEpvaW4SFgoGcGFyZW50GAEgASgJQgb6QQMKASoSDQoFZmllbGQYAiABKAk6ZAoKbW9kZWxfb3B0cxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjqRCABKAsyIy5tYWxvbmF6LmNvZGVnZW4ubW9kZWwudjEuTW9kZWxPcHRzUgltb2RlbE9wdHM6YwoKZmllbGRfb3B0cxIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYp/0BIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5GaWVsZE9wdHNSCWZpZWxkT3B0c0IzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL21vZGVsL3YxYgZwcm90bzM", [file_google_api_resource, file_google_protobuf_descriptor]);
+  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIk4KBEpvaW4SGAoGcGFyZW50GAEgASgJQgb6QQMKASpIABITCglyZWZlcmVuY2UYAyABKAlIABINCgVmaWVsZBgCIAEoCUIICgZzb3VyY2U6ZAoKbW9kZWxfb3B0cxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjqRCABKAsyIy5tYWxvbmF6LmNvZGVnZW4ubW9kZWwudjEuTW9kZWxPcHRzUgltb2RlbE9wdHM6YwoKZmllbGRfb3B0cxIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYp/0BIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5GaWVsZE9wdHNSCWZpZWxkT3B0c0IzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL21vZGVsL3YxYgZwcm90bzM", [file_google_api_resource, file_google_protobuf_descriptor]);
 
 /**
  * ModelOpts defines code generation options for an entire message/model.
@@ -140,14 +140,35 @@ export const FieldOptsSchema: GenMessage<FieldOpts, {validType: FieldOptsValid}>
  */
 export type Join = Message<"malonaz.codegen.model.v1.Join"> & {
   /**
-   * Required. The parent resource type to join on.
+   * Required. The source of the join.
    *
-   * @generated from field: string parent = 1;
+   * @generated from oneof malonaz.codegen.model.v1.Join.source
    */
-  parent: string;
+  source: {
+    /**
+     * The parent resource type to join on. The join conditions equate the
+     * parent's identifier columns with this resource's foreign key columns.
+     *
+     * @generated from field: string parent = 1;
+     */
+    value: string;
+    case: "parent";
+  } | {
+    /**
+     * The name of a field on *this* message holding a resource name
+     * reference (annotated with google.api.resource_reference). The
+     * referenced resource's type is resolved from that annotation. The join
+     * conditions equate the shared identifier columns and extract the final
+     * identifier from the stored name.
+     *
+     * @generated from field: string reference = 3;
+     */
+    value: string;
+    case: "reference";
+  } | { case: undefined; value?: undefined };
 
   /**
-   * Required. The field name on the parent message to join.
+   * Required. The field name on the joined message to populate from.
    *
    * @generated from field: string field = 2;
    */

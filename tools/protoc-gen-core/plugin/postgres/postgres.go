@@ -331,12 +331,12 @@ func buildJoinSubqueryExpr(joins []schema.Join, childBareTable string) string {
 	for _, join := range joins {
 		var whereParts []string
 		for _, condition := range join.Conditions {
-			whereParts = append(whereParts, fmt.Sprintf("%s.%s = %s.%s", join.Table.Name, condition.ParentColumn, childBareTable, condition.ChildColumn))
+			whereParts = append(whereParts, condition.Render(join.Alias, childBareTable))
 		}
 		whereClause := strings.Join(whereParts, " AND ")
 		for _, field := range join.Fields {
-			parts = append(parts, fmt.Sprintf("(SELECT %s.%s FROM %s WHERE %s) AS %s",
-				join.Table.Name, field.Column, join.Table.Qualified(), whereClause, field.Alias))
+			parts = append(parts, fmt.Sprintf("(SELECT %s.%s FROM %s AS %s WHERE %s) AS %s",
+				join.Alias, field.Column, join.Table.Qualified(), join.Alias, whereClause, field.Alias))
 		}
 	}
 	return "," + strings.Join(parts, ",")
@@ -346,7 +346,7 @@ func buildJoinSelectExprs(joins []schema.Join) string {
 	var parts []string
 	for _, join := range joins {
 		for _, field := range join.Fields {
-			parts = append(parts, fmt.Sprintf("%s.%s AS %s", join.Table.Name, field.Column, field.Alias))
+			parts = append(parts, fmt.Sprintf("%s.%s AS %s", join.Alias, field.Column, field.Alias))
 		}
 	}
 	return "," + strings.Join(parts, ",")
@@ -355,11 +355,17 @@ func buildJoinSelectExprs(joins []schema.Join) string {
 func buildJoinClause(joins []schema.Join, childBareTable string) string {
 	var parts []string
 	for _, join := range joins {
+		// Reference joins on nullable fields tolerate a missing match;
+		// everything else requires one.
+		joinKind := "INNER JOIN"
+		if join.Left {
+			joinKind = "LEFT JOIN"
+		}
 		var onParts []string
 		for _, condition := range join.Conditions {
-			onParts = append(onParts, fmt.Sprintf("%s.%s = %s.%s", join.Table.Name, condition.ParentColumn, childBareTable, condition.ChildColumn))
+			onParts = append(onParts, condition.Render(join.Alias, childBareTable))
 		}
-		parts = append(parts, fmt.Sprintf("INNER JOIN %s ON %s", join.Table.Qualified(), strings.Join(onParts, " AND ")))
+		parts = append(parts, fmt.Sprintf("%s %s AS %s ON %s", joinKind, join.Table.Qualified(), join.Alias, strings.Join(onParts, " AND ")))
 	}
 	return strings.Join(parts, " ")
 }

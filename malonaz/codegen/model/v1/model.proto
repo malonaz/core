@@ -71,8 +71,20 @@ message FieldOpts {
 
 // Configures a field that is populated via a JOIN.
 message Join {
-  // Required. The parent resource type to join on.
-  string parent = 1 [(google.api.resource_reference).type = "*"];
-  // Required. The field name on the parent message to join.
+  // Required. The source of the join.
+  oneof source {
+    // The parent resource type to join on. The join conditions equate the
+    // parent's identifier columns with this resource's foreign key columns.
+    string parent = 1 [(google.api.resource_reference).type = "*"];
+
+    // The name of a field on *this* message holding a resource name
+    // reference (annotated with google.api.resource_reference). The
+    // referenced resource's type is resolved from that annotation. The join
+    // conditions equate the shared identifier columns and extract the final
+    // identifier from the stored name.
+    string reference = 3;
+  }
+
+  // Required. The field name on the joined message to populate from.
   string field = 2;
 }

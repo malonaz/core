@@ -167,7 +167,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		if node.JoinTableName != "" {
 			node.TableName = node.JoinTableName
 			if join, ok := fieldPathToJoin[node.Path]; ok && node.ColumnName == "" {
-				joinColName, err := resolveJoinFieldColumnName(tree.Registry, join)
+				joinColName, err := resolveJoinFieldColumnName(tree.Registry, resourceDescriptor, join)
 				if err != nil {
 					return nil, fmt.Errorf("resolving join column name for %s: %v", node.Path, err)
 				}
@@ -338,7 +338,8 @@ type Node struct {
 	IsRepeated       bool
 	IsMap            bool
 	// JoinTableName is set for fields populated via a JOIN; it holds the
-	// resolved table name of the parent resource referenced by the join.
+	// table qualifier the join is emitted under: the joined table's name for
+	// parent joins, the reference field name (join alias) for reference joins.
 	JoinTableName string
 
 	AllowedPath           bool
@@ -396,10 +397,10 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		return nil
 	}
 
-	// Resolve join table name from the parent resource if this is a join field.
+	// Resolve the join qualifier from the join source if this is a join field.
 	var joinTableName string
 	if join := fieldOpts.GetJoin(); join != nil {
-		tableName, err := resolveJoinTableName(t.Registry, join)
+		tableName, err := resolveJoinAlias(t.Registry, fieldDesc.ContainingMessage(), join)
 		if err != nil {
 			return fmt.Errorf("resolving join table for %s: %v", fieldName, err)
 		}
@@ -514,22 +515,49 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 	return nil
 }
 
-// resolveJoinTableName resolves the database table name for a join field's parent resource.
-// It looks up the parent resource type in the registry, extracts the singular name from
-// its resource descriptor as the default table name, then checks for a model_opts.table_name override.
-func resolveJoinTableName(registry *protoregistry.Files, join *modelpb.Join) (string, error) {
-	parentMsg, err := findMessageByResourceType(registry, join.GetParent())
+// resolveJoinSourceMessage resolves the message descriptor backing a join:
+// the parent resource type, or the resource referenced by the reference
+// field's google.api.resource_reference annotation.
+func resolveJoinSourceMessage(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (protoreflect.MessageDescriptor, error) {
+	switch {
+	case join.GetParent() != "":
+		return findMessageByResourceType(registry, join.GetParent())
+	case join.GetReference() != "":
+		referenceField := msgDesc.Fields().ByTextName(join.GetReference())
+		if referenceField == nil {
+			return nil, fmt.Errorf("reference field %q not found on %s", join.GetReference(), msgDesc.FullName())
+		}
+		reference, err := pbutil.GetExtension[*annotationspb.ResourceReference](referenceField.Options(), annotationspb.E_ResourceReference)
+		if err != nil {
+			return nil, fmt.Errorf("getting resource_reference for %q: %w", join.GetReference(), err)
+		}
+		if reference.GetType() == "" || reference.GetType() == "*" {
+			return nil, fmt.Errorf("reference field %q must declare a concrete resource_reference type", join.GetReference())
+		}
+		return findMessageByResourceType(registry, reference.GetType())
+	}
+	return nil, fmt.Errorf("join must set exactly one of parent or reference")
+}
+
+// resolveJoinAlias resolves the table qualifier a joined field is emitted
+// under, matching the alias produced by the postgres generator: the joined
+// table's name for parent joins, the reference field name for reference joins.
+func resolveJoinAlias(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (string, error) {
+	sourceMsg, err := resolveJoinSourceMessage(registry, msgDesc, join)
 	if err != nil {
 		return "", err
 	}
+	if join.GetReference() != "" {
+		return join.GetReference(), nil
+	}
 
-	resourceDescriptor, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](parentMsg.Options(), annotationspb.E_Resource)
+	resourceDescriptor, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](sourceMsg.Options(), annotationspb.E_Resource)
 	if err != nil {
 		return "", fmt.Errorf("getting resource descriptor: %v", err)
 	}
 	tableName := xstrings.ToSnakeCase(resourceDescriptor.GetSingular())
 
-	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](parentMsg.Options(), modelpb.E_ModelOpts)
+	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](sourceMsg.Options(), modelpb.E_ModelOpts)
 	if err == nil && modelOpts != nil && modelOpts.GetTableName() != "" {
 		tableName = modelOpts.GetTableName()
 	}
@@ -563,18 +591,18 @@ func findMessageByResourceType(registry *protoregistry.Files, resourceType strin
 }
 
 // resolveJoinFieldColumnName resolves the database column name for a joined field
-// by looking up the referenced field on the parent message. Returns the field's
-// column_name override if set, otherwise the field's proto name.
-func resolveJoinFieldColumnName(registry *protoregistry.Files, join *modelpb.Join) (string, error) {
-	parentMsg, err := findMessageByResourceType(registry, join.GetParent())
+// by looking up the referenced field on the join source message. Returns the
+// field's column_name override if set, otherwise the field's proto name.
+func resolveJoinFieldColumnName(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (string, error) {
+	sourceMsg, err := resolveJoinSourceMessage(registry, msgDesc, join)
 	if err != nil {
 		return "", err
 	}
 
 	fieldName := join.GetField()
-	fieldDesc := parentMsg.Fields().ByName(protoreflect.Name(fieldName))
+	fieldDesc := sourceMsg.Fields().ByTextName(fieldName)
 	if fieldDesc == nil {
-		return "", fmt.Errorf("field %q not found on parent %q", fieldName, join.GetParent())
+		return "", fmt.Errorf("field %q not found on join source of %s", fieldName, msgDesc.FullName())
 	}
 
 	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](fieldDesc.Options(), modelpb.E_FieldOpts)
