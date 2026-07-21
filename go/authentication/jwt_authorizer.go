@@ -70,9 +70,12 @@ func newJwtAuthorizer(jwtIssuer *authenticationpb.JwtIssuer) (*jwtAuthorizer, er
 	// descriptor, so we never touch the global registry's ordering.
 	environmentOptions := []cel.EnvOption{
 		cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)),
+		// subject is claims.sub, injected at eval time for ergonomic resource name checks.
+		cel.Variable("subject", cel.StringType),
 		ext.Protos(),
 		ext.Strings(),
 	}
+	environmentOptions = append(environmentOptions, resourceNameCelOptions...)
 	for _, requestType := range requestTypes {
 		environmentOptions = append(environmentOptions, cel.Types(requestType))
 	}
@@ -116,8 +119,12 @@ func (a *jwtAuthorizer) authorize(method string, claims *structpb.Struct, reques
 		return false, ErrMethodNotConfigured
 	}
 
+	claimsMap := claims.AsMap()
+	// Missing/non-string sub yields "", which fails all rn.* checks (fail closed).
+	subject, _ := claimsMap["sub"].(string)
 	output, _, err := program.Eval(map[string]any{
-		"claims":  claims.AsMap(),
+		"claims":  claimsMap,
+		"subject": subject,
 		"request": request,
 	})
 	if err != nil {
