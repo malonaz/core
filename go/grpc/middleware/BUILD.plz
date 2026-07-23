@@ -10,6 +10,7 @@ go_library(
         "hooks.go",
         "logging.go",
         "middleware.go",
+        "related_resolver.go",
         "retry.go",
         "timeout.go",
         "trailers.go",
@@ -28,6 +29,7 @@ go_library(
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__retry",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__selector",
+        "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
@@ -40,7 +42,9 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protorange",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:validate",
     ],
 )
 

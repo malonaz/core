@@ -231,6 +231,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	// POST (4): Field mask interceptor.
 	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerFieldMask())
 	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerFieldMask())
+  // POST (5): Related resolver interceptor. Innermost so the response is fully populated
+  // (including resolved related resources) before the field mask interceptor applies masks.
+  s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerRelated())
 
 	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
 	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
