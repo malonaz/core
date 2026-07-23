@@ -4,6 +4,58 @@ local p = "providers/google/models/";
   "provider_id": "google",
   "models": [
     {
+      "name": p + "gemini-3.5-flash-lite",
+      "provider_model_id": "gemini-3.5-flash-lite",
+      "description": "Low-latency, cost-effective multimodal model optimized for high-throughput, low-cost execution for subagent tasks and document parsing. Designed for high-volume agentic workflows, simple data extraction, and applications where latency and API cost are the primary constraints.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 0.25,
+          "output_token_price_per_million": 1.5,
+          "output_reasoning_token_price_per_million": 1.5,
+          "input_token_cache_read_price_per_million": 0.025
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+
+    {
+      "name": p + "gemini-3.6-flash",
+      "provider_model_id": "gemini-3.6-flash",
+      "description": "Sustained frontier-level intelligence optimized for real-world tasks at higher speed and lower cost. Designed for the agentic era, excelling at code generation, agentic execution, and spatial reasoning. Particularly effective for rapid agentic loops involving complex coding cycles and iterations.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 0.5,
+          "output_token_price_per_million": 3,
+          "output_reasoning_token_price_per_million": 3,
+          "input_token_cache_read_price_per_million": 0.049999999999999996
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.5-flash",
       "provider_model_id": "gemini-3.5-flash",
       "description": "Sustained frontier-level intelligence optimized for real-world tasks at higher speed and lower cost. Designed for the agentic era, excelling at sub-agent deployment, multi-step workflows, and long-horizon tasks at scale. Particularly effective for rapid agentic loops involving complex coding cycles and iterations.",
