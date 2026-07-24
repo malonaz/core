@@ -1,9 +1,12 @@
+subinclude("///shell//build_defs:shell")
+
 def docker_image(
         name,
         srcs = [],
         version = "",
         dockerfile = "Dockerfile",
         base_image = "",
+        image = "",
         labels = [],
         run_args = "",
         repo="",
@@ -18,7 +21,7 @@ def docker_image(
     Args:
       name: Name of the rule.
       srcs: Source files that are available within the dockerfile.
-      image: Name of the image to create.
+      image: Name of the image to create. Defaults to '<package_name>/<name>'.
       version: Version to tag the image with. If not given, a hash will be derived for the version.
       dockerfile: The Dockerfile that defines how to build this image.
       base_image: The build target that defines the base image. Only necessary if this image
@@ -28,7 +31,7 @@ def docker_image(
       test_only: If True, this can only be depended on by test rules.
       visibility: Visibility of this rule.
     """
-    image = package_name() + "/" + name
+    image = image or package_name() + "/" + name
     if base_image:
         base_image = canonicalise(base_image)
     labels += ["docker_image=" + image, "docker"]
