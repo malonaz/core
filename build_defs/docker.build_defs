@@ -9,7 +9,7 @@ def docker_image(
         image = "",
         labels = [],
         run_args = "",
-        repo="",
+        repo = "",
         test_only = False,
         visibility = None):
     """docker_image defines a build rule for a Docker image.
@@ -28,6 +28,7 @@ def docker_image(
                   is based off another plz image.
       labels: Labels to tag this rule with.
       run_args: Any additional arguments to provide to 'docker run'.
+      repo: Registry/repository prefix for the fqn (e.g. an ECR registry URL).
       test_only: If True, this can only be depended on by test rules.
       visibility: Visibility of this rule.
     """
@@ -51,7 +52,6 @@ def docker_image(
         name = "%s_fqn" % name,
         srcs = [tarball],
         cmd = 'echo -n "%s/%s:%s" >> $OUT' % (repo, image, version),
-
         outs = ["%s_fqn" % name],
         deps = ["%s_fqn" % base_image if base_image else None],
         labels = labels,
@@ -143,44 +143,3 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
         srcs = srcs + [dockerfile],
         test_only = test_only,
     ), dockerfile
-
-
-_dockerfile = """
-FROM //common/docker_containers:go_base
-
-COPY __BINARY__ __BINARY__
-
-__GRPC_HEALTH_PROBE__
-
-__RESOURCES__
-ENTRYPOINT ["./__BINARY__"]
-"""
-
-def distroless_go(
-        name:str, binary:str, grpc_health_probe: bool=False, resources:list=[], visibility:list=[]
-):
-    grpc_health_probe_replace = ''
-    if grpc_health_probe:
-        target_name = get_target_name('//github.com/malonaz/core/go/grpc/grpc_health_probe')
-        grpc_health_probe_replace = f'COPY {target_name} {target_name}'
-    resources_replace = ''
-    for resource in resources:
-        target_name = get_target_name(resource)
-        resources_replace += f'COPY {target_name} {target_name}'
-    dockerfile = templated_text_file(
-        filename = f'{name}_dockerfile',
-        content = _dockerfile,
-        replace = {
-            '__BINARY__': get_target_name(binary),
-            '__GRPC_HEALTH_PROBE__': grpc_health_probe_replace,
-            '__RESOURCES__': resources_replace,
-        },
-    )
-
-    return docker_image(
-        name = name,
-        srcs = [binary, '//github.com/malonaz/core/go/grpc/grpc_health_probe'] + resources,
-        dockerfile = dockerfile,
-        base_image = "//common/docker_containers:go_base",
-        visibility = visibility,
-    )
