@@ -110,12 +110,19 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 		}
 	} else {
 		lexer := streamingjson.NewLexer()
-		lexer.AppendString(entry.args.String())
+		// Best-effort: on a parse error the lexer still holds the prefix that
+		// parsed, and healing that is preferable to killing a cosmetic
+		// partial. The error is only surfaced if the healed output is unusable.
+		appendErr := lexer.AppendString(entry.args.String())
 		healed := lexer.CompleteJSON()
 		if healed == "" {
 			healed = "{}"
 		}
 		if err := tc.Arguments.UnmarshalJSON([]byte(healed)); err != nil {
+			if appendErr != nil {
+				return nil, status.Errorf(codes.Internal, "parsing partial tool call arguments: %v", appendErr).
+					WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
+			}
 			return nil, status.Errorf(codes.Internal, "unmarshaling healed tool call arguments").
 				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": healed}).Err()
 		}

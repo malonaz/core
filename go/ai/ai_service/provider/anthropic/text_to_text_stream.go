@@ -139,7 +139,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	if len(request.Tools) > 0 {
 		tools := make([]anthropic.ToolUnionParam, 0, len(request.Tools))
 		for _, tool := range request.Tools {
-			tools = append(tools, pbToolToAnthropic(tool))
+			tools = append(tools, pbToolToAnthropic(tool, request.GetConfiguration().GetStreamPartialToolCalls()))
 		}
 		messageParams.Tools = tools
 	}
@@ -305,7 +305,7 @@ func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) in
 	}
 }
 
-func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
+func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) anthropic.ToolUnionParam {
 	inputSchema := anthropic.ToolInputSchemaParam{
 		Type:       "object",
 		Properties: map[string]*jsonpb.Schema{},
@@ -319,14 +319,17 @@ func pbToolToAnthropic(tool *aipb.Tool) anthropic.ToolUnionParam {
 			description += ". Schema description: " + desc
 		}
 	}
-	return anthropic.ToolUnionParam{
-		OfTool: &anthropic.ToolParam{
-			Name:        tool.Name,
-			Description: anthropic.String(description),
-			Type:        anthropic.ToolTypeCustom,
-			InputSchema: inputSchema,
-		},
+	toolParam := &anthropic.ToolParam{
+		Name:        tool.Name,
+		Description: anthropic.String(description),
+		Type:        anthropic.ToolTypeCustom,
+		InputSchema: inputSchema,
 	}
+	// Eager streaming emits input deltas before the JSON is well-formed, so only opt in when the caller consumes partials.
+	if eagerInputStreaming {
+		toolParam.EagerInputStreaming = anthropic.Bool(true)
+	}
+	return anthropic.ToolUnionParam{OfTool: toolParam}
 }
 
 var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.TextToTextStopReason{

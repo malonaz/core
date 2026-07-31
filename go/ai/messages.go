@@ -19,6 +19,7 @@ const (
 	BlockTypeToolCall
 	BlockTypeToolResult
 	BlockTypeImage
+	BlockTypePartialToolCall
 )
 
 func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
@@ -137,6 +138,8 @@ func FilterBlocks(blocks []*aipb.Block, blockTypes ...BlockType) []*aipb.Block {
 			bt = BlockTypeThought
 		case *aipb.Block_ToolCall:
 			bt = BlockTypeToolCall
+		case *aipb.Block_PartialToolCall:
+			bt = BlockTypePartialToolCall
 		case *aipb.Block_ToolResult:
 			bt = BlockTypeToolResult
 		case *aipb.Block_Image:

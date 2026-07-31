@@ -11,7 +11,7 @@ require (
 	github.com/AlexxIT/go2rtc v1.9.12
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
-	github.com/anthropics/anthropic-sdk-go v1.50.1
+	github.com/anthropics/anthropic-sdk-go v1.61.0
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/coder/websocket v1.8.14
