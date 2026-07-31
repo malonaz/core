@@ -267,10 +267,11 @@ func (c *Client) TextToTextStream(
 						cs.SendBlocks(ctx, block)
 					} else {
 						// Non-streaming tool call: complete call in a single chunk.
-						if currentBlockType != blockTypeToolCall {
-							currentBlockIndex++
-							currentBlockType = blockTypeToolCall
-						}
+						// Always bump the index: parallel tool calls arrive as consecutive
+						// complete FunctionCall parts and must not share a block index,
+						// otherwise downstream accumulators overwrite earlier calls.
+						currentBlockIndex++
+						currentBlockType = blockTypeToolCall
 
 						argsJSON := []byte("{}")
 						if fc.Args != nil {
