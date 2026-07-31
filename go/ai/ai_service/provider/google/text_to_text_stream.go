@@ -88,7 +88,7 @@ func (c *Client) TextToTextStream(
 		}
 		config.Tools = tools
 
-		toolConfig, err := buildToolConfig(request.GetConfiguration())
+		toolConfig, err := buildToolConfig(request.GetConfiguration(), c.config.Backend)
 		if err != nil {
 			return status.Errorf(codes.InvalidArgument, "building tool config: %v", err).Err()
 		}
@@ -558,10 +558,11 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 
 // buildToolConfig maps our tool choice configuration to the GenAI FunctionCallingConfig,
 // supporting none/auto/required modes and specific tool name targeting.
-func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration) (*genai.ToolConfig, error) {
+func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration, backend genai.Backend) (*genai.ToolConfig, error) {
 	functionCallingConfig := &genai.FunctionCallingConfig{}
 	streamPartialToolCalls := configuration.GetStreamPartialToolCalls()
-	if streamPartialToolCalls {
+	// Only Vertex AI supports streaming partial tool call arguments.
+	if streamPartialToolCalls && backend == genai.BackendVertexAI {
 		functionCallingConfig.StreamFunctionCallArguments = &streamPartialToolCalls
 	}
 	if configuration.GetToolChoice() != nil {
