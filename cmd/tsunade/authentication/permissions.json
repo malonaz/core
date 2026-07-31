@@ -14,6 +14,17 @@ local external_service_accounts = import 'external_service_accounts.json';
     },
 
     {
+      "id": "ai:chat",
+      "permissions": [
+        "/malonaz.ai.ai_service.v1.AiService/CreateChat",
+        "/malonaz.ai.ai_service.v1.AiService/UpdateChat",
+        "/malonaz.ai.ai_service.v1.AiService/DeleteChat",
+        "/malonaz.ai.ai_service.v1.AiService/ListChats",
+        "/malonaz.ai.ai_service.v1.AiService/GetChat"
+      ],
+    },
+
+    {
       "id": "ai:speech_to_text",
       "permissions": [
         "/malonaz.ai.ai_service.v1.AiService/SpeechToText",
