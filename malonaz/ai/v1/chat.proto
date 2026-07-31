@@ -78,6 +78,16 @@ message Chat {
     (buf.validate.field).required = true,
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true
   ];
+
+  // A human-readable title for this chat.
+  string title = 8 [(buf.validate.field).string.max_len = 512];
+
+  // Annotations on this chat (not transmitted to the ai provider).
+  // This should be used by tooling.
+  map<string, string> annotations = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
 }
 
 // ChatMetadata contains the conversation content for a chat.

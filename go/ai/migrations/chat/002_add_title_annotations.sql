@@ -1,0 +1,3 @@
+ALTER TABLE chat
+    ADD COLUMN title TEXT NOT NULL DEFAULT '',
+    ADD COLUMN annotations JSONB;

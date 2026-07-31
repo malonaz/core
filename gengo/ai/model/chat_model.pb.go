@@ -28,6 +28,8 @@ type Chat struct {
 	Etag           string     `db:"etag" schema:"public" table:"chat"`
 	Labels         []byte     `db:"labels" schema:"public" table:"chat"`
 	Metadata       []byte     `db:"metadata" schema:"public" table:"chat"`
+	Title          string     `db:"title" schema:"public" table:"chat"`
+	Annotations    []byte     `db:"annotations" schema:"public" table:"chat"`
 }
 
 func ChatFromPb(m *v1.Chat) (*Chat, error) {
@@ -69,6 +71,14 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Metadata: %w", err)
 	}
+	var AnnotationsBytes []byte
+	if m.Annotations != nil {
+		var err error
+		AnnotationsBytes, err = json.Marshal(m.Annotations)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Annotations: %w", err)
+		}
+	}
 	return &Chat{
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
@@ -79,6 +89,8 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
 		Metadata:       MetadataBytes,
+		Title:          m.Title,
+		Annotations:    AnnotationsBytes,
 	}, nil
 }
 
@@ -111,18 +123,27 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 	if err := pbutil.Unmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
 	}
+	var Annotations map[string]string
+	if m.Annotations != nil {
+		Annotations = map[string]string{}
+		if err := json.Unmarshal(m.Annotations, &Annotations); err != nil {
+			return nil, fmt.Errorf("unmarshaling Annotations: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}", m.OrganizationID, m.UserID, m.ChatID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Chat{
-		Name:       name,
-		CreateTime: CreateTime,
-		UpdateTime: UpdateTime,
-		DeleteTime: DeleteTime,
-		Etag:       m.Etag,
-		Labels:     Labels,
-		Metadata:   Metadata,
+		Name:        name,
+		CreateTime:  CreateTime,
+		UpdateTime:  UpdateTime,
+		DeleteTime:  DeleteTime,
+		Etag:        m.Etag,
+		Labels:      Labels,
+		Metadata:    Metadata,
+		Title:       m.Title,
+		Annotations: Annotations,
 	}, nil
 }
 

@@ -63,7 +63,9 @@ message UpdateChatRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
       "metadata",
-      "labels"
+      "labels",
+      "title",
+      "annotations"
     ]
   };
   option (buf.validate.message).cel = {

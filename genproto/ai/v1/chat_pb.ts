@@ -20,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/chat.proto.
  */
 export const file_malonaz_ai_v1_chat: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEi5gQKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI7CghtZXRhZGF0YRgHIAEoCzIbLm1hbG9uYXouYWkudjEuQ2hhdE1ldGFkYXRhQgy6SAPIAQG66g8CGAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATph6kFaChNhaS5tYWxvbmF6LmNvbS9DaGF0EjZvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9jaGF0cy97Y2hhdH0qBWNoYXRzMgRjaGF00qYEACJpCgxDaGF0TWV0YWRhdGESKAoIbWVzc2FnZXMYASADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2USLwoMbW9kZWxfdXNhZ2VzGAIgAygLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlQtMBWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBWAobYWkubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb27qQU0KE2FpLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_codegen_model_v1_model]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEi+AUKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI7CghtZXRhZGF0YRgHIAEoCzIbLm1hbG9uYXouYWkudjEuQ2hhdE1ldGFkYXRhQgy6SAPIAQG66g8CGAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEkMKC2Fubm90YXRpb25zGAkgAygLMiQubWFsb25hei5haS52MS5DaGF0LkFubm90YXRpb25zRW50cnlCCLrqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOmHqQVoKE2FpLm1hbG9uYXouY29tL0NoYXQSNm9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fSoFY2hhdHMyBGNoYXTSpgQAImkKDENoYXRNZXRhZGF0YRIoCghtZXNzYWdlcxgBIAMoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZRIvCgxtb2RlbF91c2FnZXMYAiADKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VC0wFaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3Yx6kFYChthaS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBTQoTYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_codegen_model_v1_model]);
 
 /**
  * Chat represents a multi-turn AI conversation between a user and an assistant.
@@ -79,6 +79,21 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
    * @generated from field: malonaz.ai.v1.ChatMetadata metadata = 7;
    */
   metadata?: ChatMetadata;
+
+  /**
+   * A human-readable title for this chat.
+   *
+   * @generated from field: string title = 8;
+   */
+  title: string;
+
+  /**
+   * Annotations on this chat (not transmitted to the ai provider).
+   * This should be used by tooling.
+   *
+   * @generated from field: map<string, string> annotations = 9;
+   */
+  annotations: { [key: string]: string };
 };
 
 /**
@@ -138,6 +153,21 @@ export type ChatValid = Message<"malonaz.ai.v1.Chat"> & {
    * @generated from field: malonaz.ai.v1.ChatMetadata metadata = 7;
    */
   metadata: ChatMetadataValid;
+
+  /**
+   * A human-readable title for this chat.
+   *
+   * @generated from field: string title = 8;
+   */
+  title: string;
+
+  /**
+   * Annotations on this chat (not transmitted to the ai provider).
+   * This should be used by tooling.
+   *
+   * @generated from field: map<string, string> annotations = 9;
+   */
+  annotations: { [key: string]: string };
 };
 
 /**
