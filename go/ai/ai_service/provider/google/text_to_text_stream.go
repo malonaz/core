@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"google.golang.org/genai"
@@ -114,7 +115,7 @@ func (c *Client) TextToTextStream(
 		if err != nil {
 			// Map Google API errors to gRPC status codes for consistent error handling.
 			if apiError, ok := errors.AsType[genai.APIError](err); ok {
-				return status.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s", apiError.Message).Err()
+				return c.statusFromAPIError(model, request, apiError).Err()
 			}
 			return status.FromError(err, "reading stream").Err()
 		}
@@ -743,6 +744,34 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 		return *partialArg.BoolValue
 	}
 	return partialArg.StringValue
+}
+
+// statusFromAPIError converts a genai.APIError into our status error. Vertex collapses
+// request-shape rejections into the useless message "Request contains an invalid argument."
+// and puts the actionable part — the offending field path or function declaration — in
+// Details, so callers several services up are blind unless we inline it in the message
+// (gRPC error details do not survive the wrapping done by intermediate services).
+func (c *Client) statusFromAPIError(model *aipb.Model, request *aiservicepb.TextToTextStreamRequest, apiError genai.APIError) *status.Error {
+	message := apiError.Message
+	if len(apiError.Details) > 0 {
+		details, err := json.Marshal(apiError.Details)
+		if err == nil {
+			message = fmt.Sprintf("%s details=%s", message, details)
+		}
+	}
+
+	toolNames := make([]string, 0, len(request.GetTools()))
+	for _, tool := range request.GetTools() {
+		toolNames = append(toolNames, tool.GetName())
+	}
+
+	return status.Errorf(grpcCodeFromHTTPStatus(apiError.Code), "%s: %s", model.GetProviderModelId(), message).
+		WithErrorInfo(apiError.Status, c.ProviderId(), map[string]string{
+			"model":             model.GetName(),
+			"provider_model_id": model.GetProviderModelId(),
+			"http_code":         fmt.Sprint(apiError.Code),
+			"tools":             strings.Join(toolNames, ","),
+		})
 }
 
 // grpcCodeFromHTTPStatus maps HTTP status codes to gRPC codes for Google API error translation.
