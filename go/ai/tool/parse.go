@@ -1,6 +1,8 @@
 package tool
 
 import (
+	"strings"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -149,13 +151,24 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", AnnotationKeyProtoMessage).Err()
 	}
 
-	dynamicMessage, err := schemaBuilder.BuildMessage(protoreflect.FullName(messageFullName), toolCall.GetArguments().AsMap())
+	arguments := toolCall.GetArguments().AsMap()
+
+	var fieldMask *pbfieldmask.FieldMask
+	if generationFieldMask, ok := annotations[AnnotationKeyGenerationFieldMask]; ok {
+		fieldMask = pbfieldmask.FromString(generationFieldMask)
+		// Prune before building: fields outside the mask were never in the schema
+		// shown to the model, and hallucinated values may not even type-check
+		// against the proto (e.g. an update_mask emitted as an object), which
+		// would fail the build outright.
+		arguments = pruneArguments(arguments, "", fieldMask)
+	}
+
+	dynamicMessage, err := schemaBuilder.BuildMessage(protoreflect.FullName(messageFullName), arguments)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building message: %v", err).Err()
 	}
 
-	if generationFieldMask, ok := annotations[AnnotationKeyGenerationFieldMask]; ok {
-		fieldMask := pbfieldmask.FromString(generationFieldMask)
+	if fieldMask != nil {
 		if err := fieldMask.Validate(dynamicMessage); err != nil {
 			return nil, status.Errorf(codes.Internal, "validating generation field mask: %v", err).Err()
 		}
@@ -168,4 +181,55 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 	}
 
 	return message, nil
+}
+
+// pruneArguments returns a copy of arguments restricted to the field mask.
+// Keys on or below a mask path are kept whole; keys that are ancestors of a
+// mask path are recursed into to strip disallowed siblings; everything else
+// (i.e. fields the schema never exposed to the model) is dropped.
+func pruneArguments(arguments map[string]any, prefix string, fieldMask *pbfieldmask.FieldMask) map[string]any {
+	prunedArguments := make(map[string]any, len(arguments))
+	for key, value := range arguments {
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if maskAllowsSubtree(path, fieldMask) {
+			prunedArguments[key] = value
+			continue
+		}
+		if !fieldMask.Contains(path) {
+			continue
+		}
+		// The path is a strict ancestor of a mask path: recurse to keep only
+		// the allowed descendants.
+		switch typedValue := value.(type) {
+		case map[string]any:
+			prunedArguments[key] = pruneArguments(typedValue, path, fieldMask)
+		case []any:
+			prunedItems := make([]any, 0, len(typedValue))
+			for _, item := range typedValue {
+				if itemMap, ok := item.(map[string]any); ok {
+					prunedItems = append(prunedItems, pruneArguments(itemMap, path, fieldMask))
+					continue
+				}
+				prunedItems = append(prunedItems, item)
+			}
+			prunedArguments[key] = prunedItems
+		default:
+			// A scalar where the mask expects a subtree cannot match the schema; drop it.
+		}
+	}
+	return prunedArguments
+}
+
+// maskAllowsSubtree reports whether the path is exactly on, or nested under,
+// a mask path — in which case its entire subtree is retained.
+func maskAllowsSubtree(path string, fieldMask *pbfieldmask.FieldMask) bool {
+	for _, maskPath := range fieldMask.GetPaths() {
+		if maskPath == pbfieldmask.WildcardPath || maskPath == path || strings.HasPrefix(path, maskPath+".") {
+			return true
+		}
+	}
+	return false
 }

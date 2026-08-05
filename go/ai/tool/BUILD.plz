@@ -20,3 +20,13 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = ["parse_test.go"],
+    deps = [
+        ":tool",
+        "//go/pbutil/pbfieldmask",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)
