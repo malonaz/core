@@ -4,6 +4,12 @@ local p = "providers/groq/models/";
   "provider_id":  "groq",
   "models":  [
     {
+      "name":  p + "whisper-large-v3",
+      "provider_model_id":  "whisper-large-v3",
+      "description":  "Whisper Large v3 is OpenAI's most advanced and capable speech recognition model, delivering state-of-the-art accuracy across a wide range of audio conditions and languages. This flagship model excels at handling challenging audio scenarios including background noise, accents, and technical terminology. With its robust architecture and extensive training, it represents the gold standard for automatic speech recognition tasks requiring the highest possible accuracy.",
+      "stt":  {}
+    },
+    {
       "name":  p + "whisper-large-v3-turbo",
       "provider_model_id":  "whisper-large-v3-turbo",
       "description":  "Whisper Large v3 is OpenAI's most advanced and capable speech recognition model, delivering state-of-the-art accuracy across a wide range of audio conditions and languages. This flagship model excels at handling challenging audio scenarios including background noise, accents, and technical terminology. With its robust architecture and extensive training, it represents the gold standard for automatic speech recognition tasks requiring the highest possible accuracy.",
