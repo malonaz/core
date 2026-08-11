@@ -9,11 +9,7 @@ const (
 	// migrations, so this test does not depend on a postgres installed on the host.
 	postgresBinaryDirectory = "{{ .extra.postgres_binary_dir }}"
 
-	postgresHost     = "localhost"
-	postgresPort     = 5432
-	postgresUser     = "postgres"
-	postgresPassword = "postgres"
-
+	// The database the migrations are applied to, owned by a non-superuser as in production.
 	targetDatabase = "migrations"
 	targetUser     = "migrations"
 	targetPassword = "migrations"
@@ -47,14 +43,10 @@ func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
 	require.NoError(t, err, "no postgres binary in %s", postgresBinaryPath)
 	t.Setenv("PATH", postgresBinaryPath+string(os.PathListSeparator)+os.Getenv("PATH"))
 
-	// Bring up a postgres instance and run the initializer & migrator against it.
+	// Bring up a postgres instance and run the initializer & migrator against it. The server
+	// defaults to postgres/postgres on localhost:5432, which is also what the migrator's own
+	// flags default to, so only the target database has to be named explicitly.
 	config := &{{ goImport "github.com/malonaz/core/go/sat" }}.Config{
-		PostgresServerConfig: sat.PostgresServerConfig{
-			Host:     postgresHost,
-			Port:     postgresPort,
-			User:     postgresUser,
-			Password: postgresPassword,
-		},
 		Initializer: sat.SUT{
 			Name: "database-initializer",
 			Path: migratorPath,
@@ -66,14 +58,6 @@ func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
 			Args: []string{"--mode", "migrate", "--dir", migrationsRootDirectory},
 		},
 		EnvironmentVariables: map[string]string{
-			"POSTGRES_HOST":     postgresHost,
-			"POSTGRES_PORT":     {{ goImport "strconv" }}.Itoa(postgresPort),
-			"POSTGRES_DATABASE": "postgres",
-			"POSTGRES_USER":     postgresUser,
-			"POSTGRES_PASSWORD": postgresPassword,
-
-			"TARGET_POSTGRES_HOST":     postgresHost,
-			"TARGET_POSTGRES_PORT":     strconv.Itoa(postgresPort),
 			"TARGET_POSTGRES_DATABASE": targetDatabase,
 			"TARGET_POSTGRES_USER":     targetUser,
 			"TARGET_POSTGRES_PASSWORD": targetPassword,
@@ -83,18 +67,9 @@ func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
 	require.NoError(t, satEnvironment.Start(ctx), "starting SAT environment")
 	t.Cleanup(satEnvironment.Cleanup)
 
-	// Connect to the migrated database as the target user.
-	client := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(&postgres.Opts{
-		Host:     postgresHost,
-		Port:     postgresPort,
-		User:     targetUser,
-		Password: targetPassword,
-		Database: targetDatabase,
-		MaxConns: 2,
-		SSLMode:  "disable",
-	})
-	require.NoError(t, client.Start(ctx), "connecting to migrated database")
-	t.Cleanup(client.Close)
+	// Connect to the migrated database.
+	client, err := satEnvironment.GetPostgresClient(ctx, targetDatabase)
+	require.NoError(t, err, "connecting to migrated database")
 
 	rows, err := client.Query(ctx, "SELECT directory, filename, hash FROM public.migration")
 	require.NoError(t, err)

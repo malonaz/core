@@ -86,7 +86,6 @@ def postgres_migrations(
         data = [":" + name, ":_postgres_migrator", ":_postgres_distribution"],
         test_outputs = ["sat.log"],
         deps = [
-            plugin_go_lib("//go/postgres"),
             plugin_go_lib("//go/postgres/migrator/migrations"),
             plugin_go_lib("//go/sat"),
             "//third_party/go:github.com__stretchr__testify__require",
