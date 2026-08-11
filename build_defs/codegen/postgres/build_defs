@@ -62,7 +62,7 @@ def postgres_migrations(
 
     genrule(
         name = "_postgres_distribution",
-        srcs = [plugin_target("//third_party/binary/postgres:postgres")],
+        srcs = [plugin_target("//third_party/misc/postgres:postgres")],
         outs = ["postgres_distribution"],
         cmd = "mv $SRCS $OUT",
         test_only = True,
