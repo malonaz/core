@@ -1,0 +1,110 @@
+package main
+
+const (
+	// migrationsRootDirectory holds the generated manifest.yaml listing the ordered migration directories.
+	migrationsRootDirectory = "{{ .extra.root_dir }}"
+	// migratorPath is the postgres-migrator binary, copied next to the migrations.
+	migratorPath = "{{ .extra.migrator_path }}"
+	// postgresBinaryDirectory holds the relocatable postgres distribution, so this test does
+	// not depend on a postgres installed on the host.
+	postgresBinaryDirectory = "third_party/binary/postgres/postgres/bin"
+
+	postgresHost     = "localhost"
+	postgresPort     = 5432
+	postgresUser     = "postgres"
+	postgresPassword = "postgres"
+
+	targetDatabase = "migrations"
+	targetUser     = "migrations"
+	targetPassword = "migrations"
+)
+
+// TestMigrationsAgainstPostgres runs the migrations against a real postgres instance, then asserts
+// that every migration declared in the manifests was actually applied and recorded.
+func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
+	ctx := {{ goImport "context" }}.Background()
+
+	expectedMigrations := map[string]string{}
+	for _, migrationDirectory := range []string{
+		{{- range $dir := (.extra.dirs | splitList ",") }}
+		"{{ $dir }}",
+		{{- end }}
+	} {
+		directoryMigrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationDirectory)
+		{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
+		for _, migration := range directoryMigrations {
+			expectedMigrations[migration.Name()] = migration.Hash
+		}
+	}
+	require.NotEmpty(t, expectedMigrations, "no migrations to run")
+
+	// The test server locates initdb and pg_ctl next to whichever postgres it resolves on
+	// PATH, so put our own distribution first. It must be absolute: postgres is started from
+	// a different working directory.
+	postgresBinaryPath, err := {{ goImport "path/filepath" }}.Abs(postgresBinaryDirectory)
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(postgresBinaryPath, "postgres"))
+	require.NoError(t, err, "no postgres binary in %s", postgresBinaryPath)
+	t.Setenv("PATH", postgresBinaryPath+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	// Bring up a postgres instance and run the initializer & migrator against it.
+	config := &{{ goImport "github.com/malonaz/core/go/sat" }}.Config{
+		PostgresServerConfig: sat.PostgresServerConfig{
+			Host:     postgresHost,
+			Port:     postgresPort,
+			User:     postgresUser,
+			Password: postgresPassword,
+		},
+		Initializer: sat.SUT{
+			Name: "database-initializer",
+			Path: migratorPath,
+			Args: []string{"--mode", "init", "--dir", migrationsRootDirectory},
+		},
+		Migrator: sat.SUT{
+			Name: "database-migrator",
+			Path: migratorPath,
+			Args: []string{"--mode", "migrate", "--dir", migrationsRootDirectory},
+		},
+		EnvironmentVariables: map[string]string{
+			"POSTGRES_HOST":     postgresHost,
+			"POSTGRES_PORT":     {{ goImport "strconv" }}.Itoa(postgresPort),
+			"POSTGRES_DATABASE": "postgres",
+			"POSTGRES_USER":     postgresUser,
+			"POSTGRES_PASSWORD": postgresPassword,
+
+			"TARGET_POSTGRES_HOST":     postgresHost,
+			"TARGET_POSTGRES_PORT":     strconv.Itoa(postgresPort),
+			"TARGET_POSTGRES_DATABASE": targetDatabase,
+			"TARGET_POSTGRES_USER":     targetUser,
+			"TARGET_POSTGRES_PASSWORD": targetPassword,
+		},
+	}
+	satEnvironment := sat.New(config)
+	require.NoError(t, satEnvironment.Start(ctx), "starting SAT environment")
+	t.Cleanup(satEnvironment.Cleanup)
+
+	// Connect to the migrated database as the target user.
+	client := {{ goImport "github.com/malonaz/core/go/postgres" }}.NewClient(&postgres.Opts{
+		Host:     postgresHost,
+		Port:     postgresPort,
+		User:     targetUser,
+		Password: targetPassword,
+		Database: targetDatabase,
+		MaxConns: 2,
+		SSLMode:  "disable",
+	})
+	require.NoError(t, client.Start(ctx), "connecting to migrated database")
+	t.Cleanup(client.Close)
+
+	rows, err := client.Query(ctx, "SELECT directory, filename, hash FROM public.migration")
+	require.NoError(t, err)
+	defer rows.Close()
+	appliedMigrations := map[string]string{}
+	for rows.Next() {
+		var directory, filename, hash string
+		require.NoError(t, rows.Scan(&directory, &filename, &hash))
+		appliedMigrations[directory+":"+filename] = hash
+	}
+	require.NoError(t, rows.Err())
+	require.Equal(t, expectedMigrations, appliedMigrations)
+}
