@@ -1,0 +1,85 @@
+package main
+
+const (
+	// migrationsRootDirectory holds the generated manifest.yaml listing the ordered migration directories.
+	migrationsRootDirectory = "{{ .extra.root_dir }}"
+	// migratorPath is the postgres-migrator binary, copied next to the migrations.
+	migratorPath = "{{ .extra.migrator_path }}"
+	// postgresBinaryDirectory holds the relocatable postgres distribution, copied next to the
+	// migrations, so this test does not depend on a postgres installed on the host.
+	postgresBinaryDirectory = "{{ .extra.postgres_binary_dir }}"
+
+	// The database the migrations are applied to, owned by a non-superuser as in production.
+	targetDatabase = "migrations"
+	targetUser     = "migrations"
+	targetPassword = "migrations"
+)
+
+// TestMigrationsAgainstPostgres runs the migrations against a real postgres instance, then asserts
+// that every migration declared in the manifests was actually applied and recorded.
+func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
+	ctx := {{ goImport "context" }}.Background()
+
+	expectedMigrations := map[string]string{}
+	for _, migrationDirectory := range []string{
+		{{- range $dir := (.extra.dirs | splitList ",") }}
+		"{{ $dir }}",
+		{{- end }}
+	} {
+		directoryMigrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationDirectory)
+		{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
+		for _, migration := range directoryMigrations {
+			expectedMigrations[migration.Name()] = migration.Hash
+		}
+	}
+	require.NotEmpty(t, expectedMigrations, "no migrations to run")
+
+	// The test server locates initdb and pg_ctl next to whichever postgres it resolves on
+	// PATH, so put our own distribution first. It must be absolute: postgres is started from
+	// a different working directory.
+	postgresBinaryPath, err := {{ goImport "path/filepath" }}.Abs(postgresBinaryDirectory)
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(postgresBinaryPath, "postgres"))
+	require.NoError(t, err, "no postgres binary in %s", postgresBinaryPath)
+	t.Setenv("PATH", postgresBinaryPath+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	// Bring up a postgres instance and run the initializer & migrator against it. The server
+	// defaults to postgres/postgres on localhost:5432, which is also what the migrator's own
+	// flags default to, so only the target database has to be named explicitly.
+	config := &{{ goImport "github.com/malonaz/core/go/sat" }}.Config{
+		Initializer: sat.SUT{
+			Name: "database-initializer",
+			Path: migratorPath,
+			Args: []string{"--mode", "init", "--dir", migrationsRootDirectory},
+		},
+		Migrator: sat.SUT{
+			Name: "database-migrator",
+			Path: migratorPath,
+			Args: []string{"--mode", "migrate", "--dir", migrationsRootDirectory},
+		},
+		EnvironmentVariables: map[string]string{
+			"TARGET_POSTGRES_DATABASE": targetDatabase,
+			"TARGET_POSTGRES_USER":     targetUser,
+			"TARGET_POSTGRES_PASSWORD": targetPassword,
+		},
+	}
+	satEnvironment := sat.New(config)
+	require.NoError(t, satEnvironment.Start(ctx), "starting SAT environment")
+	t.Cleanup(satEnvironment.Cleanup)
+
+	// Connect to the migrated database.
+	client, err := satEnvironment.GetPostgresClient(ctx, targetDatabase)
+	require.NoError(t, err, "connecting to migrated database")
+
+	rows, err := client.Query(ctx, "SELECT directory, filename, hash FROM public.migration")
+	require.NoError(t, err)
+	defer rows.Close()
+	appliedMigrations := map[string]string{}
+	for rows.Next() {
+		var directory, filename, hash string
+		require.NoError(t, rows.Scan(&directory, &filename, &hash))
+		appliedMigrations[directory+":"+filename] = hash
+	}
+	require.NoError(t, rows.Err())
+	require.Equal(t, expectedMigrations, appliedMigrations)
+}

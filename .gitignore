@@ -1,3 +1,5 @@
 plz-out/*
 .plz-cache/*
 .env
+.idea/
+.plzconfig.local

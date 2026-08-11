@@ -17,6 +17,7 @@ import (
 	"github.com/malonaz/core/go/binary"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/nats"
+	"github.com/malonaz/core/go/postgres"
 	postgrestestserver "github.com/malonaz/core/go/postgres/test_server"
 )
 
@@ -60,6 +61,9 @@ type SAT struct {
 	natsOptions    *natsserver.Options
 	natsClient     *nats.Client
 	natsClientOnce sync.Once
+
+	postgresClientsMutex sync.Mutex
+	postgresClients      map[string]*postgres.Client
 }
 
 // WithLogger sets this SAT's logger.
@@ -72,8 +76,9 @@ func (s *SAT) WithLogger(logger *slog.Logger) *SAT {
 // runs the database initializer and migrator jobs, then starts all SUTs.
 func New(config *Config) *SAT {
 	return &SAT{
-		log:    slog.Default(),
-		config: config,
+		log:             slog.Default(),
+		config:          config,
+		postgresClients: map[string]*postgres.Client{},
 	}
 }
 
@@ -97,6 +102,32 @@ func (s *SAT) GetNatsClient(ctx context.Context) (*nats.Client, error) {
 		}
 	})
 	return s.natsClient, err
+}
+
+// GetPostgresClient returns a started client connected to the given database on this SAT's
+// Postgres server, as its superuser, which can reach any database the migrator created.
+// Clients are cached per database and closed by [SAT.Cleanup], so callers need not close them.
+func (s *SAT) GetPostgresClient(ctx context.Context, database string) (*postgres.Client, error) {
+	if s.PostgresServer == nil {
+		return nil, fmt.Errorf("no postgres server: this SAT was configured without a migrator")
+	}
+
+	s.postgresClientsMutex.Lock()
+	defer s.postgresClientsMutex.Unlock()
+	if client, ok := s.postgresClients[database]; ok {
+		return client, nil
+	}
+
+	// Opts returns a fresh copy holding the server's host, port and superuser credentials.
+	opts := s.PostgresServer.Opts()
+	opts.Database = database
+	opts.SSLMode = "disable"
+	client := postgres.NewClient(opts)
+	if err := client.Start(ctx); err != nil {
+		return nil, fmt.Errorf("starting postgres client for database %s: %w", database, err)
+	}
+	s.postgresClients[database] = client
+	return client, nil
 }
 
 func (s *SAT) Start(ctx context.Context) error {
@@ -190,6 +221,12 @@ func (s *SAT) Start(ctx context.Context) error {
 
 func (s *SAT) Cleanup() {
 	s.sutsWorker.Stop()
+	s.postgresClientsMutex.Lock()
+	for _, client := range s.postgresClients {
+		client.Close()
+	}
+	clear(s.postgresClients)
+	s.postgresClientsMutex.Unlock()
 	if s.PostgresServer != nil {
 		s.PostgresServer.Shutdown()
 	}
