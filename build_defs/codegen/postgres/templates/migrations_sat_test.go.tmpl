@@ -5,9 +5,9 @@ const (
 	migrationsRootDirectory = "{{ .extra.root_dir }}"
 	// migratorPath is the postgres-migrator binary, copied next to the migrations.
 	migratorPath = "{{ .extra.migrator_path }}"
-	// postgresBinaryDirectory holds the relocatable postgres distribution, so this test does
-	// not depend on a postgres installed on the host.
-	postgresBinaryDirectory = "third_party/binary/postgres/postgres/bin"
+	// postgresBinaryDirectory holds the relocatable postgres distribution, copied next to the
+	// migrations, so this test does not depend on a postgres installed on the host.
+	postgresBinaryDirectory = "{{ .extra.postgres_binary_dir }}"
 
 	postgresHost     = "localhost"
 	postgresPort     = 5432

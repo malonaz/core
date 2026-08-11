@@ -48,14 +48,23 @@ def postgres_migrations(
     )
 
     # System acceptance test: run the migrations against a real postgres instance.
-    # The migrator is copied into this package so its path is the same whether these
-    # build defs are used from core itself or from a repo consuming core as a plugin.
+    # The migrator and the postgres distribution are copied into this package so their paths
+    # are the same whether these build defs are used from core itself or from a repo consuming
+    # core as a plugin, where they resolve to the ///core subrepo instead.
     genrule(
         name = "_postgres_migrator",
         srcs = [plugin_target("//cmd/postgres-migrator")],
         outs = ["postgres-migrator"],
         cmd = "mv $SRCS $OUT",
         binary = True,
+        test_only = True,
+    )
+
+    genrule(
+        name = "_postgres_distribution",
+        srcs = [plugin_target("//third_party/binary/postgres:postgres")],
+        outs = ["postgres_distribution"],
+        cmd = "mv $SRCS $OUT",
         test_only = True,
     )
 
@@ -66,6 +75,7 @@ def postgres_migrations(
             "dirs": ','.join([package_name() + "/" + d for d in dirs]),
             "root_dir": package_name(),
             "migrator_path": package_name() + "/postgres-migrator",
+            "postgres_binary_dir": package_name() + "/postgres_distribution/bin",
         },
         templates = [plugin_target("//build_defs/codegen/postgres/templates:migrations_sat_test.go.tmpl")]
     )
@@ -73,7 +83,7 @@ def postgres_migrations(
     go_test(
         name = "migration_sat_test",
         srcs = [":migration_sat_test.go"],
-        data = [":" + name, ":_postgres_migrator", "//third_party/binary/postgres:postgres"],
+        data = [":" + name, ":_postgres_migrator", ":_postgres_distribution"],
         test_outputs = ["sat.log"],
         deps = [
             plugin_go_lib("//go/postgres"),
