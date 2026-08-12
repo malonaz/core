@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package malonaz.ai.genui.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
+
+// Markdown-subset text (bold, italics, lists, links). Links may target
+// resource names, which clients render as in-app navigation.
+message Text {
+  // The markdown content to render.
+  string markdown = 1 [(buf.validate.field).required = true];
+}
+
+// Label/value facts, e.g. a lead summary ("Budget: $10-15k").
+message KeyValueList {
+  // A single label/value fact.
+  message Item {
+    // The label naming the fact, e.g. "Budget".
+    string label = 1 [(buf.validate.field).required = true];
+
+    // The human-readable value of the fact, e.g. "$10-15k".
+    string value = 2;
+
+    // Optional resource name; the client links the value when set.
+    string resource_name = 3 [(google.api.resource_reference).type = "*"];
+  }
+
+  // Optional heading rendered above the items.
+  string title = 1;
+
+  // The facts to render, in display order.
+  repeated Item items = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// Ordered events, e.g. "what happened with this contact this week".
+message Timeline {
+  // A single event on the timeline.
+  message Entry {
+    // Short headline describing what happened.
+    string title = 1 [(buf.validate.field).required = true];
+
+    // Optional detail expanding on the title.
+    string description = 2;
+
+    // RFC 3339. String (not Timestamp) to keep the AI-facing schema simple.
+    string time = 3;
+
+    // Optional resource the entry refers to; the client links the entry when set.
+    string resource_name = 4 [(google.api.resource_reference).type = "*"];
+  }
+
+  // Optional heading rendered above the entries.
+  string title = 1;
+
+  // The events to render, in chronological order.
+  repeated Entry entries = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// Minimal chart for aggregates ("calls per day this week").
+message Chart {
+  // How the points are plotted.
+  enum Type {
+    // Used to detect an unset field.
+    TYPE_UNSPECIFIED = 0;
+
+    // Vertical bars, one per point. Best for comparing categories.
+    TYPE_BAR = 1;
+
+    // A line connecting the points. Best for trends over time.
+    TYPE_LINE = 2;
+
+    // Pie slices sized by value. Best for parts of a whole.
+    TYPE_PIE = 3;
+  }
+
+  // A single datapoint.
+  message Point {
+    // The category or time bucket this point belongs to.
+    string label = 1 [(buf.validate.field).required = true];
+
+    // The measured value for this point.
+    double value = 2;
+  }
+
+  // How the points are plotted.
+  Type type = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // Optional heading rendered above the chart.
+  string title = 2;
+
+  // The datapoints to plot, in display order.
+  repeated Point points = 3 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// Images/videos referenced by platform file resource names — never raw URLs,
+// so access control stays with the file service.
+message MediaGallery {
+  // Resource names of the files to display, in display order.
+  repeated string files = 1 [
+    (google.api.resource_reference).type = "*",
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).repeated.items.string.min_len = 1
+  ];
+
+  // Optional caption rendered under the gallery.
+  string caption = 2;
+}

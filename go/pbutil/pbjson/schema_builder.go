@@ -258,9 +258,16 @@ func (b *SchemaBuilder) buildMessageSchema(
 		}
 	}
 
+	description := b.schema.GetComment(msg.FullName(), pbreflection.CommentStyleMultiline)
+	// Oneofs have no JSON Schema equivalent, so we describe them in prose.
+	oneofDescription, err := describeOneofs(msg)
+	if err != nil {
+		return nil, fmt.Errorf("describing oneofs of %q: %w", msg.FullName(), err)
+	}
+
 	return &jsonpb.Schema{
 		Type:        "object",
-		Description: b.schema.GetComment(msg.FullName(), pbreflection.CommentStyleMultiline),
+		Description: appendDescription(description, oneofDescription),
 		Properties:  properties,
 		Required:    required,
 	}, nil
@@ -279,6 +286,11 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 	fieldBehavior, err := pbutil.GetFieldBehavior(fieldDescriptor)
 	if err != nil {
 		return nil, false, fmt.Errorf("getting field behavior: %w", err)
+	}
+
+	fieldRules, err := getFieldRules(fieldDescriptor)
+	if err != nil {
+		return nil, false, fmt.Errorf("getting field rules %q: %w", fieldDescriptor.FullName(), err)
 	}
 
 	mustIncludeFieldSchema := len(allowedPaths) > 0 // We always respect the allowed path (specified by the mask).
@@ -301,6 +313,8 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 	default:
 		isRequired = fieldBehavior.Required
 	}
+	// buf.validate and google.api.field_behavior are independent sources of requiredness.
+	isRequired = isRequired || isRequiredRule(fieldRules)
 
 	description := b.schema.GetComment(fieldDescriptor.FullName(), pbreflection.CommentStyleMultiline)
 
@@ -322,11 +336,14 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 		if err != nil {
 			return nil, false, fmt.Errorf("building element schema %q: %q", fieldDescriptor.FullName(), err)
 		}
-		return &jsonpb.Schema{
+		schema := &jsonpb.Schema{
 			Type:        "array",
 			Description: description,
 			Items:       items,
-		}, isRequired, nil
+		}
+		applyRepeatedRules(schema, fieldDescriptor, fieldRules)
+		schema.Description = appendDescription(schema.Description, describeConstraints(schema))
+		return schema, isRequired, nil
 	}
 
 	if fieldDescriptor.Kind() == protoreflect.MessageKind {
@@ -340,7 +357,10 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 		return schema, isRequired, nil
 	}
 
-	return b.scalarSchema(fieldDescriptor, description), isRequired, nil
+	schema := b.scalarSchema(fieldDescriptor, description)
+	applyScalarRules(schema, fieldDescriptor, fieldRules)
+	schema.Description = appendDescription(schema.Description, describeConstraints(schema))
+	return schema, isRequired, nil
 }
 
 func (b *SchemaBuilder) scalarSchema(fieldDescriptor protoreflect.FieldDescriptor, description string) *jsonpb.Schema {

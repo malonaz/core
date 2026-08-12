@@ -1,0 +1,17 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "component.pb.go",
+        "content.pb.go",
+        "interaction.pb.go",
+        "layout.pb.go",
+        "resource.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:validate",
+    ],
+)
