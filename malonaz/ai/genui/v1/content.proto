@@ -126,3 +126,55 @@ message TableCell {
   // Optional resource name; the client links the cell when set.
   string resource_name = 2 [(google.api.resource_reference).type = "*"];
 }
+
+// Buttons the user can press — pure client affordances that never feed back
+// into the model. Navigation, clipboard, and external links execute entirely
+// client-side; a `prompt` action sends its text as the user's next message
+// (the "suggested next step" pattern). Unlike input components, an ActionRow
+// does not end the agentic turn and expects no answer.
+message ActionRow {
+  // The buttons to render, in display order.
+  repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 5
+  }];
+}
+
+// A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+message ActionRowAction {
+  // The text rendered on the button.
+  string label = 1 [(buf.validate.field).required = true];
+
+  // How the button is visually emphasized.
+  ActionStyle style = 2 [(buf.validate.field).enum.defined_only = true];
+
+  // What pressing the button does.
+  oneof action {
+    option (buf.validate.oneof).required = true;
+
+    // Navigate to this resource in-app.
+    string open_resource = 3 [(google.api.resource_reference).type = "*"];
+
+    // Send this text as the user's next message in the chat.
+    string prompt = 4;
+
+    // Copy this text to the user's clipboard.
+    string copy_text = 5;
+
+    // Open this http(s) URL externally.
+    string open_url = 6 [(buf.validate.field).string.uri = true];
+  }
+}
+
+// How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
+// visually emphasized.
+enum ActionStyle {
+  // Used to detect an unset field. Rendered as the default style.
+  ACTION_STYLE_UNSPECIFIED = 0;
+
+  // The main call to action; at most one per row.
+  ACTION_STYLE_PRIMARY = 1;
+
+  // A destructive or irreversible action.
+  ACTION_STYLE_DESTRUCTIVE = 2;
+}

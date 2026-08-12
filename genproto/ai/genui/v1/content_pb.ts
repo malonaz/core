@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUi2gEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEAoGcHJvbXB0GAQgASgJSAASEwoJY29weV90ZXh0GAUgASgJSAASHAoIb3Blbl91cmwYBiABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpkCglDaGFydFR5cGUSGgoWQ0hBUlRfVFlQRV9VTlNQRUNJRklFRBAAEhIKDkNIQVJUX1RZUEVfQkFSEAESEwoPQ0hBUlRfVFlQRV9MSU5FEAISEgoOQ0hBUlRfVFlQRV9QSUUQAypjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Markdown-subset text (bold, italics, lists, links). Link targets that are
@@ -496,6 +496,176 @@ export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}>
   messageDesc(file_malonaz_ai_genui_v1_content, 9);
 
 /**
+ * Buttons the user can press — pure client affordances that never feed back
+ * into the model. Navigation, clipboard, and external links execute entirely
+ * client-side; a `prompt` action sends its text as the user's next message
+ * (the "suggested next step" pattern). Unlike input components, an ActionRow
+ * does not end the agentic turn and expects no answer.
+ *
+ * @generated from message malonaz.ai.genui.v1.ActionRow
+ */
+export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
+  /**
+   * The buttons to render, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
+   */
+  actions: ActionRowAction[];
+};
+
+/**
+ * Buttons the user can press — pure client affordances that never feed back
+ * into the model. Navigation, clipboard, and external links execute entirely
+ * client-side; a `prompt` action sends its text as the user's next message
+ * (the "suggested next step" pattern). Unlike input components, an ActionRow
+ * does not end the agentic turn and expects no answer.
+ *
+ * @generated from message malonaz.ai.genui.v1.ActionRow
+ */
+export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
+  /**
+   * The buttons to render, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
+   */
+  actions: ActionRowActionValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ActionRow.
+ * Use `create(ActionRowSchema)` to create a new message.
+ */
+export const ActionRowSchema: GenMessage<ActionRow, {validType: ActionRowValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 10);
+
+/**
+ * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+ *
+ * @generated from message malonaz.ai.genui.v1.ActionRowAction
+ */
+export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
+  /**
+   * The text rendered on the button.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * How the button is visually emphasized.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 2;
+   */
+  style: ActionStyle;
+
+  /**
+   * What pressing the button does.
+   *
+   * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
+   */
+  action: {
+    /**
+     * Navigate to this resource in-app.
+     *
+     * @generated from field: string open_resource = 3;
+     */
+    value: string;
+    case: "openResource";
+  } | {
+    /**
+     * Send this text as the user's next message in the chat.
+     *
+     * @generated from field: string prompt = 4;
+     */
+    value: string;
+    case: "prompt";
+  } | {
+    /**
+     * Copy this text to the user's clipboard.
+     *
+     * @generated from field: string copy_text = 5;
+     */
+    value: string;
+    case: "copyText";
+  } | {
+    /**
+     * Open this http(s) URL externally.
+     *
+     * @generated from field: string open_url = 6;
+     */
+    value: string;
+    case: "openUrl";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+ *
+ * @generated from message malonaz.ai.genui.v1.ActionRowAction
+ */
+export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
+  /**
+   * The text rendered on the button.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * How the button is visually emphasized.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 2;
+   */
+  style: ActionStyle;
+
+  /**
+   * What pressing the button does.
+   *
+   * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
+   */
+  action: {
+    /**
+     * Navigate to this resource in-app.
+     *
+     * @generated from field: string open_resource = 3;
+     */
+    value: string;
+    case: "openResource";
+  } | {
+    /**
+     * Send this text as the user's next message in the chat.
+     *
+     * @generated from field: string prompt = 4;
+     */
+    value: string;
+    case: "prompt";
+  } | {
+    /**
+     * Copy this text to the user's clipboard.
+     *
+     * @generated from field: string copy_text = 5;
+     */
+    value: string;
+    case: "copyText";
+  } | {
+    /**
+     * Open this http(s) URL externally.
+     *
+     * @generated from field: string open_url = 6;
+     */
+    value: string;
+    case: "openUrl";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ActionRowAction.
+ * Use `create(ActionRowActionSchema)` to create a new message.
+ */
+export const ActionRowActionSchema: GenMessage<ActionRowAction, {validType: ActionRowActionValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 11);
+
+/**
  * How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
  *
  * @generated from enum malonaz.ai.genui.v1.ChartType
@@ -535,4 +705,39 @@ export enum ChartType {
  */
 export const ChartTypeSchema: GenEnum<ChartType> = /*@__PURE__*/
   enumDesc(file_malonaz_ai_genui_v1_content, 0);
+
+/**
+ * How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
+ * visually emphasized.
+ *
+ * @generated from enum malonaz.ai.genui.v1.ActionStyle
+ */
+export enum ActionStyle {
+  /**
+   * Used to detect an unset field. Rendered as the default style.
+   *
+   * @generated from enum value: ACTION_STYLE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The main call to action; at most one per row.
+   *
+   * @generated from enum value: ACTION_STYLE_PRIMARY = 1;
+   */
+  PRIMARY = 1,
+
+  /**
+   * A destructive or irreversible action.
+   *
+   * @generated from enum value: ACTION_STYLE_DESTRUCTIVE = 2;
+   */
+  DESTRUCTIVE = 2,
+}
+
+/**
+ * Describes the enum malonaz.ai.genui.v1.ActionStyle.
+ */
+export const ActionStyleSchema: GenEnum<ActionStyle> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_content, 1);
 

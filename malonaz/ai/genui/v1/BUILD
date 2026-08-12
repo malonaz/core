@@ -3,8 +3,7 @@ proto_library(
     srcs = [
         "component.proto",
         "content.proto",
-        "interaction.proto",
-        "interaction_response.proto",
+        "input.proto",
         "resource.proto",
     ],
     additional_context = {

@@ -5,10 +5,10 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
-import type { Chart, ChartValid, KeyValueList, KeyValueListValid, Table, TableValid, Text, TextValid, Timeline, TimelineValid } from "./content_pb";
+import type { ActionRow, ActionRowValid, Chart, ChartValid, KeyValueList, KeyValueListValid, Table, TableValid, Text, TextValid, Timeline, TimelineValid } from "./content_pb";
 import { file_malonaz_ai_genui_v1_content } from "./content_pb";
-import type { ActionRow, ActionRowValid, Choice, ChoiceValid, Confirmation, ConfirmationValid, DateTimePicker, DateTimePickerValid, Form, FormValid, MultiChoice, MultiChoiceValid, ResourcePicker, ResourcePickerValid, Slider, SliderValid } from "./interaction_pb";
-import { file_malonaz_ai_genui_v1_interaction } from "./interaction_pb";
+import type { Choice, ChoiceValid, Confirmation, ConfirmationValid, DateTimePicker, DateTimePickerValid, Form, FormValid, MultiChoice, MultiChoiceValid, ResourcePicker, ResourcePickerValid, Slider, SliderValid } from "./input_pb";
+import { file_malonaz_ai_genui_v1_input } from "./input_pb";
 import type { ResourceCard, ResourceCardValid, ResourceList, ResourceListValid } from "./resource_pb";
 import { file_malonaz_ai_genui_v1_resource } from "./resource_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -17,13 +17,19 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSLBBgoJQ29tcG9uZW50EikKBHRleHQYASABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRleHRIABI7Cg5rZXlfdmFsdWVfbGlzdBgCIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SAASMQoIdGltZWxpbmUYAyABKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRpbWVsaW5lSAASKwoFY2hhcnQYBCABKAsyGi5tYWxvbmF6LmFpLmdlbnVpLnYxLkNoYXJ0SAASOgoNcmVzb3VyY2VfY2FyZBgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VDYXJkSAASOgoNcmVzb3VyY2VfbGlzdBgGIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VMaXN0SAASNAoKYWN0aW9uX3JvdxgHIAEoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93SAASLQoGY2hvaWNlGAggASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABIrCgV0YWJsZRgJIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI4CgxtdWx0aV9jaG9pY2UYCiABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAsgASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGAwgASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGA0gASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgOIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgPIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSLBBgoJQ29tcG9uZW50EikKBHRleHQYASABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRleHRIABI7Cg5rZXlfdmFsdWVfbGlzdBgCIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SAASMQoIdGltZWxpbmUYAyABKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRpbWVsaW5lSAASKwoFY2hhcnQYBCABKAsyGi5tYWxvbmF6LmFpLmdlbnVpLnYxLkNoYXJ0SAASKwoFdGFibGUYBSABKAsyGi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlSAASOgoNcmVzb3VyY2VfY2FyZBgGIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VDYXJkSAASOgoNcmVzb3VyY2VfbGlzdBgHIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VMaXN0SAASNAoKYWN0aW9uX3JvdxgIIAEoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93SAASLQoGY2hvaWNlGAkgASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABI4CgxtdWx0aV9jaG9pY2UYCiABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAsgASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGAwgASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGA0gASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgOIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgPIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_input, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
  * Component before streaming it to clients. The AI never sees this type —
- * each component message above is exposed to the model as its own tool, so
- * the tool name identifies the variant before any field streams.
+ * each component message is exposed to the model as its own tool, so the
+ * tool name identifies the variant before any field streams.
+ *
+ * Components split into two families:
+ * - Display (content.proto, resource.proto): rendered and acknowledged;
+ *   the agentic loop continues.
+ * - Input (input.proto): ends the turn; the user's answer round-trips as a
+ *   tool_result carrying an [InputResponse][malonaz.ai.genui.v1.InputResponse].
  *
  * @generated from message malonaz.ai.genui.v1.Component
  */
@@ -67,9 +73,17 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "chart";
   } | {
     /**
+     * Tabular data.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Table table = 5;
+     */
+    value: Table;
+    case: "table";
+  } | {
+    /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 5;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
      */
     value: ResourceCard;
     case: "resourceCard";
@@ -77,15 +91,15 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 6;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
      */
     value: ResourceList;
     case: "resourceList";
   } | {
     /**
-     * Buttons the user can press.
+     * Client-side buttons: navigation, clipboard, suggested next prompts.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 7;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
     value: ActionRow;
     case: "actionRow";
@@ -93,18 +107,10 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 8;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
      */
     value: Choice;
     case: "choice";
-  } | {
-    /**
-     * Tabular data.
-     *
-     * @generated from field: malonaz.ai.genui.v1.Table table = 9;
-     */
-    value: Table;
-    case: "table";
   } | {
     /**
      * A question allowing several answers.
@@ -159,8 +165,14 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
  * Component before streaming it to clients. The AI never sees this type —
- * each component message above is exposed to the model as its own tool, so
- * the tool name identifies the variant before any field streams.
+ * each component message is exposed to the model as its own tool, so the
+ * tool name identifies the variant before any field streams.
+ *
+ * Components split into two families:
+ * - Display (content.proto, resource.proto): rendered and acknowledged;
+ *   the agentic loop continues.
+ * - Input (input.proto): ends the turn; the user's answer round-trips as a
+ *   tool_result carrying an [InputResponse][malonaz.ai.genui.v1.InputResponse].
  *
  * @generated from message malonaz.ai.genui.v1.Component
  */
@@ -204,9 +216,17 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "chart";
   } | {
     /**
+     * Tabular data.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Table table = 5;
+     */
+    value: TableValid;
+    case: "table";
+  } | {
+    /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 5;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
      */
     value: ResourceCardValid;
     case: "resourceCard";
@@ -214,15 +234,15 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 6;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
      */
     value: ResourceListValid;
     case: "resourceList";
   } | {
     /**
-     * Buttons the user can press.
+     * Client-side buttons: navigation, clipboard, suggested next prompts.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 7;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
     value: ActionRowValid;
     case: "actionRow";
@@ -230,18 +250,10 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 8;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
      */
     value: ChoiceValid;
     case: "choice";
-  } | {
-    /**
-     * Tabular data.
-     *
-     * @generated from field: malonaz.ai.genui.v1.Table table = 9;
-     */
-    value: TableValid;
-    case: "table";
   } | {
     /**
      * A question allowing several answers.

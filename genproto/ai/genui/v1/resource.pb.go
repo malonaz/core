@@ -14,6 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -208,11 +209,100 @@ func (b0 ResourceList_builder) Build() *ResourceList {
 	return m0
 }
 
+// An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard] whose
+// `editable_fields` mask is set. The server applies the update; the model
+// only sees the outcome.
+type ResourceEditResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource that was edited.
+	ResourceName string `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
+	// The edited fields, keyed by field mask path.
+	UpdatedFields *structpb.Struct `protobuf:"bytes,2,opt,name=updated_fields,json=updatedFields,proto3" json:"updated_fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceEditResponse) Reset() {
+	*x = ResourceEditResponse{}
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceEditResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceEditResponse) ProtoMessage() {}
+
+func (x *ResourceEditResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ResourceEditResponse) GetResourceName() string {
+	if x != nil {
+		return x.ResourceName
+	}
+	return ""
+}
+
+func (x *ResourceEditResponse) GetUpdatedFields() *structpb.Struct {
+	if x != nil {
+		return x.UpdatedFields
+	}
+	return nil
+}
+
+func (x *ResourceEditResponse) SetResourceName(v string) {
+	x.ResourceName = v
+}
+
+func (x *ResourceEditResponse) SetUpdatedFields(v *structpb.Struct) {
+	x.UpdatedFields = v
+}
+
+func (x *ResourceEditResponse) HasUpdatedFields() bool {
+	if x == nil {
+		return false
+	}
+	return x.UpdatedFields != nil
+}
+
+func (x *ResourceEditResponse) ClearUpdatedFields() {
+	x.UpdatedFields = nil
+}
+
+type ResourceEditResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource that was edited.
+	ResourceName string
+	// The edited fields, keyed by field mask path.
+	UpdatedFields *structpb.Struct
+}
+
+func (b0 ResourceEditResponse_builder) Build() *ResourceEditResponse {
+	m0 := &ResourceEditResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.ResourceName = b.ResourceName
+	x.UpdatedFields = b.UpdatedFields
+	return m0
+}
+
 var File_malonaz_ai_genui_v1_resource_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\x9c\x01\n" +
+	"\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x9c\x01\n" +
 	"\fResourceCard\x121\n" +
 	"\rresource_name\x18\x01 \x01(\tB\f\xfaA\x03\n" +
 	"\x01*\xbaH\x03\xc8\x01\x01R\fresourceName\x12\x14\n" +
@@ -221,21 +311,28 @@ const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
 	"\fResourceList\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12;\n" +
 	"\x0eresource_names\x18\x02 \x03(\tB\x14\xfaA\x03\n" +
-	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNamesB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
+	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNames\"\x91\x01\n" +
+	"\x14ResourceEditResponse\x121\n" +
+	"\rresource_name\x18\x01 \x01(\tB\f\xfaA\x03\n" +
+	"\x01*\xbaH\x03\xc8\x01\x01R\fresourceName\x12F\n" +
+	"\x0eupdated_fields\x18\x02 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\rupdatedFieldsB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
-var file_malonaz_ai_genui_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_ai_genui_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_genui_v1_resource_proto_goTypes = []any{
 	(*ResourceCard)(nil),          // 0: malonaz.ai.genui.v1.ResourceCard
 	(*ResourceList)(nil),          // 1: malonaz.ai.genui.v1.ResourceList
-	(*fieldmaskpb.FieldMask)(nil), // 2: google.protobuf.FieldMask
+	(*ResourceEditResponse)(nil),  // 2: malonaz.ai.genui.v1.ResourceEditResponse
+	(*fieldmaskpb.FieldMask)(nil), // 3: google.protobuf.FieldMask
+	(*structpb.Struct)(nil),       // 4: google.protobuf.Struct
 }
 var file_malonaz_ai_genui_v1_resource_proto_depIdxs = []int32{
-	2, // 0: malonaz.ai.genui.v1.ResourceCard.editable_fields:type_name -> google.protobuf.FieldMask
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3, // 0: malonaz.ai.genui.v1.ResourceCard.editable_fields:type_name -> google.protobuf.FieldMask
+	4, // 1: malonaz.ai.genui.v1.ResourceEditResponse.updated_fields:type_name -> google.protobuf.Struct
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_resource_proto_init() }
@@ -249,7 +346,7 @@ func file_malonaz_ai_genui_v1_resource_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_resource_proto_rawDesc), len(file_malonaz_ai_genui_v1_resource_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

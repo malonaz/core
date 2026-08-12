@@ -77,6 +77,55 @@ func (x ChartType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
+// How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
+// visually emphasized.
+type ActionStyle int32
+
+const (
+	// Used to detect an unset field. Rendered as the default style.
+	ActionStyle_ACTION_STYLE_UNSPECIFIED ActionStyle = 0
+	// The main call to action; at most one per row.
+	ActionStyle_ACTION_STYLE_PRIMARY ActionStyle = 1
+	// A destructive or irreversible action.
+	ActionStyle_ACTION_STYLE_DESTRUCTIVE ActionStyle = 2
+)
+
+// Enum value maps for ActionStyle.
+var (
+	ActionStyle_name = map[int32]string{
+		0: "ACTION_STYLE_UNSPECIFIED",
+		1: "ACTION_STYLE_PRIMARY",
+		2: "ACTION_STYLE_DESTRUCTIVE",
+	}
+	ActionStyle_value = map[string]int32{
+		"ACTION_STYLE_UNSPECIFIED": 0,
+		"ACTION_STYLE_PRIMARY":     1,
+		"ACTION_STYLE_DESTRUCTIVE": 2,
+	}
+)
+
+func (x ActionStyle) Enum() *ActionStyle {
+	p := new(ActionStyle)
+	*p = x
+	return p
+}
+
+func (x ActionStyle) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ActionStyle) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[1].Descriptor()
+}
+
+func (ActionStyle) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[1]
+}
+
+func (x ActionStyle) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // Markdown-subset text (bold, italics, lists, links). Link targets that are
 // resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
 // are rendered as in-app navigation; http(s) URLs open externally.
@@ -885,6 +934,355 @@ func (b0 TableCell_builder) Build() *TableCell {
 	return m0
 }
 
+// Buttons the user can press — pure client affordances that never feed back
+// into the model. Navigation, clipboard, and external links execute entirely
+// client-side; a `prompt` action sends its text as the user's next message
+// (the "suggested next step" pattern). Unlike input components, an ActionRow
+// does not end the agentic turn and expects no answer.
+type ActionRow struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Actions *[]*ActionRowAction    `protobuf:"bytes,1,rep,name=actions,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ActionRow) Reset() {
+	*x = ActionRow{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActionRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActionRow) ProtoMessage() {}
+
+func (x *ActionRow) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ActionRow) GetActions() []*ActionRowAction {
+	if x != nil {
+		if x.xxx_hidden_Actions != nil {
+			return *x.xxx_hidden_Actions
+		}
+	}
+	return nil
+}
+
+func (x *ActionRow) SetActions(v []*ActionRowAction) {
+	x.xxx_hidden_Actions = &v
+}
+
+type ActionRow_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The buttons to render, in display order.
+	Actions []*ActionRowAction
+}
+
+func (b0 ActionRow_builder) Build() *ActionRow {
+	m0 := &ActionRow{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Actions = &b.Actions
+	return m0
+}
+
+// A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+type ActionRowAction struct {
+	state             protoimpl.MessageState   `protogen:"opaque.v1"`
+	xxx_hidden_Label  string                   `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Style  ActionStyle              `protobuf:"varint,2,opt,name=style,proto3,enum=malonaz.ai.genui.v1.ActionStyle"`
+	xxx_hidden_Action isActionRowAction_Action `protobuf_oneof:"action"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ActionRowAction) Reset() {
+	*x = ActionRowAction{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActionRowAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActionRowAction) ProtoMessage() {}
+
+func (x *ActionRowAction) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ActionRowAction) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetStyle() ActionStyle {
+	if x != nil {
+		return x.xxx_hidden_Style
+	}
+	return ActionStyle_ACTION_STYLE_UNSPECIFIED
+}
+
+func (x *ActionRowAction) GetOpenResource() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource); ok {
+			return x.OpenResource
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetPrompt() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt); ok {
+			return x.Prompt
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetCopyText() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_CopyText); ok {
+			return x.CopyText
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetOpenUrl() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_OpenUrl); ok {
+			return x.OpenUrl
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *ActionRowAction) SetStyle(v ActionStyle) {
+	x.xxx_hidden_Style = v
+}
+
+func (x *ActionRowAction) SetOpenResource(v string) {
+	x.xxx_hidden_Action = &actionRowAction_OpenResource{v}
+}
+
+func (x *ActionRowAction) SetPrompt(v string) {
+	x.xxx_hidden_Action = &actionRowAction_Prompt{v}
+}
+
+func (x *ActionRowAction) SetCopyText(v string) {
+	x.xxx_hidden_Action = &actionRowAction_CopyText{v}
+}
+
+func (x *ActionRowAction) SetOpenUrl(v string) {
+	x.xxx_hidden_Action = &actionRowAction_OpenUrl{v}
+}
+
+func (x *ActionRowAction) HasAction() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Action != nil
+}
+
+func (x *ActionRowAction) HasOpenResource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource)
+	return ok
+}
+
+func (x *ActionRowAction) HasPrompt() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt)
+	return ok
+}
+
+func (x *ActionRowAction) HasCopyText() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_CopyText)
+	return ok
+}
+
+func (x *ActionRowAction) HasOpenUrl() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_OpenUrl)
+	return ok
+}
+
+func (x *ActionRowAction) ClearAction() {
+	x.xxx_hidden_Action = nil
+}
+
+func (x *ActionRowAction) ClearOpenResource() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+func (x *ActionRowAction) ClearPrompt() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+func (x *ActionRowAction) ClearCopyText() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_CopyText); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+func (x *ActionRowAction) ClearOpenUrl() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_OpenUrl); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+const ActionRowAction_Action_not_set_case case_ActionRowAction_Action = 0
+const ActionRowAction_OpenResource_case case_ActionRowAction_Action = 3
+const ActionRowAction_Prompt_case case_ActionRowAction_Action = 4
+const ActionRowAction_CopyText_case case_ActionRowAction_Action = 5
+const ActionRowAction_OpenUrl_case case_ActionRowAction_Action = 6
+
+func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
+	if x == nil {
+		return ActionRowAction_Action_not_set_case
+	}
+	switch x.xxx_hidden_Action.(type) {
+	case *actionRowAction_OpenResource:
+		return ActionRowAction_OpenResource_case
+	case *actionRowAction_Prompt:
+		return ActionRowAction_Prompt_case
+	case *actionRowAction_CopyText:
+		return ActionRowAction_CopyText_case
+	case *actionRowAction_OpenUrl:
+		return ActionRowAction_OpenUrl_case
+	default:
+		return ActionRowAction_Action_not_set_case
+	}
+}
+
+type ActionRowAction_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The text rendered on the button.
+	Label string
+	// How the button is visually emphasized.
+	Style ActionStyle
+	// What pressing the button does.
+
+	// Fields of oneof xxx_hidden_Action:
+	// Navigate to this resource in-app.
+	OpenResource *string
+	// Send this text as the user's next message in the chat.
+	Prompt *string
+	// Copy this text to the user's clipboard.
+	CopyText *string
+	// Open this http(s) URL externally.
+	OpenUrl *string
+	// -- end of xxx_hidden_Action
+}
+
+func (b0 ActionRowAction_builder) Build() *ActionRowAction {
+	m0 := &ActionRowAction{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
+	x.xxx_hidden_Style = b.Style
+	if b.OpenResource != nil {
+		x.xxx_hidden_Action = &actionRowAction_OpenResource{*b.OpenResource}
+	}
+	if b.Prompt != nil {
+		x.xxx_hidden_Action = &actionRowAction_Prompt{*b.Prompt}
+	}
+	if b.CopyText != nil {
+		x.xxx_hidden_Action = &actionRowAction_CopyText{*b.CopyText}
+	}
+	if b.OpenUrl != nil {
+		x.xxx_hidden_Action = &actionRowAction_OpenUrl{*b.OpenUrl}
+	}
+	return m0
+}
+
+type case_ActionRowAction_Action protoreflect.FieldNumber
+
+func (x case_ActionRowAction_Action) String() string {
+	md := file_malonaz_ai_genui_v1_content_proto_msgTypes[11].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isActionRowAction_Action interface {
+	isActionRowAction_Action()
+}
+
+type actionRowAction_OpenResource struct {
+	// Navigate to this resource in-app.
+	OpenResource string `protobuf:"bytes,3,opt,name=open_resource,json=openResource,proto3,oneof"`
+}
+
+type actionRowAction_Prompt struct {
+	// Send this text as the user's next message in the chat.
+	Prompt string `protobuf:"bytes,4,opt,name=prompt,proto3,oneof"`
+}
+
+type actionRowAction_CopyText struct {
+	// Copy this text to the user's clipboard.
+	CopyText string `protobuf:"bytes,5,opt,name=copy_text,json=copyText,proto3,oneof"`
+}
+
+type actionRowAction_OpenUrl struct {
+	// Open this http(s) URL externally.
+	OpenUrl string `protobuf:"bytes,6,opt,name=open_url,json=openUrl,proto3,oneof"`
+}
+
+func (*actionRowAction_OpenResource) isActionRowAction_Action() {}
+
+func (*actionRowAction_Prompt) isActionRowAction_Action() {}
+
+func (*actionRowAction_CopyText) isActionRowAction_Action() {}
+
+func (*actionRowAction_OpenUrl) isActionRowAction_Action() {}
+
 var File_malonaz_ai_genui_v1_content_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
@@ -927,42 +1325,63 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\tTableCell\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12+\n" +
 	"\rresource_name\x18\x02 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*R\fresourceName*d\n" +
+	"\x01*R\fresourceName\"W\n" +
+	"\tActionRow\x12J\n" +
+	"\aactions\x18\x01 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\x91\x02\n" +
+	"\x0fActionRowAction\x12\x1c\n" +
+	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12@\n" +
+	"\x05style\x18\x02 \x01(\x0e2 .malonaz.ai.genui.v1.ActionStyleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05style\x12-\n" +
+	"\ropen_resource\x18\x03 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*H\x00R\fopenResource\x12\x18\n" +
+	"\x06prompt\x18\x04 \x01(\tH\x00R\x06prompt\x12\x1d\n" +
+	"\tcopy_text\x18\x05 \x01(\tH\x00R\bcopyText\x12%\n" +
+	"\bopen_url\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrlB\x0f\n" +
+	"\x06action\x12\x05\xbaH\x02\b\x01*d\n" +
 	"\tChartType\x12\x1a\n" +
 	"\x16CHART_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eCHART_TYPE_BAR\x10\x01\x12\x13\n" +
 	"\x0fCHART_TYPE_LINE\x10\x02\x12\x12\n" +
-	"\x0eCHART_TYPE_PIE\x10\x03B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
+	"\x0eCHART_TYPE_PIE\x10\x03*c\n" +
+	"\vActionStyle\x12\x1c\n" +
+	"\x18ACTION_STYLE_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14ACTION_STYLE_PRIMARY\x10\x01\x12\x1c\n" +
+	"\x18ACTION_STYLE_DESTRUCTIVE\x10\x02B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
-var file_malonaz_ai_genui_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_ai_genui_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_ai_genui_v1_content_proto_goTypes = []any{
 	(ChartType)(0),                // 0: malonaz.ai.genui.v1.ChartType
-	(*Text)(nil),                  // 1: malonaz.ai.genui.v1.Text
-	(*KeyValueList)(nil),          // 2: malonaz.ai.genui.v1.KeyValueList
-	(*KeyValueListItem)(nil),      // 3: malonaz.ai.genui.v1.KeyValueListItem
-	(*Timeline)(nil),              // 4: malonaz.ai.genui.v1.Timeline
-	(*TimelineEntry)(nil),         // 5: malonaz.ai.genui.v1.TimelineEntry
-	(*Chart)(nil),                 // 6: malonaz.ai.genui.v1.Chart
-	(*ChartPoint)(nil),            // 7: malonaz.ai.genui.v1.ChartPoint
-	(*Table)(nil),                 // 8: malonaz.ai.genui.v1.Table
-	(*TableRow)(nil),              // 9: malonaz.ai.genui.v1.TableRow
-	(*TableCell)(nil),             // 10: malonaz.ai.genui.v1.TableCell
-	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
+	(ActionStyle)(0),              // 1: malonaz.ai.genui.v1.ActionStyle
+	(*Text)(nil),                  // 2: malonaz.ai.genui.v1.Text
+	(*KeyValueList)(nil),          // 3: malonaz.ai.genui.v1.KeyValueList
+	(*KeyValueListItem)(nil),      // 4: malonaz.ai.genui.v1.KeyValueListItem
+	(*Timeline)(nil),              // 5: malonaz.ai.genui.v1.Timeline
+	(*TimelineEntry)(nil),         // 6: malonaz.ai.genui.v1.TimelineEntry
+	(*Chart)(nil),                 // 7: malonaz.ai.genui.v1.Chart
+	(*ChartPoint)(nil),            // 8: malonaz.ai.genui.v1.ChartPoint
+	(*Table)(nil),                 // 9: malonaz.ai.genui.v1.Table
+	(*TableRow)(nil),              // 10: malonaz.ai.genui.v1.TableRow
+	(*TableCell)(nil),             // 11: malonaz.ai.genui.v1.TableCell
+	(*ActionRow)(nil),             // 12: malonaz.ai.genui.v1.ActionRow
+	(*ActionRowAction)(nil),       // 13: malonaz.ai.genui.v1.ActionRowAction
+	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
 }
 var file_malonaz_ai_genui_v1_content_proto_depIdxs = []int32{
-	3,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
-	5,  // 1: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
-	11, // 2: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
+	4,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
+	6,  // 1: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
+	14, // 2: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
 	0,  // 3: malonaz.ai.genui.v1.Chart.type:type_name -> malonaz.ai.genui.v1.ChartType
-	7,  // 4: malonaz.ai.genui.v1.Chart.points:type_name -> malonaz.ai.genui.v1.ChartPoint
-	9,  // 5: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
-	10, // 6: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	8,  // 4: malonaz.ai.genui.v1.Chart.points:type_name -> malonaz.ai.genui.v1.ChartPoint
+	10, // 5: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
+	11, // 6: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
+	13, // 7: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
+	1,  // 8: malonaz.ai.genui.v1.ActionRowAction.style:type_name -> malonaz.ai.genui.v1.ActionStyle
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_content_proto_init() }
@@ -970,13 +1389,19 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 	if File_malonaz_ai_genui_v1_content_proto != nil {
 		return
 	}
+	file_malonaz_ai_genui_v1_content_proto_msgTypes[11].OneofWrappers = []any{
+		(*actionRowAction_OpenResource)(nil),
+		(*actionRowAction_Prompt)(nil),
+		(*actionRowAction_CopyText)(nil),
+		(*actionRowAction_OpenUrl)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_content_proto_rawDesc), len(file_malonaz_ai_genui_v1_content_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   10,
+			NumEnums:      2,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

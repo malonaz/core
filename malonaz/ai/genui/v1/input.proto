@@ -5,60 +5,59 @@ package malonaz.ai.genui.v1;
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/ai/genui/v1/resource.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
-// Buttons the user can press. Each action either navigates to a resource or
-// sends a prompt back into the chat (the "suggested next step" pattern).
-message ActionRow {
-  // The buttons to render, in display order.
-  repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
-    min_items: 1
-    max_items: 5
-  }];
-}
+// Input components: the subset of genui that collects input *for the model*.
+// Rendering one ends the agentic turn — the model must wait for the user's
+// answer, which round-trips as a tool_result carrying the canonical JSON
+// encoding of [InputResponse][malonaz.ai.genui.v1.InputResponse]. Each
+// component is declared next to its response type.
+//
+// Anything that does not feed back into the model (navigation buttons,
+// copy-to-clipboard, suggested next prompts) is a display component and
+// lives in content.proto / resource.proto instead.
 
-// A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
-message ActionRowAction {
-  // The text rendered on the button.
-  string label = 1 [(buf.validate.field).required = true];
+// Typed answer to an input component. The client sends exactly one response
+// per input component; the server appends it to the conversation as a
+// tool_result answering the component's tool call.
+message InputResponse {
+  // The id of the component's tool call this responds to.
+  string component_id = 1 [(buf.validate.field).required = true];
 
-  // How the button is visually emphasized.
-  ActionStyle style = 4 [(buf.validate.field).enum.defined_only = true];
-
-  // What pressing the button does.
-  oneof action {
+  // The typed payload matching the component's variant.
+  oneof response {
     option (buf.validate.oneof).required = true;
 
-    // Navigate to this resource in-app.
-    string open_resource = 2 [(google.api.resource_reference).type = "*"];
+    // An answered [Choice][malonaz.ai.genui.v1.Choice].
+    ChoiceResponse choice = 2;
 
-    // Send this text back into the chat as the user's next message.
-    string prompt = 3;
+    // An answered [MultiChoice][malonaz.ai.genui.v1.MultiChoice].
+    MultiChoiceResponse multi_choice = 3;
 
-    // Copy this text to the user's clipboard.
-    string copy_text = 5;
+    // A resolved [Confirmation][malonaz.ai.genui.v1.Confirmation].
+    ConfirmationResponse confirmation = 4;
 
-    // Open this http(s) URL externally.
-    string open_url = 6 [(buf.validate.field).string.uri = true];
+    // A submitted [Form][malonaz.ai.genui.v1.Form].
+    FormResponse form = 5;
+
+    // A resolved [ResourcePicker][malonaz.ai.genui.v1.ResourcePicker].
+    ResourcePickerResponse resource_picker = 6;
+
+    // A picked [Slider][malonaz.ai.genui.v1.Slider] value.
+    SliderResponse slider = 7;
+
+    // A picked [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker] moment.
+    DateTimePickerResponse date_time_picker = 8;
+
+    // An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard].
+    ResourceEditResponse resource_edit = 9;
   }
 }
 
-// How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
-// visually emphasized.
-enum ActionStyle {
-  // Used to detect an unset field. Rendered as the default style.
-  ACTION_STYLE_UNSPECIFIED = 0;
-
-  // The main call to action; at most one per row.
-  ACTION_STYLE_PRIMARY = 1;
-
-  // A destructive or irreversible action.
-  ACTION_STYLE_DESTRUCTIVE = 2;
-}
-
-// A question with constrained answers (mirrors AskUserQuestion UX): the
-// selected option is sent back as the user's next message.
+// A question with constrained answers, e.g. disambiguation
+// ("which John did you mean?").
 message Choice {
   // The question posed to the user.
   string question = 1 [(buf.validate.field).required = true];
@@ -68,6 +67,12 @@ message Choice {
     min_items: 2
     max_items: 8
   }];
+}
+
+// The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
+message ChoiceResponse {
+  // The selected option, verbatim.
+  string option = 1 [(buf.validate.field).required = true];
 }
 
 // A question allowing several answers to be selected before submitting,
@@ -89,9 +94,14 @@ message MultiChoice {
   int32 max_selections = 4 [(buf.validate.field).int32.gte = 0];
 }
 
+// The answers the user picked within a [MultiChoice][malonaz.ai.genui.v1.MultiChoice].
+message MultiChoiceResponse {
+  // The selected options, verbatim, in display order.
+  repeated string options = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
 // An explicit approve/reject gate for a consequential action (send quote,
-// delete contact). Unlike an [ActionRow][malonaz.ai.genui.v1.ActionRow],
-// the answer flows back as a typed [ConfirmationResponse][malonaz.ai.genui.v1.ConfirmationResponse].
+// delete contact).
 message Confirmation {
   // Short headline describing the action awaiting approval.
   string title = 1 [(buf.validate.field).required = true];
@@ -110,6 +120,12 @@ message Confirmation {
   bool destructive = 5;
 }
 
+// The user's verdict on a [Confirmation][malonaz.ai.genui.v1.Confirmation].
+message ConfirmationResponse {
+  // Whether the user approved the action.
+  bool confirmed = 1;
+}
+
 // Structured multi-field input submitted as a single
 // [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
 // lead's details in one step instead of a free-text back-and-forth.
@@ -122,6 +138,12 @@ message Form {
 
   // The inputs to render, in display order.
   repeated FormField fields = 3 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// The values the user submitted for a [Form][malonaz.ai.genui.v1.Form].
+message FormResponse {
+  // One value per filled field.
+  repeated FormFieldValue values = 1 [(buf.validate.field).repeated.min_items = 1];
 }
 
 // A single input within a [Form][malonaz.ai.genui.v1.Form].
@@ -157,6 +179,32 @@ message FormField {
 
     // An on/off switch.
     FormToggleInput toggle = 9;
+  }
+}
+
+// The submitted value of a single [FormField][malonaz.ai.genui.v1.FormField].
+message FormFieldValue {
+  // The id of the [FormField][malonaz.ai.genui.v1.FormField] this value fills.
+  string field_id = 1 [(buf.validate.field).required = true];
+
+  // The value, typed to match the field's input kind.
+  oneof value {
+    option (buf.validate.oneof).required = true;
+
+    // Fills a [FormTextInput][malonaz.ai.genui.v1.FormTextInput].
+    string text = 2;
+
+    // Fills a [FormNumberInput][malonaz.ai.genui.v1.FormNumberInput].
+    double number = 3;
+
+    // Fills a [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+    string selected_option = 4;
+
+    // Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
+    google.protobuf.Timestamp date = 5;
+
+    // Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
+    bool toggle = 6;
   }
 }
 
@@ -211,6 +259,16 @@ message ResourcePicker {
   bool multi_select = 3;
 }
 
+// The candidates the user picked within a [ResourcePicker][malonaz.ai.genui.v1.ResourcePicker].
+message ResourcePickerResponse {
+  // The selected resources, in display order.
+  repeated string resource_names = 1 [
+    (google.api.resource_reference).type = "*",
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).repeated.items.string.min_len = 1
+  ];
+}
+
 // Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
 message Slider {
   // The label naming the value being picked.
@@ -226,6 +284,12 @@ message Slider {
   double step = 4 [(buf.validate.field).double.gte = 0];
 }
 
+// The value the user picked on a [Slider][malonaz.ai.genui.v1.Slider].
+message SliderResponse {
+  // The selected value.
+  double value = 1;
+}
+
 // A calendar/clock input, e.g. "when should I schedule the call?".
 message DateTimePicker {
   // The label naming the moment being picked.
@@ -239,4 +303,10 @@ message DateTimePicker {
 
   // Optional latest selectable moment.
   google.protobuf.Timestamp max_time = 4;
+}
+
+// The moment the user picked on a [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker].
+message DateTimePickerResponse {
+  // The selected moment.
+  google.protobuf.Timestamp time = 1 [(buf.validate.field).required = true];
 }
