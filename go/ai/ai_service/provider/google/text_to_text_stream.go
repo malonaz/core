@@ -150,6 +150,24 @@ func (c *Client) TextToTextStream(
 					signature = base64.StdEncoding.EncodeToString(part.ThoughtSignature)
 				}
 
+				// Gemini can emit a part carrying only a thought signature (no
+				// text/data/call). Dropping it yields an empty assistant message,
+				// which Vertex later rejects on replay ("must include at least one
+				// parts field"). Preserve it as an empty thought block so the
+				// signature round-trips through the message history.
+				if signature != "" && part.Text == "" && part.InlineData == nil && part.FunctionCall == nil {
+					if currentBlockType != blockTypeThought {
+						currentBlockIndex++
+						currentBlockType = blockTypeThought
+					}
+					cs.SendBlocks(ctx, &aipb.Block{
+						Index:     currentBlockIndex,
+						Content:   &aipb.Block_Thought{Thought: ""},
+						Signature: signature,
+					})
+					continue
+				}
+
 				// Handle text and thought blocks, coalescing consecutive blocks of the same type
 				// into the same block index.
 				if part.Text != "" {
