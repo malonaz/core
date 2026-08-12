@@ -949,9 +949,9 @@ func (b0 TableCell_builder) Build() *TableCell {
 
 // Buttons the user can press — pure client affordances that never feed back
 // into the model. Navigation, clipboard, and external links execute entirely
-// client-side; a `prompt` action sends its text as the user's next message
-// (the "suggested next step" pattern). Unlike input components, an ActionRow
-// does not end the agentic turn and expects no answer.
+// client-side: an ActionRow does not end the agentic turn and expects no
+// answer. To offer suggested next steps that the model must hear about, use
+// [Choice][malonaz.ai.genui.v1.Choice] instead.
 type ActionRow struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The buttons to render, in display order.
@@ -1023,7 +1023,6 @@ type ActionRowAction struct {
 	// Types that are valid to be assigned to Action:
 	//
 	//	*ActionRowAction_OpenResource
-	//	*ActionRowAction_Prompt
 	//	*ActionRowAction_CopyText
 	//	*ActionRowAction_OpenUrl
 	Action        isActionRowAction_Action `protobuf_oneof:"action"`
@@ -1086,15 +1085,6 @@ func (x *ActionRowAction) GetOpenResource() string {
 	return ""
 }
 
-func (x *ActionRowAction) GetPrompt() string {
-	if x != nil {
-		if x, ok := x.Action.(*ActionRowAction_Prompt); ok {
-			return x.Prompt
-		}
-	}
-	return ""
-}
-
 func (x *ActionRowAction) GetCopyText() string {
 	if x != nil {
 		if x, ok := x.Action.(*ActionRowAction_CopyText); ok {
@@ -1125,10 +1115,6 @@ func (x *ActionRowAction) SetOpenResource(v string) {
 	x.Action = &ActionRowAction_OpenResource{v}
 }
 
-func (x *ActionRowAction) SetPrompt(v string) {
-	x.Action = &ActionRowAction_Prompt{v}
-}
-
 func (x *ActionRowAction) SetCopyText(v string) {
 	x.Action = &ActionRowAction_CopyText{v}
 }
@@ -1149,14 +1135,6 @@ func (x *ActionRowAction) HasOpenResource() bool {
 		return false
 	}
 	_, ok := x.Action.(*ActionRowAction_OpenResource)
-	return ok
-}
-
-func (x *ActionRowAction) HasPrompt() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Action.(*ActionRowAction_Prompt)
 	return ok
 }
 
@@ -1186,12 +1164,6 @@ func (x *ActionRowAction) ClearOpenResource() {
 	}
 }
 
-func (x *ActionRowAction) ClearPrompt() {
-	if _, ok := x.Action.(*ActionRowAction_Prompt); ok {
-		x.Action = nil
-	}
-}
-
 func (x *ActionRowAction) ClearCopyText() {
 	if _, ok := x.Action.(*ActionRowAction_CopyText); ok {
 		x.Action = nil
@@ -1206,9 +1178,8 @@ func (x *ActionRowAction) ClearOpenUrl() {
 
 const ActionRowAction_Action_not_set_case case_ActionRowAction_Action = 0
 const ActionRowAction_OpenResource_case case_ActionRowAction_Action = 3
-const ActionRowAction_Prompt_case case_ActionRowAction_Action = 4
-const ActionRowAction_CopyText_case case_ActionRowAction_Action = 5
-const ActionRowAction_OpenUrl_case case_ActionRowAction_Action = 6
+const ActionRowAction_CopyText_case case_ActionRowAction_Action = 4
+const ActionRowAction_OpenUrl_case case_ActionRowAction_Action = 5
 
 func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
 	if x == nil {
@@ -1217,8 +1188,6 @@ func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
 	switch x.Action.(type) {
 	case *ActionRowAction_OpenResource:
 		return ActionRowAction_OpenResource_case
-	case *ActionRowAction_Prompt:
-		return ActionRowAction_Prompt_case
 	case *ActionRowAction_CopyText:
 		return ActionRowAction_CopyText_case
 	case *ActionRowAction_OpenUrl:
@@ -1240,8 +1209,6 @@ type ActionRowAction_builder struct {
 	// Fields of oneof Action:
 	// Navigate to this resource in-app.
 	OpenResource *string
-	// Send this text as the user's next message in the chat.
-	Prompt *string
 	// Copy this text to the user's clipboard.
 	CopyText *string
 	// Open this http(s) URL externally.
@@ -1257,9 +1224,6 @@ func (b0 ActionRowAction_builder) Build() *ActionRowAction {
 	x.Style = b.Style
 	if b.OpenResource != nil {
 		x.Action = &ActionRowAction_OpenResource{*b.OpenResource}
-	}
-	if b.Prompt != nil {
-		x.Action = &ActionRowAction_Prompt{*b.Prompt}
 	}
 	if b.CopyText != nil {
 		x.Action = &ActionRowAction_CopyText{*b.CopyText}
@@ -1289,24 +1253,17 @@ type ActionRowAction_OpenResource struct {
 	OpenResource string `protobuf:"bytes,3,opt,name=open_resource,json=openResource,proto3,oneof"`
 }
 
-type ActionRowAction_Prompt struct {
-	// Send this text as the user's next message in the chat.
-	Prompt string `protobuf:"bytes,4,opt,name=prompt,proto3,oneof"`
-}
-
 type ActionRowAction_CopyText struct {
 	// Copy this text to the user's clipboard.
-	CopyText string `protobuf:"bytes,5,opt,name=copy_text,json=copyText,proto3,oneof"`
+	CopyText string `protobuf:"bytes,4,opt,name=copy_text,json=copyText,proto3,oneof"`
 }
 
 type ActionRowAction_OpenUrl struct {
 	// Open this http(s) URL externally.
-	OpenUrl string `protobuf:"bytes,6,opt,name=open_url,json=openUrl,proto3,oneof"`
+	OpenUrl string `protobuf:"bytes,5,opt,name=open_url,json=openUrl,proto3,oneof"`
 }
 
 func (*ActionRowAction_OpenResource) isActionRowAction_Action() {}
-
-func (*ActionRowAction_Prompt) isActionRowAction_Action() {}
 
 func (*ActionRowAction_CopyText) isActionRowAction_Action() {}
 
@@ -1357,15 +1314,14 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\x01*R\fresourceName\"W\n" +
 	"\tActionRow\x12J\n" +
 	"\aactions\x18\x01 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\x91\x02\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\xf7\x01\n" +
 	"\x0fActionRowAction\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12@\n" +
 	"\x05style\x18\x02 \x01(\x0e2 .malonaz.ai.genui.v1.ActionStyleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05style\x12-\n" +
 	"\ropen_resource\x18\x03 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*H\x00R\fopenResource\x12\x18\n" +
-	"\x06prompt\x18\x04 \x01(\tH\x00R\x06prompt\x12\x1d\n" +
-	"\tcopy_text\x18\x05 \x01(\tH\x00R\bcopyText\x12%\n" +
-	"\bopen_url\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrlB\x0f\n" +
+	"\x01*H\x00R\fopenResource\x12\x1d\n" +
+	"\tcopy_text\x18\x04 \x01(\tH\x00R\bcopyText\x12%\n" +
+	"\bopen_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrlB\x0f\n" +
 	"\x06action\x12\x05\xbaH\x02\b\x01*d\n" +
 	"\tChartType\x12\x1a\n" +
 	"\x16CHART_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
@@ -1420,7 +1376,6 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 	}
 	file_malonaz_ai_genui_v1_content_proto_msgTypes[11].OneofWrappers = []any{
 		(*ActionRowAction_OpenResource)(nil),
-		(*ActionRowAction_Prompt)(nil),
 		(*ActionRowAction_CopyText)(nil),
 		(*ActionRowAction_OpenUrl)(nil),
 	}

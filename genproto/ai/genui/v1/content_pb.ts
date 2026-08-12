@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUi2gEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEAoGcHJvbXB0GAQgASgJSAASEwoJY29weV90ZXh0GAUgASgJSAASHAoIb3Blbl91cmwYBiABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpkCglDaGFydFR5cGUSGgoWQ0hBUlRfVFlQRV9VTlNQRUNJRklFRBAAEhIKDkNIQVJUX1RZUEVfQkFSEAESEwoPQ0hBUlRfVFlQRV9MSU5FEAISEgoOQ0hBUlRfVFlQRV9QSUUQAypjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUiyAEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEwoJY29weV90ZXh0GAQgASgJSAASHAoIb3Blbl91cmwYBSABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpkCglDaGFydFR5cGUSGgoWQ0hBUlRfVFlQRV9VTlNQRUNJRklFRBAAEhIKDkNIQVJUX1RZUEVfQkFSEAESEwoPQ0hBUlRfVFlQRV9MSU5FEAISEgoOQ0hBUlRfVFlQRV9QSUUQAypjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Markdown-subset text (bold, italics, lists, links). Link targets that are
@@ -498,9 +498,9 @@ export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}>
 /**
  * Buttons the user can press — pure client affordances that never feed back
  * into the model. Navigation, clipboard, and external links execute entirely
- * client-side; a `prompt` action sends its text as the user's next message
- * (the "suggested next step" pattern). Unlike input components, an ActionRow
- * does not end the agentic turn and expects no answer.
+ * client-side: an ActionRow does not end the agentic turn and expects no
+ * answer. To offer suggested next steps that the model must hear about, use
+ * [Choice][malonaz.ai.genui.v1.Choice] instead.
  *
  * @generated from message malonaz.ai.genui.v1.ActionRow
  */
@@ -516,9 +516,9 @@ export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
 /**
  * Buttons the user can press — pure client affordances that never feed back
  * into the model. Navigation, clipboard, and external links execute entirely
- * client-side; a `prompt` action sends its text as the user's next message
- * (the "suggested next step" pattern). Unlike input components, an ActionRow
- * does not end the agentic turn and expects no answer.
+ * client-side: an ActionRow does not end the agentic turn and expects no
+ * answer. To offer suggested next steps that the model must hear about, use
+ * [Choice][malonaz.ai.genui.v1.Choice] instead.
  *
  * @generated from message malonaz.ai.genui.v1.ActionRow
  */
@@ -573,17 +573,9 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
     case: "openResource";
   } | {
     /**
-     * Send this text as the user's next message in the chat.
-     *
-     * @generated from field: string prompt = 4;
-     */
-    value: string;
-    case: "prompt";
-  } | {
-    /**
      * Copy this text to the user's clipboard.
      *
-     * @generated from field: string copy_text = 5;
+     * @generated from field: string copy_text = 4;
      */
     value: string;
     case: "copyText";
@@ -591,7 +583,7 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
     /**
      * Open this http(s) URL externally.
      *
-     * @generated from field: string open_url = 6;
+     * @generated from field: string open_url = 5;
      */
     value: string;
     case: "openUrl";
@@ -633,17 +625,9 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
     case: "openResource";
   } | {
     /**
-     * Send this text as the user's next message in the chat.
-     *
-     * @generated from field: string prompt = 4;
-     */
-    value: string;
-    case: "prompt";
-  } | {
-    /**
      * Copy this text to the user's clipboard.
      *
-     * @generated from field: string copy_text = 5;
+     * @generated from field: string copy_text = 4;
      */
     value: string;
     case: "copyText";
@@ -651,7 +635,7 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
     /**
      * Open this http(s) URL externally.
      *
-     * @generated from field: string open_url = 6;
+     * @generated from field: string open_url = 5;
      */
     value: string;
     case: "openUrl";

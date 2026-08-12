@@ -618,7 +618,7 @@ type Component_builder struct {
 	ResourceCard *ResourceCard
 	// A list of resources rendered as compact rows.
 	ResourceList *ResourceList
-	// Client-side buttons: navigation, clipboard, suggested next prompts.
+	// Client-side buttons: navigation, clipboard, external links.
 	ActionRow *ActionRow
 	// A question with constrained answers.
 	Choice *Choice
@@ -739,7 +739,7 @@ type component_ResourceList struct {
 }
 
 type component_ActionRow struct {
-	// Client-side buttons: navigation, clipboard, suggested next prompts.
+	// Client-side buttons: navigation, clipboard, external links.
 	ActionRow *ActionRow `protobuf:"bytes,8,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 

@@ -47,7 +47,7 @@ message Component {
     // A list of resources rendered as compact rows.
     ResourceList resource_list = 7;
 
-    // Client-side buttons: navigation, clipboard, suggested next prompts.
+    // Client-side buttons: navigation, clipboard, external links.
     ActionRow action_row = 8;
 
     // ------------------------------- Input -------------------------------

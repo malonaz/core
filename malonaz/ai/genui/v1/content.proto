@@ -129,9 +129,9 @@ message TableCell {
 
 // Buttons the user can press — pure client affordances that never feed back
 // into the model. Navigation, clipboard, and external links execute entirely
-// client-side; a `prompt` action sends its text as the user's next message
-// (the "suggested next step" pattern). Unlike input components, an ActionRow
-// does not end the agentic turn and expects no answer.
+// client-side: an ActionRow does not end the agentic turn and expects no
+// answer. To offer suggested next steps that the model must hear about, use
+// [Choice][malonaz.ai.genui.v1.Choice] instead.
 message ActionRow {
   // The buttons to render, in display order.
   repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
@@ -155,14 +155,11 @@ message ActionRowAction {
     // Navigate to this resource in-app.
     string open_resource = 3 [(google.api.resource_reference).type = "*"];
 
-    // Send this text as the user's next message in the chat.
-    string prompt = 4;
-
     // Copy this text to the user's clipboard.
-    string copy_text = 5;
+    string copy_text = 4;
 
     // Open this http(s) URL externally.
-    string open_url = 6 [(buf.validate.field).string.uri = true];
+    string open_url = 5 [(buf.validate.field).string.uri = true];
   }
 }
 

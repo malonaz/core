@@ -97,7 +97,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "resourceList";
   } | {
     /**
-     * Client-side buttons: navigation, clipboard, suggested next prompts.
+     * Client-side buttons: navigation, clipboard, external links.
      *
      * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
@@ -240,7 +240,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "resourceList";
   } | {
     /**
-     * Client-side buttons: navigation, clipboard, suggested next prompts.
+     * Client-side buttons: navigation, clipboard, external links.
      *
      * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
