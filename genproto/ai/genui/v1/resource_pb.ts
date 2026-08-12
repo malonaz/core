@@ -6,15 +6,13 @@ import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { FieldMask } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_field_mask, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
-import type { JsonObject, Message } from "@bufbuild/protobuf";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/genui/v1/resource.proto.
  */
 export const file_malonaz_ai_genui_v1_resource: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2FpL2dlbnVpL3YxL3Jlc291cmNlLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIncKDFJlc291cmNlQ2FyZBIjCg1yZXNvdXJjZV9uYW1lGAEgASgJQgz6QQMKASq6SAPIAQESDQoFdGl0bGUYAiABKAkSMwoPZWRpdGFibGVfZmllbGRzGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayJLCgxSZXNvdXJjZUxpc3QSDQoFdGl0bGUYASABKAkSLAoOcmVzb3VyY2VfbmFtZXMYAiADKAlCFPpBAwoBKrpIC5IBCAgBIgRyAhABInQKFFJlc291cmNlRWRpdFJlc3BvbnNlEiMKDXJlc291cmNlX25hbWUYASABKAlCDPpBAwoBKrpIA8gBARI3Cg51cGRhdGVkX2ZpZWxkcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCBrpIA8gBAUIuWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9nZW51aS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_field_mask, file_google_protobuf_struct]);
+  fileDesc("CiJtYWxvbmF6L2FpL2dlbnVpL3YxL3Jlc291cmNlLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIkIKDFJlc291cmNlQ2FyZBIjCg1yZXNvdXJjZV9uYW1lGAEgASgJQgz6QQMKASq6SAPIAQESDQoFdGl0bGUYAiABKAkiSwoMUmVzb3VyY2VMaXN0Eg0KBXRpdGxlGAEgASgJEiwKDnJlc291cmNlX25hbWVzGAIgAygJQhT6QQMKASq6SAuSAQgIASIEcgIQAUIuWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9nZW51aS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource]);
 
 /**
  * A rich card for one resource (contact, quote revision, intent, call…).
@@ -37,14 +35,6 @@ export type ResourceCard = Message<"malonaz.ai.genui.v1.ResourceCard"> & {
    * @generated from field: string title = 2;
    */
   title: string;
-
-  /**
-   * Optional fields the user may edit inline on the card; edits flow back
-   * as a [ResourceEditResponse][malonaz.ai.genui.v1.ResourceEditResponse].
-   *
-   * @generated from field: google.protobuf.FieldMask editable_fields = 3;
-   */
-  editableFields?: FieldMask;
 };
 
 /**
@@ -68,14 +58,6 @@ export type ResourceCardValid = Message<"malonaz.ai.genui.v1.ResourceCard"> & {
    * @generated from field: string title = 2;
    */
   title: string;
-
-  /**
-   * Optional fields the user may edit inline on the card; edits flow back
-   * as a [ResourceEditResponse][malonaz.ai.genui.v1.ResourceEditResponse].
-   *
-   * @generated from field: google.protobuf.FieldMask editable_fields = 3;
-   */
-  editableFields?: FieldMask;
 };
 
 /**
@@ -114,57 +96,4 @@ export type ResourceListValid = ResourceList;
  */
 export const ResourceListSchema: GenMessage<ResourceList, {validType: ResourceListValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_genui_v1_resource, 1);
-
-/**
- * An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard] whose
- * `editable_fields` mask is set. The server applies the update; the model
- * only sees the outcome.
- *
- * @generated from message malonaz.ai.genui.v1.ResourceEditResponse
- */
-export type ResourceEditResponse = Message<"malonaz.ai.genui.v1.ResourceEditResponse"> & {
-  /**
-   * The resource that was edited.
-   *
-   * @generated from field: string resource_name = 1;
-   */
-  resourceName: string;
-
-  /**
-   * The edited fields, keyed by field mask path.
-   *
-   * @generated from field: google.protobuf.Struct updated_fields = 2;
-   */
-  updatedFields?: JsonObject;
-};
-
-/**
- * An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard] whose
- * `editable_fields` mask is set. The server applies the update; the model
- * only sees the outcome.
- *
- * @generated from message malonaz.ai.genui.v1.ResourceEditResponse
- */
-export type ResourceEditResponseValid = Message<"malonaz.ai.genui.v1.ResourceEditResponse"> & {
-  /**
-   * The resource that was edited.
-   *
-   * @generated from field: string resource_name = 1;
-   */
-  resourceName: string;
-
-  /**
-   * The edited fields, keyed by field mask path.
-   *
-   * @generated from field: google.protobuf.Struct updated_fields = 2;
-   */
-  updatedFields: JsonObject;
-};
-
-/**
- * Describes the message malonaz.ai.genui.v1.ResourceEditResponse.
- * Use `create(ResourceEditResponseSchema)` to create a new message.
- */
-export const ResourceEditResponseSchema: GenMessage<ResourceEditResponse, {validType: ResourceEditResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_resource, 2);
 

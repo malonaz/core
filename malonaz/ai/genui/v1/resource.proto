@@ -4,8 +4,6 @@ package malonaz.ai.genui.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
-import "google/protobuf/field_mask.proto";
-import "google/protobuf/struct.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
@@ -21,10 +19,6 @@ message ResourceCard {
 
   // Optional AI-written headline overriding the default renderer's title.
   string title = 2;
-
-  // Optional fields the user may edit inline on the card; edits flow back
-  // as a [ResourceEditResponse][malonaz.ai.genui.v1.ResourceEditResponse].
-  google.protobuf.FieldMask editable_fields = 3;
 }
 
 // A homogeneous list of resources, rendered as compact rows.
@@ -38,18 +32,4 @@ message ResourceList {
     (buf.validate.field).repeated.min_items = 1,
     (buf.validate.field).repeated.items.string.min_len = 1
   ];
-}
-
-// An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard] whose
-// `editable_fields` mask is set. The server applies the update; the model
-// only sees the outcome.
-message ResourceEditResponse {
-  // The resource that was edited.
-  string resource_name = 1 [
-    (google.api.resource_reference).type = "*",
-    (buf.validate.field).required = true
-  ];
-
-  // The edited fields, keyed by field mask path.
-  google.protobuf.Struct updated_fields = 2 [(buf.validate.field).required = true];
 }

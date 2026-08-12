@@ -5,7 +5,6 @@ package malonaz.ai.genui.v1;
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
-import "malonaz/ai/genui/v1/resource.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
@@ -50,9 +49,6 @@ message InputResponse {
 
     // A picked [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker] moment.
     DateTimePickerResponse date_time_picker = 8;
-
-    // An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard].
-    ResourceEditResponse resource_edit = 9;
   }
 }
 

@@ -131,15 +131,6 @@ func (x *InputResponse) GetDateTimePicker() *DateTimePickerResponse {
 	return nil
 }
 
-func (x *InputResponse) GetResourceEdit() *ResourceEditResponse {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Response.(*inputResponse_ResourceEdit); ok {
-			return x.ResourceEdit
-		}
-	}
-	return nil
-}
-
 func (x *InputResponse) SetComponentId(v string) {
 	x.xxx_hidden_ComponentId = v
 }
@@ -198,14 +189,6 @@ func (x *InputResponse) SetDateTimePicker(v *DateTimePickerResponse) {
 		return
 	}
 	x.xxx_hidden_Response = &inputResponse_DateTimePicker{v}
-}
-
-func (x *InputResponse) SetResourceEdit(v *ResourceEditResponse) {
-	if v == nil {
-		x.xxx_hidden_Response = nil
-		return
-	}
-	x.xxx_hidden_Response = &inputResponse_ResourceEdit{v}
 }
 
 func (x *InputResponse) HasResponse() bool {
@@ -271,14 +254,6 @@ func (x *InputResponse) HasDateTimePicker() bool {
 	return ok
 }
 
-func (x *InputResponse) HasResourceEdit() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Response.(*inputResponse_ResourceEdit)
-	return ok
-}
-
 func (x *InputResponse) ClearResponse() {
 	x.xxx_hidden_Response = nil
 }
@@ -325,12 +300,6 @@ func (x *InputResponse) ClearDateTimePicker() {
 	}
 }
 
-func (x *InputResponse) ClearResourceEdit() {
-	if _, ok := x.xxx_hidden_Response.(*inputResponse_ResourceEdit); ok {
-		x.xxx_hidden_Response = nil
-	}
-}
-
 const InputResponse_Response_not_set_case case_InputResponse_Response = 0
 const InputResponse_Choice_case case_InputResponse_Response = 2
 const InputResponse_MultiChoice_case case_InputResponse_Response = 3
@@ -339,7 +308,6 @@ const InputResponse_Form_case case_InputResponse_Response = 5
 const InputResponse_ResourcePicker_case case_InputResponse_Response = 6
 const InputResponse_Slider_case case_InputResponse_Response = 7
 const InputResponse_DateTimePicker_case case_InputResponse_Response = 8
-const InputResponse_ResourceEdit_case case_InputResponse_Response = 9
 
 func (x *InputResponse) WhichResponse() case_InputResponse_Response {
 	if x == nil {
@@ -360,8 +328,6 @@ func (x *InputResponse) WhichResponse() case_InputResponse_Response {
 		return InputResponse_Slider_case
 	case *inputResponse_DateTimePicker:
 		return InputResponse_DateTimePicker_case
-	case *inputResponse_ResourceEdit:
-		return InputResponse_ResourceEdit_case
 	default:
 		return InputResponse_Response_not_set_case
 	}
@@ -389,8 +355,6 @@ type InputResponse_builder struct {
 	Slider *SliderResponse
 	// A picked [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker] moment.
 	DateTimePicker *DateTimePickerResponse
-	// An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard].
-	ResourceEdit *ResourceEditResponse
 	// -- end of xxx_hidden_Response
 }
 
@@ -419,9 +383,6 @@ func (b0 InputResponse_builder) Build() *InputResponse {
 	}
 	if b.DateTimePicker != nil {
 		x.xxx_hidden_Response = &inputResponse_DateTimePicker{b.DateTimePicker}
-	}
-	if b.ResourceEdit != nil {
-		x.xxx_hidden_Response = &inputResponse_ResourceEdit{b.ResourceEdit}
 	}
 	return m0
 }
@@ -475,11 +436,6 @@ type inputResponse_DateTimePicker struct {
 	DateTimePicker *DateTimePickerResponse `protobuf:"bytes,8,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
 }
 
-type inputResponse_ResourceEdit struct {
-	// An inline edit of a [ResourceCard][malonaz.ai.genui.v1.ResourceCard].
-	ResourceEdit *ResourceEditResponse `protobuf:"bytes,9,opt,name=resource_edit,json=resourceEdit,proto3,oneof"`
-}
-
 func (*inputResponse_Choice) isInputResponse_Response() {}
 
 func (*inputResponse_MultiChoice) isInputResponse_Response() {}
@@ -493,8 +449,6 @@ func (*inputResponse_ResourcePicker) isInputResponse_Response() {}
 func (*inputResponse_Slider) isInputResponse_Response() {}
 
 func (*inputResponse_DateTimePicker) isInputResponse_Response() {}
-
-func (*inputResponse_ResourceEdit) isInputResponse_Response() {}
 
 // A question with constrained answers, e.g. disambiguation
 // ("which John did you mean?").
@@ -2677,7 +2631,7 @@ var File_malonaz_ai_genui_v1_input_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xa7\x05\n" +
+	"\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd5\x04\n" +
 	"\rInputResponse\x12)\n" +
 	"\fcomponent_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vcomponentId\x12=\n" +
 	"\x06choice\x18\x02 \x01(\v2#.malonaz.ai.genui.v1.ChoiceResponseH\x00R\x06choice\x12M\n" +
@@ -2686,8 +2640,7 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x04form\x18\x05 \x01(\v2!.malonaz.ai.genui.v1.FormResponseH\x00R\x04form\x12V\n" +
 	"\x0fresource_picker\x18\x06 \x01(\v2+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00R\x0eresourcePicker\x12=\n" +
 	"\x06slider\x18\a \x01(\v2#.malonaz.ai.genui.v1.SliderResponseH\x00R\x06slider\x12W\n" +
-	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePicker\x12P\n" +
-	"\rresource_edit\x18\t \x01(\v2).malonaz.ai.genui.v1.ResourceEditResponseH\x00R\fresourceEditB\x11\n" +
+	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePickerB\x11\n" +
 	"\bresponse\x12\x05\xbaH\x02\b\x01\"R\n" +
 	"\x06Choice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
@@ -2796,8 +2749,7 @@ var file_malonaz_ai_genui_v1_input_proto_goTypes = []any{
 	(*SliderResponse)(nil),         // 19: malonaz.ai.genui.v1.SliderResponse
 	(*DateTimePicker)(nil),         // 20: malonaz.ai.genui.v1.DateTimePicker
 	(*DateTimePickerResponse)(nil), // 21: malonaz.ai.genui.v1.DateTimePickerResponse
-	(*ResourceEditResponse)(nil),   // 22: malonaz.ai.genui.v1.ResourceEditResponse
-	(*timestamppb.Timestamp)(nil),  // 23: google.protobuf.Timestamp
+	(*timestamppb.Timestamp)(nil),  // 22: google.protobuf.Timestamp
 }
 var file_malonaz_ai_genui_v1_input_proto_depIdxs = []int32{
 	2,  // 0: malonaz.ai.genui.v1.InputResponse.choice:type_name -> malonaz.ai.genui.v1.ChoiceResponse
@@ -2807,23 +2759,22 @@ var file_malonaz_ai_genui_v1_input_proto_depIdxs = []int32{
 	17, // 4: malonaz.ai.genui.v1.InputResponse.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePickerResponse
 	19, // 5: malonaz.ai.genui.v1.InputResponse.slider:type_name -> malonaz.ai.genui.v1.SliderResponse
 	21, // 6: malonaz.ai.genui.v1.InputResponse.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePickerResponse
-	22, // 7: malonaz.ai.genui.v1.InputResponse.resource_edit:type_name -> malonaz.ai.genui.v1.ResourceEditResponse
-	9,  // 8: malonaz.ai.genui.v1.Form.fields:type_name -> malonaz.ai.genui.v1.FormField
-	10, // 9: malonaz.ai.genui.v1.FormResponse.values:type_name -> malonaz.ai.genui.v1.FormFieldValue
-	11, // 10: malonaz.ai.genui.v1.FormField.text:type_name -> malonaz.ai.genui.v1.FormTextInput
-	12, // 11: malonaz.ai.genui.v1.FormField.number:type_name -> malonaz.ai.genui.v1.FormNumberInput
-	13, // 12: malonaz.ai.genui.v1.FormField.select:type_name -> malonaz.ai.genui.v1.FormSelectInput
-	14, // 13: malonaz.ai.genui.v1.FormField.date:type_name -> malonaz.ai.genui.v1.FormDateInput
-	15, // 14: malonaz.ai.genui.v1.FormField.toggle:type_name -> malonaz.ai.genui.v1.FormToggleInput
-	23, // 15: malonaz.ai.genui.v1.FormFieldValue.date:type_name -> google.protobuf.Timestamp
-	23, // 16: malonaz.ai.genui.v1.DateTimePicker.min_time:type_name -> google.protobuf.Timestamp
-	23, // 17: malonaz.ai.genui.v1.DateTimePicker.max_time:type_name -> google.protobuf.Timestamp
-	23, // 18: malonaz.ai.genui.v1.DateTimePickerResponse.time:type_name -> google.protobuf.Timestamp
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	9,  // 7: malonaz.ai.genui.v1.Form.fields:type_name -> malonaz.ai.genui.v1.FormField
+	10, // 8: malonaz.ai.genui.v1.FormResponse.values:type_name -> malonaz.ai.genui.v1.FormFieldValue
+	11, // 9: malonaz.ai.genui.v1.FormField.text:type_name -> malonaz.ai.genui.v1.FormTextInput
+	12, // 10: malonaz.ai.genui.v1.FormField.number:type_name -> malonaz.ai.genui.v1.FormNumberInput
+	13, // 11: malonaz.ai.genui.v1.FormField.select:type_name -> malonaz.ai.genui.v1.FormSelectInput
+	14, // 12: malonaz.ai.genui.v1.FormField.date:type_name -> malonaz.ai.genui.v1.FormDateInput
+	15, // 13: malonaz.ai.genui.v1.FormField.toggle:type_name -> malonaz.ai.genui.v1.FormToggleInput
+	22, // 14: malonaz.ai.genui.v1.FormFieldValue.date:type_name -> google.protobuf.Timestamp
+	22, // 15: malonaz.ai.genui.v1.DateTimePicker.min_time:type_name -> google.protobuf.Timestamp
+	22, // 16: malonaz.ai.genui.v1.DateTimePicker.max_time:type_name -> google.protobuf.Timestamp
+	22, // 17: malonaz.ai.genui.v1.DateTimePickerResponse.time:type_name -> google.protobuf.Timestamp
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_input_proto_init() }
@@ -2831,7 +2782,6 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 	if File_malonaz_ai_genui_v1_input_proto != nil {
 		return
 	}
-	file_malonaz_ai_genui_v1_resource_proto_init()
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[0].OneofWrappers = []any{
 		(*inputResponse_Choice)(nil),
 		(*inputResponse_MultiChoice)(nil),
@@ -2840,7 +2790,6 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 		(*inputResponse_ResourcePicker)(nil),
 		(*inputResponse_Slider)(nil),
 		(*inputResponse_DateTimePicker)(nil),
-		(*inputResponse_ResourceEdit)(nil),
 	}
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[9].OneofWrappers = []any{
 		(*formField_Text)(nil),
