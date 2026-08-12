@@ -19,6 +19,14 @@ local p = "providers/anthropic/models/";
           "input_token_cache_write_price_per_million": 12.5
         }
       }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "REASONING_EFFORT_DEFAULT": "medium",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high"
+      }
     },
 
     // OPUS.
@@ -36,6 +44,14 @@ local p = "providers/anthropic/models/";
           "input_token_cache_read_price_per_million": 0.5,
           "input_token_cache_write_price_per_million": 6.25
         }
+      }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "REASONING_EFFORT_DEFAULT": "medium",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high"
       }
     },
     {

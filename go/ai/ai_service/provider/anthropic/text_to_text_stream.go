@@ -130,9 +130,21 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	if model.Ttt.Reasoning {
-		budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
-		if budget > 0 {
-			messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
+		// Newer models (opus-5, fable-5) use the top-level `effort` parameter instead of a thinking token budget.
+		// The mapping from ReasoningEffort to effort level lives in the model's provider settings.
+		providerSettings := model.GetProviderSettings().GetFields()
+		if providerSettings["thinking_config_key"].GetStringValue() == "effort" {
+			// Effort-based models require adaptive thinking: the model decides how much to think, steered by `effort`.
+			messageParams.Thinking = anthropic.ThinkingConfigParamUnion{OfAdaptive: &anthropic.ThinkingConfigAdaptiveParam{}}
+			if effort, ok := providerSettings[request.Configuration.GetReasoningEffort().String()]; ok {
+				// The SDK does not expose `effort` yet, so we inject it as an extra field.
+				messageParams.SetExtraFields(map[string]any{"effort": effort.GetStringValue()})
+			}
+		} else {
+			budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
+			if budget > 0 {
+				messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
+			}
 		}
 	}
 
@@ -197,7 +209,13 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 				}
 			case anthropic.TextBlock:
 			case anthropic.ThinkingBlock:
-				redactedThinkingIndexSet[variant.Index] = struct{}{}
+				// Adaptive thinking (effort-based models) can deliver the summarized thought
+				// directly in the start event with no subsequent thinking deltas.
+				if contentBlock.Thinking != "" {
+					cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: contentBlock.Signature, Content: &aipb.Block_Thought{Thought: contentBlock.Thinking}})
+				} else {
+					redactedThinkingIndexSet[variant.Index] = struct{}{}
+				}
 			case anthropic.RedactedThinkingBlock:
 				redactedThinkingIndexSet[variant.Index] = struct{}{}
 			case anthropic.ServerToolUseBlock:
