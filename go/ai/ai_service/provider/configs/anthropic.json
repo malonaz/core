@@ -22,10 +22,15 @@ local p = "providers/anthropic/models/";
       ,
       "provider_settings": {
         "thinking_config_key": "effort",
-        "REASONING_EFFORT_DEFAULT": "medium",
+        "sampling_parameters_unsupported": true,
+        // fable-5 rejects thinking.type=disabled, so unspecified falls back to the lowest effort.
+        "REASONING_EFFORT_UNSPECIFIED": "low",
+        "REASONING_EFFORT_DEFAULT": "high",
         "REASONING_EFFORT_LOW": "low",
         "REASONING_EFFORT_MEDIUM": "medium",
-        "REASONING_EFFORT_HIGH": "high"
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
       }
     },
 
@@ -48,10 +53,15 @@ local p = "providers/anthropic/models/";
       ,
       "provider_settings": {
         "thinking_config_key": "effort",
-        "REASONING_EFFORT_DEFAULT": "medium",
+        "sampling_parameters_unsupported": true,
+        // opus-5 supports thinking.type=disabled (except at xhigh/max effort).
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        "REASONING_EFFORT_DEFAULT": "high",
         "REASONING_EFFORT_LOW": "low",
         "REASONING_EFFORT_MEDIUM": "medium",
-        "REASONING_EFFORT_HIGH": "high"
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
       }
     },
     {
@@ -69,6 +79,18 @@ local p = "providers/anthropic/models/";
           "input_token_cache_write_price_per_million": 6.25
         }
       }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "sampling_parameters_unsupported": true,
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
+      }
     },
     {
       "name": p + "claude-opus-4.7",
@@ -84,6 +106,18 @@ local p = "providers/anthropic/models/";
           "input_token_cache_read_price_per_million": 0.5,
           "input_token_cache_write_price_per_million": 6.25
         }
+      }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "sampling_parameters_unsupported": true,
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
       }
     },
     {
@@ -101,6 +135,18 @@ local p = "providers/anthropic/models/";
           "input_token_cache_write_price_per_million": 6.25
         }
       }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        // opus-4.6 does not support xhigh: clamp to max.
+        "REASONING_EFFORT_XHIGH": "max",
+        "REASONING_EFFORT_MAX": "max"
+      }
     },
     {
       "name":  p + "claude-opus-4.5",
@@ -116,6 +162,17 @@ local p = "providers/anthropic/models/";
           "input_token_cache_read_price_per_million":  0.5,
           "input_token_cache_write_price_per_million":  6.25
         }
+      }
+      ,
+      // opus-4.5 is extended-thinking-only (budget_tokens) but also supports output_config.effort: set both.
+      "provider_settings": {
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        // opus-4.5 supports neither xhigh nor max: clamp to high.
+        "REASONING_EFFORT_XHIGH": "high",
+        "REASONING_EFFORT_MAX": "high"
       }
     },
     {
@@ -148,6 +205,17 @@ local p = "providers/anthropic/models/";
           "input_token_cache_read_price_per_million":  0.5,
           "input_token_cache_write_price_per_million":  6.25
         }
+      }
+      ,
+      // opus-4.5 is extended-thinking-only (budget_tokens) but also supports output_config.effort: set both.
+      "provider_settings": {
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        // opus-4.5 supports neither xhigh nor max: clamp to high.
+        "REASONING_EFFORT_XHIGH": "high",
+        "REASONING_EFFORT_MAX": "high"
       }
     },
     {
@@ -199,6 +267,18 @@ local p = "providers/anthropic/models/";
           "input_token_cache_write_price_per_million": 3.75
         }
       }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "sampling_parameters_unsupported": true,
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
+      }
     },
     {
       "name": p + "claude-sonnet-4.6",
@@ -214,6 +294,19 @@ local p = "providers/anthropic/models/";
           "input_token_cache_read_price_per_million": 0.3,
           "input_token_cache_write_price_per_million": 3.75
         }
+      }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "REASONING_EFFORT_UNSPECIFIED": "disabled",
+        // Anthropic recommends medium as the default for sonnet-4.6 to avoid unexpected latency.
+        "REASONING_EFFORT_DEFAULT": "medium",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        // sonnet-4.6 does not support xhigh: clamp to max.
+        "REASONING_EFFORT_XHIGH": "max",
+        "REASONING_EFFORT_MAX": "max"
       }
     },
     {

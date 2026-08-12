@@ -123,6 +123,10 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		MaxTokens: int64(request.Configuration.GetMaxTokens()),
 	}
 	if request.Configuration.GetTemperature() > 0 {
+		// Newer models (opus-4.7+, opus-5, sonnet-5, fable-5) reject non-default sampling parameters on every request.
+		if model.GetProviderSettings().GetFields()["sampling_parameters_unsupported"].GetBoolValue() {
+			return status.Errorf(codes.InvalidArgument, "%s does not support temperature", request.Model).Err()
+		}
 		messageParams.Temperature = anthropic.Float(request.Configuration.GetTemperature())
 	}
 	if len(systemBlocks) > 0 {
@@ -130,21 +134,32 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	if model.Ttt.Reasoning {
-		// Newer models (opus-5, fable-5) use the top-level `effort` parameter instead of a thinking token budget.
-		// The mapping from ReasoningEffort to effort level lives in the model's provider settings.
 		providerSettings := model.GetProviderSettings().GetFields()
+		effortValue, hasEffort := providerSettings[request.Configuration.GetReasoningEffort().String()]
+		effort := effortValue.GetStringValue()
+
+		// `output_config.effort` is supported wherever the model config maps ReasoningEffort levels,
+		// including extended-thinking-only models (opus-4.5) where it works alongside budget_tokens.
+		if hasEffort && effort != "disabled" {
+			messageParams.OutputConfig = anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffort(effort)}
+		}
+
 		if providerSettings["thinking_config_key"].GetStringValue() == "effort" {
-			// Effort-based models require adaptive thinking: the model decides how much to think, steered by `effort`.
-			messageParams.Thinking = anthropic.ThinkingConfigParamUnion{OfAdaptive: &anthropic.ThinkingConfigAdaptiveParam{}}
-			if effort, ok := providerSettings[request.Configuration.GetReasoningEffort().String()]; ok {
-				// The SDK does not expose `effort` yet, so we inject it as an extra field.
-				messageParams.SetExtraFields(map[string]any{"effort": effort.GetStringValue()})
+			// Adaptive-thinking models (4.6+): thinking.type=enabled is deprecated (4.6) or rejected (4.7+).
+			switch {
+			case !hasEffort:
+				// No mapping for this ReasoningEffort: omit thinking and effort entirely, API defaults apply.
+			case effort == "disabled":
+				messageParams.Thinking = anthropic.ThinkingConfigParamUnion{OfDisabled: &anthropic.ThinkingConfigDisabledParam{}}
+			default:
+				messageParams.Thinking = anthropic.ThinkingConfigParamUnion{OfAdaptive: &anthropic.ThinkingConfigAdaptiveParam{
+					// display defaults to "omitted" (empty thinking blocks) on newer models; we want the summarized text streamed.
+					Display: anthropic.ThinkingConfigAdaptiveDisplaySummarized,
+				}}
 			}
-		} else {
-			budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort())
-			if budget > 0 {
-				messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
-			}
+		} else if budget := pbReasoningEffortToAnthropicBudget(request.Configuration.GetReasoningEffort()); budget > 0 {
+			// Extended-thinking models: fixed thinking token budget.
+			messageParams.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
 		}
 	}
 
@@ -318,6 +333,11 @@ func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) in
 		return 5000
 	case aipb.ReasoningEffort_REASONING_EFFORT_HIGH:
 		return 10000
+	case aipb.ReasoningEffort_REASONING_EFFORT_XHIGH:
+		return 20000
+	case aipb.ReasoningEffort_REASONING_EFFORT_MAX:
+		// Budgets above 32k are discouraged outside batch processing (timeouts), so cap here.
+		return 32000
 	default:
 		return 0
 	}

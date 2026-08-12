@@ -50,6 +50,14 @@ const (
 	// Best for complex problems requiring careful analysis.
 	// May result in slower responses and higher token consumption.
 	ReasoningEffort_REASONING_EFFORT_HIGH ReasoningEffort = 4
+	// Extra-high reasoning effort.
+	// Extended capability for long-horizon agentic and coding work.
+	// Expect meaningfully higher token usage and latency than high.
+	ReasoningEffort_REASONING_EFFORT_XHIGH ReasoningEffort = 5
+	// Maximum reasoning effort.
+	// Absolute maximum capability with no constraints on token spending.
+	// Reserve for tasks requiring the deepest possible reasoning.
+	ReasoningEffort_REASONING_EFFORT_MAX ReasoningEffort = 6
 )
 
 // Enum value maps for ReasoningEffort.
@@ -60,6 +68,8 @@ var (
 		2: "REASONING_EFFORT_LOW",
 		3: "REASONING_EFFORT_MEDIUM",
 		4: "REASONING_EFFORT_HIGH",
+		5: "REASONING_EFFORT_XHIGH",
+		6: "REASONING_EFFORT_MAX",
 	}
 	ReasoningEffort_value = map[string]int32{
 		"REASONING_EFFORT_UNSPECIFIED": 0,
@@ -67,6 +77,8 @@ var (
 		"REASONING_EFFORT_LOW":         2,
 		"REASONING_EFFORT_MEDIUM":      3,
 		"REASONING_EFFORT_HIGH":        4,
+		"REASONING_EFFORT_XHIGH":       5,
+		"REASONING_EFFORT_MAX":         6,
 	}
 )
 
@@ -1062,13 +1074,15 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"media_type\x18\x03 \x01(\tR\tmediaType\x12?\n" +
 	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:{\xbaHx\x1av\n" +
 	"\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
-	"\x06source\x12\x05\xbaH\x02\b\x01*\xa3\x01\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01*\xd9\x01\n" +
 	"\x0fReasoningEffort\x12 \n" +
 	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n" +
 	"\x14REASONING_EFFORT_LOW\x10\x02\x12\x1b\n" +
 	"\x17REASONING_EFFORT_MEDIUM\x10\x03\x12\x19\n" +
-	"\x15REASONING_EFFORT_HIGH\x10\x04*_\n" +
+	"\x15REASONING_EFFORT_HIGH\x10\x04\x12\x1a\n" +
+	"\x16REASONING_EFFORT_XHIGH\x10\x05\x12\x18\n" +
+	"\x14REASONING_EFFORT_MAX\x10\x06*_\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vROLE_SYSTEM\x10\x01\x12\x12\n" +

@@ -164,6 +164,16 @@ enum ReasoningEffort {
   // Best for complex problems requiring careful analysis.
   // May result in slower responses and higher token consumption.
   REASONING_EFFORT_HIGH = 4;
+
+  // Extra-high reasoning effort.
+  // Extended capability for long-horizon agentic and coding work.
+  // Expect meaningfully higher token usage and latency than high.
+  REASONING_EFFORT_XHIGH = 5;
+
+  // Maximum reasoning effort.
+  // Absolute maximum capability with no constraints on token spending.
+  // Reserve for tasks requiring the deepest possible reasoning.
+  REASONING_EFFORT_MAX = 6;
 }
 
 // Represents the role of a message in a multi-turn AI conversation.
