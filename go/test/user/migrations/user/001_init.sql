@@ -25,6 +25,8 @@ CREATE TABLE user_ (
     labels JSONB,
     etag TEXT NOT NULL,
     metadata JSONB NOT NULL,
+    balance NUMERIC NOT NULL DEFAULT 0,
+    credit_limit NUMERIC,
     PRIMARY KEY (organization_id, id),
     FOREIGN KEY (organization_id) REFERENCES organization(organization_id),
     CONSTRAINT user_request_id_unique UNIQUE (request_id)

@@ -1,3 +1,0 @@
-ALTER TABLE user_
-    ADD COLUMN balance NUMERIC NOT NULL DEFAULT 0,
-    ADD COLUMN credit_limit NUMERIC;
