@@ -667,7 +667,6 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 			fmt.Fprintf(&b, "\t\td := m.%s.AsDuration()\n", goName)
 			fmt.Fprintf(&b, "\t\t%s = &d\n", goName)
 		} else if protofield.IsDecimal(field) {
-			fmt.Fprintf(&b, "\t\tif m.%s != nil {\n")
 			fmt.Fprintf(&b, "\t\t\td, err := decimal.NewFromString(m.%s.GetValue())\n", goName)
 			fmt.Fprintf(&b, "\t\t\tif err != nil {\n")
 			fmt.Fprintf(&b, "\t\t\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
