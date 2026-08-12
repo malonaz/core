@@ -883,7 +883,7 @@ func (m *Model) toPbFieldValue(field *protogen.Field, fieldOpts *modelpb.FieldOp
 	if fieldOpts.GetEmbed() {
 		return goName
 	}
-	if protofield.IsTimestamp(field) || protofield.IsDuration(field) {
+	if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) {
 		return goName
 	}
 	if nullable {
