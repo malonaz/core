@@ -40,6 +40,37 @@ func (a *ToolCallAccumulator) Has(index int64) bool {
 	return ok
 }
 
+// IndexOf returns the index of the in-flight entry with the given call id —
+// the authoritative routing key when the provider supplies one.
+func (a *ToolCallAccumulator) IndexOf(id string) (int64, bool) {
+	if id == "" {
+		return 0, false
+	}
+	for index, entry := range a.calls {
+		if entry.id == id {
+			return index, true
+		}
+	}
+	return 0, false
+}
+
+// Matches reports whether the entry at index could belong to the given call
+// identity. Empty values match on either side: providers often omit the
+// id/name on continuation chunks.
+func (a *ToolCallAccumulator) Matches(index int64, id, name string) bool {
+	entry, ok := a.calls[index]
+	if !ok {
+		return false
+	}
+	if id != "" && entry.id != "" && id != entry.id {
+		return false
+	}
+	if name != "" && entry.name != "" && name != entry.name {
+		return false
+	}
+	return true
+}
+
 func (a *ToolCallAccumulator) Start(index int64, id, name string) {
 	a.calls[index] = &toolCallEntry{id: id, name: name}
 }

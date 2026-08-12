@@ -200,28 +200,49 @@ func (c *Client) TextToTextStream(
 						signature = base64.StdEncoding.EncodeToString(part.ThoughtSignature)
 					}
 
+					// Route the chunk to its call. A call boundary may be signaled
+					// by the next call's first chunk (new id/name) rather than a
+					// will_continue=false terminator on the previous one, so the
+					// chunk's identity — when present — is authoritative; position
+					// is only trusted when the open entry's identity is compatible.
+					// Routing by position alone merged consecutive parallel calls
+					// into one entry — dropping calls (so tool results no longer
+					// matched tool calls one-to-one, which Gemini rejects) and
+					// corrupting arguments.
+					resolveIndex := func() (int64, bool) {
+						if index, ok := tca.IndexOf(fc.ID); ok {
+							return index, true
+						}
+						if currentBlockType == blockTypeToolCall && tca.Matches(currentBlockIndex, fc.ID, fc.Name) {
+							return currentBlockIndex, true
+						}
+						return 0, false
+					}
+
 					if len(fc.PartialArgs) > 0 {
 						// Streaming partial args mode: accumulate individual arg paths.
-						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
+						index, ok := resolveIndex()
+						if !ok {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
 							tca.Start(currentBlockIndex, fc.ID, fc.Name)
+							index = currentBlockIndex
 						}
 
 						for _, partialArg := range fc.PartialArgs {
 							value := resolvePartialArgValue(partialArg)
-							tca.AppendArg(currentBlockIndex, partialArg.JsonPath, value)
+							tca.AppendArg(index, partialArg.JsonPath, value)
 						}
 
 						if fc.WillContinue != nil && !*fc.WillContinue {
-							block, err := tca.Build(currentBlockIndex)
+							block, err := tca.Build(index)
 							if err != nil {
 								return err
 							}
 							block.Signature = signature
 							cs.SendBlocks(ctx, block)
 						} else {
-							block, err := tca.BuildPartial(currentBlockIndex)
+							block, err := tca.BuildPartial(index)
 							if err != nil {
 								return err
 							}
@@ -230,37 +251,39 @@ func (c *Client) TextToTextStream(
 						}
 					} else if fc.WillContinue != nil && *fc.WillContinue {
 						// Streaming JSON args mode: the call will continue in future chunks.
-						if !tca.Has(currentBlockIndex) || currentBlockType != blockTypeToolCall {
+						index, ok := resolveIndex()
+						if !ok {
 							currentBlockIndex++
 							currentBlockType = blockTypeToolCall
 							tca.Start(currentBlockIndex, fc.ID, fc.Name)
+							index = currentBlockIndex
 						} else {
-							tca.StartOrUpdate(currentBlockIndex, fc.ID, fc.Name)
+							tca.StartOrUpdate(index, fc.ID, fc.Name)
 						}
 						if fc.Args != nil {
 							argsJSON, err := json.Marshal(fc.Args)
 							if err != nil {
 								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
 							}
-							tca.AppendArgs(currentBlockIndex, string(argsJSON))
+							tca.AppendArgs(index, string(argsJSON))
 						}
-						block, err := tca.BuildPartial(currentBlockIndex)
+						block, err := tca.BuildPartial(index)
 						if err != nil {
 							return err
 						}
 						block.Signature = signature
 						cs.SendBlocks(ctx, block)
-					} else if tca.Has(currentBlockIndex) && currentBlockType == blockTypeToolCall {
+					} else if index, ok := resolveIndex(); ok {
 						// Final chunk of a streaming tool call: finalize the accumulated call.
-						tca.StartOrUpdate(currentBlockIndex, fc.ID, fc.Name)
+						tca.StartOrUpdate(index, fc.ID, fc.Name)
 						if fc.Args != nil {
 							argsJSON, err := json.Marshal(fc.Args)
 							if err != nil {
 								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
 							}
-							tca.AppendArgs(currentBlockIndex, string(argsJSON))
+							tca.AppendArgs(index, string(argsJSON))
 						}
-						block, err := tca.Build(currentBlockIndex)
+						block, err := tca.Build(index)
 						if err != nil {
 							return err
 						}
@@ -371,18 +394,28 @@ func (c *Client) buildContents(ctx context.Context, messages []*aipb.Message) ([
 			})
 
 		case aipb.Role_ROLE_TOOL:
+			// All tool results of a message must land in a single Content:
+			// Gemini requires the turn following a function-call turn to carry
+			// exactly as many FunctionResponse parts as there were FunctionCall
+			// parts. Splitting parallel results into one Content each makes the
+			// API reject the request with a call/response count mismatch.
+			parts := make([]*genai.Part, 0, len(message.Blocks))
 			for j, block := range message.Blocks {
 				switch content := block.Content.(type) {
 				case *aipb.Block_ToolResult:
-					toolContent, err := buildToolResultContent(content.ToolResult)
+					part, err := buildToolResultPart(content.ToolResult)
 					if err != nil {
 						return nil, "", fmt.Errorf("message [%d] block [%d]: %w", i, j, err)
 					}
-					contents = append(contents, toolContent)
+					parts = append(parts, part)
 				default:
 					return nil, "", fmt.Errorf("message [%d] block [%d]: unexpected block type %T for TOOL role", i, j, content)
 				}
 			}
+			contents = append(contents, &genai.Content{
+				Role:  genai.RoleUser,
+				Parts: parts,
+			})
 
 		default:
 			return nil, "", fmt.Errorf("message [%d]: unexpected role %v", i, message.Role)
@@ -513,9 +546,9 @@ func (c *Client) buildAssistantParts(ctx context.Context, blocks []*aipb.Block) 
 	return parts, nil
 }
 
-// buildToolResultContent wraps a tool result into a genai Content with a FunctionResponse.
+// buildToolResultPart wraps a tool result into a genai FunctionResponse part.
 // Uses "output" as the key for successful results and "error" for failures.
-func buildToolResultContent(tr *aipb.ToolResult) (*genai.Content, error) {
+func buildToolResultPart(tr *aipb.ToolResult) (*genai.Part, error) {
 	content, err := ai.ParseToolResult(tr)
 	if err != nil {
 		return nil, fmt.Errorf("parsing tool result: %w", err)
@@ -530,12 +563,7 @@ func buildToolResultContent(tr *aipb.ToolResult) (*genai.Content, error) {
 		Response: map[string]any{key: content},
 	}
 
-	return &genai.Content{
-		Role: genai.RoleUser,
-		Parts: []*genai.Part{
-			{FunctionResponse: functionResponse},
-		},
-	}, nil
+	return &genai.Part{FunctionResponse: functionResponse}, nil
 }
 
 // buildTools converts proto tool definitions to genai function declarations.
