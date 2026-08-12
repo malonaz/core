@@ -86,6 +86,15 @@ github_proto_library(
 )
 
 github_proto_library(
+    name = "google__type__decimal",
+    additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/type/decimal"},
+    dir = "google/type",
+    files = ["decimal.proto"],
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
+)
+
+github_proto_library(
     name = "google__type__date",
     additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/type/date"},
     dir = "google/type",

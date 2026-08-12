@@ -15,6 +15,10 @@ func IsDuration(field *protogen.Field) bool {
 	return field.Message != nil && string(field.Message.Desc.FullName()) == "google.protobuf.Duration"
 }
 
+func IsDecimal(field *protogen.Field) bool {
+	return field.Message != nil && string(field.Message.Desc.FullName()) == "google.type.Decimal"
+}
+
 func GoType(field *protogen.Field) (string, error) {
 	var kind string
 	switch field.Desc.Kind() {
@@ -58,6 +62,9 @@ func SanitizedGoType(field *protogen.Field, fqn func(string, string) string) (st
 	if IsDuration(field) {
 		return fqn("time", "Duration"), nil
 	}
+	if IsDecimal(field) {
+		return fqn("github.com/shopspring/decimal", "Decimal"), nil
+	}
 	return GoType(field)
 }
 
@@ -80,7 +87,7 @@ func ZeroValue(field *protogen.Field) (string, error) {
 	case protoreflect.BytesKind:
 		return "nil", nil
 	case protoreflect.MessageKind:
-		if IsTimestamp(field) || IsDuration(field) {
+		if IsTimestamp(field) || IsDuration(field) || IsDecimal(field) {
 			return "nil", nil
 		}
 	}

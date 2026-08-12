@@ -641,7 +641,7 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 		}
 		fmt.Fprintf(&b, "\tvar %s *%s\n", goName, sanitizedType)
 
-		if protofield.IsTimestamp(field) || protofield.IsDuration(field) {
+		if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) {
 			fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
 		} else {
 			zv, err := protofield.ZeroValue(field)
@@ -666,6 +666,13 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 			fmt.Fprintf(&b, "\t\t}\n")
 			fmt.Fprintf(&b, "\t\td := m.%s.AsDuration()\n", goName)
 			fmt.Fprintf(&b, "\t\t%s = &d\n", goName)
+		} else if protofield.IsDecimal(field) {
+			fmt.Fprintf(&b, "\t\tif m.%s != nil {")
+			fmt.Fprintf(&b, "\t\t\td, err := decimal.NewFromString(m.%s.GetValue())", goName)
+			fmt.Fprintf(&b, "\t\t\tif err != nil {")
+			fmt.Fprintf(&b, "\t\t\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+			fmt.Fprintf(&b, "\t\t\t}\n")
+			fmt.Fprintf(&b, "\t\t%s = &d\n", goName)
 		} else {
 			fmt.Fprintf(&b, "\t\t%s = &m.%s\n", goName, goName)
 		}
@@ -677,6 +684,13 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 	if protofield.IsTimestamp(field) || protofield.IsDuration(field) {
 		fmt.Fprintf(&b, "\tif err := m.%s.CheckValid(); err != nil {\n", goName)
 		fmt.Fprintf(&b, "\t\treturn nil, %s(\"validating %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+		fmt.Fprintf(&b, "\t}\n")
+	}
+
+	if protofield.IsDecimal(field) {
+		fmt.Fprintf(&b, "\t%s, err := decimal.NewFromString(m.%s.GetValue())", goName, goName)
+		fmt.Fprintf(&b, "\tif err != nil {")
+		fmt.Fprintf(&b, "\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
 		fmt.Fprintf(&b, "\t}\n")
 	}
 
@@ -816,6 +830,19 @@ func (m *Model) toPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.Fi
 		fmt.Fprintf(&b, "\tif err := %s.CheckValid(); err != nil {\n", goName)
 		fmt.Fprintf(&b, "\t\treturn nil, %s(\"validating %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
 		fmt.Fprintf(&b, "\t}\n")
+		if nullable {
+			fmt.Fprintf(&b, "\t}\n")
+		}
+		return b.String(), nil
+	}
+
+	if protofield.IsDecimal(field) {
+		durPkg := "google.golang.org/genproto/googleapis/type/decimal"
+		fmt.Fprintf(&b, "\tvar %s *%s\n", goName, m.fqn(durPkg, "Decimal"))
+		if nullable {
+			fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
+		}
+		fmt.Fprintf(&b, "\t%s = &%s{Value: m.%s.String()}\n", goName, m.fqn(durPkg, "Decimal"), goName)
 		if nullable {
 			fmt.Fprintf(&b, "\t}\n")
 		}
