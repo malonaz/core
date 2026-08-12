@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSLVBgoJQ29tcG9uZW50EhIKAmlkGAEgASgJQga6SAPIAQESKQoEdGV4dBgCIAEoCzIZLm1hbG9uYXouYWkuZ2VudWkudjEuVGV4dEgAEjsKDmtleV92YWx1ZV9saXN0GAMgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgEIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgFIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABI6Cg1yZXNvdXJjZV9jYXJkGAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAcgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAggASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCSABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEisKBXRhYmxlGAogASgLMhoubWFsb25hei5haS5nZW51aS52MS5UYWJsZUgAEjgKDG11bHRpX2Nob2ljZRgLIAEoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuTXVsdGlDaG9pY2VIABI5Cgxjb25maXJtYXRpb24YDCABKAsyIS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvbkgAEikKBGZvcm0YDSABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1IABI+Cg9yZXNvdXJjZV9waWNrZXIYDiABKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLlJlc291cmNlUGlja2VySAASLQoGc2xpZGVyGA8gASgLMhsubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJIABI/ChBkYXRlX3RpbWVfcGlja2VyGBAgASgLMiMubWFsb25hei5haS5nZW51aS52MS5EYXRlVGltZVBpY2tlckgAQhIKCWNvbXBvbmVudBIFukgCCAFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSLBBgoJQ29tcG9uZW50EikKBHRleHQYASABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRleHRIABI7Cg5rZXlfdmFsdWVfbGlzdBgCIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SAASMQoIdGltZWxpbmUYAyABKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRpbWVsaW5lSAASKwoFY2hhcnQYBCABKAsyGi5tYWxvbmF6LmFpLmdlbnVpLnYxLkNoYXJ0SAASOgoNcmVzb3VyY2VfY2FyZBgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VDYXJkSAASOgoNcmVzb3VyY2VfbGlzdBgGIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VMaXN0SAASNAoKYWN0aW9uX3JvdxgHIAEoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93SAASLQoGY2hvaWNlGAggASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABIrCgV0YWJsZRgJIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI4CgxtdWx0aV9jaG9pY2UYCiABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAsgASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGAwgASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGA0gASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgOIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgPIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
@@ -29,14 +29,6 @@ export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
  */
 export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
   /**
-   * Server-assigned identity (typically the tool call id). Re-emitting a
-   * component with the same id replaces the prior version in place.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
    * The component to render.
    *
    * @generated from oneof malonaz.ai.genui.v1.Component.component
@@ -45,7 +37,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Markdown-subset prose.
      *
-     * @generated from field: malonaz.ai.genui.v1.Text text = 2;
+     * @generated from field: malonaz.ai.genui.v1.Text text = 1;
      */
     value: Text;
     case: "text";
@@ -53,7 +45,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Label/value facts.
      *
-     * @generated from field: malonaz.ai.genui.v1.KeyValueList key_value_list = 3;
+     * @generated from field: malonaz.ai.genui.v1.KeyValueList key_value_list = 2;
      */
     value: KeyValueList;
     case: "keyValueList";
@@ -61,7 +53,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Ordered events.
      *
-     * @generated from field: malonaz.ai.genui.v1.Timeline timeline = 4;
+     * @generated from field: malonaz.ai.genui.v1.Timeline timeline = 3;
      */
     value: Timeline;
     case: "timeline";
@@ -69,7 +61,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A chart of aggregates.
      *
-     * @generated from field: malonaz.ai.genui.v1.Chart chart = 5;
+     * @generated from field: malonaz.ai.genui.v1.Chart chart = 4;
      */
     value: Chart;
     case: "chart";
@@ -77,7 +69,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 5;
      */
     value: ResourceCard;
     case: "resourceCard";
@@ -85,7 +77,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 6;
      */
     value: ResourceList;
     case: "resourceList";
@@ -93,7 +85,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Buttons the user can press.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 7;
      */
     value: ActionRow;
     case: "actionRow";
@@ -101,7 +93,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 8;
      */
     value: Choice;
     case: "choice";
@@ -109,7 +101,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Tabular data.
      *
-     * @generated from field: malonaz.ai.genui.v1.Table table = 10;
+     * @generated from field: malonaz.ai.genui.v1.Table table = 9;
      */
     value: Table;
     case: "table";
@@ -117,7 +109,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question allowing several answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 11;
+     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 10;
      */
     value: MultiChoice;
     case: "multiChoice";
@@ -125,7 +117,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * An approve/reject gate for a consequential action.
      *
-     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 12;
+     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 11;
      */
     value: Confirmation;
     case: "confirmation";
@@ -133,7 +125,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Structured multi-field input.
      *
-     * @generated from field: malonaz.ai.genui.v1.Form form = 13;
+     * @generated from field: malonaz.ai.genui.v1.Form form = 12;
      */
     value: Form;
     case: "form";
@@ -141,7 +133,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Select one or more resources from candidates.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 14;
+     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 13;
      */
     value: ResourcePicker;
     case: "resourcePicker";
@@ -149,7 +141,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Bounded numeric input.
      *
-     * @generated from field: malonaz.ai.genui.v1.Slider slider = 15;
+     * @generated from field: malonaz.ai.genui.v1.Slider slider = 14;
      */
     value: Slider;
     case: "slider";
@@ -157,7 +149,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A calendar/clock input.
      *
-     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 16;
+     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 15;
      */
     value: DateTimePicker;
     case: "dateTimePicker";
@@ -174,14 +166,6 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
  */
 export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
   /**
-   * Server-assigned identity (typically the tool call id). Re-emitting a
-   * component with the same id replaces the prior version in place.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
    * The component to render.
    *
    * @generated from oneof malonaz.ai.genui.v1.Component.component
@@ -190,7 +174,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Markdown-subset prose.
      *
-     * @generated from field: malonaz.ai.genui.v1.Text text = 2;
+     * @generated from field: malonaz.ai.genui.v1.Text text = 1;
      */
     value: TextValid;
     case: "text";
@@ -198,7 +182,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Label/value facts.
      *
-     * @generated from field: malonaz.ai.genui.v1.KeyValueList key_value_list = 3;
+     * @generated from field: malonaz.ai.genui.v1.KeyValueList key_value_list = 2;
      */
     value: KeyValueListValid;
     case: "keyValueList";
@@ -206,7 +190,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Ordered events.
      *
-     * @generated from field: malonaz.ai.genui.v1.Timeline timeline = 4;
+     * @generated from field: malonaz.ai.genui.v1.Timeline timeline = 3;
      */
     value: TimelineValid;
     case: "timeline";
@@ -214,7 +198,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A chart of aggregates.
      *
-     * @generated from field: malonaz.ai.genui.v1.Chart chart = 5;
+     * @generated from field: malonaz.ai.genui.v1.Chart chart = 4;
      */
     value: ChartValid;
     case: "chart";
@@ -222,7 +206,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 5;
      */
     value: ResourceCardValid;
     case: "resourceCard";
@@ -230,7 +214,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 6;
      */
     value: ResourceListValid;
     case: "resourceList";
@@ -238,7 +222,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Buttons the user can press.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 7;
      */
     value: ActionRowValid;
     case: "actionRow";
@@ -246,7 +230,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 8;
      */
     value: ChoiceValid;
     case: "choice";
@@ -254,7 +238,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Tabular data.
      *
-     * @generated from field: malonaz.ai.genui.v1.Table table = 10;
+     * @generated from field: malonaz.ai.genui.v1.Table table = 9;
      */
     value: TableValid;
     case: "table";
@@ -262,7 +246,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question allowing several answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 11;
+     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 10;
      */
     value: MultiChoiceValid;
     case: "multiChoice";
@@ -270,7 +254,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * An approve/reject gate for a consequential action.
      *
-     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 12;
+     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 11;
      */
     value: ConfirmationValid;
     case: "confirmation";
@@ -278,7 +262,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Structured multi-field input.
      *
-     * @generated from field: malonaz.ai.genui.v1.Form form = 13;
+     * @generated from field: malonaz.ai.genui.v1.Form form = 12;
      */
     value: FormValid;
     case: "form";
@@ -286,7 +270,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Select one or more resources from candidates.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 14;
+     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 13;
      */
     value: ResourcePickerValid;
     case: "resourcePicker";
@@ -294,7 +278,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Bounded numeric input.
      *
-     * @generated from field: malonaz.ai.genui.v1.Slider slider = 15;
+     * @generated from field: malonaz.ai.genui.v1.Slider slider = 14;
      */
     value: SliderValid;
     case: "slider";
@@ -302,7 +286,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A calendar/clock input.
      *
-     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 16;
+     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 15;
      */
     value: DateTimePickerValid;
     case: "dateTimePicker";

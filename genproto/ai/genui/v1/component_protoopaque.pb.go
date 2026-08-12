@@ -29,7 +29,6 @@ const (
 // the tool name identifies the variant before any field streams.
 type Component struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id        string                 `protobuf:"bytes,1,opt,name=id,proto3"`
 	xxx_hidden_Component isComponent_Component  `protobuf_oneof:"component"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
@@ -58,13 +57,6 @@ func (x *Component) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
-}
-
-func (x *Component) GetId() string {
-	if x != nil {
-		return x.xxx_hidden_Id
-	}
-	return ""
 }
 
 func (x *Component) GetText() *Text {
@@ -200,10 +192,6 @@ func (x *Component) GetDateTimePicker() *DateTimePicker {
 		}
 	}
 	return nil
-}
-
-func (x *Component) SetId(v string) {
-	x.xxx_hidden_Id = v
 }
 
 func (x *Component) SetText(v *Text) {
@@ -548,21 +536,21 @@ func (x *Component) ClearDateTimePicker() {
 }
 
 const Component_Component_not_set_case case_Component_Component = 0
-const Component_Text_case case_Component_Component = 2
-const Component_KeyValueList_case case_Component_Component = 3
-const Component_Timeline_case case_Component_Component = 4
-const Component_Chart_case case_Component_Component = 5
-const Component_ResourceCard_case case_Component_Component = 6
-const Component_ResourceList_case case_Component_Component = 7
-const Component_ActionRow_case case_Component_Component = 8
-const Component_Choice_case case_Component_Component = 9
-const Component_Table_case case_Component_Component = 10
-const Component_MultiChoice_case case_Component_Component = 11
-const Component_Confirmation_case case_Component_Component = 12
-const Component_Form_case case_Component_Component = 13
-const Component_ResourcePicker_case case_Component_Component = 14
-const Component_Slider_case case_Component_Component = 15
-const Component_DateTimePicker_case case_Component_Component = 16
+const Component_Text_case case_Component_Component = 1
+const Component_KeyValueList_case case_Component_Component = 2
+const Component_Timeline_case case_Component_Component = 3
+const Component_Chart_case case_Component_Component = 4
+const Component_ResourceCard_case case_Component_Component = 5
+const Component_ResourceList_case case_Component_Component = 6
+const Component_ActionRow_case case_Component_Component = 7
+const Component_Choice_case case_Component_Component = 8
+const Component_Table_case case_Component_Component = 9
+const Component_MultiChoice_case case_Component_Component = 10
+const Component_Confirmation_case case_Component_Component = 11
+const Component_Form_case case_Component_Component = 12
+const Component_ResourcePicker_case case_Component_Component = 13
+const Component_Slider_case case_Component_Component = 14
+const Component_DateTimePicker_case case_Component_Component = 15
 
 func (x *Component) WhichComponent() case_Component_Component {
 	if x == nil {
@@ -607,9 +595,6 @@ func (x *Component) WhichComponent() case_Component_Component {
 type Component_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Server-assigned identity (typically the tool call id). Re-emitting a
-	// component with the same id replaces the prior version in place.
-	Id string
 	// The component to render.
 
 	// Fields of oneof xxx_hidden_Component:
@@ -650,7 +635,6 @@ func (b0 Component_builder) Build() *Component {
 	m0 := &Component{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Id = b.Id
 	if b.Text != nil {
 		x.xxx_hidden_Component = &component_Text{b.Text}
 	}
@@ -715,77 +699,77 @@ type isComponent_Component interface {
 
 type component_Text struct {
 	// Markdown-subset prose.
-	Text *Text `protobuf:"bytes,2,opt,name=text,proto3,oneof"`
+	Text *Text `protobuf:"bytes,1,opt,name=text,proto3,oneof"`
 }
 
 type component_KeyValueList struct {
 	// Label/value facts.
-	KeyValueList *KeyValueList `protobuf:"bytes,3,opt,name=key_value_list,json=keyValueList,proto3,oneof"`
+	KeyValueList *KeyValueList `protobuf:"bytes,2,opt,name=key_value_list,json=keyValueList,proto3,oneof"`
 }
 
 type component_Timeline struct {
 	// Ordered events.
-	Timeline *Timeline `protobuf:"bytes,4,opt,name=timeline,proto3,oneof"`
+	Timeline *Timeline `protobuf:"bytes,3,opt,name=timeline,proto3,oneof"`
 }
 
 type component_Chart struct {
 	// A chart of aggregates.
-	Chart *Chart `protobuf:"bytes,5,opt,name=chart,proto3,oneof"`
+	Chart *Chart `protobuf:"bytes,4,opt,name=chart,proto3,oneof"`
 }
 
 type component_ResourceCard struct {
 	// A rich card for a single resource.
-	ResourceCard *ResourceCard `protobuf:"bytes,6,opt,name=resource_card,json=resourceCard,proto3,oneof"`
+	ResourceCard *ResourceCard `protobuf:"bytes,5,opt,name=resource_card,json=resourceCard,proto3,oneof"`
 }
 
 type component_ResourceList struct {
 	// A list of resources rendered as compact rows.
-	ResourceList *ResourceList `protobuf:"bytes,7,opt,name=resource_list,json=resourceList,proto3,oneof"`
+	ResourceList *ResourceList `protobuf:"bytes,6,opt,name=resource_list,json=resourceList,proto3,oneof"`
 }
 
 type component_ActionRow struct {
 	// Buttons the user can press.
-	ActionRow *ActionRow `protobuf:"bytes,8,opt,name=action_row,json=actionRow,proto3,oneof"`
+	ActionRow *ActionRow `protobuf:"bytes,7,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 
 type component_Choice struct {
 	// A question with constrained answers.
-	Choice *Choice `protobuf:"bytes,9,opt,name=choice,proto3,oneof"`
+	Choice *Choice `protobuf:"bytes,8,opt,name=choice,proto3,oneof"`
 }
 
 type component_Table struct {
 	// Tabular data.
-	Table *Table `protobuf:"bytes,10,opt,name=table,proto3,oneof"`
+	Table *Table `protobuf:"bytes,9,opt,name=table,proto3,oneof"`
 }
 
 type component_MultiChoice struct {
 	// A question allowing several answers.
-	MultiChoice *MultiChoice `protobuf:"bytes,11,opt,name=multi_choice,json=multiChoice,proto3,oneof"`
+	MultiChoice *MultiChoice `protobuf:"bytes,10,opt,name=multi_choice,json=multiChoice,proto3,oneof"`
 }
 
 type component_Confirmation struct {
 	// An approve/reject gate for a consequential action.
-	Confirmation *Confirmation `protobuf:"bytes,12,opt,name=confirmation,proto3,oneof"`
+	Confirmation *Confirmation `protobuf:"bytes,11,opt,name=confirmation,proto3,oneof"`
 }
 
 type component_Form struct {
 	// Structured multi-field input.
-	Form *Form `protobuf:"bytes,13,opt,name=form,proto3,oneof"`
+	Form *Form `protobuf:"bytes,12,opt,name=form,proto3,oneof"`
 }
 
 type component_ResourcePicker struct {
 	// Select one or more resources from candidates.
-	ResourcePicker *ResourcePicker `protobuf:"bytes,14,opt,name=resource_picker,json=resourcePicker,proto3,oneof"`
+	ResourcePicker *ResourcePicker `protobuf:"bytes,13,opt,name=resource_picker,json=resourcePicker,proto3,oneof"`
 }
 
 type component_Slider struct {
 	// Bounded numeric input.
-	Slider *Slider `protobuf:"bytes,15,opt,name=slider,proto3,oneof"`
+	Slider *Slider `protobuf:"bytes,14,opt,name=slider,proto3,oneof"`
 }
 
 type component_DateTimePicker struct {
 	// A calendar/clock input.
-	DateTimePicker *DateTimePicker `protobuf:"bytes,16,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
+	DateTimePicker *DateTimePicker `protobuf:"bytes,15,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
 }
 
 func (*component_Text) isComponent_Component() {}
@@ -822,26 +806,25 @@ var File_malonaz_ai_genui_v1_component_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xfd\a\n" +
-	"\tComponent\x12\x16\n" +
-	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12/\n" +
-	"\x04text\x18\x02 \x01(\v2\x19.malonaz.ai.genui.v1.TextH\x00R\x04text\x12I\n" +
-	"\x0ekey_value_list\x18\x03 \x01(\v2!.malonaz.ai.genui.v1.KeyValueListH\x00R\fkeyValueList\x12;\n" +
-	"\btimeline\x18\x04 \x01(\v2\x1d.malonaz.ai.genui.v1.TimelineH\x00R\btimeline\x122\n" +
-	"\x05chart\x18\x05 \x01(\v2\x1a.malonaz.ai.genui.v1.ChartH\x00R\x05chart\x12H\n" +
-	"\rresource_card\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
-	"\rresource_list\x18\a \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
+	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xe5\a\n" +
+	"\tComponent\x12/\n" +
+	"\x04text\x18\x01 \x01(\v2\x19.malonaz.ai.genui.v1.TextH\x00R\x04text\x12I\n" +
+	"\x0ekey_value_list\x18\x02 \x01(\v2!.malonaz.ai.genui.v1.KeyValueListH\x00R\fkeyValueList\x12;\n" +
+	"\btimeline\x18\x03 \x01(\v2\x1d.malonaz.ai.genui.v1.TimelineH\x00R\btimeline\x122\n" +
+	"\x05chart\x18\x04 \x01(\v2\x1a.malonaz.ai.genui.v1.ChartH\x00R\x05chart\x12H\n" +
+	"\rresource_card\x18\x05 \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
+	"\rresource_list\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
 	"\n" +
-	"action_row\x18\b \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
-	"\x06choice\x18\t \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x122\n" +
-	"\x05table\x18\n" +
-	" \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05table\x12E\n" +
-	"\fmulti_choice\x18\v \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
-	"\fconfirmation\x18\f \x01(\v2!.malonaz.ai.genui.v1.ConfirmationH\x00R\fconfirmation\x12/\n" +
-	"\x04form\x18\r \x01(\v2\x19.malonaz.ai.genui.v1.FormH\x00R\x04form\x12N\n" +
-	"\x0fresource_picker\x18\x0e \x01(\v2#.malonaz.ai.genui.v1.ResourcePickerH\x00R\x0eresourcePicker\x125\n" +
-	"\x06slider\x18\x0f \x01(\v2\x1b.malonaz.ai.genui.v1.SliderH\x00R\x06slider\x12O\n" +
-	"\x10date_time_picker\x18\x10 \x01(\v2#.malonaz.ai.genui.v1.DateTimePickerH\x00R\x0edateTimePickerB\x12\n" +
+	"action_row\x18\a \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
+	"\x06choice\x18\b \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x122\n" +
+	"\x05table\x18\t \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05table\x12E\n" +
+	"\fmulti_choice\x18\n" +
+	" \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
+	"\fconfirmation\x18\v \x01(\v2!.malonaz.ai.genui.v1.ConfirmationH\x00R\fconfirmation\x12/\n" +
+	"\x04form\x18\f \x01(\v2\x19.malonaz.ai.genui.v1.FormH\x00R\x04form\x12N\n" +
+	"\x0fresource_picker\x18\r \x01(\v2#.malonaz.ai.genui.v1.ResourcePickerH\x00R\x0eresourcePicker\x125\n" +
+	"\x06slider\x18\x0e \x01(\v2\x1b.malonaz.ai.genui.v1.SliderH\x00R\x06slider\x12O\n" +
+	"\x10date_time_picker\x18\x0f \x01(\v2#.malonaz.ai.genui.v1.DateTimePickerH\x00R\x0edateTimePickerB\x12\n" +
 	"\tcomponent\x12\x05\xbaH\x02\b\x01B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
 var file_malonaz_ai_genui_v1_component_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
