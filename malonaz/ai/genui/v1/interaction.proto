@@ -4,7 +4,6 @@ package malonaz.ai.genui.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
-import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
@@ -42,9 +41,6 @@ message ActionRowAction {
 
     // Open this http(s) URL externally.
     string open_url = 6 [(buf.validate.field).string.uri = true];
-
-    // Invoke a pre-approved server-side tool call.
-    ActionRowToolCall invoke_tool = 7;
   }
 }
 
@@ -59,17 +55,6 @@ enum ActionStyle {
 
   // A destructive or irreversible action.
   ACTION_STYLE_DESTRUCTIVE = 2;
-}
-
-// A server-side tool call executed when the user presses the button. The
-// press itself is the user's approval — the server runs the call without
-// another model round-trip.
-message ActionRowToolCall {
-  // The name of the tool to invoke.
-  string tool = 1 [(buf.validate.field).required = true];
-
-  // The arguments to invoke the tool with.
-  google.protobuf.Struct arguments = 2;
 }
 
 // A question with constrained answers (mirrors AskUserQuestion UX): the

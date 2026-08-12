@@ -7,7 +7,7 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import type { Chart, ChartValid, KeyValueList, KeyValueListValid, Table, TableValid, Text, TextValid, Timeline, TimelineValid } from "./content_pb";
 import { file_malonaz_ai_genui_v1_content } from "./content_pb";
-import type { ActionRow, ActionRowValid, Choice, ChoiceValid } from "./interaction_pb";
+import type { ActionRow, ActionRowValid, Choice, ChoiceValid, Confirmation, ConfirmationValid, DateTimePicker, DateTimePickerValid, Form, FormValid, MultiChoice, MultiChoiceValid, ResourcePicker, ResourcePickerValid, Slider, SliderValid } from "./interaction_pb";
 import { file_malonaz_ai_genui_v1_interaction } from "./interaction_pb";
 import type { ResourceCard, ResourceCardValid, ResourceList, ResourceListValid } from "./resource_pb";
 import { file_malonaz_ai_genui_v1_resource } from "./resource_pb";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSKFBAoJQ29tcG9uZW50EhIKAmlkGAEgASgJQga6SAPIAQESKQoEdGV4dBgCIAEoCzIZLm1hbG9uYXouYWkuZ2VudWkudjEuVGV4dEgAEjsKDmtleV92YWx1ZV9saXN0GAMgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgEIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgFIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABI6Cg1yZXNvdXJjZV9jYXJkGAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAcgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAggASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCSABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEisKBXRhYmxlGAogASgLMhoubWFsb25hei5haS5nZW51aS52MS5UYWJsZUgAQhIKCWNvbXBvbmVudBIFukgCCAFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSLVBgoJQ29tcG9uZW50EhIKAmlkGAEgASgJQga6SAPIAQESKQoEdGV4dBgCIAEoCzIZLm1hbG9uYXouYWkuZ2VudWkudjEuVGV4dEgAEjsKDmtleV92YWx1ZV9saXN0GAMgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgEIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgFIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABI6Cg1yZXNvdXJjZV9jYXJkGAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAcgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAggASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCSABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEisKBXRhYmxlGAogASgLMhoubWFsb25hei5haS5nZW51aS52MS5UYWJsZUgAEjgKDG11bHRpX2Nob2ljZRgLIAEoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuTXVsdGlDaG9pY2VIABI5Cgxjb25maXJtYXRpb24YDCABKAsyIS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvbkgAEikKBGZvcm0YDSABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1IABI+Cg9yZXNvdXJjZV9waWNrZXIYDiABKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLlJlc291cmNlUGlja2VySAASLQoGc2xpZGVyGA8gASgLMhsubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJIABI/ChBkYXRlX3RpbWVfcGlja2VyGBAgASgLMiMubWFsb25hei5haS5nZW51aS52MS5EYXRlVGltZVBpY2tlckgAQhIKCWNvbXBvbmVudBIFukgCCAFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
@@ -113,6 +113,54 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: Table;
     case: "table";
+  } | {
+    /**
+     * A question allowing several answers.
+     *
+     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 11;
+     */
+    value: MultiChoice;
+    case: "multiChoice";
+  } | {
+    /**
+     * An approve/reject gate for a consequential action.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 12;
+     */
+    value: Confirmation;
+    case: "confirmation";
+  } | {
+    /**
+     * Structured multi-field input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Form form = 13;
+     */
+    value: Form;
+    case: "form";
+  } | {
+    /**
+     * Select one or more resources from candidates.
+     *
+     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 14;
+     */
+    value: ResourcePicker;
+    case: "resourcePicker";
+  } | {
+    /**
+     * Bounded numeric input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Slider slider = 15;
+     */
+    value: Slider;
+    case: "slider";
+  } | {
+    /**
+     * A calendar/clock input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 16;
+     */
+    value: DateTimePicker;
+    case: "dateTimePicker";
   } | { case: undefined; value?: undefined };
 };
 
@@ -210,6 +258,54 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: TableValid;
     case: "table";
+  } | {
+    /**
+     * A question allowing several answers.
+     *
+     * @generated from field: malonaz.ai.genui.v1.MultiChoice multi_choice = 11;
+     */
+    value: MultiChoiceValid;
+    case: "multiChoice";
+  } | {
+    /**
+     * An approve/reject gate for a consequential action.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Confirmation confirmation = 12;
+     */
+    value: ConfirmationValid;
+    case: "confirmation";
+  } | {
+    /**
+     * Structured multi-field input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Form form = 13;
+     */
+    value: FormValid;
+    case: "form";
+  } | {
+    /**
+     * Select one or more resources from candidates.
+     *
+     * @generated from field: malonaz.ai.genui.v1.ResourcePicker resource_picker = 14;
+     */
+    value: ResourcePickerValid;
+    case: "resourcePicker";
+  } | {
+    /**
+     * Bounded numeric input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Slider slider = 15;
+     */
+    value: SliderValid;
+    case: "slider";
+  } | {
+    /**
+     * A calendar/clock input.
+     *
+     * @generated from field: malonaz.ai.genui.v1.DateTimePicker date_time_picker = 16;
+     */
+    value: DateTimePickerValid;
+    case: "dateTimePicker";
   } | { case: undefined; value?: undefined };
 };
 

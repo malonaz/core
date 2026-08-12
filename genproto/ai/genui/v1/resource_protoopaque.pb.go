@@ -13,6 +13,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -28,11 +29,12 @@ const (
 // The client picks the renderer from the resource type and hydrates from
 // its stores — the model supplies at most a headline, never inline data.
 type ResourceCard struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ResourceName string                 `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3"`
-	xxx_hidden_Title        string                 `protobuf:"bytes,2,opt,name=title,proto3"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ResourceName   string                 `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3"`
+	xxx_hidden_Title          string                 `protobuf:"bytes,2,opt,name=title,proto3"`
+	xxx_hidden_EditableFields *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=editable_fields,json=editableFields,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *ResourceCard) Reset() {
@@ -74,12 +76,34 @@ func (x *ResourceCard) GetTitle() string {
 	return ""
 }
 
+func (x *ResourceCard) GetEditableFields() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.xxx_hidden_EditableFields
+	}
+	return nil
+}
+
 func (x *ResourceCard) SetResourceName(v string) {
 	x.xxx_hidden_ResourceName = v
 }
 
 func (x *ResourceCard) SetTitle(v string) {
 	x.xxx_hidden_Title = v
+}
+
+func (x *ResourceCard) SetEditableFields(v *fieldmaskpb.FieldMask) {
+	x.xxx_hidden_EditableFields = v
+}
+
+func (x *ResourceCard) HasEditableFields() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EditableFields != nil
+}
+
+func (x *ResourceCard) ClearEditableFields() {
+	x.xxx_hidden_EditableFields = nil
 }
 
 type ResourceCard_builder struct {
@@ -89,6 +113,9 @@ type ResourceCard_builder struct {
 	ResourceName string
 	// Optional AI-written headline overriding the default renderer's title.
 	Title string
+	// Optional fields the user may edit inline on the card; edits flow back
+	// as a [ResourceEditResponse][malonaz.ai.genui.v1.ResourceEditResponse].
+	EditableFields *fieldmaskpb.FieldMask
 }
 
 func (b0 ResourceCard_builder) Build() *ResourceCard {
@@ -97,6 +124,7 @@ func (b0 ResourceCard_builder) Build() *ResourceCard {
 	_, _ = b, x
 	x.xxx_hidden_ResourceName = b.ResourceName
 	x.xxx_hidden_Title = b.Title
+	x.xxx_hidden_EditableFields = b.EditableFields
 	return m0
 }
 
@@ -178,11 +206,12 @@ var File_malonaz_ai_genui_v1_resource_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"W\n" +
+	"\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\x9c\x01\n" +
 	"\fResourceCard\x121\n" +
 	"\rresource_name\x18\x01 \x01(\tB\f\xfaA\x03\n" +
 	"\x01*\xbaH\x03\xc8\x01\x01R\fresourceName\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\"a\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12C\n" +
+	"\x0feditable_fields\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\x0eeditableFields\"a\n" +
 	"\fResourceList\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12;\n" +
 	"\x0eresource_names\x18\x02 \x03(\tB\x14\xfaA\x03\n" +
@@ -190,15 +219,17 @@ const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
 
 var file_malonaz_ai_genui_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_ai_genui_v1_resource_proto_goTypes = []any{
-	(*ResourceCard)(nil), // 0: malonaz.ai.genui.v1.ResourceCard
-	(*ResourceList)(nil), // 1: malonaz.ai.genui.v1.ResourceList
+	(*ResourceCard)(nil),          // 0: malonaz.ai.genui.v1.ResourceCard
+	(*ResourceList)(nil),          // 1: malonaz.ai.genui.v1.ResourceList
+	(*fieldmaskpb.FieldMask)(nil), // 2: google.protobuf.FieldMask
 }
 var file_malonaz_ai_genui_v1_resource_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: malonaz.ai.genui.v1.ResourceCard.editable_fields:type_name -> google.protobuf.FieldMask
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_resource_proto_init() }

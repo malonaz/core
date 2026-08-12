@@ -2,17 +2,19 @@
 // @generated from file malonaz/ai/genui/v1/interaction.proto (package malonaz.ai.genui.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/genui/v1/interaction.proto.
  */
 export const file_malonaz_ai_genui_v1_interaction: GenFile = /*@__PURE__*/
-  fileDesc("CiVtYWxvbmF6L2FpL2dlbnVpL3YxL2ludGVyYWN0aW9uLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUibAoPQWN0aW9uUm93QWN0aW9uEhUKBWxhYmVsGAEgASgJQga6SAPIAQESHwoNb3Blbl9yZXNvdXJjZRgCIAEoCUIG+kEDCgEqSAASEAoGcHJvbXB0GAMgASgJSABCDwoGYWN0aW9uEgW6SAIIASI/CgZDaG9pY2USGAoIcXVlc3Rpb24YASABKAlCBrpIA8gBARIbCgdvcHRpb25zGAIgAygJQgq6SAeSAQQIAhAIQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource]);
+  fileDesc("CiVtYWxvbmF6L2FpL2dlbnVpL3YxL2ludGVyYWN0aW9uLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUi2gEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAQgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgCIAEoCUIG+kEDCgEqSAASEAoGcHJvbXB0GAMgASgJSAASEwoJY29weV90ZXh0GAUgASgJSAASHAoIb3Blbl91cmwYBiABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASI/CgZDaG9pY2USGAoIcXVlc3Rpb24YASABKAlCBrpIA8gBARIbCgdvcHRpb25zGAIgAygJQgq6SAeSAQQIAhAIIoYBCgtNdWx0aUNob2ljZRIYCghxdWVzdGlvbhgBIAEoCUIGukgDyAEBEhsKB29wdGlvbnMYAiADKAlCCrpIB5IBBAgCEAwSHwoObWluX3NlbGVjdGlvbnMYAyABKAVCB7pIBBoCKAASHwoObWF4X3NlbGVjdGlvbnMYBCABKAVCB7pIBBoCKAAifAoMQ29uZmlybWF0aW9uEhUKBXRpdGxlGAEgASgJQga6SAPIAQESEwoLZGVzY3JpcHRpb24YAiABKAkSFQoNY29uZmlybV9sYWJlbBgDIAEoCRIUCgxjYW5jZWxfbGFiZWwYBCABKAkSEwoLZGVzdHJ1Y3RpdmUYBSABKAgiZQoERm9ybRINCgV0aXRsZRgBIAEoCRIUCgxzdWJtaXRfbGFiZWwYAiABKAkSOAoGZmllbGRzGAMgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5Gb3JtRmllbGRCCLpIBZIBAggBIv0CCglGb3JtRmllbGQSEgoCaWQYASABKAlCBrpIA8gBARIVCgVsYWJlbBgCIAEoCUIGukgDyAEBEhMKC3BsYWNlaG9sZGVyGAMgASgJEhAKCHJlcXVpcmVkGAQgASgIEjIKBHRleHQYBSABKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1UZXh0SW5wdXRIABI2CgZudW1iZXIYBiABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1OdW1iZXJJbnB1dEgAEjYKBnNlbGVjdBgHIAEoCzIkLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVNlbGVjdElucHV0SAASMgoEZGF0ZRgIIAEoCzIiLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybURhdGVJbnB1dEgAEjYKBnRvZ2dsZRgJIAEoCzIkLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVRvZ2dsZUlucHV0SABCDgoFaW5wdXQSBbpIAggBIiIKDUZvcm1UZXh0SW5wdXQSEQoJbXVsdGlsaW5lGAEgASgIIkUKD0Zvcm1OdW1iZXJJbnB1dBIQCgNtaW4YASABKAFIAIgBARIQCgNtYXgYAiABKAFIAYgBAUIGCgRfbWluQgYKBF9tYXgiLAoPRm9ybVNlbGVjdElucHV0EhkKB29wdGlvbnMYASADKAlCCLpIBZIBAggCIiUKDUZvcm1EYXRlSW5wdXQSFAoMaW5jbHVkZV90aW1lGAEgASgIIigKD0Zvcm1Ub2dnbGVJbnB1dBIVCg1kZWZhdWx0X3ZhbHVlGAEgASgIImMKDlJlc291cmNlUGlja2VyEg0KBXRpdGxlGAEgASgJEiwKDnJlc291cmNlX25hbWVzGAIgAygJQhT6QQMKASq6SAuSAQgIASIEcgIQARIUCgxtdWx0aV9zZWxlY3QYAyABKAgiVwoGU2xpZGVyEhUKBWxhYmVsGAEgASgJQga6SAPIAQESCwoDbWluGAIgASgBEgsKA21heBgDIAEoARIcCgRzdGVwGAQgASgBQg66SAsSCSkAAAAAAAAAACKZAQoORGF0ZVRpbWVQaWNrZXISFQoFbGFiZWwYASABKAlCBrpIA8gBARIUCgxpbmNsdWRlX3RpbWUYAiABKAgSLAoIbWluX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCG1heF90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCpjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Buttons the user can press. Each action either navigates to a resource or
@@ -65,6 +67,13 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
   label: string;
 
   /**
+   * How the button is visually emphasized.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 4;
+   */
+  style: ActionStyle;
+
+  /**
    * What pressing the button does.
    *
    * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
@@ -85,6 +94,22 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
      */
     value: string;
     case: "prompt";
+  } | {
+    /**
+     * Copy this text to the user's clipboard.
+     *
+     * @generated from field: string copy_text = 5;
+     */
+    value: string;
+    case: "copyText";
+  } | {
+    /**
+     * Open this http(s) URL externally.
+     *
+     * @generated from field: string open_url = 6;
+     */
+    value: string;
+    case: "openUrl";
   } | { case: undefined; value?: undefined };
 };
 
@@ -102,6 +127,13 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
   label: string;
 
   /**
+   * How the button is visually emphasized.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 4;
+   */
+  style: ActionStyle;
+
+  /**
    * What pressing the button does.
    *
    * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
@@ -122,6 +154,22 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
      */
     value: string;
     case: "prompt";
+  } | {
+    /**
+     * Copy this text to the user's clipboard.
+     *
+     * @generated from field: string copy_text = 5;
+     */
+    value: string;
+    case: "copyText";
+  } | {
+    /**
+     * Open this http(s) URL externally.
+     *
+     * @generated from field: string open_url = 6;
+     */
+    value: string;
+    case: "openUrl";
   } | { case: undefined; value?: undefined };
 };
 
@@ -182,4 +230,770 @@ export type ChoiceValid = Message<"malonaz.ai.genui.v1.Choice"> & {
  */
 export const ChoiceSchema: GenMessage<Choice, {validType: ChoiceValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_genui_v1_interaction, 2);
+
+/**
+ * A question allowing several answers to be selected before submitting,
+ * e.g. "which contacts should I include in the follow-up?".
+ *
+ * @generated from message malonaz.ai.genui.v1.MultiChoice
+ */
+export type MultiChoice = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
+  /**
+   * The question posed to the user.
+   *
+   * @generated from field: string question = 1;
+   */
+  question: string;
+
+  /**
+   * The answers the user may pick from, in display order.
+   *
+   * @generated from field: repeated string options = 2;
+   */
+  options: string[];
+
+  /**
+   * Minimum number of selections required to submit. Defaults to 1.
+   *
+   * @generated from field: int32 min_selections = 3;
+   */
+  minSelections: number;
+
+  /**
+   * Maximum number of selections allowed. 0 means unlimited.
+   *
+   * @generated from field: int32 max_selections = 4;
+   */
+  maxSelections: number;
+};
+
+/**
+ * A question allowing several answers to be selected before submitting,
+ * e.g. "which contacts should I include in the follow-up?".
+ *
+ * @generated from message malonaz.ai.genui.v1.MultiChoice
+ */
+export type MultiChoiceValid = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
+  /**
+   * The question posed to the user.
+   *
+   * @generated from field: string question = 1;
+   */
+  question: string;
+
+  /**
+   * The answers the user may pick from, in display order.
+   *
+   * @generated from field: repeated string options = 2;
+   */
+  options: string[];
+
+  /**
+   * Minimum number of selections required to submit. Defaults to 1.
+   *
+   * @generated from field: int32 min_selections = 3;
+   */
+  minSelections: number;
+
+  /**
+   * Maximum number of selections allowed. 0 means unlimited.
+   *
+   * @generated from field: int32 max_selections = 4;
+   */
+  maxSelections: number;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.MultiChoice.
+ * Use `create(MultiChoiceSchema)` to create a new message.
+ */
+export const MultiChoiceSchema: GenMessage<MultiChoice, {validType: MultiChoiceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 3);
+
+/**
+ * An explicit approve/reject gate for a consequential action (send quote,
+ * delete contact). Unlike an [ActionRow][malonaz.ai.genui.v1.ActionRow],
+ * the answer flows back as a typed [ConfirmationResponse][malonaz.ai.genui.v1.ConfirmationResponse].
+ *
+ * @generated from message malonaz.ai.genui.v1.Confirmation
+ */
+export type Confirmation = Message<"malonaz.ai.genui.v1.Confirmation"> & {
+  /**
+   * Short headline describing the action awaiting approval.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * Optional detail describing the consequences of confirming.
+   *
+   * @generated from field: string description = 2;
+   */
+  description: string;
+
+  /**
+   * Optional label for the confirm button. Defaults to "Confirm".
+   *
+   * @generated from field: string confirm_label = 3;
+   */
+  confirmLabel: string;
+
+  /**
+   * Optional label for the cancel button. Defaults to "Cancel".
+   *
+   * @generated from field: string cancel_label = 4;
+   */
+  cancelLabel: string;
+
+  /**
+   * Whether confirming is destructive or irreversible; clients render
+   * the confirm button accordingly.
+   *
+   * @generated from field: bool destructive = 5;
+   */
+  destructive: boolean;
+};
+
+/**
+ * An explicit approve/reject gate for a consequential action (send quote,
+ * delete contact). Unlike an [ActionRow][malonaz.ai.genui.v1.ActionRow],
+ * the answer flows back as a typed [ConfirmationResponse][malonaz.ai.genui.v1.ConfirmationResponse].
+ *
+ * @generated from message malonaz.ai.genui.v1.Confirmation
+ */
+export type ConfirmationValid = Message<"malonaz.ai.genui.v1.Confirmation"> & {
+  /**
+   * Short headline describing the action awaiting approval.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * Optional detail describing the consequences of confirming.
+   *
+   * @generated from field: string description = 2;
+   */
+  description: string;
+
+  /**
+   * Optional label for the confirm button. Defaults to "Confirm".
+   *
+   * @generated from field: string confirm_label = 3;
+   */
+  confirmLabel: string;
+
+  /**
+   * Optional label for the cancel button. Defaults to "Cancel".
+   *
+   * @generated from field: string cancel_label = 4;
+   */
+  cancelLabel: string;
+
+  /**
+   * Whether confirming is destructive or irreversible; clients render
+   * the confirm button accordingly.
+   *
+   * @generated from field: bool destructive = 5;
+   */
+  destructive: boolean;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Confirmation.
+ * Use `create(ConfirmationSchema)` to create a new message.
+ */
+export const ConfirmationSchema: GenMessage<Confirmation, {validType: ConfirmationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 4);
+
+/**
+ * Structured multi-field input submitted as a single
+ * [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
+ * lead's details in one step instead of a free-text back-and-forth.
+ *
+ * @generated from message malonaz.ai.genui.v1.Form
+ */
+export type Form = Message<"malonaz.ai.genui.v1.Form"> & {
+  /**
+   * Optional heading rendered above the fields.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * Optional label for the submit button. Defaults to "Submit".
+   *
+   * @generated from field: string submit_label = 2;
+   */
+  submitLabel: string;
+
+  /**
+   * The inputs to render, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.FormField fields = 3;
+   */
+  fields: FormField[];
+};
+
+/**
+ * Structured multi-field input submitted as a single
+ * [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
+ * lead's details in one step instead of a free-text back-and-forth.
+ *
+ * @generated from message malonaz.ai.genui.v1.Form
+ */
+export type FormValid = Message<"malonaz.ai.genui.v1.Form"> & {
+  /**
+   * Optional heading rendered above the fields.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * Optional label for the submit button. Defaults to "Submit".
+   *
+   * @generated from field: string submit_label = 2;
+   */
+  submitLabel: string;
+
+  /**
+   * The inputs to render, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.FormField fields = 3;
+   */
+  fields: FormFieldValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Form.
+ * Use `create(FormSchema)` to create a new message.
+ */
+export const FormSchema: GenMessage<Form, {validType: FormValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 5);
+
+/**
+ * A single input within a [Form][malonaz.ai.genui.v1.Form].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormField
+ */
+export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
+  /**
+   * Identifies the field within its form; echoed back in the
+   * [FormFieldValue][malonaz.ai.genui.v1.FormFieldValue].
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * The label naming the input, e.g. "Budget".
+   *
+   * @generated from field: string label = 2;
+   */
+  label: string;
+
+  /**
+   * Optional hint rendered inside the empty input.
+   *
+   * @generated from field: string placeholder = 3;
+   */
+  placeholder: string;
+
+  /**
+   * Whether the field must be filled before submitting.
+   *
+   * @generated from field: bool required = 4;
+   */
+  required: boolean;
+
+  /**
+   * The kind of input to render.
+   *
+   * @generated from oneof malonaz.ai.genui.v1.FormField.input
+   */
+  input: {
+    /**
+     * Free text.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 5;
+     */
+    value: FormTextInput;
+    case: "text";
+  } | {
+    /**
+     * A number, optionally bounded.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 6;
+     */
+    value: FormNumberInput;
+    case: "number";
+  } | {
+    /**
+     * One option from a fixed set.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 7;
+     */
+    value: FormSelectInput;
+    case: "select";
+  } | {
+    /**
+     * A date, optionally with a time of day.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 8;
+     */
+    value: FormDateInput;
+    case: "date";
+  } | {
+    /**
+     * An on/off switch.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 9;
+     */
+    value: FormToggleInput;
+    case: "toggle";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * A single input within a [Form][malonaz.ai.genui.v1.Form].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormField
+ */
+export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
+  /**
+   * Identifies the field within its form; echoed back in the
+   * [FormFieldValue][malonaz.ai.genui.v1.FormFieldValue].
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * The label naming the input, e.g. "Budget".
+   *
+   * @generated from field: string label = 2;
+   */
+  label: string;
+
+  /**
+   * Optional hint rendered inside the empty input.
+   *
+   * @generated from field: string placeholder = 3;
+   */
+  placeholder: string;
+
+  /**
+   * Whether the field must be filled before submitting.
+   *
+   * @generated from field: bool required = 4;
+   */
+  required: boolean;
+
+  /**
+   * The kind of input to render.
+   *
+   * @generated from oneof malonaz.ai.genui.v1.FormField.input
+   */
+  input: {
+    /**
+     * Free text.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 5;
+     */
+    value: FormTextInputValid;
+    case: "text";
+  } | {
+    /**
+     * A number, optionally bounded.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 6;
+     */
+    value: FormNumberInputValid;
+    case: "number";
+  } | {
+    /**
+     * One option from a fixed set.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 7;
+     */
+    value: FormSelectInputValid;
+    case: "select";
+  } | {
+    /**
+     * A date, optionally with a time of day.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 8;
+     */
+    value: FormDateInputValid;
+    case: "date";
+  } | {
+    /**
+     * An on/off switch.
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 9;
+     */
+    value: FormToggleInputValid;
+    case: "toggle";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormField.
+ * Use `create(FormFieldSchema)` to create a new message.
+ */
+export const FormFieldSchema: GenMessage<FormField, {validType: FormFieldValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 6);
+
+/**
+ * A free-text input within a [FormField][malonaz.ai.genui.v1.FormField].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormTextInput
+ */
+export type FormTextInput = Message<"malonaz.ai.genui.v1.FormTextInput"> & {
+  /**
+   * Whether to render a multi-line text area instead of a single line.
+   *
+   * @generated from field: bool multiline = 1;
+   */
+  multiline: boolean;
+};
+
+export type FormTextInputValid = FormTextInput;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormTextInput.
+ * Use `create(FormTextInputSchema)` to create a new message.
+ */
+export const FormTextInputSchema: GenMessage<FormTextInput, {validType: FormTextInputValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 7);
+
+/**
+ * A numeric input within a [FormField][malonaz.ai.genui.v1.FormField].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormNumberInput
+ */
+export type FormNumberInput = Message<"malonaz.ai.genui.v1.FormNumberInput"> & {
+  /**
+   * Optional inclusive lower bound.
+   *
+   * @generated from field: optional double min = 1;
+   */
+  min?: number;
+
+  /**
+   * Optional inclusive upper bound.
+   *
+   * @generated from field: optional double max = 2;
+   */
+  max?: number;
+};
+
+export type FormNumberInputValid = FormNumberInput;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormNumberInput.
+ * Use `create(FormNumberInputSchema)` to create a new message.
+ */
+export const FormNumberInputSchema: GenMessage<FormNumberInput, {validType: FormNumberInputValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 8);
+
+/**
+ * A single-select input within a [FormField][malonaz.ai.genui.v1.FormField].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormSelectInput
+ */
+export type FormSelectInput = Message<"malonaz.ai.genui.v1.FormSelectInput"> & {
+  /**
+   * The options the user may pick from, in display order.
+   *
+   * @generated from field: repeated string options = 1;
+   */
+  options: string[];
+};
+
+export type FormSelectInputValid = FormSelectInput;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormSelectInput.
+ * Use `create(FormSelectInputSchema)` to create a new message.
+ */
+export const FormSelectInputSchema: GenMessage<FormSelectInput, {validType: FormSelectInputValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 9);
+
+/**
+ * A date input within a [FormField][malonaz.ai.genui.v1.FormField].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormDateInput
+ */
+export type FormDateInput = Message<"malonaz.ai.genui.v1.FormDateInput"> & {
+  /**
+   * Whether the user also picks a time of day.
+   *
+   * @generated from field: bool include_time = 1;
+   */
+  includeTime: boolean;
+};
+
+export type FormDateInputValid = FormDateInput;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormDateInput.
+ * Use `create(FormDateInputSchema)` to create a new message.
+ */
+export const FormDateInputSchema: GenMessage<FormDateInput, {validType: FormDateInputValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 10);
+
+/**
+ * An on/off input within a [FormField][malonaz.ai.genui.v1.FormField].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormToggleInput
+ */
+export type FormToggleInput = Message<"malonaz.ai.genui.v1.FormToggleInput"> & {
+  /**
+   * The initial state of the toggle.
+   *
+   * @generated from field: bool default_value = 1;
+   */
+  defaultValue: boolean;
+};
+
+export type FormToggleInputValid = FormToggleInput;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormToggleInput.
+ * Use `create(FormToggleInputSchema)` to create a new message.
+ */
+export const FormToggleInputSchema: GenMessage<FormToggleInput, {validType: FormToggleInputValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 11);
+
+/**
+ * Select one or more resources from a candidate set, e.g. disambiguating
+ * "which John did you mean?". The client renders each candidate using the
+ * same hydration as [ResourceList][malonaz.ai.genui.v1.ResourceList].
+ *
+ * @generated from message malonaz.ai.genui.v1.ResourcePicker
+ */
+export type ResourcePicker = Message<"malonaz.ai.genui.v1.ResourcePicker"> & {
+  /**
+   * Optional heading rendered above the candidates.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * The candidate resources, in display order.
+   *
+   * @generated from field: repeated string resource_names = 2;
+   */
+  resourceNames: string[];
+
+  /**
+   * Whether the user may select more than one candidate.
+   *
+   * @generated from field: bool multi_select = 3;
+   */
+  multiSelect: boolean;
+};
+
+export type ResourcePickerValid = ResourcePicker;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ResourcePicker.
+ * Use `create(ResourcePickerSchema)` to create a new message.
+ */
+export const ResourcePickerSchema: GenMessage<ResourcePicker, {validType: ResourcePickerValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 12);
+
+/**
+ * Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
+ *
+ * @generated from message malonaz.ai.genui.v1.Slider
+ */
+export type Slider = Message<"malonaz.ai.genui.v1.Slider"> & {
+  /**
+   * The label naming the value being picked.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The inclusive lower bound.
+   *
+   * @generated from field: double min = 2;
+   */
+  min: number;
+
+  /**
+   * The inclusive upper bound.
+   *
+   * @generated from field: double max = 3;
+   */
+  max: number;
+
+  /**
+   * The increment between selectable values. 0 means continuous.
+   *
+   * @generated from field: double step = 4;
+   */
+  step: number;
+};
+
+/**
+ * Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
+ *
+ * @generated from message malonaz.ai.genui.v1.Slider
+ */
+export type SliderValid = Message<"malonaz.ai.genui.v1.Slider"> & {
+  /**
+   * The label naming the value being picked.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The inclusive lower bound.
+   *
+   * @generated from field: double min = 2;
+   */
+  min: number;
+
+  /**
+   * The inclusive upper bound.
+   *
+   * @generated from field: double max = 3;
+   */
+  max: number;
+
+  /**
+   * The increment between selectable values. 0 means continuous.
+   *
+   * @generated from field: double step = 4;
+   */
+  step: number;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Slider.
+ * Use `create(SliderSchema)` to create a new message.
+ */
+export const SliderSchema: GenMessage<Slider, {validType: SliderValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 13);
+
+/**
+ * A calendar/clock input, e.g. "when should I schedule the call?".
+ *
+ * @generated from message malonaz.ai.genui.v1.DateTimePicker
+ */
+export type DateTimePicker = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
+  /**
+   * The label naming the moment being picked.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * Whether the user also picks a time of day.
+   *
+   * @generated from field: bool include_time = 2;
+   */
+  includeTime: boolean;
+
+  /**
+   * Optional earliest selectable moment.
+   *
+   * @generated from field: google.protobuf.Timestamp min_time = 3;
+   */
+  minTime?: Timestamp;
+
+  /**
+   * Optional latest selectable moment.
+   *
+   * @generated from field: google.protobuf.Timestamp max_time = 4;
+   */
+  maxTime?: Timestamp;
+};
+
+/**
+ * A calendar/clock input, e.g. "when should I schedule the call?".
+ *
+ * @generated from message malonaz.ai.genui.v1.DateTimePicker
+ */
+export type DateTimePickerValid = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
+  /**
+   * The label naming the moment being picked.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * Whether the user also picks a time of day.
+   *
+   * @generated from field: bool include_time = 2;
+   */
+  includeTime: boolean;
+
+  /**
+   * Optional earliest selectable moment.
+   *
+   * @generated from field: google.protobuf.Timestamp min_time = 3;
+   */
+  minTime?: Timestamp;
+
+  /**
+   * Optional latest selectable moment.
+   *
+   * @generated from field: google.protobuf.Timestamp max_time = 4;
+   */
+  maxTime?: Timestamp;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.DateTimePicker.
+ * Use `create(DateTimePickerSchema)` to create a new message.
+ */
+export const DateTimePickerSchema: GenMessage<DateTimePicker, {validType: DateTimePickerValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 14);
+
+/**
+ * How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
+ * visually emphasized.
+ *
+ * @generated from enum malonaz.ai.genui.v1.ActionStyle
+ */
+export enum ActionStyle {
+  /**
+   * Used to detect an unset field. Rendered as the default style.
+   *
+   * @generated from enum value: ACTION_STYLE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The main call to action; at most one per row.
+   *
+   * @generated from enum value: ACTION_STYLE_PRIMARY = 1;
+   */
+  PRIMARY = 1,
+
+  /**
+   * A destructive or irreversible action.
+   *
+   * @generated from enum value: ACTION_STYLE_DESTRUCTIVE = 2;
+   */
+  DESTRUCTIVE = 2,
+}
+
+/**
+ * Describes the enum malonaz.ai.genui.v1.ActionStyle.
+ */
+export const ActionStyleSchema: GenEnum<ActionStyle> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_interaction, 0);
 

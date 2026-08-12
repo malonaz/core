@@ -148,6 +148,60 @@ func (x *Component) GetTable() *Table {
 	return nil
 }
 
+func (x *Component) GetMultiChoice() *MultiChoice {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_MultiChoice); ok {
+			return x.MultiChoice
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetConfirmation() *Confirmation {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_Confirmation); ok {
+			return x.Confirmation
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetForm() *Form {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_Form); ok {
+			return x.Form
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetResourcePicker() *ResourcePicker {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_ResourcePicker); ok {
+			return x.ResourcePicker
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetSlider() *Slider {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_Slider); ok {
+			return x.Slider
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetDateTimePicker() *DateTimePicker {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_DateTimePicker); ok {
+			return x.DateTimePicker
+		}
+	}
+	return nil
+}
+
 func (x *Component) SetId(v string) {
 	x.xxx_hidden_Id = v
 }
@@ -222,6 +276,54 @@ func (x *Component) SetTable(v *Table) {
 		return
 	}
 	x.xxx_hidden_Component = &component_Table{v}
+}
+
+func (x *Component) SetMultiChoice(v *MultiChoice) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_MultiChoice{v}
+}
+
+func (x *Component) SetConfirmation(v *Confirmation) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_Confirmation{v}
+}
+
+func (x *Component) SetForm(v *Form) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_Form{v}
+}
+
+func (x *Component) SetResourcePicker(v *ResourcePicker) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_ResourcePicker{v}
+}
+
+func (x *Component) SetSlider(v *Slider) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_Slider{v}
+}
+
+func (x *Component) SetDateTimePicker(v *DateTimePicker) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_DateTimePicker{v}
 }
 
 func (x *Component) HasComponent() bool {
@@ -303,6 +405,54 @@ func (x *Component) HasTable() bool {
 	return ok
 }
 
+func (x *Component) HasMultiChoice() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_MultiChoice)
+	return ok
+}
+
+func (x *Component) HasConfirmation() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_Confirmation)
+	return ok
+}
+
+func (x *Component) HasForm() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_Form)
+	return ok
+}
+
+func (x *Component) HasResourcePicker() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_ResourcePicker)
+	return ok
+}
+
+func (x *Component) HasSlider() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_Slider)
+	return ok
+}
+
+func (x *Component) HasDateTimePicker() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_DateTimePicker)
+	return ok
+}
+
 func (x *Component) ClearComponent() {
 	x.xxx_hidden_Component = nil
 }
@@ -361,6 +511,42 @@ func (x *Component) ClearTable() {
 	}
 }
 
+func (x *Component) ClearMultiChoice() {
+	if _, ok := x.xxx_hidden_Component.(*component_MultiChoice); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearConfirmation() {
+	if _, ok := x.xxx_hidden_Component.(*component_Confirmation); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearForm() {
+	if _, ok := x.xxx_hidden_Component.(*component_Form); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearResourcePicker() {
+	if _, ok := x.xxx_hidden_Component.(*component_ResourcePicker); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearSlider() {
+	if _, ok := x.xxx_hidden_Component.(*component_Slider); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearDateTimePicker() {
+	if _, ok := x.xxx_hidden_Component.(*component_DateTimePicker); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
 const Component_Component_not_set_case case_Component_Component = 0
 const Component_Text_case case_Component_Component = 2
 const Component_KeyValueList_case case_Component_Component = 3
@@ -371,6 +557,12 @@ const Component_ResourceList_case case_Component_Component = 7
 const Component_ActionRow_case case_Component_Component = 8
 const Component_Choice_case case_Component_Component = 9
 const Component_Table_case case_Component_Component = 10
+const Component_MultiChoice_case case_Component_Component = 11
+const Component_Confirmation_case case_Component_Component = 12
+const Component_Form_case case_Component_Component = 13
+const Component_ResourcePicker_case case_Component_Component = 14
+const Component_Slider_case case_Component_Component = 15
+const Component_DateTimePicker_case case_Component_Component = 16
 
 func (x *Component) WhichComponent() case_Component_Component {
 	if x == nil {
@@ -395,6 +587,18 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_Choice_case
 	case *component_Table:
 		return Component_Table_case
+	case *component_MultiChoice:
+		return Component_MultiChoice_case
+	case *component_Confirmation:
+		return Component_Confirmation_case
+	case *component_Form:
+		return Component_Form_case
+	case *component_ResourcePicker:
+		return Component_ResourcePicker_case
+	case *component_Slider:
+		return Component_Slider_case
+	case *component_DateTimePicker:
+		return Component_DateTimePicker_case
 	default:
 		return Component_Component_not_set_case
 	}
@@ -427,6 +631,18 @@ type Component_builder struct {
 	Choice *Choice
 	// Tabular data.
 	Table *Table
+	// A question allowing several answers.
+	MultiChoice *MultiChoice
+	// An approve/reject gate for a consequential action.
+	Confirmation *Confirmation
+	// Structured multi-field input.
+	Form *Form
+	// Select one or more resources from candidates.
+	ResourcePicker *ResourcePicker
+	// Bounded numeric input.
+	Slider *Slider
+	// A calendar/clock input.
+	DateTimePicker *DateTimePicker
 	// -- end of xxx_hidden_Component
 }
 
@@ -461,6 +677,24 @@ func (b0 Component_builder) Build() *Component {
 	}
 	if b.Table != nil {
 		x.xxx_hidden_Component = &component_Table{b.Table}
+	}
+	if b.MultiChoice != nil {
+		x.xxx_hidden_Component = &component_MultiChoice{b.MultiChoice}
+	}
+	if b.Confirmation != nil {
+		x.xxx_hidden_Component = &component_Confirmation{b.Confirmation}
+	}
+	if b.Form != nil {
+		x.xxx_hidden_Component = &component_Form{b.Form}
+	}
+	if b.ResourcePicker != nil {
+		x.xxx_hidden_Component = &component_ResourcePicker{b.ResourcePicker}
+	}
+	if b.Slider != nil {
+		x.xxx_hidden_Component = &component_Slider{b.Slider}
+	}
+	if b.DateTimePicker != nil {
+		x.xxx_hidden_Component = &component_DateTimePicker{b.DateTimePicker}
 	}
 	return m0
 }
@@ -524,6 +758,36 @@ type component_Table struct {
 	Table *Table `protobuf:"bytes,10,opt,name=table,proto3,oneof"`
 }
 
+type component_MultiChoice struct {
+	// A question allowing several answers.
+	MultiChoice *MultiChoice `protobuf:"bytes,11,opt,name=multi_choice,json=multiChoice,proto3,oneof"`
+}
+
+type component_Confirmation struct {
+	// An approve/reject gate for a consequential action.
+	Confirmation *Confirmation `protobuf:"bytes,12,opt,name=confirmation,proto3,oneof"`
+}
+
+type component_Form struct {
+	// Structured multi-field input.
+	Form *Form `protobuf:"bytes,13,opt,name=form,proto3,oneof"`
+}
+
+type component_ResourcePicker struct {
+	// Select one or more resources from candidates.
+	ResourcePicker *ResourcePicker `protobuf:"bytes,14,opt,name=resource_picker,json=resourcePicker,proto3,oneof"`
+}
+
+type component_Slider struct {
+	// Bounded numeric input.
+	Slider *Slider `protobuf:"bytes,15,opt,name=slider,proto3,oneof"`
+}
+
+type component_DateTimePicker struct {
+	// A calendar/clock input.
+	DateTimePicker *DateTimePicker `protobuf:"bytes,16,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
+}
+
 func (*component_Text) isComponent_Component() {}
 
 func (*component_KeyValueList) isComponent_Component() {}
@@ -542,11 +806,23 @@ func (*component_Choice) isComponent_Component() {}
 
 func (*component_Table) isComponent_Component() {}
 
+func (*component_MultiChoice) isComponent_Component() {}
+
+func (*component_Confirmation) isComponent_Component() {}
+
+func (*component_Form) isComponent_Component() {}
+
+func (*component_ResourcePicker) isComponent_Component() {}
+
+func (*component_Slider) isComponent_Component() {}
+
+func (*component_DateTimePicker) isComponent_Component() {}
+
 var File_malonaz_ai_genui_v1_component_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xe4\x04\n" +
+	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xfd\a\n" +
 	"\tComponent\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12/\n" +
 	"\x04text\x18\x02 \x01(\v2\x19.malonaz.ai.genui.v1.TextH\x00R\x04text\x12I\n" +
@@ -559,37 +835,55 @@ const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"action_row\x18\b \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
 	"\x06choice\x18\t \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x122\n" +
 	"\x05table\x18\n" +
-	" \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05tableB\x12\n" +
+	" \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05table\x12E\n" +
+	"\fmulti_choice\x18\v \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
+	"\fconfirmation\x18\f \x01(\v2!.malonaz.ai.genui.v1.ConfirmationH\x00R\fconfirmation\x12/\n" +
+	"\x04form\x18\r \x01(\v2\x19.malonaz.ai.genui.v1.FormH\x00R\x04form\x12N\n" +
+	"\x0fresource_picker\x18\x0e \x01(\v2#.malonaz.ai.genui.v1.ResourcePickerH\x00R\x0eresourcePicker\x125\n" +
+	"\x06slider\x18\x0f \x01(\v2\x1b.malonaz.ai.genui.v1.SliderH\x00R\x06slider\x12O\n" +
+	"\x10date_time_picker\x18\x10 \x01(\v2#.malonaz.ai.genui.v1.DateTimePickerH\x00R\x0edateTimePickerB\x12\n" +
 	"\tcomponent\x12\x05\xbaH\x02\b\x01B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
 var file_malonaz_ai_genui_v1_component_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_ai_genui_v1_component_proto_goTypes = []any{
-	(*Component)(nil),    // 0: malonaz.ai.genui.v1.Component
-	(*Text)(nil),         // 1: malonaz.ai.genui.v1.Text
-	(*KeyValueList)(nil), // 2: malonaz.ai.genui.v1.KeyValueList
-	(*Timeline)(nil),     // 3: malonaz.ai.genui.v1.Timeline
-	(*Chart)(nil),        // 4: malonaz.ai.genui.v1.Chart
-	(*ResourceCard)(nil), // 5: malonaz.ai.genui.v1.ResourceCard
-	(*ResourceList)(nil), // 6: malonaz.ai.genui.v1.ResourceList
-	(*ActionRow)(nil),    // 7: malonaz.ai.genui.v1.ActionRow
-	(*Choice)(nil),       // 8: malonaz.ai.genui.v1.Choice
-	(*Table)(nil),        // 9: malonaz.ai.genui.v1.Table
+	(*Component)(nil),      // 0: malonaz.ai.genui.v1.Component
+	(*Text)(nil),           // 1: malonaz.ai.genui.v1.Text
+	(*KeyValueList)(nil),   // 2: malonaz.ai.genui.v1.KeyValueList
+	(*Timeline)(nil),       // 3: malonaz.ai.genui.v1.Timeline
+	(*Chart)(nil),          // 4: malonaz.ai.genui.v1.Chart
+	(*ResourceCard)(nil),   // 5: malonaz.ai.genui.v1.ResourceCard
+	(*ResourceList)(nil),   // 6: malonaz.ai.genui.v1.ResourceList
+	(*ActionRow)(nil),      // 7: malonaz.ai.genui.v1.ActionRow
+	(*Choice)(nil),         // 8: malonaz.ai.genui.v1.Choice
+	(*Table)(nil),          // 9: malonaz.ai.genui.v1.Table
+	(*MultiChoice)(nil),    // 10: malonaz.ai.genui.v1.MultiChoice
+	(*Confirmation)(nil),   // 11: malonaz.ai.genui.v1.Confirmation
+	(*Form)(nil),           // 12: malonaz.ai.genui.v1.Form
+	(*ResourcePicker)(nil), // 13: malonaz.ai.genui.v1.ResourcePicker
+	(*Slider)(nil),         // 14: malonaz.ai.genui.v1.Slider
+	(*DateTimePicker)(nil), // 15: malonaz.ai.genui.v1.DateTimePicker
 }
 var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
-	1, // 0: malonaz.ai.genui.v1.Component.text:type_name -> malonaz.ai.genui.v1.Text
-	2, // 1: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
-	3, // 2: malonaz.ai.genui.v1.Component.timeline:type_name -> malonaz.ai.genui.v1.Timeline
-	4, // 3: malonaz.ai.genui.v1.Component.chart:type_name -> malonaz.ai.genui.v1.Chart
-	5, // 4: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
-	6, // 5: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
-	7, // 6: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
-	8, // 7: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
-	9, // 8: malonaz.ai.genui.v1.Component.table:type_name -> malonaz.ai.genui.v1.Table
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	1,  // 0: malonaz.ai.genui.v1.Component.text:type_name -> malonaz.ai.genui.v1.Text
+	2,  // 1: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
+	3,  // 2: malonaz.ai.genui.v1.Component.timeline:type_name -> malonaz.ai.genui.v1.Timeline
+	4,  // 3: malonaz.ai.genui.v1.Component.chart:type_name -> malonaz.ai.genui.v1.Chart
+	5,  // 4: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
+	6,  // 5: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
+	7,  // 6: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
+	8,  // 7: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
+	9,  // 8: malonaz.ai.genui.v1.Component.table:type_name -> malonaz.ai.genui.v1.Table
+	10, // 9: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
+	11, // 10: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
+	12, // 11: malonaz.ai.genui.v1.Component.form:type_name -> malonaz.ai.genui.v1.Form
+	13, // 12: malonaz.ai.genui.v1.Component.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePicker
+	14, // 13: malonaz.ai.genui.v1.Component.slider:type_name -> malonaz.ai.genui.v1.Slider
+	15, // 14: malonaz.ai.genui.v1.Component.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePicker
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_component_proto_init() }
@@ -610,6 +904,12 @@ func file_malonaz_ai_genui_v1_component_proto_init() {
 		(*component_ActionRow)(nil),
 		(*component_Choice)(nil),
 		(*component_Table)(nil),
+		(*component_MultiChoice)(nil),
+		(*component_Confirmation)(nil),
+		(*component_Form)(nil),
+		(*component_ResourcePicker)(nil),
+		(*component_Slider)(nil),
+		(*component_DateTimePicker)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
