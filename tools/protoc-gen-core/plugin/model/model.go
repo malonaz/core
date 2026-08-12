@@ -713,6 +713,9 @@ func (m *Model) fromPbFieldValue(field *protogen.Field, fieldOpts *modelpb.Field
 	if fieldOpts.GetEmbed() {
 		return goName
 	}
+	if protofield.IsDecimal(field) {
+		return goName
+	}
 	if nullable {
 		return goName
 	}
