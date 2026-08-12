@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
@@ -86,6 +87,12 @@ message User {
 
   // User metadata.
   UserMetadata metadata = 10 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+
+  // The account balance of the user.
+  google.type.Decimal balance = 11;
+
+  // The credit limit of the user, if any.
+  google.type.Decimal credit_limit = 12 [(malonaz.codegen.model.v1.field_opts).nullable = true];
 }
 
 // Metadata for a user.

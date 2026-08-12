@@ -9,7 +9,9 @@ go_library(
     deps = [
         "//go/pbutil",
         "//malonaz/test/user/v1",
+        "//third_party/go:github.com__shopspring__decimal",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__type__decimal",
     ],
 )

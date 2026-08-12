@@ -26,12 +26,13 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
+from google.type import decimal_pb2 as google_dot_type_dot_decimal__pb2
 from malonaz.canonicalize.v1 import canonicalize_pb2 as malonaz_dot_canonicalize_dot_v1_dot_canonicalize__pb2
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 from malonaz.codegen.nats.v1 import nats_pb2 as malonaz_dot_codegen_dot_nats_dot_v1_dot_nats__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb4\x06\n\x04User\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12 \n\x0c\x64isplay_name\x18\x05 \x01(\tB\n\xbaH\x07r\x05\x10\x01\x18\x80\x02\x12$\n\remail_address\x18\x06 \x01(\tB\r\xbaH\x04r\x02`\x01\x82\xb5\x18\x02\x08\x01\x12\x36\n\x0cphone_number\x18\x07 \x01(\tB \xba\xea\x0f\x16\n\x14phone_number_renamed\x82\xb5\x18\x02\x10\x01\x12\xcc\x01\n\x06labels\x18\x08 \x03(\x0b\x32&.malonaz.test.user.v1.User.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x0c\n\x04\x65tag\x18\t \x01(\t\x12<\n\x08metadata\x18\n \x01(\x0b\x32\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xa6\x01\xea\x41T\n\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04user\xd2\xa6\x04\x0b\x12\x05user_\x1a\x02id\x8a\x91$<\n\x19malonaz.test.user.v1.user\x1a\t\n\x07\x63reated\"\t\n\x07updated*\t\n\x07\x64\x65leted\"<\n\x0cUserMetadata\x12\x1a\n\x12preferred_language\x18\x01 \x01(\t\x12\x10\n\x08timezone\x18\x02 \x01(\tB/Z-github.com/malonaz/core/genproto/test/user/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x8f\x07\n\x04User\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12 \n\x0c\x64isplay_name\x18\x05 \x01(\tB\n\xbaH\x07r\x05\x10\x01\x18\x80\x02\x12$\n\remail_address\x18\x06 \x01(\tB\r\xbaH\x04r\x02`\x01\x82\xb5\x18\x02\x08\x01\x12\x36\n\x0cphone_number\x18\x07 \x01(\tB \xba\xea\x0f\x16\n\x14phone_number_renamed\x82\xb5\x18\x02\x10\x01\x12\xcc\x01\n\x06labels\x18\x08 \x03(\x0b\x32&.malonaz.test.user.v1.User.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x0c\n\x04\x65tag\x18\t \x01(\t\x12<\n\x08metadata\x18\n \x01(\x0b\x32\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01\x12%\n\x07\x62\x61lance\x18\x0b \x01(\x0b\x32\x14.google.type.Decimal\x12\x32\n\x0c\x63redit_limit\x18\x0c \x01(\x0b\x32\x14.google.type.DecimalB\x06\xba\xea\x0f\x02 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xa6\x01\xea\x41T\n\x1auser.test.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04user\xd2\xa6\x04\x0b\x12\x05user_\x1a\x02id\x8a\x91$<\n\x19malonaz.test.user.v1.user\x1a\t\n\x07\x63reated\"\t\n\x07updated*\t\n\x07\x64\x65leted\"<\n\x0cUserMetadata\x12\x1a\n\x12preferred_language\x18\x01 \x01(\t\x12\x10\n\x08timezone\x18\x02 \x01(\tB/Z-github.com/malonaz/core/genproto/test/user/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -59,12 +60,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_USER'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$\272\352\017\004\020\001 \001'
   _globals['_USER'].fields_by_name['metadata']._loaded_options = None
   _globals['_USER'].fields_by_name['metadata']._serialized_options = b'\272\352\017\002\020\001'
+  _globals['_USER'].fields_by_name['credit_limit']._loaded_options = None
+  _globals['_USER'].fields_by_name['credit_limit']._serialized_options = b'\272\352\017\002 \001'
   _globals['_USER']._loaded_options = None
   _globals['_USER']._serialized_options = b'\352AT\n\032user.test.malonaz.com/User\022)organizations/{organization}/users/{user}*\005users2\004user\322\246\004\013\022\005user_\032\002id\212\221$<\n\031malonaz.test.user.v1.user\032\t\n\007created\"\t\n\007updated*\t\n\007deleted'
-  _globals['_USER']._serialized_start=298
-  _globals['_USER']._serialized_end=1118
-  _globals['_USER_LABELSENTRY']._serialized_start=904
-  _globals['_USER_LABELSENTRY']._serialized_end=949
-  _globals['_USERMETADATA']._serialized_start=1120
-  _globals['_USERMETADATA']._serialized_end=1180
+  _globals['_USER']._serialized_start=325
+  _globals['_USER']._serialized_end=1236
+  _globals['_USER_LABELSENTRY']._serialized_start=1022
+  _globals['_USER_LABELSENTRY']._serialized_end=1067
+  _globals['_USERMETADATA']._serialized_start=1238
+  _globals['_USERMETADATA']._serialized_end=1298
 # @@protoc_insertion_point(module_scope)

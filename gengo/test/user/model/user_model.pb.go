@@ -8,7 +8,9 @@ import (
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/test/user/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	decimal "github.com/shopspring/decimal"
 	resourcename "go.einride.tech/aip/resourcename"
+	decimal1 "google.golang.org/genproto/googleapis/type/decimal"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -19,17 +21,19 @@ var ErrUserAlreadyDeleted = errors.New("user already deleted")
 var ErrUserETagChanged = errors.New("user etag changed")
 
 type User struct {
-	OrganizationID string     `db:"organization_id" schema:"public" table:"user_"`
-	UserID         string     `db:"id" schema:"public" table:"user_"`
-	CreateTime     time.Time  `db:"create_time" schema:"public" table:"user_"`
-	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"user_"`
-	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"user_"`
-	DisplayName    string     `db:"display_name" schema:"public" table:"user_"`
-	EmailAddress   string     `db:"email_address" schema:"public" table:"user_"`
-	PhoneNumber    string     `db:"phone_number_renamed" schema:"public" table:"user_"`
-	Labels         []byte     `db:"labels" schema:"public" table:"user_"`
-	Etag           string     `db:"etag" schema:"public" table:"user_"`
-	Metadata       []byte     `db:"metadata" schema:"public" table:"user_"`
+	OrganizationID string           `db:"organization_id" schema:"public" table:"user_"`
+	UserID         string           `db:"id" schema:"public" table:"user_"`
+	CreateTime     time.Time        `db:"create_time" schema:"public" table:"user_"`
+	UpdateTime     time.Time        `db:"update_time" schema:"public" table:"user_"`
+	DeleteTime     *time.Time       `db:"delete_time" schema:"public" table:"user_"`
+	DisplayName    string           `db:"display_name" schema:"public" table:"user_"`
+	EmailAddress   string           `db:"email_address" schema:"public" table:"user_"`
+	PhoneNumber    string           `db:"phone_number_renamed" schema:"public" table:"user_"`
+	Labels         []byte           `db:"labels" schema:"public" table:"user_"`
+	Etag           string           `db:"etag" schema:"public" table:"user_"`
+	Metadata       []byte           `db:"metadata" schema:"public" table:"user_"`
+	Balance        decimal.Decimal  `db:"balance" schema:"public" table:"user_"`
+	CreditLimit    *decimal.Decimal `db:"credit_limit" schema:"public" table:"user_"`
 }
 
 func UserFromPb(m *v1.User) (*User, error) {
@@ -71,6 +75,22 @@ func UserFromPb(m *v1.User) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Metadata: %w", err)
 	}
+	var Balance decimal.Decimal
+	if m.Balance != nil {
+		parsed, err := decimal.NewFromString(m.Balance.GetValue())
+		if err != nil {
+			return nil, fmt.Errorf("parsing decimal balance: %w", err)
+		}
+		Balance = parsed
+	}
+	var CreditLimit *decimal.Decimal
+	if m.CreditLimit != nil {
+		d, err := decimal.NewFromString(m.CreditLimit.GetValue())
+		if err != nil {
+			return nil, fmt.Errorf("parsing decimal credit_limit: %w", err)
+		}
+		CreditLimit = &d
+	}
 	return &User{
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
@@ -83,6 +103,8 @@ func UserFromPb(m *v1.User) (*User, error) {
 		Labels:         LabelsBytes,
 		Etag:           m.Etag,
 		Metadata:       MetadataBytes,
+		Balance:        Balance,
+		CreditLimit:    CreditLimit,
 	}, nil
 }
 
@@ -115,6 +137,12 @@ func (m *User) ToPb() (*v1.User, error) {
 	if err := pbutil.JSONUnmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
 	}
+	var Balance *decimal1.Decimal
+	Balance = &decimal1.Decimal{Value: m.Balance.String()}
+	var CreditLimit *decimal1.Decimal
+	if m.CreditLimit != nil {
+		CreditLimit = &decimal1.Decimal{Value: m.CreditLimit.String()}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}", m.OrganizationID, m.UserID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -130,6 +158,8 @@ func (m *User) ToPb() (*v1.User, error) {
 		Labels:       Labels,
 		Etag:         m.Etag,
 		Metadata:     Metadata,
+		Balance:      Balance,
+		CreditLimit:  CreditLimit,
 	}, nil
 }
 

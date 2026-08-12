@@ -339,7 +339,7 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 	case decimalFullName:
 		s, ok := val.(string)
 		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected string for Money, got %T", val)
+			return protoreflect.Value{}, fmt.Errorf("expected string for Decimal, got %T", val)
 		}
 		dec := &decimal.Decimal{Value: s}
 		return protoreflect.ValueOfMessage(dec.ProtoReflect()), nil

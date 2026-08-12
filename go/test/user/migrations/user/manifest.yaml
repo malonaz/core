@@ -1,3 +1,5 @@
 migrations:
   - filename: 001_init.sql
     hash: e4e12ff7fdc9647824cddc489cc20489
+  - filename: 002_add_user_decimals.sql
+    hash: 628aafa117ccf100cba688995ec74b30

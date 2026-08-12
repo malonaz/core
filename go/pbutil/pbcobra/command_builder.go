@@ -303,6 +303,10 @@ func (b *CommandBuilder) addFlagWithPrefix(
 			return nil
 		case decimalFullName:
 			cmd.Flags().String(name, "", help+" (eg. 10.25)")
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
+			return nil
 		case durationFullName:
 			cmd.Flags().String(name, "", help+" (Format: Go duration, e.g. 1h30m)")
 			if isRequired {

@@ -694,10 +694,16 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 		fmt.Fprintf(&b, "\t}\n")
 	}
 
+	// An unset non-nullable decimal is a nil message, which parses as "". Leave
+	// it at the zero value, matching how non-nullable scalars behave.
 	if protofield.IsDecimal(field) {
-		fmt.Fprintf(&b, "\t%s, err := %s(m.%s.GetValue())\n", goName, m.fqn(decimalPkg, "NewFromString"), goName)
-		fmt.Fprintf(&b, "\tif err != nil {\n")
-		fmt.Fprintf(&b, "\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+		fmt.Fprintf(&b, "\tvar %s %s\n", goName, m.fqn(decimalPkg, "Decimal"))
+		fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
+		fmt.Fprintf(&b, "\t\tparsed, err := %s(m.%s.GetValue())\n", m.fqn(decimalPkg, "NewFromString"), goName)
+		fmt.Fprintf(&b, "\t\tif err != nil {\n")
+		fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+		fmt.Fprintf(&b, "\t\t}\n")
+		fmt.Fprintf(&b, "\t\t%s = parsed\n", goName)
 		fmt.Fprintf(&b, "\t}\n")
 	}
 

@@ -813,7 +813,7 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 					}
 				case "google.type.Decimal":
 					if !hasDecimal {
-						examples = append(examples, fmt.Sprintf(`%s > "10.25"`, name))
+						examples = append(examples, fmt.Sprintf(`%s > 10.25`, name))
 						hasDecimal = true
 					}
 				}

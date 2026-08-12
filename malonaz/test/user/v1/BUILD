@@ -31,6 +31,7 @@ proto_library(
         "//malonaz/codegen/nats/v1",
         "//malonaz/grpc/v1",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__type__decimal",
         "//third_party/proto:validate",
     ],
 )
