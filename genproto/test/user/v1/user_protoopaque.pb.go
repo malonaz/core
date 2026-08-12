@@ -14,6 +14,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	decimal "google.golang.org/genproto/googleapis/type/decimal"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -41,6 +42,8 @@ type User struct {
 	xxx_hidden_Labels       map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Etag         string                 `protobuf:"bytes,9,opt,name=etag,proto3"`
 	xxx_hidden_Metadata     *UserMetadata          `protobuf:"bytes,10,opt,name=metadata,proto3"`
+	xxx_hidden_Balance      *decimal.Decimal       `protobuf:"bytes,11,opt,name=balance,proto3"`
+	xxx_hidden_CreditLimit  *decimal.Decimal       `protobuf:"bytes,12,opt,name=credit_limit,json=creditLimit,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -140,6 +143,20 @@ func (x *User) GetMetadata() *UserMetadata {
 	return nil
 }
 
+func (x *User) GetBalance() *decimal.Decimal {
+	if x != nil {
+		return x.xxx_hidden_Balance
+	}
+	return nil
+}
+
+func (x *User) GetCreditLimit() *decimal.Decimal {
+	if x != nil {
+		return x.xxx_hidden_CreditLimit
+	}
+	return nil
+}
+
 func (x *User) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -180,6 +197,14 @@ func (x *User) SetMetadata(v *UserMetadata) {
 	x.xxx_hidden_Metadata = v
 }
 
+func (x *User) SetBalance(v *decimal.Decimal) {
+	x.xxx_hidden_Balance = v
+}
+
+func (x *User) SetCreditLimit(v *decimal.Decimal) {
+	x.xxx_hidden_CreditLimit = v
+}
+
 func (x *User) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -208,6 +233,20 @@ func (x *User) HasMetadata() bool {
 	return x.xxx_hidden_Metadata != nil
 }
 
+func (x *User) HasBalance() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Balance != nil
+}
+
+func (x *User) HasCreditLimit() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_CreditLimit != nil
+}
+
 func (x *User) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
 }
@@ -222,6 +261,14 @@ func (x *User) ClearDeleteTime() {
 
 func (x *User) ClearMetadata() {
 	x.xxx_hidden_Metadata = nil
+}
+
+func (x *User) ClearBalance() {
+	x.xxx_hidden_Balance = nil
+}
+
+func (x *User) ClearCreditLimit() {
+	x.xxx_hidden_CreditLimit = nil
 }
 
 type User_builder struct {
@@ -248,6 +295,10 @@ type User_builder struct {
 	Etag string
 	// User metadata.
 	Metadata *UserMetadata
+	// The account balance of the user.
+	Balance *decimal.Decimal
+	// The credit limit of the user, if any.
+	CreditLimit *decimal.Decimal
 }
 
 func (b0 User_builder) Build() *User {
@@ -264,6 +315,8 @@ func (b0 User_builder) Build() *User {
 	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Balance = b.Balance
+	x.xxx_hidden_CreditLimit = b.CreditLimit
 	return m0
 }
 
@@ -345,7 +398,7 @@ var File_malonaz_test_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xaa\a\n" +
+	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9b\b\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -362,7 +415,9 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\x06labels\x18\b \x03(\v2&.malonaz.test.user.v1.User.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
 	"\x04etag\x18\t \x01(\tR\x04etag\x12F\n" +
 	"\bmetadata\x18\n" +
-	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x12.\n" +
+	"\abalance\x18\v \x01(\v2\x14.google.type.DecimalR\abalance\x12?\n" +
+	"\fcredit_limit\x18\f \x01(\v2\x14.google.type.DecimalB\x06\xba\xea\x0f\x02 \x01R\vcreditLimit\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa6\x01\xeaAT\n" +
@@ -381,6 +436,7 @@ var file_malonaz_test_user_v1_user_proto_goTypes = []any{
 	(*UserMetadata)(nil),          // 1: malonaz.test.user.v1.UserMetadata
 	nil,                           // 2: malonaz.test.user.v1.User.LabelsEntry
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*decimal.Decimal)(nil),       // 4: google.type.Decimal
 }
 var file_malonaz_test_user_v1_user_proto_depIdxs = []int32{
 	3, // 0: malonaz.test.user.v1.User.create_time:type_name -> google.protobuf.Timestamp
@@ -388,11 +444,13 @@ var file_malonaz_test_user_v1_user_proto_depIdxs = []int32{
 	3, // 2: malonaz.test.user.v1.User.delete_time:type_name -> google.protobuf.Timestamp
 	2, // 3: malonaz.test.user.v1.User.labels:type_name -> malonaz.test.user.v1.User.LabelsEntry
 	1, // 4: malonaz.test.user.v1.User.metadata:type_name -> malonaz.test.user.v1.UserMetadata
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4, // 5: malonaz.test.user.v1.User.balance:type_name -> google.type.Decimal
+	4, // 6: malonaz.test.user.v1.User.credit_limit:type_name -> google.type.Decimal
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_user_v1_user_proto_init() }

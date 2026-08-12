@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../google/api/field_beh
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Decimal } from "../../../../google/type/decimal_pb";
+import { file_google_type_decimal } from "../../../../google/type/decimal_pb";
 import { file_malonaz_canonicalize_v1_canonicalize } from "../../../canonicalize/v1/canonicalize_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import { file_malonaz_codegen_nats_v1_nats } from "../../../codegen/nats/v1/nats_pb";
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/user/v1/user.proto.
  */
 export const file_malonaz_test_user_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L3Rlc3QvdXNlci92MS91c2VyLnByb3RvEhRtYWxvbmF6LnRlc3QudXNlci52MSK0BgoEVXNlchIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESIAoMZGlzcGxheV9uYW1lGAUgASgJQgq6SAdyBRABGIACEiQKDWVtYWlsX2FkZHJlc3MYBiABKAlCDbpIBHICYAGCtRgCCAESNgoMcGhvbmVfbnVtYmVyGAcgASgJQiC66g8WChRwaG9uZV9udW1iZXJfcmVuYW1lZIK1GAIQARLMAQoGbGFiZWxzGAggAygLMiYubWFsb25hei50ZXN0LnVzZXIudjEuVXNlci5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIMCgRldGFnGAkgASgJEjwKCG1ldGFkYXRhGAogASgLMiIubWFsb25hei50ZXN0LnVzZXIudjEuVXNlck1ldGFkYXRhQga66g8CEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqmAepBVAoadXNlci50ZXN0Lm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlctKmBAsSBXVzZXJfGgJpZIqRJDwKGW1hbG9uYXoudGVzdC51c2VyLnYxLnVzZXIaCQoHY3JlYXRlZCIJCgd1cGRhdGVkKgkKB2RlbGV0ZWQiPAoMVXNlck1ldGFkYXRhEhoKEnByZWZlcnJlZF9sYW5ndWFnZRgBIAEoCRIQCgh0aW1lem9uZRgCIAEoCUIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3VzZXIvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("Ch9tYWxvbmF6L3Rlc3QvdXNlci92MS91c2VyLnByb3RvEhRtYWxvbmF6LnRlc3QudXNlci52MSKPBwoEVXNlchIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESIAoMZGlzcGxheV9uYW1lGAUgASgJQgq6SAdyBRABGIACEiQKDWVtYWlsX2FkZHJlc3MYBiABKAlCDbpIBHICYAGCtRgCCAESNgoMcGhvbmVfbnVtYmVyGAcgASgJQiC66g8WChRwaG9uZV9udW1iZXJfcmVuYW1lZIK1GAIQARLMAQoGbGFiZWxzGAggAygLMiYubWFsb25hei50ZXN0LnVzZXIudjEuVXNlci5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIMCgRldGFnGAkgASgJEjwKCG1ldGFkYXRhGAogASgLMiIubWFsb25hei50ZXN0LnVzZXIudjEuVXNlck1ldGFkYXRhQga66g8CEAESJQoHYmFsYW5jZRgLIAEoCzIULmdvb2dsZS50eXBlLkRlY2ltYWwSMgoMY3JlZGl0X2xpbWl0GAwgASgLMhQuZ29vZ2xlLnR5cGUuRGVjaW1hbEIGuuoPAiABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6pgHqQVQKGnVzZXIudGVzdC5tYWxvbmF6LmNvbS9Vc2VyEilvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfSoFdXNlcnMyBHVzZXLSpgQLEgV1c2VyXxoCaWSKkSQ8ChltYWxvbmF6LnRlc3QudXNlci52MS51c2VyGgkKB2NyZWF0ZWQiCQoHdXBkYXRlZCoJCgdkZWxldGVkIjwKDFVzZXJNZXRhZGF0YRIaChJwcmVmZXJyZWRfbGFuZ3VhZ2UYASABKAkSEAoIdGltZXpvbmUYAiABKAlCL1otZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC91c2VyL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_type_decimal, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * User represents a user within an organization.
@@ -96,6 +98,20 @@ export type User = Message<"malonaz.test.user.v1.User"> & {
    * @generated from field: malonaz.test.user.v1.UserMetadata metadata = 10;
    */
   metadata?: UserMetadata;
+
+  /**
+   * The account balance of the user.
+   *
+   * @generated from field: google.type.Decimal balance = 11;
+   */
+  balance?: Decimal;
+
+  /**
+   * The credit limit of the user, if any.
+   *
+   * @generated from field: google.type.Decimal credit_limit = 12;
+   */
+  creditLimit?: Decimal;
 };
 
 export type UserValid = User;

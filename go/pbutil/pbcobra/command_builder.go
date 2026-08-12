@@ -10,6 +10,7 @@ import (
 	"github.com/huandu/xstrings"
 	"github.com/spf13/cobra"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/genproto/googleapis/type/decimal"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -30,6 +31,7 @@ const (
 
 var (
 	timestampFullName = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	decimalFullName   = (&decimal.Decimal{}).ProtoReflect().Descriptor().FullName()
 	durationFullName  = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
 	fieldMaskFullName = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 
@@ -299,6 +301,12 @@ func (b *CommandBuilder) addFlagWithPrefix(
 				cmd.MarkFlagRequired(name)
 			}
 			return nil
+		case decimalFullName:
+			cmd.Flags().String(name, "", help+" (eg. 10.25)")
+			if isRequired {
+				cmd.MarkFlagRequired(name)
+			}
+			return nil
 		case durationFullName:
 			cmd.Flags().String(name, "", help+" (Format: Go duration, e.g. 1h30m)")
 			if isRequired {
@@ -414,6 +422,21 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 			nested := msg.Mutable(field).Message()
 			nested.Set(nested.Descriptor().Fields().ByName("seconds"), protoreflect.ValueOfInt64(ts.Seconds))
 			nested.Set(nested.Descriptor().Fields().ByName("nanos"), protoreflect.ValueOfInt32(ts.Nanos))
+			return nil
+
+		case decimalFullName:
+			if !cmd.Flags().Changed(name) {
+				return nil
+			}
+			str, err := cmd.Flags().GetString(name)
+			if err != nil {
+				return err
+			}
+			dec := decimal.Decimal{
+				Value: str,
+			}
+			nested := msg.Mutable(field).Message()
+			nested.Set(nested.Descriptor().Fields().ByName("value"), protoreflect.ValueOfString(dec.Value))
 			return nil
 
 		case durationFullName:

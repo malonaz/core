@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/decimal"
 	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -27,6 +28,7 @@ const (
 
 var (
 	timestampFullName  = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	decimalFullName    = (&decimal.Decimal{}).ProtoReflect().Descriptor().FullName()
 	durationFullName   = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
 	fieldMaskFullName  = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 	dateFullName       = (&date.Date{}).ProtoReflect().Descriptor().FullName()
@@ -238,6 +240,8 @@ func (b *SchemaBuilder) buildMessageSchema(
 		return &jsonpb.Schema{Type: "array", Description: "JSON array (google.protobuf.ListValue)"}, nil
 	case jsonSchemaFullName:
 		return &jsonpb.Schema{Type: "object", Description: "JSON Schema object"}, nil
+	case decimalFullName:
+		return &jsonpb.Schema{Type: "string", Description: "x.x eg '10', '15.12'"}, nil
 	}
 
 	properties := make(map[string]*jsonpb.Schema)
