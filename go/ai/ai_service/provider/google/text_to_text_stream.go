@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -194,6 +195,7 @@ func (c *Client) TextToTextStream(
 				// or as complete calls in a single chunk.
 				if part.FunctionCall != nil {
 					fc := part.FunctionCall
+					logFunctionCallChunk(ctx, fc)
 
 					var signature string
 					if len(part.ThoughtSignature) > 0 {
@@ -261,11 +263,17 @@ func (c *Client) TextToTextStream(
 							tca.StartOrUpdate(index, fc.ID, fc.Name)
 						}
 						if fc.Args != nil {
-							argsJSON, err := json.Marshal(fc.Args)
-							if err != nil {
-								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+							// In partial-args mode a chunk carrying Args is a full
+							// snapshot, not a JSON delta: replace, don't append.
+							if tca.HasStructuredArgs(index) {
+								tca.SetStructuredArgs(index, fc.Args)
+							} else {
+								argsJSON, err := json.Marshal(fc.Args)
+								if err != nil {
+									return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+								}
+								tca.AppendArgs(index, string(argsJSON))
 							}
-							tca.AppendArgs(index, string(argsJSON))
 						}
 						block, err := tca.BuildPartial(index)
 						if err != nil {
@@ -277,11 +285,21 @@ func (c *Client) TextToTextStream(
 						// Final chunk of a streaming tool call: finalize the accumulated call.
 						tca.StartOrUpdate(index, fc.ID, fc.Name)
 						if fc.Args != nil {
-							argsJSON, err := json.Marshal(fc.Args)
-							if err != nil {
-								return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+							// A partial-args stream may close with the complete
+							// Args map. The per-path accumulation can hold
+							// placeholder announcements (empty strings where
+							// nested objects belong — e.g. Table rows/cells), so
+							// the authoritative snapshot must replace it rather
+							// than be appended to a builder that Build ignores.
+							if tca.HasStructuredArgs(index) {
+								tca.SetStructuredArgs(index, fc.Args)
+							} else {
+								argsJSON, err := json.Marshal(fc.Args)
+								if err != nil {
+									return status.Errorf(codes.Internal, "marshaling function call args: %v", err).Err()
+								}
+								tca.AppendArgs(index, string(argsJSON))
 							}
-							tca.AppendArgs(index, string(argsJSON))
 						}
 						block, err := tca.Build(index)
 						if err != nil {
@@ -772,6 +790,53 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 		return *partialArg.BoolValue
 	}
 	return partialArg.StringValue
+}
+
+// logFunctionCallChunk dumps the raw wire shape of a streamed function call
+// chunk: the exact JsonPath spelling, which value field each PartialArg set,
+// and the complete Args map when present. Debug-level: used to verify the
+// partial-args accumulation against Vertex's actual stream (e.g. the
+// Generate_Table empty-rows incident).
+func logFunctionCallChunk(ctx context.Context, fc *genai.FunctionCall) {
+	if !slog.Default().Enabled(ctx, slog.LevelDebug) {
+		return
+	}
+	attrs := []any{
+		"name", fc.Name,
+		"id", fc.ID,
+	}
+	if fc.WillContinue != nil {
+		attrs = append(attrs, "will_continue", *fc.WillContinue)
+	}
+	if fc.Args != nil {
+		argsJSON, err := json.Marshal(fc.Args)
+		if err != nil {
+			attrs = append(attrs, "args_marshal_error", err.Error())
+		} else {
+			attrs = append(attrs, "args", string(argsJSON))
+		}
+	}
+	for i, partialArg := range fc.PartialArgs {
+		var value any
+		var kind string
+		switch {
+		case partialArg.NULLValue != "":
+			kind, value = "null", partialArg.NULLValue
+		case partialArg.NumberValue != nil:
+			kind, value = "number", *partialArg.NumberValue
+		case partialArg.BoolValue != nil:
+			kind, value = "bool", *partialArg.BoolValue
+		default:
+			kind, value = "string", partialArg.StringValue
+		}
+		willContinue := false
+		if partialArg.WillContinue != nil {
+			willContinue = *partialArg.WillContinue
+		}
+		attrs = append(attrs, fmt.Sprintf("partial_arg[%d]", i),
+			fmt.Sprintf("path=%q kind=%s value=%#v will_continue=%t", partialArg.JsonPath, kind, value, willContinue))
+	}
+	slog.DebugContext(ctx, "genai function call chunk", attrs...)
 }
 
 // statusFromAPIError converts a genai.APIError into our status error. Vertex collapses

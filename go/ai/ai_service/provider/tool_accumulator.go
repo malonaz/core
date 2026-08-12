@@ -89,6 +89,27 @@ func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	}
 }
 
+// SetStructuredArgs replaces the entry's accumulated arguments with an
+// authoritative full snapshot (e.g. Vertex's complete `args` map on the final
+// chunk of a partial-args stream). The incrementally accumulated structured
+// args may contain placeholder announcements (empty strings where objects
+// belong), so the snapshot must win.
+func (a *ToolCallAccumulator) SetStructuredArgs(index int64, args map[string]any) {
+	entry, ok := a.calls[index]
+	if !ok {
+		return
+	}
+	entry.structuredArgs = args
+	entry.args.Reset()
+}
+
+// HasStructuredArgs reports whether the entry accumulated per-path structured
+// arguments (partial-args mode) rather than raw JSON deltas.
+func (a *ToolCallAccumulator) HasStructuredArgs(index int64) bool {
+	entry, ok := a.calls[index]
+	return ok && entry.structuredArgs != nil
+}
+
 func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 	for idx, entry := range a.calls {
 		if idx != index {
@@ -252,6 +273,16 @@ func setValueAtPath(node map[string]any, segments []any, value any) {
 				return
 			}
 		}
+		// A value-less PartialArg (container announcement) decodes as "".
+		// Never let it clobber structure already built at this path.
+		if value == "" {
+			if _, ok := node[key].(map[string]any); ok {
+				return
+			}
+			if _, ok := node[key].([]any); ok {
+				return
+			}
+		}
 		node[key] = value
 		return
 	}
@@ -279,6 +310,15 @@ func setValueAtPath(node map[string]any, segments []any, value any) {
 			if existing, ok := arr[nextSegment].(string); ok {
 				if strVal, ok := value.(string); ok {
 					arr[nextSegment] = existing + strVal
+					return
+				}
+			}
+			// Container announcement (see above): keep the built structure.
+			if value == "" {
+				if _, ok := arr[nextSegment].(map[string]any); ok {
+					return
+				}
+				if _, ok := arr[nextSegment].([]any); ok {
 					return
 				}
 			}

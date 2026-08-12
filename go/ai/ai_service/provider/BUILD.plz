@@ -25,3 +25,13 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
+
+go_test(
+    name = "provider_test",
+    srcs = ["tool_accumulator_test.go"],
+    external = True,
+    deps = [
+        ":provider",
+        "//malonaz/ai/v1",
+    ],
+)

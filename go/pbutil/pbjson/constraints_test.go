@@ -93,7 +93,8 @@ func TestDescribeOneofs(t *testing.T) {
 		require.NoError(t, err)
 		require.Contains(t, description, "Set exactly one of")
 		require.Contains(t, description, "open_resource")
-		require.Contains(t, description, "prompt")
+		require.Contains(t, description, "copy_text")
+		require.Contains(t, description, "open_url")
 	})
 
 	t.Run("no oneof", func(t *testing.T) {
