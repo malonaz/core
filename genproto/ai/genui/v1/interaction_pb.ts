@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/interaction.proto.
  */
 export const file_malonaz_ai_genui_v1_interaction: GenFile = /*@__PURE__*/
-  fileDesc("CiVtYWxvbmF6L2FpL2dlbnVpL3YxL2ludGVyYWN0aW9uLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIrQBCglBY3Rpb25Sb3cSQgoHYWN0aW9ucxgBIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93LkFjdGlvbkIKukgHkgEECAEQBRpjCgZBY3Rpb24SFQoFbGFiZWwYASABKAlCBrpIA8gBARIfCg1vcGVuX3Jlc291cmNlGAIgASgJQgb6QQMKASpIABIQCgZwcm9tcHQYAyABKAlIAEIPCgZhY3Rpb24SBbpIAggBIj8KBkNob2ljZRIYCghxdWVzdGlvbhgBIAEoCUIGukgDyAEBEhsKB29wdGlvbnMYAiADKAlCCrpIB5IBBAgCEAhCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource]);
+  fileDesc("CiVtYWxvbmF6L2FpL2dlbnVpL3YxL2ludGVyYWN0aW9uLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUibAoPQWN0aW9uUm93QWN0aW9uEhUKBWxhYmVsGAEgASgJQga6SAPIAQESHwoNb3Blbl9yZXNvdXJjZRgCIAEoCUIG+kEDCgEqSAASEAoGcHJvbXB0GAMgASgJSABCDwoGYWN0aW9uEgW6SAIIASI/CgZDaG9pY2USGAoIcXVlc3Rpb24YASABKAlCBrpIA8gBARIbCgdvcHRpb25zGAIgAygJQgq6SAeSAQQIAhAIQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource]);
 
 /**
  * Buttons the user can press. Each action either navigates to a resource or
@@ -24,9 +24,9 @@ export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
   /**
    * The buttons to render, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ActionRow.Action actions = 1;
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
    */
-  actions: ActionRow_Action[];
+  actions: ActionRowAction[];
 };
 
 /**
@@ -39,9 +39,9 @@ export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
   /**
    * The buttons to render, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ActionRow.Action actions = 1;
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
    */
-  actions: ActionRow_ActionValid[];
+  actions: ActionRowActionValid[];
 };
 
 /**
@@ -52,11 +52,11 @@ export const ActionRowSchema: GenMessage<ActionRow, {validType: ActionRowValid}>
   messageDesc(file_malonaz_ai_genui_v1_interaction, 0);
 
 /**
- * A single button.
+ * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
  *
- * @generated from message malonaz.ai.genui.v1.ActionRow.Action
+ * @generated from message malonaz.ai.genui.v1.ActionRowAction
  */
-export type ActionRow_Action = Message<"malonaz.ai.genui.v1.ActionRow.Action"> & {
+export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
   /**
    * The text rendered on the button.
    *
@@ -67,7 +67,7 @@ export type ActionRow_Action = Message<"malonaz.ai.genui.v1.ActionRow.Action"> &
   /**
    * What pressing the button does.
    *
-   * @generated from oneof malonaz.ai.genui.v1.ActionRow.Action.action
+   * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
    */
   action: {
     /**
@@ -89,11 +89,11 @@ export type ActionRow_Action = Message<"malonaz.ai.genui.v1.ActionRow.Action"> &
 };
 
 /**
- * A single button.
+ * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
  *
- * @generated from message malonaz.ai.genui.v1.ActionRow.Action
+ * @generated from message malonaz.ai.genui.v1.ActionRowAction
  */
-export type ActionRow_ActionValid = Message<"malonaz.ai.genui.v1.ActionRow.Action"> & {
+export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
   /**
    * The text rendered on the button.
    *
@@ -104,7 +104,7 @@ export type ActionRow_ActionValid = Message<"malonaz.ai.genui.v1.ActionRow.Actio
   /**
    * What pressing the button does.
    *
-   * @generated from oneof malonaz.ai.genui.v1.ActionRow.Action.action
+   * @generated from oneof malonaz.ai.genui.v1.ActionRowAction.action
    */
   action: {
     /**
@@ -126,11 +126,11 @@ export type ActionRow_ActionValid = Message<"malonaz.ai.genui.v1.ActionRow.Actio
 };
 
 /**
- * Describes the message malonaz.ai.genui.v1.ActionRow.Action.
- * Use `create(ActionRow_ActionSchema)` to create a new message.
+ * Describes the message malonaz.ai.genui.v1.ActionRowAction.
+ * Use `create(ActionRowActionSchema)` to create a new message.
  */
-export const ActionRow_ActionSchema: GenMessage<ActionRow_Action, {validType: ActionRow_ActionValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_interaction, 0, 0);
+export const ActionRowActionSchema: GenMessage<ActionRowAction, {validType: ActionRowActionValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 1);
 
 /**
  * A question with constrained answers (mirrors AskUserQuestion UX): the
@@ -181,5 +181,5 @@ export type ChoiceValid = Message<"malonaz.ai.genui.v1.Choice"> & {
  * Use `create(ChoiceSchema)` to create a new message.
  */
 export const ChoiceSchema: GenMessage<Choice, {validType: ChoiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_interaction, 1);
+  messageDesc(file_malonaz_ai_genui_v1_interaction, 2);
 

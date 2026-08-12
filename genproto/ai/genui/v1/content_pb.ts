@@ -6,17 +6,20 @@ import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIqsBCgxLZXlWYWx1ZUxpc3QSDQoFdGl0bGUYASABKAkSPwoFaXRlbXMYAiADKAsyJi5tYWxvbmF6LmFpLmdlbnVpLnYxLktleVZhbHVlTGlzdC5JdGVtQgi6SAWSAQIIARpLCgRJdGVtEhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAkSHQoNcmVzb3VyY2VfbmFtZRgDIAEoCUIG+kEDCgEqIrsBCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI+CgdlbnRyaWVzGAIgAygLMiMubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZS5FbnRyeUIIukgFkgECCAEaYAoFRW50cnkSFQoFdGl0bGUYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCRIMCgR0aW1lGAMgASgJEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKFAgoFQ2hhcnQSOQoEdHlwZRgBIAEoDjIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnQuVHlwZUIKukgHggEEEAEgABINCgV0aXRsZRgCIAEoCRI6CgZwb2ludHMYAyADKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLkNoYXJ0LlBvaW50Qgi6SAWSAQIIARotCgVQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBIkcKBFR5cGUSFAoQVFlQRV9VTlNQRUNJRklFRBAAEgwKCFRZUEVfQkFSEAESDQoJVFlQRV9MSU5FEAISDAoIVFlQRV9QSUUQAyJECgxNZWRpYUdhbGxlcnkSIwoFZmlsZXMYASADKAlCFPpBAwoBKrpIC5IBCAgBIgRyAhABEg8KB2NhcHRpb24YAiABKAlCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource]);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
- * Markdown-subset text (bold, italics, lists, links). Links may target
- * resource names, which clients render as in-app navigation.
+ * Markdown-subset text (bold, italics, lists, links). Link targets that are
+ * resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
+ * are rendered as in-app navigation; http(s) URLs open externally.
  *
  * @generated from message malonaz.ai.genui.v1.Text
  */
@@ -30,8 +33,9 @@ export type Text = Message<"malonaz.ai.genui.v1.Text"> & {
 };
 
 /**
- * Markdown-subset text (bold, italics, lists, links). Links may target
- * resource names, which clients render as in-app navigation.
+ * Markdown-subset text (bold, italics, lists, links). Link targets that are
+ * resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
+ * are rendered as in-app navigation; http(s) URLs open externally.
  *
  * @generated from message malonaz.ai.genui.v1.Text
  */
@@ -67,9 +71,9 @@ export type KeyValueList = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
   /**
    * The facts to render, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.KeyValueList.Item items = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.KeyValueListItem items = 2;
    */
-  items: KeyValueList_Item[];
+  items: KeyValueListItem[];
 };
 
 /**
@@ -88,9 +92,9 @@ export type KeyValueListValid = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
   /**
    * The facts to render, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.KeyValueList.Item items = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.KeyValueListItem items = 2;
    */
-  items: KeyValueList_ItemValid[];
+  items: KeyValueListItemValid[];
 };
 
 /**
@@ -101,11 +105,11 @@ export const KeyValueListSchema: GenMessage<KeyValueList, {validType: KeyValueLi
   messageDesc(file_malonaz_ai_genui_v1_content, 1);
 
 /**
- * A single label/value fact.
+ * A single label/value fact within a [KeyValueList][malonaz.ai.genui.v1.KeyValueList].
  *
- * @generated from message malonaz.ai.genui.v1.KeyValueList.Item
+ * @generated from message malonaz.ai.genui.v1.KeyValueListItem
  */
-export type KeyValueList_Item = Message<"malonaz.ai.genui.v1.KeyValueList.Item"> & {
+export type KeyValueListItem = Message<"malonaz.ai.genui.v1.KeyValueListItem"> & {
   /**
    * The label naming the fact, e.g. "Budget".
    *
@@ -129,11 +133,11 @@ export type KeyValueList_Item = Message<"malonaz.ai.genui.v1.KeyValueList.Item">
 };
 
 /**
- * A single label/value fact.
+ * A single label/value fact within a [KeyValueList][malonaz.ai.genui.v1.KeyValueList].
  *
- * @generated from message malonaz.ai.genui.v1.KeyValueList.Item
+ * @generated from message malonaz.ai.genui.v1.KeyValueListItem
  */
-export type KeyValueList_ItemValid = Message<"malonaz.ai.genui.v1.KeyValueList.Item"> & {
+export type KeyValueListItemValid = Message<"malonaz.ai.genui.v1.KeyValueListItem"> & {
   /**
    * The label naming the fact, e.g. "Budget".
    *
@@ -157,11 +161,11 @@ export type KeyValueList_ItemValid = Message<"malonaz.ai.genui.v1.KeyValueList.I
 };
 
 /**
- * Describes the message malonaz.ai.genui.v1.KeyValueList.Item.
- * Use `create(KeyValueList_ItemSchema)` to create a new message.
+ * Describes the message malonaz.ai.genui.v1.KeyValueListItem.
+ * Use `create(KeyValueListItemSchema)` to create a new message.
  */
-export const KeyValueList_ItemSchema: GenMessage<KeyValueList_Item, {validType: KeyValueList_ItemValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 1, 0);
+export const KeyValueListItemSchema: GenMessage<KeyValueListItem, {validType: KeyValueListItemValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 2);
 
 /**
  * Ordered events, e.g. "what happened with this contact this week".
@@ -179,9 +183,9 @@ export type Timeline = Message<"malonaz.ai.genui.v1.Timeline"> & {
   /**
    * The events to render, in chronological order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.Timeline.Entry entries = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.TimelineEntry entries = 2;
    */
-  entries: Timeline_Entry[];
+  entries: TimelineEntry[];
 };
 
 /**
@@ -200,9 +204,9 @@ export type TimelineValid = Message<"malonaz.ai.genui.v1.Timeline"> & {
   /**
    * The events to render, in chronological order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.Timeline.Entry entries = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.TimelineEntry entries = 2;
    */
-  entries: Timeline_EntryValid[];
+  entries: TimelineEntryValid[];
 };
 
 /**
@@ -210,14 +214,14 @@ export type TimelineValid = Message<"malonaz.ai.genui.v1.Timeline"> & {
  * Use `create(TimelineSchema)` to create a new message.
  */
 export const TimelineSchema: GenMessage<Timeline, {validType: TimelineValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 2);
+  messageDesc(file_malonaz_ai_genui_v1_content, 3);
 
 /**
- * A single event on the timeline.
+ * A single event within a [Timeline][malonaz.ai.genui.v1.Timeline].
  *
- * @generated from message malonaz.ai.genui.v1.Timeline.Entry
+ * @generated from message malonaz.ai.genui.v1.TimelineEntry
  */
-export type Timeline_Entry = Message<"malonaz.ai.genui.v1.Timeline.Entry"> & {
+export type TimelineEntry = Message<"malonaz.ai.genui.v1.TimelineEntry"> & {
   /**
    * Short headline describing what happened.
    *
@@ -233,11 +237,11 @@ export type Timeline_Entry = Message<"malonaz.ai.genui.v1.Timeline.Entry"> & {
   description: string;
 
   /**
-   * RFC 3339. String (not Timestamp) to keep the AI-facing schema simple.
+   * When the event happened.
    *
-   * @generated from field: string time = 3;
+   * @generated from field: google.protobuf.Timestamp time = 3;
    */
-  time: string;
+  time?: Timestamp;
 
   /**
    * Optional resource the entry refers to; the client links the entry when set.
@@ -248,11 +252,11 @@ export type Timeline_Entry = Message<"malonaz.ai.genui.v1.Timeline.Entry"> & {
 };
 
 /**
- * A single event on the timeline.
+ * A single event within a [Timeline][malonaz.ai.genui.v1.Timeline].
  *
- * @generated from message malonaz.ai.genui.v1.Timeline.Entry
+ * @generated from message malonaz.ai.genui.v1.TimelineEntry
  */
-export type Timeline_EntryValid = Message<"malonaz.ai.genui.v1.Timeline.Entry"> & {
+export type TimelineEntryValid = Message<"malonaz.ai.genui.v1.TimelineEntry"> & {
   /**
    * Short headline describing what happened.
    *
@@ -268,11 +272,11 @@ export type Timeline_EntryValid = Message<"malonaz.ai.genui.v1.Timeline.Entry"> 
   description: string;
 
   /**
-   * RFC 3339. String (not Timestamp) to keep the AI-facing schema simple.
+   * When the event happened.
    *
-   * @generated from field: string time = 3;
+   * @generated from field: google.protobuf.Timestamp time = 3;
    */
-  time: string;
+  time?: Timestamp;
 
   /**
    * Optional resource the entry refers to; the client links the entry when set.
@@ -283,11 +287,11 @@ export type Timeline_EntryValid = Message<"malonaz.ai.genui.v1.Timeline.Entry"> 
 };
 
 /**
- * Describes the message malonaz.ai.genui.v1.Timeline.Entry.
- * Use `create(Timeline_EntrySchema)` to create a new message.
+ * Describes the message malonaz.ai.genui.v1.TimelineEntry.
+ * Use `create(TimelineEntrySchema)` to create a new message.
  */
-export const Timeline_EntrySchema: GenMessage<Timeline_Entry, {validType: Timeline_EntryValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 2, 0);
+export const TimelineEntrySchema: GenMessage<TimelineEntry, {validType: TimelineEntryValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 4);
 
 /**
  * Minimal chart for aggregates ("calls per day this week").
@@ -298,9 +302,9 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * How the points are plotted.
    *
-   * @generated from field: malonaz.ai.genui.v1.Chart.Type type = 1;
+   * @generated from field: malonaz.ai.genui.v1.ChartType type = 1;
    */
-  type: Chart_Type;
+  type: ChartType;
 
   /**
    * Optional heading rendered above the chart.
@@ -312,9 +316,9 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * The datapoints to plot, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.Chart.Point points = 3;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 3;
    */
-  points: Chart_Point[];
+  points: ChartPoint[];
 };
 
 /**
@@ -326,9 +330,9 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * How the points are plotted.
    *
-   * @generated from field: malonaz.ai.genui.v1.Chart.Type type = 1;
+   * @generated from field: malonaz.ai.genui.v1.ChartType type = 1;
    */
-  type: Chart_Type;
+  type: ChartType;
 
   /**
    * Optional heading rendered above the chart.
@@ -340,9 +344,9 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * The datapoints to plot, in display order.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.Chart.Point points = 3;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 3;
    */
-  points: Chart_PointValid[];
+  points: ChartPointValid[];
 };
 
 /**
@@ -350,14 +354,14 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
  * Use `create(ChartSchema)` to create a new message.
  */
 export const ChartSchema: GenMessage<Chart, {validType: ChartValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 3);
+  messageDesc(file_malonaz_ai_genui_v1_content, 5);
 
 /**
- * A single datapoint.
+ * A single datapoint within a [Chart][malonaz.ai.genui.v1.Chart].
  *
- * @generated from message malonaz.ai.genui.v1.Chart.Point
+ * @generated from message malonaz.ai.genui.v1.ChartPoint
  */
-export type Chart_Point = Message<"malonaz.ai.genui.v1.Chart.Point"> & {
+export type ChartPoint = Message<"malonaz.ai.genui.v1.ChartPoint"> & {
   /**
    * The category or time bucket this point belongs to.
    *
@@ -374,11 +378,11 @@ export type Chart_Point = Message<"malonaz.ai.genui.v1.Chart.Point"> & {
 };
 
 /**
- * A single datapoint.
+ * A single datapoint within a [Chart][malonaz.ai.genui.v1.Chart].
  *
- * @generated from message malonaz.ai.genui.v1.Chart.Point
+ * @generated from message malonaz.ai.genui.v1.ChartPoint
  */
-export type Chart_PointValid = Message<"malonaz.ai.genui.v1.Chart.Point"> & {
+export type ChartPointValid = Message<"malonaz.ai.genui.v1.ChartPoint"> & {
   /**
    * The category or time bucket this point belongs to.
    *
@@ -395,81 +399,140 @@ export type Chart_PointValid = Message<"malonaz.ai.genui.v1.Chart.Point"> & {
 };
 
 /**
- * Describes the message malonaz.ai.genui.v1.Chart.Point.
- * Use `create(Chart_PointSchema)` to create a new message.
+ * Describes the message malonaz.ai.genui.v1.ChartPoint.
+ * Use `create(ChartPointSchema)` to create a new message.
  */
-export const Chart_PointSchema: GenMessage<Chart_Point, {validType: Chart_PointValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 3, 0);
+export const ChartPointSchema: GenMessage<ChartPoint, {validType: ChartPointValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 6);
 
 /**
- * How the points are plotted.
+ * Tabular data, e.g. "quotes by state with count and total value".
  *
- * @generated from enum malonaz.ai.genui.v1.Chart.Type
+ * @generated from message malonaz.ai.genui.v1.Table
  */
-export enum Chart_Type {
+export type Table = Message<"malonaz.ai.genui.v1.Table"> & {
+  /**
+   * Optional heading rendered above the table.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * Column headers, defining the width of every row.
+   *
+   * @generated from field: repeated string columns = 2;
+   */
+  columns: string[];
+
+  /**
+   * Rows, in display order. Each row carries one cell per column.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.TableRow rows = 3;
+   */
+  rows: TableRow[];
+};
+
+export type TableValid = Table;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Table.
+ * Use `create(TableSchema)` to create a new message.
+ */
+export const TableSchema: GenMessage<Table, {validType: TableValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 7);
+
+/**
+ * A single row within a [Table][malonaz.ai.genui.v1.Table].
+ *
+ * @generated from message malonaz.ai.genui.v1.TableRow
+ */
+export type TableRow = Message<"malonaz.ai.genui.v1.TableRow"> & {
+  /**
+   * Cell values, one per column, in column order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.TableCell cells = 1;
+   */
+  cells: TableCell[];
+};
+
+export type TableRowValid = TableRow;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.TableRow.
+ * Use `create(TableRowSchema)` to create a new message.
+ */
+export const TableRowSchema: GenMessage<TableRow, {validType: TableRowValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 8);
+
+/**
+ * A single cell within a [TableRow][malonaz.ai.genui.v1.TableRow].
+ *
+ * @generated from message malonaz.ai.genui.v1.TableCell
+ */
+export type TableCell = Message<"malonaz.ai.genui.v1.TableCell"> & {
+  /**
+   * The human-readable value of the cell.
+   *
+   * @generated from field: string value = 1;
+   */
+  value: string;
+
+  /**
+   * Optional resource name; the client links the cell when set.
+   *
+   * @generated from field: string resource_name = 2;
+   */
+  resourceName: string;
+};
+
+export type TableCellValid = TableCell;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.TableCell.
+ * Use `create(TableCellSchema)` to create a new message.
+ */
+export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 9);
+
+/**
+ * How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
+ *
+ * @generated from enum malonaz.ai.genui.v1.ChartType
+ */
+export enum ChartType {
   /**
    * Used to detect an unset field.
    *
-   * @generated from enum value: TYPE_UNSPECIFIED = 0;
+   * @generated from enum value: CHART_TYPE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
    * Vertical bars, one per point. Best for comparing categories.
    *
-   * @generated from enum value: TYPE_BAR = 1;
+   * @generated from enum value: CHART_TYPE_BAR = 1;
    */
   BAR = 1,
 
   /**
    * A line connecting the points. Best for trends over time.
    *
-   * @generated from enum value: TYPE_LINE = 2;
+   * @generated from enum value: CHART_TYPE_LINE = 2;
    */
   LINE = 2,
 
   /**
    * Pie slices sized by value. Best for parts of a whole.
    *
-   * @generated from enum value: TYPE_PIE = 3;
+   * @generated from enum value: CHART_TYPE_PIE = 3;
    */
   PIE = 3,
 }
 
 /**
- * Describes the enum malonaz.ai.genui.v1.Chart.Type.
+ * Describes the enum malonaz.ai.genui.v1.ChartType.
  */
-export const Chart_TypeSchema: GenEnum<Chart_Type> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_genui_v1_content, 3, 0);
-
-/**
- * Images/videos referenced by platform file resource names — never raw URLs,
- * so access control stays with the file service.
- *
- * @generated from message malonaz.ai.genui.v1.MediaGallery
- */
-export type MediaGallery = Message<"malonaz.ai.genui.v1.MediaGallery"> & {
-  /**
-   * Resource names of the files to display, in display order.
-   *
-   * @generated from field: repeated string files = 1;
-   */
-  files: string[];
-
-  /**
-   * Optional caption rendered under the gallery.
-   *
-   * @generated from field: string caption = 2;
-   */
-  caption: string;
-};
-
-export type MediaGalleryValid = MediaGallery;
-
-/**
- * Describes the message malonaz.ai.genui.v1.MediaGallery.
- * Use `create(MediaGallerySchema)` to create a new message.
- */
-export const MediaGallerySchema: GenMessage<MediaGallery, {validType: MediaGalleryValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 4);
+export const ChartTypeSchema: GenEnum<ChartType> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_content, 0);
 

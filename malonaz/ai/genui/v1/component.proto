@@ -5,7 +5,6 @@ package malonaz.ai.genui.v1;
 import "buf/validate/validate.proto";
 import "malonaz/ai/genui/v1/content.proto";
 import "malonaz/ai/genui/v1/interaction.proto";
-import "malonaz/ai/genui/v1/layout.proto";
 import "malonaz/ai/genui/v1/resource.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
@@ -35,22 +34,19 @@ message Component {
     // A chart of aggregates.
     Chart chart = 5;
 
-    // Images/videos referenced by file resource names.
-    MediaGallery media_gallery = 6;
-
     // A rich card for a single resource.
-    ResourceCard resource_card = 7;
+    ResourceCard resource_card = 6;
 
     // A list of resources rendered as compact rows.
-    ResourceList resource_list = 8;
+    ResourceList resource_list = 7;
 
     // Buttons the user can press.
-    ActionRow action_row = 9;
+    ActionRow action_row = 8;
 
     // A question with constrained answers.
-    Choice choice = 10;
+    Choice choice = 9;
 
-    // A header grouping previously emitted components.
-    Card card = 11;
+    // Tabular data.
+    Table table = 10;
   }
 }

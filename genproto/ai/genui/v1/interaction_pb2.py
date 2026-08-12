@@ -26,7 +26,7 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%malonaz/ai/genui/v1/interaction.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\"\xb4\x01\n\tActionRow\x12\x42\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32%.malonaz.ai.genui.v1.ActionRow.ActionB\n\xbaH\x07\x92\x01\x04\x08\x01\x10\x05\x1a\x63\n\x06\x41\x63tion\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\ropen_resource\x18\x02 \x01(\tB\x06\xfa\x41\x03\n\x01*H\x00\x12\x10\n\x06prompt\x18\x03 \x01(\tH\x00\x42\x0f\n\x06\x61\x63tion\x12\x05\xbaH\x02\x08\x01\"?\n\x06\x43hoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x07options\x18\x02 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x08\x42.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%malonaz/ai/genui/v1/interaction.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\"N\n\tActionRow\x12\x41\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32$.malonaz.ai.genui.v1.ActionRowActionB\n\xbaH\x07\x92\x01\x04\x08\x01\x10\x05\"l\n\x0f\x41\x63tionRowAction\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\ropen_resource\x18\x02 \x01(\tB\x06\xfa\x41\x03\n\x01*H\x00\x12\x10\n\x06prompt\x18\x03 \x01(\tH\x00\x42\x0f\n\x06\x61\x63tion\x12\x05\xbaH\x02\x08\x01\"?\n\x06\x43hoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x07options\x18\x02 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x08\x42.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,22 +34,22 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.ai.genui.v1.interac
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z,github.com/malonaz/core/genproto/ai/genui/v1'
-  _globals['_ACTIONROW_ACTION'].oneofs_by_name['action']._loaded_options = None
-  _globals['_ACTIONROW_ACTION'].oneofs_by_name['action']._serialized_options = b'\272H\002\010\001'
-  _globals['_ACTIONROW_ACTION'].fields_by_name['label']._loaded_options = None
-  _globals['_ACTIONROW_ACTION'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_ACTIONROW_ACTION'].fields_by_name['open_resource']._loaded_options = None
-  _globals['_ACTIONROW_ACTION'].fields_by_name['open_resource']._serialized_options = b'\372A\003\n\001*'
   _globals['_ACTIONROW'].fields_by_name['actions']._loaded_options = None
   _globals['_ACTIONROW'].fields_by_name['actions']._serialized_options = b'\272H\007\222\001\004\010\001\020\005'
+  _globals['_ACTIONROWACTION'].oneofs_by_name['action']._loaded_options = None
+  _globals['_ACTIONROWACTION'].oneofs_by_name['action']._serialized_options = b'\272H\002\010\001'
+  _globals['_ACTIONROWACTION'].fields_by_name['label']._loaded_options = None
+  _globals['_ACTIONROWACTION'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_ACTIONROWACTION'].fields_by_name['open_resource']._loaded_options = None
+  _globals['_ACTIONROWACTION'].fields_by_name['open_resource']._serialized_options = b'\372A\003\n\001*'
   _globals['_CHOICE'].fields_by_name['question']._loaded_options = None
   _globals['_CHOICE'].fields_by_name['question']._serialized_options = b'\272H\003\310\001\001'
   _globals['_CHOICE'].fields_by_name['options']._loaded_options = None
   _globals['_CHOICE'].fields_by_name['options']._serialized_options = b'\272H\007\222\001\004\010\002\020\010'
-  _globals['_ACTIONROW']._serialized_start=119
-  _globals['_ACTIONROW']._serialized_end=299
-  _globals['_ACTIONROW_ACTION']._serialized_start=200
-  _globals['_ACTIONROW_ACTION']._serialized_end=299
-  _globals['_CHOICE']._serialized_start=301
-  _globals['_CHOICE']._serialized_end=364
+  _globals['_ACTIONROW']._serialized_start=118
+  _globals['_ACTIONROW']._serialized_end=196
+  _globals['_ACTIONROWACTION']._serialized_start=198
+  _globals['_ACTIONROWACTION']._serialized_end=306
+  _globals['_CHOICE']._serialized_start=308
+  _globals['_CHOICE']._serialized_end=371
 # @@protoc_insertion_point(module_scope)

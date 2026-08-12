@@ -24,9 +24,10 @@ _sym_db = _symbol_database.Default()
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
+from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/ai/genui/v1/content.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\" \n\x04Text\x12\x18\n\x08markdown\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\xab\x01\n\x0cKeyValueList\x12\r\n\x05title\x18\x01 \x01(\t\x12?\n\x05items\x18\x02 \x03(\x0b\x32&.malonaz.ai.genui.v1.KeyValueList.ItemB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1aK\n\x04Item\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\r\n\x05value\x18\x02 \x01(\t\x12\x1d\n\rresource_name\x18\x03 \x01(\tB\x06\xfa\x41\x03\n\x01*\"\xbb\x01\n\x08Timeline\x12\r\n\x05title\x18\x01 \x01(\t\x12>\n\x07\x65ntries\x18\x02 \x03(\x0b\x32#.malonaz.ai.genui.v1.Timeline.EntryB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a`\n\x05\x45ntry\x12\x15\n\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x0c\n\x04time\x18\x03 \x01(\t\x12\x1d\n\rresource_name\x18\x04 \x01(\tB\x06\xfa\x41\x03\n\x01*\"\x85\x02\n\x05\x43hart\x12\x39\n\x04type\x18\x01 \x01(\x0e\x32\x1f.malonaz.ai.genui.v1.Chart.TypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\r\n\x05title\x18\x02 \x01(\t\x12:\n\x06points\x18\x03 \x03(\x0b\x32 .malonaz.ai.genui.v1.Chart.PointB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a-\n\x05Point\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\r\n\x05value\x18\x02 \x01(\x01\"G\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\x0c\n\x08TYPE_BAR\x10\x01\x12\r\n\tTYPE_LINE\x10\x02\x12\x0c\n\x08TYPE_PIE\x10\x03\"D\n\x0cMediaGallery\x12#\n\x05\x66iles\x18\x01 \x03(\tB\x14\xfa\x41\x03\n\x01*\xbaH\x0b\x92\x01\x08\x08\x01\"\x04r\x02\x10\x01\x12\x0f\n\x07\x63\x61ption\x18\x02 \x01(\tB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/ai/genui/v1/content.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\" \n\x04Text\x12\x18\n\x08markdown\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"]\n\x0cKeyValueList\x12\r\n\x05title\x18\x01 \x01(\t\x12>\n\x05items\x18\x02 \x03(\x0b\x32%.malonaz.ai.genui.v1.KeyValueListItemB\x08\xbaH\x05\x92\x01\x02\x08\x01\"W\n\x10KeyValueListItem\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\r\n\x05value\x18\x02 \x01(\t\x12\x1d\n\rresource_name\x18\x03 \x01(\tB\x06\xfa\x41\x03\n\x01*\"X\n\x08Timeline\x12\r\n\x05title\x18\x01 \x01(\t\x12=\n\x07\x65ntries\x18\x02 \x03(\x0b\x32\".malonaz.ai.genui.v1.TimelineEntryB\x08\xbaH\x05\x92\x01\x02\x08\x01\"\x84\x01\n\rTimelineEntry\x12\x15\n\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12(\n\x04time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1d\n\rresource_name\x18\x04 \x01(\tB\x06\xfa\x41\x03\n\x01*\"\x8b\x01\n\x05\x43hart\x12\x38\n\x04type\x18\x01 \x01(\x0e\x32\x1e.malonaz.ai.genui.v1.ChartTypeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\r\n\x05title\x18\x02 \x01(\t\x12\x39\n\x06points\x18\x03 \x03(\x0b\x32\x1f.malonaz.ai.genui.v1.ChartPointB\x08\xbaH\x05\x92\x01\x02\x08\x01\"2\n\nChartPoint\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\r\n\x05value\x18\x02 \x01(\x01\"h\n\x05Table\x12\r\n\x05title\x18\x01 \x01(\t\x12\x19\n\x07\x63olumns\x18\x02 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x01\x12\x35\n\x04rows\x18\x03 \x03(\x0b\x32\x1d.malonaz.ai.genui.v1.TableRowB\x08\xbaH\x05\x92\x01\x02\x08\x01\"C\n\x08TableRow\x12\x37\n\x05\x63\x65lls\x18\x01 \x03(\x0b\x32\x1e.malonaz.ai.genui.v1.TableCellB\x08\xbaH\x05\x92\x01\x02\x08\x01\"9\n\tTableCell\x12\r\n\x05value\x18\x01 \x01(\t\x12\x1d\n\rresource_name\x18\x02 \x01(\tB\x06\xfa\x41\x03\n\x01**d\n\tChartType\x12\x1a\n\x16\x43HART_TYPE_UNSPECIFIED\x10\x00\x12\x12\n\x0e\x43HART_TYPE_BAR\x10\x01\x12\x13\n\x0f\x43HART_TYPE_LINE\x10\x02\x12\x12\n\x0e\x43HART_TYPE_PIE\x10\x03\x42.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,42 +37,52 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'Z,github.com/malonaz/core/genproto/ai/genui/v1'
   _globals['_TEXT'].fields_by_name['markdown']._loaded_options = None
   _globals['_TEXT'].fields_by_name['markdown']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_KEYVALUELIST_ITEM'].fields_by_name['label']._loaded_options = None
-  _globals['_KEYVALUELIST_ITEM'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_KEYVALUELIST_ITEM'].fields_by_name['resource_name']._loaded_options = None
-  _globals['_KEYVALUELIST_ITEM'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*'
   _globals['_KEYVALUELIST'].fields_by_name['items']._loaded_options = None
   _globals['_KEYVALUELIST'].fields_by_name['items']._serialized_options = b'\272H\005\222\001\002\010\001'
-  _globals['_TIMELINE_ENTRY'].fields_by_name['title']._loaded_options = None
-  _globals['_TIMELINE_ENTRY'].fields_by_name['title']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_TIMELINE_ENTRY'].fields_by_name['resource_name']._loaded_options = None
-  _globals['_TIMELINE_ENTRY'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*'
+  _globals['_KEYVALUELISTITEM'].fields_by_name['label']._loaded_options = None
+  _globals['_KEYVALUELISTITEM'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_KEYVALUELISTITEM'].fields_by_name['resource_name']._loaded_options = None
+  _globals['_KEYVALUELISTITEM'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*'
   _globals['_TIMELINE'].fields_by_name['entries']._loaded_options = None
   _globals['_TIMELINE'].fields_by_name['entries']._serialized_options = b'\272H\005\222\001\002\010\001'
-  _globals['_CHART_POINT'].fields_by_name['label']._loaded_options = None
-  _globals['_CHART_POINT'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_TIMELINEENTRY'].fields_by_name['title']._loaded_options = None
+  _globals['_TIMELINEENTRY'].fields_by_name['title']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_TIMELINEENTRY'].fields_by_name['resource_name']._loaded_options = None
+  _globals['_TIMELINEENTRY'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*'
   _globals['_CHART'].fields_by_name['type']._loaded_options = None
   _globals['_CHART'].fields_by_name['type']._serialized_options = b'\272H\007\202\001\004\020\001 \000'
   _globals['_CHART'].fields_by_name['points']._loaded_options = None
   _globals['_CHART'].fields_by_name['points']._serialized_options = b'\272H\005\222\001\002\010\001'
-  _globals['_MEDIAGALLERY'].fields_by_name['files']._loaded_options = None
-  _globals['_MEDIAGALLERY'].fields_by_name['files']._serialized_options = b'\372A\003\n\001*\272H\013\222\001\010\010\001\"\004r\002\020\001'
-  _globals['_TEXT']._serialized_start=114
-  _globals['_TEXT']._serialized_end=146
-  _globals['_KEYVALUELIST']._serialized_start=149
-  _globals['_KEYVALUELIST']._serialized_end=320
-  _globals['_KEYVALUELIST_ITEM']._serialized_start=245
-  _globals['_KEYVALUELIST_ITEM']._serialized_end=320
-  _globals['_TIMELINE']._serialized_start=323
-  _globals['_TIMELINE']._serialized_end=510
-  _globals['_TIMELINE_ENTRY']._serialized_start=414
-  _globals['_TIMELINE_ENTRY']._serialized_end=510
-  _globals['_CHART']._serialized_start=513
-  _globals['_CHART']._serialized_end=774
-  _globals['_CHART_POINT']._serialized_start=656
-  _globals['_CHART_POINT']._serialized_end=701
-  _globals['_CHART_TYPE']._serialized_start=703
-  _globals['_CHART_TYPE']._serialized_end=774
-  _globals['_MEDIAGALLERY']._serialized_start=776
-  _globals['_MEDIAGALLERY']._serialized_end=844
+  _globals['_CHARTPOINT'].fields_by_name['label']._loaded_options = None
+  _globals['_CHARTPOINT'].fields_by_name['label']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_TABLE'].fields_by_name['columns']._loaded_options = None
+  _globals['_TABLE'].fields_by_name['columns']._serialized_options = b'\272H\005\222\001\002\010\001'
+  _globals['_TABLE'].fields_by_name['rows']._loaded_options = None
+  _globals['_TABLE'].fields_by_name['rows']._serialized_options = b'\272H\005\222\001\002\010\001'
+  _globals['_TABLEROW'].fields_by_name['cells']._loaded_options = None
+  _globals['_TABLEROW'].fields_by_name['cells']._serialized_options = b'\272H\005\222\001\002\010\001'
+  _globals['_TABLECELL'].fields_by_name['resource_name']._loaded_options = None
+  _globals['_TABLECELL'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*'
+  _globals['_CHARTTYPE']._serialized_start=1018
+  _globals['_CHARTTYPE']._serialized_end=1118
+  _globals['_TEXT']._serialized_start=147
+  _globals['_TEXT']._serialized_end=179
+  _globals['_KEYVALUELIST']._serialized_start=181
+  _globals['_KEYVALUELIST']._serialized_end=274
+  _globals['_KEYVALUELISTITEM']._serialized_start=276
+  _globals['_KEYVALUELISTITEM']._serialized_end=363
+  _globals['_TIMELINE']._serialized_start=365
+  _globals['_TIMELINE']._serialized_end=453
+  _globals['_TIMELINEENTRY']._serialized_start=456
+  _globals['_TIMELINEENTRY']._serialized_end=588
+  _globals['_CHART']._serialized_start=591
+  _globals['_CHART']._serialized_end=730
+  _globals['_CHARTPOINT']._serialized_start=732
+  _globals['_CHARTPOINT']._serialized_end=782
+  _globals['_TABLE']._serialized_start=784
+  _globals['_TABLE']._serialized_end=888
+  _globals['_TABLEROW']._serialized_start=890
+  _globals['_TABLEROW']._serialized_end=957
+  _globals['_TABLECELL']._serialized_start=959
+  _globals['_TABLECELL']._serialized_end=1016
 # @@protoc_insertion_point(module_scope)

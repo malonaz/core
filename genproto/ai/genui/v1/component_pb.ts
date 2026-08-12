@@ -5,12 +5,10 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
-import type { Chart, ChartValid, KeyValueList, KeyValueListValid, MediaGallery, MediaGalleryValid, Text, TextValid, Timeline, TimelineValid } from "./content_pb";
+import type { Chart, ChartValid, KeyValueList, KeyValueListValid, Table, TableValid, Text, TextValid, Timeline, TimelineValid } from "./content_pb";
 import { file_malonaz_ai_genui_v1_content } from "./content_pb";
 import type { ActionRow, ActionRowValid, Choice, ChoiceValid } from "./interaction_pb";
 import { file_malonaz_ai_genui_v1_interaction } from "./interaction_pb";
-import type { Card, CardValid } from "./layout_pb";
-import { file_malonaz_ai_genui_v1_layout } from "./layout_pb";
 import type { ResourceCard, ResourceCardValid, ResourceList, ResourceListValid } from "./resource_pb";
 import { file_malonaz_ai_genui_v1_resource } from "./resource_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -19,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSK/BAoJQ29tcG9uZW50EhIKAmlkGAEgASgJQga6SAPIAQESKQoEdGV4dBgCIAEoCzIZLm1hbG9uYXouYWkuZ2VudWkudjEuVGV4dEgAEjsKDmtleV92YWx1ZV9saXN0GAMgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgEIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgFIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABI6Cg1tZWRpYV9nYWxsZXJ5GAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5NZWRpYUdhbGxlcnlIABI6Cg1yZXNvdXJjZV9jYXJkGAcgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAggASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAkgASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCiABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEikKBGNhcmQYCyABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNhcmRIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_layout, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSKFBAoJQ29tcG9uZW50EhIKAmlkGAEgASgJQga6SAPIAQESKQoEdGV4dBgCIAEoCzIZLm1hbG9uYXouYWkuZ2VudWkudjEuVGV4dEgAEjsKDmtleV92YWx1ZV9saXN0GAMgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgEIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgFIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABI6Cg1yZXNvdXJjZV9jYXJkGAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAcgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAggASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCSABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEisKBXRhYmxlGAogASgLMhoubWFsb25hei5haS5nZW51aS52MS5UYWJsZUgAQhIKCWNvbXBvbmVudBIFukgCCAFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_interaction, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
@@ -77,17 +75,9 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "chart";
   } | {
     /**
-     * Images/videos referenced by file resource names.
-     *
-     * @generated from field: malonaz.ai.genui.v1.MediaGallery media_gallery = 6;
-     */
-    value: MediaGallery;
-    case: "mediaGallery";
-  } | {
-    /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 7;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
      */
     value: ResourceCard;
     case: "resourceCard";
@@ -95,7 +85,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 8;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
      */
     value: ResourceList;
     case: "resourceList";
@@ -103,7 +93,7 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Buttons the user can press.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 9;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
     value: ActionRow;
     case: "actionRow";
@@ -111,18 +101,18 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 10;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
      */
     value: Choice;
     case: "choice";
   } | {
     /**
-     * A header grouping previously emitted components.
+     * Tabular data.
      *
-     * @generated from field: malonaz.ai.genui.v1.Card card = 11;
+     * @generated from field: malonaz.ai.genui.v1.Table table = 10;
      */
-    value: Card;
-    case: "card";
+    value: Table;
+    case: "table";
   } | { case: undefined; value?: undefined };
 };
 
@@ -182,17 +172,9 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     case: "chart";
   } | {
     /**
-     * Images/videos referenced by file resource names.
-     *
-     * @generated from field: malonaz.ai.genui.v1.MediaGallery media_gallery = 6;
-     */
-    value: MediaGalleryValid;
-    case: "mediaGallery";
-  } | {
-    /**
      * A rich card for a single resource.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 7;
+     * @generated from field: malonaz.ai.genui.v1.ResourceCard resource_card = 6;
      */
     value: ResourceCardValid;
     case: "resourceCard";
@@ -200,7 +182,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A list of resources rendered as compact rows.
      *
-     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 8;
+     * @generated from field: malonaz.ai.genui.v1.ResourceList resource_list = 7;
      */
     value: ResourceListValid;
     case: "resourceList";
@@ -208,7 +190,7 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * Buttons the user can press.
      *
-     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 9;
+     * @generated from field: malonaz.ai.genui.v1.ActionRow action_row = 8;
      */
     value: ActionRowValid;
     case: "actionRow";
@@ -216,18 +198,18 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
     /**
      * A question with constrained answers.
      *
-     * @generated from field: malonaz.ai.genui.v1.Choice choice = 10;
+     * @generated from field: malonaz.ai.genui.v1.Choice choice = 9;
      */
     value: ChoiceValid;
     case: "choice";
   } | {
     /**
-     * A header grouping previously emitted components.
+     * Tabular data.
      *
-     * @generated from field: malonaz.ai.genui.v1.Card card = 11;
+     * @generated from field: malonaz.ai.genui.v1.Table table = 10;
      */
-    value: CardValid;
-    case: "card";
+    value: TableValid;
+    case: "table";
   } | { case: undefined; value?: undefined };
 };
 

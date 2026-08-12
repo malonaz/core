@@ -25,7 +25,7 @@ func TestIsRequiredRule(t *testing.T) {
 	})
 
 	t.Run("unconstrained field", func(t *testing.T) {
-		fieldRules, err := getFieldRules(fieldOf(t, &genuipb.Card{}, "subtitle"))
+		fieldRules, err := getFieldRules(fieldOf(t, &genuipb.KeyValueList{}, "title"))
 		require.NoError(t, err)
 		require.Nil(t, fieldRules)
 		require.False(t, isRequiredRule(fieldRules))
@@ -65,11 +65,11 @@ func TestApplyRepeatedRules(t *testing.T) {
 func TestApplyEnumRules(t *testing.T) {
 	t.Run("not_in drops unspecified", func(t *testing.T) {
 		fieldDescriptor := fieldOf(t, &genuipb.Chart{}, "type")
-		schema := &jsonpb.Schema{Type: "string", Enum: []string{"TYPE_UNSPECIFIED", "TYPE_BAR", "TYPE_LINE", "TYPE_PIE"}}
+		schema := &jsonpb.Schema{Type: "string", Enum: []string{"CHART_TYPE_UNSPECIFIED", "CHART_TYPE_BAR", "CHART_TYPE_LINE", "CHART_TYPE_PIE"}}
 		fieldRules, err := getFieldRules(fieldDescriptor)
 		require.NoError(t, err)
 		applyEnumRules(schema, fieldDescriptor, fieldRules.GetEnum())
-		require.Equal(t, []string{"TYPE_BAR", "TYPE_LINE", "TYPE_PIE"}, schema.Enum)
+		require.Equal(t, []string{"CHART_TYPE_BAR", "CHART_TYPE_LINE", "CHART_TYPE_PIE"}, schema.Enum)
 	})
 }
 
@@ -89,7 +89,7 @@ func TestDescribeConstraints(t *testing.T) {
 
 func TestDescribeOneofs(t *testing.T) {
 	t.Run("required oneof", func(t *testing.T) {
-		description, err := describeOneofs((&genuipb.ActionRow_Action{}).ProtoReflect().Descriptor())
+		description, err := describeOneofs((&genuipb.ActionRowAction{}).ProtoReflect().Descriptor())
 		require.NoError(t, err)
 		require.Contains(t, description, "Set exactly one of")
 		require.Contains(t, description, "open_resource")

@@ -28,7 +28,7 @@ const (
 // sends a prompt back into the chat (the "suggested next step" pattern).
 type ActionRow struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Actions *[]*ActionRow_Action   `protobuf:"bytes,1,rep,name=actions,proto3"`
+	xxx_hidden_Actions *[]*ActionRowAction    `protobuf:"bytes,1,rep,name=actions,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -58,7 +58,7 @@ func (x *ActionRow) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ActionRow) GetActions() []*ActionRow_Action {
+func (x *ActionRow) GetActions() []*ActionRowAction {
 	if x != nil {
 		if x.xxx_hidden_Actions != nil {
 			return *x.xxx_hidden_Actions
@@ -67,7 +67,7 @@ func (x *ActionRow) GetActions() []*ActionRow_Action {
 	return nil
 }
 
-func (x *ActionRow) SetActions(v []*ActionRow_Action) {
+func (x *ActionRow) SetActions(v []*ActionRowAction) {
 	x.xxx_hidden_Actions = &v
 }
 
@@ -75,7 +75,7 @@ type ActionRow_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The buttons to render, in display order.
-	Actions []*ActionRow_Action
+	Actions []*ActionRowAction
 }
 
 func (b0 ActionRow_builder) Build() *ActionRow {
@@ -85,6 +85,191 @@ func (b0 ActionRow_builder) Build() *ActionRow {
 	x.xxx_hidden_Actions = &b.Actions
 	return m0
 }
+
+// A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+type ActionRowAction struct {
+	state             protoimpl.MessageState   `protogen:"opaque.v1"`
+	xxx_hidden_Label  string                   `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Action isActionRowAction_Action `protobuf_oneof:"action"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ActionRowAction) Reset() {
+	*x = ActionRowAction{}
+	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActionRowAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActionRowAction) ProtoMessage() {}
+
+func (x *ActionRowAction) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ActionRowAction) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetOpenResource() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource); ok {
+			return x.OpenResource
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) GetPrompt() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt); ok {
+			return x.Prompt
+		}
+	}
+	return ""
+}
+
+func (x *ActionRowAction) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *ActionRowAction) SetOpenResource(v string) {
+	x.xxx_hidden_Action = &actionRowAction_OpenResource{v}
+}
+
+func (x *ActionRowAction) SetPrompt(v string) {
+	x.xxx_hidden_Action = &actionRowAction_Prompt{v}
+}
+
+func (x *ActionRowAction) HasAction() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Action != nil
+}
+
+func (x *ActionRowAction) HasOpenResource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource)
+	return ok
+}
+
+func (x *ActionRowAction) HasPrompt() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt)
+	return ok
+}
+
+func (x *ActionRowAction) ClearAction() {
+	x.xxx_hidden_Action = nil
+}
+
+func (x *ActionRowAction) ClearOpenResource() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_OpenResource); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+func (x *ActionRowAction) ClearPrompt() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_Prompt); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
+const ActionRowAction_Action_not_set_case case_ActionRowAction_Action = 0
+const ActionRowAction_OpenResource_case case_ActionRowAction_Action = 2
+const ActionRowAction_Prompt_case case_ActionRowAction_Action = 3
+
+func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
+	if x == nil {
+		return ActionRowAction_Action_not_set_case
+	}
+	switch x.xxx_hidden_Action.(type) {
+	case *actionRowAction_OpenResource:
+		return ActionRowAction_OpenResource_case
+	case *actionRowAction_Prompt:
+		return ActionRowAction_Prompt_case
+	default:
+		return ActionRowAction_Action_not_set_case
+	}
+}
+
+type ActionRowAction_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The text rendered on the button.
+	Label string
+	// What pressing the button does.
+
+	// Fields of oneof xxx_hidden_Action:
+	// Navigate to this resource in-app.
+	OpenResource *string
+	// Send this text back into the chat as the user's next message.
+	Prompt *string
+	// -- end of xxx_hidden_Action
+}
+
+func (b0 ActionRowAction_builder) Build() *ActionRowAction {
+	m0 := &ActionRowAction{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
+	if b.OpenResource != nil {
+		x.xxx_hidden_Action = &actionRowAction_OpenResource{*b.OpenResource}
+	}
+	if b.Prompt != nil {
+		x.xxx_hidden_Action = &actionRowAction_Prompt{*b.Prompt}
+	}
+	return m0
+}
+
+type case_ActionRowAction_Action protoreflect.FieldNumber
+
+func (x case_ActionRowAction_Action) String() string {
+	md := file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isActionRowAction_Action interface {
+	isActionRowAction_Action()
+}
+
+type actionRowAction_OpenResource struct {
+	// Navigate to this resource in-app.
+	OpenResource string `protobuf:"bytes,2,opt,name=open_resource,json=openResource,proto3,oneof"`
+}
+
+type actionRowAction_Prompt struct {
+	// Send this text back into the chat as the user's next message.
+	Prompt string `protobuf:"bytes,3,opt,name=prompt,proto3,oneof"`
+}
+
+func (*actionRowAction_OpenResource) isActionRowAction_Action() {}
+
+func (*actionRowAction_Prompt) isActionRowAction_Action() {}
 
 // A question with constrained answers (mirrors AskUserQuestion UX): the
 // selected option is sent back as the user's next message.
@@ -98,7 +283,7 @@ type Choice struct {
 
 func (x *Choice) Reset() {
 	*x = Choice{}
-	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1]
+	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -110,7 +295,7 @@ func (x *Choice) String() string {
 func (*Choice) ProtoMessage() {}
 
 func (x *Choice) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1]
+	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,200 +346,15 @@ func (b0 Choice_builder) Build() *Choice {
 	return m0
 }
 
-// A single button.
-type ActionRow_Action struct {
-	state             protoimpl.MessageState    `protogen:"opaque.v1"`
-	xxx_hidden_Label  string                    `protobuf:"bytes,1,opt,name=label,proto3"`
-	xxx_hidden_Action isActionRow_Action_Action `protobuf_oneof:"action"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *ActionRow_Action) Reset() {
-	*x = ActionRow_Action{}
-	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ActionRow_Action) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ActionRow_Action) ProtoMessage() {}
-
-func (x *ActionRow_Action) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ActionRow_Action) GetLabel() string {
-	if x != nil {
-		return x.xxx_hidden_Label
-	}
-	return ""
-}
-
-func (x *ActionRow_Action) GetOpenResource() string {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Action.(*actionRow_Action_OpenResource); ok {
-			return x.OpenResource
-		}
-	}
-	return ""
-}
-
-func (x *ActionRow_Action) GetPrompt() string {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Action.(*actionRow_Action_Prompt); ok {
-			return x.Prompt
-		}
-	}
-	return ""
-}
-
-func (x *ActionRow_Action) SetLabel(v string) {
-	x.xxx_hidden_Label = v
-}
-
-func (x *ActionRow_Action) SetOpenResource(v string) {
-	x.xxx_hidden_Action = &actionRow_Action_OpenResource{v}
-}
-
-func (x *ActionRow_Action) SetPrompt(v string) {
-	x.xxx_hidden_Action = &actionRow_Action_Prompt{v}
-}
-
-func (x *ActionRow_Action) HasAction() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Action != nil
-}
-
-func (x *ActionRow_Action) HasOpenResource() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Action.(*actionRow_Action_OpenResource)
-	return ok
-}
-
-func (x *ActionRow_Action) HasPrompt() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Action.(*actionRow_Action_Prompt)
-	return ok
-}
-
-func (x *ActionRow_Action) ClearAction() {
-	x.xxx_hidden_Action = nil
-}
-
-func (x *ActionRow_Action) ClearOpenResource() {
-	if _, ok := x.xxx_hidden_Action.(*actionRow_Action_OpenResource); ok {
-		x.xxx_hidden_Action = nil
-	}
-}
-
-func (x *ActionRow_Action) ClearPrompt() {
-	if _, ok := x.xxx_hidden_Action.(*actionRow_Action_Prompt); ok {
-		x.xxx_hidden_Action = nil
-	}
-}
-
-const ActionRow_Action_Action_not_set_case case_ActionRow_Action_Action = 0
-const ActionRow_Action_OpenResource_case case_ActionRow_Action_Action = 2
-const ActionRow_Action_Prompt_case case_ActionRow_Action_Action = 3
-
-func (x *ActionRow_Action) WhichAction() case_ActionRow_Action_Action {
-	if x == nil {
-		return ActionRow_Action_Action_not_set_case
-	}
-	switch x.xxx_hidden_Action.(type) {
-	case *actionRow_Action_OpenResource:
-		return ActionRow_Action_OpenResource_case
-	case *actionRow_Action_Prompt:
-		return ActionRow_Action_Prompt_case
-	default:
-		return ActionRow_Action_Action_not_set_case
-	}
-}
-
-type ActionRow_Action_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The text rendered on the button.
-	Label string
-	// What pressing the button does.
-
-	// Fields of oneof xxx_hidden_Action:
-	// Navigate to this resource in-app.
-	OpenResource *string
-	// Send this text back into the chat as the user's next message.
-	Prompt *string
-	// -- end of xxx_hidden_Action
-}
-
-func (b0 ActionRow_Action_builder) Build() *ActionRow_Action {
-	m0 := &ActionRow_Action{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Label = b.Label
-	if b.OpenResource != nil {
-		x.xxx_hidden_Action = &actionRow_Action_OpenResource{*b.OpenResource}
-	}
-	if b.Prompt != nil {
-		x.xxx_hidden_Action = &actionRow_Action_Prompt{*b.Prompt}
-	}
-	return m0
-}
-
-type case_ActionRow_Action_Action protoreflect.FieldNumber
-
-func (x case_ActionRow_Action_Action) String() string {
-	md := file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isActionRow_Action_Action interface {
-	isActionRow_Action_Action()
-}
-
-type actionRow_Action_OpenResource struct {
-	// Navigate to this resource in-app.
-	OpenResource string `protobuf:"bytes,2,opt,name=open_resource,json=openResource,proto3,oneof"`
-}
-
-type actionRow_Action_Prompt struct {
-	// Send this text back into the chat as the user's next message.
-	Prompt string `protobuf:"bytes,3,opt,name=prompt,proto3,oneof"`
-}
-
-func (*actionRow_Action_OpenResource) isActionRow_Action_Action() {}
-
-func (*actionRow_Action_Prompt) isActionRow_Action_Action() {}
-
 var File_malonaz_ai_genui_v1_interaction_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_interaction_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/ai/genui/v1/interaction.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"\xdb\x01\n" +
-	"\tActionRow\x12K\n" +
-	"\aactions\x18\x01 \x03(\v2%.malonaz.ai.genui.v1.ActionRow.ActionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\x1a\x80\x01\n" +
-	"\x06Action\x12\x1c\n" +
+	"%malonaz/ai/genui/v1/interaction.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\"W\n" +
+	"\tActionRow\x12J\n" +
+	"\aactions\x18\x01 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\x89\x01\n" +
+	"\x0fActionRowAction\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12-\n" +
 	"\ropen_resource\x18\x02 \x01(\tB\x06\xfaA\x03\n" +
 	"\x01*H\x00R\fopenResource\x12\x18\n" +
@@ -367,12 +367,12 @@ const file_malonaz_ai_genui_v1_interaction_proto_rawDesc = "" +
 
 var file_malonaz_ai_genui_v1_interaction_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_genui_v1_interaction_proto_goTypes = []any{
-	(*ActionRow)(nil),        // 0: malonaz.ai.genui.v1.ActionRow
-	(*Choice)(nil),           // 1: malonaz.ai.genui.v1.Choice
-	(*ActionRow_Action)(nil), // 2: malonaz.ai.genui.v1.ActionRow.Action
+	(*ActionRow)(nil),       // 0: malonaz.ai.genui.v1.ActionRow
+	(*ActionRowAction)(nil), // 1: malonaz.ai.genui.v1.ActionRowAction
+	(*Choice)(nil),          // 2: malonaz.ai.genui.v1.Choice
 }
 var file_malonaz_ai_genui_v1_interaction_proto_depIdxs = []int32{
-	2, // 0: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRow.Action
+	1, // 0: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -385,9 +385,9 @@ func file_malonaz_ai_genui_v1_interaction_proto_init() {
 	if File_malonaz_ai_genui_v1_interaction_proto != nil {
 		return
 	}
-	file_malonaz_ai_genui_v1_interaction_proto_msgTypes[2].OneofWrappers = []any{
-		(*actionRow_Action_OpenResource)(nil),
-		(*actionRow_Action_Prompt)(nil),
+	file_malonaz_ai_genui_v1_interaction_proto_msgTypes[1].OneofWrappers = []any{
+		(*actionRowAction_OpenResource)(nil),
+		(*actionRowAction_Prompt)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

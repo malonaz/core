@@ -10,28 +10,28 @@ option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 // Buttons the user can press. Each action either navigates to a resource or
 // sends a prompt back into the chat (the "suggested next step" pattern).
 message ActionRow {
-  // A single button.
-  message Action {
-    // The text rendered on the button.
-    string label = 1 [(buf.validate.field).required = true];
-
-    // What pressing the button does.
-    oneof action {
-      option (buf.validate.oneof).required = true;
-
-      // Navigate to this resource in-app.
-      string open_resource = 2 [(google.api.resource_reference).type = "*"];
-
-      // Send this text back into the chat as the user's next message.
-      string prompt = 3;
-    }
-  }
-
   // The buttons to render, in display order.
-  repeated Action actions = 1 [(buf.validate.field).repeated = {
+  repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
     min_items: 1
     max_items: 5
   }];
+}
+
+// A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
+message ActionRowAction {
+  // The text rendered on the button.
+  string label = 1 [(buf.validate.field).required = true];
+
+  // What pressing the button does.
+  oneof action {
+    option (buf.validate.oneof).required = true;
+
+    // Navigate to this resource in-app.
+    string open_resource = 2 [(google.api.resource_reference).type = "*"];
+
+    // Send this text back into the chat as the user's next message.
+    string prompt = 3;
+  }
 }
 
 // A question with constrained answers (mirrors AskUserQuestion UX): the

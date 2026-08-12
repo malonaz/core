@@ -4,7 +4,6 @@ proto_library(
         "component.proto",
         "content.proto",
         "interaction.proto",
-        "layout.proto",
         "resource.proto",
     ],
     additional_context = {

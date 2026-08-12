@@ -103,15 +103,6 @@ func (x *Component) GetChart() *Chart {
 	return nil
 }
 
-func (x *Component) GetMediaGallery() *MediaGallery {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Component.(*component_MediaGallery); ok {
-			return x.MediaGallery
-		}
-	}
-	return nil
-}
-
 func (x *Component) GetResourceCard() *ResourceCard {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Component.(*component_ResourceCard); ok {
@@ -148,10 +139,10 @@ func (x *Component) GetChoice() *Choice {
 	return nil
 }
 
-func (x *Component) GetCard() *Card {
+func (x *Component) GetTable() *Table {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Component.(*component_Card); ok {
-			return x.Card
+		if x, ok := x.xxx_hidden_Component.(*component_Table); ok {
+			return x.Table
 		}
 	}
 	return nil
@@ -193,14 +184,6 @@ func (x *Component) SetChart(v *Chart) {
 	x.xxx_hidden_Component = &component_Chart{v}
 }
 
-func (x *Component) SetMediaGallery(v *MediaGallery) {
-	if v == nil {
-		x.xxx_hidden_Component = nil
-		return
-	}
-	x.xxx_hidden_Component = &component_MediaGallery{v}
-}
-
 func (x *Component) SetResourceCard(v *ResourceCard) {
 	if v == nil {
 		x.xxx_hidden_Component = nil
@@ -233,12 +216,12 @@ func (x *Component) SetChoice(v *Choice) {
 	x.xxx_hidden_Component = &component_Choice{v}
 }
 
-func (x *Component) SetCard(v *Card) {
+func (x *Component) SetTable(v *Table) {
 	if v == nil {
 		x.xxx_hidden_Component = nil
 		return
 	}
-	x.xxx_hidden_Component = &component_Card{v}
+	x.xxx_hidden_Component = &component_Table{v}
 }
 
 func (x *Component) HasComponent() bool {
@@ -280,14 +263,6 @@ func (x *Component) HasChart() bool {
 	return ok
 }
 
-func (x *Component) HasMediaGallery() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Component.(*component_MediaGallery)
-	return ok
-}
-
 func (x *Component) HasResourceCard() bool {
 	if x == nil {
 		return false
@@ -320,11 +295,11 @@ func (x *Component) HasChoice() bool {
 	return ok
 }
 
-func (x *Component) HasCard() bool {
+func (x *Component) HasTable() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Component.(*component_Card)
+	_, ok := x.xxx_hidden_Component.(*component_Table)
 	return ok
 }
 
@@ -356,12 +331,6 @@ func (x *Component) ClearChart() {
 	}
 }
 
-func (x *Component) ClearMediaGallery() {
-	if _, ok := x.xxx_hidden_Component.(*component_MediaGallery); ok {
-		x.xxx_hidden_Component = nil
-	}
-}
-
 func (x *Component) ClearResourceCard() {
 	if _, ok := x.xxx_hidden_Component.(*component_ResourceCard); ok {
 		x.xxx_hidden_Component = nil
@@ -386,8 +355,8 @@ func (x *Component) ClearChoice() {
 	}
 }
 
-func (x *Component) ClearCard() {
-	if _, ok := x.xxx_hidden_Component.(*component_Card); ok {
+func (x *Component) ClearTable() {
+	if _, ok := x.xxx_hidden_Component.(*component_Table); ok {
 		x.xxx_hidden_Component = nil
 	}
 }
@@ -397,12 +366,11 @@ const Component_Text_case case_Component_Component = 2
 const Component_KeyValueList_case case_Component_Component = 3
 const Component_Timeline_case case_Component_Component = 4
 const Component_Chart_case case_Component_Component = 5
-const Component_MediaGallery_case case_Component_Component = 6
-const Component_ResourceCard_case case_Component_Component = 7
-const Component_ResourceList_case case_Component_Component = 8
-const Component_ActionRow_case case_Component_Component = 9
-const Component_Choice_case case_Component_Component = 10
-const Component_Card_case case_Component_Component = 11
+const Component_ResourceCard_case case_Component_Component = 6
+const Component_ResourceList_case case_Component_Component = 7
+const Component_ActionRow_case case_Component_Component = 8
+const Component_Choice_case case_Component_Component = 9
+const Component_Table_case case_Component_Component = 10
 
 func (x *Component) WhichComponent() case_Component_Component {
 	if x == nil {
@@ -417,8 +385,6 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_Timeline_case
 	case *component_Chart:
 		return Component_Chart_case
-	case *component_MediaGallery:
-		return Component_MediaGallery_case
 	case *component_ResourceCard:
 		return Component_ResourceCard_case
 	case *component_ResourceList:
@@ -427,8 +393,8 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_ActionRow_case
 	case *component_Choice:
 		return Component_Choice_case
-	case *component_Card:
-		return Component_Card_case
+	case *component_Table:
+		return Component_Table_case
 	default:
 		return Component_Component_not_set_case
 	}
@@ -451,8 +417,6 @@ type Component_builder struct {
 	Timeline *Timeline
 	// A chart of aggregates.
 	Chart *Chart
-	// Images/videos referenced by file resource names.
-	MediaGallery *MediaGallery
 	// A rich card for a single resource.
 	ResourceCard *ResourceCard
 	// A list of resources rendered as compact rows.
@@ -461,8 +425,8 @@ type Component_builder struct {
 	ActionRow *ActionRow
 	// A question with constrained answers.
 	Choice *Choice
-	// A header grouping previously emitted components.
-	Card *Card
+	// Tabular data.
+	Table *Table
 	// -- end of xxx_hidden_Component
 }
 
@@ -483,9 +447,6 @@ func (b0 Component_builder) Build() *Component {
 	if b.Chart != nil {
 		x.xxx_hidden_Component = &component_Chart{b.Chart}
 	}
-	if b.MediaGallery != nil {
-		x.xxx_hidden_Component = &component_MediaGallery{b.MediaGallery}
-	}
 	if b.ResourceCard != nil {
 		x.xxx_hidden_Component = &component_ResourceCard{b.ResourceCard}
 	}
@@ -498,8 +459,8 @@ func (b0 Component_builder) Build() *Component {
 	if b.Choice != nil {
 		x.xxx_hidden_Component = &component_Choice{b.Choice}
 	}
-	if b.Card != nil {
-		x.xxx_hidden_Component = &component_Card{b.Card}
+	if b.Table != nil {
+		x.xxx_hidden_Component = &component_Table{b.Table}
 	}
 	return m0
 }
@@ -538,34 +499,29 @@ type component_Chart struct {
 	Chart *Chart `protobuf:"bytes,5,opt,name=chart,proto3,oneof"`
 }
 
-type component_MediaGallery struct {
-	// Images/videos referenced by file resource names.
-	MediaGallery *MediaGallery `protobuf:"bytes,6,opt,name=media_gallery,json=mediaGallery,proto3,oneof"`
-}
-
 type component_ResourceCard struct {
 	// A rich card for a single resource.
-	ResourceCard *ResourceCard `protobuf:"bytes,7,opt,name=resource_card,json=resourceCard,proto3,oneof"`
+	ResourceCard *ResourceCard `protobuf:"bytes,6,opt,name=resource_card,json=resourceCard,proto3,oneof"`
 }
 
 type component_ResourceList struct {
 	// A list of resources rendered as compact rows.
-	ResourceList *ResourceList `protobuf:"bytes,8,opt,name=resource_list,json=resourceList,proto3,oneof"`
+	ResourceList *ResourceList `protobuf:"bytes,7,opt,name=resource_list,json=resourceList,proto3,oneof"`
 }
 
 type component_ActionRow struct {
 	// Buttons the user can press.
-	ActionRow *ActionRow `protobuf:"bytes,9,opt,name=action_row,json=actionRow,proto3,oneof"`
+	ActionRow *ActionRow `protobuf:"bytes,8,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 
 type component_Choice struct {
 	// A question with constrained answers.
-	Choice *Choice `protobuf:"bytes,10,opt,name=choice,proto3,oneof"`
+	Choice *Choice `protobuf:"bytes,9,opt,name=choice,proto3,oneof"`
 }
 
-type component_Card struct {
-	// A header grouping previously emitted components.
-	Card *Card `protobuf:"bytes,11,opt,name=card,proto3,oneof"`
+type component_Table struct {
+	// Tabular data.
+	Table *Table `protobuf:"bytes,10,opt,name=table,proto3,oneof"`
 }
 
 func (*component_Text) isComponent_Component() {}
@@ -576,8 +532,6 @@ func (*component_Timeline) isComponent_Component() {}
 
 func (*component_Chart) isComponent_Component() {}
 
-func (*component_MediaGallery) isComponent_Component() {}
-
 func (*component_ResourceCard) isComponent_Component() {}
 
 func (*component_ResourceList) isComponent_Component() {}
@@ -586,27 +540,26 @@ func (*component_ActionRow) isComponent_Component() {}
 
 func (*component_Choice) isComponent_Component() {}
 
-func (*component_Card) isComponent_Component() {}
+func (*component_Table) isComponent_Component() {}
 
 var File_malonaz_ai_genui_v1_component_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a malonaz/ai/genui/v1/layout.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xab\x05\n" +
+	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a%malonaz/ai/genui/v1/interaction.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xe4\x04\n" +
 	"\tComponent\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12/\n" +
 	"\x04text\x18\x02 \x01(\v2\x19.malonaz.ai.genui.v1.TextH\x00R\x04text\x12I\n" +
 	"\x0ekey_value_list\x18\x03 \x01(\v2!.malonaz.ai.genui.v1.KeyValueListH\x00R\fkeyValueList\x12;\n" +
 	"\btimeline\x18\x04 \x01(\v2\x1d.malonaz.ai.genui.v1.TimelineH\x00R\btimeline\x122\n" +
 	"\x05chart\x18\x05 \x01(\v2\x1a.malonaz.ai.genui.v1.ChartH\x00R\x05chart\x12H\n" +
-	"\rmedia_gallery\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.MediaGalleryH\x00R\fmediaGallery\x12H\n" +
-	"\rresource_card\x18\a \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
-	"\rresource_list\x18\b \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
+	"\rresource_card\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
+	"\rresource_list\x18\a \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
 	"\n" +
-	"action_row\x18\t \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
-	"\x06choice\x18\n" +
-	" \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x12/\n" +
-	"\x04card\x18\v \x01(\v2\x19.malonaz.ai.genui.v1.CardH\x00R\x04cardB\x12\n" +
+	"action_row\x18\b \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
+	"\x06choice\x18\t \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x122\n" +
+	"\x05table\x18\n" +
+	" \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05tableB\x12\n" +
 	"\tcomponent\x12\x05\xbaH\x02\b\x01B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
 var file_malonaz_ai_genui_v1_component_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
@@ -616,29 +569,27 @@ var file_malonaz_ai_genui_v1_component_proto_goTypes = []any{
 	(*KeyValueList)(nil), // 2: malonaz.ai.genui.v1.KeyValueList
 	(*Timeline)(nil),     // 3: malonaz.ai.genui.v1.Timeline
 	(*Chart)(nil),        // 4: malonaz.ai.genui.v1.Chart
-	(*MediaGallery)(nil), // 5: malonaz.ai.genui.v1.MediaGallery
-	(*ResourceCard)(nil), // 6: malonaz.ai.genui.v1.ResourceCard
-	(*ResourceList)(nil), // 7: malonaz.ai.genui.v1.ResourceList
-	(*ActionRow)(nil),    // 8: malonaz.ai.genui.v1.ActionRow
-	(*Choice)(nil),       // 9: malonaz.ai.genui.v1.Choice
-	(*Card)(nil),         // 10: malonaz.ai.genui.v1.Card
+	(*ResourceCard)(nil), // 5: malonaz.ai.genui.v1.ResourceCard
+	(*ResourceList)(nil), // 6: malonaz.ai.genui.v1.ResourceList
+	(*ActionRow)(nil),    // 7: malonaz.ai.genui.v1.ActionRow
+	(*Choice)(nil),       // 8: malonaz.ai.genui.v1.Choice
+	(*Table)(nil),        // 9: malonaz.ai.genui.v1.Table
 }
 var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
-	1,  // 0: malonaz.ai.genui.v1.Component.text:type_name -> malonaz.ai.genui.v1.Text
-	2,  // 1: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
-	3,  // 2: malonaz.ai.genui.v1.Component.timeline:type_name -> malonaz.ai.genui.v1.Timeline
-	4,  // 3: malonaz.ai.genui.v1.Component.chart:type_name -> malonaz.ai.genui.v1.Chart
-	5,  // 4: malonaz.ai.genui.v1.Component.media_gallery:type_name -> malonaz.ai.genui.v1.MediaGallery
-	6,  // 5: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
-	7,  // 6: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
-	8,  // 7: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
-	9,  // 8: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
-	10, // 9: malonaz.ai.genui.v1.Component.card:type_name -> malonaz.ai.genui.v1.Card
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	1, // 0: malonaz.ai.genui.v1.Component.text:type_name -> malonaz.ai.genui.v1.Text
+	2, // 1: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
+	3, // 2: malonaz.ai.genui.v1.Component.timeline:type_name -> malonaz.ai.genui.v1.Timeline
+	4, // 3: malonaz.ai.genui.v1.Component.chart:type_name -> malonaz.ai.genui.v1.Chart
+	5, // 4: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
+	6, // 5: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
+	7, // 6: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
+	8, // 7: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
+	9, // 8: malonaz.ai.genui.v1.Component.table:type_name -> malonaz.ai.genui.v1.Table
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_component_proto_init() }
@@ -648,19 +599,17 @@ func file_malonaz_ai_genui_v1_component_proto_init() {
 	}
 	file_malonaz_ai_genui_v1_content_proto_init()
 	file_malonaz_ai_genui_v1_interaction_proto_init()
-	file_malonaz_ai_genui_v1_layout_proto_init()
 	file_malonaz_ai_genui_v1_resource_proto_init()
 	file_malonaz_ai_genui_v1_component_proto_msgTypes[0].OneofWrappers = []any{
 		(*component_Text)(nil),
 		(*component_KeyValueList)(nil),
 		(*component_Timeline)(nil),
 		(*component_Chart)(nil),
-		(*component_MediaGallery)(nil),
 		(*component_ResourceCard)(nil),
 		(*component_ResourceList)(nil),
 		(*component_ActionRow)(nil),
 		(*component_Choice)(nil),
-		(*component_Card)(nil),
+		(*component_Table)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
