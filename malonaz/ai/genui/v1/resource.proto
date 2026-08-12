@@ -4,6 +4,7 @@ package malonaz.ai.genui.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
@@ -19,6 +20,10 @@ message ResourceCard {
 
   // Optional AI-written headline overriding the default renderer's title.
   string title = 2;
+
+  // Optional fields the user may edit inline on the card; edits flow back
+  // as a [ResourceEditResponse][malonaz.ai.genui.v1.ResourceEditResponse].
+  google.protobuf.FieldMask editable_fields = 3;
 }
 
 // A homogeneous list of resources, rendered as compact rows.

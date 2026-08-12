@@ -4,6 +4,8 @@ package malonaz.ai.genui.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
@@ -22,6 +24,9 @@ message ActionRowAction {
   // The text rendered on the button.
   string label = 1 [(buf.validate.field).required = true];
 
+  // How the button is visually emphasized.
+  ActionStyle style = 4 [(buf.validate.field).enum.defined_only = true];
+
   // What pressing the button does.
   oneof action {
     option (buf.validate.oneof).required = true;
@@ -31,7 +36,40 @@ message ActionRowAction {
 
     // Send this text back into the chat as the user's next message.
     string prompt = 3;
+
+    // Copy this text to the user's clipboard.
+    string copy_text = 5;
+
+    // Open this http(s) URL externally.
+    string open_url = 6 [(buf.validate.field).string.uri = true];
+
+    // Invoke a pre-approved server-side tool call.
+    ActionRowToolCall invoke_tool = 7;
   }
+}
+
+// How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
+// visually emphasized.
+enum ActionStyle {
+  // Used to detect an unset field. Rendered as the default style.
+  ACTION_STYLE_UNSPECIFIED = 0;
+
+  // The main call to action; at most one per row.
+  ACTION_STYLE_PRIMARY = 1;
+
+  // A destructive or irreversible action.
+  ACTION_STYLE_DESTRUCTIVE = 2;
+}
+
+// A server-side tool call executed when the user presses the button. The
+// press itself is the user's approval — the server runs the call without
+// another model round-trip.
+message ActionRowToolCall {
+  // The name of the tool to invoke.
+  string tool = 1 [(buf.validate.field).required = true];
+
+  // The arguments to invoke the tool with.
+  google.protobuf.Struct arguments = 2;
 }
 
 // A question with constrained answers (mirrors AskUserQuestion UX): the
@@ -45,4 +83,175 @@ message Choice {
     min_items: 2
     max_items: 8
   }];
+}
+
+// A question allowing several answers to be selected before submitting,
+// e.g. "which contacts should I include in the follow-up?".
+message MultiChoice {
+  // The question posed to the user.
+  string question = 1 [(buf.validate.field).required = true];
+
+  // The answers the user may pick from, in display order.
+  repeated string options = 2 [(buf.validate.field).repeated = {
+    min_items: 2
+    max_items: 12
+  }];
+
+  // Minimum number of selections required to submit. Defaults to 1.
+  int32 min_selections = 3 [(buf.validate.field).int32.gte = 0];
+
+  // Maximum number of selections allowed. 0 means unlimited.
+  int32 max_selections = 4 [(buf.validate.field).int32.gte = 0];
+}
+
+// An explicit approve/reject gate for a consequential action (send quote,
+// delete contact). Unlike an [ActionRow][malonaz.ai.genui.v1.ActionRow],
+// the answer flows back as a typed [ConfirmationResponse][malonaz.ai.genui.v1.ConfirmationResponse].
+message Confirmation {
+  // Short headline describing the action awaiting approval.
+  string title = 1 [(buf.validate.field).required = true];
+
+  // Optional detail describing the consequences of confirming.
+  string description = 2;
+
+  // Optional label for the confirm button. Defaults to "Confirm".
+  string confirm_label = 3;
+
+  // Optional label for the cancel button. Defaults to "Cancel".
+  string cancel_label = 4;
+
+  // Whether confirming is destructive or irreversible; clients render
+  // the confirm button accordingly.
+  bool destructive = 5;
+}
+
+// Structured multi-field input submitted as a single
+// [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
+// lead's details in one step instead of a free-text back-and-forth.
+message Form {
+  // Optional heading rendered above the fields.
+  string title = 1;
+
+  // Optional label for the submit button. Defaults to "Submit".
+  string submit_label = 2;
+
+  // The inputs to render, in display order.
+  repeated FormField fields = 3 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A single input within a [Form][malonaz.ai.genui.v1.Form].
+message FormField {
+  // Identifies the field within its form; echoed back in the
+  // [FormFieldValue][malonaz.ai.genui.v1.FormFieldValue].
+  string id = 1 [(buf.validate.field).required = true];
+
+  // The label naming the input, e.g. "Budget".
+  string label = 2 [(buf.validate.field).required = true];
+
+  // Optional hint rendered inside the empty input.
+  string placeholder = 3;
+
+  // Whether the field must be filled before submitting.
+  bool required = 4;
+
+  // The kind of input to render.
+  oneof input {
+    option (buf.validate.oneof).required = true;
+
+    // Free text.
+    FormTextInput text = 5;
+
+    // A number, optionally bounded.
+    FormNumberInput number = 6;
+
+    // One option from a fixed set.
+    FormSelectInput select = 7;
+
+    // A date, optionally with a time of day.
+    FormDateInput date = 8;
+
+    // An on/off switch.
+    FormToggleInput toggle = 9;
+  }
+}
+
+// A free-text input within a [FormField][malonaz.ai.genui.v1.FormField].
+message FormTextInput {
+  // Whether to render a multi-line text area instead of a single line.
+  bool multiline = 1;
+}
+
+// A numeric input within a [FormField][malonaz.ai.genui.v1.FormField].
+message FormNumberInput {
+  // Optional inclusive lower bound.
+  optional double min = 1;
+
+  // Optional inclusive upper bound.
+  optional double max = 2;
+}
+
+// A single-select input within a [FormField][malonaz.ai.genui.v1.FormField].
+message FormSelectInput {
+  // The options the user may pick from, in display order.
+  repeated string options = 1 [(buf.validate.field).repeated.min_items = 2];
+}
+
+// A date input within a [FormField][malonaz.ai.genui.v1.FormField].
+message FormDateInput {
+  // Whether the user also picks a time of day.
+  bool include_time = 1;
+}
+
+// An on/off input within a [FormField][malonaz.ai.genui.v1.FormField].
+message FormToggleInput {
+  // The initial state of the toggle.
+  bool default_value = 1;
+}
+
+// Select one or more resources from a candidate set, e.g. disambiguating
+// "which John did you mean?". The client renders each candidate using the
+// same hydration as [ResourceList][malonaz.ai.genui.v1.ResourceList].
+message ResourcePicker {
+  // Optional heading rendered above the candidates.
+  string title = 1;
+
+  // The candidate resources, in display order.
+  repeated string resource_names = 2 [
+    (google.api.resource_reference).type = "*",
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).repeated.items.string.min_len = 1
+  ];
+
+  // Whether the user may select more than one candidate.
+  bool multi_select = 3;
+}
+
+// Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
+message Slider {
+  // The label naming the value being picked.
+  string label = 1 [(buf.validate.field).required = true];
+
+  // The inclusive lower bound.
+  double min = 2;
+
+  // The inclusive upper bound.
+  double max = 3;
+
+  // The increment between selectable values. 0 means continuous.
+  double step = 4 [(buf.validate.field).double.gte = 0];
+}
+
+// A calendar/clock input, e.g. "when should I schedule the call?".
+message DateTimePicker {
+  // The label naming the moment being picked.
+  string label = 1 [(buf.validate.field).required = true];
+
+  // Whether the user also picks a time of day.
+  bool include_time = 2;
+
+  // Optional earliest selectable moment.
+  google.protobuf.Timestamp min_time = 3;
+
+  // Optional latest selectable moment.
+  google.protobuf.Timestamp max_time = 4;
 }

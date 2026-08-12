@@ -48,5 +48,23 @@ message Component {
 
     // Tabular data.
     Table table = 10;
+
+    // A question allowing several answers.
+    MultiChoice multi_choice = 11;
+
+    // An approve/reject gate for a consequential action.
+    Confirmation confirmation = 12;
+
+    // Structured multi-field input.
+    Form form = 13;
+
+    // Select one or more resources from candidates.
+    ResourcePicker resource_picker = 14;
+
+    // Bounded numeric input.
+    Slider slider = 15;
+
+    // A calendar/clock input.
+    DateTimePicker date_time_picker = 16;
   }
 }
