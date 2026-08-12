@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package malonaz.ai.genui.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/ai/genui/v1/content.proto";
+import "malonaz/ai/genui/v1/interaction.proto";
+import "malonaz/ai/genui/v1/resource.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
+
+// Application-side envelope: the server wraps each parsed tool call into a
+// Component before streaming it to clients. The AI never sees this type —
+// each component message above is exposed to the model as its own tool, so
+// the tool name identifies the variant before any field streams.
+message Component {
+  // Server-assigned identity (typically the tool call id). Re-emitting a
+  // component with the same id replaces the prior version in place.
+  string id = 1 [(buf.validate.field).required = true];
+
+  // The component to render.
+  oneof component {
+    option (buf.validate.oneof).required = true;
+
+    // Markdown-subset prose.
+    Text text = 2;
+
+    // Label/value facts.
+    KeyValueList key_value_list = 3;
+
+    // Ordered events.
+    Timeline timeline = 4;
+
+    // A chart of aggregates.
+    Chart chart = 5;
+
+    // A rich card for a single resource.
+    ResourceCard resource_card = 6;
+
+    // A list of resources rendered as compact rows.
+    ResourceList resource_list = 7;
+
+    // Buttons the user can press.
+    ActionRow action_row = 8;
+
+    // A question with constrained answers.
+    Choice choice = 9;
+
+    // Tabular data.
+    Table table = 10;
+
+    // A question allowing several answers.
+    MultiChoice multi_choice = 11;
+
+    // An approve/reject gate for a consequential action.
+    Confirmation confirmation = 12;
+
+    // Structured multi-field input.
+    Form form = 13;
+
+    // Select one or more resources from candidates.
+    ResourcePicker resource_picker = 14;
+
+    // Bounded numeric input.
+    Slider slider = 15;
+
+    // A calendar/clock input.
+    DateTimePicker date_time_picker = 16;
+  }
+}

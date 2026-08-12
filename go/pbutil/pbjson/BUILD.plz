@@ -1,6 +1,7 @@
 go_library(
     name = "pbjson",
     srcs = [
+        "constraints.go",
         "message_builder.go",
         "schema_builder.go",
     ],
@@ -20,14 +21,20 @@ go_library(
         "//third_party/proto:google__type__date",
         "//third_party/proto:google__type__money",
         "//third_party/proto:google__type__timeofday",
+        "//third_party/proto:validate",
     ],
 )
 
 go_test(
     name = "test",
-    srcs = ["message_builder_test.go"],
+    srcs = [
+        "constraints_test.go",
+        "message_builder_test.go",
+    ],
     deps = [
         ":pbjson",
+        "//malonaz/ai/genui/v1",
+        "//malonaz/json/v1",
         "//malonaz/test/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
