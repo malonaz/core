@@ -8,14 +8,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
-// Markdown-subset text (bold, italics, lists, links). Link targets that are
-// resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
-// are rendered as in-app navigation; http(s) URLs open externally.
-message Text {
-  // The markdown content to render.
-  string markdown = 1 [(buf.validate.field).required = true];
-}
-
 // Label/value facts, e.g. a lead summary ("Budget: $10-15k").
 message KeyValueList {
   // Optional heading rendered above the items.

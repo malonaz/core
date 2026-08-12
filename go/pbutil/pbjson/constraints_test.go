@@ -19,7 +19,7 @@ func fieldOf(t *testing.T, message protoreflect.ProtoMessage, fieldName string) 
 
 func TestIsRequiredRule(t *testing.T) {
 	t.Run("required field", func(t *testing.T) {
-		fieldRules, err := getFieldRules(fieldOf(t, &genuipb.Text{}, "markdown"))
+		fieldRules, err := getFieldRules(fieldOf(t, &genuipb.ResourceCard{}, "resource_name"))
 		require.NoError(t, err)
 		require.True(t, isRequiredRule(fieldRules))
 	})
@@ -98,7 +98,7 @@ func TestDescribeOneofs(t *testing.T) {
 	})
 
 	t.Run("no oneof", func(t *testing.T) {
-		description, err := describeOneofs((&genuipb.Text{}).ProtoReflect().Descriptor())
+		description, err := describeOneofs((&genuipb.KeyValueList{}).ProtoReflect().Descriptor())
 		require.NoError(t, err)
 		require.Empty(t, description)
 	})

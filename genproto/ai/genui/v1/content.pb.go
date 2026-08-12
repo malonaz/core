@@ -126,68 +126,6 @@ func (x ActionStyle) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Markdown-subset text (bold, italics, lists, links). Link targets that are
-// resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
-// are rendered as in-app navigation; http(s) URLs open externally.
-type Text struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The markdown content to render.
-	Markdown      string `protobuf:"bytes,1,opt,name=markdown,proto3" json:"markdown,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Text) Reset() {
-	*x = Text{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Text) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Text) ProtoMessage() {}
-
-func (x *Text) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Text) GetMarkdown() string {
-	if x != nil {
-		return x.Markdown
-	}
-	return ""
-}
-
-func (x *Text) SetMarkdown(v string) {
-	x.Markdown = v
-}
-
-type Text_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The markdown content to render.
-	Markdown string
-}
-
-func (b0 Text_builder) Build() *Text {
-	m0 := &Text{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Markdown = b.Markdown
-	return m0
-}
-
 // Label/value facts, e.g. a lead summary ("Budget: $10-15k").
 type KeyValueList struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -201,7 +139,7 @@ type KeyValueList struct {
 
 func (x *KeyValueList) Reset() {
 	*x = KeyValueList{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[1]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -213,7 +151,7 @@ func (x *KeyValueList) String() string {
 func (*KeyValueList) ProtoMessage() {}
 
 func (x *KeyValueList) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[1]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -279,7 +217,7 @@ type KeyValueListItem struct {
 
 func (x *KeyValueListItem) Reset() {
 	*x = KeyValueListItem{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[2]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +229,7 @@ func (x *KeyValueListItem) String() string {
 func (*KeyValueListItem) ProtoMessage() {}
 
 func (x *KeyValueListItem) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[2]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,7 +307,7 @@ type Timeline struct {
 
 func (x *Timeline) Reset() {
 	*x = Timeline{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[3]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +319,7 @@ func (x *Timeline) String() string {
 func (*Timeline) ProtoMessage() {}
 
 func (x *Timeline) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[3]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +387,7 @@ type TimelineEntry struct {
 
 func (x *TimelineEntry) Reset() {
 	*x = TimelineEntry{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[4]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -461,7 +399,7 @@ func (x *TimelineEntry) String() string {
 func (*TimelineEntry) ProtoMessage() {}
 
 func (x *TimelineEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[4]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -566,7 +504,7 @@ type Chart struct {
 
 func (x *Chart) Reset() {
 	*x = Chart{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -578,7 +516,7 @@ func (x *Chart) String() string {
 func (*Chart) ProtoMessage() {}
 
 func (x *Chart) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -656,7 +594,7 @@ type ChartPoint struct {
 
 func (x *ChartPoint) Reset() {
 	*x = ChartPoint{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -668,7 +606,7 @@ func (x *ChartPoint) String() string {
 func (*ChartPoint) ProtoMessage() {}
 
 func (x *ChartPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -734,7 +672,7 @@ type Table struct {
 
 func (x *Table) Reset() {
 	*x = Table{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -746,7 +684,7 @@ func (x *Table) String() string {
 func (*Table) ProtoMessage() {}
 
 func (x *Table) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -822,7 +760,7 @@ type TableRow struct {
 
 func (x *TableRow) Reset() {
 	*x = TableRow{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +772,7 @@ func (x *TableRow) String() string {
 func (*TableRow) ProtoMessage() {}
 
 func (x *TableRow) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -884,7 +822,7 @@ type TableCell struct {
 
 func (x *TableCell) Reset() {
 	*x = TableCell{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +834,7 @@ func (x *TableCell) String() string {
 func (*TableCell) ProtoMessage() {}
 
 func (x *TableCell) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +900,7 @@ type ActionRow struct {
 
 func (x *ActionRow) Reset() {
 	*x = ActionRow{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +912,7 @@ func (x *ActionRow) String() string {
 func (*ActionRow) ProtoMessage() {}
 
 func (x *ActionRow) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +970,7 @@ type ActionRowAction struct {
 
 func (x *ActionRowAction) Reset() {
 	*x = ActionRowAction{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1044,7 +982,7 @@ func (x *ActionRowAction) String() string {
 func (*ActionRowAction) ProtoMessage() {}
 
 func (x *ActionRowAction) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1237,7 +1175,7 @@ func (b0 ActionRowAction_builder) Build() *ActionRowAction {
 type case_ActionRowAction_Action protoreflect.FieldNumber
 
 func (x case_ActionRowAction_Action) String() string {
-	md := file_malonaz_ai_genui_v1_content_proto_msgTypes[11].Descriptor()
+	md := file_malonaz_ai_genui_v1_content_proto_msgTypes[10].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1273,9 +1211,7 @@ var File_malonaz_ai_genui_v1_content_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/ai/genui/v1/content.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"*\n" +
-	"\x04Text\x12\"\n" +
-	"\bmarkdown\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bmarkdown\"k\n" +
+	"!malonaz/ai/genui/v1/content.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"k\n" +
 	"\fKeyValueList\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12E\n" +
 	"\x05items\x18\x02 \x03(\v2%.malonaz.ai.genui.v1.KeyValueListItemB\b\xbaH\x05\x92\x01\x02\b\x01R\x05items\"s\n" +
@@ -1334,33 +1270,32 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\x18ACTION_STYLE_DESTRUCTIVE\x10\x02B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
 var file_malonaz_ai_genui_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_genui_v1_content_proto_goTypes = []any{
 	(ChartType)(0),                // 0: malonaz.ai.genui.v1.ChartType
 	(ActionStyle)(0),              // 1: malonaz.ai.genui.v1.ActionStyle
-	(*Text)(nil),                  // 2: malonaz.ai.genui.v1.Text
-	(*KeyValueList)(nil),          // 3: malonaz.ai.genui.v1.KeyValueList
-	(*KeyValueListItem)(nil),      // 4: malonaz.ai.genui.v1.KeyValueListItem
-	(*Timeline)(nil),              // 5: malonaz.ai.genui.v1.Timeline
-	(*TimelineEntry)(nil),         // 6: malonaz.ai.genui.v1.TimelineEntry
-	(*Chart)(nil),                 // 7: malonaz.ai.genui.v1.Chart
-	(*ChartPoint)(nil),            // 8: malonaz.ai.genui.v1.ChartPoint
-	(*Table)(nil),                 // 9: malonaz.ai.genui.v1.Table
-	(*TableRow)(nil),              // 10: malonaz.ai.genui.v1.TableRow
-	(*TableCell)(nil),             // 11: malonaz.ai.genui.v1.TableCell
-	(*ActionRow)(nil),             // 12: malonaz.ai.genui.v1.ActionRow
-	(*ActionRowAction)(nil),       // 13: malonaz.ai.genui.v1.ActionRowAction
-	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
+	(*KeyValueList)(nil),          // 2: malonaz.ai.genui.v1.KeyValueList
+	(*KeyValueListItem)(nil),      // 3: malonaz.ai.genui.v1.KeyValueListItem
+	(*Timeline)(nil),              // 4: malonaz.ai.genui.v1.Timeline
+	(*TimelineEntry)(nil),         // 5: malonaz.ai.genui.v1.TimelineEntry
+	(*Chart)(nil),                 // 6: malonaz.ai.genui.v1.Chart
+	(*ChartPoint)(nil),            // 7: malonaz.ai.genui.v1.ChartPoint
+	(*Table)(nil),                 // 8: malonaz.ai.genui.v1.Table
+	(*TableRow)(nil),              // 9: malonaz.ai.genui.v1.TableRow
+	(*TableCell)(nil),             // 10: malonaz.ai.genui.v1.TableCell
+	(*ActionRow)(nil),             // 11: malonaz.ai.genui.v1.ActionRow
+	(*ActionRowAction)(nil),       // 12: malonaz.ai.genui.v1.ActionRowAction
+	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
 }
 var file_malonaz_ai_genui_v1_content_proto_depIdxs = []int32{
-	4,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
-	6,  // 1: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
-	14, // 2: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
+	3,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
+	5,  // 1: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
+	13, // 2: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
 	0,  // 3: malonaz.ai.genui.v1.Chart.type:type_name -> malonaz.ai.genui.v1.ChartType
-	8,  // 4: malonaz.ai.genui.v1.Chart.points:type_name -> malonaz.ai.genui.v1.ChartPoint
-	10, // 5: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
-	11, // 6: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
-	13, // 7: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
+	7,  // 4: malonaz.ai.genui.v1.Chart.points:type_name -> malonaz.ai.genui.v1.ChartPoint
+	9,  // 5: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
+	10, // 6: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
+	12, // 7: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
 	1,  // 8: malonaz.ai.genui.v1.ActionRowAction.style:type_name -> malonaz.ai.genui.v1.ActionStyle
 	9,  // [9:9] is the sub-list for method output_type
 	9,  // [9:9] is the sub-list for method input_type
@@ -1374,7 +1309,7 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 	if File_malonaz_ai_genui_v1_content_proto != nil {
 		return
 	}
-	file_malonaz_ai_genui_v1_content_proto_msgTypes[11].OneofWrappers = []any{
+	file_malonaz_ai_genui_v1_content_proto_msgTypes[10].OneofWrappers = []any{
 		(*ActionRowAction_OpenResource)(nil),
 		(*ActionRowAction_CopyText)(nil),
 		(*ActionRowAction_OpenUrl)(nil),
@@ -1385,7 +1320,7 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_content_proto_rawDesc), len(file_malonaz_ai_genui_v1_content_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

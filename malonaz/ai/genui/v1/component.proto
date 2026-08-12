@@ -26,51 +26,48 @@ message Component {
 
     // ------------------------------ Display ------------------------------
 
-    // Markdown-subset prose.
-    Text text = 1;
-
     // Label/value facts.
-    KeyValueList key_value_list = 2;
+    KeyValueList key_value_list = 1;
 
     // Ordered events.
-    Timeline timeline = 3;
+    Timeline timeline = 2;
 
     // A chart of aggregates.
-    Chart chart = 4;
+    Chart chart = 3;
 
     // Tabular data.
-    Table table = 5;
+    Table table = 4;
 
     // A rich card for a single resource.
-    ResourceCard resource_card = 6;
+    ResourceCard resource_card = 5;
 
     // A list of resources rendered as compact rows.
-    ResourceList resource_list = 7;
+    ResourceList resource_list = 6;
 
     // Client-side buttons: navigation, clipboard, external links.
-    ActionRow action_row = 8;
+    ActionRow action_row = 7;
 
     // ------------------------------- Input -------------------------------
 
     // A question with constrained answers.
-    Choice choice = 9;
+    Choice choice = 8;
 
     // A question allowing several answers.
-    MultiChoice multi_choice = 10;
+    MultiChoice multi_choice = 9;
 
     // An approve/reject gate for a consequential action.
-    Confirmation confirmation = 11;
+    Confirmation confirmation = 10;
 
     // Structured multi-field input.
-    Form form = 12;
+    Form form = 11;
 
     // Select one or more resources from candidates.
-    ResourcePicker resource_picker = 13;
+    ResourcePicker resource_picker = 12;
 
     // Bounded numeric input.
-    Slider slider = 14;
+    Slider slider = 13;
 
     // A calendar/clock input.
-    DateTimePicker date_time_picker = 15;
+    DateTimePicker date_time_picker = 14;
   }
 }

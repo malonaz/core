@@ -14,46 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiIAoEVGV4dBIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KDEtleVZhbHVlTGlzdBINCgV0aXRsZRgBIAEoCRI+CgVpdGVtcxgCIAMoCzIlLm1hbG9uYXouYWkuZ2VudWkudjEuS2V5VmFsdWVMaXN0SXRlbUIIukgFkgECCAEiVwoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKiJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASKEAQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKiKLAQoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjkKBnBvaW50cxgDIAMoCzIfLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRQb2ludEIIukgFkgECCAEiMgoKQ2hhcnRQb2ludBIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgBImgKBVRhYmxlEg0KBXRpdGxlGAEgASgJEhkKB2NvbHVtbnMYAiADKAlCCLpIBZIBAggBEjUKBHJvd3MYAyADKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlUm93Qgi6SAWSAQIIASJDCghUYWJsZVJvdxI3CgVjZWxscxgBIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDZWxsQgi6SAWSAQIIASI5CglUYWJsZUNlbGwSDQoFdmFsdWUYASABKAkSHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIk4KCUFjdGlvblJvdxJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUiyAEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEwoJY29weV90ZXh0GAQgASgJSAASHAoIb3Blbl91cmwYBSABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpkCglDaGFydFR5cGUSGgoWQ0hBUlRfVFlQRV9VTlNQRUNJRklFRBAAEhIKDkNIQVJUX1RZUEVfQkFSEAESEwoPQ0hBUlRfVFlQRV9MSU5FEAISEgoOQ0hBUlRfVFlQRV9QSUUQAypjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
-
-/**
- * Markdown-subset text (bold, italics, lists, links). Link targets that are
- * resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
- * are rendered as in-app navigation; http(s) URLs open externally.
- *
- * @generated from message malonaz.ai.genui.v1.Text
- */
-export type Text = Message<"malonaz.ai.genui.v1.Text"> & {
-  /**
-   * The markdown content to render.
-   *
-   * @generated from field: string markdown = 1;
-   */
-  markdown: string;
-};
-
-/**
- * Markdown-subset text (bold, italics, lists, links). Link targets that are
- * resource names (e.g. [John](organizations/{organization}/contacts/{contact}))
- * are rendered as in-app navigation; http(s) URLs open externally.
- *
- * @generated from message malonaz.ai.genui.v1.Text
- */
-export type TextValid = Message<"malonaz.ai.genui.v1.Text"> & {
-  /**
-   * The markdown content to render.
-   *
-   * @generated from field: string markdown = 1;
-   */
-  markdown: string;
-};
-
-/**
- * Describes the message malonaz.ai.genui.v1.Text.
- * Use `create(TextSchema)` to create a new message.
- */
-export const TextSchema: GenMessage<Text, {validType: TextValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 0);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiXQoMS2V5VmFsdWVMaXN0Eg0KBXRpdGxlGAEgASgJEj4KBWl0ZW1zGAIgAygLMiUubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RJdGVtQgi6SAWSAQIIASJXChBLZXlWYWx1ZUxpc3RJdGVtEhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAkSHQoNcmVzb3VyY2VfbmFtZRgDIAEoCUIG+kEDCgEqIlgKCFRpbWVsaW5lEg0KBXRpdGxlGAEgASgJEj0KB2VudHJpZXMYAiADKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRpbWVsaW5lRW50cnlCCLpIBZIBAggBIoQBCg1UaW1lbGluZUVudHJ5EhUKBXRpdGxlGAEgASgJQga6SAPIAQESEwoLZGVzY3JpcHRpb24YAiABKAkSKAoEdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASHQoNcmVzb3VyY2VfbmFtZRgEIAEoCUIG+kEDCgEqIosBCgVDaGFydBI4CgR0eXBlGAEgASgOMh4ubWFsb25hei5haS5nZW51aS52MS5DaGFydFR5cGVCCrpIB4IBBBABIAASDQoFdGl0bGUYAiABKAkSOQoGcG9pbnRzGAMgAygLMh8ubWFsb25hei5haS5nZW51aS52MS5DaGFydFBvaW50Qgi6SAWSAQIIASIyCgpDaGFydFBvaW50EhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAEiaAoFVGFibGUSDQoFdGl0bGUYASABKAkSGQoHY29sdW1ucxgCIAMoCUIIukgFkgECCAESNQoEcm93cxgDIAMoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVSb3dCCLpIBZIBAggBIkMKCFRhYmxlUm93EjcKBWNlbGxzGAEgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5UYWJsZUNlbGxCCLpIBZIBAggBIjkKCVRhYmxlQ2VsbBINCgV2YWx1ZRgBIAEoCRIdCg1yZXNvdXJjZV9uYW1lGAIgASgJQgb6QQMKASoiTgoJQWN0aW9uUm93EkEKB2FjdGlvbnMYASADKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkFjdGlvblJvd0FjdGlvbkIKukgHkgEECAEQBSLIAQoPQWN0aW9uUm93QWN0aW9uEhUKBWxhYmVsGAEgASgJQga6SAPIAQESOQoFc3R5bGUYAiABKA4yIC5tYWxvbmF6LmFpLmdlbnVpLnYxLkFjdGlvblN0eWxlQgi6SAWCAQIQARIfCg1vcGVuX3Jlc291cmNlGAMgASgJQgb6QQMKASpIABITCgljb3B5X3RleHQYBCABKAlIABIcCghvcGVuX3VybBgFIAEoCUIIukgFcgOIAQFIAEIPCgZhY3Rpb24SBbpIAggBKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADKmMKC0FjdGlvblN0eWxlEhwKGEFDVElPTl9TVFlMRV9VTlNQRUNJRklFRBAAEhgKFEFDVElPTl9TVFlMRV9QUklNQVJZEAESHAoYQUNUSU9OX1NUWUxFX0RFU1RSVUNUSVZFEAJCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Label/value facts, e.g. a lead summary ("Budget: $10-15k").
@@ -102,7 +63,7 @@ export type KeyValueListValid = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
  * Use `create(KeyValueListSchema)` to create a new message.
  */
 export const KeyValueListSchema: GenMessage<KeyValueList, {validType: KeyValueListValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 1);
+  messageDesc(file_malonaz_ai_genui_v1_content, 0);
 
 /**
  * A single label/value fact within a [KeyValueList][malonaz.ai.genui.v1.KeyValueList].
@@ -165,7 +126,7 @@ export type KeyValueListItemValid = Message<"malonaz.ai.genui.v1.KeyValueListIte
  * Use `create(KeyValueListItemSchema)` to create a new message.
  */
 export const KeyValueListItemSchema: GenMessage<KeyValueListItem, {validType: KeyValueListItemValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 2);
+  messageDesc(file_malonaz_ai_genui_v1_content, 1);
 
 /**
  * Ordered events, e.g. "what happened with this contact this week".
@@ -214,7 +175,7 @@ export type TimelineValid = Message<"malonaz.ai.genui.v1.Timeline"> & {
  * Use `create(TimelineSchema)` to create a new message.
  */
 export const TimelineSchema: GenMessage<Timeline, {validType: TimelineValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 3);
+  messageDesc(file_malonaz_ai_genui_v1_content, 2);
 
 /**
  * A single event within a [Timeline][malonaz.ai.genui.v1.Timeline].
@@ -291,7 +252,7 @@ export type TimelineEntryValid = Message<"malonaz.ai.genui.v1.TimelineEntry"> & 
  * Use `create(TimelineEntrySchema)` to create a new message.
  */
 export const TimelineEntrySchema: GenMessage<TimelineEntry, {validType: TimelineEntryValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 4);
+  messageDesc(file_malonaz_ai_genui_v1_content, 3);
 
 /**
  * Minimal chart for aggregates ("calls per day this week").
@@ -354,7 +315,7 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
  * Use `create(ChartSchema)` to create a new message.
  */
 export const ChartSchema: GenMessage<Chart, {validType: ChartValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 5);
+  messageDesc(file_malonaz_ai_genui_v1_content, 4);
 
 /**
  * A single datapoint within a [Chart][malonaz.ai.genui.v1.Chart].
@@ -403,7 +364,7 @@ export type ChartPointValid = Message<"malonaz.ai.genui.v1.ChartPoint"> & {
  * Use `create(ChartPointSchema)` to create a new message.
  */
 export const ChartPointSchema: GenMessage<ChartPoint, {validType: ChartPointValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 6);
+  messageDesc(file_malonaz_ai_genui_v1_content, 5);
 
 /**
  * Tabular data, e.g. "quotes by state with count and total value".
@@ -440,7 +401,7 @@ export type TableValid = Table;
  * Use `create(TableSchema)` to create a new message.
  */
 export const TableSchema: GenMessage<Table, {validType: TableValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 7);
+  messageDesc(file_malonaz_ai_genui_v1_content, 6);
 
 /**
  * A single row within a [Table][malonaz.ai.genui.v1.Table].
@@ -463,7 +424,7 @@ export type TableRowValid = TableRow;
  * Use `create(TableRowSchema)` to create a new message.
  */
 export const TableRowSchema: GenMessage<TableRow, {validType: TableRowValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 8);
+  messageDesc(file_malonaz_ai_genui_v1_content, 7);
 
 /**
  * A single cell within a [TableRow][malonaz.ai.genui.v1.TableRow].
@@ -493,7 +454,7 @@ export type TableCellValid = TableCell;
  * Use `create(TableCellSchema)` to create a new message.
  */
 export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 9);
+  messageDesc(file_malonaz_ai_genui_v1_content, 8);
 
 /**
  * Buttons the user can press — pure client affordances that never feed back
@@ -536,7 +497,7 @@ export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
  * Use `create(ActionRowSchema)` to create a new message.
  */
 export const ActionRowSchema: GenMessage<ActionRow, {validType: ActionRowValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 10);
+  messageDesc(file_malonaz_ai_genui_v1_content, 9);
 
 /**
  * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
@@ -647,7 +608,7 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
  * Use `create(ActionRowActionSchema)` to create a new message.
  */
 export const ActionRowActionSchema: GenMessage<ActionRowAction, {validType: ActionRowActionValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 11);
+  messageDesc(file_malonaz_ai_genui_v1_content, 10);
 
 /**
  * How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
