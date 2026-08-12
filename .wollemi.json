@@ -57,6 +57,7 @@
         "github.com/anthropics/anthropic-sdk-go/internal/encoding/json/shims": "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__encoding__json__shims",
         "github.com/anthropics/anthropic-sdk-go/internal/paramutil": "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__paramutil",
         "github.com/anthropics/anthropic-sdk-go/internal/requestconfig": "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
+        "github.com/anthropics/anthropic-sdk-go/internal/stainlessheader": "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__stainlessheader",
         "github.com/anthropics/anthropic-sdk-go/option": "//third_party/go:github.com__anthropics__anthropic-sdk-go__option",
         "github.com/anthropics/anthropic-sdk-go/packages/jsonl": "//third_party/go:github.com__anthropics__anthropic-sdk-go__packages__jsonl",
         "github.com/anthropics/anthropic-sdk-go/packages/pagination": "//third_party/go:github.com__anthropics__anthropic-sdk-go__packages__pagination",
@@ -588,6 +589,7 @@
         "google.golang.org/genproto/googleapis/rpc/errdetails": "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
         "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
+        "google.golang.org/genproto/googleapis/type/decimal": "//third_party/proto:google__type__decimal",
         "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
         "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday",
@@ -723,8 +725,8 @@
         "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/proto:google__api__expr__v1alpha1",
         "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status",
         "google.golang.org/genproto/googleapis/type/date": "//third_party/proto:google__type__date",
-        "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/decimal": "//third_party/proto:google__type__decimal",
+        "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
         "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday"
     }

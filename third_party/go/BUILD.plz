@@ -526,7 +526,7 @@ go_mod_download(
     name = "github.com__anthropics__anthropic-sdk-go",
     _tag = "download",
     module = "github.com/anthropics/anthropic-sdk-go",
-    version = "v1.50.1",
+    version = "v1.63.0",
     visibility = ["PUBLIC"],
 )
 
@@ -546,6 +546,7 @@ go_module(
         ":github.com__anthropics__anthropic-sdk-go__internal__encoding__json",
         ":github.com__anthropics__anthropic-sdk-go__internal__paramutil",
         ":github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
+        ":github.com__anthropics__anthropic-sdk-go__internal__stainlessheader",
         ":github.com__anthropics__anthropic-sdk-go__option",
         ":github.com__anthropics__anthropic-sdk-go__packages__jsonl",
         ":github.com__anthropics__anthropic-sdk-go__packages__pagination",
@@ -558,6 +559,7 @@ go_module(
         ":github.com__pb33f__ordered-map__v2",
         ":github.com__standard-webhooks__standard-webhooks__libraries__go",
         ":github.com__tidwall__gjson",
+        ":github.com__tidwall__sjson",
         ":golang.org__x__sync__errgroup",
     ],
 )
@@ -693,6 +695,15 @@ go_module(
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apiform",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apiquery",
     ],
+)
+
+go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__internal__stainlessheader",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["internal/stainlessheader"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__requestconfig"],
 )
 
 go_module(
@@ -6075,8 +6086,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -6084,8 +6095,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -8240,6 +8251,18 @@ go_module(
     name = "google.golang.org__genproto__googleapis__type__date",
     download = ":_google.golang.org__genproto#download",
     install = ["googleapis/type/date"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__money",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/money"],
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
