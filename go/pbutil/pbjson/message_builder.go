@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/decimal"
 	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -334,6 +335,14 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 		return protoreflect.ValueOfMessage((&timeofday.TimeOfDay{
 			Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second()),
 		}).ProtoReflect()), nil
+
+	case decimalFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for Money, got %T", val)
+		}
+		dec := &decimal.Decimal{Value: s}
+		return protoreflect.ValueOfMessage(dec.ProtoReflect()), nil
 
 	case moneyFullName:
 		s, ok := val.(string)

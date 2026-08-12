@@ -485,6 +485,8 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 			switch msgFullName {
 			case "google.protobuf.Timestamp":
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_TIMESTAMP}})
+			case "google.type.Decimal":
+				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_DOUBLE}})
 			case "google.protobuf.Duration":
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_DURATION}})
 			// Skip well-known wrapper/recursive types that cause combinatorial explosion.

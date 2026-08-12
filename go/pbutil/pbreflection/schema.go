@@ -765,7 +765,7 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	var examples []string
 
 	if resourceMsg != nil {
-		var hasString, hasBool, hasEnum, hasTimestamp, hasDuration bool
+		var hasString, hasBool, hasEnum, hasTimestamp, hasDuration, hasDecimal bool
 
 		pathSet := make(map[string]struct{})
 		for _, p := range paths {
@@ -810,6 +810,11 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 					if !hasDuration {
 						examples = append(examples, fmt.Sprintf(`%s > duration("10s")`, name))
 						hasDuration = true
+					}
+				case "google.type.Decimal":
+					if !hasDecimal {
+						examples = append(examples, fmt.Sprintf(`%s > "10.25"`, name))
+						hasDecimal = true
 					}
 				}
 			}
