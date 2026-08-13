@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"path/filepath"
 
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/postgres/migrator/migrations"
@@ -79,17 +78,21 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 	return nil
 }
 
-// RunMigrations runs migrations.
-func (m *Migrator) RunMigrations(ctx context.Context, fileLoader migrations.FileLoader, migrationsDirectories ...string) error {
+// RunMigrations runs every migration listed in the database manifest, in the
+// single total order it declares.
+func (m *Migrator) RunMigrations(ctx context.Context, fileLoader migrations.FileLoader, databaseDirectory string) error {
 	m.log = m.log.WithGroup("migrator")
 	m.log.InfoContext(ctx, "started")
 	if err := m.CreateMigrationsTableIfNotExist(ctx); err != nil {
 		return err
 	}
-	for _, migrationsDirectory := range migrationsDirectories {
-		m.log.InfoContext(ctx, "running migrations", "dir", filepath.Base(migrationsDirectory))
-		if err := m.runMigrations(ctx, fileLoader, migrationsDirectory); err != nil {
-			return err
+	databaseMigrations, err := migrations.GetMigrations(fileLoader, databaseDirectory)
+	if err != nil {
+		return err
+	}
+	for _, migration := range databaseMigrations {
+		if err := m.runMigration(ctx, migration); err != nil {
+			return fmt.Errorf("running migration [%s]: %w", migration.Name(), err)
 		}
 	}
 	m.log.InfoContext(ctx, "shutting down")
@@ -103,20 +106,16 @@ func (m *Migrator) CreateMigrationsTableIfNotExist(ctx context.Context) error {
 	return nil
 }
 
-func (m *Migrator) runMigrations(ctx context.Context, fileLoader migrations.FileLoader, migrationDirectory string) error {
-	migrations, err := migrations.GetMigrations(fileLoader, migrationDirectory)
-	if err != nil {
-		return err
-	}
-	for _, migration := range migrations {
-		if err := m.runMigration(ctx, migration); err != nil {
-			return fmt.Errorf("running migration [%s]: %w", migration.Name(), err)
-		}
-	}
-	return nil
-}
-
 func (m *Migrator) runMigration(ctx context.Context, migration *migrations.Migration) error {
+	// The ledger is keyed on the file's content hash, so an edit to an
+	// already-applied migration does not conflict and would silently re-execute
+	// the whole file against a live database. Migrations are append-only.
+	if migration.ExpectedHash != "" && migration.ExpectedHash != migration.Hash {
+		return fmt.Errorf(
+			"migration [%s] was modified after being recorded in the manifest (manifest: %s, file: %s): migrations are append-only, add a new migration instead",
+			migration.Name(), migration.ExpectedHash, migration.Hash,
+		)
+	}
 	ok, err := m.applyMigration(ctx, migration)
 	if err != nil {
 		return fmt.Errorf("could not execute migration [%s]: %w", migration.Name(), err)

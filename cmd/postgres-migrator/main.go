@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"strings"
 
-	"gopkg.in/yaml.v3"
-
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
@@ -28,10 +26,6 @@ var opts struct {
 	Logging        *logging.Opts  `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	Postgres       *postgres.Opts `group:"Postgres" namespace:"postgres" env-namespace:"POSTGRES"`
 	TargetPostgres *postgres.Opts `group:"Target Postgres" namespace:"target-postgres" env-namespace:"TARGET_POSTGRES"`
-}
-
-type manifest struct {
-	Dirs []string `yaml:"dirs"`
 }
 
 func main() {
@@ -75,35 +69,12 @@ func run(ctx context.Context) error {
 	case "init":
 		return runInit(ctx)
 	case "migrate":
-		migrationDirectories, err := parseMigrationDirectories(opts.Directory)
-		if err != nil {
-			return err
-		}
-		return runMigrate(ctx, migrationDirectories)
+		return runMigrate(ctx, opts.Directory)
 	case "reset":
 		return runReset(ctx)
 	default:
 		return fmt.Errorf("unknown mode: %s", opts.Mode)
 	}
-}
-
-// parseMigrationDirectories reads the manifest.yaml in the given directory to determine
-// the ordered list of migration directories.
-func parseMigrationDirectories(directory string) ([]string, error) {
-	manifestPath := fmt.Sprintf("%s/manifest.yaml", directory)
-	data, err := os.ReadFile(manifestPath)
-	if err != nil {
-		return nil, fmt.Errorf("reading manifest %s: %w", manifestPath, err)
-	}
-	manifest := &manifest{}
-	if err := yaml.Unmarshal(data, manifest); err != nil {
-		return nil, fmt.Errorf("unmarshaling manifest: %w", err)
-	}
-	migrationDirectories := make([]string, len(manifest.Dirs))
-	for i, dir := range manifest.Dirs {
-		migrationDirectories[i] = fmt.Sprintf("%s/%s", directory, dir)
-	}
-	return migrationDirectories, nil
 }
 
 func runInit(ctx context.Context) error {
@@ -117,11 +88,7 @@ func runInit(ctx context.Context) error {
 	return m.InitializeDatabase(ctx, opts.TargetPostgres.Database, opts.TargetPostgres.User, opts.TargetPostgres.Password, opts.Postgres.User)
 }
 
-func runMigrate(ctx context.Context, migrationDirectories []string) error {
-	if len(migrationDirectories) == 0 {
-		return fmt.Errorf("migrate requires at least one migration directory")
-	}
-
+func runMigrate(ctx context.Context, databaseDirectory string) error {
 	postgresClient := postgres.NewClient(opts.TargetPostgres)
 	if err := postgresClient.Start(ctx); err != nil {
 		return fmt.Errorf("starting postgres client: %w", err)
@@ -129,7 +96,7 @@ func runMigrate(ctx context.Context, migrationDirectories []string) error {
 	defer postgresClient.Close()
 
 	m := migrator.NewMigrator(postgresClient)
-	return m.RunMigrations(ctx, os.ReadFile, migrationDirectories...)
+	return m.RunMigrations(ctx, os.ReadFile, databaseDirectory)
 }
 
 func runReset(ctx context.Context) error {

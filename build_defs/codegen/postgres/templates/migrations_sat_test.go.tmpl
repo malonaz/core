@@ -21,16 +21,10 @@ func TestMigrationsAgainstPostgres(t *{{ goImport "testing" }}.T) {
 	ctx := {{ goImport "context" }}.Background()
 
 	expectedMigrations := map[string]string{}
-	for _, migrationDirectory := range []string{
-		{{- range $dir := (.extra.dirs | splitList ",") }}
-		"{{ $dir }}",
-		{{- end }}
-	} {
-		directoryMigrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationDirectory)
-		{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
-		for _, migration := range directoryMigrations {
-			expectedMigrations[migration.Name()] = migration.Hash
-		}
+	databaseMigrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationsRootDirectory)
+	{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
+	for _, migration := range databaseMigrations {
+		expectedMigrations[migration.Name()] = migration.Hash
 	}
 	require.NotEmpty(t, expectedMigrations, "no migrations to run")
 

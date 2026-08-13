@@ -1,0 +1,5 @@
+# Ordered list of every migration in this database.
+# Append-only: never reorder or edit an entry whose migration has been applied.
+migrations:
+  - path: user/001_init.sql
+    hash: 9b9d27bc30061a0408544d891bb7e7a6

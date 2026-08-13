@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -29,25 +29,14 @@ func (m *Migration) Name() string {
 	return m.Directory + ":" + m.Filename
 }
 
-// File is used to parse migrations files.
+// File is used to parse a database manifest: a single ordered list of every
+// migration in the database, each entry a "{directory}/{filename}" path. This
+// is the total ordering of the database's migrations.
 type File struct {
 	Migrations []struct {
-		Filename string `yaml:"filename"`
-		Hash     string `yaml:"hash"`
+		Path string `yaml:"path"`
+		Hash string `yaml:"hash"`
 	}
-}
-
-// ParseMigrationsFile parses a migration file into a MigrationFile.
-func ParseMigrationsFile(fileLoader FileLoader, migrationDirectory string) (File, error) {
-	migrationsFile := File{}
-	bytes, err := fileLoader(migrationDirectory + "/manifest.yaml")
-	if err != nil {
-		return migrationsFile, err
-	}
-	if err := yaml.Unmarshal(bytes, &migrationsFile); err != nil {
-		return migrationsFile, err
-	}
-	return migrationsFile, nil
 }
 
 // ComputeMigrationHash computes the md5 hash of a migration file
@@ -59,23 +48,35 @@ func ComputeMigrationHash(str string) string {
 
 }
 
-// GetMigrations loads all migrations from the given directory into an array of Migrations.
-func GetMigrations(fileLoader FileLoader, migrationDirectory string) ([]*Migration, error) {
-	migrationsFile, err := ParseMigrationsFile(fileLoader, migrationDirectory)
+// GetMigrations loads every migration listed in a database manifest,
+// preserving the order in which they are declared.
+func GetMigrations(fileLoader FileLoader, databaseDirectory string) ([]*Migration, error) {
+	bytes, err := fileLoader(databaseDirectory + "/manifest.yaml")
 	if err != nil {
-		return nil, fmt.Errorf("could not parse migrations file: %w", err)
+		return nil, fmt.Errorf("could not read manifest: %w", err)
+	}
+	migrationsFile := File{}
+	if err := yaml.Unmarshal(bytes, &migrationsFile); err != nil {
+		return nil, fmt.Errorf("could not parse manifest: %w", err)
 	}
 
 	migrations := make([]*Migration, 0, len(migrationsFile.Migrations))
 	for _, migration := range migrationsFile.Migrations {
-		migrationFileBytes, err := fileLoader(migrationDirectory + "/" + migration.Filename)
+		// Filenames are not unique across directories, and the migration ledger
+		// is keyed on (directory, filename, hash), so the directory component
+		// must be preserved exactly as the per-directory scheme recorded it.
+		directory, filename, found := strings.Cut(migration.Path, "/")
+		if !found {
+			return nil, fmt.Errorf("migration path %q must be of the form {directory}/{filename}", migration.Path)
+		}
+		migrationFileBytes, err := fileLoader(databaseDirectory + "/" + migration.Path)
 		if err != nil {
-			return nil, fmt.Errorf("could not open migration %s/%s: %w", migrationDirectory, migration.Filename, err)
+			return nil, fmt.Errorf("could not open migration %s: %w", migration.Path, err)
 		}
 		sqlQuery := string(migrationFileBytes)
 		migrations = append(migrations, &Migration{
-			Directory:    filepath.Base(migrationDirectory),
-			Filename:     migration.Filename,
+			Directory:    directory,
+			Filename:     filename,
 			SQLQuery:     sqlQuery,
 			Hash:         ComputeMigrationHash(sqlQuery),
 			ExpectedHash: migration.Hash,

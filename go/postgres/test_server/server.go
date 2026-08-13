@@ -9,8 +9,8 @@
 //
 //	func TestMain(m *testing.M) {
 //	    testserver.RunWithPostgres(ctx, m, logger, &client,
-//	        extensionLoader, extensionDirs,
-//	        migrationLoader, migrationDirs,
+//	        extensionLoader, extensionDirectory,
+//	        migrationLoader, migrationDirectory,
 //	    )
 //	}
 package testserver
@@ -261,9 +261,9 @@ func RunWithPostgres(
 	logger *slog.Logger,
 	client **postgres.Client,
 	extensionLoader migrations.FileLoader,
-	extensionDirectories []string,
+	extensionDirectory string,
 	migrationLoader migrations.FileLoader,
-	migrationDirectories []string,
+	migrationDirectory string,
 ) {
 	run := func() int {
 		server := NewServer(Config{}).WithLogger(logger)
@@ -278,12 +278,12 @@ func RunWithPostgres(
 		}
 
 		postgresMigrator := migrator.NewMigrator(*client)
-		if len(extensionDirectories) > 0 {
-			if err := postgresMigrator.RunMigrations(ctx, extensionLoader, extensionDirectories...); err != nil {
+		if extensionDirectory != "" {
+			if err := postgresMigrator.RunMigrations(ctx, extensionLoader, extensionDirectory); err != nil {
 				panic(fmt.Errorf("run extensions: %w", err))
 			}
 		}
-		if err := postgresMigrator.RunMigrations(ctx, migrationLoader, migrationDirectories...); err != nil {
+		if err := postgresMigrator.RunMigrations(ctx, migrationLoader, migrationDirectory); err != nil {
 			panic(fmt.Errorf("run migrations: %w", err))
 		}
 

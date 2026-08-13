@@ -1,0 +1,7 @@
+# Ordered list of every migration in this database.
+# Append-only: never reorder or edit an entry whose migration has been applied.
+migrations:
+  - path: chat/001_init.sql
+    hash: 0d90d6b09e9ee808d81285a1c575657d
+  - path: chat/002_add_title_annotations.sql
+    hash: 63a33757b8135ffa0075b0278c5f3a0a
