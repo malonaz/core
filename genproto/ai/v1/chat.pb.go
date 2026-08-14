@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -268,7 +269,7 @@ var File_malonaz_ai_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xba\x06\n" +
+	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe3\x06\n" +
 	"\x04Chat\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -287,8 +288,8 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:a\xeaAZ\n" +
-	"\x13ai.malonaz.com/Chat\x126organizations/{organization}/users/{user}/chats/{chat}*\x05chats2\x04chatҦ\x04\x00B\xd3\x01\xeaAX\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x89\x01\xeaAZ\n" +
+	"\x13ai.malonaz.com/Chat\x126organizations/{organization}/users/{user}/chats/{chat}*\x05chats2\x04chatҦ\x04\x00\x82\xf6,$e0c2a046-05dc-4853-9be5-b47e3889f242B\xd3\x01\xeaAX\n" +
 	"\x1bai.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\xeaAM\n" +
 	"\x13ai.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 

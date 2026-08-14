@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -34,6 +35,7 @@ message Chat {
     plural: "chats"
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "e0c2a046-05dc-4853-9be5-b47e3889f242";
 
   // The resource name of the chat.
   // Format: organizations/{organization}/users/{user}/chats/{chat}

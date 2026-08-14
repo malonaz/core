@@ -10,6 +10,7 @@ import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/tool.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -26,6 +27,7 @@ message Message {
     plural: "messages"
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "d96e0fa8-568e-420f-bdb2-3c133ef3a50f";
   option (buf.validate.message).cel = {
     id: "system_role_blocks"
     message: "SYSTEM messages can only have text blocks"

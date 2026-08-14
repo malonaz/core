@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	status "google.golang.org/genproto/googleapis/rpc/status"
@@ -1208,7 +1209,7 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb6\r\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xde\r\n" +
 	"\aMessage\x12\x17\n" +
 	"\x04name\x18\a \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1235,12 +1236,12 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xcc\x05\xeaAv\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf4\x05\xeaAv\n" +
 	"\x16ai.malonaz.com/Message\x12Iorganizations/{organization}/users/{user}/chats/{chat}/messages/{message}*\bmessages2\amessage\xbaH\xcb\x04\x1ar\n" +
 	"\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a1this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xcc\x01\n" +
 	"\x15assistant_role_blocks\x12JASSISTANT messages can only have thought, text, tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\x87\x01\n" +
 	"\x10user_role_blocks\x120USER messages can only have text or image blocks\x1aAthis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\x1a|\n" +
-	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\"\x9f\x05\n" +
+	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\x82\xf6,$d96e0fa8-568e-420f-bdb2-3c133ef3a50f\"\x9f\x05\n" +
 	"\x05Block\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x03R\x05index\x12\x1c\n" +
 	"\tsignature\x18\x02 \x01(\tR\tsignature\x12:\n" +
