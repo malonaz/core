@@ -26,8 +26,10 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Chat represents a multi-turn AI conversation between a user and an assistant.
-// Contains the full message history and associated metadata for a single conversation session.
+// A Chat represents a multi-turn AI conversation between a user and an assistant.
+// It is a lightweight container: the conversation content lives in the child
+// [Message][malonaz.ai.v1.Message] resources, allowing conversations to grow
+// without bloating the parent resource.
 type Chat struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the chat.
@@ -37,20 +39,24 @@ type Chat struct {
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// The last update timestamp of the chat.
 	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	// The deletion timestamp of the chat.
+	// The deletion timestamp of the chat. Set when soft-deleted.
 	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
 	// A checksum computed by the server based on the current value of the resource.
-	// Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
+	// Can be sent in update and delete requests to ensure the client has an
+	// up-to-date value before proceeding.
 	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
 	// The labels on this chat.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Chat metadata containing the conversation message history.
-	Metadata *ChatMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// A human-readable title for this chat.
-	Title string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
 	// Annotations on this chat (not transmitted to the ai provider).
 	// This should be used by tooling.
-	Annotations   map[string]string `protobuf:"bytes,9,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Values are opaque strings (and may themselves be proto bytes), but keys
+	// stay inspectable in storage.
+	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// A human-readable title for this chat.
+	Title string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
+	// Total price in dollars of this chat, aggregated over the model usage of
+	// all of its messages.
+	Price         float64 `protobuf:"fixed64,9,opt,name=price,proto3" json:"price,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -122,9 +128,9 @@ func (x *Chat) GetLabels() map[string]string {
 	return nil
 }
 
-func (x *Chat) GetMetadata() *ChatMetadata {
+func (x *Chat) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.Metadata
+		return x.Annotations
 	}
 	return nil
 }
@@ -136,11 +142,11 @@ func (x *Chat) GetTitle() string {
 	return ""
 }
 
-func (x *Chat) GetAnnotations() map[string]string {
+func (x *Chat) GetPrice() float64 {
 	if x != nil {
-		return x.Annotations
+		return x.Price
 	}
-	return nil
+	return 0
 }
 
 func (x *Chat) SetName(v string) {
@@ -167,16 +173,16 @@ func (x *Chat) SetLabels(v map[string]string) {
 	x.Labels = v
 }
 
-func (x *Chat) SetMetadata(v *ChatMetadata) {
-	x.Metadata = v
+func (x *Chat) SetAnnotations(v map[string]string) {
+	x.Annotations = v
 }
 
 func (x *Chat) SetTitle(v string) {
 	x.Title = v
 }
 
-func (x *Chat) SetAnnotations(v map[string]string) {
-	x.Annotations = v
+func (x *Chat) SetPrice(v float64) {
+	x.Price = v
 }
 
 func (x *Chat) HasCreateTime() bool {
@@ -200,13 +206,6 @@ func (x *Chat) HasDeleteTime() bool {
 	return x.DeleteTime != nil
 }
 
-func (x *Chat) HasMetadata() bool {
-	if x == nil {
-		return false
-	}
-	return x.Metadata != nil
-}
-
 func (x *Chat) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -219,10 +218,6 @@ func (x *Chat) ClearDeleteTime() {
 	x.DeleteTime = nil
 }
 
-func (x *Chat) ClearMetadata() {
-	x.Metadata = nil
-}
-
 type Chat_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -233,20 +228,24 @@ type Chat_builder struct {
 	CreateTime *timestamppb.Timestamp
 	// The last update timestamp of the chat.
 	UpdateTime *timestamppb.Timestamp
-	// The deletion timestamp of the chat.
+	// The deletion timestamp of the chat. Set when soft-deleted.
 	DeleteTime *timestamppb.Timestamp
 	// A checksum computed by the server based on the current value of the resource.
-	// Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
+	// Can be sent in update and delete requests to ensure the client has an
+	// up-to-date value before proceeding.
 	Etag string
 	// The labels on this chat.
 	Labels map[string]string
-	// Chat metadata containing the conversation message history.
-	Metadata *ChatMetadata
-	// A human-readable title for this chat.
-	Title string
 	// Annotations on this chat (not transmitted to the ai provider).
 	// This should be used by tooling.
+	// Values are opaque strings (and may themselves be proto bytes), but keys
+	// stay inspectable in storage.
 	Annotations map[string]string
+	// A human-readable title for this chat.
+	Title string
+	// Total price in dollars of this chat, aggregated over the model usage of
+	// all of its messages.
+	Price float64
 }
 
 func (b0 Chat_builder) Build() *Chat {
@@ -259,85 +258,9 @@ func (b0 Chat_builder) Build() *Chat {
 	x.DeleteTime = b.DeleteTime
 	x.Etag = b.Etag
 	x.Labels = b.Labels
-	x.Metadata = b.Metadata
-	x.Title = b.Title
 	x.Annotations = b.Annotations
-	return m0
-}
-
-// ChatMetadata contains the conversation content for a chat.
-type ChatMetadata struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
-	Messages []*Message `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
-	// Model usage for this chat.
-	ModelUsages   []*ModelUsage `protobuf:"bytes,2,rep,name=model_usages,json=modelUsages,proto3" json:"model_usages,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ChatMetadata) Reset() {
-	*x = ChatMetadata{}
-	mi := &file_malonaz_ai_v1_chat_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ChatMetadata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChatMetadata) ProtoMessage() {}
-
-func (x *ChatMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_chat_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ChatMetadata) GetMessages() []*Message {
-	if x != nil {
-		return x.Messages
-	}
-	return nil
-}
-
-func (x *ChatMetadata) GetModelUsages() []*ModelUsage {
-	if x != nil {
-		return x.ModelUsages
-	}
-	return nil
-}
-
-func (x *ChatMetadata) SetMessages(v []*Message) {
-	x.Messages = v
-}
-
-func (x *ChatMetadata) SetModelUsages(v []*ModelUsage) {
-	x.ModelUsages = v
-}
-
-type ChatMetadata_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
-	Messages []*Message
-	// Model usage for this chat.
-	ModelUsages []*ModelUsage
-}
-
-func (b0 ChatMetadata_builder) Build() *ChatMetadata {
-	m0 := &ChatMetadata{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Messages = b.Messages
-	x.ModelUsages = b.ModelUsages
+	x.Title = b.Title
+	x.Price = b.Price
 	return m0
 }
 
@@ -345,7 +268,7 @@ var File_malonaz_ai_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe6\x06\n" +
+	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xba\x06\n" +
 	"\x04Chat\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -355,47 +278,38 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\vdelete_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
 	"deleteTime\x12\x12\n" +
 	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xcd\x01\n" +
-	"\x06labels\x18\x06 \x03(\v2\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12E\n" +
-	"\bmetadata\x18\a \x01(\v2\x1b.malonaz.ai.v1.ChatMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\bmetadata\x12\x1e\n" +
-	"\x05title\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\x05title\x12P\n" +
-	"\vannotations\x18\t \x03(\v2$.malonaz.ai.v1.Chat.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x1a9\n" +
+	"\x06labels\x18\x06 \x03(\v2\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12P\n" +
+	"\vannotations\x18\a \x03(\v2$.malonaz.ai.v1.Chat.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x1e\n" +
+	"\x05title\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\x05title\x12\x19\n" +
+	"\x05price\x18\t \x01(\x01B\x03\xe0A\x03R\x05price\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:a\xeaAZ\n" +
-	"\x13ai.malonaz.com/Chat\x126organizations/{organization}/users/{user}/chats/{chat}*\x05chats2\x04chatҦ\x04\x00\"\x80\x01\n" +
-	"\fChatMetadata\x122\n" +
-	"\bmessages\x18\x01 \x03(\v2\x16.malonaz.ai.v1.MessageR\bmessages\x12<\n" +
-	"\fmodel_usages\x18\x02 \x03(\v2\x19.malonaz.ai.v1.ModelUsageR\vmodelUsagesB\xd3\x01\xeaAX\n" +
+	"\x13ai.malonaz.com/Chat\x126organizations/{organization}/users/{user}/chats/{chat}*\x05chats2\x04chatҦ\x04\x00B\xd3\x01\xeaAX\n" +
 	"\x1bai.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\xeaAM\n" +
 	"\x13ai.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_v1_chat_proto_goTypes = []any{
 	(*Chat)(nil),                  // 0: malonaz.ai.v1.Chat
-	(*ChatMetadata)(nil),          // 1: malonaz.ai.v1.ChatMetadata
-	nil,                           // 2: malonaz.ai.v1.Chat.LabelsEntry
-	nil,                           // 3: malonaz.ai.v1.Chat.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*Message)(nil),               // 5: malonaz.ai.v1.Message
-	(*ModelUsage)(nil),            // 6: malonaz.ai.v1.ModelUsage
+	nil,                           // 1: malonaz.ai.v1.Chat.LabelsEntry
+	nil,                           // 2: malonaz.ai.v1.Chat.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_malonaz_ai_v1_chat_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.v1.Chat.create_time:type_name -> google.protobuf.Timestamp
-	4, // 1: malonaz.ai.v1.Chat.update_time:type_name -> google.protobuf.Timestamp
-	4, // 2: malonaz.ai.v1.Chat.delete_time:type_name -> google.protobuf.Timestamp
-	2, // 3: malonaz.ai.v1.Chat.labels:type_name -> malonaz.ai.v1.Chat.LabelsEntry
-	1, // 4: malonaz.ai.v1.Chat.metadata:type_name -> malonaz.ai.v1.ChatMetadata
-	3, // 5: malonaz.ai.v1.Chat.annotations:type_name -> malonaz.ai.v1.Chat.AnnotationsEntry
-	5, // 6: malonaz.ai.v1.ChatMetadata.messages:type_name -> malonaz.ai.v1.Message
-	6, // 7: malonaz.ai.v1.ChatMetadata.model_usages:type_name -> malonaz.ai.v1.ModelUsage
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	3, // 0: malonaz.ai.v1.Chat.create_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.ai.v1.Chat.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.ai.v1.Chat.delete_time:type_name -> google.protobuf.Timestamp
+	1, // 3: malonaz.ai.v1.Chat.labels:type_name -> malonaz.ai.v1.Chat.LabelsEntry
+	2, // 4: malonaz.ai.v1.Chat.annotations:type_name -> malonaz.ai.v1.Chat.AnnotationsEntry
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_chat_proto_init() }
@@ -403,15 +317,13 @@ func file_malonaz_ai_v1_chat_proto_init() {
 	if File_malonaz_ai_v1_chat_proto != nil {
 		return
 	}
-	file_malonaz_ai_v1_message_proto_init()
-	file_malonaz_ai_v1_metrics_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_chat_proto_rawDesc), len(file_malonaz_ai_v1_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

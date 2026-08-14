@@ -14,9 +14,9 @@ go_service_src(
 go_library(
     name = "ai_service",
     srcs = [
+        "generate_message.go",
         "metrics.go",
         "runtime.go",
-        "text_to_text.go",
         "utils.go",
         ":service.tmpl.go",
     ],
@@ -46,6 +46,7 @@ go_library(
         "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",

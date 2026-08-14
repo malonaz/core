@@ -1,0 +1,359 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/ai/v1/tool.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.CreateMessage.
+message CreateMessageRequest {
+  // The resource name of the parent chat under which this message will be created.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // The message to create.
+  ai.v1.Message message = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  //
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string message_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    }
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  // This request is only idempotent if a `request_id` is provided.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AiService.GetMessage.
+message GetMessageRequest {
+  // The resource name of the message to retrieve.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Message"
+  ];
+}
+
+// Request message for AiService.UpdateMessage.
+message UpdateMessageRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "annotations",
+      "blocks",
+      "status"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "message.name_required"
+    message: "message.name must be set"
+    expression: "has(this.message.name)"
+  };
+
+  // The message to update with. The name must be set.
+  // The message's `name` field is used to identify the message to be updated.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  ai.v1.Message message = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.DeleteMessage.
+message DeleteMessageRequest {
+  // The resource name of the message to delete.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Message"
+  ];
+
+  // If set to true, and the message is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  // This ensures the client has an up-to-date value before proceeding with deletion.
+  string etag = 3;
+}
+
+// Request message for AiService.ListMessages.
+message ListMessagesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 1000};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time asc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent chat that owns this collection of messages.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 3;
+
+  // @autogen.
+  string order_by = 4;
+
+  // Requested page size. Server may return fewer messages than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListMessages` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListMessages` must match
+  // the call that provided the page token.
+  string page_token = 6;
+}
+
+// Response message for AiService.ListMessages.
+message ListMessagesResponse {
+  // The list of messages.
+  repeated ai.v1.Message messages = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// Configuration for assistant message generation.
+message MessageGenerationConfiguration {
+  // Maximum number of tokens to generate. Includes reasoning tokens.
+  int32 max_tokens = 1 [(buf.validate.field).int32.gte = 0];
+
+  // Sampling temperature (0.0 to 2.0).
+  double temperature = 2 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 2.0
+  }];
+
+  // Controls which tool(s) the model should use.
+  .malonaz.ai.v1.ToolChoice tool_choice = 3;
+
+  // Represents the level of reasoning effort for AI model responses.
+  // The reasoning effort parameter guides the model on how many reasoning tokens
+  // to generate before creating a response to the prompt. Higher effort levels
+  // result in more thorough reasoning at the cost of speed and token usage.
+  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 4;
+
+  // If true, we stream partial tool calls.
+  bool stream_partial_tool_calls = 5;
+
+  // Image generation configuration.
+  ImageGenerationConfiguration image_configuration = 6;
+}
+
+// Configuration for image generation during message generation.
+// Used with models that support native image generation (e.g., Gemini 2.5 Flash Image, Gemini 3 Pro Image).
+message ImageGenerationConfiguration {
+  // Aspect ratio of generated images.
+  // Defaults to matching input image size, or "1:1" if no input image.
+  string aspect_ratio = 1 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9"
+    ]
+  }];
+
+  // Resolution of generated images. Only supported by Gemini 3 Pro Image.
+  // Defaults to "1K".
+  string image_size = 2 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1K",
+      "2K",
+      "4K"
+    ]
+  }];
+}
+
+// Reason why generation stopped.
+enum StopReason {
+  // Used to detect an unset field.
+  STOP_REASON_UNSPECIFIED = 0;
+
+  // The model reached a natural stopping point.
+  STOP_REASON_END_TURN = 1;
+
+  // The model reached the maximum token limit specified in the request.
+  STOP_REASON_MAX_TOKENS = 2;
+
+  // The model requested to call one or more tools.
+  STOP_REASON_TOOL_CALL = 3;
+
+  // One of your provided custom `stop_sequences` was generated.
+  STOP_REASON_STOP_SEQUENCE = 4;
+
+  // The model paused its turn to allow the user to interject.
+  STOP_REASON_PAUSE_TURN = 5;
+
+  // The model refused to respond due to safety or policy reasons.
+  STOP_REASON_REFUSAL = 6;
+}
+
+// Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
+message GenerateMessageRequest {
+  option (buf.validate.message).cel = {
+    id: "messages_role"
+    message: "messages cannot have the ASSISTANT role"
+    expression: "this.messages.all(m, m.role != 2)"
+  };
+
+  // The resource name of the parent chat whose message history forms the
+  // conversation for this generation. The input `messages` and the generated
+  // assistant message are persisted under this chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // The resource name of the model to use.
+  // Format: providers/{provider}/models/{model}
+  string model = 2 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // New messages to append to the conversation before generating, in order.
+  // They are persisted immediately and are not echoed back in the response;
+  // use ListMessages to retrieve them. Must not use the ASSISTANT role.
+  repeated ai.v1.Message messages = 3;
+
+  // Optional resource name of an assistant message to generate from, allowing
+  // a client to fork the conversation. The conversation history is truncated
+  // after this message: any later message is labeled
+  // `ai.malonaz.com/superseded` and excluded from this and future generations.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string previous_message = 4 [(google.api.resource_reference).type = "ai.malonaz.com/Message"];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 5;
+
+  // Tool sets available for the model to call.
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 6;
+
+  // Additional configuration.
+  MessageGenerationConfiguration configuration = 7;
+
+  // Labels to set on the generated message.
+  map<string, string> labels = 8 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 9 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Response message for AiService.GenerateMessage.
+message GenerateMessageResponse {
+  // The persisted generated assistant message, including its resource name,
+  // aggregated model usage and price.
+  ai.v1.Message generated_message = 1;
+
+  // Reason why generation stopped.
+  StopReason stop_reason = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Response message for AiService.StreamGenerateMessage.
+message StreamGenerateMessageResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // A generated block delta.
+    .malonaz.ai.v1.Block block = 1;
+
+    // Reason why generation stopped.
+    StopReason stop_reason = 2;
+
+    // Generation metrics.
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+
+    // The persisted generated assistant message, including its resource name,
+    // aggregated model usage and price. Sent as the final event of the stream.
+    .malonaz.ai.v1.Message generated_message = 4;
+
+    // Incremental model usage updates. The absolute truth for a resource
+    // consumption is the last one streamed out; the final `generated_message`
+    // event also carries the aggregate usage.
+    .malonaz.ai.v1.ModelUsage model_usage = 5;
+  }
+}

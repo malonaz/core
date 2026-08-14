@@ -4,7 +4,6 @@ go_service_manifest(
     name = "manifest",
     visibility = ["PUBLIC"],
     deps = [
-        "//malonaz/ai/ai_service/v1",
         "//third_party/proto:grpc__reflection__v1",
     ],
 )
@@ -23,7 +22,6 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        "//go/ai",
         "//go/ai/tool",
         "//go/aip",
         "//go/grpc/status",
@@ -32,12 +30,10 @@ go_library(
         "//go/pbutil/pbjson",
         "//go/pbutil/pbreflection",
         "//malonaz/ai/ai_engine/v1",
-        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
-        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",

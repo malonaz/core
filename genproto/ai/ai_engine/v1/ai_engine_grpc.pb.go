@@ -23,17 +23,37 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AiEngineClient interface {
-	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error)
-	// Create a tool to generate a message.
+	// Create a tool from a protobuf descriptor.
+	//
+	// The referenced message or method descriptor is converted into a tool
+	// whose JSON schema mirrors the proto's fields, filtered and bounded by
+	// the optional schema configuration. Tool calls produced against this
+	// tool can be parsed back into the proto via ParseToolCall.
 	CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
-	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
+	// Parse a tool call emitted against a tool created by this service.
+	//
+	// Validates the call's arguments against the originating tool's schema
+	// and returns exactly one of:
+	// - a parsed message (generic tools created by CreateTool),
+	// - a discovery request (calls to a discovery tool),
+	// - an RPC request (calls to a method tool from a service tool set).
+	//
+	// When the failure is correctable by the model, the error carries a
+	// [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+	// detail ready to be fed back into the conversation.
 	ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*ParseToolCallResponse, error)
-	// Creates a discovery tool for a set of tools.
+	// Create a discovery tool for a set of tools.
+	//
+	// The returned tool exposes only the names and descriptions of the
+	// underlying tools; the model calls it to request the full schema of the
+	// tools it actually needs, keeping unused schemas out of its context.
 	CreateDiscoveryTool(ctx context.Context, in *CreateDiscoveryToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
-	// Creates a discoverable tool set for a gRPC service.
+	// Create a discoverable tool set for a gRPC service.
+	//
 	// The tool set includes a discovery tool that lists available method tools,
 	// and individual tools for each method in the service.
+	// Methods listed in `discovered_method_names` are exposed immediately,
+	// without requiring a discovery round trip.
 	CreateServiceToolSet(ctx context.Context, in *CreateServiceToolSetRequest, opts ...grpc.CallOption) (*v1.ToolSet, error)
 }
 
@@ -43,15 +63,6 @@ type aiEngineClient struct {
 
 func NewAiEngineClient(cc grpc.ClientConnInterface) AiEngineClient {
 	return &aiEngineClient{cc}
-}
-
-func (c *aiEngineClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error) {
-	out := new(GenerateMessageResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *aiEngineClient) CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error) {
@@ -94,17 +105,37 @@ func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateSer
 // All implementations should embed UnimplementedAiEngineServer
 // for forward compatibility
 type AiEngineServer interface {
-	// Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-	GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error)
-	// Create a tool to generate a message.
+	// Create a tool from a protobuf descriptor.
+	//
+	// The referenced message or method descriptor is converted into a tool
+	// whose JSON schema mirrors the proto's fields, filtered and bounded by
+	// the optional schema configuration. Tool calls produced against this
+	// tool can be parsed back into the proto via ParseToolCall.
 	CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error)
-	// Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
+	// Parse a tool call emitted against a tool created by this service.
+	//
+	// Validates the call's arguments against the originating tool's schema
+	// and returns exactly one of:
+	// - a parsed message (generic tools created by CreateTool),
+	// - a discovery request (calls to a discovery tool),
+	// - an RPC request (calls to a method tool from a service tool set).
+	//
+	// When the failure is correctable by the model, the error carries a
+	// [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+	// detail ready to be fed back into the conversation.
 	ParseToolCall(context.Context, *ParseToolCallRequest) (*ParseToolCallResponse, error)
-	// Creates a discovery tool for a set of tools.
+	// Create a discovery tool for a set of tools.
+	//
+	// The returned tool exposes only the names and descriptions of the
+	// underlying tools; the model calls it to request the full schema of the
+	// tools it actually needs, keeping unused schemas out of its context.
 	CreateDiscoveryTool(context.Context, *CreateDiscoveryToolRequest) (*v1.Tool, error)
-	// Creates a discoverable tool set for a gRPC service.
+	// Create a discoverable tool set for a gRPC service.
+	//
 	// The tool set includes a discovery tool that lists available method tools,
 	// and individual tools for each method in the service.
+	// Methods listed in `discovered_method_names` are exposed immediately,
+	// without requiring a discovery round trip.
 	CreateServiceToolSet(context.Context, *CreateServiceToolSetRequest) (*v1.ToolSet, error)
 }
 
@@ -112,9 +143,6 @@ type AiEngineServer interface {
 type UnimplementedAiEngineServer struct {
 }
 
-func (UnimplementedAiEngineServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
-}
 func (UnimplementedAiEngineServer) CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTool not implemented")
 }
@@ -137,24 +165,6 @@ type UnsafeAiEngineServer interface {
 
 func RegisterAiEngineServer(s grpc.ServiceRegistrar, srv AiEngineServer) {
 	s.RegisterService(&AiEngine_ServiceDesc, srv)
-}
-
-func _AiEngine_GenerateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GenerateMessageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AiEngineServer).GenerateMessage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/GenerateMessage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiEngineServer).GenerateMessage(ctx, req.(*GenerateMessageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AiEngine_CreateTool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -236,10 +246,6 @@ var AiEngine_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "malonaz.ai.ai_engine.v1.AiEngine",
 	HandlerType: (*AiEngineServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GenerateMessage",
-			Handler:    _AiEngine_GenerateMessage_Handler,
-		},
 		{
 			MethodName: "CreateTool",
 			Handler:    _AiEngine_CreateTool_Handler,

@@ -24,15 +24,12 @@ _sym_db = _symbol_database.Default()
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import client_pb2 as google_dot_api_dot_client__pb2
-from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
-from malonaz.ai.ai_service.v1 import text_to_text_pb2 as malonaz_dot_ai_dot_ai__service_dot_v1_dot_text__to__text__pb2
-from malonaz.ai.v1 import metrics_pb2 as malonaz_dot_ai_dot_v1_dot_metrics__pb2
 from malonaz.ai.v1 import tool_pb2 as malonaz_dot_ai_dot_v1_dot_tool__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x17google/api/client.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\"\xb2\x05\n\x16GenerateMessageRequest\x12R\n\x14\x64\x65scriptor_reference\x18\x01 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01\x12(\n\x05model\x18\x02 \x01(\tB\x19\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\x12\x0e\n\x06prompt\x18\x03 \x01(\t\x12J\n\x14schema_configuration\x18\x04 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration\x12U\n\x1atext_to_text_configuration\x18\x05 \x01(\x0b\x32\x31.malonaz.ai.ai_service.v1.TextToTextConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\xb1\x01\n\x17GenerateMessageResponse\x12(\n\x07message\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\x12.\n\x0bmodel_usage\x18\x02 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsage\x12<\n\x12generation_metrics\x18\x03 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetrics\"\x9c\x04\n\x11\x43reateToolRequest\x12R\n\x14\x64\x65scriptor_reference\x18\x01 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01\x12J\n\x14schema_configuration\x18\x02 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"u\n\x14ParseToolCallRequest\x12\x32\n\ttool_call\x18\x01 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01\x12)\n\ttool_sets\x18\x02 \x03(\x0b\x32\x16.malonaz.ai.v1.ToolSet\"\xaf\x01\n\x15ParseToolCallResponse\x12*\n\x07message\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x12\x35\n\tdiscovery\x18\x02 \x01(\x0b\x32 .malonaz.ai.v1.ToolCallDiscoveryH\x00\x12)\n\x03rpc\x18\x03 \x01(\x0b\x32\x1a.malonaz.ai.v1.ToolCallRpcH\x00\x42\x08\n\x06result\"{\n\x1a\x43reateDiscoveryToolRequest\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12*\n\x05tools\x18\x03 \x03(\x0b\x32\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01\"\xc2\x03\n\x1b\x43reateServiceToolSetRequest\x12!\n\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cmethod_names\x18\x02 \x03(\t\x12J\n\x14schema_configuration\x18\x03 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration\x12\x86\x01\n#method_name_to_schema_configuration\x18\x04 \x03(\x0b\x32Y.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry\x12\x1f\n\x17\x64iscovered_method_names\x18\x05 \x03(\t\x1at\n$MethodNameToSchemaConfigurationEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12;\n\x05value\x18\x02 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration:\x02\x38\x01\"W\n\x1dParseToolCallRecoverableError\x12\x36\n\x0btool_result\x18\x01 \x01(\x0b\x32\x19.malonaz.ai.v1.ToolResultB\x06\xbaH\x03\xc8\x01\x01\"\xbc\x01\n\x13SchemaConfiguration\x12.\n\nfield_mask\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.FieldMask\x12!\n\x0ewith_max_depth\x18\x02 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\n(\x00\x12\x1f\n\x17with_response_read_mask\x18\x03 \x01(\x08\x12\x31\n\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\n(\x00\"N\n\x13\x44\x65scriptorReference\x12\x11\n\x07message\x18\x01 \x01(\tH\x00\x12\x10\n\x06method\x18\x02 \x01(\tH\x00\x42\x12\n\tfull_name\x12\x05\xbaH\x02\x08\x01\x32\x99\x04\n\x08\x41iEngine\x12t\n\x0fGenerateMessage\x12/.malonaz.ai.ai_engine.v1.GenerateMessageRequest\x1a\x30.malonaz.ai.ai_engine.v1.GenerateMessageResponse\x12M\n\nCreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\x12_\n\x13\x43reateDiscoveryTool\x12\x33.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12\x64\n\x14\x43reateServiceToolSet\x12\x34.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a\x16.malonaz.ai.v1.ToolSet\x1a\x11\xca\x41\x0e\x61i.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'malonaz/ai/ai_engine/v1/ai_engine.proto\x12\x17malonaz.ai.ai_engine.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x17google/api/client.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x9c\x04\n\x11\x43reateToolRequest\x12R\n\x14\x64\x65scriptor_reference\x18\x01 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01\x12J\n\x14schema_configuration\x18\x02 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"u\n\x14ParseToolCallRequest\x12\x32\n\ttool_call\x18\x01 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01\x12)\n\ttool_sets\x18\x02 \x03(\x0b\x32\x16.malonaz.ai.v1.ToolSet\"\xaf\x01\n\x15ParseToolCallResponse\x12*\n\x07message\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x12\x35\n\tdiscovery\x18\x02 \x01(\x0b\x32 .malonaz.ai.v1.ToolCallDiscoveryH\x00\x12)\n\x03rpc\x18\x03 \x01(\x0b\x32\x1a.malonaz.ai.v1.ToolCallRpcH\x00\x42\x08\n\x06result\"{\n\x1a\x43reateDiscoveryToolRequest\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12*\n\x05tools\x18\x03 \x03(\x0b\x32\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01\"\xc2\x03\n\x1b\x43reateServiceToolSetRequest\x12!\n\x11service_full_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cmethod_names\x18\x02 \x03(\t\x12J\n\x14schema_configuration\x18\x03 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration\x12\x86\x01\n#method_name_to_schema_configuration\x18\x04 \x03(\x0b\x32Y.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry\x12\x1f\n\x17\x64iscovered_method_names\x18\x05 \x03(\t\x1at\n$MethodNameToSchemaConfigurationEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12;\n\x05value\x18\x02 \x01(\x0b\x32,.malonaz.ai.ai_engine.v1.SchemaConfiguration:\x02\x38\x01\"W\n\x1dParseToolCallRecoverableError\x12\x36\n\x0btool_result\x18\x01 \x01(\x0b\x32\x19.malonaz.ai.v1.ToolResultB\x06\xbaH\x03\xc8\x01\x01\"\xbc\x01\n\x13SchemaConfiguration\x12.\n\nfield_mask\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.FieldMask\x12!\n\x0ewith_max_depth\x18\x02 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\n(\x00\x12\x1f\n\x17with_response_read_mask\x18\x03 \x01(\x08\x12\x31\n\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\n(\x00\"N\n\x13\x44\x65scriptorReference\x12\x11\n\x07message\x18\x01 \x01(\tH\x00\x12\x10\n\x06method\x18\x02 \x01(\tH\x00\x42\x12\n\tfull_name\x12\x05\xbaH\x02\x08\x01\x32\xb7\x03\n\x08\x41iEngine\x12R\n\nCreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12s\n\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\"\x03\x90\x02\x01\x12\x64\n\x13\x43reateDiscoveryTool\x12\x33.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12i\n\x14\x43reateServiceToolSet\x12\x34.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a\x16.malonaz.ai.v1.ToolSet\"\x03\x90\x02\x01\x1a\x11\xca\x41\x0e\x61i.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,12 +37,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.ai.ai_engine.v1.ai_
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z0github.com/malonaz/core/genproto/ai/ai_engine/v1'
-  _globals['_GENERATEMESSAGEREQUEST'].fields_by_name['descriptor_reference']._loaded_options = None
-  _globals['_GENERATEMESSAGEREQUEST'].fields_by_name['descriptor_reference']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_GENERATEMESSAGEREQUEST'].fields_by_name['model']._loaded_options = None
-  _globals['_GENERATEMESSAGEREQUEST'].fields_by_name['model']._serialized_options = b'\372A\026\n\024ai.malonaz.com/Model'
-  _globals['_GENERATEMESSAGEREQUEST']._loaded_options = None
-  _globals['_GENERATEMESSAGEREQUEST']._serialized_options = b'\272H\342\002\032\337\002\n\035schema_config_requires_method\022Twith_response_read_mask and with_response_schema_max_depth require method descriptor\032\347\001(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))'
   _globals['_CREATETOOLREQUEST'].fields_by_name['descriptor_reference']._loaded_options = None
   _globals['_CREATETOOLREQUEST'].fields_by_name['descriptor_reference']._serialized_options = b'\272H\003\310\001\001'
   _globals['_CREATETOOLREQUEST']._loaded_options = None
@@ -72,28 +63,32 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DESCRIPTORREFERENCE'].oneofs_by_name['full_name']._serialized_options = b'\272H\002\010\001'
   _globals['_AIENGINE']._loaded_options = None
   _globals['_AIENGINE']._serialized_options = b'\312A\016ai.malonaz.com'
-  _globals['_GENERATEMESSAGEREQUEST']._serialized_start=314
-  _globals['_GENERATEMESSAGEREQUEST']._serialized_end=1004
-  _globals['_GENERATEMESSAGERESPONSE']._serialized_start=1007
-  _globals['_GENERATEMESSAGERESPONSE']._serialized_end=1184
-  _globals['_CREATETOOLREQUEST']._serialized_start=1187
-  _globals['_CREATETOOLREQUEST']._serialized_end=1727
-  _globals['_PARSETOOLCALLREQUEST']._serialized_start=1729
-  _globals['_PARSETOOLCALLREQUEST']._serialized_end=1846
-  _globals['_PARSETOOLCALLRESPONSE']._serialized_start=1849
-  _globals['_PARSETOOLCALLRESPONSE']._serialized_end=2024
-  _globals['_CREATEDISCOVERYTOOLREQUEST']._serialized_start=2026
-  _globals['_CREATEDISCOVERYTOOLREQUEST']._serialized_end=2149
-  _globals['_CREATESERVICETOOLSETREQUEST']._serialized_start=2152
-  _globals['_CREATESERVICETOOLSETREQUEST']._serialized_end=2602
-  _globals['_CREATESERVICETOOLSETREQUEST_METHODNAMETOSCHEMACONFIGURATIONENTRY']._serialized_start=2486
-  _globals['_CREATESERVICETOOLSETREQUEST_METHODNAMETOSCHEMACONFIGURATIONENTRY']._serialized_end=2602
-  _globals['_PARSETOOLCALLRECOVERABLEERROR']._serialized_start=2604
-  _globals['_PARSETOOLCALLRECOVERABLEERROR']._serialized_end=2691
-  _globals['_SCHEMACONFIGURATION']._serialized_start=2694
-  _globals['_SCHEMACONFIGURATION']._serialized_end=2882
-  _globals['_DESCRIPTORREFERENCE']._serialized_start=2884
-  _globals['_DESCRIPTORREFERENCE']._serialized_end=2962
-  _globals['_AIENGINE']._serialized_start=2965
-  _globals['_AIENGINE']._serialized_end=3502
+  _globals['_AIENGINE'].methods_by_name['CreateTool']._loaded_options = None
+  _globals['_AIENGINE'].methods_by_name['CreateTool']._serialized_options = b'\220\002\001'
+  _globals['_AIENGINE'].methods_by_name['ParseToolCall']._loaded_options = None
+  _globals['_AIENGINE'].methods_by_name['ParseToolCall']._serialized_options = b'\220\002\001'
+  _globals['_AIENGINE'].methods_by_name['CreateDiscoveryTool']._loaded_options = None
+  _globals['_AIENGINE'].methods_by_name['CreateDiscoveryTool']._serialized_options = b'\220\002\001'
+  _globals['_AIENGINE'].methods_by_name['CreateServiceToolSet']._loaded_options = None
+  _globals['_AIENGINE'].methods_by_name['CreateServiceToolSet']._serialized_options = b'\220\002\001'
+  _globals['_CREATETOOLREQUEST']._serialized_start=213
+  _globals['_CREATETOOLREQUEST']._serialized_end=753
+  _globals['_PARSETOOLCALLREQUEST']._serialized_start=755
+  _globals['_PARSETOOLCALLREQUEST']._serialized_end=872
+  _globals['_PARSETOOLCALLRESPONSE']._serialized_start=875
+  _globals['_PARSETOOLCALLRESPONSE']._serialized_end=1050
+  _globals['_CREATEDISCOVERYTOOLREQUEST']._serialized_start=1052
+  _globals['_CREATEDISCOVERYTOOLREQUEST']._serialized_end=1175
+  _globals['_CREATESERVICETOOLSETREQUEST']._serialized_start=1178
+  _globals['_CREATESERVICETOOLSETREQUEST']._serialized_end=1628
+  _globals['_CREATESERVICETOOLSETREQUEST_METHODNAMETOSCHEMACONFIGURATIONENTRY']._serialized_start=1512
+  _globals['_CREATESERVICETOOLSETREQUEST_METHODNAMETOSCHEMACONFIGURATIONENTRY']._serialized_end=1628
+  _globals['_PARSETOOLCALLRECOVERABLEERROR']._serialized_start=1630
+  _globals['_PARSETOOLCALLRECOVERABLEERROR']._serialized_end=1717
+  _globals['_SCHEMACONFIGURATION']._serialized_start=1720
+  _globals['_SCHEMACONFIGURATION']._serialized_end=1908
+  _globals['_DESCRIPTORREFERENCE']._serialized_start=1910
+  _globals['_DESCRIPTORREFERENCE']._serialized_end=1988
+  _globals['_AIENGINE']._serialized_start=1991
+  _globals['_AIENGINE']._serialized_end=2430
 # @@protoc_insertion_point(module_scope)

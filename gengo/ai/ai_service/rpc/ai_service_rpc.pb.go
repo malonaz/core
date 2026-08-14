@@ -22,15 +22,18 @@ import (
 
 type aiServiceStore interface {
 	aiService_ChatStore
+	aiService_MessageStore
 }
 
 type AiServiceServer struct {
 	*aiService_ChatServer
+	*aiService_MessageServer
 }
 
 func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 	return &AiServiceServer{
-		aiService_ChatServer: newAiService_ChatServer(store),
+		aiService_ChatServer:    newAiService_ChatServer(store),
+		aiService_MessageServer: newAiService_MessageServer(store),
 	}
 }
 
@@ -345,6 +348,317 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	// Create and return response.
 	return &v1.ListChatsResponse{
 		Chats:         chats,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+type aiService_MessageStore interface {
+	InsertMessageIdempotently(ctx context.Context, requestID string, message *model.Message) (*model.Message, error)
+	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
+	SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error)
+	GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error)
+	BatchGetMessages(ctx context.Context, organizationIds []string, userIds []string, chatIds []string, messageIds []string) ([]*model.Message, error)
+	ListMessages(ctx context.Context, organizationId, userId, chatId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Message, error)
+}
+
+type aiService_MessageServer struct {
+	store aiService_MessageStore
+}
+
+func newAiService_MessageServer(store aiService_MessageStore) *aiService_MessageServer {
+	return &aiService_MessageServer{
+		store: store,
+	}
+}
+
+func (s *aiService_MessageServer) CreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*v11.Message, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	messageId := request.MessageId
+	if messageId == "" {
+		messageId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId, userId, chatId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}", &organizationId, &userId, &chatId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	request.Message.Name = resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}/messages/{message}", organizationId, userId, chatId, messageId)
+
+	// STEP 2: Instantiate timestamps.
+	// Check for x-migration-request header
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+		if request.Message.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else {
+		request.Message.CreateTime = timestamppb.Now()
+	}
+	request.Message.UpdateTime = request.Message.CreateTime
+
+	{ // Capture the Etag.
+		var err error
+		request.Message.Etag, err = aip.ComputeETag(request.Message)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	messageModel, err := model.MessageFromPb(request.Message)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from pb to model: %v", err).Err()
+	}
+
+	if request.ValidateOnly {
+		return request.Message, nil
+	}
+
+	// STEP 4: Insert the resource idempotently.
+	dbMessageModel, err := s.store.InsertMessageIdempotently(ctx, request.RequestId, messageModel)
+	if err != nil {
+		if errors.Is(err, model.ErrMessageAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "message already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting message").Err()
+	}
+
+	message, err := dbMessageModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+	}
+
+	return message, nil
+}
+
+func (s *aiService_MessageServer) GetMessage(ctx context.Context, request *v1.GetMessageRequest) (*v11.Message, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, userId, chatId, messageId, err := model.ParseMessageName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbMessageModel, err := s.store.GetMessage(ctx, organizationId, userId, chatId, messageId)
+	if err != nil {
+		if errors.Is(err, model.ErrMessageNotExist) {
+			return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting message").Err()
+	}
+
+	message, err := dbMessageModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+	}
+	return message, nil
+}
+
+var updateMessageRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateMessageRequest, *v11.Message]()
+
+func (s *aiService_MessageServer) UpdateMessage(ctx context.Context, request *v1.UpdateMessageRequest) (*v11.Message, error) {
+	for {
+		response, err := s.updateMessage(ctx, request)
+		if err != nil {
+			if request.GetMessage().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *aiService_MessageServer) updateMessage(ctx context.Context, request *v1.UpdateMessageRequest) (*v11.Message, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Message.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateMessageRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getMessageRequest := &v1.GetMessageRequest{Name: request.Message.Name}
+	existingMessage, err := s.GetMessage(ctx, getMessageRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Verify that the resource is not soft deleted
+	if existingMessage.DeleteTime != nil {
+		return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetMessage().GetEtag()
+	if etag == "" {
+		etag = existingMessage.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedMessage := proto.CloneOf(existingMessage)
+	parsedRequest.ApplyFieldMask(patchedMessage, request.Message)
+	if err := protovalidate.Validate(patchedMessage); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedMessage.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedMessage.Etag, err = aip.ComputeETag(patchedMessage)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	messageModel, err := model.MessageFromPb(patchedMessage)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from pb to model: %v", err).Err()
+	}
+	dbMessageModel, err := s.store.UpdateMessage(ctx, messageModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrMessageNotExist) {
+			return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+		}
+		if errors.Is(err, model.ErrMessageETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating message").Err()
+	}
+
+	message, err := dbMessageModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+	}
+
+	return message, nil
+}
+
+func (s *aiService_MessageServer) DeleteMessage(ctx context.Context, request *v1.DeleteMessageRequest) (*v11.Message, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, chatId, messageId, err := model.ParseMessageName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	deleteTime := time.Now().UTC()
+	// Compute the new Etag.
+	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
+	Message, err := s.GetMessage(ctx, getMessageRequest)
+	if err != nil {
+		return nil, err
+	}
+	Message.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(Message)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Soft delete the resource.
+	dbMessageModel, err := s.store.SoftDeleteMessage(ctx, organizationId, userId, chatId, messageId, request.GetEtag(), newEtag, deleteTime)
+	if err != nil {
+		if errors.Is(err, model.ErrMessageNotExist) {
+			return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+		}
+		if errors.Is(err, model.ErrMessageETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		if errors.Is(err, model.ErrMessageAlreadyDeleted) {
+			if request.AllowMissing {
+				getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
+				message, err := s.GetMessage(ctx, getMessageRequest)
+				if err != nil {
+					return nil, err
+				}
+				return message, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "message already deleted").Err()
+		}
+		return nil, status.FromError(err, "soft deleting message").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	message, err := dbMessageModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+	}
+
+	return message, nil
+}
+
+var listMessagesRequestParser = aip.MustNewListRequestParser[*v1.ListMessagesRequest, *v11.Message](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *aiService_MessageServer) ListMessages(ctx context.Context, request *v1.ListMessagesRequest) (*v1.ListMessagesResponse, error) {
+	// Parse parent names
+	var organizationId, userId, chatId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}", &organizationId, &userId, &chatId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listMessagesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbMessages, err := s.store.ListMessages(ctx, organizationId, userId, chatId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing messages").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbMessages))
+	if nextPageToken != "" {
+		dbMessages = dbMessages[:len(dbMessages)-1]
+	}
+
+	// Convert back to proto.
+	messages := make([]*v11.Message, 0, len(dbMessages))
+	for _, dbMessage := range dbMessages {
+		message, err := dbMessage.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Message to Message: %v", err).Err()
+		}
+		messages = append(messages, message)
+	}
+
+	// Create and return response.
+	return &v1.ListMessagesResponse{
+		Messages:      messages,
 		NextPageToken: nextPageToken,
 	}, nil
 }

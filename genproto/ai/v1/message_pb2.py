@@ -24,12 +24,16 @@ _sym_db = _symbol_database.Default()
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
+from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
+from google.rpc import status_pb2 as google_dot_rpc_dot_status__pb2
+from malonaz.ai.v1 import metrics_pb2 as malonaz_dot_ai_dot_v1_dot_metrics__pb2
 from malonaz.ai.v1 import tool_pb2 as malonaz_dot_ai_dot_v1_dot_tool__pb2
+from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18malonaz/ai/v1/tool.proto\"\x94\t\n\x07Message\x12:\n\x0b\x63reate_time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x02\xbaH\x03\xc8\x01\x01\x12/\n\x0b\x64\x65lete_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12<\n\x0b\x61nnotations\x18\x02 \x03(\x0b\x32\'.malonaz.ai.v1.Message.AnnotationsEntry\x12\xc0\x01\n\x06labels\x18\x06 \x03(\x0b\x32\".malonaz.ai.v1.Message.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12-\n\x04role\x18\x03 \x01(\x0e\x32\x13.malonaz.ai.v1.RoleB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12$\n\x06\x62locks\x18\x04 \x03(\x0b\x32\x14.malonaz.ai.v1.Block\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xe2\x04\xbaH\xde\x04\x1ar\n\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a\x31this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xdf\x01\n\x15\x61ssistant_role_blocks\x12]ASSISTANT messages can only have thought, text, tool_call, partial_tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\x87\x01\n\x10user_role_blocks\x12\x30USER messages can only have text or image blocks\x1a\x41this.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\x1a|\n\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a\x38this.role != 4 || this.blocks.all(b, has(b.tool_result))\"\xc3\x04\n\x05\x42lock\x12\r\n\x05index\x18\x01 \x01(\x03\x12\x11\n\tsignature\x18\x02 \x01(\t\x12-\n\x0c\x65xtra_fields\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x11\n\x07thought\x18\x04 \x01(\tH\x00\x12\x0e\n\x04text\x18\x05 \x01(\tH\x00\x12,\n\ttool_call\x18\x06 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallH\x00\x12\x34\n\x11partial_tool_call\x18\x07 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallH\x00\x12\x30\n\x0btool_result\x18\x08 \x01(\x0b\x32\x19.malonaz.ai.v1.ToolResultH\x00\x12%\n\x05image\x18\t \x01(\x0b\x32\x14.malonaz.ai.v1.ImageH\x00:\xfd\x01\xbaH\xf9\x01\x1a\xf6\x01\n)block_content_required_when_signature_set\x12)content is required when signature is set\x1a\x9d\x01this.signature == \'\' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image)B\t\n\x07\x63ontent\"\x80\x02\n\x05Image\x12\x0e\n\x04\x64\x61ta\x18\x01 \x01(\x0cH\x00\x12\r\n\x03url\x18\x02 \x01(\tH\x00\x12\x12\n\nmedia_type\x18\x03 \x01(\t\x12\x36\n\x07quality\x18\x04 \x01(\x0e\x32\x1b.malonaz.ai.v1.ImageQualityB\x08\xbaH\x05\x82\x01\x02\x10\x01:{\xbaHx\x1av\n\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != \'\'B\x0f\n\x06source\x12\x05\xbaH\x02\x08\x01*\xd9\x01\n\x0fReasoningEffort\x12 \n\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n\x14REASONING_EFFORT_LOW\x10\x02\x12\x1b\n\x17REASONING_EFFORT_MEDIUM\x10\x03\x12\x19\n\x15REASONING_EFFORT_HIGH\x10\x04\x12\x1a\n\x16REASONING_EFFORT_XHIGH\x10\x05\x12\x18\n\x14REASONING_EFFORT_MAX\x10\x06*_\n\x04Role\x12\x14\n\x10ROLE_UNSPECIFIED\x10\x00\x12\x0f\n\x0bROLE_SYSTEM\x10\x01\x12\x12\n\x0eROLE_ASSISTANT\x10\x02\x12\r\n\tROLE_USER\x10\x03\x12\r\n\tROLE_TOOL\x10\x04*t\n\x0cImageQuality\x12\x1d\n\x19IMAGE_QUALITY_UNSPECIFIED\x10\x00\x12\x16\n\x12IMAGE_QUALITY_AUTO\x10\x01\x12\x15\n\x11IMAGE_QUALITY_LOW\x10\x02\x12\x16\n\x12IMAGE_QUALITY_HIGH\x10\x03\x42(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa9\x0c\n\x07Message\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x0c\n\x04\x65tag\x18\x05 \x01(\t\x12\xc8\x01\n\x06labels\x18\x06 \x03(\x0b\x32\".malonaz.ai.v1.Message.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x46\n\x0b\x61nnotations\x18\x07 \x03(\x0b\x32\'.malonaz.ai.v1.Message.AnnotationsEntryB\x08\xba\xea\x0f\x04\x10\x01 \x01\x12-\n\x04role\x18\x08 \x01(\x0e\x32\x13.malonaz.ai.v1.RoleB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12,\n\x06\x62locks\x18\t \x03(\x0b\x32\x14.malonaz.ai.v1.BlockB\x06\xba\xea\x0f\x02\x10\x01\x12\x31\n\x05model\x18\n \x01(\tB\"\xe0\x41\x03\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xba\xea\x0f\x02 \x01\x12;\n\x0bmodel_usage\x18\x0b \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsageB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x12\x12\n\x05price\x18\x0c \x01(\x01\x42\x03\xe0\x41\x03\x12/\n\x06status\x18\r \x01(\x0b\x32\x12.google.rpc.StatusB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xcc\x05\xea\x41v\n\x16\x61i.malonaz.com/Message\x12Iorganizations/{organization}/users/{user}/chats/{chat}/messages/{message}*\x08messages2\x07message\xbaH\xcb\x04\x1ar\n\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a\x31this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xcc\x01\n\x15\x61ssistant_role_blocks\x12JASSISTANT messages can only have thought, text, tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\x87\x01\n\x10user_role_blocks\x12\x30USER messages can only have text or image blocks\x1a\x41this.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\x1a|\n\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a\x38this.role != 4 || this.blocks.all(b, has(b.tool_result))\xd2\xa6\x04\x00\"\xc3\x04\n\x05\x42lock\x12\r\n\x05index\x18\x01 \x01(\x03\x12\x11\n\tsignature\x18\x02 \x01(\t\x12-\n\x0c\x65xtra_fields\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x11\n\x07thought\x18\x04 \x01(\tH\x00\x12\x0e\n\x04text\x18\x05 \x01(\tH\x00\x12,\n\ttool_call\x18\x06 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallH\x00\x12\x34\n\x11partial_tool_call\x18\x07 \x01(\x0b\x32\x17.malonaz.ai.v1.ToolCallH\x00\x12\x30\n\x0btool_result\x18\x08 \x01(\x0b\x32\x19.malonaz.ai.v1.ToolResultH\x00\x12%\n\x05image\x18\t \x01(\x0b\x32\x14.malonaz.ai.v1.ImageH\x00:\xfd\x01\xbaH\xf9\x01\x1a\xf6\x01\n)block_content_required_when_signature_set\x12)content is required when signature is set\x1a\x9d\x01this.signature == \'\' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image)B\t\n\x07\x63ontent\"\x80\x02\n\x05Image\x12\x0e\n\x04\x64\x61ta\x18\x01 \x01(\x0cH\x00\x12\r\n\x03url\x18\x02 \x01(\tH\x00\x12\x12\n\nmedia_type\x18\x03 \x01(\t\x12\x36\n\x07quality\x18\x04 \x01(\x0e\x32\x1b.malonaz.ai.v1.ImageQualityB\x08\xbaH\x05\x82\x01\x02\x10\x01:{\xbaHx\x1av\n\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != \'\'B\x0f\n\x06source\x12\x05\xbaH\x02\x08\x01*\xd9\x01\n\x0fReasoningEffort\x12 \n\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n\x18REASONING_EFFORT_DEFAULT\x10\x01\x12\x18\n\x14REASONING_EFFORT_LOW\x10\x02\x12\x1b\n\x17REASONING_EFFORT_MEDIUM\x10\x03\x12\x19\n\x15REASONING_EFFORT_HIGH\x10\x04\x12\x1a\n\x16REASONING_EFFORT_XHIGH\x10\x05\x12\x18\n\x14REASONING_EFFORT_MAX\x10\x06*_\n\x04Role\x12\x14\n\x10ROLE_UNSPECIFIED\x10\x00\x12\x0f\n\x0bROLE_SYSTEM\x10\x01\x12\x12\n\x0eROLE_ASSISTANT\x10\x02\x12\r\n\tROLE_USER\x10\x03\x12\r\n\tROLE_TOOL\x10\x04*t\n\x0cImageQuality\x12\x1d\n\x19IMAGE_QUALITY_UNSPECIFIED\x10\x00\x12\x16\n\x12IMAGE_QUALITY_AUTO\x10\x01\x12\x15\n\x11IMAGE_QUALITY_LOW\x10\x02\x12\x16\n\x12IMAGE_QUALITY_HIGH\x10\x03\x42(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,18 +41,36 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.ai.v1.message_pb2',
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z&github.com/malonaz/core/genproto/ai/v1'
-  _globals['_MESSAGE_ANNOTATIONSENTRY']._loaded_options = None
-  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_options = b'8\001'
   _globals['_MESSAGE_LABELSENTRY']._loaded_options = None
   _globals['_MESSAGE_LABELSENTRY']._serialized_options = b'8\001'
+  _globals['_MESSAGE_ANNOTATIONSENTRY']._loaded_options = None
+  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_options = b'8\001'
+  _globals['_MESSAGE'].fields_by_name['name']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['name']._serialized_options = b'\340A\010'
   _globals['_MESSAGE'].fields_by_name['create_time']._loaded_options = None
-  _globals['_MESSAGE'].fields_by_name['create_time']._serialized_options = b'\340A\002\272H\003\310\001\001'
+  _globals['_MESSAGE'].fields_by_name['create_time']._serialized_options = b'\340A\003'
+  _globals['_MESSAGE'].fields_by_name['update_time']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['update_time']._serialized_options = b'\340A\003'
+  _globals['_MESSAGE'].fields_by_name['delete_time']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['delete_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
   _globals['_MESSAGE'].fields_by_name['labels']._loaded_options = None
-  _globals['_MESSAGE'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$'
+  _globals['_MESSAGE'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$\272\352\017\004\020\001 \001'
+  _globals['_MESSAGE'].fields_by_name['annotations']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['annotations']._serialized_options = b'\272\352\017\004\020\001 \001'
   _globals['_MESSAGE'].fields_by_name['role']._loaded_options = None
   _globals['_MESSAGE'].fields_by_name['role']._serialized_options = b'\272H\007\202\001\004\020\001 \000'
+  _globals['_MESSAGE'].fields_by_name['blocks']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['blocks']._serialized_options = b'\272\352\017\002\020\001'
+  _globals['_MESSAGE'].fields_by_name['model']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['model']._serialized_options = b'\340A\003\372A\026\n\024ai.malonaz.com/Model\272\352\017\002 \001'
+  _globals['_MESSAGE'].fields_by_name['model_usage']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['model_usage']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
+  _globals['_MESSAGE'].fields_by_name['price']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['price']._serialized_options = b'\340A\003'
+  _globals['_MESSAGE'].fields_by_name['status']._loaded_options = None
+  _globals['_MESSAGE'].fields_by_name['status']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
   _globals['_MESSAGE']._loaded_options = None
-  _globals['_MESSAGE']._serialized_options = b'\272H\336\004\032r\n\022system_role_blocks\022)SYSTEM messages can only have text blocks\0321this.role != 1 || this.blocks.all(b, has(b.text))\032\337\001\n\025assistant_role_blocks\022]ASSISTANT messages can only have thought, text, tool_call, partial_tool_call, or image blocks\032gthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\032\207\001\n\020user_role_blocks\0220USER messages can only have text or image blocks\032Athis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\032|\n\020tool_role_blocks\022.TOOL messages can only have tool_result blocks\0328this.role != 4 || this.blocks.all(b, has(b.tool_result))'
+  _globals['_MESSAGE']._serialized_options = b'\352Av\n\026ai.malonaz.com/Message\022Iorganizations/{organization}/users/{user}/chats/{chat}/messages/{message}*\010messages2\007message\272H\313\004\032r\n\022system_role_blocks\022)SYSTEM messages can only have text blocks\0321this.role != 1 || this.blocks.all(b, has(b.text))\032\314\001\n\025assistant_role_blocks\022JASSISTANT messages can only have thought, text, tool_call, or image blocks\032gthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\032\207\001\n\020user_role_blocks\0220USER messages can only have text or image blocks\032Athis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\032|\n\020tool_role_blocks\022.TOOL messages can only have tool_result blocks\0328this.role != 4 || this.blocks.all(b, has(b.tool_result))\322\246\004\000'
   _globals['_BLOCK']._loaded_options = None
   _globals['_BLOCK']._serialized_options = b'\272H\371\001\032\366\001\n)block_content_required_when_signature_set\022)content is required when signature is set\032\235\001this.signature == \'\' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image)'
   _globals['_IMAGE'].oneofs_by_name['source']._loaded_options = None
@@ -57,20 +79,20 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_IMAGE'].fields_by_name['quality']._serialized_options = b'\272H\005\202\001\002\020\001'
   _globals['_IMAGE']._loaded_options = None
   _globals['_IMAGE']._serialized_options = b'\272Hx\032v\n\"image_requires_media_type_for_data\022&media_type is required when using data\032(!has(this.data) || this.media_type != \'\''
-  _globals['_REASONINGEFFORT']._serialized_start=2214
-  _globals['_REASONINGEFFORT']._serialized_end=2431
-  _globals['_ROLE']._serialized_start=2433
-  _globals['_ROLE']._serialized_end=2528
-  _globals['_IMAGEQUALITY']._serialized_start=2530
-  _globals['_IMAGEQUALITY']._serialized_end=2646
-  _globals['_MESSAGE']._serialized_start=198
-  _globals['_MESSAGE']._serialized_end=1370
-  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_start=660
-  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_end=710
-  _globals['_MESSAGE_LABELSENTRY']._serialized_start=712
-  _globals['_MESSAGE_LABELSENTRY']._serialized_end=757
-  _globals['_BLOCK']._serialized_start=1373
-  _globals['_BLOCK']._serialized_end=1952
-  _globals['_IMAGE']._serialized_start=1955
-  _globals['_IMAGE']._serialized_end=2211
+  _globals['_REASONINGEFFORT']._serialized_start=2738
+  _globals['_REASONINGEFFORT']._serialized_end=2955
+  _globals['_ROLE']._serialized_start=2957
+  _globals['_ROLE']._serialized_end=3052
+  _globals['_IMAGEQUALITY']._serialized_start=3054
+  _globals['_IMAGEQUALITY']._serialized_end=3170
+  _globals['_MESSAGE']._serialized_start=317
+  _globals['_MESSAGE']._serialized_end=1894
+  _globals['_MESSAGE_LABELSENTRY']._serialized_start=1078
+  _globals['_MESSAGE_LABELSENTRY']._serialized_end=1123
+  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_start=1125
+  _globals['_MESSAGE_ANNOTATIONSENTRY']._serialized_end=1175
+  _globals['_BLOCK']._serialized_start=1897
+  _globals['_BLOCK']._serialized_end=2476
+  _globals['_IMAGE']._serialized_start=2479
+  _globals['_IMAGE']._serialized_end=2735
 # @@protoc_insertion_point(module_scope)

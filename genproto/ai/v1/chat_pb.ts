@@ -9,10 +9,6 @@ import { file_google_api_field_behavior } from "../../../google/api/field_behavi
 import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Message as Message$1, MessageValid } from "./message_pb";
-import { file_malonaz_ai_v1_message } from "./message_pb";
-import type { ModelUsage, ModelUsageValid } from "./metrics_pb";
-import { file_malonaz_ai_v1_metrics } from "./metrics_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -20,11 +16,13 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/chat.proto.
  */
 export const file_malonaz_ai_v1_chat: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEi+AUKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI7CghtZXRhZGF0YRgHIAEoCzIbLm1hbG9uYXouYWkudjEuQ2hhdE1ldGFkYXRhQgy6SAPIAQG66g8CGAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEkMKC2Fubm90YXRpb25zGAkgAygLMiQubWFsb25hei5haS52MS5DaGF0LkFubm90YXRpb25zRW50cnlCCLrqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOmHqQVoKE2FpLm1hbG9uYXouY29tL0NoYXQSNm9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fSoFY2hhdHMyBGNoYXTSpgQAImkKDENoYXRNZXRhZGF0YRIoCghtZXNzYWdlcxgBIAMoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZRIvCgxtb2RlbF91c2FnZXMYAiADKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VC0wFaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3Yx6kFYChthaS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBTQoTYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_codegen_model_v1_model]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEizwUKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJDCgthbm5vdGF0aW9ucxgHIAMoCzIkLm1hbG9uYXouYWkudjEuQ2hhdC5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARIXCgV0aXRsZRgIIAEoCUIIukgFcgMYgAQSEgoFcHJpY2UYCSABKAFCA+BBAxotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATph6kFaChNhaS5tYWxvbmF6LmNvbS9DaGF0EjZvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9jaGF0cy97Y2hhdH0qBWNoYXRzMgRjaGF00qYEAELTAVomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjHqQVgKG2FpLm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhIcb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufSoNb3JnYW5pemF0aW9uczIMb3JnYW5pemF0aW9u6kFNChNhaS5tYWxvbmF6LmNvbS9Vc2VyEilvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfSoFdXNlcnMyBHVzZXJiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
 
 /**
- * Chat represents a multi-turn AI conversation between a user and an assistant.
- * Contains the full message history and associated metadata for a single conversation session.
+ * A Chat represents a multi-turn AI conversation between a user and an assistant.
+ * It is a lightweight container: the conversation content lives in the child
+ * [Message][malonaz.ai.v1.Message] resources, allowing conversations to grow
+ * without bloating the parent resource.
  *
  * @generated from message malonaz.ai.v1.Chat
  */
@@ -52,7 +50,7 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
   updateTime?: Timestamp;
 
   /**
-   * The deletion timestamp of the chat.
+   * The deletion timestamp of the chat. Set when soft-deleted.
    *
    * @generated from field: google.protobuf.Timestamp delete_time = 4;
    */
@@ -60,7 +58,8 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
 
   /**
    * A checksum computed by the server based on the current value of the resource.
-   * Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
+   * Can be sent in update and delete requests to ensure the client has an
+   * up-to-date value before proceeding.
    *
    * @generated from field: string etag = 5;
    */
@@ -74,11 +73,14 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
   labels: { [key: string]: string };
 
   /**
-   * Chat metadata containing the conversation message history.
+   * Annotations on this chat (not transmitted to the ai provider).
+   * This should be used by tooling.
+   * Values are opaque strings (and may themselves be proto bytes), but keys
+   * stay inspectable in storage.
    *
-   * @generated from field: malonaz.ai.v1.ChatMetadata metadata = 7;
+   * @generated from field: map<string, string> annotations = 7;
    */
-  metadata?: ChatMetadata;
+  annotations: { [key: string]: string };
 
   /**
    * A human-readable title for this chat.
@@ -88,87 +90,15 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
   title: string;
 
   /**
-   * Annotations on this chat (not transmitted to the ai provider).
-   * This should be used by tooling.
+   * Total price in dollars of this chat, aggregated over the model usage of
+   * all of its messages.
    *
-   * @generated from field: map<string, string> annotations = 9;
+   * @generated from field: double price = 9;
    */
-  annotations: { [key: string]: string };
+  price: number;
 };
 
-/**
- * Chat represents a multi-turn AI conversation between a user and an assistant.
- * Contains the full message history and associated metadata for a single conversation session.
- *
- * @generated from message malonaz.ai.v1.Chat
- */
-export type ChatValid = Message<"malonaz.ai.v1.Chat"> & {
-  /**
-   * The resource name of the chat.
-   * Format: organizations/{organization}/users/{user}/chats/{chat}
-   *
-   * @generated from field: string name = 1;
-   */
-  name: string;
-
-  /**
-   * The creation timestamp of the chat.
-   *
-   * @generated from field: google.protobuf.Timestamp create_time = 2;
-   */
-  createTime?: Timestamp;
-
-  /**
-   * The last update timestamp of the chat.
-   *
-   * @generated from field: google.protobuf.Timestamp update_time = 3;
-   */
-  updateTime?: Timestamp;
-
-  /**
-   * The deletion timestamp of the chat.
-   *
-   * @generated from field: google.protobuf.Timestamp delete_time = 4;
-   */
-  deleteTime?: Timestamp;
-
-  /**
-   * A checksum computed by the server based on the current value of the resource.
-   * Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
-   *
-   * @generated from field: string etag = 5;
-   */
-  etag: string;
-
-  /**
-   * The labels on this chat.
-   *
-   * @generated from field: map<string, string> labels = 6;
-   */
-  labels: { [key: string]: string };
-
-  /**
-   * Chat metadata containing the conversation message history.
-   *
-   * @generated from field: malonaz.ai.v1.ChatMetadata metadata = 7;
-   */
-  metadata: ChatMetadataValid;
-
-  /**
-   * A human-readable title for this chat.
-   *
-   * @generated from field: string title = 8;
-   */
-  title: string;
-
-  /**
-   * Annotations on this chat (not transmitted to the ai provider).
-   * This should be used by tooling.
-   *
-   * @generated from field: map<string, string> annotations = 9;
-   */
-  annotations: { [key: string]: string };
-};
+export type ChatValid = Chat;
 
 /**
  * Describes the message malonaz.ai.v1.Chat.
@@ -176,53 +106,4 @@ export type ChatValid = Message<"malonaz.ai.v1.Chat"> & {
  */
 export const ChatSchema: GenMessage<Chat, {validType: ChatValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_chat, 0);
-
-/**
- * ChatMetadata contains the conversation content for a chat.
- *
- * @generated from message malonaz.ai.v1.ChatMetadata
- */
-export type ChatMetadata = Message<"malonaz.ai.v1.ChatMetadata"> & {
-  /**
-   * The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
-   *
-   * @generated from field: repeated malonaz.ai.v1.Message messages = 1;
-   */
-  messages: Message$1[];
-
-  /**
-   * Model usage for this chat.
-   *
-   * @generated from field: repeated malonaz.ai.v1.ModelUsage model_usages = 2;
-   */
-  modelUsages: ModelUsage[];
-};
-
-/**
- * ChatMetadata contains the conversation content for a chat.
- *
- * @generated from message malonaz.ai.v1.ChatMetadata
- */
-export type ChatMetadataValid = Message<"malonaz.ai.v1.ChatMetadata"> & {
-  /**
-   * The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
-   *
-   * @generated from field: repeated malonaz.ai.v1.Message messages = 1;
-   */
-  messages: MessageValid[];
-
-  /**
-   * Model usage for this chat.
-   *
-   * @generated from field: repeated malonaz.ai.v1.ModelUsage model_usages = 2;
-   */
-  modelUsages: ModelUsageValid[];
-};
-
-/**
- * Describes the message malonaz.ai.v1.ChatMetadata.
- * Use `create(ChatMetadataSchema)` to create a new message.
- */
-export const ChatMetadataSchema: GenMessage<ChatMetadata, {validType: ChatMetadataValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_chat, 1);
 

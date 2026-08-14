@@ -30,5 +30,5 @@ func (c *Client) Stop() {}
 
 var (
 	_ provider.SpeechToTextStreamClient = (*Client)(nil)
-	_ provider.TextToTextClient         = (*Client)(nil)
+	_ provider.GenerateMessageClient    = (*Client)(nil)
 )

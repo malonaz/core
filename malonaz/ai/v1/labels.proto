@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "malonaz/codegen/aip/v1/label.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+option (malonaz.codegen.aip.v1.label) = {
+  key: "ai.malonaz.com/superseded"
+  description: "Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history."
+};

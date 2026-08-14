@@ -9,16 +9,13 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
-	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
@@ -212,82 +209,6 @@ func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRe
 	}
 	schemaBuilder := pbjson.NewSchemaBuilder(schema)
 	return aitool.ParseToolCall(schemaBuilder, request.GetToolCall(), request.GetToolSets())
-}
-
-func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*pb.GenerateMessageResponse, error) {
-	createToolRequest := &pb.CreateToolRequest{
-		DescriptorReference: request.DescriptorReference,
-		SchemaConfiguration: request.SchemaConfiguration,
-	}
-	tool, err := s.CreateTool(ctx, createToolRequest)
-	if err != nil {
-		return nil, err
-	}
-	tool.Annotations[aitool.AnnotationKeyToolType] = aitool.AnnotationValueToolTypeGenerateMessage
-
-	model := request.GetModel()
-	if model == "" {
-		model = s.opts.DefaultModel
-	}
-	textToTextRequest := &aiservicepb.TextToTextRequest{
-		Model: model,
-		Messages: []*aipb.Message{
-			ai.NewSystemMessage(ai.NewTextBlock(
-				fmt.Sprintf("Use the `%s` tool to generate a JSON payload based on the data given to you by the user", tool.GetName()),
-			)),
-			ai.NewUserMessage(ai.NewTextBlock(request.GetPrompt())),
-		},
-		Configuration: &aiservicepb.TextToTextConfiguration{
-			ToolChoice: &aipb.ToolChoice{
-				Choice: &aipb.ToolChoice_ToolName{
-					ToolName: tool.Name,
-				},
-			},
-		},
-		Tools: []*aipb.Tool{tool},
-	}
-	if request.GetTextToTextConfiguration() != nil {
-		proto.Merge(textToTextRequest.Configuration, request.GetTextToTextConfiguration())
-	}
-	textToTextResponse, err := s.aiServiceClient.TextToText(ctx, textToTextRequest)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "text to text: %v", err).Err()
-	}
-
-	var toolCalls []*aipb.ToolCall
-	for _, block := range textToTextResponse.GetMessage().GetBlocks() {
-		if toolCall := block.GetToolCall(); toolCall != nil {
-			toolCalls = append(toolCalls, toolCall)
-		}
-	}
-	if len(toolCalls) != 1 {
-		return nil, status.Errorf(codes.Internal, "expected 1 tool call, got %d", len(toolCalls)).Err()
-	}
-
-	schema, err := s.getSchema(ctx)
-	if err != nil {
-		return nil, err
-	}
-	schemaBuilder := pbjson.NewSchemaBuilder(schema)
-	parseToolCallResponse, err := aitool.ParseToolCall(schemaBuilder, toolCalls[0], nil)
-	if err != nil {
-		return nil, err
-	}
-
-	response := &pb.GenerateMessageResponse{
-		ModelUsage:        textToTextResponse.GetModelUsage(),
-		GenerationMetrics: textToTextResponse.GetGenerationMetrics(),
-	}
-	switch result := parseToolCallResponse.GetResult().(type) {
-	case *pb.ParseToolCallResponse_Rpc:
-		response.Message = result.Rpc.GetRequest()
-	case *pb.ParseToolCallResponse_Message:
-		response.Message = result.Message
-	default:
-		return nil, status.Errorf(codes.Internal, "unexpected result type: %T", result).Err()
-	}
-
-	return response, nil
 }
 
 func (s *Service) CreateDiscoveryTool(ctx context.Context, request *pb.CreateDiscoveryToolRequest) (*aipb.Tool, error) {

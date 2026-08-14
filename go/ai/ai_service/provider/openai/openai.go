@@ -98,7 +98,7 @@ func (c *Client) Stop() {}
 
 // Verify interface compliance at compile time.
 var (
-	_ provider.SpeechToTextClient = (*Client)(nil)
-	_ provider.TextToSpeechClient = (*Client)(nil)
-	_ provider.TextToTextClient   = (*Client)(nil)
+	_ provider.SpeechToTextClient    = (*Client)(nil)
+	_ provider.TextToSpeechClient    = (*Client)(nil)
+	_ provider.GenerateMessageClient = (*Client)(nil)
 )

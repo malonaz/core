@@ -29,20 +29,20 @@ const (
 	blockTypeToolCall = "tool_call"
 )
 
-// TextToTextStream handles a streaming text-to-text generation request using the Google GenAI API.
+// StreamGenerateMessage handles a streaming generation request using the Google GenAI API.
 // It converts proto messages to genai contents, streams the response, and sends blocks back to the caller.
-func (c *Client) TextToTextStream(
-	request *aiservicepb.TextToTextStreamRequest,
-	srv aiservicepb.AiService_TextToTextStreamServer,
+func (c *Client) StreamGenerateMessage(
+	ctx context.Context,
+	request *aiservicepb.GenerateMessageRequest,
+	requestMessages []*aipb.Message,
+	sender *provider.AsyncMessageContentSender,
 ) error {
-	ctx := srv.Context()
-
 	model, err := c.modelService.GetModel(ctx, &aiservicepb.GetModelRequest{Name: request.Model})
 	if err != nil {
 		return err
 	}
 
-	contents, systemInstruction, err := c.buildContents(ctx, request.Messages)
+	contents, systemInstruction, err := c.buildContents(ctx, requestMessages)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "building contents: %v", err).Err()
 	}
@@ -56,7 +56,7 @@ func (c *Client) TextToTextStream(
 	}
 
 	// Enable image output modality if image config is provided.
-	if imageConfig := request.GetConfiguration().GetImageConfig(); imageConfig != nil {
+	if imageConfig := request.GetConfiguration().GetImageConfiguration(); imageConfig != nil {
 		config.ResponseModalities = []string{string(genai.MediaModalityText), string(genai.MediaModalityImage)}
 		config.ImageConfig = &genai.ImageConfig{
 			AspectRatio: imageConfig.GetAspectRatio(),
@@ -99,13 +99,10 @@ func (c *Client) TextToTextStream(
 	startTime := time.Now()
 	generateContentStream := c.client.Models.GenerateContentStream(ctx, model.ProviderModelId, contents, config)
 
-	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
-	defer cs.Close()
-
 	tca := provider.NewToolCallAccumulator()
 
 	var sentTtfb bool
-	var stopReason aiservicepb.TextToTextStopReason
+	var stopReason aiservicepb.StopReason
 
 	// Track block indexing to coalesce consecutive blocks of the same type.
 	var currentBlockIndex int64 = -1
@@ -120,13 +117,13 @@ func (c *Client) TextToTextStream(
 			return status.FromError(err, "reading stream").Err()
 		}
 
-		if cs.Err() != nil {
+		if sender.Err() != nil {
 			break
 		}
 
 		// Send time-to-first-byte metric on the first chunk.
 		if !sentTtfb {
-			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
+			sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
 				Ttfb: durationpb.New(time.Since(startTime)),
 			})
 			sentTtfb = true
@@ -160,7 +157,7 @@ func (c *Client) TextToTextStream(
 						currentBlockIndex++
 						currentBlockType = blockTypeThought
 					}
-					cs.SendBlocks(ctx, &aipb.Block{
+					sender.SendBlocks(ctx, &aipb.Block{
 						Index:     currentBlockIndex,
 						Content:   &aipb.Block_Thought{Thought: ""},
 						Signature: signature,
@@ -176,7 +173,7 @@ func (c *Client) TextToTextStream(
 							currentBlockIndex++
 							currentBlockType = blockTypeThought
 						}
-						cs.SendBlocks(ctx, &aipb.Block{
+						sender.SendBlocks(ctx, &aipb.Block{
 							Index:     currentBlockIndex,
 							Content:   &aipb.Block_Thought{Thought: part.Text},
 							Signature: signature,
@@ -186,7 +183,7 @@ func (c *Client) TextToTextStream(
 							currentBlockIndex++
 							currentBlockType = blockTypeText
 						}
-						cs.SendBlocks(ctx, &aipb.Block{
+						sender.SendBlocks(ctx, &aipb.Block{
 							Index:     currentBlockIndex,
 							Content:   &aipb.Block_Text{Text: part.Text},
 							Signature: signature,
@@ -198,7 +195,7 @@ func (c *Client) TextToTextStream(
 				if part.InlineData != nil {
 					currentBlockIndex++
 					currentBlockType = blockTypeImage
-					cs.SendBlocks(ctx, &aipb.Block{
+					sender.SendBlocks(ctx, &aipb.Block{
 						Index: currentBlockIndex,
 						Content: &aipb.Block_Image{Image: &aipb.Image{
 							Source:    &aipb.Image_Data{Data: part.InlineData.Data},
@@ -258,14 +255,14 @@ func (c *Client) TextToTextStream(
 								return err
 							}
 							block.Signature = signature
-							cs.SendBlocks(ctx, block)
+							sender.SendBlocks(ctx, block)
 						} else {
 							block, err := tca.BuildPartial(index)
 							if err != nil {
 								return err
 							}
 							block.Signature = signature
-							cs.SendBlocks(ctx, block)
+							sender.SendBlocks(ctx, block)
 						}
 					} else if fc.WillContinue != nil && *fc.WillContinue {
 						// Streaming JSON args mode: the call will continue in future chunks.
@@ -296,7 +293,7 @@ func (c *Client) TextToTextStream(
 							return err
 						}
 						block.Signature = signature
-						cs.SendBlocks(ctx, block)
+						sender.SendBlocks(ctx, block)
 					} else if index, ok := resolveIndex(); ok {
 						// Final chunk of a streaming tool call: finalize the accumulated call.
 						tca.StartOrUpdate(index, fc.ID, fc.Name)
@@ -322,7 +319,7 @@ func (c *Client) TextToTextStream(
 							return err
 						}
 						block.Signature = signature
-						cs.SendBlocks(ctx, block)
+						sender.SendBlocks(ctx, block)
 					} else {
 						// Non-streaming tool call: complete call in a single chunk.
 						// Always bump the index: parallel tool calls arrive as consecutive
@@ -348,7 +345,7 @@ func (c *Client) TextToTextStream(
 							return err
 						}
 						block.Signature = signature
-						cs.SendBlocks(ctx, block)
+						sender.SendBlocks(ctx, block)
 					}
 				}
 			}
@@ -359,7 +356,7 @@ func (c *Client) TextToTextStream(
 			if err != nil {
 				return status.Errorf(codes.Internal, "building model usage: %v", err).Err()
 			}
-			cs.SendModelUsage(ctx, modelUsage)
+			sender.SendModelUsage(ctx, modelUsage)
 		}
 	}
 
@@ -368,21 +365,17 @@ func (c *Client) TextToTextStream(
 	if err != nil {
 		return err
 	}
-	cs.SendBlocks(ctx, toolCalls...)
+	sender.SendBlocks(ctx, toolCalls...)
 
-	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
-		cs.SendStopReason(ctx, stopReason)
+	if stopReason != aiservicepb.StopReason_STOP_REASON_UNSPECIFIED {
+		sender.SendStopReason(ctx, stopReason)
 	}
 
 	// Send time-to-last-byte metric.
-	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
+	sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{
 		Ttlb: durationpb.New(time.Since(startTime)),
 	})
 
-	cs.Close()
-	if err := cs.Wait(ctx); err != nil {
-		return status.FromError(err, "waiting on content sender").Err()
-	}
 	return nil
 }
 
@@ -621,7 +614,7 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 
 // buildToolConfig maps our tool choice configuration to the GenAI FunctionCallingConfig,
 // supporting none/auto/required modes and specific tool name targeting.
-func buildToolConfig(configuration *aiservicepb.TextToTextConfiguration, backend genai.Backend) (*genai.ToolConfig, error) {
+func buildToolConfig(configuration *aiservicepb.MessageGenerationConfiguration, backend genai.Backend) (*genai.ToolConfig, error) {
 	functionCallingConfig := &genai.FunctionCallingConfig{}
 	streamPartialToolCalls := configuration.GetStreamPartialToolCalls()
 	// Only Vertex AI supports streaming partial tool call arguments.
@@ -773,24 +766,24 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 
 // finishReasonToPb maps GenAI finish reasons to our proto stop reasons.
 // Safety/content-policy reasons map to REFUSAL; everything else maps to END_TURN or MAX_TOKENS.
-var finishReasonToPb = map[genai.FinishReason]aiservicepb.TextToTextStopReason{
-	genai.FinishReason(""):                   aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonStop:                   aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonMaxTokens:              aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
-	genai.FinishReasonSafety:                 aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonRecitation:             aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonLanguage:               aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonOther:                  aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonBlocklist:              aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonProhibitedContent:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonSPII:                   aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonMalformedFunctionCall:  aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonImageSafety:            aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonUnexpectedToolCall:     aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonImageProhibitedContent: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonNoImage:                aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	genai.FinishReasonImageRecitation:        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	genai.FinishReasonImageOther:             aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
+var finishReasonToPb = map[genai.FinishReason]aiservicepb.StopReason{
+	genai.FinishReason(""):                   aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonStop:                   aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonMaxTokens:              aiservicepb.StopReason_STOP_REASON_MAX_TOKENS,
+	genai.FinishReasonSafety:                 aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonRecitation:             aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonLanguage:               aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonOther:                  aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonBlocklist:              aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonProhibitedContent:      aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonSPII:                   aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonMalformedFunctionCall:  aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonImageSafety:            aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonUnexpectedToolCall:     aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonImageProhibitedContent: aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonNoImage:                aiservicepb.StopReason_STOP_REASON_END_TURN,
+	genai.FinishReasonImageRecitation:        aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	genai.FinishReasonImageOther:             aiservicepb.StopReason_STOP_REASON_END_TURN,
 }
 
 // resolvePartialArgValue extracts the typed value from a PartialArg, which uses a union-like
@@ -813,7 +806,7 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 // and puts the actionable part — the offending field path or function declaration — in
 // Details, so callers several services up are blind unless we inline it in the message
 // (gRPC error details do not survive the wrapping done by intermediate services).
-func (c *Client) statusFromAPIError(model *aipb.Model, request *aiservicepb.TextToTextStreamRequest, apiError genai.APIError) *status.Error {
+func (c *Client) statusFromAPIError(model *aipb.Model, request *aiservicepb.GenerateMessageRequest, apiError genai.APIError) *status.Error {
 	message := apiError.Message
 	if len(apiError.Details) > 0 {
 		details, err := json.Marshal(apiError.Details)

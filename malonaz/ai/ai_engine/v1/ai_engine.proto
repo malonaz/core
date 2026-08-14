@@ -4,74 +4,89 @@ package malonaz.ai.ai_engine.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/client.proto";
-import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
-import "malonaz/ai/ai_service/v1/text_to_text.proto";
-import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/tool.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_engine/v1";
 
-// This API represents an AI Engine service for structured message generation.
+// This API represents an AI Engine service for structured, proto-driven tool
+// calling.
 //
-// It provides tools for generating protobuf messages from natural language prompts.
+// # Capabilities
+//
+// - Tool creation: derive an [ai.v1.Tool][malonaz.ai.v1.Tool] — name,
+//   description, and JSON schema — from a protobuf message or method
+//   descriptor, so a model can emit arguments that map back onto typed
+//   protos.
+// - Tool call parsing: validate a model-emitted
+//   [ToolCall][malonaz.ai.v1.ToolCall] against the schema of the tool that
+//   created it, returning the parsed arguments as a typed result.
+// - Tool discovery: bundle many tools behind a single discovery tool so
+//   large tool surfaces don't bloat the model's context. The model first
+//   calls the discovery tool to reveal the tools it needs, then calls them.
+// - Service tool sets: turn an entire gRPC service into a discoverable
+//   [ToolSet][malonaz.ai.v1.ToolSet], one tool per method, letting a model
+//   drive the service through tool calls.
+//
+// # Typical flow
+//
+// 1. CreateTool / CreateServiceToolSet to build the tools offered to the
+//    model alongside a generation request.
+// 2. The model emits tool calls during generation.
+// 3. ParseToolCall to turn each raw tool call into a typed result: a parsed
+//    message, a discovery request, or an RPC request.
+//
+// Recoverable parse failures carry a
+// [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+// error detail whose tool result can be appended to the conversation so the
+// model can correct itself and retry.
 service AiEngine {
   option (google.api.default_host) = "ai.malonaz.com";
 
-  // Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
-  rpc GenerateMessage(GenerateMessageRequest) returns (GenerateMessageResponse);
+  // Create a tool from a protobuf descriptor.
+  //
+  // The referenced message or method descriptor is converted into a tool
+  // whose JSON schema mirrors the proto's fields, filtered and bounded by
+  // the optional schema configuration. Tool calls produced against this
+  // tool can be parsed back into the proto via ParseToolCall.
+  rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
-  // Create a tool to generate a message.
-  rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool);
+  // Parse a tool call emitted against a tool created by this service.
+  //
+  // Validates the call's arguments against the originating tool's schema
+  // and returns exactly one of:
+  // - a parsed message (generic tools created by CreateTool),
+  // - a discovery request (calls to a discovery tool),
+  // - an RPC request (calls to a method tool from a service tool set).
+  //
+  // When the failure is correctable by the model, the error carries a
+  // [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+  // detail ready to be fed back into the conversation.
+  rpc ParseToolCall(ParseToolCallRequest) returns (ParseToolCallResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
-  // Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
-  rpc ParseToolCall(ParseToolCallRequest) returns (ParseToolCallResponse);
+  // Create a discovery tool for a set of tools.
+  //
+  // The returned tool exposes only the names and descriptions of the
+  // underlying tools; the model calls it to request the full schema of the
+  // tools it actually needs, keeping unused schemas out of its context.
+  rpc CreateDiscoveryTool(CreateDiscoveryToolRequest) returns (ai.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
-  // Creates a discovery tool for a set of tools.
-  rpc CreateDiscoveryTool(CreateDiscoveryToolRequest) returns (ai.v1.Tool);
-
-  // Creates a discoverable tool set for a gRPC service.
+  // Create a discoverable tool set for a gRPC service.
+  //
   // The tool set includes a discovery tool that lists available method tools,
   // and individual tools for each method in the service.
-  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ai.v1.ToolSet);
-}
-
-// Request message for AiEngine.GenerateMessage.
-message GenerateMessageRequest {
-  option (buf.validate.message).cel = {
-    id: "schema_config_requires_method"
-    message: "with_response_read_mask and with_response_schema_max_depth require method descriptor"
-    expression: "(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))"
-  };
-
-  // The descriptor reference for the message to generate.
-  DescriptorReference descriptor_reference = 1 [(buf.validate.field).required = true];
-
-  // The resource name of the model to use.
-  // Format: providers/{provider}/models/{model}
-  string model = 2 [(google.api.resource_reference).type = "ai.malonaz.com/Model"];
-
-  // The prompt to feed the AI.
-  string prompt = 3;
-
-  // Configuration for the schema.
-  SchemaConfiguration schema_configuration = 4;
-
-  // Text to text configuration.
-  ai.ai_service.v1.TextToTextConfiguration text_to_text_configuration = 5;
-}
-
-// Response message for AiEngine.GenerateMessage.
-message GenerateMessageResponse {
-  // The generated message.
-  google.protobuf.Struct message = 1;
-
-  // Model usage metrics.
-  .malonaz.ai.v1.ModelUsage model_usage = 2;
-
-  // Generation metrics.
-  .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+  // Methods listed in `discovered_method_names` are exposed immediately,
+  // without requiring a discovery round trip.
+  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ai.v1.ToolSet) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 // Request message for AiEngine.CreateTool

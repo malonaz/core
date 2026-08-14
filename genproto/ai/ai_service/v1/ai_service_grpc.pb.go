@@ -25,50 +25,107 @@ const _ = grpc.SupportPackageIsVersion7
 type AiServiceClient interface {
 	// Create a model.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateModel(ctx context.Context, in *CreateModelRequest, opts ...grpc.CallOption) (*v1.Model, error)
 	// Get a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetModel(ctx context.Context, in *GetModelRequest, opts ...grpc.CallOption) (*v1.Model, error)
-	// List models for a user.
+	// List models for a provider.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
-	// List voices for a user.
+	// List all voices.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
+	// Unary: the full audio chunk is transcribed in one round trip.
 	SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error)
-	// Converts speech audio to text with streaming response.
+	// Converts speech audio to text over a bidirectional stream.
+	// The first client message must carry the stream configuration; subsequent
+	// messages carry audio chunks. The server emits turn events (start, update,
+	// eager end, resumed, end) as the transcription progresses, followed by
+	// usage and generation metrics at the end of the stream.
 	SpeechToTextStream(ctx context.Context, opts ...grpc.CallOption) (AiService_SpeechToTextStreamClient, error)
-	// Convert text to text using chat completion models.
-	TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error)
-	// Converts text to text using chat completion models with streaming response.
-	TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error)
-	// Converts text to speech audio, returning complete audio data.
+	// Converts text to speech audio, returning the complete audio data in a
+	// single response.
 	TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error)
-	// Converts text to speech audio with streaming response.
+	// Converts text to speech audio, streaming audio chunks as they are
+	// synthesized. Usage and generation metrics are sent at the end of the
+	// stream.
 	TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error)
-	// Creates a new chat.
+	// Create a chat.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Gets a chat.
+	// Get a chat.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Updates a chat.
+	// Update a chat.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateChat(ctx context.Context, in *UpdateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Deletes a chat (soft delete).
+	// Delete a chat.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Lists chats for a user.
+	// List chats for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
+	// Create a message within a chat.
+	//
+	// Persists the message as-is; no generation is performed. Use
+	// GenerateMessage or StreamGenerateMessage to generate an assistant
+	// message from the chat's history.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
+	// Get a message.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
+	// Update a message.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateMessage(ctx context.Context, in *UpdateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
+	// Delete a message.
+	//
+	// Soft-deleted messages are excluded from the conversation history sent to
+	// ai providers.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
+	// List messages within a chat.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
+	// Generates an assistant message from the chat's message history.
+	//
+	// The input `messages` are appended to the chat before generating; the
+	// generated assistant message is persisted under the chat and returned.
+	// If generation fails, the input messages are updated with an error
+	// `status` and excluded from future generations.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error)
+	// Same as GenerateMessage, but streams blocks as they are produced. The
+	// persisted assistant message is sent as the final event of the stream.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error)
 }
 
 type aiServiceClient struct {
@@ -173,47 +230,6 @@ func (x *aiServiceSpeechToTextStreamClient) Recv() (*SpeechToTextStreamResponse,
 	return m, nil
 }
 
-func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
-	out := new(TextToTextResponse)
-	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToText", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aiServiceClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.AiService/TextToTextStream", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &aiServiceTextToTextStreamClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type AiService_TextToTextStreamClient interface {
-	Recv() (*TextToTextStreamResponse, error)
-	grpc.ClientStream
-}
-
-type aiServiceTextToTextStreamClient struct {
-	grpc.ClientStream
-}
-
-func (x *aiServiceTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
-	m := new(TextToTextStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func (c *aiServiceClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error) {
 	out := new(TextToSpeechResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToSpeech", in, out, opts...)
@@ -224,7 +240,7 @@ func (c *aiServiceClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequ
 }
 
 func (c *aiServiceClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -300,56 +316,199 @@ func (c *aiServiceClient) ListChats(ctx context.Context, in *ListChatsRequest, o
 	return out, nil
 }
 
+func (c *aiServiceClient) CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
+	out := new(v1.Message)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/CreateMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
+	out := new(v1.Message)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GetMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateMessage(ctx context.Context, in *UpdateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
+	out := new(v1.Message)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/UpdateMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
+	out := new(v1.Message)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/DeleteMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error) {
+	out := new(ListMessagesResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/ListMessages", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error) {
+	out := new(GenerateMessageResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GenerateMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aiServiceStreamGenerateMessageClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AiService_StreamGenerateMessageClient interface {
+	Recv() (*StreamGenerateMessageResponse, error)
+	grpc.ClientStream
+}
+
+type aiServiceStreamGenerateMessageClient struct {
+	grpc.ClientStream
+}
+
+func (x *aiServiceStreamGenerateMessageClient) Recv() (*StreamGenerateMessageResponse, error) {
+	m := new(StreamGenerateMessageResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AiServiceServer is the server API for AiService service.
 // All implementations should embed UnimplementedAiServiceServer
 // for forward compatibility
 type AiServiceServer interface {
 	// Create a model.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateModel(context.Context, *CreateModelRequest) (*v1.Model, error)
 	// Get a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetModel(context.Context, *GetModelRequest) (*v1.Model, error)
-	// List models for a user.
+	// List models for a provider.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListModels(context.Context, *ListModelsRequest) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateVoice(context.Context, *CreateVoiceRequest) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error)
-	// List voices for a user.
+	// List all voices.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
+	// Unary: the full audio chunk is transcribed in one round trip.
 	SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error)
-	// Converts speech audio to text with streaming response.
+	// Converts speech audio to text over a bidirectional stream.
+	// The first client message must carry the stream configuration; subsequent
+	// messages carry audio chunks. The server emits turn events (start, update,
+	// eager end, resumed, end) as the transcription progresses, followed by
+	// usage and generation metrics at the end of the stream.
 	SpeechToTextStream(AiService_SpeechToTextStreamServer) error
-	// Convert text to text using chat completion models.
-	TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error)
-	// Converts text to text using chat completion models with streaming response.
-	TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error
-	// Converts text to speech audio, returning complete audio data.
+	// Converts text to speech audio, returning the complete audio data in a
+	// single response.
 	TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error)
-	// Converts text to speech audio with streaming response.
+	// Converts text to speech audio, streaming audio chunks as they are
+	// synthesized. Usage and generation metrics are sent at the end of the
+	// stream.
 	TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error
-	// Creates a new chat.
+	// Create a chat.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateChat(context.Context, *CreateChatRequest) (*v1.Chat, error)
-	// Gets a chat.
+	// Get a chat.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetChat(context.Context, *GetChatRequest) (*v1.Chat, error)
-	// Updates a chat.
+	// Update a chat.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateChat(context.Context, *UpdateChatRequest) (*v1.Chat, error)
-	// Deletes a chat (soft delete).
+	// Delete a chat.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error)
-	// Lists chats for a user.
+	// List chats for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
+	// Create a message within a chat.
+	//
+	// Persists the message as-is; no generation is performed. Use
+	// GenerateMessage or StreamGenerateMessage to generate an assistant
+	// message from the chat's history.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateMessage(context.Context, *CreateMessageRequest) (*v1.Message, error)
+	// Get a message.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetMessage(context.Context, *GetMessageRequest) (*v1.Message, error)
+	// Update a message.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateMessage(context.Context, *UpdateMessageRequest) (*v1.Message, error)
+	// Delete a message.
+	//
+	// Soft-deleted messages are excluded from the conversation history sent to
+	// ai providers.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error)
+	// List messages within a chat.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
+	// Generates an assistant message from the chat's message history.
+	//
+	// The input `messages` are appended to the chat before generating; the
+	// generated assistant message is persisted under the chat and returned.
+	// If generation fails, the input messages are updated with an error
+	// `status` and excluded from future generations.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error)
+	// Same as GenerateMessage, but streams blocks as they are produced. The
+	// persisted assistant message is sent as the final event of the stream.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error
 }
 
 // UnimplementedAiServiceServer should be embedded to have forward compatible implementations.
@@ -380,12 +539,6 @@ func (UnimplementedAiServiceServer) SpeechToText(context.Context, *SpeechToTextR
 func (UnimplementedAiServiceServer) SpeechToTextStream(AiService_SpeechToTextStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method SpeechToTextStream not implemented")
 }
-func (UnimplementedAiServiceServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TextToText not implemented")
-}
-func (UnimplementedAiServiceServer) TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method TextToTextStream not implemented")
-}
 func (UnimplementedAiServiceServer) TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TextToSpeech not implemented")
 }
@@ -406,6 +559,27 @@ func (UnimplementedAiServiceServer) DeleteChat(context.Context, *DeleteChatReque
 }
 func (UnimplementedAiServiceServer) ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListChats not implemented")
+}
+func (UnimplementedAiServiceServer) CreateMessage(context.Context, *CreateMessageRequest) (*v1.Message, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) GetMessage(context.Context, *GetMessageRequest) (*v1.Message, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMessage not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateMessage(context.Context, *UpdateMessageRequest) (*v1.Message, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMessage not implemented")
+}
+func (UnimplementedAiServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMessages not implemented")
+}
+func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamGenerateMessage not implemented")
 }
 
 // UnsafeAiServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -571,45 +745,6 @@ func (x *aiServiceSpeechToTextStreamServer) Recv() (*SpeechToTextStreamRequest, 
 	return m, nil
 }
 
-func _AiService_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TextToTextRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AiServiceServer).TextToText(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/malonaz.ai.ai_service.v1.AiService/TextToText",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServiceServer).TextToText(ctx, req.(*TextToTextRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AiService_TextToTextStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TextToTextStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AiServiceServer).TextToTextStream(m, &aiServiceTextToTextStreamServer{stream})
-}
-
-type AiService_TextToTextStreamServer interface {
-	Send(*TextToTextStreamResponse) error
-	grpc.ServerStream
-}
-
-type aiServiceTextToTextStreamServer struct {
-	grpc.ServerStream
-}
-
-func (x *aiServiceTextToTextStreamServer) Send(m *TextToTextStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 func _AiService_TextToSpeech_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextToSpeechRequest)
 	if err := dec(in); err != nil {
@@ -739,6 +874,135 @@ func _AiService_ListChats_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_CreateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).CreateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/CreateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).CreateMessage(ctx, req.(*CreateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GetMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetMessage(ctx, req.(*GetMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/UpdateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateMessage(ctx, req.(*UpdateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_DeleteMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).DeleteMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/DeleteMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).DeleteMessage(ctx, req.(*DeleteMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/ListMessages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListMessages(ctx, req.(*ListMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GenerateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GenerateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GenerateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GenerateMessage(ctx, req.(*GenerateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_StreamGenerateMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GenerateMessageRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AiServiceServer).StreamGenerateMessage(m, &aiServiceStreamGenerateMessageServer{stream})
+}
+
+type AiService_StreamGenerateMessageServer interface {
+	Send(*StreamGenerateMessageResponse) error
+	grpc.ServerStream
+}
+
+type aiServiceStreamGenerateMessageServer struct {
+	grpc.ServerStream
+}
+
+func (x *aiServiceStreamGenerateMessageServer) Send(m *StreamGenerateMessageResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AiService_ServiceDesc is the grpc.ServiceDesc for AiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -775,10 +1039,6 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_SpeechToText_Handler,
 		},
 		{
-			MethodName: "TextToText",
-			Handler:    _AiService_TextToText_Handler,
-		},
-		{
 			MethodName: "TextToSpeech",
 			Handler:    _AiService_TextToSpeech_Handler,
 		},
@@ -802,6 +1062,30 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListChats",
 			Handler:    _AiService_ListChats_Handler,
 		},
+		{
+			MethodName: "CreateMessage",
+			Handler:    _AiService_CreateMessage_Handler,
+		},
+		{
+			MethodName: "GetMessage",
+			Handler:    _AiService_GetMessage_Handler,
+		},
+		{
+			MethodName: "UpdateMessage",
+			Handler:    _AiService_UpdateMessage_Handler,
+		},
+		{
+			MethodName: "DeleteMessage",
+			Handler:    _AiService_DeleteMessage_Handler,
+		},
+		{
+			MethodName: "ListMessages",
+			Handler:    _AiService_ListMessages_Handler,
+		},
+		{
+			MethodName: "GenerateMessage",
+			Handler:    _AiService_GenerateMessage_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -811,13 +1095,13 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "TextToTextStream",
-			Handler:       _AiService_TextToTextStream_Handler,
+			StreamName:    "TextToSpeechStream",
+			Handler:       _AiService_TextToSpeechStream_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "TextToSpeechStream",
-			Handler:       _AiService_TextToSpeechStream_Handler,
+			StreamName:    "StreamGenerateMessage",
+			Handler:       _AiService_StreamGenerateMessage_Handler,
 			ServerStreams: true,
 		},
 	},

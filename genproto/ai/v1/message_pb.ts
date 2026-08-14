@@ -6,46 +6,71 @@ import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../google/api/field_behavior_pb";
+import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Status, StatusValid } from "../../../google/rpc/status_pb";
+import { file_google_rpc_status } from "../../../google/rpc/status_pb";
+import type { ModelUsage, ModelUsageValid } from "./metrics_pb";
+import { file_malonaz_ai_v1_metrics } from "./metrics_pb";
 import type { ToolCall, ToolCallValid, ToolResult, ToolResultValid } from "./tool_pb";
 import { file_malonaz_ai_v1_tool } from "./tool_pb";
+import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
 import type { JsonObject, Message as Message$1 } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/v1/message.proto.
  */
 export const file_malonaz_ai_v1_message: GenFile = /*@__PURE__*/
-  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEilAkKB01lc3NhZ2USOgoLY3JlYXRlX3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQK6SAPIAQESLwoLZGVsZXRlX3RpbWUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjwKC2Fubm90YXRpb25zGAIgAygLMicubWFsb25hei5haS52MS5NZXNzYWdlLkFubm90YXRpb25zRW50cnkSwAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSLQoEcm9sZRgDIAEoDjITLm1hbG9uYXouYWkudjEuUm9sZUIKukgHggEEEAEgABIkCgZibG9ja3MYBCADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOuIEukjeBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGt8BChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSXUFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgcGFydGlhbF90b29sX2NhbGwsIG9yIGltYWdlIGJsb2NrcxpndGhpcy5yb2xlICE9IDIgfHwgdGhpcy5ibG9ja3MuYWxsKGIsIGhhcyhiLnRob3VnaHQpIHx8IGhhcyhiLnRleHQpIHx8IGhhcyhiLnRvb2xfY2FsbCkgfHwgaGFzKGIuaW1hZ2UpKRqHAQoQdXNlcl9yb2xlX2Jsb2NrcxIwVVNFUiBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgb3IgaW1hZ2UgYmxvY2tzGkF0aGlzLnJvbGUgIT0gMyB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkgfHwgaGFzKGIuaW1hZ2UpKRp8ChB0b29sX3JvbGVfYmxvY2tzEi5UT09MIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdG9vbF9yZXN1bHQgYmxvY2tzGjh0aGlzLnJvbGUgIT0gNCB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudG9vbF9yZXN1bHQpKSLDBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIlCgVpbWFnZRgJIAEoCzIULm1hbG9uYXouYWkudjEuSW1hZ2VIADr9AbpI+QEa9gEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqdAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5pbWFnZSlCCQoHY29udGVudCKAAgoFSW1hZ2USDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAkSNgoHcXVhbGl0eRgEIAEoDjIbLm1hbG9uYXouYWkudjEuSW1hZ2VRdWFsaXR5Qgi6SAWCAQIQATp7ukh4GnYKImltYWdlX3JlcXVpcmVzX21lZGlhX3R5cGVfZm9yX2RhdGESJm1lZGlhX3R5cGUgaXMgcmVxdWlyZWQgd2hlbiB1c2luZyBkYXRhGighaGFzKHRoaXMuZGF0YSkgfHwgdGhpcy5tZWRpYV90eXBlICE9ICcnQg8KBnNvdXJjZRIFukgCCAEq2QEKD1JlYXNvbmluZ0VmZm9ydBIgChxSRUFTT05JTkdfRUZGT1JUX1VOU1BFQ0lGSUVEEAASHAoYUkVBU09OSU5HX0VGRk9SVF9ERUZBVUxUEAESGAoUUkVBU09OSU5HX0VGRk9SVF9MT1cQAhIbChdSRUFTT05JTkdfRUZGT1JUX01FRElVTRADEhkKFVJFQVNPTklOR19FRkZPUlRfSElHSBAEEhoKFlJFQVNPTklOR19FRkZPUlRfWEhJR0gQBRIYChRSRUFTT05JTkdfRUZGT1JUX01BWBAGKl8KBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg8KC1JPTEVfU1lTVEVNEAESEgoOUk9MRV9BU1NJU1RBTlQQAhINCglST0xFX1VTRVIQAxINCglST0xFX1RPT0wQBCp0CgxJbWFnZVF1YWxpdHkSHQoZSU1BR0VfUVVBTElUWV9VTlNQRUNJRklFRBAAEhYKEklNQUdFX1FVQUxJVFlfQVVUTxABEhUKEUlNQUdFX1FVQUxJVFlfTE9XEAISFgoSSU1BR0VfUVVBTElUWV9ISUdIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_ai_v1_tool]);
+  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEiqQwKB01lc3NhZ2USEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSyAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJGCgthbm5vdGF0aW9ucxgHIAMoCzInLm1hbG9uYXouYWkudjEuTWVzc2FnZS5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARItCgRyb2xlGAggASgOMhMubWFsb25hei5haS52MS5Sb2xlQgq6SAeCAQQQASAAEiwKBmJsb2NrcxgJIAMoCzIULm1hbG9uYXouYWkudjEuQmxvY2tCBrrqDwIQARIxCgVtb2RlbBgKIAEoCUIi4EED+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLrqDwIgARI7Cgttb2RlbF91c2FnZRgLIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUIL4EEDuuoPBBABIAESEgoFcHJpY2UYDCABKAFCA+BBAxIvCgZzdGF0dXMYDSABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6zAXqQXYKFmFpLm1hbG9uYXouY29tL01lc3NhZ2USSW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fS9tZXNzYWdlcy97bWVzc2FnZX0qCG1lc3NhZ2VzMgdtZXNzYWdlukjLBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGswBChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSSkFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgb3IgaW1hZ2UgYmxvY2tzGmd0aGlzLnJvbGUgIT0gMiB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGhvdWdodCkgfHwgaGFzKGIudGV4dCkgfHwgaGFzKGIudG9vbF9jYWxsKSB8fCBoYXMoYi5pbWFnZSkpGocBChB1c2VyX3JvbGVfYmxvY2tzEjBVU0VSIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdGV4dCBvciBpbWFnZSBibG9ja3MaQXRoaXMucm9sZSAhPSAzIHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50ZXh0KSB8fCBoYXMoYi5pbWFnZSkpGnwKEHRvb2xfcm9sZV9ibG9ja3MSLlRPT0wgbWVzc2FnZXMgY2FuIG9ubHkgaGF2ZSB0b29sX3Jlc3VsdCBibG9ja3MaOHRoaXMucm9sZSAhPSA0IHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50b29sX3Jlc3VsdCkp0qYEACLDBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIlCgVpbWFnZRgJIAEoCzIULm1hbG9uYXouYWkudjEuSW1hZ2VIADr9AbpI+QEa9gEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqdAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5pbWFnZSlCCQoHY29udGVudCKAAgoFSW1hZ2USDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAkSNgoHcXVhbGl0eRgEIAEoDjIbLm1hbG9uYXouYWkudjEuSW1hZ2VRdWFsaXR5Qgi6SAWCAQIQATp7ukh4GnYKImltYWdlX3JlcXVpcmVzX21lZGlhX3R5cGVfZm9yX2RhdGESJm1lZGlhX3R5cGUgaXMgcmVxdWlyZWQgd2hlbiB1c2luZyBkYXRhGighaGFzKHRoaXMuZGF0YSkgfHwgdGhpcy5tZWRpYV90eXBlICE9ICcnQg8KBnNvdXJjZRIFukgCCAEq2QEKD1JlYXNvbmluZ0VmZm9ydBIgChxSRUFTT05JTkdfRUZGT1JUX1VOU1BFQ0lGSUVEEAASHAoYUkVBU09OSU5HX0VGRk9SVF9ERUZBVUxUEAESGAoUUkVBU09OSU5HX0VGRk9SVF9MT1cQAhIbChdSRUFTT05JTkdfRUZGT1JUX01FRElVTRADEhkKFVJFQVNPTklOR19FRkZPUlRfSElHSBAEEhoKFlJFQVNPTklOR19FRkZPUlRfWEhJR0gQBRIYChRSRUFTT05JTkdfRUZGT1JUX01BWBAGKl8KBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg8KC1JPTEVfU1lTVEVNEAESEgoOUk9MRV9BU1NJU1RBTlQQAhINCglST0xFX1VTRVIQAxINCglST0xFX1RPT0wQBCp0CgxJbWFnZVF1YWxpdHkSHQoZSU1BR0VfUVVBTElUWV9VTlNQRUNJRklFRBAAEhYKEklNQUdFX1FVQUxJVFlfQVVUTxABEhUKEUlNQUdFX1FVQUxJVFlfTE9XEAISFgoSSU1BR0VfUVVBTElUWV9ISUdIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_struct, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_model_v1_model]);
 
 /**
- * Wrapper message representing any message type in a multi-turn conversation.
- * Use this when building conversation histories or streaming message sequences.
+ * A Message is a single turn within a [Chat][malonaz.ai.v1.Chat].
+ * It carries the content blocks produced by one participant (system, user,
+ * assistant or tool), along with the model usage incurred when the message
+ * was generated by an assistant.
  *
  * @generated from message malonaz.ai.v1.Message
  */
 export type Message = Message$1<"malonaz.ai.v1.Message"> & {
   /**
+   * The resource name of the message.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
    * The creation timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp create_time = 1;
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
    */
   createTime?: Timestamp;
 
   /**
-   * If a message is deleted, it is not passed down to the AI providers.
+   * The last update timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp delete_time = 5;
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * The deletion timestamp of the message. Set when soft-deleted.
+   * Soft-deleted messages are not passed down to the ai providers.
+   *
+   * @generated from field: google.protobuf.Timestamp delete_time = 4;
    */
   deleteTime?: Timestamp;
 
   /**
-   * Annotations about this message (not transmitted to the ai provider).
-   * This should be used by tooling.
+   * A checksum computed by the server based on the current value of the resource.
+   * Can be sent in update and delete requests to ensure the client has an
+   * up-to-date value before proceeding.
    *
-   * @generated from field: map<string, string> annotations = 2;
+   * @generated from field: string etag = 5;
    */
-  annotations: { [key: string]: string };
+  etag: string;
 
   /**
    * The labels on this message.
@@ -55,48 +80,112 @@ export type Message = Message$1<"malonaz.ai.v1.Message"> & {
   labels: { [key: string]: string };
 
   /**
+   * Annotations on this message (not transmitted to the ai provider).
+   * This should be used by tooling.
+   * Values are opaque strings (and may themselves be proto bytes), but keys
+   * stay inspectable in storage.
+   *
+   * @generated from field: map<string, string> annotations = 7;
+   */
+  annotations: { [key: string]: string };
+
+  /**
    * Role of the message sender.
    *
-   * @generated from field: malonaz.ai.v1.Role role = 3;
+   * @generated from field: malonaz.ai.v1.Role role = 8;
    */
   role: Role;
 
   /**
-   * Blocks created by the assistant.
+   * The ordered content blocks of this message.
    *
-   * @generated from field: repeated malonaz.ai.v1.Block blocks = 4;
+   * @generated from field: repeated malonaz.ai.v1.Block blocks = 9;
    */
   blocks: Block[];
+
+  /**
+   * The resource name of the model that generated this message.
+   * Only set on assistant messages.
+   * Format: providers/{provider}/models/{model}
+   *
+   * @generated from field: string model = 10;
+   */
+  model: string;
+
+  /**
+   * Model usage incurred generating this message.
+   * Only set on assistant messages.
+   *
+   * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 11;
+   */
+  modelUsage?: ModelUsage;
+
+  /**
+   * Price in dollars of generating this message, summed over `model_usage`.
+   * Only set on assistant messages.
+   *
+   * @generated from field: double price = 12;
+   */
+  price: number;
+
+  /**
+   * The error of the generation this message was part of. Set on the input
+   * messages of a failed generation (and on a partially generated assistant
+   * message, if any). Messages with a status are excluded from the
+   * conversation history sent to ai providers.
+   *
+   * @generated from field: google.rpc.Status status = 13;
+   */
+  status?: Status;
 };
 
 /**
- * Wrapper message representing any message type in a multi-turn conversation.
- * Use this when building conversation histories or streaming message sequences.
+ * A Message is a single turn within a [Chat][malonaz.ai.v1.Chat].
+ * It carries the content blocks produced by one participant (system, user,
+ * assistant or tool), along with the model usage incurred when the message
+ * was generated by an assistant.
  *
  * @generated from message malonaz.ai.v1.Message
  */
 export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
   /**
-   * The creation timestamp of the message.
+   * The resource name of the message.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
    *
-   * @generated from field: google.protobuf.Timestamp create_time = 1;
+   * @generated from field: string name = 1;
    */
-  createTime: Timestamp;
+  name: string;
 
   /**
-   * If a message is deleted, it is not passed down to the AI providers.
+   * The creation timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp delete_time = 5;
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   */
+  createTime?: Timestamp;
+
+  /**
+   * The last update timestamp of the message.
+   *
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * The deletion timestamp of the message. Set when soft-deleted.
+   * Soft-deleted messages are not passed down to the ai providers.
+   *
+   * @generated from field: google.protobuf.Timestamp delete_time = 4;
    */
   deleteTime?: Timestamp;
 
   /**
-   * Annotations about this message (not transmitted to the ai provider).
-   * This should be used by tooling.
+   * A checksum computed by the server based on the current value of the resource.
+   * Can be sent in update and delete requests to ensure the client has an
+   * up-to-date value before proceeding.
    *
-   * @generated from field: map<string, string> annotations = 2;
+   * @generated from field: string etag = 5;
    */
-  annotations: { [key: string]: string };
+  etag: string;
 
   /**
    * The labels on this message.
@@ -106,18 +195,63 @@ export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
   labels: { [key: string]: string };
 
   /**
+   * Annotations on this message (not transmitted to the ai provider).
+   * This should be used by tooling.
+   * Values are opaque strings (and may themselves be proto bytes), but keys
+   * stay inspectable in storage.
+   *
+   * @generated from field: map<string, string> annotations = 7;
+   */
+  annotations: { [key: string]: string };
+
+  /**
    * Role of the message sender.
    *
-   * @generated from field: malonaz.ai.v1.Role role = 3;
+   * @generated from field: malonaz.ai.v1.Role role = 8;
    */
   role: Role;
 
   /**
-   * Blocks created by the assistant.
+   * The ordered content blocks of this message.
    *
-   * @generated from field: repeated malonaz.ai.v1.Block blocks = 4;
+   * @generated from field: repeated malonaz.ai.v1.Block blocks = 9;
    */
   blocks: BlockValid[];
+
+  /**
+   * The resource name of the model that generated this message.
+   * Only set on assistant messages.
+   * Format: providers/{provider}/models/{model}
+   *
+   * @generated from field: string model = 10;
+   */
+  model: string;
+
+  /**
+   * Model usage incurred generating this message.
+   * Only set on assistant messages.
+   *
+   * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 11;
+   */
+  modelUsage?: ModelUsageValid;
+
+  /**
+   * Price in dollars of generating this message, summed over `model_usage`.
+   * Only set on assistant messages.
+   *
+   * @generated from field: double price = 12;
+   */
+  price: number;
+
+  /**
+   * The error of the generation this message was part of. Set on the input
+   * messages of a failed generation (and on a partially generated assistant
+   * message, if any). Messages with a status are excluded from the
+   * conversation history sent to ai providers.
+   *
+   * @generated from field: google.rpc.Status status = 13;
+   */
+  status?: StatusValid;
 };
 
 /**
@@ -466,7 +600,7 @@ export enum Role {
   USER = 3,
 
   /**
-   * User message.
+   * Tool message.
    *
    * @generated from enum value: ROLE_TOOL = 4;
    */

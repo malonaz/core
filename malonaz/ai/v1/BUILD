@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "chat.proto",
         "errors.proto",
+        "labels.proto",
         "message.proto",
         "metrics.proto",
         "model.proto",
@@ -17,6 +18,7 @@ proto_library(
     srcs = [
         "chat.proto",
         "errors.proto",
+        "labels.proto",
         "message.proto",
         "metrics.proto",
         "model.proto",
@@ -26,11 +28,13 @@ proto_library(
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/v1",
         GENERATE_GO_AIP: True,
+        GENERATE_GO_AIP_LABEL: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/audio/v1",
+        "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//malonaz/json/v1",
         "//third_party/proto:google__api__annotations",

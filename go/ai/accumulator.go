@@ -8,24 +8,25 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type TextToTextAccumulator struct {
+// MessageAccumulator accumulates StreamMessage events into a complete message.
+type MessageAccumulator struct {
 	Message           *aipb.Message
-	StopReason        pb.TextToTextStopReason
+	StopReason        pb.StopReason
 	ModelUsage        *aipb.ModelUsage
 	GenerationMetrics *aipb.GenerationMetrics
 	blockIndexToBlock map[int64]*aipb.Block
 }
 
-func NewTextToTextAccumulator() *TextToTextAccumulator {
-	return &TextToTextAccumulator{
+func NewMessageAccumulator() *MessageAccumulator {
+	return &MessageAccumulator{
 		Message:           NewAssistantMessage(),
 		blockIndexToBlock: map[int64]*aipb.Block{},
 	}
 }
 
-func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error {
+func (a *MessageAccumulator) Add(response *pb.StreamGenerateMessageResponse) error {
 	switch c := response.GetContent().(type) {
-	case *pb.TextToTextStreamResponse_Block:
+	case *pb.StreamGenerateMessageResponse_Block:
 		block, ok := a.blockIndexToBlock[c.Block.Index]
 		if !ok {
 			block = &aipb.Block{Index: c.Block.Index}
@@ -92,29 +93,25 @@ func (a *TextToTextAccumulator) Add(response *pb.TextToTextStreamResponse) error
 
 		}
 
-	case *pb.TextToTextStreamResponse_StopReason:
+	case *pb.StreamGenerateMessageResponse_StopReason:
 		a.StopReason = c.StopReason
 
-	case *pb.TextToTextStreamResponse_ModelUsage:
+	case *pb.StreamGenerateMessageResponse_ModelUsage:
 		if a.ModelUsage == nil {
 			a.ModelUsage = &aipb.ModelUsage{}
 		}
 		proto.Merge(a.ModelUsage, c.ModelUsage)
 
-	case *pb.TextToTextStreamResponse_GenerationMetrics:
+	case *pb.StreamGenerateMessageResponse_GenerationMetrics:
 		if a.GenerationMetrics == nil {
 			a.GenerationMetrics = &aipb.GenerationMetrics{}
 		}
 		proto.Merge(a.GenerationMetrics, c.GenerationMetrics)
+
+	case *pb.StreamGenerateMessageResponse_GeneratedMessage:
+		// The persisted message is the source of truth: it carries the resource
+		// name, aggregated model usage and price.
+		a.Message = c.GeneratedMessage
 	}
 	return nil
-}
-
-func (a *TextToTextAccumulator) Response() *pb.TextToTextResponse {
-	return &pb.TextToTextResponse{
-		Message:           a.Message,
-		StopReason:        a.StopReason,
-		ModelUsage:        a.ModelUsage,
-		GenerationMetrics: a.GenerationMetrics,
-	}
 }

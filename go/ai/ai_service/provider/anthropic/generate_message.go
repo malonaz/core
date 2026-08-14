@@ -1,6 +1,7 @@
 package anthropic
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -20,9 +21,12 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.AiService_TextToTextStreamServer) error {
-	ctx := srv.Context()
-
+func (c *Client) StreamGenerateMessage(
+	ctx context.Context,
+	request *aiservicepb.GenerateMessageRequest,
+	requestMessages []*aipb.Message,
+	sender *provider.AsyncMessageContentSender,
+) error {
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
@@ -30,9 +34,9 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	var systemBlocks []anthropic.TextBlockParam
-	messages := make([]anthropic.MessageParam, 0, len(request.Messages))
+	messages := make([]anthropic.MessageParam, 0, len(requestMessages))
 
-	for i, msg := range request.Messages {
+	for i, msg := range requestMessages {
 		switch msg.Role {
 		case aipb.Role_ROLE_SYSTEM:
 			for j, block := range msg.Blocks {
@@ -182,18 +186,15 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	startTime := time.Now()
 	messageStream := c.client.Messages.NewStreaming(ctx, messageParams)
 
-	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
-	defer cs.Close()
-
 	tca := provider.NewToolCallAccumulator()
 	redactedThinkingIndexSet := map[int64]struct{}{}
 	var sentTtfb bool
 
-	for messageStream.Next() && cs.Err() == nil {
+	for messageStream.Next() && sender.Err() == nil {
 		event := messageStream.Current()
 
 		if !sentTtfb {
-			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
+			sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
 			sentTtfb = true
 		}
 
@@ -209,7 +210,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			if variant.Message.Usage.CacheCreationInputTokens > 0 {
 				modelUsage.InputTokenCacheWrite = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheCreationInputTokens)}
 			}
-			cs.SendModelUsage(ctx, modelUsage)
+			sender.SendModelUsage(ctx, modelUsage)
 
 		case anthropic.ContentBlockStartEvent:
 			switch contentBlock := variant.ContentBlock.AsAny().(type) {
@@ -220,14 +221,14 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					if err != nil {
 						return err
 					}
-					cs.SendBlocks(ctx, block)
+					sender.SendBlocks(ctx, block)
 				}
 			case anthropic.TextBlock:
 			case anthropic.ThinkingBlock:
 				// Adaptive thinking (effort-based models) can deliver the summarized thought
 				// directly in the start event with no subsequent thinking deltas.
 				if contentBlock.Thinking != "" {
-					cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: contentBlock.Signature, Content: &aipb.Block_Thought{Thought: contentBlock.Thinking}})
+					sender.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: contentBlock.Signature, Content: &aipb.Block_Thought{Thought: contentBlock.Thinking}})
 				} else {
 					redactedThinkingIndexSet[variant.Index] = struct{}{}
 				}
@@ -242,12 +243,12 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 		case anthropic.ContentBlockDeltaEvent:
 			switch delta := variant.Delta.AsAny().(type) {
 			case anthropic.TextDelta:
-				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Text{Text: delta.Text}})
+				sender.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Text{Text: delta.Text}})
 			case anthropic.ThinkingDelta:
 				delete(redactedThinkingIndexSet, variant.Index)
-				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: delta.Thinking}})
+				sender.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: delta.Thinking}})
 			case anthropic.SignatureDelta:
-				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: delta.Signature})
+				sender.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Signature: delta.Signature})
 			case anthropic.InputJSONDelta:
 				tca.AppendArgs(variant.Index, delta.PartialJSON)
 				if request.GetConfiguration().GetStreamPartialToolCalls() {
@@ -255,7 +256,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 					if err != nil {
 						return err
 					}
-					cs.SendBlocks(ctx, block)
+					sender.SendBlocks(ctx, block)
 				}
 			default:
 				return status.Errorf(codes.Internal, "unexpected delta type: %T", delta).Err()
@@ -263,14 +264,14 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 
 		case anthropic.ContentBlockStopEvent:
 			if _, ok := redactedThinkingIndexSet[variant.Index]; ok {
-				cs.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: "Thinking... [redacted]"}})
+				sender.SendBlocks(ctx, &aipb.Block{Index: variant.Index, Content: &aipb.Block_Thought{Thought: "Thinking... [redacted]"}})
 			}
 			if tca.Has(variant.Index) {
 				block, err := tca.Build(variant.Index)
 				if err != nil {
 					return err
 				}
-				cs.SendBlocks(ctx, block)
+				sender.SendBlocks(ctx, block)
 			}
 
 		case anthropic.MessageDeltaEvent:
@@ -278,16 +279,16 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 			if variant.Usage.OutputTokens > 0 {
 				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(variant.Usage.OutputTokens)}
 			}
-			cs.SendModelUsage(ctx, modelUsage)
+			sender.SendModelUsage(ctx, modelUsage)
 
 			stopReason, ok := anthropicStopReasonToPb[variant.Delta.StopReason]
 			if !ok {
 				return status.Errorf(codes.Internal, "unknown stop reason: %s", variant.Delta.StopReason).Err()
 			}
-			cs.SendStopReason(ctx, stopReason)
+			sender.SendStopReason(ctx, stopReason)
 
 		case anthropic.MessageStopEvent:
-			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
+			sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
 		default:
 			return status.Errorf(codes.Internal, "unexpected event type: %T", variant).Err()
@@ -296,11 +297,6 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 
 	if err := messageStream.Err(); err != nil {
 		return status.FromError(err, "streaming from anthropic").Err()
-	}
-
-	cs.Close()
-	if err := cs.Wait(ctx); err != nil {
-		return status.FromError(err, "waiting on content sender").Err()
 	}
 	return nil
 }
@@ -370,13 +366,13 @@ func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) anthropic.Tool
 	return anthropic.ToolUnionParam{OfTool: toolParam}
 }
 
-var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.TextToTextStopReason{
-	anthropic.StopReasonEndTurn:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	anthropic.StopReasonMaxTokens:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
-	anthropic.StopReasonToolUse:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-	anthropic.StopReasonStopSequence: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE,
-	anthropic.StopReasonPauseTurn:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN,
-	anthropic.StopReasonRefusal:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.StopReason{
+	anthropic.StopReasonEndTurn:      aiservicepb.StopReason_STOP_REASON_END_TURN,
+	anthropic.StopReasonMaxTokens:    aiservicepb.StopReason_STOP_REASON_MAX_TOKENS,
+	anthropic.StopReasonToolUse:      aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
+	anthropic.StopReasonStopSequence: aiservicepb.StopReason_STOP_REASON_STOP_SEQUENCE,
+	anthropic.StopReasonPauseTurn:    aiservicepb.StopReason_STOP_REASON_PAUSE_TURN,
+	anthropic.StopReasonRefusal:      aiservicepb.StopReason_STOP_REASON_REFUSAL,
 }
 
 var imageSourceMediaTypeSet = map[anthropic.Base64ImageSourceMediaType]struct{}{

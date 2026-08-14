@@ -728,6 +728,7 @@
         "google.golang.org/genproto/googleapis/type/decimal": "//third_party/proto:google__type__decimal",
         "google.golang.org/genproto/googleapis/type/money": "//third_party/proto:google__type__money",
         "google.golang.org/genproto/googleapis/type/postaladdress": "//third_party/proto:google__type__postaladdress",
-        "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday"
+      "google.golang.org/genproto/googleapis/type/timeofday": "//third_party/proto:google__type__timeofday",
+        "google.golang.org/genproto/googleapis/rpc/status": "//third_party/proto:google__rpc__status"
     }
 }

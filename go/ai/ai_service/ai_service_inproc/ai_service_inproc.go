@@ -74,30 +74,30 @@ func (c *Client) ListVoices(
 	return c.server.ListVoices(ctx, request)
 }
 
-// TextToTextStream provides a client-facing streaming interface.
-// It wraps the underlying server streaming implementation using grpcinproc.
-func (c *Client) TextToTextStream(
+// GenerateMessage provides a client-facing interface for assistant message generation.
+func (c *Client) GenerateMessage(
 	ctx context.Context,
-	request *aiservicepb.TextToTextStreamRequest,
+	request *aiservicepb.GenerateMessageRequest,
 	opts ...grpc.CallOption,
-) (aiservicepb.AiService_TextToTextStreamClient, error) {
-	// Use grpcinproc to convert the provider's server streaming implementation to a client
-	serverStreamClient := grpcinproc.NewServerStreamAsClient[
-		aiservicepb.TextToTextStreamRequest,
-		aiservicepb.TextToTextStreamResponse,
-		aiservicepb.AiService_TextToTextStreamServer,
-	](c.server.TextToTextStream)
-
-	return serverStreamClient(ctx, request, opts...)
+) (*aiservicepb.GenerateMessageResponse, error) {
+	return c.server.GenerateMessage(ctx, request)
 }
 
-// TextToText provides a client-facing interface for text-to-text conversion.
-func (c *Client) TextToText(
+// StreamGenerateMessage provides a client-facing streaming interface for assistant message generation.
+// It wraps the underlying server streaming implementation using grpcinproc.
+func (c *Client) StreamGenerateMessage(
 	ctx context.Context,
-	request *aiservicepb.TextToTextRequest,
+	request *aiservicepb.GenerateMessageRequest,
 	opts ...grpc.CallOption,
-) (*aiservicepb.TextToTextResponse, error) {
-	return c.server.TextToText(ctx, request)
+) (aiservicepb.AiService_StreamGenerateMessageClient, error) {
+	// Use grpcinproc to convert the provider's server streaming implementation to a client
+	serverStreamClient := grpcinproc.NewServerStreamAsClient[
+		aiservicepb.GenerateMessageRequest,
+		aiservicepb.StreamGenerateMessageResponse,
+		aiservicepb.AiService_StreamGenerateMessageServer,
+	](c.server.StreamGenerateMessage)
+
+	return serverStreamClient(ctx, request, opts...)
 }
 
 // SpeechToText provides a client-facing interface for speech-to-text conversion.
@@ -192,6 +192,51 @@ func (c *Client) ListChats(
 	opts ...grpc.CallOption,
 ) (*aiservicepb.ListChatsResponse, error) {
 	return c.server.ListChats(ctx, request)
+}
+
+// CreateMessage creates a new message within a chat and returns the created resource.
+func (c *Client) CreateMessage(
+	ctx context.Context,
+	request *aiservicepb.CreateMessageRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Message, error) {
+	return c.server.CreateMessage(ctx, request)
+}
+
+// GetMessage retrieves a single message by its resource name.
+func (c *Client) GetMessage(
+	ctx context.Context,
+	request *aiservicepb.GetMessageRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Message, error) {
+	return c.server.GetMessage(ctx, request)
+}
+
+// UpdateMessage updates an existing message and returns the updated resource.
+func (c *Client) UpdateMessage(
+	ctx context.Context,
+	request *aiservicepb.UpdateMessageRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Message, error) {
+	return c.server.UpdateMessage(ctx, request)
+}
+
+// DeleteMessage soft-deletes a message by its resource name.
+func (c *Client) DeleteMessage(
+	ctx context.Context,
+	request *aiservicepb.DeleteMessageRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Message, error) {
+	return c.server.DeleteMessage(ctx, request)
+}
+
+// ListMessages returns a paginated list of messages within a chat.
+func (c *Client) ListMessages(
+	ctx context.Context,
+	request *aiservicepb.ListMessagesRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListMessagesResponse, error) {
+	return c.server.ListMessages(ctx, request)
 }
 
 // Verify interface compliance at compile time.

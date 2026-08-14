@@ -602,6 +602,27 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 
 	if fieldOpts.GetAsJsonBytes() || fieldOpts.GetAsProtoBytes() {
 		lib, fn := m.marshalLib(fieldOpts, field)
+		// Repeated message fields are stored as a JSON array.
+		if fieldOpts.GetAsJsonBytes() && field.Desc.IsList() {
+			marshalSlice := m.fqn("github.com/malonaz/core/go/pbutil", "JSONMarshalSlice")
+			marshalSliceOptions := m.fqn("github.com/malonaz/core/go/pbutil", "JsonMarshalOptions")
+			if nullable {
+				fmt.Fprintf(&b, "\tvar %sBytes []byte\n", goName)
+				fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
+				fmt.Fprintf(&b, "\t\tvar err error\n")
+				fmt.Fprintf(&b, "\t\t%sBytes, err = %s(%s, m.%s)\n", goName, marshalSlice, marshalSliceOptions, goName)
+				fmt.Fprintf(&b, "\t\tif err != nil {\n")
+				fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"marshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
+				fmt.Fprintf(&b, "\t\t}\n")
+				fmt.Fprintf(&b, "\t}\n")
+			} else {
+				fmt.Fprintf(&b, "\t%sBytes, err := %s(%s, m.%s)\n", goName, marshalSlice, marshalSliceOptions, goName)
+				fmt.Fprintf(&b, "\tif err != nil {\n")
+				fmt.Fprintf(&b, "\t\treturn nil, %s(\"marshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
+				fmt.Fprintf(&b, "\t}\n")
+			}
+			return b.String(), nil
+		}
 		if nullable {
 			fmt.Fprintf(&b, "\tvar %sBytes []byte\n", goName)
 			fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
@@ -757,6 +778,28 @@ func (m *Model) toPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.Fi
 
 	if fieldOpts.GetAsJsonBytes() || fieldOpts.GetAsProtoBytes() {
 		lib, fn := m.unmarshalLib(fieldOpts, field)
+		// Repeated message fields are stored as a JSON array.
+		if fieldOpts.GetAsJsonBytes() && field.Desc.IsList() {
+			unmarshalSlice := m.fqn("github.com/malonaz/core/go/pbutil", "JSONUnmarshalSlice")
+			unmarshalSliceOptions := m.fqn("github.com/malonaz/core/go/pbutil", "JsonUnmarshalOptions")
+			elementType := m.qgi(field.Message.GoIdent)
+			if nullable {
+				fmt.Fprintf(&b, "\tvar %s []*%s\n", goName, elementType)
+				fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
+				fmt.Fprintf(&b, "\t\tvar err error\n")
+				fmt.Fprintf(&b, "\t\t%s, err = %s[%s](%s, m.%s)\n", goName, unmarshalSlice, elementType, unmarshalSliceOptions, goName)
+				fmt.Fprintf(&b, "\t\tif err != nil {\n")
+				fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"unmarshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
+				fmt.Fprintf(&b, "\t\t}\n")
+				fmt.Fprintf(&b, "\t}\n")
+			} else {
+				fmt.Fprintf(&b, "\t%s, err := %s[%s](%s, m.%s)\n", goName, unmarshalSlice, elementType, unmarshalSliceOptions, goName)
+				fmt.Fprintf(&b, "\tif err != nil {\n")
+				fmt.Fprintf(&b, "\t\treturn nil, %s(\"unmarshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
+				fmt.Fprintf(&b, "\t}\n")
+			}
+			return b.String(), nil
+		}
 		if nullable {
 			if field.Desc.IsMap() {
 				mapType := fmt.Sprintf("map[%s]%s", field.Desc.MapKey().Kind(), field.Desc.MapValue().Kind())

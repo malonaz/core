@@ -8,18 +8,20 @@ import { file_google_api_annotations } from "../../../../google/api/annotations_
 import { file_google_api_client } from "../../../../google/api/client_pb";
 import type { CreateChatRequestSchema, DeleteChatRequestSchema, GetChatRequestSchema, ListChatsRequestSchema, ListChatsResponseSchema, UpdateChatRequestSchema } from "./chat_pb";
 import { file_malonaz_ai_ai_service_v1_chat } from "./chat_pb";
+import type { CreateMessageRequestSchema, DeleteMessageRequestSchema, GenerateMessageRequestSchema, GenerateMessageResponseSchema, GetMessageRequestSchema, ListMessagesRequestSchema, ListMessagesResponseSchema, StreamGenerateMessageResponseSchema, UpdateMessageRequestSchema } from "./message_pb";
+import { file_malonaz_ai_ai_service_v1_message } from "./message_pb";
 import type { CreateModelRequestSchema, GetModelRequestSchema, ListModelsRequestSchema, ListModelsResponseSchema } from "./model_pb";
 import { file_malonaz_ai_ai_service_v1_model } from "./model_pb";
 import type { SpeechToTextRequestSchema, SpeechToTextResponseSchema, SpeechToTextStreamRequestSchema, SpeechToTextStreamResponseSchema } from "./speech_to_text_pb";
 import { file_malonaz_ai_ai_service_v1_speech_to_text } from "./speech_to_text_pb";
 import type { TextToSpeechRequestSchema, TextToSpeechResponseSchema, TextToSpeechStreamRequestSchema, TextToSpeechStreamResponseSchema } from "./text_to_speech_pb";
 import { file_malonaz_ai_ai_service_v1_text_to_speech } from "./text_to_speech_pb";
-import type { TextToTextRequestSchema, TextToTextResponseSchema, TextToTextStreamRequestSchema, TextToTextStreamResponseSchema } from "./text_to_text_pb";
-import { file_malonaz_ai_ai_service_v1_text_to_text } from "./text_to_text_pb";
 import type { CreateVoiceRequestSchema, GetVoiceRequestSchema, ListVoicesRequestSchema, ListVoicesResponseSchema } from "./voice_pb";
 import { file_malonaz_ai_ai_service_v1_voice } from "./voice_pb";
 import type { ChatSchema } from "../../v1/chat_pb";
 import { file_malonaz_ai_v1_chat } from "../../v1/chat_pb";
+import type { MessageSchema } from "../../v1/message_pb";
+import { file_malonaz_ai_v1_message } from "../../v1/message_pb";
 import type { ModelSchema } from "../../v1/model_pb";
 import { file_malonaz_ai_v1_model } from "../../v1/model_pb";
 import type { VoiceSchema } from "../../v1/voice_pb";
@@ -30,12 +32,47 @@ import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb"
  * Describes the file malonaz/ai/ai_service/v1/ai_service.proto.
  */
 export const file_malonaz_ai_ai_service_v1_ai_service: GenFile = /*@__PURE__*/
-  fileDesc("CiltYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvYWlfc2VydmljZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxMt0VCglBaVNlcnZpY2USiQEKC0NyZWF0ZU1vZGVsEiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNyZWF0ZU1vZGVsUmVxdWVzdBoULm1hbG9uYXouYWkudjEuTW9kZWwiNtpBDHBhcmVudCxtb2RlbILT5JMCISIfL3YxL3twYXJlbnQ9cHJvdmlkZXJzLyp9L21vZGVscxJ7CghHZXRNb2RlbBIpLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5HZXRNb2RlbFJlcXVlc3QaFC5tYWxvbmF6LmFpLnYxLk1vZGVsIi7aQQRuYW1lgtPkkwIhEh8vdjEve25hbWU9cHJvdmlkZXJzLyovbW9kZWxzLyp9EpkBCgpMaXN0TW9kZWxzEisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RNb2RlbHNSZXF1ZXN0GiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RNb2RlbHNSZXNwb25zZSIw2kEGcGFyZW50gtPkkwIhEh8vdjEve3BhcmVudD1wcm92aWRlcnMvKn0vbW9kZWxzEm0KC0NyZWF0ZVZvaWNlEiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNyZWF0ZVZvaWNlUmVxdWVzdBoULm1hbG9uYXouYWkudjEuVm9pY2UiGtpBBXZvaWNlgtPkkwIMIgovdjEvdm9pY2VzEm8KCEdldFZvaWNlEikubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdldFZvaWNlUmVxdWVzdBoULm1hbG9uYXouYWkudjEuVm9pY2UiItpBBG5hbWWC0+STAhUSEy92MS97bmFtZT12b2ljZXMvKn0SfgoKTGlzdFZvaWNlcxIrLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5MaXN0Vm9pY2VzUmVxdWVzdBosLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5MaXN0Vm9pY2VzUmVzcG9uc2UiFdpBAILT5JMCDBIKL3YxL3ZvaWNlcxKpAQoMU3BlZWNoVG9UZXh0Ei0ubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFJlcXVlc3QaLi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0UmVzcG9uc2UiOoLT5JMCNCIvL3YxL3ttb2RlbD1wcm92aWRlcnMvKi9tb2RlbHMvKn0vc3BlZWNoLXRvLXRleHQ6ASoSxgEKElNwZWVjaFRvVGV4dFN0cmVhbRIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1SZXF1ZXN0GjQubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVJlc3BvbnNlIkGC0+STAjsiNi92MS97bW9kZWw9cHJvdmlkZXJzLyovbW9kZWxzLyp9L3NwZWVjaC10by10ZXh0OnN0cmVhbToBKigBMAESoQEKClRleHRUb1RleHQSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvVGV4dFJlcXVlc3QaLC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvVGV4dFJlc3BvbnNlIjiC0+STAjIiLS92MS97bW9kZWw9cHJvdmlkZXJzLyovbW9kZWxzLyp9L3RleHQtdG8tdGV4dDoBKhK8AQoQVGV4dFRvVGV4dFN0cmVhbRIxLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9UZXh0U3RyZWFtUmVxdWVzdBoyLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9UZXh0U3RyZWFtUmVzcG9uc2UiP4LT5JMCOSI0L3YxL3ttb2RlbD1wcm92aWRlcnMvKi9tb2RlbHMvKn0vdGV4dC10by10ZXh0OnN0cmVhbToBKjABEqkBCgxUZXh0VG9TcGVlY2gSLS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoUmVxdWVzdBouLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hSZXNwb25zZSI6gtPkkwI0Ii8vdjEve21vZGVsPXByb3ZpZGVycy8qL21vZGVscy8qfS90ZXh0LXRvLXNwZWVjaDoBKhLEAQoSVGV4dFRvU3BlZWNoU3RyZWFtEjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaFN0cmVhbVJlcXVlc3QaNC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoU3RyZWFtUmVzcG9uc2UiQYLT5JMCOyI2L3YxL3ttb2RlbD1wcm92aWRlcnMvKi9tb2RlbHMvKn0vdGV4dC10by1zcGVlY2g6c3RyZWFtOgEqMAESrwEKCkNyZWF0ZUNoYXQSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQ3JlYXRlQ2hhdFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLkNoYXQiX9pBC3BhcmVudCxjaGF0wrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCMiIqL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2NoYXRzOgRjaGF0EpwBCgdHZXRDaGF0EigubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdldENoYXRSZXF1ZXN0GhMubWFsb25hei5haS52MS5DaGF0IlLaQQRuYW1lwrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCLBIqL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2NoYXRzLyp9ErkBCgpVcGRhdGVDaGF0EisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlVwZGF0ZUNoYXRSZXF1ZXN0GhMubWFsb25hei5haS52MS5DaGF0ImnaQRBjaGF0LHVwZGF0ZV9tYXNrwrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCNzIvL3YxL3tjaGF0Lm5hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn06BGNoYXQSogEKCkRlbGV0ZUNoYXQSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuRGVsZXRlQ2hhdFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLkNoYXQiUtpBBG5hbWXCtC0VChNhaS5tYWxvbmF6LmNvbS9DaGF0gtPkkwIsKiovdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn0SugEKCUxpc3RDaGF0cxIqLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5MaXN0Q2hhdHNSZXF1ZXN0GisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RDaGF0c1Jlc3BvbnNlIlTaQQZwYXJlbnTCtC0VChNhaS5tYWxvbmF6LmNvbS9DaGF0gtPkkwIsEiovdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vY2hhdHMaEcpBDmFpLm1hbG9uYXouY29tQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX3NlcnZpY2UvdjFiBnByb3RvMw", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_ai_service_v1_chat, file_malonaz_ai_ai_service_v1_model, file_malonaz_ai_ai_service_v1_speech_to_text, file_malonaz_ai_ai_service_v1_text_to_speech, file_malonaz_ai_ai_service_v1_text_to_text, file_malonaz_ai_ai_service_v1_voice, file_malonaz_ai_v1_chat, file_malonaz_ai_v1_model, file_malonaz_ai_v1_voice, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CiltYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvYWlfc2VydmljZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxMqEeCglBaVNlcnZpY2USiQEKC0NyZWF0ZU1vZGVsEiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNyZWF0ZU1vZGVsUmVxdWVzdBoULm1hbG9uYXouYWkudjEuTW9kZWwiNtpBDHBhcmVudCxtb2RlbILT5JMCISIfL3YxL3twYXJlbnQ9cHJvdmlkZXJzLyp9L21vZGVscxJ+CghHZXRNb2RlbBIpLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5HZXRNb2RlbFJlcXVlc3QaFC5tYWxvbmF6LmFpLnYxLk1vZGVsIjGQAgHaQQRuYW1lgtPkkwIhEh8vdjEve25hbWU9cHJvdmlkZXJzLyovbW9kZWxzLyp9EpwBCgpMaXN0TW9kZWxzEisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RNb2RlbHNSZXF1ZXN0GiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RNb2RlbHNSZXNwb25zZSIzkAIB2kEGcGFyZW50gtPkkwIhEh8vdjEve3BhcmVudD1wcm92aWRlcnMvKn0vbW9kZWxzEm0KC0NyZWF0ZVZvaWNlEiwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNyZWF0ZVZvaWNlUmVxdWVzdBoULm1hbG9uYXouYWkudjEuVm9pY2UiGtpBBXZvaWNlgtPkkwIMIgovdjEvdm9pY2VzEnIKCEdldFZvaWNlEikubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdldFZvaWNlUmVxdWVzdBoULm1hbG9uYXouYWkudjEuVm9pY2UiJZACAdpBBG5hbWWC0+STAhUSEy92MS97bmFtZT12b2ljZXMvKn0SgQEKCkxpc3RWb2ljZXMSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuTGlzdFZvaWNlc1JlcXVlc3QaLC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuTGlzdFZvaWNlc1Jlc3BvbnNlIhiQAgHaQQCC0+STAgwSCi92MS92b2ljZXMSqQEKDFNwZWVjaFRvVGV4dBItLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRSZXF1ZXN0Gi4ubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFJlc3BvbnNlIjqC0+STAjQiLy92MS97bW9kZWw9cHJvdmlkZXJzLyovbW9kZWxzLyp9L3NwZWVjaC10by10ZXh0OgEqEsYBChJTcGVlY2hUb1RleHRTdHJlYW0SMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U3RyZWFtUmVxdWVzdBo0Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1SZXNwb25zZSJBgtPkkwI7IjYvdjEve21vZGVsPXByb3ZpZGVycy8qL21vZGVscy8qfS9zcGVlY2gtdG8tdGV4dDpzdHJlYW06ASooATABEqkBCgxUZXh0VG9TcGVlY2gSLS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoUmVxdWVzdBouLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hSZXNwb25zZSI6gtPkkwI0Ii8vdjEve21vZGVsPXByb3ZpZGVycy8qL21vZGVscy8qfS90ZXh0LXRvLXNwZWVjaDoBKhLEAQoSVGV4dFRvU3BlZWNoU3RyZWFtEjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaFN0cmVhbVJlcXVlc3QaNC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoU3RyZWFtUmVzcG9uc2UiQYLT5JMCOyI2L3YxL3ttb2RlbD1wcm92aWRlcnMvKi9tb2RlbHMvKn0vdGV4dC10by1zcGVlY2g6c3RyZWFtOgEqMAESrwEKCkNyZWF0ZUNoYXQSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQ3JlYXRlQ2hhdFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLkNoYXQiX9pBC3BhcmVudCxjaGF0wrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCMiIqL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2NoYXRzOgRjaGF0Ep8BCgdHZXRDaGF0EigubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdldENoYXRSZXF1ZXN0GhMubWFsb25hei5haS52MS5DaGF0IlWQAgHaQQRuYW1lwrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCLBIqL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2NoYXRzLyp9ErkBCgpVcGRhdGVDaGF0EisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlVwZGF0ZUNoYXRSZXF1ZXN0GhMubWFsb25hei5haS52MS5DaGF0ImnaQRBjaGF0LHVwZGF0ZV9tYXNrwrQtFQoTYWkubWFsb25hei5jb20vQ2hhdILT5JMCNzIvL3YxL3tjaGF0Lm5hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn06BGNoYXQSogEKCkRlbGV0ZUNoYXQSKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuRGVsZXRlQ2hhdFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLkNoYXQiUtpBBG5hbWXCtC0VChNhaS5tYWxvbmF6LmNvbS9DaGF0gtPkkwIsKiovdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn0SvQEKCUxpc3RDaGF0cxIqLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5MaXN0Q2hhdHNSZXF1ZXN0GisubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RDaGF0c1Jlc3BvbnNlIleQAgHaQQZwYXJlbnTCtC0VChNhaS5tYWxvbmF6LmNvbS9DaGF0gtPkkwIsEiovdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vY2hhdHMSzAEKDUNyZWF0ZU1lc3NhZ2USLi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQ3JlYXRlTWVzc2FnZVJlcXVlc3QaFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2Uic9pBDnBhcmVudCxtZXNzYWdlwrQtGAoWYWkubWFsb25hei5jb20vTWVzc2FnZYLT5JMCQCI1L3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn0vbWVzc2FnZXM6B21lc3NhZ2UStgEKCkdldE1lc3NhZ2USKy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2V0TWVzc2FnZVJlcXVlc3QaFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2UiY5ACAdpBBG5hbWXCtC0YChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlgtPkkwI3EjUvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKi9tZXNzYWdlcy8qfRLaAQoNVXBkYXRlTWVzc2FnZRIuLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5VcGRhdGVNZXNzYWdlUmVxdWVzdBoWLm1hbG9uYXouYWkudjEuTWVzc2FnZSKAAdpBE21lc3NhZ2UsdXBkYXRlX21hc2vCtC0YChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlgtPkkwJIMj0vdjEve21lc3NhZ2UubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9jaGF0cy8qL21lc3NhZ2VzLyp9OgdtZXNzYWdlErkBCg1EZWxldGVNZXNzYWdlEi4ubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkRlbGV0ZU1lc3NhZ2VSZXF1ZXN0GhYubWFsb25hei5haS52MS5NZXNzYWdlImDaQQRuYW1lwrQtGAoWYWkubWFsb25hei5jb20vTWVzc2FnZYLT5JMCNyo1L3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2NoYXRzLyovbWVzc2FnZXMvKn0S1AEKDExpc3RNZXNzYWdlcxItLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5MaXN0TWVzc2FnZXNSZXF1ZXN0Gi4ubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkxpc3RNZXNzYWdlc1Jlc3BvbnNlImWQAgHaQQZwYXJlbnTCtC0YChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlgtPkkwI3EjUvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9jaGF0cy8qfS9tZXNzYWdlcxLBAQoPR2VuZXJhdGVNZXNzYWdlEjAubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QaMS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVNZXNzYWdlUmVzcG9uc2UiSYLT5JMCQyI+L3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovY2hhdHMvKn0vbWVzc2FnZXM6Z2VuZXJhdGU6ASoS1QEKFVN0cmVhbUdlbmVyYXRlTWVzc2FnZRIwLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5HZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0GjcubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0cmVhbUdlbmVyYXRlTWVzc2FnZVJlc3BvbnNlIk+C0+STAkkiRC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2NoYXRzLyp9L21lc3NhZ2VzOnN0cmVhbUdlbmVyYXRlOgEqMAEaEcpBDmFpLm1hbG9uYXouY29tQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX3NlcnZpY2UvdjFiBnByb3RvMw", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_ai_service_v1_chat, file_malonaz_ai_ai_service_v1_message, file_malonaz_ai_ai_service_v1_model, file_malonaz_ai_ai_service_v1_speech_to_text, file_malonaz_ai_ai_service_v1_text_to_speech, file_malonaz_ai_ai_service_v1_voice, file_malonaz_ai_v1_chat, file_malonaz_ai_v1_message, file_malonaz_ai_v1_model, file_malonaz_ai_v1_voice, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * This API represents an AI service.
  *
- * It handles TextToText, SpeechToText & TextToSpeech generation.
+ * # Capabilities
+ *
+ * - Model management: [Model][malonaz.ai.v1.Model] resources describe the
+ *   generation models available per provider (STT, TTT, TTS), including
+ *   pricing and provider-specific settings.
+ * - Voice management: [Voice][malonaz.ai.v1.Voice] resources describe
+ *   multi-model voices usable for text-to-speech.
+ * - Speech-to-text: unary and bidirectional-streaming transcription, with
+ *   turn detection on the streaming variant.
+ * - Text-to-speech: unary and server-streaming audio synthesis.
+ * - Chats and messages: multi-turn conversations persisted as
+ *   [Chat][malonaz.ai.v1.Chat] resources with child
+ *   [Message][malonaz.ai.v1.Message] resources, plus generation methods
+ *   that produce assistant messages from a chat's history.
+ *
+ * # Resource model
+ *
+ * - Each Provider has a collection of [Model][malonaz.ai.v1.Model] resources.
+ *   Format: providers/{provider}/models/{model}
+ * - [Voice][malonaz.ai.v1.Voice] resources are top-level.
+ *   Format: voices/{voice}
+ * - Each User has a collection of [Chat][malonaz.ai.v1.Chat] resources.
+ *   Format: organizations/{organization}/users/{user}/chats/{chat}
+ * - Each Chat has a collection of [Message][malonaz.ai.v1.Message]
+ *   resources holding the conversation content. The chat itself is a
+ *   lightweight container: it aggregates price but holds no blocks.
+ *   Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+ *
+ * # Generation
+ *
+ * GenerateMessage and StreamGenerateMessage append the request's input
+ * messages to the chat, run the model over the chat's live history, and
+ * persist the generated assistant message. Soft-deleted messages, messages
+ * carrying an error `status`, and messages labeled
+ * `ai.malonaz.com/superseded` (abandoned by a fork via `previous_message`)
+ * are excluded from the history sent to providers.
  *
  * @generated from service malonaz.ai.ai_service.v1.AiService
  */
@@ -43,7 +80,7 @@ export const AiService: GenService<{
   /**
    * Create a model.
    *
-   * See: https://google.aip.dev/131 (Standard methods: Create).
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateModel
    */
@@ -65,7 +102,7 @@ export const AiService: GenService<{
     output: typeof ModelSchema;
   },
   /**
-   * List models for a user.
+   * List models for a provider.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *
@@ -79,7 +116,7 @@ export const AiService: GenService<{
   /**
    * Create a voice.
    *
-   * See: https://google.aip.dev/131 (Standard methods: Create).
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateVoice
    */
@@ -101,7 +138,7 @@ export const AiService: GenService<{
     output: typeof VoiceSchema;
   },
   /**
-   * List voices for a user.
+   * List all voices.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *
@@ -114,6 +151,7 @@ export const AiService: GenService<{
   },
   /**
    * Converts speech audio to text using the specified model.
+   * Unary: the full audio chunk is transcribed in one round trip.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.SpeechToText
    */
@@ -123,7 +161,11 @@ export const AiService: GenService<{
     output: typeof SpeechToTextResponseSchema;
   },
   /**
-   * Converts speech audio to text with streaming response.
+   * Converts speech audio to text over a bidirectional stream.
+   * The first client message must carry the stream configuration; subsequent
+   * messages carry audio chunks. The server emits turn events (start, update,
+   * eager end, resumed, end) as the transcription progresses, followed by
+   * usage and generation metrics at the end of the stream.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.SpeechToTextStream
    */
@@ -133,27 +175,8 @@ export const AiService: GenService<{
     output: typeof SpeechToTextStreamResponseSchema;
   },
   /**
-   * Convert text to text using chat completion models.
-   *
-   * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToText
-   */
-  textToText: {
-    methodKind: "unary";
-    input: typeof TextToTextRequestSchema;
-    output: typeof TextToTextResponseSchema;
-  },
-  /**
-   * Converts text to text using chat completion models with streaming response.
-   *
-   * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToTextStream
-   */
-  textToTextStream: {
-    methodKind: "server_streaming";
-    input: typeof TextToTextStreamRequestSchema;
-    output: typeof TextToTextStreamResponseSchema;
-  },
-  /**
-   * Converts text to speech audio, returning complete audio data.
+   * Converts text to speech audio, returning the complete audio data in a
+   * single response.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToSpeech
    */
@@ -163,7 +186,9 @@ export const AiService: GenService<{
     output: typeof TextToSpeechResponseSchema;
   },
   /**
-   * Converts text to speech audio with streaming response.
+   * Converts text to speech audio, streaming audio chunks as they are
+   * synthesized. Usage and generation metrics are sent at the end of the
+   * stream.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToSpeechStream
    */
@@ -173,7 +198,9 @@ export const AiService: GenService<{
     output: typeof TextToSpeechStreamResponseSchema;
   },
   /**
-   * Creates a new chat.
+   * Create a chat.
+   *
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateChat
    */
@@ -183,7 +210,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Gets a chat.
+   * Get a chat.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.GetChat
    */
@@ -193,7 +222,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Updates a chat.
+   * Update a chat.
+   *
+   * See: https://google.aip.dev/134 (Standard methods: Update).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.UpdateChat
    */
@@ -203,7 +234,10 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Deletes a chat (soft delete).
+   * Delete a chat.
+   *
+   * See: https://google.aip.dev/135 (Standard methods: Delete).
+   * See: https://google.aip.dev/164 (Soft delete).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.DeleteChat
    */
@@ -213,7 +247,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Lists chats for a user.
+   * List chats for a user.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.ListChats
    */
@@ -221,6 +257,104 @@ export const AiService: GenService<{
     methodKind: "unary";
     input: typeof ListChatsRequestSchema;
     output: typeof ListChatsResponseSchema;
+  },
+  /**
+   * Create a message within a chat.
+   *
+   * Persists the message as-is; no generation is performed. Use
+   * GenerateMessage or StreamGenerateMessage to generate an assistant
+   * message from the chat's history.
+   *
+   * See: https://google.aip.dev/133 (Standard methods: Create).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateMessage
+   */
+  createMessage: {
+    methodKind: "unary";
+    input: typeof CreateMessageRequestSchema;
+    output: typeof MessageSchema;
+  },
+  /**
+   * Get a message.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.GetMessage
+   */
+  getMessage: {
+    methodKind: "unary";
+    input: typeof GetMessageRequestSchema;
+    output: typeof MessageSchema;
+  },
+  /**
+   * Update a message.
+   *
+   * See: https://google.aip.dev/134 (Standard methods: Update).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.UpdateMessage
+   */
+  updateMessage: {
+    methodKind: "unary";
+    input: typeof UpdateMessageRequestSchema;
+    output: typeof MessageSchema;
+  },
+  /**
+   * Delete a message.
+   *
+   * Soft-deleted messages are excluded from the conversation history sent to
+   * ai providers.
+   *
+   * See: https://google.aip.dev/135 (Standard methods: Delete).
+   * See: https://google.aip.dev/164 (Soft delete).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.DeleteMessage
+   */
+  deleteMessage: {
+    methodKind: "unary";
+    input: typeof DeleteMessageRequestSchema;
+    output: typeof MessageSchema;
+  },
+  /**
+   * List messages within a chat.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.ListMessages
+   */
+  listMessages: {
+    methodKind: "unary";
+    input: typeof ListMessagesRequestSchema;
+    output: typeof ListMessagesResponseSchema;
+  },
+  /**
+   * Generates an assistant message from the chat's message history.
+   *
+   * The input `messages` are appended to the chat before generating; the
+   * generated assistant message is persisted under the chat and returned.
+   * If generation fails, the input messages are updated with an error
+   * `status` and excluded from future generations.
+   *
+   * See: https://google.aip.dev/136 (Custom methods).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.GenerateMessage
+   */
+  generateMessage: {
+    methodKind: "unary";
+    input: typeof GenerateMessageRequestSchema;
+    output: typeof GenerateMessageResponseSchema;
+  },
+  /**
+   * Same as GenerateMessage, but streams blocks as they are produced. The
+   * persisted assistant message is sent as the final event of the stream.
+   *
+   * See: https://google.aip.dev/136 (Custom methods).
+   *
+   * @generated from rpc malonaz.ai.ai_service.v1.AiService.StreamGenerateMessage
+   */
+  streamGenerateMessage: {
+    methodKind: "server_streaming";
+    input: typeof GenerateMessageRequestSchema;
+    output: typeof StreamGenerateMessageResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_malonaz_ai_ai_service_v1_ai_service, 0);

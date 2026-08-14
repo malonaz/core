@@ -6,13 +6,8 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_client } from "../../../../google/api/client_pb";
-import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
-import type { TextToTextConfiguration, TextToTextConfigurationValid } from "../../ai_service/v1/text_to_text_pb";
-import { file_malonaz_ai_ai_service_v1_text_to_text } from "../../ai_service/v1/text_to_text_pb";
-import type { GenerationMetrics, ModelUsage } from "../../v1/metrics_pb";
-import { file_malonaz_ai_v1_metrics } from "../../v1/metrics_pb";
 import type { Tool, ToolCall, ToolCallDiscovery, ToolCallRpc, ToolCallValid, ToolResult, ToolResultValid, ToolSchema, ToolSet, ToolSetSchema, ToolSetValid, ToolValid } from "../../v1/tool_pb";
 import { file_malonaz_ai_v1_tool } from "../../v1/tool_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
@@ -21,137 +16,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_engine/v1/ai_engine.proto.
  */
 export const file_malonaz_ai_ai_engine_v1_ai_engine: GenFile = /*@__PURE__*/
-  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxIrIFChZHZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0ElIKFGRlc2NyaXB0b3JfcmVmZXJlbmNlGAEgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuRGVzY3JpcHRvclJlZmVyZW5jZUIGukgDyAEBEigKBW1vZGVsGAIgASgJQhn6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsEg4KBnByb21wdBgDIAEoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgEIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb24SVQoadGV4dF90b190ZXh0X2NvbmZpZ3VyYXRpb24YBSABKAsyMS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvVGV4dENvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpIrEBChdHZW5lcmF0ZU1lc3NhZ2VSZXNwb25zZRIoCgdtZXNzYWdlGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIuCgttb2RlbF91c2FnZRgCIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZRI8ChJnZW5lcmF0aW9uX21ldHJpY3MYAyABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzIpwEChFDcmVhdGVUb29sUmVxdWVzdBJSChRkZXNjcmlwdG9yX3JlZmVyZW5jZRgBIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkRlc2NyaXB0b3JSZWZlcmVuY2VCBrpIA8gBARJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpInUKFFBhcnNlVG9vbENhbGxSZXF1ZXN0EjIKCXRvb2xfY2FsbBgBIAEoCzIXLm1hbG9uYXouYWkudjEuVG9vbENhbGxCBrpIA8gBARIpCgl0b29sX3NldHMYAiADKAsyFi5tYWxvbmF6LmFpLnYxLlRvb2xTZXQirwEKFVBhcnNlVG9vbENhbGxSZXNwb25zZRIqCgdtZXNzYWdlGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEgAEjUKCWRpc2NvdmVyeRgCIAEoCzIgLm1hbG9uYXouYWkudjEuVG9vbENhbGxEaXNjb3ZlcnlIABIpCgNycGMYAyABKAsyGi5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsUnBjSABCCAoGcmVzdWx0InsKGkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0EhQKBG5hbWUYASABKAlCBrpIA8gBARIbCgtkZXNjcmlwdGlvbhgCIAEoCUIGukgDyAEBEioKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sQga6SAPIAQEiwgMKG0NyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBIhChFzZXJ2aWNlX2Z1bGxfbmFtZRgBIAEoCUIGukgDyAEBEhQKDG1ldGhvZF9uYW1lcxgCIAMoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgDIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb24ShgEKI21ldGhvZF9uYW1lX3RvX3NjaGVtYV9jb25maWd1cmF0aW9uGAQgAygLMlkubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0Lk1ldGhvZE5hbWVUb1NjaGVtYUNvbmZpZ3VyYXRpb25FbnRyeRIfChdkaXNjb3ZlcmVkX21ldGhvZF9uYW1lcxgFIAMoCRp0CiRNZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkSCwoDa2V5GAEgASgJEjsKBXZhbHVlGAIgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuU2NoZW1hQ29uZmlndXJhdGlvbjoCOAEiVwodUGFyc2VUb29sQ2FsbFJlY292ZXJhYmxlRXJyb3ISNgoLdG9vbF9yZXN1bHQYASABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCBrpIA8gBASK8AQoTU2NoZW1hQ29uZmlndXJhdGlvbhIuCgpmaWVsZF9tYXNrGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzaxIhCg53aXRoX21heF9kZXB0aBgCIAEoBUIJukgGGgQYCigAEh8KF3dpdGhfcmVzcG9uc2VfcmVhZF9tYXNrGAMgASgIEjEKHndpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aBgEIAEoBUIJukgGGgQYCigAIk4KE0Rlc2NyaXB0b3JSZWZlcmVuY2USEQoHbWVzc2FnZRgBIAEoCUgAEhAKBm1ldGhvZBgCIAEoCUgAQhIKCWZ1bGxfbmFtZRIFukgCCAEymQQKCEFpRW5naW5lEnQKD0dlbmVyYXRlTWVzc2FnZRIvLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QaMC5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5HZW5lcmF0ZU1lc3NhZ2VSZXNwb25zZRJNCgpDcmVhdGVUb29sEioubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlVG9vbFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLlRvb2wSbgoNUGFyc2VUb29sQ2FsbBItLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlBhcnNlVG9vbENhbGxSZXF1ZXN0Gi4ubWFsb25hei5haS5haV9lbmdpbmUudjEuUGFyc2VUb29sQ2FsbFJlc3BvbnNlEl8KE0NyZWF0ZURpc2NvdmVyeVRvb2wSMy5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVEaXNjb3ZlcnlUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbBJkChRDcmVhdGVTZXJ2aWNlVG9vbFNldBI0Lm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBoWLm1hbG9uYXouYWkudjEuVG9vbFNldBoRykEOYWkubWFsb25hei5jb21CMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfZW5naW5lL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_client, file_google_api_resource, file_google_protobuf_field_mask, file_google_protobuf_struct, file_malonaz_ai_ai_service_v1_text_to_text, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool]);
-
-/**
- * Request message for AiEngine.GenerateMessage.
- *
- * @generated from message malonaz.ai.ai_engine.v1.GenerateMessageRequest
- */
-export type GenerateMessageRequest = Message<"malonaz.ai.ai_engine.v1.GenerateMessageRequest"> & {
-  /**
-   * The descriptor reference for the message to generate.
-   *
-   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
-   */
-  descriptorReference?: DescriptorReference;
-
-  /**
-   * The resource name of the model to use.
-   * Format: providers/{provider}/models/{model}
-   *
-   * @generated from field: string model = 2;
-   */
-  model: string;
-
-  /**
-   * The prompt to feed the AI.
-   *
-   * @generated from field: string prompt = 3;
-   */
-  prompt: string;
-
-  /**
-   * Configuration for the schema.
-   *
-   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 4;
-   */
-  schemaConfiguration?: SchemaConfiguration;
-
-  /**
-   * Text to text configuration.
-   *
-   * @generated from field: malonaz.ai.ai_service.v1.TextToTextConfiguration text_to_text_configuration = 5;
-   */
-  textToTextConfiguration?: TextToTextConfiguration;
-};
-
-/**
- * Request message for AiEngine.GenerateMessage.
- *
- * @generated from message malonaz.ai.ai_engine.v1.GenerateMessageRequest
- */
-export type GenerateMessageRequestValid = Message<"malonaz.ai.ai_engine.v1.GenerateMessageRequest"> & {
-  /**
-   * The descriptor reference for the message to generate.
-   *
-   * @generated from field: malonaz.ai.ai_engine.v1.DescriptorReference descriptor_reference = 1;
-   */
-  descriptorReference: DescriptorReferenceValid;
-
-  /**
-   * The resource name of the model to use.
-   * Format: providers/{provider}/models/{model}
-   *
-   * @generated from field: string model = 2;
-   */
-  model: string;
-
-  /**
-   * The prompt to feed the AI.
-   *
-   * @generated from field: string prompt = 3;
-   */
-  prompt: string;
-
-  /**
-   * Configuration for the schema.
-   *
-   * @generated from field: malonaz.ai.ai_engine.v1.SchemaConfiguration schema_configuration = 4;
-   */
-  schemaConfiguration?: SchemaConfigurationValid;
-
-  /**
-   * Text to text configuration.
-   *
-   * @generated from field: malonaz.ai.ai_service.v1.TextToTextConfiguration text_to_text_configuration = 5;
-   */
-  textToTextConfiguration?: TextToTextConfigurationValid;
-};
-
-/**
- * Describes the message malonaz.ai.ai_engine.v1.GenerateMessageRequest.
- * Use `create(GenerateMessageRequestSchema)` to create a new message.
- */
-export const GenerateMessageRequestSchema: GenMessage<GenerateMessageRequest, {validType: GenerateMessageRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 0);
-
-/**
- * Response message for AiEngine.GenerateMessage.
- *
- * @generated from message malonaz.ai.ai_engine.v1.GenerateMessageResponse
- */
-export type GenerateMessageResponse = Message<"malonaz.ai.ai_engine.v1.GenerateMessageResponse"> & {
-  /**
-   * The generated message.
-   *
-   * @generated from field: google.protobuf.Struct message = 1;
-   */
-  message?: JsonObject;
-
-  /**
-   * Model usage metrics.
-   *
-   * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 2;
-   */
-  modelUsage?: ModelUsage;
-
-  /**
-   * Generation metrics.
-   *
-   * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
-   */
-  generationMetrics?: GenerationMetrics;
-};
-
-export type GenerateMessageResponseValid = GenerateMessageResponse;
-
-/**
- * Describes the message malonaz.ai.ai_engine.v1.GenerateMessageResponse.
- * Use `create(GenerateMessageResponseSchema)` to create a new message.
- */
-export const GenerateMessageResponseSchema: GenMessage<GenerateMessageResponse, {validType: GenerateMessageResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 1);
+  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxIpwEChFDcmVhdGVUb29sUmVxdWVzdBJSChRkZXNjcmlwdG9yX3JlZmVyZW5jZRgBIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkRlc2NyaXB0b3JSZWZlcmVuY2VCBrpIA8gBARJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpInUKFFBhcnNlVG9vbENhbGxSZXF1ZXN0EjIKCXRvb2xfY2FsbBgBIAEoCzIXLm1hbG9uYXouYWkudjEuVG9vbENhbGxCBrpIA8gBARIpCgl0b29sX3NldHMYAiADKAsyFi5tYWxvbmF6LmFpLnYxLlRvb2xTZXQirwEKFVBhcnNlVG9vbENhbGxSZXNwb25zZRIqCgdtZXNzYWdlGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEgAEjUKCWRpc2NvdmVyeRgCIAEoCzIgLm1hbG9uYXouYWkudjEuVG9vbENhbGxEaXNjb3ZlcnlIABIpCgNycGMYAyABKAsyGi5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsUnBjSABCCAoGcmVzdWx0InsKGkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0EhQKBG5hbWUYASABKAlCBrpIA8gBARIbCgtkZXNjcmlwdGlvbhgCIAEoCUIGukgDyAEBEioKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sQga6SAPIAQEiwgMKG0NyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBIhChFzZXJ2aWNlX2Z1bGxfbmFtZRgBIAEoCUIGukgDyAEBEhQKDG1ldGhvZF9uYW1lcxgCIAMoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgDIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb24ShgEKI21ldGhvZF9uYW1lX3RvX3NjaGVtYV9jb25maWd1cmF0aW9uGAQgAygLMlkubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0Lk1ldGhvZE5hbWVUb1NjaGVtYUNvbmZpZ3VyYXRpb25FbnRyeRIfChdkaXNjb3ZlcmVkX21ldGhvZF9uYW1lcxgFIAMoCRp0CiRNZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkSCwoDa2V5GAEgASgJEjsKBXZhbHVlGAIgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuU2NoZW1hQ29uZmlndXJhdGlvbjoCOAEiVwodUGFyc2VUb29sQ2FsbFJlY292ZXJhYmxlRXJyb3ISNgoLdG9vbF9yZXN1bHQYASABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCBrpIA8gBASK8AQoTU2NoZW1hQ29uZmlndXJhdGlvbhIuCgpmaWVsZF9tYXNrGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzaxIhCg53aXRoX21heF9kZXB0aBgCIAEoBUIJukgGGgQYCigAEh8KF3dpdGhfcmVzcG9uc2VfcmVhZF9tYXNrGAMgASgIEjEKHndpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aBgEIAEoBUIJukgGGgQYCigAIk4KE0Rlc2NyaXB0b3JSZWZlcmVuY2USEQoHbWVzc2FnZRgBIAEoCUgAEhAKBm1ldGhvZBgCIAEoCUgAQhIKCWZ1bGxfbmFtZRIFukgCCAEytwMKCEFpRW5naW5lElIKCkNyZWF0ZVRvb2wSKi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbCIDkAIBEnMKDVBhcnNlVG9vbENhbGwSLS5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5QYXJzZVRvb2xDYWxsUmVxdWVzdBouLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlBhcnNlVG9vbENhbGxSZXNwb25zZSIDkAIBEmQKE0NyZWF0ZURpc2NvdmVyeVRvb2wSMy5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVEaXNjb3ZlcnlUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbCIDkAIBEmkKFENyZWF0ZVNlcnZpY2VUb29sU2V0EjQubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0GhYubWFsb25hei5haS52MS5Ub29sU2V0IgOQAgEaEcpBDmFpLm1hbG9uYXouY29tQjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX2VuZ2luZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_client, file_google_protobuf_field_mask, file_google_protobuf_struct, file_malonaz_ai_v1_tool]);
 
 /**
  * Request message for AiEngine.CreateTool
@@ -200,7 +65,7 @@ export type CreateToolRequestValid = Message<"malonaz.ai.ai_engine.v1.CreateTool
  * Use `create(CreateToolRequestSchema)` to create a new message.
  */
 export const CreateToolRequestSchema: GenMessage<CreateToolRequest, {validType: CreateToolRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 2);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 0);
 
 /**
  * Request message for AiEngine.ParseToolCall.
@@ -261,7 +126,7 @@ export type ParseToolCallRequestValid = Message<"malonaz.ai.ai_engine.v1.ParseTo
  * Use `create(ParseToolCallRequestSchema)` to create a new message.
  */
 export const ParseToolCallRequestSchema: GenMessage<ParseToolCallRequest, {validType: ParseToolCallRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 3);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 1);
 
 /**
  * Response message for AiEngine.ParseToolCall.
@@ -308,7 +173,7 @@ export type ParseToolCallResponseValid = ParseToolCallResponse;
  * Use `create(ParseToolCallResponseSchema)` to create a new message.
  */
 export const ParseToolCallResponseSchema: GenMessage<ParseToolCallResponse, {validType: ParseToolCallResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 4);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 2);
 
 /**
  * Request message for AiEngine.CreateDiscoveryTool.
@@ -371,7 +236,7 @@ export type CreateDiscoveryToolRequestValid = Message<"malonaz.ai.ai_engine.v1.C
  * Use `create(CreateDiscoveryToolRequestSchema)` to create a new message.
  */
 export const CreateDiscoveryToolRequestSchema: GenMessage<CreateDiscoveryToolRequest, {validType: CreateDiscoveryToolRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 5);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 3);
 
 /**
  * Request message for AiEngine.CreateServiceToolSet.
@@ -468,7 +333,7 @@ export type CreateServiceToolSetRequestValid = Message<"malonaz.ai.ai_engine.v1.
  * Use `create(CreateServiceToolSetRequestSchema)` to create a new message.
  */
 export const CreateServiceToolSetRequestSchema: GenMessage<CreateServiceToolSetRequest, {validType: CreateServiceToolSetRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 6);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 4);
 
 /**
  * Error detail indicating the error can be fed back to the AI for correction.
@@ -505,7 +370,7 @@ export type ParseToolCallRecoverableErrorValid = Message<"malonaz.ai.ai_engine.v
  * Use `create(ParseToolCallRecoverableErrorSchema)` to create a new message.
  */
 export const ParseToolCallRecoverableErrorSchema: GenMessage<ParseToolCallRecoverableError, {validType: ParseToolCallRecoverableErrorValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 5);
 
 /**
  * Configuration for a tool set schema.
@@ -552,7 +417,7 @@ export type SchemaConfigurationValid = SchemaConfiguration;
  * Use `create(SchemaConfigurationSchema)` to create a new message.
  */
 export const SchemaConfigurationSchema: GenMessage<SchemaConfiguration, {validType: SchemaConfigurationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 8);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 6);
 
 /**
  * A reference to a protobuf descriptor.
@@ -591,28 +456,51 @@ export type DescriptorReferenceValid = DescriptorReference;
  * Use `create(DescriptorReferenceSchema)` to create a new message.
  */
 export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validType: DescriptorReferenceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 9);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
 
 /**
- * This API represents an AI Engine service for structured message generation.
+ * This API represents an AI Engine service for structured, proto-driven tool
+ * calling.
  *
- * It provides tools for generating protobuf messages from natural language prompts.
+ * # Capabilities
+ *
+ * - Tool creation: derive an [ai.v1.Tool][malonaz.ai.v1.Tool] — name,
+ *   description, and JSON schema — from a protobuf message or method
+ *   descriptor, so a model can emit arguments that map back onto typed
+ *   protos.
+ * - Tool call parsing: validate a model-emitted
+ *   [ToolCall][malonaz.ai.v1.ToolCall] against the schema of the tool that
+ *   created it, returning the parsed arguments as a typed result.
+ * - Tool discovery: bundle many tools behind a single discovery tool so
+ *   large tool surfaces don't bloat the model's context. The model first
+ *   calls the discovery tool to reveal the tools it needs, then calls them.
+ * - Service tool sets: turn an entire gRPC service into a discoverable
+ *   [ToolSet][malonaz.ai.v1.ToolSet], one tool per method, letting a model
+ *   drive the service through tool calls.
+ *
+ * # Typical flow
+ *
+ * 1. CreateTool / CreateServiceToolSet to build the tools offered to the
+ *    model alongside a generation request.
+ * 2. The model emits tool calls during generation.
+ * 3. ParseToolCall to turn each raw tool call into a typed result: a parsed
+ *    message, a discovery request, or an RPC request.
+ *
+ * Recoverable parse failures carry a
+ * [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+ * error detail whose tool result can be appended to the conversation so the
+ * model can correct itself and retry.
  *
  * @generated from service malonaz.ai.ai_engine.v1.AiEngine
  */
 export const AiEngine: GenService<{
   /**
-   * Under the hood calls `CreateTool`, calls the AI service and then calls `ParseMessage`.
+   * Create a tool from a protobuf descriptor.
    *
-   * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.GenerateMessage
-   */
-  generateMessage: {
-    methodKind: "unary";
-    input: typeof GenerateMessageRequestSchema;
-    output: typeof GenerateMessageResponseSchema;
-  },
-  /**
-   * Create a tool to generate a message.
+   * The referenced message or method descriptor is converted into a tool
+   * whose JSON schema mirrors the proto's fields, filtered and bounded by
+   * the optional schema configuration. Tool calls produced against this
+   * tool can be parsed back into the proto via ParseToolCall.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateTool
    */
@@ -622,7 +510,17 @@ export const AiEngine: GenService<{
     output: typeof ToolSchema;
   },
   /**
-   * Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
+   * Parse a tool call emitted against a tool created by this service.
+   *
+   * Validates the call's arguments against the originating tool's schema
+   * and returns exactly one of:
+   * - a parsed message (generic tools created by CreateTool),
+   * - a discovery request (calls to a discovery tool),
+   * - an RPC request (calls to a method tool from a service tool set).
+   *
+   * When the failure is correctable by the model, the error carries a
+   * [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+   * detail ready to be fed back into the conversation.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall
    */
@@ -632,7 +530,11 @@ export const AiEngine: GenService<{
     output: typeof ParseToolCallResponseSchema;
   },
   /**
-   * Creates a discovery tool for a set of tools.
+   * Create a discovery tool for a set of tools.
+   *
+   * The returned tool exposes only the names and descriptions of the
+   * underlying tools; the model calls it to request the full schema of the
+   * tools it actually needs, keeping unused schemas out of its context.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool
    */
@@ -642,9 +544,12 @@ export const AiEngine: GenService<{
     output: typeof ToolSchema;
   },
   /**
-   * Creates a discoverable tool set for a gRPC service.
+   * Create a discoverable tool set for a gRPC service.
+   *
    * The tool set includes a discovery tool that lists available method tools,
    * and individual tools for each method in the service.
+   * Methods listed in `discovered_method_names` are exposed immediately,
+   * without requiring a discovery round trip.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet
    */

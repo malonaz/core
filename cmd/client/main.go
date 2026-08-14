@@ -16,13 +16,14 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
 )
 
 var (
 	socket          = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
-	model           = flag.String("model", "providers/anthropic/models/claude-sonnet-4-20250514", "Model resource name")
+	model           = flag.String("model", "providers/anthropic/models/claude-opus-4.6", "Model resource name")
 	systemMessage   = flag.String("system", "You are a helpful assistant.", "System message")
 	userMessage     = flag.String("message", "", "User message (empty for interactive mode)")
 	maxTokens       = flag.Int("max-tokens", 10000, "Max tokens to generate")
@@ -36,7 +37,24 @@ var (
 	imageAspect     = flag.String("image-aspect", "1:1", "Aspect ratio for generated images")
 	imageSize       = flag.String("image-size", "", "Image size: 1K, 2K, 4K (Gemini 3 Pro Image only)")
 	imageOutput     = flag.String("image-output", "generated.png", "Output path for generated images")
+	chatName        = flag.String("chat", "", "Chat resource name (empty to auto-generate one)")
 )
+
+// chat returns the chat resource name to converse under, generating one if unset.
+// The server lazily creates the chat and owns the conversation history.
+func chat() string {
+	if *chatName != "" {
+		return *chatName
+	}
+	chatRn := &aipb.ChatResourceName{
+		Organization: "unknown",
+		User:         "unknown",
+		Chat:         aip.NewSystemGeneratedBase32ResourceID(),
+	}
+	*chatName = chatRn.String()
+	fmt.Printf("[chat: %s]\n", *chatName)
+	return *chatName
+}
 
 const (
 	colorYellow = "\033[1;33m"
@@ -88,9 +106,9 @@ func run() error {
 }
 
 func runInteractive(ctx context.Context, client aiservicepb.AiServiceClient) error {
-	messages := []*aipb.Message{
-		ai.NewSystemMessage(ai.NewTextBlock(*systemMessage)),
-	}
+	// The system message is only sent on the first turn: the server persists
+	// the conversation under the chat.
+	firstTurn := true
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("\n%sEntering multi-turn mode. Type 'exit' to quit.%s\n\n", colorGreen, colorReset)
@@ -117,19 +135,20 @@ func runInteractive(ctx context.Context, client aiservicepb.AiServiceClient) err
 			break
 		}
 
+		var messages []*aipb.Message
+		if firstTurn {
+			messages = append(messages, ai.NewSystemMessage(ai.NewTextBlock(*systemMessage)))
+		}
 		messages = append(messages, ai.NewUserMessage(ai.NewTextBlock(input)))
 
 		fmt.Printf("%sAssistant: %s", colorCyan, colorReset)
 		os.Stdout.Sync()
 
-		assistantMsg, err := sendMessage(ctx, client, messages, &imageIndex)
-		if err != nil {
+		if _, err := sendMessage(ctx, client, messages, &imageIndex); err != nil {
 			fmt.Printf("\n%sError: %v%s\n", "\033[1;31m", err, colorReset)
-			messages = messages[:len(messages)-1]
 			continue
 		}
-
-		messages = append(messages, assistantMsg)
+		firstTurn = false
 		fmt.Println()
 	}
 
@@ -142,16 +161,17 @@ func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messag
 		return nil, err
 	}
 
-	request := &aiservicepb.TextToTextStreamRequest{
+	request := &aiservicepb.GenerateMessageRequest{
+		Parent:        chat(),
 		Model:         *model,
 		Messages:      messages,
 		Tools:         buildTools(),
 		Configuration: config,
 	}
 
-	stream, err := client.TextToTextStream(ctx, request)
+	stream, err := client.StreamGenerateMessage(ctx, request)
 	if err != nil {
-		return nil, fmt.Errorf("calling TextToTextStream: %w", err)
+		return nil, fmt.Errorf("calling StreamGenerateMessage: %w", err)
 	}
 
 	var blocks []*aipb.Block
@@ -167,7 +187,7 @@ func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messag
 		}
 
 		switch c := response.Content.(type) {
-		case *aiservicepb.TextToTextStreamResponse_Block:
+		case *aiservicepb.StreamGenerateMessageResponse_Block:
 			acc := getOrCreateAccumulator(blockContents, c.Block.Index)
 			acc.merge(c.Block)
 
@@ -186,13 +206,13 @@ func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messag
 				saveGeneratedImage(c.Block.GetImage(), imageIndex)
 			}
 
-		case *aiservicepb.TextToTextStreamResponse_StopReason:
+		case *aiservicepb.StreamGenerateMessageResponse_StopReason:
 			fmt.Printf("\n[Stop: %s]", c.StopReason)
 
-		case *aiservicepb.TextToTextStreamResponse_ModelUsage:
+		case *aiservicepb.StreamGenerateMessageResponse_ModelUsage:
 			printModelUsageCompact(c.ModelUsage)
 
-		case *aiservicepb.TextToTextStreamResponse_GenerationMetrics:
+		case *aiservicepb.StreamGenerateMessageResponse_GenerationMetrics:
 			printGenerationMetricsCompact(c.GenerationMetrics)
 		}
 	}
@@ -314,8 +334,8 @@ func printRequestInfo() {
 	fmt.Println("└─────────────────────────────────────────────────────────")
 }
 
-func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
-	config := &aiservicepb.TextToTextConfiguration{
+func buildConfig() (*aiservicepb.MessageGenerationConfiguration, error) {
+	config := &aiservicepb.MessageGenerationConfiguration{
 		MaxTokens:              int32(*maxTokens),
 		Temperature:            float64(*temperature),
 		StreamPartialToolCalls: true,
@@ -337,7 +357,7 @@ func buildConfig() (*aiservicepb.TextToTextConfiguration, error) {
 	}
 
 	if *generateImage {
-		config.ImageConfig = &aiservicepb.ImageGenerationConfig{
+		config.ImageConfiguration = &aiservicepb.ImageGenerationConfiguration{
 			AspectRatio: *imageAspect,
 			ImageSize:   *imageSize,
 		}
@@ -418,16 +438,17 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return err
 	}
 
-	request := &aiservicepb.TextToTextStreamRequest{
+	request := &aiservicepb.GenerateMessageRequest{
+		Parent:        chat(),
 		Model:         *model,
 		Messages:      messages,
 		Tools:         buildTools(),
 		Configuration: config,
 	}
 
-	stream, err := client.TextToTextStream(ctx, request)
+	stream, err := client.StreamGenerateMessage(ctx, request)
 	if err != nil {
-		return fmt.Errorf("calling TextToTextStream: %w", err)
+		return fmt.Errorf("calling StreamGenerateMessage: %w", err)
 	}
 
 	imageIndex := 0
@@ -458,16 +479,17 @@ func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return err
 	}
 
-	request := &aiservicepb.TextToTextRequest{
+	request := &aiservicepb.GenerateMessageRequest{
+		Parent:        chat(),
 		Model:         *model,
 		Messages:      messages,
 		Tools:         buildTools(),
 		Configuration: config,
 	}
 
-	response, err := client.TextToText(ctx, request)
+	response, err := client.GenerateMessage(ctx, request)
 	if err != nil {
-		return fmt.Errorf("calling TextToText: %w", err)
+		return fmt.Errorf("calling GenerateMessage: %w", err)
 	}
 
 	handleUnaryResponse(response)
@@ -476,9 +498,9 @@ func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {
 	return nil
 }
 
-func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageIndex *int) {
+func handleStreamResponse(response *aiservicepb.StreamGenerateMessageResponse, imageIndex *int) {
 	switch content := response.Content.(type) {
-	case *aiservicepb.TextToTextStreamResponse_Block:
+	case *aiservicepb.StreamGenerateMessageResponse_Block:
 		block := content.Block
 
 		if block.GetText() != "" {
@@ -499,20 +521,20 @@ func handleStreamResponse(response *aiservicepb.TextToTextStreamResponse, imageI
 			saveGeneratedImage(block.GetImage(), imageIndex)
 		}
 
-	case *aiservicepb.TextToTextStreamResponse_StopReason:
+	case *aiservicepb.StreamGenerateMessageResponse_StopReason:
 		fmt.Printf("\n[Stop Reason: %s]\n", content.StopReason)
 
-	case *aiservicepb.TextToTextStreamResponse_ModelUsage:
+	case *aiservicepb.StreamGenerateMessageResponse_ModelUsage:
 		printModelUsage(content.ModelUsage)
 
-	case *aiservicepb.TextToTextStreamResponse_GenerationMetrics:
+	case *aiservicepb.StreamGenerateMessageResponse_GenerationMetrics:
 		printGenerationMetrics(content.GenerationMetrics)
 	}
 }
 
-func handleUnaryResponse(response *aiservicepb.TextToTextResponse) {
-	if response.Message != nil {
-		for _, block := range response.Message.Blocks {
+func handleUnaryResponse(response *aiservicepb.GenerateMessageResponse) {
+	if response.GeneratedMessage != nil {
+		for _, block := range response.GeneratedMessage.Blocks {
 			if block.GetThought() != "" {
 				fmt.Printf("%s%s%s\n", colorYellow, block.GetThought(), colorReset)
 			}

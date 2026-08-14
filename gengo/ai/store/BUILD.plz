@@ -1,6 +1,9 @@
 go_library(
     name = "store",
-    srcs = ["chat_postgres.pb.go"],
+    srcs = [
+        "chat_postgres.pb.go",
+        "message_postgres.pb.go",
+    ],
     visibility = ["//..."],
     deps = [
         "//go/ai/model",

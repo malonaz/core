@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "chat_model.pb.go",
         "errors_model.pb.go",
+        "labels_model.pb.go",
         "message_model.pb.go",
         "metrics_model.pb.go",
         "model_model.pb.go",
@@ -15,5 +16,6 @@ go_library(
         "//malonaz/ai/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__rpc__status",
     ],
 )

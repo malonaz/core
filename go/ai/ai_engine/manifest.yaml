@@ -5,6 +5,3 @@ dependencies:
   - type: grpc_client
     proto: //third_party/proto:grpc__reflection__v1
     service: server-reflection
-  - type: grpc_client
-    proto: //malonaz/ai/ai_service/v1
-    service: ai-service

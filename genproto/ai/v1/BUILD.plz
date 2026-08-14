@@ -4,7 +4,10 @@ go_library(
         "chat.pb.go",
         "chat_aip.go",
         "errors.pb.go",
+        "labels.pb.go",
+        "labels_aip_label.pb.go",
         "message.pb.go",
+        "message_aip.go",
         "metrics.pb.go",
         "model.pb.go",
         "model_aip.go",
@@ -15,6 +18,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//malonaz/audio/v1",
+        "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//malonaz/json/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
