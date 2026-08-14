@@ -30,6 +30,11 @@ type AiEngineClient interface {
 	// the optional schema configuration. Tool calls produced against this
 	// tool can be parsed back into the proto via ParseToolCall.
 	CreateTool(ctx context.Context, in *CreateToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
+	// Create multiple tools in a single call.
+	//
+	// Equivalent to calling CreateTool for each request; tools are returned in
+	// the same order as the requests.
+	BatchCreateTools(ctx context.Context, in *BatchCreateToolsRequest, opts ...grpc.CallOption) (*BatchCreateToolsResponse, error)
 	// Parse a tool call emitted against a tool created by this service.
 	//
 	// Validates the call's arguments against the originating tool's schema
@@ -74,6 +79,15 @@ func (c *aiEngineClient) CreateTool(ctx context.Context, in *CreateToolRequest, 
 	return out, nil
 }
 
+func (c *aiEngineClient) BatchCreateTools(ctx context.Context, in *BatchCreateToolsRequest, opts ...grpc.CallOption) (*BatchCreateToolsResponse, error) {
+	out := new(BatchCreateToolsResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/BatchCreateTools", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiEngineClient) ParseToolCall(ctx context.Context, in *ParseToolCallRequest, opts ...grpc.CallOption) (*ParseToolCallResponse, error) {
 	out := new(ParseToolCallResponse)
 	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_engine.v1.AiEngine/ParseToolCall", in, out, opts...)
@@ -112,6 +126,11 @@ type AiEngineServer interface {
 	// the optional schema configuration. Tool calls produced against this
 	// tool can be parsed back into the proto via ParseToolCall.
 	CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error)
+	// Create multiple tools in a single call.
+	//
+	// Equivalent to calling CreateTool for each request; tools are returned in
+	// the same order as the requests.
+	BatchCreateTools(context.Context, *BatchCreateToolsRequest) (*BatchCreateToolsResponse, error)
 	// Parse a tool call emitted against a tool created by this service.
 	//
 	// Validates the call's arguments against the originating tool's schema
@@ -145,6 +164,9 @@ type UnimplementedAiEngineServer struct {
 
 func (UnimplementedAiEngineServer) CreateTool(context.Context, *CreateToolRequest) (*v1.Tool, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTool not implemented")
+}
+func (UnimplementedAiEngineServer) BatchCreateTools(context.Context, *BatchCreateToolsRequest) (*BatchCreateToolsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreateTools not implemented")
 }
 func (UnimplementedAiEngineServer) ParseToolCall(context.Context, *ParseToolCallRequest) (*ParseToolCallResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseToolCall not implemented")
@@ -181,6 +203,24 @@ func _AiEngine_CreateTool_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiEngineServer).CreateTool(ctx, req.(*CreateToolRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiEngine_BatchCreateTools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateToolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiEngineServer).BatchCreateTools(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_engine.v1.AiEngine/BatchCreateTools",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiEngineServer).BatchCreateTools(ctx, req.(*BatchCreateToolsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -249,6 +289,10 @@ var AiEngine_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTool",
 			Handler:    _AiEngine_CreateTool_Handler,
+		},
+		{
+			MethodName: "BatchCreateTools",
+			Handler:    _AiEngine_BatchCreateTools_Handler,
 		},
 		{
 			MethodName: "ParseToolCall",

@@ -123,6 +123,128 @@ func (b0 CreateToolRequest_builder) Build() *CreateToolRequest {
 	return m0
 }
 
+// Request message for AiEngine.BatchCreateTools.
+type BatchCreateToolsRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Requests *[]*CreateToolRequest  `protobuf:"bytes,1,rep,name=requests,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *BatchCreateToolsRequest) Reset() {
+	*x = BatchCreateToolsRequest{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateToolsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateToolsRequest) ProtoMessage() {}
+
+func (x *BatchCreateToolsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateToolsRequest) GetRequests() []*CreateToolRequest {
+	if x != nil {
+		if x.xxx_hidden_Requests != nil {
+			return *x.xxx_hidden_Requests
+		}
+	}
+	return nil
+}
+
+func (x *BatchCreateToolsRequest) SetRequests(v []*CreateToolRequest) {
+	x.xxx_hidden_Requests = &v
+}
+
+type BatchCreateToolsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The tool creation requests.
+	Requests []*CreateToolRequest
+}
+
+func (b0 BatchCreateToolsRequest_builder) Build() *BatchCreateToolsRequest {
+	m0 := &BatchCreateToolsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Requests = &b.Requests
+	return m0
+}
+
+// Response message for AiEngine.BatchCreateTools.
+type BatchCreateToolsResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Tools *[]*v1.Tool            `protobuf:"bytes,1,rep,name=tools,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *BatchCreateToolsResponse) Reset() {
+	*x = BatchCreateToolsResponse{}
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateToolsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateToolsResponse) ProtoMessage() {}
+
+func (x *BatchCreateToolsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateToolsResponse) GetTools() []*v1.Tool {
+	if x != nil {
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
+	}
+	return nil
+}
+
+func (x *BatchCreateToolsResponse) SetTools(v []*v1.Tool) {
+	x.xxx_hidden_Tools = &v
+}
+
+type BatchCreateToolsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The created tools, in the same order as the requests.
+	Tools []*v1.Tool
+}
+
+func (b0 BatchCreateToolsResponse_builder) Build() *BatchCreateToolsResponse {
+	m0 := &BatchCreateToolsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Tools = &b.Tools
+	return m0
+}
+
 // Request message for AiEngine.ParseToolCall.
 type ParseToolCallRequest struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
@@ -134,7 +256,7 @@ type ParseToolCallRequest struct {
 
 func (x *ParseToolCallRequest) Reset() {
 	*x = ParseToolCallRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -146,7 +268,7 @@ func (x *ParseToolCallRequest) String() string {
 func (*ParseToolCallRequest) ProtoMessage() {}
 
 func (x *ParseToolCallRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -227,7 +349,7 @@ type ParseToolCallResponse struct {
 
 func (x *ParseToolCallResponse) Reset() {
 	*x = ParseToolCallResponse{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -239,7 +361,7 @@ func (x *ParseToolCallResponse) String() string {
 func (*ParseToolCallResponse) ProtoMessage() {}
 
 func (x *ParseToolCallResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +531,7 @@ func (b0 ParseToolCallResponse_builder) Build() *ParseToolCallResponse {
 type case_ParseToolCallResponse_Result protoreflect.FieldNumber
 
 func (x case_ParseToolCallResponse_Result) String() string {
-	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2].Descriptor()
+	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -453,7 +575,7 @@ type CreateDiscoveryToolRequest struct {
 
 func (x *CreateDiscoveryToolRequest) Reset() {
 	*x = CreateDiscoveryToolRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -465,7 +587,7 @@ func (x *CreateDiscoveryToolRequest) String() string {
 func (*CreateDiscoveryToolRequest) ProtoMessage() {}
 
 func (x *CreateDiscoveryToolRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -546,7 +668,7 @@ type CreateServiceToolSetRequest struct {
 
 func (x *CreateServiceToolSetRequest) Reset() {
 	*x = CreateServiceToolSetRequest{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -558,7 +680,7 @@ func (x *CreateServiceToolSetRequest) String() string {
 func (*CreateServiceToolSetRequest) ProtoMessage() {}
 
 func (x *CreateServiceToolSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +798,7 @@ type ParseToolCallRecoverableError struct {
 
 func (x *ParseToolCallRecoverableError) Reset() {
 	*x = ParseToolCallRecoverableError{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -688,7 +810,7 @@ func (x *ParseToolCallRecoverableError) String() string {
 func (*ParseToolCallRecoverableError) ProtoMessage() {}
 
 func (x *ParseToolCallRecoverableError) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +871,7 @@ type SchemaConfiguration struct {
 
 func (x *SchemaConfiguration) Reset() {
 	*x = SchemaConfiguration{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -761,7 +883,7 @@ func (x *SchemaConfiguration) String() string {
 func (*SchemaConfiguration) ProtoMessage() {}
 
 func (x *SchemaConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -864,7 +986,7 @@ type DescriptorReference struct {
 
 func (x *DescriptorReference) Reset() {
 	*x = DescriptorReference{}
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -876,7 +998,7 @@ func (x *DescriptorReference) String() string {
 func (*DescriptorReference) ProtoMessage() {}
 
 func (x *DescriptorReference) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -999,7 +1121,7 @@ func (b0 DescriptorReference_builder) Build() *DescriptorReference {
 type case_DescriptorReference_FullName protoreflect.FieldNumber
 
 func (x case_DescriptorReference_FullName) String() string {
-	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7].Descriptor()
+	md := file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1032,7 +1154,11 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x11CreateToolRequest\x12g\n" +
 	"\x14descriptor_reference\x18\x01 \x01(\v2,.malonaz.ai.ai_engine.v1.DescriptorReferenceB\x06\xbaH\x03\xc8\x01\x01R\x13descriptorReference\x12_\n" +
 	"\x14schema_configuration\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x13schemaConfiguration:\xe6\x02\xbaH\xe2\x02\x1a\xdf\x02\n" +
-	"\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"\x89\x01\n" +
+	"\x1dschema_config_requires_method\x12Twith_response_read_mask and with_response_schema_max_depth require method descriptor\x1a\xe7\x01(!has(this.schema_configuration) || (!this.schema_configuration.with_response_read_mask && this.schema_configuration.with_response_schema_max_depth == 0)) || (has(this.descriptor_reference) && has(this.descriptor_reference.method))\"k\n" +
+	"\x17BatchCreateToolsRequest\x12P\n" +
+	"\brequests\x18\x01 \x03(\v2*.malonaz.ai.ai_engine.v1.CreateToolRequestB\b\xbaH\x05\x92\x01\x02\b\x01R\brequests\"E\n" +
+	"\x18BatchCreateToolsResponse\x12)\n" +
+	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x89\x01\n" +
 	"\x14ParseToolCallRequest\x12<\n" +
 	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x123\n" +
 	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xc8\x01\n" +
@@ -1068,61 +1194,68 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
-	"\tfull_name\x12\x05\xbaH\x02\b\x012\xb7\x03\n" +
+	"\tfull_name\x12\x05\xbaH\x02\b\x012\xb5\x04\n" +
 	"\bAiEngine\x12R\n" +
 	"\n" +
-	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12s\n" +
+	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12|\n" +
+	"\x10BatchCreateTools\x120.malonaz.ai.ai_engine.v1.BatchCreateToolsRequest\x1a1.malonaz.ai.ai_engine.v1.BatchCreateToolsResponse\"\x03\x90\x02\x01\x12s\n" +
 	"\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\"\x03\x90\x02\x01\x12d\n" +
 	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12i\n" +
 	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a\x16.malonaz.ai.v1.ToolSet\"\x03\x90\x02\x01\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
 
-var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*CreateToolRequest)(nil),             // 0: malonaz.ai.ai_engine.v1.CreateToolRequest
-	(*ParseToolCallRequest)(nil),          // 1: malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	(*ParseToolCallResponse)(nil),         // 2: malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	(*CreateDiscoveryToolRequest)(nil),    // 3: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	(*CreateServiceToolSetRequest)(nil),   // 4: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	(*ParseToolCallRecoverableError)(nil), // 5: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError
-	(*SchemaConfiguration)(nil),           // 6: malonaz.ai.ai_engine.v1.SchemaConfiguration
-	(*DescriptorReference)(nil),           // 7: malonaz.ai.ai_engine.v1.DescriptorReference
-	nil,                                   // 8: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
-	(*v1.ToolCall)(nil),                   // 9: malonaz.ai.v1.ToolCall
-	(*v1.ToolSet)(nil),                    // 10: malonaz.ai.v1.ToolSet
-	(*structpb.Struct)(nil),               // 11: google.protobuf.Struct
-	(*v1.ToolCallDiscovery)(nil),          // 12: malonaz.ai.v1.ToolCallDiscovery
-	(*v1.ToolCallRpc)(nil),                // 13: malonaz.ai.v1.ToolCallRpc
-	(*v1.Tool)(nil),                       // 14: malonaz.ai.v1.Tool
-	(*v1.ToolResult)(nil),                 // 15: malonaz.ai.v1.ToolResult
-	(*fieldmaskpb.FieldMask)(nil),         // 16: google.protobuf.FieldMask
+	(*BatchCreateToolsRequest)(nil),       // 1: malonaz.ai.ai_engine.v1.BatchCreateToolsRequest
+	(*BatchCreateToolsResponse)(nil),      // 2: malonaz.ai.ai_engine.v1.BatchCreateToolsResponse
+	(*ParseToolCallRequest)(nil),          // 3: malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	(*ParseToolCallResponse)(nil),         // 4: malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	(*CreateDiscoveryToolRequest)(nil),    // 5: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	(*CreateServiceToolSetRequest)(nil),   // 6: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	(*ParseToolCallRecoverableError)(nil), // 7: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError
+	(*SchemaConfiguration)(nil),           // 8: malonaz.ai.ai_engine.v1.SchemaConfiguration
+	(*DescriptorReference)(nil),           // 9: malonaz.ai.ai_engine.v1.DescriptorReference
+	nil,                                   // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
+	(*v1.Tool)(nil),                       // 11: malonaz.ai.v1.Tool
+	(*v1.ToolCall)(nil),                   // 12: malonaz.ai.v1.ToolCall
+	(*v1.ToolSet)(nil),                    // 13: malonaz.ai.v1.ToolSet
+	(*structpb.Struct)(nil),               // 14: google.protobuf.Struct
+	(*v1.ToolCallDiscovery)(nil),          // 15: malonaz.ai.v1.ToolCallDiscovery
+	(*v1.ToolCallRpc)(nil),                // 16: malonaz.ai.v1.ToolCallRpc
+	(*v1.ToolResult)(nil),                 // 17: malonaz.ai.v1.ToolResult
+	(*fieldmaskpb.FieldMask)(nil),         // 18: google.protobuf.FieldMask
 }
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
-	6,  // 1: malonaz.ai.ai_engine.v1.CreateToolRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	9,  // 2: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	10, // 3: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
-	11, // 4: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
-	12, // 5: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discovery:type_name -> malonaz.ai.v1.ToolCallDiscovery
-	13, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc:type_name -> malonaz.ai.v1.ToolCallRpc
-	14, // 7: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
-	6,  // 8: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	8,  // 9: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
-	15, // 10: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError.tool_result:type_name -> malonaz.ai.v1.ToolResult
-	16, // 11: malonaz.ai.ai_engine.v1.SchemaConfiguration.field_mask:type_name -> google.protobuf.FieldMask
-	6,  // 12: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry.value:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
-	0,  // 13: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
-	1,  // 14: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
-	3,  // 15: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
-	4,  // 16: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
-	14, // 17: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
-	2,  // 18: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
-	14, // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
-	10, // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.v1.ToolSet
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	9,  // 0: malonaz.ai.ai_engine.v1.CreateToolRequest.descriptor_reference:type_name -> malonaz.ai.ai_engine.v1.DescriptorReference
+	8,  // 1: malonaz.ai.ai_engine.v1.CreateToolRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
+	0,  // 2: malonaz.ai.ai_engine.v1.BatchCreateToolsRequest.requests:type_name -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	11, // 3: malonaz.ai.ai_engine.v1.BatchCreateToolsResponse.tools:type_name -> malonaz.ai.v1.Tool
+	12, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	13, // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	14, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
+	15, // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discovery:type_name -> malonaz.ai.v1.ToolCallDiscovery
+	16, // 8: malonaz.ai.ai_engine.v1.ParseToolCallResponse.rpc:type_name -> malonaz.ai.v1.ToolCallRpc
+	11, // 9: malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest.tools:type_name -> malonaz.ai.v1.Tool
+	8,  // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
+	10, // 11: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.method_name_to_schema_configuration:type_name -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
+	17, // 12: malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError.tool_result:type_name -> malonaz.ai.v1.ToolResult
+	18, // 13: malonaz.ai.ai_engine.v1.SchemaConfiguration.field_mask:type_name -> google.protobuf.FieldMask
+	8,  // 14: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry.value:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
+	0,  // 15: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:input_type -> malonaz.ai.ai_engine.v1.CreateToolRequest
+	1,  // 16: malonaz.ai.ai_engine.v1.AiEngine.BatchCreateTools:input_type -> malonaz.ai.ai_engine.v1.BatchCreateToolsRequest
+	3,  // 17: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:input_type -> malonaz.ai.ai_engine.v1.ParseToolCallRequest
+	5,  // 18: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:input_type -> malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest
+	6,  // 19: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:input_type -> malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest
+	11, // 20: malonaz.ai.ai_engine.v1.AiEngine.CreateTool:output_type -> malonaz.ai.v1.Tool
+	2,  // 21: malonaz.ai.ai_engine.v1.AiEngine.BatchCreateTools:output_type -> malonaz.ai.ai_engine.v1.BatchCreateToolsResponse
+	4,  // 22: malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall:output_type -> malonaz.ai.ai_engine.v1.ParseToolCallResponse
+	11, // 23: malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool:output_type -> malonaz.ai.v1.Tool
+	13, // 24: malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet:output_type -> malonaz.ai.v1.ToolSet
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() }
@@ -1130,12 +1263,12 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 	if File_malonaz_ai_ai_engine_v1_ai_engine_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[2].OneofWrappers = []any{
+	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[4].OneofWrappers = []any{
 		(*parseToolCallResponse_Message)(nil),
 		(*parseToolCallResponse_Discovery)(nil),
 		(*parseToolCallResponse_Rpc)(nil),
 	}
-	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[7].OneofWrappers = []any{
+	file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes[9].OneofWrappers = []any{
 		(*descriptorReference_Message)(nil),
 		(*descriptorReference_Method)(nil),
 	}
@@ -1145,7 +1278,7 @@ func file_malonaz_ai_ai_engine_v1_ai_engine_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc), len(file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

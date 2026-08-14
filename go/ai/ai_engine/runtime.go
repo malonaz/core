@@ -2,13 +2,17 @@ package ai_engine
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -34,6 +38,12 @@ type Opts struct {
 
 type runtime struct {
 	reflectionServerOptions *reflection.ServerOptions
+
+	// Tool schemas are derived from proto descriptors fixed at build time, so an
+	// identical request always yields an identical tool: caching on a
+	// deterministic hash of the request avoids rebuilding schemas.
+	toolCacheMutex sync.RWMutex
+	hashToTool     map[string]*aipb.Tool
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
@@ -93,6 +103,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 
 	return &runtime{
 		reflectionServerOptions: reflectionServerOptions,
+		hashToTool:              map[string]*aipb.Tool{},
 	}, nil
 }
 
@@ -114,6 +125,17 @@ func (s *Service) getSchema(ctx context.Context) (*pbreflection.Schema, error) {
 }
 
 func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest) (*aipb.Tool, error) {
+	hash, err := hashRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	s.toolCacheMutex.RLock()
+	cachedTool, ok := s.hashToTool[hash]
+	s.toolCacheMutex.RUnlock()
+	if ok {
+		return proto.CloneOf(cachedTool), nil
+	}
+
 	schema, err := s.getSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -194,12 +216,41 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		return nil, status.Errorf(codes.Internal, "building schema: %v", err).Err()
 	}
 
-	return &aipb.Tool{
+	tool := &aipb.Tool{
 		Name:        toolName,
 		Description: toolDescription,
 		JsonSchema:  jsonSchema,
 		Annotations: annotations,
-	}, nil
+	}
+	s.toolCacheMutex.Lock()
+	s.hashToTool[hash] = tool
+	s.toolCacheMutex.Unlock()
+	return proto.CloneOf(tool), nil
+}
+
+// hashRequest produces a stable hash of a request. Deterministic marshaling is
+// required because protobuf wire output is otherwise unstable across map
+// iteration order.
+func hashRequest(message proto.Message) (string, error) {
+	marshalOptions := proto.MarshalOptions{Deterministic: true}
+	bytes, err := marshalOptions.Marshal(message)
+	if err != nil {
+		return "", status.Errorf(codes.Internal, "marshaling request: %v", err).Err()
+	}
+	sum := sha256.Sum256(bytes)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func (s *Service) BatchCreateTools(ctx context.Context, request *pb.BatchCreateToolsRequest) (*pb.BatchCreateToolsResponse, error) {
+	tools := make([]*aipb.Tool, len(request.GetRequests()))
+	for i, createToolRequest := range request.GetRequests() {
+		tool, err := s.CreateTool(ctx, createToolRequest)
+		if err != nil {
+			return nil, err
+		}
+		tools[i] = tool
+	}
+	return &pb.BatchCreateToolsResponse{Tools: tools}, nil
 }
 
 func (s *Service) ParseToolCall(ctx context.Context, request *pb.ParseToolCallRequest) (*pb.ParseToolCallResponse, error) {

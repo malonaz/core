@@ -54,6 +54,14 @@ service AiEngine {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  // Create multiple tools in a single call.
+  //
+  // Equivalent to calling CreateTool for each request; tools are returned in
+  // the same order as the requests.
+  rpc BatchCreateTools(BatchCreateToolsRequest) returns (BatchCreateToolsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
   // Parse a tool call emitted against a tool created by this service.
   //
   // Validates the call's arguments against the originating tool's schema
@@ -102,6 +110,18 @@ message CreateToolRequest {
 
   // Configuration for the schema.
   SchemaConfiguration schema_configuration = 2;
+}
+
+// Request message for AiEngine.BatchCreateTools.
+message BatchCreateToolsRequest {
+  // The tool creation requests.
+  repeated CreateToolRequest requests = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// Response message for AiEngine.BatchCreateTools.
+message BatchCreateToolsResponse {
+  // The created tools, in the same order as the requests.
+  repeated ai.v1.Tool tools = 1;
 }
 
 // Request message for AiEngine.ParseToolCall.

@@ -24,6 +24,10 @@ class AiEngineBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def BatchCreateTools(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsRequest, malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ParseToolCall(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_engine.v1.ai_engine_pb2.ParseToolCallRequest, malonaz.ai.ai_engine.v1.ai_engine_pb2.ParseToolCallResponse]') -> None:
         pass
 
@@ -42,6 +46,12 @@ class AiEngineBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_engine.v1.ai_engine_pb2.CreateToolRequest,
                 malonaz.ai.v1.tool_pb2.Tool,
+            ),
+            '/malonaz.ai.ai_engine.v1.AiEngine/BatchCreateTools': grpclib.const.Handler(
+                self.BatchCreateTools,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsRequest,
+                malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsResponse,
             ),
             '/malonaz.ai.ai_engine.v1.AiEngine/ParseToolCall': grpclib.const.Handler(
                 self.ParseToolCall,
@@ -72,6 +82,12 @@ class AiEngineStub:
             '/malonaz.ai.ai_engine.v1.AiEngine/CreateTool',
             malonaz.ai.ai_engine.v1.ai_engine_pb2.CreateToolRequest,
             malonaz.ai.v1.tool_pb2.Tool,
+        )
+        self.BatchCreateTools = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_engine.v1.AiEngine/BatchCreateTools',
+            malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsRequest,
+            malonaz.ai.ai_engine.v1.ai_engine_pb2.BatchCreateToolsResponse,
         )
         self.ParseToolCall = grpclib.client.UnaryUnaryMethod(
             channel,

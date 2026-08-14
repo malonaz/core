@@ -16,7 +16,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_engine/v1/ai_engine.proto.
  */
 export const file_malonaz_ai_ai_engine_v1_ai_engine: GenFile = /*@__PURE__*/
-  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxIpwEChFDcmVhdGVUb29sUmVxdWVzdBJSChRkZXNjcmlwdG9yX3JlZmVyZW5jZRgBIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkRlc2NyaXB0b3JSZWZlcmVuY2VCBrpIA8gBARJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpInUKFFBhcnNlVG9vbENhbGxSZXF1ZXN0EjIKCXRvb2xfY2FsbBgBIAEoCzIXLm1hbG9uYXouYWkudjEuVG9vbENhbGxCBrpIA8gBARIpCgl0b29sX3NldHMYAiADKAsyFi5tYWxvbmF6LmFpLnYxLlRvb2xTZXQirwEKFVBhcnNlVG9vbENhbGxSZXNwb25zZRIqCgdtZXNzYWdlGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEgAEjUKCWRpc2NvdmVyeRgCIAEoCzIgLm1hbG9uYXouYWkudjEuVG9vbENhbGxEaXNjb3ZlcnlIABIpCgNycGMYAyABKAsyGi5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsUnBjSABCCAoGcmVzdWx0InsKGkNyZWF0ZURpc2NvdmVyeVRvb2xSZXF1ZXN0EhQKBG5hbWUYASABKAlCBrpIA8gBARIbCgtkZXNjcmlwdGlvbhgCIAEoCUIGukgDyAEBEioKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sQga6SAPIAQEiwgMKG0NyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBIhChFzZXJ2aWNlX2Z1bGxfbmFtZRgBIAEoCUIGukgDyAEBEhQKDG1ldGhvZF9uYW1lcxgCIAMoCRJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgDIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb24ShgEKI21ldGhvZF9uYW1lX3RvX3NjaGVtYV9jb25maWd1cmF0aW9uGAQgAygLMlkubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0Lk1ldGhvZE5hbWVUb1NjaGVtYUNvbmZpZ3VyYXRpb25FbnRyeRIfChdkaXNjb3ZlcmVkX21ldGhvZF9uYW1lcxgFIAMoCRp0CiRNZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkSCwoDa2V5GAEgASgJEjsKBXZhbHVlGAIgASgLMiwubWFsb25hei5haS5haV9lbmdpbmUudjEuU2NoZW1hQ29uZmlndXJhdGlvbjoCOAEiVwodUGFyc2VUb29sQ2FsbFJlY292ZXJhYmxlRXJyb3ISNgoLdG9vbF9yZXN1bHQYASABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCBrpIA8gBASK8AQoTU2NoZW1hQ29uZmlndXJhdGlvbhIuCgpmaWVsZF9tYXNrGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzaxIhCg53aXRoX21heF9kZXB0aBgCIAEoBUIJukgGGgQYCigAEh8KF3dpdGhfcmVzcG9uc2VfcmVhZF9tYXNrGAMgASgIEjEKHndpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aBgEIAEoBUIJukgGGgQYCigAIk4KE0Rlc2NyaXB0b3JSZWZlcmVuY2USEQoHbWVzc2FnZRgBIAEoCUgAEhAKBm1ldGhvZBgCIAEoCUgAQhIKCWZ1bGxfbmFtZRIFukgCCAEytwMKCEFpRW5naW5lElIKCkNyZWF0ZVRvb2wSKi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbCIDkAIBEnMKDVBhcnNlVG9vbENhbGwSLS5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5QYXJzZVRvb2xDYWxsUmVxdWVzdBouLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlBhcnNlVG9vbENhbGxSZXNwb25zZSIDkAIBEmQKE0NyZWF0ZURpc2NvdmVyeVRvb2wSMy5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5DcmVhdGVEaXNjb3ZlcnlUb29sUmVxdWVzdBoTLm1hbG9uYXouYWkudjEuVG9vbCIDkAIBEmkKFENyZWF0ZVNlcnZpY2VUb29sU2V0EjQubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlU2VydmljZVRvb2xTZXRSZXF1ZXN0GhYubWFsb25hei5haS52MS5Ub29sU2V0IgOQAgEaEcpBDmFpLm1hbG9uYXouY29tQjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX2VuZ2luZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_client, file_google_protobuf_field_mask, file_google_protobuf_struct, file_malonaz_ai_v1_tool]);
+  fileDesc("CidtYWxvbmF6L2FpL2FpX2VuZ2luZS92MS9haV9lbmdpbmUucHJvdG8SF21hbG9uYXouYWkuYWlfZW5naW5lLnYxIpwEChFDcmVhdGVUb29sUmVxdWVzdBJSChRkZXNjcmlwdG9yX3JlZmVyZW5jZRgBIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkRlc2NyaXB0b3JSZWZlcmVuY2VCBrpIA8gBARJKChRzY2hlbWFfY29uZmlndXJhdGlvbhgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb2465gK6SOICGt8CCh1zY2hlbWFfY29uZmlnX3JlcXVpcmVzX21ldGhvZBJUd2l0aF9yZXNwb25zZV9yZWFkX21hc2sgYW5kIHdpdGhfcmVzcG9uc2Vfc2NoZW1hX21heF9kZXB0aCByZXF1aXJlIG1ldGhvZCBkZXNjcmlwdG9yGucBKCFoYXModGhpcy5zY2hlbWFfY29uZmlndXJhdGlvbikgfHwgKCF0aGlzLnNjaGVtYV9jb25maWd1cmF0aW9uLndpdGhfcmVzcG9uc2VfcmVhZF9tYXNrICYmIHRoaXMuc2NoZW1hX2NvbmZpZ3VyYXRpb24ud2l0aF9yZXNwb25zZV9zY2hlbWFfbWF4X2RlcHRoID09IDApKSB8fCAoaGFzKHRoaXMuZGVzY3JpcHRvcl9yZWZlcmVuY2UpICYmIGhhcyh0aGlzLmRlc2NyaXB0b3JfcmVmZXJlbmNlLm1ldGhvZCkpImEKF0JhdGNoQ3JlYXRlVG9vbHNSZXF1ZXN0EkYKCHJlcXVlc3RzGAEgAygLMioubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlVG9vbFJlcXVlc3RCCLpIBZIBAggBIj4KGEJhdGNoQ3JlYXRlVG9vbHNSZXNwb25zZRIiCgV0b29scxgBIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbCJ1ChRQYXJzZVRvb2xDYWxsUmVxdWVzdBIyCgl0b29sX2NhbGwYASABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsQga6SAPIAQESKQoJdG9vbF9zZXRzGAIgAygLMhYubWFsb25hei5haS52MS5Ub29sU2V0Iq8BChVQYXJzZVRvb2xDYWxsUmVzcG9uc2USKgoHbWVzc2FnZRgBIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RIABI1CglkaXNjb3ZlcnkYAiABKAsyIC5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsRGlzY292ZXJ5SAASKQoDcnBjGAMgASgLMhoubWFsb25hei5haS52MS5Ub29sQ2FsbFJwY0gAQggKBnJlc3VsdCJ7ChpDcmVhdGVEaXNjb3ZlcnlUb29sUmVxdWVzdBIUCgRuYW1lGAEgASgJQga6SAPIAQESGwoLZGVzY3JpcHRpb24YAiABKAlCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBIsIDChtDcmVhdGVTZXJ2aWNlVG9vbFNldFJlcXVlc3QSIQoRc2VydmljZV9mdWxsX25hbWUYASABKAlCBrpIA8gBARIUCgxtZXRob2RfbmFtZXMYAiADKAkSSgoUc2NoZW1hX2NvbmZpZ3VyYXRpb24YAyABKAsyLC5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5TY2hlbWFDb25maWd1cmF0aW9uEoYBCiNtZXRob2RfbmFtZV90b19zY2hlbWFfY29uZmlndXJhdGlvbhgEIAMoCzJZLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdC5NZXRob2ROYW1lVG9TY2hlbWFDb25maWd1cmF0aW9uRW50cnkSHwoXZGlzY292ZXJlZF9tZXRob2RfbmFtZXMYBSADKAkadAokTWV0aG9kTmFtZVRvU2NoZW1hQ29uZmlndXJhdGlvbkVudHJ5EgsKA2tleRgBIAEoCRI7CgV2YWx1ZRgCIAEoCzIsLm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLlNjaGVtYUNvbmZpZ3VyYXRpb246AjgBIlcKHVBhcnNlVG9vbENhbGxSZWNvdmVyYWJsZUVycm9yEjYKC3Rvb2xfcmVzdWx0GAEgASgLMhkubWFsb25hei5haS52MS5Ub29sUmVzdWx0Qga6SAPIAQEivAEKE1NjaGVtYUNvbmZpZ3VyYXRpb24SLgoKZmllbGRfbWFzaxgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2sSIQoOd2l0aF9tYXhfZGVwdGgYAiABKAVCCbpIBhoEGAooABIfChd3aXRoX3Jlc3BvbnNlX3JlYWRfbWFzaxgDIAEoCBIxCh53aXRoX3Jlc3BvbnNlX3NjaGVtYV9tYXhfZGVwdGgYBCABKAVCCbpIBhoEGAooACJOChNEZXNjcmlwdG9yUmVmZXJlbmNlEhEKB21lc3NhZ2UYASABKAlIABIQCgZtZXRob2QYAiABKAlIAEISCglmdWxsX25hbWUSBbpIAggBMrUECghBaUVuZ2luZRJSCgpDcmVhdGVUb29sEioubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlVG9vbFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLlRvb2wiA5ACARJ8ChBCYXRjaENyZWF0ZVRvb2xzEjAubWFsb25hei5haS5haV9lbmdpbmUudjEuQmF0Y2hDcmVhdGVUb29sc1JlcXVlc3QaMS5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5CYXRjaENyZWF0ZVRvb2xzUmVzcG9uc2UiA5ACARJzCg1QYXJzZVRvb2xDYWxsEi0ubWFsb25hei5haS5haV9lbmdpbmUudjEuUGFyc2VUb29sQ2FsbFJlcXVlc3QaLi5tYWxvbmF6LmFpLmFpX2VuZ2luZS52MS5QYXJzZVRvb2xDYWxsUmVzcG9uc2UiA5ACARJkChNDcmVhdGVEaXNjb3ZlcnlUb29sEjMubWFsb25hei5haS5haV9lbmdpbmUudjEuQ3JlYXRlRGlzY292ZXJ5VG9vbFJlcXVlc3QaEy5tYWxvbmF6LmFpLnYxLlRvb2wiA5ACARJpChRDcmVhdGVTZXJ2aWNlVG9vbFNldBI0Lm1hbG9uYXouYWkuYWlfZW5naW5lLnYxLkNyZWF0ZVNlcnZpY2VUb29sU2V0UmVxdWVzdBoWLm1hbG9uYXouYWkudjEuVG9vbFNldCIDkAIBGhHKQQ5haS5tYWxvbmF6LmNvbUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9lbmdpbmUvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_client, file_google_protobuf_field_mask, file_google_protobuf_struct, file_malonaz_ai_v1_tool]);
 
 /**
  * Request message for AiEngine.CreateTool
@@ -66,6 +66,76 @@ export type CreateToolRequestValid = Message<"malonaz.ai.ai_engine.v1.CreateTool
  */
 export const CreateToolRequestSchema: GenMessage<CreateToolRequest, {validType: CreateToolRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 0);
+
+/**
+ * Request message for AiEngine.BatchCreateTools.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.BatchCreateToolsRequest
+ */
+export type BatchCreateToolsRequest = Message<"malonaz.ai.ai_engine.v1.BatchCreateToolsRequest"> & {
+  /**
+   * The tool creation requests.
+   *
+   * @generated from field: repeated malonaz.ai.ai_engine.v1.CreateToolRequest requests = 1;
+   */
+  requests: CreateToolRequest[];
+};
+
+/**
+ * Request message for AiEngine.BatchCreateTools.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.BatchCreateToolsRequest
+ */
+export type BatchCreateToolsRequestValid = Message<"malonaz.ai.ai_engine.v1.BatchCreateToolsRequest"> & {
+  /**
+   * The tool creation requests.
+   *
+   * @generated from field: repeated malonaz.ai.ai_engine.v1.CreateToolRequest requests = 1;
+   */
+  requests: CreateToolRequestValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.ai_engine.v1.BatchCreateToolsRequest.
+ * Use `create(BatchCreateToolsRequestSchema)` to create a new message.
+ */
+export const BatchCreateToolsRequestSchema: GenMessage<BatchCreateToolsRequest, {validType: BatchCreateToolsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 1);
+
+/**
+ * Response message for AiEngine.BatchCreateTools.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.BatchCreateToolsResponse
+ */
+export type BatchCreateToolsResponse = Message<"malonaz.ai.ai_engine.v1.BatchCreateToolsResponse"> & {
+  /**
+   * The created tools, in the same order as the requests.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 1;
+   */
+  tools: Tool[];
+};
+
+/**
+ * Response message for AiEngine.BatchCreateTools.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.BatchCreateToolsResponse
+ */
+export type BatchCreateToolsResponseValid = Message<"malonaz.ai.ai_engine.v1.BatchCreateToolsResponse"> & {
+  /**
+   * The created tools, in the same order as the requests.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 1;
+   */
+  tools: ToolValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.ai_engine.v1.BatchCreateToolsResponse.
+ * Use `create(BatchCreateToolsResponseSchema)` to create a new message.
+ */
+export const BatchCreateToolsResponseSchema: GenMessage<BatchCreateToolsResponse, {validType: BatchCreateToolsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 2);
 
 /**
  * Request message for AiEngine.ParseToolCall.
@@ -126,7 +196,7 @@ export type ParseToolCallRequestValid = Message<"malonaz.ai.ai_engine.v1.ParseTo
  * Use `create(ParseToolCallRequestSchema)` to create a new message.
  */
 export const ParseToolCallRequestSchema: GenMessage<ParseToolCallRequest, {validType: ParseToolCallRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 1);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 3);
 
 /**
  * Response message for AiEngine.ParseToolCall.
@@ -173,7 +243,7 @@ export type ParseToolCallResponseValid = ParseToolCallResponse;
  * Use `create(ParseToolCallResponseSchema)` to create a new message.
  */
 export const ParseToolCallResponseSchema: GenMessage<ParseToolCallResponse, {validType: ParseToolCallResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 2);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 4);
 
 /**
  * Request message for AiEngine.CreateDiscoveryTool.
@@ -236,7 +306,7 @@ export type CreateDiscoveryToolRequestValid = Message<"malonaz.ai.ai_engine.v1.C
  * Use `create(CreateDiscoveryToolRequestSchema)` to create a new message.
  */
 export const CreateDiscoveryToolRequestSchema: GenMessage<CreateDiscoveryToolRequest, {validType: CreateDiscoveryToolRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 3);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 5);
 
 /**
  * Request message for AiEngine.CreateServiceToolSet.
@@ -333,7 +403,7 @@ export type CreateServiceToolSetRequestValid = Message<"malonaz.ai.ai_engine.v1.
  * Use `create(CreateServiceToolSetRequestSchema)` to create a new message.
  */
 export const CreateServiceToolSetRequestSchema: GenMessage<CreateServiceToolSetRequest, {validType: CreateServiceToolSetRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 4);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 6);
 
 /**
  * Error detail indicating the error can be fed back to the AI for correction.
@@ -370,7 +440,7 @@ export type ParseToolCallRecoverableErrorValid = Message<"malonaz.ai.ai_engine.v
  * Use `create(ParseToolCallRecoverableErrorSchema)` to create a new message.
  */
 export const ParseToolCallRecoverableErrorSchema: GenMessage<ParseToolCallRecoverableError, {validType: ParseToolCallRecoverableErrorValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 5);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
 
 /**
  * Configuration for a tool set schema.
@@ -417,7 +487,7 @@ export type SchemaConfigurationValid = SchemaConfiguration;
  * Use `create(SchemaConfigurationSchema)` to create a new message.
  */
 export const SchemaConfigurationSchema: GenMessage<SchemaConfiguration, {validType: SchemaConfigurationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 6);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 8);
 
 /**
  * A reference to a protobuf descriptor.
@@ -456,7 +526,7 @@ export type DescriptorReferenceValid = DescriptorReference;
  * Use `create(DescriptorReferenceSchema)` to create a new message.
  */
 export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validType: DescriptorReferenceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
+  messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 9);
 
 /**
  * This API represents an AI Engine service for structured, proto-driven tool
@@ -508,6 +578,19 @@ export const AiEngine: GenService<{
     methodKind: "unary";
     input: typeof CreateToolRequestSchema;
     output: typeof ToolSchema;
+  },
+  /**
+   * Create multiple tools in a single call.
+   *
+   * Equivalent to calling CreateTool for each request; tools are returned in
+   * the same order as the requests.
+   *
+   * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.BatchCreateTools
+   */
+  batchCreateTools: {
+    methodKind: "unary";
+    input: typeof BatchCreateToolsRequestSchema;
+    output: typeof BatchCreateToolsResponseSchema;
   },
   /**
    * Parse a tool call emitted against a tool created by this service.
