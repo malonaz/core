@@ -483,6 +483,8 @@ type Message_builder struct {
 	Labels map[string]string
 	// Annotations on this message (not transmitted to the ai provider).
 	// This should be used by tooling.
+	// Values are opaque strings (and may themselves be proto bytes), but keys
+	// stay inspectable in storage.
 	Annotations map[string]string
 	// Role of the message sender.
 	Role Role
@@ -1156,7 +1158,7 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"deleteTime\x12\x12\n" +
 	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xd0\x01\n" +
 	"\x06labels\x18\x06 \x03(\v2\".malonaz.ai.v1.Message.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12S\n" +
-	"\vannotations\x18\a \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryB\b\xba\xea\x0f\x04\x18\x01 \x01R\vannotations\x123\n" +
+	"\vannotations\x18\a \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x123\n" +
 	"\x04role\x18\b \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x124\n" +
 	"\x06blocks\x18\t \x03(\v2\x14.malonaz.ai.v1.BlockB\x06\xba\xea\x0f\x02\x10\x01R\x06blocks\x128\n" +

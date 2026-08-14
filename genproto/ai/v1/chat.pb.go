@@ -49,6 +49,8 @@ type Chat struct {
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Annotations on this chat (not transmitted to the ai provider).
 	// This should be used by tooling.
+	// Values are opaque strings (and may themselves be proto bytes), but keys
+	// stay inspectable in storage.
 	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// A human-readable title for this chat.
 	Title string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
@@ -236,6 +238,8 @@ type Chat_builder struct {
 	Labels map[string]string
 	// Annotations on this chat (not transmitted to the ai provider).
 	// This should be used by tooling.
+	// Values are opaque strings (and may themselves be proto bytes), but keys
+	// stay inspectable in storage.
 	Annotations map[string]string
 	// A human-readable title for this chat.
 	Title string
@@ -275,7 +279,7 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"deleteTime\x12\x12\n" +
 	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xcd\x01\n" +
 	"\x06labels\x18\x06 \x03(\v2\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12P\n" +
-	"\vannotations\x18\a \x03(\v2$.malonaz.ai.v1.Chat.AnnotationsEntryB\b\xba\xea\x0f\x04\x18\x01 \x01R\vannotations\x12\x1e\n" +
+	"\vannotations\x18\a \x03(\v2$.malonaz.ai.v1.Chat.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x1e\n" +
 	"\x05title\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\x05title\x12\x19\n" +
 	"\x05price\x18\t \x01(\x01B\x03\xe0A\x03R\x05price\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +

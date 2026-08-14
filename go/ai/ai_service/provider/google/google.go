@@ -77,5 +77,5 @@ func (c *Client) ProviderId() string {
 func (c *Client) Stop() {}
 
 var (
-	_ provider.TextToTextClient = (*Client)(nil)
+	_ provider.GenerateMessageClient = (*Client)(nil)
 )

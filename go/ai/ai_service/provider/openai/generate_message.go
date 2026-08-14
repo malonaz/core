@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -27,11 +28,12 @@ const (
 	blockTypeThought = "thought"
 )
 
-func (c *Client) TextToTextStream(
-	request *aiservicepb.TextToTextStreamRequest,
-	stream aiservicepb.AiService_TextToTextStreamServer,
+func (c *Client) StreamGenerateMessage(
+	ctx context.Context,
+	request *aiservicepb.GenerateMessageRequest,
+	requestMessages []*aipb.Message,
+	sender *provider.AsyncMessageContentSender,
 ) error {
-	ctx := stream.Context()
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
@@ -39,7 +41,7 @@ func (c *Client) TextToTextStream(
 	}
 
 	var messages []openai.ChatCompletionMessageParamUnion
-	for i, msg := range request.Messages {
+	for i, msg := range requestMessages {
 		converted, err := pbMessageToOpenAI(msg)
 		if err != nil {
 			return status.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
@@ -107,9 +109,6 @@ func (c *Client) TextToTextStream(
 	startTime := time.Now()
 	chatStream := c.client2.Chat.Completions.NewStreaming(ctx, params)
 
-	cs := provider.NewAsyncTextToTextContentSender(stream, 100)
-	defer cs.Close()
-
 	tca := provider.NewToolCallAccumulator()
 
 	// Dynamic block indexing.
@@ -118,13 +117,13 @@ func (c *Client) TextToTextStream(
 	var toolCallIDSet = map[string]struct{}{}
 
 	var sentTtfb bool
-	var stopReason aiservicepb.TextToTextStopReason
+	var stopReason aiservicepb.StopReason
 
-	for chatStream.Next() && cs.Err() == nil {
+	for chatStream.Next() && sender.Err() == nil {
 		chunk := chatStream.Current()
 
 		if !sentTtfb {
-			cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
+			sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
 			sentTtfb = true
 		}
 
@@ -183,7 +182,7 @@ func (c *Client) TextToTextStream(
 				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{Quantity: inferredReasoningTokens}
 			}
 
-			cs.SendModelUsage(ctx, modelUsage)
+			sender.SendModelUsage(ctx, modelUsage)
 		}
 
 		if choice == nil {
@@ -195,7 +194,7 @@ func (c *Client) TextToTextStream(
 				currentBlockIndex++
 				currentBlockType = blockTypeText
 			}
-			cs.SendBlocks(ctx, &aipb.Block{
+			sender.SendBlocks(ctx, &aipb.Block{
 				Index:   currentBlockIndex,
 				Content: &aipb.Block_Text{Text: choice.Delta.Content},
 			})
@@ -206,7 +205,7 @@ func (c *Client) TextToTextStream(
 				currentBlockIndex++
 				currentBlockType = blockTypeThought
 			}
-			cs.SendBlocks(ctx, &aipb.Block{
+			sender.SendBlocks(ctx, &aipb.Block{
 				Index:   currentBlockIndex,
 				Content: &aipb.Block_Thought{Thought: reasoningChunk},
 			})
@@ -224,7 +223,7 @@ func (c *Client) TextToTextStream(
 				if err != nil {
 					return err
 				}
-				cs.SendBlocks(ctx, block)
+				sender.SendBlocks(ctx, block)
 			}
 		}
 
@@ -232,7 +231,7 @@ func (c *Client) TextToTextStream(
 		if err != nil {
 			return err
 		}
-		cs.SendBlocks(ctx, toolCallBlocks...)
+		sender.SendBlocks(ctx, toolCallBlocks...)
 
 		if choice.FinishReason != "" {
 			var ok bool
@@ -251,18 +250,13 @@ func (c *Client) TextToTextStream(
 	if err != nil {
 		return err
 	}
-	cs.SendBlocks(ctx, remainingToolCallBlocks...)
+	sender.SendBlocks(ctx, remainingToolCallBlocks...)
 
-	if stopReason != aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED {
-		cs.SendStopReason(ctx, stopReason)
+	if stopReason != aiservicepb.StopReason_STOP_REASON_UNSPECIFIED {
+		sender.SendStopReason(ctx, stopReason)
 	}
 
-	cs.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
-
-	cs.Close()
-	if err := cs.Wait(ctx); err != nil {
-		return status.FromError(err, "waiting on content sender").Err()
-	}
+	sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 	return nil
 }
 
@@ -467,12 +461,12 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 	},
 }
 
-var openAIFinishReasonToPb = map[string]aiservicepb.TextToTextStopReason{
-	string(openai.CompletionChoiceFinishReasonStop):          aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	string(openai.CompletionChoiceFinishReasonLength):        aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
-	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
-	"tool_calls":    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-	"function_call": aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
+var openAIFinishReasonToPb = map[string]aiservicepb.StopReason{
+	string(openai.CompletionChoiceFinishReasonStop):          aiservicepb.StopReason_STOP_REASON_END_TURN,
+	string(openai.CompletionChoiceFinishReasonLength):        aiservicepb.StopReason_STOP_REASON_MAX_TOKENS,
+	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.StopReason_STOP_REASON_REFUSAL,
+	"tool_calls":    aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
+	"function_call": aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
 }
 
 var imageQualityToOpenAI = map[aipb.ImageQuality]string{

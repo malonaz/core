@@ -17,7 +17,7 @@ go_library(
         "//go/pbutil",
         "//malonaz/ai/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
-        "//third_party/go:google.golang.org__genproto__googleapis__rpc__status",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__rpc__status",  # wollemi:keep
     ],
 )

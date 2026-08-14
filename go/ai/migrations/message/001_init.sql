@@ -9,7 +9,7 @@ CREATE TABLE message (
     delete_time TIMESTAMP,
     etag TEXT NOT NULL,
     labels JSONB,
-    annotations BYTEA,
+    annotations JSONB,
     role SMALLINT NOT NULL,
     blocks JSONB NOT NULL,
     model TEXT,

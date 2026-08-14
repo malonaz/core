@@ -6,6 +6,6 @@ migrations:
   - path: chat/002_add_title_annotations.sql
     hash: 63a33757b8135ffa0075b0278c5f3a0a
   - path: chat/003_message_resource.sql
-    hash: 538df0954e1c9f0f38a78c9b16dcf9ee
+    hash: af8adbbbbaf35bcad146398d10d13e57
   - path: message/001_init.sql
-    hash: 6e77fa01b0e32b9d2b8ec3aba8653050
+    hash: f28e9cafecf37009be49fd3b683e258a

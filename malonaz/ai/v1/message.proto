@@ -89,8 +89,10 @@ message Message {
 
   // Annotations on this message (not transmitted to the ai provider).
   // This should be used by tooling.
+  // Values are opaque strings (and may themselves be proto bytes), but keys
+  // stay inspectable in storage.
   map<string, string> annotations = 7 [
-    (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 

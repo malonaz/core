@@ -1,8 +1,8 @@
 go_library(
     name = "google",
     srcs = [
+        "generate_message.go",
         "google.go",
-        "text_to_text_stream.go",
     ],
     visibility = ["//..."],
     deps = [

@@ -14,6 +14,7 @@ import (
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/ai/ai_service/provider"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
@@ -71,7 +72,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 	}
 
-	provider, model, err := s.GetGenerateMessageProvider(ctx, request.Model)
+	providerClient, model, err := s.GetGenerateMessageProvider(ctx, request.Model)
 	if err != nil {
 		return err
 	}
@@ -241,9 +242,16 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
 	}
 
-	if err := provider.StreamGenerateMessage(request, history, wrapper); err != nil {
-		s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, err)
-		return err
+	// The service owns the sender lifecycle; providers only emit events.
+	sender := provider.NewAsyncMessageContentSender(wrapper, 100)
+	generationError := providerClient.StreamGenerateMessage(ctx, request, history, sender)
+	sender.Close()
+	if generationError == nil {
+		generationError = sender.Wait(ctx)
+	}
+	if generationError != nil {
+		s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, generationError)
+		return generationError
 	}
 
 	ai.SetModelUsagePrices(wrapper.modelUsage, model.GetTtt().GetPricing())
@@ -391,7 +399,7 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 	if err := w.messageAccumulator.Add(response); err != nil {
 		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 	}
-	return w.AiService_StreamMessageServer.Send(response)
+	return w.AiService_StreamGenerateMessageServer.Send(response)
 }
 
 func redactInlineImageData(messages ...*aipb.Message) {

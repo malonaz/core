@@ -1,10 +1,10 @@
 go_library(
     name = "openai",
     srcs = [
+        "generate_message.go",
         "openai.go",
         "speech_to_text.go",
         "text_to_speech.go",
-        "text_to_text_stream.go",
     ],
     visibility = ["//..."],
     deps = [

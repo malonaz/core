@@ -9,8 +9,15 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
+// MessageStream is the minimal stream surface the sender pumps into: both the
+// gRPC server stream and the service-layer interception wrapper satisfy it.
+type MessageStream interface {
+	Send(*aiservicepb.StreamGenerateMessageResponse) error
+	Context() context.Context
+}
+
 type AsyncMessageContentSender struct {
-	srv  aiservicepb.AiService_StreamGenerateMessageServer
+	srv  MessageStream
 	ch   chan *aiservicepb.StreamGenerateMessageResponse
 	done chan struct{}
 
@@ -18,7 +25,7 @@ type AsyncMessageContentSender struct {
 	once sync.Once
 }
 
-func NewAsyncMessageContentSender(srv aiservicepb.AiService_StreamGenerateMessageServer, bufferSize int) *AsyncMessageContentSender {
+func NewAsyncMessageContentSender(srv MessageStream, bufferSize int) *AsyncMessageContentSender {
 	if bufferSize <= 0 {
 		bufferSize = 64
 	}
