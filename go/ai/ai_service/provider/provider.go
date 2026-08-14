@@ -4,6 +4,7 @@ import (
 	"context"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
 type Provider interface {
@@ -22,9 +23,12 @@ type SpeechToTextStreamClient interface {
 	SpeechToTextStream(aiservicepb.AiService_SpeechToTextStreamServer) error
 }
 
-type TextToTextClient interface {
+// StreamMessageClient generates an assistant message from the given
+// conversation history. Messages are passed separately from the request as
+// they are loaded from the chat by the service layer.
+type StreamMessageClient interface {
 	Provider
-	TextToTextStream(*aiservicepb.TextToTextStreamRequest, aiservicepb.AiService_TextToTextStreamServer) error
+	StreamMessage(request *aiservicepb.StreamMessageRequest, messages []*aipb.Message, srv aiservicepb.AiService_StreamMessageServer) error
 }
 
 // TextToSpeechClient uses the exact gRPC server streaming interface

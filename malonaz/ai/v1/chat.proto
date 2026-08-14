@@ -6,8 +6,6 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
-import "malonaz/ai/v1/message.proto";
-import "malonaz/ai/v1/metrics.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
@@ -24,8 +22,10 @@ option (google.api.resource_definition) = {
   plural: "users"
 };
 
-// Chat represents a multi-turn AI conversation between a user and an assistant.
-// Contains the full message history and associated metadata for a single conversation session.
+// A Chat represents a multi-turn AI conversation between a user and an assistant.
+// It is a lightweight container: the conversation content lives in the child
+// [Message][malonaz.ai.v1.Message] resources, allowing conversations to grow
+// without bloating the parent resource.
 message Chat {
   option (google.api.resource) = {
     type: "ai.malonaz.com/Chat"
@@ -45,14 +45,15 @@ message Chat {
   // The last update timestamp of the chat.
   google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The deletion timestamp of the chat.
+  // The deletion timestamp of the chat. Set when soft-deleted.
   google.protobuf.Timestamp delete_time = 4 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
   // A checksum computed by the server based on the current value of the resource.
-  // Can be sent in update and delete requests to ensure the client has an up-to-date value before proceeding.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
   string etag = 5;
 
   // The labels on this chat.
@@ -73,27 +74,17 @@ message Chat {
     }
   ];
 
-  // Chat metadata containing the conversation message history.
-  ChatMetadata metadata = 7 [
-    (buf.validate.field).required = true,
-    (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true
+  // Annotations on this chat (not transmitted to the ai provider).
+  // This should be used by tooling.
+  map<string, string> annotations = 7 [
+    (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 
   // A human-readable title for this chat.
   string title = 8 [(buf.validate.field).string.max_len = 512];
 
-  // Annotations on this chat (not transmitted to the ai provider).
-  // This should be used by tooling.
-  map<string, string> annotations = 9 [
-    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
-    (malonaz.codegen.model.v1.field_opts).nullable = true
-  ];
-}
-
-// ChatMetadata contains the conversation content for a chat.
-message ChatMetadata {
-  // The ordered list of messages in this conversation, including system, user, assistant, and tool messages.
-  repeated Message messages = 1;
-  // Model usage for this chat.
-  repeated ModelUsage model_usages = 2;
+  // Total price in dollars of this chat, aggregated over the model usage of
+  // all of its messages.
+  double price = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 }

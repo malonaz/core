@@ -20,7 +20,7 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, srv aiservicepb.AiService_TextToTextStreamServer) error {
+func (c *Client) StreamMessage(request *aiservicepb.StreamMessageRequest, requestMessages []*aipb.Message, srv aiservicepb.AiService_StreamMessageServer) error {
 	ctx := srv.Context()
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}
@@ -30,9 +30,9 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	}
 
 	var systemBlocks []anthropic.TextBlockParam
-	messages := make([]anthropic.MessageParam, 0, len(request.Messages))
+	messages := make([]anthropic.MessageParam, 0, len(requestMessages))
 
-	for i, msg := range request.Messages {
+	for i, msg := range requestMessages {
 		switch msg.Role {
 		case aipb.Role_ROLE_SYSTEM:
 			for j, block := range msg.Blocks {
@@ -182,7 +182,7 @@ func (c *Client) TextToTextStream(request *aiservicepb.TextToTextStreamRequest, 
 	startTime := time.Now()
 	messageStream := c.client.Messages.NewStreaming(ctx, messageParams)
 
-	cs := provider.NewAsyncTextToTextContentSender(srv, 100)
+	cs := provider.NewAsyncMessageContentSender(srv, 100)
 	defer cs.Close()
 
 	tca := provider.NewToolCallAccumulator()
@@ -370,13 +370,13 @@ func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) anthropic.Tool
 	return anthropic.ToolUnionParam{OfTool: toolParam}
 }
 
-var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.TextToTextStopReason{
-	anthropic.StopReasonEndTurn:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_END_TURN,
-	anthropic.StopReasonMaxTokens:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS,
-	anthropic.StopReasonToolUse:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_TOOL_CALL,
-	anthropic.StopReasonStopSequence: aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE,
-	anthropic.StopReasonPauseTurn:    aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN,
-	anthropic.StopReasonRefusal:      aiservicepb.TextToTextStopReason_TEXT_TO_TEXT_STOP_REASON_REFUSAL,
+var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.StopReason{
+	anthropic.StopReasonEndTurn:      aiservicepb.StopReason_STOP_REASON_END_TURN,
+	anthropic.StopReasonMaxTokens:    aiservicepb.StopReason_STOP_REASON_MAX_TOKENS,
+	anthropic.StopReasonToolUse:      aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
+	anthropic.StopReasonStopSequence: aiservicepb.StopReason_STOP_REASON_STOP_SEQUENCE,
+	anthropic.StopReasonPauseTurn:    aiservicepb.StopReason_STOP_REASON_PAUSE_TURN,
+	anthropic.StopReasonRefusal:      aiservicepb.StopReason_STOP_REASON_REFUSAL,
 }
 
 var imageSourceMediaTypeSet = map[anthropic.Base64ImageSourceMediaType]struct{}{

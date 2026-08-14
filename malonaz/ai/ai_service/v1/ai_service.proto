@@ -5,12 +5,13 @@ package malonaz.ai.ai_service.v1;
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/ai/ai_service/v1/chat.proto";
+import "malonaz/ai/ai_service/v1/message.proto";
 import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
-import "malonaz/ai/ai_service/v1/text_to_text.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
+import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/model.proto";
 import "malonaz/ai/v1/voice.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -87,22 +88,6 @@ service AiService {
     };
   }
 
-  // Convert text to text using chat completion models.
-  rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
-    option (google.api.http) = {
-      post: "/v1/{model=providers/*/models/*}/text-to-text"
-      body: "*"
-    };
-  }
-
-  // Converts text to text using chat completion models with streaming response.
-  rpc TextToTextStream(TextToTextStreamRequest) returns (stream TextToTextStreamResponse) {
-    option (google.api.http) = {
-      post: "/v1/{model=providers/*/models/*}/text-to-text:stream"
-      body: "*"
-    };
-  }
-
   // Converts text to speech audio, returning complete audio data.
   rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
     option (google.api.http) = {
@@ -160,5 +145,64 @@ service AiService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
+  // ===================== Message Management =====================
+
+  // Creates a message within a chat.
+  //
+  // Persists the message as-is; no generation is performed. Use StreamMessage
+  // to generate an assistant message from the chat's history.
+  rpc CreateMessage(CreateMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/chats/*}/messages"
+      body: "message"
+    };
+    option (google.api.method_signature) = "parent,message";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Gets a message.
+  rpc GetMessage(GetMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Updates a message.
+  rpc UpdateMessage(UpdateMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {
+      patch: "/v1/{message.name=organizations/*/users/*/chats/*/messages/*}"
+      body: "message"
+    };
+    option (google.api.method_signature) = "message,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Deletes a message (soft delete).
+  //
+  // Soft-deleted messages are excluded from the conversation history sent to
+  // ai providers.
+  rpc DeleteMessage(DeleteMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Lists messages within a chat.
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Generates an assistant message from the chat's message history, streaming
+  // blocks as they are produced. The generated message is persisted under the
+  // chat and sent as the final event of the stream.
+  rpc StreamMessage(StreamMessageRequest) returns (stream StreamMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:stream"
+      body: "*"
+    };
   }
 }

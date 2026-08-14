@@ -1,14 +1,10 @@
 package ai_service
 
 import (
-	"context"
 	"fmt"
-	"io"
 	"maps"
 	"strings"
 
-	"github.com/malonaz/core/go/aip"
-	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -17,36 +13,20 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
-	"github.com/malonaz/core/go/grpc/grpcinproc"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
-var (
-	textToTextDefaultUserRn = &aipb.UserResourceName{
-		Organization: "unknown",
-		User:         "unknown",
-	}
-)
-
-type tttAccumulatorKey struct{}
-
-func (s *Service) TextToTextStream(originalRequest *pb.TextToTextStreamRequest, srv pb.AiService_TextToTextStreamServer) error {
-	accumulator, _ := srv.Context().Value(tttAccumulatorKey{}).(*ai.TextToTextAccumulator)
-	if accumulator == nil {
-		accumulator = ai.NewTextToTextAccumulator()
-	}
-
-	return s.textToTextStream(originalRequest, srv, accumulator)
-}
-
-func (s *Service) textToTextStream(
-	request *pb.TextToTextStreamRequest,
-	srv pb.AiService_TextToTextStreamServer,
-	accumulator *ai.TextToTextAccumulator,
-) error {
+func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiService_StreamMessageServer) error {
 	ctx := srv.Context()
 
-	provider, model, err := s.GetTextToTextProvider(ctx, request.Model)
+	chatRn := &aipb.ChatResourceName{}
+	if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
+		return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
+	}
+
+	provider, model, err := s.GetStreamMessageProvider(ctx, request.Model)
 	if err != nil {
 		return err
 	}
@@ -55,12 +35,11 @@ func (s *Service) textToTextStream(
 	}
 
 	if request.Configuration == nil {
-		request.Configuration = &pb.TextToTextConfiguration{}
+		request.Configuration = &pb.MessageGenerationConfiguration{}
 	}
 	if request.Configuration.MaxTokens == 0 {
 		request.Configuration.MaxTokens = model.Ttt.OutputTokenLimit
 	}
-
 	if request.Configuration.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && !model.GetTtt().GetReasoning() {
 		return status.Errorf(codes.InvalidArgument, "%s does not support reasoning", request.Model).Err()
 	}
@@ -68,6 +47,45 @@ func (s *Service) textToTextStream(
 		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
+	// Fetch (or lazily create) the chat, and load its message history.
+	var chat *aipb.Chat
+	var messages []*aipb.Message
+	eg, ctxEg := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		getChatRequest := &pb.GetChatRequest{Name: chatRn.String()}
+		var err error
+		chat, err = s.GetChat(ctxEg, getChatRequest)
+		if err != nil {
+			if !status.HasCode(err, codes.NotFound) {
+				return err
+			}
+			createChatRequest := &pb.CreateChatRequest{
+				Parent: chatRn.UserResourceName().String(),
+				ChatId: chatRn.Chat,
+				Chat:   &aipb.Chat{},
+			}
+			chat, err = s.CreateChat(ctxEg, createChatRequest)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	eg.Go(func() error {
+		listMessagesRequest := &pb.ListMessagesRequest{
+			Parent: chatRn.String(),
+			// create_time asc keeps the conversation in order and stable while paginating.
+			OrderBy: "create_time asc",
+		}
+		var err error
+		messages, err = aip.Paginate[*aipb.Message](ctxEg, listMessagesRequest, s.ListMessages)
+		return err
+	})
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	// Index tools & tool sets, injecting discovery tools and pre-discovered tools.
 	toolSetNameToToolNameToTool := make(map[string]map[string]*aipb.Tool, len(request.GetToolSets()))
 	for _, toolSet := range request.GetToolSets() {
 		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
@@ -90,8 +108,9 @@ func (s *Service) textToTextStream(
 		toolNameToTool[tool.GetName()] = tool
 	}
 
-	// Process discovery tool call results.
-	for i, message := range request.GetMessages() {
+	// Replay discovery tool call results from the conversation history so that
+	// previously discovered tools remain available to the model.
+	for i, message := range messages {
 		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
 			toolResult := block.GetToolResult()
 			toolSetName, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyToolSetName)
@@ -119,89 +138,61 @@ func (s *Service) textToTextStream(
 		}
 	}
 
-	messages := request.GetMessages()
-	request.Messages = nil
-	for _, message := range messages {
-		if message.GetDeleteTime() == nil {
-			request.Messages = append(request.Messages, message)
-		}
+	accumulator := ai.NewMessageAccumulator()
+	wrapper := &streamMessageWrapper{
+		AiService_StreamMessageServer: srv,
+		messageAccumulator:            accumulator,
+		model:                         model,
+		modelUsage:                    &aipb.ModelUsage{Model: request.Model},
+		toolNameToTool:                toolNameToTool,
+		toolSetNameToToolNameToTool:   toolSetNameToToolNameToTool,
+		toolCallIDToToolCall:          map[string]*aipb.ToolCall{},
 	}
 
-	var chatRn *aipb.ChatResourceName
-	if request.GetParent() == "" {
-		chatRn = new(textToTextDefaultUserRn.ChatResourceName(aip.NewSystemGeneratedBase32ResourceID()))
-	} else {
-		chatRn = &aipb.ChatResourceName{}
-		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
-			return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
-		}
-	}
-
-	eg, ctxEg := errgroup.WithContext(ctx)
-	var chat *aipb.Chat
-	eg.Go(func() error {
-		getChatRequest := &pb.GetChatRequest{Name: chatRn.String()}
-		var err error
-		chat, err = s.GetChat(ctxEg, getChatRequest)
-		if err != nil {
-			if !status.HasCode(err, codes.NotFound) {
-				return err
-			}
-			createChatRequest := &pb.CreateChatRequest{
-				Parent: chatRn.UserResourceName().String(),
-				ChatId: chatRn.Chat,
-				Chat:   &aipb.Chat{Metadata: &aipb.ChatMetadata{}},
-			}
-			chat, err = s.CreateChat(ctxEg, createChatRequest)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-
-	wrapper := &tttStreamWrapper{
-		AiService_TextToTextStreamServer: srv,
-		textToTextAccumulator:            accumulator,
-		model:                            model,
-		modelUsage:                       &aipb.ModelUsage{},
-		toolNameToTool:                   toolNameToTool,
-		toolSetNameToToolNameToTool:      toolSetNameToToolNameToTool,
-		toolCallIDToToolCall:             map[string]*aipb.ToolCall{},
-	}
-
-	if err := provider.TextToTextStream(request, wrapper); err != nil {
+	if err := provider.StreamMessage(request, messages, wrapper); err != nil {
 		return err
 	}
 
-	response := accumulator.Response()
-	ai.SetModelUsagePrices(response.GetModelUsage(), model.GetTtt().GetPricing())
-	recordModelUsage(response.GetModelUsage())
-	recordGenerationMetrics(request.GetModel(), response.GetGenerationMetrics())
+	ai.SetModelUsagePrices(wrapper.modelUsage, model.GetTtt().GetPricing())
+	recordModelUsage(wrapper.modelUsage)
+	recordGenerationMetrics(request.GetModel(), accumulator.GenerationMetrics)
 
-	if err := eg.Wait(); err != nil {
+	// Persist the generated assistant message.
+	generatedMessage := accumulator.Message
+	redactInlineImageData(generatedMessage)
+	generatedMessage.Labels = request.GetLabels()
+	generatedMessage.Model = request.GetModel()
+	generatedMessage.ModelUsage = wrapper.modelUsage
+	generatedMessage.Price = ai.ModelUsageCost(wrapper.modelUsage)
+	createMessageRequest := &pb.CreateMessageRequest{
+		Parent:  chatRn.String(),
+		Message: generatedMessage,
+	}
+	persistedMessage, err := s.CreateMessage(ctx, createMessageRequest)
+	if err != nil {
 		return err
 	}
 
-	chat.Metadata.Messages = append(messages, response.GetMessage())
-	redactInlineImageData(chat.Metadata.Messages)
-	chat.Metadata.ModelUsages = append(chat.Metadata.ModelUsages, wrapper.modelUsage)
-	for k, v := range request.Labels {
-		aip.SetLabel(chat, k, v)
-	}
+	// Roll the message's price up into the chat.
+	chat.Price += persistedMessage.GetPrice()
 	updateChatRequest := &pb.UpdateChatRequest{
 		Chat:       chat,
-		UpdateMask: pbfieldmask.FromPaths("metadata", "labels").Proto(),
+		UpdateMask: pbfieldmask.FromPaths("price").Proto(),
 	}
 	if _, err := s.UpdateChat(ctx, updateChatRequest); err != nil {
 		return err
 	}
-	return nil
+
+	// The persisted message is the final event of the stream.
+	finalResponse := &pb.StreamMessageResponse{
+		Content: &pb.StreamMessageResponse_Message{Message: persistedMessage},
+	}
+	return srv.Send(finalResponse)
 }
 
-type tttStreamWrapper struct {
-	pb.AiService_TextToTextStreamServer
-	textToTextAccumulator       *ai.TextToTextAccumulator
+type streamMessageWrapper struct {
+	pb.AiService_StreamMessageServer
+	messageAccumulator          *ai.MessageAccumulator
 	model                       *aipb.Model
 	modelUsage                  *aipb.ModelUsage
 	toolNameToTool              map[string]*aipb.Tool
@@ -209,9 +200,9 @@ type tttStreamWrapper struct {
 	toolCallIDToToolCall        map[string]*aipb.ToolCall
 }
 
-func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
-	switch c := resp.GetContent().(type) {
-	case *pb.TextToTextStreamResponse_Block:
+func (w *streamMessageWrapper) Send(response *pb.StreamMessageResponse) error {
+	switch c := response.GetContent().(type) {
+	case *pb.StreamMessageResponse_Block:
 		var toolCall *aipb.ToolCall
 		if c.Block.GetToolCall() != nil {
 			toolCall = c.Block.GetToolCall()
@@ -248,62 +239,26 @@ func (w *tttStreamWrapper) Send(resp *pb.TextToTextStreamResponse) error {
 			w.toolCallIDToToolCall[partialToolCall.Id] = partialToolCall
 		}
 
-	case *pb.TextToTextStreamResponse_ModelUsage:
+	case *pb.StreamMessageResponse_ModelUsage:
 		if ai.IsModelUsageEmpty(c.ModelUsage) {
 			return nil
 		}
 		proto.Merge(w.modelUsage, c.ModelUsage)
 		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
-		resp = &pb.TextToTextStreamResponse{
-			Content: &pb.TextToTextStreamResponse_ModelUsage{
+		response = &pb.StreamMessageResponse{
+			Content: &pb.StreamMessageResponse_ModelUsage{
 				ModelUsage: w.modelUsage,
 			},
 		}
 	}
 
-	if err := w.textToTextAccumulator.Add(resp); err != nil {
+	if err := w.messageAccumulator.Add(response); err != nil {
 		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 	}
-	return w.AiService_TextToTextStreamServer.Send(resp)
+	return w.AiService_StreamMessageServer.Send(response)
 }
 
-func (s *Service) TextToText(ctx context.Context, request *pb.TextToTextRequest) (*pb.TextToTextResponse, error) {
-	streamRequest := &pb.TextToTextStreamRequest{
-		Parent:        request.Parent,
-		Model:         request.Model,
-		Messages:      request.Messages,
-		Tools:         request.Tools,
-		ToolSets:      request.ToolSets,
-		Configuration: request.Configuration,
-		Labels:        request.Labels,
-	}
-	accumulator := ai.NewTextToTextAccumulator()
-	ctx = context.WithValue(ctx, tttAccumulatorKey{}, accumulator)
-
-	serverStreamClient := grpcinproc.NewServerStreamAsClient[
-		pb.TextToTextStreamRequest,
-		pb.TextToTextStreamResponse,
-		pb.AiService_TextToTextStreamServer,
-	](s.TextToTextStream)
-
-	stream, err := serverStreamClient(ctx, streamRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	for {
-		if _, err := stream.Recv(); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-	}
-
-	return accumulator.Response(), nil
-}
-
-func redactInlineImageData(messages []*aipb.Message) {
+func redactInlineImageData(messages ...*aipb.Message) {
 	for _, message := range messages {
 		for _, block := range message.GetBlocks() {
 			if img := block.GetImage(); img != nil {

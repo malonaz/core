@@ -12,12 +12,13 @@ if typing.TYPE_CHECKING:
 import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.ai.ai_service.v1.chat_pb2
+import malonaz.ai.ai_service.v1.message_pb2
 import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
 import malonaz.ai.ai_service.v1.text_to_speech_pb2
-import malonaz.ai.ai_service.v1.text_to_text_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
+import malonaz.ai.v1.message_pb2
 import malonaz.ai.v1.model_pb2
 import malonaz.ai.v1.voice_pb2
 import malonaz.codegen.aip.v1.aip_pb2
@@ -59,14 +60,6 @@ class AiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def TextToText(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest, malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def TextToTextStream(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest, malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
     async def TextToSpeech(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechRequest, malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechResponse]') -> None:
         pass
 
@@ -92,6 +85,30 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListChats(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest, malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.CreateMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GetMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.UpdateMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListMessages(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest, malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def StreamMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -144,18 +161,6 @@ class AiServiceBase(abc.ABC):
                 malonaz.ai.ai_service.v1.speech_to_text_pb2.SpeechToTextStreamRequest,
                 malonaz.ai.ai_service.v1.speech_to_text_pb2.SpeechToTextStreamResponse,
             ),
-            '/malonaz.ai.ai_service.v1.AiService/TextToText': grpclib.const.Handler(
-                self.TextToText,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest,
-                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse,
-            ),
-            '/malonaz.ai.ai_service.v1.AiService/TextToTextStream': grpclib.const.Handler(
-                self.TextToTextStream,
-                grpclib.const.Cardinality.UNARY_STREAM,
-                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest,
-                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse,
-            ),
             '/malonaz.ai.ai_service.v1.AiService/TextToSpeech': grpclib.const.Handler(
                 self.TextToSpeech,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -197,6 +202,42 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest,
                 malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/CreateMessage': grpclib.const.Handler(
+                self.CreateMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.CreateMessageRequest,
+                malonaz.ai.v1.message_pb2.Message,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/GetMessage': grpclib.const.Handler(
+                self.GetMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.GetMessageRequest,
+                malonaz.ai.v1.message_pb2.Message,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/UpdateMessage': grpclib.const.Handler(
+                self.UpdateMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.UpdateMessageRequest,
+                malonaz.ai.v1.message_pb2.Message,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/DeleteMessage': grpclib.const.Handler(
+                self.DeleteMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest,
+                malonaz.ai.v1.message_pb2.Message,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/ListMessages': grpclib.const.Handler(
+                self.ListMessages,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
+                malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/StreamMessage': grpclib.const.Handler(
+                self.StreamMessage,
+                grpclib.const.Cardinality.UNARY_STREAM,
+                malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest,
+                malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse,
             ),
         }
 
@@ -252,18 +293,6 @@ class AiServiceStub:
             malonaz.ai.ai_service.v1.speech_to_text_pb2.SpeechToTextStreamRequest,
             malonaz.ai.ai_service.v1.speech_to_text_pb2.SpeechToTextStreamResponse,
         )
-        self.TextToText = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.ai_service.v1.AiService/TextToText',
-            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest,
-            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse,
-        )
-        self.TextToTextStream = grpclib.client.UnaryStreamMethod(
-            channel,
-            '/malonaz.ai.ai_service.v1.AiService/TextToTextStream',
-            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest,
-            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse,
-        )
         self.TextToSpeech = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.ai.ai_service.v1.AiService/TextToSpeech',
@@ -305,4 +334,40 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/ListChats',
             malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest,
             malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse,
+        )
+        self.CreateMessage = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/CreateMessage',
+            malonaz.ai.ai_service.v1.message_pb2.CreateMessageRequest,
+            malonaz.ai.v1.message_pb2.Message,
+        )
+        self.GetMessage = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/GetMessage',
+            malonaz.ai.ai_service.v1.message_pb2.GetMessageRequest,
+            malonaz.ai.v1.message_pb2.Message,
+        )
+        self.UpdateMessage = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UpdateMessage',
+            malonaz.ai.ai_service.v1.message_pb2.UpdateMessageRequest,
+            malonaz.ai.v1.message_pb2.Message,
+        )
+        self.DeleteMessage = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/DeleteMessage',
+            malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest,
+            malonaz.ai.v1.message_pb2.Message,
+        )
+        self.ListMessages = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/ListMessages',
+            malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
+            malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
+        )
+        self.StreamMessage = grpclib.client.UnaryStreamMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/StreamMessage',
+            malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest,
+            malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse,
         )

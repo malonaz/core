@@ -6,7 +6,6 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
@@ -24,9 +23,8 @@ const (
 
 func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
 	return &aipb.Message{
-		CreateTime: timestamppb.Now(),
-		Role:       role,
-		Blocks:     blocks,
+		Role:   role,
+		Blocks: blocks,
 	}
 }
 

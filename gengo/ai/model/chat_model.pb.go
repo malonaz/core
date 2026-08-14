@@ -7,7 +7,6 @@ import (
 	errors "errors"
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
-	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
@@ -27,9 +26,9 @@ type Chat struct {
 	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"chat"`
 	Etag           string     `db:"etag" schema:"public" table:"chat"`
 	Labels         []byte     `db:"labels" schema:"public" table:"chat"`
-	Metadata       []byte     `db:"metadata" schema:"public" table:"chat"`
-	Title          string     `db:"title" schema:"public" table:"chat"`
 	Annotations    []byte     `db:"annotations" schema:"public" table:"chat"`
+	Title          string     `db:"title" schema:"public" table:"chat"`
+	Price          float64    `db:"price" schema:"public" table:"chat"`
 }
 
 func ChatFromPb(m *v1.Chat) (*Chat, error) {
@@ -64,13 +63,6 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 			return nil, fmt.Errorf("marshaling Labels: %w", err)
 		}
 	}
-	if m.Metadata == nil {
-		return nil, fmt.Errorf("Metadata cannot be nil")
-	}
-	MetadataBytes, err := pbutil.Marshal(m.Metadata)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling Metadata: %w", err)
-	}
 	var AnnotationsBytes []byte
 	if m.Annotations != nil {
 		var err error
@@ -88,9 +80,9 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 		DeleteTime:     DeleteTime,
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
-		Metadata:       MetadataBytes,
-		Title:          m.Title,
 		Annotations:    AnnotationsBytes,
+		Title:          m.Title,
+		Price:          m.Price,
 	}, nil
 }
 
@@ -119,10 +111,6 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 			return nil, fmt.Errorf("unmarshaling Labels: %w", err)
 		}
 	}
-	Metadata := &v1.ChatMetadata{}
-	if err := pbutil.Unmarshal(m.Metadata, Metadata); err != nil {
-		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
-	}
 	var Annotations map[string]string
 	if m.Annotations != nil {
 		Annotations = map[string]string{}
@@ -141,9 +129,9 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 		DeleteTime:  DeleteTime,
 		Etag:        m.Etag,
 		Labels:      Labels,
-		Metadata:    Metadata,
-		Title:       m.Title,
 		Annotations: Annotations,
+		Title:       m.Title,
+		Price:       m.Price,
 	}, nil
 }
 

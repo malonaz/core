@@ -1,7 +1,7 @@
 go_library(
     name = "provider",
     srcs = [
-        "async_text_to_text_content_sender.go",
+        "async_message_content_sender.go",
         "model_service.go",
         "provider.go",
         "tool_accumulator.go",

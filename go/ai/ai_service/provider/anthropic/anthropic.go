@@ -34,5 +34,5 @@ func (c *Client) Stop() {}
 
 // Verify interface compliance at compile time.
 var (
-	_ provider.TextToTextClient = (*Client)(nil)
+	_ provider.StreamMessageClient = (*Client)(nil)
 )
