@@ -251,12 +251,6 @@ enum StopReason {
 
 // Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
 message GenerateMessageRequest {
-  option (buf.validate.message).cel = {
-    id: "messages_role"
-    message: "messages cannot have the ASSISTANT role"
-    expression: "this.messages.all(m, m.role != 2)"
-  };
-
   // The resource name of the parent chat whose message history forms the
   // conversation for this generation. The input `messages` and the generated
   // assistant message are persisted under this chat.

@@ -1651,7 +1651,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x1cImageGenerationConfiguration\x12_\n" +
 	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
 	"\n" +
-	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xf4\x06\n" +
+	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\x92\x06\n" +
 	"\x16GenerateMessageRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x125\n" +
@@ -1668,8 +1668,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"request_id\x18\t \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xbaH]\x1a[\n" +
-	"\rmessages_role\x12'messages cannot have the ASSISTANT role\x1a!this.messages.all(m, m.role != 2)\"\xb2\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb2\x02\n" +
 	"\x17GenerateMessageResponse\x12C\n" +
 	"\x11generated_message\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageR\x10generatedMessage\x12E\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2$.malonaz.ai.ai_service.v1.StopReasonR\n" +
