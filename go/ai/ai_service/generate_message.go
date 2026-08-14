@@ -302,6 +302,9 @@ func (s *Service) markGenerationFailure(
 	accumulator *ai.MessageAccumulator,
 	generationError error,
 ) {
+	// The request context is typically already cancelled when generation fails,
+	// so detach from it to ensure the failure is still persisted.
+	ctx = context.WithoutCancel(ctx)
 	errorStatus := grpcstatus.Convert(generationError).Proto()
 
 	for _, inputMessage := range inputMessages {
