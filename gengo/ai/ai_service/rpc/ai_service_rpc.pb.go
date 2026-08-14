@@ -352,6 +352,65 @@ func (s *aiService_ChatServer) ListChats(ctx context.Context, request *v1.ListCh
 	}, nil
 }
 
+func (s *aiService_ChatServer) BatchGetChats(ctx context.Context, request *v1.BatchGetChatsRequest) (*v1.BatchGetChatsResponse, error) {
+	var organizationId, userId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
+	chatIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, userId, chatId, err := model.ParseChatName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
+		chatIds[i] = chatId
+	}
+
+	dbChats, err := s.store.BatchGetChats(ctx, organizationIds, userIds, chatIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting chat").Err()
+	}
+	if len(dbChats) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d chats, found %d", len(request.Names), len(dbChats)).Err()
+	}
+
+	chatNameToChat := make(map[string]*v11.Chat, len(request.Names))
+	for _, dbChatModel := range dbChats {
+		chat, err := dbChatModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+		}
+		chatNameToChat[chat.Name] = chat
+	}
+
+	chats := make([]*v11.Chat, 0, len(dbChats))
+	for _, name := range request.Names {
+		chat, ok := chatNameToChat[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		chats = append(chats, chat)
+	}
+
+	return &v1.BatchGetChatsResponse{
+		Chats: chats,
+	}, nil
+}
+
 type aiService_MessageStore interface {
 	InsertMessageIdempotently(ctx context.Context, requestID string, message *model.Message) (*model.Message, error)
 	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
@@ -660,5 +719,66 @@ func (s *aiService_MessageServer) ListMessages(ctx context.Context, request *v1.
 	return &v1.ListMessagesResponse{
 		Messages:      messages,
 		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *aiService_MessageServer) BatchGetMessages(ctx context.Context, request *v1.BatchGetMessagesRequest) (*v1.BatchGetMessagesResponse, error) {
+	var organizationId, userId, chatId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}", &organizationId, &userId, &chatId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
+	chatIds := make([]string, len(request.GetNames()))
+	messageIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, userId, chatId, messageId, err := model.ParseMessageName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
+		chatIds[i] = chatId
+		messageIds[i] = messageId
+	}
+
+	dbMessages, err := s.store.BatchGetMessages(ctx, organizationIds, userIds, chatIds, messageIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting message").Err()
+	}
+	if len(dbMessages) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d messages, found %d", len(request.Names), len(dbMessages)).Err()
+	}
+
+	messageNameToMessage := make(map[string]*v11.Message, len(request.Names))
+	for _, dbMessageModel := range dbMessages {
+		message, err := dbMessageModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+		}
+		messageNameToMessage[message.Name] = message
+	}
+
+	messages := make([]*v11.Message, 0, len(dbMessages))
+	for _, name := range request.Names {
+		message, ok := messageNameToMessage[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		messages = append(messages, message)
+	}
+
+	return &v1.BatchGetMessagesResponse{
+		Messages: messages,
 	}, nil
 }

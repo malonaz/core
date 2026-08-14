@@ -208,6 +208,16 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
+  // Get multiple chats in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetChats(BatchGetChatsRequest) returns (BatchGetChatsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
   // ===================== Message Management =====================
 
   // Create a message within a chat.
@@ -268,6 +278,16 @@ service AiService {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages"};
     option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Get multiple messages in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetMessages(BatchGetMessagesRequest) returns (BatchGetMessagesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages:batchGet"};
+    option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 

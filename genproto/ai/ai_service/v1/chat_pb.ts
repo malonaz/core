@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/chat.proto.
  */
 export const file_malonaz_ai_ai_service_v1_chat: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvY2hhdC5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIuEBChFDcmVhdGVDaGF0UmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIpCgRjaGF0GAIgASgLMhMubWFsb25hei5haS52MS5DaGF0Qga6SAPIAQESNgoHY2hhdF9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkEKDkdldENoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBASLmAQoRVXBkYXRlQ2hhdFJlcXVlc3QSKQoEY2hhdBgBIAEoCzITLm1hbG9uYXouYWkudjEuQ2hhdEIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOm26SEIaQAoSY2hhdC5uYW1lX3JlcXVpcmVkEhVjaGF0Lm5hbWUgbXVzdCBiZSBzZXQaE2hhcyh0aGlzLmNoYXQubmFtZSnqnMEDIwoGbGFiZWxzCgV0aXRsZQoLYW5ub3RhdGlvbnMKBXByaWNlImkKEURlbGV0ZUNoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAki7gEKEExpc3RDaGF0c1JlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlAKEUxpc3RDaGF0c1Jlc3BvbnNlEiIKBWNoYXRzGAEgAygLMhMubWFsb25hei5haS52MS5DaGF0EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_chat, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CiNtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvY2hhdC5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIuEBChFDcmVhdGVDaGF0UmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIpCgRjaGF0GAIgASgLMhMubWFsb25hei5haS52MS5DaGF0Qga6SAPIAQESNgoHY2hhdF9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkEKDkdldENoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBASLmAQoRVXBkYXRlQ2hhdFJlcXVlc3QSKQoEY2hhdBgBIAEoCzITLm1hbG9uYXouYWkudjEuQ2hhdEIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOm26SEIaQAoSY2hhdC5uYW1lX3JlcXVpcmVkEhVjaGF0Lm5hbWUgbXVzdCBiZSBzZXQaE2hhcyh0aGlzLmNoYXQubmFtZSnqnMEDIwoGbGFiZWxzCgV0aXRsZQoLYW5ub3RhdGlvbnMKBXByaWNlImkKEURlbGV0ZUNoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAki7gEKEExpc3RDaGF0c1JlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlAKEUxpc3RDaGF0c1Jlc3BvbnNlEiIKBWNoYXRzGAEgAygLMhMubWFsb25hei5haS52MS5DaGF0EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChRCYXRjaEdldENoYXRzUmVxdWVzdBIoCgZwYXJlbnQYASABKAlCGPpBFQoTYWkubWFsb25hei5jb20vVXNlchI6CgVuYW1lcxgCIAMoCUIr+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgQkgENCAEQ6AcYASIEcgIQASI7ChVCYXRjaEdldENoYXRzUmVzcG9uc2USIgoFY2hhdHMYASADKAsyEy5tYWxvbmF6LmFpLnYxLkNoYXRCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_chat, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AiService.CreateChat.
@@ -411,4 +411,62 @@ export type ListChatsResponseValid = ListChatsResponse;
  */
 export const ListChatsResponseSchema: GenMessage<ListChatsResponse, {validType: ListChatsResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_chat, 5);
+
+/**
+ * Request message for AiService.BatchGetChats.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.BatchGetChatsRequest
+ */
+export type BatchGetChatsRequest = Message<"malonaz.ai.ai_service.v1.BatchGetChatsRequest"> & {
+  /**
+   * The resource name of the parent user that owns the chats.
+   * Format: organizations/{organization}/users/{user}
+   * If this is set, the parent of all of the chats specified in `names`
+   * must match this field.
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The resource names of the chats to retrieve.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}
+   * A maximum of 1000 chats can be retrieved in a batch.
+   *
+   * @generated from field: repeated string names = 2;
+   */
+  names: string[];
+};
+
+export type BatchGetChatsRequestValid = BatchGetChatsRequest;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.BatchGetChatsRequest.
+ * Use `create(BatchGetChatsRequestSchema)` to create a new message.
+ */
+export const BatchGetChatsRequestSchema: GenMessage<BatchGetChatsRequest, {validType: BatchGetChatsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_chat, 6);
+
+/**
+ * Response message for AiService.BatchGetChats.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.BatchGetChatsResponse
+ */
+export type BatchGetChatsResponse = Message<"malonaz.ai.ai_service.v1.BatchGetChatsResponse"> & {
+  /**
+   * Chats requested.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Chat chats = 1;
+   */
+  chats: Chat[];
+};
+
+export type BatchGetChatsResponseValid = BatchGetChatsResponse;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.BatchGetChatsResponse.
+ * Use `create(BatchGetChatsResponseSchema)` to create a new message.
+ */
+export const BatchGetChatsResponseSchema: GenMessage<BatchGetChatsResponse, {validType: BatchGetChatsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_chat, 7);
 

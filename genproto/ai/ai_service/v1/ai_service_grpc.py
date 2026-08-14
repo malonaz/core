@@ -89,6 +89,10 @@ class AiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def BatchGetChats(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsRequest, malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def CreateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.CreateMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
         pass
 
@@ -106,6 +110,10 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListMessages(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest, malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetMessages(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesRequest, malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -216,6 +224,12 @@ class AiServiceBase(abc.ABC):
                 malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest,
                 malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse,
             ),
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetChats': grpclib.const.Handler(
+                self.BatchGetChats,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsRequest,
+                malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsResponse,
+            ),
             '/malonaz.ai.ai_service.v1.AiService/CreateMessage': grpclib.const.Handler(
                 self.CreateMessage,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -245,6 +259,12 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
                 malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetMessages': grpclib.const.Handler(
+                self.BatchGetMessages,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesRequest,
+                malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesResponse,
             ),
             '/malonaz.ai.ai_service.v1.AiService/GenerateMessage': grpclib.const.Handler(
                 self.GenerateMessage,
@@ -366,6 +386,12 @@ class AiServiceStub:
             malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest,
             malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse,
         )
+        self.BatchGetChats = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetChats',
+            malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsRequest,
+            malonaz.ai.ai_service.v1.chat_pb2.BatchGetChatsResponse,
+        )
         self.CreateMessage = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.ai.ai_service.v1.AiService/CreateMessage',
@@ -395,6 +421,12 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/ListMessages',
             malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
             malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
+        )
+        self.BatchGetMessages = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetMessages',
+            malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesRequest,
+            malonaz.ai.ai_service.v1.message_pb2.BatchGetMessagesResponse,
         )
         self.GenerateMessage = grpclib.client.UnaryUnaryMethod(
             channel,

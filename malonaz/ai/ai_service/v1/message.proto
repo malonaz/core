@@ -165,6 +165,36 @@ message ListMessagesResponse {
   string next_page_token = 2;
 }
 
+// Request message for AiService.BatchGetMessages.
+message BatchGetMessagesRequest {
+  // The resource name of the parent chat that owns the messages.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  // If this is set, the parent of all of the messages specified in `names`
+  // must match this field.
+  string parent = 1 [(google.api.resource_reference).type = "ai.malonaz.com/Chat"];
+
+  // The resource names of the messages to retrieve.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  // A maximum of 1000 messages can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "ai.malonaz.com/Message"
+  ];
+}
+
+// Response message for AiService.BatchGetMessages.
+message BatchGetMessagesResponse {
+  // Messages requested.
+  repeated ai.v1.Message messages = 1;
+}
+
 // Configuration for assistant message generation.
 message MessageGenerationConfiguration {
   // Maximum number of tokens to generate. Includes reasoning tokens.

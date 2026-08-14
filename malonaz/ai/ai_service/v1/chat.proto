@@ -150,3 +150,33 @@ message ListChatsResponse {
   // If this field is omitted, there are no subsequent pages.
   string next_page_token = 2;
 }
+
+// Request message for AiService.BatchGetChats.
+message BatchGetChatsRequest {
+  // The resource name of the parent user that owns the chats.
+  // Format: organizations/{organization}/users/{user}
+  // If this is set, the parent of all of the chats specified in `names`
+  // must match this field.
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/User"}];
+
+  // The resource names of the chats to retrieve.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  // A maximum of 1000 chats can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+}
+
+// Response message for AiService.BatchGetChats.
+message BatchGetChatsResponse {
+  // Chats requested.
+  repeated ai.v1.Chat chats = 1;
+}

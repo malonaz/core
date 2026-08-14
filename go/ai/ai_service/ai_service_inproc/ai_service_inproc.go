@@ -194,6 +194,15 @@ func (c *Client) ListChats(
 	return c.server.ListChats(ctx, request)
 }
 
+// BatchGetChats retrieves multiple chats by their resource names.
+func (c *Client) BatchGetChats(
+	ctx context.Context,
+	request *aiservicepb.BatchGetChatsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetChatsResponse, error) {
+	return c.server.BatchGetChats(ctx, request)
+}
+
 // CreateMessage creates a new message within a chat and returns the created resource.
 func (c *Client) CreateMessage(
 	ctx context.Context,
@@ -237,6 +246,15 @@ func (c *Client) ListMessages(
 	opts ...grpc.CallOption,
 ) (*aiservicepb.ListMessagesResponse, error) {
 	return c.server.ListMessages(ctx, request)
+}
+
+// BatchGetMessages retrieves multiple messages by their resource names.
+func (c *Client) BatchGetMessages(
+	ctx context.Context,
+	request *aiservicepb.BatchGetMessagesRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetMessagesResponse, error) {
+	return c.server.BatchGetMessages(ctx, request)
 }
 
 // TextToText provides a client-facing interface for the legacy stateless
