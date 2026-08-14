@@ -6,14 +6,6 @@ local external_service_accounts = import 'external_service_accounts.json';
   "service_accounts": internal_service_accounts.service_accounts + external_service_accounts.service_accounts,
   "roles": [
     {
-      "id": "ai:text_to_text",
-      "permissions": [
-        "/malonaz.ai.ai_service.v1.AiService/TextToText",
-        "/malonaz.ai.ai_service.v1.AiService/TextToTextStream",
-      ],
-    },
-
-    {
       "id": "ai:chat",
       "permissions": [
         "/malonaz.ai.ai_service.v1.AiService/CreateChat",
@@ -21,6 +13,19 @@ local external_service_accounts = import 'external_service_accounts.json';
         "/malonaz.ai.ai_service.v1.AiService/DeleteChat",
         "/malonaz.ai.ai_service.v1.AiService/ListChats",
         "/malonaz.ai.ai_service.v1.AiService/GetChat"
+      ],
+    },
+
+    {
+      "id": "ai:message",
+      "permissions": [
+        "/malonaz.ai.ai_service.v1.AiService/CreateMessage",
+        "/malonaz.ai.ai_service.v1.AiService/UpdateMessage",
+        "/malonaz.ai.ai_service.v1.AiService/DeleteMessage",
+        "/malonaz.ai.ai_service.v1.AiService/ListMessages",
+        "/malonaz.ai.ai_service.v1.AiService/GetMessage",
+        "/malonaz.ai.ai_service.v1.AiService/GenerateMessage",
+        "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage",
       ],
     },
 
