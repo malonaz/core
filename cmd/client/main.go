@@ -23,7 +23,7 @@ import (
 
 var (
 	socket          = flag.String("socket", "/tmp/tsunade.socket", "Unix socket path")
-	model           = flag.String("model", "providers/anthropic/models/claude-sonnet-4-20250514", "Model resource name")
+	model           = flag.String("model", "providers/anthropic/models/claude-opus-4.6", "Model resource name")
 	systemMessage   = flag.String("system", "You are a helpful assistant.", "System message")
 	userMessage     = flag.String("message", "", "User message (empty for interactive mode)")
 	maxTokens       = flag.Int("max-tokens", 10000, "Max tokens to generate")
