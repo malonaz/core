@@ -125,6 +125,10 @@ func (c *Client) StreamGenerateMessage(
 		Model:     anthropic.Model(model.ProviderModelId),
 		Messages:  messages,
 		MaxTokens: int64(request.Configuration.GetMaxTokens()),
+		// Top-level cache_control enables automatic prompt caching: the API
+		// places the breakpoint on the last cacheable block and moves it
+		// forward as the conversation grows.
+		CacheControl: anthropic.NewCacheControlEphemeralParam(),
 	}
 	if request.Configuration.GetTemperature() > 0 {
 		// Newer models (opus-4.7+, opus-5, sonnet-5, fable-5) reject non-default sampling parameters on every request.
