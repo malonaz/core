@@ -48,7 +48,7 @@ func (r *Registry) CreateTool(ctx context.Context, createToolRequest *pb.CreateT
 	tool, ok := r.hashToTool[hash]
 	r.mutex.RUnlock()
 	if ok {
-		return tool, nil
+		return proto.CloneOf(tool), nil
 	}
 
 	tool, err = r.aiEngineClient.CreateTool(ctx, createToolRequest)
@@ -60,7 +60,7 @@ func (r *Registry) CreateTool(ctx context.Context, createToolRequest *pb.CreateT
 	r.hashToTool[hash] = tool
 	r.mutex.Unlock()
 
-	return tool, nil
+	return proto.CloneOf(tool), nil
 }
 
 // hashRequest produces a stable hash of a request. Deterministic marshaling is
