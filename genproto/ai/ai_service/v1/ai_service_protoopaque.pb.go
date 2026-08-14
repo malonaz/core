@@ -29,46 +29,46 @@ var File_malonaz_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\n" +
-	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\x88\x1e\n" +
+	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xa1\x1e\n" +
 	"\tAiService\x12\x89\x01\n" +
-	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12{\n" +
-	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\".\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x12\x99\x01\n" +
+	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12~\n" +
+	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\"1\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x90\x02\x01\x12\x9c\x01\n" +
 	"\n" +
-	"ListModels\x12+.malonaz.ai.ai_service.v1.ListModelsRequest\x1a,.malonaz.ai.ai_service.v1.ListModelsResponse\"0\xdaA\x06parent\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{parent=providers/*}/models\x12m\n" +
+	"ListModels\x12+.malonaz.ai.ai_service.v1.ListModelsRequest\x1a,.malonaz.ai.ai_service.v1.ListModelsResponse\"3\xdaA\x06parent\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{parent=providers/*}/models\x90\x02\x01\x12m\n" +
 	"\vCreateVoice\x12,.malonaz.ai.ai_service.v1.CreateVoiceRequest\x1a\x14.malonaz.ai.v1.Voice\"\x1a\xdaA\x05voice\x82\xd3\xe4\x93\x02\f\"\n" +
-	"/v1/voices\x12o\n" +
-	"\bGetVoice\x12).malonaz.ai.ai_service.v1.GetVoiceRequest\x1a\x14.malonaz.ai.v1.Voice\"\"\xdaA\x04name\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/{name=voices/*}\x12~\n" +
+	"/v1/voices\x12r\n" +
+	"\bGetVoice\x12).malonaz.ai.ai_service.v1.GetVoiceRequest\x1a\x14.malonaz.ai.v1.Voice\"%\xdaA\x04name\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/{name=voices/*}\x90\x02\x01\x12\x81\x01\n" +
 	"\n" +
-	"ListVoices\x12+.malonaz.ai.ai_service.v1.ListVoicesRequest\x1a,.malonaz.ai.ai_service.v1.ListVoicesResponse\"\x15\xdaA\x00\x82\xd3\xe4\x93\x02\f\x12\n" +
-	"/v1/voices\x12\xa9\x01\n" +
+	"ListVoices\x12+.malonaz.ai.ai_service.v1.ListVoicesRequest\x1a,.malonaz.ai.ai_service.v1.ListVoicesResponse\"\x18\xdaA\x00\x82\xd3\xe4\x93\x02\f\x12\n" +
+	"/v1/voices\x90\x02\x01\x12\xa9\x01\n" +
 	"\fSpeechToText\x12-.malonaz.ai.ai_service.v1.SpeechToTextRequest\x1a..malonaz.ai.ai_service.v1.SpeechToTextResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/{model=providers/*/models/*}/speech-to-text\x12\xc6\x01\n" +
 	"\x12SpeechToTextStream\x123.malonaz.ai.ai_service.v1.SpeechToTextStreamRequest\x1a4.malonaz.ai.ai_service.v1.SpeechToTextStreamResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{model=providers/*/models/*}/speech-to-text:stream(\x010\x01\x12\xa9\x01\n" +
 	"\fTextToSpeech\x12-.malonaz.ai.ai_service.v1.TextToSpeechRequest\x1a..malonaz.ai.ai_service.v1.TextToSpeechResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/{model=providers/*/models/*}/text-to-speech\x12\xc4\x01\n" +
 	"\x12TextToSpeechStream\x123.malonaz.ai.ai_service.v1.TextToSpeechStreamRequest\x1a4.malonaz.ai.ai_service.v1.TextToSpeechStreamResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{model=providers/*/models/*}/text-to-speech:stream0\x01\x12\xaf\x01\n" +
 	"\n" +
 	"CreateChat\x12+.malonaz.ai.ai_service.v1.CreateChatRequest\x1a\x13.malonaz.ai.v1.Chat\"_\xdaA\vparent,chat´-\x15\n" +
-	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x022:\x04chat\"*/v1/{parent=organizations/*/users/*}/chats\x12\x9c\x01\n" +
-	"\aGetChat\x12(.malonaz.ai.ai_service.v1.GetChatRequest\x1a\x13.malonaz.ai.v1.Chat\"R\xdaA\x04name´-\x15\n" +
-	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{name=organizations/*/users/*/chats/*}\x12\xb9\x01\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x022:\x04chat\"*/v1/{parent=organizations/*/users/*}/chats\x12\x9f\x01\n" +
+	"\aGetChat\x12(.malonaz.ai.ai_service.v1.GetChatRequest\x1a\x13.malonaz.ai.v1.Chat\"U\xdaA\x04name´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{name=organizations/*/users/*/chats/*}\x90\x02\x01\x12\xb9\x01\n" +
 	"\n" +
 	"UpdateChat\x12+.malonaz.ai.ai_service.v1.UpdateChatRequest\x1a\x13.malonaz.ai.v1.Chat\"i\xdaA\x10chat,update_mask´-\x15\n" +
 	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x027:\x04chat2//v1/{chat.name=organizations/*/users/*/chats/*}\x12\xa2\x01\n" +
 	"\n" +
 	"DeleteChat\x12+.malonaz.ai.ai_service.v1.DeleteChatRequest\x1a\x13.malonaz.ai.v1.Chat\"R\xdaA\x04name´-\x15\n" +
-	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,**/v1/{name=organizations/*/users/*/chats/*}\x12\xba\x01\n" +
-	"\tListChats\x12*.malonaz.ai.ai_service.v1.ListChatsRequest\x1a+.malonaz.ai.ai_service.v1.ListChatsResponse\"T\xdaA\x06parent´-\x15\n" +
-	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{parent=organizations/*/users/*}/chats\x12\xcc\x01\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,**/v1/{name=organizations/*/users/*/chats/*}\x12\xbd\x01\n" +
+	"\tListChats\x12*.malonaz.ai.ai_service.v1.ListChatsRequest\x1a+.malonaz.ai.ai_service.v1.ListChatsResponse\"W\xdaA\x06parent´-\x15\n" +
+	"\x13ai.malonaz.com/Chat\x82\xd3\xe4\x93\x02,\x12*/v1/{parent=organizations/*/users/*}/chats\x90\x02\x01\x12\xcc\x01\n" +
 	"\rCreateMessage\x12..malonaz.ai.ai_service.v1.CreateMessageRequest\x1a\x16.malonaz.ai.v1.Message\"s\xdaA\x0eparent,message´-\x18\n" +
-	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x02@:\amessage\"5/v1/{parent=organizations/*/users/*/chats/*}/messages\x12\xb3\x01\n" +
+	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x02@:\amessage\"5/v1/{parent=organizations/*/users/*/chats/*}/messages\x12\xb6\x01\n" +
 	"\n" +
-	"GetMessage\x12+.malonaz.ai.ai_service.v1.GetMessageRequest\x1a\x16.malonaz.ai.v1.Message\"`\xdaA\x04name´-\x18\n" +
-	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027\x125/v1/{name=organizations/*/users/*/chats/*/messages/*}\x12\xda\x01\n" +
+	"GetMessage\x12+.malonaz.ai.ai_service.v1.GetMessageRequest\x1a\x16.malonaz.ai.v1.Message\"c\xdaA\x04name´-\x18\n" +
+	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027\x125/v1/{name=organizations/*/users/*/chats/*/messages/*}\x90\x02\x01\x12\xda\x01\n" +
 	"\rUpdateMessage\x12..malonaz.ai.ai_service.v1.UpdateMessageRequest\x1a\x16.malonaz.ai.v1.Message\"\x80\x01\xdaA\x13message,update_mask´-\x18\n" +
 	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x02H:\amessage2=/v1/{message.name=organizations/*/users/*/chats/*/messages/*}\x12\xb9\x01\n" +
 	"\rDeleteMessage\x12..malonaz.ai.ai_service.v1.DeleteMessageRequest\x1a\x16.malonaz.ai.v1.Message\"`\xdaA\x04name´-\x18\n" +
-	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027*5/v1/{name=organizations/*/users/*/chats/*/messages/*}\x12\xd1\x01\n" +
-	"\fListMessages\x12-.malonaz.ai.ai_service.v1.ListMessagesRequest\x1a..malonaz.ai.ai_service.v1.ListMessagesResponse\"b\xdaA\x06parent´-\x18\n" +
-	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/users/*/chats/*}/messages\x12\xc1\x01\n" +
+	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027*5/v1/{name=organizations/*/users/*/chats/*/messages/*}\x12\xd4\x01\n" +
+	"\fListMessages\x12-.malonaz.ai.ai_service.v1.ListMessagesRequest\x1a..malonaz.ai.ai_service.v1.ListMessagesResponse\"e\xdaA\x06parent´-\x18\n" +
+	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/users/*/chats/*}/messages\x90\x02\x01\x12\xc1\x01\n" +
 	"\x0fGenerateMessage\x120.malonaz.ai.ai_service.v1.GenerateMessageRequest\x1a1.malonaz.ai.ai_service.v1.GenerateMessageResponse\"I\x82\xd3\xe4\x93\x02C:\x01*\">/v1/{parent=organizations/*/users/*/chats/*}/messages:generate\x12\xd5\x01\n" +
 	"\x15StreamGenerateMessage\x120.malonaz.ai.ai_service.v1.GenerateMessageRequest\x1a7.malonaz.ai.ai_service.v1.StreamGenerateMessageResponse\"O\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate0\x01\x1a\x11\xcaA\x0eai.malonaz.comB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 

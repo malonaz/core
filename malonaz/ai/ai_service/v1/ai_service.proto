@@ -71,6 +71,7 @@ service AiService {
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetModel(GetModelRequest) returns (ai.v1.Model) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{name=providers/*/models/*}"};
     option (google.api.method_signature) = "name";
   }
@@ -79,6 +80,7 @@ service AiService {
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=providers/*}/models"};
     option (google.api.method_signature) = "parent";
   }
@@ -95,6 +97,7 @@ service AiService {
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetVoice(GetVoiceRequest) returns (ai.v1.Voice) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{name=voices/*}"};
     option (google.api.method_signature) = "name";
   }
@@ -103,6 +106,7 @@ service AiService {
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListVoices(ListVoicesRequest) returns (ListVoicesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/voices"};
     option (google.api.method_signature) = "";
   }
@@ -165,6 +169,7 @@ service AiService {
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetChat(GetChatRequest) returns (ai.v1.Chat) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
@@ -196,6 +201,7 @@ service AiService {
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListChats(ListChatsRequest) returns (ListChatsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
@@ -223,6 +229,7 @@ service AiService {
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetMessage(GetMessageRequest) returns (ai.v1.Message) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
@@ -257,6 +264,7 @@ service AiService {
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";

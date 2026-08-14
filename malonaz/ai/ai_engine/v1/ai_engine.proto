@@ -50,7 +50,9 @@ service AiEngine {
   // whose JSON schema mirrors the proto's fields, filtered and bounded by
   // the optional schema configuration. Tool calls produced against this
   // tool can be parsed back into the proto via ParseToolCall.
-  rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool);
+  rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Parse a tool call emitted against a tool created by this service.
   //
@@ -63,14 +65,18 @@ service AiEngine {
   // When the failure is correctable by the model, the error carries a
   // [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
   // detail ready to be fed back into the conversation.
-  rpc ParseToolCall(ParseToolCallRequest) returns (ParseToolCallResponse);
+  rpc ParseToolCall(ParseToolCallRequest) returns (ParseToolCallResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Create a discovery tool for a set of tools.
   //
   // The returned tool exposes only the names and descriptions of the
   // underlying tools; the model calls it to request the full schema of the
   // tools it actually needs, keeping unused schemas out of its context.
-  rpc CreateDiscoveryTool(CreateDiscoveryToolRequest) returns (ai.v1.Tool);
+  rpc CreateDiscoveryTool(CreateDiscoveryToolRequest) returns (ai.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Create a discoverable tool set for a gRPC service.
   //
@@ -78,7 +84,9 @@ service AiEngine {
   // and individual tools for each method in the service.
   // Methods listed in `discovered_method_names` are exposed immediately,
   // without requiring a discovery round trip.
-  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ai.v1.ToolSet);
+  rpc CreateServiceToolSet(CreateServiceToolSetRequest) returns (ai.v1.ToolSet) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 // Request message for AiEngine.CreateTool

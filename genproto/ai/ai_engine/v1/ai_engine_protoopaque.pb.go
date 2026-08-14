@@ -1068,13 +1068,13 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +
-	"\tfull_name\x12\x05\xbaH\x02\b\x012\xa3\x03\n" +
-	"\bAiEngine\x12M\n" +
+	"\tfull_name\x12\x05\xbaH\x02\b\x012\xb7\x03\n" +
+	"\bAiEngine\x12R\n" +
 	"\n" +
-	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12n\n" +
-	"\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\x12_\n" +
-	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\x12d\n" +
-	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a\x16.malonaz.ai.v1.ToolSet\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
+	"CreateTool\x12*.malonaz.ai.ai_engine.v1.CreateToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12s\n" +
+	"\rParseToolCall\x12-.malonaz.ai.ai_engine.v1.ParseToolCallRequest\x1a..malonaz.ai.ai_engine.v1.ParseToolCallResponse\"\x03\x90\x02\x01\x12d\n" +
+	"\x13CreateDiscoveryTool\x123.malonaz.ai.ai_engine.v1.CreateDiscoveryToolRequest\x1a\x13.malonaz.ai.v1.Tool\"\x03\x90\x02\x01\x12i\n" +
+	"\x14CreateServiceToolSet\x124.malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest\x1a\x16.malonaz.ai.v1.ToolSet\"\x03\x90\x02\x01\x1a\x11\xcaA\x0eai.malonaz.comB2Z0github.com/malonaz/core/genproto/ai/ai_engine/v1b\x06proto3"
 
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
