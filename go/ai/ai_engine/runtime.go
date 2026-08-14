@@ -202,6 +202,11 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 
 	annotations[aitool.AnnotationKeyProtoMessage] = string(messageDescriptor.FullName())
 
+	// Title applies to both message and method tools.
+	if titleDescription := request.GetSchemaConfiguration().GetWithTitle(); titleDescription != "" {
+		schemaOptions = append(schemaOptions, pbjson.WithTitle(titleDescription))
+	}
+
 	if len(request.GetSchemaConfiguration().GetFieldMask().GetPaths()) > 0 {
 		fieldMask := pbfieldmask.New(request.GetSchemaConfiguration().GetFieldMask())
 		message := dynamicpb.NewMessage(messageDescriptor)

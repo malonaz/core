@@ -20,7 +20,11 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
 
-const responseReadMaskKey = "response_read_mask"
+const (
+	responseReadMaskKey = "response_read_mask"
+	// Namespaced to avoid clashing with genuine request fields named "title".
+	titleKey = "tool_call_title"
+)
 
 func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args map[string]any) (*dynamicpb.Message, error) {
 	desc, err := b.schema.FindDescriptorByName(messageFullName)
@@ -52,6 +56,23 @@ func GetResponseReadMask(args map[string]any) (*fieldmaskpb.FieldMask, bool) {
 		return nil, false
 	}
 	return pbfieldmask.FromString(s).Proto(), true
+}
+
+// GetTitle extracts the injected `tool_call_title` argument, when the tool was built with WithTitle.
+func GetTitle(args map[string]any) (string, bool) {
+	return getStringArgument(args, titleKey)
+}
+
+func getStringArgument(args map[string]any, key string) (string, bool) {
+	val, ok := args[key]
+	if !ok {
+		return "", false
+	}
+	s, ok := val.(string)
+	if !ok || s == "" {
+		return "", false
+	}
+	return s, true
 }
 
 func populateMessage(msg *dynamicpb.Message, args map[string]any) error {

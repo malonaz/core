@@ -343,6 +343,7 @@ func (b0 ParseToolCallRequest_builder) Build() *ParseToolCallRequest {
 type ParseToolCallResponse struct {
 	state             protoimpl.MessageState         `protogen:"opaque.v1"`
 	xxx_hidden_Result isParseToolCallResponse_Result `protobuf_oneof:"result"`
+	xxx_hidden_Title  string                         `protobuf:"bytes,4,opt,name=title,proto3"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -399,6 +400,13 @@ func (x *ParseToolCallResponse) GetRpc() *v1.ToolCallRpc {
 	return nil
 }
 
+func (x *ParseToolCallResponse) GetTitle() string {
+	if x != nil {
+		return x.xxx_hidden_Title
+	}
+	return ""
+}
+
 func (x *ParseToolCallResponse) SetMessage(v *structpb.Struct) {
 	if v == nil {
 		x.xxx_hidden_Result = nil
@@ -421,6 +429,10 @@ func (x *ParseToolCallResponse) SetRpc(v *v1.ToolCallRpc) {
 		return
 	}
 	x.xxx_hidden_Result = &parseToolCallResponse_Rpc{v}
+}
+
+func (x *ParseToolCallResponse) SetTitle(v string) {
+	x.xxx_hidden_Title = v
 }
 
 func (x *ParseToolCallResponse) HasResult() bool {
@@ -510,6 +522,9 @@ type ParseToolCallResponse_builder struct {
 	// A request to execute a gRPC method.
 	Rpc *v1.ToolCallRpc
 	// -- end of xxx_hidden_Result
+	// Short human-readable summary of what this tool call does,
+	// if the tool was created with `SchemaConfiguration.with_title`.
+	Title string
 }
 
 func (b0 ParseToolCallResponse_builder) Build() *ParseToolCallResponse {
@@ -525,6 +540,7 @@ func (b0 ParseToolCallResponse_builder) Build() *ParseToolCallResponse {
 	if b.Rpc != nil {
 		x.xxx_hidden_Result = &parseToolCallResponse_Rpc{b.Rpc}
 	}
+	x.xxx_hidden_Title = b.Title
 	return m0
 }
 
@@ -865,6 +881,7 @@ type SchemaConfiguration struct {
 	xxx_hidden_WithMaxDepth               int32                  `protobuf:"varint,2,opt,name=with_max_depth,json=withMaxDepth,proto3"`
 	xxx_hidden_WithResponseReadMask       bool                   `protobuf:"varint,3,opt,name=with_response_read_mask,json=withResponseReadMask,proto3"`
 	xxx_hidden_WithResponseSchemaMaxDepth int32                  `protobuf:"varint,4,opt,name=with_response_schema_max_depth,json=withResponseSchemaMaxDepth,proto3"`
+	xxx_hidden_WithTitle                  string                 `protobuf:"bytes,5,opt,name=with_title,json=withTitle,proto3"`
 	unknownFields                         protoimpl.UnknownFields
 	sizeCache                             protoimpl.SizeCache
 }
@@ -922,6 +939,13 @@ func (x *SchemaConfiguration) GetWithResponseSchemaMaxDepth() int32 {
 	return 0
 }
 
+func (x *SchemaConfiguration) GetWithTitle() string {
+	if x != nil {
+		return x.xxx_hidden_WithTitle
+	}
+	return ""
+}
+
 func (x *SchemaConfiguration) SetFieldMask(v *fieldmaskpb.FieldMask) {
 	x.xxx_hidden_FieldMask = v
 }
@@ -936,6 +960,10 @@ func (x *SchemaConfiguration) SetWithResponseReadMask(v bool) {
 
 func (x *SchemaConfiguration) SetWithResponseSchemaMaxDepth(v int32) {
 	x.xxx_hidden_WithResponseSchemaMaxDepth = v
+}
+
+func (x *SchemaConfiguration) SetWithTitle(v string) {
+	x.xxx_hidden_WithTitle = v
 }
 
 func (x *SchemaConfiguration) HasFieldMask() bool {
@@ -963,6 +991,10 @@ type SchemaConfiguration_builder struct {
 	// (ONLY WORKS FOR RPCS). If set, we include the schema of the response in the tool description.
 	// This can be quite verbose so use with care.
 	WithResponseSchemaMaxDepth int32
+	// If set, we inject a required `tool_call_title` field in the tool schema, documented with
+	// this string. The AI is instructed to generate this field first. Useful when surfacing tool
+	// calls to users for review/approval (e.g. "A short summary of the update, shown to the user").
+	WithTitle string
 }
 
 func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
@@ -973,6 +1005,7 @@ func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
 	x.xxx_hidden_WithMaxDepth = b.WithMaxDepth
 	x.xxx_hidden_WithResponseReadMask = b.WithResponseReadMask
 	x.xxx_hidden_WithResponseSchemaMaxDepth = b.WithResponseSchemaMaxDepth
+	x.xxx_hidden_WithTitle = b.WithTitle
 	return m0
 }
 
@@ -1161,11 +1194,12 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x89\x01\n" +
 	"\x14ParseToolCallRequest\x12<\n" +
 	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x123\n" +
-	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xc8\x01\n" +
+	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xde\x01\n" +
 	"\x15ParseToolCallResponse\x123\n" +
 	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12@\n" +
 	"\tdiscovery\x18\x02 \x01(\v2 .malonaz.ai.v1.ToolCallDiscoveryH\x00R\tdiscovery\x12.\n" +
-	"\x03rpc\x18\x03 \x01(\v2\x1a.malonaz.ai.v1.ToolCallRpcH\x00R\x03rpcB\b\n" +
+	"\x03rpc\x18\x03 \x01(\v2\x1a.malonaz.ai.v1.ToolCallRpcH\x00R\x03rpc\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05titleB\b\n" +
 	"\x06result\"\x95\x01\n" +
 	"\x1aCreateDiscoveryToolRequest\x12\x1a\n" +
 	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12(\n" +
@@ -1182,7 +1216,7 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x05value:\x028\x01\"c\n" +
 	"\x1dParseToolCallRecoverableError\x12B\n" +
 	"\vtool_result\x18\x01 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"toolResult\"\x87\x02\n" +
+	"toolResult\"\xa6\x02\n" +
 	"\x13SchemaConfiguration\x129\n" +
 	"\n" +
 	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x12/\n" +
@@ -1190,7 +1224,9 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"(\x00R\fwithMaxDepth\x125\n" +
 	"\x17with_response_read_mask\x18\x03 \x01(\bR\x14withResponseReadMask\x12M\n" +
 	"\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
-	"(\x00R\x1awithResponseSchemaMaxDepth\"_\n" +
+	"(\x00R\x1awithResponseSchemaMaxDepth\x12\x1d\n" +
+	"\n" +
+	"with_title\x18\x05 \x01(\tR\twithTitle\"_\n" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +

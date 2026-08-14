@@ -54,8 +54,10 @@ func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSe
 		if err != nil {
 			return nil, err
 		}
+		title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
 		return &pb.ParseToolCallResponse{
 			Result: &pb.ParseToolCallResponse_Message{Message: message},
+			Title:  title,
 		}, nil
 
 	default:
@@ -127,6 +129,7 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 		return nil, err
 	}
 	readMask, _ := pbjson.GetResponseReadMask(toolCall.GetArguments().AsMap())
+	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
 
 	return &pb.ParseToolCallResponse{
 		Result: &pb.ParseToolCallResponse_Rpc{
@@ -137,6 +140,7 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 				ReadMask:        readMask,
 			},
 		},
+		Title: title,
 	}, nil
 }
 

@@ -150,6 +150,10 @@ message ParseToolCallResponse {
     // A request to execute a gRPC method.
     ai.v1.ToolCallRpc rpc = 3;
   }
+
+  // Short human-readable summary of what this tool call does,
+  // if the tool was created with `SchemaConfiguration.with_title`.
+  string title = 4;
 }
 
 // Request message for AiEngine.CreateDiscoveryTool.
@@ -214,6 +218,11 @@ message SchemaConfiguration {
     gte: 0
     lte: 10
   }];
+
+  // If set, we inject a required `tool_call_title` field in the tool schema, documented with
+  // this string. The AI is instructed to generate this field first. Useful when surfacing tool
+  // calls to users for review/approval (e.g. "A short summary of the update, shown to the user").
+  string with_title = 5;
 }
 
 // A reference to a protobuf descriptor.

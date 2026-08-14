@@ -52,6 +52,7 @@ type schemaOptions struct {
 	maxDepth                   int
 	fieldMask                  *fieldmaskpb.FieldMask
 	withResponseReadMask       bool
+	titleDescription           string
 	withResponseSchemaMaxDepth int
 	responseDescriptor         protoreflect.MessageDescriptor
 }
@@ -67,6 +68,14 @@ func WithResponseSchemaMaxDepth(maxDepth int) SchemaOption {
 func WithResponseReadMask() SchemaOption {
 	return func(o *schemaOptions) {
 		o.withResponseReadMask = true
+	}
+}
+
+// WithTitle injects a required `tool_call_title` field documented with the given description,
+// which the caller uses to tell the model what to put there (e.g. a user-facing summary of the action).
+func WithTitle(description string) SchemaOption {
+	return func(o *schemaOptions) {
+		o.titleDescription = description
 	}
 }
 
@@ -151,6 +160,17 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 			Description: buildResponseReadMaskDescription(so.responseDescriptor),
 		}
 		schema.Required = append(schema.Required, responseReadMaskKey)
+	}
+	if so.titleDescription != "" {
+		// Guard against shadowing a genuine request field of the same name.
+		if _, ok := schema.Properties[titleKey]; ok {
+			return nil, fmt.Errorf("cannot inject %q: message %s already has a field with that name", titleKey, msg.FullName())
+		}
+		schema.Properties[titleKey] = &jsonpb.Schema{
+			Type:        "string",
+			Description: appendDescription("Generate this field first, before any other field.", so.titleDescription),
+		}
+		schema.Required = append(schema.Required, titleKey)
 	}
 
 	if responseDesc != "" {
