@@ -37,7 +37,42 @@ export const file_malonaz_ai_ai_service_v1_ai_service: GenFile = /*@__PURE__*/
 /**
  * This API represents an AI service.
  *
- * It handles TextToText, SpeechToText & TextToSpeech generation.
+ * # Capabilities
+ *
+ * - Model management: [Model][malonaz.ai.v1.Model] resources describe the
+ *   generation models available per provider (STT, TTT, TTS), including
+ *   pricing and provider-specific settings.
+ * - Voice management: [Voice][malonaz.ai.v1.Voice] resources describe
+ *   multi-model voices usable for text-to-speech.
+ * - Speech-to-text: unary and bidirectional-streaming transcription, with
+ *   turn detection on the streaming variant.
+ * - Text-to-speech: unary and server-streaming audio synthesis.
+ * - Chats and messages: multi-turn conversations persisted as
+ *   [Chat][malonaz.ai.v1.Chat] resources with child
+ *   [Message][malonaz.ai.v1.Message] resources, plus generation methods
+ *   that produce assistant messages from a chat's history.
+ *
+ * # Resource model
+ *
+ * - Each Provider has a collection of [Model][malonaz.ai.v1.Model] resources.
+ *   Format: providers/{provider}/models/{model}
+ * - [Voice][malonaz.ai.v1.Voice] resources are top-level.
+ *   Format: voices/{voice}
+ * - Each User has a collection of [Chat][malonaz.ai.v1.Chat] resources.
+ *   Format: organizations/{organization}/users/{user}/chats/{chat}
+ * - Each Chat has a collection of [Message][malonaz.ai.v1.Message]
+ *   resources holding the conversation content. The chat itself is a
+ *   lightweight container: it aggregates price but holds no blocks.
+ *   Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+ *
+ * # Generation
+ *
+ * GenerateMessage and StreamGenerateMessage append the request's input
+ * messages to the chat, run the model over the chat's live history, and
+ * persist the generated assistant message. Soft-deleted messages, messages
+ * carrying an error `status`, and messages labeled
+ * `ai.malonaz.com/superseded` (abandoned by a fork via `previous_message`)
+ * are excluded from the history sent to providers.
  *
  * @generated from service malonaz.ai.ai_service.v1.AiService
  */
@@ -45,7 +80,7 @@ export const AiService: GenService<{
   /**
    * Create a model.
    *
-   * See: https://google.aip.dev/131 (Standard methods: Create).
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateModel
    */
@@ -67,7 +102,7 @@ export const AiService: GenService<{
     output: typeof ModelSchema;
   },
   /**
-   * List models for a user.
+   * List models for a provider.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *
@@ -81,7 +116,7 @@ export const AiService: GenService<{
   /**
    * Create a voice.
    *
-   * See: https://google.aip.dev/131 (Standard methods: Create).
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateVoice
    */
@@ -103,7 +138,7 @@ export const AiService: GenService<{
     output: typeof VoiceSchema;
   },
   /**
-   * List voices for a user.
+   * List all voices.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *
@@ -116,6 +151,7 @@ export const AiService: GenService<{
   },
   /**
    * Converts speech audio to text using the specified model.
+   * Unary: the full audio chunk is transcribed in one round trip.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.SpeechToText
    */
@@ -125,7 +161,11 @@ export const AiService: GenService<{
     output: typeof SpeechToTextResponseSchema;
   },
   /**
-   * Converts speech audio to text with streaming response.
+   * Converts speech audio to text over a bidirectional stream.
+   * The first client message must carry the stream configuration; subsequent
+   * messages carry audio chunks. The server emits turn events (start, update,
+   * eager end, resumed, end) as the transcription progresses, followed by
+   * usage and generation metrics at the end of the stream.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.SpeechToTextStream
    */
@@ -135,7 +175,8 @@ export const AiService: GenService<{
     output: typeof SpeechToTextStreamResponseSchema;
   },
   /**
-   * Converts text to speech audio, returning complete audio data.
+   * Converts text to speech audio, returning the complete audio data in a
+   * single response.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToSpeech
    */
@@ -145,7 +186,9 @@ export const AiService: GenService<{
     output: typeof TextToSpeechResponseSchema;
   },
   /**
-   * Converts text to speech audio with streaming response.
+   * Converts text to speech audio, streaming audio chunks as they are
+   * synthesized. Usage and generation metrics are sent at the end of the
+   * stream.
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.TextToSpeechStream
    */
@@ -155,7 +198,9 @@ export const AiService: GenService<{
     output: typeof TextToSpeechStreamResponseSchema;
   },
   /**
-   * Creates a new chat.
+   * Create a chat.
+   *
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateChat
    */
@@ -165,7 +210,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Gets a chat.
+   * Get a chat.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.GetChat
    */
@@ -175,7 +222,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Updates a chat.
+   * Update a chat.
+   *
+   * See: https://google.aip.dev/134 (Standard methods: Update).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.UpdateChat
    */
@@ -185,7 +234,10 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Deletes a chat (soft delete).
+   * Delete a chat.
+   *
+   * See: https://google.aip.dev/135 (Standard methods: Delete).
+   * See: https://google.aip.dev/164 (Soft delete).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.DeleteChat
    */
@@ -195,7 +247,9 @@ export const AiService: GenService<{
     output: typeof ChatSchema;
   },
   /**
-   * Lists chats for a user.
+   * List chats for a user.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.ListChats
    */
@@ -205,10 +259,13 @@ export const AiService: GenService<{
     output: typeof ListChatsResponseSchema;
   },
   /**
-   * Creates a message within a chat.
+   * Create a message within a chat.
    *
-   * Persists the message as-is; no generation is performed. Use StreamMessage
-   * to generate an assistant message from the chat's history.
+   * Persists the message as-is; no generation is performed. Use
+   * GenerateMessage or StreamGenerateMessage to generate an assistant
+   * message from the chat's history.
+   *
+   * See: https://google.aip.dev/133 (Standard methods: Create).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.CreateMessage
    */
@@ -218,7 +275,9 @@ export const AiService: GenService<{
     output: typeof MessageSchema;
   },
   /**
-   * Gets a message.
+   * Get a message.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.GetMessage
    */
@@ -228,7 +287,9 @@ export const AiService: GenService<{
     output: typeof MessageSchema;
   },
   /**
-   * Updates a message.
+   * Update a message.
+   *
+   * See: https://google.aip.dev/134 (Standard methods: Update).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.UpdateMessage
    */
@@ -238,10 +299,13 @@ export const AiService: GenService<{
     output: typeof MessageSchema;
   },
   /**
-   * Deletes a message (soft delete).
+   * Delete a message.
    *
    * Soft-deleted messages are excluded from the conversation history sent to
    * ai providers.
+   *
+   * See: https://google.aip.dev/135 (Standard methods: Delete).
+   * See: https://google.aip.dev/164 (Soft delete).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.DeleteMessage
    */
@@ -251,7 +315,9 @@ export const AiService: GenService<{
     output: typeof MessageSchema;
   },
   /**
-   * Lists messages within a chat.
+   * List messages within a chat.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.ListMessages
    */
@@ -268,6 +334,8 @@ export const AiService: GenService<{
    * If generation fails, the input messages are updated with an error
    * `status` and excluded from future generations.
    *
+   * See: https://google.aip.dev/136 (Custom methods).
+   *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.GenerateMessage
    */
   generateMessage: {
@@ -278,6 +346,8 @@ export const AiService: GenService<{
   /**
    * Same as GenerateMessage, but streams blocks as they are produced. The
    * persisted assistant message is sent as the final event of the stream.
+   *
+   * See: https://google.aip.dev/136 (Custom methods).
    *
    * @generated from rpc malonaz.ai.ai_service.v1.AiService.StreamGenerateMessage
    */

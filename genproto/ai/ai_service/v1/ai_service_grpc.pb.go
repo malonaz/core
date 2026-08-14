@@ -25,61 +25,92 @@ const _ = grpc.SupportPackageIsVersion7
 type AiServiceClient interface {
 	// Create a model.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateModel(ctx context.Context, in *CreateModelRequest, opts ...grpc.CallOption) (*v1.Model, error)
 	// Get a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetModel(ctx context.Context, in *GetModelRequest, opts ...grpc.CallOption) (*v1.Model, error)
-	// List models for a user.
+	// List models for a provider.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListModels(ctx context.Context, in *ListModelsRequest, opts ...grpc.CallOption) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateVoice(ctx context.Context, in *CreateVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(ctx context.Context, in *GetVoiceRequest, opts ...grpc.CallOption) (*v1.Voice, error)
-	// List voices for a user.
+	// List all voices.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListVoices(ctx context.Context, in *ListVoicesRequest, opts ...grpc.CallOption) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
+	// Unary: the full audio chunk is transcribed in one round trip.
 	SpeechToText(ctx context.Context, in *SpeechToTextRequest, opts ...grpc.CallOption) (*SpeechToTextResponse, error)
-	// Converts speech audio to text with streaming response.
+	// Converts speech audio to text over a bidirectional stream.
+	// The first client message must carry the stream configuration; subsequent
+	// messages carry audio chunks. The server emits turn events (start, update,
+	// eager end, resumed, end) as the transcription progresses, followed by
+	// usage and generation metrics at the end of the stream.
 	SpeechToTextStream(ctx context.Context, opts ...grpc.CallOption) (AiService_SpeechToTextStreamClient, error)
-	// Converts text to speech audio, returning complete audio data.
+	// Converts text to speech audio, returning the complete audio data in a
+	// single response.
 	TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error)
-	// Converts text to speech audio with streaming response.
+	// Converts text to speech audio, streaming audio chunks as they are
+	// synthesized. Usage and generation metrics are sent at the end of the
+	// stream.
 	TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (AiService_TextToSpeechStreamClient, error)
-	// Creates a new chat.
-	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Gets a chat.
-	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Updates a chat.
-	UpdateChat(ctx context.Context, in *UpdateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Deletes a chat (soft delete).
-	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
-	// Lists chats for a user.
-	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
-	// Creates a message within a chat.
+	// Create a chat.
 	//
-	// Persists the message as-is; no generation is performed. Use StreamMessage
-	// to generate an assistant message from the chat's history.
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Get a chat.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Update a chat.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateChat(ctx context.Context, in *UpdateChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Delete a chat.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// List chats for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
+	// Create a message within a chat.
+	//
+	// Persists the message as-is; no generation is performed. Use
+	// GenerateMessage or StreamGenerateMessage to generate an assistant
+	// message from the chat's history.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
-	// Gets a message.
+	// Get a message.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
-	// Updates a message.
+	// Update a message.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateMessage(ctx context.Context, in *UpdateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
-	// Deletes a message (soft delete).
+	// Delete a message.
 	//
 	// Soft-deleted messages are excluded from the conversation history sent to
 	// ai providers.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
-	// Lists messages within a chat.
+	// List messages within a chat.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
 	// Generates an assistant message from the chat's message history.
 	//
@@ -87,9 +118,13 @@ type AiServiceClient interface {
 	// generated assistant message is persisted under the chat and returned.
 	// If generation fails, the input messages are updated with an error
 	// `status` and excluded from future generations.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
 	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error)
 	// Same as GenerateMessage, but streams blocks as they are produced. The
 	// persisted assistant message is sent as the final event of the stream.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error)
 }
 
@@ -373,61 +408,92 @@ func (x *aiServiceStreamGenerateMessageClient) Recv() (*StreamGenerateMessageRes
 type AiServiceServer interface {
 	// Create a model.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateModel(context.Context, *CreateModelRequest) (*v1.Model, error)
 	// Get a model.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetModel(context.Context, *GetModelRequest) (*v1.Model, error)
-	// List models for a user.
+	// List models for a provider.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListModels(context.Context, *ListModelsRequest) (*ListModelsResponse, error)
 	// Create a voice.
 	//
-	// See: https://google.aip.dev/131 (Standard methods: Create).
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateVoice(context.Context, *CreateVoiceRequest) (*v1.Voice, error)
 	// Get a voice.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetVoice(context.Context, *GetVoiceRequest) (*v1.Voice, error)
-	// List voices for a user.
+	// List all voices.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListVoices(context.Context, *ListVoicesRequest) (*ListVoicesResponse, error)
 	// Converts speech audio to text using the specified model.
+	// Unary: the full audio chunk is transcribed in one round trip.
 	SpeechToText(context.Context, *SpeechToTextRequest) (*SpeechToTextResponse, error)
-	// Converts speech audio to text with streaming response.
+	// Converts speech audio to text over a bidirectional stream.
+	// The first client message must carry the stream configuration; subsequent
+	// messages carry audio chunks. The server emits turn events (start, update,
+	// eager end, resumed, end) as the transcription progresses, followed by
+	// usage and generation metrics at the end of the stream.
 	SpeechToTextStream(AiService_SpeechToTextStreamServer) error
-	// Converts text to speech audio, returning complete audio data.
+	// Converts text to speech audio, returning the complete audio data in a
+	// single response.
 	TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error)
-	// Converts text to speech audio with streaming response.
+	// Converts text to speech audio, streaming audio chunks as they are
+	// synthesized. Usage and generation metrics are sent at the end of the
+	// stream.
 	TextToSpeechStream(*TextToSpeechStreamRequest, AiService_TextToSpeechStreamServer) error
-	// Creates a new chat.
-	CreateChat(context.Context, *CreateChatRequest) (*v1.Chat, error)
-	// Gets a chat.
-	GetChat(context.Context, *GetChatRequest) (*v1.Chat, error)
-	// Updates a chat.
-	UpdateChat(context.Context, *UpdateChatRequest) (*v1.Chat, error)
-	// Deletes a chat (soft delete).
-	DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error)
-	// Lists chats for a user.
-	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
-	// Creates a message within a chat.
+	// Create a chat.
 	//
-	// Persists the message as-is; no generation is performed. Use StreamMessage
-	// to generate an assistant message from the chat's history.
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateChat(context.Context, *CreateChatRequest) (*v1.Chat, error)
+	// Get a chat.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetChat(context.Context, *GetChatRequest) (*v1.Chat, error)
+	// Update a chat.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateChat(context.Context, *UpdateChatRequest) (*v1.Chat, error)
+	// Delete a chat.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error)
+	// List chats for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
+	// Create a message within a chat.
+	//
+	// Persists the message as-is; no generation is performed. Use
+	// GenerateMessage or StreamGenerateMessage to generate an assistant
+	// message from the chat's history.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateMessage(context.Context, *CreateMessageRequest) (*v1.Message, error)
-	// Gets a message.
+	// Get a message.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetMessage(context.Context, *GetMessageRequest) (*v1.Message, error)
-	// Updates a message.
+	// Update a message.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateMessage(context.Context, *UpdateMessageRequest) (*v1.Message, error)
-	// Deletes a message (soft delete).
+	// Delete a message.
 	//
 	// Soft-deleted messages are excluded from the conversation history sent to
 	// ai providers.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error)
-	// Lists messages within a chat.
+	// List messages within a chat.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
 	// Generates an assistant message from the chat's message history.
 	//
@@ -435,9 +501,13 @@ type AiServiceServer interface {
 	// generated assistant message is persisted under the chat and returned.
 	// If generation fails, the input messages are updated with an error
 	// `status` and excluded from future generations.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
 	GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error)
 	// Same as GenerateMessage, but streams blocks as they are produced. The
 	// persisted assistant message is sent as the final event of the stream.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error
 }
 

@@ -459,15 +459,48 @@ export const DescriptorReferenceSchema: GenMessage<DescriptorReference, {validTy
   messageDesc(file_malonaz_ai_ai_engine_v1_ai_engine, 7);
 
 /**
- * This API represents an AI Engine service for structured message generation.
+ * This API represents an AI Engine service for structured, proto-driven tool
+ * calling.
  *
- * It provides tools for generating protobuf messages from natural language prompts.
+ * # Capabilities
+ *
+ * - Tool creation: derive an [ai.v1.Tool][malonaz.ai.v1.Tool] — name,
+ *   description, and JSON schema — from a protobuf message or method
+ *   descriptor, so a model can emit arguments that map back onto typed
+ *   protos.
+ * - Tool call parsing: validate a model-emitted
+ *   [ToolCall][malonaz.ai.v1.ToolCall] against the schema of the tool that
+ *   created it, returning the parsed arguments as a typed result.
+ * - Tool discovery: bundle many tools behind a single discovery tool so
+ *   large tool surfaces don't bloat the model's context. The model first
+ *   calls the discovery tool to reveal the tools it needs, then calls them.
+ * - Service tool sets: turn an entire gRPC service into a discoverable
+ *   [ToolSet][malonaz.ai.v1.ToolSet], one tool per method, letting a model
+ *   drive the service through tool calls.
+ *
+ * # Typical flow
+ *
+ * 1. CreateTool / CreateServiceToolSet to build the tools offered to the
+ *    model alongside a generation request.
+ * 2. The model emits tool calls during generation.
+ * 3. ParseToolCall to turn each raw tool call into a typed result: a parsed
+ *    message, a discovery request, or an RPC request.
+ *
+ * Recoverable parse failures carry a
+ * [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+ * error detail whose tool result can be appended to the conversation so the
+ * model can correct itself and retry.
  *
  * @generated from service malonaz.ai.ai_engine.v1.AiEngine
  */
 export const AiEngine: GenService<{
   /**
-   * Create a tool to generate a message.
+   * Create a tool from a protobuf descriptor.
+   *
+   * The referenced message or method descriptor is converted into a tool
+   * whose JSON schema mirrors the proto's fields, filtered and bounded by
+   * the optional schema configuration. Tool calls produced against this
+   * tool can be parsed back into the proto via ParseToolCall.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateTool
    */
@@ -477,7 +510,17 @@ export const AiEngine: GenService<{
     output: typeof ToolSchema;
   },
   /**
-   * Parse the tool call arguments from a tool created using 'CreateTool', into a proto message.
+   * Parse a tool call emitted against a tool created by this service.
+   *
+   * Validates the call's arguments against the originating tool's schema
+   * and returns exactly one of:
+   * - a parsed message (generic tools created by CreateTool),
+   * - a discovery request (calls to a discovery tool),
+   * - an RPC request (calls to a method tool from a service tool set).
+   *
+   * When the failure is correctable by the model, the error carries a
+   * [ParseToolCallRecoverableError][malonaz.ai.ai_engine.v1.ParseToolCallRecoverableError]
+   * detail ready to be fed back into the conversation.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.ParseToolCall
    */
@@ -487,7 +530,11 @@ export const AiEngine: GenService<{
     output: typeof ParseToolCallResponseSchema;
   },
   /**
-   * Creates a discovery tool for a set of tools.
+   * Create a discovery tool for a set of tools.
+   *
+   * The returned tool exposes only the names and descriptions of the
+   * underlying tools; the model calls it to request the full schema of the
+   * tools it actually needs, keeping unused schemas out of its context.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateDiscoveryTool
    */
@@ -497,9 +544,12 @@ export const AiEngine: GenService<{
     output: typeof ToolSchema;
   },
   /**
-   * Creates a discoverable tool set for a gRPC service.
+   * Create a discoverable tool set for a gRPC service.
+   *
    * The tool set includes a discovery tool that lists available method tools,
    * and individual tools for each method in the service.
+   * Methods listed in `discovered_method_names` are exposed immediately,
+   * without requiring a discovery round trip.
    *
    * @generated from rpc malonaz.ai.ai_engine.v1.AiEngine.CreateServiceToolSet
    */

@@ -20,13 +20,48 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
 // This API represents an AI service.
 //
-// It handles TextToText, SpeechToText & TextToSpeech generation.
+// # Capabilities
+//
+// - Model management: [Model][malonaz.ai.v1.Model] resources describe the
+//   generation models available per provider (STT, TTT, TTS), including
+//   pricing and provider-specific settings.
+// - Voice management: [Voice][malonaz.ai.v1.Voice] resources describe
+//   multi-model voices usable for text-to-speech.
+// - Speech-to-text: unary and bidirectional-streaming transcription, with
+//   turn detection on the streaming variant.
+// - Text-to-speech: unary and server-streaming audio synthesis.
+// - Chats and messages: multi-turn conversations persisted as
+//   [Chat][malonaz.ai.v1.Chat] resources with child
+//   [Message][malonaz.ai.v1.Message] resources, plus generation methods
+//   that produce assistant messages from a chat's history.
+//
+// # Resource model
+//
+// - Each Provider has a collection of [Model][malonaz.ai.v1.Model] resources.
+//   Format: providers/{provider}/models/{model}
+// - [Voice][malonaz.ai.v1.Voice] resources are top-level.
+//   Format: voices/{voice}
+// - Each User has a collection of [Chat][malonaz.ai.v1.Chat] resources.
+//   Format: organizations/{organization}/users/{user}/chats/{chat}
+// - Each Chat has a collection of [Message][malonaz.ai.v1.Message]
+//   resources holding the conversation content. The chat itself is a
+//   lightweight container: it aggregates price but holds no blocks.
+//   Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+//
+// # Generation
+//
+// GenerateMessage and StreamGenerateMessage append the request's input
+// messages to the chat, run the model over the chat's live history, and
+// persist the generated assistant message. Soft-deleted messages, messages
+// carrying an error `status`, and messages labeled
+// `ai.malonaz.com/superseded` (abandoned by a fork via `previous_message`)
+// are excluded from the history sent to providers.
 service AiService {
   option (google.api.default_host) = "ai.malonaz.com";
 
   // Create a model.
   //
-  // See: https://google.aip.dev/131 (Standard methods: Create).
+  // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateModel(CreateModelRequest) returns (ai.v1.Model) {
     option (google.api.http) = {post: "/v1/{parent=providers/*}/models"};
     option (google.api.method_signature) = "parent,model";
@@ -40,7 +75,7 @@ service AiService {
     option (google.api.method_signature) = "name";
   }
 
-  // List models for a user.
+  // List models for a provider.
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
@@ -50,7 +85,7 @@ service AiService {
 
   // Create a voice.
   //
-  // See: https://google.aip.dev/131 (Standard methods: Create).
+  // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateVoice(CreateVoiceRequest) returns (ai.v1.Voice) {
     option (google.api.http) = {post: "/v1/voices"};
     option (google.api.method_signature) = "voice";
@@ -64,7 +99,7 @@ service AiService {
     option (google.api.method_signature) = "name";
   }
 
-  // List voices for a user.
+  // List all voices.
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListVoices(ListVoicesRequest) returns (ListVoicesResponse) {
@@ -73,6 +108,7 @@ service AiService {
   }
 
   // Converts speech audio to text using the specified model.
+  // Unary: the full audio chunk is transcribed in one round trip.
   rpc SpeechToText(SpeechToTextRequest) returns (SpeechToTextResponse) {
     option (google.api.http) = {
       post: "/v1/{model=providers/*/models/*}/speech-to-text"
@@ -80,7 +116,11 @@ service AiService {
     };
   }
 
-  // Converts speech audio to text with streaming response.
+  // Converts speech audio to text over a bidirectional stream.
+  // The first client message must carry the stream configuration; subsequent
+  // messages carry audio chunks. The server emits turn events (start, update,
+  // eager end, resumed, end) as the transcription progresses, followed by
+  // usage and generation metrics at the end of the stream.
   rpc SpeechToTextStream(stream SpeechToTextStreamRequest) returns (stream SpeechToTextStreamResponse) {
     option (google.api.http) = {
       post: "/v1/{model=providers/*/models/*}/speech-to-text:stream"
@@ -88,7 +128,8 @@ service AiService {
     };
   }
 
-  // Converts text to speech audio, returning complete audio data.
+  // Converts text to speech audio, returning the complete audio data in a
+  // single response.
   rpc TextToSpeech(TextToSpeechRequest) returns (TextToSpeechResponse) {
     option (google.api.http) = {
       post: "/v1/{model=providers/*/models/*}/text-to-speech"
@@ -96,7 +137,9 @@ service AiService {
     };
   }
 
-  // Converts text to speech audio with streaming response.
+  // Converts text to speech audio, streaming audio chunks as they are
+  // synthesized. Usage and generation metrics are sent at the end of the
+  // stream.
   rpc TextToSpeechStream(TextToSpeechStreamRequest) returns (stream TextToSpeechStreamResponse) {
     option (google.api.http) = {
       post: "/v1/{model=providers/*/models/*}/text-to-speech:stream"
@@ -106,7 +149,9 @@ service AiService {
 
   // ===================== Chat Management =====================
 
-  // Creates a new chat.
+  // Create a chat.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateChat(CreateChatRequest) returns (ai.v1.Chat) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*}/chats"
@@ -116,14 +161,18 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
-  // Gets a chat.
+  // Get a chat.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetChat(GetChatRequest) returns (ai.v1.Chat) {
     option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
-  // Updates a chat.
+  // Update a chat.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
   rpc UpdateChat(UpdateChatRequest) returns (ai.v1.Chat) {
     option (google.api.http) = {
       patch: "/v1/{chat.name=organizations/*/users/*/chats/*}"
@@ -133,14 +182,19 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
-  // Deletes a chat (soft delete).
+  // Delete a chat.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
   rpc DeleteChat(DeleteChatRequest) returns (ai.v1.Chat) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/chats/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
-  // Lists chats for a user.
+  // List chats for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListChats(ListChatsRequest) returns (ListChatsResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats"};
     option (google.api.method_signature) = "parent";
@@ -149,10 +203,13 @@ service AiService {
 
   // ===================== Message Management =====================
 
-  // Creates a message within a chat.
+  // Create a message within a chat.
   //
-  // Persists the message as-is; no generation is performed. Use StreamMessage
-  // to generate an assistant message from the chat's history.
+  // Persists the message as-is; no generation is performed. Use
+  // GenerateMessage or StreamGenerateMessage to generate an assistant
+  // message from the chat's history.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateMessage(CreateMessageRequest) returns (ai.v1.Message) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages"
@@ -162,14 +219,18 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 
-  // Gets a message.
+  // Get a message.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetMessage(GetMessageRequest) returns (ai.v1.Message) {
     option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 
-  // Updates a message.
+  // Update a message.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
   rpc UpdateMessage(UpdateMessageRequest) returns (ai.v1.Message) {
     option (google.api.http) = {
       patch: "/v1/{message.name=organizations/*/users/*/chats/*/messages/*}"
@@ -179,17 +240,22 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 
-  // Deletes a message (soft delete).
+  // Delete a message.
   //
   // Soft-deleted messages are excluded from the conversation history sent to
   // ai providers.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
   rpc DeleteMessage(DeleteMessageRequest) returns (ai.v1.Message) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 
-  // Lists messages within a chat.
+  // List messages within a chat.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages"};
     option (google.api.method_signature) = "parent";
@@ -202,6 +268,8 @@ service AiService {
   // generated assistant message is persisted under the chat and returned.
   // If generation fails, the input messages are updated with an error
   // `status` and excluded from future generations.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
   rpc GenerateMessage(GenerateMessageRequest) returns (GenerateMessageResponse) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:generate"
@@ -211,6 +279,8 @@ service AiService {
 
   // Same as GenerateMessage, but streams blocks as they are produced. The
   // persisted assistant message is sent as the final event of the stream.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
   rpc StreamGenerateMessage(GenerateMessageRequest) returns (stream StreamGenerateMessageResponse) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
