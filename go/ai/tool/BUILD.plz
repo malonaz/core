@@ -4,6 +4,7 @@ go_library(
         "annotations.go",
         "discovery.go",
         "parse.go",
+        "registry.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -15,7 +16,9 @@ go_library(
         "//malonaz/ai/ai_engine/v1",
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
+        "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
