@@ -1851,7 +1851,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
 	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xad\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xae\x02\n" +
 	"\x13ListMessagesRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -1861,9 +1861,9 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\tpage_size\x18\x05 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken:=\x82\xf3-\x03\b\xe8\a\x8a\xf3-+\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken:>\x82\xf3-\x03\b\xe8\a\x8a\xf3-,\n" +
 	"\vcreate_time\n" +
-	"\vupdate_time\x12\x0fcreate_time asc\x92\xf3-\x03\n" +
+	"\vupdate_time\x12\x10create_time desc\x92\xf3-\x03\n" +
 	"\x01*\"r\n" +
 	"\x14ListMessagesResponse\x122\n" +
 	"\bmessages\x18\x01 \x03(\v2\x16.malonaz.ai.v1.MessageR\bmessages\x12&\n" +

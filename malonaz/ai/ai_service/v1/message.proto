@@ -117,7 +117,7 @@ message ListMessagesRequest {
       "create_time",
       "update_time"
     ]
-    default: "create_time asc"
+    default: "create_time desc"
   };
   option (malonaz.codegen.aip.v1.filtering) = {
     paths: ["*"]
