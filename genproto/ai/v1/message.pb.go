@@ -222,29 +222,29 @@ type Message struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the message.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
 	// The creation timestamp of the message.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// The last update timestamp of the message.
-	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	// The deletion timestamp of the message. Set when soft-deleted.
 	// Soft-deleted messages are not passed down to the ai providers.
-	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
 	// A checksum computed by the server based on the current value of the resource.
 	// Can be sent in update and delete requests to ensure the client has an
 	// up-to-date value before proceeding.
-	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
+	Etag string `protobuf:"bytes,9,opt,name=etag,proto3" json:"etag,omitempty"`
 	// The labels on this message.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Annotations on this message (not transmitted to the ai provider).
 	// This should be used by tooling.
 	// Values are opaque strings (and may themselves be proto bytes), but keys
 	// stay inspectable in storage.
-	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Annotations map[string]string `protobuf:"bytes,2,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Role of the message sender.
-	Role Role `protobuf:"varint,8,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
+	Role Role `protobuf:"varint,3,opt,name=role,proto3,enum=malonaz.ai.v1.Role" json:"role,omitempty"`
 	// The ordered content blocks of this message.
-	Blocks []*Block `protobuf:"bytes,9,rep,name=blocks,proto3" json:"blocks,omitempty"`
+	Blocks []*Block `protobuf:"bytes,4,rep,name=blocks,proto3" json:"blocks,omitempty"`
 	// The resource name of the model that generated this message.
 	// Only set on assistant messages.
 	// Format: providers/{provider}/models/{model}
@@ -1210,19 +1210,19 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
 	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb6\r\n" +
 	"\aMessage\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
-	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"\x04name\x18\a \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
+	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"createTime\x12@\n" +
-	"\vupdate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"\vupdate_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12F\n" +
-	"\vdelete_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
+	"\vdelete_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
 	"deleteTime\x12\x12\n" +
-	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xd0\x01\n" +
+	"\x04etag\x18\t \x01(\tR\x04etag\x12\xd0\x01\n" +
 	"\x06labels\x18\x06 \x03(\v2\".malonaz.ai.v1.Message.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12S\n" +
-	"\vannotations\x18\a \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x123\n" +
-	"\x04role\x18\b \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
+	"\vannotations\x18\x02 \x03(\v2'.malonaz.ai.v1.Message.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x123\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x13.malonaz.ai.v1.RoleB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\x124\n" +
-	"\x06blocks\x18\t \x03(\v2\x14.malonaz.ai.v1.BlockB\x06\xba\xea\x0f\x02\x10\x01R\x06blocks\x128\n" +
+	"\x06blocks\x18\x04 \x03(\v2\x14.malonaz.ai.v1.BlockB\x06\xba\xea\x0f\x02\x10\x01R\x06blocks\x128\n" +
 	"\x05model\x18\n" +
 	" \x01(\tB\"\xe0A\x03\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xba\xea\x0f\x02 \x01R\x05model\x12G\n" +

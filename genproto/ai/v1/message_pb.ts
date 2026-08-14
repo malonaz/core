@@ -22,7 +22,7 @@ import type { JsonObject, Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/message.proto.
  */
 export const file_malonaz_ai_v1_message: GenFile = /*@__PURE__*/
-  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEiqQwKB01lc3NhZ2USEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSyAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJGCgthbm5vdGF0aW9ucxgHIAMoCzInLm1hbG9uYXouYWkudjEuTWVzc2FnZS5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARItCgRyb2xlGAggASgOMhMubWFsb25hei5haS52MS5Sb2xlQgq6SAeCAQQQASAAEiwKBmJsb2NrcxgJIAMoCzIULm1hbG9uYXouYWkudjEuQmxvY2tCBrrqDwIQARIxCgVtb2RlbBgKIAEoCUIi4EED+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLrqDwIgARI7Cgttb2RlbF91c2FnZRgLIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUIL4EEDuuoPBBABIAESEgoFcHJpY2UYDCABKAFCA+BBAxIvCgZzdGF0dXMYDSABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6zAXqQXYKFmFpLm1hbG9uYXouY29tL01lc3NhZ2USSW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fS9tZXNzYWdlcy97bWVzc2FnZX0qCG1lc3NhZ2VzMgdtZXNzYWdlukjLBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGswBChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSSkFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgb3IgaW1hZ2UgYmxvY2tzGmd0aGlzLnJvbGUgIT0gMiB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGhvdWdodCkgfHwgaGFzKGIudGV4dCkgfHwgaGFzKGIudG9vbF9jYWxsKSB8fCBoYXMoYi5pbWFnZSkpGocBChB1c2VyX3JvbGVfYmxvY2tzEjBVU0VSIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdGV4dCBvciBpbWFnZSBibG9ja3MaQXRoaXMucm9sZSAhPSAzIHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50ZXh0KSB8fCBoYXMoYi5pbWFnZSkpGnwKEHRvb2xfcm9sZV9ibG9ja3MSLlRPT0wgbWVzc2FnZXMgY2FuIG9ubHkgaGF2ZSB0b29sX3Jlc3VsdCBibG9ja3MaOHRoaXMucm9sZSAhPSA0IHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50b29sX3Jlc3VsdCkp0qYEACLDBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIlCgVpbWFnZRgJIAEoCzIULm1hbG9uYXouYWkudjEuSW1hZ2VIADr9AbpI+QEa9gEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqdAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5pbWFnZSlCCQoHY29udGVudCKAAgoFSW1hZ2USDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAkSNgoHcXVhbGl0eRgEIAEoDjIbLm1hbG9uYXouYWkudjEuSW1hZ2VRdWFsaXR5Qgi6SAWCAQIQATp7ukh4GnYKImltYWdlX3JlcXVpcmVzX21lZGlhX3R5cGVfZm9yX2RhdGESJm1lZGlhX3R5cGUgaXMgcmVxdWlyZWQgd2hlbiB1c2luZyBkYXRhGighaGFzKHRoaXMuZGF0YSkgfHwgdGhpcy5tZWRpYV90eXBlICE9ICcnQg8KBnNvdXJjZRIFukgCCAEq2QEKD1JlYXNvbmluZ0VmZm9ydBIgChxSRUFTT05JTkdfRUZGT1JUX1VOU1BFQ0lGSUVEEAASHAoYUkVBU09OSU5HX0VGRk9SVF9ERUZBVUxUEAESGAoUUkVBU09OSU5HX0VGRk9SVF9MT1cQAhIbChdSRUFTT05JTkdfRUZGT1JUX01FRElVTRADEhkKFVJFQVNPTklOR19FRkZPUlRfSElHSBAEEhoKFlJFQVNPTklOR19FRkZPUlRfWEhJR0gQBRIYChRSRUFTT05JTkdfRUZGT1JUX01BWBAGKl8KBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg8KC1JPTEVfU1lTVEVNEAESEgoOUk9MRV9BU1NJU1RBTlQQAhINCglST0xFX1VTRVIQAxINCglST0xFX1RPT0wQBCp0CgxJbWFnZVF1YWxpdHkSHQoZSU1BR0VfUVVBTElUWV9VTlNQRUNJRklFRBAAEhYKEklNQUdFX1FVQUxJVFlfQVVUTxABEhUKEUlNQUdFX1FVQUxJVFlfTE9XEAISFgoSSU1BR0VfUVVBTElUWV9ISUdIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_struct, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_model_v1_model]);
+  fileDesc("ChttYWxvbmF6L2FpL3YxL21lc3NhZ2UucHJvdG8SDW1hbG9uYXouYWkudjEiqQwKB01lc3NhZ2USEQoEbmFtZRgHIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYCSABKAkSyAEKBmxhYmVscxgGIAMoCzIiLm1hbG9uYXouYWkudjEuTWVzc2FnZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJGCgthbm5vdGF0aW9ucxgCIAMoCzInLm1hbG9uYXouYWkudjEuTWVzc2FnZS5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARItCgRyb2xlGAMgASgOMhMubWFsb25hei5haS52MS5Sb2xlQgq6SAeCAQQQASAAEiwKBmJsb2NrcxgEIAMoCzIULm1hbG9uYXouYWkudjEuQmxvY2tCBrrqDwIQARIxCgVtb2RlbBgKIAEoCUIi4EED+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLrqDwIgARI7Cgttb2RlbF91c2FnZRgLIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUIL4EEDuuoPBBABIAESEgoFcHJpY2UYDCABKAFCA+BBAxIvCgZzdGF0dXMYDSABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6zAXqQXYKFmFpLm1hbG9uYXouY29tL01lc3NhZ2USSW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fS9tZXNzYWdlcy97bWVzc2FnZX0qCG1lc3NhZ2VzMgdtZXNzYWdlukjLBBpyChJzeXN0ZW1fcm9sZV9ibG9ja3MSKVNZU1RFTSBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRleHQgYmxvY2tzGjF0aGlzLnJvbGUgIT0gMSB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGV4dCkpGswBChVhc3Npc3RhbnRfcm9sZV9ibG9ja3MSSkFTU0lTVEFOVCBtZXNzYWdlcyBjYW4gb25seSBoYXZlIHRob3VnaHQsIHRleHQsIHRvb2xfY2FsbCwgb3IgaW1hZ2UgYmxvY2tzGmd0aGlzLnJvbGUgIT0gMiB8fCB0aGlzLmJsb2Nrcy5hbGwoYiwgaGFzKGIudGhvdWdodCkgfHwgaGFzKGIudGV4dCkgfHwgaGFzKGIudG9vbF9jYWxsKSB8fCBoYXMoYi5pbWFnZSkpGocBChB1c2VyX3JvbGVfYmxvY2tzEjBVU0VSIG1lc3NhZ2VzIGNhbiBvbmx5IGhhdmUgdGV4dCBvciBpbWFnZSBibG9ja3MaQXRoaXMucm9sZSAhPSAzIHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50ZXh0KSB8fCBoYXMoYi5pbWFnZSkpGnwKEHRvb2xfcm9sZV9ibG9ja3MSLlRPT0wgbWVzc2FnZXMgY2FuIG9ubHkgaGF2ZSB0b29sX3Jlc3VsdCBibG9ja3MaOHRoaXMucm9sZSAhPSA0IHx8IHRoaXMuYmxvY2tzLmFsbChiLCBoYXMoYi50b29sX3Jlc3VsdCkp0qYEACLDBAoFQmxvY2sSDQoFaW5kZXgYASABKAMSEQoJc2lnbmF0dXJlGAIgASgJEi0KDGV4dHJhX2ZpZWxkcxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSEQoHdGhvdWdodBgEIAEoCUgAEg4KBHRleHQYBSABKAlIABIsCgl0b29sX2NhbGwYBiABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASNAoRcGFydGlhbF90b29sX2NhbGwYByABKAsyFy5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsSAASMAoLdG9vbF9yZXN1bHQYCCABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRIABIlCgVpbWFnZRgJIAEoCzIULm1hbG9uYXouYWkudjEuSW1hZ2VIADr9AbpI+QEa9gEKKWJsb2NrX2NvbnRlbnRfcmVxdWlyZWRfd2hlbl9zaWduYXR1cmVfc2V0Eiljb250ZW50IGlzIHJlcXVpcmVkIHdoZW4gc2lnbmF0dXJlIGlzIHNldBqdAXRoaXMuc2lnbmF0dXJlID09ICcnIHx8IGhhcyh0aGlzLnRob3VnaHQpIHx8IGhhcyh0aGlzLnRleHQpIHx8IGhhcyh0aGlzLnRvb2xfY2FsbCkgfHwgaGFzKHRoaXMucGFydGlhbF90b29sX2NhbGwpIHx8IGhhcyh0aGlzLnRvb2xfcmVzdWx0KSB8fCBoYXModGhpcy5pbWFnZSlCCQoHY29udGVudCKAAgoFSW1hZ2USDgoEZGF0YRgBIAEoDEgAEg0KA3VybBgCIAEoCUgAEhIKCm1lZGlhX3R5cGUYAyABKAkSNgoHcXVhbGl0eRgEIAEoDjIbLm1hbG9uYXouYWkudjEuSW1hZ2VRdWFsaXR5Qgi6SAWCAQIQATp7ukh4GnYKImltYWdlX3JlcXVpcmVzX21lZGlhX3R5cGVfZm9yX2RhdGESJm1lZGlhX3R5cGUgaXMgcmVxdWlyZWQgd2hlbiB1c2luZyBkYXRhGighaGFzKHRoaXMuZGF0YSkgfHwgdGhpcy5tZWRpYV90eXBlICE9ICcnQg8KBnNvdXJjZRIFukgCCAEq2QEKD1JlYXNvbmluZ0VmZm9ydBIgChxSRUFTT05JTkdfRUZGT1JUX1VOU1BFQ0lGSUVEEAASHAoYUkVBU09OSU5HX0VGRk9SVF9ERUZBVUxUEAESGAoUUkVBU09OSU5HX0VGRk9SVF9MT1cQAhIbChdSRUFTT05JTkdfRUZGT1JUX01FRElVTRADEhkKFVJFQVNPTklOR19FRkZPUlRfSElHSBAEEhoKFlJFQVNPTklOR19FRkZPUlRfWEhJR0gQBRIYChRSRUFTT05JTkdfRUZGT1JUX01BWBAGKl8KBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg8KC1JPTEVfU1lTVEVNEAESEgoOUk9MRV9BU1NJU1RBTlQQAhINCglST0xFX1VTRVIQAxINCglST0xFX1RPT0wQBCp0CgxJbWFnZVF1YWxpdHkSHQoZSU1BR0VfUVVBTElUWV9VTlNQRUNJRklFRBAAEhYKEklNQUdFX1FVQUxJVFlfQVVUTxABEhUKEUlNQUdFX1FVQUxJVFlfTE9XEAISFgoSSU1BR0VfUVVBTElUWV9ISUdIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_struct, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Message is a single turn within a [Chat][malonaz.ai.v1.Chat].
@@ -37,21 +37,21 @@ export type Message = Message$1<"malonaz.ai.v1.Message"> & {
    * The resource name of the message.
    * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
    *
-   * @generated from field: string name = 1;
+   * @generated from field: string name = 7;
    */
   name: string;
 
   /**
    * The creation timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   * @generated from field: google.protobuf.Timestamp create_time = 1;
    */
   createTime?: Timestamp;
 
   /**
    * The last update timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   * @generated from field: google.protobuf.Timestamp update_time = 8;
    */
   updateTime?: Timestamp;
 
@@ -59,7 +59,7 @@ export type Message = Message$1<"malonaz.ai.v1.Message"> & {
    * The deletion timestamp of the message. Set when soft-deleted.
    * Soft-deleted messages are not passed down to the ai providers.
    *
-   * @generated from field: google.protobuf.Timestamp delete_time = 4;
+   * @generated from field: google.protobuf.Timestamp delete_time = 5;
    */
   deleteTime?: Timestamp;
 
@@ -68,7 +68,7 @@ export type Message = Message$1<"malonaz.ai.v1.Message"> & {
    * Can be sent in update and delete requests to ensure the client has an
    * up-to-date value before proceeding.
    *
-   * @generated from field: string etag = 5;
+   * @generated from field: string etag = 9;
    */
   etag: string;
 
@@ -85,21 +85,21 @@ export type Message = Message$1<"malonaz.ai.v1.Message"> & {
    * Values are opaque strings (and may themselves be proto bytes), but keys
    * stay inspectable in storage.
    *
-   * @generated from field: map<string, string> annotations = 7;
+   * @generated from field: map<string, string> annotations = 2;
    */
   annotations: { [key: string]: string };
 
   /**
    * Role of the message sender.
    *
-   * @generated from field: malonaz.ai.v1.Role role = 8;
+   * @generated from field: malonaz.ai.v1.Role role = 3;
    */
   role: Role;
 
   /**
    * The ordered content blocks of this message.
    *
-   * @generated from field: repeated malonaz.ai.v1.Block blocks = 9;
+   * @generated from field: repeated malonaz.ai.v1.Block blocks = 4;
    */
   blocks: Block[];
 
@@ -152,21 +152,21 @@ export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
    * The resource name of the message.
    * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
    *
-   * @generated from field: string name = 1;
+   * @generated from field: string name = 7;
    */
   name: string;
 
   /**
    * The creation timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   * @generated from field: google.protobuf.Timestamp create_time = 1;
    */
   createTime?: Timestamp;
 
   /**
    * The last update timestamp of the message.
    *
-   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   * @generated from field: google.protobuf.Timestamp update_time = 8;
    */
   updateTime?: Timestamp;
 
@@ -174,7 +174,7 @@ export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
    * The deletion timestamp of the message. Set when soft-deleted.
    * Soft-deleted messages are not passed down to the ai providers.
    *
-   * @generated from field: google.protobuf.Timestamp delete_time = 4;
+   * @generated from field: google.protobuf.Timestamp delete_time = 5;
    */
   deleteTime?: Timestamp;
 
@@ -183,7 +183,7 @@ export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
    * Can be sent in update and delete requests to ensure the client has an
    * up-to-date value before proceeding.
    *
-   * @generated from field: string etag = 5;
+   * @generated from field: string etag = 9;
    */
   etag: string;
 
@@ -200,21 +200,21 @@ export type MessageValid = Message$1<"malonaz.ai.v1.Message"> & {
    * Values are opaque strings (and may themselves be proto bytes), but keys
    * stay inspectable in storage.
    *
-   * @generated from field: map<string, string> annotations = 7;
+   * @generated from field: map<string, string> annotations = 2;
    */
   annotations: { [key: string]: string };
 
   /**
    * Role of the message sender.
    *
-   * @generated from field: malonaz.ai.v1.Role role = 8;
+   * @generated from field: malonaz.ai.v1.Role role = 3;
    */
   role: Role;
 
   /**
    * The ordered content blocks of this message.
    *
-   * @generated from field: repeated malonaz.ai.v1.Block blocks = 9;
+   * @generated from field: repeated malonaz.ai.v1.Block blocks = 4;
    */
   blocks: BlockValid[];
 

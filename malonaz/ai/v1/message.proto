@@ -49,17 +49,17 @@ message Message {
 
   // The resource name of the message.
   // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string name = 7 [(google.api.field_behavior) = IDENTIFIER];
 
   // The creation timestamp of the message.
-  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The last update timestamp of the message.
-  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The deletion timestamp of the message. Set when soft-deleted.
   // Soft-deleted messages are not passed down to the ai providers.
-  google.protobuf.Timestamp delete_time = 4 [
+  google.protobuf.Timestamp delete_time = 5 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
@@ -67,7 +67,7 @@ message Message {
   // A checksum computed by the server based on the current value of the resource.
   // Can be sent in update and delete requests to ensure the client has an
   // up-to-date value before proceeding.
-  string etag = 5;
+  string etag = 9;
 
   // The labels on this message.
   map<string, string> labels = 6 [
@@ -91,19 +91,19 @@ message Message {
   // This should be used by tooling.
   // Values are opaque strings (and may themselves be proto bytes), but keys
   // stay inspectable in storage.
-  map<string, string> annotations = 7 [
+  map<string, string> annotations = 2 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 
   // Role of the message sender.
-  Role role = 8 [(buf.validate.field).enum = {
+  Role role = 3 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
 
   // The ordered content blocks of this message.
-  repeated Block blocks = 9 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  repeated Block blocks = 4 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
 
   // The resource name of the model that generated this message.
   // Only set on assistant messages.
