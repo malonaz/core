@@ -26,7 +26,7 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\"B\n\x0cResourceCard\x12#\n\rresource_name\x18\x01 \x01(\tB\x0c\xfa\x41\x03\n\x01*\xbaH\x03\xc8\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\"K\n\x0cResourceList\x12\r\n\x05title\x18\x01 \x01(\t\x12,\n\x0eresource_names\x18\x02 \x03(\tB\x14\xfa\x41\x03\n\x01*\xbaH\x0b\x92\x01\x08\x08\x01\"\x04r\x02\x10\x01\x42.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"malonaz/ai/genui/v1/resource.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\"B\n\x0cResourceCard\x12#\n\rresource_name\x18\x01 \x01(\tB\x0c\xfa\x41\x03\n\x01*\xbaH\x03\xc8\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\"K\n\x0cResourceList\x12\r\n\x05title\x18\x01 \x01(\t\x12,\n\x0eresource_names\x18\x02 \x03(\tB\x14\xfa\x41\x03\n\x01*\xbaH\x0b\x92\x01\x08\x08\x01\"\x04r\x02\x10\x01\"]\n\x0cResourceTree\x12\r\n\x05title\x18\x01 \x01(\t\x12>\n\x05nodes\x18\x02 \x03(\x0b\x32%.malonaz.ai.genui.v1.ResourceTreeNodeB\x08\xbaH\x05\x92\x01\x02\x08\x01\"\x95\x01\n\x10ResourceTreeNode\x12#\n\rresource_name\x18\x01 \x01(\tB\x0c\xfa\x41\x03\n\x01*\xbaH\x03\xc8\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\x12\x14\n\x0crelationship\x18\x03 \x01(\t\x12\x37\n\x08\x63hildren\x18\x04 \x03(\x0b\x32%.malonaz.ai.genui.v1.ResourceTreeNodeB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -38,8 +38,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_RESOURCECARD'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*\272H\003\310\001\001'
   _globals['_RESOURCELIST'].fields_by_name['resource_names']._loaded_options = None
   _globals['_RESOURCELIST'].fields_by_name['resource_names']._serialized_options = b'\372A\003\n\001*\272H\013\222\001\010\010\001\"\004r\002\020\001'
+  _globals['_RESOURCETREE'].fields_by_name['nodes']._loaded_options = None
+  _globals['_RESOURCETREE'].fields_by_name['nodes']._serialized_options = b'\272H\005\222\001\002\010\001'
+  _globals['_RESOURCETREENODE'].fields_by_name['resource_name']._loaded_options = None
+  _globals['_RESOURCETREENODE'].fields_by_name['resource_name']._serialized_options = b'\372A\003\n\001*\272H\003\310\001\001'
   _globals['_RESOURCECARD']._serialized_start=115
   _globals['_RESOURCECARD']._serialized_end=181
   _globals['_RESOURCELIST']._serialized_start=183
   _globals['_RESOURCELIST']._serialized_end=258
+  _globals['_RESOURCETREE']._serialized_start=260
+  _globals['_RESOURCETREE']._serialized_end=353
+  _globals['_RESOURCETREENODE']._serialized_start=356
+  _globals['_RESOURCETREENODE']._serialized_end=505
 # @@protoc_insertion_point(module_scope)

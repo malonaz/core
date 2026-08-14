@@ -178,6 +178,207 @@ func (b0 ResourceList_builder) Build() *ResourceList {
 	return m0
 }
 
+// A hierarchy of related resources (e.g. a contact, its projects, and each
+// project's quotes), rendered as an indented tree. Each node reuses the
+// [ResourceCard][malonaz.ai.genui.v1.ResourceCard] rendering — the client
+// hydrates every node from its stores; the model supplies only structure,
+// resource names, and (optionally) headlines.
+type ResourceTree struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Optional heading rendered above the tree. Generate first so the heading
+	// appears while the nodes stream in.
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// The root nodes, in display order. Nodes stream in and hydrate one by
+	// one, depth-first — a node renders as soon as its resource_name arrives,
+	// before its children do.
+	Nodes         []*ResourceTreeNode `protobuf:"bytes,2,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceTree) Reset() {
+	*x = ResourceTree{}
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceTree) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceTree) ProtoMessage() {}
+
+func (x *ResourceTree) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ResourceTree) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ResourceTree) GetNodes() []*ResourceTreeNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+func (x *ResourceTree) SetTitle(v string) {
+	x.Title = v
+}
+
+func (x *ResourceTree) SetNodes(v []*ResourceTreeNode) {
+	x.Nodes = v
+}
+
+type ResourceTree_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Optional heading rendered above the tree. Generate first so the heading
+	// appears while the nodes stream in.
+	Title string
+	// The root nodes, in display order. Nodes stream in and hydrate one by
+	// one, depth-first — a node renders as soon as its resource_name arrives,
+	// before its children do.
+	Nodes []*ResourceTreeNode
+}
+
+func (b0 ResourceTree_builder) Build() *ResourceTree {
+	m0 := &ResourceTree{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Title = b.Title
+	x.Nodes = b.Nodes
+	return m0
+}
+
+// A single node within a [ResourceTree][malonaz.ai.genui.v1.ResourceTree].
+// Children render indented beneath their parent.
+type ResourceTreeNode struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource to render at this node. Its type selects the client-side
+	// renderer, exactly like [ResourceCard.resource_name][malonaz.ai.genui.v1.ResourceCard.resource_name].
+	ResourceName string `protobuf:"bytes,1,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
+	// Optional AI-written headline overriding the hydrated title.
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// Optional caption for the edge to the parent, naming the relationship
+	// when it isn't obvious from the resource types alone (e.g. "active
+	// revision", "billing address"). Ignored on root nodes.
+	Relationship string `protobuf:"bytes,3,opt,name=relationship,proto3" json:"relationship,omitempty"`
+	// Child nodes, in display order.
+	Children      []*ResourceTreeNode `protobuf:"bytes,4,rep,name=children,proto3" json:"children,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceTreeNode) Reset() {
+	*x = ResourceTreeNode{}
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceTreeNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceTreeNode) ProtoMessage() {}
+
+func (x *ResourceTreeNode) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_resource_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ResourceTreeNode) GetResourceName() string {
+	if x != nil {
+		return x.ResourceName
+	}
+	return ""
+}
+
+func (x *ResourceTreeNode) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ResourceTreeNode) GetRelationship() string {
+	if x != nil {
+		return x.Relationship
+	}
+	return ""
+}
+
+func (x *ResourceTreeNode) GetChildren() []*ResourceTreeNode {
+	if x != nil {
+		return x.Children
+	}
+	return nil
+}
+
+func (x *ResourceTreeNode) SetResourceName(v string) {
+	x.ResourceName = v
+}
+
+func (x *ResourceTreeNode) SetTitle(v string) {
+	x.Title = v
+}
+
+func (x *ResourceTreeNode) SetRelationship(v string) {
+	x.Relationship = v
+}
+
+func (x *ResourceTreeNode) SetChildren(v []*ResourceTreeNode) {
+	x.Children = v
+}
+
+type ResourceTreeNode_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource to render at this node. Its type selects the client-side
+	// renderer, exactly like [ResourceCard.resource_name][malonaz.ai.genui.v1.ResourceCard.resource_name].
+	ResourceName string
+	// Optional AI-written headline overriding the hydrated title.
+	Title string
+	// Optional caption for the edge to the parent, naming the relationship
+	// when it isn't obvious from the resource types alone (e.g. "active
+	// revision", "billing address"). Ignored on root nodes.
+	Relationship string
+	// Child nodes, in display order.
+	Children []*ResourceTreeNode
+}
+
+func (b0 ResourceTreeNode_builder) Build() *ResourceTreeNode {
+	m0 := &ResourceTreeNode{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.ResourceName = b.ResourceName
+	x.Title = b.Title
+	x.Relationship = b.Relationship
+	x.Children = b.Children
+	return m0
+}
+
 var File_malonaz_ai_genui_v1_resource_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
@@ -190,19 +391,32 @@ const file_malonaz_ai_genui_v1_resource_proto_rawDesc = "" +
 	"\fResourceList\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12;\n" +
 	"\x0eresource_names\x18\x02 \x03(\tB\x14\xfaA\x03\n" +
-	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNamesB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
+	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNames\"k\n" +
+	"\fResourceTree\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12E\n" +
+	"\x05nodes\x18\x02 \x03(\v2%.malonaz.ai.genui.v1.ResourceTreeNodeB\b\xbaH\x05\x92\x01\x02\b\x01R\x05nodes\"\xc2\x01\n" +
+	"\x10ResourceTreeNode\x121\n" +
+	"\rresource_name\x18\x01 \x01(\tB\f\xfaA\x03\n" +
+	"\x01*\xbaH\x03\xc8\x01\x01R\fresourceName\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\"\n" +
+	"\frelationship\x18\x03 \x01(\tR\frelationship\x12A\n" +
+	"\bchildren\x18\x04 \x03(\v2%.malonaz.ai.genui.v1.ResourceTreeNodeR\bchildrenB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
-var file_malonaz_ai_genui_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_ai_genui_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_ai_genui_v1_resource_proto_goTypes = []any{
-	(*ResourceCard)(nil), // 0: malonaz.ai.genui.v1.ResourceCard
-	(*ResourceList)(nil), // 1: malonaz.ai.genui.v1.ResourceList
+	(*ResourceCard)(nil),     // 0: malonaz.ai.genui.v1.ResourceCard
+	(*ResourceList)(nil),     // 1: malonaz.ai.genui.v1.ResourceList
+	(*ResourceTree)(nil),     // 2: malonaz.ai.genui.v1.ResourceTree
+	(*ResourceTreeNode)(nil), // 3: malonaz.ai.genui.v1.ResourceTreeNode
 }
 var file_malonaz_ai_genui_v1_resource_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: malonaz.ai.genui.v1.ResourceTree.nodes:type_name -> malonaz.ai.genui.v1.ResourceTreeNode
+	3, // 1: malonaz.ai.genui.v1.ResourceTreeNode.children:type_name -> malonaz.ai.genui.v1.ResourceTreeNode
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_resource_proto_init() }
@@ -216,7 +430,7 @@ func file_malonaz_ai_genui_v1_resource_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_resource_proto_rawDesc), len(file_malonaz_ai_genui_v1_resource_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

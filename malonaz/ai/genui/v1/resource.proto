@@ -33,3 +33,41 @@ message ResourceList {
     (buf.validate.field).repeated.items.string.min_len = 1
   ];
 }
+
+// A hierarchy of related resources (e.g. a contact, its projects, and each
+// project's quotes), rendered as an indented tree. Each node reuses the
+// [ResourceCard][malonaz.ai.genui.v1.ResourceCard] rendering — the client
+// hydrates every node from its stores; the model supplies only structure,
+// resource names, and (optionally) headlines.
+message ResourceTree {
+  // Optional heading rendered above the tree. Generate first so the heading
+  // appears while the nodes stream in.
+  string title = 1;
+
+  // The root nodes, in display order. Nodes stream in and hydrate one by
+  // one, depth-first — a node renders as soon as its resource_name arrives,
+  // before its children do.
+  repeated ResourceTreeNode nodes = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A single node within a [ResourceTree][malonaz.ai.genui.v1.ResourceTree].
+// Children render indented beneath their parent.
+message ResourceTreeNode {
+  // The resource to render at this node. Its type selects the client-side
+  // renderer, exactly like [ResourceCard.resource_name][malonaz.ai.genui.v1.ResourceCard.resource_name].
+  string resource_name = 1 [
+    (google.api.resource_reference).type = "*",
+    (buf.validate.field).required = true
+  ];
+
+  // Optional AI-written headline overriding the hydrated title.
+  string title = 2;
+
+  // Optional caption for the edge to the parent, naming the relationship
+  // when it isn't obvious from the resource types alone (e.g. "active
+  // revision", "billing address"). Ignored on root nodes.
+  string relationship = 3;
+
+  // Child nodes, in display order.
+  repeated ResourceTreeNode children = 4;
+}

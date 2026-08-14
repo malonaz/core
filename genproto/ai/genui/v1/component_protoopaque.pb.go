@@ -154,6 +154,15 @@ func (x *Component) GetActionRow() *ActionRow {
 	return nil
 }
 
+func (x *Component) GetResourceTree() *ResourceTree {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_ResourceTree); ok {
+			return x.ResourceTree
+		}
+	}
+	return nil
+}
+
 func (x *Component) GetChoice() *Choice {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Component.(*component_Choice); ok {
@@ -287,6 +296,14 @@ func (x *Component) SetActionRow(v *ActionRow) {
 		return
 	}
 	x.xxx_hidden_Component = &component_ActionRow{v}
+}
+
+func (x *Component) SetResourceTree(v *ResourceTree) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_ResourceTree{v}
 }
 
 func (x *Component) SetChoice(v *Choice) {
@@ -424,6 +441,14 @@ func (x *Component) HasActionRow() bool {
 	return ok
 }
 
+func (x *Component) HasResourceTree() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_ResourceTree)
+	return ok
+}
+
 func (x *Component) HasChoice() bool {
 	if x == nil {
 		return false
@@ -538,6 +563,12 @@ func (x *Component) ClearActionRow() {
 	}
 }
 
+func (x *Component) ClearResourceTree() {
+	if _, ok := x.xxx_hidden_Component.(*component_ResourceTree); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
 func (x *Component) ClearChoice() {
 	if _, ok := x.xxx_hidden_Component.(*component_Choice); ok {
 		x.xxx_hidden_Component = nil
@@ -590,6 +621,7 @@ const Component_ResourceList_case case_Component_Component = 6
 const Component_Stat_case case_Component_Component = 7
 const Component_Markdown_case case_Component_Component = 8
 const Component_ActionRow_case case_Component_Component = 9
+const Component_ResourceTree_case case_Component_Component = 17
 const Component_Choice_case case_Component_Component = 10
 const Component_MultiChoice_case case_Component_Component = 11
 const Component_Confirmation_case case_Component_Component = 12
@@ -621,6 +653,8 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_Markdown_case
 	case *component_ActionRow:
 		return Component_ActionRow_case
+	case *component_ResourceTree:
+		return Component_ResourceTree_case
 	case *component_Choice:
 		return Component_Choice_case
 	case *component_MultiChoice:
@@ -664,6 +698,8 @@ type Component_builder struct {
 	Markdown *Markdown
 	// Client-side buttons: navigation, clipboard, external links.
 	ActionRow *ActionRow
+	// A hierarchy of related resources rendered as an indented tree.
+	ResourceTree *ResourceTree
 	// A question with constrained answers.
 	Choice *Choice
 	// A question allowing several answers.
@@ -711,6 +747,9 @@ func (b0 Component_builder) Build() *Component {
 	}
 	if b.ActionRow != nil {
 		x.xxx_hidden_Component = &component_ActionRow{b.ActionRow}
+	}
+	if b.ResourceTree != nil {
+		x.xxx_hidden_Component = &component_ResourceTree{b.ResourceTree}
 	}
 	if b.Choice != nil {
 		x.xxx_hidden_Component = &component_Choice{b.Choice}
@@ -795,6 +834,11 @@ type component_ActionRow struct {
 	ActionRow *ActionRow `protobuf:"bytes,9,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 
+type component_ResourceTree struct {
+	// A hierarchy of related resources rendered as an indented tree.
+	ResourceTree *ResourceTree `protobuf:"bytes,17,opt,name=resource_tree,json=resourceTree,proto3,oneof"`
+}
+
 type component_Choice struct {
 	// A question with constrained answers.
 	Choice *Choice `protobuf:"bytes,10,opt,name=choice,proto3,oneof"`
@@ -848,6 +892,8 @@ func (*component_Markdown) isComponent_Component() {}
 
 func (*component_ActionRow) isComponent_Component() {}
 
+func (*component_ResourceTree) isComponent_Component() {}
+
 func (*component_Choice) isComponent_Component() {}
 
 func (*component_MultiChoice) isComponent_Component() {}
@@ -866,7 +912,7 @@ var File_malonaz_ai_genui_v1_component_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a\x1fmalonaz/ai/genui/v1/input.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xa2\b\n" +
+	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a\x1fmalonaz/ai/genui/v1/input.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xec\b\n" +
 	"\tComponent\x12I\n" +
 	"\x0ekey_value_list\x18\x01 \x01(\v2!.malonaz.ai.genui.v1.KeyValueListH\x00R\fkeyValueList\x12;\n" +
 	"\btimeline\x18\x02 \x01(\v2\x1d.malonaz.ai.genui.v1.TimelineH\x00R\btimeline\x122\n" +
@@ -877,7 +923,8 @@ const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\x04stat\x18\a \x01(\v2\x19.malonaz.ai.genui.v1.StatH\x00R\x04stat\x12;\n" +
 	"\bmarkdown\x18\b \x01(\v2\x1d.malonaz.ai.genui.v1.MarkdownH\x00R\bmarkdown\x12?\n" +
 	"\n" +
-	"action_row\x18\t \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
+	"action_row\x18\t \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x12H\n" +
+	"\rresource_tree\x18\x11 \x01(\v2!.malonaz.ai.genui.v1.ResourceTreeH\x00R\fresourceTree\x125\n" +
 	"\x06choice\x18\n" +
 	" \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x12E\n" +
 	"\fmulti_choice\x18\v \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
@@ -900,13 +947,14 @@ var file_malonaz_ai_genui_v1_component_proto_goTypes = []any{
 	(*Stat)(nil),           // 7: malonaz.ai.genui.v1.Stat
 	(*Markdown)(nil),       // 8: malonaz.ai.genui.v1.Markdown
 	(*ActionRow)(nil),      // 9: malonaz.ai.genui.v1.ActionRow
-	(*Choice)(nil),         // 10: malonaz.ai.genui.v1.Choice
-	(*MultiChoice)(nil),    // 11: malonaz.ai.genui.v1.MultiChoice
-	(*Confirmation)(nil),   // 12: malonaz.ai.genui.v1.Confirmation
-	(*Form)(nil),           // 13: malonaz.ai.genui.v1.Form
-	(*ResourcePicker)(nil), // 14: malonaz.ai.genui.v1.ResourcePicker
-	(*Slider)(nil),         // 15: malonaz.ai.genui.v1.Slider
-	(*DateTimePicker)(nil), // 16: malonaz.ai.genui.v1.DateTimePicker
+	(*ResourceTree)(nil),   // 10: malonaz.ai.genui.v1.ResourceTree
+	(*Choice)(nil),         // 11: malonaz.ai.genui.v1.Choice
+	(*MultiChoice)(nil),    // 12: malonaz.ai.genui.v1.MultiChoice
+	(*Confirmation)(nil),   // 13: malonaz.ai.genui.v1.Confirmation
+	(*Form)(nil),           // 14: malonaz.ai.genui.v1.Form
+	(*ResourcePicker)(nil), // 15: malonaz.ai.genui.v1.ResourcePicker
+	(*Slider)(nil),         // 16: malonaz.ai.genui.v1.Slider
+	(*DateTimePicker)(nil), // 17: malonaz.ai.genui.v1.DateTimePicker
 }
 var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
 	1,  // 0: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
@@ -918,18 +966,19 @@ var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
 	7,  // 6: malonaz.ai.genui.v1.Component.stat:type_name -> malonaz.ai.genui.v1.Stat
 	8,  // 7: malonaz.ai.genui.v1.Component.markdown:type_name -> malonaz.ai.genui.v1.Markdown
 	9,  // 8: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
-	10, // 9: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
-	11, // 10: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
-	12, // 11: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
-	13, // 12: malonaz.ai.genui.v1.Component.form:type_name -> malonaz.ai.genui.v1.Form
-	14, // 13: malonaz.ai.genui.v1.Component.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePicker
-	15, // 14: malonaz.ai.genui.v1.Component.slider:type_name -> malonaz.ai.genui.v1.Slider
-	16, // 15: malonaz.ai.genui.v1.Component.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePicker
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	10, // 9: malonaz.ai.genui.v1.Component.resource_tree:type_name -> malonaz.ai.genui.v1.ResourceTree
+	11, // 10: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
+	12, // 11: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
+	13, // 12: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
+	14, // 13: malonaz.ai.genui.v1.Component.form:type_name -> malonaz.ai.genui.v1.Form
+	15, // 14: malonaz.ai.genui.v1.Component.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePicker
+	16, // 15: malonaz.ai.genui.v1.Component.slider:type_name -> malonaz.ai.genui.v1.Slider
+	17, // 16: malonaz.ai.genui.v1.Component.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePicker
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_component_proto_init() }
@@ -950,6 +999,7 @@ func file_malonaz_ai_genui_v1_component_proto_init() {
 		(*component_Stat)(nil),
 		(*component_Markdown)(nil),
 		(*component_ActionRow)(nil),
+		(*component_ResourceTree)(nil),
 		(*component_Choice)(nil),
 		(*component_MultiChoice)(nil),
 		(*component_Confirmation)(nil),

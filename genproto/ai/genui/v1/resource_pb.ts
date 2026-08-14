@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/resource.proto.
  */
 export const file_malonaz_ai_genui_v1_resource: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2FpL2dlbnVpL3YxL3Jlc291cmNlLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIkIKDFJlc291cmNlQ2FyZBIjCg1yZXNvdXJjZV9uYW1lGAEgASgJQgz6QQMKASq6SAPIAQESDQoFdGl0bGUYAiABKAkiSwoMUmVzb3VyY2VMaXN0Eg0KBXRpdGxlGAEgASgJEiwKDnJlc291cmNlX25hbWVzGAIgAygJQhT6QQMKASq6SAuSAQgIASIEcgIQAUIuWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9nZW51aS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource]);
+  fileDesc("CiJtYWxvbmF6L2FpL2dlbnVpL3YxL3Jlc291cmNlLnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIkIKDFJlc291cmNlQ2FyZBIjCg1yZXNvdXJjZV9uYW1lGAEgASgJQgz6QQMKASq6SAPIAQESDQoFdGl0bGUYAiABKAkiSwoMUmVzb3VyY2VMaXN0Eg0KBXRpdGxlGAEgASgJEiwKDnJlc291cmNlX25hbWVzGAIgAygJQhT6QQMKASq6SAuSAQgIASIEcgIQASJdCgxSZXNvdXJjZVRyZWUSDQoFdGl0bGUYASABKAkSPgoFbm9kZXMYAiADKAsyJS5tYWxvbmF6LmFpLmdlbnVpLnYxLlJlc291cmNlVHJlZU5vZGVCCLpIBZIBAggBIpUBChBSZXNvdXJjZVRyZWVOb2RlEiMKDXJlc291cmNlX25hbWUYASABKAlCDPpBAwoBKrpIA8gBARINCgV0aXRsZRgCIAEoCRIUCgxyZWxhdGlvbnNoaXAYAyABKAkSNwoIY2hpbGRyZW4YBCADKAsyJS5tYWxvbmF6LmFpLmdlbnVpLnYxLlJlc291cmNlVHJlZU5vZGVCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource]);
 
 /**
  * A rich card for one resource (contact, quote revision, intent, call…).
@@ -96,4 +96,152 @@ export type ResourceListValid = ResourceList;
  */
 export const ResourceListSchema: GenMessage<ResourceList, {validType: ResourceListValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_genui_v1_resource, 1);
+
+/**
+ * A hierarchy of related resources (e.g. a contact, its projects, and each
+ * project's quotes), rendered as an indented tree. Each node reuses the
+ * [ResourceCard][malonaz.ai.genui.v1.ResourceCard] rendering — the client
+ * hydrates every node from its stores; the model supplies only structure,
+ * resource names, and (optionally) headlines.
+ *
+ * @generated from message malonaz.ai.genui.v1.ResourceTree
+ */
+export type ResourceTree = Message<"malonaz.ai.genui.v1.ResourceTree"> & {
+  /**
+   * Optional heading rendered above the tree. Generate first so the heading
+   * appears while the nodes stream in.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * The root nodes, in display order. Nodes stream in and hydrate one by
+   * one, depth-first — a node renders as soon as its resource_name arrives,
+   * before its children do.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ResourceTreeNode nodes = 2;
+   */
+  nodes: ResourceTreeNode[];
+};
+
+/**
+ * A hierarchy of related resources (e.g. a contact, its projects, and each
+ * project's quotes), rendered as an indented tree. Each node reuses the
+ * [ResourceCard][malonaz.ai.genui.v1.ResourceCard] rendering — the client
+ * hydrates every node from its stores; the model supplies only structure,
+ * resource names, and (optionally) headlines.
+ *
+ * @generated from message malonaz.ai.genui.v1.ResourceTree
+ */
+export type ResourceTreeValid = Message<"malonaz.ai.genui.v1.ResourceTree"> & {
+  /**
+   * Optional heading rendered above the tree. Generate first so the heading
+   * appears while the nodes stream in.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * The root nodes, in display order. Nodes stream in and hydrate one by
+   * one, depth-first — a node renders as soon as its resource_name arrives,
+   * before its children do.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ResourceTreeNode nodes = 2;
+   */
+  nodes: ResourceTreeNodeValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ResourceTree.
+ * Use `create(ResourceTreeSchema)` to create a new message.
+ */
+export const ResourceTreeSchema: GenMessage<ResourceTree, {validType: ResourceTreeValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_resource, 2);
+
+/**
+ * A single node within a [ResourceTree][malonaz.ai.genui.v1.ResourceTree].
+ * Children render indented beneath their parent.
+ *
+ * @generated from message malonaz.ai.genui.v1.ResourceTreeNode
+ */
+export type ResourceTreeNode = Message<"malonaz.ai.genui.v1.ResourceTreeNode"> & {
+  /**
+   * The resource to render at this node. Its type selects the client-side
+   * renderer, exactly like [ResourceCard.resource_name][malonaz.ai.genui.v1.ResourceCard.resource_name].
+   *
+   * @generated from field: string resource_name = 1;
+   */
+  resourceName: string;
+
+  /**
+   * Optional AI-written headline overriding the hydrated title.
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * Optional caption for the edge to the parent, naming the relationship
+   * when it isn't obvious from the resource types alone (e.g. "active
+   * revision", "billing address"). Ignored on root nodes.
+   *
+   * @generated from field: string relationship = 3;
+   */
+  relationship: string;
+
+  /**
+   * Child nodes, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ResourceTreeNode children = 4;
+   */
+  children: ResourceTreeNode[];
+};
+
+/**
+ * A single node within a [ResourceTree][malonaz.ai.genui.v1.ResourceTree].
+ * Children render indented beneath their parent.
+ *
+ * @generated from message malonaz.ai.genui.v1.ResourceTreeNode
+ */
+export type ResourceTreeNodeValid = Message<"malonaz.ai.genui.v1.ResourceTreeNode"> & {
+  /**
+   * The resource to render at this node. Its type selects the client-side
+   * renderer, exactly like [ResourceCard.resource_name][malonaz.ai.genui.v1.ResourceCard.resource_name].
+   *
+   * @generated from field: string resource_name = 1;
+   */
+  resourceName: string;
+
+  /**
+   * Optional AI-written headline overriding the hydrated title.
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * Optional caption for the edge to the parent, naming the relationship
+   * when it isn't obvious from the resource types alone (e.g. "active
+   * revision", "billing address"). Ignored on root nodes.
+   *
+   * @generated from field: string relationship = 3;
+   */
+  relationship: string;
+
+  /**
+   * Child nodes, in display order.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ResourceTreeNode children = 4;
+   */
+  children: ResourceTreeNodeValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ResourceTreeNode.
+ * Use `create(ResourceTreeNodeSchema)` to create a new message.
+ */
+export const ResourceTreeNodeSchema: GenMessage<ResourceTreeNode, {validType: ResourceTreeNodeValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_resource, 3);
 
