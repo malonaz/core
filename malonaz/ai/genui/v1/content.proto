@@ -10,10 +10,12 @@ option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
 // Label/value facts, e.g. a lead summary ("Budget: $10-15k").
 message KeyValueList {
-  // Optional heading rendered above the items.
+  // Optional heading rendered above the items. Generate first so the heading
+  // appears while the items stream in.
   string title = 1;
 
-  // The facts to render, in display order.
+  // The facts to render, in display order. Items stream in and render one by
+  // one.
   repeated KeyValueListItem items = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 
@@ -51,10 +53,12 @@ enum Tone {
 
 // Ordered events, e.g. "what happened with this contact this week".
 message Timeline {
-  // Optional heading rendered above the entries.
+  // Optional heading rendered above the entries. Generate first so the heading
+  // appears while the entries stream in.
   string title = 1;
 
-  // The events to render, in chronological order.
+  // The events to render, in chronological order. Entries stream in and render
+  // one by one.
   repeated TimelineEntry entries = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 
@@ -79,31 +83,39 @@ message TimelineEntry {
 // Chart for aggregates ("calls per day this week"), optionally with several
 // series ("quotes sent vs accepted per week").
 message Chart {
-  // How the points are plotted.
+  // How the points are plotted. Generate this first: clients stream-render
+  // components field by field, and the chart type selects the renderer, so
+  // nothing can be drawn until it arrives.
   ChartType type = 1 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
 
-  // Optional heading rendered above the chart.
+  // Optional heading rendered above the chart. Generate before the series so
+  // the heading appears while the datapoints stream in.
   string title = 2;
 
   // The series to plot, in display order. A single series renders without a
   // legend; several render one, keyed by series label. Pie charts use only
-  // the first series.
+  // the first series. Generate last: the axes, stacking and value format must
+  // be known before points can be plotted.
   repeated ChartSeries series = 3 [(buf.validate.field).repeated.min_items = 1];
 
   // Bars only: stack the series into one segmented bar per label instead of
-  // grouping them side by side.
+  // grouping them side by side. Generate before the series; it changes the
+  // layout of every bar.
   bool stacked = 4;
 
-  // How values are rendered in labels and legends.
+  // How values are rendered in labels and legends. Generate before the series;
+  // it changes how every point is labelled.
   ChartValueFormat value_format = 5 [(buf.validate.field).enum.defined_only = true];
 
-  // Optional caption for the x axis, e.g. "Week".
+  // Optional caption for the x axis, e.g. "Week". Generate before the series so
+  // the axes render while the datapoints stream in.
   string x_label = 6;
 
-  // Optional caption for the y axis, e.g. "Quotes".
+  // Optional caption for the y axis, e.g. "Quotes". Generate before the series
+  // so the axes render while the datapoints stream in.
   string y_label = 7;
 }
 
@@ -159,13 +171,16 @@ message ChartPoint {
 
 // Tabular data, e.g. "quotes by state with count and total value".
 message Table {
-  // Optional heading rendered above the table.
+  // Optional heading rendered above the table. Generate first so the heading
+  // appears while the rows stream in.
   string title = 1;
 
-  // The columns, defining the width of every row.
+  // The columns, defining the width of every row. Generate before the rows:
+  // the client cannot lay out a row until it knows the columns.
   repeated TableColumn columns = 2 [(buf.validate.field).repeated.min_items = 1];
 
-  // Rows, in display order. Each row carries one cell per column.
+  // Rows, in display order. Each row carries one cell per column. Generate
+  // last; rows stream in and render one by one.
   repeated TableRow rows = 3 [(buf.validate.field).repeated.min_items = 1];
 }
 
@@ -175,7 +190,8 @@ message TableColumn {
   string label = 1 [(buf.validate.field).required = true];
 
   // How the column's cells are aligned. Unspecified lets the renderer
-  // decide (numeric-looking columns right-align).
+  // decide (numeric-looking columns right-align). Generate with the column,
+  // before any row: alignment cannot change once cells have rendered.
   TableColumnAlign align = 2 [(buf.validate.field).enum.defined_only = true];
 }
 
@@ -243,11 +259,13 @@ message Markdown {
 // answer. To offer suggested next steps that the model must hear about, use
 // [Choice][malonaz.ai.genui.v1.Choice] instead.
 message ActionRow {
-  // Optional heading rendered above the buttons.
-  string title = 2;
+  // Optional heading rendered above the buttons. Generate first so the heading
+  // appears while the buttons stream in.
+  string title = 1;
 
-  // The buttons to render, in display order.
-  repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
+  // The buttons to render, in display order. Buttons stream in and render one
+  // by one.
+  repeated ActionRowAction actions = 2 [(buf.validate.field).repeated = {
     min_items: 1
     max_items: 5
   }];
@@ -258,7 +276,8 @@ message ActionRowAction {
   // The text rendered on the button.
   string label = 1 [(buf.validate.field).required = true];
 
-  // How the button is visually emphasized.
+  // How the button is visually emphasized. Generate before the action so the
+  // button renders with its final styling.
   ActionStyle style = 2 [(buf.validate.field).enum.defined_only = true];
 
   // What pressing the button does.

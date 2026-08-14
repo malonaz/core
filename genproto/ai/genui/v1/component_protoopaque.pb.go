@@ -33,6 +33,14 @@ const (
 //     the agentic loop continues.
 //   - Input (input.proto): ends the turn; the user's answer round-trips as a
 //     tool_result carrying an [InputResponse][malonaz.ai.genui.v1.InputResponse].
+//
+// Components are stream-rendered: clients paint each field as it arrives
+// rather than waiting for the whole message. Fields that select a renderer
+// (e.g. [Chart.type][malonaz.ai.genui.v1.Chart.type]) or define a layout
+// (e.g. [Table.columns][malonaz.ai.genui.v1.Table.columns]) must therefore be
+// generated before the fields they govern, otherwise nothing can be drawn
+// until the component completes. Such fields document their ordering
+// requirement individually.
 type Component struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Component isComponent_Component  `protobuf_oneof:"component"`
@@ -119,15 +127,6 @@ func (x *Component) GetResourceList() *ResourceList {
 	return nil
 }
 
-func (x *Component) GetActionRow() *ActionRow {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Component.(*component_ActionRow); ok {
-			return x.ActionRow
-		}
-	}
-	return nil
-}
-
 func (x *Component) GetStat() *Stat {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Component.(*component_Stat); ok {
@@ -141,6 +140,15 @@ func (x *Component) GetMarkdown() *Markdown {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Component.(*component_Markdown); ok {
 			return x.Markdown
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetActionRow() *ActionRow {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Component.(*component_ActionRow); ok {
+			return x.ActionRow
 		}
 	}
 	return nil
@@ -257,14 +265,6 @@ func (x *Component) SetResourceList(v *ResourceList) {
 	x.xxx_hidden_Component = &component_ResourceList{v}
 }
 
-func (x *Component) SetActionRow(v *ActionRow) {
-	if v == nil {
-		x.xxx_hidden_Component = nil
-		return
-	}
-	x.xxx_hidden_Component = &component_ActionRow{v}
-}
-
 func (x *Component) SetStat(v *Stat) {
 	if v == nil {
 		x.xxx_hidden_Component = nil
@@ -279,6 +279,14 @@ func (x *Component) SetMarkdown(v *Markdown) {
 		return
 	}
 	x.xxx_hidden_Component = &component_Markdown{v}
+}
+
+func (x *Component) SetActionRow(v *ActionRow) {
+	if v == nil {
+		x.xxx_hidden_Component = nil
+		return
+	}
+	x.xxx_hidden_Component = &component_ActionRow{v}
 }
 
 func (x *Component) SetChoice(v *Choice) {
@@ -392,14 +400,6 @@ func (x *Component) HasResourceList() bool {
 	return ok
 }
 
-func (x *Component) HasActionRow() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Component.(*component_ActionRow)
-	return ok
-}
-
 func (x *Component) HasStat() bool {
 	if x == nil {
 		return false
@@ -413,6 +413,14 @@ func (x *Component) HasMarkdown() bool {
 		return false
 	}
 	_, ok := x.xxx_hidden_Component.(*component_Markdown)
+	return ok
+}
+
+func (x *Component) HasActionRow() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Component.(*component_ActionRow)
 	return ok
 }
 
@@ -512,12 +520,6 @@ func (x *Component) ClearResourceList() {
 	}
 }
 
-func (x *Component) ClearActionRow() {
-	if _, ok := x.xxx_hidden_Component.(*component_ActionRow); ok {
-		x.xxx_hidden_Component = nil
-	}
-}
-
 func (x *Component) ClearStat() {
 	if _, ok := x.xxx_hidden_Component.(*component_Stat); ok {
 		x.xxx_hidden_Component = nil
@@ -526,6 +528,12 @@ func (x *Component) ClearStat() {
 
 func (x *Component) ClearMarkdown() {
 	if _, ok := x.xxx_hidden_Component.(*component_Markdown); ok {
+		x.xxx_hidden_Component = nil
+	}
+}
+
+func (x *Component) ClearActionRow() {
+	if _, ok := x.xxx_hidden_Component.(*component_ActionRow); ok {
 		x.xxx_hidden_Component = nil
 	}
 }
@@ -579,16 +587,16 @@ const Component_Chart_case case_Component_Component = 3
 const Component_Table_case case_Component_Component = 4
 const Component_ResourceCard_case case_Component_Component = 5
 const Component_ResourceList_case case_Component_Component = 6
-const Component_ActionRow_case case_Component_Component = 7
-const Component_Stat_case case_Component_Component = 15
-const Component_Markdown_case case_Component_Component = 16
-const Component_Choice_case case_Component_Component = 8
-const Component_MultiChoice_case case_Component_Component = 9
-const Component_Confirmation_case case_Component_Component = 10
-const Component_Form_case case_Component_Component = 11
-const Component_ResourcePicker_case case_Component_Component = 12
-const Component_Slider_case case_Component_Component = 13
-const Component_DateTimePicker_case case_Component_Component = 14
+const Component_Stat_case case_Component_Component = 7
+const Component_Markdown_case case_Component_Component = 8
+const Component_ActionRow_case case_Component_Component = 9
+const Component_Choice_case case_Component_Component = 10
+const Component_MultiChoice_case case_Component_Component = 11
+const Component_Confirmation_case case_Component_Component = 12
+const Component_Form_case case_Component_Component = 13
+const Component_ResourcePicker_case case_Component_Component = 14
+const Component_Slider_case case_Component_Component = 15
+const Component_DateTimePicker_case case_Component_Component = 16
 
 func (x *Component) WhichComponent() case_Component_Component {
 	if x == nil {
@@ -607,12 +615,12 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_ResourceCard_case
 	case *component_ResourceList:
 		return Component_ResourceList_case
-	case *component_ActionRow:
-		return Component_ActionRow_case
 	case *component_Stat:
 		return Component_Stat_case
 	case *component_Markdown:
 		return Component_Markdown_case
+	case *component_ActionRow:
+		return Component_ActionRow_case
 	case *component_Choice:
 		return Component_Choice_case
 	case *component_MultiChoice:
@@ -650,12 +658,12 @@ type Component_builder struct {
 	ResourceCard *ResourceCard
 	// A list of resources rendered as compact rows.
 	ResourceList *ResourceList
-	// Client-side buttons: navigation, clipboard, external links.
-	ActionRow *ActionRow
 	// A single headline metric with an optional delta.
 	Stat *Stat
 	// Standalone rich text (markdown subset).
 	Markdown *Markdown
+	// Client-side buttons: navigation, clipboard, external links.
+	ActionRow *ActionRow
 	// A question with constrained answers.
 	Choice *Choice
 	// A question allowing several answers.
@@ -695,14 +703,14 @@ func (b0 Component_builder) Build() *Component {
 	if b.ResourceList != nil {
 		x.xxx_hidden_Component = &component_ResourceList{b.ResourceList}
 	}
-	if b.ActionRow != nil {
-		x.xxx_hidden_Component = &component_ActionRow{b.ActionRow}
-	}
 	if b.Stat != nil {
 		x.xxx_hidden_Component = &component_Stat{b.Stat}
 	}
 	if b.Markdown != nil {
 		x.xxx_hidden_Component = &component_Markdown{b.Markdown}
+	}
+	if b.ActionRow != nil {
+		x.xxx_hidden_Component = &component_ActionRow{b.ActionRow}
 	}
 	if b.Choice != nil {
 		x.xxx_hidden_Component = &component_Choice{b.Choice}
@@ -772,54 +780,54 @@ type component_ResourceList struct {
 	ResourceList *ResourceList `protobuf:"bytes,6,opt,name=resource_list,json=resourceList,proto3,oneof"`
 }
 
-type component_ActionRow struct {
-	// Client-side buttons: navigation, clipboard, external links.
-	ActionRow *ActionRow `protobuf:"bytes,7,opt,name=action_row,json=actionRow,proto3,oneof"`
-}
-
 type component_Stat struct {
 	// A single headline metric with an optional delta.
-	Stat *Stat `protobuf:"bytes,15,opt,name=stat,proto3,oneof"`
+	Stat *Stat `protobuf:"bytes,7,opt,name=stat,proto3,oneof"`
 }
 
 type component_Markdown struct {
 	// Standalone rich text (markdown subset).
-	Markdown *Markdown `protobuf:"bytes,16,opt,name=markdown,proto3,oneof"`
+	Markdown *Markdown `protobuf:"bytes,8,opt,name=markdown,proto3,oneof"`
+}
+
+type component_ActionRow struct {
+	// Client-side buttons: navigation, clipboard, external links.
+	ActionRow *ActionRow `protobuf:"bytes,9,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 
 type component_Choice struct {
 	// A question with constrained answers.
-	Choice *Choice `protobuf:"bytes,8,opt,name=choice,proto3,oneof"`
+	Choice *Choice `protobuf:"bytes,10,opt,name=choice,proto3,oneof"`
 }
 
 type component_MultiChoice struct {
 	// A question allowing several answers.
-	MultiChoice *MultiChoice `protobuf:"bytes,9,opt,name=multi_choice,json=multiChoice,proto3,oneof"`
+	MultiChoice *MultiChoice `protobuf:"bytes,11,opt,name=multi_choice,json=multiChoice,proto3,oneof"`
 }
 
 type component_Confirmation struct {
 	// An approve/reject gate for a consequential action.
-	Confirmation *Confirmation `protobuf:"bytes,10,opt,name=confirmation,proto3,oneof"`
+	Confirmation *Confirmation `protobuf:"bytes,12,opt,name=confirmation,proto3,oneof"`
 }
 
 type component_Form struct {
 	// Structured multi-field input.
-	Form *Form `protobuf:"bytes,11,opt,name=form,proto3,oneof"`
+	Form *Form `protobuf:"bytes,13,opt,name=form,proto3,oneof"`
 }
 
 type component_ResourcePicker struct {
 	// Select one or more resources from candidates.
-	ResourcePicker *ResourcePicker `protobuf:"bytes,12,opt,name=resource_picker,json=resourcePicker,proto3,oneof"`
+	ResourcePicker *ResourcePicker `protobuf:"bytes,14,opt,name=resource_picker,json=resourcePicker,proto3,oneof"`
 }
 
 type component_Slider struct {
 	// Bounded numeric input.
-	Slider *Slider `protobuf:"bytes,13,opt,name=slider,proto3,oneof"`
+	Slider *Slider `protobuf:"bytes,15,opt,name=slider,proto3,oneof"`
 }
 
 type component_DateTimePicker struct {
 	// A calendar/clock input.
-	DateTimePicker *DateTimePicker `protobuf:"bytes,14,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
+	DateTimePicker *DateTimePicker `protobuf:"bytes,16,opt,name=date_time_picker,json=dateTimePicker,proto3,oneof"`
 }
 
 func (*component_KeyValueList) isComponent_Component() {}
@@ -834,11 +842,11 @@ func (*component_ResourceCard) isComponent_Component() {}
 
 func (*component_ResourceList) isComponent_Component() {}
 
-func (*component_ActionRow) isComponent_Component() {}
-
 func (*component_Stat) isComponent_Component() {}
 
 func (*component_Markdown) isComponent_Component() {}
+
+func (*component_ActionRow) isComponent_Component() {}
 
 func (*component_Choice) isComponent_Component() {}
 
@@ -865,19 +873,19 @@ const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\x05chart\x18\x03 \x01(\v2\x1a.malonaz.ai.genui.v1.ChartH\x00R\x05chart\x122\n" +
 	"\x05table\x18\x04 \x01(\v2\x1a.malonaz.ai.genui.v1.TableH\x00R\x05table\x12H\n" +
 	"\rresource_card\x18\x05 \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
-	"\rresource_list\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
+	"\rresource_list\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12/\n" +
+	"\x04stat\x18\a \x01(\v2\x19.malonaz.ai.genui.v1.StatH\x00R\x04stat\x12;\n" +
+	"\bmarkdown\x18\b \x01(\v2\x1d.malonaz.ai.genui.v1.MarkdownH\x00R\bmarkdown\x12?\n" +
 	"\n" +
-	"action_row\x18\a \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x12/\n" +
-	"\x04stat\x18\x0f \x01(\v2\x19.malonaz.ai.genui.v1.StatH\x00R\x04stat\x12;\n" +
-	"\bmarkdown\x18\x10 \x01(\v2\x1d.malonaz.ai.genui.v1.MarkdownH\x00R\bmarkdown\x125\n" +
-	"\x06choice\x18\b \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x12E\n" +
-	"\fmulti_choice\x18\t \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
-	"\fconfirmation\x18\n" +
-	" \x01(\v2!.malonaz.ai.genui.v1.ConfirmationH\x00R\fconfirmation\x12/\n" +
-	"\x04form\x18\v \x01(\v2\x19.malonaz.ai.genui.v1.FormH\x00R\x04form\x12N\n" +
-	"\x0fresource_picker\x18\f \x01(\v2#.malonaz.ai.genui.v1.ResourcePickerH\x00R\x0eresourcePicker\x125\n" +
-	"\x06slider\x18\r \x01(\v2\x1b.malonaz.ai.genui.v1.SliderH\x00R\x06slider\x12O\n" +
-	"\x10date_time_picker\x18\x0e \x01(\v2#.malonaz.ai.genui.v1.DateTimePickerH\x00R\x0edateTimePickerB\x12\n" +
+	"action_row\x18\t \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
+	"\x06choice\x18\n" +
+	" \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x12E\n" +
+	"\fmulti_choice\x18\v \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
+	"\fconfirmation\x18\f \x01(\v2!.malonaz.ai.genui.v1.ConfirmationH\x00R\fconfirmation\x12/\n" +
+	"\x04form\x18\r \x01(\v2\x19.malonaz.ai.genui.v1.FormH\x00R\x04form\x12N\n" +
+	"\x0fresource_picker\x18\x0e \x01(\v2#.malonaz.ai.genui.v1.ResourcePickerH\x00R\x0eresourcePicker\x125\n" +
+	"\x06slider\x18\x0f \x01(\v2\x1b.malonaz.ai.genui.v1.SliderH\x00R\x06slider\x12O\n" +
+	"\x10date_time_picker\x18\x10 \x01(\v2#.malonaz.ai.genui.v1.DateTimePickerH\x00R\x0edateTimePickerB\x12\n" +
 	"\tcomponent\x12\x05\xbaH\x02\b\x01B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
 var file_malonaz_ai_genui_v1_component_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
@@ -889,9 +897,9 @@ var file_malonaz_ai_genui_v1_component_proto_goTypes = []any{
 	(*Table)(nil),          // 4: malonaz.ai.genui.v1.Table
 	(*ResourceCard)(nil),   // 5: malonaz.ai.genui.v1.ResourceCard
 	(*ResourceList)(nil),   // 6: malonaz.ai.genui.v1.ResourceList
-	(*ActionRow)(nil),      // 7: malonaz.ai.genui.v1.ActionRow
-	(*Stat)(nil),           // 8: malonaz.ai.genui.v1.Stat
-	(*Markdown)(nil),       // 9: malonaz.ai.genui.v1.Markdown
+	(*Stat)(nil),           // 7: malonaz.ai.genui.v1.Stat
+	(*Markdown)(nil),       // 8: malonaz.ai.genui.v1.Markdown
+	(*ActionRow)(nil),      // 9: malonaz.ai.genui.v1.ActionRow
 	(*Choice)(nil),         // 10: malonaz.ai.genui.v1.Choice
 	(*MultiChoice)(nil),    // 11: malonaz.ai.genui.v1.MultiChoice
 	(*Confirmation)(nil),   // 12: malonaz.ai.genui.v1.Confirmation
@@ -907,9 +915,9 @@ var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
 	4,  // 3: malonaz.ai.genui.v1.Component.table:type_name -> malonaz.ai.genui.v1.Table
 	5,  // 4: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
 	6,  // 5: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
-	7,  // 6: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
-	8,  // 7: malonaz.ai.genui.v1.Component.stat:type_name -> malonaz.ai.genui.v1.Stat
-	9,  // 8: malonaz.ai.genui.v1.Component.markdown:type_name -> malonaz.ai.genui.v1.Markdown
+	7,  // 6: malonaz.ai.genui.v1.Component.stat:type_name -> malonaz.ai.genui.v1.Stat
+	8,  // 7: malonaz.ai.genui.v1.Component.markdown:type_name -> malonaz.ai.genui.v1.Markdown
+	9,  // 8: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
 	10, // 9: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
 	11, // 10: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
 	12, // 11: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
@@ -939,9 +947,9 @@ func file_malonaz_ai_genui_v1_component_proto_init() {
 		(*component_Table)(nil),
 		(*component_ResourceCard)(nil),
 		(*component_ResourceList)(nil),
-		(*component_ActionRow)(nil),
 		(*component_Stat)(nil),
 		(*component_Markdown)(nil),
+		(*component_ActionRow)(nil),
 		(*component_Choice)(nil),
 		(*component_MultiChoice)(nil),
 		(*component_Confirmation)(nil),

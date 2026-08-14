@@ -524,9 +524,11 @@ func (x *Choice) SetAllowFreeText(v bool) {
 type Choice_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The question posed to the user.
+	// The question posed to the user. Generate first so it renders while the
+	// options stream in.
 	Question string
-	// The answers the user may pick from, in display order.
+	// The answers the user may pick from, in display order. Options stream in and
+	// render one by one.
 	Options []*ChoiceOption
 	// Whether to also offer a free-text input, so "none of the above" answers
 	// don't cost an extra round trip.
@@ -871,7 +873,8 @@ func (x *MultiChoice) SetMaxSelections(v int32) {
 type MultiChoice_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The question posed to the user.
+	// The question posed to the user. Generate first so it renders while the
+	// options stream in.
 	Question string
 	// The answers the user may pick from, in display order.
 	Options []string
@@ -1206,11 +1209,14 @@ func (x *Form) SetFields(v []*FormField) {
 type Form_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the fields.
+	// Optional heading rendered above the fields. Generate first so the heading
+	// appears while the fields stream in.
 	Title string
-	// Optional label for the submit button. Defaults to "Submit".
+	// Optional label for the submit button. Defaults to "Submit". Generate before
+	// the fields so the form's shape is known up front.
 	SubmitLabel string
-	// The inputs to render, in display order.
+	// The inputs to render, in display order. Generate last; fields stream in and
+	// render one by one.
 	Fields []*FormField
 }
 
@@ -1290,9 +1296,9 @@ type FormField struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id          string                 `protobuf:"bytes,1,opt,name=id,proto3"`
 	xxx_hidden_Label       string                 `protobuf:"bytes,2,opt,name=label,proto3"`
-	xxx_hidden_Placeholder string                 `protobuf:"bytes,3,opt,name=placeholder,proto3"`
-	xxx_hidden_Required    bool                   `protobuf:"varint,4,opt,name=required,proto3"`
+	xxx_hidden_Required    bool                   `protobuf:"varint,3,opt,name=required,proto3"`
 	xxx_hidden_Input       isFormField_Input      `protobuf_oneof:"input"`
+	xxx_hidden_Placeholder string                 `protobuf:"bytes,9,opt,name=placeholder,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1332,13 +1338,6 @@ func (x *FormField) GetId() string {
 func (x *FormField) GetLabel() string {
 	if x != nil {
 		return x.xxx_hidden_Label
-	}
-	return ""
-}
-
-func (x *FormField) GetPlaceholder() string {
-	if x != nil {
-		return x.xxx_hidden_Placeholder
 	}
 	return ""
 }
@@ -1395,16 +1394,19 @@ func (x *FormField) GetToggle() *FormToggleInput {
 	return nil
 }
 
+func (x *FormField) GetPlaceholder() string {
+	if x != nil {
+		return x.xxx_hidden_Placeholder
+	}
+	return ""
+}
+
 func (x *FormField) SetId(v string) {
 	x.xxx_hidden_Id = v
 }
 
 func (x *FormField) SetLabel(v string) {
 	x.xxx_hidden_Label = v
-}
-
-func (x *FormField) SetPlaceholder(v string) {
-	x.xxx_hidden_Placeholder = v
 }
 
 func (x *FormField) SetRequired(v bool) {
@@ -1449,6 +1451,10 @@ func (x *FormField) SetToggle(v *FormToggleInput) {
 		return
 	}
 	x.xxx_hidden_Input = &formField_Toggle{v}
+}
+
+func (x *FormField) SetPlaceholder(v string) {
+	x.xxx_hidden_Placeholder = v
 }
 
 func (x *FormField) HasInput() bool {
@@ -1533,11 +1539,11 @@ func (x *FormField) ClearToggle() {
 }
 
 const FormField_Input_not_set_case case_FormField_Input = 0
-const FormField_Text_case case_FormField_Input = 5
-const FormField_Number_case case_FormField_Input = 6
-const FormField_Select_case case_FormField_Input = 7
-const FormField_Date_case case_FormField_Input = 8
-const FormField_Toggle_case case_FormField_Input = 9
+const FormField_Text_case case_FormField_Input = 4
+const FormField_Number_case case_FormField_Input = 5
+const FormField_Select_case case_FormField_Input = 6
+const FormField_Date_case case_FormField_Input = 7
+const FormField_Toggle_case case_FormField_Input = 8
 
 func (x *FormField) WhichInput() case_FormField_Input {
 	if x == nil {
@@ -1567,11 +1573,11 @@ type FormField_builder struct {
 	Id string
 	// The label naming the input, e.g. "Budget".
 	Label string
-	// Optional hint rendered inside the empty input.
-	Placeholder string
-	// Whether the field must be filled before submitting.
+	// Whether the field must be filled before submitting. Generate before the
+	// input; it changes how the label and widget render.
 	Required bool
-	// The kind of input to render.
+	// The kind of input to render. Generate before `placeholder`: it selects the
+	// widget, so nothing can be drawn until it arrives.
 
 	// Fields of oneof xxx_hidden_Input:
 	// Free text.
@@ -1585,6 +1591,9 @@ type FormField_builder struct {
 	// An on/off switch.
 	Toggle *FormToggleInput
 	// -- end of xxx_hidden_Input
+	// Optional hint rendered inside the empty input. Generate last; it renders
+	// inside the widget selected above.
+	Placeholder string
 }
 
 func (b0 FormField_builder) Build() *FormField {
@@ -1593,7 +1602,6 @@ func (b0 FormField_builder) Build() *FormField {
 	_, _ = b, x
 	x.xxx_hidden_Id = b.Id
 	x.xxx_hidden_Label = b.Label
-	x.xxx_hidden_Placeholder = b.Placeholder
 	x.xxx_hidden_Required = b.Required
 	if b.Text != nil {
 		x.xxx_hidden_Input = &formField_Text{b.Text}
@@ -1610,6 +1618,7 @@ func (b0 FormField_builder) Build() *FormField {
 	if b.Toggle != nil {
 		x.xxx_hidden_Input = &formField_Toggle{b.Toggle}
 	}
+	x.xxx_hidden_Placeholder = b.Placeholder
 	return m0
 }
 
@@ -1629,27 +1638,27 @@ type isFormField_Input interface {
 
 type formField_Text struct {
 	// Free text.
-	Text *FormTextInput `protobuf:"bytes,5,opt,name=text,proto3,oneof"`
+	Text *FormTextInput `protobuf:"bytes,4,opt,name=text,proto3,oneof"`
 }
 
 type formField_Number struct {
 	// A number, optionally bounded.
-	Number *FormNumberInput `protobuf:"bytes,6,opt,name=number,proto3,oneof"`
+	Number *FormNumberInput `protobuf:"bytes,5,opt,name=number,proto3,oneof"`
 }
 
 type formField_Select struct {
 	// One option from a fixed set.
-	Select *FormSelectInput `protobuf:"bytes,7,opt,name=select,proto3,oneof"`
+	Select *FormSelectInput `protobuf:"bytes,6,opt,name=select,proto3,oneof"`
 }
 
 type formField_Date struct {
 	// A date, optionally with a time of day.
-	Date *FormDateInput `protobuf:"bytes,8,opt,name=date,proto3,oneof"`
+	Date *FormDateInput `protobuf:"bytes,7,opt,name=date,proto3,oneof"`
 }
 
 type formField_Toggle struct {
 	// An on/off switch.
-	Toggle *FormToggleInput `protobuf:"bytes,9,opt,name=toggle,proto3,oneof"`
+	Toggle *FormToggleInput `protobuf:"bytes,8,opt,name=toggle,proto3,oneof"`
 }
 
 func (*formField_Text) isFormField_Input() {}
@@ -1892,9 +1901,9 @@ const FormFieldValue_Value_not_set_case case_FormFieldValue_Value = 0
 const FormFieldValue_Text_case case_FormFieldValue_Value = 2
 const FormFieldValue_Number_case case_FormFieldValue_Value = 3
 const FormFieldValue_SelectedOption_case case_FormFieldValue_Value = 4
-const FormFieldValue_SelectedOptions_case case_FormFieldValue_Value = 7
-const FormFieldValue_Date_case case_FormFieldValue_Value = 5
-const FormFieldValue_Toggle_case case_FormFieldValue_Value = 6
+const FormFieldValue_SelectedOptions_case case_FormFieldValue_Value = 5
+const FormFieldValue_Date_case case_FormFieldValue_Value = 6
+const FormFieldValue_Toggle_case case_FormFieldValue_Value = 7
 
 func (x *FormFieldValue) WhichValue() case_FormFieldValue_Value {
 	if x == nil {
@@ -1998,17 +2007,17 @@ type formFieldValue_SelectedOption struct {
 
 type formFieldValue_SelectedOptions struct {
 	// Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
-	SelectedOptions *FormSelectedOptions `protobuf:"bytes,7,opt,name=selected_options,json=selectedOptions,proto3,oneof"`
+	SelectedOptions *FormSelectedOptions `protobuf:"bytes,5,opt,name=selected_options,json=selectedOptions,proto3,oneof"`
 }
 
 type formFieldValue_Date struct {
 	// Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
-	Date *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=date,proto3,oneof"`
+	Date *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=date,proto3,oneof"`
 }
 
 type formFieldValue_Toggle struct {
 	// Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
-	Toggle bool `protobuf:"varint,6,opt,name=toggle,proto3,oneof"`
+	Toggle bool `protobuf:"varint,7,opt,name=toggle,proto3,oneof"`
 }
 
 func (*formFieldValue_Text) isFormFieldValue_Value() {}
@@ -2602,9 +2611,11 @@ func (x *ResourcePicker) SetNoneLabel(v string) {
 type ResourcePicker_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the candidates.
+	// Optional heading rendered above the candidates. Generate first so the
+	// heading appears while the candidates stream in.
 	Title string
-	// The candidate resources, in display order.
+	// The candidate resources, in display order. Candidates stream in and hydrate
+	// one by one.
 	ResourceNames []string
 	// Whether the user may select more than one candidate.
 	MultiSelect bool
@@ -2785,11 +2796,14 @@ func (x *Slider) SetStep(v float64) {
 type Slider_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The label naming the value being picked.
+	// The label naming the value being picked. Generate first; the track only
+	// renders once the bounds below arrive.
 	Label string
-	// The inclusive lower bound.
+	// The inclusive lower bound. Generate before `step`: the bounds define the
+	// track.
 	Min float64
-	// The inclusive upper bound.
+	// The inclusive upper bound. Generate before `step`: the bounds define the
+	// track.
 	Max float64
 	// The increment between selectable values. 0 means continuous.
 	Step float64
@@ -2982,16 +2996,19 @@ func (x *DateTimePicker) ClearMaxTime() {
 type DateTimePicker_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The label naming the moment being picked.
+	// The label naming the moment being picked. Generate first so it renders
+	// while the constraints below stream in.
 	Label string
-	// Whether the user also picks a time of day.
+	// Whether the user also picks a time of day. Generate before the bounds: it
+	// selects the calendar or calendar-plus-clock widget.
 	IncludeTime bool
 	// Optional earliest selectable moment.
 	MinTime *timestamppb.Timestamp
 	// Optional latest selectable moment.
 	MaxTime *timestamppb.Timestamp
 	// Whether the user picks a start and an end instead of a single moment;
-	// the answer then also carries `end_time`.
+	// the answer then also carries `end_time`. Generate before the bounds where
+	// possible: it changes the widget into a range picker.
 	Range bool
 }
 
@@ -3154,23 +3171,23 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x06values\x18\x01 \x03(\v2#.malonaz.ai.genui.v1.FormFieldValueB\b\xbaH\x05\x92\x01\x02\b\x01R\x06values\"\xc3\x03\n" +
 	"\tFormField\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1c\n" +
-	"\x05label\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
-	"\vplaceholder\x18\x03 \x01(\tR\vplaceholder\x12\x1a\n" +
-	"\brequired\x18\x04 \x01(\bR\brequired\x128\n" +
-	"\x04text\x18\x05 \x01(\v2\".malonaz.ai.genui.v1.FormTextInputH\x00R\x04text\x12>\n" +
-	"\x06number\x18\x06 \x01(\v2$.malonaz.ai.genui.v1.FormNumberInputH\x00R\x06number\x12>\n" +
-	"\x06select\x18\a \x01(\v2$.malonaz.ai.genui.v1.FormSelectInputH\x00R\x06select\x128\n" +
-	"\x04date\x18\b \x01(\v2\".malonaz.ai.genui.v1.FormDateInputH\x00R\x04date\x12>\n" +
-	"\x06toggle\x18\t \x01(\v2$.malonaz.ai.genui.v1.FormToggleInputH\x00R\x06toggleB\x0e\n" +
+	"\x05label\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x1a\n" +
+	"\brequired\x18\x03 \x01(\bR\brequired\x128\n" +
+	"\x04text\x18\x04 \x01(\v2\".malonaz.ai.genui.v1.FormTextInputH\x00R\x04text\x12>\n" +
+	"\x06number\x18\x05 \x01(\v2$.malonaz.ai.genui.v1.FormNumberInputH\x00R\x06number\x12>\n" +
+	"\x06select\x18\x06 \x01(\v2$.malonaz.ai.genui.v1.FormSelectInputH\x00R\x06select\x128\n" +
+	"\x04date\x18\a \x01(\v2\".malonaz.ai.genui.v1.FormDateInputH\x00R\x04date\x12>\n" +
+	"\x06toggle\x18\b \x01(\v2$.malonaz.ai.genui.v1.FormToggleInputH\x00R\x06toggle\x12 \n" +
+	"\vplaceholder\x18\t \x01(\tR\vplaceholderB\x0e\n" +
 	"\x05input\x12\x05\xbaH\x02\b\x01\"\xc1\x02\n" +
 	"\x0eFormFieldValue\x12!\n" +
 	"\bfield_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\afieldId\x12\x14\n" +
 	"\x04text\x18\x02 \x01(\tH\x00R\x04text\x12\x18\n" +
 	"\x06number\x18\x03 \x01(\x01H\x00R\x06number\x12)\n" +
 	"\x0fselected_option\x18\x04 \x01(\tH\x00R\x0eselectedOption\x12U\n" +
-	"\x10selected_options\x18\a \x01(\v2(.malonaz.ai.genui.v1.FormSelectedOptionsH\x00R\x0fselectedOptions\x120\n" +
-	"\x04date\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x04date\x12\x18\n" +
-	"\x06toggle\x18\x06 \x01(\bH\x00R\x06toggleB\x0e\n" +
+	"\x10selected_options\x18\x05 \x01(\v2(.malonaz.ai.genui.v1.FormSelectedOptionsH\x00R\x0fselectedOptions\x120\n" +
+	"\x04date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x04date\x12\x18\n" +
+	"\x06toggle\x18\a \x01(\bH\x00R\x06toggleB\x0e\n" +
 	"\x05value\x12\x05\xbaH\x02\b\x01\"9\n" +
 	"\x13FormSelectedOptions\x12\"\n" +
 	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\aoptions\"R\n" +

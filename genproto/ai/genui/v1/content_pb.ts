@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiXQoMS2V5VmFsdWVMaXN0Eg0KBXRpdGxlGAEgASgJEj4KBWl0ZW1zGAIgAygLMiUubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RJdGVtQgi6SAWSAQIIASKKAQoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKhIxCgR0b25lGAQgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASK3AQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKhIxCgR0b25lGAUgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASKGAgoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjoKBnNlcmllcxgDIAMoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRTZXJpZXNCCLpIBZIBAggBEg8KB3N0YWNrZWQYBCABKAgSRQoMdmFsdWVfZm9ybWF0GAUgASgOMiUubWFsb25hei5haS5nZW51aS52MS5DaGFydFZhbHVlRm9ybWF0Qgi6SAWCAQIQARIPCgd4X2xhYmVsGAYgASgJEg8KB3lfbGFiZWwYByABKAkiVwoLQ2hhcnRTZXJpZXMSDQoFbGFiZWwYASABKAkSOQoGcG9pbnRzGAIgAygLMh8ubWFsb25hei5haS5nZW51aS52MS5DaGFydFBvaW50Qgi6SAWSAQIIASIyCgpDaGFydFBvaW50EhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAEiigEKBVRhYmxlEg0KBXRpdGxlGAEgASgJEjsKB2NvbHVtbnMYAiADKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ29sdW1uQgi6SAWSAQIIARI1CgRyb3dzGAMgAygLMh0ubWFsb25hei5haS5nZW51aS52MS5UYWJsZVJvd0IIukgFkgECCAEiZAoLVGFibGVDb2x1bW4SFQoFbGFiZWwYASABKAlCBrpIA8gBARI+CgVhbGlnbhgCIAEoDjIlLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDb2x1bW5BbGlnbkIIukgFggECEAEiYgoIVGFibGVSb3cSNwoFY2VsbHMYASADKAsyHi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ2VsbEIIukgFkgECCAESHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIjkKCVRhYmxlQ2VsbBINCgV2YWx1ZRgBIAEoCRIdCg1yZXNvdXJjZV9uYW1lGAIgASgJQgb6QQMKASoimwEKBFN0YXQSFQoFbGFiZWwYASABKAlCBrpIA8gBARIVCgV2YWx1ZRgCIAEoCUIGukgDyAEBEg0KBWRlbHRhGAMgASgJEjcKCmRlbHRhX3RvbmUYBCABKA4yGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRvbmVCCLpIBYIBAhABEh0KDXJlc291cmNlX25hbWUYBSABKAlCBvpBAwoBKiIkCghNYXJrZG93bhIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KCUFjdGlvblJvdxINCgV0aXRsZRgCIAEoCRJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUiyAEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEwoJY29weV90ZXh0GAQgASgJSAASHAoIb3Blbl91cmwYBSABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpUCgRUb25lEhQKEFRPTkVfVU5TUEVDSUZJRUQQABIRCg1UT05FX1BPU0lUSVZFEAESEQoNVE9ORV9ORUdBVElWRRACEhAKDFRPTkVfV0FSTklORxADKpYBChBDaGFydFZhbHVlRm9ybWF0EiIKHkNIQVJUX1ZBTFVFX0ZPUk1BVF9VTlNQRUNJRklFRBAAEh0KGUNIQVJUX1ZBTFVFX0ZPUk1BVF9OVU1CRVIQARIfChtDSEFSVF9WQUxVRV9GT1JNQVRfQ1VSUkVOQ1kQAhIeChpDSEFSVF9WQUxVRV9GT1JNQVRfUEVSQ0VOVBADKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADKnEKEFRhYmxlQ29sdW1uQWxpZ24SIgoeVEFCTEVfQ09MVU1OX0FMSUdOX1VOU1BFQ0lGSUVEEAASGwoXVEFCTEVfQ09MVU1OX0FMSUdOX0xFRlQQARIcChhUQUJMRV9DT0xVTU5fQUxJR05fUklHSFQQAipjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiXQoMS2V5VmFsdWVMaXN0Eg0KBXRpdGxlGAEgASgJEj4KBWl0ZW1zGAIgAygLMiUubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RJdGVtQgi6SAWSAQIIASKKAQoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKhIxCgR0b25lGAQgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASK3AQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKhIxCgR0b25lGAUgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASKGAgoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjoKBnNlcmllcxgDIAMoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRTZXJpZXNCCLpIBZIBAggBEg8KB3N0YWNrZWQYBCABKAgSRQoMdmFsdWVfZm9ybWF0GAUgASgOMiUubWFsb25hei5haS5nZW51aS52MS5DaGFydFZhbHVlRm9ybWF0Qgi6SAWCAQIQARIPCgd4X2xhYmVsGAYgASgJEg8KB3lfbGFiZWwYByABKAkiVwoLQ2hhcnRTZXJpZXMSDQoFbGFiZWwYASABKAkSOQoGcG9pbnRzGAIgAygLMh8ubWFsb25hei5haS5nZW51aS52MS5DaGFydFBvaW50Qgi6SAWSAQIIASIyCgpDaGFydFBvaW50EhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAEiigEKBVRhYmxlEg0KBXRpdGxlGAEgASgJEjsKB2NvbHVtbnMYAiADKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ29sdW1uQgi6SAWSAQIIARI1CgRyb3dzGAMgAygLMh0ubWFsb25hei5haS5nZW51aS52MS5UYWJsZVJvd0IIukgFkgECCAEiZAoLVGFibGVDb2x1bW4SFQoFbGFiZWwYASABKAlCBrpIA8gBARI+CgVhbGlnbhgCIAEoDjIlLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDb2x1bW5BbGlnbkIIukgFggECEAEiYgoIVGFibGVSb3cSNwoFY2VsbHMYASADKAsyHi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ2VsbEIIukgFkgECCAESHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIjkKCVRhYmxlQ2VsbBINCgV2YWx1ZRgBIAEoCRIdCg1yZXNvdXJjZV9uYW1lGAIgASgJQgb6QQMKASoimwEKBFN0YXQSFQoFbGFiZWwYASABKAlCBrpIA8gBARIVCgV2YWx1ZRgCIAEoCUIGukgDyAEBEg0KBWRlbHRhGAMgASgJEjcKCmRlbHRhX3RvbmUYBCABKA4yGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRvbmVCCLpIBYIBAhABEh0KDXJlc291cmNlX25hbWUYBSABKAlCBvpBAwoBKiIkCghNYXJrZG93bhIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KCUFjdGlvblJvdxINCgV0aXRsZRgBIAEoCRJBCgdhY3Rpb25zGAIgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUiyAEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEwoJY29weV90ZXh0GAQgASgJSAASHAoIb3Blbl91cmwYBSABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpUCgRUb25lEhQKEFRPTkVfVU5TUEVDSUZJRUQQABIRCg1UT05FX1BPU0lUSVZFEAESEQoNVE9ORV9ORUdBVElWRRACEhAKDFRPTkVfV0FSTklORxADKpYBChBDaGFydFZhbHVlRm9ybWF0EiIKHkNIQVJUX1ZBTFVFX0ZPUk1BVF9VTlNQRUNJRklFRBAAEh0KGUNIQVJUX1ZBTFVFX0ZPUk1BVF9OVU1CRVIQARIfChtDSEFSVF9WQUxVRV9GT1JNQVRfQ1VSUkVOQ1kQAhIeChpDSEFSVF9WQUxVRV9GT1JNQVRfUEVSQ0VOVBADKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADKnEKEFRhYmxlQ29sdW1uQWxpZ24SIgoeVEFCTEVfQ09MVU1OX0FMSUdOX1VOU1BFQ0lGSUVEEAASGwoXVEFCTEVfQ09MVU1OX0FMSUdOX0xFRlQQARIcChhUQUJMRV9DT0xVTU5fQUxJR05fUklHSFQQAipjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Label/value facts, e.g. a lead summary ("Budget: $10-15k").
@@ -23,14 +23,16 @@ export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
  */
 export type KeyValueList = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
   /**
-   * Optional heading rendered above the items.
+   * Optional heading rendered above the items. Generate first so the heading
+   * appears while the items stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The facts to render, in display order.
+   * The facts to render, in display order. Items stream in and render one by
+   * one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.KeyValueListItem items = 2;
    */
@@ -44,14 +46,16 @@ export type KeyValueList = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
  */
 export type KeyValueListValid = Message<"malonaz.ai.genui.v1.KeyValueList"> & {
   /**
-   * Optional heading rendered above the items.
+   * Optional heading rendered above the items. Generate first so the heading
+   * appears while the items stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The facts to render, in display order.
+   * The facts to render, in display order. Items stream in and render one by
+   * one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.KeyValueListItem items = 2;
    */
@@ -151,14 +155,16 @@ export const KeyValueListItemSchema: GenMessage<KeyValueListItem, {validType: Ke
  */
 export type Timeline = Message<"malonaz.ai.genui.v1.Timeline"> & {
   /**
-   * Optional heading rendered above the entries.
+   * Optional heading rendered above the entries. Generate first so the heading
+   * appears while the entries stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The events to render, in chronological order.
+   * The events to render, in chronological order. Entries stream in and render
+   * one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TimelineEntry entries = 2;
    */
@@ -172,14 +178,16 @@ export type Timeline = Message<"malonaz.ai.genui.v1.Timeline"> & {
  */
 export type TimelineValid = Message<"malonaz.ai.genui.v1.Timeline"> & {
   /**
-   * Optional heading rendered above the entries.
+   * Optional heading rendered above the entries. Generate first so the heading
+   * appears while the entries stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The events to render, in chronological order.
+   * The events to render, in chronological order. Entries stream in and render
+   * one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TimelineEntry entries = 2;
    */
@@ -292,14 +300,17 @@ export const TimelineEntrySchema: GenMessage<TimelineEntry, {validType: Timeline
  */
 export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
-   * How the points are plotted.
+   * How the points are plotted. Generate this first: clients stream-render
+   * components field by field, and the chart type selects the renderer, so
+   * nothing can be drawn until it arrives.
    *
    * @generated from field: malonaz.ai.genui.v1.ChartType type = 1;
    */
   type: ChartType;
 
   /**
-   * Optional heading rendered above the chart.
+   * Optional heading rendered above the chart. Generate before the series so
+   * the heading appears while the datapoints stream in.
    *
    * @generated from field: string title = 2;
    */
@@ -308,7 +319,8 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * The series to plot, in display order. A single series renders without a
    * legend; several render one, keyed by series label. Pie charts use only
-   * the first series.
+   * the first series. Generate last: the axes, stacking and value format must
+   * be known before points can be plotted.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.ChartSeries series = 3;
    */
@@ -316,28 +328,32 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
 
   /**
    * Bars only: stack the series into one segmented bar per label instead of
-   * grouping them side by side.
+   * grouping them side by side. Generate before the series; it changes the
+   * layout of every bar.
    *
    * @generated from field: bool stacked = 4;
    */
   stacked: boolean;
 
   /**
-   * How values are rendered in labels and legends.
+   * How values are rendered in labels and legends. Generate before the series;
+   * it changes how every point is labelled.
    *
    * @generated from field: malonaz.ai.genui.v1.ChartValueFormat value_format = 5;
    */
   valueFormat: ChartValueFormat;
 
   /**
-   * Optional caption for the x axis, e.g. "Week".
+   * Optional caption for the x axis, e.g. "Week". Generate before the series so
+   * the axes render while the datapoints stream in.
    *
    * @generated from field: string x_label = 6;
    */
   xLabel: string;
 
   /**
-   * Optional caption for the y axis, e.g. "Quotes".
+   * Optional caption for the y axis, e.g. "Quotes". Generate before the series
+   * so the axes render while the datapoints stream in.
    *
    * @generated from field: string y_label = 7;
    */
@@ -352,14 +368,17 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
  */
 export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
-   * How the points are plotted.
+   * How the points are plotted. Generate this first: clients stream-render
+   * components field by field, and the chart type selects the renderer, so
+   * nothing can be drawn until it arrives.
    *
    * @generated from field: malonaz.ai.genui.v1.ChartType type = 1;
    */
   type: ChartType;
 
   /**
-   * Optional heading rendered above the chart.
+   * Optional heading rendered above the chart. Generate before the series so
+   * the heading appears while the datapoints stream in.
    *
    * @generated from field: string title = 2;
    */
@@ -368,7 +387,8 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
   /**
    * The series to plot, in display order. A single series renders without a
    * legend; several render one, keyed by series label. Pie charts use only
-   * the first series.
+   * the first series. Generate last: the axes, stacking and value format must
+   * be known before points can be plotted.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.ChartSeries series = 3;
    */
@@ -376,28 +396,32 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
 
   /**
    * Bars only: stack the series into one segmented bar per label instead of
-   * grouping them side by side.
+   * grouping them side by side. Generate before the series; it changes the
+   * layout of every bar.
    *
    * @generated from field: bool stacked = 4;
    */
   stacked: boolean;
 
   /**
-   * How values are rendered in labels and legends.
+   * How values are rendered in labels and legends. Generate before the series;
+   * it changes how every point is labelled.
    *
    * @generated from field: malonaz.ai.genui.v1.ChartValueFormat value_format = 5;
    */
   valueFormat: ChartValueFormat;
 
   /**
-   * Optional caption for the x axis, e.g. "Week".
+   * Optional caption for the x axis, e.g. "Week". Generate before the series so
+   * the axes render while the datapoints stream in.
    *
    * @generated from field: string x_label = 6;
    */
   xLabel: string;
 
   /**
-   * Optional caption for the y axis, e.g. "Quotes".
+   * Optional caption for the y axis, e.g. "Quotes". Generate before the series
+   * so the axes render while the datapoints stream in.
    *
    * @generated from field: string y_label = 7;
    */
@@ -520,21 +544,24 @@ export const ChartPointSchema: GenMessage<ChartPoint, {validType: ChartPointVali
  */
 export type Table = Message<"malonaz.ai.genui.v1.Table"> & {
   /**
-   * Optional heading rendered above the table.
+   * Optional heading rendered above the table. Generate first so the heading
+   * appears while the rows stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The columns, defining the width of every row.
+   * The columns, defining the width of every row. Generate before the rows:
+   * the client cannot lay out a row until it knows the columns.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TableColumn columns = 2;
    */
   columns: TableColumn[];
 
   /**
-   * Rows, in display order. Each row carries one cell per column.
+   * Rows, in display order. Each row carries one cell per column. Generate
+   * last; rows stream in and render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TableRow rows = 3;
    */
@@ -548,21 +575,24 @@ export type Table = Message<"malonaz.ai.genui.v1.Table"> & {
  */
 export type TableValid = Message<"malonaz.ai.genui.v1.Table"> & {
   /**
-   * Optional heading rendered above the table.
+   * Optional heading rendered above the table. Generate first so the heading
+   * appears while the rows stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The columns, defining the width of every row.
+   * The columns, defining the width of every row. Generate before the rows:
+   * the client cannot lay out a row until it knows the columns.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TableColumn columns = 2;
    */
   columns: TableColumnValid[];
 
   /**
-   * Rows, in display order. Each row carries one cell per column.
+   * Rows, in display order. Each row carries one cell per column. Generate
+   * last; rows stream in and render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.TableRow rows = 3;
    */
@@ -591,7 +621,8 @@ export type TableColumn = Message<"malonaz.ai.genui.v1.TableColumn"> & {
 
   /**
    * How the column's cells are aligned. Unspecified lets the renderer
-   * decide (numeric-looking columns right-align).
+   * decide (numeric-looking columns right-align). Generate with the column,
+   * before any row: alignment cannot change once cells have rendered.
    *
    * @generated from field: malonaz.ai.genui.v1.TableColumnAlign align = 2;
    */
@@ -613,7 +644,8 @@ export type TableColumnValid = Message<"malonaz.ai.genui.v1.TableColumn"> & {
 
   /**
    * How the column's cells are aligned. Unspecified lets the renderer
-   * decide (numeric-looking columns right-align).
+   * decide (numeric-looking columns right-align). Generate with the column,
+   * before any row: alignment cannot change once cells have rendered.
    *
    * @generated from field: malonaz.ai.genui.v1.TableColumnAlign align = 2;
    */
@@ -831,16 +863,18 @@ export const MarkdownSchema: GenMessage<Markdown, {validType: MarkdownValid}> = 
  */
 export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
   /**
-   * Optional heading rendered above the buttons.
+   * Optional heading rendered above the buttons. Generate first so the heading
+   * appears while the buttons stream in.
    *
-   * @generated from field: string title = 2;
+   * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The buttons to render, in display order.
+   * The buttons to render, in display order. Buttons stream in and render one
+   * by one.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 2;
    */
   actions: ActionRowAction[];
 };
@@ -856,16 +890,18 @@ export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
  */
 export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
   /**
-   * Optional heading rendered above the buttons.
+   * Optional heading rendered above the buttons. Generate first so the heading
+   * appears while the buttons stream in.
    *
-   * @generated from field: string title = 2;
+   * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The buttons to render, in display order.
+   * The buttons to render, in display order. Buttons stream in and render one
+   * by one.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
+   * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 2;
    */
   actions: ActionRowActionValid[];
 };
@@ -891,7 +927,8 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
   label: string;
 
   /**
-   * How the button is visually emphasized.
+   * How the button is visually emphasized. Generate before the action so the
+   * button renders with its final styling.
    *
    * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 2;
    */
@@ -943,7 +980,8 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
   label: string;
 
   /**
-   * How the button is visually emphasized.
+   * How the button is visually emphasized. Generate before the action so the
+   * button renders with its final styling.
    *
    * @generated from field: malonaz.ai.genui.v1.ActionStyle style = 2;
    */

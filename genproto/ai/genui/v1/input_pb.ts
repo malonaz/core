@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/input.proto.
  */
 export const file_malonaz_ai_genui_v1_input: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2dlbnVpL3YxL2lucHV0LnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIvcDCg1JbnB1dFJlc3BvbnNlEhwKDGNvbXBvbmVudF9pZBgBIAEoCUIGukgDyAEBEjUKBmNob2ljZRgCIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlUmVzcG9uc2VIABJACgxtdWx0aV9jaG9pY2UYAyABKAsyKC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlUmVzcG9uc2VIABJBCgxjb25maXJtYXRpb24YBCABKAsyKS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvblJlc3BvbnNlSAASMQoEZm9ybRgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVJlc3BvbnNlSAASRgoPcmVzb3VyY2VfcGlja2VyGAYgASgLMisubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlclJlc3BvbnNlSAASNQoGc2xpZGVyGAcgASgLMiMubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJSZXNwb25zZUgAEkcKEGRhdGVfdGltZV9waWNrZXIYCCABKAsyKy5tYWxvbmF6LmFpLmdlbnVpLnYxLkRhdGVUaW1lUGlja2VyUmVzcG9uc2VIAEIRCghyZXNwb25zZRIFukgCCAEiewoGQ2hvaWNlEhgKCHF1ZXN0aW9uGAEgASgJQga6SAPIAQESPgoHb3B0aW9ucxgCIAMoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlT3B0aW9uQgq6SAeSAQQIAhAIEhcKD2FsbG93X2ZyZWVfdGV4dBgDIAEoCCI6CgxDaG9pY2VPcHRpb24SFQoFbGFiZWwYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCSJICg5DaG9pY2VSZXNwb25zZRIQCgZvcHRpb24YASABKAlIABITCglmcmVlX3RleHQYAiABKAlIAEIPCgZhbnN3ZXISBbpIAggBIoYBCgtNdWx0aUNob2ljZRIYCghxdWVzdGlvbhgBIAEoCUIGukgDyAEBEhsKB29wdGlvbnMYAiADKAlCCrpIB5IBBAgCEAwSHwoObWluX3NlbGVjdGlvbnMYAyABKAVCB7pIBBoCKAASHwoObWF4X3NlbGVjdGlvbnMYBCABKAVCB7pIBBoCKAAiMAoTTXVsdGlDaG9pY2VSZXNwb25zZRIZCgdvcHRpb25zGAEgAygJQgi6SAWSAQIIASJ8CgxDb25maXJtYXRpb24SFQoFdGl0bGUYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCRIVCg1jb25maXJtX2xhYmVsGAMgASgJEhQKDGNhbmNlbF9sYWJlbBgEIAEoCRITCgtkZXN0cnVjdGl2ZRgFIAEoCCIpChRDb25maXJtYXRpb25SZXNwb25zZRIRCgljb25maXJtZWQYASABKAgiZQoERm9ybRINCgV0aXRsZRgBIAEoCRIUCgxzdWJtaXRfbGFiZWwYAiABKAkSOAoGZmllbGRzGAMgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5Gb3JtRmllbGRCCLpIBZIBAggBIk0KDEZvcm1SZXNwb25zZRI9CgZ2YWx1ZXMYASADKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1GaWVsZFZhbHVlQgi6SAWSAQIIASL9AgoJRm9ybUZpZWxkEhIKAmlkGAEgASgJQga6SAPIAQESFQoFbGFiZWwYAiABKAlCBrpIA8gBARITCgtwbGFjZWhvbGRlchgDIAEoCRIQCghyZXF1aXJlZBgEIAEoCBIyCgR0ZXh0GAUgASgLMiIubWFsb25hei5haS5nZW51aS52MS5Gb3JtVGV4dElucHV0SAASNgoGbnVtYmVyGAYgASgLMiQubWFsb25hei5haS5nZW51aS52MS5Gb3JtTnVtYmVySW5wdXRIABI2CgZzZWxlY3QYByABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1TZWxlY3RJbnB1dEgAEjIKBGRhdGUYCCABKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1EYXRlSW5wdXRIABI2CgZ0b2dnbGUYCSABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1Ub2dnbGVJbnB1dEgAQg4KBWlucHV0EgW6SAIIASL7AQoORm9ybUZpZWxkVmFsdWUSGAoIZmllbGRfaWQYASABKAlCBrpIA8gBARIOCgR0ZXh0GAIgASgJSAASEAoGbnVtYmVyGAMgASgBSAASGQoPc2VsZWN0ZWRfb3B0aW9uGAQgASgJSAASRAoQc2VsZWN0ZWRfb3B0aW9ucxgHIAEoCzIoLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVNlbGVjdGVkT3B0aW9uc0gAEioKBGRhdGUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAASEAoGdG9nZ2xlGAYgASgISABCDgoFdmFsdWUSBbpIAggBIjAKE0Zvcm1TZWxlY3RlZE9wdGlvbnMSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAEiOQoNRm9ybVRleHRJbnB1dBIRCgltdWx0aWxpbmUYASABKAgSFQoNZGVmYXVsdF92YWx1ZRgCIAEoCSJzCg9Gb3JtTnVtYmVySW5wdXQSEAoDbWluGAEgASgBSACIAQESEAoDbWF4GAIgASgBSAGIAQESGgoNZGVmYXVsdF92YWx1ZRgDIAEoAUgCiAEBQgYKBF9taW5CBgoEX21heEIQCg5fZGVmYXVsdF92YWx1ZSJUCg9Gb3JtU2VsZWN0SW5wdXQSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAISDQoFbXVsdGkYAiABKAgSFwoPZGVmYXVsdF9vcHRpb25zGAMgAygJIiUKDUZvcm1EYXRlSW5wdXQSFAoMaW5jbHVkZV90aW1lGAEgASgIIigKD0Zvcm1Ub2dnbGVJbnB1dBIVCg1kZWZhdWx0X3ZhbHVlGAEgASgIIosBCg5SZXNvdXJjZVBpY2tlchINCgV0aXRsZRgBIAEoCRIsCg5yZXNvdXJjZV9uYW1lcxgCIAMoCUIU+kEDCgEqukgLkgEICAEiBHICEAESFAoMbXVsdGlfc2VsZWN0GAMgASgIEhIKCmFsbG93X25vbmUYBCABKAgSEgoKbm9uZV9sYWJlbBgFIAEoCSJSChZSZXNvdXJjZVBpY2tlclJlc3BvbnNlEioKDnJlc291cmNlX25hbWVzGAEgAygJQhL6QQMKASq6SAmSAQYiBHICEAESDAoEbm9uZRgCIAEoCCJXCgZTbGlkZXISFQoFbGFiZWwYASABKAlCBrpIA8gBARILCgNtaW4YAiABKAESCwoDbWF4GAMgASgBEhwKBHN0ZXAYBCABKAFCDrpICxIJKQAAAAAAAAAAIh8KDlNsaWRlclJlc3BvbnNlEg0KBXZhbHVlGAEgASgBIqgBCg5EYXRlVGltZVBpY2tlchIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEhQKDGluY2x1ZGVfdGltZRgCIAEoCBIsCghtaW5fdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIbWF4X3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBXJhbmdlGAUgASgIIngKFkRhdGVUaW1lUGlja2VyUmVzcG9uc2USMAoEdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCBrpIA8gBARIsCghlbmRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2dlbnVpL3YxL2lucHV0LnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIvcDCg1JbnB1dFJlc3BvbnNlEhwKDGNvbXBvbmVudF9pZBgBIAEoCUIGukgDyAEBEjUKBmNob2ljZRgCIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlUmVzcG9uc2VIABJACgxtdWx0aV9jaG9pY2UYAyABKAsyKC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlUmVzcG9uc2VIABJBCgxjb25maXJtYXRpb24YBCABKAsyKS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvblJlc3BvbnNlSAASMQoEZm9ybRgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVJlc3BvbnNlSAASRgoPcmVzb3VyY2VfcGlja2VyGAYgASgLMisubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlclJlc3BvbnNlSAASNQoGc2xpZGVyGAcgASgLMiMubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJSZXNwb25zZUgAEkcKEGRhdGVfdGltZV9waWNrZXIYCCABKAsyKy5tYWxvbmF6LmFpLmdlbnVpLnYxLkRhdGVUaW1lUGlja2VyUmVzcG9uc2VIAEIRCghyZXNwb25zZRIFukgCCAEiewoGQ2hvaWNlEhgKCHF1ZXN0aW9uGAEgASgJQga6SAPIAQESPgoHb3B0aW9ucxgCIAMoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlT3B0aW9uQgq6SAeSAQQIAhAIEhcKD2FsbG93X2ZyZWVfdGV4dBgDIAEoCCI6CgxDaG9pY2VPcHRpb24SFQoFbGFiZWwYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCSJICg5DaG9pY2VSZXNwb25zZRIQCgZvcHRpb24YASABKAlIABITCglmcmVlX3RleHQYAiABKAlIAEIPCgZhbnN3ZXISBbpIAggBIoYBCgtNdWx0aUNob2ljZRIYCghxdWVzdGlvbhgBIAEoCUIGukgDyAEBEhsKB29wdGlvbnMYAiADKAlCCrpIB5IBBAgCEAwSHwoObWluX3NlbGVjdGlvbnMYAyABKAVCB7pIBBoCKAASHwoObWF4X3NlbGVjdGlvbnMYBCABKAVCB7pIBBoCKAAiMAoTTXVsdGlDaG9pY2VSZXNwb25zZRIZCgdvcHRpb25zGAEgAygJQgi6SAWSAQIIASJ8CgxDb25maXJtYXRpb24SFQoFdGl0bGUYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCRIVCg1jb25maXJtX2xhYmVsGAMgASgJEhQKDGNhbmNlbF9sYWJlbBgEIAEoCRITCgtkZXN0cnVjdGl2ZRgFIAEoCCIpChRDb25maXJtYXRpb25SZXNwb25zZRIRCgljb25maXJtZWQYASABKAgiZQoERm9ybRINCgV0aXRsZRgBIAEoCRIUCgxzdWJtaXRfbGFiZWwYAiABKAkSOAoGZmllbGRzGAMgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5Gb3JtRmllbGRCCLpIBZIBAggBIk0KDEZvcm1SZXNwb25zZRI9CgZ2YWx1ZXMYASADKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1GaWVsZFZhbHVlQgi6SAWSAQIIASL9AgoJRm9ybUZpZWxkEhIKAmlkGAEgASgJQga6SAPIAQESFQoFbGFiZWwYAiABKAlCBrpIA8gBARIQCghyZXF1aXJlZBgDIAEoCBIyCgR0ZXh0GAQgASgLMiIubWFsb25hei5haS5nZW51aS52MS5Gb3JtVGV4dElucHV0SAASNgoGbnVtYmVyGAUgASgLMiQubWFsb25hei5haS5nZW51aS52MS5Gb3JtTnVtYmVySW5wdXRIABI2CgZzZWxlY3QYBiABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1TZWxlY3RJbnB1dEgAEjIKBGRhdGUYByABKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1EYXRlSW5wdXRIABI2CgZ0b2dnbGUYCCABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1Ub2dnbGVJbnB1dEgAEhMKC3BsYWNlaG9sZGVyGAkgASgJQg4KBWlucHV0EgW6SAIIASL7AQoORm9ybUZpZWxkVmFsdWUSGAoIZmllbGRfaWQYASABKAlCBrpIA8gBARIOCgR0ZXh0GAIgASgJSAASEAoGbnVtYmVyGAMgASgBSAASGQoPc2VsZWN0ZWRfb3B0aW9uGAQgASgJSAASRAoQc2VsZWN0ZWRfb3B0aW9ucxgFIAEoCzIoLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVNlbGVjdGVkT3B0aW9uc0gAEioKBGRhdGUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAASEAoGdG9nZ2xlGAcgASgISABCDgoFdmFsdWUSBbpIAggBIjAKE0Zvcm1TZWxlY3RlZE9wdGlvbnMSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAEiOQoNRm9ybVRleHRJbnB1dBIRCgltdWx0aWxpbmUYASABKAgSFQoNZGVmYXVsdF92YWx1ZRgCIAEoCSJzCg9Gb3JtTnVtYmVySW5wdXQSEAoDbWluGAEgASgBSACIAQESEAoDbWF4GAIgASgBSAGIAQESGgoNZGVmYXVsdF92YWx1ZRgDIAEoAUgCiAEBQgYKBF9taW5CBgoEX21heEIQCg5fZGVmYXVsdF92YWx1ZSJUCg9Gb3JtU2VsZWN0SW5wdXQSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAISDQoFbXVsdGkYAiABKAgSFwoPZGVmYXVsdF9vcHRpb25zGAMgAygJIiUKDUZvcm1EYXRlSW5wdXQSFAoMaW5jbHVkZV90aW1lGAEgASgIIigKD0Zvcm1Ub2dnbGVJbnB1dBIVCg1kZWZhdWx0X3ZhbHVlGAEgASgIIosBCg5SZXNvdXJjZVBpY2tlchINCgV0aXRsZRgBIAEoCRIsCg5yZXNvdXJjZV9uYW1lcxgCIAMoCUIU+kEDCgEqukgLkgEICAEiBHICEAESFAoMbXVsdGlfc2VsZWN0GAMgASgIEhIKCmFsbG93X25vbmUYBCABKAgSEgoKbm9uZV9sYWJlbBgFIAEoCSJSChZSZXNvdXJjZVBpY2tlclJlc3BvbnNlEioKDnJlc291cmNlX25hbWVzGAEgAygJQhL6QQMKASq6SAmSAQYiBHICEAESDAoEbm9uZRgCIAEoCCJXCgZTbGlkZXISFQoFbGFiZWwYASABKAlCBrpIA8gBARILCgNtaW4YAiABKAESCwoDbWF4GAMgASgBEhwKBHN0ZXAYBCABKAFCDrpICxIJKQAAAAAAAAAAIh8KDlNsaWRlclJlc3BvbnNlEg0KBXZhbHVlGAEgASgBIqgBCg5EYXRlVGltZVBpY2tlchIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEhQKDGluY2x1ZGVfdGltZRgCIAEoCBIsCghtaW5fdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIbWF4X3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBXJhbmdlGAUgASgIIngKFkRhdGVUaW1lUGlja2VyUmVzcG9uc2USMAoEdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCBrpIA8gBARIsCghlbmRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Typed answer to an input component. The client sends exactly one response
@@ -189,14 +189,16 @@ export const InputResponseSchema: GenMessage<InputResponse, {validType: InputRes
  */
 export type Choice = Message<"malonaz.ai.genui.v1.Choice"> & {
   /**
-   * The question posed to the user.
+   * The question posed to the user. Generate first so it renders while the
+   * options stream in.
    *
    * @generated from field: string question = 1;
    */
   question: string;
 
   /**
-   * The answers the user may pick from, in display order.
+   * The answers the user may pick from, in display order. Options stream in and
+   * render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.ChoiceOption options = 2;
    */
@@ -219,14 +221,16 @@ export type Choice = Message<"malonaz.ai.genui.v1.Choice"> & {
  */
 export type ChoiceValid = Message<"malonaz.ai.genui.v1.Choice"> & {
   /**
-   * The question posed to the user.
+   * The question posed to the user. Generate first so it renders while the
+   * options stream in.
    *
    * @generated from field: string question = 1;
    */
   question: string;
 
   /**
-   * The answers the user may pick from, in display order.
+   * The answers the user may pick from, in display order. Options stream in and
+   * render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.ChoiceOption options = 2;
    */
@@ -344,7 +348,8 @@ export const ChoiceResponseSchema: GenMessage<ChoiceResponse, {validType: Choice
  */
 export type MultiChoice = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
   /**
-   * The question posed to the user.
+   * The question posed to the user. Generate first so it renders while the
+   * options stream in.
    *
    * @generated from field: string question = 1;
    */
@@ -380,7 +385,8 @@ export type MultiChoice = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
  */
 export type MultiChoiceValid = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
   /**
-   * The question posed to the user.
+   * The question posed to the user. Generate first so it renders while the
+   * options stream in.
    *
    * @generated from field: string question = 1;
    */
@@ -565,21 +571,24 @@ export const ConfirmationResponseSchema: GenMessage<ConfirmationResponse, {valid
  */
 export type Form = Message<"malonaz.ai.genui.v1.Form"> & {
   /**
-   * Optional heading rendered above the fields.
+   * Optional heading rendered above the fields. Generate first so the heading
+   * appears while the fields stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * Optional label for the submit button. Defaults to "Submit".
+   * Optional label for the submit button. Defaults to "Submit". Generate before
+   * the fields so the form's shape is known up front.
    *
    * @generated from field: string submit_label = 2;
    */
   submitLabel: string;
 
   /**
-   * The inputs to render, in display order.
+   * The inputs to render, in display order. Generate last; fields stream in and
+   * render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.FormField fields = 3;
    */
@@ -595,21 +604,24 @@ export type Form = Message<"malonaz.ai.genui.v1.Form"> & {
  */
 export type FormValid = Message<"malonaz.ai.genui.v1.Form"> & {
   /**
-   * Optional heading rendered above the fields.
+   * Optional heading rendered above the fields. Generate first so the heading
+   * appears while the fields stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * Optional label for the submit button. Defaults to "Submit".
+   * Optional label for the submit button. Defaults to "Submit". Generate before
+   * the fields so the form's shape is known up front.
    *
    * @generated from field: string submit_label = 2;
    */
   submitLabel: string;
 
   /**
-   * The inputs to render, in display order.
+   * The inputs to render, in display order. Generate last; fields stream in and
+   * render one by one.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.FormField fields = 3;
    */
@@ -680,21 +692,16 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
   label: string;
 
   /**
-   * Optional hint rendered inside the empty input.
+   * Whether the field must be filled before submitting. Generate before the
+   * input; it changes how the label and widget render.
    *
-   * @generated from field: string placeholder = 3;
-   */
-  placeholder: string;
-
-  /**
-   * Whether the field must be filled before submitting.
-   *
-   * @generated from field: bool required = 4;
+   * @generated from field: bool required = 3;
    */
   required: boolean;
 
   /**
-   * The kind of input to render.
+   * The kind of input to render. Generate before `placeholder`: it selects the
+   * widget, so nothing can be drawn until it arrives.
    *
    * @generated from oneof malonaz.ai.genui.v1.FormField.input
    */
@@ -702,7 +709,7 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * Free text.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 5;
+     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 4;
      */
     value: FormTextInput;
     case: "text";
@@ -710,7 +717,7 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * A number, optionally bounded.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 6;
+     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 5;
      */
     value: FormNumberInput;
     case: "number";
@@ -718,7 +725,7 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * One option from a fixed set.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 7;
+     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 6;
      */
     value: FormSelectInput;
     case: "select";
@@ -726,7 +733,7 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * A date, optionally with a time of day.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 8;
+     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 7;
      */
     value: FormDateInput;
     case: "date";
@@ -734,11 +741,19 @@ export type FormField = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * An on/off switch.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 9;
+     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 8;
      */
     value: FormToggleInput;
     case: "toggle";
   } | { case: undefined; value?: undefined };
+
+  /**
+   * Optional hint rendered inside the empty input. Generate last; it renders
+   * inside the widget selected above.
+   *
+   * @generated from field: string placeholder = 9;
+   */
+  placeholder: string;
 };
 
 /**
@@ -763,21 +778,16 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
   label: string;
 
   /**
-   * Optional hint rendered inside the empty input.
+   * Whether the field must be filled before submitting. Generate before the
+   * input; it changes how the label and widget render.
    *
-   * @generated from field: string placeholder = 3;
-   */
-  placeholder: string;
-
-  /**
-   * Whether the field must be filled before submitting.
-   *
-   * @generated from field: bool required = 4;
+   * @generated from field: bool required = 3;
    */
   required: boolean;
 
   /**
-   * The kind of input to render.
+   * The kind of input to render. Generate before `placeholder`: it selects the
+   * widget, so nothing can be drawn until it arrives.
    *
    * @generated from oneof malonaz.ai.genui.v1.FormField.input
    */
@@ -785,7 +795,7 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * Free text.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 5;
+     * @generated from field: malonaz.ai.genui.v1.FormTextInput text = 4;
      */
     value: FormTextInputValid;
     case: "text";
@@ -793,7 +803,7 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * A number, optionally bounded.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 6;
+     * @generated from field: malonaz.ai.genui.v1.FormNumberInput number = 5;
      */
     value: FormNumberInputValid;
     case: "number";
@@ -801,7 +811,7 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * One option from a fixed set.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 7;
+     * @generated from field: malonaz.ai.genui.v1.FormSelectInput select = 6;
      */
     value: FormSelectInputValid;
     case: "select";
@@ -809,7 +819,7 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * A date, optionally with a time of day.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 8;
+     * @generated from field: malonaz.ai.genui.v1.FormDateInput date = 7;
      */
     value: FormDateInputValid;
     case: "date";
@@ -817,11 +827,19 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
     /**
      * An on/off switch.
      *
-     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 9;
+     * @generated from field: malonaz.ai.genui.v1.FormToggleInput toggle = 8;
      */
     value: FormToggleInputValid;
     case: "toggle";
   } | { case: undefined; value?: undefined };
+
+  /**
+   * Optional hint rendered inside the empty input. Generate last; it renders
+   * inside the widget selected above.
+   *
+   * @generated from field: string placeholder = 9;
+   */
+  placeholder: string;
 };
 
 /**
@@ -877,7 +895,7 @@ export type FormFieldValue = Message<"malonaz.ai.genui.v1.FormFieldValue"> & {
     /**
      * Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
      *
-     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 7;
+     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 5;
      */
     value: FormSelectedOptions;
     case: "selectedOptions";
@@ -885,7 +903,7 @@ export type FormFieldValue = Message<"malonaz.ai.genui.v1.FormFieldValue"> & {
     /**
      * Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
      *
-     * @generated from field: google.protobuf.Timestamp date = 5;
+     * @generated from field: google.protobuf.Timestamp date = 6;
      */
     value: Timestamp;
     case: "date";
@@ -893,7 +911,7 @@ export type FormFieldValue = Message<"malonaz.ai.genui.v1.FormFieldValue"> & {
     /**
      * Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
      *
-     * @generated from field: bool toggle = 6;
+     * @generated from field: bool toggle = 7;
      */
     value: boolean;
     case: "toggle";
@@ -946,7 +964,7 @@ export type FormFieldValueValid = Message<"malonaz.ai.genui.v1.FormFieldValue"> 
     /**
      * Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
      *
-     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 7;
+     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 5;
      */
     value: FormSelectedOptionsValid;
     case: "selectedOptions";
@@ -954,7 +972,7 @@ export type FormFieldValueValid = Message<"malonaz.ai.genui.v1.FormFieldValue"> 
     /**
      * Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
      *
-     * @generated from field: google.protobuf.Timestamp date = 5;
+     * @generated from field: google.protobuf.Timestamp date = 6;
      */
     value: Timestamp;
     case: "date";
@@ -962,7 +980,7 @@ export type FormFieldValueValid = Message<"malonaz.ai.genui.v1.FormFieldValue"> 
     /**
      * Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
      *
-     * @generated from field: bool toggle = 6;
+     * @generated from field: bool toggle = 7;
      */
     value: boolean;
     case: "toggle";
@@ -1161,14 +1179,16 @@ export const FormToggleInputSchema: GenMessage<FormToggleInput, {validType: Form
  */
 export type ResourcePicker = Message<"malonaz.ai.genui.v1.ResourcePicker"> & {
   /**
-   * Optional heading rendered above the candidates.
+   * Optional heading rendered above the candidates. Generate first so the
+   * heading appears while the candidates stream in.
    *
    * @generated from field: string title = 1;
    */
   title: string;
 
   /**
-   * The candidate resources, in display order.
+   * The candidate resources, in display order. Candidates stream in and hydrate
+   * one by one.
    *
    * @generated from field: repeated string resource_names = 2;
    */
@@ -1244,21 +1264,24 @@ export const ResourcePickerResponseSchema: GenMessage<ResourcePickerResponse, {v
  */
 export type Slider = Message<"malonaz.ai.genui.v1.Slider"> & {
   /**
-   * The label naming the value being picked.
+   * The label naming the value being picked. Generate first; the track only
+   * renders once the bounds below arrive.
    *
    * @generated from field: string label = 1;
    */
   label: string;
 
   /**
-   * The inclusive lower bound.
+   * The inclusive lower bound. Generate before `step`: the bounds define the
+   * track.
    *
    * @generated from field: double min = 2;
    */
   min: number;
 
   /**
-   * The inclusive upper bound.
+   * The inclusive upper bound. Generate before `step`: the bounds define the
+   * track.
    *
    * @generated from field: double max = 3;
    */
@@ -1279,21 +1302,24 @@ export type Slider = Message<"malonaz.ai.genui.v1.Slider"> & {
  */
 export type SliderValid = Message<"malonaz.ai.genui.v1.Slider"> & {
   /**
-   * The label naming the value being picked.
+   * The label naming the value being picked. Generate first; the track only
+   * renders once the bounds below arrive.
    *
    * @generated from field: string label = 1;
    */
   label: string;
 
   /**
-   * The inclusive lower bound.
+   * The inclusive lower bound. Generate before `step`: the bounds define the
+   * track.
    *
    * @generated from field: double min = 2;
    */
   min: number;
 
   /**
-   * The inclusive upper bound.
+   * The inclusive upper bound. Generate before `step`: the bounds define the
+   * track.
    *
    * @generated from field: double max = 3;
    */
@@ -1344,14 +1370,16 @@ export const SliderResponseSchema: GenMessage<SliderResponse, {validType: Slider
  */
 export type DateTimePicker = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
   /**
-   * The label naming the moment being picked.
+   * The label naming the moment being picked. Generate first so it renders
+   * while the constraints below stream in.
    *
    * @generated from field: string label = 1;
    */
   label: string;
 
   /**
-   * Whether the user also picks a time of day.
+   * Whether the user also picks a time of day. Generate before the bounds: it
+   * selects the calendar or calendar-plus-clock widget.
    *
    * @generated from field: bool include_time = 2;
    */
@@ -1373,7 +1401,8 @@ export type DateTimePicker = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
 
   /**
    * Whether the user picks a start and an end instead of a single moment;
-   * the answer then also carries `end_time`.
+   * the answer then also carries `end_time`. Generate before the bounds where
+   * possible: it changes the widget into a range picker.
    *
    * @generated from field: bool range = 5;
    */
@@ -1387,14 +1416,16 @@ export type DateTimePicker = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
  */
 export type DateTimePickerValid = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
   /**
-   * The label naming the moment being picked.
+   * The label naming the moment being picked. Generate first so it renders
+   * while the constraints below stream in.
    *
    * @generated from field: string label = 1;
    */
   label: string;
 
   /**
-   * Whether the user also picks a time of day.
+   * Whether the user also picks a time of day. Generate before the bounds: it
+   * selects the calendar or calendar-plus-clock widget.
    *
    * @generated from field: bool include_time = 2;
    */
@@ -1416,7 +1447,8 @@ export type DateTimePickerValid = Message<"malonaz.ai.genui.v1.DateTimePicker"> 
 
   /**
    * Whether the user picks a start and an end instead of a single moment;
-   * the answer then also carries `end_time`.
+   * the answer then also carries `end_time`. Generate before the bounds where
+   * possible: it changes the widget into a range picker.
    *
    * @generated from field: bool range = 5;
    */

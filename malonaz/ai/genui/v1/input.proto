@@ -17,6 +17,10 @@ option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 // Anything that does not feed back into the model (navigation buttons,
 // copy-to-clipboard, suggested next prompts) is a display component and
 // lives in content.proto / resource.proto instead.
+//
+// Clients stream-render components field by field, so fields that select a
+// renderer or define a layout must be generated before the fields they
+// govern. Such fields are called out individually below.
 
 // Typed answer to an input component. The client sends exactly one response
 // per input component; the server appends it to the conversation as a
@@ -55,10 +59,12 @@ message InputResponse {
 // A question with constrained answers, e.g. disambiguation
 // ("which John did you mean?").
 message Choice {
-  // The question posed to the user.
+  // The question posed to the user. Generate first so it renders while the
+  // options stream in.
   string question = 1 [(buf.validate.field).required = true];
 
-  // The answers the user may pick from, in display order.
+  // The answers the user may pick from, in display order. Options stream in and
+  // render one by one.
   repeated ChoiceOption options = 2 [(buf.validate.field).repeated = {
     min_items: 2
     max_items: 8
@@ -95,7 +101,8 @@ message ChoiceResponse {
 // A question allowing several answers to be selected before submitting,
 // e.g. "which contacts should I include in the follow-up?".
 message MultiChoice {
-  // The question posed to the user.
+  // The question posed to the user. Generate first so it renders while the
+  // options stream in.
   string question = 1 [(buf.validate.field).required = true];
 
   // The answers the user may pick from, in display order.
@@ -147,13 +154,16 @@ message ConfirmationResponse {
 // [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
 // lead's details in one step instead of a free-text back-and-forth.
 message Form {
-  // Optional heading rendered above the fields.
+  // Optional heading rendered above the fields. Generate first so the heading
+  // appears while the fields stream in.
   string title = 1;
 
-  // Optional label for the submit button. Defaults to "Submit".
+  // Optional label for the submit button. Defaults to "Submit". Generate before
+  // the fields so the form's shape is known up front.
   string submit_label = 2;
 
-  // The inputs to render, in display order.
+  // The inputs to render, in display order. Generate last; fields stream in and
+  // render one by one.
   repeated FormField fields = 3 [(buf.validate.field).repeated.min_items = 1];
 }
 
@@ -172,31 +182,34 @@ message FormField {
   // The label naming the input, e.g. "Budget".
   string label = 2 [(buf.validate.field).required = true];
 
-  // Optional hint rendered inside the empty input.
-  string placeholder = 3;
+  // Whether the field must be filled before submitting. Generate before the
+  // input; it changes how the label and widget render.
+  bool required = 3;
 
-  // Whether the field must be filled before submitting.
-  bool required = 4;
-
-  // The kind of input to render.
+  // The kind of input to render. Generate before `placeholder`: it selects the
+  // widget, so nothing can be drawn until it arrives.
   oneof input {
     option (buf.validate.oneof).required = true;
 
     // Free text.
-    FormTextInput text = 5;
+    FormTextInput text = 4;
 
     // A number, optionally bounded.
-    FormNumberInput number = 6;
+    FormNumberInput number = 5;
 
     // One option from a fixed set.
-    FormSelectInput select = 7;
+    FormSelectInput select = 6;
 
     // A date, optionally with a time of day.
-    FormDateInput date = 8;
+    FormDateInput date = 7;
 
     // An on/off switch.
-    FormToggleInput toggle = 9;
+    FormToggleInput toggle = 8;
   }
+
+  // Optional hint rendered inside the empty input. Generate last; it renders
+  // inside the widget selected above.
+  string placeholder = 9;
 }
 
 // The submitted value of a single [FormField][malonaz.ai.genui.v1.FormField].
@@ -218,13 +231,13 @@ message FormFieldValue {
     string selected_option = 4;
 
     // Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
-    FormSelectedOptions selected_options = 7;
+    FormSelectedOptions selected_options = 5;
 
     // Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
-    google.protobuf.Timestamp date = 5;
+    google.protobuf.Timestamp date = 6;
 
     // Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
-    bool toggle = 6;
+    bool toggle = 7;
   }
 }
 
@@ -286,10 +299,12 @@ message FormToggleInput {
 // "which John did you mean?". The client renders each candidate using the
 // same hydration as [ResourceList][malonaz.ai.genui.v1.ResourceList].
 message ResourcePicker {
-  // Optional heading rendered above the candidates.
+  // Optional heading rendered above the candidates. Generate first so the
+  // heading appears while the candidates stream in.
   string title = 1;
 
-  // The candidate resources, in display order.
+  // The candidate resources, in display order. Candidates stream in and hydrate
+  // one by one.
   repeated string resource_names = 2 [
     (google.api.resource_reference).type = "*",
     (buf.validate.field).repeated.min_items = 1,
@@ -322,13 +337,16 @@ message ResourcePickerResponse {
 
 // Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
 message Slider {
-  // The label naming the value being picked.
+  // The label naming the value being picked. Generate first; the track only
+  // renders once the bounds below arrive.
   string label = 1 [(buf.validate.field).required = true];
 
-  // The inclusive lower bound.
+  // The inclusive lower bound. Generate before `step`: the bounds define the
+  // track.
   double min = 2;
 
-  // The inclusive upper bound.
+  // The inclusive upper bound. Generate before `step`: the bounds define the
+  // track.
   double max = 3;
 
   // The increment between selectable values. 0 means continuous.
@@ -343,10 +361,12 @@ message SliderResponse {
 
 // A calendar/clock input, e.g. "when should I schedule the call?".
 message DateTimePicker {
-  // The label naming the moment being picked.
+  // The label naming the moment being picked. Generate first so it renders
+  // while the constraints below stream in.
   string label = 1 [(buf.validate.field).required = true];
 
-  // Whether the user also picks a time of day.
+  // Whether the user also picks a time of day. Generate before the bounds: it
+  // selects the calendar or calendar-plus-clock widget.
   bool include_time = 2;
 
   // Optional earliest selectable moment.
@@ -356,7 +376,8 @@ message DateTimePicker {
   google.protobuf.Timestamp max_time = 4;
 
   // Whether the user picks a start and an end instead of a single moment;
-  // the answer then also carries `end_time`.
+  // the answer then also carries `end_time`. Generate before the bounds where
+  // possible: it changes the widget into a range picker.
   bool range = 5;
 }
 

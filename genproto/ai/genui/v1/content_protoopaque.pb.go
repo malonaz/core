@@ -340,9 +340,11 @@ func (x *KeyValueList) SetItems(v []*KeyValueListItem) {
 type KeyValueList_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the items.
+	// Optional heading rendered above the items. Generate first so the heading
+	// appears while the items stream in.
 	Title string
-	// The facts to render, in display order.
+	// The facts to render, in display order. Items stream in and render one by
+	// one.
 	Items []*KeyValueListItem
 }
 
@@ -521,9 +523,11 @@ func (x *Timeline) SetEntries(v []*TimelineEntry) {
 type Timeline_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the entries.
+	// Optional heading rendered above the entries. Generate first so the heading
+	// appears while the entries stream in.
 	Title string
-	// The events to render, in chronological order.
+	// The events to render, in chronological order. Entries stream in and render
+	// one by one.
 	Entries []*TimelineEntry
 }
 
@@ -788,22 +792,30 @@ func (x *Chart) SetYLabel(v string) {
 type Chart_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// How the points are plotted.
+	// How the points are plotted. Generate this first: clients stream-render
+	// components field by field, and the chart type selects the renderer, so
+	// nothing can be drawn until it arrives.
 	Type ChartType
-	// Optional heading rendered above the chart.
+	// Optional heading rendered above the chart. Generate before the series so
+	// the heading appears while the datapoints stream in.
 	Title string
 	// The series to plot, in display order. A single series renders without a
 	// legend; several render one, keyed by series label. Pie charts use only
-	// the first series.
+	// the first series. Generate last: the axes, stacking and value format must
+	// be known before points can be plotted.
 	Series []*ChartSeries
 	// Bars only: stack the series into one segmented bar per label instead of
-	// grouping them side by side.
+	// grouping them side by side. Generate before the series; it changes the
+	// layout of every bar.
 	Stacked bool
-	// How values are rendered in labels and legends.
+	// How values are rendered in labels and legends. Generate before the series;
+	// it changes how every point is labelled.
 	ValueFormat ChartValueFormat
-	// Optional caption for the x axis, e.g. "Week".
+	// Optional caption for the x axis, e.g. "Week". Generate before the series so
+	// the axes render while the datapoints stream in.
 	XLabel string
-	// Optional caption for the y axis, e.g. "Quotes".
+	// Optional caption for the y axis, e.g. "Quotes". Generate before the series
+	// so the axes render while the datapoints stream in.
 	YLabel string
 }
 
@@ -1048,11 +1060,14 @@ func (x *Table) SetRows(v []*TableRow) {
 type Table_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the table.
+	// Optional heading rendered above the table. Generate first so the heading
+	// appears while the rows stream in.
 	Title string
-	// The columns, defining the width of every row.
+	// The columns, defining the width of every row. Generate before the rows:
+	// the client cannot lay out a row until it knows the columns.
 	Columns []*TableColumn
-	// Rows, in display order. Each row carries one cell per column.
+	// Rows, in display order. Each row carries one cell per column. Generate
+	// last; rows stream in and render one by one.
 	Rows []*TableRow
 }
 
@@ -1128,7 +1143,8 @@ type TableColumn_builder struct {
 	// The column header, e.g. "Total".
 	Label string
 	// How the column's cells are aligned. Unspecified lets the renderer
-	// decide (numeric-looking columns right-align).
+	// decide (numeric-looking columns right-align). Generate with the column,
+	// before any row: alignment cannot change once cells have rendered.
 	Align TableColumnAlign
 }
 
@@ -1480,8 +1496,8 @@ func (b0 Markdown_builder) Build() *Markdown {
 // [Choice][malonaz.ai.genui.v1.Choice] instead.
 type ActionRow struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Title   string                 `protobuf:"bytes,2,opt,name=title,proto3"`
-	xxx_hidden_Actions *[]*ActionRowAction    `protobuf:"bytes,1,rep,name=actions,proto3"`
+	xxx_hidden_Title   string                 `protobuf:"bytes,1,opt,name=title,proto3"`
+	xxx_hidden_Actions *[]*ActionRowAction    `protobuf:"bytes,2,rep,name=actions,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1538,9 +1554,11 @@ func (x *ActionRow) SetActions(v []*ActionRowAction) {
 type ActionRow_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Optional heading rendered above the buttons.
+	// Optional heading rendered above the buttons. Generate first so the heading
+	// appears while the buttons stream in.
 	Title string
-	// The buttons to render, in display order.
+	// The buttons to render, in display order. Buttons stream in and render one
+	// by one.
 	Actions []*ActionRowAction
 }
 
@@ -1728,7 +1746,8 @@ type ActionRowAction_builder struct {
 
 	// The text rendered on the button.
 	Label string
-	// How the button is visually emphasized.
+	// How the button is visually emphasized. Generate before the action so the
+	// button renders with its final styling.
 	Style ActionStyle
 	// What pressing the button does.
 
@@ -1861,8 +1880,8 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\bMarkdown\x12\"\n" +
 	"\bmarkdown\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bmarkdown\"m\n" +
 	"\tActionRow\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12J\n" +
-	"\aactions\x18\x01 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12J\n" +
+	"\aactions\x18\x02 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\xf7\x01\n" +
 	"\x0fActionRowAction\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12@\n" +
