@@ -8,4 +8,4 @@ migrations:
   - path: chat/003_message_resource.sql
     hash: 538df0954e1c9f0f38a78c9b16dcf9ee
   - path: message/001_init.sql
-    hash: 6687b6ff32e54be258d30119d9fda4ce
+    hash: 6e77fa01b0e32b9d2b8ec3aba8653050

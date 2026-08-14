@@ -203,7 +203,7 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	return response, nil
 }
 
-func (s *ModelService) GetStreamMessageProvider(ctx context.Context, modelName string) (StreamMessageClient, *aipb.Model, error) {
+func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName string) (GenerateMessageClient, *aipb.Model, error) {
 	// Get the model.
 	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
 	model, err := s.GetModel(ctx, getModelRequest)
@@ -227,11 +227,11 @@ func (s *ModelService) GetStreamMessageProvider(ctx context.Context, modelName s
 	}
 
 	// Verify provider implements TTT interface.
-	streamMessageClient, ok := provider.(StreamMessageClient)
+	generateMessageClient, ok := provider.(GenerateMessageClient)
 	if !ok {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", provider.ProviderId()).Err()
 	}
-	return streamMessageClient, model, nil
+	return generateMessageClient, model, nil
 }
 
 func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName string) (SpeechToTextClient, *aipb.Model, error) {

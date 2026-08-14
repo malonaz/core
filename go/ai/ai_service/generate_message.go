@@ -1,7 +1,9 @@
 package ai_service
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"maps"
 	"strings"
 
@@ -14,19 +16,62 @@ import (
 	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
+	"github.com/malonaz/core/go/grpc/grpcinproc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
-func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiService_StreamMessageServer) error {
+type generateMessageAccumulatorKey struct{}
+
+// GenerateMessage is the unary flavor of StreamGenerateMessage: it drains the
+// stream through an accumulator and returns the aggregate response.
+func (s *Service) GenerateMessage(ctx context.Context, request *pb.GenerateMessageRequest) (*pb.GenerateMessageResponse, error) {
+	accumulator := ai.NewMessageAccumulator()
+	ctx = context.WithValue(ctx, generateMessageAccumulatorKey{}, accumulator)
+
+	serverStreamClient := grpcinproc.NewServerStreamAsClient[
+		pb.GenerateMessageRequest,
+		pb.StreamGenerateMessageResponse,
+		pb.AiService_StreamGenerateMessageServer,
+	](s.StreamGenerateMessage)
+
+	stream, err := serverStreamClient(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	for {
+		if _, err := stream.Recv(); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+	}
+
+	return &pb.GenerateMessageResponse{
+		GeneratedMessage:  accumulator.Message,
+		StopReason:        accumulator.StopReason,
+		ModelUsage:        accumulator.ModelUsage,
+		GenerationMetrics: accumulator.GenerationMetrics,
+	}, nil
+}
+
+func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv pb.AiService_StreamGenerateMessageServer) error {
 	ctx := srv.Context()
+
+	// GenerateMessage plants an accumulator in the context to capture the stream.
+	accumulator, _ := ctx.Value(generateMessageAccumulatorKey{}).(*ai.MessageAccumulator)
+	if accumulator == nil {
+		accumulator = ai.NewMessageAccumulator()
+	}
 
 	chatRn := &aipb.ChatResourceName{}
 	if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
 		return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 	}
 
-	provider, model, err := s.GetStreamMessageProvider(ctx, request.Model)
+	provider, model, err := s.GetGenerateMessageProvider(ctx, request.Model)
 	if err != nil {
 		return err
 	}
@@ -47,9 +92,10 @@ func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiServi
 		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	// Fetch (or lazily create) the chat, and load its message history.
+	// Fetch (or lazily create) the chat, and load its valid message history:
+	// errored and superseded messages are excluded.
 	var chat *aipb.Chat
-	var messages []*aipb.Message
+	var history []*aipb.Message
 	eg, ctxEg := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		getChatRequest := &pb.GetChatRequest{Name: chatRn.String()}
@@ -74,15 +120,62 @@ func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiServi
 	eg.Go(func() error {
 		listMessagesRequest := &pb.ListMessagesRequest{
 			Parent: chatRn.String(),
+			Filter: fmt.Sprintf("-status:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey()),
 			// create_time asc keeps the conversation in order and stable while paginating.
 			OrderBy: "create_time asc",
 		}
 		var err error
-		messages, err = aip.Paginate[*aipb.Message](ctxEg, listMessagesRequest, s.ListMessages)
+		history, err = aip.Paginate[*aipb.Message](ctxEg, listMessagesRequest, s.ListMessages)
 		return err
 	})
 	if err := eg.Wait(); err != nil {
 		return err
+	}
+
+	// Fork: truncate the history after previous_message, superseding the tail.
+	if request.GetPreviousMessage() != "" {
+		previousMessageIndex := -1
+		for i, message := range history {
+			if message.GetName() == request.GetPreviousMessage() {
+				previousMessageIndex = i
+				break
+			}
+		}
+		if previousMessageIndex == -1 {
+			return status.Errorf(codes.NotFound, "previous message %q not found in chat %q", request.GetPreviousMessage(), chatRn.String()).Err()
+		}
+		if history[previousMessageIndex].GetRole() != aipb.Role_ROLE_ASSISTANT {
+			return status.Errorf(codes.InvalidArgument, "previous message %q is not an assistant message", request.GetPreviousMessage()).Err()
+		}
+		for _, supersededMessage := range history[previousMessageIndex+1:] {
+			aip.SetLabel(supersededMessage, aipb.Labels.Superseded.GetKey(), aip.LabelValueTrue)
+			updateMessageRequest := &pb.UpdateMessageRequest{
+				Message:    supersededMessage,
+				UpdateMask: pbfieldmask.FromPaths("labels").Proto(),
+			}
+			if _, err := s.UpdateMessage(ctx, updateMessageRequest); err != nil {
+				return err
+			}
+		}
+		history = history[:previousMessageIndex+1]
+	}
+
+	// Persist the input messages, in order. They are not echoed back to the client.
+	inputMessages := make([]*aipb.Message, 0, len(request.GetMessages()))
+	for _, message := range request.GetMessages() {
+		createMessageRequest := &pb.CreateMessageRequest{
+			Parent:  chatRn.String(),
+			Message: message,
+		}
+		inputMessage, err := s.CreateMessage(ctx, createMessageRequest)
+		if err != nil {
+			return err
+		}
+		inputMessages = append(inputMessages, inputMessage)
+	}
+	history = append(history, inputMessages...)
+	if len(history) == 0 {
+		return status.Errorf(codes.FailedPrecondition, "chat %q has no messages to generate from", chatRn.String()).Err()
 	}
 
 	// Index tools & tool sets, injecting discovery tools and pre-discovered tools.
@@ -110,7 +203,7 @@ func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiServi
 
 	// Replay discovery tool call results from the conversation history so that
 	// previously discovered tools remain available to the model.
-	for i, message := range messages {
+	for i, message := range history {
 		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
 			toolResult := block.GetToolResult()
 			toolSetName, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyToolSetName)
@@ -138,18 +231,18 @@ func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiServi
 		}
 	}
 
-	accumulator := ai.NewMessageAccumulator()
-	wrapper := &streamMessageWrapper{
-		AiService_StreamMessageServer: srv,
-		messageAccumulator:            accumulator,
-		model:                         model,
-		modelUsage:                    &aipb.ModelUsage{Model: request.Model},
-		toolNameToTool:                toolNameToTool,
-		toolSetNameToToolNameToTool:   toolSetNameToToolNameToTool,
-		toolCallIDToToolCall:          map[string]*aipb.ToolCall{},
+	wrapper := &generateMessageWrapper{
+		AiService_StreamGenerateMessageServer: srv,
+		messageAccumulator:                    accumulator,
+		model:                                 model,
+		modelUsage:                            &aipb.ModelUsage{Model: request.Model},
+		toolNameToTool:                        toolNameToTool,
+		toolSetNameToToolNameToTool:           toolSetNameToToolNameToTool,
+		toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
 	}
 
-	if err := provider.StreamMessage(request, messages, wrapper); err != nil {
+	if err := provider.StreamGenerateMessage(request, history, wrapper); err != nil {
+		s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, err)
 		return err
 	}
 
@@ -184,14 +277,57 @@ func (s *Service) StreamMessage(request *pb.StreamMessageRequest, srv pb.AiServi
 	}
 
 	// The persisted message is the final event of the stream.
-	finalResponse := &pb.StreamMessageResponse{
-		Content: &pb.StreamMessageResponse_Message{Message: persistedMessage},
+	finalResponse := &pb.StreamGenerateMessageResponse{
+		Content: &pb.StreamGenerateMessageResponse_GeneratedMessage{GeneratedMessage: persistedMessage},
 	}
 	return srv.Send(finalResponse)
 }
 
-type streamMessageWrapper struct {
-	pb.AiService_StreamMessageServer
+// markGenerationFailure flags the input messages of a failed generation (and
+// any partially generated assistant message) with the generation error, so
+// they are excluded from future generations. Best effort: the original
+// generation error is what surfaces to the caller.
+func (s *Service) markGenerationFailure(
+	ctx context.Context,
+	chatRn *aipb.ChatResourceName,
+	inputMessages []*aipb.Message,
+	accumulator *ai.MessageAccumulator,
+	generationError error,
+) {
+	errorStatus := grpcstatus.Convert(generationError).Proto()
+
+	for _, inputMessage := range inputMessages {
+		inputMessage.Status = errorStatus
+		updateMessageRequest := &pb.UpdateMessageRequest{
+			Message:    inputMessage,
+			UpdateMask: pbfieldmask.FromPaths("status").Proto(),
+		}
+		if _, err := s.UpdateMessage(ctx, updateMessageRequest); err != nil {
+			s.log.Error("marking input message as failed", "message", inputMessage.GetName(), "error", err)
+		}
+	}
+
+	// Persist the partial assistant message for debugging. Partial tool call
+	// blocks are dropped: they are invalid on a persisted message.
+	partialMessage := accumulator.Message
+	partialMessage.Blocks = ai.FilterBlocks(partialMessage.GetBlocks(), ai.BlockTypeText, ai.BlockTypeThought, ai.BlockTypeToolCall, ai.BlockTypeImage)
+	if len(partialMessage.GetBlocks()) == 0 {
+		return
+	}
+	redactInlineImageData(partialMessage)
+	partialMessage.Model = "" // Keep pricing off failed partials; usage was not finalized.
+	partialMessage.Status = errorStatus
+	createMessageRequest := &pb.CreateMessageRequest{
+		Parent:  chatRn.String(),
+		Message: partialMessage,
+	}
+	if _, err := s.CreateMessage(ctx, createMessageRequest); err != nil {
+		s.log.Error("persisting partial assistant message", "chat", chatRn.String(), "error", err)
+	}
+}
+
+type generateMessageWrapper struct {
+	pb.AiService_StreamGenerateMessageServer
 	messageAccumulator          *ai.MessageAccumulator
 	model                       *aipb.Model
 	modelUsage                  *aipb.ModelUsage
@@ -200,9 +336,9 @@ type streamMessageWrapper struct {
 	toolCallIDToToolCall        map[string]*aipb.ToolCall
 }
 
-func (w *streamMessageWrapper) Send(response *pb.StreamMessageResponse) error {
+func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse) error {
 	switch c := response.GetContent().(type) {
-	case *pb.StreamMessageResponse_Block:
+	case *pb.StreamGenerateMessageResponse_Block:
 		var toolCall *aipb.ToolCall
 		if c.Block.GetToolCall() != nil {
 			toolCall = c.Block.GetToolCall()
@@ -239,14 +375,14 @@ func (w *streamMessageWrapper) Send(response *pb.StreamMessageResponse) error {
 			w.toolCallIDToToolCall[partialToolCall.Id] = partialToolCall
 		}
 
-	case *pb.StreamMessageResponse_ModelUsage:
+	case *pb.StreamGenerateMessageResponse_ModelUsage:
 		if ai.IsModelUsageEmpty(c.ModelUsage) {
 			return nil
 		}
 		proto.Merge(w.modelUsage, c.ModelUsage)
 		ai.SetModelUsagePrices(w.modelUsage, w.model.GetTtt().GetPricing())
-		response = &pb.StreamMessageResponse{
-			Content: &pb.StreamMessageResponse_ModelUsage{
+		response = &pb.StreamGenerateMessageResponse{
+			Content: &pb.StreamGenerateMessageResponse_ModelUsage{
 				ModelUsage: w.modelUsage,
 			},
 		}

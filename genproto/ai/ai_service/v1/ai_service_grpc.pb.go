@@ -81,10 +81,16 @@ type AiServiceClient interface {
 	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
 	// Lists messages within a chat.
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
-	// Generates an assistant message from the chat's message history, streaming
-	// blocks as they are produced. The generated message is persisted under the
-	// chat and sent as the final event of the stream.
-	StreamMessage(ctx context.Context, in *StreamMessageRequest, opts ...grpc.CallOption) (AiService_StreamMessageClient, error)
+	// Generates an assistant message from the chat's message history.
+	//
+	// The input `messages` are appended to the chat before generating; the
+	// generated assistant message is persisted under the chat and returned.
+	// If generation fails, the input messages are updated with an error
+	// `status` and excluded from future generations.
+	GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error)
+	// Same as GenerateMessage, but streams blocks as they are produced. The
+	// persisted assistant message is sent as the final event of the stream.
+	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error)
 }
 
 type aiServiceClient struct {
@@ -320,12 +326,21 @@ func (c *aiServiceClient) ListMessages(ctx context.Context, in *ListMessagesRequ
 	return out, nil
 }
 
-func (c *aiServiceClient) StreamMessage(ctx context.Context, in *StreamMessageRequest, opts ...grpc.CallOption) (AiService_StreamMessageClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], "/malonaz.ai.ai_service.v1.AiService/StreamMessage", opts...)
+func (c *aiServiceClient) GenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (*GenerateMessageResponse, error) {
+	out := new(GenerateMessageResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/GenerateMessage", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &aiServiceStreamMessageClient{stream}
+	return out, nil
+}
+
+func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aiServiceStreamGenerateMessageClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -335,17 +350,17 @@ func (c *aiServiceClient) StreamMessage(ctx context.Context, in *StreamMessageRe
 	return x, nil
 }
 
-type AiService_StreamMessageClient interface {
-	Recv() (*StreamMessageResponse, error)
+type AiService_StreamGenerateMessageClient interface {
+	Recv() (*StreamGenerateMessageResponse, error)
 	grpc.ClientStream
 }
 
-type aiServiceStreamMessageClient struct {
+type aiServiceStreamGenerateMessageClient struct {
 	grpc.ClientStream
 }
 
-func (x *aiServiceStreamMessageClient) Recv() (*StreamMessageResponse, error) {
-	m := new(StreamMessageResponse)
+func (x *aiServiceStreamGenerateMessageClient) Recv() (*StreamGenerateMessageResponse, error) {
+	m := new(StreamGenerateMessageResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -414,10 +429,16 @@ type AiServiceServer interface {
 	DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error)
 	// Lists messages within a chat.
 	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
-	// Generates an assistant message from the chat's message history, streaming
-	// blocks as they are produced. The generated message is persisted under the
-	// chat and sent as the final event of the stream.
-	StreamMessage(*StreamMessageRequest, AiService_StreamMessageServer) error
+	// Generates an assistant message from the chat's message history.
+	//
+	// The input `messages` are appended to the chat before generating; the
+	// generated assistant message is persisted under the chat and returned.
+	// If generation fails, the input messages are updated with an error
+	// `status` and excluded from future generations.
+	GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error)
+	// Same as GenerateMessage, but streams blocks as they are produced. The
+	// persisted assistant message is sent as the final event of the stream.
+	StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error
 }
 
 // UnimplementedAiServiceServer should be embedded to have forward compatible implementations.
@@ -484,8 +505,11 @@ func (UnimplementedAiServiceServer) DeleteMessage(context.Context, *DeleteMessag
 func (UnimplementedAiServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMessages not implemented")
 }
-func (UnimplementedAiServiceServer) StreamMessage(*StreamMessageRequest, AiService_StreamMessageServer) error {
-	return status.Errorf(codes.Unimplemented, "method StreamMessage not implemented")
+func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamGenerateMessage not implemented")
 }
 
 // UnsafeAiServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -870,24 +894,42 @@ func _AiService_ListMessages_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AiService_StreamMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StreamMessageRequest)
+func _AiService_GenerateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GenerateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/GenerateMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GenerateMessage(ctx, req.(*GenerateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_StreamGenerateMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GenerateMessageRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AiServiceServer).StreamMessage(m, &aiServiceStreamMessageServer{stream})
+	return srv.(AiServiceServer).StreamGenerateMessage(m, &aiServiceStreamGenerateMessageServer{stream})
 }
 
-type AiService_StreamMessageServer interface {
-	Send(*StreamMessageResponse) error
+type AiService_StreamGenerateMessageServer interface {
+	Send(*StreamGenerateMessageResponse) error
 	grpc.ServerStream
 }
 
-type aiServiceStreamMessageServer struct {
+type aiServiceStreamGenerateMessageServer struct {
 	grpc.ServerStream
 }
 
-func (x *aiServiceStreamMessageServer) Send(m *StreamMessageResponse) error {
+func (x *aiServiceStreamGenerateMessageServer) Send(m *StreamGenerateMessageResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -970,6 +1012,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListMessages",
 			Handler:    _AiService_ListMessages_Handler,
 		},
+		{
+			MethodName: "GenerateMessage",
+			Handler:    _AiService_GenerateMessage_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -984,8 +1030,8 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "StreamMessage",
-			Handler:       _AiService_StreamMessage_Handler,
+			StreamName:    "StreamGenerateMessage",
+			Handler:       _AiService_StreamGenerateMessage_Handler,
 			ServerStreams: true,
 		},
 	},

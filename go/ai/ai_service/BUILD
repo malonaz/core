@@ -16,7 +16,7 @@ go_library(
     srcs = [
         "metrics.go",
         "runtime.go",
-        "stream_message.go",
+        "generate_message.go",
         "utils.go",
         ":service.tmpl.go",
     ],

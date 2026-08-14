@@ -74,19 +74,28 @@ func (c *Client) ListVoices(
 	return c.server.ListVoices(ctx, request)
 }
 
-// StreamMessage provides a client-facing streaming interface for assistant message generation.
-// It wraps the underlying server streaming implementation using grpcinproc.
-func (c *Client) StreamMessage(
+// GenerateMessage provides a client-facing interface for assistant message generation.
+func (c *Client) GenerateMessage(
 	ctx context.Context,
-	request *aiservicepb.StreamMessageRequest,
+	request *aiservicepb.GenerateMessageRequest,
 	opts ...grpc.CallOption,
-) (aiservicepb.AiService_StreamMessageClient, error) {
+) (*aiservicepb.GenerateMessageResponse, error) {
+	return c.server.GenerateMessage(ctx, request)
+}
+
+// StreamGenerateMessage provides a client-facing streaming interface for assistant message generation.
+// It wraps the underlying server streaming implementation using grpcinproc.
+func (c *Client) StreamGenerateMessage(
+	ctx context.Context,
+	request *aiservicepb.GenerateMessageRequest,
+	opts ...grpc.CallOption,
+) (aiservicepb.AiService_StreamGenerateMessageClient, error) {
 	// Use grpcinproc to convert the provider's server streaming implementation to a client
 	serverStreamClient := grpcinproc.NewServerStreamAsClient[
-		aiservicepb.StreamMessageRequest,
-		aiservicepb.StreamMessageResponse,
-		aiservicepb.AiService_StreamMessageServer,
-	](c.server.StreamMessage)
+		aiservicepb.GenerateMessageRequest,
+		aiservicepb.StreamGenerateMessageResponse,
+		aiservicepb.AiService_StreamGenerateMessageServer,
+	](c.server.StreamGenerateMessage)
 
 	return serverStreamClient(ctx, request, opts...)
 }

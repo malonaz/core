@@ -22,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/message.proto.
  */
 export const file_malonaz_ai_ai_service_v1_message: GenFile = /*@__PURE__*/
-  fileDesc("CiZtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvbWVzc2FnZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIvABChRDcmVhdGVNZXNzYWdlUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIyCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQgngQQK6SAPIAQESOQoKbWVzc2FnZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkcKEUdldE1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBASLyAQoUVXBkYXRlTWVzc2FnZVJlcXVlc3QSLwoHbWVzc2FnZRgBIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOnC6SEsaSQoVbWVzc2FnZS5uYW1lX3JlcXVpcmVkEhhtZXNzYWdlLm5hbWUgbXVzdCBiZSBzZXQaFmhhcyh0aGlzLm1lc3NhZ2UubmFtZSnqnMEDHQoGbGFiZWxzCgthbm5vdGF0aW9ucwoGYmxvY2tzIm8KFERlbGV0ZU1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAki8gEKE0xpc3RNZXNzYWdlc1JlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCTo9gvMtAwjoB4rzLSsKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZRIPY3JlYXRlX3RpbWUgYXNjkvMtAwoBKiJZChRMaXN0TWVzc2FnZXNSZXNwb25zZRIoCghtZXNzYWdlcxgBIAMoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkizQIKHk1lc3NhZ2VHZW5lcmF0aW9uQ29uZmlndXJhdGlvbhIbCgptYXhfdG9rZW5zGAEgASgFQge6SAQaAigAEiwKC3RlbXBlcmF0dXJlGAIgASgBQhe6SBQSEhkAAAAAAAAAQCkAAAAAAAAAABIuCgt0b29sX2Nob2ljZRgDIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbENob2ljZRI4ChByZWFzb25pbmdfZWZmb3J0GAQgASgOMh4ubWFsb25hei5haS52MS5SZWFzb25pbmdFZmZvcnQSIQoZc3RyZWFtX3BhcnRpYWxfdG9vbF9jYWxscxgFIAEoCBJTChNpbWFnZV9jb25maWd1cmF0aW9uGAYgASgLMjYubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkltYWdlR2VuZXJhdGlvbkNvbmZpZ3VyYXRpb24imwEKHEltYWdlR2VuZXJhdGlvbkNvbmZpZ3VyYXRpb24SUgoMYXNwZWN0X3JhdGlvGAEgASgJQjy6SDlyN1IAUgMxOjFSAzI6M1IDMzoyUgMzOjRSAzQ6M1IDNDo1UgM1OjRSBDk6MTZSBDE2OjlSBDIxOjkSJwoKaW1hZ2Vfc2l6ZRgCIAEoCUITukgQcg5SAFICMUtSAjJLUgI0SyKjBAoUU3RyZWFtTWVzc2FnZVJlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESIgoFdG9vbHMYAyADKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2wSKQoJdG9vbF9zZXRzGAQgAygLMhYubWFsb25hei5haS52MS5Ub29sU2V0Ek8KDWNvbmZpZ3VyYXRpb24YBSABKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuTWVzc2FnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uEtgBCgZsYWJlbHMYBiADKAsyOi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RyZWFtTWVzc2FnZVJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiqgIKFVN0cmVhbU1lc3NhZ2VSZXNwb25zZRIlCgVibG9jaxgBIAEoCzIULm1hbG9uYXouYWkudjEuQmxvY2tIABI7CgtzdG9wX3JlYXNvbhgCIAEoDjIkLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TdG9wUmVhc29uSAASPgoSZ2VuZXJhdGlvbl9tZXRyaWNzGAMgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljc0gAEikKB21lc3NhZ2UYBCABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VIABIwCgttb2RlbF91c2FnZRgFIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUgAQhAKB2NvbnRlbnQSBbpIAggBKs4BCgpTdG9wUmVhc29uEhsKF1NUT1BfUkVBU09OX1VOU1BFQ0lGSUVEEAASGAoUU1RPUF9SRUFTT05fRU5EX1RVUk4QARIaChZTVE9QX1JFQVNPTl9NQVhfVE9LRU5TEAISGQoVU1RPUF9SRUFTT05fVE9PTF9DQUxMEAMSHQoZU1RPUF9SRUFTT05fU1RPUF9TRVFVRU5DRRAEEhoKFlNUT1BfUkVBU09OX1BBVVNFX1RVUk4QBRIXChNTVE9QX1JFQVNPTl9SRUZVU0FMEAZCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CiZtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvbWVzc2FnZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIvABChRDcmVhdGVNZXNzYWdlUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIyCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQgngQQK6SAPIAQESOQoKbWVzc2FnZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkcKEUdldE1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBASL6AQoUVXBkYXRlTWVzc2FnZVJlcXVlc3QSLwoHbWVzc2FnZRgBIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOni6SEsaSQoVbWVzc2FnZS5uYW1lX3JlcXVpcmVkEhhtZXNzYWdlLm5hbWUgbXVzdCBiZSBzZXQaFmhhcyh0aGlzLm1lc3NhZ2UubmFtZSnqnMEDJQoGbGFiZWxzCgthbm5vdGF0aW9ucwoGYmxvY2tzCgZzdGF0dXMibwoURGVsZXRlTWVzc2FnZVJlcXVlc3QSMgoEbmFtZRgBIAEoCUIk4EEC+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSLyAQoTTGlzdE1lc3NhZ2VzUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0DCOgHivMtKwoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lEg9jcmVhdGVfdGltZSBhc2OS8y0DCgEqIlkKFExpc3RNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSLNAgoeTWVzc2FnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uEhsKCm1heF90b2tlbnMYASABKAVCB7pIBBoCKAASLAoLdGVtcGVyYXR1cmUYAiABKAFCF7pIFBISGQAAAAAAAABAKQAAAAAAAAAAEi4KC3Rvb2xfY2hvaWNlGAMgASgLMhkubWFsb25hei5haS52MS5Ub29sQ2hvaWNlEjgKEHJlYXNvbmluZ19lZmZvcnQYBCABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBIhChlzdHJlYW1fcGFydGlhbF90b29sX2NhbGxzGAUgASgIElMKE2ltYWdlX2NvbmZpZ3VyYXRpb24YBiABKAsyNi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuSW1hZ2VHZW5lcmF0aW9uQ29uZmlndXJhdGlvbiKbAQocSW1hZ2VHZW5lcmF0aW9uQ29uZmlndXJhdGlvbhJSCgxhc3BlY3RfcmF0aW8YASABKAlCPLpIOXI3UgBSAzE6MVIDMjozUgMzOjJSAzM6NFIDNDozUgM0OjVSAzU6NFIEOToxNlIEMTY6OVIEMjE6ORInCgppbWFnZV9zaXplGAIgASgJQhO6SBByDlIAUgIxS1ICMktSAjRLIosGChZHZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0EjEKBnBhcmVudBgBIAEoCUIh4EEC+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgDyAEBEi4KBW1vZGVsGAIgASgJQh/6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsukgDyAEBEigKCG1lc3NhZ2VzGAMgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlEjUKEHByZXZpb3VzX21lc3NhZ2UYBCABKAlCG/pBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZRIiCgV0b29scxgFIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbBIpCgl0b29sX3NldHMYBiADKAsyFi5tYWxvbmF6LmFpLnYxLlRvb2xTZXQSTwoNY29uZmlndXJhdGlvbhgHIAEoCzI4Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5NZXNzYWdlR2VuZXJhdGlvbkNvbmZpZ3VyYXRpb24S2gEKBmxhYmVscxgIIAMoCzI8Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5HZW5lcmF0ZU1lc3NhZ2VSZXF1ZXN0LkxhYmVsc0VudHJ5QosBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJBIfCgpyZXF1ZXN0X2lkGAkgASgJQgu6SAhyA7ABAdgBARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOmC6SF0aWwoNbWVzc2FnZXNfcm9sZRInbWVzc2FnZXMgY2Fubm90IGhhdmUgdGhlIEFTU0lTVEFOVCByb2xlGiF0aGlzLm1lc3NhZ2VzLmFsbChtLCBtLnJvbGUgIT0gMiki9QEKF0dlbmVyYXRlTWVzc2FnZVJlc3BvbnNlEjEKEWdlbmVyYXRlZF9tZXNzYWdlGAEgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlEjkKC3N0b3BfcmVhc29uGAIgASgOMiQubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0b3BSZWFzb24SLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyK8AgodU3RyZWFtR2VuZXJhdGVNZXNzYWdlUmVzcG9uc2USJQoFYmxvY2sYASABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASOwoLc3RvcF9yZWFzb24YAiABKA4yJC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RvcFJlYXNvbkgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgDIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIABIzChFnZW5lcmF0ZWRfbWVzc2FnZRgEIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEjAKC21vZGVsX3VzYWdlGAUgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlSABCEAoHY29udGVudBIFukgCCAEqzgEKClN0b3BSZWFzb24SGwoXU1RPUF9SRUFTT05fVU5TUEVDSUZJRUQQABIYChRTVE9QX1JFQVNPTl9FTkRfVFVSThABEhoKFlNUT1BfUkVBU09OX01BWF9UT0tFTlMQAhIZChVTVE9QX1JFQVNPTl9UT09MX0NBTEwQAxIdChlTVE9QX1JFQVNPTl9TVE9QX1NFUVVFTkNFEAQSGgoWU1RPUF9SRUFTT05fUEFVU0VfVFVSThAFEhcKE1NUT1BfUkVBU09OX1JFRlVTQUwQBkIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AiService.CreateMessage.
@@ -549,15 +549,15 @@ export const ImageGenerationConfigurationSchema: GenMessage<ImageGenerationConfi
   messageDesc(file_malonaz_ai_ai_service_v1_message, 7);
 
 /**
- * Request message for AiService.StreamMessage.
+ * Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
  *
- * @generated from message malonaz.ai.ai_service.v1.StreamMessageRequest
+ * @generated from message malonaz.ai.ai_service.v1.GenerateMessageRequest
  */
-export type StreamMessageRequest = Message<"malonaz.ai.ai_service.v1.StreamMessageRequest"> & {
+export type GenerateMessageRequest = Message<"malonaz.ai.ai_service.v1.GenerateMessageRequest"> & {
   /**
-   * The resource name of the parent chat whose (non-deleted) messages form the
-   * conversation history for this generation. The generated assistant message
-   * is persisted under this chat.
+   * The resource name of the parent chat whose message history forms the
+   * conversation for this generation. The input `messages` and the generated
+   * assistant message are persisted under this chat.
    * Format: organizations/{organization}/users/{user}/chats/{chat}
    *
    * @generated from field: string parent = 1;
@@ -573,44 +573,71 @@ export type StreamMessageRequest = Message<"malonaz.ai.ai_service.v1.StreamMessa
   model: string;
 
   /**
+   * New messages to append to the conversation before generating, in order.
+   * They are persisted immediately and are not echoed back in the response;
+   * use ListMessages to retrieve them. Must not use the ASSISTANT role.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Message messages = 3;
+   */
+  messages: Message$1[];
+
+  /**
+   * Optional resource name of an assistant message to generate from, allowing
+   * a client to fork the conversation. The conversation history is truncated
+   * after this message: any later message is labeled
+   * `ai.malonaz.com/superseded` and excluded from this and future generations.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+   *
+   * @generated from field: string previous_message = 4;
+   */
+  previousMessage: string;
+
+  /**
    * Tools available for the model to call.
    *
-   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 5;
    */
   tools: Tool[];
 
   /**
    * Tool sets available for the model to call.
    *
-   * @generated from field: repeated malonaz.ai.v1.ToolSet tool_sets = 4;
+   * @generated from field: repeated malonaz.ai.v1.ToolSet tool_sets = 6;
    */
   toolSets: ToolSet[];
 
   /**
    * Additional configuration.
    *
-   * @generated from field: malonaz.ai.ai_service.v1.MessageGenerationConfiguration configuration = 5;
+   * @generated from field: malonaz.ai.ai_service.v1.MessageGenerationConfiguration configuration = 7;
    */
   configuration?: MessageGenerationConfiguration;
 
   /**
    * Labels to set on the generated message.
    *
-   * @generated from field: map<string, string> labels = 6;
+   * @generated from field: map<string, string> labels = 8;
    */
   labels: { [key: string]: string };
+
+  /**
+   * A unique identifier for this request. Must be a UUID.
+   *
+   * @generated from field: string request_id = 9;
+   */
+  requestId: string;
 };
 
 /**
- * Request message for AiService.StreamMessage.
+ * Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
  *
- * @generated from message malonaz.ai.ai_service.v1.StreamMessageRequest
+ * @generated from message malonaz.ai.ai_service.v1.GenerateMessageRequest
  */
-export type StreamMessageRequestValid = Message<"malonaz.ai.ai_service.v1.StreamMessageRequest"> & {
+export type GenerateMessageRequestValid = Message<"malonaz.ai.ai_service.v1.GenerateMessageRequest"> & {
   /**
-   * The resource name of the parent chat whose (non-deleted) messages form the
-   * conversation history for this generation. The generated assistant message
-   * is persisted under this chat.
+   * The resource name of the parent chat whose message history forms the
+   * conversation for this generation. The input `messages` and the generated
+   * assistant message are persisted under this chat.
    * Format: organizations/{organization}/users/{user}/chats/{chat}
    *
    * @generated from field: string parent = 1;
@@ -626,51 +653,157 @@ export type StreamMessageRequestValid = Message<"malonaz.ai.ai_service.v1.Stream
   model: string;
 
   /**
+   * New messages to append to the conversation before generating, in order.
+   * They are persisted immediately and are not echoed back in the response;
+   * use ListMessages to retrieve them. Must not use the ASSISTANT role.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Message messages = 3;
+   */
+  messages: MessageValid[];
+
+  /**
+   * Optional resource name of an assistant message to generate from, allowing
+   * a client to fork the conversation. The conversation history is truncated
+   * after this message: any later message is labeled
+   * `ai.malonaz.com/superseded` and excluded from this and future generations.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+   *
+   * @generated from field: string previous_message = 4;
+   */
+  previousMessage: string;
+
+  /**
    * Tools available for the model to call.
    *
-   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 5;
    */
   tools: ToolValid[];
 
   /**
    * Tool sets available for the model to call.
    *
-   * @generated from field: repeated malonaz.ai.v1.ToolSet tool_sets = 4;
+   * @generated from field: repeated malonaz.ai.v1.ToolSet tool_sets = 6;
    */
   toolSets: ToolSetValid[];
 
   /**
    * Additional configuration.
    *
-   * @generated from field: malonaz.ai.ai_service.v1.MessageGenerationConfiguration configuration = 5;
+   * @generated from field: malonaz.ai.ai_service.v1.MessageGenerationConfiguration configuration = 7;
    */
   configuration?: MessageGenerationConfigurationValid;
 
   /**
    * Labels to set on the generated message.
    *
-   * @generated from field: map<string, string> labels = 6;
+   * @generated from field: map<string, string> labels = 8;
    */
   labels: { [key: string]: string };
+
+  /**
+   * A unique identifier for this request. Must be a UUID.
+   *
+   * @generated from field: string request_id = 9;
+   */
+  requestId: string;
 };
 
 /**
- * Describes the message malonaz.ai.ai_service.v1.StreamMessageRequest.
- * Use `create(StreamMessageRequestSchema)` to create a new message.
+ * Describes the message malonaz.ai.ai_service.v1.GenerateMessageRequest.
+ * Use `create(GenerateMessageRequestSchema)` to create a new message.
  */
-export const StreamMessageRequestSchema: GenMessage<StreamMessageRequest, {validType: StreamMessageRequestValid}> = /*@__PURE__*/
+export const GenerateMessageRequestSchema: GenMessage<GenerateMessageRequest, {validType: GenerateMessageRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_message, 8);
 
 /**
- * Response message for AiService.StreamMessage.
+ * Response message for AiService.GenerateMessage.
  *
- * @generated from message malonaz.ai.ai_service.v1.StreamMessageResponse
+ * @generated from message malonaz.ai.ai_service.v1.GenerateMessageResponse
  */
-export type StreamMessageResponse = Message<"malonaz.ai.ai_service.v1.StreamMessageResponse"> & {
+export type GenerateMessageResponse = Message<"malonaz.ai.ai_service.v1.GenerateMessageResponse"> & {
+  /**
+   * The persisted generated assistant message, including its resource name,
+   * aggregated model usage and price.
+   *
+   * @generated from field: malonaz.ai.v1.Message generated_message = 1;
+   */
+  generatedMessage?: Message$1;
+
+  /**
+   * Reason why generation stopped.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.StopReason stop_reason = 2;
+   */
+  stopReason: StopReason;
+
+  /**
+   * Model usage metrics.
+   *
+   * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 3;
+   */
+  modelUsage?: ModelUsage;
+
+  /**
+   * Generation metrics.
+   *
+   * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+   */
+  generationMetrics?: GenerationMetrics;
+};
+
+/**
+ * Response message for AiService.GenerateMessage.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.GenerateMessageResponse
+ */
+export type GenerateMessageResponseValid = Message<"malonaz.ai.ai_service.v1.GenerateMessageResponse"> & {
+  /**
+   * The persisted generated assistant message, including its resource name,
+   * aggregated model usage and price.
+   *
+   * @generated from field: malonaz.ai.v1.Message generated_message = 1;
+   */
+  generatedMessage?: MessageValid;
+
+  /**
+   * Reason why generation stopped.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.StopReason stop_reason = 2;
+   */
+  stopReason: StopReason;
+
+  /**
+   * Model usage metrics.
+   *
+   * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 3;
+   */
+  modelUsage?: ModelUsageValid;
+
+  /**
+   * Generation metrics.
+   *
+   * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+   */
+  generationMetrics?: GenerationMetricsValid;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.GenerateMessageResponse.
+ * Use `create(GenerateMessageResponseSchema)` to create a new message.
+ */
+export const GenerateMessageResponseSchema: GenMessage<GenerateMessageResponse, {validType: GenerateMessageResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_message, 9);
+
+/**
+ * Response message for AiService.StreamGenerateMessage.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
+ */
+export type StreamGenerateMessageResponse = Message<"malonaz.ai.ai_service.v1.StreamGenerateMessageResponse"> & {
   /**
    * Content of this response.
    *
-   * @generated from oneof malonaz.ai.ai_service.v1.StreamMessageResponse.content
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.content
    */
   content: {
     /**
@@ -690,7 +823,7 @@ export type StreamMessageResponse = Message<"malonaz.ai.ai_service.v1.StreamMess
     case: "stopReason";
   } | {
     /**
-     * Generation metrics (sent last).
+     * Generation metrics.
      *
      * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
      */
@@ -698,18 +831,18 @@ export type StreamMessageResponse = Message<"malonaz.ai.ai_service.v1.StreamMess
     case: "generationMetrics";
   } | {
     /**
-     * The fully persisted assistant message, including its resource name,
-     * model usage and price. Sent as the final event of the stream.
+     * The persisted generated assistant message, including its resource name,
+     * aggregated model usage and price. Sent as the final event of the stream.
      *
-     * @generated from field: malonaz.ai.v1.Message message = 4;
+     * @generated from field: malonaz.ai.v1.Message generated_message = 4;
      */
     value: Message$1;
-    case: "message";
+    case: "generatedMessage";
   } | {
     /**
      * Incremental model usage updates. The absolute truth for a resource
-     * consumption is the last one streamed out; the final `message` event
-     * also carries the aggregate usage.
+     * consumption is the last one streamed out; the final `generated_message`
+     * event also carries the aggregate usage.
      *
      * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 5;
      */
@@ -719,15 +852,15 @@ export type StreamMessageResponse = Message<"malonaz.ai.ai_service.v1.StreamMess
 };
 
 /**
- * Response message for AiService.StreamMessage.
+ * Response message for AiService.StreamGenerateMessage.
  *
- * @generated from message malonaz.ai.ai_service.v1.StreamMessageResponse
+ * @generated from message malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
  */
-export type StreamMessageResponseValid = Message<"malonaz.ai.ai_service.v1.StreamMessageResponse"> & {
+export type StreamGenerateMessageResponseValid = Message<"malonaz.ai.ai_service.v1.StreamGenerateMessageResponse"> & {
   /**
    * Content of this response.
    *
-   * @generated from oneof malonaz.ai.ai_service.v1.StreamMessageResponse.content
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.content
    */
   content: {
     /**
@@ -747,7 +880,7 @@ export type StreamMessageResponseValid = Message<"malonaz.ai.ai_service.v1.Strea
     case: "stopReason";
   } | {
     /**
-     * Generation metrics (sent last).
+     * Generation metrics.
      *
      * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
      */
@@ -755,18 +888,18 @@ export type StreamMessageResponseValid = Message<"malonaz.ai.ai_service.v1.Strea
     case: "generationMetrics";
   } | {
     /**
-     * The fully persisted assistant message, including its resource name,
-     * model usage and price. Sent as the final event of the stream.
+     * The persisted generated assistant message, including its resource name,
+     * aggregated model usage and price. Sent as the final event of the stream.
      *
-     * @generated from field: malonaz.ai.v1.Message message = 4;
+     * @generated from field: malonaz.ai.v1.Message generated_message = 4;
      */
     value: MessageValid;
-    case: "message";
+    case: "generatedMessage";
   } | {
     /**
      * Incremental model usage updates. The absolute truth for a resource
-     * consumption is the last one streamed out; the final `message` event
-     * also carries the aggregate usage.
+     * consumption is the last one streamed out; the final `generated_message`
+     * event also carries the aggregate usage.
      *
      * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 5;
      */
@@ -776,11 +909,11 @@ export type StreamMessageResponseValid = Message<"malonaz.ai.ai_service.v1.Strea
 };
 
 /**
- * Describes the message malonaz.ai.ai_service.v1.StreamMessageResponse.
- * Use `create(StreamMessageResponseSchema)` to create a new message.
+ * Describes the message malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.
+ * Use `create(StreamGenerateMessageResponseSchema)` to create a new message.
  */
-export const StreamMessageResponseSchema: GenMessage<StreamMessageResponse, {validType: StreamMessageResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_message, 9);
+export const StreamGenerateMessageResponseSchema: GenMessage<StreamGenerateMessageResponse, {validType: StreamGenerateMessageResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_message, 10);
 
 /**
  * Reason why generation stopped.

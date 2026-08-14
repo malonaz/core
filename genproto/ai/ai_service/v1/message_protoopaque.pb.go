@@ -930,33 +930,36 @@ func (b0 ImageGenerationConfiguration_builder) Build() *ImageGenerationConfigura
 	return m0
 }
 
-// Request message for AiService.StreamMessage.
-type StreamMessageRequest struct {
-	state                    protoimpl.MessageState          `protogen:"opaque.v1"`
-	xxx_hidden_Parent        string                          `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_Model         string                          `protobuf:"bytes,2,opt,name=model,proto3"`
-	xxx_hidden_Tools         *[]*v1.Tool                     `protobuf:"bytes,3,rep,name=tools,proto3"`
-	xxx_hidden_ToolSets      *[]*v1.ToolSet                  `protobuf:"bytes,4,rep,name=tool_sets,json=toolSets,proto3"`
-	xxx_hidden_Configuration *MessageGenerationConfiguration `protobuf:"bytes,5,opt,name=configuration,proto3"`
-	xxx_hidden_Labels        map[string]string               `protobuf:"bytes,6,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+// Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
+type GenerateMessageRequest struct {
+	state                      protoimpl.MessageState          `protogen:"opaque.v1"`
+	xxx_hidden_Parent          string                          `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Model           string                          `protobuf:"bytes,2,opt,name=model,proto3"`
+	xxx_hidden_Messages        *[]*v1.Message                  `protobuf:"bytes,3,rep,name=messages,proto3"`
+	xxx_hidden_PreviousMessage string                          `protobuf:"bytes,4,opt,name=previous_message,json=previousMessage,proto3"`
+	xxx_hidden_Tools           *[]*v1.Tool                     `protobuf:"bytes,5,rep,name=tools,proto3"`
+	xxx_hidden_ToolSets        *[]*v1.ToolSet                  `protobuf:"bytes,6,rep,name=tool_sets,json=toolSets,proto3"`
+	xxx_hidden_Configuration   *MessageGenerationConfiguration `protobuf:"bytes,7,opt,name=configuration,proto3"`
+	xxx_hidden_Labels          map[string]string               `protobuf:"bytes,8,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_RequestId       string                          `protobuf:"bytes,9,opt,name=request_id,json=requestId,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
-func (x *StreamMessageRequest) Reset() {
-	*x = StreamMessageRequest{}
+func (x *GenerateMessageRequest) Reset() {
+	*x = GenerateMessageRequest{}
 	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamMessageRequest) String() string {
+func (x *GenerateMessageRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamMessageRequest) ProtoMessage() {}
+func (*GenerateMessageRequest) ProtoMessage() {}
 
-func (x *StreamMessageRequest) ProtoReflect() protoreflect.Message {
+func (x *GenerateMessageRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -968,21 +971,37 @@ func (x *StreamMessageRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *StreamMessageRequest) GetParent() string {
+func (x *GenerateMessageRequest) GetParent() string {
 	if x != nil {
 		return x.xxx_hidden_Parent
 	}
 	return ""
 }
 
-func (x *StreamMessageRequest) GetModel() string {
+func (x *GenerateMessageRequest) GetModel() string {
 	if x != nil {
 		return x.xxx_hidden_Model
 	}
 	return ""
 }
 
-func (x *StreamMessageRequest) GetTools() []*v1.Tool {
+func (x *GenerateMessageRequest) GetMessages() []*v1.Message {
+	if x != nil {
+		if x.xxx_hidden_Messages != nil {
+			return *x.xxx_hidden_Messages
+		}
+	}
+	return nil
+}
+
+func (x *GenerateMessageRequest) GetPreviousMessage() string {
+	if x != nil {
+		return x.xxx_hidden_PreviousMessage
+	}
+	return ""
+}
+
+func (x *GenerateMessageRequest) GetTools() []*v1.Tool {
 	if x != nil {
 		if x.xxx_hidden_Tools != nil {
 			return *x.xxx_hidden_Tools
@@ -991,7 +1010,7 @@ func (x *StreamMessageRequest) GetTools() []*v1.Tool {
 	return nil
 }
 
-func (x *StreamMessageRequest) GetToolSets() []*v1.ToolSet {
+func (x *GenerateMessageRequest) GetToolSets() []*v1.ToolSet {
 	if x != nil {
 		if x.xxx_hidden_ToolSets != nil {
 			return *x.xxx_hidden_ToolSets
@@ -1000,66 +1019,95 @@ func (x *StreamMessageRequest) GetToolSets() []*v1.ToolSet {
 	return nil
 }
 
-func (x *StreamMessageRequest) GetConfiguration() *MessageGenerationConfiguration {
+func (x *GenerateMessageRequest) GetConfiguration() *MessageGenerationConfiguration {
 	if x != nil {
 		return x.xxx_hidden_Configuration
 	}
 	return nil
 }
 
-func (x *StreamMessageRequest) GetLabels() map[string]string {
+func (x *GenerateMessageRequest) GetLabels() map[string]string {
 	if x != nil {
 		return x.xxx_hidden_Labels
 	}
 	return nil
 }
 
-func (x *StreamMessageRequest) SetParent(v string) {
+func (x *GenerateMessageRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
+func (x *GenerateMessageRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
 
-func (x *StreamMessageRequest) SetModel(v string) {
+func (x *GenerateMessageRequest) SetModel(v string) {
 	x.xxx_hidden_Model = v
 }
 
-func (x *StreamMessageRequest) SetTools(v []*v1.Tool) {
+func (x *GenerateMessageRequest) SetMessages(v []*v1.Message) {
+	x.xxx_hidden_Messages = &v
+}
+
+func (x *GenerateMessageRequest) SetPreviousMessage(v string) {
+	x.xxx_hidden_PreviousMessage = v
+}
+
+func (x *GenerateMessageRequest) SetTools(v []*v1.Tool) {
 	x.xxx_hidden_Tools = &v
 }
 
-func (x *StreamMessageRequest) SetToolSets(v []*v1.ToolSet) {
+func (x *GenerateMessageRequest) SetToolSets(v []*v1.ToolSet) {
 	x.xxx_hidden_ToolSets = &v
 }
 
-func (x *StreamMessageRequest) SetConfiguration(v *MessageGenerationConfiguration) {
+func (x *GenerateMessageRequest) SetConfiguration(v *MessageGenerationConfiguration) {
 	x.xxx_hidden_Configuration = v
 }
 
-func (x *StreamMessageRequest) SetLabels(v map[string]string) {
+func (x *GenerateMessageRequest) SetLabels(v map[string]string) {
 	x.xxx_hidden_Labels = v
 }
 
-func (x *StreamMessageRequest) HasConfiguration() bool {
+func (x *GenerateMessageRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
+}
+
+func (x *GenerateMessageRequest) HasConfiguration() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Configuration != nil
 }
 
-func (x *StreamMessageRequest) ClearConfiguration() {
+func (x *GenerateMessageRequest) ClearConfiguration() {
 	x.xxx_hidden_Configuration = nil
 }
 
-type StreamMessageRequest_builder struct {
+type GenerateMessageRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The resource name of the parent chat whose (non-deleted) messages form the
-	// conversation history for this generation. The generated assistant message
-	// is persisted under this chat.
+	// The resource name of the parent chat whose message history forms the
+	// conversation for this generation. The input `messages` and the generated
+	// assistant message are persisted under this chat.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Parent string
 	// The resource name of the model to use.
 	// Format: providers/{provider}/models/{model}
 	Model string
+	// New messages to append to the conversation before generating, in order.
+	// They are persisted immediately and are not echoed back in the response;
+	// use ListMessages to retrieve them. Must not use the ASSISTANT role.
+	Messages []*v1.Message
+	// Optional resource name of an assistant message to generate from, allowing
+	// a client to fork the conversation. The conversation history is truncated
+	// after this message: any later message is labeled
+	// `ai.malonaz.com/superseded` and excluded from this and future generations.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	PreviousMessage string
 	// Tools available for the model to call.
 	Tools []*v1.Tool
 	// Tool sets available for the model to call.
@@ -1068,43 +1116,51 @@ type StreamMessageRequest_builder struct {
 	Configuration *MessageGenerationConfiguration
 	// Labels to set on the generated message.
 	Labels map[string]string
+	// A unique identifier for this request. Must be a UUID.
+	RequestId string
 }
 
-func (b0 StreamMessageRequest_builder) Build() *StreamMessageRequest {
-	m0 := &StreamMessageRequest{}
+func (b0 GenerateMessageRequest_builder) Build() *GenerateMessageRequest {
+	m0 := &GenerateMessageRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Model = b.Model
+	x.xxx_hidden_Messages = &b.Messages
+	x.xxx_hidden_PreviousMessage = b.PreviousMessage
 	x.xxx_hidden_Tools = &b.Tools
 	x.xxx_hidden_ToolSets = &b.ToolSets
 	x.xxx_hidden_Configuration = b.Configuration
 	x.xxx_hidden_Labels = b.Labels
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
-// Response message for AiService.StreamMessage.
-type StreamMessageResponse struct {
-	state              protoimpl.MessageState          `protogen:"opaque.v1"`
-	xxx_hidden_Content isStreamMessageResponse_Content `protobuf_oneof:"content"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+// Response message for AiService.GenerateMessage.
+type GenerateMessageResponse struct {
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_GeneratedMessage  *v1.Message            `protobuf:"bytes,1,opt,name=generated_message,json=generatedMessage,proto3"`
+	xxx_hidden_StopReason        StopReason             `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.StopReason"`
+	xxx_hidden_ModelUsage        *v1.ModelUsage         `protobuf:"bytes,3,opt,name=model_usage,json=modelUsage,proto3"`
+	xxx_hidden_GenerationMetrics *v1.GenerationMetrics  `protobuf:"bytes,4,opt,name=generation_metrics,json=generationMetrics,proto3"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
-func (x *StreamMessageResponse) Reset() {
-	*x = StreamMessageResponse{}
+func (x *GenerateMessageResponse) Reset() {
+	*x = GenerateMessageResponse{}
 	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamMessageResponse) String() string {
+func (x *GenerateMessageResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamMessageResponse) ProtoMessage() {}
+func (*GenerateMessageResponse) ProtoMessage() {}
 
-func (x *StreamMessageResponse) ProtoReflect() protoreflect.Message {
+func (x *GenerateMessageResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1116,196 +1172,331 @@ func (x *StreamMessageResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *StreamMessageResponse) GetBlock() *v1.Block {
+func (x *GenerateMessageResponse) GetGeneratedMessage() *v1.Message {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Content.(*streamMessageResponse_Block); ok {
+		return x.xxx_hidden_GeneratedMessage
+	}
+	return nil
+}
+
+func (x *GenerateMessageResponse) GetStopReason() StopReason {
+	if x != nil {
+		return x.xxx_hidden_StopReason
+	}
+	return StopReason_STOP_REASON_UNSPECIFIED
+}
+
+func (x *GenerateMessageResponse) GetModelUsage() *v1.ModelUsage {
+	if x != nil {
+		return x.xxx_hidden_ModelUsage
+	}
+	return nil
+}
+
+func (x *GenerateMessageResponse) GetGenerationMetrics() *v1.GenerationMetrics {
+	if x != nil {
+		return x.xxx_hidden_GenerationMetrics
+	}
+	return nil
+}
+
+func (x *GenerateMessageResponse) SetGeneratedMessage(v *v1.Message) {
+	x.xxx_hidden_GeneratedMessage = v
+}
+
+func (x *GenerateMessageResponse) SetStopReason(v StopReason) {
+	x.xxx_hidden_StopReason = v
+}
+
+func (x *GenerateMessageResponse) SetModelUsage(v *v1.ModelUsage) {
+	x.xxx_hidden_ModelUsage = v
+}
+
+func (x *GenerateMessageResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
+	x.xxx_hidden_GenerationMetrics = v
+}
+
+func (x *GenerateMessageResponse) HasGeneratedMessage() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_GeneratedMessage != nil
+}
+
+func (x *GenerateMessageResponse) HasModelUsage() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ModelUsage != nil
+}
+
+func (x *GenerateMessageResponse) HasGenerationMetrics() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_GenerationMetrics != nil
+}
+
+func (x *GenerateMessageResponse) ClearGeneratedMessage() {
+	x.xxx_hidden_GeneratedMessage = nil
+}
+
+func (x *GenerateMessageResponse) ClearModelUsage() {
+	x.xxx_hidden_ModelUsage = nil
+}
+
+func (x *GenerateMessageResponse) ClearGenerationMetrics() {
+	x.xxx_hidden_GenerationMetrics = nil
+}
+
+type GenerateMessageResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The persisted generated assistant message, including its resource name,
+	// aggregated model usage and price.
+	GeneratedMessage *v1.Message
+	// Reason why generation stopped.
+	StopReason StopReason
+	// Model usage metrics.
+	ModelUsage *v1.ModelUsage
+	// Generation metrics.
+	GenerationMetrics *v1.GenerationMetrics
+}
+
+func (b0 GenerateMessageResponse_builder) Build() *GenerateMessageResponse {
+	m0 := &GenerateMessageResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_GeneratedMessage = b.GeneratedMessage
+	x.xxx_hidden_StopReason = b.StopReason
+	x.xxx_hidden_ModelUsage = b.ModelUsage
+	x.xxx_hidden_GenerationMetrics = b.GenerationMetrics
+	return m0
+}
+
+// Response message for AiService.StreamGenerateMessage.
+type StreamGenerateMessageResponse struct {
+	state              protoimpl.MessageState                  `protogen:"opaque.v1"`
+	xxx_hidden_Content isStreamGenerateMessageResponse_Content `protobuf_oneof:"content"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *StreamGenerateMessageResponse) Reset() {
+	*x = StreamGenerateMessageResponse{}
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamGenerateMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamGenerateMessageResponse) ProtoMessage() {}
+
+func (x *StreamGenerateMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *StreamGenerateMessageResponse) GetBlock() *v1.Block {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_Block); ok {
 			return x.Block
 		}
 	}
 	return nil
 }
 
-func (x *StreamMessageResponse) GetStopReason() StopReason {
+func (x *StreamGenerateMessageResponse) GetStopReason() StopReason {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Content.(*streamMessageResponse_StopReason); ok {
+		if x, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_StopReason); ok {
 			return x.StopReason
 		}
 	}
 	return StopReason_STOP_REASON_UNSPECIFIED
 }
 
-func (x *StreamMessageResponse) GetGenerationMetrics() *v1.GenerationMetrics {
+func (x *StreamGenerateMessageResponse) GetGenerationMetrics() *v1.GenerationMetrics {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Content.(*streamMessageResponse_GenerationMetrics); ok {
+		if x, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GenerationMetrics); ok {
 			return x.GenerationMetrics
 		}
 	}
 	return nil
 }
 
-func (x *StreamMessageResponse) GetMessage() *v1.Message {
+func (x *StreamGenerateMessageResponse) GetGeneratedMessage() *v1.Message {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Content.(*streamMessageResponse_Message); ok {
-			return x.Message
+		if x, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GeneratedMessage); ok {
+			return x.GeneratedMessage
 		}
 	}
 	return nil
 }
 
-func (x *StreamMessageResponse) GetModelUsage() *v1.ModelUsage {
+func (x *StreamGenerateMessageResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Content.(*streamMessageResponse_ModelUsage); ok {
+		if x, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_ModelUsage); ok {
 			return x.ModelUsage
 		}
 	}
 	return nil
 }
 
-func (x *StreamMessageResponse) SetBlock(v *v1.Block) {
+func (x *StreamGenerateMessageResponse) SetBlock(v *v1.Block) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
 	}
-	x.xxx_hidden_Content = &streamMessageResponse_Block{v}
+	x.xxx_hidden_Content = &streamGenerateMessageResponse_Block{v}
 }
 
-func (x *StreamMessageResponse) SetStopReason(v StopReason) {
-	x.xxx_hidden_Content = &streamMessageResponse_StopReason{v}
+func (x *StreamGenerateMessageResponse) SetStopReason(v StopReason) {
+	x.xxx_hidden_Content = &streamGenerateMessageResponse_StopReason{v}
 }
 
-func (x *StreamMessageResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
+func (x *StreamGenerateMessageResponse) SetGenerationMetrics(v *v1.GenerationMetrics) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
 	}
-	x.xxx_hidden_Content = &streamMessageResponse_GenerationMetrics{v}
+	x.xxx_hidden_Content = &streamGenerateMessageResponse_GenerationMetrics{v}
 }
 
-func (x *StreamMessageResponse) SetMessage(v *v1.Message) {
+func (x *StreamGenerateMessageResponse) SetGeneratedMessage(v *v1.Message) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
 	}
-	x.xxx_hidden_Content = &streamMessageResponse_Message{v}
+	x.xxx_hidden_Content = &streamGenerateMessageResponse_GeneratedMessage{v}
 }
 
-func (x *StreamMessageResponse) SetModelUsage(v *v1.ModelUsage) {
+func (x *StreamGenerateMessageResponse) SetModelUsage(v *v1.ModelUsage) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
 	}
-	x.xxx_hidden_Content = &streamMessageResponse_ModelUsage{v}
+	x.xxx_hidden_Content = &streamGenerateMessageResponse_ModelUsage{v}
 }
 
-func (x *StreamMessageResponse) HasContent() bool {
+func (x *StreamGenerateMessageResponse) HasContent() bool {
 	if x == nil {
 		return false
 	}
 	return x.xxx_hidden_Content != nil
 }
 
-func (x *StreamMessageResponse) HasBlock() bool {
+func (x *StreamGenerateMessageResponse) HasBlock() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Content.(*streamMessageResponse_Block)
+	_, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_Block)
 	return ok
 }
 
-func (x *StreamMessageResponse) HasStopReason() bool {
+func (x *StreamGenerateMessageResponse) HasStopReason() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Content.(*streamMessageResponse_StopReason)
+	_, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_StopReason)
 	return ok
 }
 
-func (x *StreamMessageResponse) HasGenerationMetrics() bool {
+func (x *StreamGenerateMessageResponse) HasGenerationMetrics() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Content.(*streamMessageResponse_GenerationMetrics)
+	_, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GenerationMetrics)
 	return ok
 }
 
-func (x *StreamMessageResponse) HasMessage() bool {
+func (x *StreamGenerateMessageResponse) HasGeneratedMessage() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Content.(*streamMessageResponse_Message)
+	_, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GeneratedMessage)
 	return ok
 }
 
-func (x *StreamMessageResponse) HasModelUsage() bool {
+func (x *StreamGenerateMessageResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Content.(*streamMessageResponse_ModelUsage)
+	_, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_ModelUsage)
 	return ok
 }
 
-func (x *StreamMessageResponse) ClearContent() {
+func (x *StreamGenerateMessageResponse) ClearContent() {
 	x.xxx_hidden_Content = nil
 }
 
-func (x *StreamMessageResponse) ClearBlock() {
-	if _, ok := x.xxx_hidden_Content.(*streamMessageResponse_Block); ok {
+func (x *StreamGenerateMessageResponse) ClearBlock() {
+	if _, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_Block); ok {
 		x.xxx_hidden_Content = nil
 	}
 }
 
-func (x *StreamMessageResponse) ClearStopReason() {
-	if _, ok := x.xxx_hidden_Content.(*streamMessageResponse_StopReason); ok {
+func (x *StreamGenerateMessageResponse) ClearStopReason() {
+	if _, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_StopReason); ok {
 		x.xxx_hidden_Content = nil
 	}
 }
 
-func (x *StreamMessageResponse) ClearGenerationMetrics() {
-	if _, ok := x.xxx_hidden_Content.(*streamMessageResponse_GenerationMetrics); ok {
+func (x *StreamGenerateMessageResponse) ClearGenerationMetrics() {
+	if _, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GenerationMetrics); ok {
 		x.xxx_hidden_Content = nil
 	}
 }
 
-func (x *StreamMessageResponse) ClearMessage() {
-	if _, ok := x.xxx_hidden_Content.(*streamMessageResponse_Message); ok {
+func (x *StreamGenerateMessageResponse) ClearGeneratedMessage() {
+	if _, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_GeneratedMessage); ok {
 		x.xxx_hidden_Content = nil
 	}
 }
 
-func (x *StreamMessageResponse) ClearModelUsage() {
-	if _, ok := x.xxx_hidden_Content.(*streamMessageResponse_ModelUsage); ok {
+func (x *StreamGenerateMessageResponse) ClearModelUsage() {
+	if _, ok := x.xxx_hidden_Content.(*streamGenerateMessageResponse_ModelUsage); ok {
 		x.xxx_hidden_Content = nil
 	}
 }
 
-const StreamMessageResponse_Content_not_set_case case_StreamMessageResponse_Content = 0
-const StreamMessageResponse_Block_case case_StreamMessageResponse_Content = 1
-const StreamMessageResponse_StopReason_case case_StreamMessageResponse_Content = 2
-const StreamMessageResponse_GenerationMetrics_case case_StreamMessageResponse_Content = 3
-const StreamMessageResponse_Message_case case_StreamMessageResponse_Content = 4
-const StreamMessageResponse_ModelUsage_case case_StreamMessageResponse_Content = 5
+const StreamGenerateMessageResponse_Content_not_set_case case_StreamGenerateMessageResponse_Content = 0
+const StreamGenerateMessageResponse_Block_case case_StreamGenerateMessageResponse_Content = 1
+const StreamGenerateMessageResponse_StopReason_case case_StreamGenerateMessageResponse_Content = 2
+const StreamGenerateMessageResponse_GenerationMetrics_case case_StreamGenerateMessageResponse_Content = 3
+const StreamGenerateMessageResponse_GeneratedMessage_case case_StreamGenerateMessageResponse_Content = 4
+const StreamGenerateMessageResponse_ModelUsage_case case_StreamGenerateMessageResponse_Content = 5
 
-func (x *StreamMessageResponse) WhichContent() case_StreamMessageResponse_Content {
+func (x *StreamGenerateMessageResponse) WhichContent() case_StreamGenerateMessageResponse_Content {
 	if x == nil {
-		return StreamMessageResponse_Content_not_set_case
+		return StreamGenerateMessageResponse_Content_not_set_case
 	}
 	switch x.xxx_hidden_Content.(type) {
-	case *streamMessageResponse_Block:
-		return StreamMessageResponse_Block_case
-	case *streamMessageResponse_StopReason:
-		return StreamMessageResponse_StopReason_case
-	case *streamMessageResponse_GenerationMetrics:
-		return StreamMessageResponse_GenerationMetrics_case
-	case *streamMessageResponse_Message:
-		return StreamMessageResponse_Message_case
-	case *streamMessageResponse_ModelUsage:
-		return StreamMessageResponse_ModelUsage_case
+	case *streamGenerateMessageResponse_Block:
+		return StreamGenerateMessageResponse_Block_case
+	case *streamGenerateMessageResponse_StopReason:
+		return StreamGenerateMessageResponse_StopReason_case
+	case *streamGenerateMessageResponse_GenerationMetrics:
+		return StreamGenerateMessageResponse_GenerationMetrics_case
+	case *streamGenerateMessageResponse_GeneratedMessage:
+		return StreamGenerateMessageResponse_GeneratedMessage_case
+	case *streamGenerateMessageResponse_ModelUsage:
+		return StreamGenerateMessageResponse_ModelUsage_case
 	default:
-		return StreamMessageResponse_Content_not_set_case
+		return StreamGenerateMessageResponse_Content_not_set_case
 	}
 }
 
-type StreamMessageResponse_builder struct {
+type StreamGenerateMessageResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Content of this response.
@@ -1315,91 +1506,91 @@ type StreamMessageResponse_builder struct {
 	Block *v1.Block
 	// Reason why generation stopped.
 	StopReason *StopReason
-	// Generation metrics (sent last).
+	// Generation metrics.
 	GenerationMetrics *v1.GenerationMetrics
-	// The fully persisted assistant message, including its resource name,
-	// model usage and price. Sent as the final event of the stream.
-	Message *v1.Message
+	// The persisted generated assistant message, including its resource name,
+	// aggregated model usage and price. Sent as the final event of the stream.
+	GeneratedMessage *v1.Message
 	// Incremental model usage updates. The absolute truth for a resource
-	// consumption is the last one streamed out; the final `message` event
-	// also carries the aggregate usage.
+	// consumption is the last one streamed out; the final `generated_message`
+	// event also carries the aggregate usage.
 	ModelUsage *v1.ModelUsage
 	// -- end of xxx_hidden_Content
 }
 
-func (b0 StreamMessageResponse_builder) Build() *StreamMessageResponse {
-	m0 := &StreamMessageResponse{}
+func (b0 StreamGenerateMessageResponse_builder) Build() *StreamGenerateMessageResponse {
+	m0 := &StreamGenerateMessageResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Block != nil {
-		x.xxx_hidden_Content = &streamMessageResponse_Block{b.Block}
+		x.xxx_hidden_Content = &streamGenerateMessageResponse_Block{b.Block}
 	}
 	if b.StopReason != nil {
-		x.xxx_hidden_Content = &streamMessageResponse_StopReason{*b.StopReason}
+		x.xxx_hidden_Content = &streamGenerateMessageResponse_StopReason{*b.StopReason}
 	}
 	if b.GenerationMetrics != nil {
-		x.xxx_hidden_Content = &streamMessageResponse_GenerationMetrics{b.GenerationMetrics}
+		x.xxx_hidden_Content = &streamGenerateMessageResponse_GenerationMetrics{b.GenerationMetrics}
 	}
-	if b.Message != nil {
-		x.xxx_hidden_Content = &streamMessageResponse_Message{b.Message}
+	if b.GeneratedMessage != nil {
+		x.xxx_hidden_Content = &streamGenerateMessageResponse_GeneratedMessage{b.GeneratedMessage}
 	}
 	if b.ModelUsage != nil {
-		x.xxx_hidden_Content = &streamMessageResponse_ModelUsage{b.ModelUsage}
+		x.xxx_hidden_Content = &streamGenerateMessageResponse_ModelUsage{b.ModelUsage}
 	}
 	return m0
 }
 
-type case_StreamMessageResponse_Content protoreflect.FieldNumber
+type case_StreamGenerateMessageResponse_Content protoreflect.FieldNumber
 
-func (x case_StreamMessageResponse_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9].Descriptor()
+func (x case_StreamGenerateMessageResponse_Content) String() string {
+	md := file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
 	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
 }
 
-type isStreamMessageResponse_Content interface {
-	isStreamMessageResponse_Content()
+type isStreamGenerateMessageResponse_Content interface {
+	isStreamGenerateMessageResponse_Content()
 }
 
-type streamMessageResponse_Block struct {
+type streamGenerateMessageResponse_Block struct {
 	// A generated block delta.
 	Block *v1.Block `protobuf:"bytes,1,opt,name=block,proto3,oneof"`
 }
 
-type streamMessageResponse_StopReason struct {
+type streamGenerateMessageResponse_StopReason struct {
 	// Reason why generation stopped.
 	StopReason StopReason `protobuf:"varint,2,opt,name=stop_reason,json=stopReason,proto3,enum=malonaz.ai.ai_service.v1.StopReason,oneof"`
 }
 
-type streamMessageResponse_GenerationMetrics struct {
-	// Generation metrics (sent last).
+type streamGenerateMessageResponse_GenerationMetrics struct {
+	// Generation metrics.
 	GenerationMetrics *v1.GenerationMetrics `protobuf:"bytes,3,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
 }
 
-type streamMessageResponse_Message struct {
-	// The fully persisted assistant message, including its resource name,
-	// model usage and price. Sent as the final event of the stream.
-	Message *v1.Message `protobuf:"bytes,4,opt,name=message,proto3,oneof"`
+type streamGenerateMessageResponse_GeneratedMessage struct {
+	// The persisted generated assistant message, including its resource name,
+	// aggregated model usage and price. Sent as the final event of the stream.
+	GeneratedMessage *v1.Message `protobuf:"bytes,4,opt,name=generated_message,json=generatedMessage,proto3,oneof"`
 }
 
-type streamMessageResponse_ModelUsage struct {
+type streamGenerateMessageResponse_ModelUsage struct {
 	// Incremental model usage updates. The absolute truth for a resource
-	// consumption is the last one streamed out; the final `message` event
-	// also carries the aggregate usage.
+	// consumption is the last one streamed out; the final `generated_message`
+	// event also carries the aggregate usage.
 	ModelUsage *v1.ModelUsage `protobuf:"bytes,5,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
-func (*streamMessageResponse_Block) isStreamMessageResponse_Content() {}
+func (*streamGenerateMessageResponse_Block) isStreamGenerateMessageResponse_Content() {}
 
-func (*streamMessageResponse_StopReason) isStreamMessageResponse_Content() {}
+func (*streamGenerateMessageResponse_StopReason) isStreamGenerateMessageResponse_Content() {}
 
-func (*streamMessageResponse_GenerationMetrics) isStreamMessageResponse_Content() {}
+func (*streamGenerateMessageResponse_GenerationMetrics) isStreamGenerateMessageResponse_Content() {}
 
-func (*streamMessageResponse_Message) isStreamMessageResponse_Content() {}
+func (*streamGenerateMessageResponse_GeneratedMessage) isStreamGenerateMessageResponse_Content() {}
 
-func (*streamMessageResponse_ModelUsage) isStreamMessageResponse_Content() {}
+func (*streamGenerateMessageResponse_ModelUsage) isStreamGenerateMessageResponse_Content() {}
 
 var File_malonaz_ai_ai_service_v1_message_proto protoreflect.FileDescriptor
 
@@ -1417,15 +1608,16 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"M\n" +
 	"\x11GetMessageRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
-	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\"\x87\x02\n" +
+	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\"\x8f\x02\n" +
 	"\x14UpdateMessageRequest\x128\n" +
 	"\amessage\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xd8\x01\x03R\amessage\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:p\xbaHK\x1aI\n" +
-	"\x15message.name_required\x12\x18message.name must be set\x1a\x16has(this.message.name)\xea\x9c\xc1\x03\x1d\n" +
+	"updateMask:x\xbaHK\x1aI\n" +
+	"\x15message.name_required\x12\x18message.name must be set\x1a\x16has(this.message.name)\xea\x9c\xc1\x03%\n" +
 	"\x06labels\n" +
 	"\vannotations\n" +
-	"\x06blocks\"\x89\x01\n" +
+	"\x06blocks\n" +
+	"\x06status\"\x89\x01\n" +
 	"\x14DeleteMessageRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
 	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
@@ -1459,25 +1651,38 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x1cImageGenerationConfiguration\x12_\n" +
 	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
 	"\n" +
-	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xe6\x04\n" +
-	"\x14StreamMessageRequest\x129\n" +
+	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\xf4\x06\n" +
+	"\x16GenerateMessageRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12)\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x123\n" +
-	"\ttool_sets\x18\x04 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\x12^\n" +
-	"\rconfiguration\x18\x05 \x01(\v28.malonaz.ai.ai_service.v1.MessageGenerationConfigurationR\rconfiguration\x12\xe0\x01\n" +
-	"\x06labels\x18\x06 \x03(\v2:.malonaz.ai.ai_service.v1.StreamMessageRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a9\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x122\n" +
+	"\bmessages\x18\x03 \x03(\v2\x16.malonaz.ai.v1.MessageR\bmessages\x12F\n" +
+	"\x10previous_message\x18\x04 \x01(\tB\x1b\xfaA\x18\n" +
+	"\x16ai.malonaz.com/MessageR\x0fpreviousMessage\x12)\n" +
+	"\x05tools\x18\x05 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x123\n" +
+	"\ttool_sets\x18\x06 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\x12^\n" +
+	"\rconfiguration\x18\a \x01(\v28.malonaz.ai.ai_service.v1.MessageGenerationConfigurationR\rconfiguration\x12\xe2\x01\n" +
+	"\x06labels\x18\b \x03(\v2<.malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x12*\n" +
+	"\n" +
+	"request_id\x18\t \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe5\x02\n" +
-	"\x15StreamMessageResponse\x12,\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:`\xbaH]\x1a[\n" +
+	"\rmessages_role\x12'messages cannot have the ASSISTANT role\x1a!this.messages.all(m, m.role != 2)\"\xb2\x02\n" +
+	"\x17GenerateMessageResponse\x12C\n" +
+	"\x11generated_message\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageR\x10generatedMessage\x12E\n" +
+	"\vstop_reason\x18\x02 \x01(\x0e2$.malonaz.ai.ai_service.v1.StopReasonR\n" +
+	"stopReason\x12:\n" +
+	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
+	"modelUsage\x12O\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\x80\x03\n" +
+	"\x1dStreamGenerateMessageResponse\x12,\n" +
 	"\x05block\x18\x01 \x01(\v2\x14.malonaz.ai.v1.BlockH\x00R\x05block\x12G\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2$.malonaz.ai.ai_service.v1.StopReasonH\x00R\n" +
 	"stopReason\x12Q\n" +
-	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetrics\x122\n" +
-	"\amessage\x18\x04 \x01(\v2\x16.malonaz.ai.v1.MessageH\x00R\amessage\x12<\n" +
+	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetrics\x12E\n" +
+	"\x11generated_message\x18\x04 \x01(\v2\x16.malonaz.ai.v1.MessageH\x00R\x10generatedMessage\x12<\n" +
 	"\vmodel_usage\x18\x05 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsageB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01*\xce\x01\n" +
@@ -1492,7 +1697,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x13STOP_REASON_REFUSAL\x10\x06B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(StopReason)(0),                        // 0: malonaz.ai.ai_service.v1.StopReason
 	(*CreateMessageRequest)(nil),           // 1: malonaz.ai.ai_service.v1.CreateMessageRequest
@@ -1503,41 +1708,47 @@ var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(*ListMessagesResponse)(nil),           // 6: malonaz.ai.ai_service.v1.ListMessagesResponse
 	(*MessageGenerationConfiguration)(nil), // 7: malonaz.ai.ai_service.v1.MessageGenerationConfiguration
 	(*ImageGenerationConfiguration)(nil),   // 8: malonaz.ai.ai_service.v1.ImageGenerationConfiguration
-	(*StreamMessageRequest)(nil),           // 9: malonaz.ai.ai_service.v1.StreamMessageRequest
-	(*StreamMessageResponse)(nil),          // 10: malonaz.ai.ai_service.v1.StreamMessageResponse
-	nil,                                    // 11: malonaz.ai.ai_service.v1.StreamMessageRequest.LabelsEntry
-	(*v1.Message)(nil),                     // 12: malonaz.ai.v1.Message
-	(*fieldmaskpb.FieldMask)(nil),          // 13: google.protobuf.FieldMask
-	(*v1.ToolChoice)(nil),                  // 14: malonaz.ai.v1.ToolChoice
-	(v1.ReasoningEffort)(0),                // 15: malonaz.ai.v1.ReasoningEffort
-	(*v1.Tool)(nil),                        // 16: malonaz.ai.v1.Tool
-	(*v1.ToolSet)(nil),                     // 17: malonaz.ai.v1.ToolSet
-	(*v1.Block)(nil),                       // 18: malonaz.ai.v1.Block
-	(*v1.GenerationMetrics)(nil),           // 19: malonaz.ai.v1.GenerationMetrics
-	(*v1.ModelUsage)(nil),                  // 20: malonaz.ai.v1.ModelUsage
+	(*GenerateMessageRequest)(nil),         // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest
+	(*GenerateMessageResponse)(nil),        // 10: malonaz.ai.ai_service.v1.GenerateMessageResponse
+	(*StreamGenerateMessageResponse)(nil),  // 11: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
+	nil,                                    // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	(*v1.Message)(nil),                     // 13: malonaz.ai.v1.Message
+	(*fieldmaskpb.FieldMask)(nil),          // 14: google.protobuf.FieldMask
+	(*v1.ToolChoice)(nil),                  // 15: malonaz.ai.v1.ToolChoice
+	(v1.ReasoningEffort)(0),                // 16: malonaz.ai.v1.ReasoningEffort
+	(*v1.Tool)(nil),                        // 17: malonaz.ai.v1.Tool
+	(*v1.ToolSet)(nil),                     // 18: malonaz.ai.v1.ToolSet
+	(*v1.ModelUsage)(nil),                  // 19: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),           // 20: malonaz.ai.v1.GenerationMetrics
+	(*v1.Block)(nil),                       // 21: malonaz.ai.v1.Block
 }
 var file_malonaz_ai_ai_service_v1_message_proto_depIdxs = []int32{
-	12, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	12, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	13, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
-	12, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
-	14, // 4: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
-	15, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	13, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	13, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	14, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
+	13, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	15, // 4: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
+	16, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
 	8,  // 6: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.image_configuration:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfiguration
-	16, // 7: malonaz.ai.ai_service.v1.StreamMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
-	17, // 8: malonaz.ai.ai_service.v1.StreamMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
-	7,  // 9: malonaz.ai.ai_service.v1.StreamMessageRequest.configuration:type_name -> malonaz.ai.ai_service.v1.MessageGenerationConfiguration
-	11, // 10: malonaz.ai.ai_service.v1.StreamMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.StreamMessageRequest.LabelsEntry
-	18, // 11: malonaz.ai.ai_service.v1.StreamMessageResponse.block:type_name -> malonaz.ai.v1.Block
-	0,  // 12: malonaz.ai.ai_service.v1.StreamMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
-	19, // 13: malonaz.ai.ai_service.v1.StreamMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	12, // 14: malonaz.ai.ai_service.v1.StreamMessageResponse.message:type_name -> malonaz.ai.v1.Message
-	20, // 15: malonaz.ai.ai_service.v1.StreamMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	13, // 7: malonaz.ai.ai_service.v1.GenerateMessageRequest.messages:type_name -> malonaz.ai.v1.Message
+	17, // 8: malonaz.ai.ai_service.v1.GenerateMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
+	18, // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	7,  // 10: malonaz.ai.ai_service.v1.GenerateMessageRequest.configuration:type_name -> malonaz.ai.ai_service.v1.MessageGenerationConfiguration
+	12, // 11: malonaz.ai.ai_service.v1.GenerateMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	13, // 12: malonaz.ai.ai_service.v1.GenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	0,  // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
+	19, // 14: malonaz.ai.ai_service.v1.GenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	20, // 15: malonaz.ai.ai_service.v1.GenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	21, // 16: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.block:type_name -> malonaz.ai.v1.Block
+	0,  // 17: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
+	20, // 18: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	13, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	19, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_message_proto_init() }
@@ -1545,12 +1756,12 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 	if File_malonaz_ai_ai_service_v1_message_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9].OneofWrappers = []any{
-		(*streamMessageResponse_Block)(nil),
-		(*streamMessageResponse_StopReason)(nil),
-		(*streamMessageResponse_GenerationMetrics)(nil),
-		(*streamMessageResponse_Message)(nil),
-		(*streamMessageResponse_ModelUsage)(nil),
+	file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10].OneofWrappers = []any{
+		(*streamGenerateMessageResponse_Block)(nil),
+		(*streamGenerateMessageResponse_StopReason)(nil),
+		(*streamGenerateMessageResponse_GenerationMetrics)(nil),
+		(*streamGenerateMessageResponse_GeneratedMessage)(nil),
+		(*streamGenerateMessageResponse_ModelUsage)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1558,7 +1769,7 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_message_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_message_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

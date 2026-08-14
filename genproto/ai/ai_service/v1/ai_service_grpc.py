@@ -108,7 +108,11 @@ class AiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def StreamMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse]') -> None:
+    async def GenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.GenerateMessageResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def StreamGenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -233,11 +237,17 @@ class AiServiceBase(abc.ABC):
                 malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
                 malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
             ),
-            '/malonaz.ai.ai_service.v1.AiService/StreamMessage': grpclib.const.Handler(
-                self.StreamMessage,
+            '/malonaz.ai.ai_service.v1.AiService/GenerateMessage': grpclib.const.Handler(
+                self.GenerateMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
+                malonaz.ai.ai_service.v1.message_pb2.GenerateMessageResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage': grpclib.const.Handler(
+                self.StreamGenerateMessage,
                 grpclib.const.Cardinality.UNARY_STREAM,
-                malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest,
-                malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse,
+                malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
+                malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
             ),
         }
 
@@ -365,9 +375,15 @@ class AiServiceStub:
             malonaz.ai.ai_service.v1.message_pb2.ListMessagesRequest,
             malonaz.ai.ai_service.v1.message_pb2.ListMessagesResponse,
         )
-        self.StreamMessage = grpclib.client.UnaryStreamMethod(
+        self.GenerateMessage = grpclib.client.UnaryUnaryMethod(
             channel,
-            '/malonaz.ai.ai_service.v1.AiService/StreamMessage',
-            malonaz.ai.ai_service.v1.message_pb2.StreamMessageRequest,
-            malonaz.ai.ai_service.v1.message_pb2.StreamMessageResponse,
+            '/malonaz.ai.ai_service.v1.AiService/GenerateMessage',
+            malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
+            malonaz.ai.ai_service.v1.message_pb2.GenerateMessageResponse,
+        )
+        self.StreamGenerateMessage = grpclib.client.UnaryStreamMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage',
+            malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
+            malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
         )

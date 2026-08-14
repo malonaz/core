@@ -9,6 +9,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
+	status "google.golang.org/genproto/googleapis/rpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -34,6 +35,7 @@ type Message struct {
 	Model          *string    `db:"model" schema:"public" table:"message"`
 	ModelUsage     []byte     `db:"model_usage" schema:"public" table:"message"`
 	Price          float64    `db:"price" schema:"public" table:"message"`
+	Status         []byte     `db:"status" schema:"public" table:"message"`
 }
 
 func MessageFromPb(m *v1.Message) (*Message, error) {
@@ -92,6 +94,14 @@ func MessageFromPb(m *v1.Message) (*Message, error) {
 			return nil, fmt.Errorf("marshaling ModelUsage: %w", err)
 		}
 	}
+	var StatusBytes []byte
+	if m.Status != nil {
+		var err error
+		StatusBytes, err = pbutil.JSONMarshal(m.Status)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Status: %w", err)
+		}
+	}
 	return &Message{
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
@@ -108,6 +118,7 @@ func MessageFromPb(m *v1.Message) (*Message, error) {
 		Model:          Model,
 		ModelUsage:     ModelUsageBytes,
 		Price:          m.Price,
+		Status:         StatusBytes,
 	}, nil
 }
 
@@ -158,6 +169,13 @@ func (m *Message) ToPb() (*v1.Message, error) {
 			return nil, fmt.Errorf("unmarshaling ModelUsage: %w", err)
 		}
 	}
+	var Status *status.Status
+	if m.Status != nil {
+		Status = &status.Status{}
+		if err := pbutil.JSONUnmarshal(m.Status, Status); err != nil {
+			return nil, fmt.Errorf("unmarshaling Status: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}/messages/{message}", m.OrganizationID, m.UserID, m.ChatID, m.MessageID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -175,6 +193,7 @@ func (m *Message) ToPb() (*v1.Message, error) {
 		Model:       Model,
 		ModelUsage:  ModelUsage,
 		Price:       m.Price,
+		Status:      Status,
 	}, nil
 }
 

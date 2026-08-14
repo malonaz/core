@@ -2,7 +2,7 @@ go_library(
     name = "anthropic",
     srcs = [
         "anthropic.go",
-        "stream_message.go",
+        "generate_message.go",
     ],
     visibility = ["//..."],
     deps = [

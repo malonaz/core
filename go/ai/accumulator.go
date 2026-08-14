@@ -24,9 +24,9 @@ func NewMessageAccumulator() *MessageAccumulator {
 	}
 }
 
-func (a *MessageAccumulator) Add(response *pb.StreamMessageResponse) error {
+func (a *MessageAccumulator) Add(response *pb.StreamGenerateMessageResponse) error {
 	switch c := response.GetContent().(type) {
-	case *pb.StreamMessageResponse_Block:
+	case *pb.StreamGenerateMessageResponse_Block:
 		block, ok := a.blockIndexToBlock[c.Block.Index]
 		if !ok {
 			block = &aipb.Block{Index: c.Block.Index}
@@ -93,25 +93,25 @@ func (a *MessageAccumulator) Add(response *pb.StreamMessageResponse) error {
 
 		}
 
-	case *pb.StreamMessageResponse_StopReason:
+	case *pb.StreamGenerateMessageResponse_StopReason:
 		a.StopReason = c.StopReason
 
-	case *pb.StreamMessageResponse_ModelUsage:
+	case *pb.StreamGenerateMessageResponse_ModelUsage:
 		if a.ModelUsage == nil {
 			a.ModelUsage = &aipb.ModelUsage{}
 		}
 		proto.Merge(a.ModelUsage, c.ModelUsage)
 
-	case *pb.StreamMessageResponse_GenerationMetrics:
+	case *pb.StreamGenerateMessageResponse_GenerationMetrics:
 		if a.GenerationMetrics == nil {
 			a.GenerationMetrics = &aipb.GenerationMetrics{}
 		}
 		proto.Merge(a.GenerationMetrics, c.GenerationMetrics)
 
-	case *pb.StreamMessageResponse_Message:
+	case *pb.StreamGenerateMessageResponse_GeneratedMessage:
 		// The persisted message is the source of truth: it carries the resource
 		// name, aggregated model usage and price.
-		a.Message = c.Message
+		a.Message = c.GeneratedMessage
 	}
 	return nil
 }

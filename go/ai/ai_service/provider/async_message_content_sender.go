@@ -10,21 +10,21 @@ import (
 )
 
 type AsyncMessageContentSender struct {
-	srv  aiservicepb.AiService_StreamMessageServer
-	ch   chan *aiservicepb.StreamMessageResponse
+	srv  aiservicepb.AiService_StreamGenerateMessageServer
+	ch   chan *aiservicepb.StreamGenerateMessageResponse
 	done chan struct{}
 
 	err  atomic.Value
 	once sync.Once
 }
 
-func NewAsyncMessageContentSender(srv aiservicepb.AiService_StreamMessageServer, bufferSize int) *AsyncMessageContentSender {
+func NewAsyncMessageContentSender(srv aiservicepb.AiService_StreamGenerateMessageServer, bufferSize int) *AsyncMessageContentSender {
 	if bufferSize <= 0 {
 		bufferSize = 64
 	}
 	s := &AsyncMessageContentSender{
 		srv:  srv,
-		ch:   make(chan *aiservicepb.StreamMessageResponse, bufferSize),
+		ch:   make(chan *aiservicepb.StreamGenerateMessageResponse, bufferSize),
 		done: make(chan struct{}),
 	}
 	go s.run()
@@ -71,7 +71,7 @@ func (s *AsyncMessageContentSender) Wait(ctx context.Context) error {
 	}
 }
 
-func (s *AsyncMessageContentSender) enqueue(ctx context.Context, resp *aiservicepb.StreamMessageResponse) {
+func (s *AsyncMessageContentSender) enqueue(ctx context.Context, resp *aiservicepb.StreamGenerateMessageResponse) {
 	if err := s.Err(); err != nil {
 		return
 	}
@@ -84,26 +84,26 @@ func (s *AsyncMessageContentSender) enqueue(ctx context.Context, resp *aiservice
 
 func (s *AsyncMessageContentSender) SendBlocks(ctx context.Context, blocks ...*aipb.Block) {
 	for _, block := range blocks {
-		s.enqueue(ctx, &aiservicepb.StreamMessageResponse{
-			Content: &aiservicepb.StreamMessageResponse_Block{Block: block},
+		s.enqueue(ctx, &aiservicepb.StreamGenerateMessageResponse{
+			Content: &aiservicepb.StreamGenerateMessageResponse_Block{Block: block},
 		})
 	}
 }
 
 func (s *AsyncMessageContentSender) SendStopReason(ctx context.Context, r aiservicepb.StopReason) {
-	s.enqueue(ctx, &aiservicepb.StreamMessageResponse{
-		Content: &aiservicepb.StreamMessageResponse_StopReason{StopReason: r},
+	s.enqueue(ctx, &aiservicepb.StreamGenerateMessageResponse{
+		Content: &aiservicepb.StreamGenerateMessageResponse_StopReason{StopReason: r},
 	})
 }
 
 func (s *AsyncMessageContentSender) SendModelUsage(ctx context.Context, u *aipb.ModelUsage) {
-	s.enqueue(ctx, &aiservicepb.StreamMessageResponse{
-		Content: &aiservicepb.StreamMessageResponse_ModelUsage{ModelUsage: u},
+	s.enqueue(ctx, &aiservicepb.StreamGenerateMessageResponse{
+		Content: &aiservicepb.StreamGenerateMessageResponse_ModelUsage{ModelUsage: u},
 	})
 }
 
 func (s *AsyncMessageContentSender) SendGenerationMetrics(ctx context.Context, m *aipb.GenerationMetrics) {
-	s.enqueue(ctx, &aiservicepb.StreamMessageResponse{
-		Content: &aiservicepb.StreamMessageResponse_GenerationMetrics{GenerationMetrics: m},
+	s.enqueue(ctx, &aiservicepb.StreamGenerateMessageResponse{
+		Content: &aiservicepb.StreamGenerateMessageResponse_GenerationMetrics{GenerationMetrics: m},
 	})
 }

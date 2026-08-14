@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
 import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/tool.proto";
 import "malonaz/codegen/model/v1/model.proto";
@@ -122,6 +123,16 @@ message Message {
   // Price in dollars of generating this message, summed over `model_usage`.
   // Only set on assistant messages.
   double price = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The error of the generation this message was part of. Set on the input
+  // messages of a failed generation (and on a partially generated assistant
+  // message, if any). Messages with a status are excluded from the
+  // conversation history sent to ai providers.
+  google.rpc.Status status = 13 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
 }
 
 // A block of content within a message.

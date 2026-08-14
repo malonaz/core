@@ -71,7 +71,8 @@ message UpdateMessageRequest {
     paths: [
       "labels",
       "annotations",
-      "blocks"
+      "blocks",
+      "status"
     ]
   };
   option (buf.validate.message).cel = {
@@ -248,11 +249,17 @@ enum StopReason {
   STOP_REASON_REFUSAL = 6;
 }
 
-// Request message for AiService.StreamMessage.
-message StreamMessageRequest {
-  // The resource name of the parent chat whose (non-deleted) messages form the
-  // conversation history for this generation. The generated assistant message
-  // is persisted under this chat.
+// Request message for AiService.GenerateMessage and AiService.StreamGenerateMessage.
+message GenerateMessageRequest {
+  option (buf.validate.message).cel = {
+    id: "messages_role"
+    message: "messages cannot have the ASSISTANT role"
+    expression: "this.messages.all(m, m.role != 2)"
+  };
+
+  // The resource name of the parent chat whose message history forms the
+  // conversation for this generation. The input `messages` and the generated
+  // assistant message are persisted under this chat.
   // Format: organizations/{organization}/users/{user}/chats/{chat}
   string parent = 1 [
     (buf.validate.field).required = true,
@@ -267,17 +274,29 @@ message StreamMessageRequest {
     (google.api.resource_reference).type = "ai.malonaz.com/Model"
   ];
 
+  // New messages to append to the conversation before generating, in order.
+  // They are persisted immediately and are not echoed back in the response;
+  // use ListMessages to retrieve them. Must not use the ASSISTANT role.
+  repeated ai.v1.Message messages = 3;
+
+  // Optional resource name of an assistant message to generate from, allowing
+  // a client to fork the conversation. The conversation history is truncated
+  // after this message: any later message is labeled
+  // `ai.malonaz.com/superseded` and excluded from this and future generations.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string previous_message = 4 [(google.api.resource_reference).type = "ai.malonaz.com/Message"];
+
   // Tools available for the model to call.
-  repeated .malonaz.ai.v1.Tool tools = 3;
+  repeated .malonaz.ai.v1.Tool tools = 5;
 
   // Tool sets available for the model to call.
-  repeated .malonaz.ai.v1.ToolSet tool_sets = 4;
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 6;
 
   // Additional configuration.
-  MessageGenerationConfiguration configuration = 5;
+  MessageGenerationConfiguration configuration = 7;
 
   // Labels to set on the generated message.
-  map<string, string> labels = 6 [(buf.validate.field).map = {
+  map<string, string> labels = 8 [(buf.validate.field).map = {
     max_pairs: 64
     keys: {
       string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
@@ -289,10 +308,32 @@ message StreamMessageRequest {
       }
     }
   }];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 9 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
-// Response message for AiService.StreamMessage.
-message StreamMessageResponse {
+// Response message for AiService.GenerateMessage.
+message GenerateMessageResponse {
+  // The persisted generated assistant message, including its resource name,
+  // aggregated model usage and price.
+  ai.v1.Message generated_message = 1;
+
+  // Reason why generation stopped.
+  StopReason stop_reason = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Response message for AiService.StreamGenerateMessage.
+message StreamGenerateMessageResponse {
   // Content of this response.
   oneof content {
     option (buf.validate.oneof).required = true;
@@ -303,16 +344,16 @@ message StreamMessageResponse {
     // Reason why generation stopped.
     StopReason stop_reason = 2;
 
-    // Generation metrics (sent last).
+    // Generation metrics.
     .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
 
-    // The fully persisted assistant message, including its resource name,
-    // model usage and price. Sent as the final event of the stream.
-    .malonaz.ai.v1.Message message = 4;
+    // The persisted generated assistant message, including its resource name,
+    // aggregated model usage and price. Sent as the final event of the stream.
+    .malonaz.ai.v1.Message generated_message = 4;
 
     // Incremental model usage updates. The absolute truth for a resource
-    // consumption is the last one streamed out; the final `message` event
-    // also carries the aggregate usage.
+    // consumption is the last one streamed out; the final `generated_message`
+    // event also carries the aggregate usage.
     .malonaz.ai.v1.ModelUsage model_usage = 5;
   }
 }

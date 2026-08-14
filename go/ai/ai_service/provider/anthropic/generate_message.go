@@ -20,7 +20,7 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-func (c *Client) StreamMessage(request *aiservicepb.StreamMessageRequest, requestMessages []*aipb.Message, srv aiservicepb.AiService_StreamMessageServer) error {
+func (c *Client) StreamGenerateMessage(request *aiservicepb.GenerateMessageRequest, requestMessages []*aipb.Message, srv aiservicepb.AiService_StreamGenerateMessageServer) error {
 	ctx := srv.Context()
 
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.Model}

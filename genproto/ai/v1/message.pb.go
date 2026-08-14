@@ -12,6 +12,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -251,7 +252,12 @@ type Message struct {
 	ModelUsage *ModelUsage `protobuf:"bytes,11,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
 	// Price in dollars of generating this message, summed over `model_usage`.
 	// Only set on assistant messages.
-	Price         float64 `protobuf:"fixed64,12,opt,name=price,proto3" json:"price,omitempty"`
+	Price float64 `protobuf:"fixed64,12,opt,name=price,proto3" json:"price,omitempty"`
+	// The error of the generation this message was part of. Set on the input
+	// messages of a failed generation (and on a partially generated assistant
+	// message, if any). Messages with a status are excluded from the
+	// conversation history sent to ai providers.
+	Status        *status.Status `protobuf:"bytes,13,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -365,6 +371,13 @@ func (x *Message) GetPrice() float64 {
 	return 0
 }
 
+func (x *Message) GetStatus() *status.Status {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 func (x *Message) SetName(v string) {
 	x.Name = v
 }
@@ -413,6 +426,10 @@ func (x *Message) SetPrice(v float64) {
 	x.Price = v
 }
 
+func (x *Message) SetStatus(v *status.Status) {
+	x.Status = v
+}
+
 func (x *Message) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -441,6 +458,13 @@ func (x *Message) HasModelUsage() bool {
 	return x.ModelUsage != nil
 }
 
+func (x *Message) HasStatus() bool {
+	if x == nil {
+		return false
+	}
+	return x.Status != nil
+}
+
 func (x *Message) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -455,6 +479,10 @@ func (x *Message) ClearDeleteTime() {
 
 func (x *Message) ClearModelUsage() {
 	x.ModelUsage = nil
+}
+
+func (x *Message) ClearStatus() {
+	x.Status = nil
 }
 
 type Message_builder struct {
@@ -493,6 +521,11 @@ type Message_builder struct {
 	// Price in dollars of generating this message, summed over `model_usage`.
 	// Only set on assistant messages.
 	Price float64
+	// The error of the generation this message was part of. Set on the input
+	// messages of a failed generation (and on a partially generated assistant
+	// message, if any). Messages with a status are excluded from the
+	// conversation history sent to ai providers.
+	Status *status.Status
 }
 
 func (b0 Message_builder) Build() *Message {
@@ -511,6 +544,7 @@ func (b0 Message_builder) Build() *Message {
 	x.Model = b.Model
 	x.ModelUsage = b.ModelUsage
 	x.Price = b.Price
+	x.Status = b.Status
 	return m0
 }
 
@@ -1170,7 +1204,7 @@ var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfd\f\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb6\r\n" +
 	"\aMessage\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1190,7 +1224,8 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x14ai.malonaz.com/Model\xba\xea\x0f\x02 \x01R\x05model\x12G\n" +
 	"\vmodel_usage\x18\v \x01(\v2\x19.malonaz.ai.v1.ModelUsageB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\n" +
 	"modelUsage\x12\x19\n" +
-	"\x05price\x18\f \x01(\x01B\x03\xe0A\x03R\x05price\x1a9\n" +
+	"\x05price\x18\f \x01(\x01B\x03\xe0A\x03R\x05price\x127\n" +
+	"\x06status\x18\r \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -1256,9 +1291,10 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	nil,                           // 7: malonaz.ai.v1.Message.AnnotationsEntry
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 	(*ModelUsage)(nil),            // 9: malonaz.ai.v1.ModelUsage
-	(*structpb.Struct)(nil),       // 10: google.protobuf.Struct
-	(*ToolCall)(nil),              // 11: malonaz.ai.v1.ToolCall
-	(*ToolResult)(nil),            // 12: malonaz.ai.v1.ToolResult
+	(*status.Status)(nil),         // 10: google.rpc.Status
+	(*structpb.Struct)(nil),       // 11: google.protobuf.Struct
+	(*ToolCall)(nil),              // 12: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 13: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
 	8,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
@@ -1269,17 +1305,18 @@ var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
 	1,  // 5: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
 	4,  // 6: malonaz.ai.v1.Message.blocks:type_name -> malonaz.ai.v1.Block
 	9,  // 7: malonaz.ai.v1.Message.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	10, // 8: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
-	11, // 9: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	11, // 10: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
-	12, // 11: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
-	5,  // 12: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
-	2,  // 13: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	10, // 8: malonaz.ai.v1.Message.status:type_name -> google.rpc.Status
+	11, // 9: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
+	12, // 10: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	12, // 11: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
+	13, // 12: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
+	5,  // 13: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
+	2,  // 14: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }

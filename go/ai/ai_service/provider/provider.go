@@ -23,12 +23,12 @@ type SpeechToTextStreamClient interface {
 	SpeechToTextStream(aiservicepb.AiService_SpeechToTextStreamServer) error
 }
 
-// StreamMessageClient generates an assistant message from the given
+// GenerateMessageClient generates an assistant message from the given
 // conversation history. Messages are passed separately from the request as
 // they are loaded from the chat by the service layer.
-type StreamMessageClient interface {
+type GenerateMessageClient interface {
 	Provider
-	StreamMessage(request *aiservicepb.StreamMessageRequest, messages []*aipb.Message, srv aiservicepb.AiService_StreamMessageServer) error
+	StreamGenerateMessage(request *aiservicepb.GenerateMessageRequest, messages []*aipb.Message, srv aiservicepb.AiService_StreamGenerateMessageServer) error
 }
 
 // TextToSpeechClient uses the exact gRPC server streaming interface

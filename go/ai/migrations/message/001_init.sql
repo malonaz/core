@@ -15,6 +15,7 @@ CREATE TABLE message (
     model TEXT,
     model_usage JSONB,
     price DOUBLE PRECISION NOT NULL DEFAULT 0,
+    status JSONB,
     PRIMARY KEY (organization_id, user_id, chat_id, message_id),
     CONSTRAINT message_request_id_unique UNIQUE (request_id)
 );

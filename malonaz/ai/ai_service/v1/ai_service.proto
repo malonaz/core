@@ -196,12 +196,24 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 
-  // Generates an assistant message from the chat's message history, streaming
-  // blocks as they are produced. The generated message is persisted under the
-  // chat and sent as the final event of the stream.
-  rpc StreamMessage(StreamMessageRequest) returns (stream StreamMessageResponse) {
+  // Generates an assistant message from the chat's message history.
+  //
+  // The input `messages` are appended to the chat before generating; the
+  // generated assistant message is persisted under the chat and returned.
+  // If generation fails, the input messages are updated with an error
+  // `status` and excluded from future generations.
+  rpc GenerateMessage(GenerateMessageRequest) returns (GenerateMessageResponse) {
     option (google.api.http) = {
-      post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:stream"
+      post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:generate"
+      body: "*"
+    };
+  }
+
+  // Same as GenerateMessage, but streams blocks as they are produced. The
+  // persisted assistant message is sent as the final event of the stream.
+  rpc StreamGenerateMessage(GenerateMessageRequest) returns (stream StreamGenerateMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
       body: "*"
     };
   }
