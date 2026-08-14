@@ -59,16 +59,37 @@ message Choice {
   string question = 1 [(buf.validate.field).required = true];
 
   // The answers the user may pick from, in display order.
-  repeated string options = 2 [(buf.validate.field).repeated = {
+  repeated ChoiceOption options = 2 [(buf.validate.field).repeated = {
     min_items: 2
     max_items: 8
   }];
+
+  // Whether to also offer a free-text input, so "none of the above" answers
+  // don't cost an extra round trip.
+  bool allow_free_text = 3;
+}
+
+// A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
+message ChoiceOption {
+  // The text rendered on the option.
+  string label = 1 [(buf.validate.field).required = true];
+
+  // Optional detail disambiguating the option.
+  string description = 2;
 }
 
 // The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
 message ChoiceResponse {
-  // The selected option, verbatim.
-  string option = 1 [(buf.validate.field).required = true];
+  // The user's answer.
+  oneof answer {
+    option (buf.validate.oneof).required = true;
+
+    // The selected option's label, verbatim.
+    string option = 1;
+
+    // The user's free-text answer (only when `allow_free_text` was set).
+    string free_text = 2;
+  }
 }
 
 // A question allowing several answers to be selected before submitting,
@@ -196,6 +217,9 @@ message FormFieldValue {
     // Fills a [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
     string selected_option = 4;
 
+    // Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+    FormSelectedOptions selected_options = 7;
+
     // Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
     google.protobuf.Timestamp date = 5;
 
@@ -204,10 +228,20 @@ message FormFieldValue {
   }
 }
 
+// The options picked in a multi-select
+// [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+message FormSelectedOptions {
+  // The selected options, verbatim, in display order.
+  repeated string options = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
 // A free-text input within a [FormField][malonaz.ai.genui.v1.FormField].
 message FormTextInput {
   // Whether to render a multi-line text area instead of a single line.
   bool multiline = 1;
+
+  // Optional value pre-filled when the form renders.
+  string default_value = 2;
 }
 
 // A numeric input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -217,12 +251,23 @@ message FormNumberInput {
 
   // Optional inclusive upper bound.
   optional double max = 2;
+
+  // Optional value pre-filled when the form renders.
+  optional double default_value = 3;
 }
 
-// A single-select input within a [FormField][malonaz.ai.genui.v1.FormField].
+// A select input within a [FormField][malonaz.ai.genui.v1.FormField].
 message FormSelectInput {
   // The options the user may pick from, in display order.
   repeated string options = 1 [(buf.validate.field).repeated.min_items = 2];
+
+  // Whether several options may be picked; the answer then fills
+  // `selected_options` instead of `selected_option`.
+  bool multi = 2;
+
+  // Optional options pre-selected when the form renders. Single-select
+  // inputs use only the first.
+  repeated string default_options = 3;
 }
 
 // A date input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -253,16 +298,26 @@ message ResourcePicker {
 
   // Whether the user may select more than one candidate.
   bool multi_select = 3;
+
+  // Whether to offer an explicit "none of these" answer, so users aren't
+  // forced to abandon the question when no candidate fits.
+  bool allow_none = 4;
+
+  // Optional label for the "none of these" answer. Defaults to
+  // "None of these".
+  string none_label = 5;
 }
 
 // The candidates the user picked within a [ResourcePicker][malonaz.ai.genui.v1.ResourcePicker].
 message ResourcePickerResponse {
-  // The selected resources, in display order.
+  // The selected resources, in display order. Empty when `none` is set.
   repeated string resource_names = 1 [
     (google.api.resource_reference).type = "*",
-    (buf.validate.field).repeated.min_items = 1,
     (buf.validate.field).repeated.items.string.min_len = 1
   ];
+
+  // The user explicitly picked "none of these".
+  bool none = 2;
 }
 
 // Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
@@ -299,10 +354,17 @@ message DateTimePicker {
 
   // Optional latest selectable moment.
   google.protobuf.Timestamp max_time = 4;
+
+  // Whether the user picks a start and an end instead of a single moment;
+  // the answer then also carries `end_time`.
+  bool range = 5;
 }
 
 // The moment the user picked on a [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker].
 message DateTimePickerResponse {
-  // The selected moment.
+  // The selected moment (the start, when `range` was set).
   google.protobuf.Timestamp time = 1 [(buf.validate.field).required = true];
+
+  // The selected end. Only set when the picker asked for a range.
+  google.protobuf.Timestamp end_time = 2;
 }

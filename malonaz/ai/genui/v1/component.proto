@@ -47,6 +47,12 @@ message Component {
     // Client-side buttons: navigation, clipboard, external links.
     ActionRow action_row = 7;
 
+    // A single headline metric with an optional delta.
+    Stat stat = 15;
+
+    // Standalone rich text (markdown subset).
+    Markdown markdown = 16;
+
     // ------------------------------- Input -------------------------------
 
     // A question with constrained answers.

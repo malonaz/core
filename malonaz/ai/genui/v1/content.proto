@@ -27,6 +27,26 @@ message KeyValueListItem {
 
   // Optional resource name; the client links the value when set.
   string resource_name = 3 [(google.api.resource_reference).type = "*"];
+
+  // Optional emphasis applied to the value (e.g. "Overdue" in a negative
+  // tone). Unspecified renders the default foreground.
+  Tone tone = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+// Semantic emphasis shared by display components. Renderers map tones onto
+// their palette (positive: green, negative: red, warning: amber).
+enum Tone {
+  // Used to detect an unset field. Rendered with the default emphasis.
+  TONE_UNSPECIFIED = 0;
+
+  // A good outcome (paid, accepted, growing).
+  TONE_POSITIVE = 1;
+
+  // A bad outcome (overdue, declined, shrinking).
+  TONE_NEGATIVE = 2;
+
+  // Needs attention, but not (yet) bad.
+  TONE_WARNING = 3;
 }
 
 // Ordered events, e.g. "what happened with this contact this week".
@@ -51,9 +71,13 @@ message TimelineEntry {
 
   // Optional resource the entry refers to; the client links the entry when set.
   string resource_name = 4 [(google.api.resource_reference).type = "*"];
+
+  // Optional emphasis applied to the entry's marker.
+  Tone tone = 5 [(buf.validate.field).enum.defined_only = true];
 }
 
-// Minimal chart for aggregates ("calls per day this week").
+// Chart for aggregates ("calls per day this week"), optionally with several
+// series ("quotes sent vs accepted per week").
 message Chart {
   // How the points are plotted.
   ChartType type = 1 [(buf.validate.field).enum = {
@@ -64,8 +88,49 @@ message Chart {
   // Optional heading rendered above the chart.
   string title = 2;
 
-  // The datapoints to plot, in display order.
-  repeated ChartPoint points = 3 [(buf.validate.field).repeated.min_items = 1];
+  // The series to plot, in display order. A single series renders without a
+  // legend; several render one, keyed by series label. Pie charts use only
+  // the first series.
+  repeated ChartSeries series = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // Bars only: stack the series into one segmented bar per label instead of
+  // grouping them side by side.
+  bool stacked = 4;
+
+  // How values are rendered in labels and legends.
+  ChartValueFormat value_format = 5 [(buf.validate.field).enum.defined_only = true];
+
+  // Optional caption for the x axis, e.g. "Week".
+  string x_label = 6;
+
+  // Optional caption for the y axis, e.g. "Quotes".
+  string y_label = 7;
+}
+
+// A named sequence of datapoints within a [Chart][malonaz.ai.genui.v1.Chart].
+message ChartSeries {
+  // Legend label for the series, e.g. "Accepted". May be empty on a chart's
+  // only series.
+  string label = 1;
+
+  // The datapoints to plot, in display order. Series are aligned by point
+  // label; a series may omit labels other series carry.
+  repeated ChartPoint points = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// How the values of a [Chart][malonaz.ai.genui.v1.Chart] are rendered.
+enum ChartValueFormat {
+  // Used to detect an unset field. Rendered as a plain number.
+  CHART_VALUE_FORMAT_UNSPECIFIED = 0;
+
+  // A plain number, e.g. "12".
+  CHART_VALUE_FORMAT_NUMBER = 1;
+
+  // A currency amount, e.g. "$12".
+  CHART_VALUE_FORMAT_CURRENCY = 2;
+
+  // A percentage, e.g. "12%".
+  CHART_VALUE_FORMAT_PERCENT = 3;
 }
 
 // How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
@@ -97,17 +162,43 @@ message Table {
   // Optional heading rendered above the table.
   string title = 1;
 
-  // Column headers, defining the width of every row.
-  repeated string columns = 2 [(buf.validate.field).repeated.min_items = 1];
+  // The columns, defining the width of every row.
+  repeated TableColumn columns = 2 [(buf.validate.field).repeated.min_items = 1];
 
   // Rows, in display order. Each row carries one cell per column.
   repeated TableRow rows = 3 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A single column within a [Table][malonaz.ai.genui.v1.Table].
+message TableColumn {
+  // The column header, e.g. "Total".
+  string label = 1 [(buf.validate.field).required = true];
+
+  // How the column's cells are aligned. Unspecified lets the renderer
+  // decide (numeric-looking columns right-align).
+  TableColumnAlign align = 2 [(buf.validate.field).enum.defined_only = true];
+}
+
+// How a [TableColumn][malonaz.ai.genui.v1.TableColumn]'s cells are aligned.
+enum TableColumnAlign {
+  // Used to detect an unset field. The renderer picks an alignment.
+  TABLE_COLUMN_ALIGN_UNSPECIFIED = 0;
+
+  // Left-aligned.
+  TABLE_COLUMN_ALIGN_LEFT = 1;
+
+  // Right-aligned, like numbers in a spreadsheet.
+  TABLE_COLUMN_ALIGN_RIGHT = 2;
 }
 
 // A single row within a [Table][malonaz.ai.genui.v1.Table].
 message TableRow {
   // Cell values, one per column, in column order.
   repeated TableCell cells = 1 [(buf.validate.field).repeated.min_items = 1];
+
+  // Optional resource the whole row refers to; cells without their own
+  // resource_name link here.
+  string resource_name = 2 [(google.api.resource_reference).type = "*"];
 }
 
 // A single cell within a [TableRow][malonaz.ai.genui.v1.TableRow].
@@ -119,12 +210,42 @@ message TableCell {
   string resource_name = 2 [(google.api.resource_reference).type = "*"];
 }
 
+// A single headline metric with an optional delta, e.g.
+// "Revenue this month: $12k, +8% vs July".
+message Stat {
+  // The label naming the metric, e.g. "Revenue this month".
+  string label = 1 [(buf.validate.field).required = true];
+
+  // The headline value, pre-formatted, e.g. "$12k".
+  string value = 2 [(buf.validate.field).required = true];
+
+  // Optional pre-formatted change indicator, e.g. "+8% vs July".
+  string delta = 3;
+
+  // Optional emphasis applied to the delta.
+  Tone delta_tone = 4 [(buf.validate.field).enum.defined_only = true];
+
+  // Optional resource name; the client links the card when set.
+  string resource_name = 5 [(google.api.resource_reference).type = "*"];
+}
+
+// Standalone rich text (markdown subset) rendered as its own component,
+// e.g. a drafted follow-up message shown before a Confirmation. Resource
+// names in link targets render as in-app links.
+message Markdown {
+  // The markdown to render.
+  string markdown = 1 [(buf.validate.field).required = true];
+}
+
 // Buttons the user can press — pure client affordances that never feed back
 // into the model. Navigation, clipboard, and external links execute entirely
 // client-side: an ActionRow does not end the agentic turn and expects no
 // answer. To offer suggested next steps that the model must hear about, use
 // [Choice][malonaz.ai.genui.v1.Choice] instead.
 message ActionRow {
+  // Optional heading rendered above the buttons.
+  string title = 2;
+
   // The buttons to render, in display order.
   repeated ActionRowAction actions = 1 [(buf.validate.field).repeated = {
     min_items: 1

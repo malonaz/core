@@ -5,7 +5,7 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
-import type { ActionRow, ActionRowValid, Chart, ChartValid, KeyValueList, KeyValueListValid, Table, TableValid, Timeline, TimelineValid } from "./content_pb";
+import type { ActionRow, ActionRowValid, Chart, ChartValid, KeyValueList, KeyValueListValid, Markdown, MarkdownValid, Stat, StatValid, Table, TableValid, Timeline, TimelineValid } from "./content_pb";
 import { file_malonaz_ai_genui_v1_content } from "./content_pb";
 import type { Choice, ChoiceValid, Confirmation, ConfirmationValid, DateTimePicker, DateTimePickerValid, Form, FormValid, MultiChoice, MultiChoiceValid, ResourcePicker, ResourcePickerValid, Slider, SliderValid } from "./input_pb";
 import { file_malonaz_ai_genui_v1_input } from "./input_pb";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSKWBgoJQ29tcG9uZW50EjsKDmtleV92YWx1ZV9saXN0GAEgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgCIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgDIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABIrCgV0YWJsZRgEIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI6Cg1yZXNvdXJjZV9jYXJkGAUgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAcgASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABItCgZjaG9pY2UYCCABKAsyGy5tYWxvbmF6LmFpLmdlbnVpLnYxLkNob2ljZUgAEjgKDG11bHRpX2Nob2ljZRgJIAEoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuTXVsdGlDaG9pY2VIABI5Cgxjb25maXJtYXRpb24YCiABKAsyIS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvbkgAEikKBGZvcm0YCyABKAsyGS5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1IABI+Cg9yZXNvdXJjZV9waWNrZXIYDCABKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLlJlc291cmNlUGlja2VySAASLQoGc2xpZGVyGA0gASgLMhsubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJIABI/ChBkYXRlX3RpbWVfcGlja2VyGA4gASgLMiMubWFsb25hei5haS5nZW51aS52MS5EYXRlVGltZVBpY2tlckgAQhIKCWNvbXBvbmVudBIFukgCCAFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_input, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSL0BgoJQ29tcG9uZW50EjsKDmtleV92YWx1ZV9saXN0GAEgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgCIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgDIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABIrCgV0YWJsZRgEIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI6Cg1yZXNvdXJjZV9jYXJkGAUgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABI0CgphY3Rpb25fcm93GAcgASgLMh4ubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dIABIpCgRzdGF0GA8gASgLMhkubWFsb25hei5haS5nZW51aS52MS5TdGF0SAASMQoIbWFya2Rvd24YECABKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLk1hcmtkb3duSAASLQoGY2hvaWNlGAggASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABI4CgxtdWx0aV9jaG9pY2UYCSABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAogASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGAsgASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGAwgASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgNIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgOIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_input, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
@@ -95,6 +95,22 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: ActionRow;
     case: "actionRow";
+  } | {
+    /**
+     * A single headline metric with an optional delta.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Stat stat = 15;
+     */
+    value: Stat;
+    case: "stat";
+  } | {
+    /**
+     * Standalone rich text (markdown subset).
+     *
+     * @generated from field: malonaz.ai.genui.v1.Markdown markdown = 16;
+     */
+    value: Markdown;
+    case: "markdown";
   } | {
     /**
      * A question with constrained answers.
@@ -230,6 +246,22 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: ActionRowValid;
     case: "actionRow";
+  } | {
+    /**
+     * A single headline metric with an optional delta.
+     *
+     * @generated from field: malonaz.ai.genui.v1.Stat stat = 15;
+     */
+    value: StatValid;
+    case: "stat";
+  } | {
+    /**
+     * Standalone rich text (markdown subset).
+     *
+     * @generated from field: malonaz.ai.genui.v1.Markdown markdown = 16;
+     */
+    value: MarkdownValid;
+    case: "markdown";
   } | {
     /**
      * A question with constrained answers.

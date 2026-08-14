@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/input.proto.
  */
 export const file_malonaz_ai_genui_v1_input: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2dlbnVpL3YxL2lucHV0LnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIvcDCg1JbnB1dFJlc3BvbnNlEhwKDGNvbXBvbmVudF9pZBgBIAEoCUIGukgDyAEBEjUKBmNob2ljZRgCIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlUmVzcG9uc2VIABJACgxtdWx0aV9jaG9pY2UYAyABKAsyKC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlUmVzcG9uc2VIABJBCgxjb25maXJtYXRpb24YBCABKAsyKS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvblJlc3BvbnNlSAASMQoEZm9ybRgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVJlc3BvbnNlSAASRgoPcmVzb3VyY2VfcGlja2VyGAYgASgLMisubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlclJlc3BvbnNlSAASNQoGc2xpZGVyGAcgASgLMiMubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJSZXNwb25zZUgAEkcKEGRhdGVfdGltZV9waWNrZXIYCCABKAsyKy5tYWxvbmF6LmFpLmdlbnVpLnYxLkRhdGVUaW1lUGlja2VyUmVzcG9uc2VIAEIRCghyZXNwb25zZRIFukgCCAEiPwoGQ2hvaWNlEhgKCHF1ZXN0aW9uGAEgASgJQga6SAPIAQESGwoHb3B0aW9ucxgCIAMoCUIKukgHkgEECAIQCCIoCg5DaG9pY2VSZXNwb25zZRIWCgZvcHRpb24YASABKAlCBrpIA8gBASKGAQoLTXVsdGlDaG9pY2USGAoIcXVlc3Rpb24YASABKAlCBrpIA8gBARIbCgdvcHRpb25zGAIgAygJQgq6SAeSAQQIAhAMEh8KDm1pbl9zZWxlY3Rpb25zGAMgASgFQge6SAQaAigAEh8KDm1heF9zZWxlY3Rpb25zGAQgASgFQge6SAQaAigAIjAKE011bHRpQ2hvaWNlUmVzcG9uc2USGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAEifAoMQ29uZmlybWF0aW9uEhUKBXRpdGxlGAEgASgJQga6SAPIAQESEwoLZGVzY3JpcHRpb24YAiABKAkSFQoNY29uZmlybV9sYWJlbBgDIAEoCRIUCgxjYW5jZWxfbGFiZWwYBCABKAkSEwoLZGVzdHJ1Y3RpdmUYBSABKAgiKQoUQ29uZmlybWF0aW9uUmVzcG9uc2USEQoJY29uZmlybWVkGAEgASgIImUKBEZvcm0SDQoFdGl0bGUYASABKAkSFAoMc3VibWl0X2xhYmVsGAIgASgJEjgKBmZpZWxkcxgDIAMoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybUZpZWxkQgi6SAWSAQIIASJNCgxGb3JtUmVzcG9uc2USPQoGdmFsdWVzGAEgAygLMiMubWFsb25hei5haS5nZW51aS52MS5Gb3JtRmllbGRWYWx1ZUIIukgFkgECCAEi/QIKCUZvcm1GaWVsZBISCgJpZBgBIAEoCUIGukgDyAEBEhUKBWxhYmVsGAIgASgJQga6SAPIAQESEwoLcGxhY2Vob2xkZXIYAyABKAkSEAoIcmVxdWlyZWQYBCABKAgSMgoEdGV4dBgFIAEoCzIiLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVRleHRJbnB1dEgAEjYKBm51bWJlchgGIAEoCzIkLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybU51bWJlcklucHV0SAASNgoGc2VsZWN0GAcgASgLMiQubWFsb25hei5haS5nZW51aS52MS5Gb3JtU2VsZWN0SW5wdXRIABIyCgRkYXRlGAggASgLMiIubWFsb25hei5haS5nZW51aS52MS5Gb3JtRGF0ZUlucHV0SAASNgoGdG9nZ2xlGAkgASgLMiQubWFsb25hei5haS5nZW51aS52MS5Gb3JtVG9nZ2xlSW5wdXRIAEIOCgVpbnB1dBIFukgCCAEitQEKDkZvcm1GaWVsZFZhbHVlEhgKCGZpZWxkX2lkGAEgASgJQga6SAPIAQESDgoEdGV4dBgCIAEoCUgAEhAKBm51bWJlchgDIAEoAUgAEhkKD3NlbGVjdGVkX29wdGlvbhgEIAEoCUgAEioKBGRhdGUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAASEAoGdG9nZ2xlGAYgASgISABCDgoFdmFsdWUSBbpIAggBIiIKDUZvcm1UZXh0SW5wdXQSEQoJbXVsdGlsaW5lGAEgASgIIkUKD0Zvcm1OdW1iZXJJbnB1dBIQCgNtaW4YASABKAFIAIgBARIQCgNtYXgYAiABKAFIAYgBAUIGCgRfbWluQgYKBF9tYXgiLAoPRm9ybVNlbGVjdElucHV0EhkKB29wdGlvbnMYASADKAlCCLpIBZIBAggCIiUKDUZvcm1EYXRlSW5wdXQSFAoMaW5jbHVkZV90aW1lGAEgASgIIigKD0Zvcm1Ub2dnbGVJbnB1dBIVCg1kZWZhdWx0X3ZhbHVlGAEgASgIImMKDlJlc291cmNlUGlja2VyEg0KBXRpdGxlGAEgASgJEiwKDnJlc291cmNlX25hbWVzGAIgAygJQhT6QQMKASq6SAuSAQgIASIEcgIQARIUCgxtdWx0aV9zZWxlY3QYAyABKAgiRgoWUmVzb3VyY2VQaWNrZXJSZXNwb25zZRIsCg5yZXNvdXJjZV9uYW1lcxgBIAMoCUIU+kEDCgEqukgLkgEICAEiBHICEAEiVwoGU2xpZGVyEhUKBWxhYmVsGAEgASgJQga6SAPIAQESCwoDbWluGAIgASgBEgsKA21heBgDIAEoARIcCgRzdGVwGAQgASgBQg66SAsSCSkAAAAAAAAAACIfCg5TbGlkZXJSZXNwb25zZRINCgV2YWx1ZRgBIAEoASKZAQoORGF0ZVRpbWVQaWNrZXISFQoFbGFiZWwYASABKAlCBrpIA8gBARIUCgxpbmNsdWRlX3RpbWUYAiABKAgSLAoIbWluX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCG1heF90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKChZEYXRlVGltZVBpY2tlclJlc3BvbnNlEjAKBHRpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga6SAPIAQFCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2dlbnVpL3YxL2lucHV0LnByb3RvEhNtYWxvbmF6LmFpLmdlbnVpLnYxIvcDCg1JbnB1dFJlc3BvbnNlEhwKDGNvbXBvbmVudF9pZBgBIAEoCUIGukgDyAEBEjUKBmNob2ljZRgCIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlUmVzcG9uc2VIABJACgxtdWx0aV9jaG9pY2UYAyABKAsyKC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlUmVzcG9uc2VIABJBCgxjb25maXJtYXRpb24YBCABKAsyKS5tYWxvbmF6LmFpLmdlbnVpLnYxLkNvbmZpcm1hdGlvblJlc3BvbnNlSAASMQoEZm9ybRgFIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVJlc3BvbnNlSAASRgoPcmVzb3VyY2VfcGlja2VyGAYgASgLMisubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlclJlc3BvbnNlSAASNQoGc2xpZGVyGAcgASgLMiMubWFsb25hei5haS5nZW51aS52MS5TbGlkZXJSZXNwb25zZUgAEkcKEGRhdGVfdGltZV9waWNrZXIYCCABKAsyKy5tYWxvbmF6LmFpLmdlbnVpLnYxLkRhdGVUaW1lUGlja2VyUmVzcG9uc2VIAEIRCghyZXNwb25zZRIFukgCCAEiewoGQ2hvaWNlEhgKCHF1ZXN0aW9uGAEgASgJQga6SAPIAQESPgoHb3B0aW9ucxgCIAMoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hvaWNlT3B0aW9uQgq6SAeSAQQIAhAIEhcKD2FsbG93X2ZyZWVfdGV4dBgDIAEoCCI6CgxDaG9pY2VPcHRpb24SFQoFbGFiZWwYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCSJICg5DaG9pY2VSZXNwb25zZRIQCgZvcHRpb24YASABKAlIABITCglmcmVlX3RleHQYAiABKAlIAEIPCgZhbnN3ZXISBbpIAggBIoYBCgtNdWx0aUNob2ljZRIYCghxdWVzdGlvbhgBIAEoCUIGukgDyAEBEhsKB29wdGlvbnMYAiADKAlCCrpIB5IBBAgCEAwSHwoObWluX3NlbGVjdGlvbnMYAyABKAVCB7pIBBoCKAASHwoObWF4X3NlbGVjdGlvbnMYBCABKAVCB7pIBBoCKAAiMAoTTXVsdGlDaG9pY2VSZXNwb25zZRIZCgdvcHRpb25zGAEgAygJQgi6SAWSAQIIASJ8CgxDb25maXJtYXRpb24SFQoFdGl0bGUYASABKAlCBrpIA8gBARITCgtkZXNjcmlwdGlvbhgCIAEoCRIVCg1jb25maXJtX2xhYmVsGAMgASgJEhQKDGNhbmNlbF9sYWJlbBgEIAEoCRITCgtkZXN0cnVjdGl2ZRgFIAEoCCIpChRDb25maXJtYXRpb25SZXNwb25zZRIRCgljb25maXJtZWQYASABKAgiZQoERm9ybRINCgV0aXRsZRgBIAEoCRIUCgxzdWJtaXRfbGFiZWwYAiABKAkSOAoGZmllbGRzGAMgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5Gb3JtRmllbGRCCLpIBZIBAggBIk0KDEZvcm1SZXNwb25zZRI9CgZ2YWx1ZXMYASADKAsyIy5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1GaWVsZFZhbHVlQgi6SAWSAQIIASL9AgoJRm9ybUZpZWxkEhIKAmlkGAEgASgJQga6SAPIAQESFQoFbGFiZWwYAiABKAlCBrpIA8gBARITCgtwbGFjZWhvbGRlchgDIAEoCRIQCghyZXF1aXJlZBgEIAEoCBIyCgR0ZXh0GAUgASgLMiIubWFsb25hei5haS5nZW51aS52MS5Gb3JtVGV4dElucHV0SAASNgoGbnVtYmVyGAYgASgLMiQubWFsb25hei5haS5nZW51aS52MS5Gb3JtTnVtYmVySW5wdXRIABI2CgZzZWxlY3QYByABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1TZWxlY3RJbnB1dEgAEjIKBGRhdGUYCCABKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1EYXRlSW5wdXRIABI2CgZ0b2dnbGUYCSABKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkZvcm1Ub2dnbGVJbnB1dEgAQg4KBWlucHV0EgW6SAIIASL7AQoORm9ybUZpZWxkVmFsdWUSGAoIZmllbGRfaWQYASABKAlCBrpIA8gBARIOCgR0ZXh0GAIgASgJSAASEAoGbnVtYmVyGAMgASgBSAASGQoPc2VsZWN0ZWRfb3B0aW9uGAQgASgJSAASRAoQc2VsZWN0ZWRfb3B0aW9ucxgHIAEoCzIoLm1hbG9uYXouYWkuZ2VudWkudjEuRm9ybVNlbGVjdGVkT3B0aW9uc0gAEioKBGRhdGUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAASEAoGdG9nZ2xlGAYgASgISABCDgoFdmFsdWUSBbpIAggBIjAKE0Zvcm1TZWxlY3RlZE9wdGlvbnMSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAEiOQoNRm9ybVRleHRJbnB1dBIRCgltdWx0aWxpbmUYASABKAgSFQoNZGVmYXVsdF92YWx1ZRgCIAEoCSJzCg9Gb3JtTnVtYmVySW5wdXQSEAoDbWluGAEgASgBSACIAQESEAoDbWF4GAIgASgBSAGIAQESGgoNZGVmYXVsdF92YWx1ZRgDIAEoAUgCiAEBQgYKBF9taW5CBgoEX21heEIQCg5fZGVmYXVsdF92YWx1ZSJUCg9Gb3JtU2VsZWN0SW5wdXQSGQoHb3B0aW9ucxgBIAMoCUIIukgFkgECCAISDQoFbXVsdGkYAiABKAgSFwoPZGVmYXVsdF9vcHRpb25zGAMgAygJIiUKDUZvcm1EYXRlSW5wdXQSFAoMaW5jbHVkZV90aW1lGAEgASgIIigKD0Zvcm1Ub2dnbGVJbnB1dBIVCg1kZWZhdWx0X3ZhbHVlGAEgASgIIosBCg5SZXNvdXJjZVBpY2tlchINCgV0aXRsZRgBIAEoCRIsCg5yZXNvdXJjZV9uYW1lcxgCIAMoCUIU+kEDCgEqukgLkgEICAEiBHICEAESFAoMbXVsdGlfc2VsZWN0GAMgASgIEhIKCmFsbG93X25vbmUYBCABKAgSEgoKbm9uZV9sYWJlbBgFIAEoCSJSChZSZXNvdXJjZVBpY2tlclJlc3BvbnNlEioKDnJlc291cmNlX25hbWVzGAEgAygJQhL6QQMKASq6SAmSAQYiBHICEAESDAoEbm9uZRgCIAEoCCJXCgZTbGlkZXISFQoFbGFiZWwYASABKAlCBrpIA8gBARILCgNtaW4YAiABKAESCwoDbWF4GAMgASgBEhwKBHN0ZXAYBCABKAFCDrpICxIJKQAAAAAAAAAAIh8KDlNsaWRlclJlc3BvbnNlEg0KBXZhbHVlGAEgASgBIqgBCg5EYXRlVGltZVBpY2tlchIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEhQKDGluY2x1ZGVfdGltZRgCIAEoCBIsCghtaW5fdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIbWF4X3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBXJhbmdlGAUgASgIIngKFkRhdGVUaW1lUGlja2VyUmVzcG9uc2USMAoEdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCBrpIA8gBARIsCghlbmRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Typed answer to an input component. The client sends exactly one response
@@ -198,9 +198,17 @@ export type Choice = Message<"malonaz.ai.genui.v1.Choice"> & {
   /**
    * The answers the user may pick from, in display order.
    *
-   * @generated from field: repeated string options = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChoiceOption options = 2;
    */
-  options: string[];
+  options: ChoiceOption[];
+
+  /**
+   * Whether to also offer a free-text input, so "none of the above" answers
+   * don't cost an extra round trip.
+   *
+   * @generated from field: bool allow_free_text = 3;
+   */
+  allowFreeText: boolean;
 };
 
 /**
@@ -220,9 +228,17 @@ export type ChoiceValid = Message<"malonaz.ai.genui.v1.Choice"> & {
   /**
    * The answers the user may pick from, in display order.
    *
-   * @generated from field: repeated string options = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChoiceOption options = 2;
    */
-  options: string[];
+  options: ChoiceOptionValid[];
+
+  /**
+   * Whether to also offer a free-text input, so "none of the above" answers
+   * don't cost an extra round trip.
+   *
+   * @generated from field: bool allow_free_text = 3;
+   */
+  allowFreeText: boolean;
 };
 
 /**
@@ -233,39 +249,92 @@ export const ChoiceSchema: GenMessage<Choice, {validType: ChoiceValid}> = /*@__P
   messageDesc(file_malonaz_ai_genui_v1_input, 1);
 
 /**
+ * A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
+ *
+ * @generated from message malonaz.ai.genui.v1.ChoiceOption
+ */
+export type ChoiceOption = Message<"malonaz.ai.genui.v1.ChoiceOption"> & {
+  /**
+   * The text rendered on the option.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * Optional detail disambiguating the option.
+   *
+   * @generated from field: string description = 2;
+   */
+  description: string;
+};
+
+/**
+ * A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
+ *
+ * @generated from message malonaz.ai.genui.v1.ChoiceOption
+ */
+export type ChoiceOptionValid = Message<"malonaz.ai.genui.v1.ChoiceOption"> & {
+  /**
+   * The text rendered on the option.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * Optional detail disambiguating the option.
+   *
+   * @generated from field: string description = 2;
+   */
+  description: string;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ChoiceOption.
+ * Use `create(ChoiceOptionSchema)` to create a new message.
+ */
+export const ChoiceOptionSchema: GenMessage<ChoiceOption, {validType: ChoiceOptionValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_input, 2);
+
+/**
  * The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
  *
  * @generated from message malonaz.ai.genui.v1.ChoiceResponse
  */
 export type ChoiceResponse = Message<"malonaz.ai.genui.v1.ChoiceResponse"> & {
   /**
-   * The selected option, verbatim.
+   * The user's answer.
    *
-   * @generated from field: string option = 1;
+   * @generated from oneof malonaz.ai.genui.v1.ChoiceResponse.answer
    */
-  option: string;
+  answer: {
+    /**
+     * The selected option's label, verbatim.
+     *
+     * @generated from field: string option = 1;
+     */
+    value: string;
+    case: "option";
+  } | {
+    /**
+     * The user's free-text answer (only when `allow_free_text` was set).
+     *
+     * @generated from field: string free_text = 2;
+     */
+    value: string;
+    case: "freeText";
+  } | { case: undefined; value?: undefined };
 };
 
-/**
- * The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
- *
- * @generated from message malonaz.ai.genui.v1.ChoiceResponse
- */
-export type ChoiceResponseValid = Message<"malonaz.ai.genui.v1.ChoiceResponse"> & {
-  /**
-   * The selected option, verbatim.
-   *
-   * @generated from field: string option = 1;
-   */
-  option: string;
-};
+export type ChoiceResponseValid = ChoiceResponse;
 
 /**
  * Describes the message malonaz.ai.genui.v1.ChoiceResponse.
  * Use `create(ChoiceResponseSchema)` to create a new message.
  */
 export const ChoiceResponseSchema: GenMessage<ChoiceResponse, {validType: ChoiceResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 2);
+  messageDesc(file_malonaz_ai_genui_v1_input, 3);
 
 /**
  * A question allowing several answers to be selected before submitting,
@@ -344,7 +413,7 @@ export type MultiChoiceValid = Message<"malonaz.ai.genui.v1.MultiChoice"> & {
  * Use `create(MultiChoiceSchema)` to create a new message.
  */
 export const MultiChoiceSchema: GenMessage<MultiChoice, {validType: MultiChoiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 3);
+  messageDesc(file_malonaz_ai_genui_v1_input, 4);
 
 /**
  * The answers the user picked within a [MultiChoice][malonaz.ai.genui.v1.MultiChoice].
@@ -367,7 +436,7 @@ export type MultiChoiceResponseValid = MultiChoiceResponse;
  * Use `create(MultiChoiceResponseSchema)` to create a new message.
  */
 export const MultiChoiceResponseSchema: GenMessage<MultiChoiceResponse, {validType: MultiChoiceResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 4);
+  messageDesc(file_malonaz_ai_genui_v1_input, 5);
 
 /**
  * An explicit approve/reject gate for a consequential action (send quote,
@@ -462,7 +531,7 @@ export type ConfirmationValid = Message<"malonaz.ai.genui.v1.Confirmation"> & {
  * Use `create(ConfirmationSchema)` to create a new message.
  */
 export const ConfirmationSchema: GenMessage<Confirmation, {validType: ConfirmationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 5);
+  messageDesc(file_malonaz_ai_genui_v1_input, 6);
 
 /**
  * The user's verdict on a [Confirmation][malonaz.ai.genui.v1.Confirmation].
@@ -485,7 +554,7 @@ export type ConfirmationResponseValid = ConfirmationResponse;
  * Use `create(ConfirmationResponseSchema)` to create a new message.
  */
 export const ConfirmationResponseSchema: GenMessage<ConfirmationResponse, {validType: ConfirmationResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 6);
+  messageDesc(file_malonaz_ai_genui_v1_input, 7);
 
 /**
  * Structured multi-field input submitted as a single
@@ -552,7 +621,7 @@ export type FormValid = Message<"malonaz.ai.genui.v1.Form"> & {
  * Use `create(FormSchema)` to create a new message.
  */
 export const FormSchema: GenMessage<Form, {validType: FormValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 7);
+  messageDesc(file_malonaz_ai_genui_v1_input, 8);
 
 /**
  * The values the user submitted for a [Form][malonaz.ai.genui.v1.Form].
@@ -587,7 +656,7 @@ export type FormResponseValid = Message<"malonaz.ai.genui.v1.FormResponse"> & {
  * Use `create(FormResponseSchema)` to create a new message.
  */
 export const FormResponseSchema: GenMessage<FormResponse, {validType: FormResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 8);
+  messageDesc(file_malonaz_ai_genui_v1_input, 9);
 
 /**
  * A single input within a [Form][malonaz.ai.genui.v1.Form].
@@ -760,7 +829,7 @@ export type FormFieldValid = Message<"malonaz.ai.genui.v1.FormField"> & {
  * Use `create(FormFieldSchema)` to create a new message.
  */
 export const FormFieldSchema: GenMessage<FormField, {validType: FormFieldValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 9);
+  messageDesc(file_malonaz_ai_genui_v1_input, 10);
 
 /**
  * The submitted value of a single [FormField][malonaz.ai.genui.v1.FormField].
@@ -804,6 +873,14 @@ export type FormFieldValue = Message<"malonaz.ai.genui.v1.FormFieldValue"> & {
      */
     value: string;
     case: "selectedOption";
+  } | {
+    /**
+     * Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 7;
+     */
+    value: FormSelectedOptions;
+    case: "selectedOptions";
   } | {
     /**
      * Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
@@ -867,6 +944,14 @@ export type FormFieldValueValid = Message<"malonaz.ai.genui.v1.FormFieldValue"> 
     case: "selectedOption";
   } | {
     /**
+     * Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+     *
+     * @generated from field: malonaz.ai.genui.v1.FormSelectedOptions selected_options = 7;
+     */
+    value: FormSelectedOptionsValid;
+    case: "selectedOptions";
+  } | {
+    /**
      * Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
      *
      * @generated from field: google.protobuf.Timestamp date = 5;
@@ -889,7 +974,31 @@ export type FormFieldValueValid = Message<"malonaz.ai.genui.v1.FormFieldValue"> 
  * Use `create(FormFieldValueSchema)` to create a new message.
  */
 export const FormFieldValueSchema: GenMessage<FormFieldValue, {validType: FormFieldValueValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 10);
+  messageDesc(file_malonaz_ai_genui_v1_input, 11);
+
+/**
+ * The options picked in a multi-select
+ * [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+ *
+ * @generated from message malonaz.ai.genui.v1.FormSelectedOptions
+ */
+export type FormSelectedOptions = Message<"malonaz.ai.genui.v1.FormSelectedOptions"> & {
+  /**
+   * The selected options, verbatim, in display order.
+   *
+   * @generated from field: repeated string options = 1;
+   */
+  options: string[];
+};
+
+export type FormSelectedOptionsValid = FormSelectedOptions;
+
+/**
+ * Describes the message malonaz.ai.genui.v1.FormSelectedOptions.
+ * Use `create(FormSelectedOptionsSchema)` to create a new message.
+ */
+export const FormSelectedOptionsSchema: GenMessage<FormSelectedOptions, {validType: FormSelectedOptionsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_input, 12);
 
 /**
  * A free-text input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -903,6 +1012,13 @@ export type FormTextInput = Message<"malonaz.ai.genui.v1.FormTextInput"> & {
    * @generated from field: bool multiline = 1;
    */
   multiline: boolean;
+
+  /**
+   * Optional value pre-filled when the form renders.
+   *
+   * @generated from field: string default_value = 2;
+   */
+  defaultValue: string;
 };
 
 export type FormTextInputValid = FormTextInput;
@@ -912,7 +1028,7 @@ export type FormTextInputValid = FormTextInput;
  * Use `create(FormTextInputSchema)` to create a new message.
  */
 export const FormTextInputSchema: GenMessage<FormTextInput, {validType: FormTextInputValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 11);
+  messageDesc(file_malonaz_ai_genui_v1_input, 13);
 
 /**
  * A numeric input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -933,6 +1049,13 @@ export type FormNumberInput = Message<"malonaz.ai.genui.v1.FormNumberInput"> & {
    * @generated from field: optional double max = 2;
    */
   max?: number;
+
+  /**
+   * Optional value pre-filled when the form renders.
+   *
+   * @generated from field: optional double default_value = 3;
+   */
+  defaultValue?: number;
 };
 
 export type FormNumberInputValid = FormNumberInput;
@@ -942,10 +1065,10 @@ export type FormNumberInputValid = FormNumberInput;
  * Use `create(FormNumberInputSchema)` to create a new message.
  */
 export const FormNumberInputSchema: GenMessage<FormNumberInput, {validType: FormNumberInputValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 12);
+  messageDesc(file_malonaz_ai_genui_v1_input, 14);
 
 /**
- * A single-select input within a [FormField][malonaz.ai.genui.v1.FormField].
+ * A select input within a [FormField][malonaz.ai.genui.v1.FormField].
  *
  * @generated from message malonaz.ai.genui.v1.FormSelectInput
  */
@@ -956,6 +1079,22 @@ export type FormSelectInput = Message<"malonaz.ai.genui.v1.FormSelectInput"> & {
    * @generated from field: repeated string options = 1;
    */
   options: string[];
+
+  /**
+   * Whether several options may be picked; the answer then fills
+   * `selected_options` instead of `selected_option`.
+   *
+   * @generated from field: bool multi = 2;
+   */
+  multi: boolean;
+
+  /**
+   * Optional options pre-selected when the form renders. Single-select
+   * inputs use only the first.
+   *
+   * @generated from field: repeated string default_options = 3;
+   */
+  defaultOptions: string[];
 };
 
 export type FormSelectInputValid = FormSelectInput;
@@ -965,7 +1104,7 @@ export type FormSelectInputValid = FormSelectInput;
  * Use `create(FormSelectInputSchema)` to create a new message.
  */
 export const FormSelectInputSchema: GenMessage<FormSelectInput, {validType: FormSelectInputValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 13);
+  messageDesc(file_malonaz_ai_genui_v1_input, 15);
 
 /**
  * A date input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -988,7 +1127,7 @@ export type FormDateInputValid = FormDateInput;
  * Use `create(FormDateInputSchema)` to create a new message.
  */
 export const FormDateInputSchema: GenMessage<FormDateInput, {validType: FormDateInputValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 14);
+  messageDesc(file_malonaz_ai_genui_v1_input, 16);
 
 /**
  * An on/off input within a [FormField][malonaz.ai.genui.v1.FormField].
@@ -1011,7 +1150,7 @@ export type FormToggleInputValid = FormToggleInput;
  * Use `create(FormToggleInputSchema)` to create a new message.
  */
 export const FormToggleInputSchema: GenMessage<FormToggleInput, {validType: FormToggleInputValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 15);
+  messageDesc(file_malonaz_ai_genui_v1_input, 17);
 
 /**
  * Select one or more resources from a candidate set, e.g. disambiguating
@@ -1041,6 +1180,22 @@ export type ResourcePicker = Message<"malonaz.ai.genui.v1.ResourcePicker"> & {
    * @generated from field: bool multi_select = 3;
    */
   multiSelect: boolean;
+
+  /**
+   * Whether to offer an explicit "none of these" answer, so users aren't
+   * forced to abandon the question when no candidate fits.
+   *
+   * @generated from field: bool allow_none = 4;
+   */
+  allowNone: boolean;
+
+  /**
+   * Optional label for the "none of these" answer. Defaults to
+   * "None of these".
+   *
+   * @generated from field: string none_label = 5;
+   */
+  noneLabel: string;
 };
 
 export type ResourcePickerValid = ResourcePicker;
@@ -1050,7 +1205,7 @@ export type ResourcePickerValid = ResourcePicker;
  * Use `create(ResourcePickerSchema)` to create a new message.
  */
 export const ResourcePickerSchema: GenMessage<ResourcePicker, {validType: ResourcePickerValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 16);
+  messageDesc(file_malonaz_ai_genui_v1_input, 18);
 
 /**
  * The candidates the user picked within a [ResourcePicker][malonaz.ai.genui.v1.ResourcePicker].
@@ -1059,11 +1214,18 @@ export const ResourcePickerSchema: GenMessage<ResourcePicker, {validType: Resour
  */
 export type ResourcePickerResponse = Message<"malonaz.ai.genui.v1.ResourcePickerResponse"> & {
   /**
-   * The selected resources, in display order.
+   * The selected resources, in display order. Empty when `none` is set.
    *
    * @generated from field: repeated string resource_names = 1;
    */
   resourceNames: string[];
+
+  /**
+   * The user explicitly picked "none of these".
+   *
+   * @generated from field: bool none = 2;
+   */
+  none: boolean;
 };
 
 export type ResourcePickerResponseValid = ResourcePickerResponse;
@@ -1073,7 +1235,7 @@ export type ResourcePickerResponseValid = ResourcePickerResponse;
  * Use `create(ResourcePickerResponseSchema)` to create a new message.
  */
 export const ResourcePickerResponseSchema: GenMessage<ResourcePickerResponse, {validType: ResourcePickerResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 17);
+  messageDesc(file_malonaz_ai_genui_v1_input, 19);
 
 /**
  * Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
@@ -1150,7 +1312,7 @@ export type SliderValid = Message<"malonaz.ai.genui.v1.Slider"> & {
  * Use `create(SliderSchema)` to create a new message.
  */
 export const SliderSchema: GenMessage<Slider, {validType: SliderValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 18);
+  messageDesc(file_malonaz_ai_genui_v1_input, 20);
 
 /**
  * The value the user picked on a [Slider][malonaz.ai.genui.v1.Slider].
@@ -1173,7 +1335,7 @@ export type SliderResponseValid = SliderResponse;
  * Use `create(SliderResponseSchema)` to create a new message.
  */
 export const SliderResponseSchema: GenMessage<SliderResponse, {validType: SliderResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 19);
+  messageDesc(file_malonaz_ai_genui_v1_input, 21);
 
 /**
  * A calendar/clock input, e.g. "when should I schedule the call?".
@@ -1208,6 +1370,14 @@ export type DateTimePicker = Message<"malonaz.ai.genui.v1.DateTimePicker"> & {
    * @generated from field: google.protobuf.Timestamp max_time = 4;
    */
   maxTime?: Timestamp;
+
+  /**
+   * Whether the user picks a start and an end instead of a single moment;
+   * the answer then also carries `end_time`.
+   *
+   * @generated from field: bool range = 5;
+   */
+  range: boolean;
 };
 
 /**
@@ -1243,6 +1413,14 @@ export type DateTimePickerValid = Message<"malonaz.ai.genui.v1.DateTimePicker"> 
    * @generated from field: google.protobuf.Timestamp max_time = 4;
    */
   maxTime?: Timestamp;
+
+  /**
+   * Whether the user picks a start and an end instead of a single moment;
+   * the answer then also carries `end_time`.
+   *
+   * @generated from field: bool range = 5;
+   */
+  range: boolean;
 };
 
 /**
@@ -1250,7 +1428,7 @@ export type DateTimePickerValid = Message<"malonaz.ai.genui.v1.DateTimePicker"> 
  * Use `create(DateTimePickerSchema)` to create a new message.
  */
 export const DateTimePickerSchema: GenMessage<DateTimePicker, {validType: DateTimePickerValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 20);
+  messageDesc(file_malonaz_ai_genui_v1_input, 22);
 
 /**
  * The moment the user picked on a [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker].
@@ -1259,11 +1437,18 @@ export const DateTimePickerSchema: GenMessage<DateTimePicker, {validType: DateTi
  */
 export type DateTimePickerResponse = Message<"malonaz.ai.genui.v1.DateTimePickerResponse"> & {
   /**
-   * The selected moment.
+   * The selected moment (the start, when `range` was set).
    *
    * @generated from field: google.protobuf.Timestamp time = 1;
    */
   time?: Timestamp;
+
+  /**
+   * The selected end. Only set when the picker asked for a range.
+   *
+   * @generated from field: google.protobuf.Timestamp end_time = 2;
+   */
+  endTime?: Timestamp;
 };
 
 /**
@@ -1273,11 +1458,18 @@ export type DateTimePickerResponse = Message<"malonaz.ai.genui.v1.DateTimePicker
  */
 export type DateTimePickerResponseValid = Message<"malonaz.ai.genui.v1.DateTimePickerResponse"> & {
   /**
-   * The selected moment.
+   * The selected moment (the start, when `range` was set).
    *
    * @generated from field: google.protobuf.Timestamp time = 1;
    */
   time: Timestamp;
+
+  /**
+   * The selected end. Only set when the picker asked for a range.
+   *
+   * @generated from field: google.protobuf.Timestamp end_time = 2;
+   */
+  endTime?: Timestamp;
 };
 
 /**
@@ -1285,5 +1477,5 @@ export type DateTimePickerResponseValid = Message<"malonaz.ai.genui.v1.DateTimeP
  * Use `create(DateTimePickerResponseSchema)` to create a new message.
  */
 export const DateTimePickerResponseSchema: GenMessage<DateTimePickerResponse, {validType: DateTimePickerResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_input, 21);
+  messageDesc(file_malonaz_ai_genui_v1_input, 23);
 

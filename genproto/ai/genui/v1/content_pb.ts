@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/content.proto.
  */
 export const file_malonaz_ai_genui_v1_content: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiXQoMS2V5VmFsdWVMaXN0Eg0KBXRpdGxlGAEgASgJEj4KBWl0ZW1zGAIgAygLMiUubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RJdGVtQgi6SAWSAQIIASJXChBLZXlWYWx1ZUxpc3RJdGVtEhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAkSHQoNcmVzb3VyY2VfbmFtZRgDIAEoCUIG+kEDCgEqIlgKCFRpbWVsaW5lEg0KBXRpdGxlGAEgASgJEj0KB2VudHJpZXMYAiADKAsyIi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRpbWVsaW5lRW50cnlCCLpIBZIBAggBIoQBCg1UaW1lbGluZUVudHJ5EhUKBXRpdGxlGAEgASgJQga6SAPIAQESEwoLZGVzY3JpcHRpb24YAiABKAkSKAoEdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASHQoNcmVzb3VyY2VfbmFtZRgEIAEoCUIG+kEDCgEqIosBCgVDaGFydBI4CgR0eXBlGAEgASgOMh4ubWFsb25hei5haS5nZW51aS52MS5DaGFydFR5cGVCCrpIB4IBBBABIAASDQoFdGl0bGUYAiABKAkSOQoGcG9pbnRzGAMgAygLMh8ubWFsb25hei5haS5nZW51aS52MS5DaGFydFBvaW50Qgi6SAWSAQIIASIyCgpDaGFydFBvaW50EhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAEiaAoFVGFibGUSDQoFdGl0bGUYASABKAkSGQoHY29sdW1ucxgCIAMoCUIIukgFkgECCAESNQoEcm93cxgDIAMoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVSb3dCCLpIBZIBAggBIkMKCFRhYmxlUm93EjcKBWNlbGxzGAEgAygLMh4ubWFsb25hei5haS5nZW51aS52MS5UYWJsZUNlbGxCCLpIBZIBAggBIjkKCVRhYmxlQ2VsbBINCgV2YWx1ZRgBIAEoCRIdCg1yZXNvdXJjZV9uYW1lGAIgASgJQgb6QQMKASoiTgoJQWN0aW9uUm93EkEKB2FjdGlvbnMYASADKAsyJC5tYWxvbmF6LmFpLmdlbnVpLnYxLkFjdGlvblJvd0FjdGlvbkIKukgHkgEECAEQBSLIAQoPQWN0aW9uUm93QWN0aW9uEhUKBWxhYmVsGAEgASgJQga6SAPIAQESOQoFc3R5bGUYAiABKA4yIC5tYWxvbmF6LmFpLmdlbnVpLnYxLkFjdGlvblN0eWxlQgi6SAWCAQIQARIfCg1vcGVuX3Jlc291cmNlGAMgASgJQgb6QQMKASpIABITCgljb3B5X3RleHQYBCABKAlIABIcCghvcGVuX3VybBgFIAEoCUIIukgFcgOIAQFIAEIPCgZhY3Rpb24SBbpIAggBKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADKmMKC0FjdGlvblN0eWxlEhwKGEFDVElPTl9TVFlMRV9VTlNQRUNJRklFRBAAEhgKFEFDVElPTl9TVFlMRV9QUklNQVJZEAESHAoYQUNUSU9OX1NUWUxFX0RFU1RSVUNUSVZFEAJCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvZ2VudWkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiFtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbnRlbnQucHJvdG8SE21hbG9uYXouYWkuZ2VudWkudjEiXQoMS2V5VmFsdWVMaXN0Eg0KBXRpdGxlGAEgASgJEj4KBWl0ZW1zGAIgAygLMiUubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RJdGVtQgi6SAWSAQIIASKKAQoQS2V5VmFsdWVMaXN0SXRlbRIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEg0KBXZhbHVlGAIgASgJEh0KDXJlc291cmNlX25hbWUYAyABKAlCBvpBAwoBKhIxCgR0b25lGAQgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASJYCghUaW1lbGluZRINCgV0aXRsZRgBIAEoCRI9CgdlbnRyaWVzGAIgAygLMiIubWFsb25hei5haS5nZW51aS52MS5UaW1lbGluZUVudHJ5Qgi6SAWSAQIIASK3AQoNVGltZWxpbmVFbnRyeRIVCgV0aXRsZRgBIAEoCUIGukgDyAEBEhMKC2Rlc2NyaXB0aW9uGAIgASgJEigKBHRpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KDXJlc291cmNlX25hbWUYBCABKAlCBvpBAwoBKhIxCgR0b25lGAUgASgOMhkubWFsb25hei5haS5nZW51aS52MS5Ub25lQgi6SAWCAQIQASKGAgoFQ2hhcnQSOAoEdHlwZRgBIAEoDjIeLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRUeXBlQgq6SAeCAQQQASAAEg0KBXRpdGxlGAIgASgJEjoKBnNlcmllcxgDIAMoCzIgLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRTZXJpZXNCCLpIBZIBAggBEg8KB3N0YWNrZWQYBCABKAgSRQoMdmFsdWVfZm9ybWF0GAUgASgOMiUubWFsb25hei5haS5nZW51aS52MS5DaGFydFZhbHVlRm9ybWF0Qgi6SAWCAQIQARIPCgd4X2xhYmVsGAYgASgJEg8KB3lfbGFiZWwYByABKAkiVwoLQ2hhcnRTZXJpZXMSDQoFbGFiZWwYASABKAkSOQoGcG9pbnRzGAIgAygLMh8ubWFsb25hei5haS5nZW51aS52MS5DaGFydFBvaW50Qgi6SAWSAQIIASIyCgpDaGFydFBvaW50EhUKBWxhYmVsGAEgASgJQga6SAPIAQESDQoFdmFsdWUYAiABKAEiigEKBVRhYmxlEg0KBXRpdGxlGAEgASgJEjsKB2NvbHVtbnMYAiADKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ29sdW1uQgi6SAWSAQIIARI1CgRyb3dzGAMgAygLMh0ubWFsb25hei5haS5nZW51aS52MS5UYWJsZVJvd0IIukgFkgECCAEiZAoLVGFibGVDb2x1bW4SFQoFbGFiZWwYASABKAlCBrpIA8gBARI+CgVhbGlnbhgCIAEoDjIlLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVDb2x1bW5BbGlnbkIIukgFggECEAEiYgoIVGFibGVSb3cSNwoFY2VsbHMYASADKAsyHi5tYWxvbmF6LmFpLmdlbnVpLnYxLlRhYmxlQ2VsbEIIukgFkgECCAESHQoNcmVzb3VyY2VfbmFtZRgCIAEoCUIG+kEDCgEqIjkKCVRhYmxlQ2VsbBINCgV2YWx1ZRgBIAEoCRIdCg1yZXNvdXJjZV9uYW1lGAIgASgJQgb6QQMKASoimwEKBFN0YXQSFQoFbGFiZWwYASABKAlCBrpIA8gBARIVCgV2YWx1ZRgCIAEoCUIGukgDyAEBEg0KBWRlbHRhGAMgASgJEjcKCmRlbHRhX3RvbmUYBCABKA4yGS5tYWxvbmF6LmFpLmdlbnVpLnYxLlRvbmVCCLpIBYIBAhABEh0KDXJlc291cmNlX25hbWUYBSABKAlCBvpBAwoBKiIkCghNYXJrZG93bhIYCghtYXJrZG93bhgBIAEoCUIGukgDyAEBIl0KCUFjdGlvblJvdxINCgV0aXRsZRgCIAEoCRJBCgdhY3Rpb25zGAEgAygLMiQubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25Sb3dBY3Rpb25CCrpIB5IBBAgBEAUiyAEKD0FjdGlvblJvd0FjdGlvbhIVCgVsYWJlbBgBIAEoCUIGukgDyAEBEjkKBXN0eWxlGAIgASgOMiAubWFsb25hei5haS5nZW51aS52MS5BY3Rpb25TdHlsZUIIukgFggECEAESHwoNb3Blbl9yZXNvdXJjZRgDIAEoCUIG+kEDCgEqSAASEwoJY29weV90ZXh0GAQgASgJSAASHAoIb3Blbl91cmwYBSABKAlCCLpIBXIDiAEBSABCDwoGYWN0aW9uEgW6SAIIASpUCgRUb25lEhQKEFRPTkVfVU5TUEVDSUZJRUQQABIRCg1UT05FX1BPU0lUSVZFEAESEQoNVE9ORV9ORUdBVElWRRACEhAKDFRPTkVfV0FSTklORxADKpYBChBDaGFydFZhbHVlRm9ybWF0EiIKHkNIQVJUX1ZBTFVFX0ZPUk1BVF9VTlNQRUNJRklFRBAAEh0KGUNIQVJUX1ZBTFVFX0ZPUk1BVF9OVU1CRVIQARIfChtDSEFSVF9WQUxVRV9GT1JNQVRfQ1VSUkVOQ1kQAhIeChpDSEFSVF9WQUxVRV9GT1JNQVRfUEVSQ0VOVBADKmQKCUNoYXJ0VHlwZRIaChZDSEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoOQ0hBUlRfVFlQRV9CQVIQARITCg9DSEFSVF9UWVBFX0xJTkUQAhISCg5DSEFSVF9UWVBFX1BJRRADKnEKEFRhYmxlQ29sdW1uQWxpZ24SIgoeVEFCTEVfQ09MVU1OX0FMSUdOX1VOU1BFQ0lGSUVEEAASGwoXVEFCTEVfQ09MVU1OX0FMSUdOX0xFRlQQARIcChhUQUJMRV9DT0xVTU5fQUxJR05fUklHSFQQAipjCgtBY3Rpb25TdHlsZRIcChhBQ1RJT05fU1RZTEVfVU5TUEVDSUZJRUQQABIYChRBQ1RJT05fU1RZTEVfUFJJTUFSWRABEhwKGEFDVElPTl9TVFlMRV9ERVNUUlVDVElWRRACQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * Label/value facts, e.g. a lead summary ("Budget: $10-15k").
@@ -91,6 +91,14 @@ export type KeyValueListItem = Message<"malonaz.ai.genui.v1.KeyValueListItem"> &
    * @generated from field: string resource_name = 3;
    */
   resourceName: string;
+
+  /**
+   * Optional emphasis applied to the value (e.g. "Overdue" in a negative
+   * tone). Unspecified renders the default foreground.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone tone = 4;
+   */
+  tone: Tone;
 };
 
 /**
@@ -119,6 +127,14 @@ export type KeyValueListItemValid = Message<"malonaz.ai.genui.v1.KeyValueListIte
    * @generated from field: string resource_name = 3;
    */
   resourceName: string;
+
+  /**
+   * Optional emphasis applied to the value (e.g. "Overdue" in a negative
+   * tone). Unspecified renders the default foreground.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone tone = 4;
+   */
+  tone: Tone;
 };
 
 /**
@@ -210,6 +226,13 @@ export type TimelineEntry = Message<"malonaz.ai.genui.v1.TimelineEntry"> & {
    * @generated from field: string resource_name = 4;
    */
   resourceName: string;
+
+  /**
+   * Optional emphasis applied to the entry's marker.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone tone = 5;
+   */
+  tone: Tone;
 };
 
 /**
@@ -245,6 +268,13 @@ export type TimelineEntryValid = Message<"malonaz.ai.genui.v1.TimelineEntry"> & 
    * @generated from field: string resource_name = 4;
    */
   resourceName: string;
+
+  /**
+   * Optional emphasis applied to the entry's marker.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone tone = 5;
+   */
+  tone: Tone;
 };
 
 /**
@@ -255,7 +285,8 @@ export const TimelineEntrySchema: GenMessage<TimelineEntry, {validType: Timeline
   messageDesc(file_malonaz_ai_genui_v1_content, 3);
 
 /**
- * Minimal chart for aggregates ("calls per day this week").
+ * Chart for aggregates ("calls per day this week"), optionally with several
+ * series ("quotes sent vs accepted per week").
  *
  * @generated from message malonaz.ai.genui.v1.Chart
  */
@@ -275,15 +306,47 @@ export type Chart = Message<"malonaz.ai.genui.v1.Chart"> & {
   title: string;
 
   /**
-   * The datapoints to plot, in display order.
+   * The series to plot, in display order. A single series renders without a
+   * legend; several render one, keyed by series label. Pie charts use only
+   * the first series.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 3;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartSeries series = 3;
    */
-  points: ChartPoint[];
+  series: ChartSeries[];
+
+  /**
+   * Bars only: stack the series into one segmented bar per label instead of
+   * grouping them side by side.
+   *
+   * @generated from field: bool stacked = 4;
+   */
+  stacked: boolean;
+
+  /**
+   * How values are rendered in labels and legends.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ChartValueFormat value_format = 5;
+   */
+  valueFormat: ChartValueFormat;
+
+  /**
+   * Optional caption for the x axis, e.g. "Week".
+   *
+   * @generated from field: string x_label = 6;
+   */
+  xLabel: string;
+
+  /**
+   * Optional caption for the y axis, e.g. "Quotes".
+   *
+   * @generated from field: string y_label = 7;
+   */
+  yLabel: string;
 };
 
 /**
- * Minimal chart for aggregates ("calls per day this week").
+ * Chart for aggregates ("calls per day this week"), optionally with several
+ * series ("quotes sent vs accepted per week").
  *
  * @generated from message malonaz.ai.genui.v1.Chart
  */
@@ -303,11 +366,42 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
   title: string;
 
   /**
-   * The datapoints to plot, in display order.
+   * The series to plot, in display order. A single series renders without a
+   * legend; several render one, keyed by series label. Pie charts use only
+   * the first series.
    *
-   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 3;
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartSeries series = 3;
    */
-  points: ChartPointValid[];
+  series: ChartSeriesValid[];
+
+  /**
+   * Bars only: stack the series into one segmented bar per label instead of
+   * grouping them side by side.
+   *
+   * @generated from field: bool stacked = 4;
+   */
+  stacked: boolean;
+
+  /**
+   * How values are rendered in labels and legends.
+   *
+   * @generated from field: malonaz.ai.genui.v1.ChartValueFormat value_format = 5;
+   */
+  valueFormat: ChartValueFormat;
+
+  /**
+   * Optional caption for the x axis, e.g. "Week".
+   *
+   * @generated from field: string x_label = 6;
+   */
+  xLabel: string;
+
+  /**
+   * Optional caption for the y axis, e.g. "Quotes".
+   *
+   * @generated from field: string y_label = 7;
+   */
+  yLabel: string;
 };
 
 /**
@@ -316,6 +410,59 @@ export type ChartValid = Message<"malonaz.ai.genui.v1.Chart"> & {
  */
 export const ChartSchema: GenMessage<Chart, {validType: ChartValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_genui_v1_content, 4);
+
+/**
+ * A named sequence of datapoints within a [Chart][malonaz.ai.genui.v1.Chart].
+ *
+ * @generated from message malonaz.ai.genui.v1.ChartSeries
+ */
+export type ChartSeries = Message<"malonaz.ai.genui.v1.ChartSeries"> & {
+  /**
+   * Legend label for the series, e.g. "Accepted". May be empty on a chart's
+   * only series.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The datapoints to plot, in display order. Series are aligned by point
+   * label; a series may omit labels other series carry.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 2;
+   */
+  points: ChartPoint[];
+};
+
+/**
+ * A named sequence of datapoints within a [Chart][malonaz.ai.genui.v1.Chart].
+ *
+ * @generated from message malonaz.ai.genui.v1.ChartSeries
+ */
+export type ChartSeriesValid = Message<"malonaz.ai.genui.v1.ChartSeries"> & {
+  /**
+   * Legend label for the series, e.g. "Accepted". May be empty on a chart's
+   * only series.
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The datapoints to plot, in display order. Series are aligned by point
+   * label; a series may omit labels other series carry.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.ChartPoint points = 2;
+   */
+  points: ChartPointValid[];
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.ChartSeries.
+ * Use `create(ChartSeriesSchema)` to create a new message.
+ */
+export const ChartSeriesSchema: GenMessage<ChartSeries, {validType: ChartSeriesValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 5);
 
 /**
  * A single datapoint within a [Chart][malonaz.ai.genui.v1.Chart].
@@ -364,7 +511,7 @@ export type ChartPointValid = Message<"malonaz.ai.genui.v1.ChartPoint"> & {
  * Use `create(ChartPointSchema)` to create a new message.
  */
 export const ChartPointSchema: GenMessage<ChartPoint, {validType: ChartPointValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 5);
+  messageDesc(file_malonaz_ai_genui_v1_content, 6);
 
 /**
  * Tabular data, e.g. "quotes by state with count and total value".
@@ -380,11 +527,11 @@ export type Table = Message<"malonaz.ai.genui.v1.Table"> & {
   title: string;
 
   /**
-   * Column headers, defining the width of every row.
+   * The columns, defining the width of every row.
    *
-   * @generated from field: repeated string columns = 2;
+   * @generated from field: repeated malonaz.ai.genui.v1.TableColumn columns = 2;
    */
-  columns: string[];
+  columns: TableColumn[];
 
   /**
    * Rows, in display order. Each row carries one cell per column.
@@ -394,14 +541,91 @@ export type Table = Message<"malonaz.ai.genui.v1.Table"> & {
   rows: TableRow[];
 };
 
-export type TableValid = Table;
+/**
+ * Tabular data, e.g. "quotes by state with count and total value".
+ *
+ * @generated from message malonaz.ai.genui.v1.Table
+ */
+export type TableValid = Message<"malonaz.ai.genui.v1.Table"> & {
+  /**
+   * Optional heading rendered above the table.
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * The columns, defining the width of every row.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.TableColumn columns = 2;
+   */
+  columns: TableColumnValid[];
+
+  /**
+   * Rows, in display order. Each row carries one cell per column.
+   *
+   * @generated from field: repeated malonaz.ai.genui.v1.TableRow rows = 3;
+   */
+  rows: TableRowValid[];
+};
 
 /**
  * Describes the message malonaz.ai.genui.v1.Table.
  * Use `create(TableSchema)` to create a new message.
  */
 export const TableSchema: GenMessage<Table, {validType: TableValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 6);
+  messageDesc(file_malonaz_ai_genui_v1_content, 7);
+
+/**
+ * A single column within a [Table][malonaz.ai.genui.v1.Table].
+ *
+ * @generated from message malonaz.ai.genui.v1.TableColumn
+ */
+export type TableColumn = Message<"malonaz.ai.genui.v1.TableColumn"> & {
+  /**
+   * The column header, e.g. "Total".
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * How the column's cells are aligned. Unspecified lets the renderer
+   * decide (numeric-looking columns right-align).
+   *
+   * @generated from field: malonaz.ai.genui.v1.TableColumnAlign align = 2;
+   */
+  align: TableColumnAlign;
+};
+
+/**
+ * A single column within a [Table][malonaz.ai.genui.v1.Table].
+ *
+ * @generated from message malonaz.ai.genui.v1.TableColumn
+ */
+export type TableColumnValid = Message<"malonaz.ai.genui.v1.TableColumn"> & {
+  /**
+   * The column header, e.g. "Total".
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * How the column's cells are aligned. Unspecified lets the renderer
+   * decide (numeric-looking columns right-align).
+   *
+   * @generated from field: malonaz.ai.genui.v1.TableColumnAlign align = 2;
+   */
+  align: TableColumnAlign;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.TableColumn.
+ * Use `create(TableColumnSchema)` to create a new message.
+ */
+export const TableColumnSchema: GenMessage<TableColumn, {validType: TableColumnValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 8);
 
 /**
  * A single row within a [Table][malonaz.ai.genui.v1.Table].
@@ -415,6 +639,14 @@ export type TableRow = Message<"malonaz.ai.genui.v1.TableRow"> & {
    * @generated from field: repeated malonaz.ai.genui.v1.TableCell cells = 1;
    */
   cells: TableCell[];
+
+  /**
+   * Optional resource the whole row refers to; cells without their own
+   * resource_name link here.
+   *
+   * @generated from field: string resource_name = 2;
+   */
+  resourceName: string;
 };
 
 export type TableRowValid = TableRow;
@@ -424,7 +656,7 @@ export type TableRowValid = TableRow;
  * Use `create(TableRowSchema)` to create a new message.
  */
 export const TableRowSchema: GenMessage<TableRow, {validType: TableRowValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 7);
+  messageDesc(file_malonaz_ai_genui_v1_content, 9);
 
 /**
  * A single cell within a [TableRow][malonaz.ai.genui.v1.TableRow].
@@ -454,7 +686,139 @@ export type TableCellValid = TableCell;
  * Use `create(TableCellSchema)` to create a new message.
  */
 export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 8);
+  messageDesc(file_malonaz_ai_genui_v1_content, 10);
+
+/**
+ * A single headline metric with an optional delta, e.g.
+ * "Revenue this month: $12k, +8% vs July".
+ *
+ * @generated from message malonaz.ai.genui.v1.Stat
+ */
+export type Stat = Message<"malonaz.ai.genui.v1.Stat"> & {
+  /**
+   * The label naming the metric, e.g. "Revenue this month".
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The headline value, pre-formatted, e.g. "$12k".
+   *
+   * @generated from field: string value = 2;
+   */
+  value: string;
+
+  /**
+   * Optional pre-formatted change indicator, e.g. "+8% vs July".
+   *
+   * @generated from field: string delta = 3;
+   */
+  delta: string;
+
+  /**
+   * Optional emphasis applied to the delta.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone delta_tone = 4;
+   */
+  deltaTone: Tone;
+
+  /**
+   * Optional resource name; the client links the card when set.
+   *
+   * @generated from field: string resource_name = 5;
+   */
+  resourceName: string;
+};
+
+/**
+ * A single headline metric with an optional delta, e.g.
+ * "Revenue this month: $12k, +8% vs July".
+ *
+ * @generated from message malonaz.ai.genui.v1.Stat
+ */
+export type StatValid = Message<"malonaz.ai.genui.v1.Stat"> & {
+  /**
+   * The label naming the metric, e.g. "Revenue this month".
+   *
+   * @generated from field: string label = 1;
+   */
+  label: string;
+
+  /**
+   * The headline value, pre-formatted, e.g. "$12k".
+   *
+   * @generated from field: string value = 2;
+   */
+  value: string;
+
+  /**
+   * Optional pre-formatted change indicator, e.g. "+8% vs July".
+   *
+   * @generated from field: string delta = 3;
+   */
+  delta: string;
+
+  /**
+   * Optional emphasis applied to the delta.
+   *
+   * @generated from field: malonaz.ai.genui.v1.Tone delta_tone = 4;
+   */
+  deltaTone: Tone;
+
+  /**
+   * Optional resource name; the client links the card when set.
+   *
+   * @generated from field: string resource_name = 5;
+   */
+  resourceName: string;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Stat.
+ * Use `create(StatSchema)` to create a new message.
+ */
+export const StatSchema: GenMessage<Stat, {validType: StatValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 11);
+
+/**
+ * Standalone rich text (markdown subset) rendered as its own component,
+ * e.g. a drafted follow-up message shown before a Confirmation. Resource
+ * names in link targets render as in-app links.
+ *
+ * @generated from message malonaz.ai.genui.v1.Markdown
+ */
+export type Markdown = Message<"malonaz.ai.genui.v1.Markdown"> & {
+  /**
+   * The markdown to render.
+   *
+   * @generated from field: string markdown = 1;
+   */
+  markdown: string;
+};
+
+/**
+ * Standalone rich text (markdown subset) rendered as its own component,
+ * e.g. a drafted follow-up message shown before a Confirmation. Resource
+ * names in link targets render as in-app links.
+ *
+ * @generated from message malonaz.ai.genui.v1.Markdown
+ */
+export type MarkdownValid = Message<"malonaz.ai.genui.v1.Markdown"> & {
+  /**
+   * The markdown to render.
+   *
+   * @generated from field: string markdown = 1;
+   */
+  markdown: string;
+};
+
+/**
+ * Describes the message malonaz.ai.genui.v1.Markdown.
+ * Use `create(MarkdownSchema)` to create a new message.
+ */
+export const MarkdownSchema: GenMessage<Markdown, {validType: MarkdownValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_genui_v1_content, 12);
 
 /**
  * Buttons the user can press — pure client affordances that never feed back
@@ -466,6 +830,13 @@ export const TableCellSchema: GenMessage<TableCell, {validType: TableCellValid}>
  * @generated from message malonaz.ai.genui.v1.ActionRow
  */
 export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
+  /**
+   * Optional heading rendered above the buttons.
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
   /**
    * The buttons to render, in display order.
    *
@@ -485,6 +856,13 @@ export type ActionRow = Message<"malonaz.ai.genui.v1.ActionRow"> & {
  */
 export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
   /**
+   * Optional heading rendered above the buttons.
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
    * The buttons to render, in display order.
    *
    * @generated from field: repeated malonaz.ai.genui.v1.ActionRowAction actions = 1;
@@ -497,7 +875,7 @@ export type ActionRowValid = Message<"malonaz.ai.genui.v1.ActionRow"> & {
  * Use `create(ActionRowSchema)` to create a new message.
  */
 export const ActionRowSchema: GenMessage<ActionRow, {validType: ActionRowValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 9);
+  messageDesc(file_malonaz_ai_genui_v1_content, 13);
 
 /**
  * A single button within an [ActionRow][malonaz.ai.genui.v1.ActionRow].
@@ -608,7 +986,90 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
  * Use `create(ActionRowActionSchema)` to create a new message.
  */
 export const ActionRowActionSchema: GenMessage<ActionRowAction, {validType: ActionRowActionValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_genui_v1_content, 10);
+  messageDesc(file_malonaz_ai_genui_v1_content, 14);
+
+/**
+ * Semantic emphasis shared by display components. Renderers map tones onto
+ * their palette (positive: green, negative: red, warning: amber).
+ *
+ * @generated from enum malonaz.ai.genui.v1.Tone
+ */
+export enum Tone {
+  /**
+   * Used to detect an unset field. Rendered with the default emphasis.
+   *
+   * @generated from enum value: TONE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * A good outcome (paid, accepted, growing).
+   *
+   * @generated from enum value: TONE_POSITIVE = 1;
+   */
+  POSITIVE = 1,
+
+  /**
+   * A bad outcome (overdue, declined, shrinking).
+   *
+   * @generated from enum value: TONE_NEGATIVE = 2;
+   */
+  NEGATIVE = 2,
+
+  /**
+   * Needs attention, but not (yet) bad.
+   *
+   * @generated from enum value: TONE_WARNING = 3;
+   */
+  WARNING = 3,
+}
+
+/**
+ * Describes the enum malonaz.ai.genui.v1.Tone.
+ */
+export const ToneSchema: GenEnum<Tone> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_content, 0);
+
+/**
+ * How the values of a [Chart][malonaz.ai.genui.v1.Chart] are rendered.
+ *
+ * @generated from enum malonaz.ai.genui.v1.ChartValueFormat
+ */
+export enum ChartValueFormat {
+  /**
+   * Used to detect an unset field. Rendered as a plain number.
+   *
+   * @generated from enum value: CHART_VALUE_FORMAT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * A plain number, e.g. "12".
+   *
+   * @generated from enum value: CHART_VALUE_FORMAT_NUMBER = 1;
+   */
+  NUMBER = 1,
+
+  /**
+   * A currency amount, e.g. "$12".
+   *
+   * @generated from enum value: CHART_VALUE_FORMAT_CURRENCY = 2;
+   */
+  CURRENCY = 2,
+
+  /**
+   * A percentage, e.g. "12%".
+   *
+   * @generated from enum value: CHART_VALUE_FORMAT_PERCENT = 3;
+   */
+  PERCENT = 3,
+}
+
+/**
+ * Describes the enum malonaz.ai.genui.v1.ChartValueFormat.
+ */
+export const ChartValueFormatSchema: GenEnum<ChartValueFormat> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_content, 1);
 
 /**
  * How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
@@ -649,7 +1110,41 @@ export enum ChartType {
  * Describes the enum malonaz.ai.genui.v1.ChartType.
  */
 export const ChartTypeSchema: GenEnum<ChartType> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_genui_v1_content, 0);
+  enumDesc(file_malonaz_ai_genui_v1_content, 2);
+
+/**
+ * How a [TableColumn][malonaz.ai.genui.v1.TableColumn]'s cells are aligned.
+ *
+ * @generated from enum malonaz.ai.genui.v1.TableColumnAlign
+ */
+export enum TableColumnAlign {
+  /**
+   * Used to detect an unset field. The renderer picks an alignment.
+   *
+   * @generated from enum value: TABLE_COLUMN_ALIGN_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Left-aligned.
+   *
+   * @generated from enum value: TABLE_COLUMN_ALIGN_LEFT = 1;
+   */
+  LEFT = 1,
+
+  /**
+   * Right-aligned, like numbers in a spreadsheet.
+   *
+   * @generated from enum value: TABLE_COLUMN_ALIGN_RIGHT = 2;
+   */
+  RIGHT = 2,
+}
+
+/**
+ * Describes the enum malonaz.ai.genui.v1.TableColumnAlign.
+ */
+export const TableColumnAlignSchema: GenEnum<TableColumnAlign> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_genui_v1_content, 3);
 
 /**
  * How an [ActionRowAction][malonaz.ai.genui.v1.ActionRowAction] is
@@ -684,5 +1179,5 @@ export enum ActionStyle {
  * Describes the enum malonaz.ai.genui.v1.ActionStyle.
  */
 export const ActionStyleSchema: GenEnum<ActionStyle> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_genui_v1_content, 1);
+  enumDesc(file_malonaz_ai_genui_v1_content, 4);
 

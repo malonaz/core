@@ -453,11 +453,12 @@ func (*inputResponse_DateTimePicker) isInputResponse_Response() {}
 // A question with constrained answers, e.g. disambiguation
 // ("which John did you mean?").
 type Choice struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Question string                 `protobuf:"bytes,1,opt,name=question,proto3"`
-	xxx_hidden_Options  []string               `protobuf:"bytes,2,rep,name=options,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Question      string                 `protobuf:"bytes,1,opt,name=question,proto3"`
+	xxx_hidden_Options       *[]*ChoiceOption       `protobuf:"bytes,2,rep,name=options,proto3"`
+	xxx_hidden_AllowFreeText bool                   `protobuf:"varint,3,opt,name=allow_free_text,json=allowFreeText,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *Choice) Reset() {
@@ -492,19 +493,32 @@ func (x *Choice) GetQuestion() string {
 	return ""
 }
 
-func (x *Choice) GetOptions() []string {
+func (x *Choice) GetOptions() []*ChoiceOption {
 	if x != nil {
-		return x.xxx_hidden_Options
+		if x.xxx_hidden_Options != nil {
+			return *x.xxx_hidden_Options
+		}
 	}
 	return nil
+}
+
+func (x *Choice) GetAllowFreeText() bool {
+	if x != nil {
+		return x.xxx_hidden_AllowFreeText
+	}
+	return false
 }
 
 func (x *Choice) SetQuestion(v string) {
 	x.xxx_hidden_Question = v
 }
 
-func (x *Choice) SetOptions(v []string) {
-	x.xxx_hidden_Options = v
+func (x *Choice) SetOptions(v []*ChoiceOption) {
+	x.xxx_hidden_Options = &v
+}
+
+func (x *Choice) SetAllowFreeText(v bool) {
+	x.xxx_hidden_AllowFreeText = v
 }
 
 type Choice_builder struct {
@@ -513,7 +527,10 @@ type Choice_builder struct {
 	// The question posed to the user.
 	Question string
 	// The answers the user may pick from, in display order.
-	Options []string
+	Options []*ChoiceOption
+	// Whether to also offer a free-text input, so "none of the above" answers
+	// don't cost an extra round trip.
+	AllowFreeText bool
 }
 
 func (b0 Choice_builder) Build() *Choice {
@@ -521,21 +538,96 @@ func (b0 Choice_builder) Build() *Choice {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Question = b.Question
-	x.xxx_hidden_Options = b.Options
+	x.xxx_hidden_Options = &b.Options
+	x.xxx_hidden_AllowFreeText = b.AllowFreeText
+	return m0
+}
+
+// A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
+type ChoiceOption struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Label       string                 `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Description string                 `protobuf:"bytes,2,opt,name=description,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ChoiceOption) Reset() {
+	*x = ChoiceOption{}
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChoiceOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChoiceOption) ProtoMessage() {}
+
+func (x *ChoiceOption) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ChoiceOption) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *ChoiceOption) GetDescription() string {
+	if x != nil {
+		return x.xxx_hidden_Description
+	}
+	return ""
+}
+
+func (x *ChoiceOption) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *ChoiceOption) SetDescription(v string) {
+	x.xxx_hidden_Description = v
+}
+
+type ChoiceOption_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The text rendered on the option.
+	Label string
+	// Optional detail disambiguating the option.
+	Description string
+}
+
+func (b0 ChoiceOption_builder) Build() *ChoiceOption {
+	m0 := &ChoiceOption{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
+	x.xxx_hidden_Description = b.Description
 	return m0
 }
 
 // The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
 type ChoiceResponse struct {
-	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Option string                 `protobuf:"bytes,1,opt,name=option,proto3"`
+	state             protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Answer isChoiceResponse_Answer `protobuf_oneof:"answer"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ChoiceResponse) Reset() {
 	*x = ChoiceResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[2]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -547,7 +639,7 @@ func (x *ChoiceResponse) String() string {
 func (*ChoiceResponse) ProtoMessage() {}
 
 func (x *ChoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[2]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -560,29 +652,140 @@ func (x *ChoiceResponse) ProtoReflect() protoreflect.Message {
 
 func (x *ChoiceResponse) GetOption() string {
 	if x != nil {
-		return x.xxx_hidden_Option
+		if x, ok := x.xxx_hidden_Answer.(*choiceResponse_Option); ok {
+			return x.Option
+		}
+	}
+	return ""
+}
+
+func (x *ChoiceResponse) GetFreeText() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Answer.(*choiceResponse_FreeText); ok {
+			return x.FreeText
+		}
 	}
 	return ""
 }
 
 func (x *ChoiceResponse) SetOption(v string) {
-	x.xxx_hidden_Option = v
+	x.xxx_hidden_Answer = &choiceResponse_Option{v}
+}
+
+func (x *ChoiceResponse) SetFreeText(v string) {
+	x.xxx_hidden_Answer = &choiceResponse_FreeText{v}
+}
+
+func (x *ChoiceResponse) HasAnswer() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Answer != nil
+}
+
+func (x *ChoiceResponse) HasOption() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Answer.(*choiceResponse_Option)
+	return ok
+}
+
+func (x *ChoiceResponse) HasFreeText() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Answer.(*choiceResponse_FreeText)
+	return ok
+}
+
+func (x *ChoiceResponse) ClearAnswer() {
+	x.xxx_hidden_Answer = nil
+}
+
+func (x *ChoiceResponse) ClearOption() {
+	if _, ok := x.xxx_hidden_Answer.(*choiceResponse_Option); ok {
+		x.xxx_hidden_Answer = nil
+	}
+}
+
+func (x *ChoiceResponse) ClearFreeText() {
+	if _, ok := x.xxx_hidden_Answer.(*choiceResponse_FreeText); ok {
+		x.xxx_hidden_Answer = nil
+	}
+}
+
+const ChoiceResponse_Answer_not_set_case case_ChoiceResponse_Answer = 0
+const ChoiceResponse_Option_case case_ChoiceResponse_Answer = 1
+const ChoiceResponse_FreeText_case case_ChoiceResponse_Answer = 2
+
+func (x *ChoiceResponse) WhichAnswer() case_ChoiceResponse_Answer {
+	if x == nil {
+		return ChoiceResponse_Answer_not_set_case
+	}
+	switch x.xxx_hidden_Answer.(type) {
+	case *choiceResponse_Option:
+		return ChoiceResponse_Option_case
+	case *choiceResponse_FreeText:
+		return ChoiceResponse_FreeText_case
+	default:
+		return ChoiceResponse_Answer_not_set_case
+	}
 }
 
 type ChoiceResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The selected option, verbatim.
-	Option string
+	// The user's answer.
+
+	// Fields of oneof xxx_hidden_Answer:
+	// The selected option's label, verbatim.
+	Option *string
+	// The user's free-text answer (only when `allow_free_text` was set).
+	FreeText *string
+	// -- end of xxx_hidden_Answer
 }
 
 func (b0 ChoiceResponse_builder) Build() *ChoiceResponse {
 	m0 := &ChoiceResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Option = b.Option
+	if b.Option != nil {
+		x.xxx_hidden_Answer = &choiceResponse_Option{*b.Option}
+	}
+	if b.FreeText != nil {
+		x.xxx_hidden_Answer = &choiceResponse_FreeText{*b.FreeText}
+	}
 	return m0
 }
+
+type case_ChoiceResponse_Answer protoreflect.FieldNumber
+
+func (x case_ChoiceResponse_Answer) String() string {
+	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[3].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isChoiceResponse_Answer interface {
+	isChoiceResponse_Answer()
+}
+
+type choiceResponse_Option struct {
+	// The selected option's label, verbatim.
+	Option string `protobuf:"bytes,1,opt,name=option,proto3,oneof"`
+}
+
+type choiceResponse_FreeText struct {
+	// The user's free-text answer (only when `allow_free_text` was set).
+	FreeText string `protobuf:"bytes,2,opt,name=free_text,json=freeText,proto3,oneof"`
+}
+
+func (*choiceResponse_Option) isChoiceResponse_Answer() {}
+
+func (*choiceResponse_FreeText) isChoiceResponse_Answer() {}
 
 // A question allowing several answers to be selected before submitting,
 // e.g. "which contacts should I include in the follow-up?".
@@ -598,7 +801,7 @@ type MultiChoice struct {
 
 func (x *MultiChoice) Reset() {
 	*x = MultiChoice{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[3]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +813,7 @@ func (x *MultiChoice) String() string {
 func (*MultiChoice) ProtoMessage() {}
 
 func (x *MultiChoice) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[3]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -699,7 +902,7 @@ type MultiChoiceResponse struct {
 
 func (x *MultiChoiceResponse) Reset() {
 	*x = MultiChoiceResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[4]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -711,7 +914,7 @@ func (x *MultiChoiceResponse) String() string {
 func (*MultiChoiceResponse) ProtoMessage() {}
 
 func (x *MultiChoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[4]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -763,7 +966,7 @@ type Confirmation struct {
 
 func (x *Confirmation) Reset() {
 	*x = Confirmation{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -775,7 +978,7 @@ func (x *Confirmation) String() string {
 func (*Confirmation) ProtoMessage() {}
 
 func (x *Confirmation) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +1082,7 @@ type ConfirmationResponse struct {
 
 func (x *ConfirmationResponse) Reset() {
 	*x = ConfirmationResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -891,7 +1094,7 @@ func (x *ConfirmationResponse) String() string {
 func (*ConfirmationResponse) ProtoMessage() {}
 
 func (x *ConfirmationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +1145,7 @@ type Form struct {
 
 func (x *Form) Reset() {
 	*x = Form{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -954,7 +1157,7 @@ func (x *Form) String() string {
 func (*Form) ProtoMessage() {}
 
 func (x *Form) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1031,7 +1234,7 @@ type FormResponse struct {
 
 func (x *FormResponse) Reset() {
 	*x = FormResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +1246,7 @@ func (x *FormResponse) String() string {
 func (*FormResponse) ProtoMessage() {}
 
 func (x *FormResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1299,7 @@ type FormField struct {
 
 func (x *FormField) Reset() {
 	*x = FormField{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1311,7 @@ func (x *FormField) String() string {
 func (*FormField) ProtoMessage() {}
 
 func (x *FormField) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1413,7 +1616,7 @@ func (b0 FormField_builder) Build() *FormField {
 type case_FormField_Input protoreflect.FieldNumber
 
 func (x case_FormField_Input) String() string {
-	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[9].Descriptor()
+	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[10].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1470,7 +1673,7 @@ type FormFieldValue struct {
 
 func (x *FormFieldValue) Reset() {
 	*x = FormFieldValue{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +1685,7 @@ func (x *FormFieldValue) String() string {
 func (*FormFieldValue) ProtoMessage() {}
 
 func (x *FormFieldValue) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1527,6 +1730,15 @@ func (x *FormFieldValue) GetSelectedOption() string {
 	return ""
 }
 
+func (x *FormFieldValue) GetSelectedOptions() *FormSelectedOptions {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Value.(*formFieldValue_SelectedOptions); ok {
+			return x.SelectedOptions
+		}
+	}
+	return nil
+}
+
 func (x *FormFieldValue) GetDate() *timestamppb.Timestamp {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Value.(*formFieldValue_Date); ok {
@@ -1559,6 +1771,14 @@ func (x *FormFieldValue) SetNumber(v float64) {
 
 func (x *FormFieldValue) SetSelectedOption(v string) {
 	x.xxx_hidden_Value = &formFieldValue_SelectedOption{v}
+}
+
+func (x *FormFieldValue) SetSelectedOptions(v *FormSelectedOptions) {
+	if v == nil {
+		x.xxx_hidden_Value = nil
+		return
+	}
+	x.xxx_hidden_Value = &formFieldValue_SelectedOptions{v}
 }
 
 func (x *FormFieldValue) SetDate(v *timestamppb.Timestamp) {
@@ -1604,6 +1824,14 @@ func (x *FormFieldValue) HasSelectedOption() bool {
 	return ok
 }
 
+func (x *FormFieldValue) HasSelectedOptions() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Value.(*formFieldValue_SelectedOptions)
+	return ok
+}
+
 func (x *FormFieldValue) HasDate() bool {
 	if x == nil {
 		return false
@@ -1642,6 +1870,12 @@ func (x *FormFieldValue) ClearSelectedOption() {
 	}
 }
 
+func (x *FormFieldValue) ClearSelectedOptions() {
+	if _, ok := x.xxx_hidden_Value.(*formFieldValue_SelectedOptions); ok {
+		x.xxx_hidden_Value = nil
+	}
+}
+
 func (x *FormFieldValue) ClearDate() {
 	if _, ok := x.xxx_hidden_Value.(*formFieldValue_Date); ok {
 		x.xxx_hidden_Value = nil
@@ -1658,6 +1892,7 @@ const FormFieldValue_Value_not_set_case case_FormFieldValue_Value = 0
 const FormFieldValue_Text_case case_FormFieldValue_Value = 2
 const FormFieldValue_Number_case case_FormFieldValue_Value = 3
 const FormFieldValue_SelectedOption_case case_FormFieldValue_Value = 4
+const FormFieldValue_SelectedOptions_case case_FormFieldValue_Value = 7
 const FormFieldValue_Date_case case_FormFieldValue_Value = 5
 const FormFieldValue_Toggle_case case_FormFieldValue_Value = 6
 
@@ -1672,6 +1907,8 @@ func (x *FormFieldValue) WhichValue() case_FormFieldValue_Value {
 		return FormFieldValue_Number_case
 	case *formFieldValue_SelectedOption:
 		return FormFieldValue_SelectedOption_case
+	case *formFieldValue_SelectedOptions:
+		return FormFieldValue_SelectedOptions_case
 	case *formFieldValue_Date:
 		return FormFieldValue_Date_case
 	case *formFieldValue_Toggle:
@@ -1695,6 +1932,8 @@ type FormFieldValue_builder struct {
 	Number *float64
 	// Fills a [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
 	SelectedOption *string
+	// Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+	SelectedOptions *FormSelectedOptions
 	// Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
 	Date *timestamppb.Timestamp
 	// Fills a [FormToggleInput][malonaz.ai.genui.v1.FormToggleInput].
@@ -1716,6 +1955,9 @@ func (b0 FormFieldValue_builder) Build() *FormFieldValue {
 	if b.SelectedOption != nil {
 		x.xxx_hidden_Value = &formFieldValue_SelectedOption{*b.SelectedOption}
 	}
+	if b.SelectedOptions != nil {
+		x.xxx_hidden_Value = &formFieldValue_SelectedOptions{b.SelectedOptions}
+	}
 	if b.Date != nil {
 		x.xxx_hidden_Value = &formFieldValue_Date{b.Date}
 	}
@@ -1728,7 +1970,7 @@ func (b0 FormFieldValue_builder) Build() *FormFieldValue {
 type case_FormFieldValue_Value protoreflect.FieldNumber
 
 func (x case_FormFieldValue_Value) String() string {
-	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[10].Descriptor()
+	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[11].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1754,6 +1996,11 @@ type formFieldValue_SelectedOption struct {
 	SelectedOption string `protobuf:"bytes,4,opt,name=selected_option,json=selectedOption,proto3,oneof"`
 }
 
+type formFieldValue_SelectedOptions struct {
+	// Fills a multi-select [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+	SelectedOptions *FormSelectedOptions `protobuf:"bytes,7,opt,name=selected_options,json=selectedOptions,proto3,oneof"`
+}
+
 type formFieldValue_Date struct {
 	// Fills a [FormDateInput][malonaz.ai.genui.v1.FormDateInput].
 	Date *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=date,proto3,oneof"`
@@ -1770,21 +2017,84 @@ func (*formFieldValue_Number) isFormFieldValue_Value() {}
 
 func (*formFieldValue_SelectedOption) isFormFieldValue_Value() {}
 
+func (*formFieldValue_SelectedOptions) isFormFieldValue_Value() {}
+
 func (*formFieldValue_Date) isFormFieldValue_Value() {}
 
 func (*formFieldValue_Toggle) isFormFieldValue_Value() {}
 
+// The options picked in a multi-select
+// [FormSelectInput][malonaz.ai.genui.v1.FormSelectInput].
+type FormSelectedOptions struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Options []string               `protobuf:"bytes,1,rep,name=options,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *FormSelectedOptions) Reset() {
+	*x = FormSelectedOptions{}
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FormSelectedOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormSelectedOptions) ProtoMessage() {}
+
+func (x *FormSelectedOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *FormSelectedOptions) GetOptions() []string {
+	if x != nil {
+		return x.xxx_hidden_Options
+	}
+	return nil
+}
+
+func (x *FormSelectedOptions) SetOptions(v []string) {
+	x.xxx_hidden_Options = v
+}
+
+type FormSelectedOptions_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The selected options, verbatim, in display order.
+	Options []string
+}
+
+func (b0 FormSelectedOptions_builder) Build() *FormSelectedOptions {
+	m0 := &FormSelectedOptions{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Options = b.Options
+	return m0
+}
+
 // A free-text input within a [FormField][malonaz.ai.genui.v1.FormField].
 type FormTextInput struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Multiline bool                   `protobuf:"varint,1,opt,name=multiline,proto3"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Multiline    bool                   `protobuf:"varint,1,opt,name=multiline,proto3"`
+	xxx_hidden_DefaultValue string                 `protobuf:"bytes,2,opt,name=default_value,json=defaultValue,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *FormTextInput) Reset() {
 	*x = FormTextInput{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[11]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1796,7 +2106,7 @@ func (x *FormTextInput) String() string {
 func (*FormTextInput) ProtoMessage() {}
 
 func (x *FormTextInput) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[11]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1814,8 +2124,19 @@ func (x *FormTextInput) GetMultiline() bool {
 	return false
 }
 
+func (x *FormTextInput) GetDefaultValue() string {
+	if x != nil {
+		return x.xxx_hidden_DefaultValue
+	}
+	return ""
+}
+
 func (x *FormTextInput) SetMultiline(v bool) {
 	x.xxx_hidden_Multiline = v
+}
+
+func (x *FormTextInput) SetDefaultValue(v string) {
+	x.xxx_hidden_DefaultValue = v
 }
 
 type FormTextInput_builder struct {
@@ -1823,6 +2144,8 @@ type FormTextInput_builder struct {
 
 	// Whether to render a multi-line text area instead of a single line.
 	Multiline bool
+	// Optional value pre-filled when the form renders.
+	DefaultValue string
 }
 
 func (b0 FormTextInput_builder) Build() *FormTextInput {
@@ -1830,23 +2153,25 @@ func (b0 FormTextInput_builder) Build() *FormTextInput {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Multiline = b.Multiline
+	x.xxx_hidden_DefaultValue = b.DefaultValue
 	return m0
 }
 
 // A numeric input within a [FormField][malonaz.ai.genui.v1.FormField].
 type FormNumberInput struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Min         float64                `protobuf:"fixed64,1,opt,name=min,proto3,oneof"`
-	xxx_hidden_Max         float64                `protobuf:"fixed64,2,opt,name=max,proto3,oneof"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Min          float64                `protobuf:"fixed64,1,opt,name=min,proto3,oneof"`
+	xxx_hidden_Max          float64                `protobuf:"fixed64,2,opt,name=max,proto3,oneof"`
+	xxx_hidden_DefaultValue float64                `protobuf:"fixed64,3,opt,name=default_value,json=defaultValue,proto3,oneof"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *FormNumberInput) Reset() {
 	*x = FormNumberInput{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[12]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1858,7 +2183,7 @@ func (x *FormNumberInput) String() string {
 func (*FormNumberInput) ProtoMessage() {}
 
 func (x *FormNumberInput) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[12]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,14 +2208,26 @@ func (x *FormNumberInput) GetMax() float64 {
 	return 0
 }
 
+func (x *FormNumberInput) GetDefaultValue() float64 {
+	if x != nil {
+		return x.xxx_hidden_DefaultValue
+	}
+	return 0
+}
+
 func (x *FormNumberInput) SetMin(v float64) {
 	x.xxx_hidden_Min = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
 }
 
 func (x *FormNumberInput) SetMax(v float64) {
 	x.xxx_hidden_Max = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *FormNumberInput) SetDefaultValue(v float64) {
+	x.xxx_hidden_DefaultValue = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
 
 func (x *FormNumberInput) HasMin() bool {
@@ -1907,6 +2244,13 @@ func (x *FormNumberInput) HasMax() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
+func (x *FormNumberInput) HasDefaultValue() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
 func (x *FormNumberInput) ClearMin() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Min = 0
@@ -1917,6 +2261,11 @@ func (x *FormNumberInput) ClearMax() {
 	x.xxx_hidden_Max = 0
 }
 
+func (x *FormNumberInput) ClearDefaultValue() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_DefaultValue = 0
+}
+
 type FormNumberInput_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -1924,6 +2273,8 @@ type FormNumberInput_builder struct {
 	Min *float64
 	// Optional inclusive upper bound.
 	Max *float64
+	// Optional value pre-filled when the form renders.
+	DefaultValue *float64
 }
 
 func (b0 FormNumberInput_builder) Build() *FormNumberInput {
@@ -1931,27 +2282,33 @@ func (b0 FormNumberInput_builder) Build() *FormNumberInput {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Min != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
 		x.xxx_hidden_Min = *b.Min
 	}
 	if b.Max != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
 		x.xxx_hidden_Max = *b.Max
+	}
+	if b.DefaultValue != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_DefaultValue = *b.DefaultValue
 	}
 	return m0
 }
 
-// A single-select input within a [FormField][malonaz.ai.genui.v1.FormField].
+// A select input within a [FormField][malonaz.ai.genui.v1.FormField].
 type FormSelectInput struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Options []string               `protobuf:"bytes,1,rep,name=options,proto3"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Options        []string               `protobuf:"bytes,1,rep,name=options,proto3"`
+	xxx_hidden_Multi          bool                   `protobuf:"varint,2,opt,name=multi,proto3"`
+	xxx_hidden_DefaultOptions []string               `protobuf:"bytes,3,rep,name=default_options,json=defaultOptions,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *FormSelectInput) Reset() {
 	*x = FormSelectInput{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[13]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1963,7 +2320,7 @@ func (x *FormSelectInput) String() string {
 func (*FormSelectInput) ProtoMessage() {}
 
 func (x *FormSelectInput) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[13]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1981,8 +2338,30 @@ func (x *FormSelectInput) GetOptions() []string {
 	return nil
 }
 
+func (x *FormSelectInput) GetMulti() bool {
+	if x != nil {
+		return x.xxx_hidden_Multi
+	}
+	return false
+}
+
+func (x *FormSelectInput) GetDefaultOptions() []string {
+	if x != nil {
+		return x.xxx_hidden_DefaultOptions
+	}
+	return nil
+}
+
 func (x *FormSelectInput) SetOptions(v []string) {
 	x.xxx_hidden_Options = v
+}
+
+func (x *FormSelectInput) SetMulti(v bool) {
+	x.xxx_hidden_Multi = v
+}
+
+func (x *FormSelectInput) SetDefaultOptions(v []string) {
+	x.xxx_hidden_DefaultOptions = v
 }
 
 type FormSelectInput_builder struct {
@@ -1990,6 +2369,12 @@ type FormSelectInput_builder struct {
 
 	// The options the user may pick from, in display order.
 	Options []string
+	// Whether several options may be picked; the answer then fills
+	// `selected_options` instead of `selected_option`.
+	Multi bool
+	// Optional options pre-selected when the form renders. Single-select
+	// inputs use only the first.
+	DefaultOptions []string
 }
 
 func (b0 FormSelectInput_builder) Build() *FormSelectInput {
@@ -1997,6 +2382,8 @@ func (b0 FormSelectInput_builder) Build() *FormSelectInput {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Options = b.Options
+	x.xxx_hidden_Multi = b.Multi
+	x.xxx_hidden_DefaultOptions = b.DefaultOptions
 	return m0
 }
 
@@ -2010,7 +2397,7 @@ type FormDateInput struct {
 
 func (x *FormDateInput) Reset() {
 	*x = FormDateInput{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[14]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2022,7 +2409,7 @@ func (x *FormDateInput) String() string {
 func (*FormDateInput) ProtoMessage() {}
 
 func (x *FormDateInput) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[14]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2069,7 +2456,7 @@ type FormToggleInput struct {
 
 func (x *FormToggleInput) Reset() {
 	*x = FormToggleInput{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[15]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2081,7 +2468,7 @@ func (x *FormToggleInput) String() string {
 func (*FormToggleInput) ProtoMessage() {}
 
 func (x *FormToggleInput) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[15]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2126,13 +2513,15 @@ type ResourcePicker struct {
 	xxx_hidden_Title         string                 `protobuf:"bytes,1,opt,name=title,proto3"`
 	xxx_hidden_ResourceNames []string               `protobuf:"bytes,2,rep,name=resource_names,json=resourceNames,proto3"`
 	xxx_hidden_MultiSelect   bool                   `protobuf:"varint,3,opt,name=multi_select,json=multiSelect,proto3"`
+	xxx_hidden_AllowNone     bool                   `protobuf:"varint,4,opt,name=allow_none,json=allowNone,proto3"`
+	xxx_hidden_NoneLabel     string                 `protobuf:"bytes,5,opt,name=none_label,json=noneLabel,proto3"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ResourcePicker) Reset() {
 	*x = ResourcePicker{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[16]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2144,7 +2533,7 @@ func (x *ResourcePicker) String() string {
 func (*ResourcePicker) ProtoMessage() {}
 
 func (x *ResourcePicker) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[16]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2176,6 +2565,20 @@ func (x *ResourcePicker) GetMultiSelect() bool {
 	return false
 }
 
+func (x *ResourcePicker) GetAllowNone() bool {
+	if x != nil {
+		return x.xxx_hidden_AllowNone
+	}
+	return false
+}
+
+func (x *ResourcePicker) GetNoneLabel() string {
+	if x != nil {
+		return x.xxx_hidden_NoneLabel
+	}
+	return ""
+}
+
 func (x *ResourcePicker) SetTitle(v string) {
 	x.xxx_hidden_Title = v
 }
@@ -2188,6 +2591,14 @@ func (x *ResourcePicker) SetMultiSelect(v bool) {
 	x.xxx_hidden_MultiSelect = v
 }
 
+func (x *ResourcePicker) SetAllowNone(v bool) {
+	x.xxx_hidden_AllowNone = v
+}
+
+func (x *ResourcePicker) SetNoneLabel(v string) {
+	x.xxx_hidden_NoneLabel = v
+}
+
 type ResourcePicker_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -2197,6 +2608,12 @@ type ResourcePicker_builder struct {
 	ResourceNames []string
 	// Whether the user may select more than one candidate.
 	MultiSelect bool
+	// Whether to offer an explicit "none of these" answer, so users aren't
+	// forced to abandon the question when no candidate fits.
+	AllowNone bool
+	// Optional label for the "none of these" answer. Defaults to
+	// "None of these".
+	NoneLabel string
 }
 
 func (b0 ResourcePicker_builder) Build() *ResourcePicker {
@@ -2206,6 +2623,8 @@ func (b0 ResourcePicker_builder) Build() *ResourcePicker {
 	x.xxx_hidden_Title = b.Title
 	x.xxx_hidden_ResourceNames = b.ResourceNames
 	x.xxx_hidden_MultiSelect = b.MultiSelect
+	x.xxx_hidden_AllowNone = b.AllowNone
+	x.xxx_hidden_NoneLabel = b.NoneLabel
 	return m0
 }
 
@@ -2213,13 +2632,14 @@ func (b0 ResourcePicker_builder) Build() *ResourcePicker {
 type ResourcePickerResponse struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_ResourceNames []string               `protobuf:"bytes,1,rep,name=resource_names,json=resourceNames,proto3"`
+	xxx_hidden_None          bool                   `protobuf:"varint,2,opt,name=none,proto3"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ResourcePickerResponse) Reset() {
 	*x = ResourcePickerResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[17]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2231,7 +2651,7 @@ func (x *ResourcePickerResponse) String() string {
 func (*ResourcePickerResponse) ProtoMessage() {}
 
 func (x *ResourcePickerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[17]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2249,15 +2669,28 @@ func (x *ResourcePickerResponse) GetResourceNames() []string {
 	return nil
 }
 
+func (x *ResourcePickerResponse) GetNone() bool {
+	if x != nil {
+		return x.xxx_hidden_None
+	}
+	return false
+}
+
 func (x *ResourcePickerResponse) SetResourceNames(v []string) {
 	x.xxx_hidden_ResourceNames = v
+}
+
+func (x *ResourcePickerResponse) SetNone(v bool) {
+	x.xxx_hidden_None = v
 }
 
 type ResourcePickerResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The selected resources, in display order.
+	// The selected resources, in display order. Empty when `none` is set.
 	ResourceNames []string
+	// The user explicitly picked "none of these".
+	None bool
 }
 
 func (b0 ResourcePickerResponse_builder) Build() *ResourcePickerResponse {
@@ -2265,6 +2698,7 @@ func (b0 ResourcePickerResponse_builder) Build() *ResourcePickerResponse {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_ResourceNames = b.ResourceNames
+	x.xxx_hidden_None = b.None
 	return m0
 }
 
@@ -2281,7 +2715,7 @@ type Slider struct {
 
 func (x *Slider) Reset() {
 	*x = Slider{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[18]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2293,7 +2727,7 @@ func (x *Slider) String() string {
 func (*Slider) ProtoMessage() {}
 
 func (x *Slider) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[18]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2382,7 +2816,7 @@ type SliderResponse struct {
 
 func (x *SliderResponse) Reset() {
 	*x = SliderResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[19]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2394,7 +2828,7 @@ func (x *SliderResponse) String() string {
 func (*SliderResponse) ProtoMessage() {}
 
 func (x *SliderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[19]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2438,13 +2872,14 @@ type DateTimePicker struct {
 	xxx_hidden_IncludeTime bool                   `protobuf:"varint,2,opt,name=include_time,json=includeTime,proto3"`
 	xxx_hidden_MinTime     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=min_time,json=minTime,proto3"`
 	xxx_hidden_MaxTime     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=max_time,json=maxTime,proto3"`
+	xxx_hidden_Range       bool                   `protobuf:"varint,5,opt,name=range,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *DateTimePicker) Reset() {
 	*x = DateTimePicker{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[20]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2456,7 +2891,7 @@ func (x *DateTimePicker) String() string {
 func (*DateTimePicker) ProtoMessage() {}
 
 func (x *DateTimePicker) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[20]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2495,6 +2930,13 @@ func (x *DateTimePicker) GetMaxTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *DateTimePicker) GetRange() bool {
+	if x != nil {
+		return x.xxx_hidden_Range
+	}
+	return false
+}
+
 func (x *DateTimePicker) SetLabel(v string) {
 	x.xxx_hidden_Label = v
 }
@@ -2509,6 +2951,10 @@ func (x *DateTimePicker) SetMinTime(v *timestamppb.Timestamp) {
 
 func (x *DateTimePicker) SetMaxTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_MaxTime = v
+}
+
+func (x *DateTimePicker) SetRange(v bool) {
+	x.xxx_hidden_Range = v
 }
 
 func (x *DateTimePicker) HasMinTime() bool {
@@ -2544,6 +2990,9 @@ type DateTimePicker_builder struct {
 	MinTime *timestamppb.Timestamp
 	// Optional latest selectable moment.
 	MaxTime *timestamppb.Timestamp
+	// Whether the user picks a start and an end instead of a single moment;
+	// the answer then also carries `end_time`.
+	Range bool
 }
 
 func (b0 DateTimePicker_builder) Build() *DateTimePicker {
@@ -2554,20 +3003,22 @@ func (b0 DateTimePicker_builder) Build() *DateTimePicker {
 	x.xxx_hidden_IncludeTime = b.IncludeTime
 	x.xxx_hidden_MinTime = b.MinTime
 	x.xxx_hidden_MaxTime = b.MaxTime
+	x.xxx_hidden_Range = b.Range
 	return m0
 }
 
 // The moment the user picked on a [DateTimePicker][malonaz.ai.genui.v1.DateTimePicker].
 type DateTimePickerResponse struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Time    *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3"`
+	xxx_hidden_EndTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_time,json=endTime,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *DateTimePickerResponse) Reset() {
 	*x = DateTimePickerResponse{}
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[21]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2579,7 +3030,7 @@ func (x *DateTimePickerResponse) String() string {
 func (*DateTimePickerResponse) ProtoMessage() {}
 
 func (x *DateTimePickerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[21]
+	mi := &file_malonaz_ai_genui_v1_input_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2597,8 +3048,19 @@ func (x *DateTimePickerResponse) GetTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *DateTimePickerResponse) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_EndTime
+	}
+	return nil
+}
+
 func (x *DateTimePickerResponse) SetTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_Time = v
+}
+
+func (x *DateTimePickerResponse) SetEndTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_EndTime = v
 }
 
 func (x *DateTimePickerResponse) HasTime() bool {
@@ -2608,15 +3070,28 @@ func (x *DateTimePickerResponse) HasTime() bool {
 	return x.xxx_hidden_Time != nil
 }
 
+func (x *DateTimePickerResponse) HasEndTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EndTime != nil
+}
+
 func (x *DateTimePickerResponse) ClearTime() {
 	x.xxx_hidden_Time = nil
+}
+
+func (x *DateTimePickerResponse) ClearEndTime() {
+	x.xxx_hidden_EndTime = nil
 }
 
 type DateTimePickerResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The selected moment.
+	// The selected moment (the start, when `range` was set).
 	Time *timestamppb.Timestamp
+	// The selected end. Only set when the picker asked for a range.
+	EndTime *timestamppb.Timestamp
 }
 
 func (b0 DateTimePickerResponse_builder) Build() *DateTimePickerResponse {
@@ -2624,6 +3099,7 @@ func (b0 DateTimePickerResponse_builder) Build() *DateTimePickerResponse {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Time = b.Time
+	x.xxx_hidden_EndTime = b.EndTime
 	return m0
 }
 
@@ -2641,13 +3117,19 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x0fresource_picker\x18\x06 \x01(\v2+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00R\x0eresourcePicker\x12=\n" +
 	"\x06slider\x18\a \x01(\v2#.malonaz.ai.genui.v1.SliderResponseH\x00R\x06slider\x12W\n" +
 	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePickerB\x11\n" +
-	"\bresponse\x12\x05\xbaH\x02\b\x01\"R\n" +
+	"\bresponse\x12\x05\xbaH\x02\b\x01\"\x9d\x01\n" +
 	"\x06Choice\x12\"\n" +
-	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
-	"\aoptions\x18\x02 \x03(\tB\n" +
-	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\"0\n" +
-	"\x0eChoiceResponse\x12\x1e\n" +
-	"\x06option\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06option\"\xb7\x01\n" +
+	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12G\n" +
+	"\aoptions\x18\x02 \x03(\v2!.malonaz.ai.genui.v1.ChoiceOptionB\n" +
+	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\x12&\n" +
+	"\x0fallow_free_text\x18\x03 \x01(\bR\rallowFreeText\"N\n" +
+	"\fChoiceOption\x12\x1c\n" +
+	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"Z\n" +
+	"\x0eChoiceResponse\x12\x18\n" +
+	"\x06option\x18\x01 \x01(\tH\x00R\x06option\x12\x1d\n" +
+	"\tfree_text\x18\x02 \x01(\tH\x00R\bfreeTextB\x0f\n" +
+	"\x06answer\x12\x05\xbaH\x02\b\x01\"\xb7\x01\n" +
 	"\vMultiChoice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
 	"\aoptions\x18\x02 \x03(\tB\n" +
@@ -2680,101 +3162,121 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x06select\x18\a \x01(\v2$.malonaz.ai.genui.v1.FormSelectInputH\x00R\x06select\x128\n" +
 	"\x04date\x18\b \x01(\v2\".malonaz.ai.genui.v1.FormDateInputH\x00R\x04date\x12>\n" +
 	"\x06toggle\x18\t \x01(\v2$.malonaz.ai.genui.v1.FormToggleInputH\x00R\x06toggleB\x0e\n" +
-	"\x05input\x12\x05\xbaH\x02\b\x01\"\xea\x01\n" +
+	"\x05input\x12\x05\xbaH\x02\b\x01\"\xc1\x02\n" +
 	"\x0eFormFieldValue\x12!\n" +
 	"\bfield_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\afieldId\x12\x14\n" +
 	"\x04text\x18\x02 \x01(\tH\x00R\x04text\x12\x18\n" +
 	"\x06number\x18\x03 \x01(\x01H\x00R\x06number\x12)\n" +
-	"\x0fselected_option\x18\x04 \x01(\tH\x00R\x0eselectedOption\x120\n" +
+	"\x0fselected_option\x18\x04 \x01(\tH\x00R\x0eselectedOption\x12U\n" +
+	"\x10selected_options\x18\a \x01(\v2(.malonaz.ai.genui.v1.FormSelectedOptionsH\x00R\x0fselectedOptions\x120\n" +
 	"\x04date\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x04date\x12\x18\n" +
 	"\x06toggle\x18\x06 \x01(\bH\x00R\x06toggleB\x0e\n" +
-	"\x05value\x12\x05\xbaH\x02\b\x01\"-\n" +
+	"\x05value\x12\x05\xbaH\x02\b\x01\"9\n" +
+	"\x13FormSelectedOptions\x12\"\n" +
+	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\aoptions\"R\n" +
 	"\rFormTextInput\x12\x1c\n" +
-	"\tmultiline\x18\x01 \x01(\bR\tmultiline\"O\n" +
+	"\tmultiline\x18\x01 \x01(\bR\tmultiline\x12#\n" +
+	"\rdefault_value\x18\x02 \x01(\tR\fdefaultValue\"\x8b\x01\n" +
 	"\x0fFormNumberInput\x12\x15\n" +
 	"\x03min\x18\x01 \x01(\x01H\x00R\x03min\x88\x01\x01\x12\x15\n" +
-	"\x03max\x18\x02 \x01(\x01H\x01R\x03max\x88\x01\x01B\x06\n" +
+	"\x03max\x18\x02 \x01(\x01H\x01R\x03max\x88\x01\x01\x12(\n" +
+	"\rdefault_value\x18\x03 \x01(\x01H\x02R\fdefaultValue\x88\x01\x01B\x06\n" +
 	"\x04_minB\x06\n" +
-	"\x04_max\"5\n" +
+	"\x04_maxB\x10\n" +
+	"\x0e_default_value\"t\n" +
 	"\x0fFormSelectInput\x12\"\n" +
-	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x02R\aoptions\"2\n" +
+	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x02R\aoptions\x12\x14\n" +
+	"\x05multi\x18\x02 \x01(\bR\x05multi\x12'\n" +
+	"\x0fdefault_options\x18\x03 \x03(\tR\x0edefaultOptions\"2\n" +
 	"\rFormDateInput\x12!\n" +
 	"\finclude_time\x18\x01 \x01(\bR\vincludeTime\"6\n" +
 	"\x0fFormToggleInput\x12#\n" +
-	"\rdefault_value\x18\x01 \x01(\bR\fdefaultValue\"\x86\x01\n" +
+	"\rdefault_value\x18\x01 \x01(\bR\fdefaultValue\"\xc4\x01\n" +
 	"\x0eResourcePicker\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12;\n" +
 	"\x0eresource_names\x18\x02 \x03(\tB\x14\xfaA\x03\n" +
 	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNames\x12!\n" +
-	"\fmulti_select\x18\x03 \x01(\bR\vmultiSelect\"U\n" +
-	"\x16ResourcePickerResponse\x12;\n" +
-	"\x0eresource_names\x18\x01 \x03(\tB\x14\xfaA\x03\n" +
-	"\x01*\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\rresourceNames\"n\n" +
+	"\fmulti_select\x18\x03 \x01(\bR\vmultiSelect\x12\x1d\n" +
+	"\n" +
+	"allow_none\x18\x04 \x01(\bR\tallowNone\x12\x1d\n" +
+	"\n" +
+	"none_label\x18\x05 \x01(\tR\tnoneLabel\"g\n" +
+	"\x16ResourcePickerResponse\x129\n" +
+	"\x0eresource_names\x18\x01 \x03(\tB\x12\xfaA\x03\n" +
+	"\x01*\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01R\rresourceNames\x12\x12\n" +
+	"\x04none\x18\x02 \x01(\bR\x04none\"n\n" +
 	"\x06Slider\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x10\n" +
 	"\x03min\x18\x02 \x01(\x01R\x03min\x12\x10\n" +
 	"\x03max\x18\x03 \x01(\x01R\x03max\x12\"\n" +
 	"\x04step\x18\x04 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00R\x04step\"&\n" +
 	"\x0eSliderResponse\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\x01R\x05value\"\xbf\x01\n" +
+	"\x05value\x18\x01 \x01(\x01R\x05value\"\xd5\x01\n" +
 	"\x0eDateTimePicker\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12!\n" +
 	"\finclude_time\x18\x02 \x01(\bR\vincludeTime\x125\n" +
 	"\bmin_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aminTime\x125\n" +
-	"\bmax_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\amaxTime\"P\n" +
+	"\bmax_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\amaxTime\x12\x14\n" +
+	"\x05range\x18\x05 \x01(\bR\x05range\"\x87\x01\n" +
 	"\x16DateTimePickerResponse\x126\n" +
-	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x06\xbaH\x03\xc8\x01\x01R\x04timeB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x06\xbaH\x03\xc8\x01\x01R\x04time\x125\n" +
+	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTimeB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
-var file_malonaz_ai_genui_v1_input_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_malonaz_ai_genui_v1_input_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_malonaz_ai_genui_v1_input_proto_goTypes = []any{
 	(*InputResponse)(nil),          // 0: malonaz.ai.genui.v1.InputResponse
 	(*Choice)(nil),                 // 1: malonaz.ai.genui.v1.Choice
-	(*ChoiceResponse)(nil),         // 2: malonaz.ai.genui.v1.ChoiceResponse
-	(*MultiChoice)(nil),            // 3: malonaz.ai.genui.v1.MultiChoice
-	(*MultiChoiceResponse)(nil),    // 4: malonaz.ai.genui.v1.MultiChoiceResponse
-	(*Confirmation)(nil),           // 5: malonaz.ai.genui.v1.Confirmation
-	(*ConfirmationResponse)(nil),   // 6: malonaz.ai.genui.v1.ConfirmationResponse
-	(*Form)(nil),                   // 7: malonaz.ai.genui.v1.Form
-	(*FormResponse)(nil),           // 8: malonaz.ai.genui.v1.FormResponse
-	(*FormField)(nil),              // 9: malonaz.ai.genui.v1.FormField
-	(*FormFieldValue)(nil),         // 10: malonaz.ai.genui.v1.FormFieldValue
-	(*FormTextInput)(nil),          // 11: malonaz.ai.genui.v1.FormTextInput
-	(*FormNumberInput)(nil),        // 12: malonaz.ai.genui.v1.FormNumberInput
-	(*FormSelectInput)(nil),        // 13: malonaz.ai.genui.v1.FormSelectInput
-	(*FormDateInput)(nil),          // 14: malonaz.ai.genui.v1.FormDateInput
-	(*FormToggleInput)(nil),        // 15: malonaz.ai.genui.v1.FormToggleInput
-	(*ResourcePicker)(nil),         // 16: malonaz.ai.genui.v1.ResourcePicker
-	(*ResourcePickerResponse)(nil), // 17: malonaz.ai.genui.v1.ResourcePickerResponse
-	(*Slider)(nil),                 // 18: malonaz.ai.genui.v1.Slider
-	(*SliderResponse)(nil),         // 19: malonaz.ai.genui.v1.SliderResponse
-	(*DateTimePicker)(nil),         // 20: malonaz.ai.genui.v1.DateTimePicker
-	(*DateTimePickerResponse)(nil), // 21: malonaz.ai.genui.v1.DateTimePickerResponse
-	(*timestamppb.Timestamp)(nil),  // 22: google.protobuf.Timestamp
+	(*ChoiceOption)(nil),           // 2: malonaz.ai.genui.v1.ChoiceOption
+	(*ChoiceResponse)(nil),         // 3: malonaz.ai.genui.v1.ChoiceResponse
+	(*MultiChoice)(nil),            // 4: malonaz.ai.genui.v1.MultiChoice
+	(*MultiChoiceResponse)(nil),    // 5: malonaz.ai.genui.v1.MultiChoiceResponse
+	(*Confirmation)(nil),           // 6: malonaz.ai.genui.v1.Confirmation
+	(*ConfirmationResponse)(nil),   // 7: malonaz.ai.genui.v1.ConfirmationResponse
+	(*Form)(nil),                   // 8: malonaz.ai.genui.v1.Form
+	(*FormResponse)(nil),           // 9: malonaz.ai.genui.v1.FormResponse
+	(*FormField)(nil),              // 10: malonaz.ai.genui.v1.FormField
+	(*FormFieldValue)(nil),         // 11: malonaz.ai.genui.v1.FormFieldValue
+	(*FormSelectedOptions)(nil),    // 12: malonaz.ai.genui.v1.FormSelectedOptions
+	(*FormTextInput)(nil),          // 13: malonaz.ai.genui.v1.FormTextInput
+	(*FormNumberInput)(nil),        // 14: malonaz.ai.genui.v1.FormNumberInput
+	(*FormSelectInput)(nil),        // 15: malonaz.ai.genui.v1.FormSelectInput
+	(*FormDateInput)(nil),          // 16: malonaz.ai.genui.v1.FormDateInput
+	(*FormToggleInput)(nil),        // 17: malonaz.ai.genui.v1.FormToggleInput
+	(*ResourcePicker)(nil),         // 18: malonaz.ai.genui.v1.ResourcePicker
+	(*ResourcePickerResponse)(nil), // 19: malonaz.ai.genui.v1.ResourcePickerResponse
+	(*Slider)(nil),                 // 20: malonaz.ai.genui.v1.Slider
+	(*SliderResponse)(nil),         // 21: malonaz.ai.genui.v1.SliderResponse
+	(*DateTimePicker)(nil),         // 22: malonaz.ai.genui.v1.DateTimePicker
+	(*DateTimePickerResponse)(nil), // 23: malonaz.ai.genui.v1.DateTimePickerResponse
+	(*timestamppb.Timestamp)(nil),  // 24: google.protobuf.Timestamp
 }
 var file_malonaz_ai_genui_v1_input_proto_depIdxs = []int32{
-	2,  // 0: malonaz.ai.genui.v1.InputResponse.choice:type_name -> malonaz.ai.genui.v1.ChoiceResponse
-	4,  // 1: malonaz.ai.genui.v1.InputResponse.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoiceResponse
-	6,  // 2: malonaz.ai.genui.v1.InputResponse.confirmation:type_name -> malonaz.ai.genui.v1.ConfirmationResponse
-	8,  // 3: malonaz.ai.genui.v1.InputResponse.form:type_name -> malonaz.ai.genui.v1.FormResponse
-	17, // 4: malonaz.ai.genui.v1.InputResponse.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePickerResponse
-	19, // 5: malonaz.ai.genui.v1.InputResponse.slider:type_name -> malonaz.ai.genui.v1.SliderResponse
-	21, // 6: malonaz.ai.genui.v1.InputResponse.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePickerResponse
-	9,  // 7: malonaz.ai.genui.v1.Form.fields:type_name -> malonaz.ai.genui.v1.FormField
-	10, // 8: malonaz.ai.genui.v1.FormResponse.values:type_name -> malonaz.ai.genui.v1.FormFieldValue
-	11, // 9: malonaz.ai.genui.v1.FormField.text:type_name -> malonaz.ai.genui.v1.FormTextInput
-	12, // 10: malonaz.ai.genui.v1.FormField.number:type_name -> malonaz.ai.genui.v1.FormNumberInput
-	13, // 11: malonaz.ai.genui.v1.FormField.select:type_name -> malonaz.ai.genui.v1.FormSelectInput
-	14, // 12: malonaz.ai.genui.v1.FormField.date:type_name -> malonaz.ai.genui.v1.FormDateInput
-	15, // 13: malonaz.ai.genui.v1.FormField.toggle:type_name -> malonaz.ai.genui.v1.FormToggleInput
-	22, // 14: malonaz.ai.genui.v1.FormFieldValue.date:type_name -> google.protobuf.Timestamp
-	22, // 15: malonaz.ai.genui.v1.DateTimePicker.min_time:type_name -> google.protobuf.Timestamp
-	22, // 16: malonaz.ai.genui.v1.DateTimePicker.max_time:type_name -> google.protobuf.Timestamp
-	22, // 17: malonaz.ai.genui.v1.DateTimePickerResponse.time:type_name -> google.protobuf.Timestamp
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	3,  // 0: malonaz.ai.genui.v1.InputResponse.choice:type_name -> malonaz.ai.genui.v1.ChoiceResponse
+	5,  // 1: malonaz.ai.genui.v1.InputResponse.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoiceResponse
+	7,  // 2: malonaz.ai.genui.v1.InputResponse.confirmation:type_name -> malonaz.ai.genui.v1.ConfirmationResponse
+	9,  // 3: malonaz.ai.genui.v1.InputResponse.form:type_name -> malonaz.ai.genui.v1.FormResponse
+	19, // 4: malonaz.ai.genui.v1.InputResponse.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePickerResponse
+	21, // 5: malonaz.ai.genui.v1.InputResponse.slider:type_name -> malonaz.ai.genui.v1.SliderResponse
+	23, // 6: malonaz.ai.genui.v1.InputResponse.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePickerResponse
+	2,  // 7: malonaz.ai.genui.v1.Choice.options:type_name -> malonaz.ai.genui.v1.ChoiceOption
+	10, // 8: malonaz.ai.genui.v1.Form.fields:type_name -> malonaz.ai.genui.v1.FormField
+	11, // 9: malonaz.ai.genui.v1.FormResponse.values:type_name -> malonaz.ai.genui.v1.FormFieldValue
+	13, // 10: malonaz.ai.genui.v1.FormField.text:type_name -> malonaz.ai.genui.v1.FormTextInput
+	14, // 11: malonaz.ai.genui.v1.FormField.number:type_name -> malonaz.ai.genui.v1.FormNumberInput
+	15, // 12: malonaz.ai.genui.v1.FormField.select:type_name -> malonaz.ai.genui.v1.FormSelectInput
+	16, // 13: malonaz.ai.genui.v1.FormField.date:type_name -> malonaz.ai.genui.v1.FormDateInput
+	17, // 14: malonaz.ai.genui.v1.FormField.toggle:type_name -> malonaz.ai.genui.v1.FormToggleInput
+	12, // 15: malonaz.ai.genui.v1.FormFieldValue.selected_options:type_name -> malonaz.ai.genui.v1.FormSelectedOptions
+	24, // 16: malonaz.ai.genui.v1.FormFieldValue.date:type_name -> google.protobuf.Timestamp
+	24, // 17: malonaz.ai.genui.v1.DateTimePicker.min_time:type_name -> google.protobuf.Timestamp
+	24, // 18: malonaz.ai.genui.v1.DateTimePicker.max_time:type_name -> google.protobuf.Timestamp
+	24, // 19: malonaz.ai.genui.v1.DateTimePickerResponse.time:type_name -> google.protobuf.Timestamp
+	24, // 20: malonaz.ai.genui.v1.DateTimePickerResponse.end_time:type_name -> google.protobuf.Timestamp
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_input_proto_init() }
@@ -2791,28 +3293,33 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 		(*inputResponse_Slider)(nil),
 		(*inputResponse_DateTimePicker)(nil),
 	}
-	file_malonaz_ai_genui_v1_input_proto_msgTypes[9].OneofWrappers = []any{
+	file_malonaz_ai_genui_v1_input_proto_msgTypes[3].OneofWrappers = []any{
+		(*choiceResponse_Option)(nil),
+		(*choiceResponse_FreeText)(nil),
+	}
+	file_malonaz_ai_genui_v1_input_proto_msgTypes[10].OneofWrappers = []any{
 		(*formField_Text)(nil),
 		(*formField_Number)(nil),
 		(*formField_Select)(nil),
 		(*formField_Date)(nil),
 		(*formField_Toggle)(nil),
 	}
-	file_malonaz_ai_genui_v1_input_proto_msgTypes[10].OneofWrappers = []any{
+	file_malonaz_ai_genui_v1_input_proto_msgTypes[11].OneofWrappers = []any{
 		(*formFieldValue_Text)(nil),
 		(*formFieldValue_Number)(nil),
 		(*formFieldValue_SelectedOption)(nil),
+		(*formFieldValue_SelectedOptions)(nil),
 		(*formFieldValue_Date)(nil),
 		(*formFieldValue_Toggle)(nil),
 	}
-	file_malonaz_ai_genui_v1_input_proto_msgTypes[12].OneofWrappers = []any{}
+	file_malonaz_ai_genui_v1_input_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_input_proto_rawDesc), len(file_malonaz_ai_genui_v1_input_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

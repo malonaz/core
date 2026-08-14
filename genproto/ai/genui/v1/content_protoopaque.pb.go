@@ -25,6 +25,111 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Semantic emphasis shared by display components. Renderers map tones onto
+// their palette (positive: green, negative: red, warning: amber).
+type Tone int32
+
+const (
+	// Used to detect an unset field. Rendered with the default emphasis.
+	Tone_TONE_UNSPECIFIED Tone = 0
+	// A good outcome (paid, accepted, growing).
+	Tone_TONE_POSITIVE Tone = 1
+	// A bad outcome (overdue, declined, shrinking).
+	Tone_TONE_NEGATIVE Tone = 2
+	// Needs attention, but not (yet) bad.
+	Tone_TONE_WARNING Tone = 3
+)
+
+// Enum value maps for Tone.
+var (
+	Tone_name = map[int32]string{
+		0: "TONE_UNSPECIFIED",
+		1: "TONE_POSITIVE",
+		2: "TONE_NEGATIVE",
+		3: "TONE_WARNING",
+	}
+	Tone_value = map[string]int32{
+		"TONE_UNSPECIFIED": 0,
+		"TONE_POSITIVE":    1,
+		"TONE_NEGATIVE":    2,
+		"TONE_WARNING":     3,
+	}
+)
+
+func (x Tone) Enum() *Tone {
+	p := new(Tone)
+	*p = x
+	return p
+}
+
+func (x Tone) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Tone) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[0].Descriptor()
+}
+
+func (Tone) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[0]
+}
+
+func (x Tone) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// How the values of a [Chart][malonaz.ai.genui.v1.Chart] are rendered.
+type ChartValueFormat int32
+
+const (
+	// Used to detect an unset field. Rendered as a plain number.
+	ChartValueFormat_CHART_VALUE_FORMAT_UNSPECIFIED ChartValueFormat = 0
+	// A plain number, e.g. "12".
+	ChartValueFormat_CHART_VALUE_FORMAT_NUMBER ChartValueFormat = 1
+	// A currency amount, e.g. "$12".
+	ChartValueFormat_CHART_VALUE_FORMAT_CURRENCY ChartValueFormat = 2
+	// A percentage, e.g. "12%".
+	ChartValueFormat_CHART_VALUE_FORMAT_PERCENT ChartValueFormat = 3
+)
+
+// Enum value maps for ChartValueFormat.
+var (
+	ChartValueFormat_name = map[int32]string{
+		0: "CHART_VALUE_FORMAT_UNSPECIFIED",
+		1: "CHART_VALUE_FORMAT_NUMBER",
+		2: "CHART_VALUE_FORMAT_CURRENCY",
+		3: "CHART_VALUE_FORMAT_PERCENT",
+	}
+	ChartValueFormat_value = map[string]int32{
+		"CHART_VALUE_FORMAT_UNSPECIFIED": 0,
+		"CHART_VALUE_FORMAT_NUMBER":      1,
+		"CHART_VALUE_FORMAT_CURRENCY":    2,
+		"CHART_VALUE_FORMAT_PERCENT":     3,
+	}
+)
+
+func (x ChartValueFormat) Enum() *ChartValueFormat {
+	p := new(ChartValueFormat)
+	*p = x
+	return p
+}
+
+func (x ChartValueFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ChartValueFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[1].Descriptor()
+}
+
+func (ChartValueFormat) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[1]
+}
+
+func (x ChartValueFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // How the points of a [Chart][malonaz.ai.genui.v1.Chart] are plotted.
 type ChartType int32
 
@@ -66,14 +171,62 @@ func (x ChartType) String() string {
 }
 
 func (ChartType) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_genui_v1_content_proto_enumTypes[0].Descriptor()
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[2].Descriptor()
 }
 
 func (ChartType) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[0]
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[2]
 }
 
 func (x ChartType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// How a [TableColumn][malonaz.ai.genui.v1.TableColumn]'s cells are aligned.
+type TableColumnAlign int32
+
+const (
+	// Used to detect an unset field. The renderer picks an alignment.
+	TableColumnAlign_TABLE_COLUMN_ALIGN_UNSPECIFIED TableColumnAlign = 0
+	// Left-aligned.
+	TableColumnAlign_TABLE_COLUMN_ALIGN_LEFT TableColumnAlign = 1
+	// Right-aligned, like numbers in a spreadsheet.
+	TableColumnAlign_TABLE_COLUMN_ALIGN_RIGHT TableColumnAlign = 2
+)
+
+// Enum value maps for TableColumnAlign.
+var (
+	TableColumnAlign_name = map[int32]string{
+		0: "TABLE_COLUMN_ALIGN_UNSPECIFIED",
+		1: "TABLE_COLUMN_ALIGN_LEFT",
+		2: "TABLE_COLUMN_ALIGN_RIGHT",
+	}
+	TableColumnAlign_value = map[string]int32{
+		"TABLE_COLUMN_ALIGN_UNSPECIFIED": 0,
+		"TABLE_COLUMN_ALIGN_LEFT":        1,
+		"TABLE_COLUMN_ALIGN_RIGHT":       2,
+	}
+)
+
+func (x TableColumnAlign) Enum() *TableColumnAlign {
+	p := new(TableColumnAlign)
+	*p = x
+	return p
+}
+
+func (x TableColumnAlign) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TableColumnAlign) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[3].Descriptor()
+}
+
+func (TableColumnAlign) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[3]
+}
+
+func (x TableColumnAlign) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
@@ -115,11 +268,11 @@ func (x ActionStyle) String() string {
 }
 
 func (ActionStyle) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_genui_v1_content_proto_enumTypes[1].Descriptor()
+	return file_malonaz_ai_genui_v1_content_proto_enumTypes[4].Descriptor()
 }
 
 func (ActionStyle) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[1]
+	return &file_malonaz_ai_genui_v1_content_proto_enumTypes[4]
 }
 
 func (x ActionStyle) Number() protoreflect.EnumNumber {
@@ -208,6 +361,7 @@ type KeyValueListItem struct {
 	xxx_hidden_Label        string                 `protobuf:"bytes,1,opt,name=label,proto3"`
 	xxx_hidden_Value        string                 `protobuf:"bytes,2,opt,name=value,proto3"`
 	xxx_hidden_ResourceName string                 `protobuf:"bytes,3,opt,name=resource_name,json=resourceName,proto3"`
+	xxx_hidden_Tone         Tone                   `protobuf:"varint,4,opt,name=tone,proto3,enum=malonaz.ai.genui.v1.Tone"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -258,6 +412,13 @@ func (x *KeyValueListItem) GetResourceName() string {
 	return ""
 }
 
+func (x *KeyValueListItem) GetTone() Tone {
+	if x != nil {
+		return x.xxx_hidden_Tone
+	}
+	return Tone_TONE_UNSPECIFIED
+}
+
 func (x *KeyValueListItem) SetLabel(v string) {
 	x.xxx_hidden_Label = v
 }
@@ -270,6 +431,10 @@ func (x *KeyValueListItem) SetResourceName(v string) {
 	x.xxx_hidden_ResourceName = v
 }
 
+func (x *KeyValueListItem) SetTone(v Tone) {
+	x.xxx_hidden_Tone = v
+}
+
 type KeyValueListItem_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -279,6 +444,9 @@ type KeyValueListItem_builder struct {
 	Value string
 	// Optional resource name; the client links the value when set.
 	ResourceName string
+	// Optional emphasis applied to the value (e.g. "Overdue" in a negative
+	// tone). Unspecified renders the default foreground.
+	Tone Tone
 }
 
 func (b0 KeyValueListItem_builder) Build() *KeyValueListItem {
@@ -288,6 +456,7 @@ func (b0 KeyValueListItem_builder) Build() *KeyValueListItem {
 	x.xxx_hidden_Label = b.Label
 	x.xxx_hidden_Value = b.Value
 	x.xxx_hidden_ResourceName = b.ResourceName
+	x.xxx_hidden_Tone = b.Tone
 	return m0
 }
 
@@ -374,6 +543,7 @@ type TimelineEntry struct {
 	xxx_hidden_Description  string                 `protobuf:"bytes,2,opt,name=description,proto3"`
 	xxx_hidden_Time         *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3"`
 	xxx_hidden_ResourceName string                 `protobuf:"bytes,4,opt,name=resource_name,json=resourceName,proto3"`
+	xxx_hidden_Tone         Tone                   `protobuf:"varint,5,opt,name=tone,proto3,enum=malonaz.ai.genui.v1.Tone"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -431,6 +601,13 @@ func (x *TimelineEntry) GetResourceName() string {
 	return ""
 }
 
+func (x *TimelineEntry) GetTone() Tone {
+	if x != nil {
+		return x.xxx_hidden_Tone
+	}
+	return Tone_TONE_UNSPECIFIED
+}
+
 func (x *TimelineEntry) SetTitle(v string) {
 	x.xxx_hidden_Title = v
 }
@@ -445,6 +622,10 @@ func (x *TimelineEntry) SetTime(v *timestamppb.Timestamp) {
 
 func (x *TimelineEntry) SetResourceName(v string) {
 	x.xxx_hidden_ResourceName = v
+}
+
+func (x *TimelineEntry) SetTone(v Tone) {
+	x.xxx_hidden_Tone = v
 }
 
 func (x *TimelineEntry) HasTime() bool {
@@ -469,6 +650,8 @@ type TimelineEntry_builder struct {
 	Time *timestamppb.Timestamp
 	// Optional resource the entry refers to; the client links the entry when set.
 	ResourceName string
+	// Optional emphasis applied to the entry's marker.
+	Tone Tone
 }
 
 func (b0 TimelineEntry_builder) Build() *TimelineEntry {
@@ -479,17 +662,23 @@ func (b0 TimelineEntry_builder) Build() *TimelineEntry {
 	x.xxx_hidden_Description = b.Description
 	x.xxx_hidden_Time = b.Time
 	x.xxx_hidden_ResourceName = b.ResourceName
+	x.xxx_hidden_Tone = b.Tone
 	return m0
 }
 
-// Minimal chart for aggregates ("calls per day this week").
+// Chart for aggregates ("calls per day this week"), optionally with several
+// series ("quotes sent vs accepted per week").
 type Chart struct {
-	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Type   ChartType              `protobuf:"varint,1,opt,name=type,proto3,enum=malonaz.ai.genui.v1.ChartType"`
-	xxx_hidden_Title  string                 `protobuf:"bytes,2,opt,name=title,proto3"`
-	xxx_hidden_Points *[]*ChartPoint         `protobuf:"bytes,3,rep,name=points,proto3"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Type        ChartType              `protobuf:"varint,1,opt,name=type,proto3,enum=malonaz.ai.genui.v1.ChartType"`
+	xxx_hidden_Title       string                 `protobuf:"bytes,2,opt,name=title,proto3"`
+	xxx_hidden_Series      *[]*ChartSeries        `protobuf:"bytes,3,rep,name=series,proto3"`
+	xxx_hidden_Stacked     bool                   `protobuf:"varint,4,opt,name=stacked,proto3"`
+	xxx_hidden_ValueFormat ChartValueFormat       `protobuf:"varint,5,opt,name=value_format,json=valueFormat,proto3,enum=malonaz.ai.genui.v1.ChartValueFormat"`
+	xxx_hidden_XLabel      string                 `protobuf:"bytes,6,opt,name=x_label,json=xLabel,proto3"`
+	xxx_hidden_YLabel      string                 `protobuf:"bytes,7,opt,name=y_label,json=yLabel,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Chart) Reset() {
@@ -531,13 +720,41 @@ func (x *Chart) GetTitle() string {
 	return ""
 }
 
-func (x *Chart) GetPoints() []*ChartPoint {
+func (x *Chart) GetSeries() []*ChartSeries {
 	if x != nil {
-		if x.xxx_hidden_Points != nil {
-			return *x.xxx_hidden_Points
+		if x.xxx_hidden_Series != nil {
+			return *x.xxx_hidden_Series
 		}
 	}
 	return nil
+}
+
+func (x *Chart) GetStacked() bool {
+	if x != nil {
+		return x.xxx_hidden_Stacked
+	}
+	return false
+}
+
+func (x *Chart) GetValueFormat() ChartValueFormat {
+	if x != nil {
+		return x.xxx_hidden_ValueFormat
+	}
+	return ChartValueFormat_CHART_VALUE_FORMAT_UNSPECIFIED
+}
+
+func (x *Chart) GetXLabel() string {
+	if x != nil {
+		return x.xxx_hidden_XLabel
+	}
+	return ""
+}
+
+func (x *Chart) GetYLabel() string {
+	if x != nil {
+		return x.xxx_hidden_YLabel
+	}
+	return ""
 }
 
 func (x *Chart) SetType(v ChartType) {
@@ -548,8 +765,24 @@ func (x *Chart) SetTitle(v string) {
 	x.xxx_hidden_Title = v
 }
 
-func (x *Chart) SetPoints(v []*ChartPoint) {
-	x.xxx_hidden_Points = &v
+func (x *Chart) SetSeries(v []*ChartSeries) {
+	x.xxx_hidden_Series = &v
+}
+
+func (x *Chart) SetStacked(v bool) {
+	x.xxx_hidden_Stacked = v
+}
+
+func (x *Chart) SetValueFormat(v ChartValueFormat) {
+	x.xxx_hidden_ValueFormat = v
+}
+
+func (x *Chart) SetXLabel(v string) {
+	x.xxx_hidden_XLabel = v
+}
+
+func (x *Chart) SetYLabel(v string) {
+	x.xxx_hidden_YLabel = v
 }
 
 type Chart_builder struct {
@@ -559,8 +792,19 @@ type Chart_builder struct {
 	Type ChartType
 	// Optional heading rendered above the chart.
 	Title string
-	// The datapoints to plot, in display order.
-	Points []*ChartPoint
+	// The series to plot, in display order. A single series renders without a
+	// legend; several render one, keyed by series label. Pie charts use only
+	// the first series.
+	Series []*ChartSeries
+	// Bars only: stack the series into one segmented bar per label instead of
+	// grouping them side by side.
+	Stacked bool
+	// How values are rendered in labels and legends.
+	ValueFormat ChartValueFormat
+	// Optional caption for the x axis, e.g. "Week".
+	XLabel string
+	// Optional caption for the y axis, e.g. "Quotes".
+	YLabel string
 }
 
 func (b0 Chart_builder) Build() *Chart {
@@ -569,6 +813,88 @@ func (b0 Chart_builder) Build() *Chart {
 	_, _ = b, x
 	x.xxx_hidden_Type = b.Type
 	x.xxx_hidden_Title = b.Title
+	x.xxx_hidden_Series = &b.Series
+	x.xxx_hidden_Stacked = b.Stacked
+	x.xxx_hidden_ValueFormat = b.ValueFormat
+	x.xxx_hidden_XLabel = b.XLabel
+	x.xxx_hidden_YLabel = b.YLabel
+	return m0
+}
+
+// A named sequence of datapoints within a [Chart][malonaz.ai.genui.v1.Chart].
+type ChartSeries struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Label  string                 `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Points *[]*ChartPoint         `protobuf:"bytes,2,rep,name=points,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ChartSeries) Reset() {
+	*x = ChartSeries{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChartSeries) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChartSeries) ProtoMessage() {}
+
+func (x *ChartSeries) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ChartSeries) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *ChartSeries) GetPoints() []*ChartPoint {
+	if x != nil {
+		if x.xxx_hidden_Points != nil {
+			return *x.xxx_hidden_Points
+		}
+	}
+	return nil
+}
+
+func (x *ChartSeries) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *ChartSeries) SetPoints(v []*ChartPoint) {
+	x.xxx_hidden_Points = &v
+}
+
+type ChartSeries_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Legend label for the series, e.g. "Accepted". May be empty on a chart's
+	// only series.
+	Label string
+	// The datapoints to plot, in display order. Series are aligned by point
+	// label; a series may omit labels other series carry.
+	Points []*ChartPoint
+}
+
+func (b0 ChartSeries_builder) Build() *ChartSeries {
+	m0 := &ChartSeries{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
 	x.xxx_hidden_Points = &b.Points
 	return m0
 }
@@ -584,7 +910,7 @@ type ChartPoint struct {
 
 func (x *ChartPoint) Reset() {
 	*x = ChartPoint{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -596,7 +922,7 @@ func (x *ChartPoint) String() string {
 func (*ChartPoint) ProtoMessage() {}
 
 func (x *ChartPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[5]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +977,7 @@ func (b0 ChartPoint_builder) Build() *ChartPoint {
 type Table struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Title   string                 `protobuf:"bytes,1,opt,name=title,proto3"`
-	xxx_hidden_Columns []string               `protobuf:"bytes,2,rep,name=columns,proto3"`
+	xxx_hidden_Columns *[]*TableColumn        `protobuf:"bytes,2,rep,name=columns,proto3"`
 	xxx_hidden_Rows    *[]*TableRow           `protobuf:"bytes,3,rep,name=rows,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -659,7 +985,7 @@ type Table struct {
 
 func (x *Table) Reset() {
 	*x = Table{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -671,7 +997,7 @@ func (x *Table) String() string {
 func (*Table) ProtoMessage() {}
 
 func (x *Table) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[6]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -689,9 +1015,11 @@ func (x *Table) GetTitle() string {
 	return ""
 }
 
-func (x *Table) GetColumns() []string {
+func (x *Table) GetColumns() []*TableColumn {
 	if x != nil {
-		return x.xxx_hidden_Columns
+		if x.xxx_hidden_Columns != nil {
+			return *x.xxx_hidden_Columns
+		}
 	}
 	return nil
 }
@@ -709,8 +1037,8 @@ func (x *Table) SetTitle(v string) {
 	x.xxx_hidden_Title = v
 }
 
-func (x *Table) SetColumns(v []string) {
-	x.xxx_hidden_Columns = v
+func (x *Table) SetColumns(v []*TableColumn) {
+	x.xxx_hidden_Columns = &v
 }
 
 func (x *Table) SetRows(v []*TableRow) {
@@ -722,8 +1050,8 @@ type Table_builder struct {
 
 	// Optional heading rendered above the table.
 	Title string
-	// Column headers, defining the width of every row.
-	Columns []string
+	// The columns, defining the width of every row.
+	Columns []*TableColumn
 	// Rows, in display order. Each row carries one cell per column.
 	Rows []*TableRow
 }
@@ -733,22 +1061,98 @@ func (b0 Table_builder) Build() *Table {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Title = b.Title
-	x.xxx_hidden_Columns = b.Columns
+	x.xxx_hidden_Columns = &b.Columns
 	x.xxx_hidden_Rows = &b.Rows
+	return m0
+}
+
+// A single column within a [Table][malonaz.ai.genui.v1.Table].
+type TableColumn struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Label string                 `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Align TableColumnAlign       `protobuf:"varint,2,opt,name=align,proto3,enum=malonaz.ai.genui.v1.TableColumnAlign"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *TableColumn) Reset() {
+	*x = TableColumn{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TableColumn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TableColumn) ProtoMessage() {}
+
+func (x *TableColumn) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TableColumn) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *TableColumn) GetAlign() TableColumnAlign {
+	if x != nil {
+		return x.xxx_hidden_Align
+	}
+	return TableColumnAlign_TABLE_COLUMN_ALIGN_UNSPECIFIED
+}
+
+func (x *TableColumn) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *TableColumn) SetAlign(v TableColumnAlign) {
+	x.xxx_hidden_Align = v
+}
+
+type TableColumn_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The column header, e.g. "Total".
+	Label string
+	// How the column's cells are aligned. Unspecified lets the renderer
+	// decide (numeric-looking columns right-align).
+	Align TableColumnAlign
+}
+
+func (b0 TableColumn_builder) Build() *TableColumn {
+	m0 := &TableColumn{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
+	x.xxx_hidden_Align = b.Align
 	return m0
 }
 
 // A single row within a [Table][malonaz.ai.genui.v1.Table].
 type TableRow struct {
-	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Cells *[]*TableCell          `protobuf:"bytes,1,rep,name=cells,proto3"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Cells        *[]*TableCell          `protobuf:"bytes,1,rep,name=cells,proto3"`
+	xxx_hidden_ResourceName string                 `protobuf:"bytes,2,opt,name=resource_name,json=resourceName,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *TableRow) Reset() {
 	*x = TableRow{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +1164,7 @@ func (x *TableRow) String() string {
 func (*TableRow) ProtoMessage() {}
 
 func (x *TableRow) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[7]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -780,8 +1184,19 @@ func (x *TableRow) GetCells() []*TableCell {
 	return nil
 }
 
+func (x *TableRow) GetResourceName() string {
+	if x != nil {
+		return x.xxx_hidden_ResourceName
+	}
+	return ""
+}
+
 func (x *TableRow) SetCells(v []*TableCell) {
 	x.xxx_hidden_Cells = &v
+}
+
+func (x *TableRow) SetResourceName(v string) {
+	x.xxx_hidden_ResourceName = v
 }
 
 type TableRow_builder struct {
@@ -789,6 +1204,9 @@ type TableRow_builder struct {
 
 	// Cell values, one per column, in column order.
 	Cells []*TableCell
+	// Optional resource the whole row refers to; cells without their own
+	// resource_name link here.
+	ResourceName string
 }
 
 func (b0 TableRow_builder) Build() *TableRow {
@@ -796,6 +1214,7 @@ func (b0 TableRow_builder) Build() *TableRow {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Cells = &b.Cells
+	x.xxx_hidden_ResourceName = b.ResourceName
 	return m0
 }
 
@@ -810,7 +1229,7 @@ type TableCell struct {
 
 func (x *TableCell) Reset() {
 	*x = TableCell{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +1241,7 @@ func (x *TableCell) String() string {
 func (*TableCell) ProtoMessage() {}
 
 func (x *TableCell) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[8]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -873,6 +1292,187 @@ func (b0 TableCell_builder) Build() *TableCell {
 	return m0
 }
 
+// A single headline metric with an optional delta, e.g.
+// "Revenue this month: $12k, +8% vs July".
+type Stat struct {
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Label        string                 `protobuf:"bytes,1,opt,name=label,proto3"`
+	xxx_hidden_Value        string                 `protobuf:"bytes,2,opt,name=value,proto3"`
+	xxx_hidden_Delta        string                 `protobuf:"bytes,3,opt,name=delta,proto3"`
+	xxx_hidden_DeltaTone    Tone                   `protobuf:"varint,4,opt,name=delta_tone,json=deltaTone,proto3,enum=malonaz.ai.genui.v1.Tone"`
+	xxx_hidden_ResourceName string                 `protobuf:"bytes,5,opt,name=resource_name,json=resourceName,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *Stat) Reset() {
+	*x = Stat{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Stat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Stat) ProtoMessage() {}
+
+func (x *Stat) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Stat) GetLabel() string {
+	if x != nil {
+		return x.xxx_hidden_Label
+	}
+	return ""
+}
+
+func (x *Stat) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *Stat) GetDelta() string {
+	if x != nil {
+		return x.xxx_hidden_Delta
+	}
+	return ""
+}
+
+func (x *Stat) GetDeltaTone() Tone {
+	if x != nil {
+		return x.xxx_hidden_DeltaTone
+	}
+	return Tone_TONE_UNSPECIFIED
+}
+
+func (x *Stat) GetResourceName() string {
+	if x != nil {
+		return x.xxx_hidden_ResourceName
+	}
+	return ""
+}
+
+func (x *Stat) SetLabel(v string) {
+	x.xxx_hidden_Label = v
+}
+
+func (x *Stat) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+func (x *Stat) SetDelta(v string) {
+	x.xxx_hidden_Delta = v
+}
+
+func (x *Stat) SetDeltaTone(v Tone) {
+	x.xxx_hidden_DeltaTone = v
+}
+
+func (x *Stat) SetResourceName(v string) {
+	x.xxx_hidden_ResourceName = v
+}
+
+type Stat_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The label naming the metric, e.g. "Revenue this month".
+	Label string
+	// The headline value, pre-formatted, e.g. "$12k".
+	Value string
+	// Optional pre-formatted change indicator, e.g. "+8% vs July".
+	Delta string
+	// Optional emphasis applied to the delta.
+	DeltaTone Tone
+	// Optional resource name; the client links the card when set.
+	ResourceName string
+}
+
+func (b0 Stat_builder) Build() *Stat {
+	m0 := &Stat{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Label = b.Label
+	x.xxx_hidden_Value = b.Value
+	x.xxx_hidden_Delta = b.Delta
+	x.xxx_hidden_DeltaTone = b.DeltaTone
+	x.xxx_hidden_ResourceName = b.ResourceName
+	return m0
+}
+
+// Standalone rich text (markdown subset) rendered as its own component,
+// e.g. a drafted follow-up message shown before a Confirmation. Resource
+// names in link targets render as in-app links.
+type Markdown struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Markdown string                 `protobuf:"bytes,1,opt,name=markdown,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *Markdown) Reset() {
+	*x = Markdown{}
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Markdown) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Markdown) ProtoMessage() {}
+
+func (x *Markdown) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Markdown) GetMarkdown() string {
+	if x != nil {
+		return x.xxx_hidden_Markdown
+	}
+	return ""
+}
+
+func (x *Markdown) SetMarkdown(v string) {
+	x.xxx_hidden_Markdown = v
+}
+
+type Markdown_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The markdown to render.
+	Markdown string
+}
+
+func (b0 Markdown_builder) Build() *Markdown {
+	m0 := &Markdown{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Markdown = b.Markdown
+	return m0
+}
+
 // Buttons the user can press — pure client affordances that never feed back
 // into the model. Navigation, clipboard, and external links execute entirely
 // client-side: an ActionRow does not end the agentic turn and expects no
@@ -880,6 +1480,7 @@ func (b0 TableCell_builder) Build() *TableCell {
 // [Choice][malonaz.ai.genui.v1.Choice] instead.
 type ActionRow struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Title   string                 `protobuf:"bytes,2,opt,name=title,proto3"`
 	xxx_hidden_Actions *[]*ActionRowAction    `protobuf:"bytes,1,rep,name=actions,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -887,7 +1488,7 @@ type ActionRow struct {
 
 func (x *ActionRow) Reset() {
 	*x = ActionRow{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -899,7 +1500,7 @@ func (x *ActionRow) String() string {
 func (*ActionRow) ProtoMessage() {}
 
 func (x *ActionRow) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[9]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -908,6 +1509,13 @@ func (x *ActionRow) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
+}
+
+func (x *ActionRow) GetTitle() string {
+	if x != nil {
+		return x.xxx_hidden_Title
+	}
+	return ""
 }
 
 func (x *ActionRow) GetActions() []*ActionRowAction {
@@ -919,6 +1527,10 @@ func (x *ActionRow) GetActions() []*ActionRowAction {
 	return nil
 }
 
+func (x *ActionRow) SetTitle(v string) {
+	x.xxx_hidden_Title = v
+}
+
 func (x *ActionRow) SetActions(v []*ActionRowAction) {
 	x.xxx_hidden_Actions = &v
 }
@@ -926,6 +1538,8 @@ func (x *ActionRow) SetActions(v []*ActionRowAction) {
 type ActionRow_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Optional heading rendered above the buttons.
+	Title string
 	// The buttons to render, in display order.
 	Actions []*ActionRowAction
 }
@@ -934,6 +1548,7 @@ func (b0 ActionRow_builder) Build() *ActionRow {
 	m0 := &ActionRow{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Title = b.Title
 	x.xxx_hidden_Actions = &b.Actions
 	return m0
 }
@@ -950,7 +1565,7 @@ type ActionRowAction struct {
 
 func (x *ActionRowAction) Reset() {
 	*x = ActionRowAction{}
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -962,7 +1577,7 @@ func (x *ActionRowAction) String() string {
 func (*ActionRowAction) ProtoMessage() {}
 
 func (x *ActionRowAction) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[10]
+	mi := &file_malonaz_ai_genui_v1_content_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1148,7 +1763,7 @@ func (b0 ActionRowAction_builder) Build() *ActionRowAction {
 type case_ActionRowAction_Action protoreflect.FieldNumber
 
 func (x case_ActionRowAction_Action) String() string {
-	md := file_malonaz_ai_genui_v1_content_proto_msgTypes[10].Descriptor()
+	md := file_malonaz_ai_genui_v1_content_proto_msgTypes[14].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1187,41 +1802,66 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"!malonaz/ai/genui/v1/content.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"k\n" +
 	"\fKeyValueList\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12E\n" +
-	"\x05items\x18\x02 \x03(\v2%.malonaz.ai.genui.v1.KeyValueListItemB\b\xbaH\x05\x92\x01\x02\b\x01R\x05items\"s\n" +
+	"\x05items\x18\x02 \x03(\v2%.malonaz.ai.genui.v1.KeyValueListItemB\b\xbaH\x05\x92\x01\x02\b\x01R\x05items\"\xac\x01\n" +
 	"\x10KeyValueListItem\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12+\n" +
 	"\rresource_name\x18\x03 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*R\fresourceName\"h\n" +
+	"\x01*R\fresourceName\x127\n" +
+	"\x04tone\x18\x04 \x01(\x0e2\x19.malonaz.ai.genui.v1.ToneB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04tone\"h\n" +
 	"\bTimeline\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12F\n" +
-	"\aentries\x18\x02 \x03(\v2\".malonaz.ai.genui.v1.TimelineEntryB\b\xbaH\x05\x92\x01\x02\b\x01R\aentries\"\xac\x01\n" +
+	"\aentries\x18\x02 \x03(\v2\".malonaz.ai.genui.v1.TimelineEntryB\b\xbaH\x05\x92\x01\x02\b\x01R\aentries\"\xe5\x01\n" +
 	"\rTimelineEntry\x12\x1c\n" +
 	"\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12.\n" +
 	"\x04time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12+\n" +
 	"\rresource_name\x18\x04 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*R\fresourceName\"\xa0\x01\n" +
+	"\x01*R\fresourceName\x127\n" +
+	"\x04tone\x18\x05 \x01(\x0e2\x19.malonaz.ai.genui.v1.ToneB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04tone\"\xc1\x02\n" +
 	"\x05Chart\x12>\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1e.malonaz.ai.genui.v1.ChartTypeB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12A\n" +
-	"\x06points\x18\x03 \x03(\v2\x1f.malonaz.ai.genui.v1.ChartPointB\b\xbaH\x05\x92\x01\x02\b\x01R\x06points\"@\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12B\n" +
+	"\x06series\x18\x03 \x03(\v2 .malonaz.ai.genui.v1.ChartSeriesB\b\xbaH\x05\x92\x01\x02\b\x01R\x06series\x12\x18\n" +
+	"\astacked\x18\x04 \x01(\bR\astacked\x12R\n" +
+	"\fvalue_format\x18\x05 \x01(\x0e2%.malonaz.ai.genui.v1.ChartValueFormatB\b\xbaH\x05\x82\x01\x02\x10\x01R\vvalueFormat\x12\x17\n" +
+	"\ax_label\x18\x06 \x01(\tR\x06xLabel\x12\x17\n" +
+	"\ay_label\x18\a \x01(\tR\x06yLabel\"f\n" +
+	"\vChartSeries\x12\x14\n" +
+	"\x05label\x18\x01 \x01(\tR\x05label\x12A\n" +
+	"\x06points\x18\x02 \x03(\v2\x1f.malonaz.ai.genui.v1.ChartPointB\b\xbaH\x05\x92\x01\x02\b\x01R\x06points\"@\n" +
 	"\n" +
 	"ChartPoint\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value\"~\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value\"\xa0\x01\n" +
 	"\x05Table\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12\"\n" +
-	"\acolumns\x18\x02 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\acolumns\x12;\n" +
-	"\x04rows\x18\x03 \x03(\v2\x1d.malonaz.ai.genui.v1.TableRowB\b\xbaH\x05\x92\x01\x02\b\x01R\x04rows\"J\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12D\n" +
+	"\acolumns\x18\x02 \x03(\v2 .malonaz.ai.genui.v1.TableColumnB\b\xbaH\x05\x92\x01\x02\b\x01R\acolumns\x12;\n" +
+	"\x04rows\x18\x03 \x03(\v2\x1d.malonaz.ai.genui.v1.TableRowB\b\xbaH\x05\x92\x01\x02\b\x01R\x04rows\"r\n" +
+	"\vTableColumn\x12\x1c\n" +
+	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12E\n" +
+	"\x05align\x18\x02 \x01(\x0e2%.malonaz.ai.genui.v1.TableColumnAlignB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05align\"w\n" +
 	"\bTableRow\x12>\n" +
-	"\x05cells\x18\x01 \x03(\v2\x1e.malonaz.ai.genui.v1.TableCellB\b\xbaH\x05\x92\x01\x02\b\x01R\x05cells\"N\n" +
+	"\x05cells\x18\x01 \x03(\v2\x1e.malonaz.ai.genui.v1.TableCellB\b\xbaH\x05\x92\x01\x02\b\x01R\x05cells\x12+\n" +
+	"\rresource_name\x18\x02 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*R\fresourceName\"N\n" +
 	"\tTableCell\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12+\n" +
 	"\rresource_name\x18\x02 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*R\fresourceName\"W\n" +
-	"\tActionRow\x12J\n" +
+	"\x01*R\fresourceName\"\xc9\x01\n" +
+	"\x04Stat\x12\x1c\n" +
+	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x1c\n" +
+	"\x05value\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05value\x12\x14\n" +
+	"\x05delta\x18\x03 \x01(\tR\x05delta\x12B\n" +
+	"\n" +
+	"delta_tone\x18\x04 \x01(\x0e2\x19.malonaz.ai.genui.v1.ToneB\b\xbaH\x05\x82\x01\x02\x10\x01R\tdeltaTone\x12+\n" +
+	"\rresource_name\x18\x05 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*R\fresourceName\".\n" +
+	"\bMarkdown\x12\"\n" +
+	"\bmarkdown\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bmarkdown\"m\n" +
+	"\tActionRow\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12J\n" +
 	"\aactions\x18\x01 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\xf7\x01\n" +
 	"\x0fActionRowAction\x12\x1c\n" +
@@ -1231,50 +1871,78 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\x01*H\x00R\fopenResource\x12\x1d\n" +
 	"\tcopy_text\x18\x04 \x01(\tH\x00R\bcopyText\x12%\n" +
 	"\bopen_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrlB\x0f\n" +
-	"\x06action\x12\x05\xbaH\x02\b\x01*d\n" +
+	"\x06action\x12\x05\xbaH\x02\b\x01*T\n" +
+	"\x04Tone\x12\x14\n" +
+	"\x10TONE_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rTONE_POSITIVE\x10\x01\x12\x11\n" +
+	"\rTONE_NEGATIVE\x10\x02\x12\x10\n" +
+	"\fTONE_WARNING\x10\x03*\x96\x01\n" +
+	"\x10ChartValueFormat\x12\"\n" +
+	"\x1eCHART_VALUE_FORMAT_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19CHART_VALUE_FORMAT_NUMBER\x10\x01\x12\x1f\n" +
+	"\x1bCHART_VALUE_FORMAT_CURRENCY\x10\x02\x12\x1e\n" +
+	"\x1aCHART_VALUE_FORMAT_PERCENT\x10\x03*d\n" +
 	"\tChartType\x12\x1a\n" +
 	"\x16CHART_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eCHART_TYPE_BAR\x10\x01\x12\x13\n" +
 	"\x0fCHART_TYPE_LINE\x10\x02\x12\x12\n" +
-	"\x0eCHART_TYPE_PIE\x10\x03*c\n" +
+	"\x0eCHART_TYPE_PIE\x10\x03*q\n" +
+	"\x10TableColumnAlign\x12\"\n" +
+	"\x1eTABLE_COLUMN_ALIGN_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17TABLE_COLUMN_ALIGN_LEFT\x10\x01\x12\x1c\n" +
+	"\x18TABLE_COLUMN_ALIGN_RIGHT\x10\x02*c\n" +
 	"\vActionStyle\x12\x1c\n" +
 	"\x18ACTION_STYLE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ACTION_STYLE_PRIMARY\x10\x01\x12\x1c\n" +
 	"\x18ACTION_STYLE_DESTRUCTIVE\x10\x02B.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
 
-var file_malonaz_ai_genui_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_ai_genui_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_malonaz_ai_genui_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_malonaz_ai_genui_v1_content_proto_goTypes = []any{
-	(ChartType)(0),                // 0: malonaz.ai.genui.v1.ChartType
-	(ActionStyle)(0),              // 1: malonaz.ai.genui.v1.ActionStyle
-	(*KeyValueList)(nil),          // 2: malonaz.ai.genui.v1.KeyValueList
-	(*KeyValueListItem)(nil),      // 3: malonaz.ai.genui.v1.KeyValueListItem
-	(*Timeline)(nil),              // 4: malonaz.ai.genui.v1.Timeline
-	(*TimelineEntry)(nil),         // 5: malonaz.ai.genui.v1.TimelineEntry
-	(*Chart)(nil),                 // 6: malonaz.ai.genui.v1.Chart
-	(*ChartPoint)(nil),            // 7: malonaz.ai.genui.v1.ChartPoint
-	(*Table)(nil),                 // 8: malonaz.ai.genui.v1.Table
-	(*TableRow)(nil),              // 9: malonaz.ai.genui.v1.TableRow
-	(*TableCell)(nil),             // 10: malonaz.ai.genui.v1.TableCell
-	(*ActionRow)(nil),             // 11: malonaz.ai.genui.v1.ActionRow
-	(*ActionRowAction)(nil),       // 12: malonaz.ai.genui.v1.ActionRowAction
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
+	(Tone)(0),                     // 0: malonaz.ai.genui.v1.Tone
+	(ChartValueFormat)(0),         // 1: malonaz.ai.genui.v1.ChartValueFormat
+	(ChartType)(0),                // 2: malonaz.ai.genui.v1.ChartType
+	(TableColumnAlign)(0),         // 3: malonaz.ai.genui.v1.TableColumnAlign
+	(ActionStyle)(0),              // 4: malonaz.ai.genui.v1.ActionStyle
+	(*KeyValueList)(nil),          // 5: malonaz.ai.genui.v1.KeyValueList
+	(*KeyValueListItem)(nil),      // 6: malonaz.ai.genui.v1.KeyValueListItem
+	(*Timeline)(nil),              // 7: malonaz.ai.genui.v1.Timeline
+	(*TimelineEntry)(nil),         // 8: malonaz.ai.genui.v1.TimelineEntry
+	(*Chart)(nil),                 // 9: malonaz.ai.genui.v1.Chart
+	(*ChartSeries)(nil),           // 10: malonaz.ai.genui.v1.ChartSeries
+	(*ChartPoint)(nil),            // 11: malonaz.ai.genui.v1.ChartPoint
+	(*Table)(nil),                 // 12: malonaz.ai.genui.v1.Table
+	(*TableColumn)(nil),           // 13: malonaz.ai.genui.v1.TableColumn
+	(*TableRow)(nil),              // 14: malonaz.ai.genui.v1.TableRow
+	(*TableCell)(nil),             // 15: malonaz.ai.genui.v1.TableCell
+	(*Stat)(nil),                  // 16: malonaz.ai.genui.v1.Stat
+	(*Markdown)(nil),              // 17: malonaz.ai.genui.v1.Markdown
+	(*ActionRow)(nil),             // 18: malonaz.ai.genui.v1.ActionRow
+	(*ActionRowAction)(nil),       // 19: malonaz.ai.genui.v1.ActionRowAction
+	(*timestamppb.Timestamp)(nil), // 20: google.protobuf.Timestamp
 }
 var file_malonaz_ai_genui_v1_content_proto_depIdxs = []int32{
-	3,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
-	5,  // 1: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
-	13, // 2: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
-	0,  // 3: malonaz.ai.genui.v1.Chart.type:type_name -> malonaz.ai.genui.v1.ChartType
-	7,  // 4: malonaz.ai.genui.v1.Chart.points:type_name -> malonaz.ai.genui.v1.ChartPoint
-	9,  // 5: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
-	10, // 6: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
-	12, // 7: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
-	1,  // 8: malonaz.ai.genui.v1.ActionRowAction.style:type_name -> malonaz.ai.genui.v1.ActionStyle
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	6,  // 0: malonaz.ai.genui.v1.KeyValueList.items:type_name -> malonaz.ai.genui.v1.KeyValueListItem
+	0,  // 1: malonaz.ai.genui.v1.KeyValueListItem.tone:type_name -> malonaz.ai.genui.v1.Tone
+	8,  // 2: malonaz.ai.genui.v1.Timeline.entries:type_name -> malonaz.ai.genui.v1.TimelineEntry
+	20, // 3: malonaz.ai.genui.v1.TimelineEntry.time:type_name -> google.protobuf.Timestamp
+	0,  // 4: malonaz.ai.genui.v1.TimelineEntry.tone:type_name -> malonaz.ai.genui.v1.Tone
+	2,  // 5: malonaz.ai.genui.v1.Chart.type:type_name -> malonaz.ai.genui.v1.ChartType
+	10, // 6: malonaz.ai.genui.v1.Chart.series:type_name -> malonaz.ai.genui.v1.ChartSeries
+	1,  // 7: malonaz.ai.genui.v1.Chart.value_format:type_name -> malonaz.ai.genui.v1.ChartValueFormat
+	11, // 8: malonaz.ai.genui.v1.ChartSeries.points:type_name -> malonaz.ai.genui.v1.ChartPoint
+	13, // 9: malonaz.ai.genui.v1.Table.columns:type_name -> malonaz.ai.genui.v1.TableColumn
+	14, // 10: malonaz.ai.genui.v1.Table.rows:type_name -> malonaz.ai.genui.v1.TableRow
+	3,  // 11: malonaz.ai.genui.v1.TableColumn.align:type_name -> malonaz.ai.genui.v1.TableColumnAlign
+	15, // 12: malonaz.ai.genui.v1.TableRow.cells:type_name -> malonaz.ai.genui.v1.TableCell
+	0,  // 13: malonaz.ai.genui.v1.Stat.delta_tone:type_name -> malonaz.ai.genui.v1.Tone
+	19, // 14: malonaz.ai.genui.v1.ActionRow.actions:type_name -> malonaz.ai.genui.v1.ActionRowAction
+	4,  // 15: malonaz.ai.genui.v1.ActionRowAction.style:type_name -> malonaz.ai.genui.v1.ActionStyle
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_content_proto_init() }
@@ -1282,7 +1950,7 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 	if File_malonaz_ai_genui_v1_content_proto != nil {
 		return
 	}
-	file_malonaz_ai_genui_v1_content_proto_msgTypes[10].OneofWrappers = []any{
+	file_malonaz_ai_genui_v1_content_proto_msgTypes[14].OneofWrappers = []any{
 		(*actionRowAction_OpenResource)(nil),
 		(*actionRowAction_CopyText)(nil),
 		(*actionRowAction_OpenUrl)(nil),
@@ -1292,8 +1960,8 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_genui_v1_content_proto_rawDesc), len(file_malonaz_ai_genui_v1_content_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   11,
+			NumEnums:      5,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

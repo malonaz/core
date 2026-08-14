@@ -46,6 +46,8 @@ type Component struct {
 	//	*Component_ResourceCard
 	//	*Component_ResourceList
 	//	*Component_ActionRow
+	//	*Component_Stat
+	//	*Component_Markdown
 	//	*Component_Choice
 	//	*Component_MultiChoice
 	//	*Component_Confirmation
@@ -148,6 +150,24 @@ func (x *Component) GetActionRow() *ActionRow {
 	if x != nil {
 		if x, ok := x.Component.(*Component_ActionRow); ok {
 			return x.ActionRow
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetStat() *Stat {
+	if x != nil {
+		if x, ok := x.Component.(*Component_Stat); ok {
+			return x.Stat
+		}
+	}
+	return nil
+}
+
+func (x *Component) GetMarkdown() *Markdown {
+	if x != nil {
+		if x, ok := x.Component.(*Component_Markdown); ok {
+			return x.Markdown
 		}
 	}
 	return nil
@@ -272,6 +292,22 @@ func (x *Component) SetActionRow(v *ActionRow) {
 	x.Component = &Component_ActionRow{v}
 }
 
+func (x *Component) SetStat(v *Stat) {
+	if v == nil {
+		x.Component = nil
+		return
+	}
+	x.Component = &Component_Stat{v}
+}
+
+func (x *Component) SetMarkdown(v *Markdown) {
+	if v == nil {
+		x.Component = nil
+		return
+	}
+	x.Component = &Component_Markdown{v}
+}
+
 func (x *Component) SetChoice(v *Choice) {
 	if v == nil {
 		x.Component = nil
@@ -391,6 +427,22 @@ func (x *Component) HasActionRow() bool {
 	return ok
 }
 
+func (x *Component) HasStat() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Component.(*Component_Stat)
+	return ok
+}
+
+func (x *Component) HasMarkdown() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Component.(*Component_Markdown)
+	return ok
+}
+
 func (x *Component) HasChoice() bool {
 	if x == nil {
 		return false
@@ -493,6 +545,18 @@ func (x *Component) ClearActionRow() {
 	}
 }
 
+func (x *Component) ClearStat() {
+	if _, ok := x.Component.(*Component_Stat); ok {
+		x.Component = nil
+	}
+}
+
+func (x *Component) ClearMarkdown() {
+	if _, ok := x.Component.(*Component_Markdown); ok {
+		x.Component = nil
+	}
+}
+
 func (x *Component) ClearChoice() {
 	if _, ok := x.Component.(*Component_Choice); ok {
 		x.Component = nil
@@ -543,6 +607,8 @@ const Component_Table_case case_Component_Component = 4
 const Component_ResourceCard_case case_Component_Component = 5
 const Component_ResourceList_case case_Component_Component = 6
 const Component_ActionRow_case case_Component_Component = 7
+const Component_Stat_case case_Component_Component = 15
+const Component_Markdown_case case_Component_Component = 16
 const Component_Choice_case case_Component_Component = 8
 const Component_MultiChoice_case case_Component_Component = 9
 const Component_Confirmation_case case_Component_Component = 10
@@ -570,6 +636,10 @@ func (x *Component) WhichComponent() case_Component_Component {
 		return Component_ResourceList_case
 	case *Component_ActionRow:
 		return Component_ActionRow_case
+	case *Component_Stat:
+		return Component_Stat_case
+	case *Component_Markdown:
+		return Component_Markdown_case
 	case *Component_Choice:
 		return Component_Choice_case
 	case *Component_MultiChoice:
@@ -609,6 +679,10 @@ type Component_builder struct {
 	ResourceList *ResourceList
 	// Client-side buttons: navigation, clipboard, external links.
 	ActionRow *ActionRow
+	// A single headline metric with an optional delta.
+	Stat *Stat
+	// Standalone rich text (markdown subset).
+	Markdown *Markdown
 	// A question with constrained answers.
 	Choice *Choice
 	// A question allowing several answers.
@@ -650,6 +724,12 @@ func (b0 Component_builder) Build() *Component {
 	}
 	if b.ActionRow != nil {
 		x.Component = &Component_ActionRow{b.ActionRow}
+	}
+	if b.Stat != nil {
+		x.Component = &Component_Stat{b.Stat}
+	}
+	if b.Markdown != nil {
+		x.Component = &Component_Markdown{b.Markdown}
 	}
 	if b.Choice != nil {
 		x.Component = &Component_Choice{b.Choice}
@@ -724,6 +804,16 @@ type Component_ActionRow struct {
 	ActionRow *ActionRow `protobuf:"bytes,7,opt,name=action_row,json=actionRow,proto3,oneof"`
 }
 
+type Component_Stat struct {
+	// A single headline metric with an optional delta.
+	Stat *Stat `protobuf:"bytes,15,opt,name=stat,proto3,oneof"`
+}
+
+type Component_Markdown struct {
+	// Standalone rich text (markdown subset).
+	Markdown *Markdown `protobuf:"bytes,16,opt,name=markdown,proto3,oneof"`
+}
+
 type Component_Choice struct {
 	// A question with constrained answers.
 	Choice *Choice `protobuf:"bytes,8,opt,name=choice,proto3,oneof"`
@@ -773,6 +863,10 @@ func (*Component_ResourceList) isComponent_Component() {}
 
 func (*Component_ActionRow) isComponent_Component() {}
 
+func (*Component_Stat) isComponent_Component() {}
+
+func (*Component_Markdown) isComponent_Component() {}
+
 func (*Component_Choice) isComponent_Component() {}
 
 func (*Component_MultiChoice) isComponent_Component() {}
@@ -791,7 +885,7 @@ var File_malonaz_ai_genui_v1_component_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a\x1fmalonaz/ai/genui/v1/input.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xb4\a\n" +
+	"#malonaz/ai/genui/v1/component.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a!malonaz/ai/genui/v1/content.proto\x1a\x1fmalonaz/ai/genui/v1/input.proto\x1a\"malonaz/ai/genui/v1/resource.proto\"\xa2\b\n" +
 	"\tComponent\x12I\n" +
 	"\x0ekey_value_list\x18\x01 \x01(\v2!.malonaz.ai.genui.v1.KeyValueListH\x00R\fkeyValueList\x12;\n" +
 	"\btimeline\x18\x02 \x01(\v2\x1d.malonaz.ai.genui.v1.TimelineH\x00R\btimeline\x122\n" +
@@ -800,7 +894,9 @@ const file_malonaz_ai_genui_v1_component_proto_rawDesc = "" +
 	"\rresource_card\x18\x05 \x01(\v2!.malonaz.ai.genui.v1.ResourceCardH\x00R\fresourceCard\x12H\n" +
 	"\rresource_list\x18\x06 \x01(\v2!.malonaz.ai.genui.v1.ResourceListH\x00R\fresourceList\x12?\n" +
 	"\n" +
-	"action_row\x18\a \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x125\n" +
+	"action_row\x18\a \x01(\v2\x1e.malonaz.ai.genui.v1.ActionRowH\x00R\tactionRow\x12/\n" +
+	"\x04stat\x18\x0f \x01(\v2\x19.malonaz.ai.genui.v1.StatH\x00R\x04stat\x12;\n" +
+	"\bmarkdown\x18\x10 \x01(\v2\x1d.malonaz.ai.genui.v1.MarkdownH\x00R\bmarkdown\x125\n" +
 	"\x06choice\x18\b \x01(\v2\x1b.malonaz.ai.genui.v1.ChoiceH\x00R\x06choice\x12E\n" +
 	"\fmulti_choice\x18\t \x01(\v2 .malonaz.ai.genui.v1.MultiChoiceH\x00R\vmultiChoice\x12G\n" +
 	"\fconfirmation\x18\n" +
@@ -821,13 +917,15 @@ var file_malonaz_ai_genui_v1_component_proto_goTypes = []any{
 	(*ResourceCard)(nil),   // 5: malonaz.ai.genui.v1.ResourceCard
 	(*ResourceList)(nil),   // 6: malonaz.ai.genui.v1.ResourceList
 	(*ActionRow)(nil),      // 7: malonaz.ai.genui.v1.ActionRow
-	(*Choice)(nil),         // 8: malonaz.ai.genui.v1.Choice
-	(*MultiChoice)(nil),    // 9: malonaz.ai.genui.v1.MultiChoice
-	(*Confirmation)(nil),   // 10: malonaz.ai.genui.v1.Confirmation
-	(*Form)(nil),           // 11: malonaz.ai.genui.v1.Form
-	(*ResourcePicker)(nil), // 12: malonaz.ai.genui.v1.ResourcePicker
-	(*Slider)(nil),         // 13: malonaz.ai.genui.v1.Slider
-	(*DateTimePicker)(nil), // 14: malonaz.ai.genui.v1.DateTimePicker
+	(*Stat)(nil),           // 8: malonaz.ai.genui.v1.Stat
+	(*Markdown)(nil),       // 9: malonaz.ai.genui.v1.Markdown
+	(*Choice)(nil),         // 10: malonaz.ai.genui.v1.Choice
+	(*MultiChoice)(nil),    // 11: malonaz.ai.genui.v1.MultiChoice
+	(*Confirmation)(nil),   // 12: malonaz.ai.genui.v1.Confirmation
+	(*Form)(nil),           // 13: malonaz.ai.genui.v1.Form
+	(*ResourcePicker)(nil), // 14: malonaz.ai.genui.v1.ResourcePicker
+	(*Slider)(nil),         // 15: malonaz.ai.genui.v1.Slider
+	(*DateTimePicker)(nil), // 16: malonaz.ai.genui.v1.DateTimePicker
 }
 var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
 	1,  // 0: malonaz.ai.genui.v1.Component.key_value_list:type_name -> malonaz.ai.genui.v1.KeyValueList
@@ -837,18 +935,20 @@ var file_malonaz_ai_genui_v1_component_proto_depIdxs = []int32{
 	5,  // 4: malonaz.ai.genui.v1.Component.resource_card:type_name -> malonaz.ai.genui.v1.ResourceCard
 	6,  // 5: malonaz.ai.genui.v1.Component.resource_list:type_name -> malonaz.ai.genui.v1.ResourceList
 	7,  // 6: malonaz.ai.genui.v1.Component.action_row:type_name -> malonaz.ai.genui.v1.ActionRow
-	8,  // 7: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
-	9,  // 8: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
-	10, // 9: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
-	11, // 10: malonaz.ai.genui.v1.Component.form:type_name -> malonaz.ai.genui.v1.Form
-	12, // 11: malonaz.ai.genui.v1.Component.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePicker
-	13, // 12: malonaz.ai.genui.v1.Component.slider:type_name -> malonaz.ai.genui.v1.Slider
-	14, // 13: malonaz.ai.genui.v1.Component.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePicker
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	8,  // 7: malonaz.ai.genui.v1.Component.stat:type_name -> malonaz.ai.genui.v1.Stat
+	9,  // 8: malonaz.ai.genui.v1.Component.markdown:type_name -> malonaz.ai.genui.v1.Markdown
+	10, // 9: malonaz.ai.genui.v1.Component.choice:type_name -> malonaz.ai.genui.v1.Choice
+	11, // 10: malonaz.ai.genui.v1.Component.multi_choice:type_name -> malonaz.ai.genui.v1.MultiChoice
+	12, // 11: malonaz.ai.genui.v1.Component.confirmation:type_name -> malonaz.ai.genui.v1.Confirmation
+	13, // 12: malonaz.ai.genui.v1.Component.form:type_name -> malonaz.ai.genui.v1.Form
+	14, // 13: malonaz.ai.genui.v1.Component.resource_picker:type_name -> malonaz.ai.genui.v1.ResourcePicker
+	15, // 14: malonaz.ai.genui.v1.Component.slider:type_name -> malonaz.ai.genui.v1.Slider
+	16, // 15: malonaz.ai.genui.v1.Component.date_time_picker:type_name -> malonaz.ai.genui.v1.DateTimePicker
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_genui_v1_component_proto_init() }
@@ -867,6 +967,8 @@ func file_malonaz_ai_genui_v1_component_proto_init() {
 		(*Component_ResourceCard)(nil),
 		(*Component_ResourceList)(nil),
 		(*Component_ActionRow)(nil),
+		(*Component_Stat)(nil),
+		(*Component_Markdown)(nil),
 		(*Component_Choice)(nil),
 		(*Component_MultiChoice)(nil),
 		(*Component_Confirmation)(nil),
