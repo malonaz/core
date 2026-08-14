@@ -16,6 +16,7 @@ import malonaz.ai.ai_service.v1.message_pb2
 import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
 import malonaz.ai.ai_service.v1.text_to_speech_pb2
+import malonaz.ai.ai_service.v1.text_to_text_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
 import malonaz.ai.v1.message_pb2
@@ -113,6 +114,14 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def StreamGenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def TextToText(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest, malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def TextToTextStream(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest, malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -248,6 +257,18 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_STREAM,
                 malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
                 malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/TextToText': grpclib.const.Handler(
+                self.TextToText,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest,
+                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/TextToTextStream': grpclib.const.Handler(
+                self.TextToTextStream,
+                grpclib.const.Cardinality.UNARY_STREAM,
+                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest,
+                malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse,
             ),
         }
 
@@ -386,4 +407,16 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage',
             malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
             malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+        )
+        self.TextToText = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/TextToText',
+            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextRequest,
+            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextResponse,
+        )
+        self.TextToTextStream = grpclib.client.UnaryStreamMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/TextToTextStream',
+            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamRequest,
+            malonaz.ai.ai_service.v1.text_to_text_pb2.TextToTextStreamResponse,
         )

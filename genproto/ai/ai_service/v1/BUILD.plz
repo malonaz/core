@@ -8,6 +8,7 @@ go_library(
         "model.pb.go",
         "speech_to_text.pb.go",
         "text_to_speech.pb.go",
+        "text_to_text.pb.go",
         "voice.pb.go",
     ],
     visibility = ["//..."],

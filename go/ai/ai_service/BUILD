@@ -17,6 +17,7 @@ go_library(
         "generate_message.go",
         "metrics.go",
         "runtime.go",
+        "text_to_text.go",
         "utils.go",
         ":service.tmpl.go",
     ],

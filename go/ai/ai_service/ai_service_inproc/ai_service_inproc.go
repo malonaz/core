@@ -239,6 +239,36 @@ func (c *Client) ListMessages(
 	return c.server.ListMessages(ctx, request)
 }
 
+// TextToText provides a client-facing interface for the legacy stateless
+// text generation API.
+//
+// Deprecated: use GenerateMessage.
+func (c *Client) TextToText(
+	ctx context.Context,
+	request *aiservicepb.TextToTextRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.TextToTextResponse, error) {
+	return c.server.TextToText(ctx, request)
+}
+
+// TextToTextStream provides a client-facing streaming interface for the legacy
+// stateless text generation API.
+//
+// Deprecated: use StreamGenerateMessage.
+func (c *Client) TextToTextStream(
+	ctx context.Context,
+	request *aiservicepb.TextToTextStreamRequest,
+	opts ...grpc.CallOption,
+) (aiservicepb.AiService_TextToTextStreamClient, error) {
+	serverStreamClient := grpcinproc.NewServerStreamAsClient[
+		aiservicepb.TextToTextStreamRequest,
+		aiservicepb.TextToTextStreamResponse,
+		aiservicepb.AiService_TextToTextStreamServer,
+	](c.server.TextToTextStream)
+
+	return serverStreamClient(ctx, request, opts...)
+}
+
 // Verify interface compliance at compile time.
 var (
 	_ aiservicepb.AiServiceClient = (*Client)(nil)

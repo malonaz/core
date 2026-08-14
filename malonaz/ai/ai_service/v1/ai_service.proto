@@ -9,6 +9,7 @@ import "malonaz/ai/ai_service/v1/message.proto";
 import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
+import "malonaz/ai/ai_service/v1/text_to_text.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
 import "malonaz/ai/v1/message.proto";
@@ -292,6 +293,32 @@ service AiService {
   rpc StreamGenerateMessage(GenerateMessageRequest) returns (stream StreamGenerateMessageResponse) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
+      body: "*"
+    };
+  }
+
+  // ===================== Deprecated =====================
+
+  // Convert text to text using chat completion models.
+  //
+  // Deprecated: use GenerateMessage. Kept for backwards compatibility; this
+  // method is a thin shim over GenerateMessage.
+  rpc TextToText(TextToTextRequest) returns (TextToTextResponse) {
+    option deprecated = true;
+    option (google.api.http) = {
+      post: "/v1/{model=providers/*/models/*}/text-to-text"
+      body: "*"
+    };
+  }
+
+  // Converts text to text using chat completion models with streaming response.
+  //
+  // Deprecated: use StreamGenerateMessage. Kept for backwards compatibility;
+  // this method is a thin shim over StreamGenerateMessage.
+  rpc TextToTextStream(TextToTextStreamRequest) returns (stream TextToTextStreamResponse) {
+    option deprecated = true;
+    option (google.api.http) = {
+      post: "/v1/{model=providers/*/models/*}/text-to-text:stream"
       body: "*"
     };
   }

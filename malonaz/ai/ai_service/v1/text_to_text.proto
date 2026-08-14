@@ -1,0 +1,210 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/ai/v1/tool.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Configuration for text to text generation.
+message TextToTextConfiguration {
+  // Maximum number of tokens to generate. Includes reasoning tokens.
+  int32 max_tokens = 1 [(buf.validate.field).int32.gte = 0];
+
+  // Sampling temperature (0.0 to 2.0).
+  double temperature = 2 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 2.0
+  }];
+
+  // Controls which tool(s) the model should use.
+  .malonaz.ai.v1.ToolChoice tool_choice = 3;
+
+  // Represents the level of reasoning effort for AI model responses.
+  // The reasoning effort parameter guides the model on how many reasoning tokens
+  // to generate before creating a response to the prompt. Higher effort levels
+  // result in more thorough reasoning at the cost of speed and token usage.
+  .malonaz.ai.v1.ReasoningEffort reasoning_effort = 4;
+
+  // If true, we stream partial tool calls.
+  bool stream_partial_tool_calls = 5;
+
+  // Image generation configuration.
+  ImageGenerationConfig image_config = 6;
+}
+
+// Configuration for image generation in text-to-text requests.
+// Used with models that support native image generation (e.g., Gemini 2.5 Flash Image, Gemini 3 Pro Image).
+message ImageGenerationConfig {
+  // Aspect ratio of generated images.
+  // Defaults to matching input image size, or "1:1" if no input image.
+  string aspect_ratio = 1 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1:1",
+      "2:3",
+      "3:2",
+      "3:4",
+      "4:3",
+      "4:5",
+      "5:4",
+      "9:16",
+      "16:9",
+      "21:9"
+    ]
+  }];
+
+  // Resolution of generated images. Only supported by Gemini 3 Pro Image.
+  // Defaults to "1K".
+  string image_size = 2 [(buf.validate.field).string = {
+    in: [
+      "",
+      "1K",
+      "2K",
+      "4K"
+    ]
+  }];
+}
+
+// Request message for AiService.TextToText.
+message TextToTextRequest {
+  // The resource name of the parent chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/Chat"}];
+
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 2 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 4;
+
+  // Tool sets available for the model to call.
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 7;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+
+  // Labels to merge onto the chat's labels.
+  map<string, string> labels = 6 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
+}
+
+// Reason why generation stopped.
+enum TextToTextStopReason {
+  // Used to detect an unset field.
+  TEXT_TO_TEXT_STOP_REASON_UNSPECIFIED = 0;
+
+  // The model reached a natural stopping point.
+  TEXT_TO_TEXT_STOP_REASON_END_TURN = 1;
+
+  // The model reached the maximum token limit specified in the request.
+  TEXT_TO_TEXT_STOP_REASON_MAX_TOKENS = 2;
+
+  // The model requested to call one or more tools.
+  TEXT_TO_TEXT_STOP_REASON_TOOL_CALL = 3;
+
+  // one of your provided custom `stop_sequences` was generated
+  TEXT_TO_TEXT_STOP_REASON_STOP_SEQUENCE = 4;
+
+  // The model paused its turn to allow the user to interject.
+  TEXT_TO_TEXT_STOP_REASON_PAUSE_TURN = 5;
+
+  // The model refused to respond due to safety or policy reasons.
+  TEXT_TO_TEXT_STOP_REASON_REFUSAL = 6;
+}
+
+// Response message for AiService.TextToText.
+message TextToTextResponse {
+  // The generated message.
+  .malonaz.ai.v1.Message message = 1;
+
+  // Reason why generation stopped.
+  TextToTextStopReason stop_reason = 2;
+
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+  // Generation metrics.
+  .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+}
+
+// Request message for AiService.TextToTextStream.
+message TextToTextStreamRequest {
+  // The resource name of the parent chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/Chat"}];
+
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 2 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // The conversation messages.
+  repeated .malonaz.ai.v1.Message messages = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // Tools available for the model to call.
+  repeated .malonaz.ai.v1.Tool tools = 4;
+
+  // Tool sets available for the model to call.
+  repeated .malonaz.ai.v1.ToolSet tool_sets = 7;
+
+  // Additional configuration.
+  TextToTextConfiguration configuration = 5;
+
+  // Labels to merge onto the chat's labels.
+  map<string, string> labels = 6 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
+}
+
+// Response message for AiService.TextToTextStream.
+message TextToTextStreamResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // A generated block.
+    .malonaz.ai.v1.Block block = 1;
+
+    // Reason why generation stopped.
+    TextToTextStopReason stop_reason = 2;
+
+    // Model usage event (sent last).
+    .malonaz.ai.v1.ModelUsage model_usage = 3;
+
+    // Generation metrics (sent last).
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+  }
+}

@@ -126,6 +126,18 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (AiService_StreamGenerateMessageClient, error)
+	// Deprecated: Do not use.
+	// Convert text to text using chat completion models.
+	//
+	// Deprecated: use GenerateMessage. Kept for backwards compatibility; this
+	// method is a thin shim over GenerateMessage.
+	TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error)
+	// Deprecated: Do not use.
+	// Converts text to text using chat completion models with streaming response.
+	//
+	// Deprecated: use StreamGenerateMessage. Kept for backwards compatibility;
+	// this method is a thin shim over StreamGenerateMessage.
+	TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error)
 }
 
 type aiServiceClient struct {
@@ -402,6 +414,49 @@ func (x *aiServiceStreamGenerateMessageClient) Recv() (*StreamGenerateMessageRes
 	return m, nil
 }
 
+// Deprecated: Do not use.
+func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
+	out := new(TextToTextResponse)
+	err := c.cc.Invoke(ctx, "/malonaz.ai.ai_service.v1.AiService/TextToText", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Deprecated: Do not use.
+func (c *aiServiceClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (AiService_TextToTextStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[3], "/malonaz.ai.ai_service.v1.AiService/TextToTextStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aiServiceTextToTextStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AiService_TextToTextStreamClient interface {
+	Recv() (*TextToTextStreamResponse, error)
+	grpc.ClientStream
+}
+
+type aiServiceTextToTextStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *aiServiceTextToTextStreamClient) Recv() (*TextToTextStreamResponse, error) {
+	m := new(TextToTextStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AiServiceServer is the server API for AiService service.
 // All implementations should embed UnimplementedAiServiceServer
 // for forward compatibility
@@ -509,6 +564,18 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error
+	// Deprecated: Do not use.
+	// Convert text to text using chat completion models.
+	//
+	// Deprecated: use GenerateMessage. Kept for backwards compatibility; this
+	// method is a thin shim over GenerateMessage.
+	TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error)
+	// Deprecated: Do not use.
+	// Converts text to text using chat completion models with streaming response.
+	//
+	// Deprecated: use StreamGenerateMessage. Kept for backwards compatibility;
+	// this method is a thin shim over StreamGenerateMessage.
+	TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error
 }
 
 // UnimplementedAiServiceServer should be embedded to have forward compatible implementations.
@@ -580,6 +647,12 @@ func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMe
 }
 func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, AiService_StreamGenerateMessageServer) error {
 	return status.Errorf(codes.Unimplemented, "method StreamGenerateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TextToText not implemented")
+}
+func (UnimplementedAiServiceServer) TextToTextStream(*TextToTextStreamRequest, AiService_TextToTextStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method TextToTextStream not implemented")
 }
 
 // UnsafeAiServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1003,6 +1076,45 @@ func (x *aiServiceStreamGenerateMessageServer) Send(m *StreamGenerateMessageResp
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AiService_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TextToTextRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).TextToText(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/malonaz.ai.ai_service.v1.AiService/TextToText",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).TextToText(ctx, req.(*TextToTextRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_TextToTextStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TextToTextStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AiServiceServer).TextToTextStream(m, &aiServiceTextToTextStreamServer{stream})
+}
+
+type AiService_TextToTextStreamServer interface {
+	Send(*TextToTextStreamResponse) error
+	grpc.ServerStream
+}
+
+type aiServiceTextToTextStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *aiServiceTextToTextStreamServer) Send(m *TextToTextStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AiService_ServiceDesc is the grpc.ServiceDesc for AiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1086,6 +1198,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GenerateMessage",
 			Handler:    _AiService_GenerateMessage_Handler,
 		},
+		{
+			MethodName: "TextToText",
+			Handler:    _AiService_TextToText_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1102,6 +1218,11 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "StreamGenerateMessage",
 			Handler:       _AiService_StreamGenerateMessage_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "TextToTextStream",
+			Handler:       _AiService_TextToTextStream_Handler,
 			ServerStreams: true,
 		},
 	},
