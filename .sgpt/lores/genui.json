@@ -1,0 +1,9 @@
+{
+  "title": "genui: generative-UI protocol",
+  "description": "genui: generative-UI protocol — proto components (malonaz.ai.genui.v1) exposed as AI tools, streamed as tool calls and rendered by client surfaces.",
+  "labels": {
+    "repo": "core",
+    "topic": "genui"
+  },
+  "content": "genui is the generative-UI protocol shared by agentic chat surfaces. How it works: each genui component is a proto message (malonaz.ai.genui.v1) exposed to the model as its own AI tool via AiEngine.CreateTool, which stamps the ai-engine.malonaz.com/proto-message annotation on the tool and, by inheritance, on every tool call. The server streams tool calls verbatim (including partials, so components render progressively); clients identify a genui tool call from that annotation and parse its arguments into the typed component.\n\nDisplay components (KeyValueList, Timeline, Chart, Table, ResourceCard, ResourceList, ActionRow) are rendered and acknowledged with 'ok'; input components (Choice, MultiChoice, Confirmation, Form, ResourcePicker, Slider, DateTimePicker) end the agentic turn — the user's answer round-trips as a tool_result carrying the canonical JSON of malonaz.ai.genui.v1.InputResponse.\n\nResource components carry only resource names; renderers hydrate display data from the client's stores. Adding a component means: a proto message, a tool registration in each surface's toolkit config, and a renderer per app.\n\n## Key files (under ~/core)\n- malonaz/ai/genui/v1/...\n- malonaz/ai/genui/v1/BUILD\n- malonaz/ai/v1/message.proto\n- malonaz/ai/v1/tool.proto"
+}

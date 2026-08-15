@@ -1,0 +1,22 @@
+local p = "providers/mock/models/";
+
+{
+  "provider_id": "mock",
+  "models": [
+    {
+      "name": p + "mock-1",
+      "provider_model_id": "mock-1",
+      "description": "Scriptable mock model for system acceptance tests.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1000000,
+        "output_token_limit": 100000,
+        "pricing": {
+          "input_token_price_per_million": 1.0,
+          "output_token_price_per_million": 2.0
+        }
+      }
+    }
+  ]
+}

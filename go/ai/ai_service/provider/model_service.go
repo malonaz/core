@@ -29,6 +29,7 @@ const (
 	GoogleVertex = "google-vertex"
 	Xai          = "xai"
 	Deepgram     = "deepgram"
+	Mock         = "mock"
 )
 
 var (

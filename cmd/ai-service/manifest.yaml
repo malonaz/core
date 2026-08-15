@@ -1,0 +1,8 @@
+name: ai-service
+servers:
+  - type: grpc
+    name: ai-service-external
+    services:
+      - service: ai-service
+        proto: //malonaz/ai/ai_service/v1
+        manifest: //go/ai/ai_service:manifest

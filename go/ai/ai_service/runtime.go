@@ -19,6 +19,7 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/deepgram"
 	"github.com/malonaz/core/go/ai/ai_service/provider/elevenlabs"
 	"github.com/malonaz/core/go/ai/ai_service/provider/google"
+	"github.com/malonaz/core/go/ai/ai_service/provider/mock"
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
 	"github.com/malonaz/core/go/ai/ai_service/provider/xai"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
@@ -38,6 +39,7 @@ type Opts struct {
 	DeepgramApiKey   string       `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
 	GoogleApiKey     string       `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
 	Google           *google.Opts `group:"Google" namespace:"google" env-namespace:"GOOGLE"`
+	MockProvider     bool         `long:"mock-provider" env:"MOCK_PROVIDER" description:"Register the scriptable mock provider (tests only)"`
 }
 
 type runtime struct {
@@ -87,6 +89,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.Google.Valid() {
 		providers = append(providers, google.NewVertexClient(opts.Google, modelService))
+	}
+	if opts.MockProvider {
+		providers = append(providers, mock.NewClient())
 	}
 	return &runtime{
 		VoiceService: voiceService,

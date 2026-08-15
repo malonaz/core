@@ -1,0 +1,13 @@
+go_library(
+    name = "mock",
+    srcs = ["mock.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/grpc/status",
+        "//go/pbutil",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
+    ],
+)

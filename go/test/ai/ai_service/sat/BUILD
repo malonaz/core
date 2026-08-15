@@ -1,0 +1,30 @@
+go_test(
+    name = "sat",
+    srcs = [
+        "generate_message_test.go",
+        "sat_test.go",
+    ],
+    data = [
+        "//cmd/ai-service",
+        "//cmd/postgres-migrator",
+        "//go/ai/migrations",
+    ],
+    test_outputs = ["sat.log"],
+    deps = [
+        "//go/ai/ai_service/provider/mock",
+        "//go/ai/tool",
+        "//go/aip",
+        "//go/grpc",
+        "//go/grpc/require",
+        "//go/pbutil",
+        "//go/prometheus",
+        "//go/sat",
+        "//go/uuid",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//malonaz/json/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)
