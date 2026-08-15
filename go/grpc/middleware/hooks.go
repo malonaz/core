@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -23,25 +24,46 @@ type HookHandler[T proto.Message] func(ctx context.Context, message T) error
 type HookMatcher func(ctx context.Context, methodFullName string) bool
 
 // MatchMethods returns a HookMatcher that matches if the RPC method is in the given set.
+//
+// Methods are bare names, e.g. "GetUser".
 func MatchMethods(methods ...string) HookMatcher {
 	methodSet := make(map[string]struct{}, len(methods))
 	for _, m := range methods {
+		if m == "" || strings.Contains(m, "/") {
+			panic(fmt.Sprintf("invalid method name %q: want a bare name like \"GetUser\"", m))
+		}
 		methodSet[m] = struct{}{}
 	}
 	return func(_ context.Context, methodFullName string) bool {
-		_, ok := methodSet[methodNameOf(methodFullName)]
+		// Malformed names come off the wire (an UnknownServiceHandler passes
+		// client-supplied method strings straight through), so they must not
+		// match rather than take down the RPC.
+		_, method, ok := splitFullMethod(methodFullName)
+		if !ok {
+			return false
+		}
+		_, ok = methodSet[method]
 		return ok
 	}
 }
 
 // MatchServices returns a HookMatcher that matches if the RPC service is in the given set.
+//
+// Services are dotted full names, e.g. "package.Service".
 func MatchServices(services ...string) HookMatcher {
 	serviceSet := make(map[string]struct{}, len(services))
 	for _, s := range services {
+		if s == "" || strings.Contains(s, "/") {
+			panic(fmt.Sprintf("invalid service name %q: want a dotted name like \"package.Service\"", s))
+		}
 		serviceSet[s] = struct{}{}
 	}
 	return func(_ context.Context, methodFullName string) bool {
-		_, ok := serviceSet[serviceNameOf(methodFullName)]
+		service, _, ok := splitFullMethod(methodFullName)
+		if !ok {
+			return false
+		}
+		_, ok = serviceSet[service]
 		return ok
 	}
 }
@@ -55,6 +77,9 @@ func MatchServices(services ...string) HookMatcher {
 func MatchFullMethods(fullMethods ...string) HookMatcher {
 	fullMethodSet := make(map[string]struct{}, len(fullMethods))
 	for _, fm := range fullMethods {
+		// Caller-supplied, so a bad name is a programming error: fail loudly at
+		// registration rather than silently never matching.
+		MustParseFullMethod(fm)
 		fullMethodSet[fm] = struct{}{}
 	}
 	return func(_ context.Context, methodFullName string) bool {
@@ -63,25 +88,36 @@ func MatchFullMethods(fullMethods ...string) HookMatcher {
 	}
 }
 
-// serviceNameOf extracts "package.Service" from a gRPC full method name
-// "/package.Service/Method".
-func serviceNameOf(fullMethod string) string {
-	trimmed := strings.TrimPrefix(fullMethod, "/")
-	lastSlash := strings.LastIndex(trimmed, "/")
-	if lastSlash < 0 {
-		return ""
+// MustParseFullMethod splits a gRPC full method name "/package.Service/Method"
+// into its service and method parts, panicking if it is malformed.
+//
+// Use this for names supplied by your own code — typically the generated
+// *_FullMethodName constants — so a bad value fails at startup. For names that
+// arrive off the wire, use splitFullMethod instead.
+func MustParseFullMethod(fullMethod string) (service, method string) {
+	service, method, ok := splitFullMethod(fullMethod)
+	if !ok {
+		panic(fmt.Sprintf("invalid gRPC full method %q: want \"/package.Service/Method\"", fullMethod))
 	}
-	return trimmed[:lastSlash]
+	return service, method
 }
 
-// methodNameOf extracts "Method" from a gRPC full method name
-// "/package.Service/Method".
-func methodNameOf(fullMethod string) string {
-	lastSlash := strings.LastIndex(fullMethod, "/")
-	if lastSlash < 0 {
-		return ""
+// splitFullMethod splits a gRPC full method name "/package.Service/Method",
+// reporting whether it was well formed.
+//
+// Mirrors grpc's internal grpcutil.ParseMethod, which we cannot import. The
+// split is on the *last* slash because the service part is a dotted package
+// path; only the final slash separates the method.
+func splitFullMethod(fullMethod string) (service, method string, ok bool) {
+	if !strings.HasPrefix(fullMethod, "/") {
+		return "", "", false
 	}
-	return fullMethod[lastSlash+1:]
+	trimmed := fullMethod[1:]
+	lastSlash := strings.LastIndex(trimmed, "/")
+	if lastSlash < 0 {
+		return "", "", false
+	}
+	return trimmed[:lastSlash], trimmed[lastSlash+1:], true
 }
 
 // HookOption configures optional behavior for a hook registration.

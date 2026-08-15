@@ -52,14 +52,35 @@ func TestMatchServices(t *testing.T) {
 	})
 }
 
-func TestServiceAndMethodNameOf(t *testing.T) {
-	t.Run("splits a gRPC full method name", func(t *testing.T) {
-		require.Equal(t, "malonaz.user.v1.UserService", serviceNameOf(testFullMethod))
-		require.Equal(t, "GetUser", methodNameOf(testFullMethod))
+func TestMustParseFullMethod(t *testing.T) {
+	t.Run("splits a gRPC full method name on the last slash", func(t *testing.T) {
+		service, method := MustParseFullMethod(testFullMethod)
+		require.Equal(t, "malonaz.user.v1.UserService", service)
+		require.Equal(t, "GetUser", method)
 	})
 
-	t.Run("returns empty for a malformed name", func(t *testing.T) {
-		require.Empty(t, serviceNameOf("malformed"))
-		require.Empty(t, methodNameOf("malformed"))
+	t.Run("panics without a leading slash", func(t *testing.T) {
+		require.Panics(t, func() { MustParseFullMethod("malonaz.user.v1.UserService.GetUser") })
+	})
+
+	t.Run("panics when the method suffix is missing", func(t *testing.T) {
+		require.Panics(t, func() { MustParseFullMethod("/malonaz.user.v1.UserService") })
+	})
+}
+
+func TestMatchersPanicOnMalformedRegistration(t *testing.T) {
+	// Caller-supplied names are a programming error: fail at registration.
+	require.Panics(t, func() { MatchFullMethods("malonaz.user.v1.UserService.GetUser") })
+	require.Panics(t, func() { MatchMethods("/malonaz.user.v1.UserService/GetUser") })
+	require.Panics(t, func() { MatchServices("/malonaz.user.v1.UserService/GetUser") })
+}
+
+func TestMatchersRejectMalformedWireNames(t *testing.T) {
+	// Names off the wire must not match, and must not panic: an
+	// UnknownServiceHandler passes client-supplied strings straight through.
+	require.NotPanics(t, func() {
+		require.False(t, MatchMethods("GetUser")(context.Background(), "malformed"))
+		require.False(t, MatchServices("malonaz.user.v1.UserService")(context.Background(), "malformed"))
+		require.False(t, MatchFullMethods(testFullMethod)(context.Background(), "malformed"))
 	})
 }
