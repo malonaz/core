@@ -133,6 +133,19 @@ message ToolCallDiscovery {
   string tool_set_name = 1;
   // The names of the tools to be discovered.
   repeated string tool_names = 2;
+  // The discovered tools, including their full schemas. Populated server-side
+  // so the schemas can be returned to the model as a tool result without
+  // mutating the provider-visible tool list (which would break prompt caching).
+  repeated Tool tools = 3;
+}
+
+// A parsed tool call representing a request to execute a previously
+// discovered tool through the generic Execute tool.
+message ToolCallExecute {
+  // The name of the discovered tool to execute.
+  string tool_name = 1 [(buf.validate.field).required = true];
+  // The arguments to invoke the tool with.
+  google.protobuf.Struct arguments = 2;
 }
 
 // A parsed tool call representing a request to execute a gRPC method.

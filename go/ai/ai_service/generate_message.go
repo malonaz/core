@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -19,6 +20,7 @@ import (
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	grpcstatus "google.golang.org/grpc/status"
 )
@@ -180,7 +182,11 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	}
 
 	// Index tools & tool sets, injecting discovery tools and pre-discovered tools.
+	// Discoverable tools are never added to the provider-visible tool list:
+	// they are invoked through the single Execute tool, keeping the tool list
+	// static so the prompt cache survives discoveries.
 	toolSetNameToToolNameToTool := make(map[string]map[string]*aipb.Tool, len(request.GetToolSets()))
+	var hasDiscoverableTools bool
 	for _, toolSet := range request.GetToolSets() {
 		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
 		var discoveredTools []*aipb.Tool
@@ -192,9 +198,27 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		}
 		toolSetNameToToolNameToTool[toolSet.GetName()] = toolNameToTool
 		if len(discoveredTools) != len(toolSet.GetTools()) {
+			hasDiscoverableTools = true
 			request.Tools = append(request.Tools, toolSet.DiscoveryTool)
 		}
 		request.Tools = append(request.Tools, discoveredTools...)
+	}
+	if hasDiscoverableTools {
+		// The Execute tool name is reserved: a user tool with the same name
+		// would be shadowed by the generic execute tool.
+		for _, toolSet := range request.GetToolSets() {
+			for _, tool := range toolSet.GetTools() {
+				if tool.GetName() == aitool.ExecuteToolName {
+					return status.Errorf(codes.InvalidArgument, "tool set %q contains a tool named %q, which is reserved for the execute tool", toolSet.GetName(), aitool.ExecuteToolName).Err()
+				}
+			}
+		}
+		for _, tool := range request.GetTools() {
+			if tool.GetName() == aitool.ExecuteToolName {
+				return status.Errorf(codes.InvalidArgument, "tool %q collides with the reserved execute tool name", aitool.ExecuteToolName).Err()
+			}
+		}
+		request.Tools = append(request.Tools, aitool.CreateExecuteTool())
 	}
 
 	toolNameToTool := make(map[string]*aipb.Tool, len(request.GetTools()))
@@ -226,8 +250,9 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 				if _, ok := toolNameToTool[tool.GetName()]; ok {
 					return status.Errorf(codes.InvalidArgument, "message %d block %d has already discovered tool %q in tool set %q", i, j, discoveredTool, toolSetName).Err()
 				}
+				// Register for Execute routing only; the provider-visible tool
+				// list stays untouched to preserve the prompt cache.
 				toolNameToTool[tool.GetName()] = tool
-				request.Tools = append(request.Tools, tool)
 			}
 		}
 	}
@@ -373,8 +398,22 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
 			if !toolCall.GetPartial() {
-				if toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType == aitool.AnnotationValueToolTypeDiscovery {
+				switch toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType {
+				case aitool.AnnotationValueToolTypeDiscovery:
 					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
+
+				case aitool.AnnotationValueToolTypeExecute:
+					// Unwrap into the discovered tool's call so downstream
+					// consumers see the real tool call.
+					unwrappedToolCall, err := aitool.UnwrapExecuteToolCall(toolCall, w.toolNameToTool)
+					if err != nil {
+						return status.FromError(err, "unwrapping execute tool call").
+							WithDetails(&aipb.ToolCallRecoverableError{
+								ToolCallBlock:   c.Block,
+								ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, err)),
+							}).Err()
+					}
+					c.Block.Content = &aipb.Block_ToolCall{ToolCall: unwrappedToolCall}
 				}
 			}
 		}
@@ -434,6 +473,7 @@ func processDiscoveryToolCall(
 	}
 
 	var validToolNames []string
+	var discoveredTools []*aipb.Tool
 	var errors []string
 	for _, discoveredToolName := range discoveryResult.GetToolNames() {
 		discoveredTool, exists := toolNameToToolInSet[discoveredToolName]
@@ -447,6 +487,7 @@ func processDiscoveryToolCall(
 		}
 		toolNameToTool[discoveredTool.GetName()] = discoveredTool
 		validToolNames = append(validToolNames, discoveredToolName)
+		discoveredTools = append(discoveredTools, discoveredTool)
 	}
 
 	annotations := map[string]string{
@@ -466,7 +507,22 @@ func processDiscoveryToolCall(
 		return toolResult
 	}
 
-	toolResult := ai.NewToolResult(toolCall.Name, toolCall.Id, "ok")
+	// Return the discovered tools' schemas as the tool result so the model can
+	// invoke them through the Execute tool without any change to the
+	// provider-visible tool list.
+	discovery := &aipb.ToolCallDiscovery{
+		ToolSetName: toolSetName,
+		ToolNames:   validToolNames,
+		Tools:       discoveredTools,
+	}
+	discoveryStruct, err := pbutil.MarshalToStruct(discovery)
+	if err != nil {
+		toolResult := ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("marshaling discovered tools: %w", err))
+		toolResult.Annotations = annotations
+		return toolResult
+	}
+	toolResult := ai.NewToolResult(toolCall.Name, toolCall.Id, "")
+	toolResult.Result = &aipb.ToolResult_StructuredContent{StructuredContent: structpb.NewStructValue(discoveryStruct)}
 	toolResult.Annotations = annotations
 	return toolResult
 }

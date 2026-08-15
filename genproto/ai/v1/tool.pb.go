@@ -967,7 +967,11 @@ type ToolCallDiscovery struct {
 	// Name of the tool set to discover tools from.
 	ToolSetName string `protobuf:"bytes,1,opt,name=tool_set_name,json=toolSetName,proto3" json:"tool_set_name,omitempty"`
 	// The names of the tools to be discovered.
-	ToolNames     []string `protobuf:"bytes,2,rep,name=tool_names,json=toolNames,proto3" json:"tool_names,omitempty"`
+	ToolNames []string `protobuf:"bytes,2,rep,name=tool_names,json=toolNames,proto3" json:"tool_names,omitempty"`
+	// The discovered tools, including their full schemas. Populated server-side
+	// so the schemas can be returned to the model as a tool result without
+	// mutating the provider-visible tool list (which would break prompt caching).
+	Tools         []*Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1011,12 +1015,23 @@ func (x *ToolCallDiscovery) GetToolNames() []string {
 	return nil
 }
 
+func (x *ToolCallDiscovery) GetTools() []*Tool {
+	if x != nil {
+		return x.Tools
+	}
+	return nil
+}
+
 func (x *ToolCallDiscovery) SetToolSetName(v string) {
 	x.ToolSetName = v
 }
 
 func (x *ToolCallDiscovery) SetToolNames(v []string) {
 	x.ToolNames = v
+}
+
+func (x *ToolCallDiscovery) SetTools(v []*Tool) {
+	x.Tools = v
 }
 
 type ToolCallDiscovery_builder struct {
@@ -1026,6 +1041,10 @@ type ToolCallDiscovery_builder struct {
 	ToolSetName string
 	// The names of the tools to be discovered.
 	ToolNames []string
+	// The discovered tools, including their full schemas. Populated server-side
+	// so the schemas can be returned to the model as a tool result without
+	// mutating the provider-visible tool list (which would break prompt caching).
+	Tools []*Tool
 }
 
 func (b0 ToolCallDiscovery_builder) Build() *ToolCallDiscovery {
@@ -1034,6 +1053,95 @@ func (b0 ToolCallDiscovery_builder) Build() *ToolCallDiscovery {
 	_, _ = b, x
 	x.ToolSetName = b.ToolSetName
 	x.ToolNames = b.ToolNames
+	x.Tools = b.Tools
+	return m0
+}
+
+// A parsed tool call representing a request to execute a previously
+// discovered tool through the generic Execute tool.
+type ToolCallExecute struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The name of the discovered tool to execute.
+	ToolName string `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	// The arguments to invoke the tool with.
+	Arguments     *structpb.Struct `protobuf:"bytes,2,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolCallExecute) Reset() {
+	*x = ToolCallExecute{}
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolCallExecute) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolCallExecute) ProtoMessage() {}
+
+func (x *ToolCallExecute) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ToolCallExecute) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
+func (x *ToolCallExecute) GetArguments() *structpb.Struct {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
+func (x *ToolCallExecute) SetToolName(v string) {
+	x.ToolName = v
+}
+
+func (x *ToolCallExecute) SetArguments(v *structpb.Struct) {
+	x.Arguments = v
+}
+
+func (x *ToolCallExecute) HasArguments() bool {
+	if x == nil {
+		return false
+	}
+	return x.Arguments != nil
+}
+
+func (x *ToolCallExecute) ClearArguments() {
+	x.Arguments = nil
+}
+
+type ToolCallExecute_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The name of the discovered tool to execute.
+	ToolName string
+	// The arguments to invoke the tool with.
+	Arguments *structpb.Struct
+}
+
+func (b0 ToolCallExecute_builder) Build() *ToolCallExecute {
+	m0 := &ToolCallExecute{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.ToolName = b.ToolName
+	x.Arguments = b.Arguments
 	return m0
 }
 
@@ -1054,7 +1162,7 @@ type ToolCallRpc struct {
 
 func (x *ToolCallRpc) Reset() {
 	*x = ToolCallRpc{}
-	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[6]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1174,7 @@ func (x *ToolCallRpc) String() string {
 func (*ToolCallRpc) ProtoMessage() {}
 
 func (x *ToolCallRpc) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[6]
+	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1214,11 +1322,15 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\aToolSet\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12B\n" +
 	"\x0ediscovery_tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"V\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\x81\x01\n" +
 	"\x11ToolCallDiscovery\x12\"\n" +
 	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
-	"tool_names\x18\x02 \x03(\tR\ttoolNames\"\xcf\x01\n" +
+	"tool_names\x18\x02 \x03(\tR\ttoolNames\x12)\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"m\n" +
+	"\x0fToolCallExecute\x12#\n" +
+	"\ttool_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\btoolName\x125\n" +
+	"\targuments\x18\x02 \x01(\v2\x17.google.protobuf.StructR\targuments\"\xcf\x01\n" +
 	"\vToolCallRpc\x12*\n" +
 	"\x11service_full_name\x18\x01 \x01(\tR\x0fserviceFullName\x12(\n" +
 	"\x10method_full_name\x18\x02 \x01(\tR\x0emethodFullName\x121\n" +
@@ -1231,7 +1343,7 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x19TOOL_CHOICE_MODE_REQUIRED\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolChoiceMode)(0),           // 0: malonaz.ai.v1.ToolChoiceMode
 	(*Tool)(nil),                  // 1: malonaz.ai.v1.Tool
@@ -1240,36 +1352,39 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(*ToolChoice)(nil),            // 4: malonaz.ai.v1.ToolChoice
 	(*ToolSet)(nil),               // 5: malonaz.ai.v1.ToolSet
 	(*ToolCallDiscovery)(nil),     // 6: malonaz.ai.v1.ToolCallDiscovery
-	(*ToolCallRpc)(nil),           // 7: malonaz.ai.v1.ToolCallRpc
-	nil,                           // 8: malonaz.ai.v1.Tool.AnnotationsEntry
-	nil,                           // 9: malonaz.ai.v1.ToolCall.AnnotationsEntry
-	nil,                           // 10: malonaz.ai.v1.ToolResult.AnnotationsEntry
-	(*v1.Schema)(nil),             // 11: malonaz.json.v1.Schema
-	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
-	(*structpb.Value)(nil),        // 13: google.protobuf.Value
-	(*status.Status)(nil),         // 14: google.rpc.Status
-	(*fieldmaskpb.FieldMask)(nil), // 15: google.protobuf.FieldMask
+	(*ToolCallExecute)(nil),       // 7: malonaz.ai.v1.ToolCallExecute
+	(*ToolCallRpc)(nil),           // 8: malonaz.ai.v1.ToolCallRpc
+	nil,                           // 9: malonaz.ai.v1.Tool.AnnotationsEntry
+	nil,                           // 10: malonaz.ai.v1.ToolCall.AnnotationsEntry
+	nil,                           // 11: malonaz.ai.v1.ToolResult.AnnotationsEntry
+	(*v1.Schema)(nil),             // 12: malonaz.json.v1.Schema
+	(*structpb.Struct)(nil),       // 13: google.protobuf.Struct
+	(*structpb.Value)(nil),        // 14: google.protobuf.Value
+	(*status.Status)(nil),         // 15: google.rpc.Status
+	(*fieldmaskpb.FieldMask)(nil), // 16: google.protobuf.FieldMask
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	11, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
-	8,  // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
-	12, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	12, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
-	9,  // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
+	12, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
+	9,  // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
+	13, // 2: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	13, // 3: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
+	10, // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
 	3,  // 5: malonaz.ai.v1.ToolCall.result:type_name -> malonaz.ai.v1.ToolResult
-	10, // 6: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
-	13, // 7: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
-	14, // 8: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
+	11, // 6: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
+	14, // 7: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
+	15, // 8: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
 	0,  // 9: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
 	1,  // 10: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
 	1,  // 11: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	12, // 12: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
-	15, // 13: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	1,  // 12: malonaz.ai.v1.ToolCallDiscovery.tools:type_name -> malonaz.ai.v1.Tool
+	13, // 13: malonaz.ai.v1.ToolCallExecute.arguments:type_name -> google.protobuf.Struct
+	13, // 14: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
+	16, // 15: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -1292,7 +1407,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

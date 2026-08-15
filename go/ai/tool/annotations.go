@@ -37,6 +37,8 @@ const (
 
 	// Tool type indicating a discovery tool that reveals other tools to the model.
 	AnnotationValueToolTypeDiscovery = "discovery"
+	// Tool type indicating the generic execute tool that invokes discovered tools.
+	AnnotationValueToolTypeExecute = "execute"
 	// Tool type indicating the tool generates a standalone protobuf message.
 	AnnotationValueToolTypeGenerateMessage = "generate-message"
 	// Tool type indicating the tool generates a gRPC request to be dispatched.

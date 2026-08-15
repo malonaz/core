@@ -17,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/tool.proto.
  */
 export const file_malonaz_ai_v1_tool: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIsYCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIEikKBnJlc3VsdBgHIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdBoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiqQIKClRvb2xSZXN1bHQSEQoJdG9vbF9uYW1lGAEgASgJEhQKDHRvb2xfY2FsbF9pZBgCIAEoCRI/Cgthbm5vdGF0aW9ucxgGIAMoCzIqLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdC5Bbm5vdGF0aW9uc0VudHJ5EhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSAAaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQg8KBnJlc3VsdBIFukgCCAEi6QEKClRvb2xDaG9pY2USNwoEbW9kZRgBIAEoDjIdLm1hbG9uYXouYWkudjEuVG9vbENob2ljZU1vZGVCCLpIBYIBAhABSAASEwoJdG9vbF9uYW1lGAIgASgJSAA6fLpIeRp3CiVhaS52MS5Ub29sQ2hvaWNlLm1vZGVfbm90X3Vuc3BlY2lmaWVkEittb2RlIGNhbm5vdCBiZSBUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEGiEhaGFzKHRoaXMubW9kZSkgfHwgdGhpcy5tb2RlICE9IDBCDwoGY2hvaWNlEgW6SAIIASJ4CgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBIj4KEVRvb2xDYWxsRGlzY292ZXJ5EhUKDXRvb2xfc2V0X25hbWUYASABKAkSEgoKdG9vbF9uYW1lcxgCIAMoCSKbAQoLVG9vbENhbGxScGMSGQoRc2VydmljZV9mdWxsX25hbWUYASABKAkSGAoQbWV0aG9kX2Z1bGxfbmFtZRgCIAEoCRIoCgdyZXF1ZXN0GAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBItCglyZWFkX21hc2sYBCABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrKocBCg5Ub29sQ2hvaWNlTW9kZRIgChxUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEEAASGQoVVE9PTF9DSE9JQ0VfTU9ERV9OT05FEAESGQoVVE9PTF9DSE9JQ0VfTU9ERV9BVVRPEAISHQoZVE9PTF9DSE9JQ0VfTU9ERV9SRVFVSVJFRBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi1gEKBFRvb2wSFAoEbmFtZRgBIAEoCUIGukgDyAEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESLAoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hEjkKC2Fubm90YXRpb25zGAQgAygLMiQubWFsb25hei5haS52MS5Ub29sLkFubm90YXRpb25zRW50cnkaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIsYCCghUb29sQ2FsbBISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI9Cgthbm5vdGF0aW9ucxgFIAMoCzIoLm1hbG9uYXouYWkudjEuVG9vbENhbGwuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIEikKBnJlc3VsdBgHIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdBoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiqQIKClRvb2xSZXN1bHQSEQoJdG9vbF9uYW1lGAEgASgJEhQKDHRvb2xfY2FsbF9pZBgCIAEoCRI/Cgthbm5vdGF0aW9ucxgGIAMoCzIqLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdC5Bbm5vdGF0aW9uc0VudHJ5EhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSAAaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQg8KBnJlc3VsdBIFukgCCAEi6QEKClRvb2xDaG9pY2USNwoEbW9kZRgBIAEoDjIdLm1hbG9uYXouYWkudjEuVG9vbENob2ljZU1vZGVCCLpIBYIBAhABSAASEwoJdG9vbF9uYW1lGAIgASgJSAA6fLpIeRp3CiVhaS52MS5Ub29sQ2hvaWNlLm1vZGVfbm90X3Vuc3BlY2lmaWVkEittb2RlIGNhbm5vdCBiZSBUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEGiEhaGFzKHRoaXMubW9kZSkgfHwgdGhpcy5tb2RlICE9IDBCDwoGY2hvaWNlEgW6SAIIASJ4CgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBImIKEVRvb2xDYWxsRGlzY292ZXJ5EhUKDXRvb2xfc2V0X25hbWUYASABKAkSEgoKdG9vbF9uYW1lcxgCIAMoCRIiCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbCJYCg9Ub29sQ2FsbEV4ZWN1dGUSGQoJdG9vbF9uYW1lGAEgASgJQga6SAPIAQESKgoJYXJndW1lbnRzGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKbAQoLVG9vbENhbGxScGMSGQoRc2VydmljZV9mdWxsX25hbWUYASABKAkSGAoQbWV0aG9kX2Z1bGxfbmFtZRgCIAEoCRIoCgdyZXF1ZXN0GAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBItCglyZWFkX21hc2sYBCABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrKocBCg5Ub29sQ2hvaWNlTW9kZRIgChxUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEEAASGQoVVE9PTF9DSE9JQ0VfTU9ERV9OT05FEAESGQoVVE9PTF9DSE9JQ0VfTU9ERV9BVVRPEAISHQoZVE9PTF9DSE9JQ0VfTU9ERV9SRVFVSVJFRBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_rpc_status, file_malonaz_json_v1_schema]);
 
 /**
  * Represents a tool that can be called by the AI model.
@@ -409,9 +409,46 @@ export type ToolCallDiscovery = Message<"malonaz.ai.v1.ToolCallDiscovery"> & {
    * @generated from field: repeated string tool_names = 2;
    */
   toolNames: string[];
+
+  /**
+   * The discovered tools, including their full schemas. Populated server-side
+   * so the schemas can be returned to the model as a tool result without
+   * mutating the provider-visible tool list (which would break prompt caching).
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   */
+  tools: Tool[];
 };
 
-export type ToolCallDiscoveryValid = ToolCallDiscovery;
+/**
+ * A parsed tool call representing a request to discover tools from a tool set.
+ *
+ * @generated from message malonaz.ai.v1.ToolCallDiscovery
+ */
+export type ToolCallDiscoveryValid = Message<"malonaz.ai.v1.ToolCallDiscovery"> & {
+  /**
+   * Name of the tool set to discover tools from.
+   *
+   * @generated from field: string tool_set_name = 1;
+   */
+  toolSetName: string;
+
+  /**
+   * The names of the tools to be discovered.
+   *
+   * @generated from field: repeated string tool_names = 2;
+   */
+  toolNames: string[];
+
+  /**
+   * The discovered tools, including their full schemas. Populated server-side
+   * so the schemas can be returned to the model as a tool result without
+   * mutating the provider-visible tool list (which would break prompt caching).
+   *
+   * @generated from field: repeated malonaz.ai.v1.Tool tools = 3;
+   */
+  tools: ToolValid[];
+};
 
 /**
  * Describes the message malonaz.ai.v1.ToolCallDiscovery.
@@ -419,6 +456,57 @@ export type ToolCallDiscoveryValid = ToolCallDiscovery;
  */
 export const ToolCallDiscoverySchema: GenMessage<ToolCallDiscovery, {validType: ToolCallDiscoveryValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_tool, 5);
+
+/**
+ * A parsed tool call representing a request to execute a previously
+ * discovered tool through the generic Execute tool.
+ *
+ * @generated from message malonaz.ai.v1.ToolCallExecute
+ */
+export type ToolCallExecute = Message<"malonaz.ai.v1.ToolCallExecute"> & {
+  /**
+   * The name of the discovered tool to execute.
+   *
+   * @generated from field: string tool_name = 1;
+   */
+  toolName: string;
+
+  /**
+   * The arguments to invoke the tool with.
+   *
+   * @generated from field: google.protobuf.Struct arguments = 2;
+   */
+  arguments?: JsonObject;
+};
+
+/**
+ * A parsed tool call representing a request to execute a previously
+ * discovered tool through the generic Execute tool.
+ *
+ * @generated from message malonaz.ai.v1.ToolCallExecute
+ */
+export type ToolCallExecuteValid = Message<"malonaz.ai.v1.ToolCallExecute"> & {
+  /**
+   * The name of the discovered tool to execute.
+   *
+   * @generated from field: string tool_name = 1;
+   */
+  toolName: string;
+
+  /**
+   * The arguments to invoke the tool with.
+   *
+   * @generated from field: google.protobuf.Struct arguments = 2;
+   */
+  arguments?: JsonObject;
+};
+
+/**
+ * Describes the message malonaz.ai.v1.ToolCallExecute.
+ * Use `create(ToolCallExecuteSchema)` to create a new message.
+ */
+export const ToolCallExecuteSchema: GenMessage<ToolCallExecute, {validType: ToolCallExecuteValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_tool, 6);
 
 /**
  * A parsed tool call representing a request to execute a gRPC method.
@@ -462,7 +550,7 @@ export type ToolCallRpcValid = ToolCallRpc;
  * Use `create(ToolCallRpcSchema)` to create a new message.
  */
 export const ToolCallRpcSchema: GenMessage<ToolCallRpc, {validType: ToolCallRpcValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_tool, 6);
+  messageDesc(file_malonaz_ai_v1_tool, 7);
 
 /**
  * Mode for tool choice.

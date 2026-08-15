@@ -8,7 +8,7 @@ import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb
 import { file_google_api_client } from "../../../../google/api/client_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
-import type { Tool, ToolCall, ToolCallDiscovery, ToolCallRpc, ToolCallValid, ToolResult, ToolResultValid, ToolSchema, ToolSet, ToolSetSchema, ToolSetValid, ToolValid } from "../../v1/tool_pb";
+import type { Tool, ToolCall, ToolCallDiscovery, ToolCallDiscoveryValid, ToolCallRpc, ToolCallRpcValid, ToolCallValid, ToolResult, ToolResultValid, ToolSchema, ToolSet, ToolSetSchema, ToolSetValid, ToolValid } from "../../v1/tool_pb";
 import { file_malonaz_ai_v1_tool } from "../../v1/tool_pb";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
 
@@ -244,7 +244,51 @@ export type ParseToolCallResponse = Message<"malonaz.ai.ai_engine.v1.ParseToolCa
   title: string;
 };
 
-export type ParseToolCallResponseValid = ParseToolCallResponse;
+/**
+ * Response message for AiEngine.ParseToolCall.
+ *
+ * @generated from message malonaz.ai.ai_engine.v1.ParseToolCallResponse
+ */
+export type ParseToolCallResponseValid = Message<"malonaz.ai.ai_engine.v1.ParseToolCallResponse"> & {
+  /**
+   * The parsed result based on the tool call type.
+   *
+   * @generated from oneof malonaz.ai.ai_engine.v1.ParseToolCallResponse.result
+   */
+  result: {
+    /**
+     * A generic parsed message.
+     *
+     * @generated from field: google.protobuf.Struct message = 1;
+     */
+    value: JsonObject;
+    case: "message";
+  } | {
+    /**
+     * A request to discover additional tools from a tool set.
+     *
+     * @generated from field: malonaz.ai.v1.ToolCallDiscovery discovery = 2;
+     */
+    value: ToolCallDiscoveryValid;
+    case: "discovery";
+  } | {
+    /**
+     * A request to execute a gRPC method.
+     *
+     * @generated from field: malonaz.ai.v1.ToolCallRpc rpc = 3;
+     */
+    value: ToolCallRpcValid;
+    case: "rpc";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * Short human-readable summary of what this tool call does,
+   * if the tool was created with `SchemaConfiguration.with_title`.
+   *
+   * @generated from field: string title = 4;
+   */
+  title: string;
+};
 
 /**
  * Describes the message malonaz.ai.ai_engine.v1.ParseToolCallResponse.
