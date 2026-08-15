@@ -2,6 +2,7 @@ go_library(
     name = "tool",
     srcs = [
         "annotations.go",
+        "create.go",
         "discovery.go",
         "parse.go",
     ],
@@ -16,6 +17,7 @@ go_library(
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
@@ -23,10 +25,14 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["parse_test.go"],
+    srcs = [
+        "create_test.go",
+        "parse_test.go",
+    ],
     deps = [
         ":tool",
         "//go/pbutil/pbfieldmask",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
     ],
 )

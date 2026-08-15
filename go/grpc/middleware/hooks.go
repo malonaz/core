@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"google.golang.org/grpc"
@@ -16,35 +17,41 @@ import (
 type HookHandler[T proto.Message] func(ctx context.Context, message T) error
 
 // HookMatcher determines whether a hook should be invoked for a given RPC.
-// It receives the context and the method's protobuf full name (e.g. "package.Service.Method").
+// It receives the context and the gRPC full method name (e.g. "/package.Service/Method"),
+// which is exactly the value of the generated *_FullMethodName constants.
 // Returning true means the hook will be invoked; false means it will be skipped.
 type HookMatcher func(ctx context.Context, methodFullName string) bool
 
 // MatchMethods returns a HookMatcher that matches if the RPC method is in the given set.
 func MatchMethods(methods ...string) HookMatcher {
-	methodSet := make(map[protoreflect.Name]struct{}, len(methods))
+	methodSet := make(map[string]struct{}, len(methods))
 	for _, m := range methods {
-		methodSet[protoreflect.Name(m)] = struct{}{}
+		methodSet[m] = struct{}{}
 	}
 	return func(_ context.Context, methodFullName string) bool {
-		_, ok := methodSet[protoreflect.FullName(methodFullName).Name()]
+		_, ok := methodSet[methodNameOf(methodFullName)]
 		return ok
 	}
 }
 
 // MatchServices returns a HookMatcher that matches if the RPC service is in the given set.
 func MatchServices(services ...string) HookMatcher {
-	serviceSet := make(map[protoreflect.FullName]struct{}, len(services))
+	serviceSet := make(map[string]struct{}, len(services))
 	for _, s := range services {
-		serviceSet[protoreflect.FullName(s)] = struct{}{}
+		serviceSet[s] = struct{}{}
 	}
 	return func(_ context.Context, methodFullName string) bool {
-		_, ok := serviceSet[protoreflect.FullName(methodFullName).Parent()]
+		_, ok := serviceSet[serviceNameOf(methodFullName)]
 		return ok
 	}
 }
 
-// MatchFullMethods returns a HookMatcher that matches if the full method (package.Service.Method) is in the given set.
+// MatchFullMethods returns a HookMatcher that matches if the gRPC full method
+// name is in the given set.
+//
+// Pass the generated *_FullMethodName constants (e.g.
+// pb.UserService_GetUser_FullMethodName) so a renamed or removed method is a
+// compile error rather than a matcher that silently stops firing.
 func MatchFullMethods(fullMethods ...string) HookMatcher {
 	fullMethodSet := make(map[string]struct{}, len(fullMethods))
 	for _, fm := range fullMethods {
@@ -54,6 +61,27 @@ func MatchFullMethods(fullMethods ...string) HookMatcher {
 		_, ok := fullMethodSet[methodFullName]
 		return ok
 	}
+}
+
+// serviceNameOf extracts "package.Service" from a gRPC full method name
+// "/package.Service/Method".
+func serviceNameOf(fullMethod string) string {
+	trimmed := strings.TrimPrefix(fullMethod, "/")
+	lastSlash := strings.LastIndex(trimmed, "/")
+	if lastSlash < 0 {
+		return ""
+	}
+	return trimmed[:lastSlash]
+}
+
+// methodNameOf extracts "Method" from a gRPC full method name
+// "/package.Service/Method".
+func methodNameOf(fullMethod string) string {
+	lastSlash := strings.LastIndex(fullMethod, "/")
+	if lastSlash < 0 {
+		return ""
+	}
+	return fullMethod[lastSlash+1:]
 }
 
 // HookOption configures optional behavior for a hook registration.
@@ -180,11 +208,10 @@ func RegisterHookHandler[T proto.Message](handler HookHandler[T], opts ...HookOp
 // message tree walk is skipped entirely for that direction.
 func UnaryServerHook() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		methodDescriptor, ok := MethodDescriptorFromContext(ctx)
-		if !ok {
-			return handler(ctx, req)
-		}
-		methodFullName := string(methodDescriptor.FullName())
+		// gRPC's own method name is used directly: it needs no descriptor
+		// lookup and equals the generated *_FullMethodName constants that
+		// callers pass to the matchers.
+		methodFullName := info.FullMethod
 
 		// Pre-check whether any registrations match to avoid unnecessary tree walks.
 		hasRequest, hasResponse := globalHookRegistry.hasMatchingRegistrations(ctx, methodFullName)
@@ -220,11 +247,7 @@ func UnaryServerHook() grpc.UnaryServerInterceptor {
 // If no registrations match the stream's method, the stream is passed through unwrapped.
 func StreamServerHook() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		methodDescriptor, ok := MethodDescriptorFromContext(stream.Context())
-		if !ok {
-			return handler(srv, stream)
-		}
-		methodFullName := string(methodDescriptor.FullName())
+		methodFullName := info.FullMethod
 
 		// Pre-check whether any registrations match; skip wrapping if nothing matches.
 		hasRequest, hasResponse := globalHookRegistry.hasMatchingRegistrations(stream.Context(), methodFullName)

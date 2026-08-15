@@ -38,7 +38,7 @@ go_module(
     name = "protoc-gen-go-grpc",
     binary = True,
     module = "google.golang.org/grpc/cmd/protoc-gen-go-grpc",
-    version = "a82cc96f07c960e02623688e4067ae6b7895334a",
+    version = "v1.6.2",
     deps = [
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
