@@ -1,0 +1,9 @@
+{
+  title: "malonaz/core: shared Go platform libraries (grpc, aip, pbutil, postgres, ai...), please build system, protobuf codegen plugins.",
+  ignore: [
+    ".plz-cache/",
+    "plz-out/",
+    "genproto/",
+    "gengo/",
+  ],
+}
