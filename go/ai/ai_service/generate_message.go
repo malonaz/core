@@ -510,10 +510,20 @@ func processDiscoveryToolCall(
 	// Return the discovered tools' schemas as the tool result so the model can
 	// invoke them through the Execute tool without any change to the
 	// provider-visible tool list.
+	// Only the fields the model needs are included: annotations are internal
+	// routing metadata and would waste context tokens.
+	modelVisibleTools := make([]*aipb.Tool, 0, len(discoveredTools))
+	for _, discoveredTool := range discoveredTools {
+		modelVisibleTools = append(modelVisibleTools, &aipb.Tool{
+			Name:        discoveredTool.GetName(),
+			Description: discoveredTool.GetDescription(),
+			JsonSchema:  discoveredTool.GetJsonSchema(),
+		})
+	}
 	discovery := &aipb.ToolCallDiscovery{
 		ToolSetName: toolSetName,
 		ToolNames:   validToolNames,
-		Tools:       discoveredTools,
+		Tools:       modelVisibleTools,
 	}
 	discoveryStruct, err := pbutil.MarshalToStruct(discovery)
 	if err != nil {

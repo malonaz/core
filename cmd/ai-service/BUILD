@@ -21,8 +21,8 @@ go_binary(
     test_only = True,
     visibility = ["//go/test/ai/..."],
     deps = [
-        "//go/ai/store",
         "//go/ai/ai_service",
+        "//go/ai/store",
         "//go/certs",
         "//go/flags",
         "//go/grpc",
