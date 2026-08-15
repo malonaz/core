@@ -682,11 +682,21 @@ func (s *Schema) augmentMethodComments() error {
 							}
 							paths = nil
 							for node := range tree.FilterableNodes() {
+								// A wildcard resource expands to every leaf up to maxDepth, which
+								// dominates the tool schema (57 paths for Contact). List only the
+								// top level; formatFilteringDoc tells the model it may traverse
+								// into nested fields with dot notation.
+								if node.Depth > 0 {
+									continue
+								}
 								paths = append(paths, node.Path)
 							}
 						}
 						if field := input.Fields().ByName("filter"); field != nil {
-							s.comments[string(field.FullName())] = fmt.Sprintf("Filter by: %s", strings.Join(paths, ", "))
+							s.comments[string(field.FullName())] = fmt.Sprintf(
+								"Filter by top-level field: %s. Nested fields are also filterable via dot notation.",
+								strings.Join(paths, ", "),
+							)
 						}
 					}
 					methodExtras = append(methodExtras, formatFilteringDoc(resourceMsg, paths))
@@ -821,18 +831,10 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 		}
 	}
 
-	var hasNested bool
-	for _, p := range paths {
-		if strings.Contains(p, ".") && !hasNested {
-			examples = append(examples, fmt.Sprintf(`%s = "value"`, p))
-			hasNested = true
-			break
-		}
-	}
-
 	if len(examples) == 0 {
 		return fmt.Sprintf(`**Filtering (AIP-160)**
 Filterable fields: %s
+Only top-level fields are listed. Nested fields are also filterable via dot notation, e.g. metadata.some_field = "value".
 Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
 Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, strings.Join(paths, ", "))
 	}
@@ -840,6 +842,7 @@ Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
 	return fmt.Sprintf(`**Filtering (AIP-160)**
 %s
+Only top-level fields are listed. Nested fields are also filterable via dot notation, e.g. metadata.some_field = "value".
 Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
 Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, exampleStr)
 }

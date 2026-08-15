@@ -5,12 +5,15 @@ import (
 	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
+	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/decimal"
 	"google.golang.org/genproto/googleapis/type/money"
+	"google.golang.org/genproto/googleapis/type/postaladdress"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -27,17 +30,20 @@ const (
 )
 
 var (
-	timestampFullName  = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
-	decimalFullName    = (&decimal.Decimal{}).ProtoReflect().Descriptor().FullName()
-	durationFullName   = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
-	fieldMaskFullName  = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
-	dateFullName       = (&date.Date{}).ProtoReflect().Descriptor().FullName()
-	timeOfDayFullName  = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
-	moneyFullName      = (&money.Money{}).ProtoReflect().Descriptor().FullName()
-	structFullName     = (&structpb.Struct{}).ProtoReflect().Descriptor().FullName()
-	valueFullName      = (&structpb.Value{}).ProtoReflect().Descriptor().FullName()
-	listValueFullName  = (&structpb.ListValue{}).ProtoReflect().Descriptor().FullName()
-	jsonSchemaFullName = (&jsonpb.Schema{}).ProtoReflect().Descriptor().FullName()
+	timestampFullName     = (&timestamppb.Timestamp{}).ProtoReflect().Descriptor().FullName()
+	decimalFullName       = (&decimal.Decimal{}).ProtoReflect().Descriptor().FullName()
+	durationFullName      = (&durationpb.Duration{}).ProtoReflect().Descriptor().FullName()
+	fieldMaskFullName     = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
+	dateFullName          = (&date.Date{}).ProtoReflect().Descriptor().FullName()
+	timeOfDayFullName     = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
+	moneyFullName         = (&money.Money{}).ProtoReflect().Descriptor().FullName()
+	postalAddressFullName = (&postaladdress.PostalAddress{}).ProtoReflect().Descriptor().FullName()
+	anyFullName           = (&anypb.Any{}).ProtoReflect().Descriptor().FullName()
+	rpcStatusFullName     = (&rpcstatus.Status{}).ProtoReflect().Descriptor().FullName()
+	structFullName        = (&structpb.Struct{}).ProtoReflect().Descriptor().FullName()
+	valueFullName         = (&structpb.Value{}).ProtoReflect().Descriptor().FullName()
+	listValueFullName     = (&structpb.ListValue{}).ProtoReflect().Descriptor().FullName()
+	jsonSchemaFullName    = (&jsonpb.Schema{}).ProtoReflect().Descriptor().FullName()
 )
 
 type SchemaBuilder struct {
@@ -236,6 +242,68 @@ func hasResourceAnnotation(descriptor protoreflect.MessageDescriptor) bool {
 	return err == nil
 }
 
+// postalAddressSchema returns a hand-pruned schema for google.type.PostalAddress. The upstream
+// message carries ~2.5KB of field comments across 11 fields, which dominates any tool schema that
+// embeds an address and crowds out the fields the model actually needs.
+//
+// The exposed subset is exactly what every consumer renders: address_lines, locality,
+// administrative_area, postal_code and region_code (see formatPostalAddress in onikisu
+// app/core/format.ts and app/kanshi/src/lib/format.ts, and the address line in
+// onikisu user/tmpl/utils.tmpl). The omitted fields are either fixed (revision), formatting-only
+// (language_code), or region-specific edge cases (sorting_code, sublocality, recipients,
+// organization).
+func postalAddressSchema() *jsonpb.Schema {
+	return &jsonpb.Schema{
+		Type:        "object",
+		Description: "A postal address. Populate region_code plus as much structure as is known; anything that does not fit the other fields goes in address_lines.",
+		Properties: map[string]*jsonpb.Schema{
+			"region_code": {
+				Type:        "string",
+				Description: `CLDR region code of the country/region, e.g. "US", "CH".`,
+			},
+			"postal_code": {
+				Type:        "string",
+				Description: "Postal/ZIP code.",
+			},
+			"administrative_area": {
+				Type:        "string",
+				Description: `State/province/prefecture, e.g. "CA". Omit for countries that do not use one, such as Switzerland.`,
+			},
+			"locality": {
+				Type:        "string",
+				Description: "City/town.",
+			},
+			"address_lines": {
+				Type:        "array",
+				Description: `Street address lines, in envelope order for the country, e.g. ["1 Market St", "Suite 300"].`,
+				Items:       &jsonpb.Schema{Type: "string"},
+			},
+		},
+		Required: []string{"region_code"},
+	}
+}
+
+// rpcStatusSchema returns a hand-pruned schema for google.rpc.Status. The message itself is small,
+// but its `details` field is a repeated google.protobuf.Any, which recurses into an opaque
+// type_url/value pair carrying ~5KB of upstream documentation. Details cannot meaningfully be
+// produced by a model anyway, so we expose only the code and message.
+func rpcStatusSchema() *jsonpb.Schema {
+	return &jsonpb.Schema{
+		Type:        "object",
+		Description: "An error status.",
+		Properties: map[string]*jsonpb.Schema{
+			"code": {
+				Type:        "integer",
+				Description: "The canonical google.rpc.Code, e.g. 0 (OK), 3 (INVALID_ARGUMENT), 5 (NOT_FOUND), 7 (PERMISSION_DENIED), 13 (INTERNAL).",
+			},
+			"message": {
+				Type:        "string",
+				Description: "A developer-facing error message, in English.",
+			},
+		},
+	}
+}
+
 func (b *SchemaBuilder) buildMessageSchema(
 	so *schemaOptions, msg protoreflect.MessageDescriptor, prefix string, depth int, methodType pbreflection.StandardMethodType, allowedPaths map[string]bool,
 ) (*jsonpb.Schema, error) {
@@ -252,6 +320,14 @@ func (b *SchemaBuilder) buildMessageSchema(
 		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}, nil
 	case moneyFullName:
 		return &jsonpb.Schema{Type: "string", Description: "ISO 4217 currency code followed by amount, e.g. 'USD 25.50', 'EUR -1.75', 'JPY 1000'"}, nil
+	case postalAddressFullName:
+		return postalAddressSchema(), nil
+	case rpcStatusFullName:
+		return rpcStatusSchema(), nil
+	case anyFullName:
+		// Any is an opaque type_url + serialized bytes pair that a model cannot fill in, and it
+		// drags ~5KB of upstream documentation into the schema. Describe it rather than recurse.
+		return &jsonpb.Schema{Type: "object", Description: "An arbitrary serialized protobuf message (google.protobuf.Any)."}, nil
 	case structFullName:
 		return &jsonpb.Schema{Type: "object", Description: "JSON object (google.protobuf.Struct)"}, nil
 	case valueFullName:
