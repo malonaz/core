@@ -42,6 +42,11 @@ var (
 		ID:      provider.Xai,
 		BaseUrl: "https://api.x.ai/v1",
 	}
+
+	configMoonshot = &config{
+		ID:      provider.Moonshot,
+		BaseUrl: "https://api.moonshot.ai/v1",
+	}
 )
 
 func (c *config) clientConfig(apiKey string) openai.ClientConfig {
@@ -85,6 +90,10 @@ func NewGoogleClient(apiKey string, modelService *provider.ModelService) *Client
 
 func NewXaiClient(apiKey string, modelService *provider.ModelService) *Client {
 	return newClient(apiKey, modelService, configXai)
+}
+
+func NewMoonshotClient(apiKey string, modelService *provider.ModelService) *Client {
+	return newClient(apiKey, modelService, configMoonshot)
 }
 
 // Implements the provider.Provider interface.

@@ -459,6 +459,14 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
 	},
+	// K3 always thinks and only accepts low/high/max. Its own default is "max",
+	// which is needlessly expensive, so DEFAULT is pinned to the cheapest value.
+	provider.Moonshot: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortHigh,
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "max",
+	},
 }
 
 var openAIFinishReasonToPb = map[string]aiservicepb.StopReason{

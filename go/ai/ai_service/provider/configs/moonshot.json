@@ -1,0 +1,25 @@
+local p = "providers/moonshot/models/";
+
+{
+  "provider_id": "moonshot",
+  "models": [
+    {
+      "name": p + "kimi-k3",
+      "provider_model_id": "kimi-k3",
+      "description": "Kimi's flagship 2.8T-parameter model built on Kimi Delta Attention, with native visual understanding, a 1M-token context window and always-on thinking. Excels at long-horizon coding and agentic knowledge work.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        // max_completion_tokens defaults to 131072 but may be raised to 1048576.
+        "output_token_limit": 1048576,
+        // Flat pricing: no tiering by context length.
+        "pricing": {
+          "input_token_price_per_million": 3.00,
+          "output_token_price_per_million": 15.00,
+          "input_token_cache_read_price_per_million": 0.30
+        }
+      }
+    }
+  ]
+}
