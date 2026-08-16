@@ -50,6 +50,11 @@ export const GenerationMetricsSchema: GenMessage<GenerationMetrics, {validType: 
  * Tracks model usage. When streamed out, incremental resource consumptions can be streamed out.
  * The absolute truth for a resource consumption is the last one streamed out for this resource consumption.
  *
+ * Every resource consumption below is disjoint: the categories partition the total rather than
+ * nesting, because each is priced separately (see Model.*_price_per_million). Providers that
+ * report nested counts must subtract before populating these fields — e.g. output_reasoning_token
+ * is excluded from output_token, and input_token_cache_read is excluded from input_token.
+ *
  * @generated from message malonaz.ai.v1.ModelUsage
  */
 export type ModelUsage = Message<"malonaz.ai.v1.ModelUsage"> & {

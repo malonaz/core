@@ -280,8 +280,14 @@ func (c *Client) StreamGenerateMessage(
 
 		case anthropic.MessageDeltaEvent:
 			modelUsage := &aipb.ModelUsage{Model: request.Model}
-			if variant.Usage.OutputTokens > 0 {
-				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(variant.Usage.OutputTokens)}
+			// Anthropic reports thinking_tokens as a subset of output_tokens, but ModelUsage
+			// consumptions must be disjoint since each is priced separately, so split them out.
+			thinkingTokens := int32(variant.Usage.OutputTokensDetails.ThinkingTokens)
+			if outputTokens := int32(variant.Usage.OutputTokens) - thinkingTokens; outputTokens > 0 {
+				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: outputTokens}
+			}
+			if thinkingTokens > 0 {
+				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{Quantity: thinkingTokens}
 			}
 			sender.SendModelUsage(ctx, modelUsage)
 
