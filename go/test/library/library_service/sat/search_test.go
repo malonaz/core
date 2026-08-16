@@ -93,8 +93,9 @@ func TestSearch_PhoneSplitting(t *testing.T) {
 		a.PhoneNumbers = nil
 	})
 
-	// Digits-only prefixes match, with or without the raw formatting.
-	for _, query := range []string{"1415555", "+14155557890", "336101"} {
+	// Digits-only prefixes and mid-number fragments match (suffix tokens),
+	// with or without the raw formatting.
+	for _, query := range []string{"1415555", "+14155557890", "336101", "415", "5557890", "102031", "890"} {
 		authors := searchAuthors(t, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: query})
 		require.Len(t, authors, 1, "query %q", query)
 		require.Equal(t, author.Name, authors[0].Name, "query %q", query)

@@ -28,6 +28,21 @@ const SearchDocumentColumn = "search_document"
 //	AS $$ SELECT array_to_string($1, $2) $$;
 const SearchArrayToStringFunction = "core_array_to_string"
 
+// SearchPhoneNumberTokensFunction is an IMMUTABLE function emitting, for each
+// space-separated phone number, every suffix (length >= 3) of its digits-only
+// form — so any fragment of a number prefix-matches a token. Migrations using
+// SPLIT_PHONE_NUMBER search fields must declare it:
+//
+//	CREATE OR REPLACE FUNCTION core_phone_number_tokens(text) RETURNS text
+//	LANGUAGE sql IMMUTABLE PARALLEL SAFE
+//	AS $$
+//	SELECT string_agg(substr(d.digits, s.pos), ' ')
+//	FROM unnest(string_to_array($1, ' ')) AS e(elem)
+//	CROSS JOIN LATERAL (SELECT regexp_replace(e.elem, '[^0-9]', '', 'g') AS digits) d
+//	CROSS JOIN LATERAL generate_series(1, length(d.digits) - 2) AS s(pos)
+//	$$;
+const SearchPhoneNumberTokensFunction = "core_phone_number_tokens"
+
 // SearchDocument resolves a resource message's search options into the SQL
 // expression composing its tsvector search document. Returns nil when the
 // message declares no search option.
@@ -158,9 +173,10 @@ func applySplit(base string, split aippb.SearchOptions_Split) (string, error) {
 		// Index the raw text plus its components: local part, domain labels.
 		return fmt.Sprintf("%s || ' ' || translate(%s, '@._-+', '     ')", base, base), nil
 	case aippb.SearchOptions_SPLIT_PHONE_NUMBER:
-		// Index the raw text plus a digits-only variant, preserving spaces as
-		// separators so array elements stay distinct tokens.
-		return fmt.Sprintf("%s || ' ' || regexp_replace(%s, '[^0-9 ]', '', 'g')", base, base), nil
+		// Index the raw text plus every digit suffix of each number, so any
+		// fragment of a phone number prefix-matches some token (tsquery has
+		// no substring matching). Requires SearchPhoneNumberTokensFunction.
+		return fmt.Sprintf("%s || ' ' || coalesce(%s(%s), '')", base, SearchPhoneNumberTokensFunction, base), nil
 	default:
 		return "", fmt.Errorf("unsupported split %v", split)
 	}

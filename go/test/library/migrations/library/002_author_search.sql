@@ -6,15 +6,39 @@ CREATE OR REPLACE FUNCTION core_array_to_string(text[], text) RETURNS text
 LANGUAGE sql IMMUTABLE PARALLEL SAFE
 AS $$ SELECT array_to_string($1, $2) $$;
 
+-- Emits every suffix (length >= 3) of each space-separated phone number's
+-- digits-only form, so any fragment of a number prefix-matches a token
+-- (tsquery has no substring matching). Required by SPLIT_PHONE_NUMBER fields.
+CREATE OR REPLACE FUNCTION core_phone_number_tokens(text) RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+AS $$
+SELECT string_agg(substr(d.digits, s.pos), ' ')
+FROM unnest(string_to_array($1, ' ')) AS e(elem)
+CROSS JOIN LATERAL (SELECT regexp_replace(e.elem, '[^0-9]', '', 'g') AS digits) d
+CROSS JOIN LATERAL generate_series(1, length(d.digits) - 2) AS s(pos)
+$$;
+
 -- Search document. The expression must match AuthorSearchDocumentExpression
 -- emitted by the postgres codegen.
 ALTER TABLE library.author ADD COLUMN search_document tsvector
     GENERATED ALWAYS AS (
         setweight(to_tsvector('simple', coalesce(display_name, '')), 'A') ||
-        setweight(to_tsvector('simple', coalesce(email_address, '') || ' ' || translate(coalesce(email_address, ''), '@._-+', '     ')), 'B') ||
-        setweight(to_tsvector('simple', coalesce(phone_number, '') || ' ' || regexp_replace(coalesce(phone_number, ''), '[^0-9 ]', '', 'g')), 'B') ||
-        setweight(to_tsvector('simple', core_array_to_string(email_addresses, ' ') || ' ' || translate(core_array_to_string(email_addresses, ' '), '@._-+', '     ')), 'C') ||
-        setweight(to_tsvector('simple', core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' ') || ' ' || regexp_replace(core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' '), '[^0-9 ]', '', 'g')), 'C') ||
+        setweight(to_tsvector('simple', coalesce(email_address, '') ||
+        ' ' ||
+        translate(coalesce(email_address, ''), '@._-+', '     ')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(phone_number, '') ||
+        ' ' ||
+        coalesce(core_phone_number_tokens(coalesce(phone_number, '')), '')), 'B') ||
+        setweight(to_tsvector('simple', core_array_to_string(email_addresses, ' ') ||
+        ' ' ||
+        translate(core_array_to_string(email_addresses, ' '), '@._-+', '     ')), 'C') ||
+        setweight(to_tsvector('simple', core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' ') ||
+        ' ' ||
+        coalesce(core_phone_number_tokens(core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' ')), '')), 'C') ||
+        setweight(to_tsvector('simple', coalesce(metadata #>> '{country}', '')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(metadata #>> '{email_addresses}', '') ||
+        ' ' ||
+        translate(coalesce(metadata #>> '{email_addresses}', ''), '@._-+', '     ')), 'C') ||
         setweight(to_tsvector('simple', coalesce(biography, '')), 'D')
     ) STORED;
 
