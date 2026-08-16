@@ -317,3 +317,74 @@ func (s *Store) ListAuthors(ctx context.Context, organizationId string, showDele
 	}
 	return authors, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
 }
+
+// AuthorSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const AuthorSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(display_name, '')), 'A') || setweight(to_tsvector('simple', coalesce(email_address, '') || ' ' || translate(coalesce(email_address, ''), '@._-+', '     ')), 'B') || setweight(to_tsvector('simple', coalesce(phone_number, '') || ' ' || regexp_replace(coalesce(phone_number, ''), '[^0-9 ]', '', 'g')), 'B') || setweight(to_tsvector('simple', core_array_to_string(email_addresses, ' ') || ' ' || translate(core_array_to_string(email_addresses, ' '), '@._-+', '     ')), 'C') || setweight(to_tsvector('simple', core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' ') || ' ' || regexp_replace(core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' '), '[^0-9 ]', '', 'g')), 'C') || setweight(to_tsvector('simple', coalesce(biography, '')), 'D')`
+
+type authorSearchRow struct {
+	model.Author
+	SnippetBiography *string `db:"__snippet_biography"`
+}
+
+func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
+	if columns == nil {
+		columns = AuthorPostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+	}
+
+	orderByClause := "ORDER BY create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
+		columns = append(columns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+		params = append(params, tsQuery)
+	}
+
+	query := strings.ReplaceAll("SELECT %s FROM library.author #where# #orderby# #pagination#", "#where#", whereClause)
+	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
+	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
+	query = postgres.SelectQuery(query, columns)
+
+	var searchRows []*authorSearchRow
+	transactionFN := func(tx postgres.Tx) error {
+		searchRows = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return nil
+			}
+			return fmt.Errorf("selecting authors: %w", err)
+		}
+		searchRows, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[authorSearchRow])
+		if err != nil {
+			return fmt.Errorf("collecting rows: %w", err)
+		}
+		return nil
+	}
+	if err := s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN); err != nil {
+		return nil, nil, err
+	}
+	authors := make([]*model.Author, 0, len(searchRows))
+	snippets := make([]map[string]string, 0, len(searchRows))
+	for _, searchRow := range searchRows {
+		row := searchRow.Author
+		authors = append(authors, &row)
+		snippet := map[string]string{}
+		if searchRow.SnippetBiography != nil && strings.Contains(*searchRow.SnippetBiography, "**") {
+			snippet["biography"] = *searchRow.SnippetBiography
+		}
+		snippets = append(snippets, snippet)
+	}
+	return authors, snippets, nil
+}

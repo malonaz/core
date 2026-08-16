@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
+import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/test/library/v1/author.proto";
 
@@ -175,4 +176,54 @@ message BatchGetAuthorsRequest {
 message BatchGetAuthorsResponse {
   // Authors requested.
   repeated malonaz.test.library.v1.Author authors = 1;
+}
+
+// Request message for LibraryService.SearchAuthors.
+message SearchAuthorsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent organization to search authors in.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Organization"
+  ];
+
+  // The free-text search query. Results are ranked by relevance.
+  // Must contain at least one searchable term.
+  string query = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
+  // An optional filter, ANDed with the query.
+  string filter = 3;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 4;
+
+  // Requested page size.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `SearchAuthors` call.
+  string page_token = 6;
+}
+
+// Response message for LibraryService.SearchAuthors.
+message SearchAuthorsResponse {
+  // The authors matching the query, ranked by relevance.
+  repeated malonaz.test.library.v1.Author authors = 1;
+
+  // Highlighted snippets, index-aligned with `authors`.
+  repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+
+  // A token to retrieve the next page.
+  string next_page_token = 3;
 }

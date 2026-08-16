@@ -1,0 +1,61 @@
+---
+title: Full-text search (SearchX RPCs)
+description: How to add an AIP-136 Search{Plural} RPC to a resource — the search codegen option, the migration contract (generated tsvector column), and query semantics.
+labels:
+    lang: go, protobuf
+    repo: core
+    topic: aip, codegen, search
+---
+
+# Full-text search
+
+Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
+(`SearchAuthors`) — copy it.
+
+## To make a resource searchable
+
+1. **Resource proto**: add `(malonaz.codegen.aip.v1.search)` with `fields`
+   (`path`, `weight` A–D, optional `split`: `SPLIT_EMAIL_ADDRESS` /
+   `SPLIT_PHONE_NUMBER`). See `malonaz/test/library/v1/author.proto`.
+2. **Service proto**: add `Search{Plural}` request/response (like List but with
+   `query`, no `order_by` — results are relevance-ranked) and the RPC with the
+   usual `standard_method` option. See
+   `malonaz/test/library/library_service/v1/author.proto` + `library_service.proto`.
+3. **Migration**: declare a `search_document tsvector GENERATED ALWAYS AS (...)
+   STORED` column + GIN index, copying the codegen-emitted
+   `{Resource}SearchDocumentExpression` constant from the generated store.
+   Array fields need the IMMUTABLE `core_array_to_string` wrapper function
+   (`array_to_string` is only STABLE). See
+   `go/test/library/migrations/library/002_author_search.sql`.
+
+## Key files
+
+- Option: `malonaz/codegen/aip/v1/aip.proto` (`SearchOptions`).
+- Expression builder: `tools/protoc-gen-core/schema/search.go`.
+- Store/RPC codegen: `tools/protoc-gen-core/plugin/postgres/search.go`,
+  `tools/protoc-gen-core/plugin/rpc/search.go`.
+- Query → tsquery: `go/aip/search_query.go` (`BuildPrefixTSQuery`).
+- SAT suite: `go/test/library/library_service/sat/search_test.go`.
+
+## Snippets
+
+Mark a search field `snippet: true` and declare
+`repeated malonaz.aip.v1.SearchSnippet snippets` on the Search response —
+index-aligned with the resource list, fragments highlighted with `**` via
+`ts_headline` (raw text, not the split variant).
+
+## Index strategy
+
+Multi-tenant tables should use a composite GIN index —
+`USING gin (parent_id, search_document)` via `CREATE EXTENSION btree_gin` — so
+token lookups scope to the tenant instead of scanning all orgs then
+bitmap-ANDing. The library test uses a plain GIN only because the SAT
+toolchain postgres lacks contrib extensions.
+
+## Semantics & limits
+
+- Case-insensitive; every token prefix-matched and AND-ed
+  (`"john smi"` → `john:* & smi:*`); a query with no indexable token is InvalidArgument.
+- `filter` (AIP-160) composes with `query`; ranking is `ts_rank` by field weight.
+- No stemming ('simple' config), no mid-token substrings, no synonyms —
+  semantic search would be a pgvector addition later.

@@ -91,6 +91,15 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
   }
 
+  // Search authors.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchAuthors(SearchAuthorsRequest) returns (SearchAuthorsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors:search"};
+    option (google.api.method_signature) = "parent,query";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
   // ===================== AuthorProfile (Singleton) =====================
 
   // Gets an author profile.

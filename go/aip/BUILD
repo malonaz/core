@@ -13,6 +13,7 @@ go_library(
         "resource_event.go",
         "resource_id.go",
         "resource_tree.go",
+        "search_query.go",
         "search_request_parser.go",
         "update_request_parser.go",
         "uuid_namespace.go",
@@ -52,6 +53,7 @@ go_test(
         "labels_test.go",
         "ordering_request_test.go",
         "pagination_request_test.go",
+        "search_query_test.go",
         "update_request_parser_test.go",
     ],
     deps = [

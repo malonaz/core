@@ -48,3 +48,12 @@ message ResourceEvent {
   // The field mask of updated fields. Only set for RESOURCE_EVENT_TYPE_UPDATED.
   google.protobuf.FieldMask update_mask = 5;
 }
+
+// A search-result snippet: highlighted fragments of the fields that matched a
+// search query. Search responses carry one Snippet per returned resource,
+// index-aligned with the resource list.
+message SearchSnippet {
+  // Highlighted fragments keyed by the matched field path (e.g. "biography").
+  // Matches are wrapped in ** markers. Fields without a match are omitted.
+  map<string, string> fields = 1;
+}

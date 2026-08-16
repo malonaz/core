@@ -2,4 +2,4 @@ lang: go, protobuf
 repo: core
 status: in-progress
 tags: idea,ai
-topic: agent, aip, genui, style-guide
+topic: agent, aip, codegen, genui, search, style-guide

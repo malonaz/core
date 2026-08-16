@@ -230,6 +230,68 @@ func (b0 ResourceEvent_builder) Build() *ResourceEvent {
 	return m0
 }
 
+// A search-result snippet: highlighted fragments of the fields that matched a
+// search query. Search responses carry one Snippet per returned resource,
+// index-aligned with the resource list.
+type SearchSnippet struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Fields map[string]string      `protobuf:"bytes,1,rep,name=fields,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *SearchSnippet) Reset() {
+	*x = SearchSnippet{}
+	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSnippet) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSnippet) ProtoMessage() {}
+
+func (x *SearchSnippet) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchSnippet) GetFields() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Fields
+	}
+	return nil
+}
+
+func (x *SearchSnippet) SetFields(v map[string]string) {
+	x.xxx_hidden_Fields = v
+}
+
+type SearchSnippet_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Highlighted fragments keyed by the matched field path (e.g. "biography").
+	// Matches are wrapped in ** markers. Fields without a match are omitted.
+	Fields map[string]string
+}
+
+func (b0 SearchSnippet_builder) Build() *SearchSnippet {
+	m0 := &SearchSnippet{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Fields = b.Fields
+	return m0
+}
+
 var File_malonaz_aip_v1_aip_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
@@ -244,7 +306,12 @@ const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\x11previous_resource\x18\x04 \x01(\v2\x14.google.protobuf.AnyR\x10previousResource\x12;\n" +
 	"\vupdate_mask\x18\x05 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask:\xe3\x01\xbaH\xdf\x01\x1a\xdc\x01\n" +
-	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))*\x9b\x01\n" +
+	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))\"\x8d\x01\n" +
+	"\rSearchSnippet\x12A\n" +
+	"\x06fields\x18\x01 \x03(\v2).malonaz.aip.v1.SearchSnippet.FieldsEntryR\x06fields\x1a9\n" +
+	"\vFieldsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x9b\x01\n" +
 	"\x11ResourceEventType\x12#\n" +
 	"\x1fRESOURCE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bRESOURCE_EVENT_TYPE_CREATED\x10\x01\x12\x1f\n" +
@@ -252,23 +319,26 @@ const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\x1bRESOURCE_EVENT_TYPE_DELETED\x10\x03B)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
 
 var file_malonaz_aip_v1_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_malonaz_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_aip_v1_aip_proto_goTypes = []any{
 	(ResourceEventType)(0),        // 0: malonaz.aip.v1.ResourceEventType
 	(*ResourceEvent)(nil),         // 1: malonaz.aip.v1.ResourceEvent
-	(*anypb.Any)(nil),             // 2: google.protobuf.Any
-	(*fieldmaskpb.FieldMask)(nil), // 3: google.protobuf.FieldMask
+	(*SearchSnippet)(nil),         // 2: malonaz.aip.v1.SearchSnippet
+	nil,                           // 3: malonaz.aip.v1.SearchSnippet.FieldsEntry
+	(*anypb.Any)(nil),             // 4: google.protobuf.Any
+	(*fieldmaskpb.FieldMask)(nil), // 5: google.protobuf.FieldMask
 }
 var file_malonaz_aip_v1_aip_proto_depIdxs = []int32{
 	0, // 0: malonaz.aip.v1.ResourceEvent.type:type_name -> malonaz.aip.v1.ResourceEventType
-	2, // 1: malonaz.aip.v1.ResourceEvent.resource:type_name -> google.protobuf.Any
-	2, // 2: malonaz.aip.v1.ResourceEvent.previous_resource:type_name -> google.protobuf.Any
-	3, // 3: malonaz.aip.v1.ResourceEvent.update_mask:type_name -> google.protobuf.FieldMask
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 1: malonaz.aip.v1.ResourceEvent.resource:type_name -> google.protobuf.Any
+	4, // 2: malonaz.aip.v1.ResourceEvent.previous_resource:type_name -> google.protobuf.Any
+	5, // 3: malonaz.aip.v1.ResourceEvent.update_mask:type_name -> google.protobuf.FieldMask
+	3, // 4: malonaz.aip.v1.SearchSnippet.fields:type_name -> malonaz.aip.v1.SearchSnippet.FieldsEntry
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_aip_v1_aip_proto_init() }
@@ -282,7 +352,7 @@ func file_malonaz_aip_v1_aip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_aip_v1_aip_proto_rawDesc), len(file_malonaz_aip_v1_aip_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

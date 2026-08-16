@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/label.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -47,6 +48,38 @@ message Author {
     plural: "authors"
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "display_name"
+        weight: WEIGHT_A
+      },
+      {
+        path: "email_address"
+        weight: WEIGHT_B
+        split: SPLIT_EMAIL_ADDRESS
+      },
+      {
+        path: "phone_number"
+        weight: WEIGHT_B
+        split: SPLIT_PHONE_NUMBER
+      },
+      {
+        path: "email_addresses"
+        weight: WEIGHT_C
+        split: SPLIT_EMAIL_ADDRESS
+      },
+      {
+        path: "phone_numbers"
+        weight: WEIGHT_C
+        split: SPLIT_PHONE_NUMBER
+      },
+      {
+        path: "biography"
+        snippet: true
+      }
+    ]
+  };
 
   // The resource name of the author.
   // Format: organizations/{organization}/authors/{author}
