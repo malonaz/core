@@ -133,8 +133,16 @@ func (c *Client) StreamGenerateMessage(
 		}
 
 		if choice != nil {
-			if reasoningChunk := choice.Delta.JSON.ExtraFields["reasoning"].Raw(); reasoningChunk != "" {
-				unquoted, err := strconv.Unquote(reasoningChunk)
+			// Providers spell the reasoning delta either "reasoning" (xai,
+			// groq) or "reasoning_content" (moonshot). Raw() hands back the
+			// raw JSON in both cases, so the value is still quoted and
+			// escaped: normalize to a single unquoted "reasoning_content".
+			reasoningField := choice.Delta.JSON.ExtraFields["reasoning"]
+			if reasoningField.Raw() == "" {
+				reasoningField = choice.Delta.JSON.ExtraFields["reasoning_content"]
+			}
+			if raw := reasoningField.Raw(); raw != "" {
+				unquoted, err := strconv.Unquote(raw)
 				if err != nil {
 					return status.Errorf(codes.Internal, "unquoting reasoning chunk: %v", err).Err()
 				}
