@@ -32,7 +32,9 @@ Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
    STORED` column + GIN index, copying the codegen-emitted
    `{Resource}SearchDocumentExpression` constant from the generated store.
    Array fields need the IMMUTABLE `core_array_to_string` wrapper function
-   (`array_to_string` is only STABLE). See
+   (`array_to_string` is only STABLE); `SPLIT_PHONE_NUMBER` fields need
+   `core_phone_number_tokens` (both contracts are documented on the constants
+   in `tools/protoc-gen-core/schema/search.go`). See
    `go/test/library/migrations/library/002_author_search.sql`.
 
 ## Key files
@@ -66,3 +68,7 @@ toolchain postgres lacks contrib extensions.
 - `filter` (AIP-160) composes with `query`; ranking is `ts_rank` by field weight.
 - No stemming ('simple' config), no mid-token substrings, no synonyms —
   semantic search would be a pgvector addition later.
+- Exception: `SPLIT_PHONE_NUMBER` fields index every suffix (length >= 3) of the
+  digits-only number via `core_phone_number_tokens`, so any fragment of a phone
+  number matches (`860` → `8605979801`). One unmatched token still ANDs the
+  whole result set to empty — that is how "no substring" failures present.
