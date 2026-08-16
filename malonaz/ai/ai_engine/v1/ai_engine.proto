@@ -223,6 +223,12 @@ message SchemaConfiguration {
   // this string. The AI is instructed to generate this field first. Useful when surfacing tool
   // calls to users for review/approval (e.g. "A short summary of the update, shown to the user").
   string with_title = 5;
+
+  // If set, we inject a required `tool_call_summary` field in the tool schema, documented with
+  // this string. Unlike `with_title` (a short headline), this is a human-readable account of what
+  // the call will do — intended for approval surfaces that must never show raw arguments or
+  // resource names (e.g. "Send John Smith (860-597-9800) the $4,200 deck quote").
+  string with_summary = 6;
 }
 
 // A reference to a protobuf descriptor.

@@ -882,6 +882,7 @@ type SchemaConfiguration struct {
 	xxx_hidden_WithResponseReadMask       bool                   `protobuf:"varint,3,opt,name=with_response_read_mask,json=withResponseReadMask,proto3"`
 	xxx_hidden_WithResponseSchemaMaxDepth int32                  `protobuf:"varint,4,opt,name=with_response_schema_max_depth,json=withResponseSchemaMaxDepth,proto3"`
 	xxx_hidden_WithTitle                  string                 `protobuf:"bytes,5,opt,name=with_title,json=withTitle,proto3"`
+	xxx_hidden_WithSummary                string                 `protobuf:"bytes,6,opt,name=with_summary,json=withSummary,proto3"`
 	unknownFields                         protoimpl.UnknownFields
 	sizeCache                             protoimpl.SizeCache
 }
@@ -946,6 +947,13 @@ func (x *SchemaConfiguration) GetWithTitle() string {
 	return ""
 }
 
+func (x *SchemaConfiguration) GetWithSummary() string {
+	if x != nil {
+		return x.xxx_hidden_WithSummary
+	}
+	return ""
+}
+
 func (x *SchemaConfiguration) SetFieldMask(v *fieldmaskpb.FieldMask) {
 	x.xxx_hidden_FieldMask = v
 }
@@ -964,6 +972,10 @@ func (x *SchemaConfiguration) SetWithResponseSchemaMaxDepth(v int32) {
 
 func (x *SchemaConfiguration) SetWithTitle(v string) {
 	x.xxx_hidden_WithTitle = v
+}
+
+func (x *SchemaConfiguration) SetWithSummary(v string) {
+	x.xxx_hidden_WithSummary = v
 }
 
 func (x *SchemaConfiguration) HasFieldMask() bool {
@@ -995,6 +1007,11 @@ type SchemaConfiguration_builder struct {
 	// this string. The AI is instructed to generate this field first. Useful when surfacing tool
 	// calls to users for review/approval (e.g. "A short summary of the update, shown to the user").
 	WithTitle string
+	// If set, we inject a required `tool_call_summary` field in the tool schema, documented with
+	// this string. Unlike `with_title` (a short headline), this is a human-readable account of what
+	// the call will do — intended for approval surfaces that must never show raw arguments or
+	// resource names (e.g. "Send John Smith (860-597-9800) the $4,200 deck quote").
+	WithSummary string
 }
 
 func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
@@ -1006,6 +1023,7 @@ func (b0 SchemaConfiguration_builder) Build() *SchemaConfiguration {
 	x.xxx_hidden_WithResponseReadMask = b.WithResponseReadMask
 	x.xxx_hidden_WithResponseSchemaMaxDepth = b.WithResponseSchemaMaxDepth
 	x.xxx_hidden_WithTitle = b.WithTitle
+	x.xxx_hidden_WithSummary = b.WithSummary
 	return m0
 }
 
@@ -1216,7 +1234,7 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2,.malonaz.ai.ai_engine.v1.SchemaConfigurationR\x05value:\x028\x01\"c\n" +
 	"\x1dParseToolCallRecoverableError\x12B\n" +
 	"\vtool_result\x18\x01 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"toolResult\"\xa6\x02\n" +
+	"toolResult\"\xc9\x02\n" +
 	"\x13SchemaConfiguration\x129\n" +
 	"\n" +
 	"field_mask\x18\x01 \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\x12/\n" +
@@ -1226,7 +1244,8 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x1ewith_response_schema_max_depth\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
 	"(\x00R\x1awithResponseSchemaMaxDepth\x12\x1d\n" +
 	"\n" +
-	"with_title\x18\x05 \x01(\tR\twithTitle\"_\n" +
+	"with_title\x18\x05 \x01(\tR\twithTitle\x12!\n" +
+	"\fwith_summary\x18\x06 \x01(\tR\vwithSummary\"_\n" +
 	"\x13DescriptorReference\x12\x1a\n" +
 	"\amessage\x18\x01 \x01(\tH\x00R\amessage\x12\x18\n" +
 	"\x06method\x18\x02 \x01(\tH\x00R\x06methodB\x12\n" +

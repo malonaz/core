@@ -58,6 +58,15 @@ func WithTitle(title string) Option {
 	}
 }
 
+// WithSummary injects a required summary field, documented with the given
+// string: a human-readable account of the call for approval surfaces that
+// never show raw arguments or resource names.
+func WithSummary(summary string) Option {
+	return func(schemaConfiguration *pb.SchemaConfiguration) {
+		schemaConfiguration.WithSummary = summary
+	}
+}
+
 // WithResponseReadMask lets the model request only the response fields it
 // needs. Method tools only.
 func WithResponseReadMask() Option {
