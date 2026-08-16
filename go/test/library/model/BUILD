@@ -12,6 +12,7 @@ go_protoc_gen_core(
 go_library(
     name = "model",
     srcs = [":codegen"],
+    import_path = "github.com/malonaz/core/gengo/test/library/model",
     test_only = True,
     visibility = ["//go/test/library/..."],
     deps = [

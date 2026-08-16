@@ -5,7 +5,7 @@ go_protoc_gen_core(
     srcs = ["//malonaz/test/library/library_service/v1:proto"],
     additional_context = {
         GO_PROTOC_GEN_CORE_GO_IMPORT_PATHS: {
-            "model": "//go/test/library/model",
+            "model": "//gengo/test/library/model",
         },
     },
     labels = ["copy_generated_code:go:gengo"],
@@ -17,6 +17,7 @@ go_protoc_gen_core(
 go_library(
     name = "rpc",
     srcs = [":codegen"],
+    import_path = "github.com/malonaz/core/gengo/test/library/library_service/rpc",
     test_only = True,
     visibility = ["//go/test/library/library_service/..."],
     deps = [

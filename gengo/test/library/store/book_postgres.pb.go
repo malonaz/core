@@ -6,8 +6,8 @@ import (
 	context "context"
 	fmt "fmt"
 	v5 "github.com/jackc/pgx/v5"
+	model "github.com/malonaz/core/gengo/test/library/model"
 	postgres "github.com/malonaz/core/go/postgres"
-	model "github.com/malonaz/core/go/test/library/model"
 	strings "strings"
 )
 

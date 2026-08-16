@@ -8,6 +8,7 @@ import (
 
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/decimal"
+	"google.golang.org/genproto/googleapis/type/interval"
 	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/timeofday"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -357,6 +358,17 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 			Hours: int32(t.Hour()), Minutes: int32(t.Minute()), Seconds: int32(t.Second()),
 		}).ProtoReflect()), nil
 
+	case intervalFullName:
+		s, ok := val.(string)
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected string for interval, got %T", val)
+		}
+		iv, err := parseInterval(s)
+		if err != nil {
+			return protoreflect.Value{}, err
+		}
+		return protoreflect.ValueOfMessage(iv.ProtoReflect()), nil
+
 	case decimalFullName:
 		s, ok := val.(string)
 		if !ok {
@@ -429,6 +441,39 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 		}
 		return protoreflect.ValueOfMessage(nestedMsg), nil
 	}
+}
+
+// parseInterval parses the flattened '<start>/<end>' form emitted by the interval schema. Either
+// bound may be empty, which leaves that side of the interval unbounded.
+func parseInterval(s string) (*interval.Interval, error) {
+	startString, endString, ok := strings.Cut(s, "/")
+	if !ok {
+		return nil, fmt.Errorf("invalid interval format %q, expected '<start>/<end>' e.g. '2006-01-02T15:04:05Z/2006-01-03T15:04:05Z'", s)
+	}
+	iv := &interval.Interval{}
+	if startString = strings.TrimSpace(startString); startString != "" {
+		startTime, err := time.Parse(time.RFC3339, startString)
+		if err != nil {
+			return nil, fmt.Errorf("parsing interval start: %w", err)
+		}
+		iv.StartTime = timestamppb.New(startTime)
+	}
+	if endString = strings.TrimSpace(endString); endString != "" {
+		endTime, err := time.Parse(time.RFC3339, endString)
+		if err != nil {
+			return nil, fmt.Errorf("parsing interval end: %w", err)
+		}
+		iv.EndTime = timestamppb.New(endTime)
+	}
+	if iv.StartTime == nil && iv.EndTime == nil {
+		return nil, fmt.Errorf("invalid interval %q: at least one bound is required", s)
+	}
+	// A half-open range with start >= end can never match, so reject it rather than silently
+	// returning nothing at query time.
+	if iv.StartTime != nil && iv.EndTime != nil && !iv.StartTime.AsTime().Before(iv.EndTime.AsTime()) {
+		return nil, fmt.Errorf("invalid interval %q: start must be before end", s)
+	}
+	return iv, nil
 }
 
 func splitPaths(s string) []string {

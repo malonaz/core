@@ -22,6 +22,7 @@ go_library(
         "//third_party/proto:google__rpc__status",
         "//third_party/proto:google__type__date",
         "//third_party/proto:google__type__decimal",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:google__type__money",
         "//third_party/proto:google__type__postaladdress",
         "//third_party/proto:google__type__timeofday",
@@ -46,6 +47,7 @@ go_test(
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/proto:google__rpc__status",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:google__type__postaladdress",
     ],
 )

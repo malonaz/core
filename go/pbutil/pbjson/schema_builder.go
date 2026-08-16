@@ -8,6 +8,7 @@ import (
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/decimal"
+	"google.golang.org/genproto/googleapis/type/interval"
 	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/genproto/googleapis/type/postaladdress"
 	"google.golang.org/genproto/googleapis/type/timeofday"
@@ -36,6 +37,7 @@ var (
 	fieldMaskFullName     = (&fieldmaskpb.FieldMask{}).ProtoReflect().Descriptor().FullName()
 	dateFullName          = (&date.Date{}).ProtoReflect().Descriptor().FullName()
 	timeOfDayFullName     = (&timeofday.TimeOfDay{}).ProtoReflect().Descriptor().FullName()
+	intervalFullName      = (&interval.Interval{}).ProtoReflect().Descriptor().FullName()
 	moneyFullName         = (&money.Money{}).ProtoReflect().Descriptor().FullName()
 	postalAddressFullName = (&postaladdress.PostalAddress{}).ProtoReflect().Descriptor().FullName()
 	anyFullName           = (&anypb.Any{}).ProtoReflect().Descriptor().FullName()
@@ -318,6 +320,10 @@ func (b *SchemaBuilder) buildMessageSchema(
 		return &jsonpb.Schema{Type: "string", Description: "YYYY-MM-DD, e.g. 2006-01-02"}, nil
 	case timeOfDayFullName:
 		return &jsonpb.Schema{Type: "string", Description: "HH:MM:SS, e.g. 15:04:05"}, nil
+	case intervalFullName:
+		// Interval is a half-open [start_time, end_time) range; flatten it to one string so the
+		// model cannot set only one nested timestamp by accident.
+		return &jsonpb.Schema{Type: "string", Description: "Half-open time interval as '<start>/<end>' with RFC3339 bounds, start inclusive and end exclusive, e.g. '2006-01-02T15:04:05Z/2006-01-03T15:04:05Z'. Omit a bound to leave it unbounded, e.g. '2006-01-02T15:04:05Z/' or '/2006-01-03T15:04:05Z'"}, nil
 	case moneyFullName:
 		return &jsonpb.Schema{Type: "string", Description: "ISO 4217 currency code followed by amount, e.g. 'USD 25.50', 'EUR -1.75', 'JPY 1000'"}, nil
 	case postalAddressFullName:

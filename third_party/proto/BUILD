@@ -104,6 +104,15 @@ github_proto_library(
 )
 
 github_proto_library(
+    name = "google__type__interval",
+    additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/type/interval"},
+    dir = "google/type",
+    files = ["interval.proto"],
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
+)
+
+github_proto_library(
     name = "google__type__timeofday",
     additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/type/timeofday"},
     dir = "google/type",

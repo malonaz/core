@@ -8260,9 +8260,46 @@ go_module(
 )
 
 go_module(
+    name = "google.golang.org__genproto__googleapis__type__decimal",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/decimal"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__interval",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/interval"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_module(
     name = "google.golang.org__genproto__googleapis__type__money",
     download = ":_google.golang.org__genproto#download",
     install = ["googleapis/type/money"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__type__postaladdress",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/type/postaladdress"],
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [

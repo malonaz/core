@@ -54,6 +54,7 @@ require (
 	github.com/sashabaranov/go-openai v1.41.2
 	github.com/scylladb/go-set v1.0.2
 	github.com/sercand/kuberesolver/v5 v5.1.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
 	github.com/spiffe/go-spiffe/v2 v2.6.0
@@ -164,7 +165,6 @@ require (
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sigurn/crc16 v0.0.0-20240131213347-83fcde1e29d1 // indirect
 	github.com/sigurn/crc8 v0.0.0-20220107193325-2243fe600f9f // indirect
 	github.com/spf13/cast v1.7.0 // indirect

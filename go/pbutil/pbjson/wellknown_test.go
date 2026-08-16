@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/genproto/googleapis/type/interval"
 	"google.golang.org/genproto/googleapis/type/postaladdress"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -83,5 +84,43 @@ func TestPostalAddressSchema(t *testing.T) {
 		require.Equal(t, 2, addressLines.Len())
 		require.Equal(t, "1 Market St", addressLines.Get(0).String())
 		var _ protoreflect.Message = message
+	})
+}
+
+func TestIntervalSchema(t *testing.T) {
+	descriptor := (&interval.Interval{}).ProtoReflect().Descriptor()
+
+	t.Run("both bounds", func(t *testing.T) {
+		value, err := convertMessageValue(descriptor, "2025-06-15T10:00:00Z/2025-06-16T10:00:00Z")
+		require.NoError(t, err)
+		message := value.Message()
+		fields := message.Descriptor().Fields()
+		startTime := message.Get(fields.ByName("start_time")).Message()
+		endTime := message.Get(fields.ByName("end_time")).Message()
+		require.Equal(t, int64(1749981600), startTime.Get(startTime.Descriptor().Fields().ByName("seconds")).Int())
+		require.Equal(t, int64(1750068000), endTime.Get(endTime.Descriptor().Fields().ByName("seconds")).Int())
+	})
+
+	t.Run("unbounded end", func(t *testing.T) {
+		value, err := convertMessageValue(descriptor, "2025-06-15T10:00:00Z/")
+		require.NoError(t, err)
+		message := value.Message()
+		require.True(t, message.Has(message.Descriptor().Fields().ByName("start_time")))
+		require.False(t, message.Has(message.Descriptor().Fields().ByName("end_time")))
+	})
+
+	t.Run("unbounded start", func(t *testing.T) {
+		value, err := convertMessageValue(descriptor, "/2025-06-15T10:00:00Z")
+		require.NoError(t, err)
+		message := value.Message()
+		require.False(t, message.Has(message.Descriptor().Fields().ByName("start_time")))
+		require.True(t, message.Has(message.Descriptor().Fields().ByName("end_time")))
+	})
+
+	t.Run("rejects bad input", func(t *testing.T) {
+		for _, value := range []string{"2025-06-15T10:00:00Z", "/", "not-a-time/2025-06-15T10:00:00Z", "2025-06-16T10:00:00Z/2025-06-15T10:00:00Z"} {
+			_, err := convertMessageValue(descriptor, value)
+			require.Error(t, err, "value %q", value)
+		}
 	})
 }
