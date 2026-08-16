@@ -17,7 +17,7 @@ codebase lives in message fields stored as JSONB via
 Allow a search field `path` to reach into those, e.g.
 `path: "metadata.postal_address"`.
 
-Read `lores/search` first — it describes the existing framework end to end.
+Read `lores/aip/search` first — it describes the existing framework end to end.
 
 # Design
 
@@ -59,5 +59,5 @@ Read `lores/search` first — it describes the existing framework end to end.
 3. SAT tests in `go/test/library/library_service/sat/search_test.go`:
    metadata match, metadata no-match, casing assertion, validation error cases
    exercised at codegen level where practical.
-4. Update `lores/search` (JSON paths paragraph).
+4. Update `lores/aip/search` (JSON paths paragraph).
 5. `plz run //tools/tidy:lint` clean; `plz test //go/aip:test //go/test/library/... //tools/...` green.
