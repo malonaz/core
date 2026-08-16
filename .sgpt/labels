@@ -1,5 +1,5 @@
-lang: go, protobuf
+lang: go, go, protobuf, protobuf
 repo: core
 status: in-progress
 tags: idea,ai
-topic: agent, aip, codegen, genui, search, style-guide
+topic: agent, aip, aip, codegen, search, genui, style-guide

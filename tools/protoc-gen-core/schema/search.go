@@ -55,6 +55,12 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
 			return nil, fmt.Errorf("getting field opts for %s: %w", searchField.GetPath(), err)
 		}
+		if fieldOpts.GetJoin() != nil {
+			// The search document is a stored generated column: it can only
+			// reference columns of its own row, never data projected from a
+			// joined table.
+			return nil, fmt.Errorf("search field %q on %s is a joined field: joined fields cannot be indexed into the search document (denormalize the value onto this resource, or search the parent resource instead)", searchField.GetPath(), message.GoIdent.GoName)
+		}
 
 		column := xstrings.ToSnakeCase(searchField.GetPath())
 		expression, err := searchFieldExpression(column, field.Desc.IsList(), fieldOpts.GetNullable(), searchField.GetSplit())
