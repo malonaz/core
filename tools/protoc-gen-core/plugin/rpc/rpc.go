@@ -31,6 +31,7 @@ var (
 	protovalidate   = protogen.GoImportPath("buf.build/go/protovalidate")
 	resourcenamePkg = protogen.GoImportPath("go.einride.tech/aip/resourcename")
 	aipPkg          = protogen.GoImportPath("github.com/malonaz/core/go/aip")
+	aipGenPkg       = protogen.GoImportPath("github.com/malonaz/core/genproto/aip/v1")
 	uuidPkg         = protogen.GoImportPath("github.com/malonaz/core/go/uuid")
 	pbutilPkg       = protogen.GoImportPath("github.com/malonaz/core/go/pbutil")
 	natsPkg         = protogen.GoImportPath("github.com/malonaz/core/go/nats")
@@ -356,6 +357,38 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	listSig += fmt.Sprintf("whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*%s, error)", goTypeQgi)
 	g.P(listSig)
 
+	// Search (only when the service declares a Search RPC for this resource).
+	hasSearch := false
+	for _, method := range si.service.Methods {
+		rpc, err := resource.ParseRPC(method)
+		if err != nil {
+			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
+		}
+		if rpc != nil && rpc.Search && rpc.ParsedResource.Desc.Singular == pr.Desc.Singular {
+			hasSearch = true
+			break
+		}
+	}
+	if hasSearch {
+		searchDoc, err := schema.SearchDocument(mi.rpc.Message)
+		if err != nil {
+			return err
+		}
+		searchReturns := fmt.Sprintf("([]*%s, error)", goTypeQgi)
+		if searchDoc != nil && len(searchDoc.SnippetFields) > 0 {
+			searchReturns = fmt.Sprintf("([]*%s, []map[string]string, error)", goTypeQgi)
+		}
+		searchSig := fmt.Sprintf("  Search%s(ctx %s, ", pr.PluralGoName(), gen.ident(contextPkg, "Context"))
+		if parentIDNames := mc.parentIDNames(); len(parentIDNames) > 0 {
+			searchSig += strings.Join(parentIDNames, ", ") + " string, "
+		}
+		if mc.softDeletable {
+			searchSig += "showDeleted bool, "
+		}
+		searchSig += fmt.Sprintf("tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) %s", searchReturns)
+		g.P(searchSig)
+	}
+
 	g.P("}")
 	g.P()
 
@@ -406,6 +439,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		return mc.generateBatchGet()
 	case mi.rpc.List:
 		mc.generateList()
+	case mi.rpc.Search:
+		return mc.generateSearch()
 	}
 	return nil
 }

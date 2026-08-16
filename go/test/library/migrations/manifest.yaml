@@ -3,3 +3,7 @@
 migrations:
   - path: library/001_init.sql
     hash: 48d11e5f33f14e2b41c13024ee8f061f
+  - path: library/002_author_search.sql
+    hash: c167b5ee5fa8e57c93b3af22ff2859ac
+  - path: library/003_author_search_metadata.sql
+    hash: b127d05000d3178c15d75964d3d1f236

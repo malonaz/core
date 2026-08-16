@@ -36,6 +36,7 @@ grpc_library(
     test_only = True,
     visibility = ["PUBLIC"],
     deps = [
+        "//malonaz/aip/v1",
         "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/nats/v1",

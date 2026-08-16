@@ -50,10 +50,28 @@ func NewSearchRequestParser[T searchRequest[R], R proto.Message]() (*SearchReque
 type ParsedSearchRequest struct {
 	*FilteringRequest
 	*PaginatedRequest
+	query string
+}
+
+// GetQuery returns the raw search query.
+func (p *ParsedSearchRequest) GetQuery() string {
+	return p.query
+}
+
+// GetTSQuery returns the postgres tsquery expression derived from the raw
+// query, with prefix matching on every token. Returns "" when the query
+// holds no indexable token.
+func (p *ParsedSearchRequest) GetTSQuery() string {
+	return BuildPrefixTSQuery(p.query)
 }
 
 // Parse parses the given request. Any error should be returned as an InvalidArgument error.
 func (p *SearchRequestParser[T, R]) Parse(request T) (*ParsedSearchRequest, error) {
+	// A query must hold at least one indexable token.
+	if BuildPrefixTSQuery(request.GetQuery()) == "" {
+		return nil, fmt.Errorf("query must contain at least one searchable term")
+	}
+
 	// Parse filtering
 	filteringRequest, err := p.filteringParser.Parse(request)
 	if err != nil {
@@ -69,5 +87,6 @@ func (p *SearchRequestParser[T, R]) Parse(request T) (*ParsedSearchRequest, erro
 	return &ParsedSearchRequest{
 		FilteringRequest: filteringRequest,
 		PaginatedRequest: paginatedRequest,
+		query:            request.GetQuery(),
 	}, nil
 }

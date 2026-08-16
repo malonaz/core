@@ -2,8 +2,8 @@
 // @generated from file malonaz/codegen/aip/v1/aip.proto (package malonaz.codegen.aip.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenExtension, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { extDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenExtension, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, extDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import type { MessageOptions, MethodOptions } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_descriptor } from "@bufbuild/protobuf/wkt";
@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/aip/v1/aip.proto.
  */
 export const file_malonaz_codegen_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIjcKEVBhZ2luYXRpb25PcHRpb25zEiIKEWRlZmF1bHRfcGFnZV9zaXplGAEgASgFQge6SAQaAiAAIkEKD09yZGVyaW5nT3B0aW9ucxIVCgVwYXRocxgBIAMoCUIGukgDyAEBEhcKB2RlZmF1bHQYAiABKAlCBrpIA8gBASIeCg1VcGRhdGVPcHRpb25zEg0KBXBhdGhzGAEgAygJImwKDlN0YW5kYXJkTWV0aG9kEkYKCHJlc291cmNlGAEgASgJQjS6SDFyLDIqXlthLXpdK1wuW2Etel0rXC5bYS16MC05XSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOkgKDnV1aWRfbmFtZXNwYWNlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGODOBSABKAlSDXV1aWROYW1lc3BhY2U6YAoGdXBkYXRlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGM2TOCABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlVwZGF0ZU9wdGlvbnNSBnVwZGF0ZTpsCgpwYWdpbmF0aW9uEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLDeBSABKAsyKS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlBhZ2luYXRpb25PcHRpb25zUgpwYWdpbmF0aW9uOmYKCG9yZGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLHeBSABKAsyJy5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLk9yZGVyaW5nT3B0aW9uc1IIb3JkZXJpbmc6aQoJZmlsdGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLLeBSABKAsyKC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLkZpbHRlcmluZ09wdGlvbnNSCWZpbHRlcmluZ0IxWi9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor]);
+  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIsADCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEavAEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAESDwoHc25pcHBldBgEIAEoCCJYCgZXZWlnaHQSFgoSV0VJR0hUX1VOU1BFQ0lGSUVEEAASDAoIV0VJR0hUX0EQARIMCghXRUlHSFRfQhACEgwKCFdFSUdIVF9DEAMSDAoIV0VJR0hUX0QQBCJPCgVTcGxpdBIVChFTUExJVF9VTlNQRUNJRklFRBAAEhcKE1NQTElUX0VNQUlMX0FERFJFU1MQARIWChJTUExJVF9QSE9ORV9OVU1CRVIQAiI3ChFQYWdpbmF0aW9uT3B0aW9ucxIiChFkZWZhdWx0X3BhZ2Vfc2l6ZRgBIAEoBUIHukgEGgIgACJBCg9PcmRlcmluZ09wdGlvbnMSFQoFcGF0aHMYASADKAlCBrpIA8gBARIXCgdkZWZhdWx0GAIgASgJQga6SAPIAQEiHgoNVXBkYXRlT3B0aW9ucxINCgVwYXRocxgBIAMoCSJsCg5TdGFuZGFyZE1ldGhvZBJGCghyZXNvdXJjZRgBIAEoCUI0ukgxciwyKl5bYS16XStcLlthLXpdK1wuW2EtejAtOV0rL1tBLVpdW2EtekEtWl0qJMgBARISCgplbWl0X2V2ZW50GAIgASgIOnEKD3N0YW5kYXJkX21ldGhvZBIeLmdvb2dsZS5wcm90b2J1Zi5NZXRob2RPcHRpb25zGMjWBSABKAsyJi5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlN0YW5kYXJkTWV0aG9kUg5zdGFuZGFyZE1ldGhvZDpICg51dWlkX25hbWVzcGFjZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjgzgUgASgJUg11dWlkTmFtZXNwYWNlOmAKBnVwZGF0ZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjNkzggASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5VcGRhdGVPcHRpb25zUgZ1cGRhdGU6bAoKcGFnaW5hdGlvbhIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiw3gUgASgLMikubWFsb25hei5jb2RlZ2VuLmFpcC52MS5QYWdpbmF0aW9uT3B0aW9uc1IKcGFnaW5hdGlvbjpmCghvcmRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxix3gUgASgLMicubWFsb25hei5jb2RlZ2VuLmFpcC52MS5PcmRlcmluZ09wdGlvbnNSCG9yZGVyaW5nOmkKCWZpbHRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiy3gUgASgLMigubWFsb25hei5jb2RlZ2VuLmFpcC52MS5GaWx0ZXJpbmdPcHRpb25zUglmaWx0ZXJpbmc6YAoGc2VhcmNoEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLPeBSABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnNSBnNlYXJjaEIxWi9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor]);
 
 /**
  * Options for filtering.
@@ -40,6 +40,225 @@ export const FilteringOptionsSchema: GenMessage<FilteringOptions, {validType: Fi
   messageDesc(file_malonaz_codegen_aip_v1_aip, 0);
 
 /**
+ * Options for search. Declares the fields composing a resource's search
+ * document, along with their relevance weight and tokenization behavior.
+ * The postgres codegen derives the search document SQL expression from these
+ * fields, and the rpc codegen wires Search{Plural} methods against it.
+ *
+ * @generated from message malonaz.codegen.aip.v1.SearchOptions
+ */
+export type SearchOptions = Message<"malonaz.codegen.aip.v1.SearchOptions"> & {
+  /**
+   * The fields composing the search document.
+   *
+   * @generated from field: repeated malonaz.codegen.aip.v1.SearchOptions.Field fields = 1;
+   */
+  fields: SearchOptions_Field[];
+};
+
+/**
+ * Options for search. Declares the fields composing a resource's search
+ * document, along with their relevance weight and tokenization behavior.
+ * The postgres codegen derives the search document SQL expression from these
+ * fields, and the rpc codegen wires Search{Plural} methods against it.
+ *
+ * @generated from message malonaz.codegen.aip.v1.SearchOptions
+ */
+export type SearchOptionsValid = Message<"malonaz.codegen.aip.v1.SearchOptions"> & {
+  /**
+   * The fields composing the search document.
+   *
+   * @generated from field: repeated malonaz.codegen.aip.v1.SearchOptions.Field fields = 1;
+   */
+  fields: SearchOptions_FieldValid[];
+};
+
+/**
+ * Describes the message malonaz.codegen.aip.v1.SearchOptions.
+ * Use `create(SearchOptionsSchema)` to create a new message.
+ */
+export const SearchOptionsSchema: GenMessage<SearchOptions, {validType: SearchOptionsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 1);
+
+/**
+ * A field contributing to the search document.
+ *
+ * @generated from message malonaz.codegen.aip.v1.SearchOptions.Field
+ */
+export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
+  /**
+   * The field of the resource to index. Either a top-level string or
+   * repeated string field, or a dotted path into a message field stored as
+   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+   * "metadata.postal_address". JSON keys are proto field names. The terminal
+   * segment may be a string, repeated string, or a message (whose whole JSON
+   * subtree is indexed).
+   *
+   * @generated from field: string path = 1;
+   */
+  path: string;
+
+  /**
+   * The relevance weight of this field. Defaults to WEIGHT_D.
+   *
+   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Weight weight = 2;
+   */
+  weight: SearchOptions_Weight;
+
+  /**
+   * Extra tokenization applied to this field.
+   *
+   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Split split = 3;
+   */
+  split: SearchOptions_Split;
+
+  /**
+   * If true, matches in this field produce a highlighted snippet in Search
+   * responses (via ts_headline). The Search response message must declare a
+   * `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
+   * the resource list.
+   *
+   * @generated from field: bool snippet = 4;
+   */
+  snippet: boolean;
+};
+
+/**
+ * A field contributing to the search document.
+ *
+ * @generated from message malonaz.codegen.aip.v1.SearchOptions.Field
+ */
+export type SearchOptions_FieldValid = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
+  /**
+   * The field of the resource to index. Either a top-level string or
+   * repeated string field, or a dotted path into a message field stored as
+   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+   * "metadata.postal_address". JSON keys are proto field names. The terminal
+   * segment may be a string, repeated string, or a message (whose whole JSON
+   * subtree is indexed).
+   *
+   * @generated from field: string path = 1;
+   */
+  path: string;
+
+  /**
+   * The relevance weight of this field. Defaults to WEIGHT_D.
+   *
+   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Weight weight = 2;
+   */
+  weight: SearchOptions_Weight;
+
+  /**
+   * Extra tokenization applied to this field.
+   *
+   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Split split = 3;
+   */
+  split: SearchOptions_Split;
+
+  /**
+   * If true, matches in this field produce a highlighted snippet in Search
+   * responses (via ts_headline). The Search response message must declare a
+   * `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
+   * the resource list.
+   *
+   * @generated from field: bool snippet = 4;
+   */
+  snippet: boolean;
+};
+
+/**
+ * Describes the message malonaz.codegen.aip.v1.SearchOptions.Field.
+ * Use `create(SearchOptions_FieldSchema)` to create a new message.
+ */
+export const SearchOptions_FieldSchema: GenMessage<SearchOptions_Field, {validType: SearchOptions_FieldValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 1, 0);
+
+/**
+ * Relevance weight of a field, mapping to postgres tsvector weights.
+ * A is the highest relevance, D the lowest.
+ *
+ * @generated from enum malonaz.codegen.aip.v1.SearchOptions.Weight
+ */
+export enum SearchOptions_Weight {
+  /**
+   * Used to detect an unset field. Defaults to WEIGHT_D.
+   *
+   * @generated from enum value: WEIGHT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Highest relevance.
+   *
+   * @generated from enum value: WEIGHT_A = 1;
+   */
+  A = 1,
+
+  /**
+   * High relevance.
+   *
+   * @generated from enum value: WEIGHT_B = 2;
+   */
+  B = 2,
+
+  /**
+   * Medium relevance.
+   *
+   * @generated from enum value: WEIGHT_C = 3;
+   */
+  C = 3,
+
+  /**
+   * Lowest relevance.
+   *
+   * @generated from enum value: WEIGHT_D = 4;
+   */
+  D = 4,
+}
+
+/**
+ * Describes the enum malonaz.codegen.aip.v1.SearchOptions.Weight.
+ */
+export const SearchOptions_WeightSchema: GenEnum<SearchOptions_Weight> = /*@__PURE__*/
+  enumDesc(file_malonaz_codegen_aip_v1_aip, 1, 0);
+
+/**
+ * Tokenization behavior applied to a field on top of standard word splitting.
+ *
+ * @generated from enum malonaz.codegen.aip.v1.SearchOptions.Split
+ */
+export enum SearchOptions_Split {
+  /**
+   * Used to detect an unset field. No extra tokenization.
+   *
+   * @generated from enum value: SPLIT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Splits email addresses into their components, e.g.
+   * "john@gmail.com" also indexes "john", "gmail" and "com".
+   *
+   * @generated from enum value: SPLIT_EMAIL_ADDRESS = 1;
+   */
+  EMAIL_ADDRESS = 1,
+
+  /**
+   * Strips all non-digit characters, e.g. "+1 (415) 555-1234"
+   * also indexes "14155551234".
+   *
+   * @generated from enum value: SPLIT_PHONE_NUMBER = 2;
+   */
+  PHONE_NUMBER = 2,
+}
+
+/**
+ * Describes the enum malonaz.codegen.aip.v1.SearchOptions.Split.
+ */
+export const SearchOptions_SplitSchema: GenEnum<SearchOptions_Split> = /*@__PURE__*/
+  enumDesc(file_malonaz_codegen_aip_v1_aip, 1, 1);
+
+/**
  * Options for pagination.
  *
  * @generated from message malonaz.codegen.aip.v1.PaginationOptions
@@ -60,7 +279,7 @@ export type PaginationOptionsValid = PaginationOptions;
  * Use `create(PaginationOptionsSchema)` to create a new message.
  */
 export const PaginationOptionsSchema: GenMessage<PaginationOptions, {validType: PaginationOptionsValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_codegen_aip_v1_aip, 1);
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 2);
 
 /**
  * Options for ordering.
@@ -111,7 +330,7 @@ export type OrderingOptionsValid = Message<"malonaz.codegen.aip.v1.OrderingOptio
  * Use `create(OrderingOptionsSchema)` to create a new message.
  */
 export const OrderingOptionsSchema: GenMessage<OrderingOptions, {validType: OrderingOptionsValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_codegen_aip_v1_aip, 2);
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 3);
 
 /**
  * Configuration options for AIP-compliant Update methods.
@@ -137,7 +356,7 @@ export type UpdateOptionsValid = UpdateOptions;
  * Use `create(UpdateOptionsSchema)` to create a new message.
  */
 export const UpdateOptionsSchema: GenMessage<UpdateOptions, {validType: UpdateOptionsValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_codegen_aip_v1_aip, 3);
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 4);
 
 /**
  * Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
@@ -194,7 +413,7 @@ export type StandardMethodValid = Message<"malonaz.codegen.aip.v1.StandardMethod
  * Use `create(StandardMethodSchema)` to create a new message.
  */
 export const StandardMethodSchema: GenMessage<StandardMethod, {validType: StandardMethodValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_codegen_aip_v1_aip, 4);
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 5);
 
 /**
  * Extension for standard method.
@@ -243,4 +462,12 @@ export const ordering: GenExtension<MessageOptions, OrderingOptions> = /*@__PURE
  */
 export const filtering: GenExtension<MessageOptions, FilteringOptions> = /*@__PURE__*/
   extDesc(file_malonaz_codegen_aip_v1_aip, 5);
+
+/**
+ * Option for search. Set on a resource message to make it searchable.
+ *
+ * @generated from extension: malonaz.codegen.aip.v1.SearchOptions search = 94003;
+ */
+export const search: GenExtension<MessageOptions, SearchOptions> = /*@__PURE__*/
+  extDesc(file_malonaz_codegen_aip_v1_aip, 6);
 

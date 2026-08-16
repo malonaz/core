@@ -27,6 +27,8 @@ extend google.protobuf.MessageOptions {
   OrderingOptions ordering = 94001;
   // Option for ordering.
   FilteringOptions filtering = 94002;
+  // Option for search. Set on a resource message to make it searchable.
+  SearchOptions search = 94003;
 }
 
 // Options for filtering.
@@ -34,6 +36,62 @@ message FilteringOptions {
   // List of fields that can be used in the filter expression.
   // Can use * or some.path.* wildcards.
   repeated string paths = 1;
+}
+
+// Options for search. Declares the fields composing a resource's search
+// document, along with their relevance weight and tokenization behavior.
+// The postgres codegen derives the search document SQL expression from these
+// fields, and the rpc codegen wires Search{Plural} methods against it.
+message SearchOptions {
+  // Relevance weight of a field, mapping to postgres tsvector weights.
+  // A is the highest relevance, D the lowest.
+  enum Weight {
+    // Used to detect an unset field. Defaults to WEIGHT_D.
+    WEIGHT_UNSPECIFIED = 0;
+    // Highest relevance.
+    WEIGHT_A = 1;
+    // High relevance.
+    WEIGHT_B = 2;
+    // Medium relevance.
+    WEIGHT_C = 3;
+    // Lowest relevance.
+    WEIGHT_D = 4;
+  }
+
+  // Tokenization behavior applied to a field on top of standard word splitting.
+  enum Split {
+    // Used to detect an unset field. No extra tokenization.
+    SPLIT_UNSPECIFIED = 0;
+    // Splits email addresses into their components, e.g.
+    // "john@gmail.com" also indexes "john", "gmail" and "com".
+    SPLIT_EMAIL_ADDRESS = 1;
+    // Strips all non-digit characters, e.g. "+1 (415) 555-1234"
+    // also indexes "14155551234".
+    SPLIT_PHONE_NUMBER = 2;
+  }
+
+  // A field contributing to the search document.
+  message Field {
+    // The field of the resource to index. Either a top-level string or
+    // repeated string field, or a dotted path into a message field stored as
+    // JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+    // "metadata.postal_address". JSON keys are proto field names. The terminal
+    // segment may be a string, repeated string, or a message (whose whole JSON
+    // subtree is indexed).
+    string path = 1 [(buf.validate.field).required = true];
+    // The relevance weight of this field. Defaults to WEIGHT_D.
+    Weight weight = 2 [(buf.validate.field).enum.defined_only = true];
+    // Extra tokenization applied to this field.
+    Split split = 3 [(buf.validate.field).enum.defined_only = true];
+    // If true, matches in this field produce a highlighted snippet in Search
+    // responses (via ts_headline). The Search response message must declare a
+    // `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
+    // the resource list.
+    bool snippet = 4;
+  }
+
+  // The fields composing the search document.
+  repeated Field fields = 1 [(buf.validate.field).repeated.min_items = 1];
 }
 
 // Options for pagination.

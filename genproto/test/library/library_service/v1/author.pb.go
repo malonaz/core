@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v11 "github.com/malonaz/core/genproto/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -780,11 +781,247 @@ func (b0 BatchGetAuthorsResponse_builder) Build() *BatchGetAuthorsResponse {
 	return m0
 }
 
+// Request message for LibraryService.SearchAuthors.
+type SearchAuthorsRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent organization to search authors in.
+	// Format: organizations/{organization}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The free-text search query. Results are ranked by relevance.
+	// Must contain at least one searchable term.
+	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	// An optional filter, ANDed with the query.
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// If set to true, soft deleted resources will be shown.
+	ShowDeleted bool `protobuf:"varint,4,opt,name=show_deleted,json=showDeleted,proto3" json:"show_deleted,omitempty"`
+	// Requested page size.
+	PageSize int32 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A page token, received from a previous `SearchAuthors` call.
+	PageToken     string `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchAuthorsRequest) Reset() {
+	*x = SearchAuthorsRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchAuthorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchAuthorsRequest) ProtoMessage() {}
+
+func (x *SearchAuthorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchAuthorsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *SearchAuthorsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchAuthorsRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *SearchAuthorsRequest) GetShowDeleted() bool {
+	if x != nil {
+		return x.ShowDeleted
+	}
+	return false
+}
+
+func (x *SearchAuthorsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchAuthorsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *SearchAuthorsRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *SearchAuthorsRequest) SetQuery(v string) {
+	x.Query = v
+}
+
+func (x *SearchAuthorsRequest) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *SearchAuthorsRequest) SetShowDeleted(v bool) {
+	x.ShowDeleted = v
+}
+
+func (x *SearchAuthorsRequest) SetPageSize(v int32) {
+	x.PageSize = v
+}
+
+func (x *SearchAuthorsRequest) SetPageToken(v string) {
+	x.PageToken = v
+}
+
+type SearchAuthorsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent organization to search authors in.
+	// Format: organizations/{organization}
+	Parent string
+	// The free-text search query. Results are ranked by relevance.
+	// Must contain at least one searchable term.
+	Query string
+	// An optional filter, ANDed with the query.
+	Filter string
+	// If set to true, soft deleted resources will be shown.
+	ShowDeleted bool
+	// Requested page size.
+	PageSize int32
+	// A page token, received from a previous `SearchAuthors` call.
+	PageToken string
+}
+
+func (b0 SearchAuthorsRequest_builder) Build() *SearchAuthorsRequest {
+	m0 := &SearchAuthorsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Query = b.Query
+	x.Filter = b.Filter
+	x.ShowDeleted = b.ShowDeleted
+	x.PageSize = b.PageSize
+	x.PageToken = b.PageToken
+	return m0
+}
+
+// Response message for LibraryService.SearchAuthors.
+type SearchAuthorsResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The authors matching the query, ranked by relevance.
+	Authors []*v1.Author `protobuf:"bytes,1,rep,name=authors,proto3" json:"authors,omitempty"`
+	// Highlighted snippets, index-aligned with `authors`.
+	Snippets []*v11.SearchSnippet `protobuf:"bytes,2,rep,name=snippets,proto3" json:"snippets,omitempty"`
+	// A token to retrieve the next page.
+	NextPageToken string `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchAuthorsResponse) Reset() {
+	*x = SearchAuthorsResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchAuthorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchAuthorsResponse) ProtoMessage() {}
+
+func (x *SearchAuthorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchAuthorsResponse) GetAuthors() []*v1.Author {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *SearchAuthorsResponse) GetSnippets() []*v11.SearchSnippet {
+	if x != nil {
+		return x.Snippets
+	}
+	return nil
+}
+
+func (x *SearchAuthorsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+func (x *SearchAuthorsResponse) SetAuthors(v []*v1.Author) {
+	x.Authors = v
+}
+
+func (x *SearchAuthorsResponse) SetSnippets(v []*v11.SearchSnippet) {
+	x.Snippets = v
+}
+
+func (x *SearchAuthorsResponse) SetNextPageToken(v string) {
+	x.NextPageToken = v
+}
+
+type SearchAuthorsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The authors matching the query, ranked by relevance.
+	Authors []*v1.Author
+	// Highlighted snippets, index-aligned with `authors`.
+	Snippets []*v11.SearchSnippet
+	// A token to retrieve the next page.
+	NextPageToken string
+}
+
+func (b0 SearchAuthorsResponse_builder) Build() *SearchAuthorsResponse {
+	m0 := &SearchAuthorsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Authors = b.Authors
+	x.Snippets = b.Snippets
+	x.NextPageToken = b.NextPageToken
+	return m0
+}
+
 var File_malonaz_test_library_library_service_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/test/library/library_service/v1/author.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/test/library/v1/author.proto\"\xb8\x02\n" +
+	"4malonaz/test/library/library_service/v1/author.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/test/library/v1/author.proto\"\xb8\x02\n" +
 	"\x13CreateAuthorRequest\x12K\n" +
 	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
 	"%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12B\n" +
@@ -835,9 +1072,24 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB7\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"T\n" +
 	"\x17BatchGetAuthorsResponse\x129\n" +
-	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthorsBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
+	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\"\x98\x02\n" +
+	"\x14SearchAuthorsRequest\x12K\n" +
+	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
+	"%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
+	"\x05query\x18\x02 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x02R\x05query\x12\x16\n" +
+	"\x06filter\x18\x03 \x01(\tR\x06filter\x12!\n" +
+	"\fshow_deleted\x18\x04 \x01(\bR\vshowDeleted\x12'\n" +
+	"\tpage_size\x18\x05 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"\x01*\"\xb5\x01\n" +
+	"\x15SearchAuthorsResponse\x129\n" +
+	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\x129\n" +
+	"\bsnippets\x18\x02 \x03(\v2\x1d.malonaz.aip.v1.SearchSnippetR\bsnippets\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageTokenBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_test_library_library_service_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_test_library_library_service_v1_author_proto_goTypes = []any{
 	(*CreateAuthorRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest
 	(*GetAuthorRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetAuthorRequest
@@ -847,20 +1099,25 @@ var file_malonaz_test_library_library_service_v1_author_proto_goTypes = []any{
 	(*ListAuthorsResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListAuthorsResponse
 	(*BatchGetAuthorsRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetAuthorsRequest
 	(*BatchGetAuthorsResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse
-	(*v1.Author)(nil),               // 8: malonaz.test.library.v1.Author
-	(*fieldmaskpb.FieldMask)(nil),   // 9: google.protobuf.FieldMask
+	(*SearchAuthorsRequest)(nil),    // 8: malonaz.test.library.library_service.v1.SearchAuthorsRequest
+	(*SearchAuthorsResponse)(nil),   // 9: malonaz.test.library.library_service.v1.SearchAuthorsResponse
+	(*v1.Author)(nil),               // 10: malonaz.test.library.v1.Author
+	(*fieldmaskpb.FieldMask)(nil),   // 11: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),       // 12: malonaz.aip.v1.SearchSnippet
 }
 var file_malonaz_test_library_library_service_v1_author_proto_depIdxs = []int32{
-	8, // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
-	8, // 1: malonaz.test.library.library_service.v1.UpdateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
-	9, // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.test.library.library_service.v1.ListAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
-	8, // 4: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	10, // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
+	10, // 1: malonaz.test.library.library_service.v1.UpdateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
+	11, // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest.update_mask:type_name -> google.protobuf.FieldMask
+	10, // 3: malonaz.test.library.library_service.v1.ListAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	10, // 4: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	10, // 5: malonaz.test.library.library_service.v1.SearchAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	12, // 6: malonaz.test.library.library_service.v1.SearchAuthorsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_author_proto_init() }
@@ -874,7 +1131,7 @@ func file_malonaz_test_library_library_service_v1_author_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_author_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_author_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

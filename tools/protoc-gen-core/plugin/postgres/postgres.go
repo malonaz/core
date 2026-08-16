@@ -115,6 +115,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateGet()
 		mc.generateBatchGet()
 		mc.generateList()
+		searchDoc, err := schema.SearchDocument(mc.message)
+		if err != nil {
+			return err
+		}
+		if searchDoc != nil {
+			mc.generateSearch(searchDoc)
+		}
 	}
 
 	return nil

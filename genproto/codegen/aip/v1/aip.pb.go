@@ -24,6 +24,113 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Relevance weight of a field, mapping to postgres tsvector weights.
+// A is the highest relevance, D the lowest.
+type SearchOptions_Weight int32
+
+const (
+	// Used to detect an unset field. Defaults to WEIGHT_D.
+	SearchOptions_WEIGHT_UNSPECIFIED SearchOptions_Weight = 0
+	// Highest relevance.
+	SearchOptions_WEIGHT_A SearchOptions_Weight = 1
+	// High relevance.
+	SearchOptions_WEIGHT_B SearchOptions_Weight = 2
+	// Medium relevance.
+	SearchOptions_WEIGHT_C SearchOptions_Weight = 3
+	// Lowest relevance.
+	SearchOptions_WEIGHT_D SearchOptions_Weight = 4
+)
+
+// Enum value maps for SearchOptions_Weight.
+var (
+	SearchOptions_Weight_name = map[int32]string{
+		0: "WEIGHT_UNSPECIFIED",
+		1: "WEIGHT_A",
+		2: "WEIGHT_B",
+		3: "WEIGHT_C",
+		4: "WEIGHT_D",
+	}
+	SearchOptions_Weight_value = map[string]int32{
+		"WEIGHT_UNSPECIFIED": 0,
+		"WEIGHT_A":           1,
+		"WEIGHT_B":           2,
+		"WEIGHT_C":           3,
+		"WEIGHT_D":           4,
+	}
+)
+
+func (x SearchOptions_Weight) Enum() *SearchOptions_Weight {
+	p := new(SearchOptions_Weight)
+	*p = x
+	return p
+}
+
+func (x SearchOptions_Weight) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SearchOptions_Weight) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_codegen_aip_v1_aip_proto_enumTypes[0].Descriptor()
+}
+
+func (SearchOptions_Weight) Type() protoreflect.EnumType {
+	return &file_malonaz_codegen_aip_v1_aip_proto_enumTypes[0]
+}
+
+func (x SearchOptions_Weight) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Tokenization behavior applied to a field on top of standard word splitting.
+type SearchOptions_Split int32
+
+const (
+	// Used to detect an unset field. No extra tokenization.
+	SearchOptions_SPLIT_UNSPECIFIED SearchOptions_Split = 0
+	// Splits email addresses into their components, e.g.
+	// "john@gmail.com" also indexes "john", "gmail" and "com".
+	SearchOptions_SPLIT_EMAIL_ADDRESS SearchOptions_Split = 1
+	// Strips all non-digit characters, e.g. "+1 (415) 555-1234"
+	// also indexes "14155551234".
+	SearchOptions_SPLIT_PHONE_NUMBER SearchOptions_Split = 2
+)
+
+// Enum value maps for SearchOptions_Split.
+var (
+	SearchOptions_Split_name = map[int32]string{
+		0: "SPLIT_UNSPECIFIED",
+		1: "SPLIT_EMAIL_ADDRESS",
+		2: "SPLIT_PHONE_NUMBER",
+	}
+	SearchOptions_Split_value = map[string]int32{
+		"SPLIT_UNSPECIFIED":   0,
+		"SPLIT_EMAIL_ADDRESS": 1,
+		"SPLIT_PHONE_NUMBER":  2,
+	}
+)
+
+func (x SearchOptions_Split) Enum() *SearchOptions_Split {
+	p := new(SearchOptions_Split)
+	*p = x
+	return p
+}
+
+func (x SearchOptions_Split) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SearchOptions_Split) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_codegen_aip_v1_aip_proto_enumTypes[1].Descriptor()
+}
+
+func (SearchOptions_Split) Type() protoreflect.EnumType {
+	return &file_malonaz_codegen_aip_v1_aip_proto_enumTypes[1]
+}
+
+func (x SearchOptions_Split) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // Options for filtering.
 type FilteringOptions struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -86,6 +193,69 @@ func (b0 FilteringOptions_builder) Build() *FilteringOptions {
 	return m0
 }
 
+// Options for search. Declares the fields composing a resource's search
+// document, along with their relevance weight and tokenization behavior.
+// The postgres codegen derives the search document SQL expression from these
+// fields, and the rpc codegen wires Search{Plural} methods against it.
+type SearchOptions struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The fields composing the search document.
+	Fields        []*SearchOptions_Field `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchOptions) Reset() {
+	*x = SearchOptions{}
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchOptions) ProtoMessage() {}
+
+func (x *SearchOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchOptions) GetFields() []*SearchOptions_Field {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+func (x *SearchOptions) SetFields(v []*SearchOptions_Field) {
+	x.Fields = v
+}
+
+type SearchOptions_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The fields composing the search document.
+	Fields []*SearchOptions_Field
+}
+
+func (b0 SearchOptions_builder) Build() *SearchOptions {
+	m0 := &SearchOptions{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Fields = b.Fields
+	return m0
+}
+
 // Options for pagination.
 type PaginationOptions struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -97,7 +267,7 @@ type PaginationOptions struct {
 
 func (x *PaginationOptions) Reset() {
 	*x = PaginationOptions{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[1]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -109,7 +279,7 @@ func (x *PaginationOptions) String() string {
 func (*PaginationOptions) ProtoMessage() {}
 
 func (x *PaginationOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[1]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +330,7 @@ type OrderingOptions struct {
 
 func (x *OrderingOptions) Reset() {
 	*x = OrderingOptions{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[2]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -172,7 +342,7 @@ func (x *OrderingOptions) String() string {
 func (*OrderingOptions) ProtoMessage() {}
 
 func (x *OrderingOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[2]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -238,7 +408,7 @@ type UpdateOptions struct {
 
 func (x *UpdateOptions) Reset() {
 	*x = UpdateOptions{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[3]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -250,7 +420,7 @@ func (x *UpdateOptions) String() string {
 func (*UpdateOptions) ProtoMessage() {}
 
 func (x *UpdateOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[3]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +476,7 @@ type StandardMethod struct {
 
 func (x *StandardMethod) Reset() {
 	*x = StandardMethod{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[4]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -318,7 +488,7 @@ func (x *StandardMethod) String() string {
 func (*StandardMethod) ProtoMessage() {}
 
 func (x *StandardMethod) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[4]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,6 +542,130 @@ func (b0 StandardMethod_builder) Build() *StandardMethod {
 	return m0
 }
 
+// A field contributing to the search document.
+type SearchOptions_Field struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The field of the resource to index. Either a top-level string or
+	// repeated string field, or a dotted path into a message field stored as
+	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+	// "metadata.postal_address". JSON keys are proto field names. The terminal
+	// segment may be a string, repeated string, or a message (whose whole JSON
+	// subtree is indexed).
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	// The relevance weight of this field. Defaults to WEIGHT_D.
+	Weight SearchOptions_Weight `protobuf:"varint,2,opt,name=weight,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Weight" json:"weight,omitempty"`
+	// Extra tokenization applied to this field.
+	Split SearchOptions_Split `protobuf:"varint,3,opt,name=split,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Split" json:"split,omitempty"`
+	// If true, matches in this field produce a highlighted snippet in Search
+	// responses (via ts_headline). The Search response message must declare a
+	// `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
+	// the resource list.
+	Snippet       bool `protobuf:"varint,4,opt,name=snippet,proto3" json:"snippet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchOptions_Field) Reset() {
+	*x = SearchOptions_Field{}
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchOptions_Field) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchOptions_Field) ProtoMessage() {}
+
+func (x *SearchOptions_Field) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchOptions_Field) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *SearchOptions_Field) GetWeight() SearchOptions_Weight {
+	if x != nil {
+		return x.Weight
+	}
+	return SearchOptions_WEIGHT_UNSPECIFIED
+}
+
+func (x *SearchOptions_Field) GetSplit() SearchOptions_Split {
+	if x != nil {
+		return x.Split
+	}
+	return SearchOptions_SPLIT_UNSPECIFIED
+}
+
+func (x *SearchOptions_Field) GetSnippet() bool {
+	if x != nil {
+		return x.Snippet
+	}
+	return false
+}
+
+func (x *SearchOptions_Field) SetPath(v string) {
+	x.Path = v
+}
+
+func (x *SearchOptions_Field) SetWeight(v SearchOptions_Weight) {
+	x.Weight = v
+}
+
+func (x *SearchOptions_Field) SetSplit(v SearchOptions_Split) {
+	x.Split = v
+}
+
+func (x *SearchOptions_Field) SetSnippet(v bool) {
+	x.Snippet = v
+}
+
+type SearchOptions_Field_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The field of the resource to index. Either a top-level string or
+	// repeated string field, or a dotted path into a message field stored as
+	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+	// "metadata.postal_address". JSON keys are proto field names. The terminal
+	// segment may be a string, repeated string, or a message (whose whole JSON
+	// subtree is indexed).
+	Path string
+	// The relevance weight of this field. Defaults to WEIGHT_D.
+	Weight SearchOptions_Weight
+	// Extra tokenization applied to this field.
+	Split SearchOptions_Split
+	// If true, matches in this field produce a highlighted snippet in Search
+	// responses (via ts_headline). The Search response message must declare a
+	// `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
+	// the resource list.
+	Snippet bool
+}
+
+func (b0 SearchOptions_Field_builder) Build() *SearchOptions_Field {
+	m0 := &SearchOptions_Field{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Path = b.Path
+	x.Weight = b.Weight
+	x.Split = b.Split
+	x.Snippet = b.Snippet
+	return m0
+}
+
 var file_malonaz_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
@@ -421,6 +715,14 @@ var file_malonaz_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 		Tag:           "bytes,94002,opt,name=filtering",
 		Filename:      "malonaz/codegen/aip/v1/aip.proto",
 	},
+	{
+		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
+		ExtensionType: (*SearchOptions)(nil),
+		Field:         94003,
+		Name:          "malonaz.codegen.aip.v1.search",
+		Tag:           "bytes,94003,opt,name=search",
+		Filename:      "malonaz/codegen/aip/v1/aip.proto",
+	},
 }
 
 // Extension fields to descriptorpb.MethodOptions.
@@ -453,6 +755,10 @@ var (
 	//
 	// optional malonaz.codegen.aip.v1.FilteringOptions filtering = 94002;
 	E_Filtering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[5]
+	// Option for search. Set on a resource message to make it searchable.
+	//
+	// optional malonaz.codegen.aip.v1.SearchOptions search = 94003;
+	E_Search = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[6]
 )
 
 var File_malonaz_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
@@ -461,7 +767,24 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
 	" malonaz/codegen/aip/v1/aip.proto\x12\x16malonaz.codegen.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\"(\n" +
 	"\x10FilteringOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"H\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"\xe6\x03\n" +
+	"\rSearchOptions\x12M\n" +
+	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xda\x01\n" +
+	"\x05Field\x12\x1a\n" +
+	"\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04path\x12N\n" +
+	"\x06weight\x18\x02 \x01(\x0e2,.malonaz.codegen.aip.v1.SearchOptions.WeightB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06weight\x12K\n" +
+	"\x05split\x18\x03 \x01(\x0e2+.malonaz.codegen.aip.v1.SearchOptions.SplitB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05split\x12\x18\n" +
+	"\asnippet\x18\x04 \x01(\bR\asnippet\"X\n" +
+	"\x06Weight\x12\x16\n" +
+	"\x12WEIGHT_UNSPECIFIED\x10\x00\x12\f\n" +
+	"\bWEIGHT_A\x10\x01\x12\f\n" +
+	"\bWEIGHT_B\x10\x02\x12\f\n" +
+	"\bWEIGHT_C\x10\x03\x12\f\n" +
+	"\bWEIGHT_D\x10\x04\"O\n" +
+	"\x05Split\x12\x15\n" +
+	"\x11SPLIT_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13SPLIT_EMAIL_ADDRESS\x10\x01\x12\x16\n" +
+	"\x12SPLIT_PHONE_NUMBER\x10\x02\"H\n" +
 	"\x11PaginationOptions\x123\n" +
 	"\x11default_page_size\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\x0fdefaultPageSize\"Q\n" +
 	"\x0fOrderingOptions\x12\x1c\n" +
@@ -480,35 +803,46 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"pagination\x12\x1f.google.protobuf.MessageOptions\x18\xb0\xde\x05 \x01(\v2).malonaz.codegen.aip.v1.PaginationOptionsR\n" +
 	"pagination:f\n" +
 	"\bordering\x12\x1f.google.protobuf.MessageOptions\x18\xb1\xde\x05 \x01(\v2'.malonaz.codegen.aip.v1.OrderingOptionsR\bordering:i\n" +
-	"\tfiltering\x12\x1f.google.protobuf.MessageOptions\x18\xb2\xde\x05 \x01(\v2(.malonaz.codegen.aip.v1.FilteringOptionsR\tfilteringB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
+	"\tfiltering\x12\x1f.google.protobuf.MessageOptions\x18\xb2\xde\x05 \x01(\v2(.malonaz.codegen.aip.v1.FilteringOptionsR\tfiltering:`\n" +
+	"\x06search\x12\x1f.google.protobuf.MessageOptions\x18\xb3\xde\x05 \x01(\v2%.malonaz.codegen.aip.v1.SearchOptionsR\x06searchB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
 
-var file_malonaz_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_malonaz_codegen_aip_v1_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_malonaz_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_codegen_aip_v1_aip_proto_goTypes = []any{
-	(*FilteringOptions)(nil),            // 0: malonaz.codegen.aip.v1.FilteringOptions
-	(*PaginationOptions)(nil),           // 1: malonaz.codegen.aip.v1.PaginationOptions
-	(*OrderingOptions)(nil),             // 2: malonaz.codegen.aip.v1.OrderingOptions
-	(*UpdateOptions)(nil),               // 3: malonaz.codegen.aip.v1.UpdateOptions
-	(*StandardMethod)(nil),              // 4: malonaz.codegen.aip.v1.StandardMethod
-	(*descriptorpb.MethodOptions)(nil),  // 5: google.protobuf.MethodOptions
-	(*descriptorpb.MessageOptions)(nil), // 6: google.protobuf.MessageOptions
+	(SearchOptions_Weight)(0),           // 0: malonaz.codegen.aip.v1.SearchOptions.Weight
+	(SearchOptions_Split)(0),            // 1: malonaz.codegen.aip.v1.SearchOptions.Split
+	(*FilteringOptions)(nil),            // 2: malonaz.codegen.aip.v1.FilteringOptions
+	(*SearchOptions)(nil),               // 3: malonaz.codegen.aip.v1.SearchOptions
+	(*PaginationOptions)(nil),           // 4: malonaz.codegen.aip.v1.PaginationOptions
+	(*OrderingOptions)(nil),             // 5: malonaz.codegen.aip.v1.OrderingOptions
+	(*UpdateOptions)(nil),               // 6: malonaz.codegen.aip.v1.UpdateOptions
+	(*StandardMethod)(nil),              // 7: malonaz.codegen.aip.v1.StandardMethod
+	(*SearchOptions_Field)(nil),         // 8: malonaz.codegen.aip.v1.SearchOptions.Field
+	(*descriptorpb.MethodOptions)(nil),  // 9: google.protobuf.MethodOptions
+	(*descriptorpb.MessageOptions)(nil), // 10: google.protobuf.MessageOptions
 }
 var file_malonaz_codegen_aip_v1_aip_proto_depIdxs = []int32{
-	5,  // 0: malonaz.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
-	6,  // 1: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
-	6,  // 2: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	6,  // 3: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
-	6,  // 4: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
-	6,  // 5: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
-	4,  // 6: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
-	3,  // 7: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
-	1,  // 8: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
-	2,  // 9: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
-	0,  // 10: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	6,  // [6:11] is the sub-list for extension type_name
-	0,  // [0:6] is the sub-list for extension extendee
-	0,  // [0:0] is the sub-list for field type_name
+	8,  // 0: malonaz.codegen.aip.v1.SearchOptions.fields:type_name -> malonaz.codegen.aip.v1.SearchOptions.Field
+	0,  // 1: malonaz.codegen.aip.v1.SearchOptions.Field.weight:type_name -> malonaz.codegen.aip.v1.SearchOptions.Weight
+	1,  // 2: malonaz.codegen.aip.v1.SearchOptions.Field.split:type_name -> malonaz.codegen.aip.v1.SearchOptions.Split
+	9,  // 3: malonaz.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
+	10, // 4: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
+	10, // 5: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	10, // 6: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
+	10, // 7: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
+	10, // 8: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
+	10, // 9: malonaz.codegen.aip.v1.search:extendee -> google.protobuf.MessageOptions
+	7,  // 10: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
+	6,  // 11: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
+	4,  // 12: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
+	5,  // 13: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
+	2,  // 14: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
+	3,  // 15: malonaz.codegen.aip.v1.search:type_name -> malonaz.codegen.aip.v1.SearchOptions
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	10, // [10:16] is the sub-list for extension type_name
+	3,  // [3:10] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_aip_v1_aip_proto_init() }
@@ -521,13 +855,14 @@ func file_malonaz_codegen_aip_v1_aip_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_aip_v1_aip_proto_rawDesc), len(file_malonaz_codegen_aip_v1_aip_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   5,
-			NumExtensions: 6,
+			NumEnums:      2,
+			NumMessages:   7,
+			NumExtensions: 7,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_codegen_aip_v1_aip_proto_goTypes,
 		DependencyIndexes: file_malonaz_codegen_aip_v1_aip_proto_depIdxs,
+		EnumInfos:         file_malonaz_codegen_aip_v1_aip_proto_enumTypes,
 		MessageInfos:      file_malonaz_codegen_aip_v1_aip_proto_msgTypes,
 		ExtensionInfos:    file_malonaz_codegen_aip_v1_aip_proto_extTypes,
 	}.Build()

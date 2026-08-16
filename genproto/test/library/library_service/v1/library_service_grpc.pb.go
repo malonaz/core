@@ -27,6 +27,7 @@ const (
 	LibraryService_DeleteAuthor_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/DeleteAuthor"
 	LibraryService_ListAuthors_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListAuthors"
 	LibraryService_BatchGetAuthors_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors"
+	LibraryService_SearchAuthors_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/SearchAuthors"
 	LibraryService_GetAuthorProfile_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile"
 	LibraryService_UpdateAuthorProfile_FullMethodName    = "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile"
 	LibraryService_ListAuthorProfiles_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles"
@@ -75,6 +76,10 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error)
+	// Search authors.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchAuthors(ctx context.Context, in *SearchAuthorsRequest, opts ...grpc.CallOption) (*SearchAuthorsResponse, error)
 	// Gets an author profile.
 	GetAuthorProfile(ctx context.Context, in *GetAuthorProfileRequest, opts ...grpc.CallOption) (*v1.AuthorProfile, error)
 	// Updates an author profile.
@@ -197,6 +202,16 @@ func (c *libraryServiceClient) BatchGetAuthors(ctx context.Context, in *BatchGet
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetAuthorsResponse)
 	err := c.cc.Invoke(ctx, LibraryService_BatchGetAuthors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) SearchAuthors(ctx context.Context, in *SearchAuthorsRequest, opts ...grpc.CallOption) (*SearchAuthorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchAuthorsResponse)
+	err := c.cc.Invoke(ctx, LibraryService_SearchAuthors_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -483,6 +498,10 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error)
+	// Search authors.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchAuthors(context.Context, *SearchAuthorsRequest) (*SearchAuthorsResponse, error)
 	// Gets an author profile.
 	GetAuthorProfile(context.Context, *GetAuthorProfileRequest) (*v1.AuthorProfile, error)
 	// Updates an author profile.
@@ -567,6 +586,9 @@ func (UnimplementedLibraryServiceServer) ListAuthors(context.Context, *ListAutho
 }
 func (UnimplementedLibraryServiceServer) BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetAuthors not implemented")
+}
+func (UnimplementedLibraryServiceServer) SearchAuthors(context.Context, *SearchAuthorsRequest) (*SearchAuthorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchAuthors not implemented")
 }
 func (UnimplementedLibraryServiceServer) GetAuthorProfile(context.Context, *GetAuthorProfileRequest) (*v1.AuthorProfile, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAuthorProfile not implemented")
@@ -770,6 +792,24 @@ func _LibraryService_BatchGetAuthors_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).BatchGetAuthors(ctx, req.(*BatchGetAuthorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_SearchAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAuthorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).SearchAuthors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_SearchAuthors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).SearchAuthors(ctx, req.(*SearchAuthorsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1272,6 +1312,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetAuthors",
 			Handler:    _LibraryService_BatchGetAuthors_Handler,
+		},
+		{
+			MethodName: "SearchAuthors",
+			Handler:    _LibraryService_SearchAuthors_Handler,
 		},
 		{
 			MethodName: "GetAuthorProfile",

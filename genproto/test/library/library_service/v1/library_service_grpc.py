@@ -57,6 +57,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def SearchAuthors(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsRequest, malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def GetAuthorProfile(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_profile_pb2.GetAuthorProfileRequest, malonaz.test.library.v1.author_profile_pb2.AuthorProfile]') -> None:
         pass
 
@@ -197,6 +201,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/SearchAuthors': grpclib.const.Handler(
+                self.SearchAuthors,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsRequest,
+                malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsResponse,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile': grpclib.const.Handler(
                 self.GetAuthorProfile,
@@ -395,6 +405,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors',
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+        )
+        self.SearchAuthors = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/SearchAuthors',
+            malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsRequest,
+            malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsResponse,
         )
         self.GetAuthorProfile = grpclib.client.UnaryUnaryMethod(
             channel,

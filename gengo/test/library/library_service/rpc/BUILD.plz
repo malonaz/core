@@ -12,6 +12,7 @@ go_library(
         "//go/pbutil",
         "//go/test/library/model",
         "//go/uuid",
+        "//malonaz/aip/v1",
         "//malonaz/codegen/nats/v1",
         "//malonaz/nats/v1",
         "//malonaz/test/library/library_service/v1",

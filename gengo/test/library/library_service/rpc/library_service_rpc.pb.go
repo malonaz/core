@@ -9,6 +9,7 @@ import (
 	fmt "fmt"
 	cel "github.com/google/cel-go/cel"
 	ext "github.com/google/cel-go/ext"
+	v14 "github.com/malonaz/core/genproto/aip/v1"
 	v12 "github.com/malonaz/core/genproto/codegen/nats/v1"
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	v11 "github.com/malonaz/core/genproto/test/library/library_service/v1"
@@ -79,6 +80,7 @@ type libraryService_AuthorStore interface {
 	GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error)
 	BatchGetAuthors(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.Author, error)
 	ListAuthors(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, error)
+	SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, []map[string]string, error)
 }
 
 type libraryService_AuthorServer struct {
@@ -454,6 +456,61 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 
 	return &v11.BatchGetAuthorsResponse{
 		Authors: authors,
+	}, nil
+}
+
+var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v11.SearchAuthorsRequest, *v13.Author]()
+
+func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request *v11.SearchAuthorsRequest) (*v11.SearchAuthorsResponse, error) {
+	// Parse parent names
+	var organizationId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchAuthorsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbAuthors, dbSnippets, err := s.store.SearchAuthors(ctx, organizationId, request.ShowDeleted, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching authors").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbAuthors))
+	if nextPageToken != "" {
+		dbAuthors = dbAuthors[:len(dbAuthors)-1]
+		dbSnippets = dbSnippets[:len(dbSnippets)-1]
+	}
+
+	snippets := make([]*v14.SearchSnippet, len(dbAuthors))
+	for i := range snippets {
+		var fields map[string]string
+		if dbSnippets != nil {
+			fields = dbSnippets[i]
+		}
+		snippets[i] = &v14.SearchSnippet{Fields: fields}
+	}
+
+	// Convert back to proto.
+	authors := make([]*v13.Author, 0, len(dbAuthors))
+	for _, dbAuthor := range dbAuthors {
+		author, err := dbAuthor.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Author to Author: %v", err).Err()
+		}
+		authors = append(authors, author)
+	}
+
+	// Create and return response.
+	return &v11.SearchAuthorsResponse{
+		Authors:       authors,
+		Snippets:      snippets,
+		NextPageToken: nextPageToken,
 	}, nil
 }
 
