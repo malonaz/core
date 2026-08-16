@@ -55,3 +55,15 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = ["generate_message_test.go"],
+    deps = [
+        ":ai_service",
+        "//go/ai/tool",
+        "//malonaz/ai/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)

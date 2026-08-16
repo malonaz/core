@@ -253,9 +253,9 @@ type ParseToolCallRequest struct {
 	// Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
 	// in order to ensure the call is valid.
 	// if `DiscoverToolsRequest`:
-	//   - targets a non existent tool => NotFound
-	//   - targets an already discovered tool => AlreadyExists
+	//   - targets a non existent tool set => NotFound
 	//
+	// Already discovered tools are simply omitted from the discovery result.
 	// if `RpcRequest`:
 	//   - targets a non-discovered method => FailedPrecondition.
 	ToolSets      []*v1.ToolSet `protobuf:"bytes,2,rep,name=tool_sets,json=toolSets,proto3" json:"tool_sets,omitempty"`
@@ -329,9 +329,9 @@ type ParseToolCallRequest_builder struct {
 	// Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
 	// in order to ensure the call is valid.
 	// if `DiscoverToolsRequest`:
-	//   - targets a non existent tool => NotFound
-	//   - targets an already discovered tool => AlreadyExists
+	//   - targets a non existent tool set => NotFound
 	//
+	// Already discovered tools are simply omitted from the discovery result.
 	// if `RpcRequest`:
 	//   - targets a non-discovered method => FailedPrecondition.
 	ToolSets []*v1.ToolSet

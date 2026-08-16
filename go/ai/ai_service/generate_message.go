@@ -247,9 +247,9 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 				if !ok {
 					return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool %q in tool set %q", i, j, discoveredTool, toolSetName).Err()
 				}
-				if _, ok := toolNameToTool[tool.GetName()]; ok {
-					return status.Errorf(codes.InvalidArgument, "message %d block %d has already discovered tool %q in tool set %q", i, j, discoveredTool, toolSetName).Err()
-				}
+				// A tool discovered twice (or pre-discovered then discovered) is
+				// benign; failing here would poison the whole chat for the rest
+				// of its life.
 				// Register for Execute routing only; the provider-visible tool
 				// list stays untouched to preserve the prompt cache.
 				toolNameToTool[tool.GetName()] = tool
@@ -472,39 +472,38 @@ func processDiscoveryToolCall(
 		return ai.NewErrorToolResult(toolCall.Name, toolCall.Id, err)
 	}
 
-	var validToolNames []string
-	var discoveredTools []*aipb.Tool
-	var errors []string
+	var (
+		discoveredToolNames []string
+		discoveredTools     []*aipb.Tool
+		unknownToolNames    []string
+	)
 	for _, discoveredToolName := range discoveryResult.GetToolNames() {
-		discoveredTool, exists := toolNameToToolInSet[discoveredToolName]
+		tool, exists := toolNameToToolInSet[discoveredToolName]
 		if !exists {
-			errors = append(errors, fmt.Sprintf("discovery references unknown tool %q in tool set %q", discoveredToolName, toolSetName))
+			unknownToolNames = append(unknownToolNames, discoveredToolName)
 			continue
 		}
-		if _, alreadyDiscovered := toolNameToTool[discoveredTool.GetName()]; alreadyDiscovered {
-			errors = append(errors, fmt.Sprintf("tool %q already discovered", discoveredToolName))
+		// Already discovered (earlier in this call or in a previous turn):
+		// simply omit it from the result.
+		if _, alreadyDiscovered := toolNameToTool[tool.GetName()]; alreadyDiscovered {
 			continue
 		}
-		toolNameToTool[discoveredTool.GetName()] = discoveredTool
-		validToolNames = append(validToolNames, discoveredToolName)
-		discoveredTools = append(discoveredTools, discoveredTool)
+		toolNameToTool[tool.GetName()] = tool
+		discoveredToolNames = append(discoveredToolNames, discoveredToolName)
+		discoveredTools = append(discoveredTools, tool)
+	}
+
+	// Only unknown tools were named: the model must correct itself, so surface an error.
+	if len(discoveredTools) == 0 && len(unknownToolNames) > 0 {
+		return ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf(
+			"discovery references unknown tool(s) %s in tool set %q",
+			strings.Join(unknownToolNames, ", "), toolSetName,
+		))
 	}
 
 	annotations := map[string]string{
-		aitool.AnnotationKeyToolSetName: toolSetName,
-	}
-	if len(validToolNames) > 0 {
-		annotations[aitool.AnnotationKeyDiscoveredTools] = strings.Join(validToolNames, ",")
-	}
-
-	if len(errors) > 0 {
-		errMsg := strings.Join(errors, "; ")
-		if len(validToolNames) > 0 {
-			errMsg = fmt.Sprintf("%s (successfully discovered: %s)", errMsg, strings.Join(validToolNames, ", "))
-		}
-		toolResult := ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("%s", errMsg))
-		toolResult.Annotations = annotations
-		return toolResult
+		aitool.AnnotationKeyToolSetName:     toolSetName,
+		aitool.AnnotationKeyDiscoveredTools: strings.Join(discoveredToolNames, ","),
 	}
 
 	// Return the discovered tools' schemas as the tool result so the model can
@@ -521,9 +520,10 @@ func processDiscoveryToolCall(
 		})
 	}
 	discovery := &aipb.ToolCallDiscovery{
-		ToolSetName: toolSetName,
-		ToolNames:   validToolNames,
-		Tools:       modelVisibleTools,
+		ToolSetName:      toolSetName,
+		ToolNames:        discoveredToolNames,
+		Tools:            modelVisibleTools,
+		UnknownToolNames: unknownToolNames,
 	}
 	discoveryStruct, err := pbutil.MarshalToStruct(discovery)
 	if err != nil {

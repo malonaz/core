@@ -5,10 +5,10 @@ codegens:
   - type: rpc
     name: user-service
     store: user
-    implementation: //go/test/user/user_service/rpc
+    implementation: //gengo/test/user/user_service/rpc
     nats: true
 dependencies:
   - type: nats
   - type: postgres_db_client
     name: user
-    implementation: //go/test/user/store
+    implementation: //gengo/test/user/store

@@ -971,9 +971,13 @@ type ToolCallDiscovery struct {
 	// The discovered tools, including their full schemas. Populated server-side
 	// so the schemas can be returned to the model as a tool result without
 	// mutating the provider-visible tool list (which would break prompt caching).
-	Tools         []*Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Tools []*Tool `protobuf:"bytes,3,rep,name=tools,proto3" json:"tools,omitempty"`
+	// Names the model asked for that do not exist in the tool set. Reported
+	// alongside the successfully discovered tools rather than as an error, so a
+	// partially-mistaken discovery call still yields the valid schemas.
+	UnknownToolNames []string `protobuf:"bytes,4,rep,name=unknown_tool_names,json=unknownToolNames,proto3" json:"unknown_tool_names,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ToolCallDiscovery) Reset() {
@@ -1022,6 +1026,13 @@ func (x *ToolCallDiscovery) GetTools() []*Tool {
 	return nil
 }
 
+func (x *ToolCallDiscovery) GetUnknownToolNames() []string {
+	if x != nil {
+		return x.UnknownToolNames
+	}
+	return nil
+}
+
 func (x *ToolCallDiscovery) SetToolSetName(v string) {
 	x.ToolSetName = v
 }
@@ -1032,6 +1043,10 @@ func (x *ToolCallDiscovery) SetToolNames(v []string) {
 
 func (x *ToolCallDiscovery) SetTools(v []*Tool) {
 	x.Tools = v
+}
+
+func (x *ToolCallDiscovery) SetUnknownToolNames(v []string) {
+	x.UnknownToolNames = v
 }
 
 type ToolCallDiscovery_builder struct {
@@ -1045,6 +1060,10 @@ type ToolCallDiscovery_builder struct {
 	// so the schemas can be returned to the model as a tool result without
 	// mutating the provider-visible tool list (which would break prompt caching).
 	Tools []*Tool
+	// Names the model asked for that do not exist in the tool set. Reported
+	// alongside the successfully discovered tools rather than as an error, so a
+	// partially-mistaken discovery call still yields the valid schemas.
+	UnknownToolNames []string
 }
 
 func (b0 ToolCallDiscovery_builder) Build() *ToolCallDiscovery {
@@ -1054,6 +1073,7 @@ func (b0 ToolCallDiscovery_builder) Build() *ToolCallDiscovery {
 	x.ToolSetName = b.ToolSetName
 	x.ToolNames = b.ToolNames
 	x.Tools = b.Tools
+	x.UnknownToolNames = b.UnknownToolNames
 	return m0
 }
 
@@ -1322,12 +1342,13 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\aToolSet\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12B\n" +
 	"\x0ediscovery_tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\rdiscoveryTool\x121\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\x81\x01\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xc8\x01\x01R\x05tools\"\xaf\x01\n" +
 	"\x11ToolCallDiscovery\x12\"\n" +
 	"\rtool_set_name\x18\x01 \x01(\tR\vtoolSetName\x12\x1d\n" +
 	"\n" +
 	"tool_names\x18\x02 \x03(\tR\ttoolNames\x12)\n" +
-	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"m\n" +
+	"\x05tools\x18\x03 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\x12,\n" +
+	"\x12unknown_tool_names\x18\x04 \x03(\tR\x10unknownToolNames\"m\n" +
 	"\x0fToolCallExecute\x12#\n" +
 	"\ttool_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\btoolName\x125\n" +
 	"\targuments\x18\x02 \x01(\v2\x17.google.protobuf.StructR\targuments\"\xcf\x01\n" +

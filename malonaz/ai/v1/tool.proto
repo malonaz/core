@@ -137,6 +137,10 @@ message ToolCallDiscovery {
   // so the schemas can be returned to the model as a tool result without
   // mutating the provider-visible tool list (which would break prompt caching).
   repeated Tool tools = 3;
+  // Names the model asked for that do not exist in the tool set. Reported
+  // alongside the successfully discovered tools rather than as an error, so a
+  // partially-mistaken discovery call still yields the valid schemas.
+  repeated string unknown_tool_names = 4;
 }
 
 // A parsed tool call representing a request to execute a previously

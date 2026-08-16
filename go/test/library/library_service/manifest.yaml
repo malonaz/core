@@ -5,14 +5,14 @@ codegens:
   - type: rpc
     name: library-service
     store: library
-    implementation: //go/test/library/library_service/rpc
+    implementation: //gengo/test/library/library_service/rpc
     nats: true
   - type: rpc
     name: bookmark-service
     store: library
-    implementation: //go/test/library/library_service/rpc
+    implementation: //gengo/test/library/library_service/rpc
 dependencies:
   - type: nats
   - type: postgres_db_client
     name: library
-    implementation: //go/test/library/store
+    implementation: //gengo/test/library/store

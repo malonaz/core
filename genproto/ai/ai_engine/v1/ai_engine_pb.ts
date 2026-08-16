@@ -154,8 +154,8 @@ export type ParseToolCallRequest = Message<"malonaz.ai.ai_engine.v1.ParseToolCal
    * Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
    * in order to ensure the call is valid.
    * if `DiscoverToolsRequest`:
-   *  - targets a non existent tool => NotFound
-   *  - targets an already discovered tool => AlreadyExists
+   *  - targets a non existent tool set => NotFound
+   * Already discovered tools are simply omitted from the discovery result.
    * if `RpcRequest`:
    *  - targets a non-discovered method => FailedPrecondition.
    *
@@ -181,8 +181,8 @@ export type ParseToolCallRequestValid = Message<"malonaz.ai.ai_engine.v1.ParseTo
    * Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
    * in order to ensure the call is valid.
    * if `DiscoverToolsRequest`:
-   *  - targets a non existent tool => NotFound
-   *  - targets an already discovered tool => AlreadyExists
+   *  - targets a non existent tool set => NotFound
+   * Already discovered tools are simply omitted from the discovery result.
    * if `RpcRequest`:
    *  - targets a non-discovered method => FailedPrecondition.
    *
