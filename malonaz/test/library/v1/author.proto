@@ -75,6 +75,15 @@ message Author {
         split: SPLIT_PHONE_NUMBER
       },
       {
+        path: "metadata.country"
+        weight: WEIGHT_B
+      },
+      {
+        path: "metadata.email_addresses"
+        weight: WEIGHT_C
+        split: SPLIT_EMAIL_ADDRESS
+      },
+      {
         path: "biography"
         snippet: true
       }

@@ -612,7 +612,12 @@ func (x *SearchOptions_Field) SetSnippet(v bool) {
 type SearchOptions_Field_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The top-level field of the resource. Must be a string or repeated string field.
+	// The field of the resource to index. Either a top-level string or
+	// repeated string field, or a dotted path into a message field stored as
+	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+	// "metadata.postal_address". JSON keys are proto field names. The terminal
+	// segment may be a string, repeated string, or a message (whose whole JSON
+	// subtree is indexed).
 	Path string
 	// The relevance weight of this field. Defaults to WEIGHT_D.
 	Weight SearchOptions_Weight

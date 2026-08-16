@@ -17,6 +17,13 @@ Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
 1. **Resource proto**: add `(malonaz.codegen.aip.v1.search)` with `fields`
    (`path`, `weight` A–D, optional `split`: `SPLIT_EMAIL_ADDRESS` /
    `SPLIT_PHONE_NUMBER`). See `malonaz/test/library/v1/author.proto`.
+   A `path` may also be dotted to reach into a message field stored as JSONB
+   via `(malonaz.codegen.model.v1.field_opts).as_json_bytes`, e.g.
+   `metadata.country`: the first segment must be an as_json_bytes message
+   field, and the terminal segment a string, repeated string, or message
+   (whole JSON subtree indexed). The expression uses `column #>> '{...}'`
+   (IMMUTABLE, safe in generated columns); JSON keys are proto field names
+   (`pbutil.JSONMarshal` sets `UseProtoNames`).
 2. **Service proto**: add `Search{Plural}` request/response (like List but with
    `query`, no `order_by` — results are relevance-ranked) and the RPC with the
    usual `standard_method` option. See

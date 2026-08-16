@@ -87,7 +87,12 @@ export const SearchOptionsSchema: GenMessage<SearchOptions, {validType: SearchOp
  */
 export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
   /**
-   * The top-level field of the resource. Must be a string or repeated string field.
+   * The field of the resource to index. Either a top-level string or
+   * repeated string field, or a dotted path into a message field stored as
+   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+   * "metadata.postal_address". JSON keys are proto field names. The terminal
+   * segment may be a string, repeated string, or a message (whose whole JSON
+   * subtree is indexed).
    *
    * @generated from field: string path = 1;
    */
@@ -125,7 +130,12 @@ export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.
  */
 export type SearchOptions_FieldValid = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
   /**
-   * The top-level field of the resource. Must be a string or repeated string field.
+   * The field of the resource to index. Either a top-level string or
+   * repeated string field, or a dotted path into a message field stored as
+   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+   * "metadata.postal_address". JSON keys are proto field names. The terminal
+   * segment may be a string, repeated string, or a message (whose whole JSON
+   * subtree is indexed).
    *
    * @generated from field: string path = 1;
    */

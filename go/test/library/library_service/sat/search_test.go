@@ -395,3 +395,56 @@ func TestSearch_Snippets(t *testing.T) {
 		}
 	})
 }
+
+func TestSearch_MetadataJSONPaths(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+	author := createSearchAuthor(t, parent, func(a *librarypb.Author) {
+		a.DisplayName = "Gabriel Garcia Marquez"
+		a.Metadata = &librarypb.AuthorMetadata{
+			Country:        "Colombia",
+			EmailAddresses: []string{"gabo@macondo.co"},
+		}
+	})
+	createSearchAuthor(t, parent, func(a *librarypb.Author) {
+		a.DisplayName = "Someone Else"
+		a.Metadata = &librarypb.AuthorMetadata{Country: "France"}
+	})
+
+	// Matches inside the JSONB metadata column: the scalar string path and the
+	// repeated string path (with email splitting).
+	for _, query := range []string{"colombia", "Colombia", "colom", "gabo@macondo.co", "gabo", "macondo"} {
+		authors := searchAuthors(t, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: query})
+		require.Len(t, authors, 1, "query %q", query)
+		require.Equal(t, author.Name, authors[0].Name, "query %q", query)
+	}
+}
+
+func TestSearch_MetadataNoMatch(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+	createSearchAuthor(t, parent, func(a *librarypb.Author) {
+		a.DisplayName = "Metadata NoMatch"
+		a.Metadata = &librarypb.AuthorMetadata{Country: "Japan"}
+	})
+
+	authors := searchAuthors(t, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "wakanda"})
+	require.Empty(t, authors)
+}
+
+func TestSearch_MetadataJSONKeyCasing(t *testing.T) {
+	t.Parallel()
+	parent := getOrganizationParent()
+	// The search expression extracts metadata #>> '{email_addresses}': a match
+	// on a nested repeated value proves JSONB keys are proto field names
+	// (pbutil.JSONMarshal uses UseProtoNames), not protojson camelCase — a
+	// camelCase document would store "emailAddresses" and never match.
+	author := createSearchAuthor(t, parent, func(a *librarypb.Author) {
+		a.DisplayName = "Casing Probe"
+		a.Metadata = &librarypb.AuthorMetadata{EmailAddresses: []string{"snakecase@proto.names"}}
+	})
+
+	authors := searchAuthors(t, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "snakecase@proto.names"})
+	require.Len(t, authors, 1)
+	require.Equal(t, author.Name, authors[0].Name)
+}
