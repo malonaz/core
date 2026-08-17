@@ -10,7 +10,10 @@ go_protoc_gen_core(
 
 go_library(
     name = "model",
-    srcs = [":codegen"],
+    srcs = [
+        "user_stats.go",
+        ":codegen",
+    ],
     import_path = "github.com/malonaz/core/gengo/ai/model",
     visibility = ["PUBLIC"],
     deps = [

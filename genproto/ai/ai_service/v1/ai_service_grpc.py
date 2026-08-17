@@ -17,10 +17,12 @@ import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
 import malonaz.ai.ai_service.v1.text_to_speech_pb2
 import malonaz.ai.ai_service.v1.text_to_text_pb2
+import malonaz.ai.ai_service.v1.user_stats_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
 import malonaz.ai.v1.message_pb2
 import malonaz.ai.v1.model_pb2
+import malonaz.ai.v1.user_stats_pb2
 import malonaz.ai.v1.voice_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.ai.ai_service.v1.ai_service_pb2
@@ -122,6 +124,10 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def StreamGenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ComputeUserStats(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.user_stats_pb2.ComputeUserStatsRequest, malonaz.ai.v1.user_stats_pb2.UserStats]') -> None:
         pass
 
     @abc.abstractmethod
@@ -277,6 +283,12 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_STREAM,
                 malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
                 malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/ComputeUserStats': grpclib.const.Handler(
+                self.ComputeUserStats,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.user_stats_pb2.ComputeUserStatsRequest,
+                malonaz.ai.v1.user_stats_pb2.UserStats,
             ),
             '/malonaz.ai.ai_service.v1.AiService/TextToText': grpclib.const.Handler(
                 self.TextToText,
@@ -439,6 +451,12 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage',
             malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
             malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+        )
+        self.ComputeUserStats = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/ComputeUserStats',
+            malonaz.ai.ai_service.v1.user_stats_pb2.ComputeUserStatsRequest,
+            malonaz.ai.v1.user_stats_pb2.UserStats,
         )
         self.TextToText = grpclib.client.UnaryUnaryMethod(
             channel,

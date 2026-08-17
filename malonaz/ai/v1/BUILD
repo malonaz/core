@@ -8,6 +8,7 @@ filegroup(
         "metrics.proto",
         "model.proto",
         "tool.proto",
+        "user_stats.proto",
         "voice.proto",
     ],
     visibility = ["PUBLIC"],
@@ -23,6 +24,7 @@ proto_library(
         "metrics.proto",
         "model.proto",
         "tool.proto",
+        "user_stats.proto",
         "voice.proto",
     ],
     additional_context = {
@@ -39,6 +41,7 @@ proto_library(
         "//malonaz/json/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__rpc__status",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

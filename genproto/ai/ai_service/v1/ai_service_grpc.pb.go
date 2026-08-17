@@ -44,6 +44,7 @@ const (
 	AiService_BatchGetMessages_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/BatchGetMessages"
 	AiService_GenerateMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/GenerateMessage"
 	AiService_StreamGenerateMessage_FullMethodName = "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage"
+	AiService_ComputeUserStats_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/ComputeUserStats"
 	AiService_TextToText_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/TextToText"
 	AiService_TextToTextStream_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/TextToTextStream"
 )
@@ -202,6 +203,10 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamGenerateMessageResponse], error)
+	// Compute AI consumption stats for a user.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ComputeUserStats(ctx context.Context, in *ComputeUserStatsRequest, opts ...grpc.CallOption) (*v1.UserStats, error)
 	// Deprecated: Do not use.
 	// Convert text to text using chat completion models.
 	//
@@ -485,6 +490,16 @@ func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *Generat
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageClient = grpc.ServerStreamingClient[StreamGenerateMessageResponse]
 
+func (c *aiServiceClient) ComputeUserStats(ctx context.Context, in *ComputeUserStatsRequest, opts ...grpc.CallOption) (*v1.UserStats, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.UserStats)
+	err := c.cc.Invoke(ctx, AiService_ComputeUserStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Deprecated: Do not use.
 func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest, opts ...grpc.CallOption) (*TextToTextResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -670,6 +685,10 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error
+	// Compute AI consumption stats for a user.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ComputeUserStats(context.Context, *ComputeUserStatsRequest) (*v1.UserStats, error)
 	// Deprecated: Do not use.
 	// Convert text to text using chat completion models.
 	//
@@ -762,6 +781,9 @@ func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMe
 }
 func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamGenerateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) ComputeUserStats(context.Context, *ComputeUserStatsRequest) (*v1.UserStats, error) {
+	return nil, status.Error(codes.Unimplemented, "method ComputeUserStats not implemented")
 }
 func (UnimplementedAiServiceServer) TextToText(context.Context, *TextToTextRequest) (*TextToTextResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TextToText not implemented")
@@ -1196,6 +1218,24 @@ func _AiService_StreamGenerateMessage_Handler(srv interface{}, stream grpc.Serve
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageServer = grpc.ServerStreamingServer[StreamGenerateMessageResponse]
 
+func _AiService_ComputeUserStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ComputeUserStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ComputeUserStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ComputeUserStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ComputeUserStats(ctx, req.(*ComputeUserStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_TextToText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextToTextRequest)
 	if err := dec(in); err != nil {
@@ -1315,6 +1355,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateMessage",
 			Handler:    _AiService_GenerateMessage_Handler,
+		},
+		{
+			MethodName: "ComputeUserStats",
+			Handler:    _AiService_ComputeUserStats_Handler,
 		},
 		{
 			MethodName: "TextToText",

@@ -10,10 +10,12 @@ import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
 import "malonaz/ai/ai_service/v1/text_to_text.proto";
+import "malonaz/ai/ai_service/v1/user_stats.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/model.proto";
+import "malonaz/ai/v1/user_stats.proto";
 import "malonaz/ai/v1/voice.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
@@ -315,6 +317,17 @@ service AiService {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
       body: "*"
     };
+  }
+
+  // ===================== User Stats =====================
+
+  // Compute AI consumption stats for a user.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ComputeUserStats(ComputeUserStatsRequest) returns (ai.v1.UserStats) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/stats:compute"};
+    option (google.api.method_signature) = "parent";
   }
 
   // ===================== Deprecated =====================
