@@ -210,9 +210,20 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 		}
 	} else {
 		rawJSON := entry.args.String()
+		// Providers emit no argument deltas for a tool called with no
+		// arguments (e.g. Anthropic sends zero input_json_delta events for a
+		// `{}` input): an empty buffer means the empty object, not malformed
+		// JSON. Mirrors BuildPartial's healing of an empty buffer.
+		if strings.TrimSpace(rawJSON) == "" {
+			rawJSON = "{}"
+		}
 		if err := tc.Arguments.UnmarshalJSON([]byte(rawJSON)); err != nil {
 			return nil, status.Errorf(codes.Internal, "unmarshaling tool call arguments").
-				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{"rawJson": rawJSON}).Err()
+				WithErrorInfo(ai.ErrorInfoReasonToolCallArgumentUnmarshal, "toolAccumulator", map[string]string{
+					"rawJson":  rawJSON,
+					"toolName": entry.name,
+					"toolId":   tc.Id,
+				}).Err()
 		}
 	}
 

@@ -17,6 +17,7 @@ go_library(
         "generate_message.go",
         "metrics.go",
         "runtime.go",
+        "stats.go",
         "text_to_text.go",
         "utils.go",
         ":service.tmpl.go",
@@ -34,6 +35,7 @@ go_library(
         "//go/ai/ai_service/provider/openai",
         "//go/ai/ai_service/provider/xai",
         "//go/ai/ai_service/rpc",
+        "//go/ai/model",
         "//go/ai/store",
         "//go/ai/tool",
         "//go/aip",
@@ -53,6 +55,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__type__interval",
     ],
 )
 

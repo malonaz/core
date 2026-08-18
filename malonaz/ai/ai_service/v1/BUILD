@@ -6,6 +6,7 @@ filegroup(
         "message.proto",
         "model.proto",
         "speech_to_text.proto",
+        "stats.proto",
         "text_to_speech.proto",
         "text_to_text.proto",
         "voice.proto",
@@ -21,6 +22,7 @@ grpc_library(
         "message.proto",
         "model.proto",
         "speech_to_text.proto",
+        "stats.proto",
         "text_to_speech.proto",
         "text_to_text.proto",
         "voice.proto",
@@ -35,6 +37,7 @@ grpc_library(
         "//malonaz/audio/v1",
         "//malonaz/codegen/aip/v1",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

@@ -65,3 +65,18 @@ func TestStringDeltaAppend(t *testing.T) {
 		t.Fatalf("markdown = %v", got)
 	}
 }
+
+// A tool called with no arguments produces zero argument deltas (e.g.
+// Anthropic sends no input_json_delta for a `{}` input): Build must treat the
+// empty buffer as the empty object rather than failing to unmarshal.
+func TestBuildEmptyArgumentsIsEmptyObject(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "call_1", "Get_Time")
+	toolCall := buildToolCall(t, a, 0)
+	if toolCall.GetName() != "Get_Time" {
+		t.Fatalf("unexpected tool name: %q", toolCall.GetName())
+	}
+	if fields := toolCall.GetArguments().GetFields(); len(fields) != 0 {
+		t.Fatalf("expected empty arguments, got: %v", fields)
+	}
+}

@@ -7,6 +7,7 @@ filegroup(
         "message.proto",
         "metrics.proto",
         "model.proto",
+        "stats.proto",
         "tool.proto",
         "voice.proto",
     ],
@@ -22,6 +23,7 @@ proto_library(
         "message.proto",
         "metrics.proto",
         "model.proto",
+        "stats.proto",
         "tool.proto",
         "voice.proto",
     ],
@@ -39,6 +41,7 @@ proto_library(
         "//malonaz/json/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__rpc__status",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

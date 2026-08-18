@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/interval.proto";
+import "malonaz/ai/v1/stats.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.ComputeStats.
+message ComputeStatsRequest {
+  // The resource to compute stats for: a user or an organization.
+  // Formats:
+  //  - organizations/{organization}
+  //  - organizations/{organization}/users/{user}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Organization"
+  ];
+
+  // The interval to compute stats over. Unset means all time.
+  google.type.Interval interval = 2;
+
+  // The bucket granularity for time-series stats. Unset means totals only.
+  ai.v1.StatsGranularity granularity = 3 [(buf.validate.field).enum.defined_only = true];
+}
+
+// Response message for AiService.ComputeStats.
+message ComputeStatsResponse {
+  // The interval these stats were computed over.
+  google.type.Interval interval = 1;
+
+  // The time at which these stats were computed.
+  google.protobuf.Timestamp compute_time = 2;
+
+  // Aggregate stats over the full interval.
+  ai.v1.StatsSnapshot totals = 3;
+
+  // Time-series stats, one entry per granularity bucket, ordered by interval start.
+  // Only populated when a granularity is requested.
+  repeated ai.v1.StatsBucket buckets = 4;
+}
