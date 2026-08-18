@@ -209,6 +209,24 @@ func TestBuildMessage(t *testing.T) {
 		require.Equal(t, "en", metadata.Get(metadataFields.ByName("language")).String())
 	})
 
+	t.Run("nested message field as JSON-encoded string is coerced", func(t *testing.T) {
+		// Regression: models sometimes emit a nested message as a stringified
+		// JSON object.
+		args := map[string]any{
+			"metadata": `{"summary": "A great book", "language": "en"}`,
+		}
+		message, err := BuildMessage(dummyDescriptor, args)
+		require.NoError(t, err)
+		metadata := message.Get(dummyDescriptor.Fields().ByName("metadata")).Message()
+		require.Equal(t, "A great book", metadata.Get(metadata.Descriptor().Fields().ByName("summary")).String())
+	})
+
+	t.Run("nested message field as non-JSON string fails", func(t *testing.T) {
+		args := map[string]any{"metadata": "not json"}
+		_, err := BuildMessage(dummyDescriptor, args)
+		require.Error(t, err)
+	})
+
 	t.Run("nested message with duration", func(t *testing.T) {
 		args := map[string]any{
 			"metadata": map[string]any{

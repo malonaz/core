@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"encoding/json"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -169,7 +170,7 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", AnnotationKeyProtoMessage).Err()
 	}
 
-	arguments := toolCall.GetArguments().AsMap()
+	arguments := unwrapArgumentsEnvelope(toolCall.GetArguments().AsMap())
 
 	var fieldMask *pbfieldmask.FieldMask
 	if generationFieldMask, ok := annotations[AnnotationKeyGenerationFieldMask]; ok {
@@ -235,7 +236,12 @@ func pruneArguments(arguments map[string]any, prefix string, fieldMask *pbfieldm
 			}
 			prunedArguments[key] = prunedItems
 		default:
-			// A scalar where the mask expects a subtree cannot match the schema; drop it.
+			// A scalar where the mask expects a subtree: models sometimes emit a
+			// nested message as a JSON-encoded string. Coerce it before giving up;
+			// otherwise drop it, since it cannot match the schema.
+			if coerced, ok := decodeJSONObject(value); ok {
+				prunedArguments[key] = pruneArguments(coerced, path, fieldMask)
+			}
 		}
 	}
 	return prunedArguments
@@ -250,4 +256,31 @@ func maskAllowsSubtree(path string, fieldMask *pbfieldmask.FieldMask) bool {
 		}
 	}
 	return false
+}
+
+// unwrapArgumentsEnvelope handles a common model failure mode where the whole
+// request is emitted as a single JSON-encoded string under an "arguments" key
+// (e.g. {"arguments": "{\"parent\": ...}"}) instead of as top-level fields.
+func unwrapArgumentsEnvelope(arguments map[string]any) map[string]any {
+	if len(arguments) != 1 {
+		return arguments
+	}
+	if unwrapped, ok := decodeJSONObject(arguments["arguments"]); ok {
+		return unwrapped
+	}
+	return arguments
+}
+
+// decodeJSONObject reports whether value is a JSON-encoded object string, and
+// if so returns the decoded map.
+func decodeJSONObject(value any) (map[string]any, bool) {
+	s, ok := value.(string)
+	if !ok || len(s) == 0 || s[0] != '{' {
+		return nil, false
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal([]byte(s), &decoded); err != nil {
+		return nil, false
+	}
+	return decoded, true
 }

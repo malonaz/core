@@ -1,6 +1,7 @@
 package pbjson
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -433,7 +434,17 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 	default:
 		nested, ok := val.(map[string]any)
 		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected object for message, got %T", val)
+			// Models sometimes emit a nested message as a JSON-encoded string:
+			// coerce it before failing.
+			s, isString := val.(string)
+			if isString && len(s) > 0 && s[0] == '{' {
+				if err := json.Unmarshal([]byte(s), &nested); err == nil {
+					ok = true
+				}
+			}
+		}
+		if !ok {
+			return protoreflect.Value{}, fmt.Errorf("expected JSON object for message, got %T", val)
 		}
 		nestedMsg := dynamicpb.NewMessage(msgDesc)
 		if err := populateMessage(nestedMsg, nested); err != nil {
