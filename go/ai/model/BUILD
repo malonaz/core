@@ -8,6 +8,15 @@ go_protoc_gen_core(
     deps = ["//malonaz/ai/v1"],
 )
 
+filegroup(
+    name = "handwritten",
+    srcs = ["stats.go"],
+    labels = [
+        "codegen",
+        "copy_generated_code:go:gengo",
+    ],
+)
+
 go_library(
     name = "model",
     srcs = [

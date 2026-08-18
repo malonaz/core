@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "chat_postgres.pb.go",
         "message_postgres.pb.go",
+        "stats.go",
     ],
     visibility = ["//..."],
     deps = [
