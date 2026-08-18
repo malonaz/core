@@ -64,7 +64,9 @@ go_test(
     srcs = ["generate_message_test.go"],
     deps = [
         ":ai_service",
+        "//go/ai",
         "//go/ai/tool",
+        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",

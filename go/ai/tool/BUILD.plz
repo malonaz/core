@@ -31,12 +31,8 @@ go_test(
     ],
     deps = [
         ":tool",
-        "//go/grpc/status",
         "//go/pbutil/pbfieldmask",
-        "//malonaz/ai/v1",
         "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
