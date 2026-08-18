@@ -4,14 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 )
 
 const serviceFullName = "malonaz.ai.ai_engine.v1.AiEngine"
@@ -57,7 +55,7 @@ func TestCreateServiceToolSet(t *testing.T) {
 	require.Equal(t, aip.LabelValueTrue, preDiscoveredTool.GetAnnotations()[aitool.AnnotationKeyPreDiscoveredTool])
 	require.Equal(t, aip.LabelValueFalse, preDiscoveredTool.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
 
-	// Every other method is discoverable, and invoked through the Execute tool.
+	// Every other method is discoverable, and called directly once discovered.
 	discoverableTool := toolByName(t, toolSet, "AiEngine_ParseToolCall")
 	require.Equal(t, aip.LabelValueTrue, discoverableTool.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
 	require.Equal(t, aitool.AnnotationValueToolTypeGenerateRPCRequest, discoverableTool.GetAnnotations()[aitool.AnnotationKeyToolType])
@@ -85,49 +83,28 @@ func TestParseToolCallDiscovery(t *testing.T) {
 	require.Equal(t, []string{"AiEngine_CreateTool"}, discovery.GetToolNames())
 }
 
-func TestParseToolCallExecute(t *testing.T) {
+func TestParseToolCallDirect(t *testing.T) {
+	// Discovered tools are called directly by name: parsing resolves the
+	// tool's RPC from its own annotations.
 	toolSet := createServiceToolSet(t)
-	arguments, err := structpb.NewStruct(map[string]any{
-		"tool_name": "AiEngine_CreateDiscoveryTool",
-		"arguments": map[string]any{"name": "MyDiscover", "description": "My discovery tool"},
-	})
+	tool := toolByName(t, toolSet, "AiEngine_CreateDiscoveryTool")
+	arguments, err := structpb.NewStruct(map[string]any{"name": "MyDiscover", "description": "My discovery tool"})
 	require.NoError(t, err)
 	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
 		ToolCall: &aipb.ToolCall{
 			Id:          "call-1",
-			Name:        aitool.ExecuteToolName,
+			Name:        tool.GetName(),
 			Arguments:   arguments,
-			Annotations: aitool.CreateExecuteTool().GetAnnotations(),
+			Annotations: tool.GetAnnotations(),
 		},
 		ToolSets: []*aipb.ToolSet{toolSet},
 	}
 	parseToolCallResponse, err := aiEngineClient.ParseToolCall(ctx, parseToolCallRequest)
 	require.NoError(t, err)
 
-	// The execute call resolves to the inner tool's RPC.
 	rpc := parseToolCallResponse.GetRpc()
 	require.NotNil(t, rpc)
 	require.Equal(t, serviceFullName, rpc.GetServiceFullName())
 	require.Equal(t, serviceFullName+".CreateDiscoveryTool", rpc.GetMethodFullName())
 	require.Equal(t, "MyDiscover", rpc.GetRequest().AsMap()["name"])
-}
-
-func TestParseToolCallExecuteUnknownTool(t *testing.T) {
-	toolSet := createServiceToolSet(t)
-	arguments, err := structpb.NewStruct(map[string]any{
-		"tool_name": "UnknownTool",
-		"arguments": map[string]any{},
-	})
-	require.NoError(t, err)
-	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
-		ToolCall: &aipb.ToolCall{
-			Id:          "call-1",
-			Name:        aitool.ExecuteToolName,
-			Arguments:   arguments,
-			Annotations: aitool.CreateExecuteTool().GetAnnotations(),
-		},
-		ToolSets: []*aipb.ToolSet{toolSet},
-	}
-	_, err = aiEngineClient.ParseToolCall(ctx, parseToolCallRequest)
-	grpcrequire.Error(t, codes.NotFound, err)
 }

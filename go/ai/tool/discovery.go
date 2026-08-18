@@ -24,7 +24,7 @@ func CreateDiscoveryTool(request *CreateDiscoveryToolRequest) *aipb.Tool {
 		description.WriteString(request.Description)
 		description.WriteString("\n\n")
 	}
-	description.WriteString("Discover the following tools:")
+	description.WriteString("After discovering tools, call them directly by name using their discovered schemas. Discover the following tools:")
 	for _, tool := range request.Tools {
 		description.WriteString("\n- " + tool.Name)
 		if tool.Description != "" {

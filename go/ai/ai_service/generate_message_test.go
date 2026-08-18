@@ -6,7 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/structpb"
 
+	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
 )
 
@@ -94,5 +96,60 @@ func TestProcessDiscoveryToolCall(t *testing.T) {
 		toolCall.Annotations[aitool.AnnotationKeyToolSetName] = "other.ToolSet"
 		toolResult := processDiscoveryToolCall(toolCall, newTestToolSetIndex("A"), map[string]*aipb.Tool{})
 		require.NotNil(t, toolResult.GetError())
+	})
+}
+
+// fakeStream captures responses forwarded by generateMessageWrapper.Send.
+type fakeStream struct {
+	pb.AiService_StreamGenerateMessageServer
+	responses []*pb.StreamGenerateMessageResponse
+}
+
+func (f *fakeStream) Send(response *pb.StreamGenerateMessageResponse) error {
+	f.responses = append(f.responses, response)
+	return nil
+}
+
+func TestGenerateMessageWrapperSend(t *testing.T) {
+	t.Run("direct call to a discovered tool succeeds", func(t *testing.T) {
+		// Discovered tools are called directly by name: the wrapper copies the
+		// tool's annotations onto the call and must not reject it.
+		discoveredTool := &aipb.Tool{
+			Name: "A",
+			Annotations: map[string]string{
+				aitool.AnnotationKeyDiscoverableTool: "true",
+				aitool.AnnotationKeyToolSetName:      testToolSetName,
+			},
+		}
+		stream := &fakeStream{}
+		wrapper := &generateMessageWrapper{
+			AiService_StreamGenerateMessageServer: stream,
+			messageAccumulator:                    ai.NewMessageAccumulator(),
+			toolNameToTool:                        map[string]*aipb.Tool{"A": discoveredTool},
+			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+		}
+		toolCall := &aipb.ToolCall{Id: "call-1", Name: "A"}
+		response := &pb.StreamGenerateMessageResponse{
+			Content: &pb.StreamGenerateMessageResponse_Block{Block: ai.NewToolCallBlock(toolCall)},
+		}
+		require.NoError(t, wrapper.Send(response))
+		require.Len(t, stream.responses, 1)
+		sentToolCall := stream.responses[0].GetBlock().GetToolCall()
+		require.Equal(t, "A", sentToolCall.GetName())
+		require.Equal(t, "true", sentToolCall.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
+	})
+
+	t.Run("unknown tool returns a recoverable error", func(t *testing.T) {
+		wrapper := &generateMessageWrapper{
+			AiService_StreamGenerateMessageServer: &fakeStream{},
+			messageAccumulator:                    ai.NewMessageAccumulator(),
+			toolNameToTool:                        map[string]*aipb.Tool{},
+			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+		}
+		toolCall := &aipb.ToolCall{Id: "call-1", Name: "Nope"}
+		response := &pb.StreamGenerateMessageResponse{
+			Content: &pb.StreamGenerateMessageResponse_Block{Block: ai.NewToolCallBlock(toolCall)},
+		}
+		require.Error(t, wrapper.Send(response))
 	})
 }

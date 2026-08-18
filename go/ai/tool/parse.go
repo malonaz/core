@@ -47,20 +47,6 @@ func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSe
 	case AnnotationValueToolTypeDiscovery:
 		return parseDiscoveryToolCall(toolCall, toolSets)
 
-	case AnnotationValueToolTypeExecute:
-		// Resolve the inner tool from the tool sets, then parse the unwrapped call.
-		toolNameToTool := map[string]*aipb.Tool{}
-		for _, toolSet := range toolSets {
-			for _, setTool := range toolSet.GetTools() {
-				toolNameToTool[setTool.GetName()] = setTool
-			}
-		}
-		unwrappedToolCall, err := UnwrapExecuteToolCall(toolCall, toolNameToTool)
-		if err != nil {
-			return nil, err
-		}
-		return ParseToolCall(schema, unwrappedToolCall, toolSets)
-
 	case AnnotationValueToolTypeGenerateRPCRequest:
 		return parseRPCToolCall(schema, toolCall, toolSets)
 

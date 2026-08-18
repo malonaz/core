@@ -4,7 +4,6 @@ go_library(
         "annotations.go",
         "create.go",
         "discovery.go",
-        "execute.go",
         "parse.go",
     ],
     visibility = ["//..."],
@@ -28,7 +27,6 @@ go_test(
     name = "test",
     srcs = [
         "create_test.go",
-        "execute_test.go",
         "parse_test.go",
     ],
     deps = [

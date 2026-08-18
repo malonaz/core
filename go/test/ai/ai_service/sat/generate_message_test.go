@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
@@ -13,7 +12,6 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/mock"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
-	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -21,10 +19,10 @@ const (
 	toolSetName       = "TestSet"
 	discoveryToolName = "TestSet_Discover"
 
-	// The provider-visible tool list: the discovery tool, the pre-discovered
-	// tool and the generic Execute tool. It must remain identical across every
-	// generation turn to preserve the provider prompt cache.
-	expectedProviderTools = discoveryToolName + ",ToolA," + aitool.ExecuteToolName
+	// The provider-visible tool list: the discovery tool and the
+	// pre-discovered tool. It must remain identical across every generation
+	// turn to preserve the provider prompt cache.
+	expectedProviderTools = discoveryToolName + ",ToolA"
 )
 
 // newTool returns a message-generation tool belonging to the test tool set.
@@ -162,15 +160,12 @@ func TestGenerateMessageDiscoveryReturnsToolSchemas(t *testing.T) {
 	require.Equal(t, expectedProviderTools, generateMessageResponse.GetGeneratedMessage().GetBlocks()[0].GetText())
 }
 
-func TestGenerateMessageExecuteInvokesDiscoveredTool(t *testing.T) {
+func TestGenerateMessageDirectCallToDiscoveredTool(t *testing.T) {
 	t.Parallel()
 	parent := newChatParent()
 	userMessage := newScriptedUserMessage(t,
 		newAssistantToolCall(t, "call-1", discoveryToolName, map[string]any{"tools": []any{"ToolB"}}),
-		newAssistantToolCall(t, "call-2", aitool.ExecuteToolName, map[string]any{
-			"tool_name": "ToolB",
-			"arguments": map[string]any{"foo": "bar"},
-		}),
+		newAssistantToolCall(t, "call-2", "ToolB", map[string]any{"foo": "bar"}),
 	)
 
 	// Turn 1: discover ToolB.
@@ -179,8 +174,8 @@ func TestGenerateMessageExecuteInvokesDiscoveredTool(t *testing.T) {
 	toolResult := generateMessageResponse.GetGeneratedMessage().GetBlocks()[0].GetToolCall().GetResult()
 	require.NotNil(t, toolResult)
 
-	// Turn 2: the Execute call is unwrapped into a ToolB call inheriting the
-	// tool's annotations.
+	// Turn 2: the discovered tool is called directly by name; the call
+	// inherits the tool's annotations and is not rejected.
 	generateMessageResponse, err = generate(t, parent, newToolSet(), newToolResultMessage(toolResult))
 	require.NoError(t, err)
 	toolCall := generateMessageResponse.GetGeneratedMessage().GetBlocks()[0].GetToolCall()
@@ -190,29 +185,4 @@ func TestGenerateMessageExecuteInvokesDiscoveredTool(t *testing.T) {
 	require.Equal(t, "bar", toolCall.GetArguments().AsMap()["foo"])
 	require.Equal(t, aitool.AnnotationValueToolTypeGenerateMessage, toolCall.GetAnnotations()[aitool.AnnotationKeyToolType])
 	require.Equal(t, toolSetName, toolCall.GetAnnotations()[aitool.AnnotationKeyToolSetName])
-}
-
-func TestGenerateMessageExecuteUndiscoveredToolFails(t *testing.T) {
-	t.Parallel()
-	parent := newChatParent()
-	userMessage := newScriptedUserMessage(t,
-		newAssistantToolCall(t, "call-1", aitool.ExecuteToolName, map[string]any{
-			"tool_name": "ToolC",
-			"arguments": map[string]any{},
-		}),
-	)
-
-	_, err := generate(t, parent, newToolSet(), userMessage)
-	grpcrequire.Error(t, codes.NotFound, err)
-}
-
-func TestGenerateMessageExecuteToolNameCollision(t *testing.T) {
-	t.Parallel()
-	parent := newChatParent()
-	toolSet := newToolSet()
-	toolSet.Tools = append(toolSet.Tools, newTool(aitool.ExecuteToolName, false))
-	userMessage := newScriptedUserMessage(t, newAssistantText("unreachable"))
-
-	_, err := generate(t, parent, toolSet, userMessage)
-	grpcrequire.Error(t, codes.InvalidArgument, err)
 }
