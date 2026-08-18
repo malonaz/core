@@ -4,8 +4,8 @@ go_main_manifest(
     name = "manifest",
     test_only = True,
     deps = [
-        "//go/ai/ai_service:manifest",
-        "//malonaz/ai/ai_service/v1",
+        "//go/agent/agent_service:manifest",
+        "//malonaz/agent/agent_service/v1",
     ],
 )
 
@@ -16,13 +16,13 @@ go_main_src(
 )
 
 go_binary(
-    name = "ai-service",
+    name = "agent-service",
     srcs = [":main.go"],
     test_only = True,
     visibility = ["//go/test/..."],
     deps = [
-        "//go/ai/ai_service",
-        "//go/ai/store",
+        "//go/agent/agent_service",
+        "//go/agent/store",
         "//go/certs",
         "//go/flags",
         "//go/grpc",
@@ -30,6 +30,7 @@ go_binary(
         "//go/logging",
         "//go/postgres",
         "//go/prometheus",
+        "//malonaz/agent/agent_service/v1",
         "//malonaz/ai/ai_service/v1",
     ],
 )
