@@ -2,54 +2,21 @@ syntax = "proto3";
 
 package malonaz.ai.v1;
 
-import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/timestamp.proto";
 import "google/type/interval.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
 
-// The user stats resource. Computed on demand, never stored.
-// Aggregates a user's AI consumption — [Chat][malonaz.ai.v1.Chat] and
-// [Message][malonaz.ai.v1.Message] activity, token usage and price — as
-// interval totals plus optional time-series buckets, so dashboards consume
-// both shapes identically.
-message UserStats {
-  option (google.api.resource) = {
-    type: "ai.malonaz.com/UserStats"
-    pattern: "organizations/{organization}/users/{user}/stats"
-    singular: "userStats"
-    plural: "userStats"
-  };
-
-  // The resource name of the user stats.
-  // Format: organizations/{organization}/users/{user}/stats
-  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
-
-  // The interval these stats were computed over.
-  google.type.Interval interval = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The time at which these stats were computed.
-  google.protobuf.Timestamp compute_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Aggregate stats over the full interval.
-  UserStatsSnapshot totals = 4;
-
-  // Time-series stats, one entry per granularity bucket, ordered by interval start.
-  // Only populated when a granularity is requested.
-  repeated UserStatsBucket buckets = 5;
-}
-
 // Stats for a single time bucket.
-message UserStatsBucket {
+message StatsBucket {
   // The interval covered by this bucket.
   google.type.Interval interval = 1;
   // The stats for this bucket.
-  UserStatsSnapshot snapshot = 2;
+  StatsSnapshot snapshot = 2;
 }
 
 // A full stats snapshot. Used for both interval totals and time-series buckets.
-message UserStatsSnapshot {
+message StatsSnapshot {
   // Stats about chats.
   ChatStats chats = 1;
   // Stats about messages.
@@ -129,13 +96,13 @@ message ResourceConsumptionStats {
 }
 
 // The bucket granularity for time-series stats.
-enum UserStatsGranularity {
+enum StatsGranularity {
   // Used to detect an unset field. No time series is returned.
-  USER_STATS_GRANULARITY_UNSPECIFIED = 0;
+  STATS_GRANULARITY_UNSPECIFIED = 0;
   // One bucket per day.
-  USER_STATS_GRANULARITY_DAY = 1;
+  STATS_GRANULARITY_DAY = 1;
   // One bucket per week.
-  USER_STATS_GRANULARITY_WEEK = 2;
+  STATS_GRANULARITY_WEEK = 2;
   // One bucket per month.
-  USER_STATS_GRANULARITY_MONTH = 3;
+  STATS_GRANULARITY_MONTH = 3;
 }

@@ -7,6 +7,7 @@ go_library(
         "message.pb.go",
         "model.pb.go",
         "speech_to_text.pb.go",
+        "stats.pb.go",
         "text_to_speech.pb.go",
         "text_to_text.pb.go",
         "voice.pb.go",
@@ -24,7 +25,9 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

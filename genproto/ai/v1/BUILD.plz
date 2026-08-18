@@ -11,6 +11,7 @@ go_library(
         "metrics.pb.go",
         "model.pb.go",
         "model_aip.go",
+        "stats.pb.go",
         "tool.pb.go",
         "voice.pb.go",
         "voice_aip.go",
@@ -31,6 +32,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__rpc__status",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

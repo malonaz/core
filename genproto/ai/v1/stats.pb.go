@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.32.1
-// source: malonaz/ai/v1/user_stats.proto
+// source: malonaz/ai/v1/stats.proto
 
 //go:build !protoopaque
 
@@ -13,7 +13,6 @@ import (
 	interval "google.golang.org/genproto/googleapis/type/interval"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -26,248 +25,83 @@ const (
 )
 
 // The bucket granularity for time-series stats.
-type UserStatsGranularity int32
+type StatsGranularity int32
 
 const (
 	// Used to detect an unset field. No time series is returned.
-	UserStatsGranularity_USER_STATS_GRANULARITY_UNSPECIFIED UserStatsGranularity = 0
+	StatsGranularity_STATS_GRANULARITY_UNSPECIFIED StatsGranularity = 0
 	// One bucket per day.
-	UserStatsGranularity_USER_STATS_GRANULARITY_DAY UserStatsGranularity = 1
+	StatsGranularity_STATS_GRANULARITY_DAY StatsGranularity = 1
 	// One bucket per week.
-	UserStatsGranularity_USER_STATS_GRANULARITY_WEEK UserStatsGranularity = 2
+	StatsGranularity_STATS_GRANULARITY_WEEK StatsGranularity = 2
 	// One bucket per month.
-	UserStatsGranularity_USER_STATS_GRANULARITY_MONTH UserStatsGranularity = 3
+	StatsGranularity_STATS_GRANULARITY_MONTH StatsGranularity = 3
 )
 
-// Enum value maps for UserStatsGranularity.
+// Enum value maps for StatsGranularity.
 var (
-	UserStatsGranularity_name = map[int32]string{
-		0: "USER_STATS_GRANULARITY_UNSPECIFIED",
-		1: "USER_STATS_GRANULARITY_DAY",
-		2: "USER_STATS_GRANULARITY_WEEK",
-		3: "USER_STATS_GRANULARITY_MONTH",
+	StatsGranularity_name = map[int32]string{
+		0: "STATS_GRANULARITY_UNSPECIFIED",
+		1: "STATS_GRANULARITY_DAY",
+		2: "STATS_GRANULARITY_WEEK",
+		3: "STATS_GRANULARITY_MONTH",
 	}
-	UserStatsGranularity_value = map[string]int32{
-		"USER_STATS_GRANULARITY_UNSPECIFIED": 0,
-		"USER_STATS_GRANULARITY_DAY":         1,
-		"USER_STATS_GRANULARITY_WEEK":        2,
-		"USER_STATS_GRANULARITY_MONTH":       3,
+	StatsGranularity_value = map[string]int32{
+		"STATS_GRANULARITY_UNSPECIFIED": 0,
+		"STATS_GRANULARITY_DAY":         1,
+		"STATS_GRANULARITY_WEEK":        2,
+		"STATS_GRANULARITY_MONTH":       3,
 	}
 )
 
-func (x UserStatsGranularity) Enum() *UserStatsGranularity {
-	p := new(UserStatsGranularity)
+func (x StatsGranularity) Enum() *StatsGranularity {
+	p := new(StatsGranularity)
 	*p = x
 	return p
 }
 
-func (x UserStatsGranularity) String() string {
+func (x StatsGranularity) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (UserStatsGranularity) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_user_stats_proto_enumTypes[0].Descriptor()
+func (StatsGranularity) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_v1_stats_proto_enumTypes[0].Descriptor()
 }
 
-func (UserStatsGranularity) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_user_stats_proto_enumTypes[0]
+func (StatsGranularity) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_v1_stats_proto_enumTypes[0]
 }
 
-func (x UserStatsGranularity) Number() protoreflect.EnumNumber {
+func (x StatsGranularity) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// The user stats resource. Computed on demand, never stored.
-// Aggregates a user's AI consumption — [Chat][malonaz.ai.v1.Chat] and
-// [Message][malonaz.ai.v1.Message] activity, token usage and price — as
-// interval totals plus optional time-series buckets, so dashboards consume
-// both shapes identically.
-type UserStats struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the user stats.
-	// Format: organizations/{organization}/users/{user}/stats
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The interval these stats were computed over.
-	Interval *interval.Interval `protobuf:"bytes,2,opt,name=interval,proto3" json:"interval,omitempty"`
-	// The time at which these stats were computed.
-	ComputeTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=compute_time,json=computeTime,proto3" json:"compute_time,omitempty"`
-	// Aggregate stats over the full interval.
-	Totals *UserStatsSnapshot `protobuf:"bytes,4,opt,name=totals,proto3" json:"totals,omitempty"`
-	// Time-series stats, one entry per granularity bucket, ordered by interval start.
-	// Only populated when a granularity is requested.
-	Buckets       []*UserStatsBucket `protobuf:"bytes,5,rep,name=buckets,proto3" json:"buckets,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UserStats) Reset() {
-	*x = UserStats{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UserStats) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UserStats) ProtoMessage() {}
-
-func (x *UserStats) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *UserStats) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *UserStats) GetInterval() *interval.Interval {
-	if x != nil {
-		return x.Interval
-	}
-	return nil
-}
-
-func (x *UserStats) GetComputeTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.ComputeTime
-	}
-	return nil
-}
-
-func (x *UserStats) GetTotals() *UserStatsSnapshot {
-	if x != nil {
-		return x.Totals
-	}
-	return nil
-}
-
-func (x *UserStats) GetBuckets() []*UserStatsBucket {
-	if x != nil {
-		return x.Buckets
-	}
-	return nil
-}
-
-func (x *UserStats) SetName(v string) {
-	x.Name = v
-}
-
-func (x *UserStats) SetInterval(v *interval.Interval) {
-	x.Interval = v
-}
-
-func (x *UserStats) SetComputeTime(v *timestamppb.Timestamp) {
-	x.ComputeTime = v
-}
-
-func (x *UserStats) SetTotals(v *UserStatsSnapshot) {
-	x.Totals = v
-}
-
-func (x *UserStats) SetBuckets(v []*UserStatsBucket) {
-	x.Buckets = v
-}
-
-func (x *UserStats) HasInterval() bool {
-	if x == nil {
-		return false
-	}
-	return x.Interval != nil
-}
-
-func (x *UserStats) HasComputeTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.ComputeTime != nil
-}
-
-func (x *UserStats) HasTotals() bool {
-	if x == nil {
-		return false
-	}
-	return x.Totals != nil
-}
-
-func (x *UserStats) ClearInterval() {
-	x.Interval = nil
-}
-
-func (x *UserStats) ClearComputeTime() {
-	x.ComputeTime = nil
-}
-
-func (x *UserStats) ClearTotals() {
-	x.Totals = nil
-}
-
-type UserStats_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The resource name of the user stats.
-	// Format: organizations/{organization}/users/{user}/stats
-	Name string
-	// The interval these stats were computed over.
-	Interval *interval.Interval
-	// The time at which these stats were computed.
-	ComputeTime *timestamppb.Timestamp
-	// Aggregate stats over the full interval.
-	Totals *UserStatsSnapshot
-	// Time-series stats, one entry per granularity bucket, ordered by interval start.
-	// Only populated when a granularity is requested.
-	Buckets []*UserStatsBucket
-}
-
-func (b0 UserStats_builder) Build() *UserStats {
-	m0 := &UserStats{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Name = b.Name
-	x.Interval = b.Interval
-	x.ComputeTime = b.ComputeTime
-	x.Totals = b.Totals
-	x.Buckets = b.Buckets
-	return m0
-}
-
 // Stats for a single time bucket.
-type UserStatsBucket struct {
+type StatsBucket struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The interval covered by this bucket.
 	Interval *interval.Interval `protobuf:"bytes,1,opt,name=interval,proto3" json:"interval,omitempty"`
 	// The stats for this bucket.
-	Snapshot      *UserStatsSnapshot `protobuf:"bytes,2,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	Snapshot      *StatsSnapshot `protobuf:"bytes,2,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UserStatsBucket) Reset() {
-	*x = UserStatsBucket{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[1]
+func (x *StatsBucket) Reset() {
+	*x = StatsBucket{}
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UserStatsBucket) String() string {
+func (x *StatsBucket) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserStatsBucket) ProtoMessage() {}
+func (*StatsBucket) ProtoMessage() {}
 
-func (x *UserStatsBucket) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[1]
+func (x *StatsBucket) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -278,61 +112,61 @@ func (x *UserStatsBucket) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UserStatsBucket) GetInterval() *interval.Interval {
+func (x *StatsBucket) GetInterval() *interval.Interval {
 	if x != nil {
 		return x.Interval
 	}
 	return nil
 }
 
-func (x *UserStatsBucket) GetSnapshot() *UserStatsSnapshot {
+func (x *StatsBucket) GetSnapshot() *StatsSnapshot {
 	if x != nil {
 		return x.Snapshot
 	}
 	return nil
 }
 
-func (x *UserStatsBucket) SetInterval(v *interval.Interval) {
+func (x *StatsBucket) SetInterval(v *interval.Interval) {
 	x.Interval = v
 }
 
-func (x *UserStatsBucket) SetSnapshot(v *UserStatsSnapshot) {
+func (x *StatsBucket) SetSnapshot(v *StatsSnapshot) {
 	x.Snapshot = v
 }
 
-func (x *UserStatsBucket) HasInterval() bool {
+func (x *StatsBucket) HasInterval() bool {
 	if x == nil {
 		return false
 	}
 	return x.Interval != nil
 }
 
-func (x *UserStatsBucket) HasSnapshot() bool {
+func (x *StatsBucket) HasSnapshot() bool {
 	if x == nil {
 		return false
 	}
 	return x.Snapshot != nil
 }
 
-func (x *UserStatsBucket) ClearInterval() {
+func (x *StatsBucket) ClearInterval() {
 	x.Interval = nil
 }
 
-func (x *UserStatsBucket) ClearSnapshot() {
+func (x *StatsBucket) ClearSnapshot() {
 	x.Snapshot = nil
 }
 
-type UserStatsBucket_builder struct {
+type StatsBucket_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The interval covered by this bucket.
 	Interval *interval.Interval
 	// The stats for this bucket.
-	Snapshot *UserStatsSnapshot
+	Snapshot *StatsSnapshot
 }
 
-func (b0 UserStatsBucket_builder) Build() *UserStatsBucket {
-	m0 := &UserStatsBucket{}
+func (b0 StatsBucket_builder) Build() *StatsBucket {
+	m0 := &StatsBucket{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Interval = b.Interval
@@ -341,7 +175,7 @@ func (b0 UserStatsBucket_builder) Build() *UserStatsBucket {
 }
 
 // A full stats snapshot. Used for both interval totals and time-series buckets.
-type UserStatsSnapshot struct {
+type StatsSnapshot struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Stats about chats.
 	Chats *ChatStats `protobuf:"bytes,1,opt,name=chats,proto3" json:"chats,omitempty"`
@@ -351,21 +185,21 @@ type UserStatsSnapshot struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UserStatsSnapshot) Reset() {
-	*x = UserStatsSnapshot{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[2]
+func (x *StatsSnapshot) Reset() {
+	*x = StatsSnapshot{}
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UserStatsSnapshot) String() string {
+func (x *StatsSnapshot) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserStatsSnapshot) ProtoMessage() {}
+func (*StatsSnapshot) ProtoMessage() {}
 
-func (x *UserStatsSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[2]
+func (x *StatsSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,51 +210,51 @@ func (x *UserStatsSnapshot) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UserStatsSnapshot) GetChats() *ChatStats {
+func (x *StatsSnapshot) GetChats() *ChatStats {
 	if x != nil {
 		return x.Chats
 	}
 	return nil
 }
 
-func (x *UserStatsSnapshot) GetMessages() *MessageStats {
+func (x *StatsSnapshot) GetMessages() *MessageStats {
 	if x != nil {
 		return x.Messages
 	}
 	return nil
 }
 
-func (x *UserStatsSnapshot) SetChats(v *ChatStats) {
+func (x *StatsSnapshot) SetChats(v *ChatStats) {
 	x.Chats = v
 }
 
-func (x *UserStatsSnapshot) SetMessages(v *MessageStats) {
+func (x *StatsSnapshot) SetMessages(v *MessageStats) {
 	x.Messages = v
 }
 
-func (x *UserStatsSnapshot) HasChats() bool {
+func (x *StatsSnapshot) HasChats() bool {
 	if x == nil {
 		return false
 	}
 	return x.Chats != nil
 }
 
-func (x *UserStatsSnapshot) HasMessages() bool {
+func (x *StatsSnapshot) HasMessages() bool {
 	if x == nil {
 		return false
 	}
 	return x.Messages != nil
 }
 
-func (x *UserStatsSnapshot) ClearChats() {
+func (x *StatsSnapshot) ClearChats() {
 	x.Chats = nil
 }
 
-func (x *UserStatsSnapshot) ClearMessages() {
+func (x *StatsSnapshot) ClearMessages() {
 	x.Messages = nil
 }
 
-type UserStatsSnapshot_builder struct {
+type StatsSnapshot_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Stats about chats.
@@ -429,8 +263,8 @@ type UserStatsSnapshot_builder struct {
 	Messages *MessageStats
 }
 
-func (b0 UserStatsSnapshot_builder) Build() *UserStatsSnapshot {
-	m0 := &UserStatsSnapshot{}
+func (b0 StatsSnapshot_builder) Build() *StatsSnapshot {
+	m0 := &StatsSnapshot{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Chats = b.Chats
@@ -451,7 +285,7 @@ type ChatStats struct {
 
 func (x *ChatStats) Reset() {
 	*x = ChatStats{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -463,7 +297,7 @@ func (x *ChatStats) String() string {
 func (*ChatStats) ProtoMessage() {}
 
 func (x *ChatStats) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[3]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -532,7 +366,7 @@ type MessageStats struct {
 
 func (x *MessageStats) Reset() {
 	*x = MessageStats{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[4]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +378,7 @@ func (x *MessageStats) String() string {
 func (*MessageStats) ProtoMessage() {}
 
 func (x *MessageStats) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[4]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +489,7 @@ type ModelBreakdown struct {
 
 func (x *ModelBreakdown) Reset() {
 	*x = ModelBreakdown{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[5]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -667,7 +501,7 @@ func (x *ModelBreakdown) String() string {
 func (*ModelBreakdown) ProtoMessage() {}
 
 func (x *ModelBreakdown) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[5]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1050,7 +884,7 @@ type ResourceConsumptionStats struct {
 
 func (x *ResourceConsumptionStats) Reset() {
 	*x = ResourceConsumptionStats{}
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[6]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1062,7 +896,7 @@ func (x *ResourceConsumptionStats) String() string {
 func (*ResourceConsumptionStats) ProtoMessage() {}
 
 func (x *ResourceConsumptionStats) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_user_stats_proto_msgTypes[6]
+	mi := &file_malonaz_ai_v1_stats_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1113,22 +947,15 @@ func (b0 ResourceConsumptionStats_builder) Build() *ResourceConsumptionStats {
 	return m0
 }
 
-var File_malonaz_ai_v1_user_stats_proto protoreflect.FileDescriptor
+var File_malonaz_ai_v1_stats_proto protoreflect.FileDescriptor
 
-const file_malonaz_ai_v1_user_stats_proto_rawDesc = "" +
+const file_malonaz_ai_v1_stats_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/ai/v1/user_stats.proto\x12\rmalonaz.ai.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1agoogle/type/interval.proto\"\xfa\x02\n" +
-	"\tUserStats\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x126\n" +
-	"\binterval\x18\x02 \x01(\v2\x15.google.type.IntervalB\x03\xe0A\x03R\binterval\x12B\n" +
-	"\fcompute_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\vcomputeTime\x128\n" +
-	"\x06totals\x18\x04 \x01(\v2 .malonaz.ai.v1.UserStatsSnapshotR\x06totals\x128\n" +
-	"\abuckets\x18\x05 \x03(\v2\x1e.malonaz.ai.v1.UserStatsBucketR\abuckets:d\xeaAa\n" +
-	"\x18ai.malonaz.com/UserStats\x12/organizations/{organization}/users/{user}/stats*\tuserStats2\tuserStats\"\x82\x01\n" +
-	"\x0fUserStatsBucket\x121\n" +
-	"\binterval\x18\x01 \x01(\v2\x15.google.type.IntervalR\binterval\x12<\n" +
-	"\bsnapshot\x18\x02 \x01(\v2 .malonaz.ai.v1.UserStatsSnapshotR\bsnapshot\"|\n" +
-	"\x11UserStatsSnapshot\x12.\n" +
+	"\x19malonaz/ai/v1/stats.proto\x12\rmalonaz.ai.v1\x1a\x19google/api/resource.proto\x1a\x1agoogle/type/interval.proto\"z\n" +
+	"\vStatsBucket\x121\n" +
+	"\binterval\x18\x01 \x01(\v2\x15.google.type.IntervalR\binterval\x128\n" +
+	"\bsnapshot\x18\x02 \x01(\v2\x1c.malonaz.ai.v1.StatsSnapshotR\bsnapshot\"x\n" +
+	"\rStatsSnapshot\x12.\n" +
 	"\x05chats\x18\x01 \x01(\v2\x18.malonaz.ai.v1.ChatStatsR\x05chats\x127\n" +
 	"\bmessages\x18\x02 \x01(\v2\x1b.malonaz.ai.v1.MessageStatsR\bmessages\"7\n" +
 	"\tChatStats\x12\x14\n" +
@@ -1159,77 +986,71 @@ const file_malonaz_ai_v1_user_stats_proto_rawDesc = "" +
 	"\x1dinput_image_token_cache_write\x18\x0f \x01(\v2'.malonaz.ai.v1.ResourceConsumptionStatsR\x19inputImageTokenCacheWrite\"L\n" +
 	"\x18ResourceConsumptionStats\x12\x1a\n" +
 	"\bquantity\x18\x01 \x01(\x03R\bquantity\x12\x14\n" +
-	"\x05price\x18\x02 \x01(\x01R\x05price*\xa1\x01\n" +
-	"\x14UserStatsGranularity\x12&\n" +
-	"\"USER_STATS_GRANULARITY_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aUSER_STATS_GRANULARITY_DAY\x10\x01\x12\x1f\n" +
-	"\x1bUSER_STATS_GRANULARITY_WEEK\x10\x02\x12 \n" +
-	"\x1cUSER_STATS_GRANULARITY_MONTH\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x05price\x18\x02 \x01(\x01R\x05price*\x89\x01\n" +
+	"\x10StatsGranularity\x12!\n" +
+	"\x1dSTATS_GRANULARITY_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15STATS_GRANULARITY_DAY\x10\x01\x12\x1a\n" +
+	"\x16STATS_GRANULARITY_WEEK\x10\x02\x12\x1b\n" +
+	"\x17STATS_GRANULARITY_MONTH\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_user_stats_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_v1_user_stats_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_malonaz_ai_v1_user_stats_proto_goTypes = []any{
-	(UserStatsGranularity)(0),        // 0: malonaz.ai.v1.UserStatsGranularity
-	(*UserStats)(nil),                // 1: malonaz.ai.v1.UserStats
-	(*UserStatsBucket)(nil),          // 2: malonaz.ai.v1.UserStatsBucket
-	(*UserStatsSnapshot)(nil),        // 3: malonaz.ai.v1.UserStatsSnapshot
-	(*ChatStats)(nil),                // 4: malonaz.ai.v1.ChatStats
-	(*MessageStats)(nil),             // 5: malonaz.ai.v1.MessageStats
-	(*ModelBreakdown)(nil),           // 6: malonaz.ai.v1.ModelBreakdown
-	(*ResourceConsumptionStats)(nil), // 7: malonaz.ai.v1.ResourceConsumptionStats
-	(*interval.Interval)(nil),        // 8: google.type.Interval
-	(*timestamppb.Timestamp)(nil),    // 9: google.protobuf.Timestamp
+var file_malonaz_ai_v1_stats_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_v1_stats_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_ai_v1_stats_proto_goTypes = []any{
+	(StatsGranularity)(0),            // 0: malonaz.ai.v1.StatsGranularity
+	(*StatsBucket)(nil),              // 1: malonaz.ai.v1.StatsBucket
+	(*StatsSnapshot)(nil),            // 2: malonaz.ai.v1.StatsSnapshot
+	(*ChatStats)(nil),                // 3: malonaz.ai.v1.ChatStats
+	(*MessageStats)(nil),             // 4: malonaz.ai.v1.MessageStats
+	(*ModelBreakdown)(nil),           // 5: malonaz.ai.v1.ModelBreakdown
+	(*ResourceConsumptionStats)(nil), // 6: malonaz.ai.v1.ResourceConsumptionStats
+	(*interval.Interval)(nil),        // 7: google.type.Interval
 }
-var file_malonaz_ai_v1_user_stats_proto_depIdxs = []int32{
-	8,  // 0: malonaz.ai.v1.UserStats.interval:type_name -> google.type.Interval
-	9,  // 1: malonaz.ai.v1.UserStats.compute_time:type_name -> google.protobuf.Timestamp
-	3,  // 2: malonaz.ai.v1.UserStats.totals:type_name -> malonaz.ai.v1.UserStatsSnapshot
-	2,  // 3: malonaz.ai.v1.UserStats.buckets:type_name -> malonaz.ai.v1.UserStatsBucket
-	8,  // 4: malonaz.ai.v1.UserStatsBucket.interval:type_name -> google.type.Interval
-	3,  // 5: malonaz.ai.v1.UserStatsBucket.snapshot:type_name -> malonaz.ai.v1.UserStatsSnapshot
-	4,  // 6: malonaz.ai.v1.UserStatsSnapshot.chats:type_name -> malonaz.ai.v1.ChatStats
-	5,  // 7: malonaz.ai.v1.UserStatsSnapshot.messages:type_name -> malonaz.ai.v1.MessageStats
-	6,  // 8: malonaz.ai.v1.MessageStats.model_breakdowns:type_name -> malonaz.ai.v1.ModelBreakdown
-	7,  // 9: malonaz.ai.v1.ModelBreakdown.input_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 10: malonaz.ai.v1.ModelBreakdown.output_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 11: malonaz.ai.v1.ModelBreakdown.output_reasoning_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 12: malonaz.ai.v1.ModelBreakdown.input_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 13: malonaz.ai.v1.ModelBreakdown.input_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 14: malonaz.ai.v1.ModelBreakdown.input_second:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 15: malonaz.ai.v1.ModelBreakdown.output_second:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 16: malonaz.ai.v1.ModelBreakdown.input_character:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 17: malonaz.ai.v1.ModelBreakdown.input_image_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 18: malonaz.ai.v1.ModelBreakdown.output_image_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 19: malonaz.ai.v1.ModelBreakdown.input_image_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	7,  // 20: malonaz.ai.v1.ModelBreakdown.input_image_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumptionStats
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+var file_malonaz_ai_v1_stats_proto_depIdxs = []int32{
+	7,  // 0: malonaz.ai.v1.StatsBucket.interval:type_name -> google.type.Interval
+	2,  // 1: malonaz.ai.v1.StatsBucket.snapshot:type_name -> malonaz.ai.v1.StatsSnapshot
+	3,  // 2: malonaz.ai.v1.StatsSnapshot.chats:type_name -> malonaz.ai.v1.ChatStats
+	4,  // 3: malonaz.ai.v1.StatsSnapshot.messages:type_name -> malonaz.ai.v1.MessageStats
+	5,  // 4: malonaz.ai.v1.MessageStats.model_breakdowns:type_name -> malonaz.ai.v1.ModelBreakdown
+	6,  // 5: malonaz.ai.v1.ModelBreakdown.input_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 6: malonaz.ai.v1.ModelBreakdown.output_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 7: malonaz.ai.v1.ModelBreakdown.output_reasoning_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 8: malonaz.ai.v1.ModelBreakdown.input_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 9: malonaz.ai.v1.ModelBreakdown.input_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 10: malonaz.ai.v1.ModelBreakdown.input_second:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 11: malonaz.ai.v1.ModelBreakdown.output_second:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 12: malonaz.ai.v1.ModelBreakdown.input_character:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 13: malonaz.ai.v1.ModelBreakdown.input_image_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 14: malonaz.ai.v1.ModelBreakdown.output_image_token:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 15: malonaz.ai.v1.ModelBreakdown.input_image_token_cache_read:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	6,  // 16: malonaz.ai.v1.ModelBreakdown.input_image_token_cache_write:type_name -> malonaz.ai.v1.ResourceConsumptionStats
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
-func init() { file_malonaz_ai_v1_user_stats_proto_init() }
-func file_malonaz_ai_v1_user_stats_proto_init() {
-	if File_malonaz_ai_v1_user_stats_proto != nil {
+func init() { file_malonaz_ai_v1_stats_proto_init() }
+func file_malonaz_ai_v1_stats_proto_init() {
+	if File_malonaz_ai_v1_stats_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_user_stats_proto_rawDesc), len(file_malonaz_ai_v1_user_stats_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_stats_proto_rawDesc), len(file_malonaz_ai_v1_stats_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_malonaz_ai_v1_user_stats_proto_goTypes,
-		DependencyIndexes: file_malonaz_ai_v1_user_stats_proto_depIdxs,
-		EnumInfos:         file_malonaz_ai_v1_user_stats_proto_enumTypes,
-		MessageInfos:      file_malonaz_ai_v1_user_stats_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_v1_stats_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_v1_stats_proto_depIdxs,
+		EnumInfos:         file_malonaz_ai_v1_stats_proto_enumTypes,
+		MessageInfos:      file_malonaz_ai_v1_stats_proto_msgTypes,
 	}.Build()
-	File_malonaz_ai_v1_user_stats_proto = out.File
-	file_malonaz_ai_v1_user_stats_proto_goTypes = nil
-	file_malonaz_ai_v1_user_stats_proto_depIdxs = nil
+	File_malonaz_ai_v1_stats_proto = out.File
+	file_malonaz_ai_v1_stats_proto_goTypes = nil
+	file_malonaz_ai_v1_stats_proto_depIdxs = nil
 }

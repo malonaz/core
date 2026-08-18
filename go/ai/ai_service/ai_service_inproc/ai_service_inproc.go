@@ -257,13 +257,13 @@ func (c *Client) BatchGetMessages(
 	return c.server.BatchGetMessages(ctx, request)
 }
 
-// ComputeUserStats computes a user's AI consumption stats.
-func (c *Client) ComputeUserStats(
+// ComputeStats computes a user's or an organization's AI consumption stats.
+func (c *Client) ComputeStats(
 	ctx context.Context,
-	request *aiservicepb.ComputeUserStatsRequest,
+	request *aiservicepb.ComputeStatsRequest,
 	opts ...grpc.CallOption,
-) (*aipb.UserStats, error) {
-	return c.server.ComputeUserStats(ctx, request)
+) (*aiservicepb.ComputeStatsResponse, error) {
+	return c.server.ComputeStats(ctx, request)
 }
 
 // TextToText provides a client-facing interface for the legacy stateless

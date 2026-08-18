@@ -1,6 +1,7 @@
 package sat
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func newUserParent() string {
 		"/users/" + uuid.MustNewV7().String()
 }
 
-func TestComputeUserStats(t *testing.T) {
+func TestComputeStats(t *testing.T) {
 	t.Parallel()
 	userParent := newUserParent()
 	chatParent := userParent + "/chats/" + uuid.MustNewV7().String()
@@ -34,21 +35,20 @@ func TestComputeUserStats(t *testing.T) {
 	_, err = generate(t, chatParent, newToolSet(), newScriptedUserMessage(t, newAssistantText("two")))
 	require.NoError(t, err)
 
-	computeUserStatsRequest := &aiservicepb.ComputeUserStatsRequest{Parent: userParent}
-	userStats, err := aiServiceClient.ComputeUserStats(ctx, computeUserStatsRequest)
+	computeStatsRequest := &aiservicepb.ComputeStatsRequest{Name: userParent}
+	stats, err := aiServiceClient.ComputeStats(ctx, computeStatsRequest)
 	require.NoError(t, err)
 
-	require.Equal(t, userParent+"/stats", userStats.GetName())
-	require.NotNil(t, userStats.GetComputeTime())
-	require.Equal(t, int32(1), userStats.GetTotals().GetChats().GetCount())
-	require.Equal(t, int32(4), userStats.GetTotals().GetMessages().GetCount())
+	require.NotNil(t, stats.GetComputeTime())
+	require.Equal(t, int32(1), stats.GetTotals().GetChats().GetCount())
+	require.Equal(t, int32(4), stats.GetTotals().GetMessages().GetCount())
 	// No granularity requested: totals only, no time series.
-	require.Empty(t, userStats.GetBuckets())
+	require.Empty(t, stats.GetBuckets())
 
 	// The two assistant messages are attributed to the mock model; the two user
 	// messages carry no model and group under the empty breakdown.
 	modelToBreakdown := map[string]*aipb.ModelBreakdown{}
-	for _, breakdown := range userStats.GetTotals().GetMessages().GetModelBreakdowns() {
+	for _, breakdown := range stats.GetTotals().GetMessages().GetModelBreakdowns() {
 		modelToBreakdown[breakdown.GetModel()] = breakdown
 	}
 	require.Len(t, modelToBreakdown, 2)
@@ -69,7 +69,7 @@ func TestComputeUserStats(t *testing.T) {
 	require.Nil(t, modelToBreakdown[""].GetInputToken())
 }
 
-func TestComputeUserStatsGranularityBuckets(t *testing.T) {
+func TestComputeStatsGranularityBuckets(t *testing.T) {
 	t.Parallel()
 	userParent := newUserParent()
 	chatParent := userParent + "/chats/" + uuid.MustNewV7().String()
@@ -80,48 +80,55 @@ func TestComputeUserStatsGranularityBuckets(t *testing.T) {
 	// A day-granular window around now: everything just written lands in
 	// today's bucket, and the bucket totals must match the interval totals.
 	now := time.Now().UTC()
-	computeUserStatsRequest := &aiservicepb.ComputeUserStatsRequest{
-		Parent: userParent,
+	computeStatsRequest := &aiservicepb.ComputeStatsRequest{
+		Name: userParent,
 		Interval: &intervalpb.Interval{
 			StartTime: timestamppb.New(now.AddDate(0, 0, -1)),
 			EndTime:   timestamppb.New(now.AddDate(0, 0, 1)),
 		},
-		Granularity: aipb.UserStatsGranularity_USER_STATS_GRANULARITY_DAY,
+		Granularity: aipb.StatsGranularity_STATS_GRANULARITY_DAY,
 	}
-	userStats, err := aiServiceClient.ComputeUserStats(ctx, computeUserStatsRequest)
+	stats, err := aiServiceClient.ComputeStats(ctx, computeStatsRequest)
 	require.NoError(t, err)
 
-	require.Len(t, userStats.GetBuckets(), 1)
-	bucket := userStats.GetBuckets()[0]
-	require.Equal(t, userStats.GetTotals().GetChats().GetCount(), bucket.GetSnapshot().GetChats().GetCount())
-	require.Equal(t, userStats.GetTotals().GetMessages().GetCount(), bucket.GetSnapshot().GetMessages().GetCount())
+	require.Len(t, stats.GetBuckets(), 1)
+	bucket := stats.GetBuckets()[0]
+	require.Equal(t, stats.GetTotals().GetChats().GetCount(), bucket.GetSnapshot().GetChats().GetCount())
+	require.Equal(t, stats.GetTotals().GetMessages().GetCount(), bucket.GetSnapshot().GetMessages().GetCount())
 	// Day buckets are exactly 24h wide and truncated to midnight UTC.
 	bucketStart := bucket.GetInterval().GetStartTime().AsTime()
 	require.Equal(t, bucketStart.AddDate(0, 0, 1), bucket.GetInterval().GetEndTime().AsTime())
 	require.Equal(t, bucketStart.Truncate(24*time.Hour), bucketStart)
 }
 
-func TestComputeUserStatsEmptyUser(t *testing.T) {
+func TestComputeStatsEmptyUser(t *testing.T) {
 	t.Parallel()
-	computeUserStatsRequest := &aiservicepb.ComputeUserStatsRequest{Parent: newUserParent()}
-	userStats, err := aiServiceClient.ComputeUserStats(ctx, computeUserStatsRequest)
+	computeStatsRequest := &aiservicepb.ComputeStatsRequest{Name: newUserParent()}
+	stats, err := aiServiceClient.ComputeStats(ctx, computeStatsRequest)
 	require.NoError(t, err)
-	require.Zero(t, userStats.GetTotals().GetChats().GetCount())
-	require.Zero(t, userStats.GetTotals().GetMessages().GetCount())
+	require.Zero(t, stats.GetTotals().GetChats().GetCount())
+	require.Zero(t, stats.GetTotals().GetMessages().GetCount())
 }
 
-func TestComputeUserStatsInvalidParent(t *testing.T) {
+func TestComputeStatsOrganization(t *testing.T) {
 	t.Parallel()
-	computeUserStatsRequest := &aiservicepb.ComputeUserStatsRequest{Parent: "organizations/org"}
-	_, err := aiServiceClient.ComputeUserStats(ctx, computeUserStatsRequest)
-	grpcrequire.Error(t, codes.InvalidArgument, err)
+	userParent := newUserParent()
+	chatParent := userParent + "/chats/" + uuid.MustNewV7().String()
+	_, err := generate(t, chatParent, newToolSet(), newScriptedUserMessage(t, newAssistantText("one")))
+	require.NoError(t, err)
+
+	// Organization-scoped stats aggregate across the organization's users.
+	organization := userParent[:strings.Index(userParent, "/users/")]
+	computeStatsRequest := &aiservicepb.ComputeStatsRequest{Name: organization}
+	stats, err := aiServiceClient.ComputeStats(ctx, computeStatsRequest)
+	require.NoError(t, err)
+	require.Equal(t, int32(1), stats.GetTotals().GetChats().GetCount())
+	require.Equal(t, int32(2), stats.GetTotals().GetMessages().GetCount())
 }
 
-func TestComputeUserStatsWildcardUserRequiresOrganization(t *testing.T) {
+func TestComputeStatsInvalidName(t *testing.T) {
 	t.Parallel()
-	// A concrete user under a wildcard organization is ambiguous: chats are
-	// keyed by (organization, user).
-	computeUserStatsRequest := &aiservicepb.ComputeUserStatsRequest{Parent: "organizations/-/users/some-user"}
-	_, err := aiServiceClient.ComputeUserStats(ctx, computeUserStatsRequest)
+	computeStatsRequest := &aiservicepb.ComputeStatsRequest{Name: "providers/foo"}
+	_, err := aiServiceClient.ComputeStats(ctx, computeStatsRequest)
 	grpcrequire.Error(t, codes.InvalidArgument, err)
 }

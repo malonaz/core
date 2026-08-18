@@ -16,33 +16,28 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-var granularityToDateTruncField = map[aipb.UserStatsGranularity]string{
-	aipb.UserStatsGranularity_USER_STATS_GRANULARITY_DAY:   "day",
-	aipb.UserStatsGranularity_USER_STATS_GRANULARITY_WEEK:  "week",
-	aipb.UserStatsGranularity_USER_STATS_GRANULARITY_MONTH: "month",
+var granularityToDateTruncField = map[aipb.StatsGranularity]string{
+	aipb.StatsGranularity_STATS_GRANULARITY_DAY:   "day",
+	aipb.StatsGranularity_STATS_GRANULARITY_WEEK:  "week",
+	aipb.StatsGranularity_STATS_GRANULARITY_MONTH: "month",
 }
 
-// ComputeUserStats aggregates a user's chats and messages into interval totals
-// and, when a granularity is requested, a time series. Nothing is stored: the
-// resource is computed per request.
-func (s *Service) ComputeUserStats(ctx context.Context, request *pb.ComputeUserStatsRequest) (*aipb.UserStats, error) {
+// ComputeStats aggregates a user's or an organization's chats and messages
+// into interval totals and, when a granularity is requested, a time series.
+// Nothing is stored: the response is computed per request.
+func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequest) (*pb.ComputeStatsResponse, error) {
+	// The name is polymorphic: a user or an organization. An empty user ID
+	// tells the store to aggregate across the whole organization.
+	var organizationID, userID string
 	userRn := &aipb.UserResourceName{}
-	if err := userRn.UnmarshalString(request.GetParent()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling user resource name: %v", err).Err()
-	}
-	// Wildcard segments become empty filters: the store treats them as "any".
-	organizationID := userRn.Organization
-	if organizationID == "-" {
-		organizationID = ""
-	}
-	userID := userRn.User
-	if userID == "-" {
-		userID = ""
-	}
-	// Chats are keyed by (organization, user); a concrete user under a wildcard
-	// organization would aggregate homonymous users across organizations.
-	if userID != "" && organizationID == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "user-scoped stats require a concrete organization").Err()
+	organizationRn := &aipb.OrganizationResourceName{}
+	switch {
+	case userRn.UnmarshalString(request.GetName()) == nil:
+		organizationID, userID = userRn.Organization, userRn.User
+	case organizationRn.UnmarshalString(request.GetName()) == nil:
+		organizationID = organizationRn.Organization
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "name must be a user or an organization resource name").Err()
 	}
 
 	var startTime, endTime *time.Time
@@ -79,16 +74,16 @@ func (s *Service) ComputeUserStats(ctx context.Context, request *pb.ComputeUserS
 	// Totals are folded from the same rows as the buckets: when a granularity is
 	// requested each row feeds both its bucket's aggregator and the totals one,
 	// so the database is queried exactly once per resource kind.
-	totalsAggregator := newUserStatsAggregator()
-	bucketStartToAggregator := map[time.Time]*userStatsAggregator{}
-	aggregatorsFor := func(bucket *time.Time) []*userStatsAggregator {
-		aggregators := []*userStatsAggregator{totalsAggregator}
+	totalsAggregator := newStatsAggregator()
+	bucketStartToAggregator := map[time.Time]*statsAggregator{}
+	aggregatorsFor := func(bucket *time.Time) []*statsAggregator {
+		aggregators := []*statsAggregator{totalsAggregator}
 		if bucket == nil {
 			return aggregators
 		}
 		aggregator, ok := bucketStartToAggregator[*bucket]
 		if !ok {
-			aggregator = newUserStatsAggregator()
+			aggregator = newStatsAggregator()
 			bucketStartToAggregator[*bucket] = aggregator
 		}
 		return append(aggregators, aggregator)
@@ -105,11 +100,7 @@ func (s *Service) ComputeUserStats(ctx context.Context, request *pb.ComputeUserS
 		}
 	}
 
-	userStats := &aipb.UserStats{
-		Name: aipb.UserStatsResourceName{
-			Organization: userRn.Organization,
-			User:         userRn.User,
-		}.String(),
+	response := &pb.ComputeStatsResponse{
 		Interval:    request.GetInterval(),
 		ComputeTime: timestamppb.Now(),
 		Totals:      totalsAggregator.snapshot(),
@@ -121,7 +112,7 @@ func (s *Service) ComputeUserStats(ctx context.Context, request *pb.ComputeUserS
 	}
 	sort.Slice(bucketStarts, func(i, j int) bool { return bucketStarts[i].Before(bucketStarts[j]) })
 	for _, bucketStart := range bucketStarts {
-		userStats.Buckets = append(userStats.Buckets, &aipb.UserStatsBucket{
+		response.Buckets = append(response.Buckets, &aipb.StatsBucket{
 			Interval: &intervalpb.Interval{
 				StartTime: timestamppb.New(bucketStart),
 				EndTime:   timestamppb.New(bucketEndTime(bucketStart, granularity)),
@@ -130,12 +121,12 @@ func (s *Service) ComputeUserStats(ctx context.Context, request *pb.ComputeUserS
 		})
 	}
 
-	return userStats, nil
+	return response, nil
 }
 
-// userStatsAggregator folds aggregated rows into one snapshot; one instance
+// statsAggregator folds aggregated rows into one snapshot; one instance
 // backs the totals and one backs each time bucket.
-type userStatsAggregator struct {
+type statsAggregator struct {
 	chatCount        int32
 	chatPrice        float64
 	messageCount     int32
@@ -228,18 +219,18 @@ var consumptionCategories = []consumptionCategory{{
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputImageTokenCacheWrite = c },
 }}
 
-func newUserStatsAggregator() *userStatsAggregator {
-	return &userStatsAggregator{
+func newStatsAggregator() *statsAggregator {
+	return &statsAggregator{
 		modelToAggregate: map[string]*modelAggregate{},
 	}
 }
 
-func (a *userStatsAggregator) addChatStatsRow(row *model.ChatStatsRow) {
+func (a *statsAggregator) addChatStatsRow(row *model.ChatStatsRow) {
 	a.chatCount += row.Count
 	a.chatPrice += row.Price
 }
 
-func (a *userStatsAggregator) addMessageStatsRow(row *model.MessageStatsRow) {
+func (a *statsAggregator) addMessageStatsRow(row *model.MessageStatsRow) {
 	a.messageCount += row.Count
 	a.messagePrice += row.Price
 	aggregate, ok := a.modelToAggregate[row.Model]
@@ -260,7 +251,7 @@ func (a *userStatsAggregator) addMessageStatsRow(row *model.MessageStatsRow) {
 	}
 }
 
-func (a *userStatsAggregator) snapshot() *aipb.UserStatsSnapshot {
+func (a *statsAggregator) snapshot() *aipb.StatsSnapshot {
 	// Sorted by model resource name for a deterministic response.
 	models := make([]string, 0, len(a.modelToAggregate))
 	for modelName := range a.modelToAggregate {
@@ -293,7 +284,7 @@ func (a *userStatsAggregator) snapshot() *aipb.UserStatsSnapshot {
 		}
 		messageStats.ModelBreakdowns = append(messageStats.ModelBreakdowns, breakdown)
 	}
-	return &aipb.UserStatsSnapshot{
+	return &aipb.StatsSnapshot{
 		Chats: &aipb.ChatStats{
 			Count: a.chatCount,
 			Price: a.chatPrice,
@@ -302,13 +293,13 @@ func (a *userStatsAggregator) snapshot() *aipb.UserStatsSnapshot {
 	}
 }
 
-func bucketEndTime(bucketStart time.Time, granularity aipb.UserStatsGranularity) time.Time {
+func bucketEndTime(bucketStart time.Time, granularity aipb.StatsGranularity) time.Time {
 	switch granularity {
-	case aipb.UserStatsGranularity_USER_STATS_GRANULARITY_DAY:
+	case aipb.StatsGranularity_STATS_GRANULARITY_DAY:
 		return bucketStart.AddDate(0, 0, 1)
-	case aipb.UserStatsGranularity_USER_STATS_GRANULARITY_WEEK:
+	case aipb.StatsGranularity_STATS_GRANULARITY_WEEK:
 		return bucketStart.AddDate(0, 0, 7)
-	case aipb.UserStatsGranularity_USER_STATS_GRANULARITY_MONTH:
+	case aipb.StatsGranularity_STATS_GRANULARITY_MONTH:
 		return bucketStart.AddDate(0, 1, 0)
 	}
 	return bucketStart

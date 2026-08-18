@@ -16,7 +16,7 @@ go_protoc_gen_core(
 go_library(
     name = "store",
     srcs = [
-        "user_stats.go",
+        "stats.go",
         ":codegen",
     ],
     import_path = "github.com/malonaz/core/gengo/ai/store",
