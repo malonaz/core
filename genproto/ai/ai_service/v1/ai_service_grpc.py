@@ -15,9 +15,9 @@ import malonaz.ai.ai_service.v1.chat_pb2
 import malonaz.ai.ai_service.v1.message_pb2
 import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
+import malonaz.ai.ai_service.v1.stats_pb2
 import malonaz.ai.ai_service.v1.text_to_speech_pb2
 import malonaz.ai.ai_service.v1.text_to_text_pb2
-import malonaz.ai.ai_service.v1.stats_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
 import malonaz.ai.v1.message_pb2

@@ -29,7 +29,7 @@ var File_malonaz_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\n" +
-	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/stats.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xb5&\n" +
+	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a$malonaz/ai/ai_service/v1/stats.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xb5&\n" +
 	"\tAiService\x12\x89\x01\n" +
 	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12~\n" +
 	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\"1\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x90\x02\x01\x12\x9c\x01\n" +
@@ -198,9 +198,9 @@ func file_malonaz_ai_ai_service_v1_ai_service_proto_init() {
 	file_malonaz_ai_ai_service_v1_message_proto_init()
 	file_malonaz_ai_ai_service_v1_model_proto_init()
 	file_malonaz_ai_ai_service_v1_speech_to_text_proto_init()
+	file_malonaz_ai_ai_service_v1_stats_proto_init()
 	file_malonaz_ai_ai_service_v1_text_to_speech_proto_init()
 	file_malonaz_ai_ai_service_v1_text_to_text_proto_init()
-	file_malonaz_ai_ai_service_v1_stats_proto_init()
 	file_malonaz_ai_ai_service_v1_voice_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
