@@ -79,7 +79,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 
 	if request.Configuration == nil {
@@ -398,6 +398,17 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
 			if !toolCall.GetPartial() {
+				// Discovered tools are invoked only through the Execute tool: a
+				// direct call is rejected with a recoverable error so the model
+				// corrects itself on the next turn.
+				if value, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyDiscoverableTool); value == aip.LabelValueTrue {
+					err := fmt.Errorf("tool %q is a discovered tool: invoke it via the %s tool", toolCall.GetName(), aitool.ExecuteToolName)
+					return status.Errorf(codes.InvalidArgument, "%v", err).
+						WithDetails(&aipb.ToolCallRecoverableError{
+							ToolCallBlock:   c.Block,
+							ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, err)),
+						}).Err()
+				}
 				switch toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType {
 				case aitool.AnnotationValueToolTypeDiscovery:
 					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)

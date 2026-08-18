@@ -163,7 +163,7 @@ func (s *Service) SpeechToText(ctx context.Context, request *pb.SpeechToTextRequ
 		return nil, err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return nil, status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 
 	response, err := provider.SpeechToText(ctx, request)
@@ -183,7 +183,7 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 
 	var providerVoiceID string
@@ -314,7 +314,7 @@ func (s *Service) SpeechToTextStream(server pb.AiService_SpeechToTextStreamServe
 		return err
 	}
 	if err := checkModelDeprecation(model); err != nil {
-		return status.Errorf(codes.FailedPrecondition, err.Error()).Err()
+		return status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 	wrappedServer := &speechToTextStreamServerWrapper{
 		AiService_SpeechToTextStreamServer: server,

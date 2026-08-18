@@ -53,11 +53,13 @@ func TestUnwrapExecuteToolCall(t *testing.T) {
 	innerTool := &aipb.Tool{
 		Name: "MyTool",
 		Annotations: map[string]string{
-			AnnotationKeyToolType:     AnnotationValueToolTypeGenerateMessage,
-			AnnotationKeyProtoMessage: "some.Message",
+			AnnotationKeyToolType:         AnnotationValueToolTypeGenerateMessage,
+			AnnotationKeyProtoMessage:     "some.Message",
+			AnnotationKeyDiscoverableTool: "true",
 		},
 	}
-	toolNameToTool := map[string]*aipb.Tool{"MyTool": innerTool}
+	nativeTool := &aipb.Tool{Name: "NativeTool"}
+	toolNameToTool := map[string]*aipb.Tool{"MyTool": innerTool, "NativeTool": nativeTool}
 
 	t.Run("unwraps into the inner tool call", func(t *testing.T) {
 		toolCall := newExecuteToolCall(t, "MyTool", map[string]any{"key": "value"})
@@ -68,6 +70,26 @@ func TestUnwrapExecuteToolCall(t *testing.T) {
 		require.Equal(t, "value", unwrappedToolCall.GetArguments().AsMap()["key"])
 		// Inherits the inner tool's annotations, not Execute's.
 		require.Equal(t, innerTool.GetAnnotations(), unwrappedToolCall.GetAnnotations())
+	})
+
+	t.Run("errors on a native tool target", func(t *testing.T) {
+		// Native tools are only callable directly: Execute must not proxy them.
+		toolCall := newExecuteToolCall(t, "NativeTool", nil)
+		_, err := UnwrapExecuteToolCall(toolCall, toolNameToTool)
+		require.True(t, status.HasCode(err, codes.InvalidArgument))
+	})
+
+	t.Run("coerces JSON-encoded string arguments", func(t *testing.T) {
+		// Regression: model emitted the wrapped arguments as a stringified object.
+		argumentsStruct, err := structpb.NewStruct(map[string]any{
+			"tool_name": "MyTool",
+			"arguments": `{"key": "value"}`,
+		})
+		require.NoError(t, err)
+		toolCall := &aipb.ToolCall{Id: "call-1", Name: ExecuteToolName, Arguments: argumentsStruct}
+		unwrappedToolCall, err := UnwrapExecuteToolCall(toolCall, toolNameToTool)
+		require.NoError(t, err)
+		require.Equal(t, "value", unwrappedToolCall.GetArguments().AsMap()["key"])
 	})
 
 	t.Run("errors on undiscovered tool", func(t *testing.T) {

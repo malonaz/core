@@ -6,6 +6,7 @@ import (
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
@@ -19,7 +20,7 @@ const ExecuteToolName = "Execute"
 func CreateExecuteTool() *aipb.Tool {
 	return &aipb.Tool{
 		Name:        ExecuteToolName,
-		Description: "Execute a tool previously discovered via a discovery tool. Pass the discovered tool's name and arguments conforming to its schema.",
+		Description: "Invoke a tool previously discovered via a discovery tool. Discovered tools are ONLY callable through this tool; tools already in your tool list are ONLY callable directly — never copy this wrapper's shape onto a direct call.",
 		JsonSchema: &jsonpb.Schema{
 			Type: "object",
 			Properties: map[string]*jsonpb.Schema{
@@ -29,7 +30,7 @@ func CreateExecuteTool() *aipb.Tool {
 				},
 				"arguments": {
 					Type:        "object",
-					Description: "Arguments for the tool, conforming to its schema",
+					Description: "The discovered tool's request as a JSON object (never a JSON-encoded string), conforming exactly to its discovered schema",
 				},
 			},
 			Required: []string{"tool_name", "arguments"},
@@ -48,7 +49,11 @@ func ParseExecuteToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallExecute, error
 	if toolName == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "execute tool call missing tool_name").Err()
 	}
-	innerArgumentsMap, _ := arguments["arguments"].(map[string]any)
+	innerArgumentsMap, ok := arguments["arguments"].(map[string]any)
+	if !ok {
+		// Models sometimes emit the arguments as a JSON-encoded string.
+		innerArgumentsMap, _ = decodeJSONObject(arguments["arguments"])
+	}
 	innerArguments, err := structpb.NewStruct(innerArgumentsMap)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing execute tool call arguments: %v", err).Err()
@@ -69,6 +74,9 @@ func UnwrapExecuteToolCall(toolCall *aipb.ToolCall, toolNameToTool map[string]*a
 	tool, ok := toolNameToTool[toolCallExecute.GetToolName()]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "execute targets unknown or undiscovered tool %q", toolCallExecute.GetToolName()).Err()
+	}
+	if value, _ := aip.GetAnnotation(tool, AnnotationKeyDiscoverableTool); value != aip.LabelValueTrue {
+		return nil, status.Errorf(codes.InvalidArgument, "tool %q is a native tool: call it directly, not through the %s tool", tool.GetName(), ExecuteToolName).Err()
 	}
 	annotations := make(map[string]string, len(tool.GetAnnotations()))
 	for key, value := range tool.GetAnnotations() {

@@ -207,6 +207,25 @@ func TestUnwrapArgumentsEnvelope(t *testing.T) {
 		}, unwrapArgumentsEnvelope(arguments))
 	})
 
+	t.Run("unwraps despite an Execute-style tool_name sibling", func(t *testing.T) {
+		// Regression: model emitted Execute-tool shape on a discovered tool.
+		arguments := map[string]any{
+			"tool_name": "ProjectGateway_CreateQuote",
+			"arguments": `{"parent": "organizations/malonaz/contacts/zach", "quote": {"title": "Roofing Estimate"}}`,
+		}
+		require.Equal(t, map[string]any{
+			"parent": "organizations/malonaz/contacts/zach",
+			"quote":  map[string]any{"title": "Roofing Estimate"},
+		}, unwrapArgumentsEnvelope(arguments))
+	})
+
+	t.Run("unwraps a nested object envelope", func(t *testing.T) {
+		arguments := map[string]any{
+			"arguments": map[string]any{"parent": "organizations/malonaz"},
+		}
+		require.Equal(t, map[string]any{"parent": "organizations/malonaz"}, unwrapArgumentsEnvelope(arguments))
+	})
+
 	t.Run("leaves genuine arguments untouched", func(t *testing.T) {
 		arguments := map[string]any{"parent": "organizations/malonaz"}
 		require.Equal(t, arguments, unwrapArgumentsEnvelope(arguments))

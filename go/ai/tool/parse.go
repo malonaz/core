@@ -259,14 +259,28 @@ func maskAllowsSubtree(path string, fieldMask *pbfieldmask.FieldMask) bool {
 }
 
 // unwrapArgumentsEnvelope handles a common model failure mode where the whole
-// request is emitted as a single JSON-encoded string under an "arguments" key
-// (e.g. {"arguments": "{\"parent\": ...}"}) instead of as top-level fields.
+// request is emitted under an "arguments" key — either as a JSON-encoded
+// string ({"arguments": "{\"parent\": ...}"}) or as a nested object —
+// instead of as top-level fields. Models sometimes add an Execute-style
+// "tool_name" sibling, which is tolerated; any other sibling key means
+// "arguments" is likely a genuine request field, so the map is left alone.
 func unwrapArgumentsEnvelope(arguments map[string]any) map[string]any {
-	if len(arguments) != 1 {
+	inner, ok := arguments["arguments"]
+	if !ok {
 		return arguments
 	}
-	if unwrapped, ok := decodeJSONObject(arguments["arguments"]); ok {
-		return unwrapped
+	for key := range arguments {
+		if key != "arguments" && key != "tool_name" {
+			return arguments
+		}
+	}
+	switch value := inner.(type) {
+	case map[string]any:
+		return value
+	case string:
+		if unwrapped, ok := decodeJSONObject(value); ok {
+			return unwrapped
+		}
 	}
 	return arguments
 }
