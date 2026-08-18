@@ -33,6 +33,52 @@ func TestAppendArgContainerAnnouncementDoesNotClobber(t *testing.T) {
 	}
 }
 
+// Vertex announces containers with "{}"/"[]" path suffixes ("$.quote{}"):
+// the suffix must not leak as a literal key ("quote{}": "") and "$.items[]"
+// must not be misread as a write to items[0].
+func TestContainerAnnouncementSuffixes(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "call-1", "CreateQuote")
+	a.AppendArg(0, "$.quote{}", "")
+	a.AppendArg(0, "$.quote.title", "Roofing Estimate")
+	a.AppendArg(0, "$.items[]", "")
+	a.AppendArg(0, "$.items[0]{}", "")
+	a.AppendArg(0, "$.items[0].name", "Tear-off")
+
+	arguments := buildToolCall(t, a, 0).GetArguments().AsMap()
+	if _, ok := arguments["quote{}"]; ok {
+		t.Fatalf("arguments = %v, want no literal quote{} key", arguments)
+	}
+	quote := arguments["quote"].(map[string]any)
+	if quote["title"] != "Roofing Estimate" {
+		t.Fatalf("quote = %v, want title=Roofing Estimate", quote)
+	}
+	item := arguments["items"].([]any)[0].(map[string]any)
+	if item["name"] != "Tear-off" {
+		t.Fatalf("items[0] = %v, want name=Tear-off", item)
+	}
+}
+
+// A late (or repeated) container announcement must not wipe structure
+// already built at the announced path.
+func TestContainerAnnouncementDoesNotClobberExisting(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "call-1", "Tool")
+	a.AppendArg(0, "$.quote.title", "Kept")
+	a.AppendArg(0, "$.quote{}", "")
+	a.AppendArg(0, "$.items[0].name", "Kept")
+	a.AppendArg(0, "$.items[]", "")
+	a.AppendArg(0, "$.items[0]{}", "")
+
+	arguments := buildToolCall(t, a, 0).GetArguments().AsMap()
+	if arguments["quote"].(map[string]any)["title"] != "Kept" {
+		t.Fatalf("quote = %v, want title=Kept", arguments["quote"])
+	}
+	if arguments["items"].([]any)[0].(map[string]any)["name"] != "Kept" {
+		t.Fatalf("items = %v, want [0].name=Kept", arguments["items"])
+	}
+}
+
 // The final chunk of a partial-args stream carries the complete args map:
 // it must replace the per-path accumulation, not be silently discarded.
 func TestSetStructuredArgsReplacesAccumulation(t *testing.T) {

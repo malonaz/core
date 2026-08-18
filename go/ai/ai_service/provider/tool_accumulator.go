@@ -264,6 +264,16 @@ func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.Block, error) {
 }
 
 func setJSONPath(root map[string]any, jsonPath string, value any) {
+	// Vertex announces a new container with a value-less PartialArg whose
+	// path carries a container suffix: "$.quote{}" (object) or "$.items[]"
+	// (array). Rewrite the announcement into an empty-container write at the
+	// bare path, so the suffix never leaks as a literal key ("quote{}": "")
+	// and an array announcement is never misread as a write to index 0.
+	if strings.HasSuffix(jsonPath, "{}") {
+		jsonPath, value = strings.TrimSuffix(jsonPath, "{}"), map[string]any{}
+	} else if strings.HasSuffix(jsonPath, "[]") {
+		jsonPath, value = strings.TrimSuffix(jsonPath, "[]"), []any{}
+	}
 	segments := parseJSONPathSegments(jsonPath)
 	if len(segments) == 0 {
 		return
@@ -278,6 +288,15 @@ func setValueAtPath(node map[string]any, segments []any, value any) {
 	}
 
 	if len(segments) == 1 {
+		// Container announcement (rewritten by setJSONPath): pre-create the
+		// container, but never clobber one already being streamed into.
+		switch value.(type) {
+		case map[string]any, []any:
+			if _, exists := node[key]; !exists {
+				node[key] = value
+			}
+			return
+		}
 		if existing, ok := node[key].(string); ok {
 			if strVal, ok := value.(string); ok {
 				node[key] = existing + strVal
@@ -318,6 +337,14 @@ func setValueAtPath(node map[string]any, segments []any, value any) {
 		node[key] = arr
 
 		if len(segments) == 2 {
+			// Container announcement (see above): pre-create, never clobber.
+			switch value.(type) {
+			case map[string]any, []any:
+				if arr[nextSegment] == nil {
+					arr[nextSegment] = value
+				}
+				return
+			}
 			if existing, ok := arr[nextSegment].(string); ok {
 				if strVal, ok := value.(string); ok {
 					arr[nextSegment] = existing + strVal
