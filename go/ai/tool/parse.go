@@ -184,7 +184,7 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 
 	dynamicMessage, err := schemaBuilder.BuildMessage(protoreflect.FullName(messageFullName), arguments)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "building message: %v", err).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "building message: %v", err).Err()
 	}
 
 	if fieldMask != nil {

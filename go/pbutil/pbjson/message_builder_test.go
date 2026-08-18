@@ -221,6 +221,19 @@ func TestBuildMessage(t *testing.T) {
 		require.Equal(t, "A great book", metadata.Get(metadata.Descriptor().Fields().ByName("summary")).String())
 	})
 
+	t.Run("repeated field as JSON-encoded string is coerced", func(t *testing.T) {
+		// Regression: model emitted a repeated string field as a stringified
+		// JSON array.
+		args := map[string]any{
+			"tags": `["roofing", "estimate"]`,
+		}
+		message, err := BuildMessage(dummyDescriptor, args)
+		require.NoError(t, err)
+		tags := message.Get(dummyDescriptor.Fields().ByName("tags")).List()
+		require.Equal(t, 2, tags.Len())
+		require.Equal(t, "roofing", tags.Get(0).String())
+	})
+
 	t.Run("nested message field as non-JSON string fails", func(t *testing.T) {
 		args := map[string]any{"metadata": "not json"}
 		_, err := BuildMessage(dummyDescriptor, args)

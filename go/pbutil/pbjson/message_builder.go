@@ -100,7 +100,17 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 	if field.IsList() {
 		arr, ok := val.([]any)
 		if !ok {
-			return fmt.Errorf("expected array for %s", field.Name())
+			// Models sometimes emit a list as a JSON-encoded string: coerce it
+			// before failing.
+			s, isString := val.(string)
+			if isString && len(s) > 0 && s[0] == '[' {
+				if err := json.Unmarshal([]byte(s), &arr); err == nil {
+					ok = true
+				}
+			}
+		}
+		if !ok {
+			return fmt.Errorf("expected JSON array for %s, got %T", field.Name(), val)
 		}
 		list := msg.Mutable(field).List()
 		for _, item := range arr {
