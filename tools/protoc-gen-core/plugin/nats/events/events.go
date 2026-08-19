@@ -3,6 +3,8 @@ package events
 import (
 	"errors"
 	"fmt"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/huandu/xstrings"
@@ -42,7 +44,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	type eventMessage struct {
 		message   *protogen.Message
 		opts      *natspb.EventOptions
-		pattern   *resource.ParsedPattern
+		patterns  []*resource.ParsedPattern
 		streamFQN string
 	}
 
@@ -63,10 +65,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if err != nil {
 			return fmt.Errorf("parsing resource from message %s: %w", message.GoIdent.GoName, err)
 		}
-		pattern, err := pr.SinglePattern()
-		if err != nil {
-			return err
-		}
 
 		streamFQN := eventOpts.GetStream()
 		if _, ok := streamFQNToGoName[streamFQN]; !ok {
@@ -77,7 +75,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		eventMessages = append(eventMessages, eventMessage{
 			message:   message,
 			opts:      eventOpts,
-			pattern:   pattern,
+			patterns:  pr.Patterns,
 			streamFQN: streamFQN,
 		})
 	}
@@ -100,22 +98,21 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	for _, em := range eventMessages {
 		streamGoName := streamFQNToGoName[em.streamFQN]
 
-		patternVarSet := map[string]bool{}
-		for _, v := range em.pattern.Variables {
-			patternVarSet[v] = true
-		}
-
+		// resource_segments must appear in every pattern: the subject shape must
+		// be well-defined regardless of which parent a resource has.
 		for _, seg := range em.opts.GetResourceSegments() {
-			if !patternVarSet[seg] {
-				return fmt.Errorf("resource_segment %q references unknown resource name segment on %s (pattern: %s)",
-					seg, em.message.GoIdent.GoName, em.pattern.Value)
+			for _, pattern := range em.patterns {
+				if !slices.Contains(pattern.Variables, seg) {
+					return fmt.Errorf("resource_segment %q references unknown resource name segment on %s (pattern: %s)",
+						seg, em.message.GoIdent.GoName, pattern.Value)
+				}
 			}
 		}
 
 		eventTypeMap := collectEventTypes(em.opts)
 		for _, et := range eventTypeMap {
 			for _, methodOpt := range et.opts {
-				if err := generateSubjectStruct(gen, em.message, em.pattern, em.opts, streamGoName, et.eventType, methodOpt); err != nil {
+				if err := generateSubjectStruct(gen, em.message, em.patterns, em.opts, streamGoName, et.eventType, methodOpt); err != nil {
 					return err
 				}
 			}
@@ -152,7 +149,7 @@ func collectEventTypes(eventOpts *natspb.EventOptions) []eventTypeEntry {
 	return result
 }
 
-func generateSubjectStruct(gen *generator, message *protogen.Message, pattern *resource.ParsedPattern, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {
+func generateSubjectStruct(gen *generator, message *protogen.Message, patterns []*resource.ParsedPattern, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {
 	g := gen.g
 	structName := message.GoIdent.GoName + xstrings.ToPascalCase(methodOpt.GetSubject()) + "Subject"
 	celProgramVar := xstrings.ToCamelCase(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
@@ -276,7 +273,8 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pattern *r
 
 	// set method.
 	g.P("func (s *", structName, ") set(resource *", protoType, ") error {")
-	if len(resourceSegments) > 0 {
+	if len(resourceSegments) > 0 && len(patterns) == 1 {
+		pattern := patterns[0]
 		varDecls := make([]string, 0, len(pattern.Variables))
 		for _, pv := range pattern.Variables {
 			varDecls = append(varDecls, xstrings.ToCamelCase(pv)+"ID")
@@ -292,6 +290,34 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, pattern *r
 		for _, seg := range resourceSegments {
 			g.P("  s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID)")
 		}
+	} else if len(resourceSegments) > 0 {
+		// Try each pattern in turn: resource_segments are shared variables, so
+		// whichever pattern matches yields every segment value.
+		g.P("  matched := false")
+		for i, pattern := range patterns {
+			varDecls := make([]string, 0, len(pattern.Variables))
+			for _, pv := range pattern.Variables {
+				varDecls = append(varDecls, xstrings.ToCamelCase(pv)+"ID"+strconv.Itoa(i))
+			}
+			g.P("  {")
+			g.P("    var ", strings.Join(varDecls, ", "), " string")
+			addrArgs := ""
+			for _, v := range varDecls {
+				addrArgs += ", &" + v
+			}
+			g.P("    if !matched {")
+			g.P("      if err := ", gen.ident(resnPkg, "Sscan"), "(resource.GetName(), \"", pattern.Value, "\"", addrArgs, "); err == nil {")
+			for _, seg := range resourceSegments {
+				g.P("        s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID", strconv.Itoa(i), ")")
+			}
+			g.P("        matched = true")
+			g.P("      }")
+			g.P("    }")
+			g.P("  }")
+		}
+		g.P("  if !matched {")
+		g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"parsing resource name %q: no pattern matched\", resource.GetName())")
+		g.P("  }")
 	}
 	for _, sf := range subjectFields {
 		field := fieldByTextName(message, sf)
