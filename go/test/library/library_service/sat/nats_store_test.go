@@ -1,7 +1,6 @@
 package sat
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,13 +16,14 @@ import (
 func TestNatsStore(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
-	organizationID := strings.TrimPrefix(organizationParent, "organizations/")
+	organizationResourceName := &librarypb.OrganizationResourceName{}
+	require.NoError(t, organizationResourceName.UnmarshalString(organizationParent))
 
 	genre := librarypb.ShelfGenre_SHELF_GENRE_FICTION
 	shelf := createTestShelf(t, organizationParent, "Nats Store Shelf", genre)
 
 	subject := librarypb.GetShelfStream().GetCreatedSubject().
-		WithOrganization(organizationID).
+		WithOrganization(organizationResourceName.Organization).
 		WithGenre(genre).
 		MustGet().
 		Name()

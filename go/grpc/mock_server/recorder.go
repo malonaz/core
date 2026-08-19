@@ -26,7 +26,7 @@ type UnaryCall struct {
 }
 
 // Unary registers an expectation for a unary endpoint, named by its fully-qualified method
-// name, with or without a leading slash: "package.Service/Method". Expectations are matched in
+// name, with or without a leading slash: "/package.Service/Method". Expectations are matched in
 // declaration order, and one declared with Times stops matching once it is exhausted, so
 // several expectations on the same endpoint reply in the order they were declared.
 //
@@ -36,7 +36,7 @@ type UnaryCall struct {
 func (r *Recorder) Unary(fullMethodName string) *UnaryCall {
 	unaryCall := &UnaryCall{
 		Cardinality:    mock.NewCardinality(),
-		fullMethodName: normalizeFullMethodName(fullMethodName),
+		fullMethodName: canonicalFullMethodName(fullMethodName),
 	}
 	r.server.mutex.Lock()
 	defer r.server.mutex.Unlock()

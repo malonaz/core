@@ -2,6 +2,7 @@ package mockserver_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,9 +20,9 @@ import (
 	mockpb "github.com/malonaz/core/genproto/test/mock/v1"
 )
 
-// The name the untyped recorder is given by hand, and the one requests are recorded under. The
-// generated recorder takes the slashed spelling from the gRPC stub instead.
-const echoMethodName = "malonaz.test.mock.v1.MockService/Echo"
+// The untyped recorder is given a method name rather than deriving one, but the name itself
+// still comes from the gRPC stub rather than being spelled out here.
+const echoMethodName = mockpb.MockService_Echo_FullMethodName
 
 // recorder collects the failures a mock reports, standing in for *testing.T so that the
 // unhappy paths can be asserted on rather than failing the test that exercises them.
@@ -64,11 +65,11 @@ func TestReturn(t *testing.T) {
 	require.Equal(t, int32(10), requests[0].Message.(*mockpb.EchoRequest).Count)
 }
 
-// A leading slash is how gRPC itself spells a full method name, and how the generated stub's
-// constant spells it, so both spellings resolve.
+// A leading slash is how gRPC and the generated stub's constant spell a full method name, but an
+// expectation declared without one resolves to the same endpoint.
 func TestLeadingSlash(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().Unary(mockpb.MockService_Echo_FullMethodName)
+	server.EXPECT().Unary(strings.TrimPrefix(echoMethodName, "/"))
 
 	echoRequest := &mockpb.EchoRequest{}
 	_, err := mockServiceClient.Echo(context.Background(), echoRequest)
@@ -256,7 +257,7 @@ func TestServesHealthChecks(t *testing.T) {
 	require.NoError(t, err)
 	defer connection.Close()
 
-	healthCheckRequest := &grpc_health_v1.HealthCheckRequest{Service: "malonaz.test.mock.v1.MockService"}
+	healthCheckRequest := &grpc_health_v1.HealthCheckRequest{Service: mockpb.MockService_ServiceDesc.ServiceName}
 	healthCheckResponse, err := grpc_health_v1.NewHealthClient(connection).Check(context.Background(), healthCheckRequest)
 	require.NoError(t, err)
 	require.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, healthCheckResponse.Status)

@@ -40,7 +40,9 @@ type Server struct {
 	unexpectedCalls []string
 }
 
-// Request is a single request the server received.
+// Request is a single request the server received. Its method name is spelled the way gRPC and
+// the generated stubs' <Service>_<Method>_FullMethodName constants spell it, so an assertion on
+// it can name the endpoint through one of those constants.
 type Request struct {
 	FullMethodName string
 	Message        proto.Message
@@ -127,7 +129,7 @@ func (s *Server) handle(_ any, stream grpc.ServerStream) error {
 	if !ok {
 		return status.Errorf(codes.Internal, "no method name on server stream").Err()
 	}
-	fullMethodName = normalizeFullMethodName(fullMethodName)
+	fullMethodName = canonicalFullMethodName(fullMethodName)
 
 	requestFrame := &frame{}
 	if err := stream.RecvMsg(requestFrame); err != nil {
@@ -183,14 +185,20 @@ func (s *Server) match(fullMethodName string, request proto.Message) (*UnaryCall
 	return nil, status.Errorf(codes.Unimplemented, "no expectation matched %s", fullMethodName).Err()
 }
 
-func normalizeFullMethodName(fullMethodName string) string {
-	return strings.TrimPrefix(fullMethodName, "/")
+// canonicalFullMethodName spells a method name the way gRPC does, with a leading slash, which is
+// also how the generated stubs spell it in their <Service>_<Method>_FullMethodName constants. An
+// expectation may be declared either way, and both resolve to this.
+func canonicalFullMethodName(fullMethodName string) string {
+	if strings.HasPrefix(fullMethodName, "/") {
+		return fullMethodName
+	}
+	return "/" + fullMethodName
 }
 
 func methodDescriptor(fullMethodName string) (protoreflect.MethodDescriptor, error) {
-	serviceName, methodName, ok := strings.Cut(fullMethodName, "/")
+	serviceName, methodName, ok := strings.Cut(strings.TrimPrefix(fullMethodName, "/"), "/")
 	if !ok {
-		return nil, fmt.Errorf("method name %q is not of the form package.Service/Method", fullMethodName)
+		return nil, fmt.Errorf("method name %q is not of the form /package.Service/Method", fullMethodName)
 	}
 	descriptor, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(serviceName))
 	if err != nil {
