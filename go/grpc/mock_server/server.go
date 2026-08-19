@@ -1,5 +1,5 @@
 // Package mockserver provides a gRPC server that stands in for a third party in tests. It is
-// configured through an EXPECT() recorder and verified with AssertExpectations.
+// configured through an Expect() recorder and verified with AssertExpectations.
 //
 // Expectations are declared against a service through the typed recorder protoc-gen-core's mock
 // plugin generates for it, which wraps this package's untyped Recorder so that the endpoint is
@@ -83,8 +83,8 @@ func (s *Server) Port() int { return s.listener.Addr().(*net.TCPAddr).Port }
 // Close stops the server and releases the port.
 func (s *Server) Close() { s.server.Stop() }
 
-// EXPECT returns a recorder for declaring expectations.
-func (s *Server) EXPECT() *Recorder { return &Recorder{server: s} }
+// Expect returns a recorder for declaring expectations.
+func (s *Server) Expect() *Recorder { return &Recorder{server: s} }
 
 // Requests returns a copy of every request received so far, including unmatched ones.
 func (s *Server) Requests() []*Request {

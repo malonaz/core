@@ -51,7 +51,7 @@ func newTestServer(t *testing.T) (*mockserver.Server, mockpb.MockServiceClient) 
 func TestReturn(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	echoResponse := &mockpb.EchoResponse{Message: "next"}
-	server.EXPECT().Unary(echoMethodName).Return(echoResponse)
+	server.Expect().Unary(echoMethodName).Return(echoResponse)
 
 	echoRequest := &mockpb.EchoRequest{Count: 10}
 	response, err := mockServiceClient.Echo(context.Background(), echoRequest)
@@ -69,7 +69,7 @@ func TestReturn(t *testing.T) {
 // expectation declared without one resolves to the same endpoint.
 func TestLeadingSlash(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().Unary(strings.TrimPrefix(echoMethodName, "/"))
+	server.Expect().Unary(strings.TrimPrefix(echoMethodName, "/"))
 
 	echoRequest := &mockpb.EchoRequest{}
 	_, err := mockServiceClient.Echo(context.Background(), echoRequest)
@@ -80,7 +80,7 @@ func TestLeadingSlash(t *testing.T) {
 // Without Return, the endpoint's zero-value response is served.
 func TestDefaultResponse(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().Unary(echoMethodName)
+	server.Expect().Unary(echoMethodName)
 
 	echoRequest := &mockpb.EchoRequest{}
 	response, err := mockServiceClient.Echo(context.Background(), echoRequest)
@@ -90,7 +90,7 @@ func TestDefaultResponse(t *testing.T) {
 
 func TestWithPayload(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().
+	server.Expect().
 		Unary(echoMethodName).
 		WithPayload(&mockpb.EchoRequest{Count: 1}).
 		Return(&mockpb.EchoResponse{Message: "matched"})
@@ -109,11 +109,11 @@ func TestWithPayload(t *testing.T) {
 // Expectations are consumed in order, so the same endpoint can reply differently per call.
 func TestTimesOrdersResponses(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().
+	server.Expect().
 		Unary(echoMethodName).
 		Return(&mockpb.EchoResponse{Message: "first"}).
 		Times(1)
-	server.EXPECT().
+	server.Expect().
 		Unary(echoMethodName).
 		Return(&mockpb.EchoResponse{Message: "second"}).
 		Times(1)
@@ -133,7 +133,7 @@ func TestTimesOrdersResponses(t *testing.T) {
 // Status errors reach the caller with their code intact.
 func TestReturnError(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().
+	server.Expect().
 		Unary(echoMethodName).
 		ReturnError(status.Errorf(codes.ResourceExhausted, "slow down").Err())
 
@@ -148,7 +148,7 @@ func TestReturnError(t *testing.T) {
 func TestHandle(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockserver.Handle(
-		server.EXPECT().Unary(echoMethodName),
+		server.Expect().Unary(echoMethodName),
 		func(_ context.Context, echoRequest *mockpb.EchoRequest) (*mockpb.EchoResponse, error) {
 			return &mockpb.EchoResponse{Message: echoRequest.Message, Count: echoRequest.Count * 2}, nil
 		},
@@ -166,7 +166,7 @@ func TestHandle(t *testing.T) {
 func TestHandleReturnsError(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockserver.Handle(
-		server.EXPECT().Unary(echoMethodName),
+		server.Expect().Unary(echoMethodName),
 		func(context.Context, *mockpb.EchoRequest) (*mockpb.EchoResponse, error) {
 			return nil, status.Errorf(codes.FailedPrecondition, "not today").Err()
 		},
@@ -183,7 +183,7 @@ func TestHandleReturnsError(t *testing.T) {
 func TestHandleRejectsEmptyReply(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockserver.Handle(
-		server.EXPECT().Unary(echoMethodName),
+		server.Expect().Unary(echoMethodName),
 		func(context.Context, *mockpb.EchoRequest) (*mockpb.EchoResponse, error) { return nil, nil },
 	)
 
@@ -198,7 +198,7 @@ func TestHandleRejectsEmptyReply(t *testing.T) {
 func TestHandleRejectsWrongRequestType(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockserver.Handle(
-		server.EXPECT().Unary(echoMethodName),
+		server.Expect().Unary(echoMethodName),
 		func(context.Context, *mockpb.EchoResponse) (*mockpb.EchoResponse, error) {
 			return &mockpb.EchoResponse{}, nil
 		},
@@ -211,7 +211,7 @@ func TestHandleRejectsWrongRequestType(t *testing.T) {
 
 func TestAssertExpectationsReportsUnmetExpectation(t *testing.T) {
 	server, _ := newTestServer(t)
-	server.EXPECT().Unary(echoMethodName)
+	server.Expect().Unary(echoMethodName)
 
 	recorder := &recorder{}
 	require.False(t, server.AssertExpectations(recorder))
@@ -232,13 +232,13 @@ func TestAssertExpectationsReportsUnexpectedCall(t *testing.T) {
 
 func TestAnyTimesIsOptional(t *testing.T) {
 	server, _ := newTestServer(t)
-	server.EXPECT().Unary(echoMethodName).AnyTimes()
+	server.Expect().Unary(echoMethodName).AnyTimes()
 	require.True(t, server.AssertExpectations(t))
 }
 
 func TestReset(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
-	server.EXPECT().Unary(echoMethodName)
+	server.Expect().Unary(echoMethodName)
 
 	echoRequest := &mockpb.EchoRequest{}
 	_, err := mockServiceClient.Echo(context.Background(), echoRequest)
@@ -271,7 +271,7 @@ func TestServesHealthChecks(t *testing.T) {
 func TestGeneratedRecorder(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockService := testmock.NewMockServiceMock(server)
-	mockService.EXPECT().
+	mockService.Expect().
 		Echo().
 		WithPayload(&mockpb.EchoRequest{Count: 1}).
 		Return(&mockpb.EchoResponse{Message: "generated"}).
@@ -289,7 +289,7 @@ func TestGeneratedRecorder(t *testing.T) {
 func TestGeneratedRecorderHandle(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockService := testmock.NewMockServiceMock(server)
-	mockService.EXPECT().
+	mockService.Expect().
 		Echo().
 		Handle(func(_ context.Context, echoRequest *mockpb.EchoRequest) (*mockpb.EchoResponse, error) {
 			return &mockpb.EchoResponse{Count: echoRequest.Count * 2}, nil
@@ -306,7 +306,7 @@ func TestGeneratedRecorderHandle(t *testing.T) {
 // so an unmet one is reported the same way.
 func TestGeneratedRecorderReportsUnmetExpectation(t *testing.T) {
 	server, _ := newTestServer(t)
-	testmock.NewMockServiceMock(server).EXPECT().Echo()
+	testmock.NewMockServiceMock(server).Expect().Echo()
 
 	recorder := &recorder{}
 	require.False(t, server.AssertExpectations(recorder))
@@ -318,7 +318,7 @@ func TestGeneratedRecorderReportsUnmetExpectation(t *testing.T) {
 func TestHandleWithUntypedMessages(t *testing.T) {
 	server, mockServiceClient := newTestServer(t)
 	mockserver.Handle(
-		server.EXPECT().Unary(echoMethodName),
+		server.Expect().Unary(echoMethodName),
 		func(_ context.Context, request proto.Message) (proto.Message, error) {
 			return &mockpb.EchoResponse{Message: string(request.ProtoReflect().Descriptor().Name())}, nil
 		},

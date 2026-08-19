@@ -1,5 +1,5 @@
 // Package mockserver provides an HTTP server that stands in for a third party in tests. It is
-// configured through an EXPECT() recorder and verified with AssertExpectations.
+// configured through an Expect() recorder and verified with AssertExpectations.
 package mockserver
 
 import (
@@ -64,8 +64,8 @@ func (s *Server) URL() string { return s.server.URL }
 // Close shuts the server down.
 func (s *Server) Close() { s.server.Close() }
 
-// EXPECT returns a recorder for declaring expectations.
-func (s *Server) EXPECT() *Recorder { return &Recorder{server: s} }
+// Expect returns a recorder for declaring expectations.
+func (s *Server) Expect() *Recorder { return &Recorder{server: s} }
 
 // SetFallback registers the response for requests matching no expectation. Those requests are
 // still recorded by Requests, but no longer reported by AssertExpectations. Passing a nil body

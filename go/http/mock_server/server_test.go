@@ -47,7 +47,7 @@ func body(t *testing.T, response *http.Response) string {
 
 func TestGet(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/jwks").Return(`{"keys":[]}`)
+	server.Expect().Get("/jwks").Return(`{"keys":[]}`)
 
 	response := get(t, server, "/jwks")
 	require.Equal(t, http.StatusOK, response.StatusCode)
@@ -63,7 +63,7 @@ func TestGet(t *testing.T) {
 // Structs are marshaled to JSON, which is the common case for a third party's REST reply.
 func TestReturnStruct(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/user").Return(map[string]any{"id": "abc"})
+	server.Expect().Get("/user").Return(map[string]any{"id": "abc"})
 
 	response := get(t, server, "/user")
 	require.JSONEq(t, `{"id":"abc"}`, body(t, response))
@@ -72,7 +72,7 @@ func TestReturnStruct(t *testing.T) {
 // Byte slices are served untouched, for callers that decode something other than JSON.
 func TestReturnBytes(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/logo.png").Return([]byte{0x89, 'P', 'N', 'G'}).WithContentType("image/png")
+	server.Expect().Get("/logo.png").Return([]byte{0x89, 'P', 'N', 'G'}).WithContentType("image/png")
 
 	response := get(t, server, "/logo.png")
 	require.Equal(t, "image/png", response.Header.Get("Content-Type"))
@@ -81,7 +81,7 @@ func TestReturnBytes(t *testing.T) {
 
 func TestWithBody(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().
+	server.Expect().
 		Post("/messages").
 		WithBody(`{"text":"hello","recipient":"alice"}`).
 		Return(`{"sent":true}`)
@@ -100,7 +100,7 @@ func TestWithBody(t *testing.T) {
 
 func TestWithBodyDoesNotMatch(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Post("/messages").WithBody(`{"text":"hello"}`)
+	server.Expect().Post("/messages").WithBody(`{"text":"hello"}`)
 
 	response, err := http.Post(server.URL()+"/messages", "application/json", strings.NewReader(`{"text":"bye"}`))
 	require.NoError(t, err)
@@ -110,7 +110,7 @@ func TestWithBodyDoesNotMatch(t *testing.T) {
 
 func TestWithQuery(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/search").WithQuery("q", "onikisu").Return(`["hit"]`)
+	server.Expect().Get("/search").WithQuery("q", "onikisu").Return(`["hit"]`)
 
 	matching := get(t, server, "/search?q=onikisu")
 	require.Equal(t, http.StatusOK, matching.StatusCode)
@@ -122,8 +122,8 @@ func TestWithQuery(t *testing.T) {
 // Wildcards let one expectation cover a client that versions its own URLs.
 func TestWildcardPath(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("*/users/search").Return(`[]`).AnyTimes()
-	server.EXPECT().Get("/rest/*/issues/*").Return(`{}`).AnyTimes()
+	server.Expect().Get("*/users/search").Return(`[]`).AnyTimes()
+	server.Expect().Get("/rest/*/issues/*").Return(`{}`).AnyTimes()
 
 	require.Equal(t, http.StatusOK, get(t, server, "/rest/api/3/users/search").StatusCode)
 	require.Equal(t, http.StatusOK, get(t, server, "/users/search").StatusCode)
@@ -136,7 +136,7 @@ func TestWildcardPath(t *testing.T) {
 
 func TestWithStatus(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/rate-limited").WithStatus(http.StatusTooManyRequests).Return(`{"error":"slow down"}`)
+	server.Expect().Get("/rate-limited").WithStatus(http.StatusTooManyRequests).Return(`{"error":"slow down"}`)
 
 	response := get(t, server, "/rate-limited")
 	require.Equal(t, http.StatusTooManyRequests, response.StatusCode)
@@ -145,8 +145,8 @@ func TestWithStatus(t *testing.T) {
 // Expectations are consumed in order, so the same path can reply differently per call.
 func TestTimesOrdersResponses(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/poll").Return(`{"done":false}`).Times(1)
-	server.EXPECT().Get("/poll").Return(`{"done":true}`).Times(1)
+	server.Expect().Get("/poll").Return(`{"done":false}`).Times(1)
+	server.Expect().Get("/poll").Return(`{"done":true}`).Times(1)
 
 	require.JSONEq(t, `{"done":false}`, body(t, get(t, server, "/poll")))
 	require.JSONEq(t, `{"done":true}`, body(t, get(t, server, "/poll")))
@@ -155,7 +155,7 @@ func TestTimesOrdersResponses(t *testing.T) {
 
 func TestMethodIsMatched(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Post("/resource").Return(`{}`)
+	server.Expect().Post("/resource").Return(`{}`)
 
 	response := get(t, server, "/resource")
 	require.Equal(t, http.StatusNotImplemented, response.StatusCode)
@@ -176,7 +176,7 @@ func TestFallback(t *testing.T) {
 
 func TestAssertExpectationsReportsUnmetExpectation(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/never-called")
+	server.Expect().Get("/never-called")
 
 	recorder := &recorder{}
 	require.False(t, server.AssertExpectations(recorder))
@@ -196,7 +196,7 @@ func TestAssertExpectationsReportsUnexpectedRequest(t *testing.T) {
 
 func TestAnyTimesIsOptional(t *testing.T) {
 	server := newTestServer(t)
-	server.EXPECT().Get("/optional").AnyTimes()
+	server.Expect().Get("/optional").AnyTimes()
 	require.True(t, server.AssertExpectations(t))
 }
 
@@ -205,7 +205,7 @@ func TestAnyTimesIsOptional(t *testing.T) {
 func TestReset(t *testing.T) {
 	server := newTestServer(t)
 	require.NoError(t, server.SetFallback(http.StatusOK, "{}"))
-	server.EXPECT().Get("/once").Return(`{"a":1}`)
+	server.Expect().Get("/once").Return(`{"a":1}`)
 	get(t, server, "/once")
 
 	server.Reset()

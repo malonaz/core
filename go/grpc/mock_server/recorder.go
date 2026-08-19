@@ -75,7 +75,7 @@ func (c *UnaryCall) handleAny(handler handlerFunc) *UnaryCall {
 // Handle computes the reply from the request, for an endpoint whose response depends on what it
 // was called with, with a function typed to that endpoint:
 //
-//	mockserver.Handle(server.EXPECT().Unary(pb.MockService_Echo_FullMethodName),
+//	mockserver.Handle(server.Expect().Unary(pb.MockService_Echo_FullMethodName),
 //		func(ctx context.Context, request *pb.EchoRequest) (*pb.EchoResponse, error) { ... },
 //	)
 //

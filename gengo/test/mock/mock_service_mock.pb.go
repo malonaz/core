@@ -16,11 +16,11 @@ type MockServiceMock struct {
 // NewMockServiceMock returns a handle for declaring malonaz.test.mock.v1.MockService expectations on server.
 // Several services can be mocked on one server, each through its own handle.
 func NewMockServiceMock(server *mock_server.Server) *MockServiceMock {
-	return &MockServiceMock{recorder: server.EXPECT()}
+	return &MockServiceMock{recorder: server.Expect()}
 }
 
-// EXPECT returns a recorder for declaring expectations.
-func (m *MockServiceMock) EXPECT() *MockServiceMockRecorder {
+// Expect returns a recorder for declaring expectations.
+func (m *MockServiceMock) Expect() *MockServiceMockRecorder {
 	return (*MockServiceMockRecorder)(m)
 }
 
