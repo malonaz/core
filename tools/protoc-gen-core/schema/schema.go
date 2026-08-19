@@ -574,16 +574,16 @@ func buildJoinQuery(message *protogen.Message, join *modelpb.Join) (*JoinQuery, 
 // resourceNameExpr composes the SQL expression reconstructing a resource's
 // name from its identifier columns, e.g.
 // "'shelves/' || shelf.shelf_id || '/books/' || book.book_id".
+// Bindings are consumed positionally: they are ordered like the pattern's
+// variables, whose names they do not necessarily share (id_column_name and
+// singular-derived overrides).
 func resourceNameExpr(pattern *resource.ParsedPattern, bindings []ColumnBinding, qualifier string) string {
-	variableToColumn := make(map[string]string, len(bindings))
-	for _, binding := range bindings {
-		variableToColumn[binding.Variable] = binding.Column
-	}
 	var parts []string
+	next := 0
 	for _, segment := range strings.Split(pattern.Value, "/") {
 		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
-			variable := segment[1 : len(segment)-1]
-			parts = append(parts, qualifier+"."+variableToColumn[variable])
+			parts = append(parts, qualifier+"."+bindings[next].Column)
+			next++
 			continue
 		}
 		if len(parts) == 0 {
@@ -592,7 +592,6 @@ func resourceNameExpr(pattern *resource.ParsedPattern, bindings []ColumnBinding,
 		}
 		parts = append(parts, "'/"+segment+"/'")
 	}
-	// Merge adjacent literals produced by consecutive literal segments.
 	return strings.Join(parts, " || ")
 }
 
