@@ -12,15 +12,40 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-func TranspileFilter(filter filtering.Filter) (string, []any, error) {
+func TranspileFilter(filter filtering.Filter, opts ...TranspilerOption) (string, []any, error) {
 	t := &Transpiler{filter: filter, params: []any{}}
+	for _, opt := range opts {
+		opt(t)
+	}
 	return t.Transpile()
+}
+
+// TranspilerOption customizes a Transpiler.
+type TranspilerOption func(*Transpiler)
+
+// WithInlineParams renders constants as SQL literals instead of $n
+// placeholders, producing a static clause with no bound parameters — for
+// callers baking SQL at code-generation time.
+func WithInlineParams() TranspilerOption {
+	return func(t *Transpiler) { t.inlineParams = true }
+}
+
+// WithEnumResolver overrides enum resolution, which defaults to the global
+// type registry — for callers operating on descriptors that are not linked
+// into the binary (e.g. code generators).
+func WithEnumResolver(resolve func(protoreflect.FullName) protoreflect.EnumDescriptor) TranspilerOption {
+	return func(t *Transpiler) { t.resolveEnum = resolve }
 }
 
 type Transpiler struct {
 	filter       filtering.Filter
 	params       []any
 	paramCounter int
+	inlineParams bool
+	resolveEnum  func(protoreflect.FullName) protoreflect.EnumDescriptor
+	// err records a literal-rendering failure encountered mid-walk, surfaced
+	// by Transpile: addParam call sites cannot return errors.
+	err error
 }
 
 func (t *Transpiler) Transpile() (string, []any, error) {
@@ -34,6 +59,9 @@ func (t *Transpiler) Transpile() (string, []any, error) {
 	resultBoolExpr, ok := resultExpr.(boolExpr)
 	if !ok {
 		return "", nil, fmt.Errorf("not a bool expr")
+	}
+	if t.err != nil {
+		return "", nil, t.err
 	}
 	return "WHERE " + resultBoolExpr.SQL(), t.params, nil
 }
@@ -137,15 +165,26 @@ func (t *Transpiler) resolveEnumValue(identType *expr.Type, name string) (protor
 	if messageType == "" {
 		return 0, false
 	}
-	enumType, err := protoregistry.GlobalTypes.FindEnumByName(protoreflect.FullName(messageType))
-	if err != nil {
+	enumDescriptor := t.resolveEnumDescriptor(protoreflect.FullName(messageType))
+	if enumDescriptor == nil {
 		return 0, false
 	}
-	enumValue := enumType.Descriptor().Values().ByName(protoreflect.Name(name))
+	enumValue := enumDescriptor.Values().ByName(protoreflect.Name(name))
 	if enumValue == nil {
 		return 0, false
 	}
 	return enumValue.Number(), true
+}
+
+func (t *Transpiler) resolveEnumDescriptor(fullName protoreflect.FullName) protoreflect.EnumDescriptor {
+	if t.resolveEnum != nil {
+		return t.resolveEnum(fullName)
+	}
+	enumType, err := protoregistry.GlobalTypes.FindEnumByName(fullName)
+	if err != nil {
+		return nil
+	}
+	return enumType.Descriptor()
 }
 
 func (t *Transpiler) transpileSelectExpr(e *expr.Expr) (sqlExpr, error) {
@@ -330,7 +369,37 @@ func (t *Transpiler) transpileDurationCallExpr(e *expr.Expr, asSeconds bool) (sq
 }
 
 func (t *Transpiler) addParam(value any) sqlParam {
+	if t.inlineParams {
+		literal, err := sqlLiteral(value)
+		if err != nil && t.err == nil {
+			t.err = err
+		}
+		return sqlParam(literal)
+	}
 	t.paramCounter++
 	t.params = append(t.params, value)
 	return sqlParam("$" + strconv.Itoa(t.paramCounter))
+}
+
+// sqlLiteral renders a constant as a SQL literal, for inline-params mode.
+func sqlLiteral(value any) (string, error) {
+	switch v := value.(type) {
+	case bool:
+		if v {
+			return "TRUE", nil
+		}
+		return "FALSE", nil
+	case int64:
+		return strconv.FormatInt(v, 10), nil
+	case float64:
+		return strconv.FormatFloat(v, 'g', -1, 64), nil
+	case string:
+		return "'" + strings.ReplaceAll(v, "'", "''") + "'", nil
+	case time.Time:
+		return "'" + v.UTC().Format(time.RFC3339Nano) + "'::timestamptz", nil
+	case time.Duration:
+		return fmt.Sprintf("'%g seconds'::interval", v.Seconds()), nil
+	default:
+		return "", fmt.Errorf("cannot render %T as a SQL literal", value)
+	}
 }

@@ -232,18 +232,18 @@ func (m *Model) StructDef() (string, error) {
 		}
 
 		if join := field.FieldOpts.GetJoin(); join != nil {
-			target, err := schema.ResolveJoin(m.Message, join)
+			target, err := schema.ResolveJoin(m.Message, field.ProtoField, join)
 			if err != nil {
 				return "", fmt.Errorf("resolving join for %s: %w", field.ProtoField.GoName, err)
 			}
 			fieldNullable := field.FieldOpts.GetNullable()
-			// Parent joins are INNER joins: the field mirrors the parent
-			// column's nullability. Reference joins derive the join kind from
-			// the field itself (nullable => LEFT JOIN), so no parity applies.
-			if join.GetParent() != "" && fieldNullable != target.Nullable {
+			// Ancestor joins are INNER joins: the field mirrors the ancestor
+			// column's nullability. Reference and query joins derive the join
+			// kind from the field itself, checked in ParseJoins.
+			if target.Ancestor && fieldNullable != target.Nullable {
 				return "", fmt.Errorf(
-					"field %s has nullable=%v but parent field %q on %q has nullable=%v; they must match",
-					field.ProtoField.GoName, fieldNullable, join.GetField(), join.GetParent(), target.Nullable,
+					"field %s has nullable=%v but ancestor field %q on %q has nullable=%v; they must match",
+					field.ProtoField.GoName, fieldNullable, join.GetField(), join.GetResourceType(), target.Nullable,
 				)
 			}
 			// join_table carries the join alias so runtime filter

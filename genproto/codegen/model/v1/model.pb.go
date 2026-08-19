@@ -318,15 +318,23 @@ func (b0 FieldOpts_builder) Build() *FieldOpts {
 // Configures a field that is populated via a JOIN.
 type Join struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Required. The source of the join.
+	// Required. The resource type joined against. Whether it is an ancestor
+	// (the containing row) or a descendant (correlated child rows) is deduced
+	// from the resource name patterns.
+	ResourceType string `protobuf:"bytes,1,opt,name=resource_type,json=resourceType,proto3" json:"resource_type,omitempty"`
+	// Required. The field name on the joined message to populate from. The
+	// special value "name" selects the joined resource's name, reconstructed
+	// from its identifier columns.
+	Field string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
+	// Selects the joined row. When unset, resource_type must be an ancestor of
+	// this resource: the join equates the ancestor's identifier columns with
+	// this resource's corresponding columns.
 	//
-	// Types that are valid to be assigned to Source:
+	// Types that are valid to be assigned to Selector:
 	//
-	//	*Join_Parent
 	//	*Join_Reference
-	Source isJoin_Source `protobuf_oneof:"source"`
-	// Required. The field name on the joined message to populate from.
-	Field         string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
+	//	*Join_Query
+	Selector      isJoin_Selector `protobuf_oneof:"selector"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -356,27 +364,9 @@ func (x *Join) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Join) GetSource() isJoin_Source {
+func (x *Join) GetResourceType() string {
 	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-func (x *Join) GetParent() string {
-	if x != nil {
-		if x, ok := x.Source.(*Join_Parent); ok {
-			return x.Parent
-		}
-	}
-	return ""
-}
-
-func (x *Join) GetReference() string {
-	if x != nil {
-		if x, ok := x.Source.(*Join_Reference); ok {
-			return x.Reference
-		}
+		return x.ResourceType
 	}
 	return ""
 }
@@ -388,112 +378,154 @@ func (x *Join) GetField() string {
 	return ""
 }
 
-func (x *Join) SetParent(v string) {
-	x.Source = &Join_Parent{v}
+func (x *Join) GetSelector() isJoin_Selector {
+	if x != nil {
+		return x.Selector
+	}
+	return nil
 }
 
-func (x *Join) SetReference(v string) {
-	x.Source = &Join_Reference{v}
+func (x *Join) GetReference() string {
+	if x != nil {
+		if x, ok := x.Selector.(*Join_Reference); ok {
+			return x.Reference
+		}
+	}
+	return ""
+}
+
+func (x *Join) GetQuery() *Query {
+	if x != nil {
+		if x, ok := x.Selector.(*Join_Query); ok {
+			return x.Query
+		}
+	}
+	return nil
+}
+
+func (x *Join) SetResourceType(v string) {
+	x.ResourceType = v
 }
 
 func (x *Join) SetField(v string) {
 	x.Field = v
 }
 
-func (x *Join) HasSource() bool {
-	if x == nil {
-		return false
-	}
-	return x.Source != nil
+func (x *Join) SetReference(v string) {
+	x.Selector = &Join_Reference{v}
 }
 
-func (x *Join) HasParent() bool {
+func (x *Join) SetQuery(v *Query) {
+	if v == nil {
+		x.Selector = nil
+		return
+	}
+	x.Selector = &Join_Query{v}
+}
+
+func (x *Join) HasSelector() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Source.(*Join_Parent)
-	return ok
+	return x.Selector != nil
 }
 
 func (x *Join) HasReference() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Source.(*Join_Reference)
+	_, ok := x.Selector.(*Join_Reference)
 	return ok
 }
 
-func (x *Join) ClearSource() {
-	x.Source = nil
+func (x *Join) HasQuery() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Selector.(*Join_Query)
+	return ok
 }
 
-func (x *Join) ClearParent() {
-	if _, ok := x.Source.(*Join_Parent); ok {
-		x.Source = nil
-	}
+func (x *Join) ClearSelector() {
+	x.Selector = nil
 }
 
 func (x *Join) ClearReference() {
-	if _, ok := x.Source.(*Join_Reference); ok {
-		x.Source = nil
+	if _, ok := x.Selector.(*Join_Reference); ok {
+		x.Selector = nil
 	}
 }
 
-const Join_Source_not_set_case case_Join_Source = 0
-const Join_Parent_case case_Join_Source = 1
-const Join_Reference_case case_Join_Source = 3
-
-func (x *Join) WhichSource() case_Join_Source {
-	if x == nil {
-		return Join_Source_not_set_case
+func (x *Join) ClearQuery() {
+	if _, ok := x.Selector.(*Join_Query); ok {
+		x.Selector = nil
 	}
-	switch x.Source.(type) {
-	case *Join_Parent:
-		return Join_Parent_case
+}
+
+const Join_Selector_not_set_case case_Join_Selector = 0
+const Join_Reference_case case_Join_Selector = 3
+const Join_Query_case case_Join_Selector = 4
+
+func (x *Join) WhichSelector() case_Join_Selector {
+	if x == nil {
+		return Join_Selector_not_set_case
+	}
+	switch x.Selector.(type) {
 	case *Join_Reference:
 		return Join_Reference_case
+	case *Join_Query:
+		return Join_Query_case
 	default:
-		return Join_Source_not_set_case
+		return Join_Selector_not_set_case
 	}
 }
 
 type Join_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Required. The source of the join.
-
-	// Fields of oneof Source:
-	// The parent resource type to join on. The join conditions equate the
-	// parent's identifier columns with this resource's foreign key columns.
-	Parent *string
-	// The name of a field on *this* message holding a resource name
-	// reference (annotated with google.api.resource_reference). The
-	// referenced resource's type is resolved from that annotation. The join
-	// conditions equate the shared identifier columns and extract the final
-	// identifier from the stored name.
-	Reference *string
-	// -- end of Source
-	// Required. The field name on the joined message to populate from.
+	// Required. The resource type joined against. Whether it is an ancestor
+	// (the containing row) or a descendant (correlated child rows) is deduced
+	// from the resource name patterns.
+	ResourceType string
+	// Required. The field name on the joined message to populate from. The
+	// special value "name" selects the joined resource's name, reconstructed
+	// from its identifier columns.
 	Field string
+	// Selects the joined row. When unset, resource_type must be an ancestor of
+	// this resource: the join equates the ancestor's identifier columns with
+	// this resource's corresponding columns.
+
+	// Fields of oneof Selector:
+	// The name of a field on *this* message holding a resource name
+	// reference (annotated with google.api.resource_reference) of
+	// resource_type. The join conditions equate the shared identifier
+	// columns and extract the final identifier from the stored name.
+	Reference *string
+	// Selects at most one row among the descendant rows correlated with this
+	// resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
+	// fields must be nullable.
+	Query *Query
+	// -- end of Selector
 }
 
 func (b0 Join_builder) Build() *Join {
 	m0 := &Join{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Parent != nil {
-		x.Source = &Join_Parent{*b.Parent}
-	}
-	if b.Reference != nil {
-		x.Source = &Join_Reference{*b.Reference}
-	}
+	x.ResourceType = b.ResourceType
 	x.Field = b.Field
+	if b.Reference != nil {
+		x.Selector = &Join_Reference{*b.Reference}
+	}
+	if b.Query != nil {
+		x.Selector = &Join_Query{b.Query}
+	}
 	return m0
 }
 
-type case_Join_Source protoreflect.FieldNumber
+type case_Join_Selector protoreflect.FieldNumber
 
-func (x case_Join_Source) String() string {
+func (x case_Join_Selector) String() string {
 	md := file_malonaz_codegen_model_v1_model_proto_msgTypes[2].Descriptor()
 	if x == 0 {
 		return "not set"
@@ -501,28 +533,112 @@ func (x case_Join_Source) String() string {
 	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
 }
 
-type isJoin_Source interface {
-	isJoin_Source()
-}
-
-type Join_Parent struct {
-	// The parent resource type to join on. The join conditions equate the
-	// parent's identifier columns with this resource's foreign key columns.
-	Parent string `protobuf:"bytes,1,opt,name=parent,proto3,oneof"`
+type isJoin_Selector interface {
+	isJoin_Selector()
 }
 
 type Join_Reference struct {
 	// The name of a field on *this* message holding a resource name
-	// reference (annotated with google.api.resource_reference). The
-	// referenced resource's type is resolved from that annotation. The join
-	// conditions equate the shared identifier columns and extract the final
-	// identifier from the stored name.
+	// reference (annotated with google.api.resource_reference) of
+	// resource_type. The join conditions equate the shared identifier
+	// columns and extract the final identifier from the stored name.
 	Reference string `protobuf:"bytes,3,opt,name=reference,proto3,oneof"`
 }
 
-func (*Join_Parent) isJoin_Source() {}
+type Join_Query struct {
+	// Selects at most one row among the descendant rows correlated with this
+	// resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
+	// fields must be nullable.
+	Query *Query `protobuf:"bytes,4,opt,name=query,proto3,oneof"`
+}
 
-func (*Join_Reference) isJoin_Source() {}
+func (*Join_Reference) isJoin_Selector() {}
+
+func (*Join_Query) isJoin_Selector() {}
+
+// A query selecting at most one descendant row.
+type Query struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Optional AIP-160 filter over the descendant resource, restricted to
+	// conjunctions of comparisons on scalar stored fields, e.g.
+	// `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
+	// resolved to their numbers at generation time.
+	Filter string `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Required AIP-132 order_by picking the winning row, e.g.
+	// "create_time desc".
+	OrderBy       string `protobuf:"bytes,2,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Query) Reset() {
+	*x = Query{}
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Query) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Query) ProtoMessage() {}
+
+func (x *Query) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Query) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *Query) GetOrderBy() string {
+	if x != nil {
+		return x.OrderBy
+	}
+	return ""
+}
+
+func (x *Query) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *Query) SetOrderBy(v string) {
+	x.OrderBy = v
+}
+
+type Query_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Optional AIP-160 filter over the descendant resource, restricted to
+	// conjunctions of comparisons on scalar stored fields, e.g.
+	// `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
+	// resolved to their numbers at generation time.
+	Filter string
+	// Required AIP-132 order_by picking the winning row, e.g.
+	// "create_time desc".
+	OrderBy string
+}
+
+func (b0 Query_builder) Build() *Query {
+	m0 := &Query{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Filter = b.Filter
+	x.OrderBy = b.OrderBy
+	return m0
+}
 
 var file_malonaz_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
@@ -579,37 +695,44 @@ const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\x04skip\x18\x05 \x01(\bR\x04skip\x12\x14\n" +
 	"\x05embed\x18\x06 \x01(\bR\x05embed\x12\x1b\n" +
 	"\tpg_vector\x18\a \x01(\bR\bpgVector\x122\n" +
-	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"h\n" +
-	"\x04Join\x12 \n" +
-	"\x06parent\x18\x01 \x01(\tB\x06\xfaA\x03\n" +
-	"\x01*H\x00R\x06parent\x12\x1e\n" +
-	"\treference\x18\x03 \x01(\tH\x00R\treference\x12\x14\n" +
-	"\x05field\x18\x02 \x01(\tR\x05fieldB\b\n" +
-	"\x06source:d\n" +
+	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"\xae\x01\n" +
+	"\x04Join\x12+\n" +
+	"\rresource_type\x18\x01 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*R\fresourceType\x12\x14\n" +
+	"\x05field\x18\x02 \x01(\tR\x05field\x12\x1e\n" +
+	"\treference\x18\x03 \x01(\tH\x00R\treference\x127\n" +
+	"\x05query\x18\x04 \x01(\v2\x1f.malonaz.codegen.model.v1.QueryH\x00R\x05queryB\n" +
+	"\n" +
+	"\bselector\":\n" +
+	"\x05Query\x12\x16\n" +
+	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x02 \x01(\tR\aorderBy:d\n" +
 	"\n" +
 	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2#.malonaz.codegen.model.v1.ModelOptsR\tmodelOpts:c\n" +
 	"\n" +
 	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2#.malonaz.codegen.model.v1.FieldOptsR\tfieldOptsB3Z1github.com/malonaz/core/genproto/codegen/model/v1b\x06proto3"
 
-var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_codegen_model_v1_model_proto_goTypes = []any{
 	(*ModelOpts)(nil),                   // 0: malonaz.codegen.model.v1.ModelOpts
 	(*FieldOpts)(nil),                   // 1: malonaz.codegen.model.v1.FieldOpts
 	(*Join)(nil),                        // 2: malonaz.codegen.model.v1.Join
-	(*descriptorpb.MessageOptions)(nil), // 3: google.protobuf.MessageOptions
-	(*descriptorpb.FieldOptions)(nil),   // 4: google.protobuf.FieldOptions
+	(*Query)(nil),                       // 3: malonaz.codegen.model.v1.Query
+	(*descriptorpb.MessageOptions)(nil), // 4: google.protobuf.MessageOptions
+	(*descriptorpb.FieldOptions)(nil),   // 5: google.protobuf.FieldOptions
 }
 var file_malonaz_codegen_model_v1_model_proto_depIdxs = []int32{
 	2, // 0: malonaz.codegen.model.v1.FieldOpts.join:type_name -> malonaz.codegen.model.v1.Join
-	3, // 1: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
-	4, // 2: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
-	0, // 3: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
-	1, // 4: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	3, // [3:5] is the sub-list for extension type_name
-	1, // [1:3] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3, // 1: malonaz.codegen.model.v1.Join.query:type_name -> malonaz.codegen.model.v1.Query
+	4, // 2: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
+	5, // 3: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
+	0, // 4: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
+	1, // 5: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	4, // [4:6] is the sub-list for extension type_name
+	2, // [2:4] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_model_v1_model_proto_init() }
@@ -618,8 +741,8 @@ func file_malonaz_codegen_model_v1_model_proto_init() {
 		return
 	}
 	file_malonaz_codegen_model_v1_model_proto_msgTypes[2].OneofWrappers = []any{
-		(*Join_Parent)(nil),
 		(*Join_Reference)(nil),
+		(*Join_Query)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -627,7 +750,7 @@ func file_malonaz_codegen_model_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_model_v1_model_proto_rawDesc), len(file_malonaz_codegen_model_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 2,
 			NumServices:   0,
 		},

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/model/v1/model.proto.
  */
 export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIk4KBEpvaW4SGAoGcGFyZW50GAEgASgJQgb6QQMKASpIABITCglyZWZlcmVuY2UYAyABKAlIABINCgVmaWVsZBgCIAEoCUIICgZzb3VyY2U6ZAoKbW9kZWxfb3B0cxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjqRCABKAsyIy5tYWxvbmF6LmNvZGVnZW4ubW9kZWwudjEuTW9kZWxPcHRzUgltb2RlbE9wdHM6YwoKZmllbGRfb3B0cxIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYp/0BIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5GaWVsZE9wdHNSCWZpZWxkT3B0c0IzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL21vZGVsL3YxYgZwcm90bzM", [file_google_api_resource, file_google_protobuf_descriptor]);
+  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIocBCgRKb2luEh0KDXJlc291cmNlX3R5cGUYASABKAlCBvpBAwoBKhINCgVmaWVsZBgCIAEoCRITCglyZWZlcmVuY2UYAyABKAlIABIwCgVxdWVyeRgEIAEoCzIfLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5RdWVyeUgAQgoKCHNlbGVjdG9yIikKBVF1ZXJ5Eg4KBmZpbHRlchgBIAEoCRIQCghvcmRlcl9ieRgCIAEoCTpkCgptb2RlbF9vcHRzEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGOpEIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Nb2RlbE9wdHNSCW1vZGVsT3B0czpjCgpmaWVsZF9vcHRzEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxin/QEgASgLMiMubWFsb25hei5jb2RlZ2VuLm1vZGVsLnYxLkZpZWxkT3B0c1IJZmllbGRPcHRzQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbW9kZWwvdjFiBnByb3RvMw", [file_google_api_resource, file_google_protobuf_descriptor]);
 
 /**
  * ModelOpts defines code generation options for an entire message/model.
@@ -140,39 +140,52 @@ export const FieldOptsSchema: GenMessage<FieldOpts, {validType: FieldOptsValid}>
  */
 export type Join = Message<"malonaz.codegen.model.v1.Join"> & {
   /**
-   * Required. The source of the join.
+   * Required. The resource type joined against. Whether it is an ancestor
+   * (the containing row) or a descendant (correlated child rows) is deduced
+   * from the resource name patterns.
    *
-   * @generated from oneof malonaz.codegen.model.v1.Join.source
+   * @generated from field: string resource_type = 1;
    */
-  source: {
-    /**
-     * The parent resource type to join on. The join conditions equate the
-     * parent's identifier columns with this resource's foreign key columns.
-     *
-     * @generated from field: string parent = 1;
-     */
-    value: string;
-    case: "parent";
-  } | {
+  resourceType: string;
+
+  /**
+   * Required. The field name on the joined message to populate from. The
+   * special value "name" selects the joined resource's name, reconstructed
+   * from its identifier columns.
+   *
+   * @generated from field: string field = 2;
+   */
+  field: string;
+
+  /**
+   * Selects the joined row. When unset, resource_type must be an ancestor of
+   * this resource: the join equates the ancestor's identifier columns with
+   * this resource's corresponding columns.
+   *
+   * @generated from oneof malonaz.codegen.model.v1.Join.selector
+   */
+  selector: {
     /**
      * The name of a field on *this* message holding a resource name
-     * reference (annotated with google.api.resource_reference). The
-     * referenced resource's type is resolved from that annotation. The join
-     * conditions equate the shared identifier columns and extract the final
-     * identifier from the stored name.
+     * reference (annotated with google.api.resource_reference) of
+     * resource_type. The join conditions equate the shared identifier
+     * columns and extract the final identifier from the stored name.
      *
      * @generated from field: string reference = 3;
      */
     value: string;
     case: "reference";
+  } | {
+    /**
+     * Selects at most one row among the descendant rows correlated with this
+     * resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
+     * fields must be nullable.
+     *
+     * @generated from field: malonaz.codegen.model.v1.Query query = 4;
+     */
+    value: Query;
+    case: "query";
   } | { case: undefined; value?: undefined };
-
-  /**
-   * Required. The field name on the joined message to populate from.
-   *
-   * @generated from field: string field = 2;
-   */
-  field: string;
 };
 
 export type JoinValid = Join;
@@ -183,6 +196,40 @@ export type JoinValid = Join;
  */
 export const JoinSchema: GenMessage<Join, {validType: JoinValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_codegen_model_v1_model, 2);
+
+/**
+ * A query selecting at most one descendant row.
+ *
+ * @generated from message malonaz.codegen.model.v1.Query
+ */
+export type Query = Message<"malonaz.codegen.model.v1.Query"> & {
+  /**
+   * Optional AIP-160 filter over the descendant resource, restricted to
+   * conjunctions of comparisons on scalar stored fields, e.g.
+   * `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
+   * resolved to their numbers at generation time.
+   *
+   * @generated from field: string filter = 1;
+   */
+  filter: string;
+
+  /**
+   * Required AIP-132 order_by picking the winning row, e.g.
+   * "create_time desc".
+   *
+   * @generated from field: string order_by = 2;
+   */
+  orderBy: string;
+};
+
+export type QueryValid = Query;
+
+/**
+ * Describes the message malonaz.codegen.model.v1.Query.
+ * Use `create(QuerySchema)` to create a new message.
+ */
+export const QuerySchema: GenMessage<Query, {validType: QueryValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_model_v1_model, 3);
 
 /**
  * Opts for a model.

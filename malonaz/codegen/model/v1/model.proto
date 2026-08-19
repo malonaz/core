@@ -71,20 +71,42 @@ message FieldOpts {
 
 // Configures a field that is populated via a JOIN.
 message Join {
-  // Required. The source of the join.
-  oneof source {
-    // The parent resource type to join on. The join conditions equate the
-    // parent's identifier columns with this resource's foreign key columns.
-    string parent = 1 [(google.api.resource_reference).type = "*"];
+  // Required. The resource type joined against. Whether it is an ancestor
+  // (the containing row) or a descendant (correlated child rows) is deduced
+  // from the resource name patterns.
+  string resource_type = 1 [(google.api.resource_reference).type = "*"];
 
-    // The name of a field on *this* message holding a resource name
-    // reference (annotated with google.api.resource_reference). The
-    // referenced resource's type is resolved from that annotation. The join
-    // conditions equate the shared identifier columns and extract the final
-    // identifier from the stored name.
-    string reference = 3;
-  }
-
-  // Required. The field name on the joined message to populate from.
+  // Required. The field name on the joined message to populate from. The
+  // special value "name" selects the joined resource's name, reconstructed
+  // from its identifier columns.
   string field = 2;
+
+  // Selects the joined row. When unset, resource_type must be an ancestor of
+  // this resource: the join equates the ancestor's identifier columns with
+  // this resource's corresponding columns.
+  oneof selector {
+    // The name of a field on *this* message holding a resource name
+    // reference (annotated with google.api.resource_reference) of
+    // resource_type. The join conditions equate the shared identifier
+    // columns and extract the final identifier from the stored name.
+    string reference = 3;
+
+    // Selects at most one row among the descendant rows correlated with this
+    // resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
+    // fields must be nullable.
+    Query query = 4;
+  }
+}
+
+// A query selecting at most one descendant row.
+message Query {
+  // Optional AIP-160 filter over the descendant resource, restricted to
+  // conjunctions of comparisons on scalar stored fields, e.g.
+  // `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
+  // resolved to their numbers at generation time.
+  string filter = 1;
+
+  // Required AIP-132 order_by picking the winning row, e.g.
+  // "create_time desc".
+  string order_by = 2;
 }

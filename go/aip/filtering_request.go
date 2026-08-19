@@ -68,19 +68,69 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...Filt
 		return nil, err
 	}
 
-	var (
-		sharedDeclarationOptions []filtering.DeclarationOption // Shared declarations.
-		declarationOptions       []filtering.DeclarationOption // ident declarations matching proto fields.
-		macroDeclarationOptions  []filtering.DeclarationOption // ident declarations matching db column names.
-		macros                   []filtering.Macro
-	)
+	declarations, macroDeclarations, macros, err := NewFilterDeclarations(tree, options.withFQN)
+	if err != nil {
+		return nil, err
+	}
 
-	// Declare boolean constants
-	sharedDeclarationOptions = append(sharedDeclarationOptions,
+	return &FilteringRequestParser[T, R]{
+		declarations:      declarations,
+		macroDeclarations: macroDeclarations,
+		macros:            macros,
+		tree:              tree,
+	}, nil
+}
+
+func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, error) {
+	filter, err := filtering.ParseFilter(request, p.declarations)
+	if err != nil {
+		return nil, fmt.Errorf("parsing filter: %w", err)
+	}
+	if filter.CheckedExpr != nil {
+		filter, err = filtering.ApplyMacros(filter, p.macroDeclarations, p.macros...)
+		if err != nil {
+			return nil, fmt.Errorf("applying macros: %w", err)
+		}
+	}
+	whereClause, whereParams, err := postgres.TranspileFilter(filter)
+	if err != nil {
+		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
+	}
+	return &FilteringRequest{
+		request:     request,
+		filter:      filter,
+		whereClause: whereClause,
+		whereParams: whereParams,
+	}, nil
+}
+
+type FilteringRequest struct {
+	request     filtering.Request
+	filter      filtering.Filter
+	whereClause string
+	whereParams []any
+}
+
+func (f *FilteringRequest) GetSQLWhereClause() (string, []any) {
+	return f.whereClause, f.whereParams
+}
+
+func (f *FilteringRequest) GetFilter() filtering.Filter {
+	return f.filter
+}
+
+// NewFilterDeclarations builds the filter declarations of a resource tree:
+// idents matching proto field paths, macro idents matching database column
+// references, and the macros rewriting the former into the latter. withFQN
+// qualifies column references with their table (or join alias).
+func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclarations *filtering.Declarations, macros []filtering.Macro, err error) {
+	sharedDeclarationOptions := []filtering.DeclarationOption{
 		filtering.DeclareIdent("true", filtering.TypeBool),
 		filtering.DeclareIdent("false", filtering.TypeBool),
 		filtering.DeclareStandardFunctions(),
-	)
+	}
+	declarationOptions := []filtering.DeclarationOption{}      // ident declarations matching proto fields.
+	macroDeclarationOptions := []filtering.DeclarationOption{} // ident declarations matching db column names.
 
 	identNameToFQN := map[string]string{}
 	for node := range tree.FilterableNodes() {
@@ -92,7 +142,7 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...Filt
 		if node.ReplacementPath != "" {
 			fqn = node.ReplacementPath
 		}
-		if options.withFQN {
+		if withFQN {
 			fqn = node.TableName + "." + fqn
 		}
 		identNameToFQN[node.Path] = fqn
@@ -150,58 +200,13 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...Filt
 	declarationOptions = append(declarationOptions, sharedDeclarationOptions...)
 	macroDeclarationOptions = append(macroDeclarationOptions, sharedDeclarationOptions...)
 
-	declarations, err := filtering.NewDeclarations(declarationOptions...)
+	declarations, err = filtering.NewDeclarations(declarationOptions...)
 	if err != nil {
-		return nil, fmt.Errorf("creating filter declarations: %w", err)
+		return nil, nil, nil, fmt.Errorf("creating filter declarations: %w", err)
 	}
-
-	macroDeclarations, err := filtering.NewDeclarations(macroDeclarationOptions...)
+	macroDeclarations, err = filtering.NewDeclarations(macroDeclarationOptions...)
 	if err != nil {
-		return nil, fmt.Errorf("creating filter macro declarations: %w", err)
+		return nil, nil, nil, fmt.Errorf("creating filter macro declarations: %w", err)
 	}
-
-	return &FilteringRequestParser[T, R]{
-		declarations:      declarations,
-		macroDeclarations: macroDeclarations,
-		macros:            macros,
-		tree:              tree,
-	}, nil
-}
-
-func (p *FilteringRequestParser[T, R]) Parse(request T) (*FilteringRequest, error) {
-	filter, err := filtering.ParseFilter(request, p.declarations)
-	if err != nil {
-		return nil, fmt.Errorf("parsing filter: %w", err)
-	}
-	if filter.CheckedExpr != nil {
-		filter, err = filtering.ApplyMacros(filter, p.macroDeclarations, p.macros...)
-		if err != nil {
-			return nil, fmt.Errorf("applying macros: %w", err)
-		}
-	}
-	whereClause, whereParams, err := postgres.TranspileFilter(filter)
-	if err != nil {
-		return nil, fmt.Errorf("transpiling filter to SQL: %w", err)
-	}
-	return &FilteringRequest{
-		request:     request,
-		filter:      filter,
-		whereClause: whereClause,
-		whereParams: whereParams,
-	}, nil
-}
-
-type FilteringRequest struct {
-	request     filtering.Request
-	filter      filtering.Filter
-	whereClause string
-	whereParams []any
-}
-
-func (f *FilteringRequest) GetSQLWhereClause() (string, []any) {
-	return f.whereClause, f.whereParams
-}
-
-func (f *FilteringRequest) GetFilter() filtering.Filter {
-	return f.filter
+	return declarations, macroDeclarations, macros, nil
 }

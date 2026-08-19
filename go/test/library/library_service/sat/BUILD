@@ -16,6 +16,7 @@ go_test(
         "nats_events_test.go",
         "note_test.go",
         "order_by_test.go",
+        "query_join_test.go",
         "read_mask_test.go",
         "reference_join_test.go",
         "sat_test.go",

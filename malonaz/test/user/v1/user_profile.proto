@@ -71,7 +71,7 @@ message UserProfile {
   string user_display_name = 10 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "user.test.malonaz.com/User"
+      resource_type: "user.test.malonaz.com/User"
       field: "display_name"
     }
   ];
@@ -80,7 +80,7 @@ message UserProfile {
   string user_email_address = 11 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "user.test.malonaz.com/User"
+      resource_type: "user.test.malonaz.com/User"
       field: "email_address"
     }
   ];
@@ -89,7 +89,7 @@ message UserProfile {
   string organization_display_name = 12 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "user.test.malonaz.com/Organization"
+      resource_type: "user.test.malonaz.com/Organization"
       field: "display_name"
     }
   ];

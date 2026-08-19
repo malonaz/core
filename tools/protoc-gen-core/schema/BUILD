@@ -6,6 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip/transpiler/postgres/static",
         "//go/pbutil",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
@@ -13,6 +14,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/proto:google__api__annotations",
         "//tools/protoc-gen-core/resource",
     ],

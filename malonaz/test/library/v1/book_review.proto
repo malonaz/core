@@ -69,7 +69,7 @@ message BookReview {
   string book_title = 9 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Book"
+      resource_type: "library.test.malonaz.com/Book"
       field: "title"
     }
   ];
@@ -78,7 +78,7 @@ message BookReview {
   int32 book_publication_year = 10 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Book"
+      resource_type: "library.test.malonaz.com/Book"
       field: "publication_year"
     }
   ];

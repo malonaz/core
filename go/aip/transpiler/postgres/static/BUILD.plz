@@ -1,0 +1,13 @@
+go_library(
+    name = "static",
+    srcs = ["static.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/aip",
+        "//go/aip/transpiler/postgres",
+        "//third_party/go:go.einride.tech__aip__filtering",
+        "//third_party/go:go.einride.tech__aip__ordering",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)

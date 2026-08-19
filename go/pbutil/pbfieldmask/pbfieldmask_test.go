@@ -333,6 +333,8 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"labels",
 		"best_book",
 		"best_book_page_count",
+		"latest_book",
+		"latest_book_title",
 		"metadata.capacity",
 		"metadata.dummy",
 		"metadata.notes",

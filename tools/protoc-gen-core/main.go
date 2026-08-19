@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/pluginpb"
 
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
@@ -23,6 +24,7 @@ import (
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/postgres"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/rpc"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
+	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -102,6 +104,15 @@ func main() {
 		if err := resource.RegisterAncestors(gen.Files); err != nil {
 			return fmt.Errorf("registering ancestors: %v", err)
 		}
+		// Query-join filter transpilation resolves resource types across the
+		// whole compilation unit.
+		filesRegistry := new(protoregistry.Files)
+		for _, f := range gen.Files {
+			if err := filesRegistry.RegisterFile(f.Desc); err != nil {
+				return fmt.Errorf("registering file %s: %v", f.Desc.Path(), err)
+			}
+		}
+		schema.SetFilesRegistry(filesRegistry)
 
 		otherFiles := []*protogen.File{}
 		for _, f := range gen.Files {

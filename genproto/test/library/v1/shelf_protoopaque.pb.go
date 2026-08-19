@@ -104,6 +104,8 @@ type Shelf struct {
 	xxx_hidden_Metadata          *ShelfMetadata         `protobuf:"bytes,11,opt,name=metadata,proto3"`
 	xxx_hidden_BestBook          string                 `protobuf:"bytes,12,opt,name=best_book,json=bestBook,proto3"`
 	xxx_hidden_BestBookPageCount int32                  `protobuf:"varint,13,opt,name=best_book_page_count,json=bestBookPageCount,proto3"`
+	xxx_hidden_LatestBook        string                 `protobuf:"bytes,14,opt,name=latest_book,json=latestBook,proto3"`
+	xxx_hidden_LatestBookTitle   string                 `protobuf:"bytes,15,opt,name=latest_book_title,json=latestBookTitle,proto3"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -224,6 +226,20 @@ func (x *Shelf) GetBestBookPageCount() int32 {
 	return 0
 }
 
+func (x *Shelf) GetLatestBook() string {
+	if x != nil {
+		return x.xxx_hidden_LatestBook
+	}
+	return ""
+}
+
+func (x *Shelf) GetLatestBookTitle() string {
+	if x != nil {
+		return x.xxx_hidden_LatestBookTitle
+	}
+	return ""
+}
+
 func (x *Shelf) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -274,6 +290,14 @@ func (x *Shelf) SetBestBook(v string) {
 
 func (x *Shelf) SetBestBookPageCount(v int32) {
 	x.xxx_hidden_BestBookPageCount = v
+}
+
+func (x *Shelf) SetLatestBook(v string) {
+	x.xxx_hidden_LatestBook = v
+}
+
+func (x *Shelf) SetLatestBookTitle(v string) {
+	x.xxx_hidden_LatestBookTitle = v
 }
 
 func (x *Shelf) HasCreateTime() bool {
@@ -361,6 +385,12 @@ type Shelf_builder struct {
 	BestBook string
 	// The page count of the best book.
 	BestBookPageCount int32
+	// The most recently created book on this shelf with pages, resolved by a
+	// query join: a lateral subquery correlated on this shelf.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	LatestBook string
+	// The title of the latest book, chained onto the latest_book query join.
+	LatestBookTitle string
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -380,6 +410,8 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.xxx_hidden_Metadata = b.Metadata
 	x.xxx_hidden_BestBook = b.BestBook
 	x.xxx_hidden_BestBookPageCount = b.BestBookPageCount
+	x.xxx_hidden_LatestBook = b.LatestBook
+	x.xxx_hidden_LatestBookTitle = b.LatestBookTitle
 	return m0
 }
 
@@ -552,8 +584,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xe1\n" +
-	"\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x86\r\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -578,9 +609,17 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\bmetadata\x18\v \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
 	"\vlegacy_meta\x10\x01R\bmetadata\x12?\n" +
 	"\tbest_book\x18\f \x01(\tB\"\xfaA\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/BookR\bbestBook\x12S\n" +
-	"\x14best_book_page_count\x18\r \x01(\x05B\"\xe0A\x03\xba\xea\x0f\x1b \x01B\x17\x12\n" +
-	"page_count\x1a\tbest_bookR\x11bestBookPageCount\x1a9\n" +
+	"\x1dlibrary.test.malonaz.com/BookR\bbestBook\x12r\n" +
+	"\x14best_book_page_count\x18\r \x01(\x05BA\xe0A\x03\xba\xea\x0f: \x01B6\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\n" +
+	"page_count\x1a\tbest_bookR\x11bestBookPageCount\x12\x97\x01\n" +
+	"\vlatest_book\x18\x0e \x01(\tBv\xe0A\x03\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Book\xba\xea\x0fM \x01BI\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name\"\"\n" +
+	"\x0epage_count > 0\x12\x10create_time descR\n" +
+	"latestBook\x12j\n" +
+	"\x11latest_book_title\x18\x0f \x01(\tB>\xe0A\x03\xba\xea\x0f7 \x01B3\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x05title\x1a\vlatest_bookR\x0flatestBookTitle\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc1\x02\xeaA^\n" +

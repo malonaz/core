@@ -33,6 +33,8 @@ type Shelf struct {
 	Metadata          []byte         `db:"legacy_meta" schema:"library" table:"shelf"`
 	BestBook          string         `db:"best_book" schema:"library" table:"shelf"`
 	BestBookPageCount *int32         `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
+	LatestBook        *string        `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
+	LatestBookTitle   *string        `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -90,6 +92,14 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 	if m.BestBookPageCount != 0 {
 		BestBookPageCount = &m.BestBookPageCount
 	}
+	var LatestBook *string
+	if m.LatestBook != "" {
+		LatestBook = &m.LatestBook
+	}
+	var LatestBookTitle *string
+	if m.LatestBookTitle != "" {
+		LatestBookTitle = &m.LatestBookTitle
+	}
 	return &Shelf{
 		OrganizationID:    OrganizationID,
 		ShelfID:           ShelfID,
@@ -105,6 +115,8 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		Metadata:          MetadataBytes,
 		BestBook:          m.BestBook,
 		BestBookPageCount: BestBookPageCount,
+		LatestBook:        LatestBook,
+		LatestBookTitle:   LatestBookTitle,
 	}, nil
 }
 
@@ -152,6 +164,14 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 	if m.BestBookPageCount != nil {
 		BestBookPageCount = *m.BestBookPageCount
 	}
+	var LatestBook string
+	if m.LatestBook != nil {
+		LatestBook = *m.LatestBook
+	}
+	var LatestBookTitle string
+	if m.LatestBookTitle != nil {
+		LatestBookTitle = *m.LatestBookTitle
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -170,6 +190,8 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 		Metadata:          Metadata,
 		BestBook:          m.BestBook,
 		BestBookPageCount: BestBookPageCount,
+		LatestBook:        LatestBook,
+		LatestBookTitle:   LatestBookTitle,
 	}, nil
 }
 

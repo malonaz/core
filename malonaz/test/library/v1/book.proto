@@ -98,7 +98,7 @@ message Book {
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Shelf"
+      resource_type: "library.test.malonaz.com/Shelf"
       field: "external_id"
     }
   ];
@@ -107,7 +107,7 @@ message Book {
   ShelfGenre shelf_genre = 14 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Shelf"
+      resource_type: "library.test.malonaz.com/Shelf"
       field: "genre"
     }
   ];

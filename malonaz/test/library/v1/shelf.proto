@@ -121,8 +121,41 @@ message Shelf {
     (malonaz.codegen.model.v1.field_opts) = {
       nullable: true
       join: {
+        resource_type: "library.test.malonaz.com/Book"
         reference: "best_book"
         field: "page_count"
+      }
+    }
+  ];
+
+  // The most recently created book on this shelf with pages, resolved by a
+  // query join: a lateral subquery correlated on this shelf.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string latest_book = 14 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        query: {
+          filter: "page_count > 0"
+          order_by: "create_time desc"
+        }
+      }
+    }
+  ];
+
+  // The title of the latest book, chained onto the latest_book query join.
+  string latest_book_title = 15 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        reference: "latest_book"
+        field: "title"
       }
     }
   ];

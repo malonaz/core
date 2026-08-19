@@ -72,6 +72,8 @@ func WithRegistry(registry *protoregistry.Files) TreeOption {
 
 // BuildResourceTreeFromDescriptor builds a tree from a raw message descriptor
 // without requiring a concrete Go type. Useful for dynamic/codegen scenarios.
+// It parses the resource descriptor, model options, and field options to
+// produce nodes with column name mappings and replacement paths.
 func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opts ...TreeOption) (*Tree, error) {
 	config := &TreeConfig{}
 	for _, opt := range opts {
@@ -82,41 +84,8 @@ func BuildResourceTreeFromDescriptor(msgDesc protoreflect.MessageDescriptor, opt
 		return nil, err
 	}
 
-	fields := msgDesc.Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		if err := tree.Explore(field.TextName(), field, 0); err != nil {
-			return nil, fmt.Errorf("exploring %s: %v", field.TextName(), err)
-		}
-	}
-
-	tree.SortAsc()
-	for _, node := range tree.Nodes {
-		node.AllowedPath = tree.IsPathAllowed(node)
-	}
-	return tree, nil
-}
-
-// BuildResourceTree builds a tree for a concrete protobuf resource type.
-// It parses the resource descriptor, model options, and field options to
-// produce nodes with column name mappings and replacement paths.
-func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
-	config := &TreeConfig{}
-	for _, opt := range opts {
-		opt(config)
-	}
-	tree, err := newTree(config)
-	if err != nil {
-		return nil, err
-	}
-
-	var resourceZero R
 	{
-		resourceMessage := resourceZero.ProtoReflect().Interface()
-		resourceDescriptor, err := pbutil.GetMessageOption[*annotationspb.ResourceDescriptor](
-			resourceMessage,
-			annotationspb.E_Resource,
-		)
+		resourceDescriptor, err := pbutil.GetExtension[*annotationspb.ResourceDescriptor](msgDesc.Options(), annotationspb.E_Resource)
 		if err != nil {
 			return nil, fmt.Errorf("getting resource descriptor: %w", err)
 		}
@@ -129,7 +98,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 
 	defaultTableName := xstrings.ToSnakeCase(tree.Resource.Singular)
 	{
-		modelOpts, err := pbutil.GetMessageOption[*modelpb.ModelOpts](resourceZero, modelpb.E_ModelOpts)
+		modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](msgDesc.Options(), modelpb.E_ModelOpts)
 		if err == nil && modelOpts != nil {
 			tree.IDColumnName = modelOpts.GetIdColumnName()
 			if modelOpts.GetTableName() != "" {
@@ -138,8 +107,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		}
 	}
 
-	resourceDescriptor := resourceZero.ProtoReflect().Descriptor()
-	fields := resourceDescriptor.Fields()
+	fields := msgDesc.Fields()
 
 	fieldPathToJoin := map[string]*modelpb.Join{}
 	for i := 0; i < fields.Len(); i++ {
@@ -167,7 +135,7 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 		if node.JoinTableName != "" {
 			node.TableName = node.JoinTableName
 			if join, ok := fieldPathToJoin[node.Path]; ok && node.ColumnName == "" {
-				joinColName, err := resolveJoinFieldColumnName(tree.Registry, resourceDescriptor, join)
+				joinColName, err := resolveJoinFieldColumnName(tree.Registry, msgDesc, join)
 				if err != nil {
 					return nil, fmt.Errorf("resolving join column name for %s: %v", node.Path, err)
 				}
@@ -198,6 +166,12 @@ func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
 	}
 
 	return tree, nil
+}
+
+// BuildResourceTree builds a tree for a concrete protobuf resource type.
+func BuildResourceTree[R proto.Message](opts ...TreeOption) (*Tree, error) {
+	var resourceZero R
+	return BuildResourceTreeFromDescriptor(resourceZero.ProtoReflect().Descriptor(), opts...)
 }
 
 // OrderableNodes returns an iterator over nodes that can be used in ORDER BY clauses.
@@ -400,7 +374,7 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 	// Resolve the join qualifier from the join source if this is a join field.
 	var joinTableName string
 	if join := fieldOpts.GetJoin(); join != nil {
-		tableName, err := resolveJoinAlias(t.Registry, fieldDesc.ContainingMessage(), join)
+		tableName, err := resolveJoinAlias(t.Registry, fieldDesc.ContainingMessage(), fieldName, join)
 		if err != nil {
 			return fmt.Errorf("resolving join table for %s: %v", fieldName, err)
 		}
@@ -518,35 +492,26 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 }
 
 // resolveJoinSourceMessage resolves the message descriptor backing a join:
-// the parent resource type, or the resource referenced by the reference
-// field's google.api.resource_reference annotation.
+// the message carrying the join's resource type.
 func resolveJoinSourceMessage(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (protoreflect.MessageDescriptor, error) {
-	switch {
-	case join.GetParent() != "":
-		return findMessageByResourceType(registry, join.GetParent())
-	case join.GetReference() != "":
-		referenceField := msgDesc.Fields().ByTextName(join.GetReference())
-		if referenceField == nil {
-			return nil, fmt.Errorf("reference field %q not found on %s", join.GetReference(), msgDesc.FullName())
-		}
-		reference, err := pbutil.GetExtension[*annotationspb.ResourceReference](referenceField.Options(), annotationspb.E_ResourceReference)
-		if err != nil {
-			return nil, fmt.Errorf("getting resource_reference for %q: %w", join.GetReference(), err)
-		}
-		if reference.GetType() == "" || reference.GetType() == "*" {
-			return nil, fmt.Errorf("reference field %q must declare a concrete resource_reference type", join.GetReference())
-		}
-		return findMessageByResourceType(registry, reference.GetType())
+	if join.GetResourceType() == "" {
+		return nil, fmt.Errorf("join on %s must declare a resource_type", msgDesc.FullName())
 	}
-	return nil, fmt.Errorf("join must set exactly one of parent or reference")
+	return findMessageByResourceType(registry, join.GetResourceType())
 }
 
-// go/aip/resource_tree.go
-func resolveJoinAlias(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (string, error) {
-	// Reference joins are aliased by the reference field name; the source
-	// message is irrelevant here and may not exist in the registry.
+// resolveJoinAlias resolves the table alias a joined field is emitted under:
+// the reference field name for reference joins (including references chained
+// onto a query join's anchor), the anchor field's own name for query joins,
+// and the source table name for ancestor joins.
+func resolveJoinAlias(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, fieldName string, join *modelpb.Join) (string, error) {
+	// The alias never depends on the source message for reference and query
+	// joins, which may not exist in the registry.
 	if join.GetReference() != "" {
 		return join.GetReference(), nil
+	}
+	if join.GetQuery() != nil {
+		return fieldName, nil
 	}
 
 	sourceMsg, err := resolveJoinSourceMessage(registry, msgDesc, join)

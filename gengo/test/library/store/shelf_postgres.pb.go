@@ -14,16 +14,16 @@ import (
 
 var (
 	ShelfPostgresColumns      = postgres.GetDBColumns(model.Shelf{})
-	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count"))
+	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
 )
 
-var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count`
-var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count`
-var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)`
+var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book,(SELECT book.title FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book_title`
+var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count,latest_book.name AS latest_book,latest_book.title AS latest_book_title`
+var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6) LEFT JOIN LATERAL (SELECT book.*, 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id AS name FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book ON TRUE`
 
 var (
 	ShelfWithRequestIDPostgresColumns      = postgres.GetDBColumns(ShelfWithRequestID{})
-	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count"))
+	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
 	_shelfInsertPostgresQuery              = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING `
 	shelfWithRequestIDInsertPostgresQuery  = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWithRequestIDWritePostgresColumns) + shelfJoinSubqueryExpr
 	shelfInsertPostgresQuery               = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr

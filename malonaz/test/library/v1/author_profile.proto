@@ -71,7 +71,7 @@ message AuthorProfile {
   string author_display_name = 10 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Author"
+      resource_type: "library.test.malonaz.com/Author"
       field: "display_name"
     }
   ];
@@ -80,7 +80,7 @@ message AuthorProfile {
   string author_email_address = 11 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).join = {
-      parent: "library.test.malonaz.com/Author"
+      resource_type: "library.test.malonaz.com/Author"
       field: "email_address"
     }
   ];
