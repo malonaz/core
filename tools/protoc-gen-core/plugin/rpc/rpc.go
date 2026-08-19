@@ -510,9 +510,6 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		if len(singletonChildren) > 0 {
 			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", pr.Desc.Type)
 		}
-		if mi.natsEventOpts != nil {
-			return nil, fmt.Errorf("multi-pattern resource %s cannot declare nats events", pr.Desc.Type)
-		}
 		for _, p := range pr.Patterns {
 			if p.Parent == nil {
 				return nil, fmt.Errorf("multi-pattern resource %s has parentless pattern %q; not supported", pr.Desc.Type, p.Value)
