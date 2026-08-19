@@ -17,6 +17,7 @@ import (
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/aip"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/gateway"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/mock"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/model"
 	natsevents "github.com/malonaz/core/tools/protoc-gen-core/plugin/nats/events"
 	natsstreams "github.com/malonaz/core/tools/protoc-gen-core/plugin/nats/streams"
@@ -118,6 +119,8 @@ func main() {
 		}
 		var generateFunc plugin.GenerateFunc
 		switch *opts.Plugin {
+		case "mock":
+			generateFunc = mock.Generate
 		case "model":
 			generateFunc = model.Generate
 		case "postgres":

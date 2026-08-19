@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package malonaz.test.mock.v1;
+
+option go_package = "github.com/malonaz/core/genproto/test/mock/v1";
+
+// Service used by the mock servers' own tests. It exists so those tests have a proto service to
+// route through the mocks without depending on a domain proto.
+service MockService {
+  // Echoes its request back.
+  rpc Echo(EchoRequest) returns (EchoResponse);
+
+  // Echoes its request back one message at a time. It exists so the generated mocks have a
+  // streaming endpoint to skip; the mock server itself serves only unary calls.
+  rpc EchoStream(EchoRequest) returns (stream EchoResponse);
+}
+
+// Request message for MockService.Echo.
+message EchoRequest {
+  // Arbitrary text, echoed back in the response.
+  string message = 1;
+
+  // Arbitrary count, echoed back in the response.
+  int32 count = 2;
+}
+
+// Response message for MockService.Echo.
+message EchoResponse {
+  // The message the request carried.
+  string message = 1;
+
+  // The count the request carried.
+  int32 count = 2;
+}

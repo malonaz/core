@@ -22,6 +22,12 @@ func NewStream(streamOptions *natspb.StreamOptions) *Stream {
 	}
 }
 
+// Name returns the stream's name on the wire, which is its dotted proto name with the dots
+// replaced by underscores, as in malonaz_test_library_v1_shelf.
+func (s *Stream) Name() string {
+	return s.name
+}
+
 func (s *Stream) Subject(suffix string) *Subject {
 	return &Subject{
 		name:   s.name + "." + suffix,
@@ -32,6 +38,12 @@ func (s *Stream) Subject(suffix string) *Subject {
 type Subject struct {
 	name   string
 	stream *Stream
+}
+
+// Name returns the subject's name on the wire, so that a test can select on it without
+// reconstructing the mangling [Stream.Name] describes.
+func (s *Subject) Name() string {
+	return s.name
 }
 
 func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream.Stream, error) {

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/prometheus"
 	"github.com/malonaz/core/go/sat"
@@ -104,6 +105,8 @@ func run(ctx context.Context) (func(), error) {
 		},
 		EnvironmentVariables: environmentVariables,
 		Nats:                 true,
+		// Buffered by satEnvironment.NatsStore, which nats_store_test.go asserts on.
+		NatsSubjects: []string{librarypb.GetShelfStream().Get().Subject(">").Name()},
 	}
 	satEnvironment = sat.New(config)
 	if err := satEnvironment.Start(ctx); err != nil {

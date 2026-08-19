@@ -1,28 +1,42 @@
 package mockserver
 
-// Codec is an instance of this codec.
-type Codec struct{}
+import (
+	"fmt"
 
+	"google.golang.org/protobuf/proto"
+)
+
+// frame carries an already-serialized payload past the codec, so the unknown-service handler can
+// decode requests itself rather than through generated stubs.
 type frame struct {
 	payload []byte
 }
 
-// Marshal returns the given byte-array wrapped inside a struct as is.
-func (m Codec) Marshal(v any) ([]byte, error) {
-	return v.(*frame).payload, nil
+// codec passes frame payloads through untouched and falls back to proto for every other
+// message, which is what keeps the registered health service working.
+type codec struct{}
+
+func (codec) Marshal(value any) ([]byte, error) {
+	if frame, ok := value.(*frame); ok {
+		return frame.payload, nil
+	}
+	message, ok := value.(proto.Message)
+	if !ok {
+		return nil, fmt.Errorf("marshaling %T: not a proto message", value)
+	}
+	return proto.Marshal(message)
 }
 
-// Unmarshal returns a frame struct with the byte array wrapped within it.
-func (m Codec) Unmarshal(b []byte, v any) error {
-	dst, ok := v.(*frame)
-	if !ok {
+func (codec) Unmarshal(bytes []byte, value any) error {
+	if frame, ok := value.(*frame); ok {
+		frame.payload = bytes
 		return nil
 	}
-	dst.payload = b
-	return nil
+	message, ok := value.(proto.Message)
+	if !ok {
+		return fmt.Errorf("unmarshaling into %T: not a proto message", value)
+	}
+	return proto.Unmarshal(bytes, message)
 }
 
-// String returns a printable name for this codec.
-func (m Codec) String() string {
-	return "bytes"
-}
+func (codec) Name() string { return "proto" }

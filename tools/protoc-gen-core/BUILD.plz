@@ -13,6 +13,7 @@ go_binary(
         "//tools/protoc-gen-core/plugin",
         "//tools/protoc-gen-core/plugin/aip",
         "//tools/protoc-gen-core/plugin/gateway",
+        "//tools/protoc-gen-core/plugin/mock",
         "//tools/protoc-gen-core/plugin/model",
         "//tools/protoc-gen-core/plugin/nats/events",
         "//tools/protoc-gen-core/plugin/nats/streams",

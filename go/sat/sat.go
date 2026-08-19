@@ -17,6 +17,7 @@ import (
 	"github.com/malonaz/core/go/binary"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/nats"
+	natsteststore "github.com/malonaz/core/go/nats/test_store"
 	"github.com/malonaz/core/go/postgres"
 	postgrestestserver "github.com/malonaz/core/go/postgres/test_server"
 )
@@ -40,6 +41,11 @@ type Config struct {
 	EnvironmentVariables map[string]string
 	Nats                 bool
 	Debug                bool
+
+	// NatsSubjects are buffered by [SAT.NatsStore] for the lifetime of the run, so that a test
+	// can assert on events the RPCs triggering them do not wait for. They may contain the NATS
+	// wildcards `*` and `>`. Requires Nats.
+	NatsSubjects []string
 }
 
 // PostgresServerConfig holds connection details for the test Postgres instance.
@@ -61,6 +67,10 @@ type SAT struct {
 	natsOptions    *natsserver.Options
 	natsClient     *nats.Client
 	natsClientOnce sync.Once
+
+	// NatsStore buffers everything published to Config.NatsSubjects, or is nil if none were
+	// given. It subscribes before any SUT starts, so events emitted during boot are caught too.
+	NatsStore *natsteststore.Nats
 
 	postgresClientsMutex sync.Mutex
 	postgresClients      map[string]*postgres.Client
@@ -165,6 +175,22 @@ func (s *SAT) Start(ctx context.Context) error {
 		os.Setenv(k, v)
 	}
 
+	// Subscribed before the SUTs start, so that nothing they publish while booting is missed.
+	// These are plain NATS subscriptions, so the streams need not exist yet.
+	if len(s.config.NatsSubjects) > 0 {
+		if !s.config.Nats {
+			return fmt.Errorf("nats subjects were configured without nats")
+		}
+		natsClient, err := s.GetNatsClient(ctx)
+		if err != nil {
+			return fmt.Errorf("connecting to nats: %w", err)
+		}
+		s.NatsStore, err = natsteststore.NewNats(natsClient, s.config.NatsSubjects...)
+		if err != nil {
+			return fmt.Errorf("subscribing to nats: %w", err)
+		}
+	}
+
 	// If a migrator is configured, we need a Postgres server, an initializer, and a migrator.
 	if s.config.Migrator.Name != "" {
 		serverConfig := postgrestestserver.Config{
@@ -219,8 +245,12 @@ func (s *SAT) Start(ctx context.Context) error {
 	return nil
 }
 
+// Cleanup tears down everything Start brought up. It is safe to call on a partially started
+// SAT, which is what a failing Start leaves behind.
 func (s *SAT) Cleanup() {
-	s.sutsWorker.Stop()
+	if s.sutsWorker != nil {
+		s.sutsWorker.Stop()
+	}
 	s.postgresClientsMutex.Lock()
 	for _, client := range s.postgresClients {
 		client.Close()
@@ -229,6 +259,9 @@ func (s *SAT) Cleanup() {
 	s.postgresClientsMutex.Unlock()
 	if s.PostgresServer != nil {
 		s.PostgresServer.Shutdown()
+	}
+	if s.NatsStore != nil {
+		s.NatsStore.Close()
 	}
 	if s.natsServer != nil {
 		s.natsServer.Shutdown()
