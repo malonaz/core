@@ -1,0 +1,9 @@
+go_library(
+    name = "mock",
+    srcs = ["mock_service_mock.pb.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/grpc/mock_server",
+        "//malonaz/test/mock/v1",
+    ],
+)

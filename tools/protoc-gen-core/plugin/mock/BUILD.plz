@@ -1,0 +1,9 @@
+go_library(
+    name = "mock",
+    srcs = ["mock.go"],
+    visibility = ["//..."],
+    deps = [
+        "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//tools/protoc-gen-core/plugin",
+    ],
+)
