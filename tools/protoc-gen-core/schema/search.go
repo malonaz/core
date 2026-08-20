@@ -123,7 +123,7 @@ func SearchFieldExpression(message *protogen.Message, path, columnPrefix string)
 	if terminal.Message != nil || terminal.Desc.IsList() {
 		// String leaves of the JSON subtree, space-joined.
 		return fmt.Sprintf(
-			`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s #> '{%s}', '$.** ? (@.type() == "string")') AS j), '')`,
+			`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s #> '{%s}', 'strict $.** ? (@.type() == "string")') AS j), '')`,
 			column, strings.Join(segments[1:], ","),
 		), nil
 	}
