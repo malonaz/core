@@ -58,7 +58,7 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 	expressions := make([]string, 0, len(searchOptions.GetFields()))
 	var snippetFields []SnippetField
 	for _, searchField := range searchOptions.GetFields() {
-		base, err := searchFieldBase(message, searchField.GetPath())
+		base, err := searchFieldBase(message, searchField.GetPath(), "")
 		if err != nil {
 			return nil, err
 		}
@@ -96,11 +96,19 @@ type SnippetField struct {
 	Expression string
 }
 
+// SearchFieldExpression resolves a search field path to its raw text SQL
+// expression with every column reference qualified by the given prefix
+// (e.g. "contact_activity_event."), for use inside queries that join other
+// tables where bare column names would be ambiguous.
+func SearchFieldExpression(message *protogen.Message, path, columnPrefix string) (string, error) {
+	return searchFieldBase(message, path, columnPrefix)
+}
+
 // searchFieldBase resolves a search field path to the raw text SQL expression
 // contributing that field to the search document (before split tokenization).
 // A dotted path reaches into an as_json_bytes message column via JSONB
 // extraction (which is IMMUTABLE, so generated columns keep working).
-func searchFieldBase(message *protogen.Message, path string) (string, error) {
+func searchFieldBase(message *protogen.Message, path, columnPrefix string) (string, error) {
 	segments := strings.Split(path, ".")
 	field := fieldByName(message, segments[0])
 	if field == nil {
@@ -118,7 +126,7 @@ func searchFieldBase(message *protogen.Message, path string) (string, error) {
 		return "", fmt.Errorf("search field %q on %s is a joined field: joined fields cannot be indexed into the search document (denormalize the value onto this resource, or search the parent resource instead)", path, message.GoIdent.GoName)
 	}
 
-	column := xstrings.ToSnakeCase(segments[0])
+	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
 	if len(segments) == 1 {
 		if field.Desc.Kind() != protoreflect.StringKind || field.Desc.IsMap() {
 			return "", fmt.Errorf("search field %q on %s must be a string or repeated string", path, message.GoIdent.GoName)

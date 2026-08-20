@@ -127,8 +127,13 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		mc.fmtI("Sprintf"), colPrefix, schema.SearchDocumentColumn, colPrefix))
 	if hasSnippets {
 		for _, snippetField := range searchDoc.SnippetFields {
+			// Qualify column references: joined queries make bare names ambiguous.
+			expression, err := schema.SearchFieldExpression(mc.message, snippetField.Path, colPrefix)
+			if err != nil {
+				panic(err) // Already resolved once by schema.SearchDocument.
+			}
 			g.P(fmt.Sprintf("    columns = append(columns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
-				mc.fmtI("Sprintf"), snippetField.Expression, headlineOptions, snippetIdent(snippetField.Path)))
+				mc.fmtI("Sprintf"), expression, headlineOptions, snippetIdent(snippetField.Path)))
 		}
 	}
 	g.P("    params = append(params, tsQuery)")
