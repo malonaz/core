@@ -459,7 +459,7 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 	}, nil
 }
 
-var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v11.SearchAuthorsRequest, *v13.Author]()
+var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v11.SearchAuthorsRequest, *v13.Author](aip.WithFQN())
 
 func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request *v11.SearchAuthorsRequest) (*v11.SearchAuthorsResponse, error) {
 	// Parse parent names
@@ -1424,7 +1424,7 @@ func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11
 	return &emptypb.Empty{}, nil
 }
 
-var searchBooksRequestParser = aip.MustNewSearchRequestParser[*v11.SearchBooksRequest, *v13.Book]()
+var searchBooksRequestParser = aip.MustNewSearchRequestParser[*v11.SearchBooksRequest, *v13.Book](aip.WithFQN())
 
 func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v11.SearchBooksRequest) (*v11.SearchBooksResponse, error) {
 	// Parse parent names

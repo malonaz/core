@@ -66,4 +66,17 @@ message Bookmark {
 
   // A checksum computed by the server based on the current value of the resource.
   string etag = 9;
+
+  // The highlight color of the bookmark.
+  BookmarkColor color = 10;
+}
+
+// BookmarkColor is the highlight color of a bookmark.
+enum BookmarkColor {
+  // Used to detect an unset field.
+  BOOKMARK_COLOR_UNSPECIFIED = 0;
+  // Red highlight.
+  BOOKMARK_COLOR_RED = 1;
+  // Blue highlight.
+  BOOKMARK_COLOR_BLUE = 2;
 }

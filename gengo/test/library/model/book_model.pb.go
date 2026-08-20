@@ -20,22 +20,26 @@ var ErrBookAlreadyDeleted = errors.New("book already deleted")
 var ErrBookETagChanged = errors.New("book etag changed")
 
 type Book struct {
-	OrganizationID  string        `db:"organization_id" schema:"library" table:"book"`
-	ShelfID         string        `db:"shelf_id" schema:"library" table:"book"`
-	BookID          string        `db:"book_id" schema:"library" table:"book"`
-	CreateTime      time.Time     `db:"create_time" schema:"library" table:"book"`
-	UpdateTime      time.Time     `db:"update_time" schema:"library" table:"book"`
-	Title           string        `db:"title" schema:"library" table:"book"`
-	Author          string        `db:"author" schema:"library" table:"book"`
-	Isbn            string        `db:"isbn" schema:"library" table:"book"`
-	PublicationYear int32         `db:"publication_year" schema:"library" table:"book"`
-	PageCount       int32         `db:"page_count" schema:"library" table:"book"`
-	Duration        time.Duration `db:"duration" schema:"library" table:"book"`
-	Labels          []byte        `db:"labels" schema:"library" table:"book"`
-	Etag            string        `db:"etag" schema:"library" table:"book"`
-	Metadata        []byte        `db:"metadata" schema:"library" table:"book"`
-	ShelfExternalId *string       `db:"shelf_external_id" external:"true" join_schema:"library" join_table:"shelf" join_column:"ext_id"`
-	ShelfGenre      int16         `db:"shelf_genre" external:"true" join_schema:"library" join_table:"shelf" join_column:"genre"`
+	OrganizationID      string        `db:"organization_id" schema:"library" table:"book"`
+	ShelfID             string        `db:"shelf_id" schema:"library" table:"book"`
+	BookID              string        `db:"book_id" schema:"library" table:"book"`
+	CreateTime          time.Time     `db:"create_time" schema:"library" table:"book"`
+	UpdateTime          time.Time     `db:"update_time" schema:"library" table:"book"`
+	Title               string        `db:"title" schema:"library" table:"book"`
+	Author              string        `db:"author" schema:"library" table:"book"`
+	Isbn                string        `db:"isbn" schema:"library" table:"book"`
+	PublicationYear     int32         `db:"publication_year" schema:"library" table:"book"`
+	PageCount           int32         `db:"page_count" schema:"library" table:"book"`
+	Duration            time.Duration `db:"duration" schema:"library" table:"book"`
+	Labels              []byte        `db:"labels" schema:"library" table:"book"`
+	Etag                string        `db:"etag" schema:"library" table:"book"`
+	Metadata            []byte        `db:"metadata" schema:"library" table:"book"`
+	ShelfExternalId     *string       `db:"shelf_external_id" external:"true" join_schema:"library" join_table:"shelf" join_column:"ext_id"`
+	ShelfGenre          int16         `db:"shelf_genre" external:"true" join_schema:"library" join_table:"shelf" join_column:"genre"`
+	LatestBookmark      *string       `db:"latest_bookmark" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"name"`
+	LatestBookmarkColor *int16        `db:"latest_bookmark_color" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"color"`
+	FirstBookmark       *string       `db:"first_bookmark" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"name"`
+	FirstBookmarkColor  *int16        `db:"first_bookmark_color" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"color"`
 }
 
 func BookFromPb(m *v1.Book) (*Book, error) {
@@ -76,23 +80,45 @@ func BookFromPb(m *v1.Book) (*Book, error) {
 	if m.ShelfExternalId != "" {
 		ShelfExternalId = &m.ShelfExternalId
 	}
+	var LatestBookmark *string
+	if m.LatestBookmark != "" {
+		LatestBookmark = &m.LatestBookmark
+	}
+	var LatestBookmarkColor *int16
+	if m.LatestBookmarkColor != 0 {
+		LatestBookmarkColorInt := int16(m.LatestBookmarkColor)
+		LatestBookmarkColor = &LatestBookmarkColorInt
+	}
+	var FirstBookmark *string
+	if m.FirstBookmark != "" {
+		FirstBookmark = &m.FirstBookmark
+	}
+	var FirstBookmarkColor *int16
+	if m.FirstBookmarkColor != 0 {
+		FirstBookmarkColorInt := int16(m.FirstBookmarkColor)
+		FirstBookmarkColor = &FirstBookmarkColorInt
+	}
 	return &Book{
-		OrganizationID:  OrganizationID,
-		ShelfID:         ShelfID,
-		BookID:          BookID,
-		CreateTime:      m.CreateTime.AsTime(),
-		UpdateTime:      m.UpdateTime.AsTime(),
-		Title:           m.Title,
-		Author:          m.Author,
-		Isbn:            m.Isbn,
-		PublicationYear: m.PublicationYear,
-		PageCount:       m.PageCount,
-		Duration:        m.Duration.AsDuration(),
-		Labels:          LabelsBytes,
-		Etag:            m.Etag,
-		Metadata:        MetadataBytes,
-		ShelfExternalId: ShelfExternalId,
-		ShelfGenre:      int16(m.ShelfGenre),
+		OrganizationID:      OrganizationID,
+		ShelfID:             ShelfID,
+		BookID:              BookID,
+		CreateTime:          m.CreateTime.AsTime(),
+		UpdateTime:          m.UpdateTime.AsTime(),
+		Title:               m.Title,
+		Author:              m.Author,
+		Isbn:                m.Isbn,
+		PublicationYear:     m.PublicationYear,
+		PageCount:           m.PageCount,
+		Duration:            m.Duration.AsDuration(),
+		Labels:              LabelsBytes,
+		Etag:                m.Etag,
+		Metadata:            MetadataBytes,
+		ShelfExternalId:     ShelfExternalId,
+		ShelfGenre:          int16(m.ShelfGenre),
+		LatestBookmark:      LatestBookmark,
+		LatestBookmarkColor: LatestBookmarkColor,
+		FirstBookmark:       FirstBookmark,
+		FirstBookmarkColor:  FirstBookmarkColor,
 	}, nil
 }
 
@@ -127,25 +153,45 @@ func (m *Book) ToPb() (*v1.Book, error) {
 	if m.ShelfExternalId != nil {
 		ShelfExternalId = *m.ShelfExternalId
 	}
+	var LatestBookmark string
+	if m.LatestBookmark != nil {
+		LatestBookmark = *m.LatestBookmark
+	}
+	var LatestBookmarkColor int16
+	if m.LatestBookmarkColor != nil {
+		LatestBookmarkColor = *m.LatestBookmarkColor
+	}
+	var FirstBookmark string
+	if m.FirstBookmark != nil {
+		FirstBookmark = *m.FirstBookmark
+	}
+	var FirstBookmarkColor int16
+	if m.FirstBookmarkColor != nil {
+		FirstBookmarkColor = *m.FirstBookmarkColor
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", m.OrganizationID, m.ShelfID, m.BookID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Book{
-		Name:            name,
-		CreateTime:      CreateTime,
-		UpdateTime:      UpdateTime,
-		Title:           m.Title,
-		Author:          m.Author,
-		Isbn:            m.Isbn,
-		PublicationYear: m.PublicationYear,
-		PageCount:       m.PageCount,
-		Duration:        Duration,
-		Labels:          Labels,
-		Etag:            m.Etag,
-		Metadata:        Metadata,
-		ShelfExternalId: ShelfExternalId,
-		ShelfGenre:      v1.ShelfGenre(m.ShelfGenre),
+		Name:                name,
+		CreateTime:          CreateTime,
+		UpdateTime:          UpdateTime,
+		Title:               m.Title,
+		Author:              m.Author,
+		Isbn:                m.Isbn,
+		PublicationYear:     m.PublicationYear,
+		PageCount:           m.PageCount,
+		Duration:            Duration,
+		Labels:              Labels,
+		Etag:                m.Etag,
+		Metadata:            Metadata,
+		ShelfExternalId:     ShelfExternalId,
+		ShelfGenre:          v1.ShelfGenre(m.ShelfGenre),
+		LatestBookmark:      LatestBookmark,
+		LatestBookmarkColor: v1.BookmarkColor(LatestBookmarkColor),
+		FirstBookmark:       FirstBookmark,
+		FirstBookmarkColor:  v1.BookmarkColor(FirstBookmarkColor),
 	}, nil
 }
 

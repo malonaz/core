@@ -28,9 +28,12 @@ func (mc *methodCtx) generateSearch() error {
 	}
 
 	// Search request parser.
-	g.P(fmt.Sprintf("var %sParser = %s[*%s, *%s]()",
+	// Mirror the List parser: qualify column references with join aliases so
+	// joined fields sharing a source column name don't collide.
+	g.P(fmt.Sprintf("var %sParser = %s[*%s, *%s](%s())",
 		xstrings.ToCamelCase(method.Input.GoIdent.GoName),
 		mc.gen.ident(aipPkg, "MustNewSearchRequestParser"), mc.inputType(), mc.protoType(),
+		mc.gen.ident(aipPkg, "WithFQN"),
 	))
 	g.P()
 

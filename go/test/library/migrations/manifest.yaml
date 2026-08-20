@@ -7,3 +7,5 @@ migrations:
     hash: 82e4c2e1733d2ab802a1b0c3f801b005
   - path: library/003_book_search.sql
     hash: bb4f6557c8425e2be227cf017afc8ed0
+  - path: library/004_bookmark.sql
+    hash: b29f8f1ac9e318333178c9f9068f5647

@@ -63,9 +63,22 @@ type Book struct {
 	// Join on parent.
 	ShelfExternalId string `protobuf:"bytes,13,opt,name=shelf_external_id,json=shelfExternalId,proto3" json:"shelf_external_id,omitempty"`
 	// The genre of books on this shelf.
-	ShelfGenre    ShelfGenre `protobuf:"varint,14,opt,name=shelf_genre,json=shelfGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre" json:"shelf_genre,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ShelfGenre ShelfGenre `protobuf:"varint,14,opt,name=shelf_genre,json=shelfGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre" json:"shelf_genre,omitempty"`
+	// The most recently created bookmark on this book, resolved by a query join.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+	LatestBookmark string `protobuf:"bytes,15,opt,name=latest_bookmark,json=latestBookmark,proto3" json:"latest_bookmark,omitempty"`
+	// The color of the latest bookmark, chained onto latest_bookmark.
+	LatestBookmarkColor BookmarkColor `protobuf:"varint,16,opt,name=latest_bookmark_color,json=latestBookmarkColor,proto3,enum=malonaz.test.library.v1.BookmarkColor" json:"latest_bookmark_color,omitempty"`
+	// The earliest bookmark on this book, resolved by a second query join.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+	FirstBookmark string `protobuf:"bytes,17,opt,name=first_bookmark,json=firstBookmark,proto3" json:"first_bookmark,omitempty"`
+	// The color of the first bookmark. Deliberately reuses the `color` source
+	// column already joined via latest_bookmark_color under a different alias:
+	// without FQN-qualified filter declarations both collapse to a bare `color`
+	// enum ident and collide at parser init.
+	FirstBookmarkColor BookmarkColor `protobuf:"varint,18,opt,name=first_bookmark_color,json=firstBookmarkColor,proto3,enum=malonaz.test.library.v1.BookmarkColor" json:"first_bookmark_color,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Book) Reset() {
@@ -191,6 +204,34 @@ func (x *Book) GetShelfGenre() ShelfGenre {
 	return ShelfGenre_SHELF_GENRE_UNSPECIFIED
 }
 
+func (x *Book) GetLatestBookmark() string {
+	if x != nil {
+		return x.LatestBookmark
+	}
+	return ""
+}
+
+func (x *Book) GetLatestBookmarkColor() BookmarkColor {
+	if x != nil {
+		return x.LatestBookmarkColor
+	}
+	return BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED
+}
+
+func (x *Book) GetFirstBookmark() string {
+	if x != nil {
+		return x.FirstBookmark
+	}
+	return ""
+}
+
+func (x *Book) GetFirstBookmarkColor() BookmarkColor {
+	if x != nil {
+		return x.FirstBookmarkColor
+	}
+	return BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED
+}
+
 func (x *Book) SetName(v string) {
 	x.Name = v
 }
@@ -245,6 +286,22 @@ func (x *Book) SetShelfExternalId(v string) {
 
 func (x *Book) SetShelfGenre(v ShelfGenre) {
 	x.ShelfGenre = v
+}
+
+func (x *Book) SetLatestBookmark(v string) {
+	x.LatestBookmark = v
+}
+
+func (x *Book) SetLatestBookmarkColor(v BookmarkColor) {
+	x.LatestBookmarkColor = v
+}
+
+func (x *Book) SetFirstBookmark(v string) {
+	x.FirstBookmark = v
+}
+
+func (x *Book) SetFirstBookmarkColor(v BookmarkColor) {
+	x.FirstBookmarkColor = v
 }
 
 func (x *Book) HasCreateTime() bool {
@@ -324,6 +381,19 @@ type Book_builder struct {
 	ShelfExternalId string
 	// The genre of books on this shelf.
 	ShelfGenre ShelfGenre
+	// The most recently created bookmark on this book, resolved by a query join.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+	LatestBookmark string
+	// The color of the latest bookmark, chained onto latest_bookmark.
+	LatestBookmarkColor BookmarkColor
+	// The earliest bookmark on this book, resolved by a second query join.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+	FirstBookmark string
+	// The color of the first bookmark. Deliberately reuses the `color` source
+	// column already joined via latest_bookmark_color under a different alias:
+	// without FQN-qualified filter declarations both collapse to a bare `color`
+	// enum ident and collide at parser init.
+	FirstBookmarkColor BookmarkColor
 }
 
 func (b0 Book_builder) Build() *Book {
@@ -344,6 +414,10 @@ func (b0 Book_builder) Build() *Book {
 	x.Metadata = b.Metadata
 	x.ShelfExternalId = b.ShelfExternalId
 	x.ShelfGenre = b.ShelfGenre
+	x.LatestBookmark = b.LatestBookmark
+	x.LatestBookmarkColor = b.LatestBookmarkColor
+	x.FirstBookmark = b.FirstBookmark
+	x.FirstBookmarkColor = b.FirstBookmarkColor
 	return m0
 }
 
@@ -959,8 +1033,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xa1\n" +
-	"\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\x99\x0f\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -984,7 +1057,17 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x1elibrary.test.malonaz.com/Shelf\x12\vexternal_idR\x0fshelfExternalId\x12v\n" +
 	"\vshelf_genre\x18\x0e \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB0\xe0A\x03\xba\xea\x0f)B'\n" +
 	"\x1elibrary.test.malonaz.com/Shelf\x12\x05genreR\n" +
-	"shelfGenre\x1a9\n" +
+	"shelfGenre\x12\x97\x01\n" +
+	"\x0flatest_bookmark\x18\x0f \x01(\tBn\xe0A\x03\xfaA#\n" +
+	"!library.test.malonaz.com/Bookmark\xba\xea\x0fA \x01B=\n" +
+	"!library.test.malonaz.com/Bookmark\x12\x04name\"\x12\x12\x10create_time descR\x0elatestBookmark\x12\xa2\x01\n" +
+	"\x15latest_bookmark_color\x18\x10 \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorBF\xe0A\x03\xba\xea\x0f? \x01B;\n" +
+	"!library.test.malonaz.com/Bookmark\x12\x05color\x1a\x0flatest_bookmarkR\x13latestBookmarkColor\x12\x94\x01\n" +
+	"\x0efirst_bookmark\x18\x11 \x01(\tBm\xe0A\x03\xfaA#\n" +
+	"!library.test.malonaz.com/Bookmark\xba\xea\x0f@ \x01B<\n" +
+	"!library.test.malonaz.com/Bookmark\x12\x04name\"\x11\x12\x0fcreate_time ascR\rfirstBookmark\x12\x9f\x01\n" +
+	"\x14first_bookmark_color\x18\x12 \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorBE\xe0A\x03\xba\xea\x0f> \x01B:\n" +
+	"!library.test.malonaz.com/Bookmark\x12\x05color\x1a\x0efirst_bookmarkR\x12firstBookmarkColor\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x9c\x02\xeaAg\n" +
@@ -1040,7 +1123,8 @@ var file_malonaz_test_library_v1_book_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
 	(ShelfGenre)(0),               // 8: malonaz.test.library.v1.ShelfGenre
-	(*money.Money)(nil),           // 9: google.type.Money
+	(BookmarkColor)(0),            // 9: malonaz.test.library.v1.BookmarkColor
+	(*money.Money)(nil),           // 10: google.type.Money
 }
 var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
 	6,  // 0: malonaz.test.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
@@ -1049,20 +1133,22 @@ var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
 	4,  // 3: malonaz.test.library.v1.Book.labels:type_name -> malonaz.test.library.v1.Book.LabelsEntry
 	1,  // 4: malonaz.test.library.v1.Book.metadata:type_name -> malonaz.test.library.v1.BookMetadata
 	8,  // 5: malonaz.test.library.v1.Book.shelf_genre:type_name -> malonaz.test.library.v1.ShelfGenre
-	7,  // 6: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
-	9,  // 7: malonaz.test.library.v1.Dummy.subtotal:type_name -> google.type.Money
-	9,  // 8: malonaz.test.library.v1.Dummy.tax:type_name -> google.type.Money
-	6,  // 9: malonaz.test.library.v1.Dummy.expire_time:type_name -> google.protobuf.Timestamp
-	7,  // 10: malonaz.test.library.v1.Dummy.duration:type_name -> google.protobuf.Duration
-	5,  // 11: malonaz.test.library.v1.Dummy.labels:type_name -> malonaz.test.library.v1.Dummy.LabelsEntry
-	1,  // 12: malonaz.test.library.v1.Dummy.metadata:type_name -> malonaz.test.library.v1.BookMetadata
-	3,  // 13: malonaz.test.library.v1.Dummy.adjustment:type_name -> malonaz.test.library.v1.DummyAdjustment
-	9,  // 14: malonaz.test.library.v1.DummyAdjustment.amount:type_name -> google.type.Money
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	9,  // 6: malonaz.test.library.v1.Book.latest_bookmark_color:type_name -> malonaz.test.library.v1.BookmarkColor
+	9,  // 7: malonaz.test.library.v1.Book.first_bookmark_color:type_name -> malonaz.test.library.v1.BookmarkColor
+	7,  // 8: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
+	10, // 9: malonaz.test.library.v1.Dummy.subtotal:type_name -> google.type.Money
+	10, // 10: malonaz.test.library.v1.Dummy.tax:type_name -> google.type.Money
+	6,  // 11: malonaz.test.library.v1.Dummy.expire_time:type_name -> google.protobuf.Timestamp
+	7,  // 12: malonaz.test.library.v1.Dummy.duration:type_name -> google.protobuf.Duration
+	5,  // 13: malonaz.test.library.v1.Dummy.labels:type_name -> malonaz.test.library.v1.Dummy.LabelsEntry
+	1,  // 14: malonaz.test.library.v1.Dummy.metadata:type_name -> malonaz.test.library.v1.BookMetadata
+	3,  // 15: malonaz.test.library.v1.Dummy.adjustment:type_name -> malonaz.test.library.v1.DummyAdjustment
+	10, // 16: malonaz.test.library.v1.DummyAdjustment.amount:type_name -> google.type.Money
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_book_proto_init() }
@@ -1070,6 +1156,7 @@ func file_malonaz_test_library_v1_book_proto_init() {
 	if File_malonaz_test_library_v1_book_proto != nil {
 		return
 	}
+	file_malonaz_test_library_v1_bookmark_proto_init()
 	file_malonaz_test_library_v1_shelf_proto_init()
 	file_malonaz_test_library_v1_book_proto_msgTypes[3].OneofWrappers = []any{
 		(*DummyAdjustment_Amount)(nil),

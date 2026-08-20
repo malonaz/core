@@ -2,8 +2,8 @@
 // @generated from file malonaz/test/library/v1/bookmark.proto (package malonaz.test.library.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/bookmark.proto.
  */
 export const file_malonaz_test_library_v1_bookmark: GenFile = /*@__PURE__*/
-  fileDesc("CiZtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rbWFyay5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEizAUKCEJvb2ttYXJrEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIcCgtwYWdlX251bWJlchgFIAEoBUIHukgEGgIoARIgCgxkaXNwbGF5X25hbWUYBiABKAlCCrpIB3IFEAEYgAISFgoEbm90ZRgHIAEoCUIIukgFcgMYgCAS0wEKBmxhYmVscxgIIAMoCzItLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCSABKAkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqZAepBiAEKIWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rbWFyaxJOb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0vYm9va3Mve2Jvb2t9L2Jvb2ttYXJrcy97Ym9va21hcmt9Kglib29rbWFya3MyCGJvb2ttYXJr0qYECQoHbGlicmFyeUIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiZtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rbWFyay5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEigwYKCEJvb2ttYXJrEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIcCgtwYWdlX251bWJlchgFIAEoBUIHukgEGgIoARIgCgxkaXNwbGF5X25hbWUYBiABKAlCCrpIB3IFEAEYgAISFgoEbm90ZRgHIAEoCUIIukgFcgMYgCAS0wEKBmxhYmVscxgIIAMoCzItLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCSABKAkSNQoFY29sb3IYCiABKA4yJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFya0NvbG9yGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6mQHqQYgBCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmsSTm9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vc2hlbHZlcy97c2hlbGZ9L2Jvb2tzL3tib29rfS9ib29rbWFya3Mve2Jvb2ttYXJrfSoJYm9va21hcmtzMghib29rbWFya9KmBAkKB2xpYnJhcnkqYAoNQm9va21hcmtDb2xvchIeChpCT09LTUFSS19DT0xPUl9VTlNQRUNJRklFRBAAEhYKEkJPT0tNQVJLX0NPTE9SX1JFRBABEhcKE0JPT0tNQVJLX0NPTE9SX0JMVUUQAkIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
 
 /**
  * Bookmark represents a saved position within a book.
@@ -87,6 +87,13 @@ export type Bookmark = Message<"malonaz.test.library.v1.Bookmark"> & {
    * @generated from field: string etag = 9;
    */
   etag: string;
+
+  /**
+   * The highlight color of the bookmark.
+   *
+   * @generated from field: malonaz.test.library.v1.BookmarkColor color = 10;
+   */
+  color: BookmarkColor;
 };
 
 export type BookmarkValid = Bookmark;
@@ -97,4 +104,38 @@ export type BookmarkValid = Bookmark;
  */
 export const BookmarkSchema: GenMessage<Bookmark, {validType: BookmarkValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_v1_bookmark, 0);
+
+/**
+ * BookmarkColor is the highlight color of a bookmark.
+ *
+ * @generated from enum malonaz.test.library.v1.BookmarkColor
+ */
+export enum BookmarkColor {
+  /**
+   * Used to detect an unset field.
+   *
+   * @generated from enum value: BOOKMARK_COLOR_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Red highlight.
+   *
+   * @generated from enum value: BOOKMARK_COLOR_RED = 1;
+   */
+  RED = 1,
+
+  /**
+   * Blue highlight.
+   *
+   * @generated from enum value: BOOKMARK_COLOR_BLUE = 2;
+   */
+  BLUE = 2,
+}
+
+/**
+ * Describes the enum malonaz.test.library.v1.BookmarkColor.
+ */
+export const BookmarkColorSchema: GenEnum<BookmarkColor> = /*@__PURE__*/
+  enumDesc(file_malonaz_test_library_v1_bookmark, 0);
 

@@ -12,6 +12,7 @@ import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
+import "malonaz/test/library/v1/bookmark.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
@@ -122,6 +123,65 @@ message Book {
     (malonaz.codegen.model.v1.field_opts).join = {
       resource_type: "library.test.malonaz.com/Shelf"
       field: "genre"
+    }
+  ];
+
+  // The most recently created bookmark on this book, resolved by a query join.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  string latest_bookmark = 15 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Bookmark"
+        field: "name"
+        query: {order_by: "create_time desc"}
+      }
+    }
+  ];
+
+  // The color of the latest bookmark, chained onto latest_bookmark.
+  BookmarkColor latest_bookmark_color = 16 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Bookmark"
+        reference: "latest_bookmark"
+        field: "color"
+      }
+    }
+  ];
+
+  // The earliest bookmark on this book, resolved by a second query join.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  string first_bookmark = 17 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Bookmark"
+        field: "name"
+        query: {order_by: "create_time asc"}
+      }
+    }
+  ];
+
+  // The color of the first bookmark. Deliberately reuses the `color` source
+  // column already joined via latest_bookmark_color under a different alias:
+  // without FQN-qualified filter declarations both collapse to a bare `color`
+  // enum ident and collide at parser init.
+  BookmarkColor first_bookmark_color = 18 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Bookmark"
+        reference: "first_bookmark"
+        field: "color"
+      }
     }
   ];
 }

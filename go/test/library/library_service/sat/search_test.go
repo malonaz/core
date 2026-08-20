@@ -502,3 +502,60 @@ func TestSearch_JoinedResource(t *testing.T) {
 		require.Contains(t, response.Snippets[0].Fields["metadata.summary"], "**whaling**")
 	})
 }
+
+// Covers Search combined with a filter on joined fields: the filter macro
+// declarations must be FQN-qualified (regression: the generated Search parser
+// omitted WithFQN, panicking at init when two joins expose the same source
+// column, and emitting ambiguous bare columns in SQL otherwise).
+func TestSearch_FilterOnJoinedField(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Joined Filter Author")
+	fiction := createTestShelf(t, organizationParent, "Joined Filter Fiction", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	hit := createTestBook(t, fiction.Name, author.Name, "Filtered Moby Dick")
+
+	t.Run("JoinedEnumMatch", func(t *testing.T) {
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{
+			Parent: fiction.Name,
+			Query:  "filtered",
+			Filter: "shelf_genre = SHELF_GENRE_FICTION",
+		})
+		require.NoError(t, err)
+		require.Len(t, response.Books, 1)
+		require.Equal(t, hit.Name, response.Books[0].Name)
+	})
+
+	t.Run("JoinedEnumNoMatch", func(t *testing.T) {
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{
+			Parent: fiction.Name,
+			Query:  "filtered",
+			Filter: "shelf_genre = SHELF_GENRE_NON_FICTION",
+		})
+		require.NoError(t, err)
+		require.Empty(t, response.Books)
+	})
+
+	t.Run("CollidingJoinedColumns", func(t *testing.T) {
+		// latest_bookmark_color and first_bookmark_color both join
+		// bookmark.color under different aliases: filtering on both in one
+		// expression requires alias-qualified references.
+		_, err := bookmarkServiceClient.CreateBookmark(ctx, &libraryservicepb.CreateBookmarkRequest{
+			Parent: hit.Name,
+			Bookmark: &librarypb.Bookmark{
+				PageNumber:  42,
+				DisplayName: "Colored bookmark",
+				Color:       librarypb.BookmarkColor_BOOKMARK_COLOR_RED,
+			},
+		})
+		require.NoError(t, err)
+
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{
+			Parent: fiction.Name,
+			Query:  "filtered",
+			Filter: "latest_bookmark_color = BOOKMARK_COLOR_RED AND first_bookmark_color = BOOKMARK_COLOR_RED",
+		})
+		require.NoError(t, err)
+		require.Len(t, response.Books, 1)
+		require.Equal(t, hit.Name, response.Books[0].Name)
+	})
+}

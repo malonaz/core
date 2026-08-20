@@ -26,6 +26,54 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// BookmarkColor is the highlight color of a bookmark.
+type BookmarkColor int32
+
+const (
+	// Used to detect an unset field.
+	BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED BookmarkColor = 0
+	// Red highlight.
+	BookmarkColor_BOOKMARK_COLOR_RED BookmarkColor = 1
+	// Blue highlight.
+	BookmarkColor_BOOKMARK_COLOR_BLUE BookmarkColor = 2
+)
+
+// Enum value maps for BookmarkColor.
+var (
+	BookmarkColor_name = map[int32]string{
+		0: "BOOKMARK_COLOR_UNSPECIFIED",
+		1: "BOOKMARK_COLOR_RED",
+		2: "BOOKMARK_COLOR_BLUE",
+	}
+	BookmarkColor_value = map[string]int32{
+		"BOOKMARK_COLOR_UNSPECIFIED": 0,
+		"BOOKMARK_COLOR_RED":         1,
+		"BOOKMARK_COLOR_BLUE":        2,
+	}
+)
+
+func (x BookmarkColor) Enum() *BookmarkColor {
+	p := new(BookmarkColor)
+	*p = x
+	return p
+}
+
+func (x BookmarkColor) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BookmarkColor) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_test_library_v1_bookmark_proto_enumTypes[0].Descriptor()
+}
+
+func (BookmarkColor) Type() protoreflect.EnumType {
+	return &file_malonaz_test_library_v1_bookmark_proto_enumTypes[0]
+}
+
+func (x BookmarkColor) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // Bookmark represents a saved position within a book.
 type Bookmark struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
@@ -38,6 +86,7 @@ type Bookmark struct {
 	xxx_hidden_Note        string                 `protobuf:"bytes,7,opt,name=note,proto3"`
 	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Etag        string                 `protobuf:"bytes,9,opt,name=etag,proto3"`
+	xxx_hidden_Color       BookmarkColor          `protobuf:"varint,10,opt,name=color,proto3,enum=malonaz.test.library.v1.BookmarkColor"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -130,6 +179,13 @@ func (x *Bookmark) GetEtag() string {
 	return ""
 }
 
+func (x *Bookmark) GetColor() BookmarkColor {
+	if x != nil {
+		return x.xxx_hidden_Color
+	}
+	return BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED
+}
+
 func (x *Bookmark) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -164,6 +220,10 @@ func (x *Bookmark) SetLabels(v map[string]string) {
 
 func (x *Bookmark) SetEtag(v string) {
 	x.xxx_hidden_Etag = v
+}
+
+func (x *Bookmark) SetColor(v BookmarkColor) {
+	x.xxx_hidden_Color = v
 }
 
 func (x *Bookmark) HasCreateTime() bool {
@@ -221,6 +281,8 @@ type Bookmark_builder struct {
 	Labels map[string]string
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string
+	// The highlight color of the bookmark.
+	Color BookmarkColor
 }
 
 func (b0 Bookmark_builder) Build() *Bookmark {
@@ -236,6 +298,7 @@ func (b0 Bookmark_builder) Build() *Bookmark {
 	x.xxx_hidden_Note = b.Note
 	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Etag = b.Etag
+	x.xxx_hidden_Color = b.Color
 	return m0
 }
 
@@ -243,7 +306,7 @@ var File_malonaz_test_library_v1_bookmark_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"\n" +
-	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xaf\x06\n" +
+	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xed\x06\n" +
 	"\bBookmark\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -258,29 +321,38 @@ const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x02R\vdisplayName\x12\x1c\n" +
 	"\x04note\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x04note\x12\xdb\x01\n" +
 	"\x06labels\x18\b \x03(\v2-.malonaz.test.library.v1.Bookmark.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
-	"\x04etag\x18\t \x01(\tR\x04etag\x1a9\n" +
+	"\x04etag\x18\t \x01(\tR\x04etag\x12<\n" +
+	"\x05color\x18\n" +
+	" \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorR\x05color\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x99\x01\xeaA\x88\x01\n" +
 	"!library.test.malonaz.com/Bookmark\x12Norganizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}*\tbookmarks2\bbookmarkҦ\x04\t\n" +
-	"\alibraryB2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\alibrary*`\n" +
+	"\rBookmarkColor\x12\x1e\n" +
+	"\x1aBOOKMARK_COLOR_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12BOOKMARK_COLOR_RED\x10\x01\x12\x17\n" +
+	"\x13BOOKMARK_COLOR_BLUE\x10\x02B2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
+var file_malonaz_test_library_v1_bookmark_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_test_library_v1_bookmark_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_test_library_v1_bookmark_proto_goTypes = []any{
-	(*Bookmark)(nil),              // 0: malonaz.test.library.v1.Bookmark
-	nil,                           // 1: malonaz.test.library.v1.Bookmark.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(BookmarkColor)(0),            // 0: malonaz.test.library.v1.BookmarkColor
+	(*Bookmark)(nil),              // 1: malonaz.test.library.v1.Bookmark
+	nil,                           // 2: malonaz.test.library.v1.Bookmark.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_malonaz_test_library_v1_bookmark_proto_depIdxs = []int32{
-	2, // 0: malonaz.test.library.v1.Bookmark.create_time:type_name -> google.protobuf.Timestamp
-	2, // 1: malonaz.test.library.v1.Bookmark.update_time:type_name -> google.protobuf.Timestamp
-	2, // 2: malonaz.test.library.v1.Bookmark.delete_time:type_name -> google.protobuf.Timestamp
-	1, // 3: malonaz.test.library.v1.Bookmark.labels:type_name -> malonaz.test.library.v1.Bookmark.LabelsEntry
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3, // 0: malonaz.test.library.v1.Bookmark.create_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.test.library.v1.Bookmark.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.test.library.v1.Bookmark.delete_time:type_name -> google.protobuf.Timestamp
+	2, // 3: malonaz.test.library.v1.Bookmark.labels:type_name -> malonaz.test.library.v1.Bookmark.LabelsEntry
+	0, // 4: malonaz.test.library.v1.Bookmark.color:type_name -> malonaz.test.library.v1.BookmarkColor
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_bookmark_proto_init() }
@@ -293,13 +365,14 @@ func file_malonaz_test_library_v1_bookmark_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_v1_bookmark_proto_rawDesc), len(file_malonaz_test_library_v1_bookmark_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_test_library_v1_bookmark_proto_goTypes,
 		DependencyIndexes: file_malonaz_test_library_v1_bookmark_proto_depIdxs,
+		EnumInfos:         file_malonaz_test_library_v1_bookmark_proto_enumTypes,
 		MessageInfos:      file_malonaz_test_library_v1_bookmark_proto_msgTypes,
 	}.Build()
 	File_malonaz_test_library_v1_bookmark_proto = out.File

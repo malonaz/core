@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	ctx                  = context.Background()
-	libraryServiceClient libraryservicepb.LibraryServiceClient
-	satEnvironment       *sat.SAT
+	ctx                   = context.Background()
+	libraryServiceClient  libraryservicepb.LibraryServiceClient
+	bookmarkServiceClient libraryservicepb.BookmarkServiceClient
+	satEnvironment        *sat.SAT
 )
 
 func getOrganizationParent() string {
@@ -128,5 +129,6 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, func() { connection.Close() })
 	libraryServiceClient = libraryservicepb.NewLibraryServiceClient(connection.Get())
+	bookmarkServiceClient = libraryservicepb.NewBookmarkServiceClient(connection.Get())
 	return cleanup, nil
 }

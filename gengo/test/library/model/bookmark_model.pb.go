@@ -30,6 +30,7 @@ type Bookmark struct {
 	Note           string     `db:"note" schema:"library" table:"bookmark"`
 	Labels         []byte     `db:"labels" schema:"library" table:"bookmark"`
 	Etag           string     `db:"etag" schema:"library" table:"bookmark"`
+	Color          int16      `db:"color" schema:"library" table:"bookmark"`
 }
 
 func BookmarkFromPb(m *v1.Bookmark) (*Bookmark, error) {
@@ -77,6 +78,7 @@ func BookmarkFromPb(m *v1.Bookmark) (*Bookmark, error) {
 		Note:           m.Note,
 		Labels:         LabelsBytes,
 		Etag:           m.Etag,
+		Color:          int16(m.Color),
 	}, nil
 }
 
@@ -119,6 +121,7 @@ func (m *Bookmark) ToPb() (*v1.Bookmark, error) {
 		Note:        m.Note,
 		Labels:      Labels,
 		Etag:        m.Etag,
+		Color:       v1.BookmarkColor(m.Color),
 	}, nil
 }
 
