@@ -326,8 +326,14 @@ const AuthorSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce
 
 type authorSearchRow struct {
 	model.Author
-	SnippetMetadataCountry *string `db:"__snippet_metadata_country"`
-	SnippetBiography       *string `db:"__snippet_biography"`
+	SnippetDisplayName            *string `db:"__snippet_display_name"`
+	SnippetEmailAddress           *string `db:"__snippet_email_address"`
+	SnippetPhoneNumber            *string `db:"__snippet_phone_number"`
+	SnippetMetadataCountry        *string `db:"__snippet_metadata_country"`
+	SnippetEmailAddresses         *string `db:"__snippet_email_addresses"`
+	SnippetPhoneNumbers           *string `db:"__snippet_phone_numbers"`
+	SnippetMetadataEmailAddresses *string `db:"__snippet_metadata_email_addresses"`
+	SnippetBiography              *string `db:"__snippet_biography"`
 }
 
 func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
@@ -350,7 +356,13 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
 		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_display_name`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(email_address, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_address`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(phone_number, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_number`, len(params)+1))
 			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(email_addresses, ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_addresses`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_numbers`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{email_addresses}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_email_addresses`, len(params)+1))
 			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
 		}
 		params = append(params, tsQuery)
@@ -390,8 +402,26 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 			continue
 		}
 		snippet := map[string]string{}
+		if searchRow.SnippetDisplayName != nil && strings.Contains(*searchRow.SnippetDisplayName, "**") {
+			snippet["display_name"] = *searchRow.SnippetDisplayName
+		}
+		if searchRow.SnippetEmailAddress != nil && strings.Contains(*searchRow.SnippetEmailAddress, "**") {
+			snippet["email_address"] = *searchRow.SnippetEmailAddress
+		}
+		if searchRow.SnippetPhoneNumber != nil && strings.Contains(*searchRow.SnippetPhoneNumber, "**") {
+			snippet["phone_number"] = *searchRow.SnippetPhoneNumber
+		}
 		if searchRow.SnippetMetadataCountry != nil && strings.Contains(*searchRow.SnippetMetadataCountry, "**") {
 			snippet["metadata.country"] = *searchRow.SnippetMetadataCountry
+		}
+		if searchRow.SnippetEmailAddresses != nil && strings.Contains(*searchRow.SnippetEmailAddresses, "**") {
+			snippet["email_addresses"] = *searchRow.SnippetEmailAddresses
+		}
+		if searchRow.SnippetPhoneNumbers != nil && strings.Contains(*searchRow.SnippetPhoneNumbers, "**") {
+			snippet["phone_numbers"] = *searchRow.SnippetPhoneNumbers
+		}
+		if searchRow.SnippetMetadataEmailAddresses != nil && strings.Contains(*searchRow.SnippetMetadataEmailAddresses, "**") {
+			snippet["metadata.email_addresses"] = *searchRow.SnippetMetadataEmailAddresses
 		}
 		if searchRow.SnippetBiography != nil && strings.Contains(*searchRow.SnippetBiography, "**") {
 			snippet["biography"] = *searchRow.SnippetBiography

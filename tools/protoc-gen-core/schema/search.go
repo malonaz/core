@@ -72,11 +72,10 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 			"setweight(to_tsvector('simple', %s), '%s')", expression, weightLetter(searchField.GetWeight()),
 		))
 
-		if searchField.GetSnippet() {
-			// Snippets headline the raw text (no split variant), or fragments
-			// would surface mangled tokenized text.
-			snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base, Weight: weightLetter(searchField.GetWeight())})
-		}
+		// Every search field is snippet-eligible; the client opts in per
+		// request. Snippets headline the raw text (no split variant), or
+		// fragments would surface mangled tokenized text.
+		snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base, Weight: weightLetter(searchField.GetWeight())})
 	}
 	// Snippet matches surface in field-weight order (A first), declaration
 	// order breaking ties.

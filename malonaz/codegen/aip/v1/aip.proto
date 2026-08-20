@@ -83,11 +83,10 @@ message SearchOptions {
     Weight weight = 2 [(buf.validate.field).enum.defined_only = true];
     // Extra tokenization applied to this field.
     Split split = 3 [(buf.validate.field).enum.defined_only = true];
-    // If true, matches in this field produce a highlighted snippet in Search
-    // responses (via ts_headline). The Search response message must declare a
-    // `repeated malonaz.aip.v1.SearchSnippet snippets` field, index-aligned with
-    // the resource list.
-    bool snippet = 4;
+
+    // Formerly `bool snippet`: every field now produces snippets when the
+    // request sets `include_snippets`.
+    reserved 4;
   }
 
   // The fields composing the search document.

@@ -23,14 +23,14 @@ func (mc *methodCtx) generateSearch() error {
 	if searchDoc == nil {
 		return fmt.Errorf("resource %s must declare (malonaz.codegen.aip.v1.search) options for method %s", pr.Desc.Type, method.GoName)
 	}
-	hasSnippets := len(searchDoc.SnippetFields) > 0
 	// Snippets are opt-in per request: every Search request must carry the flag
-	// so ts_headline cost is only paid when the client asks for it.
+	// so ts_headline cost is only paid when the client asks for it, and every
+	// Search response must be able to carry the snippets back.
 	if f := method.Input.Desc.Fields().ByName("include_snippets"); f == nil || f.Kind() != protoreflect.BoolKind || f.IsList() {
 		return fmt.Errorf("request %s must declare a `bool include_snippets` field", method.Input.GoIdent.GoName)
 	}
-	if hasSnippets && method.Output.Desc.Fields().ByName("snippets") == nil {
-		return fmt.Errorf("response %s must declare a `repeated malonaz.aip.v1.SearchSnippet snippets` field (resource %s has snippet search fields)", method.Output.GoIdent.GoName, pr.Desc.Type)
+	if method.Output.Desc.Fields().ByName("snippets") == nil {
+		return fmt.Errorf("response %s must declare a `repeated malonaz.aip.v1.SearchSnippet snippets` field", method.Output.GoIdent.GoName)
 	}
 
 	// Search request parser.
@@ -99,15 +99,9 @@ func (mc *methodCtx) generateSearch() error {
 	if mc.softDeletable {
 		searchArgs += "request.ShowDeleted, "
 	}
-	if hasSnippets {
-		searchArgs += "request.IncludeSnippets, "
-	}
+	searchArgs += "request.IncludeSnippets, "
 	searchArgs += "parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams..."
-	if hasSnippets {
-		g.P(fmt.Sprintf("  %ss, dbSnippets, err := s.store.%s(%s)", dbName, method.GoName, searchArgs))
-	} else {
-		g.P(fmt.Sprintf("  %ss, err := s.store.%s(%s)", dbName, method.GoName, searchArgs))
-	}
+	g.P(fmt.Sprintf("  %ss, dbSnippets, err := s.store.%s(%s)", dbName, method.GoName, searchArgs))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(err, \"searching %s\").Err()",
 		mc.statusFromError(), xstrings.ToSnakeCase(pr.PluralGoName())))
@@ -115,7 +109,7 @@ func (mc *methodCtx) generateSearch() error {
 	g.P(fmt.Sprintf("  nextPageToken := parsedRequest.GetNextPageToken(len(%ss))", dbName))
 	g.P("  if nextPageToken != \"\" {")
 	g.P(fmt.Sprintf("    %ss = %ss[:len(%ss)-1]", dbName, dbName, dbName))
-	if hasSnippets {
+	{
 		g.P("    if len(dbSnippets) > 0 {")
 		g.P("      dbSnippets = dbSnippets[:len(dbSnippets)-1]")
 		g.P("    }")
@@ -123,7 +117,7 @@ func (mc *methodCtx) generateSearch() error {
 	g.P("  }")
 	g.P()
 
-	if hasSnippets {
+	{
 		// Snippets are index-aligned with the resource list; empty when the
 		// query was empty (list semantics).
 		g.P(fmt.Sprintf("  var snippets []*%s", mc.gen.ident(aipGenPkg, "SearchSnippet")))
@@ -166,9 +160,7 @@ func (mc *methodCtx) generateSearch() error {
 	g.P("  // Create and return response.")
 	g.P(fmt.Sprintf("  return &%s{", mc.gen.qgi(method.Output.GoIdent)))
 	g.P(fmt.Sprintf("    %s: %s,", pr.PluralGoName(), xstrings.ToCamelCase(pr.PluralGoName())))
-	if hasSnippets {
-		g.P("    Snippets: snippets,")
-	}
+	g.P("    Snippets: snippets,")
 	g.P("    NextPageToken: nextPageToken,")
 	g.P("  }, nil")
 	g.P("}")

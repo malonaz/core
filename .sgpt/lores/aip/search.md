@@ -48,16 +48,17 @@ Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
 
 ## Snippets
 
-Mark a search field `snippet: true` and declare
-`repeated malonaz.aip.v1.SearchSnippet snippets` on the Search response —
-index-aligned with the resource list. Each snippet holds `repeated
-SearchSnippetMatch matches` (`path` + `match`), ordered by field weight (A
-first); fragments are highlighted with `**` via `ts_headline` (raw text, not
-the split variant). Dotted JSONB paths (e.g. `metadata.country`) work — the
-snippet key stays dotted.
+Every search field is snippet-eligible — there is no per-field opt-in. The
+codegen enforces that every Search request declares `bool include_snippets`
+and every Search response declares
+`repeated malonaz.aip.v1.SearchSnippet snippets` (index-aligned with the
+resource list). Each snippet holds `repeated SearchSnippetMatch matches`
+(`path` + `match`), ordered by field weight (A first); fragments are
+highlighted with `**` via `ts_headline` (raw text, not the split variant).
+Dotted JSONB paths (e.g. `metadata.country`) work — the snippet key stays
+dotted.
 
-Snippets are opt-in per request: every Search request must declare
-`bool include_snippets` (codegen-enforced). When false the query is
+Snippets are opt-in per request: when `include_snippets` is false the query is
 byte-identical to a snippet-less search (no `ts_headline` cost) and the
 response carries no snippets.
 

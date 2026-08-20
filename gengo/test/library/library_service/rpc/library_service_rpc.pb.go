@@ -495,8 +495,26 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 		for i := range snippets {
 			snippet := &v14.SearchSnippet{}
 			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["display_name"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "display_name", Match: match})
+				}
+				if match, ok := dbSnippets[i]["email_address"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "email_address", Match: match})
+				}
+				if match, ok := dbSnippets[i]["phone_number"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "phone_number", Match: match})
+				}
 				if match, ok := dbSnippets[i]["metadata.country"]; ok {
 					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.country", Match: match})
+				}
+				if match, ok := dbSnippets[i]["email_addresses"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "email_addresses", Match: match})
+				}
+				if match, ok := dbSnippets[i]["phone_numbers"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "phone_numbers", Match: match})
+				}
+				if match, ok := dbSnippets[i]["metadata.email_addresses"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.email_addresses", Match: match})
 				}
 				if match, ok := dbSnippets[i]["biography"]; ok {
 					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "biography", Match: match})
@@ -1470,6 +1488,9 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 		for i := range snippets {
 			snippet := &v14.SearchSnippet{}
 			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["title"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "title", Match: match})
+				}
 				if match, ok := dbSnippets[i]["metadata.summary"]; ok {
 					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.summary", Match: match})
 				}

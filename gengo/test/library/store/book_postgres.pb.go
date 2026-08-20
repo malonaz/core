@@ -317,6 +317,7 @@ const BookSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(t
 
 type bookSearchRow struct {
 	model.Book
+	SnippetTitle           *string `db:"__snippet_title"`
 	SnippetMetadataSummary *string `db:"__snippet_metadata_summary"`
 }
 
@@ -340,6 +341,7 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(book.search_document, to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
 		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
 			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
 		}
 		params = append(params, tsQuery)
@@ -382,6 +384,9 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 			continue
 		}
 		snippet := map[string]string{}
+		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
+			snippet["title"] = *searchRow.SnippetTitle
+		}
 		if searchRow.SnippetMetadataSummary != nil && strings.Contains(*searchRow.SnippetMetadataSummary, "**") {
 			snippet["metadata.summary"] = *searchRow.SnippetMetadataSummary
 		}

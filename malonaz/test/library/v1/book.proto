@@ -44,7 +44,6 @@ message Book {
       {
         path: "metadata.summary"
         weight: WEIGHT_B
-        snippet: true
       }
     ]
   };

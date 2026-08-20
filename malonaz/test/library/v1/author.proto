@@ -77,7 +77,6 @@ message Author {
       {
         path: "metadata.country"
         weight: WEIGHT_B
-        snippet: true
       },
       {
         path: "metadata.email_addresses"
@@ -86,7 +85,6 @@ message Author {
       },
       {
         path: "biography"
-        snippet: true
       }
     ]
   };
