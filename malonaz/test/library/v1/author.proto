@@ -83,10 +83,7 @@ message Author {
         weight: WEIGHT_C
         split: SPLIT_EMAIL_ADDRESS
       },
-      {
-        path: "biography"
-      }
-    ]
+      {path: "biography"}]
   };
 
   // The resource name of the author.
