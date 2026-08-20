@@ -34,6 +34,19 @@ message Book {
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "title"
+        weight: WEIGHT_A
+      },
+      {
+        path: "metadata.summary"
+        weight: WEIGHT_B
+        snippet: true
+      }
+    ]
+  };
 
   // The resource name of the book.
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}

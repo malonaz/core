@@ -117,6 +117,12 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P()
 	}
 
+	if hasSnippets {
+		// SELECT expressions (with their own aliases) appended verbatim after
+		// the plain columns are qualified.
+		g.P("  var snippetColumns []string")
+	}
+
 	// The search predicate: relevance-ranked when a query is present, list
 	// semantics otherwise.
 	g.P(fmt.Sprintf("  orderByClause := \"ORDER BY %screate_time DESC\"", colPrefix))
@@ -132,7 +138,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 			if err != nil {
 				panic(err) // Already resolved once by schema.SearchDocument.
 			}
-			g.P(fmt.Sprintf("    columns = append(columns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
+			g.P(fmt.Sprintf("    snippetColumns = append(snippetColumns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
 				mc.fmtI("Sprintf"), expression, headlineOptions, snippetIdent(snippetField.Path)))
 		}
 	}
@@ -145,13 +151,21 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 			mc.stringsI("ReplaceAll"), mc.tableName, mc.goName))
 		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
 		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, %s(columns, %q) + %sJoinSelectExprs)",
-			mc.fmtI("Sprintf"), mc.postgres("QualifyColumns"), mc.bareTableName, mc.goName))
+		g.P(fmt.Sprintf("  selectColumns := %s(columns, %q) + %sJoinSelectExprs", mc.postgres("QualifyColumns"), mc.bareTableName, mc.goName))
+		if hasSnippets {
+			g.P("  for _, snippetColumn := range snippetColumns {")
+			g.P("    selectColumns += \",\" + snippetColumn")
+			g.P("  }")
+		}
+		g.P(fmt.Sprintf("  query = %s(query, selectColumns)", mc.fmtI("Sprintf")))
 	} else {
 		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s #where# #orderby# #pagination#\", \"#where#\", whereClause)",
 			mc.stringsI("ReplaceAll"), mc.tableName))
 		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
 		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
+		if hasSnippets {
+			g.P("  columns = append(columns, snippetColumns...)")
+		}
 		g.P(fmt.Sprintf("  query = %s(query, columns)", mc.postgres("SelectQuery")))
 	}
 	g.P()

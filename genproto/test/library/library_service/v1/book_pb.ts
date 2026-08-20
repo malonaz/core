@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../../google/api/field_
 import { file_google_api_resource } from "../../../../../google/api/resource_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
+import type { SearchSnippet, SearchSnippetValid } from "../../../../aip/v1/aip_pb";
+import { file_malonaz_aip_v1_aip } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import type { Book, BookValid } from "../../v1/book_pb";
 import { file_malonaz_test_library_v1_book } from "../../v1/book_pb";
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/book.proto.
  */
 export const file_malonaz_test_library_library_service_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhInMKEURlbGV0ZUJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhInMKEURlbGV0ZUJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIsABChJTZWFyY2hCb29rc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOg2C8y0CCGSS8y0DCgEqIo0BChNTZWFyY2hCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
 
 /**
  * Request message for LibraryService.CreateBook.
@@ -281,6 +283,164 @@ export const DeleteBookRequestSchema: GenMessage<DeleteBookRequest, {validType: 
   messageDesc(file_malonaz_test_library_library_service_v1_book, 3);
 
 /**
+ * Request message for LibraryService.SearchBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBooksRequest
+ */
+export type SearchBooksRequest = Message<"malonaz.test.library.library_service.v1.SearchBooksRequest"> & {
+  /**
+   * The parent shelf to search books in.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query. Results are ranked by relevance.
+   * Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * Requested page size.
+   *
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchBooks` call.
+   *
+   * @generated from field: string page_token = 5;
+   */
+  pageToken: string;
+};
+
+/**
+ * Request message for LibraryService.SearchBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBooksRequest
+ */
+export type SearchBooksRequestValid = Message<"malonaz.test.library.library_service.v1.SearchBooksRequest"> & {
+  /**
+   * The parent shelf to search books in.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query. Results are ranked by relevance.
+   * Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * Requested page size.
+   *
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchBooks` call.
+   *
+   * @generated from field: string page_token = 5;
+   */
+  pageToken: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.SearchBooksRequest.
+ * Use `create(SearchBooksRequestSchema)` to create a new message.
+ */
+export const SearchBooksRequestSchema: GenMessage<SearchBooksRequest, {validType: SearchBooksRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 4);
+
+/**
+ * Response message for LibraryService.SearchBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBooksResponse
+ */
+export type SearchBooksResponse = Message<"malonaz.test.library.library_service.v1.SearchBooksResponse"> & {
+  /**
+   * The books matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: Book[];
+
+  /**
+   * Highlighted snippets, index-aligned with `books`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippet[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Response message for LibraryService.SearchBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBooksResponse
+ */
+export type SearchBooksResponseValid = Message<"malonaz.test.library.library_service.v1.SearchBooksResponse"> & {
+  /**
+   * The books matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: BookValid[];
+
+  /**
+   * Highlighted snippets, index-aligned with `books`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippetValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.SearchBooksResponse.
+ * Use `create(SearchBooksResponseSchema)` to create a new message.
+ */
+export const SearchBooksResponseSchema: GenMessage<SearchBooksResponse, {validType: SearchBooksResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 5);
+
+/**
  * Request message for LibraryService.ListBooks.
  *
  * @generated from message malonaz.test.library.library_service.v1.ListBooksRequest
@@ -371,7 +531,7 @@ export type ListBooksRequestValid = Message<"malonaz.test.library.library_servic
  * Use `create(ListBooksRequestSchema)` to create a new message.
  */
 export const ListBooksRequestSchema: GenMessage<ListBooksRequest, {validType: ListBooksRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 4);
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 6);
 
 /**
  * Response message for LibraryService.ListBooks.
@@ -420,7 +580,7 @@ export type ListBooksResponseValid = Message<"malonaz.test.library.library_servi
  * Use `create(ListBooksResponseSchema)` to create a new message.
  */
 export const ListBooksResponseSchema: GenMessage<ListBooksResponse, {validType: ListBooksResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 5);
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 7);
 
 /**
  * Request message for LibraryService.BatchGetBooks.
@@ -453,7 +613,7 @@ export type BatchGetBooksRequestValid = BatchGetBooksRequest;
  * Use `create(BatchGetBooksRequestSchema)` to create a new message.
  */
 export const BatchGetBooksRequestSchema: GenMessage<BatchGetBooksRequest, {validType: BatchGetBooksRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 6);
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 8);
 
 /**
  * Response message for LibraryService.BatchGetBooks.
@@ -488,5 +648,5 @@ export type BatchGetBooksResponseValid = Message<"malonaz.test.library.library_s
  * Use `create(BatchGetBooksResponseSchema)` to create a new message.
  */
 export const BatchGetBooksResponseSchema: GenMessage<BatchGetBooksResponse, {validType: BatchGetBooksResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 9);
 

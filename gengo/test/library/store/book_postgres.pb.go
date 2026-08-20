@@ -308,3 +308,79 @@ func (s *Store) ListBooks(ctx context.Context, organizationId, shelfId string, w
 	}
 	return books, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
 }
+
+// BookSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const BookSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(title, '')), 'A') || setweight(to_tsvector('simple', coalesce(metadata #>> '{summary}', '')), 'B')`
+
+type bookSearchRow struct {
+	model.Book
+	SnippetMetadataSummary *string `db:"__snippet_metadata_summary"`
+}
+
+func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Book, []map[string]string, error) {
+	if columns == nil {
+		columns = BookWritePostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+	if shelfId != "-" && shelfId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.shelf_id = $%d", len(params)+1))
+		params = append(params, shelfId)
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY book.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(book.search_document, to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
+		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
+		params = append(params, tsQuery)
+	}
+
+	query := strings.ReplaceAll("SELECT %s FROM library.book "+bookJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
+	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
+	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
+	selectColumns := postgres.QualifyColumns(columns, "book") + bookJoinSelectExprs
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query = fmt.Sprintf(query, selectColumns)
+
+	var searchRows []*bookSearchRow
+	transactionFN := func(tx postgres.Tx) error {
+		searchRows = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return nil
+			}
+			return fmt.Errorf("selecting books: %w", err)
+		}
+		searchRows, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[bookSearchRow])
+		if err != nil {
+			return fmt.Errorf("collecting rows: %w", err)
+		}
+		return nil
+	}
+	if err := s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN); err != nil {
+		return nil, nil, err
+	}
+	books := make([]*model.Book, 0, len(searchRows))
+	snippets := make([]map[string]string, 0, len(searchRows))
+	for _, searchRow := range searchRows {
+		row := searchRow.Book
+		books = append(books, &row)
+		snippet := map[string]string{}
+		if searchRow.SnippetMetadataSummary != nil && strings.Contains(*searchRow.SnippetMetadataSummary, "**") {
+			snippet["metadata.summary"] = *searchRow.SnippetMetadataSummary
+		}
+		snippets = append(snippets, snippet)
+	}
+	return books, snippets, nil
+}

@@ -6,6 +6,7 @@ import (
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -463,4 +464,41 @@ func TestSearch_MetadataJSONKeyCasing(t *testing.T) {
 	authors := searchAuthors(t, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "snakecase@proto.names"})
 	require.Len(t, authors, 1)
 	require.Equal(t, author.Name, authors[0].Name)
+}
+
+// Books join shelf columns into every query: covers Search on a joined
+// resource, where snippet expressions and predicates must qualify column
+// references (regression: bare `metadata` was ambiguous / mis-qualified).
+func TestSearch_JoinedResource(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Joined Search Author")
+	shelf := createTestShelf(t, organizationParent, "Joined Search Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	hit := createTestBook(t, shelf.Name, author.Name, "Moby Dick")
+	_, err := libraryServiceClient.UpdateBook(ctx, &libraryservicepb.UpdateBookRequest{
+		Book: &librarypb.Book{
+			Name:     hit.Name,
+			Metadata: &librarypb.BookMetadata{Summary: "A whaling voyage across the Pacific.", Language: "en"},
+		},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"metadata"}},
+	})
+	require.NoError(t, err)
+	createTestBook(t, shelf.Name, author.Name, "Unrelated Title")
+
+	t.Run("TitleMatch", func(t *testing.T) {
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: "moby"})
+		require.NoError(t, err)
+		require.Len(t, response.Books, 1)
+		require.Equal(t, hit.Name, response.Books[0].Name)
+		// Joined columns are populated on search results.
+		require.Equal(t, librarypb.ShelfGenre_SHELF_GENRE_FICTION, response.Books[0].ShelfGenre)
+	})
+
+	t.Run("SnippetFromJSONBField", func(t *testing.T) {
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: "whaling"})
+		require.NoError(t, err)
+		require.Len(t, response.Books, 1)
+		require.Len(t, response.Snippets, 1)
+		require.Contains(t, response.Snippets[0].Fields["metadata.summary"], "**whaling**")
+	})
 }

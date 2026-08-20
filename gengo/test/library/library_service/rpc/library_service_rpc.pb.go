@@ -1108,6 +1108,7 @@ type libraryService_BookStore interface {
 	GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error)
 	BatchGetBooks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.Book, error)
 	ListBooks(ctx context.Context, organizationId, shelfId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, error)
+	SearchBooks(ctx context.Context, organizationId, shelfId string, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, []map[string]string, error)
 }
 
 type libraryService_BookServer struct {
@@ -1421,6 +1422,61 @@ func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+var searchBooksRequestParser = aip.MustNewSearchRequestParser[*v11.SearchBooksRequest, *v13.Book]()
+
+func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v11.SearchBooksRequest) (*v11.SearchBooksResponse, error) {
+	// Parse parent names
+	var organizationId, shelfId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchBooksRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbBooks, dbSnippets, err := s.store.SearchBooks(ctx, organizationId, shelfId, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching books").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbBooks))
+	if nextPageToken != "" {
+		dbBooks = dbBooks[:len(dbBooks)-1]
+		dbSnippets = dbSnippets[:len(dbSnippets)-1]
+	}
+
+	snippets := make([]*v14.SearchSnippet, len(dbBooks))
+	for i := range snippets {
+		var fields map[string]string
+		if dbSnippets != nil {
+			fields = dbSnippets[i]
+		}
+		snippets[i] = &v14.SearchSnippet{Fields: fields}
+	}
+
+	// Convert back to proto.
+	books := make([]*v13.Book, 0, len(dbBooks))
+	for _, dbBook := range dbBooks {
+		book, err := dbBook.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Book to Book: %v", err).Err()
+		}
+		books = append(books, book)
+	}
+
+	// Create and return response.
+	return &v11.SearchBooksResponse{
+		Books:         books,
+		Snippets:      snippets,
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 var listBooksRequestParser = aip.MustNewListRequestParser[*v11.ListBooksRequest, *v13.Book](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))

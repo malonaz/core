@@ -117,6 +117,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def SearchBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.SearchBooksRequest, malonaz.test.library.library_service.v1.book_pb2.SearchBooksResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.ListBooksRequest, malonaz.test.library.library_service.v1.book_pb2.ListBooksResponse]') -> None:
         pass
 
@@ -291,6 +295,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.book_pb2.DeleteBookRequest,
                 google.protobuf.empty_pb2.Empty,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/SearchBooks': grpclib.const.Handler(
+                self.SearchBooks,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_pb2.SearchBooksRequest,
+                malonaz.test.library.library_service.v1.book_pb2.SearchBooksResponse,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/ListBooks': grpclib.const.Handler(
                 self.ListBooks,
@@ -495,6 +505,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/DeleteBook',
             malonaz.test.library.library_service.v1.book_pb2.DeleteBookRequest,
             google.protobuf.empty_pb2.Empty,
+        )
+        self.SearchBooks = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/SearchBooks',
+            malonaz.test.library.library_service.v1.book_pb2.SearchBooksRequest,
+            malonaz.test.library.library_service.v1.book_pb2.SearchBooksResponse,
         )
         self.ListBooks = grpclib.client.UnaryUnaryMethod(
             channel,

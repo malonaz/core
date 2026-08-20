@@ -5,3 +5,5 @@ migrations:
     hash: 48d11e5f33f14e2b41c13024ee8f061f
   - path: library/002_author_search.sql
     hash: 82e4c2e1733d2ab802a1b0c3f801b005
+  - path: library/003_book_search.sql
+    hash: bb4f6557c8425e2be227cf017afc8ed0

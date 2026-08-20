@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v11 "github.com/malonaz/core/genproto/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -436,6 +437,226 @@ func (b0 DeleteBookRequest_builder) Build() *DeleteBookRequest {
 	return m0
 }
 
+// Request message for LibraryService.SearchBooks.
+type SearchBooksRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent shelf to search books in.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The free-text search query. Results are ranked by relevance.
+	// Must contain at least one searchable term.
+	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	// An optional filter, ANDed with the query.
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Requested page size.
+	PageSize int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A page token, received from a previous `SearchBooks` call.
+	PageToken     string `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchBooksRequest) Reset() {
+	*x = SearchBooksRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchBooksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchBooksRequest) ProtoMessage() {}
+
+func (x *SearchBooksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchBooksRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *SearchBooksRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchBooksRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *SearchBooksRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchBooksRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *SearchBooksRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *SearchBooksRequest) SetQuery(v string) {
+	x.Query = v
+}
+
+func (x *SearchBooksRequest) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *SearchBooksRequest) SetPageSize(v int32) {
+	x.PageSize = v
+}
+
+func (x *SearchBooksRequest) SetPageToken(v string) {
+	x.PageToken = v
+}
+
+type SearchBooksRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent shelf to search books in.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string
+	// The free-text search query. Results are ranked by relevance.
+	// Must contain at least one searchable term.
+	Query string
+	// An optional filter, ANDed with the query.
+	Filter string
+	// Requested page size.
+	PageSize int32
+	// A page token, received from a previous `SearchBooks` call.
+	PageToken string
+}
+
+func (b0 SearchBooksRequest_builder) Build() *SearchBooksRequest {
+	m0 := &SearchBooksRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Query = b.Query
+	x.Filter = b.Filter
+	x.PageSize = b.PageSize
+	x.PageToken = b.PageToken
+	return m0
+}
+
+// Response message for LibraryService.SearchBooks.
+type SearchBooksResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The books matching the query, ranked by relevance.
+	Books []*v1.Book `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	// Highlighted snippets, index-aligned with `books`.
+	Snippets []*v11.SearchSnippet `protobuf:"bytes,2,rep,name=snippets,proto3" json:"snippets,omitempty"`
+	// A token to retrieve the next page.
+	NextPageToken string `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchBooksResponse) Reset() {
+	*x = SearchBooksResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchBooksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchBooksResponse) ProtoMessage() {}
+
+func (x *SearchBooksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchBooksResponse) GetBooks() []*v1.Book {
+	if x != nil {
+		return x.Books
+	}
+	return nil
+}
+
+func (x *SearchBooksResponse) GetSnippets() []*v11.SearchSnippet {
+	if x != nil {
+		return x.Snippets
+	}
+	return nil
+}
+
+func (x *SearchBooksResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+func (x *SearchBooksResponse) SetBooks(v []*v1.Book) {
+	x.Books = v
+}
+
+func (x *SearchBooksResponse) SetSnippets(v []*v11.SearchSnippet) {
+	x.Snippets = v
+}
+
+func (x *SearchBooksResponse) SetNextPageToken(v string) {
+	x.NextPageToken = v
+}
+
+type SearchBooksResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The books matching the query, ranked by relevance.
+	Books []*v1.Book
+	// Highlighted snippets, index-aligned with `books`.
+	Snippets []*v11.SearchSnippet
+	// A token to retrieve the next page.
+	NextPageToken string
+}
+
+func (b0 SearchBooksResponse_builder) Build() *SearchBooksResponse {
+	m0 := &SearchBooksResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Books = b.Books
+	x.Snippets = b.Snippets
+	x.NextPageToken = b.NextPageToken
+	return m0
+}
+
 // Request message for LibraryService.ListBooks.
 type ListBooksRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -456,7 +677,7 @@ type ListBooksRequest struct {
 
 func (x *ListBooksRequest) Reset() {
 	*x = ListBooksRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +689,7 @@ func (x *ListBooksRequest) String() string {
 func (*ListBooksRequest) ProtoMessage() {}
 
 func (x *ListBooksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +796,7 @@ type ListBooksResponse struct {
 
 func (x *ListBooksResponse) Reset() {
 	*x = ListBooksResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +808,7 @@ func (x *ListBooksResponse) String() string {
 func (*ListBooksResponse) ProtoMessage() {}
 
 func (x *ListBooksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -654,7 +875,7 @@ type BatchGetBooksRequest struct {
 
 func (x *BatchGetBooksRequest) Reset() {
 	*x = BatchGetBooksRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -666,7 +887,7 @@ func (x *BatchGetBooksRequest) String() string {
 func (*BatchGetBooksRequest) ProtoMessage() {}
 
 func (x *BatchGetBooksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -731,7 +952,7 @@ type BatchGetBooksResponse struct {
 
 func (x *BatchGetBooksResponse) Reset() {
 	*x = BatchGetBooksResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -743,7 +964,7 @@ func (x *BatchGetBooksResponse) String() string {
 func (*BatchGetBooksResponse) ProtoMessage() {}
 
 func (x *BatchGetBooksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +1005,7 @@ var File_malonaz_test_library_library_service_v1_book_proto protoreflect.FileDes
 
 const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"2malonaz/test/library/library_service/v1/book.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xa5\x02\n" +
+	"2malonaz/test/library/library_service/v1/book.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xa5\x02\n" +
 	"\x11CreateBookRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12>\n" +
@@ -813,7 +1034,21 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x9f\x03\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xec\x01\n" +
+	"\x12SearchBooksRequest\x12D\n" +
+	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
+	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
+	"\x05query\x18\x02 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x02R\x05query\x12\x16\n" +
+	"\x06filter\x18\x03 \x01(\tR\x06filter\x12'\n" +
+	"\tpage_size\x18\x04 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"\x01*\"\xad\x01\n" +
+	"\x13SearchBooksResponse\x123\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\x129\n" +
+	"\bsnippets\x18\x02 \x03(\v2\x1d.malonaz.aip.v1.SearchSnippetR\bsnippets\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\"\x9f\x03\n" +
 	"\x10ListBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -848,30 +1083,35 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x15BatchGetBooksResponse\x123\n" +
 	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05booksBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_test_library_library_service_v1_book_proto_goTypes = []any{
 	(*CreateBookRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateBookRequest
 	(*GetBookRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetBookRequest
 	(*UpdateBookRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateBookRequest
 	(*DeleteBookRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteBookRequest
-	(*ListBooksRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListBooksRequest
-	(*ListBooksResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListBooksResponse
-	(*BatchGetBooksRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetBooksRequest
-	(*BatchGetBooksResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetBooksResponse
-	(*v1.Book)(nil),               // 8: malonaz.test.library.v1.Book
-	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
+	(*SearchBooksRequest)(nil),    // 4: malonaz.test.library.library_service.v1.SearchBooksRequest
+	(*SearchBooksResponse)(nil),   // 5: malonaz.test.library.library_service.v1.SearchBooksResponse
+	(*ListBooksRequest)(nil),      // 6: malonaz.test.library.library_service.v1.ListBooksRequest
+	(*ListBooksResponse)(nil),     // 7: malonaz.test.library.library_service.v1.ListBooksResponse
+	(*BatchGetBooksRequest)(nil),  // 8: malonaz.test.library.library_service.v1.BatchGetBooksRequest
+	(*BatchGetBooksResponse)(nil), // 9: malonaz.test.library.library_service.v1.BatchGetBooksResponse
+	(*v1.Book)(nil),               // 10: malonaz.test.library.v1.Book
+	(*fieldmaskpb.FieldMask)(nil), // 11: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),     // 12: malonaz.aip.v1.SearchSnippet
 }
 var file_malonaz_test_library_library_service_v1_book_proto_depIdxs = []int32{
-	8, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	8, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	9, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	8, // 4: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	10, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	10, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	11, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
+	10, // 3: malonaz.test.library.library_service.v1.SearchBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	12, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	10, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	10, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_book_proto_init() }
@@ -885,7 +1125,7 @@ func file_malonaz_test_library_library_service_v1_book_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_book_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

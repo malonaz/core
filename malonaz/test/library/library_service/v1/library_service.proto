@@ -222,6 +222,15 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
   }
 
+  // Search books.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchBooks(SearchBooksRequest) returns (SearchBooksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books:search"};
+    option (google.api.method_signature) = "parent,query";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
   // Lists books.
   rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books"};

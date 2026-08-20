@@ -26,11 +26,12 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
+from malonaz.aip.v1 import aip_pb2 as malonaz_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.test.library.v1 import book_pb2 as malonaz_dot_test_dot_library_dot_v1_dot_book__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/test/library/library_service/v1/book.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xf6\x01\n\x11\x43reateBookRequest\x12<\n\x06parent\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x36\n\x07\x62ook_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x33\n\x04\x62ook\x18\x03 \x01(\x0b\x32\x1d.malonaz.test.library.v1.BookB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"K\n\x0eGetBookRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\"\xa1\x02\n\x11UpdateBookRequest\x12\x33\n\x04\x62ook\x18\x01 \x01(\x0b\x32\x1d.malonaz.test.library.v1.BookB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cprecondition\x18\x03 \x01(\t:\x87\x01\xbaHB\x1a@\n\x12\x62ook.name_required\x12\x15\x62ook.name must be set\x1a\x13has(this.book.name)\xea\x9c\xc1\x03=\n\x05title\n\x06\x61uthor\n\x04isbn\n\x10publication_year\n\npage_count\n\x08metadata\"s\n\x11\x44\x65leteBookRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xf1\x02\n\x10ListBooksRequest\x12<\n\x06parent\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:\xc9\x01\x82\xf3-\x02\x08\x64\x8a\xf3-X\n\x0b\x63reate_time\n\x0bupdate_time\n\x05title\n\x10publication_year\n\x11shelf_external_id\x12\x10\x63reate_time desc\x92\xf3-c\n\x05title\n\x06\x61uthor\n\x04isbn\n\x10publication_year\n\x08metadata\n\x08\x64uration\n\x06labels\n\x0bshelf_genre\n\x11shelf_external_id\"Z\n\x11ListBooksResponse\x12,\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x1d.malonaz.test.library.v1.Book\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x91\x01\n\x14\x42\x61tchGetBooksRequest\x12\x33\n\x06parent\x18\x01 \x01(\tB#\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\x12\x44\n\x05names\x18\x02 \x03(\tB5\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"E\n\x15\x42\x61tchGetBooksResponse\x12,\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x1d.malonaz.test.library.v1.BookBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/test/library/library_service/v1/book.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xf6\x01\n\x11\x43reateBookRequest\x12<\n\x06parent\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x36\n\x07\x62ook_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x33\n\x04\x62ook\x18\x03 \x01(\x0b\x32\x1d.malonaz.test.library.v1.BookB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"K\n\x0eGetBookRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\"\xa1\x02\n\x11UpdateBookRequest\x12\x33\n\x04\x62ook\x18\x01 \x01(\x0b\x32\x1d.malonaz.test.library.v1.BookB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cprecondition\x18\x03 \x01(\t:\x87\x01\xbaHB\x1a@\n\x12\x62ook.name_required\x12\x15\x62ook.name must be set\x1a\x13has(this.book.name)\xea\x9c\xc1\x03=\n\x05title\n\x06\x61uthor\n\x04isbn\n\x10publication_year\n\npage_count\n\x08metadata\"s\n\x11\x44\x65leteBookRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xc0\x01\n\x12SearchBooksRequest\x12<\n\x06parent\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x1a\n\x05query\x18\x02 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x02\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:\r\x82\xf3-\x02\x08\x64\x92\xf3-\x03\n\x01*\"\x8d\x01\n\x13SearchBooksResponse\x12,\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x1d.malonaz.test.library.v1.Book\x12/\n\x08snippets\x18\x02 \x03(\x0b\x32\x1d.malonaz.aip.v1.SearchSnippet\x12\x17\n\x0fnext_page_token\x18\x03 \x01(\t\"\xf1\x02\n\x10ListBooksRequest\x12<\n\x06parent\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:\xc9\x01\x82\xf3-\x02\x08\x64\x8a\xf3-X\n\x0b\x63reate_time\n\x0bupdate_time\n\x05title\n\x10publication_year\n\x11shelf_external_id\x12\x10\x63reate_time desc\x92\xf3-c\n\x05title\n\x06\x61uthor\n\x04isbn\n\x10publication_year\n\x08metadata\n\x08\x64uration\n\x06labels\n\x0bshelf_genre\n\x11shelf_external_id\"Z\n\x11ListBooksResponse\x12,\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x1d.malonaz.test.library.v1.Book\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x91\x01\n\x14\x42\x61tchGetBooksRequest\x12\x33\n\x06parent\x18\x01 \x01(\tB#\xfa\x41 \n\x1elibrary.test.malonaz.com/Shelf\x12\x44\n\x05names\x18\x02 \x03(\tB5\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"E\n\x15\x42\x61tchGetBooksResponse\x12,\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x1d.malonaz.test.library.v1.BookBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -56,6 +57,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATEBOOKREQUEST']._serialized_options = b'\272HB\032@\n\022book.name_required\022\025book.name must be set\032\023has(this.book.name)\352\234\301\003=\n\005title\n\006author\n\004isbn\n\020publication_year\n\npage_count\n\010metadata'
   _globals['_DELETEBOOKREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETEBOOKREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\037\n\035library.test.malonaz.com/Book\272H\003\310\001\001'
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['parent']._loaded_options = None
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A \n\036library.test.malonaz.com/Shelf\272H\003\310\001\001'
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['query']._loaded_options = None
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['query']._serialized_options = b'\272H\010r\003\030\200\002\310\001\001'
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['page_size']._loaded_options = None
+  _globals['_SEARCHBOOKSREQUEST'].fields_by_name['page_size']._serialized_options = b'\272H\007\032\005\030\350\007(\000'
+  _globals['_SEARCHBOOKSREQUEST']._loaded_options = None
+  _globals['_SEARCHBOOKSREQUEST']._serialized_options = b'\202\363-\002\010d\222\363-\003\n\001*'
   _globals['_LISTBOOKSREQUEST'].fields_by_name['parent']._loaded_options = None
   _globals['_LISTBOOKSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A \n\036library.test.malonaz.com/Shelf\272H\003\310\001\001'
   _globals['_LISTBOOKSREQUEST'].fields_by_name['page_size']._loaded_options = None
@@ -66,20 +75,24 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_BATCHGETBOOKSREQUEST'].fields_by_name['parent']._serialized_options = b'\372A \n\036library.test.malonaz.com/Shelf'
   _globals['_BATCHGETBOOKSREQUEST'].fields_by_name['names']._loaded_options = None
   _globals['_BATCHGETBOOKSREQUEST'].fields_by_name['names']._serialized_options = b'\372A\037\n\035library.test.malonaz.com/Book\272H\020\222\001\r\010\001\020\350\007\030\001\"\004r\002\020\001'
-  _globals['_CREATEBOOKREQUEST']._serialized_start=289
-  _globals['_CREATEBOOKREQUEST']._serialized_end=535
-  _globals['_GETBOOKREQUEST']._serialized_start=537
-  _globals['_GETBOOKREQUEST']._serialized_end=612
-  _globals['_UPDATEBOOKREQUEST']._serialized_start=615
-  _globals['_UPDATEBOOKREQUEST']._serialized_end=904
-  _globals['_DELETEBOOKREQUEST']._serialized_start=906
-  _globals['_DELETEBOOKREQUEST']._serialized_end=1021
-  _globals['_LISTBOOKSREQUEST']._serialized_start=1024
-  _globals['_LISTBOOKSREQUEST']._serialized_end=1393
-  _globals['_LISTBOOKSRESPONSE']._serialized_start=1395
-  _globals['_LISTBOOKSRESPONSE']._serialized_end=1485
-  _globals['_BATCHGETBOOKSREQUEST']._serialized_start=1488
-  _globals['_BATCHGETBOOKSREQUEST']._serialized_end=1633
-  _globals['_BATCHGETBOOKSRESPONSE']._serialized_start=1635
-  _globals['_BATCHGETBOOKSRESPONSE']._serialized_end=1704
+  _globals['_CREATEBOOKREQUEST']._serialized_start=315
+  _globals['_CREATEBOOKREQUEST']._serialized_end=561
+  _globals['_GETBOOKREQUEST']._serialized_start=563
+  _globals['_GETBOOKREQUEST']._serialized_end=638
+  _globals['_UPDATEBOOKREQUEST']._serialized_start=641
+  _globals['_UPDATEBOOKREQUEST']._serialized_end=930
+  _globals['_DELETEBOOKREQUEST']._serialized_start=932
+  _globals['_DELETEBOOKREQUEST']._serialized_end=1047
+  _globals['_SEARCHBOOKSREQUEST']._serialized_start=1050
+  _globals['_SEARCHBOOKSREQUEST']._serialized_end=1242
+  _globals['_SEARCHBOOKSRESPONSE']._serialized_start=1245
+  _globals['_SEARCHBOOKSRESPONSE']._serialized_end=1386
+  _globals['_LISTBOOKSREQUEST']._serialized_start=1389
+  _globals['_LISTBOOKSREQUEST']._serialized_end=1758
+  _globals['_LISTBOOKSRESPONSE']._serialized_start=1760
+  _globals['_LISTBOOKSRESPONSE']._serialized_end=1850
+  _globals['_BATCHGETBOOKSREQUEST']._serialized_start=1853
+  _globals['_BATCHGETBOOKSREQUEST']._serialized_end=1998
+  _globals['_BATCHGETBOOKSRESPONSE']._serialized_start=2000
+  _globals['_BATCHGETBOOKSRESPONSE']._serialized_end=2069
 # @@protoc_insertion_point(module_scope)

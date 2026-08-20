@@ -42,6 +42,7 @@ const (
 	LibraryService_GetBook_FullMethodName                = "/malonaz.test.library.library_service.v1.LibraryService/GetBook"
 	LibraryService_UpdateBook_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/UpdateBook"
 	LibraryService_DeleteBook_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/DeleteBook"
+	LibraryService_SearchBooks_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/SearchBooks"
 	LibraryService_ListBooks_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListBooks"
 	LibraryService_BatchGetBooks_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetBooks"
 	LibraryService_GetBookReview_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/GetBookReview"
@@ -110,6 +111,10 @@ type LibraryServiceClient interface {
 	UpdateBook(ctx context.Context, in *UpdateBookRequest, opts ...grpc.CallOption) (*v1.Book, error)
 	// Deletes a book.
 	DeleteBook(ctx context.Context, in *DeleteBookRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Search books.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchBooks(ctx context.Context, in *SearchBooksRequest, opts ...grpc.CallOption) (*SearchBooksResponse, error)
 	// Lists books.
 	ListBooks(ctx context.Context, in *ListBooksRequest, opts ...grpc.CallOption) (*ListBooksResponse, error)
 	// Gets multiple books in a single request.
@@ -358,6 +363,16 @@ func (c *libraryServiceClient) DeleteBook(ctx context.Context, in *DeleteBookReq
 	return out, nil
 }
 
+func (c *libraryServiceClient) SearchBooks(ctx context.Context, in *SearchBooksRequest, opts ...grpc.CallOption) (*SearchBooksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchBooksResponse)
+	err := c.cc.Invoke(ctx, LibraryService_SearchBooks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) ListBooks(ctx context.Context, in *ListBooksRequest, opts ...grpc.CallOption) (*ListBooksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListBooksResponse)
@@ -532,6 +547,10 @@ type LibraryServiceServer interface {
 	UpdateBook(context.Context, *UpdateBookRequest) (*v1.Book, error)
 	// Deletes a book.
 	DeleteBook(context.Context, *DeleteBookRequest) (*emptypb.Empty, error)
+	// Search books.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchBooks(context.Context, *SearchBooksRequest) (*SearchBooksResponse, error)
 	// Lists books.
 	ListBooks(context.Context, *ListBooksRequest) (*ListBooksResponse, error)
 	// Gets multiple books in a single request.
@@ -631,6 +650,9 @@ func (UnimplementedLibraryServiceServer) UpdateBook(context.Context, *UpdateBook
 }
 func (UnimplementedLibraryServiceServer) DeleteBook(context.Context, *DeleteBookRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteBook not implemented")
+}
+func (UnimplementedLibraryServiceServer) SearchBooks(context.Context, *SearchBooksRequest) (*SearchBooksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchBooks not implemented")
 }
 func (UnimplementedLibraryServiceServer) ListBooks(context.Context, *ListBooksRequest) (*ListBooksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBooks not implemented")
@@ -1066,6 +1088,24 @@ func _LibraryService_DeleteBook_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_SearchBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).SearchBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_SearchBooks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).SearchBooks(ctx, req.(*SearchBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_ListBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListBooksRequest)
 	if err := dec(in); err != nil {
@@ -1372,6 +1412,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBook",
 			Handler:    _LibraryService_DeleteBook_Handler,
+		},
+		{
+			MethodName: "SearchBooks",
+			Handler:    _LibraryService_SearchBooks_Handler,
 		},
 		{
 			MethodName: "ListBooks",

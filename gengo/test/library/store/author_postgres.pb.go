@@ -344,18 +344,20 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
 	}
 
+	var snippetColumns []string
 	orderByClause := "ORDER BY create_time DESC"
 	if tsQuery != "" {
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
-		columns = append(columns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
-		columns = append(columns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
+		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
 		params = append(params, tsQuery)
 	}
 
 	query := strings.ReplaceAll("SELECT %s FROM library.author #where# #orderby# #pagination#", "#where#", whereClause)
 	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
 	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
+	columns = append(columns, snippetColumns...)
 	query = postgres.SelectQuery(query, columns)
 
 	var searchRows []*authorSearchRow
