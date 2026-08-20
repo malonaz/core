@@ -143,6 +143,9 @@ func run(ctx {{ goImport "context" }}.Context) error {
                     }
                     {{ $grpc.Client }} := {{ $grpc.NewClient }}
                     {{ $grpc.HealthCheck }} := {{ $grpc.Connection }}.HealthCheckFn({{ $grpc.ServiceDescriptionName }})
+                    // Only consumed by services that declare this one as a dependency, of which a
+                    // server composing a subset of the services may have none.
+                    _ = {{ $grpc.HealthCheck }}
                 {{ end }}
 
                 {{- /* Add health check function to all servers that use this service, unless self-referential */ -}}
