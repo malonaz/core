@@ -54,6 +54,7 @@ go_test(
         "ordering_request_test.go",
         "pagination_request_test.go",
         "search_query_test.go",
+        "search_request_parser_test.go",
         "update_request_parser_test.go",
     ],
     deps = [

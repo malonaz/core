@@ -20,8 +20,8 @@ type SearchRequestParser[T searchRequest[R], R proto.Message] struct {
 	paginationParser *PaginationRequestParser[T]
 }
 
-func MustNewSearchRequestParser[T searchRequest[R], R proto.Message]() *SearchRequestParser[T, R] {
-	parser, err := NewSearchRequestParser[T, R]()
+func MustNewSearchRequestParser[T searchRequest[R], R proto.Message](opts ...FilteringRequestOpt) *SearchRequestParser[T, R] {
+	parser, err := NewSearchRequestParser[T, R](opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -29,8 +29,8 @@ func MustNewSearchRequestParser[T searchRequest[R], R proto.Message]() *SearchRe
 }
 
 // NewSearchRequestParser instantiates and returns a new parser.
-func NewSearchRequestParser[T searchRequest[R], R proto.Message]() (*SearchRequestParser[T, R], error) {
-	filteringParser, err := NewFilteringRequestParser[T, R]()
+func NewSearchRequestParser[T searchRequest[R], R proto.Message](opts ...FilteringRequestOpt) (*SearchRequestParser[T, R], error) {
+	filteringParser, err := NewFilteringRequestParser[T, R](opts...)
 	if err != nil {
 		return nil, fmt.Errorf("creating filtering parser: %w", err)
 	}
