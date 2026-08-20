@@ -101,12 +101,55 @@ type SnippetField struct {
 	Weight string
 }
 
-// SearchFieldExpression resolves a search field path to its raw text SQL
-// expression with every column reference qualified by the given prefix
-// (e.g. "contact_activity_event."), for use inside queries that join other
-// tables where bare column names would be ambiguous.
+// SearchFieldExpression resolves a search field path to the raw text SQL
+// expression headlined into snippets, with every column reference qualified
+// by the given prefix (e.g. "contact_activity_event."), for use inside
+// queries that join other tables where bare column names would be ambiguous.
+// Unlike the search document expression, JSONB message/array terminals
+// extract only their string leaf values (space-joined) rather than raw JSON
+// text — ts_headline fragments must be human-readable. jsonb_path_query is a
+// set-returning function, unusable in the stored generated column, but
+// snippets are computed per query so it is fine here.
 func SearchFieldExpression(message *protogen.Message, path, columnPrefix string) (string, error) {
+	segments := strings.Split(path, ".")
+	terminal, err := resolveSearchField(message, path)
+	if err != nil {
+		return "", err
+	}
+	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
+	if len(segments) == 1 {
+		return searchFieldBase(message, path, columnPrefix)
+	}
+	if terminal.Message != nil || terminal.Desc.IsList() {
+		// String leaves of the JSON subtree, space-joined.
+		return fmt.Sprintf(
+			`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s #> '{%s}', '$.** ? (@.type() == "string")') AS j), '')`,
+			column, strings.Join(segments[1:], ","),
+		), nil
+	}
 	return searchFieldBase(message, path, columnPrefix)
+}
+
+// resolveSearchField walks a search field path and returns its terminal
+// field. Validation mirrors searchFieldBase.
+func resolveSearchField(message *protogen.Message, path string) (*protogen.Field, error) {
+	segments := strings.Split(path, ".")
+	field := fieldByName(message, segments[0])
+	if field == nil {
+		return nil, fmt.Errorf("search field %q not found on %s", path, message.GoIdent.GoName)
+	}
+	current := field
+	for _, segment := range segments[1:] {
+		if current.Message == nil {
+			return nil, fmt.Errorf("search field %q on %s: segment %q is not a message field", path, message.GoIdent.GoName, segment)
+		}
+		next := fieldByName(current.Message, segment)
+		if next == nil {
+			return nil, fmt.Errorf("search field %q on %s: segment %q not found on %s", path, message.GoIdent.GoName, segment, current.Message.GoIdent.GoName)
+		}
+		current = next
+	}
+	return current, nil
 }
 
 // searchFieldBase resolves a search field path to the raw text SQL expression
