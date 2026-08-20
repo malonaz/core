@@ -13,6 +13,14 @@ import (
 // markers, at most two short fragments per field.
 const headlineOptions = "StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4"
 
+// snippetIdent flattens a snippet field path into an identifier-safe form for
+// the Go struct field, the db tag and the SQL column alias. Dotted JSONB
+// paths (e.g. "metadata.body") would otherwise emit invalid Go and require
+// quoted SQL aliases; the response map keeps the raw dotted path as its key.
+func snippetIdent(path string) string {
+	return strings.ReplaceAll(path, ".", "_")
+}
+
 // generateSearch emits the full-text search store method and the search
 // document expression constant. The table must declare a stored generated
 // `search_document` tsvector column matching the emitted expression.
@@ -40,7 +48,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P(fmt.Sprintf("type %s struct {", rowType))
 		g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
 		for _, snippetField := range searchDoc.SnippetFields {
-			g.P(fmt.Sprintf("  Snippet%s *string `db:\"__snippet_%s\"`", xstrings.ToPascalCase(snippetField.Path), snippetField.Path))
+			g.P(fmt.Sprintf("  Snippet%s *string `db:\"__snippet_%s\"`", xstrings.ToPascalCase(snippetIdent(snippetField.Path)), snippetIdent(snippetField.Path)))
 		}
 		g.P("}")
 		g.P()
@@ -120,7 +128,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	if hasSnippets {
 		for _, snippetField := range searchDoc.SnippetFields {
 			g.P(fmt.Sprintf("    columns = append(columns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
-				mc.fmtI("Sprintf"), snippetField.Expression, headlineOptions, snippetField.Path))
+				mc.fmtI("Sprintf"), snippetField.Expression, headlineOptions, snippetIdent(snippetField.Path)))
 		}
 	}
 	g.P("    params = append(params, tsQuery)")
@@ -170,7 +178,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P(fmt.Sprintf("    %s = append(%s, &row)", pluralUntitled, pluralUntitled))
 		g.P("    snippet := map[string]string{}")
 		for _, snippetField := range searchDoc.SnippetFields {
-			goName := xstrings.ToPascalCase(snippetField.Path)
+			goName := xstrings.ToPascalCase(snippetIdent(snippetField.Path))
 			// Only surface fragments that actually contain a highlighted match.
 			g.P(fmt.Sprintf("    if searchRow.Snippet%s != nil && %s(*searchRow.Snippet%s, \"**\") {",
 				goName, mc.stringsI("Contains"), goName))

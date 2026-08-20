@@ -373,6 +373,21 @@ func TestSearch_Snippets(t *testing.T) {
 		}
 	})
 
+	t.Run("DottedJSONPathFragment", func(t *testing.T) {
+		// Regression: dotted snippet paths (JSONB fields) must survive
+		// identifier flattening while keeping the dotted response key.
+		hit := createSearchAuthor(t, parent, func(a *librarypb.Author) {
+			a.DisplayName = "Dotted Snippet"
+			a.Metadata = &librarypb.AuthorMetadata{Country: "Whalingland"}
+		})
+		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whalingland"})
+		require.NoError(t, err)
+		require.Len(t, response.Authors, 1)
+		require.Equal(t, hit.Name, response.Authors[0].Name)
+		require.Len(t, response.Snippets, 1)
+		require.Contains(t, response.Snippets[0].Fields["metadata.country"], "**Whalingland**")
+	})
+
 	t.Run("PrefixQueryHighlights", func(t *testing.T) {
 		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "obsess"})
 		require.NoError(t, err)

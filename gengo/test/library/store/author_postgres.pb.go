@@ -326,7 +326,8 @@ const AuthorSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce
 
 type authorSearchRow struct {
 	model.Author
-	SnippetBiography *string `db:"__snippet_biography"`
+	SnippetMetadataCountry *string `db:"__snippet_metadata_country"`
+	SnippetBiography       *string `db:"__snippet_biography"`
 }
 
 func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
@@ -347,6 +348,7 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 	if tsQuery != "" {
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
+		columns = append(columns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
 		columns = append(columns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
 		params = append(params, tsQuery)
 	}
@@ -381,6 +383,9 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		row := searchRow.Author
 		authors = append(authors, &row)
 		snippet := map[string]string{}
+		if searchRow.SnippetMetadataCountry != nil && strings.Contains(*searchRow.SnippetMetadataCountry, "**") {
+			snippet["metadata.country"] = *searchRow.SnippetMetadataCountry
+		}
 		if searchRow.SnippetBiography != nil && strings.Contains(*searchRow.SnippetBiography, "**") {
 			snippet["biography"] = *searchRow.SnippetBiography
 		}

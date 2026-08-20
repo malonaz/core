@@ -405,7 +405,7 @@ var File_malonaz_test_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb6\t\n" +
+	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb8\t\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -427,9 +427,9 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa2\x02\xeaAa\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa4\x02\xeaAa\n" +
 	"\x1flibrary.test.malonaz.com/Author\x12-organizations/{organization}/authors/{author}*\aauthors2\x06authorҦ\x04\t\n" +
-	"\alibrary\x9a\xf3-\xac\x01\n" +
+	"\alibrary\x9a\xf3-\xae\x01\n" +
 	"\x10\n" +
 	"\fdisplay_name\x10\x01\n" +
 	"\x13\n" +
@@ -440,8 +440,8 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x0femail_addresses\x10\x03\x18\x01\n" +
 	"\x13\n" +
 	"\rphone_numbers\x10\x03\x18\x02\n" +
-	"\x14\n" +
-	"\x10metadata.country\x10\x02\n" +
+	"\x16\n" +
+	"\x10metadata.country\x10\x02 \x01\n" +
 	"\x1e\n" +
 	"\x18metadata.email_addresses\x10\x03\x18\x01\n" +
 	"\r\n" +
