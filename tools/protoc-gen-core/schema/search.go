@@ -3,6 +3,7 @@ package schema
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/huandu/xstrings"
@@ -74,9 +75,12 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		if searchField.GetSnippet() {
 			// Snippets headline the raw text (no split variant), or fragments
 			// would surface mangled tokenized text.
-			snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base})
+			snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base, Weight: weightLetter(searchField.GetWeight())})
 		}
 	}
+	// Snippet matches surface in field-weight order (A first), declaration
+	// order breaking ties.
+	sort.SliceStable(snippetFields, func(i, j int) bool { return snippetFields[i].Weight < snippetFields[j].Weight })
 	return &SearchDoc{Expression: strings.Join(expressions, " || "), SnippetFields: snippetFields}, nil
 }
 
@@ -94,6 +98,8 @@ type SnippetField struct {
 	Path string
 	// Expression is the raw text SQL expression to headline.
 	Expression string
+	// Weight is the field's tsvector weight letter (A-D).
+	Weight string
 }
 
 // SearchFieldExpression resolves a search field path to its raw text SQL

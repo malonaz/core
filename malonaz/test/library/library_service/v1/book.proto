@@ -135,6 +135,9 @@ message SearchBooksRequest {
 
   // A page token, received from a previous `SearchBooks` call.
   string page_token = 5;
+
+  // If true, highlighted snippets are computed and returned for each result.
+  bool include_snippets = 6;
 }
 
 // Response message for LibraryService.SearchBooks.

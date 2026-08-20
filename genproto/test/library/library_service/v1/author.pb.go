@@ -797,9 +797,11 @@ type SearchAuthorsRequest struct {
 	// Requested page size.
 	PageSize int32 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// A page token, received from a previous `SearchAuthors` call.
-	PageToken     string `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	PageToken string `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool `protobuf:"varint,7,opt,name=include_snippets,json=includeSnippets,proto3" json:"include_snippets,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SearchAuthorsRequest) Reset() {
@@ -869,6 +871,13 @@ func (x *SearchAuthorsRequest) GetPageToken() string {
 	return ""
 }
 
+func (x *SearchAuthorsRequest) GetIncludeSnippets() bool {
+	if x != nil {
+		return x.IncludeSnippets
+	}
+	return false
+}
+
 func (x *SearchAuthorsRequest) SetParent(v string) {
 	x.Parent = v
 }
@@ -893,6 +902,10 @@ func (x *SearchAuthorsRequest) SetPageToken(v string) {
 	x.PageToken = v
 }
 
+func (x *SearchAuthorsRequest) SetIncludeSnippets(v bool) {
+	x.IncludeSnippets = v
+}
+
 type SearchAuthorsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -910,6 +923,8 @@ type SearchAuthorsRequest_builder struct {
 	PageSize int32
 	// A page token, received from a previous `SearchAuthors` call.
 	PageToken string
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool
 }
 
 func (b0 SearchAuthorsRequest_builder) Build() *SearchAuthorsRequest {
@@ -922,6 +937,7 @@ func (b0 SearchAuthorsRequest_builder) Build() *SearchAuthorsRequest {
 	x.ShowDeleted = b.ShowDeleted
 	x.PageSize = b.PageSize
 	x.PageToken = b.PageToken
+	x.IncludeSnippets = b.IncludeSnippets
 	return m0
 }
 
@@ -1072,7 +1088,7 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB7\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"T\n" +
 	"\x17BatchGetAuthorsResponse\x129\n" +
-	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\"\x98\x02\n" +
+	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\"\xc3\x02\n" +
 	"\x14SearchAuthorsRequest\x12K\n" +
 	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
 	"%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
@@ -1082,7 +1098,8 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\tpage_size\x18\x05 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\x12)\n" +
+	"\x10include_snippets\x18\a \x01(\bR\x0fincludeSnippets:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
 	"\x01*\"\xb5\x01\n" +
 	"\x15SearchAuthorsResponse\x129\n" +
 	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\x129\n" +

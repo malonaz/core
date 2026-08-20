@@ -385,6 +385,10 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		if mc.softDeletable {
 			searchSig += "showDeleted bool, "
 		}
+		if searchDoc != nil && len(searchDoc.SnippetFields) > 0 {
+			// Snippets are computed per request only when asked for.
+			searchSig += "includeSnippets bool, "
+		}
 		searchSig += fmt.Sprintf("tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) %s", searchReturns)
 		g.P(searchSig)
 	}

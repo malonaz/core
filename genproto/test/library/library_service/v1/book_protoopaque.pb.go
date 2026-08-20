@@ -423,14 +423,15 @@ func (b0 DeleteBookRequest_builder) Build() *DeleteBookRequest {
 
 // Request message for LibraryService.SearchBooks.
 type SearchBooksRequest struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_Query     string                 `protobuf:"bytes,2,opt,name=query,proto3"`
-	xxx_hidden_Filter    string                 `protobuf:"bytes,3,opt,name=filter,proto3"`
-	xxx_hidden_PageSize  int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3"`
-	xxx_hidden_PageToken string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent          string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Query           string                 `protobuf:"bytes,2,opt,name=query,proto3"`
+	xxx_hidden_Filter          string                 `protobuf:"bytes,3,opt,name=filter,proto3"`
+	xxx_hidden_PageSize        int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken       string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_IncludeSnippets bool                   `protobuf:"varint,6,opt,name=include_snippets,json=includeSnippets,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *SearchBooksRequest) Reset() {
@@ -493,6 +494,13 @@ func (x *SearchBooksRequest) GetPageToken() string {
 	return ""
 }
 
+func (x *SearchBooksRequest) GetIncludeSnippets() bool {
+	if x != nil {
+		return x.xxx_hidden_IncludeSnippets
+	}
+	return false
+}
+
 func (x *SearchBooksRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
@@ -513,6 +521,10 @@ func (x *SearchBooksRequest) SetPageToken(v string) {
 	x.xxx_hidden_PageToken = v
 }
 
+func (x *SearchBooksRequest) SetIncludeSnippets(v bool) {
+	x.xxx_hidden_IncludeSnippets = v
+}
+
 type SearchBooksRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -528,6 +540,8 @@ type SearchBooksRequest_builder struct {
 	PageSize int32
 	// A page token, received from a previous `SearchBooks` call.
 	PageToken string
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool
 }
 
 func (b0 SearchBooksRequest_builder) Build() *SearchBooksRequest {
@@ -539,6 +553,7 @@ func (b0 SearchBooksRequest_builder) Build() *SearchBooksRequest {
 	x.xxx_hidden_Filter = b.Filter
 	x.xxx_hidden_PageSize = b.PageSize
 	x.xxx_hidden_PageToken = b.PageToken
+	x.xxx_hidden_IncludeSnippets = b.IncludeSnippets
 	return m0
 }
 
@@ -1002,7 +1017,7 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xec\x01\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x97\x02\n" +
 	"\x12SearchBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
@@ -1011,7 +1026,8 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\tpage_size\x18\x04 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x05 \x01(\tR\tpageToken:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken\x12)\n" +
+	"\x10include_snippets\x18\x06 \x01(\bR\x0fincludeSnippets:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
 	"\x01*\"\xad\x01\n" +
 	"\x13SearchBooksResponse\x123\n" +
 	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\x129\n" +

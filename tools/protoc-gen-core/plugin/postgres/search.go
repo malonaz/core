@@ -68,11 +68,15 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	}
 
 	returnTypes := fmt.Sprintf("([]*%s, error)", mc.goTypeFqi)
+	includeSnippetsParam := ""
 	if hasSnippets {
 		returnTypes = fmt.Sprintf("([]*%s, []map[string]string, error)", mc.goTypeFqi)
+		// Snippets are opt-in: ts_headline re-parses each returned row's text,
+		// so the cost is only paid when the caller asks for snippets.
+		includeSnippetsParam = "includeSnippets bool, "
 	}
-	g.P(fmt.Sprintf("func (s *Store) Search%s(ctx context.Context, %s%stsQuery, whereClause, paginationClause string, columns []string, params ...any) %s {",
-		pluralGoName, parentParam, showDeletedParam, returnTypes))
+	g.P(fmt.Sprintf("func (s *Store) Search%s(ctx context.Context, %s%s%stsQuery, whereClause, paginationClause string, columns []string, params ...any) %s {",
+		pluralGoName, parentParam, showDeletedParam, includeSnippetsParam, returnTypes))
 
 	g.P("  if columns == nil {")
 	if mc.hasJoins {
@@ -132,6 +136,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	g.P(fmt.Sprintf("    orderByClause = %s(\"ORDER BY ts_rank(%s%s, to_tsquery('simple', $%%d)) DESC, %screate_time DESC\", len(params) + 1)",
 		mc.fmtI("Sprintf"), colPrefix, schema.SearchDocumentColumn, colPrefix))
 	if hasSnippets {
+		g.P("    if includeSnippets {")
 		for _, snippetField := range searchDoc.SnippetFields {
 			// Qualify column references: joined queries make bare names ambiguous.
 			expression, err := schema.SearchFieldExpression(mc.message, snippetField.Path, colPrefix)
@@ -141,6 +146,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 			g.P(fmt.Sprintf("    snippetColumns = append(snippetColumns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
 				mc.fmtI("Sprintf"), expression, headlineOptions, snippetIdent(snippetField.Path)))
 		}
+		g.P("    }")
 	}
 	g.P("    params = append(params, tsQuery)")
 	g.P("  }")
@@ -191,10 +197,13 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P("    return nil, nil, err")
 		g.P("  }")
 		g.P(fmt.Sprintf("  %s := make([]*%s, 0, len(searchRows))", pluralUntitled, mc.goTypeFqi))
-		g.P("  snippets := make([]map[string]string, 0, len(searchRows))")
+		g.P("  var snippets []map[string]string")
 		g.P("  for _, searchRow := range searchRows {")
 		g.P(fmt.Sprintf("    row := searchRow.%s", mc.goType))
 		g.P(fmt.Sprintf("    %s = append(%s, &row)", pluralUntitled, pluralUntitled))
+		g.P("    if !includeSnippets {")
+		g.P("      continue")
+		g.P("    }")
 		g.P("    snippet := map[string]string{}")
 		for _, snippetField := range searchDoc.SnippetFields {
 			goName := xstrings.ToPascalCase(snippetIdent(snippetField.Path))

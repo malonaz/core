@@ -383,6 +383,10 @@ func TestFromMessage_AllFields_Book(t *testing.T) {
 		"metadata.duration",
 		"shelf_genre",
 		"shelf_external_id",
+		"first_bookmark",
+		"first_bookmark_color",
+		"latest_bookmark",
+		"latest_bookmark_color",
 	}, paths)
 }
 

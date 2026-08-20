@@ -330,7 +330,7 @@ type authorSearchRow struct {
 	SnippetBiography       *string `db:"__snippet_biography"`
 }
 
-func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
+func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
 	if columns == nil {
 		columns = AuthorPostgresColumns
 	}
@@ -349,8 +349,10 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 	if tsQuery != "" {
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
-		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
-		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+		}
 		params = append(params, tsQuery)
 	}
 
@@ -380,10 +382,13 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		return nil, nil, err
 	}
 	authors := make([]*model.Author, 0, len(searchRows))
-	snippets := make([]map[string]string, 0, len(searchRows))
+	var snippets []map[string]string
 	for _, searchRow := range searchRows {
 		row := searchRow.Author
 		authors = append(authors, &row)
+		if !includeSnippets {
+			continue
+		}
 		snippet := map[string]string{}
 		if searchRow.SnippetMetadataCountry != nil && strings.Contains(*searchRow.SnippetMetadataCountry, "**") {
 			snippet["metadata.country"] = *searchRow.SnippetMetadataCountry

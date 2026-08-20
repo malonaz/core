@@ -80,7 +80,7 @@ type libraryService_AuthorStore interface {
 	GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error)
 	BatchGetAuthors(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.Author, error)
 	ListAuthors(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, error)
-	SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, []map[string]string, error)
+	SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, []map[string]string, error)
 }
 
 type libraryService_AuthorServer struct {
@@ -477,23 +477,33 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 	var dbColumns []string
 
 	// Retrieve from the database.
-	dbAuthors, dbSnippets, err := s.store.SearchAuthors(ctx, organizationId, request.ShowDeleted, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	dbAuthors, dbSnippets, err := s.store.SearchAuthors(ctx, organizationId, request.ShowDeleted, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	if err != nil {
 		return nil, status.FromError(err, "searching authors").Err()
 	}
 	nextPageToken := parsedRequest.GetNextPageToken(len(dbAuthors))
 	if nextPageToken != "" {
 		dbAuthors = dbAuthors[:len(dbAuthors)-1]
-		dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
 	}
 
-	snippets := make([]*v14.SearchSnippet, len(dbAuthors))
-	for i := range snippets {
-		var fields map[string]string
-		if dbSnippets != nil {
-			fields = dbSnippets[i]
+	var snippets []*v14.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v14.SearchSnippet, len(dbAuthors))
+		for i := range snippets {
+			snippet := &v14.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["metadata.country"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.country", Match: match})
+				}
+				if match, ok := dbSnippets[i]["biography"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "biography", Match: match})
+				}
+			}
+			snippets[i] = snippet
 		}
-		snippets[i] = &v14.SearchSnippet{Fields: fields}
 	}
 
 	// Convert back to proto.
@@ -1108,7 +1118,7 @@ type libraryService_BookStore interface {
 	GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error)
 	BatchGetBooks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.Book, error)
 	ListBooks(ctx context.Context, organizationId, shelfId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, error)
-	SearchBooks(ctx context.Context, organizationId, shelfId string, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, []map[string]string, error)
+	SearchBooks(ctx context.Context, organizationId, shelfId string, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, []map[string]string, error)
 }
 
 type libraryService_BookServer struct {
@@ -1442,23 +1452,30 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 	var dbColumns []string
 
 	// Retrieve from the database.
-	dbBooks, dbSnippets, err := s.store.SearchBooks(ctx, organizationId, shelfId, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	dbBooks, dbSnippets, err := s.store.SearchBooks(ctx, organizationId, shelfId, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	if err != nil {
 		return nil, status.FromError(err, "searching books").Err()
 	}
 	nextPageToken := parsedRequest.GetNextPageToken(len(dbBooks))
 	if nextPageToken != "" {
 		dbBooks = dbBooks[:len(dbBooks)-1]
-		dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
 	}
 
-	snippets := make([]*v14.SearchSnippet, len(dbBooks))
-	for i := range snippets {
-		var fields map[string]string
-		if dbSnippets != nil {
-			fields = dbSnippets[i]
+	var snippets []*v14.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v14.SearchSnippet, len(dbBooks))
+		for i := range snippets {
+			snippet := &v14.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["metadata.summary"]; ok {
+					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.summary", Match: match})
+				}
+			}
+			snippets[i] = snippet
 		}
-		snippets[i] = &v14.SearchSnippet{Fields: fields}
 	}
 
 	// Convert back to proto.

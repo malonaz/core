@@ -231,13 +231,14 @@ func (b0 ResourceEvent_builder) Build() *ResourceEvent {
 }
 
 // A search-result snippet: highlighted fragments of the fields that matched a
-// search query. Search responses carry one Snippet per returned resource,
-// index-aligned with the resource list.
+// search query. Search responses carry one SearchSnippet per returned
+// resource, index-aligned with the resource list; resources without a
+// highlighted fragment carry an empty snippet.
 type SearchSnippet struct {
-	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Fields map[string]string      `protobuf:"bytes,1,rep,name=fields,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Matches *[]*SearchSnippetMatch `protobuf:"bytes,1,rep,name=matches,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SearchSnippet) Reset() {
@@ -265,30 +266,105 @@ func (x *SearchSnippet) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *SearchSnippet) GetFields() map[string]string {
+func (x *SearchSnippet) GetMatches() []*SearchSnippetMatch {
 	if x != nil {
-		return x.xxx_hidden_Fields
+		if x.xxx_hidden_Matches != nil {
+			return *x.xxx_hidden_Matches
+		}
 	}
 	return nil
 }
 
-func (x *SearchSnippet) SetFields(v map[string]string) {
-	x.xxx_hidden_Fields = v
+func (x *SearchSnippet) SetMatches(v []*SearchSnippetMatch) {
+	x.xxx_hidden_Matches = &v
 }
 
 type SearchSnippet_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Highlighted fragments keyed by the matched field path (e.g. "biography").
-	// Matches are wrapped in ** markers. Fields without a match are omitted.
-	Fields map[string]string
+	// The matched fragments, ordered by the field's search weight (A first).
+	Matches []*SearchSnippetMatch
 }
 
 func (b0 SearchSnippet_builder) Build() *SearchSnippet {
 	m0 := &SearchSnippet{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Fields = b.Fields
+	x.xxx_hidden_Matches = &b.Matches
+	return m0
+}
+
+// One highlighted fragment of a field that matched a search query.
+type SearchSnippetMatch struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Path  string                 `protobuf:"bytes,1,opt,name=path,proto3"`
+	xxx_hidden_Match string                 `protobuf:"bytes,2,opt,name=match,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SearchSnippetMatch) Reset() {
+	*x = SearchSnippetMatch{}
+	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSnippetMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSnippetMatch) ProtoMessage() {}
+
+func (x *SearchSnippetMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_aip_v1_aip_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchSnippetMatch) GetPath() string {
+	if x != nil {
+		return x.xxx_hidden_Path
+	}
+	return ""
+}
+
+func (x *SearchSnippetMatch) GetMatch() string {
+	if x != nil {
+		return x.xxx_hidden_Match
+	}
+	return ""
+}
+
+func (x *SearchSnippetMatch) SetPath(v string) {
+	x.xxx_hidden_Path = v
+}
+
+func (x *SearchSnippetMatch) SetMatch(v string) {
+	x.xxx_hidden_Match = v
+}
+
+type SearchSnippetMatch_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource field path that matched, e.g. "biography" or "metadata.country".
+	Path string
+	// The highlighted fragment; matches are wrapped in ** markers.
+	Match string
+}
+
+func (b0 SearchSnippetMatch_builder) Build() *SearchSnippetMatch {
+	m0 := &SearchSnippetMatch{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Path = b.Path
+	x.xxx_hidden_Match = b.Match
 	return m0
 }
 
@@ -306,12 +382,12 @@ const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\x11previous_resource\x18\x04 \x01(\v2\x14.google.protobuf.AnyR\x10previousResource\x12;\n" +
 	"\vupdate_mask\x18\x05 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask:\xe3\x01\xbaH\xdf\x01\x1a\xdc\x01\n" +
-	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))\"\x8d\x01\n" +
-	"\rSearchSnippet\x12A\n" +
-	"\x06fields\x18\x01 \x03(\v2).malonaz.aip.v1.SearchSnippet.FieldsEntryR\x06fields\x1a9\n" +
-	"\vFieldsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x9b\x01\n" +
+	"8updated_event_requires_previous_resource_and_update_mask\x12Vprevious_resource and update_mask must be set when type is RESOURCE_EVENT_TYPE_UPDATED\x1aHthis.type != 2 || (has(this.previous_resource) && has(this.update_mask))\"M\n" +
+	"\rSearchSnippet\x12<\n" +
+	"\amatches\x18\x01 \x03(\v2\".malonaz.aip.v1.SearchSnippetMatchR\amatches\">\n" +
+	"\x12SearchSnippetMatch\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
+	"\x05match\x18\x02 \x01(\tR\x05match*\x9b\x01\n" +
 	"\x11ResourceEventType\x12#\n" +
 	"\x1fRESOURCE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bRESOURCE_EVENT_TYPE_CREATED\x10\x01\x12\x1f\n" +
@@ -324,7 +400,7 @@ var file_malonaz_aip_v1_aip_proto_goTypes = []any{
 	(ResourceEventType)(0),        // 0: malonaz.aip.v1.ResourceEventType
 	(*ResourceEvent)(nil),         // 1: malonaz.aip.v1.ResourceEvent
 	(*SearchSnippet)(nil),         // 2: malonaz.aip.v1.SearchSnippet
-	nil,                           // 3: malonaz.aip.v1.SearchSnippet.FieldsEntry
+	(*SearchSnippetMatch)(nil),    // 3: malonaz.aip.v1.SearchSnippetMatch
 	(*anypb.Any)(nil),             // 4: google.protobuf.Any
 	(*fieldmaskpb.FieldMask)(nil), // 5: google.protobuf.FieldMask
 }
@@ -333,7 +409,7 @@ var file_malonaz_aip_v1_aip_proto_depIdxs = []int32{
 	4, // 1: malonaz.aip.v1.ResourceEvent.resource:type_name -> google.protobuf.Any
 	4, // 2: malonaz.aip.v1.ResourceEvent.previous_resource:type_name -> google.protobuf.Any
 	5, // 3: malonaz.aip.v1.ResourceEvent.update_mask:type_name -> google.protobuf.FieldMask
-	3, // 4: malonaz.aip.v1.SearchSnippet.fields:type_name -> malonaz.aip.v1.SearchSnippet.FieldsEntry
+	3, // 4: malonaz.aip.v1.SearchSnippet.matches:type_name -> malonaz.aip.v1.SearchSnippetMatch
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name

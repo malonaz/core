@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	aippb "github.com/malonaz/core/genproto/aip/v1"
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 )
@@ -353,8 +354,19 @@ func TestSearch_Snippets(t *testing.T) {
 		a.Biography = "Nothing relevant here."
 	})
 
+	// snippetMatch returns the highlighted fragment for path, or "" when the
+	// field produced no match.
+	snippetMatch := func(snippet *aippb.SearchSnippet, path string) string {
+		for _, match := range snippet.GetMatches() {
+			if match.GetPath() == path {
+				return match.GetMatch()
+			}
+		}
+		return ""
+	}
+
 	t.Run("HighlightedFragment", func(t *testing.T) {
-		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whaling"})
+		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whaling", IncludeSnippets: true})
 		require.NoError(t, err)
 		require.Len(t, response.Authors, 2)
 		// Snippets are index-aligned with authors.
@@ -364,10 +376,10 @@ func TestSearch_Snippets(t *testing.T) {
 			switch author.Name {
 			case bioHit.Name:
 				// Biography matched: fragment present, match highlighted.
-				require.Contains(t, snippet.Fields["biography"], "**whaling**")
+				require.Contains(t, snippetMatch(snippet, "biography"), "**whaling**")
 			case nameHit.Name:
 				// Only the display name matched: no biography fragment.
-				require.NotContains(t, snippet.Fields, "biography")
+				require.Empty(t, snippetMatch(snippet, "biography"))
 			default:
 				t.Fatalf("unexpected author %s", author.Name)
 			}
@@ -381,27 +393,35 @@ func TestSearch_Snippets(t *testing.T) {
 			a.DisplayName = "Dotted Snippet"
 			a.Metadata = &librarypb.AuthorMetadata{Country: "Whalingland"}
 		})
-		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whalingland"})
+		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whalingland", IncludeSnippets: true})
 		require.NoError(t, err)
 		require.Len(t, response.Authors, 1)
 		require.Equal(t, hit.Name, response.Authors[0].Name)
 		require.Len(t, response.Snippets, 1)
-		require.Contains(t, response.Snippets[0].Fields["metadata.country"], "**Whalingland**")
+		require.Contains(t, snippetMatch(response.Snippets[0], "metadata.country"), "**Whalingland**")
 	})
 
 	t.Run("PrefixQueryHighlights", func(t *testing.T) {
-		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "obsess"})
+		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "obsess", IncludeSnippets: true})
 		require.NoError(t, err)
 		require.Len(t, response.Authors, 1)
 		require.Len(t, response.Snippets, 1)
-		require.Contains(t, response.Snippets[0].Fields["biography"], "**obsessions**")
+		require.Contains(t, snippetMatch(response.Snippets[0], "biography"), "**obsessions**")
+	})
+
+	t.Run("NotRequested", func(t *testing.T) {
+		// Snippets are opt-in: without the flag the response carries none.
+		response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{Parent: parent, Query: "whaling"})
+		require.NoError(t, err)
+		require.NotEmpty(t, response.Authors)
+		require.Empty(t, response.Snippets)
 	})
 
 	t.Run("AlignedUnderPagination", func(t *testing.T) {
 		pageToken := ""
 		for {
 			response, err := libraryServiceClient.SearchAuthors(ctx, &libraryservicepb.SearchAuthorsRequest{
-				Parent: parent, Query: "whaling", PageSize: 1, PageToken: pageToken,
+				Parent: parent, Query: "whaling", PageSize: 1, PageToken: pageToken, IncludeSnippets: true,
 			})
 			require.NoError(t, err)
 			require.Equal(t, len(response.Authors), len(response.Snippets))
@@ -495,11 +515,13 @@ func TestSearch_JoinedResource(t *testing.T) {
 	})
 
 	t.Run("SnippetFromJSONBField", func(t *testing.T) {
-		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: "whaling"})
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: "whaling", IncludeSnippets: true})
 		require.NoError(t, err)
 		require.Len(t, response.Books, 1)
 		require.Len(t, response.Snippets, 1)
-		require.Contains(t, response.Snippets[0].Fields["metadata.summary"], "**whaling**")
+		require.Len(t, response.Snippets[0].Matches, 1)
+		require.Equal(t, "metadata.summary", response.Snippets[0].Matches[0].Path)
+		require.Contains(t, response.Snippets[0].Matches[0].Match, "**whaling**")
 	})
 }
 

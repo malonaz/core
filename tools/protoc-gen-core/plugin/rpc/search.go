@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
@@ -23,6 +24,11 @@ func (mc *methodCtx) generateSearch() error {
 		return fmt.Errorf("resource %s must declare (malonaz.codegen.aip.v1.search) options for method %s", pr.Desc.Type, method.GoName)
 	}
 	hasSnippets := len(searchDoc.SnippetFields) > 0
+	// Snippets are opt-in per request: every Search request must carry the flag
+	// so ts_headline cost is only paid when the client asks for it.
+	if f := method.Input.Desc.Fields().ByName("include_snippets"); f == nil || f.Kind() != protoreflect.BoolKind || f.IsList() {
+		return fmt.Errorf("request %s must declare a `bool include_snippets` field", method.Input.GoIdent.GoName)
+	}
 	if hasSnippets && method.Output.Desc.Fields().ByName("snippets") == nil {
 		return fmt.Errorf("response %s must declare a `repeated malonaz.aip.v1.SearchSnippet snippets` field (resource %s has snippet search fields)", method.Output.GoIdent.GoName, pr.Desc.Type)
 	}
@@ -93,6 +99,9 @@ func (mc *methodCtx) generateSearch() error {
 	if mc.softDeletable {
 		searchArgs += "request.ShowDeleted, "
 	}
+	if hasSnippets {
+		searchArgs += "request.IncludeSnippets, "
+	}
 	searchArgs += "parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams..."
 	if hasSnippets {
 		g.P(fmt.Sprintf("  %ss, dbSnippets, err := s.store.%s(%s)", dbName, method.GoName, searchArgs))
@@ -107,7 +116,9 @@ func (mc *methodCtx) generateSearch() error {
 	g.P("  if nextPageToken != \"\" {")
 	g.P(fmt.Sprintf("    %ss = %ss[:len(%ss)-1]", dbName, dbName, dbName))
 	if hasSnippets {
-		g.P("    dbSnippets = dbSnippets[:len(dbSnippets)-1]")
+		g.P("    if len(dbSnippets) > 0 {")
+		g.P("      dbSnippets = dbSnippets[:len(dbSnippets)-1]")
+		g.P("    }")
 	}
 	g.P("  }")
 	g.P()
@@ -115,13 +126,23 @@ func (mc *methodCtx) generateSearch() error {
 	if hasSnippets {
 		// Snippets are index-aligned with the resource list; empty when the
 		// query was empty (list semantics).
-		g.P(fmt.Sprintf("  snippets := make([]*%s, len(%ss))", mc.gen.ident(aipGenPkg, "SearchSnippet"), dbName))
+		g.P(fmt.Sprintf("  var snippets []*%s", mc.gen.ident(aipGenPkg, "SearchSnippet")))
+		g.P("  if request.IncludeSnippets {")
+		g.P(fmt.Sprintf("  snippets = make([]*%s, len(%ss))", mc.gen.ident(aipGenPkg, "SearchSnippet"), dbName))
 		g.P("  for i := range snippets {")
-		g.P("    var fields map[string]string")
+		g.P(fmt.Sprintf("    snippet := &%s{}", mc.gen.ident(aipGenPkg, "SearchSnippet")))
 		g.P("    if dbSnippets != nil {")
-		g.P("      fields = dbSnippets[i]")
+		// Emit one lookup per snippet field, in weight order (searchDoc's
+		// SnippetFields are pre-sorted A first), so matches are ordered.
+		for _, snippetField := range searchDoc.SnippetFields {
+			g.P(fmt.Sprintf("      if match, ok := dbSnippets[i][%q]; ok {", snippetField.Path))
+			g.P(fmt.Sprintf("        snippet.Matches = append(snippet.Matches, &%s{Path: %q, Match: match})",
+				mc.gen.ident(aipGenPkg, "SearchSnippetMatch"), snippetField.Path))
+			g.P("      }")
+		}
 		g.P("    }")
-		g.P(fmt.Sprintf("    snippets[i] = &%s{Fields: fields}", mc.gen.ident(aipGenPkg, "SearchSnippet")))
+		g.P("    snippets[i] = snippet")
+		g.P("  }")
 		g.P("  }")
 		g.P()
 	}

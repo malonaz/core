@@ -320,7 +320,7 @@ type bookSearchRow struct {
 	SnippetMetadataSummary *string `db:"__snippet_metadata_summary"`
 }
 
-func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Book, []map[string]string, error) {
+func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Book, []map[string]string, error) {
 	if columns == nil {
 		columns = BookWritePostgresColumns
 	}
@@ -339,7 +339,9 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 	if tsQuery != "" {
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(book.search_document, to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
-		snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
+		}
 		params = append(params, tsQuery)
 	}
 
@@ -372,10 +374,13 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 		return nil, nil, err
 	}
 	books := make([]*model.Book, 0, len(searchRows))
-	snippets := make([]map[string]string, 0, len(searchRows))
+	var snippets []map[string]string
 	for _, searchRow := range searchRows {
 		row := searchRow.Book
 		books = append(books, &row)
+		if !includeSnippets {
+			continue
+		}
 		snippet := map[string]string{}
 		if searchRow.SnippetMetadataSummary != nil && strings.Contains(*searchRow.SnippetMetadataSummary, "**") {
 			snippet["metadata.summary"] = *searchRow.SnippetMetadataSummary

@@ -214,6 +214,9 @@ message SearchAuthorsRequest {
 
   // A page token, received from a previous `SearchAuthors` call.
   string page_token = 6;
+
+  // If true, highlighted snippets are computed and returned for each result.
+  bool include_snippets = 7;
 }
 
 // Response message for LibraryService.SearchAuthors.

@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/aip.proto.
  */
 export const file_malonaz_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxItgDCg1SZXNvdXJjZUV2ZW50EhoKBG5hbWUYASABKAlCDPpBAwoBKrpIA8gBARI7CgR0eXBlGAIgASgOMiEubWFsb25hei5haXAudjEuUmVzb3VyY2VFdmVudFR5cGVCCrpIB4IBBBABIAASJgoIcmVzb3VyY2UYAyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Ei8KEXByZXZpb3VzX3Jlc291cmNlGAQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueRIvCgt1cGRhdGVfbWFzaxgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2s64wG6SN8BGtwBCjh1cGRhdGVkX2V2ZW50X3JlcXVpcmVzX3ByZXZpb3VzX3Jlc291cmNlX2FuZF91cGRhdGVfbWFzaxJWcHJldmlvdXNfcmVzb3VyY2UgYW5kIHVwZGF0ZV9tYXNrIG11c3QgYmUgc2V0IHdoZW4gdHlwZSBpcyBSRVNPVVJDRV9FVkVOVF9UWVBFX1VQREFURUQaSHRoaXMudHlwZSAhPSAyIHx8IChoYXModGhpcy5wcmV2aW91c19yZXNvdXJjZSkgJiYgaGFzKHRoaXMudXBkYXRlX21hc2spKSJ5Cg1TZWFyY2hTbmlwcGV0EjkKBmZpZWxkcxgBIAMoCzIpLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQuRmllbGRzRW50cnkaLQoLRmllbGRzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASqbAQoRUmVzb3VyY2VFdmVudFR5cGUSIwofUkVTT1VSQ0VfRVZFTlRfVFlQRV9VTlNQRUNJRklFRBAAEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfQ1JFQVRFRBABEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfVVBEQVRFRBACEh8KG1JFU09VUkNFX0VWRU5UX1RZUEVfREVMRVRFRBADQilaJ2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask]);
+  fileDesc("ChhtYWxvbmF6L2FpcC92MS9haXAucHJvdG8SDm1hbG9uYXouYWlwLnYxItgDCg1SZXNvdXJjZUV2ZW50EhoKBG5hbWUYASABKAlCDPpBAwoBKrpIA8gBARI7CgR0eXBlGAIgASgOMiEubWFsb25hei5haXAudjEuUmVzb3VyY2VFdmVudFR5cGVCCrpIB4IBBBABIAASJgoIcmVzb3VyY2UYAyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Ei8KEXByZXZpb3VzX3Jlc291cmNlGAQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueRIvCgt1cGRhdGVfbWFzaxgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2s64wG6SN8BGtwBCjh1cGRhdGVkX2V2ZW50X3JlcXVpcmVzX3ByZXZpb3VzX3Jlc291cmNlX2FuZF91cGRhdGVfbWFzaxJWcHJldmlvdXNfcmVzb3VyY2UgYW5kIHVwZGF0ZV9tYXNrIG11c3QgYmUgc2V0IHdoZW4gdHlwZSBpcyBSRVNPVVJDRV9FVkVOVF9UWVBFX1VQREFURUQaSHRoaXMudHlwZSAhPSAyIHx8IChoYXModGhpcy5wcmV2aW91c19yZXNvdXJjZSkgJiYgaGFzKHRoaXMudXBkYXRlX21hc2spKSJECg1TZWFyY2hTbmlwcGV0EjMKB21hdGNoZXMYASADKAsyIi5tYWxvbmF6LmFpcC52MS5TZWFyY2hTbmlwcGV0TWF0Y2giMQoSU2VhcmNoU25pcHBldE1hdGNoEgwKBHBhdGgYASABKAkSDQoFbWF0Y2gYAiABKAkqmwEKEVJlc291cmNlRXZlbnRUeXBlEiMKH1JFU09VUkNFX0VWRU5UX1RZUEVfVU5TUEVDSUZJRUQQABIfChtSRVNPVVJDRV9FVkVOVF9UWVBFX0NSRUFURUQQARIfChtSRVNPVVJDRV9FVkVOVF9UWVBFX1VQREFURUQQAhIfChtSRVNPVVJDRV9FVkVOVF9UWVBFX0RFTEVURUQQA0IpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask]);
 
 /**
  * A resource lifecycle event.
@@ -109,19 +109,19 @@ export const ResourceEventSchema: GenMessage<ResourceEvent, {validType: Resource
 
 /**
  * A search-result snippet: highlighted fragments of the fields that matched a
- * search query. Search responses carry one Snippet per returned resource,
- * index-aligned with the resource list.
+ * search query. Search responses carry one SearchSnippet per returned
+ * resource, index-aligned with the resource list; resources without a
+ * highlighted fragment carry an empty snippet.
  *
  * @generated from message malonaz.aip.v1.SearchSnippet
  */
 export type SearchSnippet = Message<"malonaz.aip.v1.SearchSnippet"> & {
   /**
-   * Highlighted fragments keyed by the matched field path (e.g. "biography").
-   * Matches are wrapped in ** markers. Fields without a match are omitted.
+   * The matched fragments, ordered by the field's search weight (A first).
    *
-   * @generated from field: map<string, string> fields = 1;
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippetMatch matches = 1;
    */
-  fields: { [key: string]: string };
+  matches: SearchSnippetMatch[];
 };
 
 export type SearchSnippetValid = SearchSnippet;
@@ -132,6 +132,36 @@ export type SearchSnippetValid = SearchSnippet;
  */
 export const SearchSnippetSchema: GenMessage<SearchSnippet, {validType: SearchSnippetValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_aip_v1_aip, 1);
+
+/**
+ * One highlighted fragment of a field that matched a search query.
+ *
+ * @generated from message malonaz.aip.v1.SearchSnippetMatch
+ */
+export type SearchSnippetMatch = Message<"malonaz.aip.v1.SearchSnippetMatch"> & {
+  /**
+   * The resource field path that matched, e.g. "biography" or "metadata.country".
+   *
+   * @generated from field: string path = 1;
+   */
+  path: string;
+
+  /**
+   * The highlighted fragment; matches are wrapped in ** markers.
+   *
+   * @generated from field: string match = 2;
+   */
+  match: string;
+};
+
+export type SearchSnippetMatchValid = SearchSnippetMatch;
+
+/**
+ * Describes the message malonaz.aip.v1.SearchSnippetMatch.
+ * Use `create(SearchSnippetMatchSchema)` to create a new message.
+ */
+export const SearchSnippetMatchSchema: GenMessage<SearchSnippetMatch, {validType: SearchSnippetMatchValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_aip_v1_aip, 2);
 
 /**
  * Type of resource event.
