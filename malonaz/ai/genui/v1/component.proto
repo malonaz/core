@@ -55,9 +55,6 @@ message Component {
     // A single headline metric with an optional delta.
     Stat stat = 7;
 
-    // Standalone rich text (markdown subset).
-    Markdown markdown = 8;
-
     // Client-side buttons: navigation, clipboard, external links.
     ActionRow action_row = 9;
 

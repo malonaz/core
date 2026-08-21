@@ -245,14 +245,6 @@ message Stat {
   string resource_name = 5 [(google.api.resource_reference).type = "*"];
 }
 
-// Standalone rich text (markdown subset) rendered as its own component,
-// e.g. a drafted follow-up message shown before a Confirmation. Resource
-// names in link targets render as in-app links.
-message Markdown {
-  // The markdown to render.
-  string markdown = 1 [(buf.validate.field).required = true];
-}
-
 // Buttons the user can press — pure client affordances that never feed back
 // into the model. Navigation, clipboard, and external links execute entirely
 // client-side: an ActionRow does not end the agentic turn and expects no

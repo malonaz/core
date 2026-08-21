@@ -5,7 +5,7 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
-import type { ActionRow, ActionRowValid, Chart, ChartValid, KeyValueList, KeyValueListValid, Markdown, MarkdownValid, Stat, StatValid, Table, TableValid, Timeline, TimelineValid } from "./content_pb";
+import type { ActionRow, ActionRowValid, Chart, ChartValid, KeyValueList, KeyValueListValid, Stat, StatValid, Table, TableValid, Timeline, TimelineValid } from "./content_pb";
 import { file_malonaz_ai_genui_v1_content } from "./content_pb";
 import type { Choice, ChoiceValid, Confirmation, ConfirmationValid, DateTimePicker, DateTimePickerValid, Form, FormValid, MultiChoice, MultiChoiceValid, ResourcePicker, ResourcePickerValid, Slider, SliderValid } from "./input_pb";
 import { file_malonaz_ai_genui_v1_input } from "./input_pb";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/genui/v1/component.proto.
  */
 export const file_malonaz_ai_genui_v1_component: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSKwBwoJQ29tcG9uZW50EjsKDmtleV92YWx1ZV9saXN0GAEgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgCIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgDIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABIrCgV0YWJsZRgEIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI6Cg1yZXNvdXJjZV9jYXJkGAUgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABIpCgRzdGF0GAcgASgLMhkubWFsb25hei5haS5nZW51aS52MS5TdGF0SAASMQoIbWFya2Rvd24YCCABKAsyHS5tYWxvbmF6LmFpLmdlbnVpLnYxLk1hcmtkb3duSAASNAoKYWN0aW9uX3JvdxgJIAEoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93SAASOgoNcmVzb3VyY2VfdHJlZRgRIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VUcmVlSAASLQoGY2hvaWNlGAogASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABI4CgxtdWx0aV9jaG9pY2UYCyABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAwgASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGA0gASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGA4gASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgPIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgQIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_input, file_malonaz_ai_genui_v1_resource]);
+  fileDesc("CiNtYWxvbmF6L2FpL2dlbnVpL3YxL2NvbXBvbmVudC5wcm90bxITbWFsb25hei5haS5nZW51aS52MSL9BgoJQ29tcG9uZW50EjsKDmtleV92YWx1ZV9saXN0GAEgASgLMiEubWFsb25hei5haS5nZW51aS52MS5LZXlWYWx1ZUxpc3RIABIxCgh0aW1lbGluZRgCIAEoCzIdLm1hbG9uYXouYWkuZ2VudWkudjEuVGltZWxpbmVIABIrCgVjaGFydBgDIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuQ2hhcnRIABIrCgV0YWJsZRgEIAEoCzIaLm1hbG9uYXouYWkuZ2VudWkudjEuVGFibGVIABI6Cg1yZXNvdXJjZV9jYXJkGAUgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUNhcmRIABI6Cg1yZXNvdXJjZV9saXN0GAYgASgLMiEubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZUxpc3RIABIpCgRzdGF0GAcgASgLMhkubWFsb25hei5haS5nZW51aS52MS5TdGF0SAASNAoKYWN0aW9uX3JvdxgJIAEoCzIeLm1hbG9uYXouYWkuZ2VudWkudjEuQWN0aW9uUm93SAASOgoNcmVzb3VyY2VfdHJlZRgRIAEoCzIhLm1hbG9uYXouYWkuZ2VudWkudjEuUmVzb3VyY2VUcmVlSAASLQoGY2hvaWNlGAogASgLMhsubWFsb25hei5haS5nZW51aS52MS5DaG9pY2VIABI4CgxtdWx0aV9jaG9pY2UYCyABKAsyIC5tYWxvbmF6LmFpLmdlbnVpLnYxLk11bHRpQ2hvaWNlSAASOQoMY29uZmlybWF0aW9uGAwgASgLMiEubWFsb25hei5haS5nZW51aS52MS5Db25maXJtYXRpb25IABIpCgRmb3JtGA0gASgLMhkubWFsb25hei5haS5nZW51aS52MS5Gb3JtSAASPgoPcmVzb3VyY2VfcGlja2VyGA4gASgLMiMubWFsb25hei5haS5nZW51aS52MS5SZXNvdXJjZVBpY2tlckgAEi0KBnNsaWRlchgPIAEoCzIbLm1hbG9uYXouYWkuZ2VudWkudjEuU2xpZGVySAASPwoQZGF0ZV90aW1lX3BpY2tlchgQIAEoCzIjLm1hbG9uYXouYWkuZ2VudWkudjEuRGF0ZVRpbWVQaWNrZXJIAEISCgljb21wb25lbnQSBbpIAggBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2dlbnVpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_genui_v1_content, file_malonaz_ai_genui_v1_input, file_malonaz_ai_genui_v1_resource]);
 
 /**
  * Application-side envelope: the server wraps each parsed tool call into a
@@ -103,14 +103,6 @@ export type Component = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: Stat;
     case: "stat";
-  } | {
-    /**
-     * Standalone rich text (markdown subset).
-     *
-     * @generated from field: malonaz.ai.genui.v1.Markdown markdown = 8;
-     */
-    value: Markdown;
-    case: "markdown";
   } | {
     /**
      * Client-side buttons: navigation, clipboard, external links.
@@ -270,14 +262,6 @@ export type ComponentValid = Message<"malonaz.ai.genui.v1.Component"> & {
      */
     value: StatValid;
     case: "stat";
-  } | {
-    /**
-     * Standalone rich text (markdown subset).
-     *
-     * @generated from field: malonaz.ai.genui.v1.Markdown markdown = 8;
-     */
-    value: MarkdownValid;
-    case: "markdown";
   } | {
     /**
      * Client-side buttons: navigation, clipboard, external links.
