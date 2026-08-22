@@ -8,6 +8,7 @@ go_test(
         "create_test.go",
         "delete_test.go",
         "etag_test.go",
+        "filter_canonicalize_test.go",
         "filter_test.go",
         "join_test.go",
         "labels_test.go",

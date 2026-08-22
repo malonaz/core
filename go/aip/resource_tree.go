@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 
+	canonicalizepb "github.com/malonaz/core/genproto/canonicalize/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
 )
@@ -311,6 +312,8 @@ type Node struct {
 	FieldBehaviorSet map[annotationspb.FieldBehavior]struct{}
 	IsRepeated       bool
 	IsMap            bool
+	// Canonicalize holds the field's canonicalization rule (email/phone), if any.
+	Canonicalize *canonicalizepb.Field
 	// JoinTableName is set for fields populated via a JOIN; it holds the
 	// table qualifier the join is emitted under: the joined table's name for
 	// parent joins, the reference field name (join alias) for reference joins.
@@ -392,6 +395,11 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 		IsMap:         fieldDesc.IsMap(),
 		JoinTableName: joinTableName,
 	}
+	canonicalizeField, err := pbutil.GetExtension[*canonicalizepb.Field](options, canonicalizepb.E_Field)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return fmt.Errorf("getting canonicalize field for %s: %v", fieldName, err)
+	}
+	node.Canonicalize = canonicalizeField
 	t.Add(node)
 
 	behaviors, err := pbutil.GetExtension[[]annotationspb.FieldBehavior](options, annotationspb.E_FieldBehavior)

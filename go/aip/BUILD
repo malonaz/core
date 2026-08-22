@@ -21,10 +21,12 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/aip/transpiler/postgres",
+        "//go/canonicalize",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
         "//go/uuid",
         "//malonaz/aip/v1",
+        "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/go:buf.build__go__protovalidate",

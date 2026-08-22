@@ -1610,3 +1610,92 @@ func TestFilteringRequestParser_Duration(t *testing.T) {
 		}
 	})
 }
+
+func TestFilteringRequestParser_Canonicalization(t *testing.T) {
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListAuthorsRequest, *librarypb.Author](WithFQN())
+
+	tests := []struct {
+		name           string
+		filter         string
+		expectedClause string
+		expectedParams []any
+	}{
+		{
+			name:           "email equality is canonicalized",
+			filter:         `email_address = "First.Last+tag@GMAIL.com"`,
+			expectedClause: "WHERE (author.email_address = $1)",
+			expectedParams: []any{"firstlast@gmail.com"},
+		},
+		{
+			name:           "email inequality is canonicalized",
+			filter:         `email_address != "USER@Example.COM"`,
+			expectedClause: "WHERE (author.email_address != $1)",
+			expectedParams: []any{"user@example.com"},
+		},
+		{
+			name:           "repeated email has operator is canonicalized",
+			filter:         `email_addresses:"John.Doe@GoogleMail.com"`,
+			expectedClause: "WHERE ($1 = ANY(author.email_addresses))",
+			expectedParams: []any{"johndoe@gmail.com"},
+		},
+		{
+			name:           "phone equality is canonicalized to E.164",
+			filter:         `phone_number = "(202) 555-1234"`,
+			expectedClause: "WHERE (author.phone_number = $1)",
+			expectedParams: []any{"+12025551234"},
+		},
+		{
+			name:           "repeated phone has operator is canonicalized",
+			filter:         `phone_numbers:"202-555-1234"`,
+			expectedClause: "WHERE ($1 = ANY(author.phone_numbers))",
+			expectedParams: []any{"+12025551234"},
+		},
+		{
+			name:           "nested repeated email is canonicalized",
+			filter:         `metadata.email_addresses:"User+x@Gmail.com"`,
+			expectedClause: "WHERE (EXISTS(SELECT 1 FROM jsonb_array_elements_text(author.metadata->'email_addresses') AS _elem WHERE _elem = $1::text))",
+			expectedParams: []any{"user@gmail.com"},
+		},
+		{
+			name:           "invalid phone value passes through unchanged",
+			filter:         `phone_number = "not-a-phone"`,
+			expectedClause: "WHERE (author.phone_number = $1)",
+			expectedParams: []any{"not-a-phone"},
+		},
+		{
+			name:           "wildcard email pattern is lowercased but not normalized",
+			filter:         `email_address = "John.*@GMAIL.com"`,
+			expectedClause: "WHERE (author.email_address LIKE $1)",
+			expectedParams: []any{"john.%@gmail.com"},
+		},
+		{
+			name:           "wildcard phone pattern is untouched",
+			filter:         `phone_number = "+1202*"`,
+			expectedClause: "WHERE (author.phone_number LIKE $1)",
+			expectedParams: []any{"+1202%"},
+		},
+		{
+			name:           "presence check is unaffected",
+			filter:         `email_address:*`,
+			expectedClause: "WHERE (author.email_address IS NOT NULL AND author.email_address != '')",
+			expectedParams: []any{},
+		},
+		{
+			name:           "non-canonicalized field is untouched",
+			filter:         `display_name = "John DOE"`,
+			expectedClause: "WHERE (author.display_name = $1)",
+			expectedParams: []any{"John DOE"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+			parsedRequest, err := parser.Parse(request)
+			require.NoError(t, err)
+			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+			require.Equal(t, tc.expectedParams, whereParams)
+		})
+	}
+}

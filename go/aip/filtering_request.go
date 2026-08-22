@@ -2,12 +2,16 @@ package aip
 
 import (
 	"fmt"
+	"strings"
 
 	"go.einride.tech/aip/filtering"
+	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/proto"
 
+	canonicalizepb "github.com/malonaz/core/genproto/canonicalize/v1"
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	"github.com/malonaz/core/go/aip/transpiler/postgres"
+	"github.com/malonaz/core/go/canonicalize"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
@@ -133,6 +137,9 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 	macroDeclarationOptions := []filtering.DeclarationOption{} // ident declarations matching db column names.
 
 	identNameToFQN := map[string]string{}
+	// Ident name (proto path or FQN) -> canonicalization rule, used to
+	// canonicalize filter values the same way stored values were canonicalized.
+	identNameToCanonicalizeRule := map[string]*canonicalizepb.Field{}
 	for node := range tree.FilterableNodes() {
 		if node.ExprType == nil && node.EnumType == nil {
 			continue
@@ -146,6 +153,10 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 			fqn = node.TableName + "." + fqn
 		}
 		identNameToFQN[node.Path] = fqn
+		if node.Canonicalize != nil {
+			identNameToCanonicalizeRule[node.Path] = node.Canonicalize
+			identNameToCanonicalizeRule[fqn] = node.Canonicalize
+		}
 
 		if node.ExprType != nil {
 			ident := filtering.DeclareIdent(node.Path, node.ExprType)
@@ -190,6 +201,52 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 		}
 	}
 
+	// Canonicalize string constants compared against canonicalized fields, so
+	// filters match the canonicalized values stored in the database.
+	macros = append(macros, func(cursor *filtering.Cursor) {
+		callExpr := cursor.Expr().GetCallExpr()
+		if callExpr == nil || len(callExpr.GetArgs()) != 2 {
+			return
+		}
+		switch callExpr.GetFunction() {
+		case filtering.FunctionEquals, filtering.FunctionNotEquals, filtering.FunctionHas:
+		default:
+			return
+		}
+		rule, ok := identNameToCanonicalizeRule[exprPath(callExpr.GetArgs()[0])]
+		if !ok {
+			return
+		}
+		constExpr := callExpr.GetArgs()[1].GetConstExpr()
+		if constExpr == nil {
+			return
+		}
+		value := constExpr.GetStringValue()
+		if value == "" {
+			return
+		}
+		// Full canonicalization needs the whole value, so wildcard patterns are
+		// only best-effort: emails get lowercased/trimmed (matching the stored
+		// casing), phones are left untouched (users must query in E.164 form).
+		wildcard := strings.Contains(value, "*")
+		switch rule.GetRule().(type) {
+		case *canonicalizepb.Field_EmailAddress:
+			if wildcard {
+				constExpr.ConstantKind = &expr.Constant_StringValue{StringValue: strings.ToLower(strings.TrimSpace(value))}
+				return
+			}
+			constExpr.ConstantKind = &expr.Constant_StringValue{StringValue: canonicalize.EmailAddress(value)}
+		case *canonicalizepb.Field_PhoneNumber:
+			if wildcard {
+				return
+			}
+			// On parse failure keep the raw value; the filter simply won't match.
+			if canonicalized, err := canonicalize.PhoneNumber(value, canonicalize.RegionCodeUS); err == nil {
+				constExpr.ConstantKind = &expr.Constant_StringValue{StringValue: canonicalized}
+			}
+		}
+	})
+
 	macros = append(macros, func(cursor *filtering.Cursor) {
 		identExpr := cursor.Expr().GetIdentExpr()
 		if fqn, ok := identNameToFQN[identExpr.GetName()]; ok {
@@ -209,4 +266,21 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 		return nil, nil, nil, fmt.Errorf("creating filter macro declarations: %w", err)
 	}
 	return declarations, macroDeclarations, macros, nil
+}
+
+// exprPath flattens an ident or select-expression chain into a dotted path
+// (e.g. metadata.email_address); returns "" for other expression kinds.
+func exprPath(e *expr.Expr) string {
+	switch kind := e.GetExprKind().(type) {
+	case *expr.Expr_IdentExpr:
+		return kind.IdentExpr.GetName()
+	case *expr.Expr_SelectExpr:
+		operand := exprPath(kind.SelectExpr.GetOperand())
+		if operand == "" {
+			return ""
+		}
+		return operand + "." + kind.SelectExpr.GetField()
+	default:
+		return ""
+	}
 }
