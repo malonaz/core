@@ -31,6 +31,32 @@ func TestBuildMessage(t *testing.T) {
 		require.Equal(t, int64(42), message.Get(dummyDescriptor.Fields().ByName("quantity")).Int())
 	})
 
+	t.Run("int32 field from string", func(t *testing.T) {
+		args := map[string]any{
+			"quantity": "15",
+		}
+		message, err := BuildMessage(dummyDescriptor, args)
+		require.NoError(t, err)
+		require.Equal(t, int64(15), message.Get(dummyDescriptor.Fields().ByName("quantity")).Int())
+	})
+
+	t.Run("int32 field from invalid string", func(t *testing.T) {
+		args := map[string]any{
+			"quantity": "abc",
+		}
+		_, err := BuildMessage(dummyDescriptor, args)
+		require.Error(t, err)
+	})
+
+	t.Run("double field from string", func(t *testing.T) {
+		args := map[string]any{
+			"rate": "3.14",
+		}
+		message, err := BuildMessage(dummyDescriptor, args)
+		require.NoError(t, err)
+		require.InDelta(t, 3.14, message.Get(dummyDescriptor.Fields().ByName("rate")).Float(), 0.001)
+	})
+
 	t.Run("double field", func(t *testing.T) {
 		args := map[string]any{
 			"rate": 3.14,

@@ -227,39 +227,39 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 		}
 		return protoreflect.ValueOfBool(b), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		i, err := asInt(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
-		return protoreflect.ValueOfInt32(int32(f)), nil
+		return protoreflect.ValueOfInt32(int32(i)), nil
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		i, err := asInt(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
-		return protoreflect.ValueOfInt64(int64(f)), nil
+		return protoreflect.ValueOfInt64(i), nil
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		u, err := asUint(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
-		return protoreflect.ValueOfUint32(uint32(f)), nil
+		return protoreflect.ValueOfUint32(uint32(u)), nil
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		u, err := asUint(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
-		return protoreflect.ValueOfUint64(uint64(f)), nil
+		return protoreflect.ValueOfUint64(u), nil
 	case protoreflect.FloatKind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		f, err := asFloat(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
 		return protoreflect.ValueOfFloat32(float32(f)), nil
 	case protoreflect.DoubleKind:
-		f, ok := val.(float64)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+		f, err := asFloat(field, val)
+		if err != nil {
+			return protoreflect.Value{}, err
 		}
 		return protoreflect.ValueOfFloat64(f), nil
 	case protoreflect.EnumKind:
@@ -276,6 +276,54 @@ func convertValue(field protoreflect.FieldDescriptor, val any) (protoreflect.Val
 		return convertMessageValue(field.Message(), val)
 	default:
 		return protoreflect.Value{}, fmt.Errorf("unsupported field kind %v for field %s", field.Kind(), field.Name())
+	}
+}
+
+// Numeric coercion helpers. JSON-decoded numbers arrive as float64, but
+// LLM tool calls (and proto3 JSON for 64-bit ints) often encode numbers
+// as strings, so we accept both.
+func asInt(field protoreflect.FieldDescriptor, val any) (int64, error) {
+	switch v := val.(type) {
+	case float64:
+		return int64(v), nil
+	case string:
+		i, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid integer %q for field %s", v, field.Name())
+		}
+		return i, nil
+	default:
+		return 0, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+	}
+}
+
+func asUint(field protoreflect.FieldDescriptor, val any) (uint64, error) {
+	switch v := val.(type) {
+	case float64:
+		return uint64(v), nil
+	case string:
+		u, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid unsigned integer %q for field %s", v, field.Name())
+		}
+		return u, nil
+	default:
+		return 0, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
+	}
+}
+
+func asFloat(field protoreflect.FieldDescriptor, val any) (float64, error) {
+	switch v := val.(type) {
+	case float64:
+		return v, nil
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q for field %s", v, field.Name())
+		}
+		return f, nil
+	default:
+		return 0, fmt.Errorf("expected number for field %s, got %T", field.Name(), val)
 	}
 }
 
