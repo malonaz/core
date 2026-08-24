@@ -279,11 +279,19 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		return err
 	}
 
-	// Roll the message's price up into the chat.
+	// Roll the message's price up into the chat, and track the last user message.
 	chat.Price += persistedMessage.GetPrice()
+	updateChatPaths := []string{"price"}
+	for i := len(history) - 1; i >= 0; i-- {
+		if history[i].GetRole() == aipb.Role_ROLE_USER {
+			chat.LastUserMessage = history[i].GetName()
+			updateChatPaths = append(updateChatPaths, "last_user_message")
+			break
+		}
+	}
 	updateChatRequest := &pb.UpdateChatRequest{
 		Chat:       chat,
-		UpdateMask: pbfieldmask.FromPaths("price").Proto(),
+		UpdateMask: pbfieldmask.FromPaths(updateChatPaths...).Proto(),
 	}
 	if _, err := s.UpdateChat(ctx, updateChatRequest); err != nil {
 		return err

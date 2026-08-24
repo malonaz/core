@@ -30,7 +30,7 @@ from malonaz.ai.v1 import chat_pb2 as malonaz_dot_ai_dot_v1_dot_chat__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#malonaz/ai/ai_service/v1/chat.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xe1\x01\n\x11\x43reateChatRequest\x12\x31\n\x06parent\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12)\n\x04\x63hat\x18\x02 \x01(\x0b\x32\x13.malonaz.ai.v1.ChatB\x06\xbaH\x03\xc8\x01\x01\x12\x36\n\x07\x63hat_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"A\n\x0eGetChatRequest\x12/\n\x04name\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x03\xc8\x01\x01\"\xe6\x01\n\x11UpdateChatRequest\x12)\n\x04\x63hat\x18\x01 \x01(\x0b\x32\x13.malonaz.ai.v1.ChatB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:m\xbaHB\x1a@\n\x12\x63hat.name_required\x12\x15\x63hat.name must be set\x1a\x13has(this.chat.name)\xea\x9c\xc1\x03#\n\x06labels\n\x05title\n\x0b\x61nnotations\n\x05price\"i\n\x11\x44\x65leteChatRequest\x12/\n\x04name\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xee\x01\n\x10ListChatsRequest\x12\x31\n\x06parent\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"P\n\x11ListChatsResponse\x12\"\n\x05\x63hats\x18\x01 \x03(\x0b\x32\x13.malonaz.ai.v1.Chat\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"|\n\x14\x42\x61tchGetChatsRequest\x12(\n\x06parent\x18\x01 \x01(\tB\x18\xfa\x41\x15\n\x13\x61i.malonaz.com/User\x12:\n\x05names\x18\x02 \x03(\tB+\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\";\n\x15\x42\x61tchGetChatsResponse\x12\"\n\x05\x63hats\x18\x01 \x03(\x0b\x32\x13.malonaz.ai.v1.ChatB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#malonaz/ai/ai_service/v1/chat.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xe1\x01\n\x11\x43reateChatRequest\x12\x31\n\x06parent\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12)\n\x04\x63hat\x18\x02 \x01(\x0b\x32\x13.malonaz.ai.v1.ChatB\x06\xbaH\x03\xc8\x01\x01\x12\x36\n\x07\x63hat_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"A\n\x0eGetChatRequest\x12/\n\x04name\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x03\xc8\x01\x01\"\xfa\x01\n\x11UpdateChatRequest\x12)\n\x04\x63hat\x18\x01 \x01(\x0b\x32\x13.malonaz.ai.v1.ChatB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\x80\x01\xbaHB\x1a@\n\x12\x63hat.name_required\x12\x15\x63hat.name must be set\x1a\x13has(this.chat.name)\xea\x9c\xc1\x03\x36\n\x06labels\n\x05title\n\x0b\x61nnotations\n\x05price\n\x11last_user_message\"i\n\x11\x44\x65leteChatRequest\x12/\n\x04name\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xee\x01\n\x10ListChatsRequest\x12\x31\n\x06parent\x18\x01 \x01(\tB!\xe0\x41\x02\xfa\x41\x15\n\x13\x61i.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"P\n\x11ListChatsResponse\x12\"\n\x05\x63hats\x18\x01 \x03(\x0b\x32\x13.malonaz.ai.v1.Chat\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"|\n\x14\x42\x61tchGetChatsRequest\x12(\n\x06parent\x18\x01 \x01(\tB\x18\xfa\x41\x15\n\x13\x61i.malonaz.com/User\x12:\n\x05names\x18\x02 \x03(\tB+\xfa\x41\x15\n\x13\x61i.malonaz.com/Chat\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\";\n\x15\x42\x61tchGetChatsResponse\x12\"\n\x05\x63hats\x18\x01 \x03(\x0b\x32\x13.malonaz.ai.v1.ChatB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -53,7 +53,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATECHATREQUEST'].fields_by_name['update_mask']._loaded_options = None
   _globals['_UPDATECHATREQUEST'].fields_by_name['update_mask']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATECHATREQUEST']._loaded_options = None
-  _globals['_UPDATECHATREQUEST']._serialized_options = b'\272HB\032@\n\022chat.name_required\022\025chat.name must be set\032\023has(this.chat.name)\352\234\301\003#\n\006labels\n\005title\n\013annotations\n\005price'
+  _globals['_UPDATECHATREQUEST']._serialized_options = b'\272HB\032@\n\022chat.name_required\022\025chat.name must be set\032\023has(this.chat.name)\352\234\301\0036\n\006labels\n\005title\n\013annotations\n\005price\n\021last_user_message'
   _globals['_DELETECHATREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETECHATREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\025\n\023ai.malonaz.com/Chat\272H\003\310\001\001'
   _globals['_LISTCHATSREQUEST'].fields_by_name['parent']._loaded_options = None
@@ -71,15 +71,15 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETCHATREQUEST']._serialized_start=476
   _globals['_GETCHATREQUEST']._serialized_end=541
   _globals['_UPDATECHATREQUEST']._serialized_start=544
-  _globals['_UPDATECHATREQUEST']._serialized_end=774
-  _globals['_DELETECHATREQUEST']._serialized_start=776
-  _globals['_DELETECHATREQUEST']._serialized_end=881
-  _globals['_LISTCHATSREQUEST']._serialized_start=884
-  _globals['_LISTCHATSREQUEST']._serialized_end=1122
-  _globals['_LISTCHATSRESPONSE']._serialized_start=1124
-  _globals['_LISTCHATSRESPONSE']._serialized_end=1204
-  _globals['_BATCHGETCHATSREQUEST']._serialized_start=1206
-  _globals['_BATCHGETCHATSREQUEST']._serialized_end=1330
-  _globals['_BATCHGETCHATSRESPONSE']._serialized_start=1332
-  _globals['_BATCHGETCHATSRESPONSE']._serialized_end=1391
+  _globals['_UPDATECHATREQUEST']._serialized_end=794
+  _globals['_DELETECHATREQUEST']._serialized_start=796
+  _globals['_DELETECHATREQUEST']._serialized_end=901
+  _globals['_LISTCHATSREQUEST']._serialized_start=904
+  _globals['_LISTCHATSREQUEST']._serialized_end=1142
+  _globals['_LISTCHATSRESPONSE']._serialized_start=1144
+  _globals['_LISTCHATSRESPONSE']._serialized_end=1224
+  _globals['_BATCHGETCHATSREQUEST']._serialized_start=1226
+  _globals['_BATCHGETCHATSREQUEST']._serialized_end=1350
+  _globals['_BATCHGETCHATSRESPONSE']._serialized_start=1352
+  _globals['_BATCHGETCHATSRESPONSE']._serialized_end=1411
 # @@protoc_insertion_point(module_scope)

@@ -57,9 +57,12 @@ type Chat struct {
 	Title string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
 	// Total price in dollars of this chat, aggregated over the model usage of
 	// all of its messages.
-	Price         float64 `protobuf:"fixed64,9,opt,name=price,proto3" json:"price,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Price float64 `protobuf:"fixed64,9,opt,name=price,proto3" json:"price,omitempty"`
+	// The resource name of the last user message in this chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	LastUserMessage string `protobuf:"bytes,10,opt,name=last_user_message,json=lastUserMessage,proto3" json:"last_user_message,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Chat) Reset() {
@@ -150,6 +153,13 @@ func (x *Chat) GetPrice() float64 {
 	return 0
 }
 
+func (x *Chat) GetLastUserMessage() string {
+	if x != nil {
+		return x.LastUserMessage
+	}
+	return ""
+}
+
 func (x *Chat) SetName(v string) {
 	x.Name = v
 }
@@ -184,6 +194,10 @@ func (x *Chat) SetTitle(v string) {
 
 func (x *Chat) SetPrice(v float64) {
 	x.Price = v
+}
+
+func (x *Chat) SetLastUserMessage(v string) {
+	x.LastUserMessage = v
 }
 
 func (x *Chat) HasCreateTime() bool {
@@ -247,6 +261,9 @@ type Chat_builder struct {
 	// Total price in dollars of this chat, aggregated over the model usage of
 	// all of its messages.
 	Price float64
+	// The resource name of the last user message in this chat.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	LastUserMessage string
 }
 
 func (b0 Chat_builder) Build() *Chat {
@@ -262,6 +279,7 @@ func (b0 Chat_builder) Build() *Chat {
 	x.Annotations = b.Annotations
 	x.Title = b.Title
 	x.Price = b.Price
+	x.LastUserMessage = b.LastUserMessage
 	return m0
 }
 
@@ -269,7 +287,7 @@ var File_malonaz_ai_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe3\x06\n" +
+	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xaf\a\n" +
 	"\x04Chat\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -282,7 +300,10 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\x06labels\x18\x06 \x03(\v2\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12P\n" +
 	"\vannotations\x18\a \x03(\v2$.malonaz.ai.v1.Chat.AnnotationsEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x1e\n" +
 	"\x05title\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\x05title\x12\x19\n" +
-	"\x05price\x18\t \x01(\x01B\x03\xe0A\x03R\x05price\x1a9\n" +
+	"\x05price\x18\t \x01(\x01B\x03\xe0A\x03R\x05price\x12J\n" +
+	"\x11last_user_message\x18\n" +
+	" \x01(\tB\x1e\xe0A\x03\xfaA\x18\n" +
+	"\x16ai.malonaz.com/MessageR\x0flastUserMessage\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +

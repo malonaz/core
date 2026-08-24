@@ -30,7 +30,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf8\x05\n\x04\x43hat\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x0c\n\x04\x65tag\x18\x05 \x01(\t\x12\xc5\x01\n\x06labels\x18\x06 \x03(\x0b\x32\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x43\n\x0b\x61nnotations\x18\x07 \x03(\x0b\x32$.malonaz.ai.v1.Chat.AnnotationsEntryB\x08\xba\xea\x0f\x04\x10\x01 \x01\x12\x17\n\x05title\x18\x08 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x04\x12\x12\n\x05price\x18\t \x01(\x01\x42\x03\xe0\x41\x03\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\x89\x01\xea\x41Z\n\x13\x61i.malonaz.com/Chat\x12\x36organizations/{organization}/users/{user}/chats/{chat}*\x05\x63hats2\x04\x63hat\xd2\xa6\x04\x00\x82\xf6,$e0c2a046-05dc-4853-9be5-b47e3889f242B\xd3\x01Z&github.com/malonaz/core/genproto/ai/v1\xea\x41X\n\x1b\x61i.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\x0corganization\xea\x41M\n\x13\x61i.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb3\x06\n\x04\x43hat\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x0c\n\x04\x65tag\x18\x05 \x01(\t\x12\xc5\x01\n\x06labels\x18\x06 \x03(\x0b\x32\x1f.malonaz.ai.v1.Chat.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x43\n\x0b\x61nnotations\x18\x07 \x03(\x0b\x32$.malonaz.ai.v1.Chat.AnnotationsEntryB\x08\xba\xea\x0f\x04\x10\x01 \x01\x12\x17\n\x05title\x18\x08 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x04\x12\x12\n\x05price\x18\t \x01(\x01\x42\x03\xe0\x41\x03\x12\x39\n\x11last_user_message\x18\n \x01(\tB\x1e\xe0\x41\x03\xfa\x41\x18\n\x16\x61i.malonaz.com/Message\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\x89\x01\xea\x41Z\n\x13\x61i.malonaz.com/Chat\x12\x36organizations/{organization}/users/{user}/chats/{chat}*\x05\x63hats2\x04\x63hat\xd2\xa6\x04\x00\x82\xf6,$e0c2a046-05dc-4853-9be5-b47e3889f242B\xd3\x01Z&github.com/malonaz/core/genproto/ai/v1\xea\x41X\n\x1b\x61i.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\x0corganization\xea\x41M\n\x13\x61i.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -58,12 +58,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CHAT'].fields_by_name['title']._serialized_options = b'\272H\005r\003\030\200\004'
   _globals['_CHAT'].fields_by_name['price']._loaded_options = None
   _globals['_CHAT'].fields_by_name['price']._serialized_options = b'\340A\003'
+  _globals['_CHAT'].fields_by_name['last_user_message']._loaded_options = None
+  _globals['_CHAT'].fields_by_name['last_user_message']._serialized_options = b'\340A\003\372A\030\n\026ai.malonaz.com/Message'
   _globals['_CHAT']._loaded_options = None
   _globals['_CHAT']._serialized_options = b'\352AZ\n\023ai.malonaz.com/Chat\0226organizations/{organization}/users/{user}/chats/{chat}*\005chats2\004chat\322\246\004\000\202\366,$e0c2a046-05dc-4853-9be5-b47e3889f242'
   _globals['_CHAT']._serialized_start=238
-  _globals['_CHAT']._serialized_end=998
-  _globals['_CHAT_LABELSENTRY']._serialized_start=761
-  _globals['_CHAT_LABELSENTRY']._serialized_end=806
-  _globals['_CHAT_ANNOTATIONSENTRY']._serialized_start=808
-  _globals['_CHAT_ANNOTATIONSENTRY']._serialized_end=858
+  _globals['_CHAT']._serialized_end=1057
+  _globals['_CHAT_LABELSENTRY']._serialized_start=820
+  _globals['_CHAT_LABELSENTRY']._serialized_end=865
+  _globals['_CHAT_ANNOTATIONSENTRY']._serialized_start=867
+  _globals['_CHAT_ANNOTATIONSENTRY']._serialized_end=917
 # @@protoc_insertion_point(module_scope)

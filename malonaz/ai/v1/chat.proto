@@ -91,4 +91,11 @@ message Chat {
   // Total price in dollars of this chat, aggregated over the model usage of
   // all of its messages.
   double price = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource name of the last user message in this chat.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string last_user_message = 10 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Message",
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 }
