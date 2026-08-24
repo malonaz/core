@@ -63,6 +63,7 @@ type Call struct {
 	// bodySet distinguishes an expectation of an empty body from no expectation at all.
 	bodySet  bool
 	response *response
+	handler  func(*Request) (any, error)
 	err      error
 }
 
@@ -105,6 +106,43 @@ func (c *Call) Return(body any) *Call {
 		c.response.contentType = contentType
 	}
 	return c
+}
+
+// Handle sets a function to compute the reply from the request, for the cases a fixed body cannot
+// express: a response that depends on what was sent, one that varies between calls, or one that
+// arrives late enough to exercise a caller's timeout.
+//
+// It returns the body, encoded exactly as [Call.Return] encodes one, and takes precedence over a
+// body set by Return. An error returned from it is reported to the caller as a 500, the same as an
+// expectation that failed to build.
+//
+// The function runs outside the server's lock, so one that blocks holds up only its own request.
+func (c *Call) Handle(handler func(request *Request) (any, error)) *Call {
+	c.handler = handler
+	return c
+}
+
+// respond produces the reply for a matched request, running the handler where one is set.
+func (c *Call) respond(request *Request) (*response, error) {
+	if c.handler == nil {
+		return c.response, nil
+	}
+	body, err := c.handler(request)
+	if err != nil {
+		return nil, err
+	}
+	encoded, contentType, err := encodeBody(body)
+	if err != nil {
+		return nil, fmt.Errorf("encoding handled response body: %w", err)
+	}
+	// Status and content type stay the expectation's, so WithStatus and WithContentType mean the
+	// same thing whether the body is fixed or computed.
+	handled := *c.response
+	handled.body = encoded
+	if handled.contentType == "" {
+		handled.contentType = contentType
+	}
+	return &handled, nil
 }
 
 // WithStatus sets the status code to reply with, which defaults to 200.
