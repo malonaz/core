@@ -1,10 +1,12 @@
 package mockserver_test
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -214,4 +216,78 @@ func TestReset(t *testing.T) {
 
 	response := get(t, server, "/once")
 	require.JSONEq(t, `{}`, body(t, response))
+}
+
+func TestHandle(t *testing.T) {
+	t.Run("the reply is computed from the request", func(t *testing.T) {
+		server := mockserver.NewServer()
+		defer server.Close()
+		server.Expect().Post("/echo").AnyTimes().Handle(
+			func(request *mockserver.Request) (any, error) {
+				return map[string]string{"saw": string(request.Body)}, nil
+			},
+		)
+
+		response, err := http.Post(server.URL()+"/echo", "application/json", strings.NewReader(`hello`))
+		require.NoError(t, err)
+		defer response.Body.Close()
+		body, err := io.ReadAll(response.Body)
+		require.NoError(t, err)
+		require.JSONEq(t, `{"saw":"hello"}`, string(body))
+		require.True(t, server.AssertExpectations(t))
+	})
+
+	t.Run("the expectation's status still applies", func(t *testing.T) {
+		server := mockserver.NewServer()
+		defer server.Close()
+		server.Expect().Get("/gone").WithStatus(http.StatusGone).Handle(
+			func(*mockserver.Request) (any, error) { return map[string]string{"why": "moved"}, nil },
+		)
+
+		response, err := http.Get(server.URL() + "/gone")
+		require.NoError(t, err)
+		defer response.Body.Close()
+		require.Equal(t, http.StatusGone, response.StatusCode)
+	})
+
+	t.Run("an error from the handler is reported as a 500", func(t *testing.T) {
+		server := mockserver.NewServer()
+		defer server.Close()
+		server.Expect().Get("/broken").Handle(
+			func(*mockserver.Request) (any, error) { return nil, errors.New("no") },
+		)
+
+		response, err := http.Get(server.URL() + "/broken")
+		require.NoError(t, err)
+		defer response.Body.Close()
+		require.Equal(t, http.StatusInternalServerError, response.StatusCode)
+	})
+
+	t.Run("a slow handler holds up only its own request", func(t *testing.T) {
+		// The reason this exists: a caller's timeout cannot be exercised by a fixed body, and a
+		// handler that sleeps must not stall the rest of the mock while it does.
+		server := mockserver.NewServer()
+		defer server.Close()
+		server.Expect().Get("/slow").Handle(func(*mockserver.Request) (any, error) {
+			time.Sleep(200 * time.Millisecond)
+			return map[string]string{"late": "yes"}, nil
+		})
+		server.Expect().Get("/fast").Return(map[string]string{"prompt": "yes"})
+
+		slowDone := make(chan struct{})
+		go func() {
+			defer close(slowDone)
+			response, err := http.Get(server.URL() + "/slow")
+			if err == nil {
+				response.Body.Close()
+			}
+		}()
+
+		started := time.Now()
+		response, err := http.Get(server.URL() + "/fast")
+		require.NoError(t, err)
+		defer response.Body.Close()
+		require.Less(t, time.Since(started), 100*time.Millisecond)
+		<-slowDone
+	})
 }

@@ -131,10 +131,18 @@ func (s *Server) handle(responseWriter http.ResponseWriter, httpRequest *http.Re
 		Body:   body,
 	}
 
-	matched, err := s.match(request)
+	call, matched, err := s.match(request)
 	if err != nil {
 		http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	// Deliberately outside match, which holds the lock: a handler is allowed to be slow, and one
+	// that is must not hold up requests to other expectations.
+	if call != nil {
+		if matched, err = call.respond(request); err != nil {
+			http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if matched.contentType != "" {
@@ -146,7 +154,10 @@ func (s *Server) handle(responseWriter http.ResponseWriter, httpRequest *http.Re
 
 // match finds the first unexhausted expectation for the request, recording the request either
 // way so that Requests reflects everything the mock saw.
-func (s *Server) match(request *Request) (*response, error) {
+//
+// A matched expectation is returned rather than its response, so the caller can run its handler
+// once this has released the lock.
+func (s *Server) match(request *Request) (*Call, *response, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.requests = append(s.requests, request)
@@ -156,17 +167,17 @@ func (s *Server) match(request *Request) (*response, error) {
 			continue
 		}
 		if call.err != nil {
-			return nil, call.err
+			return nil, nil, call.err
 		}
 		call.Record()
-		return call.response, nil
+		return call, nil, nil
 	}
 
 	if s.fallback != nil {
-		return s.fallback, nil
+		return nil, s.fallback, nil
 	}
 	s.unexpectedRequests = append(s.unexpectedRequests, describeRequest(request))
-	return &response{
+	return nil, &response{
 		statusCode:  http.StatusNotImplemented,
 		contentType: "text/plain; charset=utf-8",
 		body:        []byte(fmt.Sprintf("no expectation matched %s %s\n", request.Method, request.Path)),
