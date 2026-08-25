@@ -380,6 +380,27 @@ func parseJSONPathSegments(path string) []any {
 	for i < len(path) {
 		if path[i] == '.' {
 			i++
+			// Quoted key: $."rows" — scan to the closing quote (honoring
+			// backslash escapes), never stopping at '.' or '[' inside it.
+			// Vertex quotes keys inconsistently; treating the quote as part
+			// of the key leaked it into the argument map (a literal `"rows`
+			// key), which downstream consumers could never match.
+			if i < len(path) && (path[i] == '"' || path[i] == '\'') {
+				quote := path[i]
+				i++
+				j := i
+				for j < len(path) && path[j] != quote {
+					if path[j] == '\\' && j+1 < len(path) {
+						j++
+					}
+					j++
+				}
+				// A dangling quote (no closer — e.g. a container suffix was
+				// trimmed off `$."rows[]`) still yields the bare key.
+				segments = append(segments, unescapeKey(path[i:j]))
+				i = j + 1
+				continue
+			}
 			j := i
 			for j < len(path) && path[j] != '.' && path[j] != '[' {
 				j++
@@ -394,12 +415,34 @@ func parseJSONPathSegments(path string) []any {
 			for j < len(path) && path[j] != ']' {
 				j++
 			}
-			idx, _ := strconv.Atoi(path[i:j])
-			segments = append(segments, idx)
+			content := path[i:j]
+			// Bracketed string key: $["rows"]. Previously fell through
+			// strconv.Atoi and silently became index 0.
+			if len(content) > 0 && (content[0] == '"' || content[0] == '\'') {
+				segments = append(segments, unescapeKey(strings.Trim(content, string(content[0]))))
+			} else {
+				idx, _ := strconv.Atoi(content)
+				segments = append(segments, idx)
+			}
 			i = j + 1
 		} else {
 			i++
 		}
 	}
 	return segments
+}
+
+// unescapeKey resolves backslash escapes inside a quoted JSONPath key.
+func unescapeKey(key string) string {
+	if !strings.Contains(key, "\\") {
+		return key
+	}
+	var b strings.Builder
+	for i := 0; i < len(key); i++ {
+		if key[i] == '\\' && i+1 < len(key) {
+			i++
+		}
+		b.WriteByte(key[i])
+	}
+	return b.String()
 }
