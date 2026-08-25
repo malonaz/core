@@ -4,6 +4,10 @@ import (
 	"testing"
 	"time"
 
+	validatepb "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc/status"
+
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -132,6 +136,43 @@ func TestCanonicalize_AppliedOnUpdate(t *testing.T) {
 	})
 }
 
+// requireCanonicalizationViolation asserts a canonicalization failure carries
+// both machine-readable details: buf.validate.Violations (protovalidate's
+// dialect, request-relative FieldPath) and google.rpc.BadRequest (AIP-193,
+// dotted request-relative path).
+func requireCanonicalizationViolation(t *testing.T, err error, wantFieldNames []string, wantPath string) {
+	t.Helper()
+	grpcStatus, ok := status.FromError(err)
+	require.True(t, ok)
+
+	var violations *validatepb.Violations
+	var badRequest *errdetails.BadRequest
+	for _, detail := range grpcStatus.Details() {
+		switch detail := detail.(type) {
+		case *validatepb.Violations:
+			violations = detail
+		case *errdetails.BadRequest:
+			badRequest = detail
+		}
+	}
+
+	require.NotNil(t, violations)
+	require.Len(t, violations.GetViolations(), 1)
+	violation := violations.GetViolations()[0]
+	require.Equal(t, "canonicalize.phone_number", violation.GetRuleId())
+	require.NotEmpty(t, violation.GetMessage())
+	fieldNames := []string{}
+	for _, element := range violation.GetField().GetElements() {
+		require.NotZero(t, element.GetFieldNumber())
+		fieldNames = append(fieldNames, element.GetFieldName())
+	}
+	require.Equal(t, wantFieldNames, fieldNames)
+
+	require.NotNil(t, badRequest)
+	require.Len(t, badRequest.GetFieldViolations(), 1)
+	require.Equal(t, wantPath, badRequest.GetFieldViolations()[0].GetField())
+}
+
 func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
@@ -146,6 +187,7 @@ func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
 		}
 		_, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
+		requireCanonicalizationViolation(t, err, []string{"author", "phone_number"}, "author.phone_number")
 	})
 
 	t.Run("InvalidPhoneInRepeatedField", func(t *testing.T) {
@@ -158,6 +200,8 @@ func TestCanonicalize_InvalidValueReturnsError(t *testing.T) {
 		}
 		_, err := libraryServiceClient.CreateAuthor(ctx, createAuthorRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
+		// The list subscript lands on the last element: phone_numbers[1].
+		requireCanonicalizationViolation(t, err, []string{"author", "phone_numbers"}, "author.phone_numbers[1]")
 	})
 }
 
