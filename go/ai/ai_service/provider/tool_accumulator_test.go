@@ -126,3 +126,52 @@ func TestBuildEmptyArgumentsIsEmptyObject(t *testing.T) {
 		t.Fatalf("expected empty arguments, got: %v", fields)
 	}
 }
+
+// Vertex quotes JSONPath keys inconsistently ($."rows"[0], $."title"). The
+// quotes must never leak into the argument map: a literal `"rows` key is
+// unmatchable by downstream consumers (the exact failure seen with
+// Generate_Table rendering an empty table).
+func TestQuotedJSONPathKeys(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "id", "Generate_Table")
+	a.AppendArg(0, `$."title"`, "Financing")
+	a.AppendArg(0, `$."rows"[]`, "") // quoted container announcement
+	a.AppendArg(0, `$."rows"[0].cells[0].value`, "Will")
+	a.AppendArg(0, `$['columns'][0].label`, "Homeowner") // bracketed string key
+	a.AppendArg(0, `$."we\"ird"`, "escaped")             // escaped quote inside key
+
+	args := buildToolCall(t, a, 0).GetArguments().AsMap()
+	if args["title"] != "Financing" {
+		t.Fatalf("title = %v, want Financing (keys: %v)", args["title"], args)
+	}
+	rows, ok := args["rows"].([]any)
+	if !ok || len(rows) == 0 {
+		t.Fatalf("rows = %v, want populated array", args["rows"])
+	}
+	cell := rows[0].(map[string]any)["cells"].([]any)[0].(map[string]any)
+	if cell["value"] != "Will" {
+		t.Fatalf("cell = %v, want value=Will", cell)
+	}
+	columns, ok := args["columns"].([]any)
+	if !ok || columns[0].(map[string]any)["label"] != "Homeowner" {
+		t.Fatalf("columns = %v, want [{label: Homeowner}]", args["columns"])
+	}
+	if args[`we"ird`] != "escaped" {
+		t.Fatalf(`we"ird = %v, want escaped`, args[`we"ird`])
+	}
+}
+
+// A dangling quote — the container suffix trimmed off a path like
+// `$."rows[]` — must still resolve to the bare key.
+func TestDanglingQuoteJSONPathKey(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "id", "Generate_Table")
+	a.AppendArg(0, `$."rows[]`, "")
+	a.AppendArg(0, `$."rows"[0].id`, "r1")
+
+	args := buildToolCall(t, a, 0).GetArguments().AsMap()
+	rows, ok := args["rows"].([]any)
+	if !ok || rows[0].(map[string]any)["id"] != "r1" {
+		t.Fatalf("rows = %v, want [{id: r1}]", args["rows"])
+	}
+}
