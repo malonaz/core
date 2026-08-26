@@ -29,6 +29,7 @@ const (
 	AiService_SpeechToText_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/SpeechToText"
 	AiService_SpeechToTextStream_FullMethodName    = "/malonaz.ai.ai_service.v1.AiService/SpeechToTextStream"
 	AiService_TextToSpeech_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/TextToSpeech"
+	AiService_StreamTextToSpeech_FullMethodName    = "/malonaz.ai.ai_service.v1.AiService/StreamTextToSpeech"
 	AiService_TextToSpeechStream_FullMethodName    = "/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream"
 	AiService_CreateChat_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/CreateChat"
 	AiService_GetChat_FullMethodName               = "/malonaz.ai.ai_service.v1.AiService/GetChat"
@@ -128,6 +129,12 @@ type AiServiceClient interface {
 	// Converts text to speech audio, returning the complete audio data in a
 	// single response.
 	TextToSpeech(ctx context.Context, in *TextToSpeechRequest, opts ...grpc.CallOption) (*TextToSpeechResponse, error)
+	// Converts text to speech audio over a bidirectional stream, allowing text
+	// to be streamed in incrementally (e.g. LLM tokens) while audio is
+	// synthesized and streamed back. The first client message must carry the
+	// stream configuration; subsequent messages carry text deltas and turn
+	// flushes. Usage and generation metrics are sent at the end of the stream.
+	StreamTextToSpeech(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamTextToSpeechRequest, StreamTextToSpeechResponse], error)
 	// Converts text to speech audio, streaming audio chunks as they are
 	// synthesized. Usage and generation metrics are sent at the end of the
 	// stream.
@@ -322,9 +329,22 @@ func (c *aiServiceClient) TextToSpeech(ctx context.Context, in *TextToSpeechRequ
 	return out, nil
 }
 
+func (c *aiServiceClient) StreamTextToSpeech(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamTextToSpeechRequest, StreamTextToSpeechResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], AiService_StreamTextToSpeech_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamTextToSpeechRequest, StreamTextToSpeechResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AiService_StreamTextToSpeechClient = grpc.BidiStreamingClient[StreamTextToSpeechRequest, StreamTextToSpeechResponse]
+
 func (c *aiServiceClient) TextToSpeechStream(ctx context.Context, in *TextToSpeechStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TextToSpeechStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[1], AiService_TextToSpeechStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], AiService_TextToSpeechStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +493,7 @@ func (c *aiServiceClient) GenerateMessage(ctx context.Context, in *GenerateMessa
 
 func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamGenerateMessageResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[2], AiService_StreamGenerateMessage_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[3], AiService_StreamGenerateMessage_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +534,7 @@ func (c *aiServiceClient) TextToText(ctx context.Context, in *TextToTextRequest,
 // Deprecated: Do not use.
 func (c *aiServiceClient) TextToTextStream(ctx context.Context, in *TextToTextStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TextToTextStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[3], AiService_TextToTextStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[4], AiService_TextToTextStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -610,6 +630,12 @@ type AiServiceServer interface {
 	// Converts text to speech audio, returning the complete audio data in a
 	// single response.
 	TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error)
+	// Converts text to speech audio over a bidirectional stream, allowing text
+	// to be streamed in incrementally (e.g. LLM tokens) while audio is
+	// synthesized and streamed back. The first client message must carry the
+	// stream configuration; subsequent messages carry text deltas and turn
+	// flushes. Usage and generation metrics are sent at the end of the stream.
+	StreamTextToSpeech(grpc.BidiStreamingServer[StreamTextToSpeechRequest, StreamTextToSpeechResponse]) error
 	// Converts text to speech audio, streaming audio chunks as they are
 	// synthesized. Usage and generation metrics are sent at the end of the
 	// stream.
@@ -736,6 +762,9 @@ func (UnimplementedAiServiceServer) SpeechToTextStream(grpc.BidiStreamingServer[
 }
 func (UnimplementedAiServiceServer) TextToSpeech(context.Context, *TextToSpeechRequest) (*TextToSpeechResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TextToSpeech not implemented")
+}
+func (UnimplementedAiServiceServer) StreamTextToSpeech(grpc.BidiStreamingServer[StreamTextToSpeechRequest, StreamTextToSpeechResponse]) error {
+	return status.Error(codes.Unimplemented, "method StreamTextToSpeech not implemented")
 }
 func (UnimplementedAiServiceServer) TextToSpeechStream(*TextToSpeechStreamRequest, grpc.ServerStreamingServer[TextToSpeechStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method TextToSpeechStream not implemented")
@@ -961,6 +990,13 @@ func _AiService_TextToSpeech_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _AiService_StreamTextToSpeech_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AiServiceServer).StreamTextToSpeech(&grpc.GenericServerStream[StreamTextToSpeechRequest, StreamTextToSpeechResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AiService_StreamTextToSpeechServer = grpc.BidiStreamingServer[StreamTextToSpeechRequest, StreamTextToSpeechResponse]
 
 func _AiService_TextToSpeechStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TextToSpeechStreamRequest)
@@ -1369,6 +1405,12 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SpeechToTextStream",
 			Handler:       _AiService_SpeechToTextStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "StreamTextToSpeech",
+			Handler:       _AiService_StreamTextToSpeech_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

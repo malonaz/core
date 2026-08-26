@@ -2,15 +2,22 @@ go_library(
     name = "deepgram",
     srcs = [
         "deepgram.go",
+        "speak.go",
         "speech_to_text_stream.go",
+        "stream_text_to_speech.go",
+        "text_to_speech.go",
     ],
     visibility = ["//..."],
     deps = [
         "//go/ai/ai_service/provider",
+        "//go/audio",
         "//go/grpc/status",
         "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
         "//malonaz/audio/v1",
         "//third_party/go:github.com__coder__websocket",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

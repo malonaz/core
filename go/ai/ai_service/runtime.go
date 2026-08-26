@@ -218,6 +218,60 @@ func (s *Service) TextToSpeechStream(request *pb.TextToSpeechStreamRequest, srv 
 	return provider.TextToSpeechStream(request, srv)
 }
 
+// StreamTextToSpeech implements the bidirectional gRPC streaming method.
+// It consumes the leading configuration message, resolves the voice to a
+// provider voice id, and hands the stream to the provider.
+func (s *Service) StreamTextToSpeech(srv pb.AiService_StreamTextToSpeechServer) error {
+	ctx := srv.Context()
+
+	// First message must be the stream configuration.
+	request, err := srv.Recv()
+	if err != nil {
+		return status.FromError(err, "receiving configuration").Err()
+	}
+	configuration := request.GetConfiguration()
+	if configuration == nil {
+		return status.Errorf(codes.FailedPrecondition, "first message must be configuration").Err()
+	}
+
+	provider, model, err := s.GetStreamTextToSpeechProvider(ctx, configuration.Model)
+	if err != nil {
+		return err
+	}
+	if err := checkModelDeprecation(model); err != nil {
+		return status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
+	}
+
+	// Resolve the voice to a provider voice id.
+	var providerVoiceID string
+	switch voiceSelection := configuration.GetVoiceSelection().(type) {
+	case *pb.StreamTextToSpeechConfiguration_Voice:
+		getVoiceRequest := &pb.GetVoiceRequest{Name: voiceSelection.Voice}
+		voice, err := s.GetVoice(ctx, getVoiceRequest)
+		if err != nil {
+			return err
+		}
+		for _, modelConfig := range voice.ModelConfigs {
+			if configuration.Model == modelConfig.Model {
+				providerVoiceID = modelConfig.ProviderVoiceId
+				break
+			}
+		}
+		if providerVoiceID == "" {
+			return status.Errorf(codes.FailedPrecondition, "%s has no configuration for %s", configuration.Model, voiceSelection.Voice).Err()
+		}
+	case *pb.StreamTextToSpeechConfiguration_ProviderVoiceId:
+		providerVoiceID = voiceSelection.ProviderVoiceId
+	default:
+		return status.Errorf(codes.Internal, "unknown voice selection type: %T", voiceSelection).Err()
+	}
+	configuration.VoiceSelection = &pb.StreamTextToSpeechConfiguration_ProviderVoiceId{
+		ProviderVoiceId: providerVoiceID,
+	}
+
+	return provider.StreamTextToSpeech(configuration, srv)
+}
+
 // TextToSpeech collects all streamed audio chunks into a single response
 func (s *Service) TextToSpeech(ctx context.Context, request *pb.TextToSpeechRequest) (*pb.TextToSpeechResponse, error) {
 	// Convert to streaming request

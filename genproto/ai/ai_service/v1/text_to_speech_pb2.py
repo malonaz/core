@@ -24,12 +24,13 @@ _sym_db = _symbol_database.Default()
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
+from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from malonaz.ai.v1 import metrics_pb2 as malonaz_dot_ai_dot_v1_dot_metrics__pb2
 from malonaz.audio.v1 import audio_pb2 as malonaz_dot_audio_dot_v1_dot_audio__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n-malonaz/ai/ai_service/v1/text_to_speech.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\x85\x01\n\x19TextToSpeechConfiguration\x12\x15\n\rlanguage_code\x18\x01 \x01(\t\x12\x1d\n\x15preferred_sample_rate\x18\x02 \x01(\x05\x12\x32\n\x11provider_settings\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x9b\x02\n\x13TextToSpeechRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\x31\n\x05voice\x18\x02 \x01(\tB \xfa\x41\x16\n\x14\x61i.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00\x12$\n\x11provider_voice_id\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x00\x12\x15\n\x04text\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12J\n\rconfiguration\x18\x05 \x01(\x0b\x32\x33.malonaz.ai.ai_service.v1.TextToSpeechConfigurationB\x18\n\x0fvoice_selection\x12\x05\xbaH\x02\x08\x01\"\xe2\x01\n\x14TextToSpeechResponse\x12.\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.Format\x12,\n\x0b\x61udio_chunk\x18\x02 \x01(\x0b\x32\x17.malonaz.audio.v1.Chunk\x12.\n\x0bmodel_usage\x18\x03 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsage\x12<\n\x12generation_metrics\x18\x04 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetrics\"\xa1\x02\n\x19TextToSpeechStreamRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\x31\n\x05voice\x18\x02 \x01(\tB \xfa\x41\x16\n\x14\x61i.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00\x12$\n\x11provider_voice_id\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x00\x12\x15\n\x04text\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12J\n\rconfiguration\x18\x05 \x01(\x0b\x32\x33.malonaz.ai.ai_service.v1.TextToSpeechConfigurationB\x18\n\x0fvoice_selection\x12\x05\xbaH\x02\x08\x01\"\x82\x02\n\x1aTextToSpeechStreamResponse\x12\x30\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.FormatH\x00\x12.\n\x0b\x61udio_chunk\x18\x02 \x01(\x0b\x32\x17.malonaz.audio.v1.ChunkH\x00\x12\x30\n\x0bmodel_usage\x18\x03 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsageH\x00\x12>\n\x12generation_metrics\x18\x04 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetricsH\x00\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\x42\x33Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n-malonaz/ai/ai_service/v1/text_to_speech.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\x85\x01\n\x19TextToSpeechConfiguration\x12\x15\n\rlanguage_code\x18\x01 \x01(\t\x12\x1d\n\x15preferred_sample_rate\x18\x02 \x01(\x05\x12\x32\n\x11provider_settings\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x9b\x02\n\x13TextToSpeechRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\x31\n\x05voice\x18\x02 \x01(\tB \xfa\x41\x16\n\x14\x61i.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00\x12$\n\x11provider_voice_id\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x00\x12\x15\n\x04text\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12J\n\rconfiguration\x18\x05 \x01(\x0b\x32\x33.malonaz.ai.ai_service.v1.TextToSpeechConfigurationB\x18\n\x0fvoice_selection\x12\x05\xbaH\x02\x08\x01\"\xe2\x01\n\x14TextToSpeechResponse\x12.\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.Format\x12,\n\x0b\x61udio_chunk\x18\x02 \x01(\x0b\x32\x17.malonaz.audio.v1.Chunk\x12.\n\x0bmodel_usage\x18\x03 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsage\x12<\n\x12generation_metrics\x18\x04 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetrics\"\xa1\x02\n\x19TextToSpeechStreamRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\x31\n\x05voice\x18\x02 \x01(\tB \xfa\x41\x16\n\x14\x61i.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00\x12$\n\x11provider_voice_id\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x00\x12\x15\n\x04text\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12J\n\rconfiguration\x18\x05 \x01(\x0b\x32\x33.malonaz.ai.ai_service.v1.TextToSpeechConfigurationB\x18\n\x0fvoice_selection\x12\x05\xbaH\x02\x08\x01\"\x82\x02\n\x1aTextToSpeechStreamResponse\x12\x30\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.FormatH\x00\x12.\n\x0b\x61udio_chunk\x18\x02 \x01(\x0b\x32\x17.malonaz.audio.v1.ChunkH\x00\x12\x30\n\x0bmodel_usage\x18\x03 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsageH\x00\x12>\n\x12generation_metrics\x18\x04 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetricsH\x00\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\xd5\x01\n\x19StreamTextToSpeechRequest\x12R\n\rconfiguration\x18\x01 \x01(\x0b\x32\x39.malonaz.ai.ai_service.v1.StreamTextToSpeechConfigurationH\x00\x12\x0e\n\x04text\x18\x02 \x01(\tH\x00\x12\x42\n\x05\x66lush\x18\x03 \x01(\x0b\x32\x31.malonaz.ai.ai_service.v1.StreamTextToSpeechFlushH\x00\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\x90\x02\n\x1fStreamTextToSpeechConfiguration\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\x31\n\x05voice\x18\x02 \x01(\tB \xfa\x41\x16\n\x14\x61i.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00\x12$\n\x11provider_voice_id\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x00\x12J\n\rconfiguration\x18\x04 \x01(\x0b\x32\x33.malonaz.ai.ai_service.v1.TextToSpeechConfigurationB\x18\n\x0fvoice_selection\x12\x05\xbaH\x02\x08\x01\"\x19\n\x17StreamTextToSpeechFlush\"u\n\x1eStreamTextToSpeechTurnComplete\x12\x31\n\x0e\x61udio_duration\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12 \n\x18\x62illable_character_count\x18\x02 \x01(\x05\"\xd5\x02\n\x1aStreamTextToSpeechResponse\x12\x30\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.FormatH\x00\x12.\n\x0b\x61udio_chunk\x18\x02 \x01(\x0b\x32\x17.malonaz.audio.v1.ChunkH\x00\x12Q\n\rturn_complete\x18\x03 \x01(\x0b\x32\x38.malonaz.ai.ai_service.v1.StreamTextToSpeechTurnCompleteH\x00\x12\x30\n\x0bmodel_usage\x18\x04 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsageH\x00\x12>\n\x12generation_metrics\x18\x05 \x01(\x0b\x32 .malonaz.ai.v1.GenerationMetricsH\x00\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\x42\x33Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -59,14 +60,36 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TEXTTOSPEECHSTREAMREQUEST'].fields_by_name['text']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_TEXTTOSPEECHSTREAMRESPONSE'].oneofs_by_name['content']._loaded_options = None
   _globals['_TEXTTOSPEECHSTREAMRESPONSE'].oneofs_by_name['content']._serialized_options = b'\272H\002\010\001'
-  _globals['_TEXTTOSPEECHCONFIGURATION']._serialized_start=221
-  _globals['_TEXTTOSPEECHCONFIGURATION']._serialized_end=354
-  _globals['_TEXTTOSPEECHREQUEST']._serialized_start=357
-  _globals['_TEXTTOSPEECHREQUEST']._serialized_end=640
-  _globals['_TEXTTOSPEECHRESPONSE']._serialized_start=643
-  _globals['_TEXTTOSPEECHRESPONSE']._serialized_end=869
-  _globals['_TEXTTOSPEECHSTREAMREQUEST']._serialized_start=872
-  _globals['_TEXTTOSPEECHSTREAMREQUEST']._serialized_end=1161
-  _globals['_TEXTTOSPEECHSTREAMRESPONSE']._serialized_start=1164
-  _globals['_TEXTTOSPEECHSTREAMRESPONSE']._serialized_end=1422
+  _globals['_STREAMTEXTTOSPEECHREQUEST'].oneofs_by_name['content']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHREQUEST'].oneofs_by_name['content']._serialized_options = b'\272H\002\010\001'
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].oneofs_by_name['voice_selection']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].oneofs_by_name['voice_selection']._serialized_options = b'\272H\002\010\001'
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['model']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['model']._serialized_options = b'\372A\026\n\024ai.malonaz.com/Model\272H\003\310\001\001'
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['voice']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['voice']._serialized_options = b'\372A\026\n\024ai.malonaz.com/Voice\272H\004r\002\020\001'
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['provider_voice_id']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION'].fields_by_name['provider_voice_id']._serialized_options = b'\272H\004r\002\020\001'
+  _globals['_STREAMTEXTTOSPEECHRESPONSE'].oneofs_by_name['content']._loaded_options = None
+  _globals['_STREAMTEXTTOSPEECHRESPONSE'].oneofs_by_name['content']._serialized_options = b'\272H\002\010\001'
+  _globals['_TEXTTOSPEECHCONFIGURATION']._serialized_start=253
+  _globals['_TEXTTOSPEECHCONFIGURATION']._serialized_end=386
+  _globals['_TEXTTOSPEECHREQUEST']._serialized_start=389
+  _globals['_TEXTTOSPEECHREQUEST']._serialized_end=672
+  _globals['_TEXTTOSPEECHRESPONSE']._serialized_start=675
+  _globals['_TEXTTOSPEECHRESPONSE']._serialized_end=901
+  _globals['_TEXTTOSPEECHSTREAMREQUEST']._serialized_start=904
+  _globals['_TEXTTOSPEECHSTREAMREQUEST']._serialized_end=1193
+  _globals['_TEXTTOSPEECHSTREAMRESPONSE']._serialized_start=1196
+  _globals['_TEXTTOSPEECHSTREAMRESPONSE']._serialized_end=1454
+  _globals['_STREAMTEXTTOSPEECHREQUEST']._serialized_start=1457
+  _globals['_STREAMTEXTTOSPEECHREQUEST']._serialized_end=1670
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION']._serialized_start=1673
+  _globals['_STREAMTEXTTOSPEECHCONFIGURATION']._serialized_end=1945
+  _globals['_STREAMTEXTTOSPEECHFLUSH']._serialized_start=1947
+  _globals['_STREAMTEXTTOSPEECHFLUSH']._serialized_end=1972
+  _globals['_STREAMTEXTTOSPEECHTURNCOMPLETE']._serialized_start=1974
+  _globals['_STREAMTEXTTOSPEECHTURNCOMPLETE']._serialized_end=2091
+  _globals['_STREAMTEXTTOSPEECHRESPONSE']._serialized_start=2094
+  _globals['_STREAMTEXTTOSPEECHRESPONSE']._serialized_end=2435
 # @@protoc_insertion_point(module_scope)

@@ -291,6 +291,30 @@ func (s *ModelService) GetSpeechToTextStreamProvider(ctx context.Context, modelN
 	return speechToTextStreamClient, model, nil
 }
 
+func (s *ModelService) GetStreamTextToSpeechProvider(ctx context.Context, modelName string) (StreamTextToSpeechClient, *aipb.Model, error) {
+	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
+	model, err := s.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	if model.Tts == nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type TTS", modelName).Err()
+	}
+	modelRn := &aipb.ModelResourceName{}
+	if err := modelRn.UnmarshalString(modelName); err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+	}
+	provider, ok := s.providerIdToProvider[modelRn.Provider]
+	if !ok {
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+	}
+	streamTextToSpeechClient, ok := provider.(StreamTextToSpeechClient)
+	if !ok {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support bidirectional text to speech streaming", provider.ProviderId()).Err()
+	}
+	return streamTextToSpeechClient, model, nil
+}
+
 func (s *ModelService) GetTextToSpeechProvider(ctx context.Context, modelName string) (TextToSpeechClient, *aipb.Model, error) {
 	// Get the model.
 	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}

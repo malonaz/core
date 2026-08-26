@@ -6,7 +6,8 @@ import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Duration } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
 import type { GenerationMetrics, GenerationMetricsValid, ModelUsage, ModelUsageValid } from "../../v1/metrics_pb";
 import { file_malonaz_ai_v1_metrics } from "../../v1/metrics_pb";
 import type { Chunk, ChunkValid, Format, FormatValid } from "../../../audio/v1/audio_pb";
@@ -17,7 +18,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/text_to_speech.proto.
  */
 export const file_malonaz_ai_ai_service_v1_text_to_speech: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwIKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABIVCgR0ZXh0GAQgASgJQge6SARyAhABEkoKDWNvbmZpZ3VyYXRpb24YBSABKAsyMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbkIYCg92b2ljZV9zZWxlY3Rpb24SBbpIAggBIuIBChRUZXh0VG9TcGVlY2hSZXNwb25zZRIuCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKhAgoZVGV4dFRvU3BlZWNoU3RyZWFtUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIxCgV2b2ljZRgCIAEoCUIg+kEWChRhaS5tYWxvbmF6LmNvbS9Wb2ljZbpIBHICEAFIABIkChFwcm92aWRlcl92b2ljZV9pZBgDIAEoCUIHukgEcgIQAUgAEhUKBHRleHQYBCABKAlCB7pIBHICEAESSgoNY29uZmlndXJhdGlvbhgFIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiggIKGlRleHRUb1NwZWVjaFN0cmVhbVJlc3BvbnNlEjAKDGF1ZGlvX2Zvcm1hdBgBIAEoCzIYLm1hbG9uYXouYXVkaW8udjEuRm9ybWF0SAASLgoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rSAASMAoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBCABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwIKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABIVCgR0ZXh0GAQgASgJQge6SARyAhABEkoKDWNvbmZpZ3VyYXRpb24YBSABKAsyMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbkIYCg92b2ljZV9zZWxlY3Rpb24SBbpIAggBIuIBChRUZXh0VG9TcGVlY2hSZXNwb25zZRIuCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKhAgoZVGV4dFRvU3BlZWNoU3RyZWFtUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIxCgV2b2ljZRgCIAEoCUIg+kEWChRhaS5tYWxvbmF6LmNvbS9Wb2ljZbpIBHICEAFIABIkChFwcm92aWRlcl92b2ljZV9pZBgDIAEoCUIHukgEcgIQAUgAEhUKBHRleHQYBCABKAlCB7pIBHICEAESSgoNY29uZmlndXJhdGlvbhgFIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiggIKGlRleHRUb1NwZWVjaFN0cmVhbVJlc3BvbnNlEjAKDGF1ZGlvX2Zvcm1hdBgBIAEoCzIYLm1hbG9uYXouYXVkaW8udjEuRm9ybWF0SAASLgoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rSAASMAoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBCABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAEi1QEKGVN0cmVhbVRleHRUb1NwZWVjaFJlcXVlc3QSUgoNY29uZmlndXJhdGlvbhgBIAEoCzI5Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TdHJlYW1UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uSAASDgoEdGV4dBgCIAEoCUgAEkIKBWZsdXNoGAMgASgLMjEubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0cmVhbVRleHRUb1NwZWVjaEZsdXNoSABCEAoHY29udGVudBIFukgCCAEikAIKH1N0cmVhbVRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb24SLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABJKCg1jb25maWd1cmF0aW9uGAQgASgLMjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb25CGAoPdm9pY2Vfc2VsZWN0aW9uEgW6SAIIASIZChdTdHJlYW1UZXh0VG9TcGVlY2hGbHVzaCJ1Ch5TdHJlYW1UZXh0VG9TcGVlY2hUdXJuQ29tcGxldGUSMQoOYXVkaW9fZHVyYXRpb24YASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SIAoYYmlsbGFibGVfY2hhcmFjdGVyX2NvdW50GAIgASgFItUCChpTdHJlYW1UZXh0VG9TcGVlY2hSZXNwb25zZRIwCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEgAEi4KC2F1ZGlvX2NodW5rGAIgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0gAElEKDXR1cm5fY29tcGxldGUYAyABKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RyZWFtVGV4dFRvU3BlZWNoVHVybkNvbXBsZXRlSAASMAoLbW9kZWxfdXNhZ2UYBCABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBSABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
 
 /**
  * Configuration for text to speech generation.
@@ -460,4 +461,356 @@ export type TextToSpeechStreamResponseValid = Message<"malonaz.ai.ai_service.v1.
  */
 export const TextToSpeechStreamResponseSchema: GenMessage<TextToSpeechStreamResponse, {validType: TextToSpeechStreamResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 4);
+
+/**
+ * Request message for AiService.StreamTextToSpeech.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechRequest
+ */
+export type StreamTextToSpeechRequest = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechRequest"> & {
+  /**
+   * Content of this request.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechRequest.content
+   */
+  content: {
+    /**
+     * Configuration for the stream. Must be sent first.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration configuration = 1;
+     */
+    value: StreamTextToSpeechConfiguration;
+    case: "configuration";
+  } | {
+    /**
+     * Incremental text for the current turn (e.g. LLM tokens as they are
+     * generated). The provider may begin synthesizing before the turn is
+     * flushed.
+     *
+     * @generated from field: string text = 2;
+     */
+    value: string;
+    case: "text";
+  } | {
+    /**
+     * Marks the end of the current turn's text, forcing synthesis of any
+     * buffered input. A new turn may be started by sending more text.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechFlush flush = 3;
+     */
+    value: StreamTextToSpeechFlush;
+    case: "flush";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Request message for AiService.StreamTextToSpeech.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechRequest
+ */
+export type StreamTextToSpeechRequestValid = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechRequest"> & {
+  /**
+   * Content of this request.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechRequest.content
+   */
+  content: {
+    /**
+     * Configuration for the stream. Must be sent first.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration configuration = 1;
+     */
+    value: StreamTextToSpeechConfigurationValid;
+    case: "configuration";
+  } | {
+    /**
+     * Incremental text for the current turn (e.g. LLM tokens as they are
+     * generated). The provider may begin synthesizing before the turn is
+     * flushed.
+     *
+     * @generated from field: string text = 2;
+     */
+    value: string;
+    case: "text";
+  } | {
+    /**
+     * Marks the end of the current turn's text, forcing synthesis of any
+     * buffered input. A new turn may be started by sending more text.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechFlush flush = 3;
+     */
+    value: StreamTextToSpeechFlushValid;
+    case: "flush";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechRequest.
+ * Use `create(StreamTextToSpeechRequestSchema)` to create a new message.
+ */
+export const StreamTextToSpeechRequestSchema: GenMessage<StreamTextToSpeechRequest, {validType: StreamTextToSpeechRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 5);
+
+/**
+ * Configuration for text-to-speech streaming. Sent as the first message.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration
+ */
+export type StreamTextToSpeechConfiguration = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration"> & {
+  /**
+   * The resource name of the model used.
+   * Format: providers/{provider}/models/{model}
+   *
+   * @generated from field: string model = 1;
+   */
+  model: string;
+
+  /**
+   * Voice selection.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration.voice_selection
+   */
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * Additional configuration.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.TextToSpeechConfiguration configuration = 4;
+   */
+  configuration?: TextToSpeechConfiguration;
+};
+
+/**
+ * Configuration for text-to-speech streaming. Sent as the first message.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration
+ */
+export type StreamTextToSpeechConfigurationValid = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration"> & {
+  /**
+   * The resource name of the model used.
+   * Format: providers/{provider}/models/{model}
+   *
+   * @generated from field: string model = 1;
+   */
+  model: string;
+
+  /**
+   * Voice selection.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration.voice_selection
+   */
+  voiceSelection: {
+    /**
+     * The resource name of the voice to use.
+     * Format: voices/{voice}
+     *
+     * @generated from field: string voice = 2;
+     */
+    value: string;
+    case: "voice";
+  } | {
+    /**
+     * The provider voice id.
+     *
+     * @generated from field: string provider_voice_id = 3;
+     */
+    value: string;
+    case: "providerVoiceId";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * Additional configuration.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.TextToSpeechConfiguration configuration = 4;
+   */
+  configuration?: TextToSpeechConfigurationValid;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration.
+ * Use `create(StreamTextToSpeechConfigurationSchema)` to create a new message.
+ */
+export const StreamTextToSpeechConfigurationSchema: GenMessage<StreamTextToSpeechConfiguration, {validType: StreamTextToSpeechConfigurationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 6);
+
+/**
+ * Marks the end of the current turn's text.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechFlush
+ */
+export type StreamTextToSpeechFlush = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechFlush"> & {
+};
+
+export type StreamTextToSpeechFlushValid = StreamTextToSpeechFlush;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechFlush.
+ * Use `create(StreamTextToSpeechFlushSchema)` to create a new message.
+ */
+export const StreamTextToSpeechFlushSchema: GenMessage<StreamTextToSpeechFlush, {validType: StreamTextToSpeechFlushValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 7);
+
+/**
+ * Indicates a turn's text has been fully synthesized.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete
+ */
+export type StreamTextToSpeechTurnComplete = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete"> & {
+  /**
+   * Total audio duration produced for this turn.
+   *
+   * @generated from field: google.protobuf.Duration audio_duration = 1;
+   */
+  audioDuration?: Duration;
+
+  /**
+   * Billable character count for this turn.
+   *
+   * @generated from field: int32 billable_character_count = 2;
+   */
+  billableCharacterCount: number;
+};
+
+export type StreamTextToSpeechTurnCompleteValid = StreamTextToSpeechTurnComplete;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete.
+ * Use `create(StreamTextToSpeechTurnCompleteSchema)` to create a new message.
+ */
+export const StreamTextToSpeechTurnCompleteSchema: GenMessage<StreamTextToSpeechTurnComplete, {validType: StreamTextToSpeechTurnCompleteValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 8);
+
+/**
+ * Response message for AiService.StreamTextToSpeech.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechResponse
+ */
+export type StreamTextToSpeechResponse = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechResponse"> & {
+  /**
+   * Content of this response.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.content
+   */
+  content: {
+    /**
+     * Audio format of the audio stream (sent first).
+     *
+     * @generated from field: malonaz.audio.v1.Format audio_format = 1;
+     */
+    value: Format;
+    case: "audioFormat";
+  } | {
+    /**
+     * Audio data chunk in PCM16 format.
+     *
+     * @generated from field: malonaz.audio.v1.Chunk audio_chunk = 2;
+     */
+    value: Chunk;
+    case: "audioChunk";
+  } | {
+    /**
+     * Indicates the current turn's text has been fully synthesized. Emitted
+     * after the last audio chunk of a flushed turn.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete turn_complete = 3;
+     */
+    value: StreamTextToSpeechTurnComplete;
+    case: "turnComplete";
+  } | {
+    /**
+     * Model usage event (sent at the end of the stream).
+     *
+     * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 4;
+     */
+    value: ModelUsage;
+    case: "modelUsage";
+  } | {
+    /**
+     * Generation metrics (sent at the end of the stream).
+     *
+     * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 5;
+     */
+    value: GenerationMetrics;
+    case: "generationMetrics";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Response message for AiService.StreamTextToSpeech.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechResponse
+ */
+export type StreamTextToSpeechResponseValid = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechResponse"> & {
+  /**
+   * Content of this response.
+   *
+   * @generated from oneof malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.content
+   */
+  content: {
+    /**
+     * Audio format of the audio stream (sent first).
+     *
+     * @generated from field: malonaz.audio.v1.Format audio_format = 1;
+     */
+    value: FormatValid;
+    case: "audioFormat";
+  } | {
+    /**
+     * Audio data chunk in PCM16 format.
+     *
+     * @generated from field: malonaz.audio.v1.Chunk audio_chunk = 2;
+     */
+    value: ChunkValid;
+    case: "audioChunk";
+  } | {
+    /**
+     * Indicates the current turn's text has been fully synthesized. Emitted
+     * after the last audio chunk of a flushed turn.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete turn_complete = 3;
+     */
+    value: StreamTextToSpeechTurnCompleteValid;
+    case: "turnComplete";
+  } | {
+    /**
+     * Model usage event (sent at the end of the stream).
+     *
+     * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 4;
+     */
+    value: ModelUsageValid;
+    case: "modelUsage";
+  } | {
+    /**
+     * Generation metrics (sent at the end of the stream).
+     *
+     * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 5;
+     */
+    value: GenerationMetricsValid;
+    case: "generationMetrics";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.
+ * Use `create(StreamTextToSpeechResponseSchema)` to create a new message.
+ */
+export const StreamTextToSpeechResponseSchema: GenMessage<StreamTextToSpeechResponse, {validType: StreamTextToSpeechResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 9);
 
