@@ -143,6 +143,18 @@ service AiService {
     };
   }
 
+  // Converts text to speech audio over a bidirectional stream, allowing text
+  // to be streamed in incrementally (e.g. LLM tokens) while audio is
+  // synthesized and streamed back. The first client message must carry the
+  // stream configuration; subsequent messages carry text deltas and turn
+  // flushes. Usage and generation metrics are sent at the end of the stream.
+  rpc StreamTextToSpeech(stream StreamTextToSpeechRequest) returns (stream StreamTextToSpeechResponse) {
+    option (google.api.http) = {
+      post: "/v1/{model=providers/*/models/*}/text-to-speech:streamBidi"
+      body: "*"
+    };
+  }
+
   // Converts text to speech audio, streaming audio chunks as they are
   // synthesized. Usage and generation metrics are sent at the end of the
   // stream.

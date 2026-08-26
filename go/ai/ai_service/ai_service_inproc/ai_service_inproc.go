@@ -149,6 +149,18 @@ func (c *Client) SpeechToTextStream(
 	](c.server.SpeechToTextStream)(ctx, opts...)
 }
 
+// StreamTextToSpeech provides a client-facing bidirectional streaming interface.
+func (c *Client) StreamTextToSpeech(
+	ctx context.Context,
+	opts ...grpc.CallOption,
+) (aiservicepb.AiService_StreamTextToSpeechClient, error) {
+	return grpcinproc.NewBidiStreamAsClient[
+		aiservicepb.StreamTextToSpeechRequest,
+		aiservicepb.StreamTextToSpeechResponse,
+		aiservicepb.AiService_StreamTextToSpeechServer,
+	](c.server.StreamTextToSpeech)(ctx, opts...)
+}
+
 // CreateChat creates a new chat and returns the created resource.
 func (c *Client) CreateChat(
 	ctx context.Context,

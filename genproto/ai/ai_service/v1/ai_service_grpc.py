@@ -66,6 +66,10 @@ class AiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def StreamTextToSpeech(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechRequest, malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def TextToSpeechStream(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechStreamRequest, malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechStreamResponse]') -> None:
         pass
 
@@ -192,6 +196,12 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechRequest,
                 malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/StreamTextToSpeech': grpclib.const.Handler(
+                self.StreamTextToSpeech,
+                grpclib.const.Cardinality.STREAM_STREAM,
+                malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechRequest,
+                malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechResponse,
             ),
             '/malonaz.ai.ai_service.v1.AiService/TextToSpeechStream': grpclib.const.Handler(
                 self.TextToSpeechStream,
@@ -360,6 +370,12 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/TextToSpeech',
             malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechRequest,
             malonaz.ai.ai_service.v1.text_to_speech_pb2.TextToSpeechResponse,
+        )
+        self.StreamTextToSpeech = grpclib.client.StreamStreamMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/StreamTextToSpeech',
+            malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechRequest,
+            malonaz.ai.ai_service.v1.text_to_speech_pb2.StreamTextToSpeechResponse,
         )
         self.TextToSpeechStream = grpclib.client.UnaryStreamMethod(
             channel,

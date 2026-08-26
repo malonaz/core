@@ -32,6 +32,15 @@ type GenerateMessageClient interface {
 	StreamGenerateMessage(ctx context.Context, request *aiservicepb.GenerateMessageRequest, messages []*aipb.Message, sender *AsyncMessageContentSender) error
 }
 
+// StreamTextToSpeechClient synthesizes speech from incrementally streamed
+// text over a bidirectional stream. The configuration (with the voice already
+// resolved to a provider voice id) is passed alongside the stream: the
+// service layer consumes the first message before dispatching.
+type StreamTextToSpeechClient interface {
+	Provider
+	StreamTextToSpeech(configuration *aiservicepb.StreamTextToSpeechConfiguration, srv aiservicepb.AiService_StreamTextToSpeechServer) error
+}
+
 // TextToSpeechClient uses the exact gRPC server streaming interface
 type TextToSpeechClient interface {
 	Provider

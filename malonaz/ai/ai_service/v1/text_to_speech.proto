@@ -4,6 +4,7 @@ package malonaz.ai.ai_service.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 import "malonaz/ai/v1/metrics.proto";
 import "malonaz/audio/v1/audio.proto";
@@ -119,5 +120,89 @@ message TextToSpeechStreamResponse {
 
     // Generation metrics.
     .malonaz.ai.v1.GenerationMetrics generation_metrics = 4;
+  }
+}
+
+// Request message for AiService.StreamTextToSpeech.
+message StreamTextToSpeechRequest {
+  // Content of this request.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Configuration for the stream. Must be sent first.
+    StreamTextToSpeechConfiguration configuration = 1;
+
+    // Incremental text for the current turn (e.g. LLM tokens as they are
+    // generated). The provider may begin synthesizing before the turn is
+    // flushed.
+    string text = 2;
+
+    // Marks the end of the current turn's text, forcing synthesis of any
+    // buffered input. A new turn may be started by sending more text.
+    StreamTextToSpeechFlush flush = 3;
+  }
+}
+
+// Configuration for text-to-speech streaming. Sent as the first message.
+message StreamTextToSpeechConfiguration {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+
+  // Voice selection.
+  oneof voice_selection {
+    option (buf.validate.oneof).required = true;
+
+    // The resource name of the voice to use.
+    // Format: voices/{voice}
+    string voice = 2 [
+      (google.api.resource_reference).type = "ai.malonaz.com/Voice",
+      (buf.validate.field).string.min_len = 1
+    ];
+
+    // The provider voice id.
+    string provider_voice_id = 3 [(buf.validate.field).string.min_len = 1];
+  }
+
+  // Additional configuration.
+  TextToSpeechConfiguration configuration = 4;
+}
+
+// Marks the end of the current turn's text.
+message StreamTextToSpeechFlush {}
+
+// Indicates a turn's text has been fully synthesized.
+message StreamTextToSpeechTurnComplete {
+  // Total audio duration produced for this turn.
+  google.protobuf.Duration audio_duration = 1;
+
+  // Billable character count for this turn.
+  int32 billable_character_count = 2;
+}
+
+// Response message for AiService.StreamTextToSpeech.
+message StreamTextToSpeechResponse {
+  // Content of this response.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // Audio format of the audio stream (sent first).
+    audio.v1.Format audio_format = 1;
+
+    // Audio data chunk in PCM16 format.
+    audio.v1.Chunk audio_chunk = 2;
+
+    // Indicates the current turn's text has been fully synthesized. Emitted
+    // after the last audio chunk of a flushed turn.
+    StreamTextToSpeechTurnComplete turn_complete = 3;
+
+    // Model usage event (sent at the end of the stream).
+    .malonaz.ai.v1.ModelUsage model_usage = 4;
+
+    // Generation metrics (sent at the end of the stream).
+    .malonaz.ai.v1.GenerationMetrics generation_metrics = 5;
   }
 }

@@ -15,6 +15,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -1065,11 +1066,947 @@ func (*TextToSpeechStreamResponse_ModelUsage) isTextToSpeechStreamResponse_Conte
 
 func (*TextToSpeechStreamResponse_GenerationMetrics) isTextToSpeechStreamResponse_Content() {}
 
+// Request message for AiService.StreamTextToSpeech.
+type StreamTextToSpeechRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Content of this request.
+	//
+	// Types that are valid to be assigned to Content:
+	//
+	//	*StreamTextToSpeechRequest_Configuration
+	//	*StreamTextToSpeechRequest_Text
+	//	*StreamTextToSpeechRequest_Flush
+	Content       isStreamTextToSpeechRequest_Content `protobuf_oneof:"content"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamTextToSpeechRequest) Reset() {
+	*x = StreamTextToSpeechRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamTextToSpeechRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamTextToSpeechRequest) ProtoMessage() {}
+
+func (x *StreamTextToSpeechRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *StreamTextToSpeechRequest) GetContent() isStreamTextToSpeechRequest_Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechRequest) GetConfiguration() *StreamTextToSpeechConfiguration {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechRequest_Configuration); ok {
+			return x.Configuration
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechRequest) GetText() string {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechRequest_Text); ok {
+			return x.Text
+		}
+	}
+	return ""
+}
+
+func (x *StreamTextToSpeechRequest) GetFlush() *StreamTextToSpeechFlush {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechRequest_Flush); ok {
+			return x.Flush
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechRequest) SetConfiguration(v *StreamTextToSpeechConfiguration) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechRequest_Configuration{v}
+}
+
+func (x *StreamTextToSpeechRequest) SetText(v string) {
+	x.Content = &StreamTextToSpeechRequest_Text{v}
+}
+
+func (x *StreamTextToSpeechRequest) SetFlush(v *StreamTextToSpeechFlush) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechRequest_Flush{v}
+}
+
+func (x *StreamTextToSpeechRequest) HasContent() bool {
+	if x == nil {
+		return false
+	}
+	return x.Content != nil
+}
+
+func (x *StreamTextToSpeechRequest) HasConfiguration() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechRequest_Configuration)
+	return ok
+}
+
+func (x *StreamTextToSpeechRequest) HasText() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechRequest_Text)
+	return ok
+}
+
+func (x *StreamTextToSpeechRequest) HasFlush() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechRequest_Flush)
+	return ok
+}
+
+func (x *StreamTextToSpeechRequest) ClearContent() {
+	x.Content = nil
+}
+
+func (x *StreamTextToSpeechRequest) ClearConfiguration() {
+	if _, ok := x.Content.(*StreamTextToSpeechRequest_Configuration); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechRequest) ClearText() {
+	if _, ok := x.Content.(*StreamTextToSpeechRequest_Text); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechRequest) ClearFlush() {
+	if _, ok := x.Content.(*StreamTextToSpeechRequest_Flush); ok {
+		x.Content = nil
+	}
+}
+
+const StreamTextToSpeechRequest_Content_not_set_case case_StreamTextToSpeechRequest_Content = 0
+const StreamTextToSpeechRequest_Configuration_case case_StreamTextToSpeechRequest_Content = 1
+const StreamTextToSpeechRequest_Text_case case_StreamTextToSpeechRequest_Content = 2
+const StreamTextToSpeechRequest_Flush_case case_StreamTextToSpeechRequest_Content = 3
+
+func (x *StreamTextToSpeechRequest) WhichContent() case_StreamTextToSpeechRequest_Content {
+	if x == nil {
+		return StreamTextToSpeechRequest_Content_not_set_case
+	}
+	switch x.Content.(type) {
+	case *StreamTextToSpeechRequest_Configuration:
+		return StreamTextToSpeechRequest_Configuration_case
+	case *StreamTextToSpeechRequest_Text:
+		return StreamTextToSpeechRequest_Text_case
+	case *StreamTextToSpeechRequest_Flush:
+		return StreamTextToSpeechRequest_Flush_case
+	default:
+		return StreamTextToSpeechRequest_Content_not_set_case
+	}
+}
+
+type StreamTextToSpeechRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Content of this request.
+
+	// Fields of oneof Content:
+	// Configuration for the stream. Must be sent first.
+	Configuration *StreamTextToSpeechConfiguration
+	// Incremental text for the current turn (e.g. LLM tokens as they are
+	// generated). The provider may begin synthesizing before the turn is
+	// flushed.
+	Text *string
+	// Marks the end of the current turn's text, forcing synthesis of any
+	// buffered input. A new turn may be started by sending more text.
+	Flush *StreamTextToSpeechFlush
+	// -- end of Content
+}
+
+func (b0 StreamTextToSpeechRequest_builder) Build() *StreamTextToSpeechRequest {
+	m0 := &StreamTextToSpeechRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Configuration != nil {
+		x.Content = &StreamTextToSpeechRequest_Configuration{b.Configuration}
+	}
+	if b.Text != nil {
+		x.Content = &StreamTextToSpeechRequest_Text{*b.Text}
+	}
+	if b.Flush != nil {
+		x.Content = &StreamTextToSpeechRequest_Flush{b.Flush}
+	}
+	return m0
+}
+
+type case_StreamTextToSpeechRequest_Content protoreflect.FieldNumber
+
+func (x case_StreamTextToSpeechRequest_Content) String() string {
+	md := file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[5].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isStreamTextToSpeechRequest_Content interface {
+	isStreamTextToSpeechRequest_Content()
+}
+
+type StreamTextToSpeechRequest_Configuration struct {
+	// Configuration for the stream. Must be sent first.
+	Configuration *StreamTextToSpeechConfiguration `protobuf:"bytes,1,opt,name=configuration,proto3,oneof"`
+}
+
+type StreamTextToSpeechRequest_Text struct {
+	// Incremental text for the current turn (e.g. LLM tokens as they are
+	// generated). The provider may begin synthesizing before the turn is
+	// flushed.
+	Text string `protobuf:"bytes,2,opt,name=text,proto3,oneof"`
+}
+
+type StreamTextToSpeechRequest_Flush struct {
+	// Marks the end of the current turn's text, forcing synthesis of any
+	// buffered input. A new turn may be started by sending more text.
+	Flush *StreamTextToSpeechFlush `protobuf:"bytes,3,opt,name=flush,proto3,oneof"`
+}
+
+func (*StreamTextToSpeechRequest_Configuration) isStreamTextToSpeechRequest_Content() {}
+
+func (*StreamTextToSpeechRequest_Text) isStreamTextToSpeechRequest_Content() {}
+
+func (*StreamTextToSpeechRequest_Flush) isStreamTextToSpeechRequest_Content() {}
+
+// Configuration for text-to-speech streaming. Sent as the first message.
+type StreamTextToSpeechConfiguration struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// Voice selection.
+	//
+	// Types that are valid to be assigned to VoiceSelection:
+	//
+	//	*StreamTextToSpeechConfiguration_Voice
+	//	*StreamTextToSpeechConfiguration_ProviderVoiceId
+	VoiceSelection isStreamTextToSpeechConfiguration_VoiceSelection `protobuf_oneof:"voice_selection"`
+	// Additional configuration.
+	Configuration *TextToSpeechConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamTextToSpeechConfiguration) Reset() {
+	*x = StreamTextToSpeechConfiguration{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamTextToSpeechConfiguration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamTextToSpeechConfiguration) ProtoMessage() {}
+
+func (x *StreamTextToSpeechConfiguration) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *StreamTextToSpeechConfiguration) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *StreamTextToSpeechConfiguration) GetVoiceSelection() isStreamTextToSpeechConfiguration_VoiceSelection {
+	if x != nil {
+		return x.VoiceSelection
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechConfiguration) GetVoice() string {
+	if x != nil {
+		if x, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_Voice); ok {
+			return x.Voice
+		}
+	}
+	return ""
+}
+
+func (x *StreamTextToSpeechConfiguration) GetProviderVoiceId() string {
+	if x != nil {
+		if x, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_ProviderVoiceId); ok {
+			return x.ProviderVoiceId
+		}
+	}
+	return ""
+}
+
+func (x *StreamTextToSpeechConfiguration) GetConfiguration() *TextToSpeechConfiguration {
+	if x != nil {
+		return x.Configuration
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechConfiguration) SetModel(v string) {
+	x.Model = v
+}
+
+func (x *StreamTextToSpeechConfiguration) SetVoice(v string) {
+	x.VoiceSelection = &StreamTextToSpeechConfiguration_Voice{v}
+}
+
+func (x *StreamTextToSpeechConfiguration) SetProviderVoiceId(v string) {
+	x.VoiceSelection = &StreamTextToSpeechConfiguration_ProviderVoiceId{v}
+}
+
+func (x *StreamTextToSpeechConfiguration) SetConfiguration(v *TextToSpeechConfiguration) {
+	x.Configuration = v
+}
+
+func (x *StreamTextToSpeechConfiguration) HasVoiceSelection() bool {
+	if x == nil {
+		return false
+	}
+	return x.VoiceSelection != nil
+}
+
+func (x *StreamTextToSpeechConfiguration) HasVoice() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_Voice)
+	return ok
+}
+
+func (x *StreamTextToSpeechConfiguration) HasProviderVoiceId() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_ProviderVoiceId)
+	return ok
+}
+
+func (x *StreamTextToSpeechConfiguration) HasConfiguration() bool {
+	if x == nil {
+		return false
+	}
+	return x.Configuration != nil
+}
+
+func (x *StreamTextToSpeechConfiguration) ClearVoiceSelection() {
+	x.VoiceSelection = nil
+}
+
+func (x *StreamTextToSpeechConfiguration) ClearVoice() {
+	if _, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_Voice); ok {
+		x.VoiceSelection = nil
+	}
+}
+
+func (x *StreamTextToSpeechConfiguration) ClearProviderVoiceId() {
+	if _, ok := x.VoiceSelection.(*StreamTextToSpeechConfiguration_ProviderVoiceId); ok {
+		x.VoiceSelection = nil
+	}
+}
+
+func (x *StreamTextToSpeechConfiguration) ClearConfiguration() {
+	x.Configuration = nil
+}
+
+const StreamTextToSpeechConfiguration_VoiceSelection_not_set_case case_StreamTextToSpeechConfiguration_VoiceSelection = 0
+const StreamTextToSpeechConfiguration_Voice_case case_StreamTextToSpeechConfiguration_VoiceSelection = 2
+const StreamTextToSpeechConfiguration_ProviderVoiceId_case case_StreamTextToSpeechConfiguration_VoiceSelection = 3
+
+func (x *StreamTextToSpeechConfiguration) WhichVoiceSelection() case_StreamTextToSpeechConfiguration_VoiceSelection {
+	if x == nil {
+		return StreamTextToSpeechConfiguration_VoiceSelection_not_set_case
+	}
+	switch x.VoiceSelection.(type) {
+	case *StreamTextToSpeechConfiguration_Voice:
+		return StreamTextToSpeechConfiguration_Voice_case
+	case *StreamTextToSpeechConfiguration_ProviderVoiceId:
+		return StreamTextToSpeechConfiguration_ProviderVoiceId_case
+	default:
+		return StreamTextToSpeechConfiguration_VoiceSelection_not_set_case
+	}
+}
+
+type StreamTextToSpeechConfiguration_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string
+	// Voice selection.
+
+	// Fields of oneof VoiceSelection:
+	// The resource name of the voice to use.
+	// Format: voices/{voice}
+	Voice *string
+	// The provider voice id.
+	ProviderVoiceId *string
+	// -- end of VoiceSelection
+	// Additional configuration.
+	Configuration *TextToSpeechConfiguration
+}
+
+func (b0 StreamTextToSpeechConfiguration_builder) Build() *StreamTextToSpeechConfiguration {
+	m0 := &StreamTextToSpeechConfiguration{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Model = b.Model
+	if b.Voice != nil {
+		x.VoiceSelection = &StreamTextToSpeechConfiguration_Voice{*b.Voice}
+	}
+	if b.ProviderVoiceId != nil {
+		x.VoiceSelection = &StreamTextToSpeechConfiguration_ProviderVoiceId{*b.ProviderVoiceId}
+	}
+	x.Configuration = b.Configuration
+	return m0
+}
+
+type case_StreamTextToSpeechConfiguration_VoiceSelection protoreflect.FieldNumber
+
+func (x case_StreamTextToSpeechConfiguration_VoiceSelection) String() string {
+	md := file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[6].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isStreamTextToSpeechConfiguration_VoiceSelection interface {
+	isStreamTextToSpeechConfiguration_VoiceSelection()
+}
+
+type StreamTextToSpeechConfiguration_Voice struct {
+	// The resource name of the voice to use.
+	// Format: voices/{voice}
+	Voice string `protobuf:"bytes,2,opt,name=voice,proto3,oneof"`
+}
+
+type StreamTextToSpeechConfiguration_ProviderVoiceId struct {
+	// The provider voice id.
+	ProviderVoiceId string `protobuf:"bytes,3,opt,name=provider_voice_id,json=providerVoiceId,proto3,oneof"`
+}
+
+func (*StreamTextToSpeechConfiguration_Voice) isStreamTextToSpeechConfiguration_VoiceSelection() {}
+
+func (*StreamTextToSpeechConfiguration_ProviderVoiceId) isStreamTextToSpeechConfiguration_VoiceSelection() {
+}
+
+// Marks the end of the current turn's text.
+type StreamTextToSpeechFlush struct {
+	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamTextToSpeechFlush) Reset() {
+	*x = StreamTextToSpeechFlush{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamTextToSpeechFlush) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamTextToSpeechFlush) ProtoMessage() {}
+
+func (x *StreamTextToSpeechFlush) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type StreamTextToSpeechFlush_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 StreamTextToSpeechFlush_builder) Build() *StreamTextToSpeechFlush {
+	m0 := &StreamTextToSpeechFlush{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
+// Indicates a turn's text has been fully synthesized.
+type StreamTextToSpeechTurnComplete struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Total audio duration produced for this turn.
+	AudioDuration *durationpb.Duration `protobuf:"bytes,1,opt,name=audio_duration,json=audioDuration,proto3" json:"audio_duration,omitempty"`
+	// Billable character count for this turn.
+	BillableCharacterCount int32 `protobuf:"varint,2,opt,name=billable_character_count,json=billableCharacterCount,proto3" json:"billable_character_count,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *StreamTextToSpeechTurnComplete) Reset() {
+	*x = StreamTextToSpeechTurnComplete{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamTextToSpeechTurnComplete) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamTextToSpeechTurnComplete) ProtoMessage() {}
+
+func (x *StreamTextToSpeechTurnComplete) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *StreamTextToSpeechTurnComplete) GetAudioDuration() *durationpb.Duration {
+	if x != nil {
+		return x.AudioDuration
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechTurnComplete) GetBillableCharacterCount() int32 {
+	if x != nil {
+		return x.BillableCharacterCount
+	}
+	return 0
+}
+
+func (x *StreamTextToSpeechTurnComplete) SetAudioDuration(v *durationpb.Duration) {
+	x.AudioDuration = v
+}
+
+func (x *StreamTextToSpeechTurnComplete) SetBillableCharacterCount(v int32) {
+	x.BillableCharacterCount = v
+}
+
+func (x *StreamTextToSpeechTurnComplete) HasAudioDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.AudioDuration != nil
+}
+
+func (x *StreamTextToSpeechTurnComplete) ClearAudioDuration() {
+	x.AudioDuration = nil
+}
+
+type StreamTextToSpeechTurnComplete_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Total audio duration produced for this turn.
+	AudioDuration *durationpb.Duration
+	// Billable character count for this turn.
+	BillableCharacterCount int32
+}
+
+func (b0 StreamTextToSpeechTurnComplete_builder) Build() *StreamTextToSpeechTurnComplete {
+	m0 := &StreamTextToSpeechTurnComplete{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.AudioDuration = b.AudioDuration
+	x.BillableCharacterCount = b.BillableCharacterCount
+	return m0
+}
+
+// Response message for AiService.StreamTextToSpeech.
+type StreamTextToSpeechResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Content of this response.
+	//
+	// Types that are valid to be assigned to Content:
+	//
+	//	*StreamTextToSpeechResponse_AudioFormat
+	//	*StreamTextToSpeechResponse_AudioChunk
+	//	*StreamTextToSpeechResponse_TurnComplete
+	//	*StreamTextToSpeechResponse_ModelUsage
+	//	*StreamTextToSpeechResponse_GenerationMetrics
+	Content       isStreamTextToSpeechResponse_Content `protobuf_oneof:"content"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamTextToSpeechResponse) Reset() {
+	*x = StreamTextToSpeechResponse{}
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamTextToSpeechResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamTextToSpeechResponse) ProtoMessage() {}
+
+func (x *StreamTextToSpeechResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *StreamTextToSpeechResponse) GetContent() isStreamTextToSpeechResponse_Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) GetAudioFormat() *v1.Format {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechResponse_AudioFormat); ok {
+			return x.AudioFormat
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) GetAudioChunk() *v1.Chunk {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechResponse_AudioChunk); ok {
+			return x.AudioChunk
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) GetTurnComplete() *StreamTextToSpeechTurnComplete {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechResponse_TurnComplete); ok {
+			return x.TurnComplete
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) GetModelUsage() *v11.ModelUsage {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechResponse_ModelUsage); ok {
+			return x.ModelUsage
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) GetGenerationMetrics() *v11.GenerationMetrics {
+	if x != nil {
+		if x, ok := x.Content.(*StreamTextToSpeechResponse_GenerationMetrics); ok {
+			return x.GenerationMetrics
+		}
+	}
+	return nil
+}
+
+func (x *StreamTextToSpeechResponse) SetAudioFormat(v *v1.Format) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechResponse_AudioFormat{v}
+}
+
+func (x *StreamTextToSpeechResponse) SetAudioChunk(v *v1.Chunk) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechResponse_AudioChunk{v}
+}
+
+func (x *StreamTextToSpeechResponse) SetTurnComplete(v *StreamTextToSpeechTurnComplete) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechResponse_TurnComplete{v}
+}
+
+func (x *StreamTextToSpeechResponse) SetModelUsage(v *v11.ModelUsage) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechResponse_ModelUsage{v}
+}
+
+func (x *StreamTextToSpeechResponse) SetGenerationMetrics(v *v11.GenerationMetrics) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamTextToSpeechResponse_GenerationMetrics{v}
+}
+
+func (x *StreamTextToSpeechResponse) HasContent() bool {
+	if x == nil {
+		return false
+	}
+	return x.Content != nil
+}
+
+func (x *StreamTextToSpeechResponse) HasAudioFormat() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechResponse_AudioFormat)
+	return ok
+}
+
+func (x *StreamTextToSpeechResponse) HasAudioChunk() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechResponse_AudioChunk)
+	return ok
+}
+
+func (x *StreamTextToSpeechResponse) HasTurnComplete() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechResponse_TurnComplete)
+	return ok
+}
+
+func (x *StreamTextToSpeechResponse) HasModelUsage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechResponse_ModelUsage)
+	return ok
+}
+
+func (x *StreamTextToSpeechResponse) HasGenerationMetrics() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamTextToSpeechResponse_GenerationMetrics)
+	return ok
+}
+
+func (x *StreamTextToSpeechResponse) ClearContent() {
+	x.Content = nil
+}
+
+func (x *StreamTextToSpeechResponse) ClearAudioFormat() {
+	if _, ok := x.Content.(*StreamTextToSpeechResponse_AudioFormat); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechResponse) ClearAudioChunk() {
+	if _, ok := x.Content.(*StreamTextToSpeechResponse_AudioChunk); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechResponse) ClearTurnComplete() {
+	if _, ok := x.Content.(*StreamTextToSpeechResponse_TurnComplete); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechResponse) ClearModelUsage() {
+	if _, ok := x.Content.(*StreamTextToSpeechResponse_ModelUsage); ok {
+		x.Content = nil
+	}
+}
+
+func (x *StreamTextToSpeechResponse) ClearGenerationMetrics() {
+	if _, ok := x.Content.(*StreamTextToSpeechResponse_GenerationMetrics); ok {
+		x.Content = nil
+	}
+}
+
+const StreamTextToSpeechResponse_Content_not_set_case case_StreamTextToSpeechResponse_Content = 0
+const StreamTextToSpeechResponse_AudioFormat_case case_StreamTextToSpeechResponse_Content = 1
+const StreamTextToSpeechResponse_AudioChunk_case case_StreamTextToSpeechResponse_Content = 2
+const StreamTextToSpeechResponse_TurnComplete_case case_StreamTextToSpeechResponse_Content = 3
+const StreamTextToSpeechResponse_ModelUsage_case case_StreamTextToSpeechResponse_Content = 4
+const StreamTextToSpeechResponse_GenerationMetrics_case case_StreamTextToSpeechResponse_Content = 5
+
+func (x *StreamTextToSpeechResponse) WhichContent() case_StreamTextToSpeechResponse_Content {
+	if x == nil {
+		return StreamTextToSpeechResponse_Content_not_set_case
+	}
+	switch x.Content.(type) {
+	case *StreamTextToSpeechResponse_AudioFormat:
+		return StreamTextToSpeechResponse_AudioFormat_case
+	case *StreamTextToSpeechResponse_AudioChunk:
+		return StreamTextToSpeechResponse_AudioChunk_case
+	case *StreamTextToSpeechResponse_TurnComplete:
+		return StreamTextToSpeechResponse_TurnComplete_case
+	case *StreamTextToSpeechResponse_ModelUsage:
+		return StreamTextToSpeechResponse_ModelUsage_case
+	case *StreamTextToSpeechResponse_GenerationMetrics:
+		return StreamTextToSpeechResponse_GenerationMetrics_case
+	default:
+		return StreamTextToSpeechResponse_Content_not_set_case
+	}
+}
+
+type StreamTextToSpeechResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Content of this response.
+
+	// Fields of oneof Content:
+	// Audio format of the audio stream (sent first).
+	AudioFormat *v1.Format
+	// Audio data chunk in PCM16 format.
+	AudioChunk *v1.Chunk
+	// Indicates the current turn's text has been fully synthesized. Emitted
+	// after the last audio chunk of a flushed turn.
+	TurnComplete *StreamTextToSpeechTurnComplete
+	// Model usage event (sent at the end of the stream).
+	ModelUsage *v11.ModelUsage
+	// Generation metrics (sent at the end of the stream).
+	GenerationMetrics *v11.GenerationMetrics
+	// -- end of Content
+}
+
+func (b0 StreamTextToSpeechResponse_builder) Build() *StreamTextToSpeechResponse {
+	m0 := &StreamTextToSpeechResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.AudioFormat != nil {
+		x.Content = &StreamTextToSpeechResponse_AudioFormat{b.AudioFormat}
+	}
+	if b.AudioChunk != nil {
+		x.Content = &StreamTextToSpeechResponse_AudioChunk{b.AudioChunk}
+	}
+	if b.TurnComplete != nil {
+		x.Content = &StreamTextToSpeechResponse_TurnComplete{b.TurnComplete}
+	}
+	if b.ModelUsage != nil {
+		x.Content = &StreamTextToSpeechResponse_ModelUsage{b.ModelUsage}
+	}
+	if b.GenerationMetrics != nil {
+		x.Content = &StreamTextToSpeechResponse_GenerationMetrics{b.GenerationMetrics}
+	}
+	return m0
+}
+
+type case_StreamTextToSpeechResponse_Content protoreflect.FieldNumber
+
+func (x case_StreamTextToSpeechResponse_Content) String() string {
+	md := file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[9].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isStreamTextToSpeechResponse_Content interface {
+	isStreamTextToSpeechResponse_Content()
+}
+
+type StreamTextToSpeechResponse_AudioFormat struct {
+	// Audio format of the audio stream (sent first).
+	AudioFormat *v1.Format `protobuf:"bytes,1,opt,name=audio_format,json=audioFormat,proto3,oneof"`
+}
+
+type StreamTextToSpeechResponse_AudioChunk struct {
+	// Audio data chunk in PCM16 format.
+	AudioChunk *v1.Chunk `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3,oneof"`
+}
+
+type StreamTextToSpeechResponse_TurnComplete struct {
+	// Indicates the current turn's text has been fully synthesized. Emitted
+	// after the last audio chunk of a flushed turn.
+	TurnComplete *StreamTextToSpeechTurnComplete `protobuf:"bytes,3,opt,name=turn_complete,json=turnComplete,proto3,oneof"`
+}
+
+type StreamTextToSpeechResponse_ModelUsage struct {
+	// Model usage event (sent at the end of the stream).
+	ModelUsage *v11.ModelUsage `protobuf:"bytes,4,opt,name=model_usage,json=modelUsage,proto3,oneof"`
+}
+
+type StreamTextToSpeechResponse_GenerationMetrics struct {
+	// Generation metrics (sent at the end of the stream).
+	GenerationMetrics *v11.GenerationMetrics `protobuf:"bytes,5,opt,name=generation_metrics,json=generationMetrics,proto3,oneof"`
+}
+
+func (*StreamTextToSpeechResponse_AudioFormat) isStreamTextToSpeechResponse_Content() {}
+
+func (*StreamTextToSpeechResponse_AudioChunk) isStreamTextToSpeechResponse_Content() {}
+
+func (*StreamTextToSpeechResponse_TurnComplete) isStreamTextToSpeechResponse_Content() {}
+
+func (*StreamTextToSpeechResponse_ModelUsage) isStreamTextToSpeechResponse_Content() {}
+
+func (*StreamTextToSpeechResponse_GenerationMetrics) isStreamTextToSpeechResponse_Content() {}
+
 var File_malonaz_ai_ai_service_v1_text_to_speech_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_text_to_speech_proto_rawDesc = "" +
 	"\n" +
-	"-malonaz/ai/ai_service/v1/text_to_speech.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xba\x01\n" +
+	"-malonaz/ai/ai_service/v1/text_to_speech.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xba\x01\n" +
 	"\x19TextToSpeechConfiguration\x12#\n" +
 	"\rlanguage_code\x18\x01 \x01(\tR\flanguageCode\x122\n" +
 	"\x15preferred_sample_rate\x18\x02 \x01(\x05R\x13preferredSampleRate\x12D\n" +
@@ -1106,38 +2043,79 @@ const file_malonaz_ai_ai_service_v1_text_to_speech_proto_rawDesc = "" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsage\x12Q\n" +
 	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xf1\x01\n" +
+	"\x19StreamTextToSpeechRequest\x12a\n" +
+	"\rconfiguration\x18\x01 \x01(\v29.malonaz.ai.ai_service.v1.StreamTextToSpeechConfigurationH\x00R\rconfiguration\x12\x14\n" +
+	"\x04text\x18\x02 \x01(\tH\x00R\x04text\x12I\n" +
+	"\x05flush\x18\x03 \x01(\v21.malonaz.ai.ai_service.v1.StreamTextToSpeechFlushH\x00R\x05flushB\x10\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xbe\x02\n" +
+	"\x1fStreamTextToSpeechConfiguration\x125\n" +
+	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x128\n" +
+	"\x05voice\x18\x02 \x01(\tB \xfaA\x16\n" +
+	"\x14ai.malonaz.com/Voice\xbaH\x04r\x02\x10\x01H\x00R\x05voice\x125\n" +
+	"\x11provider_voice_id\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x0fproviderVoiceId\x12Y\n" +
+	"\rconfiguration\x18\x04 \x01(\v23.malonaz.ai.ai_service.v1.TextToSpeechConfigurationR\rconfigurationB\x18\n" +
+	"\x0fvoice_selection\x12\x05\xbaH\x02\b\x01\"\x19\n" +
+	"\x17StreamTextToSpeechFlush\"\x9c\x01\n" +
+	"\x1eStreamTextToSpeechTurnComplete\x12@\n" +
+	"\x0eaudio_duration\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\raudioDuration\x128\n" +
+	"\x18billable_character_count\x18\x02 \x01(\x05R\x16billableCharacterCount\"\x9b\x03\n" +
+	"\x1aStreamTextToSpeechResponse\x12=\n" +
+	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatH\x00R\vaudioFormat\x12:\n" +
+	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
+	"audioChunk\x12_\n" +
+	"\rturn_complete\x18\x03 \x01(\v28.malonaz.ai.ai_service.v1.StreamTextToSpeechTurnCompleteH\x00R\fturnComplete\x12<\n" +
+	"\vmodel_usage\x18\x04 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
+	"modelUsage\x12Q\n" +
+	"\x12generation_metrics\x18\x05 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetricsB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_ai_ai_service_v1_text_to_speech_proto_goTypes = []any{
-	(*TextToSpeechConfiguration)(nil),  // 0: malonaz.ai.ai_service.v1.TextToSpeechConfiguration
-	(*TextToSpeechRequest)(nil),        // 1: malonaz.ai.ai_service.v1.TextToSpeechRequest
-	(*TextToSpeechResponse)(nil),       // 2: malonaz.ai.ai_service.v1.TextToSpeechResponse
-	(*TextToSpeechStreamRequest)(nil),  // 3: malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
-	(*TextToSpeechStreamResponse)(nil), // 4: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
-	(*structpb.Struct)(nil),            // 5: google.protobuf.Struct
-	(*v1.Format)(nil),                  // 6: malonaz.audio.v1.Format
-	(*v1.Chunk)(nil),                   // 7: malonaz.audio.v1.Chunk
-	(*v11.ModelUsage)(nil),             // 8: malonaz.ai.v1.ModelUsage
-	(*v11.GenerationMetrics)(nil),      // 9: malonaz.ai.v1.GenerationMetrics
+	(*TextToSpeechConfiguration)(nil),       // 0: malonaz.ai.ai_service.v1.TextToSpeechConfiguration
+	(*TextToSpeechRequest)(nil),             // 1: malonaz.ai.ai_service.v1.TextToSpeechRequest
+	(*TextToSpeechResponse)(nil),            // 2: malonaz.ai.ai_service.v1.TextToSpeechResponse
+	(*TextToSpeechStreamRequest)(nil),       // 3: malonaz.ai.ai_service.v1.TextToSpeechStreamRequest
+	(*TextToSpeechStreamResponse)(nil),      // 4: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse
+	(*StreamTextToSpeechRequest)(nil),       // 5: malonaz.ai.ai_service.v1.StreamTextToSpeechRequest
+	(*StreamTextToSpeechConfiguration)(nil), // 6: malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration
+	(*StreamTextToSpeechFlush)(nil),         // 7: malonaz.ai.ai_service.v1.StreamTextToSpeechFlush
+	(*StreamTextToSpeechTurnComplete)(nil),  // 8: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete
+	(*StreamTextToSpeechResponse)(nil),      // 9: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse
+	(*structpb.Struct)(nil),                 // 10: google.protobuf.Struct
+	(*v1.Format)(nil),                       // 11: malonaz.audio.v1.Format
+	(*v1.Chunk)(nil),                        // 12: malonaz.audio.v1.Chunk
+	(*v11.ModelUsage)(nil),                  // 13: malonaz.ai.v1.ModelUsage
+	(*v11.GenerationMetrics)(nil),           // 14: malonaz.ai.v1.GenerationMetrics
+	(*durationpb.Duration)(nil),             // 15: google.protobuf.Duration
 }
 var file_malonaz_ai_ai_service_v1_text_to_speech_proto_depIdxs = []int32{
-	5,  // 0: malonaz.ai.ai_service.v1.TextToSpeechConfiguration.provider_settings:type_name -> google.protobuf.Struct
+	10, // 0: malonaz.ai.ai_service.v1.TextToSpeechConfiguration.provider_settings:type_name -> google.protobuf.Struct
 	0,  // 1: malonaz.ai.ai_service.v1.TextToSpeechRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToSpeechConfiguration
-	6,  // 2: malonaz.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.audio.v1.Format
-	7,  // 3: malonaz.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	8,  // 4: malonaz.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	9,  // 5: malonaz.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	11, // 2: malonaz.ai.ai_service.v1.TextToSpeechResponse.audio_format:type_name -> malonaz.audio.v1.Format
+	12, // 3: malonaz.ai.ai_service.v1.TextToSpeechResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	13, // 4: malonaz.ai.ai_service.v1.TextToSpeechResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	14, // 5: malonaz.ai.ai_service.v1.TextToSpeechResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
 	0,  // 6: malonaz.ai.ai_service.v1.TextToSpeechStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.TextToSpeechConfiguration
-	6,  // 7: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.audio.v1.Format
-	7,  // 8: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	8,  // 9: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	9,  // 10: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	11, // 7: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.audio_format:type_name -> malonaz.audio.v1.Format
+	12, // 8: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	13, // 9: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	14, // 10: malonaz.ai.ai_service.v1.TextToSpeechStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	6,  // 11: malonaz.ai.ai_service.v1.StreamTextToSpeechRequest.configuration:type_name -> malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration
+	7,  // 12: malonaz.ai.ai_service.v1.StreamTextToSpeechRequest.flush:type_name -> malonaz.ai.ai_service.v1.StreamTextToSpeechFlush
+	0,  // 13: malonaz.ai.ai_service.v1.StreamTextToSpeechConfiguration.configuration:type_name -> malonaz.ai.ai_service.v1.TextToSpeechConfiguration
+	15, // 14: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete.audio_duration:type_name -> google.protobuf.Duration
+	11, // 15: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.audio_format:type_name -> malonaz.audio.v1.Format
+	12, // 16: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	8,  // 17: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.turn_complete:type_name -> malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete
+	13, // 18: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	14, // 19: malonaz.ai.ai_service.v1.StreamTextToSpeechResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_text_to_speech_proto_init() }
@@ -1159,13 +2137,29 @@ func file_malonaz_ai_ai_service_v1_text_to_speech_proto_init() {
 		(*TextToSpeechStreamResponse_ModelUsage)(nil),
 		(*TextToSpeechStreamResponse_GenerationMetrics)(nil),
 	}
+	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[5].OneofWrappers = []any{
+		(*StreamTextToSpeechRequest_Configuration)(nil),
+		(*StreamTextToSpeechRequest_Text)(nil),
+		(*StreamTextToSpeechRequest_Flush)(nil),
+	}
+	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[6].OneofWrappers = []any{
+		(*StreamTextToSpeechConfiguration_Voice)(nil),
+		(*StreamTextToSpeechConfiguration_ProviderVoiceId)(nil),
+	}
+	file_malonaz_ai_ai_service_v1_text_to_speech_proto_msgTypes[9].OneofWrappers = []any{
+		(*StreamTextToSpeechResponse_AudioFormat)(nil),
+		(*StreamTextToSpeechResponse_AudioChunk)(nil),
+		(*StreamTextToSpeechResponse_TurnComplete)(nil),
+		(*StreamTextToSpeechResponse_ModelUsage)(nil),
+		(*StreamTextToSpeechResponse_GenerationMetrics)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_text_to_speech_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_text_to_speech_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
