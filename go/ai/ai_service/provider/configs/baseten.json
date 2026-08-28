@@ -1,0 +1,55 @@
+local p = "providers/baseten/models/";
+
+{
+  "provider_id": "baseten",
+  "models": [
+    {
+      "name": p + "glm-5.3-flash",
+      "provider_model_id": "zai-org/GLM-5.3-Flash",
+      "description": "Zhipu's GLM 5.3 Flash served via Baseten's OpenAI-compatible Model API. Fast, low-cost model with always-on reasoning (effort: low/high/max) and tool calling.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 262144,
+        "pricing": {
+          "input_token_price_per_million": 0.15,
+          "output_token_price_per_million": 0.50,
+          "input_token_cache_read_price_per_million": 0.03
+        }
+      }
+    },
+    {
+      "name": p + "deepseek-v4-flash",
+      "provider_model_id": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "description": "DeepSeek V4 Flash 0731 served via Baseten's OpenAI-compatible Model API. Low-cost model with reasoning enabled by default (effort: none/minimal/low/medium/high/xhigh/max) and tool calling.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 393216,
+        "pricing": {
+          "input_token_price_per_million": 0.13,
+          "output_token_price_per_million": 0.26,
+          "input_token_cache_read_price_per_million": 0.028
+        }
+      }
+    },
+    {
+      "name": p + "kimi-k3",
+      "provider_model_id": "moonshotai/Kimi-K3",
+      "description": "Moonshot's Kimi K3 served via Baseten's OpenAI-compatible Model API. Flagship model with reasoning enabled by default (effort: none/low/high/max) and tool calling.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 262144,
+        "pricing": {
+          "input_token_price_per_million": 3.00,
+          "output_token_price_per_million": 15.00,
+          "input_token_cache_read_price_per_million": 0.30
+        }
+      }
+    }
+  ]
+}

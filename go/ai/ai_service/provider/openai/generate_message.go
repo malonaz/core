@@ -69,8 +69,15 @@ func (c *Client) StreamGenerateMessage(
 		params.Temperature = openai.Float(request.GetConfiguration().GetTemperature())
 	}
 
-	if request.GetConfiguration().GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
-		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), request.GetConfiguration().GetReasoningEffort())
+	reasoningEffortPb := request.GetConfiguration().GetReasoningEffort()
+	// Baseten's GLM 5.3 Flash always thinks and its server-side default is
+	// "high": pin unspecified effort to DEFAULT (mapped to the cheapest value)
+	// rather than letting the server choose.
+	if reasoningEffortPb == aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && c.ProviderId() == provider.Baseten {
+		reasoningEffortPb = aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT
+	}
+	if reasoningEffortPb != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
+		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), reasoningEffortPb)
 		if err != nil {
 			return status.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
 		}
@@ -118,6 +125,7 @@ func (c *Client) StreamGenerateMessage(
 
 	var sentTtfb bool
 	var stopReason aiservicepb.StopReason
+	var lastUsage openai.CompletionUsage
 
 	for chatStream.Next() && sender.Err() == nil {
 		chunk := chatStream.Current()
@@ -150,47 +158,11 @@ func (c *Client) StreamGenerateMessage(
 			}
 		}
 
+		// Some providers (e.g. baseten) stream cumulative usage on every
+		// chunk; only remember the latest snapshot and report it once after
+		// the stream ends to avoid over-counting.
 		if chunk.Usage.PromptTokens > 0 || chunk.Usage.PromptTokensDetails.CachedTokens > 0 || chunk.Usage.CompletionTokens > 0 || chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-			modelUsage := &aipb.ModelUsage{Model: request.Model}
-
-			if chunk.Usage.PromptTokens > 0 {
-				inputTokens := chunk.Usage.PromptTokens
-				if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
-					inputTokens -= chunk.Usage.PromptTokensDetails.CachedTokens
-				}
-				if inputTokens > 0 {
-					modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(inputTokens)}
-				}
-			}
-
-			if chunk.Usage.PromptTokensDetails.CachedTokens > 0 {
-				modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(chunk.Usage.PromptTokensDetails.CachedTokens)}
-			}
-
-			if chunk.Usage.CompletionTokens > 0 {
-				outputTokens := chunk.Usage.CompletionTokens
-				if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-					outputTokens -= chunk.Usage.CompletionTokensDetails.ReasoningTokens
-				}
-				if outputTokens > 0 {
-					modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(outputTokens)}
-				}
-			}
-
-			inferredReasoningTokens := int32(chunk.Usage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
-			if chunk.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-				if int32(chunk.Usage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
-					return status.Errorf(
-						codes.Internal, "reasoning tokens doesn't match inferred value: inferred %d, got %d",
-						inferredReasoningTokens, chunk.Usage.CompletionTokensDetails.ReasoningTokens,
-					).Err()
-				}
-			}
-			if inferredReasoningTokens > 0 {
-				modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{Quantity: inferredReasoningTokens}
-			}
-
-			sender.SendModelUsage(ctx, modelUsage)
+			lastUsage = chunk.Usage
 		}
 
 		if choice == nil {
@@ -252,6 +224,49 @@ func (c *Client) StreamGenerateMessage(
 
 	if err := chatStream.Err(); err != nil {
 		return status.FromError(err, "reading stream").Err()
+	}
+
+	if lastUsage.PromptTokens > 0 || lastUsage.PromptTokensDetails.CachedTokens > 0 || lastUsage.CompletionTokens > 0 || lastUsage.CompletionTokensDetails.ReasoningTokens > 0 {
+		modelUsage := &aipb.ModelUsage{Model: request.Model}
+
+		if lastUsage.PromptTokens > 0 {
+			inputTokens := lastUsage.PromptTokens
+			if lastUsage.PromptTokensDetails.CachedTokens > 0 {
+				inputTokens -= lastUsage.PromptTokensDetails.CachedTokens
+			}
+			if inputTokens > 0 {
+				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(inputTokens)}
+			}
+		}
+
+		if lastUsage.PromptTokensDetails.CachedTokens > 0 {
+			modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(lastUsage.PromptTokensDetails.CachedTokens)}
+		}
+
+		if lastUsage.CompletionTokens > 0 {
+			outputTokens := lastUsage.CompletionTokens
+			if lastUsage.CompletionTokensDetails.ReasoningTokens > 0 {
+				outputTokens -= lastUsage.CompletionTokensDetails.ReasoningTokens
+			}
+			if outputTokens > 0 {
+				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(outputTokens)}
+			}
+		}
+
+		inferredReasoningTokens := int32(lastUsage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
+		if lastUsage.CompletionTokensDetails.ReasoningTokens > 0 {
+			if int32(lastUsage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
+				return status.Errorf(
+					codes.Internal, "reasoning tokens doesn't match inferred value: inferred %d, got %d",
+					inferredReasoningTokens, lastUsage.CompletionTokensDetails.ReasoningTokens,
+				).Err()
+			}
+		}
+		if inferredReasoningTokens > 0 {
+			modelUsage.OutputReasoningToken = &aipb.ResourceConsumption{Quantity: inferredReasoningTokens}
+		}
+
+		sender.SendModelUsage(ctx, modelUsage)
 	}
 
 	remainingToolCallBlocks, err := tca.BuildRemaining()
@@ -454,6 +469,15 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
+	},
+	// GLM 5.3 Flash always thinks and only accepts low/high/max ("none" is
+	// not supported). Its server-side default is "high"; DEFAULT is pinned to
+	// the cheapest value.
+	provider.Baseten: {
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortHigh,
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "max",
 	},
 	provider.Cerebras: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",

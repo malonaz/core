@@ -29,6 +29,7 @@ const (
 	GoogleVertex = "google-vertex"
 	Xai          = "xai"
 	Moonshot     = "moonshot"
+	Baseten      = "baseten"
 	Deepgram     = "deepgram"
 	Mock         = "mock"
 )

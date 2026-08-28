@@ -37,6 +37,7 @@ type Opts struct {
 	CerebrasApiKey   string       `long:"cerebras-api-key"     env:"CEREBRAS_API_KEY" description:"Cerebras api key"`
 	XaiApiKey        string       `long:"xai-api-key"     env:"XAI_API_KEY" description:"Xai api key"`
 	MoonshotApiKey   string       `long:"moonshot-api-key"     env:"MOONSHOT_API_KEY" description:"Moonshot api key"`
+	BasetenApiKey    string       `long:"baseten-api-key"     env:"BASETEN_API_KEY" description:"Baseten api key"`
 	DeepgramApiKey   string       `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
 	GoogleApiKey     string       `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
 	Google           *google.Opts `group:"Google" namespace:"google" env-namespace:"GOOGLE"`
@@ -75,6 +76,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.MoonshotApiKey != "" {
 		providers = append(providers, openai.NewMoonshotClient(opts.MoonshotApiKey, modelService))
+	}
+	if opts.BasetenApiKey != "" {
+		providers = append(providers, openai.NewBasetenClient(opts.BasetenApiKey, modelService))
 	}
 	if opts.ElevenlabsApiKey != "" {
 		providers = append(providers, elevenlabs.NewClient(opts.ElevenlabsApiKey, modelService))

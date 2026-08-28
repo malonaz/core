@@ -47,6 +47,11 @@ var (
 		ID:      provider.Moonshot,
 		BaseUrl: "https://api.moonshot.ai/v1",
 	}
+
+	configBaseten = &config{
+		ID:      provider.Baseten,
+		BaseUrl: "https://inference.baseten.co/v1",
+	}
 )
 
 func (c *config) clientConfig(apiKey string) openai.ClientConfig {
@@ -94,6 +99,10 @@ func NewXaiClient(apiKey string, modelService *provider.ModelService) *Client {
 
 func NewMoonshotClient(apiKey string, modelService *provider.ModelService) *Client {
 	return newClient(apiKey, modelService, configMoonshot)
+}
+
+func NewBasetenClient(apiKey string, modelService *provider.ModelService) *Client {
+	return newClient(apiKey, modelService, configBaseten)
 }
 
 // Implements the provider.Provider interface.
