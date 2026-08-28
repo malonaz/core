@@ -69,14 +69,7 @@ func (c *Client) StreamGenerateMessage(
 		params.Temperature = openai.Float(request.GetConfiguration().GetTemperature())
 	}
 
-	reasoningEffortPb := request.GetConfiguration().GetReasoningEffort()
-	// Baseten's GLM 5.3 Flash always thinks and its server-side default is
-	// "high": pin unspecified effort to DEFAULT (mapped to the cheapest value)
-	// rather than letting the server choose.
-	if reasoningEffortPb == aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED && c.ProviderId() == provider.Baseten {
-		reasoningEffortPb = aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT
-	}
-	if reasoningEffortPb != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
+	if reasoningEffortPb := request.GetConfiguration().GetReasoningEffort(); reasoningEffortPb != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED {
 		reasoningEffort, err := pbReasoningEffortToOpenAI(c.ProviderId(), reasoningEffortPb)
 		if err != nil {
 			return status.Errorf(codes.Internal, "parsing reasoning effort: %v", err).Err()
@@ -84,6 +77,10 @@ func (c *Client) StreamGenerateMessage(
 		if reasoningEffort != "" {
 			params.ReasoningEffort = shared.ReasoningEffort(reasoningEffort)
 		}
+	} else if reasoningEffort, ok := providerToReasoningEffortMap[c.ProviderId()][reasoningEffortPb]; ok && reasoningEffort != "" {
+		// Providers whose map carries an UNSPECIFIED entry reason by default;
+		// apply it rather than letting the server choose.
+		params.ReasoningEffort = shared.ReasoningEffort(reasoningEffort)
 	}
 
 	if c.ProviderId() == provider.Groq {
@@ -470,14 +467,15 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "default",
 	},
-	// GLM 5.3 Flash always thinks and only accepts low/high/max ("none" is
-	// not supported). Its server-side default is "high"; DEFAULT is pinned to
-	// the cheapest value.
+	// Baseten models reason by default (server default effort is "high").
+	// UNSPECIFIED maps to "none" to disable reasoning where supported;
+	// GLM 5.3 Flash cannot disable thinking and silently ignores "none".
 	provider.Baseten: {
-		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortLow,
-		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
-		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortHigh,
-		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "max",
+		aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED: "none",
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:     shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:         shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:      shared.ReasoningEffortHigh,
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:        "max",
 	},
 	provider.Cerebras: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
