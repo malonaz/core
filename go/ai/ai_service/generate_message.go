@@ -207,29 +207,31 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	}
 
 	// Replay discovery tool call results from the conversation history so that
-	// previously discovered tools remain available to the model.
-	for i, message := range history {
-		for j, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
+	// previously discovered tools remain available to the model. Replay is
+	// strictly best-effort: history is immutable, so anything unreplayable
+	// (a tool set or tool that no longer exists, a stale annotation) is
+	// skipped — erroring here would poison the whole chat for the rest of
+	// its life.
+	for _, message := range history {
+		for _, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
 			toolResult := block.GetToolResult()
 			toolSetName, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyToolSetName)
 			if !ok {
 				continue
 			}
-			if _, ok := toolSetNameToToolNameToTool[toolSetName]; !ok {
-				return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool set %q", i, j, toolSetName).Err()
+			toolNameToToolInSet, ok := toolSetNameToToolNameToTool[toolSetName]
+			if !ok {
+				continue
 			}
 			discoveredToolsString, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyDiscoveredTools)
 			if !ok {
 				continue
 			}
 			for _, discoveredTool := range strings.Split(discoveredToolsString, ",") {
-				tool, ok := toolSetNameToToolNameToTool[toolSetName][discoveredTool]
+				tool, ok := toolNameToToolInSet[discoveredTool]
 				if !ok {
-					return status.Errorf(codes.InvalidArgument, "message %d block %d has unknown tool %q in tool set %q", i, j, discoveredTool, toolSetName).Err()
+					continue
 				}
-				// A tool discovered twice (or pre-discovered then discovered) is
-				// benign; failing here would poison the whole chat for the rest
-				// of its life.
 				// Register for direct-call routing only; the provider-visible
 				// tool list stays untouched to preserve the prompt cache.
 				toolNameToTool[tool.GetName()] = tool
@@ -477,8 +479,12 @@ func processDiscoveryToolCall(
 	}
 
 	annotations := map[string]string{
-		aitool.AnnotationKeyToolSetName:     toolSetName,
-		aitool.AnnotationKeyDiscoveredTools: strings.Join(discoveredToolNames, ","),
+		aitool.AnnotationKeyToolSetName: toolSetName,
+	}
+	// Only stamped when something new was discovered: joining an empty list
+	// would persist a "" entry that replay could never resolve.
+	if len(discoveredToolNames) > 0 {
+		annotations[aitool.AnnotationKeyDiscoveredTools] = strings.Join(discoveredToolNames, ",")
 	}
 
 	// Return the discovered tools' schemas as the tool result so the model can

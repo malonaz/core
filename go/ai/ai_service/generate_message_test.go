@@ -97,6 +97,18 @@ func TestProcessDiscoveryToolCall(t *testing.T) {
 		toolResult := processDiscoveryToolCall(toolCall, newTestToolSetIndex("A"), map[string]*aipb.Tool{})
 		require.NotNil(t, toolResult.GetError())
 	})
+
+	t.Run("nothing new discovered stamps no discovered-tools annotation", func(t *testing.T) {
+		// Regression: re-discovering only already-known tools stamped an
+		// empty discovered-tools annotation, whose replay ("" is not a tool)
+		// poisoned the chat for the rest of its life.
+		toolSetIndex := newTestToolSetIndex("A")
+		toolNameToTool := map[string]*aipb.Tool{"A": toolSetIndex[testToolSetName]["A"]}
+		toolResult := processDiscoveryToolCall(newDiscoveryToolCall(t, "A"), toolSetIndex, toolNameToTool)
+		require.Nil(t, toolResult.GetError())
+		_, ok := toolResult.GetAnnotations()[aitool.AnnotationKeyDiscoveredTools]
+		require.False(t, ok)
+	})
 }
 
 // fakeStream captures responses forwarded by generateMessageWrapper.Send.
