@@ -93,6 +93,7 @@ func (c *Client) StreamGenerateMessage(
 
 	if len(request.Tools) > 0 {
 		params.Tools = make([]openai.ChatCompletionToolUnionParam, 0, len(request.Tools))
+		params.ParallelToolCalls = openai.Bool(true)
 		for i, tool := range request.Tools {
 			openaiTool, err := pbToolToOpenAI(tool)
 			if err != nil {
