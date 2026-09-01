@@ -5,6 +5,36 @@ local p = "providers/anthropic/models/";
   "models":  [
     // FABLE.
     {
+      "name": p + "claude-fable-5.1",
+      "provider_model_id": "claude-fable-5-1",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1000000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 10,
+          "output_token_price_per_million": 50,
+          // fable-5.1 keeps fable-5 prices but cache reads are a quarter of the cost.
+          "input_token_cache_read_price_per_million": 0.25,
+          "input_token_cache_write_price_per_million": 12.5
+        }
+      }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "sampling_parameters_unsupported": true,
+        // fable-5.1 thinking is always on, so unspecified falls back to the lowest effort.
+        "REASONING_EFFORT_UNSPECIFIED": "low",
+        "REASONING_EFFORT_DEFAULT": "high",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
+      }
+    },
+    {
       "name": p + "claude-fable-5",
       "provider_model_id": "claude-fable-5",
       "ttt": {
