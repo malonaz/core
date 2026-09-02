@@ -140,6 +140,10 @@ message StreamTextToSpeechRequest {
     // Marks the end of the current turn's text, forcing synthesis of any
     // buffered input. A new turn may be started by sending more text.
     StreamTextToSpeechFlush flush = 3;
+
+    // Interrupts the current turn: the provider stops synthesizing and
+    // reports what was actually spoken via turn_interrupted.
+    StreamTextToSpeechInterrupt interrupt = 4;
   }
 }
 
@@ -174,6 +178,18 @@ message StreamTextToSpeechConfiguration {
 // Marks the end of the current turn's text.
 message StreamTextToSpeechFlush {}
 
+// Interrupts the current turn (e.g. the listener barged in).
+message StreamTextToSpeechInterrupt {}
+
+// Reports the outcome of an interrupted turn.
+message StreamTextToSpeechTurnInterrupted {
+  // The portion of the turn's text that was spoken before the interruption.
+  string text_spoken = 1;
+
+  // The portion of the turn's text that was never synthesized.
+  string text_remaining = 2;
+}
+
 // Indicates a turn's text has been fully synthesized.
 message StreamTextToSpeechTurnComplete {
   // Total audio duration produced for this turn.
@@ -198,6 +214,10 @@ message StreamTextToSpeechResponse {
     // Indicates the current turn's text has been fully synthesized. Emitted
     // after the last audio chunk of a flushed turn.
     StreamTextToSpeechTurnComplete turn_complete = 3;
+
+    // Indicates the current turn was interrupted. Emitted instead of
+    // turn_complete after an interrupt request.
+    StreamTextToSpeechTurnInterrupted turn_interrupted = 6;
 
     // Model usage event (sent at the end of the stream).
     .malonaz.ai.v1.ModelUsage model_usage = 4;

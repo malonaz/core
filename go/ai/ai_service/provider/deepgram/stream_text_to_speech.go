@@ -144,6 +144,19 @@ func (c *Client) StreamTextToSpeech(
 			}); err != nil {
 				return err
 			}
+		case SpeakMessageTypeSpeechInterrupted:
+			// Turn cut short: report exactly what was spoken so the caller
+			// can reconcile its transcript.
+			if err := srv.Send(&aiservicepb.StreamTextToSpeechResponse{
+				Content: &aiservicepb.StreamTextToSpeechResponse_TurnInterrupted{
+					TurnInterrupted: &aiservicepb.StreamTextToSpeechTurnInterrupted{
+						TextSpoken:    message.TextSpoken,
+						TextRemaining: message.TextRemaining,
+					},
+				},
+			}); err != nil {
+				return err
+			}
 		case SpeakMessageTypeSessionMetadata:
 			// Final message of the session; prefer server-side billing totals.
 			billableCharacterCount = message.TotalBillableCharacterCount
@@ -201,6 +214,10 @@ func (c *Client) recvText(ctx context.Context, srv aiservicepb.AiService_StreamT
 			}
 		case *aiservicepb.StreamTextToSpeechRequest_Flush:
 			if err := conn.Flush(ctx); err != nil {
+				return err
+			}
+		case *aiservicepb.StreamTextToSpeechRequest_Interrupt:
+			if err := conn.Interrupt(ctx); err != nil {
 				return err
 			}
 		}

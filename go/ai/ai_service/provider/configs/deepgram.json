@@ -15,5 +15,20 @@ local p = "providers/deepgram/models/";
       "description": "Multi-language real-time streaming speech-to-text with voice activity detection and end-of-turn prediction.",
       "stt": {}
     },
+    {
+      "name": p + "flux-tts-en",
+      // Flux embeds the voice in the model string (flux-{voice}-{language});
+      // callers select a voice by passing it as the provider voice id.
+      "provider_model_id": "flux-haley-en",
+      "description": "English streaming-first, turn-based text-to-speech with interruption feedback.",
+      "tts": {
+        "audio_format": {
+          "sample_rate": 24000,
+          "channels": 1,
+          "bits_per_sample": 16
+        },
+        "supported_sample_rates": [8000, 16000, 24000, 32000, 44100, 48000]
+      }
+    },
   ]
 }

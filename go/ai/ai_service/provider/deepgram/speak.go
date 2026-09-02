@@ -14,6 +14,7 @@ import (
 const (
 	SpeakMessageTypeSpeak             = "Speak"
 	SpeakMessageTypeFlush             = "Flush"
+	SpeakMessageTypeInterrupt         = "Interrupt"
 	SpeakMessageTypeClose             = "Close"
 	SpeakMessageTypeConnected         = "Connected"
 	SpeakMessageTypeSpeechStarted     = "SpeechStarted"
@@ -86,6 +87,12 @@ func (sc *SpeakConnection) Flush(ctx context.Context) error {
 	return sc.sendControl(ctx, map[string]string{"type": SpeakMessageTypeFlush})
 }
 
+// Interrupt stops synthesis of the current turn; the server responds with
+// SpeechInterrupted reporting what was spoken.
+func (sc *SpeakConnection) Interrupt(ctx context.Context) error {
+	return sc.sendControl(ctx, map[string]string{"type": SpeakMessageTypeInterrupt})
+}
+
 // SendClose asks the server to finish the session; the server responds with
 // SessionMetadata before closing the websocket.
 func (sc *SpeakConnection) SendClose(ctx context.Context) error {
@@ -110,6 +117,10 @@ type SpeakServerMessage struct {
 	AudioDurationMs        int `json:"audio_duration_ms"`
 	InputCharacterCount    int `json:"input_character_count"`
 	BillableCharacterCount int `json:"billable_character_count"`
+
+	// SpeechInterrupted fields.
+	TextSpoken    string `json:"text_spoken"`
+	TextRemaining string `json:"text_remaining"`
 
 	// SessionMetadata fields.
 	TotalAudioDurationMs        int `json:"total_audio_duration_ms"`

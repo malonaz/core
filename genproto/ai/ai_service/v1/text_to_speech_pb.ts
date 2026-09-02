@@ -18,7 +18,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/text_to_speech.proto.
  */
 export const file_malonaz_ai_ai_service_v1_text_to_speech: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwIKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABIVCgR0ZXh0GAQgASgJQge6SARyAhABEkoKDWNvbmZpZ3VyYXRpb24YBSABKAsyMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbkIYCg92b2ljZV9zZWxlY3Rpb24SBbpIAggBIuIBChRUZXh0VG9TcGVlY2hSZXNwb25zZRIuCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKhAgoZVGV4dFRvU3BlZWNoU3RyZWFtUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIxCgV2b2ljZRgCIAEoCUIg+kEWChRhaS5tYWxvbmF6LmNvbS9Wb2ljZbpIBHICEAFIABIkChFwcm92aWRlcl92b2ljZV9pZBgDIAEoCUIHukgEcgIQAUgAEhUKBHRleHQYBCABKAlCB7pIBHICEAESSgoNY29uZmlndXJhdGlvbhgFIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiggIKGlRleHRUb1NwZWVjaFN0cmVhbVJlc3BvbnNlEjAKDGF1ZGlvX2Zvcm1hdBgBIAEoCzIYLm1hbG9uYXouYXVkaW8udjEuRm9ybWF0SAASLgoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rSAASMAoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBCABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAEi1QEKGVN0cmVhbVRleHRUb1NwZWVjaFJlcXVlc3QSUgoNY29uZmlndXJhdGlvbhgBIAEoCzI5Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TdHJlYW1UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uSAASDgoEdGV4dBgCIAEoCUgAEkIKBWZsdXNoGAMgASgLMjEubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0cmVhbVRleHRUb1NwZWVjaEZsdXNoSABCEAoHY29udGVudBIFukgCCAEikAIKH1N0cmVhbVRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb24SLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABJKCg1jb25maWd1cmF0aW9uGAQgASgLMjMubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlRleHRUb1NwZWVjaENvbmZpZ3VyYXRpb25CGAoPdm9pY2Vfc2VsZWN0aW9uEgW6SAIIASIZChdTdHJlYW1UZXh0VG9TcGVlY2hGbHVzaCJ1Ch5TdHJlYW1UZXh0VG9TcGVlY2hUdXJuQ29tcGxldGUSMQoOYXVkaW9fZHVyYXRpb24YASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SIAoYYmlsbGFibGVfY2hhcmFjdGVyX2NvdW50GAIgASgFItUCChpTdHJlYW1UZXh0VG9TcGVlY2hSZXNwb25zZRIwCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEgAEi4KC2F1ZGlvX2NodW5rGAIgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0gAElEKDXR1cm5fY29tcGxldGUYAyABKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RyZWFtVGV4dFRvU3BlZWNoVHVybkNvbXBsZXRlSAASMAoLbW9kZWxfdXNhZ2UYBCABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBSABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvdGV4dF90b19zcGVlY2gucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKFAQoZVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbhIVCg1sYW5ndWFnZV9jb2RlGAEgASgJEh0KFXByZWZlcnJlZF9zYW1wbGVfcmF0ZRgCIAEoBRIyChFwcm92aWRlcl9zZXR0aW5ncxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwIKE1RleHRUb1NwZWVjaFJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESMQoFdm9pY2UYAiABKAlCIPpBFgoUYWkubWFsb25hei5jb20vVm9pY2W6SARyAhABSAASJAoRcHJvdmlkZXJfdm9pY2VfaWQYAyABKAlCB7pIBHICEAFIABIVCgR0ZXh0GAQgASgJQge6SARyAhABEkoKDWNvbmZpZ3VyYXRpb24YBSABKAsyMy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuVGV4dFRvU3BlZWNoQ29uZmlndXJhdGlvbkIYCg92b2ljZV9zZWxlY3Rpb24SBbpIAggBIuIBChRUZXh0VG9TcGVlY2hSZXNwb25zZRIuCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKhAgoZVGV4dFRvU3BlZWNoU3RyZWFtUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIxCgV2b2ljZRgCIAEoCUIg+kEWChRhaS5tYWxvbmF6LmNvbS9Wb2ljZbpIBHICEAFIABIkChFwcm92aWRlcl92b2ljZV9pZBgDIAEoCUIHukgEcgIQAUgAEhUKBHRleHQYBCABKAlCB7pIBHICEAESSgoNY29uZmlndXJhdGlvbhgFIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiggIKGlRleHRUb1NwZWVjaFN0cmVhbVJlc3BvbnNlEjAKDGF1ZGlvX2Zvcm1hdBgBIAEoCzIYLm1hbG9uYXouYXVkaW8udjEuRm9ybWF0SAASLgoLYXVkaW9fY2h1bmsYAiABKAsyFy5tYWxvbmF6LmF1ZGlvLnYxLkNodW5rSAASMAoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VIABI+ChJnZW5lcmF0aW9uX21ldHJpY3MYBCABKAsyIC5tYWxvbmF6LmFpLnYxLkdlbmVyYXRpb25NZXRyaWNzSABCEAoHY29udGVudBIFukgCCAEioQIKGVN0cmVhbVRleHRUb1NwZWVjaFJlcXVlc3QSUgoNY29uZmlndXJhdGlvbhgBIAEoCzI5Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TdHJlYW1UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uSAASDgoEdGV4dBgCIAEoCUgAEkIKBWZsdXNoGAMgASgLMjEubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0cmVhbVRleHRUb1NwZWVjaEZsdXNoSAASSgoJaW50ZXJydXB0GAQgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0cmVhbVRleHRUb1NwZWVjaEludGVycnVwdEgAQhAKB2NvbnRlbnQSBbpIAggBIpACCh9TdHJlYW1UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uEi4KBW1vZGVsGAEgASgJQh/6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsukgDyAEBEjEKBXZvaWNlGAIgASgJQiD6QRYKFGFpLm1hbG9uYXouY29tL1ZvaWNlukgEcgIQAUgAEiQKEXByb3ZpZGVyX3ZvaWNlX2lkGAMgASgJQge6SARyAhABSAASSgoNY29uZmlndXJhdGlvbhgEIAEoCzIzLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5UZXh0VG9TcGVlY2hDb25maWd1cmF0aW9uQhgKD3ZvaWNlX3NlbGVjdGlvbhIFukgCCAEiGQoXU3RyZWFtVGV4dFRvU3BlZWNoRmx1c2giHQobU3RyZWFtVGV4dFRvU3BlZWNoSW50ZXJydXB0IlAKIVN0cmVhbVRleHRUb1NwZWVjaFR1cm5JbnRlcnJ1cHRlZBITCgt0ZXh0X3Nwb2tlbhgBIAEoCRIWCg50ZXh0X3JlbWFpbmluZxgCIAEoCSJ1Ch5TdHJlYW1UZXh0VG9TcGVlY2hUdXJuQ29tcGxldGUSMQoOYXVkaW9fZHVyYXRpb24YASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SIAoYYmlsbGFibGVfY2hhcmFjdGVyX2NvdW50GAIgASgFIq4DChpTdHJlYW1UZXh0VG9TcGVlY2hSZXNwb25zZRIwCgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEgAEi4KC2F1ZGlvX2NodW5rGAIgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0gAElEKDXR1cm5fY29tcGxldGUYAyABKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RyZWFtVGV4dFRvU3BlZWNoVHVybkNvbXBsZXRlSAASVwoQdHVybl9pbnRlcnJ1cHRlZBgGIAEoCzI7Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TdHJlYW1UZXh0VG9TcGVlY2hUdXJuSW50ZXJydXB0ZWRIABIwCgttb2RlbF91c2FnZRgEIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgFIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIAEIQCgdjb250ZW50EgW6SAIIAUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_struct, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
 
 /**
  * Configuration for text to speech generation.
@@ -500,6 +500,15 @@ export type StreamTextToSpeechRequest = Message<"malonaz.ai.ai_service.v1.Stream
      */
     value: StreamTextToSpeechFlush;
     case: "flush";
+  } | {
+    /**
+     * Interrupts the current turn: the provider stops synthesizing and
+     * reports what was actually spoken via turn_interrupted.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechInterrupt interrupt = 4;
+     */
+    value: StreamTextToSpeechInterrupt;
+    case: "interrupt";
   } | { case: undefined; value?: undefined };
 };
 
@@ -541,6 +550,15 @@ export type StreamTextToSpeechRequestValid = Message<"malonaz.ai.ai_service.v1.S
      */
     value: StreamTextToSpeechFlushValid;
     case: "flush";
+  } | {
+    /**
+     * Interrupts the current turn: the provider stops synthesizing and
+     * reports what was actually spoken via turn_interrupted.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechInterrupt interrupt = 4;
+     */
+    value: StreamTextToSpeechInterruptValid;
+    case: "interrupt";
   } | { case: undefined; value?: undefined };
 };
 
@@ -668,6 +686,53 @@ export const StreamTextToSpeechFlushSchema: GenMessage<StreamTextToSpeechFlush, 
   messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 7);
 
 /**
+ * Interrupts the current turn (e.g. the listener barged in).
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechInterrupt
+ */
+export type StreamTextToSpeechInterrupt = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechInterrupt"> & {
+};
+
+export type StreamTextToSpeechInterruptValid = StreamTextToSpeechInterrupt;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechInterrupt.
+ * Use `create(StreamTextToSpeechInterruptSchema)` to create a new message.
+ */
+export const StreamTextToSpeechInterruptSchema: GenMessage<StreamTextToSpeechInterrupt, {validType: StreamTextToSpeechInterruptValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 8);
+
+/**
+ * Reports the outcome of an interrupted turn.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechTurnInterrupted
+ */
+export type StreamTextToSpeechTurnInterrupted = Message<"malonaz.ai.ai_service.v1.StreamTextToSpeechTurnInterrupted"> & {
+  /**
+   * The portion of the turn's text that was spoken before the interruption.
+   *
+   * @generated from field: string text_spoken = 1;
+   */
+  textSpoken: string;
+
+  /**
+   * The portion of the turn's text that was never synthesized.
+   *
+   * @generated from field: string text_remaining = 2;
+   */
+  textRemaining: string;
+};
+
+export type StreamTextToSpeechTurnInterruptedValid = StreamTextToSpeechTurnInterrupted;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.StreamTextToSpeechTurnInterrupted.
+ * Use `create(StreamTextToSpeechTurnInterruptedSchema)` to create a new message.
+ */
+export const StreamTextToSpeechTurnInterruptedSchema: GenMessage<StreamTextToSpeechTurnInterrupted, {validType: StreamTextToSpeechTurnInterruptedValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 9);
+
+/**
  * Indicates a turn's text has been fully synthesized.
  *
  * @generated from message malonaz.ai.ai_service.v1.StreamTextToSpeechTurnComplete
@@ -695,7 +760,7 @@ export type StreamTextToSpeechTurnCompleteValid = StreamTextToSpeechTurnComplete
  * Use `create(StreamTextToSpeechTurnCompleteSchema)` to create a new message.
  */
 export const StreamTextToSpeechTurnCompleteSchema: GenMessage<StreamTextToSpeechTurnComplete, {validType: StreamTextToSpeechTurnCompleteValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 8);
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 10);
 
 /**
  * Response message for AiService.StreamTextToSpeech.
@@ -733,6 +798,15 @@ export type StreamTextToSpeechResponse = Message<"malonaz.ai.ai_service.v1.Strea
      */
     value: StreamTextToSpeechTurnComplete;
     case: "turnComplete";
+  } | {
+    /**
+     * Indicates the current turn was interrupted. Emitted instead of
+     * turn_complete after an interrupt request.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnInterrupted turn_interrupted = 6;
+     */
+    value: StreamTextToSpeechTurnInterrupted;
+    case: "turnInterrupted";
   } | {
     /**
      * Model usage event (sent at the end of the stream).
@@ -790,6 +864,15 @@ export type StreamTextToSpeechResponseValid = Message<"malonaz.ai.ai_service.v1.
     case: "turnComplete";
   } | {
     /**
+     * Indicates the current turn was interrupted. Emitted instead of
+     * turn_complete after an interrupt request.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.StreamTextToSpeechTurnInterrupted turn_interrupted = 6;
+     */
+    value: StreamTextToSpeechTurnInterruptedValid;
+    case: "turnInterrupted";
+  } | {
+    /**
      * Model usage event (sent at the end of the stream).
      *
      * @generated from field: malonaz.ai.v1.ModelUsage model_usage = 4;
@@ -812,5 +895,5 @@ export type StreamTextToSpeechResponseValid = Message<"malonaz.ai.ai_service.v1.
  * Use `create(StreamTextToSpeechResponseSchema)` to create a new message.
  */
 export const StreamTextToSpeechResponseSchema: GenMessage<StreamTextToSpeechResponse, {validType: StreamTextToSpeechResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 9);
+  messageDesc(file_malonaz_ai_ai_service_v1_text_to_speech, 11);
 
