@@ -46,6 +46,9 @@
                     "implementation": {
                         "type": "string"
                     },
+                    "manifest": {
+                        "type": "string"
+                    },
                     "proto": {
                         "type": "string"
                     }
@@ -64,7 +67,10 @@
                             "properties": { "type": { "const": "service" } }
                         },
                         "then": {
-                            "required": ["implementation"]
+                            "anyOf": [
+                                { "required": ["manifest"] },
+                                { "required": ["name", "implementation"] }
+                            ]
                         }
                     },
                     {

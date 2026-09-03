@@ -67,24 +67,52 @@ func run(ctx {{ goImport "context" }}.Context) error {
         }()
     }
 
-    {{- /* GATHER SERVICE MANIFESTS */ -}}
+    {{- /* GATHER SERVICE MANIFESTS. serviceGraph resolves every service the servers host and
+           everything those services depend on into levels: a service in one level depends only
+           on services in earlier levels, so each level can be started once the previous one is
+           up. $serviceManifests flattens the levels for the passes below that only care about a
+           service's non-service dependencies. */ -}}
+    {{- $serviceLevels := serviceGraph .servers -}}
     {{- $serviceManifests := list -}}
-    {{- $serviceNameToServerNames := dict -}}
-    {{- range $server := .servers -}}
-        {{- range $service := $server.services -}}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
+    {{- $hasConcurrentLevel := false -}}
+    {{- range $level := $serviceLevels -}}
+        {{- if gt (len $level) 1 -}}{{- $hasConcurrentLevel = true -}}{{- end -}}
+        {{- range $serviceManifest := $level -}}
             {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-            {{- $updatedServers := append $existingServers $server.name -}}
-            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+        {{- end -}}
+    {{- end -}}
+
+    {{- /* Map each hosted service to the servers hosting it, then hand those servers down to
+           the services it depends on, so that a dependency's health checks are reported by
+           every server that ultimately relies on it. */ -}}
+    {{- $rootNameToServerNames := dict -}}
+    {{- range $server := .servers -}}
+        {{- $rootTargets := list -}}
+        {{- range $service := $server.services -}}
+            {{- $rootTargets = append $rootTargets $service.manifest -}}
         {{- end -}}
         {{- if $server.manifest -}}
-            {{- $serviceManifest := parseYaml $server.manifest -}}
-            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-            {{- $updatedServers := append $existingServers $server.name -}}
-            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+            {{- $rootTargets = append $rootTargets $server.manifest -}}
         {{- end -}}
+        {{- range $rootTarget := $rootTargets -}}
+            {{- $rootName := (parseYaml $rootTarget).name -}}
+            {{- $existingServers := index $rootNameToServerNames $rootName | default (list) -}}
+            {{- if not (has $server.name $existingServers) -}}
+                {{- $rootNameToServerNames = set $rootNameToServerNames $rootName (append $existingServers $server.name) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $serviceNameToServerNames := dict -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- $serverNames := list -}}
+        {{- range $rootName := $serviceManifest.roots -}}
+            {{- range $serverName := index $rootNameToServerNames $rootName | default (list) -}}
+                {{- if not (has $serverName $serverNames) -}}
+                    {{- $serverNames = append $serverNames $serverName -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+        {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $serverNames -}}
     {{- end -}}
 
     {{- $serverNameToServiceNameToServedProtos := dict -}}
@@ -244,58 +272,43 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end }}
 
-    {{- /* DEPENDENCIES BASE SERVICES */ -}}
-    {{- range $serviceManifest := $serviceManifests -}}
-        {{- range $dep := $serviceManifest.dependencies -}}
-            {{- if eq $dep.type "service" -}}
-                {{- $key := printf "base_service_%s" $dep.name -}}
-                {{- if doOnce $key }}
-                    {{- "\n" }}
-                    // Instantiate {{ $dep.name }} service.
-                    {{ $dep.name | camelcase | untitle }}Service, err := {{ plzGoImport $dep.implementation }}.New(opts.{{ $dep.name | camelcase }}Service)
-                    if err != nil {
-                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
-                    }
-                    {
-                        cleanup, err := {{ $dep.name | camelcase | untitle }}Service.Start(ctx, nil)
-                        if err != nil {
-                            return {{ goImport "fmt" }}.Errorf("starting {{ $dep.name }} service: %v", err)
-                        }
-                        defer cleanup()
-                    }
-                {{- end }}
-            {{- end }}
-        {{- end }}
+    {{- /* SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is instantiated and started
+           before any server begins serving, and a service only starts once every service it
+           depends on has finished starting. */ -}}
+    {{ "\n" }}
+    // Service cleanups run in reverse start order, so that a service is always torn down
+    // before anything it depends on.
+    {{- if $hasConcurrentLevel }}
+    var serviceCleanupMutex {{ goImport "sync" }}.Mutex
     {{- end }}
+    var serviceCleanupFns []func()
+    addServiceCleanup := func(cleanup func()) {
+        {{- if $hasConcurrentLevel }}
+        serviceCleanupMutex.Lock()
+        defer serviceCleanupMutex.Unlock()
+        {{- end }}
+        serviceCleanupFns = append(serviceCleanupFns, cleanup)
+    }
+    defer func() {
+        for i := len(serviceCleanupFns) - 1; i >= 0; i-- {
+            serviceCleanupFns[i]()
+        }
+    }()
 
-    healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
-    var gracefulStopFns []func() error
-    var stopFns []func() error
-
-    {{ range $server := .servers }}
-        {{ $services := $server.services | default list }}
-        {{ if eq $server.type "processor" }}
-            {{ $services = append $services $server }}
-        {{ end }}
-
-        // Start {{ $server.name | camelcase }} Server
-        {
-        {{- /* INSTANTIATE SERVICES */ -}}
-        {{- range $service := $services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
+    {{- range $levelIndex, $level := $serviceLevels }}
+        {{- range $serviceManifest := $level }}
             {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-            {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
 
-            {{ if $requiresSessionManager }}
+            {{ if $requiresSessionManager -}}
             {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
             if err != nil {
                 return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
             }
-            {{ else }}
+            {{- else -}}
             {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
-            {{ end }}
+            {{- end }}
 
-            {{ "\n" }}// Instantiate {{ $serviceName }}.
+            // Instantiate {{ $serviceName }}.
             {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
                 opts.{{ $serviceName | title }},
                 {{- range $dep := $serviceManifest.dependencies }}
@@ -309,7 +322,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
                         {{ $database := default $dep.name $dep.database }}
                         {{ $database | camelcase | untitle }}PsqlClient,
                     {{- else if eq $dep.type "service" }}
-                        {{ $dep.name | camelcase | untitle }}Service,
+                        {{ $dep.name | camelcase | untitle }},
                     {{- else if eq $dep.type "nats" }}
                         natsClient,
                     {{- end }}
@@ -318,15 +331,53 @@ func run(ctx {{ goImport "context" }}.Context) error {
             if err != nil {
                 return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
             }
-
-            // Start {{ $serviceName }} service.
-            {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
-            }
-            defer {{ $serviceName }}Cleanup()
         {{- end }}
 
+        {{- if gt (len $level) 1 }}
+            // Start dependency level {{ $levelIndex }} in step: no service in it depends on
+            // another, and every service they do depend on is already started.
+            {
+                levelErrs := make([]error, {{ len $level }})
+                var levelWaitGroup {{ goImport "sync" }}.WaitGroup
+                levelWaitGroup.Add({{ len $level }})
+                {{- range $serviceIndex, $serviceManifest := $level }}
+                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                    go func() {
+                        defer levelWaitGroup.Done()
+                        cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                        if err != nil {
+                            levelErrs[{{ $serviceIndex }}] = {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %w", err)
+                            return
+                        }
+                        addServiceCleanup(cleanup)
+                    }()
+                {{- end }}
+                levelWaitGroup.Wait()
+                if err := {{ goImport "errors" }}.Join(levelErrs...); err != nil {
+                    return err
+                }
+            }
+        {{- else }}
+            {{- range $serviceManifest := $level }}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+
+                // Start {{ $serviceName }} service.
+                {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                if err != nil {
+                    return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
+                }
+                addServiceCleanup({{ $serviceName }}Cleanup)
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
+    var gracefulStopFns []func() error
+    var stopFns []func() error
+
+    {{ range $server := .servers }}
+        // Start {{ $server.name | camelcase }} Server
+        {
         {{- if eq $server.type "processor" }}
             {{- $serviceManifest := parseYaml $server.manifest -}}
             {{- $serviceName := $serviceManifest.name | camelcase | untitle }}

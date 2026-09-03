@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -35,8 +36,9 @@ var (
 			return true
 		},
 
-		"parseYaml": parseYaml,
-		"parseGRPC": parseGRPC,
+		"parseYaml":    parseYaml,
+		"parseGRPC":    parseGRPC,
+		"serviceGraph": serviceGraph,
 
 		"plzGoImport":      plzGoImport,
 		"plzGoImportAlias": plzGoImportAlias,
@@ -288,4 +290,274 @@ func parseTarget(target string) (string, []string, error) {
 	}
 
 	return label, filenames, nil
+}
+
+// serviceNode is one service in the dependency graph assembled by serviceGraph.
+type serviceNode struct {
+	manifest map[string]any
+	name     string
+	// deps holds, deduplicated, the names of the services this one declares as
+	// `type: service` dependencies; depNames holds one name per declared dependency, in
+	// declaration order, so the template can name each of them where they appear.
+	deps     []string
+	depNames []string
+	// roots holds the names of the services reachable from a server that lead here, so that
+	// a nested service's health checks can be attributed to the servers that ultimately use it.
+	roots     []string
+	rootSeen  map[string]bool
+	depSeen   map[string]bool
+	order     int
+	level     int
+	resolving bool
+}
+
+// serviceGraph resolves the services a main manifest's servers host, and everything those
+// services depend on, into dependency-ordered levels. Level 0 holds the services that depend
+// on no other service; a service in level N depends only on services in earlier levels, so a
+// binary can bring up one level at a time and know that everything a service needs is already
+// started. Returns an error on a dependency cycle.
+//
+// Each returned service is its manifest, with `type: service` dependencies resolved so they
+// carry the depended-on service's name, plus two added keys: `level` and `roots`.
+func serviceGraph(servers []any) ([][]map[string]any, error) {
+	nameToNode := map[string]*serviceNode{}
+
+	newNode := func(name string, manifest map[string]any) *serviceNode {
+		node := &serviceNode{
+			manifest: manifest,
+			name:     name,
+			rootSeen: map[string]bool{},
+			depSeen:  map[string]bool{},
+			order:    len(nameToNode),
+			level:    -1,
+		}
+		nameToNode[name] = node
+		return node
+	}
+
+	// collect registers the service at target and everything it depends on, returning its
+	// name. root is the name of the service a server actually hosts; an empty root means
+	// target is itself such a service. Cycles are left to the level assignment below, which
+	// can report the path that forms them.
+	visited := map[string]bool{}
+	var collect func(target, root string) (string, error)
+	collect = func(target, root string) (string, error) {
+		manifest, err := parseYaml(target)
+		if err != nil {
+			return "", fmt.Errorf("reading service manifest %s (is it in the deps of the manifest rule referencing it?): %w", target, err)
+		}
+		name, _ := manifest["name"].(string)
+		if name == "" {
+			return "", fmt.Errorf("service manifest %s declares no name", target)
+		}
+		if root == "" {
+			root = name
+		}
+
+		node, ok := nameToNode[name]
+		if !ok {
+			node = newNode(name, manifest)
+		}
+		if !node.rootSeen[root] {
+			node.rootSeen[root] = true
+			node.roots = append(node.roots, root)
+		}
+
+		// Walking a service once per root is enough: its own dependencies do not change,
+		// only the roots we propagate into them.
+		if visited[root+"\x00"+name] {
+			return name, nil
+		}
+		visited[root+"\x00"+name] = true
+
+		for _, dependency := range serviceDependencies(manifest) {
+			depName, err := collectDependency(dependency, root, collect, nameToNode, newNode)
+			if err != nil {
+				return "", fmt.Errorf("service %s: %w", name, err)
+			}
+			node.depNames = append(node.depNames, depName)
+			if !node.depSeen[depName] {
+				node.depSeen[depName] = true
+				node.deps = append(node.deps, depName)
+			}
+		}
+		return name, nil
+	}
+
+	targets, err := serviceManifestTargets(servers)
+	if err != nil {
+		return nil, err
+	}
+	for _, target := range targets {
+		if _, err := collect(target, ""); err != nil {
+			return nil, err
+		}
+	}
+
+	// Assign each service the level after the deepest service it depends on.
+	var assign func(name string, path []string) (int, error)
+	assign = func(name string, path []string) (int, error) {
+		node := nameToNode[name]
+		if node.resolving {
+			return 0, fmt.Errorf("service dependency cycle: %s", strings.Join(append(path, name), " -> "))
+		}
+		if node.level >= 0 {
+			return node.level, nil
+		}
+		node.resolving = true
+		level := 0
+		for _, dep := range node.deps {
+			depLevel, err := assign(dep, append(path, name))
+			if err != nil {
+				return 0, err
+			}
+			if depLevel+1 > level {
+				level = depLevel + 1
+			}
+		}
+		node.resolving = false
+		node.level = level
+		return level, nil
+	}
+
+	maxLevel := 0
+	for name := range nameToNode {
+		level, err := assign(name, nil)
+		if err != nil {
+			return nil, err
+		}
+		if level > maxLevel {
+			maxLevel = level
+		}
+	}
+
+	// Group by level, keeping services in the order the manifests declared them so that the
+	// generated code does not churn between builds.
+	nodes := make([]*serviceNode, 0, len(nameToNode))
+	for _, node := range nameToNode {
+		nodes = append(nodes, node)
+	}
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].order < nodes[j].order })
+
+	levels := make([][]map[string]any, maxLevel+1)
+	for _, node := range nodes {
+		levels[node.level] = append(levels[node.level], node.render())
+	}
+	return levels, nil
+}
+
+// collectDependency resolves a single `type: service` dependency to the name of the service
+// it points at, registering that service in the graph.
+func collectDependency(
+	dependency map[string]any,
+	root string,
+	collect func(target, root string) (string, error),
+	nameToNode map[string]*serviceNode,
+	newNode func(name string, manifest map[string]any) *serviceNode,
+) (string, error) {
+	if target, _ := dependency["manifest"].(string); target != "" {
+		return collect(target, root)
+	}
+
+	// A dependency given as a bare implementation has no manifest to read, so it is a leaf:
+	// it takes no dependencies of its own and can always start in the first level.
+	name, _ := dependency["name"].(string)
+	implementation, _ := dependency["implementation"].(string)
+	if name == "" {
+		return "", fmt.Errorf("service dependency needs a manifest or a name")
+	}
+	node, ok := nameToNode[name]
+	if !ok {
+		node = newNode(name, map[string]any{"name": name, "implementation": implementation})
+	}
+	if !node.rootSeen[root] {
+		node.rootSeen[root] = true
+		node.roots = append(node.roots, root)
+	}
+	return name, nil
+}
+
+// serviceManifestTargets returns, in declaration order and without duplicates, the manifest
+// target of every service a main manifest's servers host. A processor server carries its
+// service on the server itself rather than in a services list.
+func serviceManifestTargets(servers []any) ([]string, error) {
+	var targets []string
+	seen := map[string]bool{}
+	add := func(target string) {
+		if target != "" && !seen[target] {
+			seen[target] = true
+			targets = append(targets, target)
+		}
+	}
+	for _, server := range servers {
+		serverMap, ok := server.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("server is not a mapping: %v", server)
+		}
+		services, _ := serverMap["services"].([]any)
+		for _, service := range services {
+			serviceMap, ok := service.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("service is not a mapping: %v", service)
+			}
+			target, _ := serviceMap["manifest"].(string)
+			add(target)
+		}
+		target, _ := serverMap["manifest"].(string)
+		add(target)
+	}
+	return targets, nil
+}
+
+// serviceDependencies returns the `type: service` entries of a manifest's dependency list.
+func serviceDependencies(manifest map[string]any) []map[string]any {
+	var result []map[string]any
+	dependencies, _ := manifest["dependencies"].([]any)
+	for _, dependency := range dependencies {
+		dependencyMap, ok := dependency.(map[string]any)
+		if !ok {
+			continue
+		}
+		if dependencyType, _ := dependencyMap["type"].(string); dependencyType == "service" {
+			result = append(result, dependencyMap)
+		}
+	}
+	return result
+}
+
+// render copies this node's manifest for the template, naming each service dependency and
+// adding the level and roots the graph computed.
+func (n *serviceNode) render() map[string]any {
+	rendered := map[string]any{}
+	for key, value := range n.manifest {
+		rendered[key] = value
+	}
+	rendered["level"] = n.level
+	rendered["roots"] = n.roots
+
+	dependencies, _ := n.manifest["dependencies"].([]any)
+	renderedDependencies := make([]any, 0, len(dependencies))
+	serviceDependencyIndex := 0
+	for _, dependency := range dependencies {
+		dependencyMap, ok := dependency.(map[string]any)
+		if !ok {
+			renderedDependencies = append(renderedDependencies, dependency)
+			continue
+		}
+		if dependencyType, _ := dependencyMap["type"].(string); dependencyType != "service" {
+			renderedDependencies = append(renderedDependencies, dependency)
+			continue
+		}
+		renderedDependency := map[string]any{}
+		for key, value := range dependencyMap {
+			renderedDependency[key] = value
+		}
+		renderedDependency["name"] = n.depNames[serviceDependencyIndex]
+		serviceDependencyIndex++
+		renderedDependencies = append(renderedDependencies, renderedDependency)
+	}
+	if len(dependencies) > 0 {
+		rendered["dependencies"] = renderedDependencies
+	}
+	return rendered
 }
