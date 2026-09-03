@@ -32,12 +32,10 @@ def go_path_mapping(plugin_out_keys:list):
     return _map_go_paths
 
 
-def go_mapping_labels(name:str, srcs:list, root_dir:str):
+def go_mapping_labels(name:str, srcs:list, root_dir:str, additional_context=None):
+    # The key is the proto path as protoc sees it; only the destination carries the Go import path.
     base_path = get_base_path()
-    diff_pkg = basename(base_path) != name
-    if CONFIG.GO.IMPORT_PATH:
-        base_path = join_path(CONFIG.GO.IMPORT_PATH, base_path)
-    destination = f"{base_path}/{name}" if diff_pkg else base_path
+    destination = go_import_path(name, root_dir, additional_context)
     return [f'proto:go-map: {base_path}/{src}={destination}' for src in srcs
                if not looks_like_build_label(src)]
 
@@ -157,7 +155,7 @@ def go_proto_library(
         tools = tools,
         protoc_flags = protoc_flags,
         plugin_flags = plugin_flags,
-        labels = labels + go_mapping_labels(name, srcs, root_dir),
+        labels = labels + go_mapping_labels(name, srcs, root_dir, additional_context),
         test_only = test_only,
         root_dir = root_dir,
         deps = deps,
