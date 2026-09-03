@@ -329,80 +329,21 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end }}
 
-    {{- /* START THE SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is started before any
-           server begins serving, and a service only starts once every service it depends on has
-           finished starting. */ -}}
+    {{- /* SERVERS. Brought up before the services start, so that a service calling another over
+           the wire during its own start finds something listening. Nothing routes here yet:
+           healthServer.MarkReady, at the bottom, is what admits traffic, and it waits for every
+           service to have started. */ -}}
     {{ "\n" }}
-    // Service cleanups run in reverse start order, so that a service is always torn down
-    // before anything it depends on.
-    {{- if $hasConcurrentLevel }}
-    var serviceCleanupMutex {{ goImport "sync" }}.Mutex
-    {{- end }}
-    var serviceCleanupFns []func()
-    addServiceCleanup := func(cleanup func()) {
-        {{- if $hasConcurrentLevel }}
-        serviceCleanupMutex.Lock()
-        defer serviceCleanupMutex.Unlock()
-        {{- end }}
-        serviceCleanupFns = append(serviceCleanupFns, cleanup)
-    }
-    defer func() {
-        for i := len(serviceCleanupFns) - 1; i >= 0; i-- {
-            serviceCleanupFns[i]()
-        }
-    }()
-
-    {{- range $levelIndex, $level := $serviceLevels }}
-        {{- if gt (len $level) 1 }}
-            // Start dependency level {{ $levelIndex }} in step: no service in it depends on
-            // another, and every service they do depend on is already started.
-            {
-                levelErrs := make([]error, {{ len $level }})
-                var levelWaitGroup {{ goImport "sync" }}.WaitGroup
-                levelWaitGroup.Add({{ len $level }})
-                {{- range $serviceIndex, $serviceManifest := $level }}
-                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-                    go func() {
-                        defer levelWaitGroup.Done()
-                        cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
-                        if err != nil {
-                            levelErrs[{{ $serviceIndex }}] = {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %w", err)
-                            return
-                        }
-                        addServiceCleanup(cleanup)
-                    }()
-                {{- end }}
-                levelWaitGroup.Wait()
-                if err := {{ goImport "errors" }}.Join(levelErrs...); err != nil {
-                    return err
-                }
-            }
-        {{- else }}
-            {{- range $serviceManifest := $level }}
-                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-
-                // Start {{ $serviceName }} service.
-                {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
-                if err != nil {
-                    return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
-                }
-                addServiceCleanup({{ $serviceName }}Cleanup)
-            {{- end }}
-        {{- end }}
-    {{- end }}
-
     healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
     var gracefulStopFns []func() error
     var stopFns []func() error
 
     {{ range $server := .servers }}
+        {{- /* A processor serves nothing; all it has here is a health check its service only
+               fills in once started, so it is registered after the start phase instead. */ -}}
+        {{- if eq $server.type "processor" }}{{ continue }}{{ end }}
         // Start {{ $server.name | camelcase }} Server
         {
-        {{- if eq $server.type "processor" }}
-            {{- $serviceManifest := parseYaml $server.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-            healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
-        {{- end }}
 
         {{- if eq $server.type "grpc" }}
             register := func(server *{{ goImport "github.com/malonaz/core/go/grpc" }}.Server) {
@@ -568,6 +509,76 @@ func run(ctx {{ goImport "context" }}.Context) error {
             runServer(ctx, "{{ $server.name }}", grpcWebProxyServer.Serve)
         {{- end }}
         }
+    {{- end }}
+    {{- /* START THE SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is started before any
+           server begins serving, and a service only starts once every service it depends on has
+           finished starting. */ -}}
+    {{ "\n" }}
+    // Service cleanups run in reverse start order, so that a service is always torn down
+    // before anything it depends on.
+    {{- if $hasConcurrentLevel }}
+    var serviceCleanupMutex {{ goImport "sync" }}.Mutex
+    {{- end }}
+    var serviceCleanupFns []func()
+    addServiceCleanup := func(cleanup func()) {
+        {{- if $hasConcurrentLevel }}
+        serviceCleanupMutex.Lock()
+        defer serviceCleanupMutex.Unlock()
+        {{- end }}
+        serviceCleanupFns = append(serviceCleanupFns, cleanup)
+    }
+    defer func() {
+        for i := len(serviceCleanupFns) - 1; i >= 0; i-- {
+            serviceCleanupFns[i]()
+        }
+    }()
+
+    {{- range $levelIndex, $level := $serviceLevels }}
+        {{- if gt (len $level) 1 }}
+            // Start dependency level {{ $levelIndex }} in step: no service in it depends on
+            // another, and every service they do depend on is already started.
+            {
+                levelErrs := make([]error, {{ len $level }})
+                var levelWaitGroup {{ goImport "sync" }}.WaitGroup
+                levelWaitGroup.Add({{ len $level }})
+                {{- range $serviceIndex, $serviceManifest := $level }}
+                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                    go func() {
+                        defer levelWaitGroup.Done()
+                        cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                        if err != nil {
+                            levelErrs[{{ $serviceIndex }}] = {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %w", err)
+                            return
+                        }
+                        addServiceCleanup(cleanup)
+                    }()
+                {{- end }}
+                levelWaitGroup.Wait()
+                if err := {{ goImport "errors" }}.Join(levelErrs...); err != nil {
+                    return err
+                }
+            }
+        {{- else }}
+            {{- range $serviceManifest := $level }}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+
+                // Start {{ $serviceName }} service.
+                {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                if err != nil {
+                    return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
+                }
+                addServiceCleanup({{ $serviceName }}Cleanup)
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+
+    {{- range $server := .servers }}
+        {{- if eq $server.type "processor" }}
+            {{- $serviceManifest := parseYaml $server.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+            healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
+        {{- end }}
     {{- end }}
 
     // Setup health check.

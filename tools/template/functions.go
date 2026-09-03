@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 	"regexp"
 	"sort"
 	"strings"
 	"text/template"
+
+	"github.com/huandu/xstrings"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -301,6 +303,13 @@ type serviceNode struct {
 	// declaration order, so the template can name each of them where they appear.
 	deps     []string
 	depNames []string
+	// callServices holds the proto service names this one declares as `grpc_client`
+	// dependencies, and callDeps the services in this binary that serve them, deduplicated.
+	// These order startup but do not order construction: the caller holds a client, not the
+	// service itself.
+	callServices []string
+	callDeps     []string
+	callSeen     map[string]bool
 	// roots holds the names of the services reachable from a server that lead here, so that
 	// a nested service's health checks can be attributed to the servers that ultimately use it.
 	roots     []string
@@ -315,7 +324,14 @@ type serviceNode struct {
 // services depend on, into dependency-ordered levels. Level 0 holds the services that depend
 // on no other service; a service in level N depends only on services in earlier levels, so a
 // binary can bring up one level at a time and know that everything a service needs is already
-// started. Returns an error on a dependency cycle.
+// started. Returns an error on a cycle in the construction dependencies.
+//
+// Two kinds of dependency order the levels. A `type: service` dependency is a construction
+// edge: the service is an argument to the other's constructor, so a cycle in those is an error.
+// A `grpc_client` dependency on a service this same binary serves is a call edge: the caller
+// reaches it over the wire, so it needs the callee started and the server serving, but the two
+// can be built in either order. A call edge that would close a cycle is dropped rather than
+// rejected, since services that call each other are a legitimate arrangement.
 //
 // Each returned service is its manifest, with `type: service` dependencies resolved so they
 // carry the depended-on service's name, plus two added keys: `level` and `roots`.
@@ -328,6 +344,7 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 			name:     name,
 			rootSeen: map[string]bool{},
 			depSeen:  map[string]bool{},
+			callSeen: map[string]bool{},
 			order:    len(nameToNode),
 			level:    -1,
 		}
@@ -381,6 +398,7 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 				node.deps = append(node.deps, depName)
 			}
 		}
+		node.callServices = append(node.callServices, clientDependencies(manifest)...)
 		return name, nil
 	}
 
@@ -391,6 +409,65 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 	for _, target := range targets {
 		if _, err := collect(target, ""); err != nil {
 			return nil, err
+		}
+	}
+
+	// Resolve `grpc_client` dependencies to the services in this binary that serve them, now
+	// that every one of those is registered. A dependency served from outside the binary is
+	// nothing this binary can order, so it is dropped.
+	servedByName, err := servedServices(servers)
+	if err != nil {
+		return nil, err
+	}
+	for _, node := range nameToNode {
+		for _, callService := range node.callServices {
+			depName, ok := servedByName[xstrings.ToPascalCase(callService)]
+			if !ok || depName == node.name || node.callSeen[depName] {
+				continue
+			}
+			node.callSeen[depName] = true
+			node.callDeps = append(node.callDeps, depName)
+		}
+	}
+
+	// Drop the call edges that would close a cycle. Two services calling each other is a
+	// legitimate runtime arrangement — both are up before either serves traffic — so it is not
+	// an error, but one of the two has to start first and the edge that says otherwise cannot
+	// be honored. Construction edges (`type: service`) get no such reprieve below: those really
+	// are impossible, since one service is an argument to the other's constructor.
+	{
+		const (
+			white = 0
+			grey  = 1
+			black = 2
+		)
+		color := map[string]int{}
+		var prune func(name string)
+		prune = func(name string) {
+			node := nameToNode[name]
+			color[name] = grey
+			for _, dep := range node.deps {
+				if color[dep] == white {
+					prune(dep)
+				}
+			}
+			kept := node.callDeps[:0]
+			for _, dep := range node.callDeps {
+				if color[dep] == grey {
+					continue // Closes a cycle: this service starts before the one it calls.
+				}
+				if color[dep] == white {
+					prune(dep)
+				}
+				kept = append(kept, dep)
+			}
+			node.callDeps = kept
+			color[name] = black
+		}
+		for _, node := range orderedNodes(nameToNode) {
+			if color[node.name] == white {
+				prune(node.name)
+			}
 		}
 	}
 
@@ -406,7 +483,7 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 		}
 		node.resolving = true
 		level := 0
-		for _, dep := range node.deps {
+		for _, dep := range append(append([]string{}, node.deps...), node.callDeps...) {
 			depLevel, err := assign(dep, append(path, name))
 			if err != nil {
 				return 0, err
@@ -433,14 +510,8 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 
 	// Group by level, keeping services in the order the manifests declared them so that the
 	// generated code does not churn between builds.
-	nodes := make([]*serviceNode, 0, len(nameToNode))
-	for _, node := range nameToNode {
-		nodes = append(nodes, node)
-	}
-	sort.Slice(nodes, func(i, j int) bool { return nodes[i].order < nodes[j].order })
-
 	levels := make([][]map[string]any, maxLevel+1)
-	for _, node := range nodes {
+	for _, node := range orderedNodes(nameToNode) {
 		levels[node.level] = append(levels[node.level], node.render())
 	}
 	return levels, nil
@@ -507,6 +578,71 @@ func serviceManifestTargets(servers []any) ([]string, error) {
 		add(target)
 	}
 	return targets, nil
+}
+
+// orderedNodes returns the graph's nodes in the order the manifests declared them, so that the
+// generated code does not churn between builds.
+func orderedNodes(nameToNode map[string]*serviceNode) []*serviceNode {
+	nodes := make([]*serviceNode, 0, len(nameToNode))
+	for _, node := range nameToNode {
+		nodes = append(nodes, node)
+	}
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].order < nodes[j].order })
+	return nodes
+}
+
+// servedServices maps each proto service a server hosts, PascalCased as `grpc_client`
+// dependencies name it, to the name of the service manifest serving it. One manifest can serve
+// several proto services, which is why the mapping runs this way round.
+func servedServices(servers []any) (map[string]string, error) {
+	result := map[string]string{}
+	for _, server := range servers {
+		serverMap, ok := server.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("server is not a mapping: %v", server)
+		}
+		services, _ := serverMap["services"].([]any)
+		for _, service := range services {
+			serviceMap, ok := service.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("service is not a mapping: %v", service)
+			}
+			servedService, _ := serviceMap["service"].(string)
+			target, _ := serviceMap["manifest"].(string)
+			if servedService == "" || target == "" {
+				continue
+			}
+			manifest, err := parseYaml(target)
+			if err != nil {
+				return nil, fmt.Errorf("reading service manifest %s: %w", target, err)
+			}
+			name, _ := manifest["name"].(string)
+			if name == "" {
+				return nil, fmt.Errorf("service manifest %s declares no name", target)
+			}
+			result[xstrings.ToPascalCase(servedService)] = name
+		}
+	}
+	return result, nil
+}
+
+// clientDependencies returns the proto service names of a manifest's `grpc_client` entries.
+func clientDependencies(manifest map[string]any) []string {
+	var result []string
+	dependencies, _ := manifest["dependencies"].([]any)
+	for _, dependency := range dependencies {
+		dependencyMap, ok := dependency.(map[string]any)
+		if !ok {
+			continue
+		}
+		if dependencyType, _ := dependencyMap["type"].(string); dependencyType != "grpc_client" {
+			continue
+		}
+		if service, _ := dependencyMap["service"].(string); service != "" {
+			result = append(result, service)
+		}
+	}
+	return result
 }
 
 // serviceDependencies returns the `type: service` entries of a manifest's dependency list.
