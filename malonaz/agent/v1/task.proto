@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package malonaz.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/agent/v1";
+
+// A Task is one durable, terminal unit of work. It is created under the agent
+// that executes it (assignment = placement): the task runs with that agent's
+// persona and tools but in a fresh backing chat, and its final report flows
+// back to its creator — the awaiting parent task, the awaiting agent, or the
+// user via this resource. The task table is the work queue: runners claim
+// PENDING rows with SELECT ... FOR UPDATE SKIP LOCKED.
+message Task {
+  option (google.api.resource) = {
+    type: "agent.malonaz.com/Task"
+    pattern: "organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}"
+    singular: "task"
+    plural: "tasks"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "agent"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "27c363ae-00ae-4188-a873-5486acec12d0";
+
+  // The resource name of the task.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the task.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the task. Doubles as the runner heartbeat: a
+  // reaper re-queues RUNNING tasks whose update_time is stale.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the task. Set when soft-deleted.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 5;
+
+  // The labels on this task.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A short human-readable title for this task.
+  string title = 16 [(buf.validate.field).string.max_len = 512];
+
+  // The self-contained brief this task must accomplish. The task has no other
+  // context: everything it needs must be in the goal.
+  string goal = 7 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = IMMUTABLE,
+    (buf.validate.field).string.max_len = 65536
+  ];
+
+  // The model driving this task's loop. Defaults to the owning agent's model.
+  // Format: providers/{provider}/models/{model}
+  string model = 8 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // The task that spawned this task. Empty when the creator is the owning
+  // agent or a user.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string parent_task = 9 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+
+  // The root task of the tree this task belongs to. Equal to `name` for a
+  // root task. Lets a whole tree be fetched with one ListTasks filter and
+  // gives CancelTask its cascade.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string root_task = 10 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+
+  // The current state of the task.
+  TaskState state = 11 [
+    (buf.validate.field).enum.defined_only = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The backing chat holding this task's whole conversation.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string chat = 12 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // The task's final report. Set when the task reaches TASK_STATE_SUCCEEDED.
+  string report = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The error that terminated the task. Set when the task reaches TASK_STATE_FAILED.
+  string error_message = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Tool configuration and loop bookkeeping. Always present: initialized at
+  // creation, maintained by the runner.
+  TaskMetadata metadata = 15 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+}
+
+// Tool configuration (set at creation) and loop bookkeeping (maintained by
+// the runner) for a task.
+message TaskMetadata {
+  // Names of the service tool sets exposed to the task.
+  repeated string tool_sets = 1;
+
+  // Maximum number of subtasks this task may spawn in total. 0 disables
+  // subtask spawning.
+  int32 max_subtasks = 2 [(buf.validate.field).int32.gte = 0];
+
+  // Depth of this task in its tree (root task = 0).
+  int32 depth = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Number of subtasks spawned so far.
+  int32 subtask_count = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Number of completed model turns.
+  int64 turn_count = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Maps a create_task tool-call id to the awaited subtask. Present while the
+  // task is in TASK_STATE_AWAITING_TASKS.
+  // Format of values: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  map<string, string> awaited_tasks = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// The lifecycle state of a task.
+enum TaskState {
+  // Used to detect an unset field.
+  TASK_STATE_UNSPECIFIED = 0;
+
+  // The task is queued, awaiting pickup by a runner.
+  TASK_STATE_PENDING = 1;
+
+  // A runner is driving the loop.
+  TASK_STATE_RUNNING = 2;
+
+  // The task is parked on side-effecting tool calls awaiting ResolveApproval.
+  TASK_STATE_AWAITING_APPROVAL = 3;
+
+  // The task is parked awaiting the completion of spawned subtasks.
+  TASK_STATE_AWAITING_TASKS = 4;
+
+  // The task completed its goal; `report` holds the final answer.
+  TASK_STATE_SUCCEEDED = 5;
+
+  // The task terminated with an error; see `error_message`.
+  TASK_STATE_FAILED = 6;
+
+  // The task was cancelled via CancelTask.
+  TASK_STATE_CANCELLED = 7;
+}

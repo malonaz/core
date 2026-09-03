@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package malonaz.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/agent/v1";
+
+// A Memory is one piece of an agent's long-term knowledge, distilled from its
+// chats and tasks. Memories are the only thing that truly persists across
+// chat rollovers: title and description form the cheap retrieval surface,
+// content is loaded only after selection, and labels carry the agent-curated
+// ontology. Written by the agent (via its create_memory tool) or by the
+// compaction extraction turn; revised, merged and superseded over time rather
+// than appended forever.
+message Memory {
+  option (google.api.resource) = {
+    type: "agent.malonaz.com/Memory"
+    pattern: "organizations/{organization}/users/{user}/agents/{agent}/memories/{memory}"
+    singular: "memory"
+    plural: "memories"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "agent"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "797bbe2e-086d-480d-b7fc-0bd4655d8d35";
+
+  // The resource name of the memory.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/memories/{memory}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the memory.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the memory.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the memory. Set when soft-deleted.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 5;
+
+  // The labels on this memory: the agent-curated ontology (e.g. kind of
+  // memory, subject), evolving without schema migrations.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Short human-readable title, the primary retrieval surface.
+  string title = 7 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 512
+  ];
+
+  // One-or-two-line description of the content, shown alongside search
+  // matches and used for seed-time selection.
+  string description = 8 [(buf.validate.field).string.max_len = 2048];
+
+  // The unstructured content of the memory.
+  google.protobuf.Value content = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).required = true
+  ];
+
+  // The chat this memory was distilled from, if any.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string source_chat = 10 [(google.api.resource_reference).type = "ai.malonaz.com/Chat"];
+
+  // The task this memory was distilled from, if any.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string source_task = 11 [(google.api.resource_reference).type = "agent.malonaz.com/Task"];
+}
