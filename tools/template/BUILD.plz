@@ -14,3 +14,22 @@ go_binary(
         "//third_party/go:gopkg.in__yaml.v3",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = [
+        "functions.go",
+        "main.go",
+        "service_graph_test.go",
+        "types.go",
+    ],
+    deps = [
+        "//go/flags",
+        "//go/logging",
+        "//third_party/go:github.com__Masterminds__sprig__v3",
+        "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:gopkg.in__yaml.v3",
+    ],
+)

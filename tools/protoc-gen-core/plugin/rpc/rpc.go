@@ -198,6 +198,7 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	g.P(fmt.Sprintf("type %sServer struct {", svcName))
 	if si.natsStream {
 		g.P(fmt.Sprintf("  natsClient *%s", gen.ident(natsPkg, "Client")))
+		g.P("  streamsCreated bool")
 	}
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  *%s_%sServer", svcNameUntitled, pr.SingularGoName()))
@@ -228,9 +229,17 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	g.P("}")
 	g.P()
 
-	// Start method.
-	g.P(fmt.Sprintf("func (s *%sServer) Start(ctx %s) error {", svcName, gen.ident(contextPkg, "Context")))
+	// CreateStreams method: separate from Start so that a binary hosting several services can
+	// create every stream it owns before any service starts a consumer on one of them.
 	if si.natsStream {
+		g.P("// CreateStreams creates or updates the NATS streams this service owns. Start calls it,")
+		g.P("// and a binary hosting several services calls it for all of them before starting any,")
+		g.P("// so that a consumer is never created before the stream it reads. Doing the work twice")
+		g.P("// would be harmless, but the second call is a no-op.")
+		g.P(fmt.Sprintf("func (s *%sServer) CreateStreams(ctx %s) error {", svcName, gen.ident(contextPkg, "Context")))
+		g.P("  if s.streamsCreated {")
+		g.P("    return nil")
+		g.P("  }")
 		g.P(fmt.Sprintf("  streamOptionsList, err := %s[[]*%s](%s.ServiceName, %s)",
 			gen.ident(pbutilPkg, "GetServiceOption"),
 			gen.ident(natsGenPkg, "StreamOptions"),
@@ -245,6 +254,18 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		g.P(fmt.Sprintf("      return %s(\"creating stream %%q: %%w\", streamOptions.GetName(), err)",
 			gen.ident(fmtPkg, "Errorf")))
 		g.P("    }")
+		g.P("  }")
+		g.P("  s.streamsCreated = true")
+		g.P("  return nil")
+		g.P("}")
+		g.P()
+	}
+
+	// Start method.
+	g.P(fmt.Sprintf("func (s *%sServer) Start(ctx %s) error {", svcName, gen.ident(contextPkg, "Context")))
+	if si.natsStream {
+		g.P("  if err := s.CreateStreams(ctx); err != nil {")
+		g.P(fmt.Sprintf("    return %s(\"creating streams: %%w\", err)", gen.ident(fmtPkg, "Errorf")))
 		g.P("  }")
 	}
 	g.P("  return nil")

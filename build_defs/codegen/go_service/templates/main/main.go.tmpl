@@ -67,24 +67,52 @@ func run(ctx {{ goImport "context" }}.Context) error {
         }()
     }
 
-    {{- /* GATHER SERVICE MANIFESTS */ -}}
+    {{- /* GATHER SERVICE MANIFESTS. serviceGraph resolves every service the servers host and
+           everything those services depend on into levels: a service in one level depends only
+           on services in earlier levels, so each level can be started once the previous one is
+           up. $serviceManifests flattens the levels for the passes below that only care about a
+           service's non-service dependencies. */ -}}
+    {{- $serviceLevels := serviceGraph .servers -}}
     {{- $serviceManifests := list -}}
-    {{- $serviceNameToServerNames := dict -}}
-    {{- range $server := .servers -}}
-        {{- range $service := $server.services -}}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
+    {{- $hasConcurrentLevel := false -}}
+    {{- range $level := $serviceLevels -}}
+        {{- if gt (len $level) 1 -}}{{- $hasConcurrentLevel = true -}}{{- end -}}
+        {{- range $serviceManifest := $level -}}
             {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-            {{- $updatedServers := append $existingServers $server.name -}}
-            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+        {{- end -}}
+    {{- end -}}
+
+    {{- /* Map each hosted service to the servers hosting it, then hand those servers down to
+           the services it depends on, so that a dependency's health checks are reported by
+           every server that ultimately relies on it. */ -}}
+    {{- $rootNameToServerNames := dict -}}
+    {{- range $server := .servers -}}
+        {{- $rootTargets := list -}}
+        {{- range $service := $server.services -}}
+            {{- $rootTargets = append $rootTargets $service.manifest -}}
         {{- end -}}
         {{- if $server.manifest -}}
-            {{- $serviceManifest := parseYaml $server.manifest -}}
-            {{- $serviceManifests = append $serviceManifests $serviceManifest -}}
-            {{- $existingServers := index $serviceNameToServerNames $serviceManifest.name | default (list) -}}
-            {{- $updatedServers := append $existingServers $server.name -}}
-            {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $updatedServers -}}
+            {{- $rootTargets = append $rootTargets $server.manifest -}}
         {{- end -}}
+        {{- range $rootTarget := $rootTargets -}}
+            {{- $rootName := (parseYaml $rootTarget).name -}}
+            {{- $existingServers := index $rootNameToServerNames $rootName | default (list) -}}
+            {{- if not (has $server.name $existingServers) -}}
+                {{- $rootNameToServerNames = set $rootNameToServerNames $rootName (append $existingServers $server.name) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $serviceNameToServerNames := dict -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- $serverNames := list -}}
+        {{- range $rootName := $serviceManifest.roots -}}
+            {{- range $serverName := index $rootNameToServerNames $rootName | default (list) -}}
+                {{- if not (has $serverName $serverNames) -}}
+                    {{- $serverNames = append $serverNames $serverName -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+        {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $serverNames -}}
     {{- end -}}
 
     {{- $serverNameToServiceNameToServedProtos := dict -}}
@@ -244,94 +272,78 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end }}
 
-    {{- /* DEPENDENCIES BASE SERVICES */ -}}
-    {{- range $serviceManifest := $serviceManifests -}}
-        {{- range $dep := $serviceManifest.dependencies -}}
-            {{- if eq $dep.type "service" -}}
-                {{- $key := printf "base_service_%s" $dep.name -}}
-                {{- if doOnce $key }}
-                    {{- "\n" }}
-                    // Instantiate {{ $dep.name }} service.
-                    {{ $dep.name | camelcase | untitle }}Service, err := {{ plzGoImport $dep.implementation }}.New(opts.{{ $dep.name | camelcase }}Service)
-                    if err != nil {
-                        return {{ goImport "fmt" }}.Errorf("instantiating {{ $dep.name }} service: %v", err)
-                    }
-                    {
-                        cleanup, err := {{ $dep.name | camelcase | untitle }}Service.Start(ctx, nil)
-                        if err != nil {
-                            return {{ goImport "fmt" }}.Errorf("starting {{ $dep.name }} service: %v", err)
-                        }
-                        defer cleanup()
-                    }
+    {{- /* INSTANTIATE EVERY SERVICE. $serviceManifests is the dependency levels flattened, so a
+           service is always declared after the services it depends on. */ -}}
+    {{- range $serviceManifest := $serviceManifests }}
+        {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+
+        {{ if $requiresSessionManager -}}
+        {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
+        if err != nil {
+            return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
+        }
+        {{- else -}}
+        {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
+        {{- end }}
+
+        // Instantiate {{ $serviceName }}.
+        {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
+            opts.{{ $serviceName | title }},
+            {{- range $dep := $serviceManifest.dependencies }}
+                {{- if eq $dep.type "grpc_client" }}
+                    {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}
+                    {{ $grpc.Client }},
+                {{- else if eq $dep.type "postgres_db_client" }}
+                    {{ $database := default $dep.name $dep.database }}
+                    {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient,
+                {{- else if eq $dep.type "postgres_client" }}
+                    {{ $database := default $dep.name $dep.database }}
+                    {{ $database | camelcase | untitle }}PsqlClient,
+                {{- else if eq $dep.type "service" }}
+                    {{ $dep.name | camelcase | untitle }},
+                {{- else if eq $dep.type "nats" }}
+                    natsClient,
                 {{- end }}
             {{- end }}
-        {{- end }}
+        )
+        if err != nil {
+            return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
+        }
     {{- end }}
 
+    {{- /* NATS STREAMS. A service creating a consumer needs the stream it consumes to exist, and
+           stream ownership is not something the manifests declare, so no dependency level can
+           order the two. Create every stream this binary's services own before any of them
+           starts, which orders them all at once. */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $codegen := $serviceManifest.codegens -}}
+            {{- if and (eq $codegen.type "rpc") $codegen.nats -}}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                {{ if doOnce "nats_streams_comment" }}
+    // Create the NATS streams the services own, before any service starts a consumer on one.
+                {{- end }}
+    if err := {{ $serviceName }}.CreateStreams(ctx); err != nil {
+        return {{ goImport "fmt" }}.Errorf("creating {{ $serviceManifest.name }} nats streams: %w", err)
+    }
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+
+    {{- /* SERVERS. Brought up before the services start, so that a service calling another over
+           the wire during its own start finds something listening. Nothing routes here yet:
+           healthServer.MarkReady, at the bottom, is what admits traffic, and it waits for every
+           service to have started. */ -}}
+    {{ "\n" }}
     healthServer := {{ goImport "github.com/malonaz/core/go/health" }}.NewServer(opts.Health, "{{ .name }}")
     var gracefulStopFns []func() error
     var stopFns []func() error
 
     {{ range $server := .servers }}
-        {{ $services := $server.services | default list }}
-        {{ if eq $server.type "processor" }}
-            {{ $services = append $services $server }}
-        {{ end }}
-
+        {{- /* A processor serves nothing; all it has here is a health check its service only
+               fills in once started, so it is registered after the start phase instead. */ -}}
+        {{- if eq $server.type "processor" }}{{ continue }}{{ end }}
         // Start {{ $server.name | camelcase }} Server
         {
-        {{- /* INSTANTIATE SERVICES */ -}}
-        {{- range $service := $services }}
-            {{- $serviceManifest := parseYaml $service.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-            {{ if not (doOnce (printf "%s/%s" $server.name $serviceName)) }}{{ continue }}{{ end }}
-
-            {{ if $requiresSessionManager }}
-            {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
-            }
-            {{ else }}
-            {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
-            {{ end }}
-
-            {{ "\n" }}// Instantiate {{ $serviceName }}.
-            {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
-                opts.{{ $serviceName | title }},
-                {{- range $dep := $serviceManifest.dependencies }}
-                    {{- if eq $dep.type "grpc_client" }}
-                        {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}
-                        {{ $grpc.Client }},
-                    {{- else if eq $dep.type "postgres_db_client" }}
-                        {{ $database := default $dep.name $dep.database }}
-                        {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient,
-                    {{- else if eq $dep.type "postgres_client" }}
-                        {{ $database := default $dep.name $dep.database }}
-                        {{ $database | camelcase | untitle }}PsqlClient,
-                    {{- else if eq $dep.type "service" }}
-                        {{ $dep.name | camelcase | untitle }}Service,
-                    {{- else if eq $dep.type "nats" }}
-                        natsClient,
-                    {{- end }}
-                {{- end }}
-            )
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
-            }
-
-            // Start {{ $serviceName }} service.
-            {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
-            }
-            defer {{ $serviceName }}Cleanup()
-        {{- end }}
-
-        {{- if eq $server.type "processor" }}
-            {{- $serviceManifest := parseYaml $server.manifest -}}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-            healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
-        {{- end }}
 
         {{- if eq $server.type "grpc" }}
             register := func(server *{{ goImport "github.com/malonaz/core/go/grpc" }}.Server) {
@@ -497,6 +509,76 @@ func run(ctx {{ goImport "context" }}.Context) error {
             runServer(ctx, "{{ $server.name }}", grpcWebProxyServer.Serve)
         {{- end }}
         }
+    {{- end }}
+    {{- /* START THE SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is started before any
+           server begins serving, and a service only starts once every service it depends on has
+           finished starting. */ -}}
+    {{ "\n" }}
+    // Service cleanups run in reverse start order, so that a service is always torn down
+    // before anything it depends on.
+    {{- if $hasConcurrentLevel }}
+    var serviceCleanupMutex {{ goImport "sync" }}.Mutex
+    {{- end }}
+    var serviceCleanupFns []func()
+    addServiceCleanup := func(cleanup func()) {
+        {{- if $hasConcurrentLevel }}
+        serviceCleanupMutex.Lock()
+        defer serviceCleanupMutex.Unlock()
+        {{- end }}
+        serviceCleanupFns = append(serviceCleanupFns, cleanup)
+    }
+    defer func() {
+        for i := len(serviceCleanupFns) - 1; i >= 0; i-- {
+            serviceCleanupFns[i]()
+        }
+    }()
+
+    {{- range $levelIndex, $level := $serviceLevels }}
+        {{- if gt (len $level) 1 }}
+            // Start dependency level {{ $levelIndex }} in step: no service in it depends on
+            // another, and every service they do depend on is already started.
+            {
+                levelErrs := make([]error, {{ len $level }})
+                var levelWaitGroup {{ goImport "sync" }}.WaitGroup
+                levelWaitGroup.Add({{ len $level }})
+                {{- range $serviceIndex, $serviceManifest := $level }}
+                    {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                    go func() {
+                        defer levelWaitGroup.Done()
+                        cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                        if err != nil {
+                            levelErrs[{{ $serviceIndex }}] = {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %w", err)
+                            return
+                        }
+                        addServiceCleanup(cleanup)
+                    }()
+                {{- end }}
+                levelWaitGroup.Wait()
+                if err := {{ goImport "errors" }}.Join(levelErrs...); err != nil {
+                    return err
+                }
+            }
+        {{- else }}
+            {{- range $serviceManifest := $level }}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+
+                // Start {{ $serviceName }} service.
+                {{ $serviceName }}Cleanup, err := {{ $serviceName }}.Start(ctx, {{ $serviceName }}WithServiceAccount)
+                if err != nil {
+                    return {{ goImport "fmt" }}.Errorf("starting {{ $serviceName }} service: %v", err)
+                }
+                addServiceCleanup({{ $serviceName }}Cleanup)
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+
+    {{- range $server := .servers }}
+        {{- if eq $server.type "processor" }}
+            {{- $serviceManifest := parseYaml $server.manifest -}}
+            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+            healthServer.RegisterService("{{ $server.name }}", {{ $serviceName }}.HealthCheck)
+        {{- end }}
     {{- end }}
 
     // Setup health check.
