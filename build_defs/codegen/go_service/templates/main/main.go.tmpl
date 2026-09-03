@@ -272,9 +272,66 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end }}
 
-    {{- /* SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is instantiated and started
-           before any server begins serving, and a service only starts once every service it
-           depends on has finished starting. */ -}}
+    {{- /* INSTANTIATE EVERY SERVICE. $serviceManifests is the dependency levels flattened, so a
+           service is always declared after the services it depends on. */ -}}
+    {{- range $serviceManifest := $serviceManifests }}
+        {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+
+        {{ if $requiresSessionManager -}}
+        {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
+        if err != nil {
+            return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
+        }
+        {{- else -}}
+        {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
+        {{- end }}
+
+        // Instantiate {{ $serviceName }}.
+        {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
+            opts.{{ $serviceName | title }},
+            {{- range $dep := $serviceManifest.dependencies }}
+                {{- if eq $dep.type "grpc_client" }}
+                    {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}
+                    {{ $grpc.Client }},
+                {{- else if eq $dep.type "postgres_db_client" }}
+                    {{ $database := default $dep.name $dep.database }}
+                    {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient,
+                {{- else if eq $dep.type "postgres_client" }}
+                    {{ $database := default $dep.name $dep.database }}
+                    {{ $database | camelcase | untitle }}PsqlClient,
+                {{- else if eq $dep.type "service" }}
+                    {{ $dep.name | camelcase | untitle }},
+                {{- else if eq $dep.type "nats" }}
+                    natsClient,
+                {{- end }}
+            {{- end }}
+        )
+        if err != nil {
+            return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
+        }
+    {{- end }}
+
+    {{- /* NATS STREAMS. A service creating a consumer needs the stream it consumes to exist, and
+           stream ownership is not something the manifests declare, so no dependency level can
+           order the two. Create every stream this binary's services own before any of them
+           starts, which orders them all at once. */ -}}
+    {{- range $serviceManifest := $serviceManifests -}}
+        {{- range $codegen := $serviceManifest.codegens -}}
+            {{- if and (eq $codegen.type "rpc") $codegen.nats -}}
+                {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
+                {{ if doOnce "nats_streams_comment" }}
+    // Create the NATS streams the services own, before any service starts a consumer on one.
+                {{- end }}
+    if err := {{ $serviceName }}.CreateStreams(ctx); err != nil {
+        return {{ goImport "fmt" }}.Errorf("creating {{ $serviceManifest.name }} nats streams: %w", err)
+    }
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+
+    {{- /* START THE SERVICES, ONE DEPENDENCY LEVEL AT A TIME. Every service is started before any
+           server begins serving, and a service only starts once every service it depends on has
+           finished starting. */ -}}
     {{ "\n" }}
     // Service cleanups run in reverse start order, so that a service is always torn down
     // before anything it depends on.
@@ -296,43 +353,6 @@ func run(ctx {{ goImport "context" }}.Context) error {
     }()
 
     {{- range $levelIndex, $level := $serviceLevels }}
-        {{- range $serviceManifest := $level }}
-            {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
-
-            {{ if $requiresSessionManager -}}
-            {{ $serviceName }}WithServiceAccount, err := opts.InternalServiceAuthentication.WithServiceAccount("{{ $serviceManifest.name }}")
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("with service account: {{ $serviceManifest.name }}: %v", err)
-            }
-            {{- else -}}
-            {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
-            {{- end }}
-
-            // Instantiate {{ $serviceName }}.
-            {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
-                opts.{{ $serviceName | title }},
-                {{- range $dep := $serviceManifest.dependencies }}
-                    {{- if eq $dep.type "grpc_client" }}
-                        {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}
-                        {{ $grpc.Client }},
-                    {{- else if eq $dep.type "postgres_db_client" }}
-                        {{ $database := default $dep.name $dep.database }}
-                        {{ $database | camelcase | untitle }}_{{ $dep.implementation | replace "/" "_" | replace "." "_" | replace ":" "_" }}DBClient,
-                    {{- else if eq $dep.type "postgres_client" }}
-                        {{ $database := default $dep.name $dep.database }}
-                        {{ $database | camelcase | untitle }}PsqlClient,
-                    {{- else if eq $dep.type "service" }}
-                        {{ $dep.name | camelcase | untitle }},
-                    {{- else if eq $dep.type "nats" }}
-                        natsClient,
-                    {{- end }}
-                {{- end }}
-            )
-            if err != nil {
-                return {{ goImport "fmt" }}.Errorf("instantiating {{ $serviceName }}: %v", err)
-            }
-        {{- end }}
-
         {{- if gt (len $level) 1 }}
             // Start dependency level {{ $levelIndex }} in step: no service in it depends on
             // another, and every service they do depend on is already started.
