@@ -29,7 +29,7 @@
                 "properties": {
                     "type": {
                         "type": "string",
-                        "enum": ["grpc_client", "postgres_db_client", "postgres_client", "nats"]
+                        "enum": ["grpc_client", "postgres_db_client", "postgres_client", "service", "nats"]
                     },
                     "name": {
                         "type": "string",
@@ -46,6 +46,9 @@
                     "implementation": {
                         "type": "string"
                     },
+                    "manifest": {
+                        "type": "string"
+                    },
                     "proto": {
                         "type": "string"
                     }
@@ -57,6 +60,17 @@
                         },
                         "then": {
                             "required": ["proto", "service"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": { "type": { "const": "service" } }
+                        },
+                        "then": {
+                            "anyOf": [
+                                { "required": ["manifest"] },
+                                { "required": ["name", "implementation"] }
+                            ]
                         }
                     },
                     {

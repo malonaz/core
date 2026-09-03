@@ -159,32 +159,36 @@ servers:
 		assert.Equal(t, [][]string{{"b-service"}, {"a-service"}}, levelNames(levels))
 	})
 
-	t.Run("includes a processor, whose service hangs off the server itself", func(t *testing.T) {
+	t.Run("rejects a cycle in the construction dependencies", func(t *testing.T) {
 		dir := setup(t)
 		require.NoError(t, os.MkdirAll(dir, 0o755))
-		proto := writeProto(t, dir, "api.proto", "IntentService")
-		intent := writeManifest(t, dir, "intent", "name: intent-service\nimplementation: //svc/intent\n")
-		processor := writeManifest(t, dir, "processor", `
-name: intent-processor
-implementation: //svc/intent_processor
+		proto := writeProto(t, dir, "api.proto", "AService")
+		aTarget := "//" + dir + ":a(" + filepath.Join(dir, "a") + ")"
+		bTarget := "//" + dir + ":b(" + filepath.Join(dir, "b") + ")"
+		writeManifest(t, dir, "a", `
+name: a-service
+implementation: //svc/a
 dependencies:
-  - type: grpc_client
-    service: intent-service
-    proto: `+proto+`
+  - type: service
+    manifest: `+bTarget+`
 `)
-		levels, err := serviceGraph(parseServers(t, `
+		writeManifest(t, dir, "b", `
+name: b-service
+implementation: //svc/b
+dependencies:
+  - type: service
+    manifest: `+aTarget+`
+`)
+		_, err := serviceGraph(parseServers(t, `
 servers:
   - type: grpc
     name: internal
     services:
-      - service: intent-service
+      - service: a-service
         proto: `+proto+`
-        manifest: `+intent+`
-  - type: processor
-    name: intent-processor
-    manifest: `+processor+`
+        manifest: `+aTarget+`
 `))
-		require.NoError(t, err)
-		assert.Equal(t, [][]string{{"intent-service"}, {"intent-processor"}}, levelNames(levels))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "service dependency cycle")
 	})
 }
