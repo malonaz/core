@@ -106,7 +106,7 @@ local p = "providers/google/models/";
       "provider_settings": {
         "thinking_config_key": "thinking_level",
         "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
-        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_DEFAULT": "MINIMAL",
         "REASONING_EFFORT_LOW": "LOW",
         "REASONING_EFFORT_MEDIUM": "MEDIUM",
         "REASONING_EFFORT_HIGH": "HIGH",
