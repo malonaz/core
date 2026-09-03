@@ -89,7 +89,7 @@ def go_protoc_gen_core(
         tools = tools,
         protoc_flags = protoc_flags,
         plugin_flags = plugin_flags,
-        labels = labels + go_mapping_labels(name, srcs, root_dir),
+        labels = labels + go_mapping_labels(name, srcs, root_dir, additional_context),
         test_only = test_only,
         root_dir = root_dir,
         deps = deps + [
