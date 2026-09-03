@@ -67,11 +67,10 @@ func run(ctx {{ goImport "context" }}.Context) error {
         }()
     }
 
-    {{- /* GATHER SERVICE MANIFESTS. serviceGraph resolves every service the servers host and
-           everything those services depend on into levels: a service in one level depends only
-           on services in earlier levels, so each level can be started once the previous one is
-           up. $serviceManifests flattens the levels for the passes below that only care about a
-           service's non-service dependencies. */ -}}
+    {{- /* GATHER SERVICE MANIFESTS. serviceGraph resolves the services the servers host into
+           levels: a service in one level calls only services in earlier levels, so each level
+           can be started once the previous one is up. $serviceManifests flattens the levels for
+           the passes below that only care about a service's own dependencies. */ -}}
     {{- $serviceLevels := serviceGraph .servers -}}
     {{- $serviceManifests := list -}}
     {{- $hasConcurrentLevel := false -}}
@@ -82,37 +81,24 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end -}}
 
-    {{- /* Map each hosted service to the servers hosting it, then hand those servers down to
-           the services it depends on, so that a dependency's health checks are reported by
-           every server that ultimately relies on it. */ -}}
-    {{- $rootNameToServerNames := dict -}}
+    {{- /* Map each hosted service to the servers hosting it, so that its health checks are
+           reported by every server that relies on it. */ -}}
+    {{- $serviceNameToServerNames := dict -}}
     {{- range $server := .servers -}}
-        {{- $rootTargets := list -}}
+        {{- $targets := list -}}
         {{- range $service := $server.services -}}
-            {{- $rootTargets = append $rootTargets $service.manifest -}}
+            {{- $targets = append $targets $service.manifest -}}
         {{- end -}}
         {{- if $server.manifest -}}
-            {{- $rootTargets = append $rootTargets $server.manifest -}}
+            {{- $targets = append $targets $server.manifest -}}
         {{- end -}}
-        {{- range $rootTarget := $rootTargets -}}
-            {{- $rootName := (parseYaml $rootTarget).name -}}
-            {{- $existingServers := index $rootNameToServerNames $rootName | default (list) -}}
-            {{- if not (has $server.name $existingServers) -}}
-                {{- $rootNameToServerNames = set $rootNameToServerNames $rootName (append $existingServers $server.name) -}}
+        {{- range $target := $targets -}}
+            {{- $serviceName := (parseYaml $target).name -}}
+            {{- $serverNames := index $serviceNameToServerNames $serviceName | default (list) -}}
+            {{- if not (has $server.name $serverNames) -}}
+                {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceName (append $serverNames $server.name) -}}
             {{- end -}}
         {{- end -}}
-    {{- end -}}
-    {{- $serviceNameToServerNames := dict -}}
-    {{- range $serviceManifest := $serviceManifests -}}
-        {{- $serverNames := list -}}
-        {{- range $rootName := $serviceManifest.roots -}}
-            {{- range $serverName := index $rootNameToServerNames $rootName | default (list) -}}
-                {{- if not (has $serverName $serverNames) -}}
-                    {{- $serverNames = append $serverNames $serverName -}}
-                {{- end -}}
-            {{- end -}}
-        {{- end -}}
-        {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $serverNames -}}
     {{- end -}}
 
     {{- $serverNameToServiceNameToServedProtos := dict -}}
@@ -272,8 +258,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end }}
 
-    {{- /* INSTANTIATE EVERY SERVICE. $serviceManifests is the dependency levels flattened, so a
-           service is always declared after the services it depends on. */ -}}
+    {{- /* INSTANTIATE EVERY SERVICE. */ -}}
     {{- range $serviceManifest := $serviceManifests }}
         {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
 
@@ -299,8 +284,6 @@ func run(ctx {{ goImport "context" }}.Context) error {
                 {{- else if eq $dep.type "postgres_client" }}
                     {{ $database := default $dep.name $dep.database }}
                     {{ $database | camelcase | untitle }}PsqlClient,
-                {{- else if eq $dep.type "service" }}
-                    {{ $dep.name | camelcase | untitle }},
                 {{- else if eq $dep.type "nats" }}
                     natsClient,
                 {{- end }}
