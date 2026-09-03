@@ -4,6 +4,34 @@ local p = "providers/google/models/";
   "provider_id": "google",
   "models": [
     {
+      "name": p + "gemini-3.8-flash",
+      "provider_model_id": "gemini-3.8-flash",
+      "description": "Our most intelligent Flash model, engineered for long-horizon software engineering, autonomous agents, and complex enterprise workflows, all with the speed and cost efficiency of Flash. Natively multimodal: supports text, image, video, audio and PDF input, code execution, computer use, file search, search and maps grounding, and structured outputs.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 0.75,
+          "output_token_price_per_million": 3.75,
+          "output_reasoning_token_price_per_million": 3.75,
+          "input_token_cache_read_price_per_million": 0.075
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "LOW",
+        "REASONING_EFFORT_DEFAULT": "LOW",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH",
+        "REASONING_EFFORT_XHIGH": "HIGH",
+        "REASONING_EFFORT_MAX": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.7-flash",
       "provider_model_id": "gemini-3.7-flash",
       "description": "Our most capable Flash model, built for complex coding, agentic workflows, and reliable multi-step execution. Natively multimodal: supports text, image, video, audio and PDF input, code execution, computer use, search and maps grounding, and structured outputs.",
