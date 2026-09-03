@@ -159,6 +159,81 @@ servers:
 		assert.Equal(t, [][]string{{"b-service"}, {"a-service"}}, levelNames(levels))
 	})
 
+	t.Run("names a construction dependency and orders it first", func(t *testing.T) {
+		dir := setup(t)
+		require.NoError(t, os.MkdirAll(dir, 0o755))
+		proto := writeProto(t, dir, "api.proto", "AppService")
+		base := writeManifest(t, dir, "base", "name: base-service\nimplementation: //svc/base\n")
+		app := writeManifest(t, dir, "app", `
+name: app-service
+implementation: //svc/app
+dependencies:
+  - type: nats
+  - type: service
+    manifest: `+base+`
+`)
+		levels, err := serviceGraph(parseServers(t, `
+servers:
+  - type: grpc
+    name: internal
+    services:
+      - service: app-service
+        proto: `+proto+`
+        manifest: `+app+`
+`))
+		require.NoError(t, err)
+		// base-service is not hosted by any server; it is pulled in as a dependency.
+		assert.Equal(t, [][]string{{"base-service"}, {"app-service"}}, levelNames(levels))
+
+		// The template names the dependency from the key the graph resolved onto it, and every
+		// other dependency is passed through untouched.
+		dependencies, ok := levels[1][0]["dependencies"].([]any)
+		require.True(t, ok)
+		require.Len(t, dependencies, 2)
+		assert.Equal(t, "nats", dependencies[0].(map[string]any)["type"])
+		assert.Equal(t, "base-service", dependencies[1].(map[string]any)["name"])
+	})
+
+	t.Run("attributes a shared dependency to both services that reach it", func(t *testing.T) {
+		dir := setup(t)
+		require.NoError(t, os.MkdirAll(dir, 0o755))
+		proto := writeProto(t, dir, "api.proto", "OneService", "TwoService")
+		base := writeManifest(t, dir, "base", "name: base-service\nimplementation: //svc/base\n")
+		dependent := func(name string) string {
+			return writeManifest(t, dir, name, `
+name: `+name+`-service
+implementation: //svc/`+name+`
+dependencies:
+  - type: service
+    manifest: `+base+`
+`)
+		}
+		one, two := dependent("one"), dependent("two")
+		levels, err := serviceGraph(parseServers(t, `
+servers:
+  - type: grpc
+    name: internal
+    services:
+      - service: one-service
+        proto: `+proto+`
+        manifest: `+one+`
+      - service: two-service
+        proto: `+proto+`
+        manifest: `+two+`
+`))
+		require.NoError(t, err)
+		assert.Equal(t, [][]string{{"base-service"}, {"one-service", "two-service"}}, levelNames(levels))
+		assert.Equal(t, []string{"one-service", "two-service"}, levels[0][0]["roots"])
+
+		// Reached twice, named once: the dependency list is not duplicated by the second walk.
+		for _, rendered := range levels[1] {
+			dependencies, ok := rendered["dependencies"].([]any)
+			require.True(t, ok)
+			require.Len(t, dependencies, 1)
+			assert.Equal(t, "base-service", dependencies[0].(map[string]any)["name"])
+		}
+	})
+
 	t.Run("rejects a cycle in the construction dependencies", func(t *testing.T) {
 		dir := setup(t)
 		require.NoError(t, os.MkdirAll(dir, 0o755))

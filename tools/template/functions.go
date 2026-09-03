@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"text/template"
@@ -294,31 +295,127 @@ func parseTarget(target string) (string, []string, error) {
 	return label, filenames, nil
 }
 
+// serverConfig and serverService are the typed view of a main manifest's servers. The template
+// engine hands serviceGraph the untyped map yaml.Unmarshal produced, which decodeServers turns
+// into these before any of the graph logic runs.
+type serverConfig struct {
+	Type     string          `yaml:"type"`
+	Name     string          `yaml:"name"`
+	Manifest string          `yaml:"manifest"`
+	Services []serverService `yaml:"services"`
+}
+
+type serverService struct {
+	Service  string `yaml:"service"`
+	Proto    string `yaml:"proto"`
+	Manifest string `yaml:"manifest"`
+}
+
+// serviceManifest and serviceDependency are the typed view of one service's manifest, holding
+// only the fields the graph walks. The template consumes the manifest as a map, keys and all,
+// so the raw map is kept alongside this rather than replaced by it.
+type serviceManifest struct {
+	Name         string              `yaml:"name"`
+	Dependencies []serviceDependency `yaml:"dependencies"`
+}
+
+type serviceDependency struct {
+	Type           string `yaml:"type"`
+	Name           string `yaml:"name"`
+	Service        string `yaml:"service"`
+	Manifest       string `yaml:"manifest"`
+	Implementation string `yaml:"implementation"`
+}
+
+// decodeServers converts the servers the template engine passes in, which reach us as the
+// `map[string]any` tree yaml.Unmarshal built, into the typed view above.
+func decodeServers(servers []any) ([]serverConfig, error) {
+	encoded, err := yaml.Marshal(servers)
+	if err != nil {
+		return nil, fmt.Errorf("re-encoding servers: %w", err)
+	}
+	var result []serverConfig
+	if err := yaml.Unmarshal(encoded, &result); err != nil {
+		return nil, fmt.Errorf("decoding servers: %w", err)
+	}
+	return result, nil
+}
+
+// parseServiceManifest reads the manifest at target into its typed view. The file content is
+// cached, so reading one repeatedly costs only the unmarshal.
+func parseServiceManifest(target string) (*serviceManifest, error) {
+	_, filenames, err := parseTarget(target)
+	if err != nil {
+		return nil, err
+	}
+	if len(filenames) != 1 {
+		return nil, fmt.Errorf("expected 1 filename, got %d [%s]", len(filenames), filenames)
+	}
+	content, err := readFile(filenames[0])
+	if err != nil {
+		return nil, err
+	}
+	result := &serviceManifest{}
+	if err := yaml.Unmarshal(content, result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// dependenciesOfType returns the manifest's dependencies of one type, in declaration order.
+func (m *serviceManifest) dependenciesOfType(dependencyType string) []serviceDependency {
+	var result []serviceDependency
+	for _, dependency := range m.Dependencies {
+		if dependency.Type == dependencyType {
+			result = append(result, dependency)
+		}
+	}
+	return result
+}
+
+// orderedSet collects strings, keeping the order they first arrived in and ignoring repeats.
+// The graph wants both properties everywhere: order so the generated code does not churn
+// between builds, deduplication so a service declared twice is one node and one edge.
+type orderedSet struct {
+	values []string
+	seen   map[string]bool
+}
+
+func newOrderedSet() *orderedSet {
+	return &orderedSet{seen: map[string]bool{}}
+}
+
+func (s *orderedSet) add(value string) {
+	if s.seen[value] {
+		return
+	}
+	s.seen[value] = true
+	s.values = append(s.values, value)
+}
+
+func (s *orderedSet) list() []string { return s.values }
+
 // serviceNode is one service in the dependency graph assembled by serviceGraph.
 type serviceNode struct {
-	manifest map[string]any
-	name     string
-	// deps holds, deduplicated, the names of the services this one declares as
-	// `type: service` dependencies; depNames holds one name per declared dependency, in
-	// declaration order, so the template can name each of them where they appear.
-	deps     []string
-	depNames []string
-	// callServices holds the proto service names this one declares as `grpc_client`
-	// dependencies, and callDeps the services in this binary that serve them, deduplicated.
-	// These order startup but do not order construction: the caller holds a client, not the
-	// service itself.
-	callServices []string
-	callDeps     []string
-	callSeen     map[string]bool
-	// roots holds the names of the services reachable from a server that lead here, so that
-	// a nested service's health checks can be attributed to the servers that ultimately use it.
-	roots     []string
-	rootSeen  map[string]bool
-	depSeen   map[string]bool
+	// raw is the manifest as the template consumes it, keys the graph does not model included;
+	// manifest is the typed view the graph walks.
+	raw      map[string]any
+	manifest *serviceManifest
+	// deps holds the services this one declares as `type: service` dependencies, which are
+	// construction edges: the service is an argument to this one's constructor. callDeps holds
+	// the services in this binary serving its `grpc_client` dependencies, which are call edges:
+	// they order startup but not construction, since the caller holds a client.
+	deps     *orderedSet
+	callDeps *orderedSet
+	// roots holds the services reachable from a server that lead here, so that a nested
+	// service's health checks can be attributed to the servers that ultimately use it.
+	roots     *orderedSet
 	order     int
 	level     int
 	resolving bool
 }
+
+func (n *serviceNode) name() string { return n.manifest.Name }
 
 // serviceGraph resolves the services a main manifest's servers host, and everything those
 // services depend on, into dependency-ordered levels. Level 0 holds the services that depend
@@ -335,20 +432,24 @@ type serviceNode struct {
 //
 // Each returned service is its manifest, with `type: service` dependencies resolved so they
 // carry the depended-on service's name, plus two added keys: `level` and `roots`.
-func serviceGraph(servers []any) ([][]map[string]any, error) {
+func serviceGraph(rawServers []any) ([][]map[string]any, error) {
+	servers, err := decodeServers(rawServers)
+	if err != nil {
+		return nil, err
+	}
 	nameToNode := map[string]*serviceNode{}
 
-	newNode := func(name string, manifest map[string]any) *serviceNode {
+	newNode := func(raw map[string]any, manifest *serviceManifest) *serviceNode {
 		node := &serviceNode{
+			raw:      raw,
 			manifest: manifest,
-			name:     name,
-			rootSeen: map[string]bool{},
-			depSeen:  map[string]bool{},
-			callSeen: map[string]bool{},
+			deps:     newOrderedSet(),
+			callDeps: newOrderedSet(),
+			roots:    newOrderedSet(),
 			order:    len(nameToNode),
 			level:    -1,
 		}
-		nameToNode[name] = node
+		nameToNode[manifest.Name] = node
 		return node
 	}
 
@@ -359,54 +460,45 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 	visited := map[string]bool{}
 	var collect func(target, root string) (string, error)
 	collect = func(target, root string) (string, error) {
-		manifest, err := parseYaml(target)
+		manifest, err := parseServiceManifest(target)
 		if err != nil {
 			return "", fmt.Errorf("reading service manifest %s (is it in the deps of the manifest rule referencing it?): %w", target, err)
 		}
-		name, _ := manifest["name"].(string)
-		if name == "" {
+		if manifest.Name == "" {
 			return "", fmt.Errorf("service manifest %s declares no name", target)
 		}
-		if root == "" {
-			root = name
-		}
 
-		node, ok := nameToNode[name]
+		node, ok := nameToNode[manifest.Name]
 		if !ok {
-			node = newNode(name, manifest)
+			raw, err := parseYaml(target)
+			if err != nil {
+				return "", fmt.Errorf("reading service manifest %s: %w", target, err)
+			}
+			node = newNode(raw, manifest)
 		}
-		if !node.rootSeen[root] {
-			node.rootSeen[root] = true
-			node.roots = append(node.roots, root)
+		if root == "" {
+			root = manifest.Name
 		}
+		node.roots.add(root)
 
 		// Walking a service once per root is enough: its own dependencies do not change,
 		// only the roots we propagate into them.
-		if visited[root+"\x00"+name] {
-			return name, nil
+		if visited[root+"\x00"+manifest.Name] {
+			return manifest.Name, nil
 		}
-		visited[root+"\x00"+name] = true
+		visited[root+"\x00"+manifest.Name] = true
 
-		for _, dependency := range serviceDependencies(manifest) {
+		for _, dependency := range manifest.dependenciesOfType("service") {
 			depName, err := collectDependency(dependency, root, collect, nameToNode, newNode)
 			if err != nil {
-				return "", fmt.Errorf("service %s: %w", name, err)
+				return "", fmt.Errorf("service %s: %w", manifest.Name, err)
 			}
-			node.depNames = append(node.depNames, depName)
-			if !node.depSeen[depName] {
-				node.depSeen[depName] = true
-				node.deps = append(node.deps, depName)
-			}
+			node.deps.add(depName)
 		}
-		node.callServices = append(node.callServices, clientDependencies(manifest)...)
-		return name, nil
+		return manifest.Name, nil
 	}
 
-	targets, err := serviceManifestTargets(servers)
-	if err != nil {
-		return nil, err
-	}
-	for _, target := range targets {
+	for _, target := range serviceManifestTargets(servers) {
 		if _, err := collect(target, ""); err != nil {
 			return nil, err
 		}
@@ -420,21 +512,37 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 		return nil, err
 	}
 	for _, node := range nameToNode {
-		for _, callService := range node.callServices {
-			depName, ok := servedByName[xstrings.ToPascalCase(callService)]
-			if !ok || depName == node.name || node.callSeen[depName] {
+		for _, dependency := range node.manifest.dependenciesOfType("grpc_client") {
+			depName, ok := servedByName[xstrings.ToPascalCase(dependency.Service)]
+			if !ok || depName == node.name() {
 				continue
 			}
-			node.callSeen[depName] = true
-			node.callDeps = append(node.callDeps, depName)
+			node.callDeps.add(depName)
 		}
 	}
 
 	// Drop the call edges that would close a cycle. Two services calling each other is a
 	// legitimate runtime arrangement — both are up before either serves traffic — so it is not
 	// an error, but one of the two has to start first and the edge that says otherwise cannot
-	// be honored. Construction edges (`type: service`) get no such reprieve below: those really
-	// are impossible, since one service is an argument to the other's constructor.
+	// be honored. Construction edges get no such reprieve below: those really are impossible,
+	// since one service is an argument to the other's constructor.
+	//
+	// Finding those edges is a depth-first walk that marks every service with one of three
+	// colors, which is the textbook way to tell a cycle from a diamond:
+	//
+	//   white  not visited yet.
+	//   grey   on the current path: we have entered it and not yet finished its dependencies.
+	//   black  finished, along with everything reachable from it.
+	//
+	// The color of the service on the far end of an edge says what kind of edge it is. Grey
+	// means it is an ancestor of where we are standing, so following the edge walks back up the
+	// path we came down — a cycle, and the edge closing it is the one we drop. Black means it
+	// is finished, so it is reachable by some other route but not by a route through us: a
+	// diamond, not a cycle, and the edge stays. Dropping every edge to a grey service is what
+	// leaves a graph the levels below can be read off.
+	//
+	// Construction edges are walked but never dropped, only so that the coloring reflects the
+	// whole path. A cycle among them is left intact for the level assignment to report.
 	{
 		const (
 			white = 0
@@ -446,27 +554,29 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 		prune = func(name string) {
 			node := nameToNode[name]
 			color[name] = grey
-			for _, dep := range node.deps {
+			for _, dep := range node.deps.list() {
 				if color[dep] == white {
 					prune(dep)
 				}
 			}
-			kept := node.callDeps[:0]
-			for _, dep := range node.callDeps {
+			kept := newOrderedSet()
+			for _, dep := range node.callDeps.list() {
 				if color[dep] == grey {
 					continue // Closes a cycle: this service starts before the one it calls.
 				}
 				if color[dep] == white {
 					prune(dep)
 				}
-				kept = append(kept, dep)
+				kept.add(dep)
 			}
 			node.callDeps = kept
 			color[name] = black
 		}
+		// Every service gets a walk: the graph need not be connected, and a service nothing
+		// depends on is never reached from anywhere else.
 		for _, node := range orderedNodes(nameToNode) {
-			if color[node.name] == white {
-				prune(node.name)
+			if color[node.name()] == white {
+				prune(node.name())
 			}
 		}
 	}
@@ -483,7 +593,7 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 		}
 		node.resolving = true
 		level := 0
-		for _, dep := range append(append([]string{}, node.deps...), node.callDeps...) {
+		for _, dep := range slices.Concat(node.deps.list(), node.callDeps.list()) {
 			depLevel, err := assign(dep, append(path, name))
 			if err != nil {
 				return 0, err
@@ -512,7 +622,11 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 	// generated code does not churn between builds.
 	levels := make([][]map[string]any, maxLevel+1)
 	for _, node := range orderedNodes(nameToNode) {
-		levels[node.level] = append(levels[node.level], node.render())
+		rendered, err := node.render()
+		if err != nil {
+			return nil, err
+		}
+		levels[node.level] = append(levels[node.level], rendered)
 	}
 	return levels, nil
 }
@@ -520,64 +634,28 @@ func serviceGraph(servers []any) ([][]map[string]any, error) {
 // collectDependency resolves a single `type: service` dependency to the name of the service
 // it points at, registering that service in the graph.
 func collectDependency(
-	dependency map[string]any,
+	dependency serviceDependency,
 	root string,
 	collect func(target, root string) (string, error),
 	nameToNode map[string]*serviceNode,
-	newNode func(name string, manifest map[string]any) *serviceNode,
+	newNode func(raw map[string]any, manifest *serviceManifest) *serviceNode,
 ) (string, error) {
-	if target, _ := dependency["manifest"].(string); target != "" {
-		return collect(target, root)
+	if dependency.Manifest != "" {
+		return collect(dependency.Manifest, root)
 	}
 
 	// A dependency given as a bare implementation has no manifest to read, so it is a leaf:
 	// it takes no dependencies of its own and can always start in the first level.
-	name, _ := dependency["name"].(string)
-	implementation, _ := dependency["implementation"].(string)
-	if name == "" {
+	if dependency.Name == "" {
 		return "", fmt.Errorf("service dependency needs a manifest or a name")
 	}
-	node, ok := nameToNode[name]
+	node, ok := nameToNode[dependency.Name]
 	if !ok {
-		node = newNode(name, map[string]any{"name": name, "implementation": implementation})
+		raw := map[string]any{"name": dependency.Name, "implementation": dependency.Implementation}
+		node = newNode(raw, &serviceManifest{Name: dependency.Name})
 	}
-	if !node.rootSeen[root] {
-		node.rootSeen[root] = true
-		node.roots = append(node.roots, root)
-	}
-	return name, nil
-}
-
-// serviceManifestTargets returns, in declaration order and without duplicates, the manifest
-// target of every service a main manifest's servers host. A processor server carries its
-// service on the server itself rather than in a services list.
-func serviceManifestTargets(servers []any) ([]string, error) {
-	var targets []string
-	seen := map[string]bool{}
-	add := func(target string) {
-		if target != "" && !seen[target] {
-			seen[target] = true
-			targets = append(targets, target)
-		}
-	}
-	for _, server := range servers {
-		serverMap, ok := server.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("server is not a mapping: %v", server)
-		}
-		services, _ := serverMap["services"].([]any)
-		for _, service := range services {
-			serviceMap, ok := service.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf("service is not a mapping: %v", service)
-			}
-			target, _ := serviceMap["manifest"].(string)
-			add(target)
-		}
-		target, _ := serverMap["manifest"].(string)
-		add(target)
-	}
-	return targets, nil
+	node.roots.add(root)
+	return dependency.Name, nil
 }
 
 // orderedNodes returns the graph's nodes in the order the manifests declared them, so that the
@@ -591,109 +669,86 @@ func orderedNodes(nameToNode map[string]*serviceNode) []*serviceNode {
 	return nodes
 }
 
+// serviceManifestTargets returns, in declaration order and without duplicates, the manifest
+// target of every service a main manifest's servers host. A processor server carries its
+// service on the server itself rather than in a services list.
+func serviceManifestTargets(servers []serverConfig) []string {
+	targets := newOrderedSet()
+	for _, server := range servers {
+		for _, service := range server.Services {
+			if service.Manifest != "" {
+				targets.add(service.Manifest)
+			}
+		}
+		if server.Manifest != "" {
+			targets.add(server.Manifest)
+		}
+	}
+	return targets.list()
+}
+
 // servedServices maps each proto service a server hosts, PascalCased as `grpc_client`
 // dependencies name it, to the name of the service manifest serving it. One manifest can serve
 // several proto services, which is why the mapping runs this way round.
-func servedServices(servers []any) (map[string]string, error) {
+func servedServices(servers []serverConfig) (map[string]string, error) {
 	result := map[string]string{}
 	for _, server := range servers {
-		serverMap, ok := server.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("server is not a mapping: %v", server)
-		}
-		services, _ := serverMap["services"].([]any)
-		for _, service := range services {
-			serviceMap, ok := service.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf("service is not a mapping: %v", service)
-			}
-			servedService, _ := serviceMap["service"].(string)
-			target, _ := serviceMap["manifest"].(string)
-			if servedService == "" || target == "" {
+		for _, service := range server.Services {
+			if service.Service == "" || service.Manifest == "" {
 				continue
 			}
-			manifest, err := parseYaml(target)
+			manifest, err := parseServiceManifest(service.Manifest)
 			if err != nil {
-				return nil, fmt.Errorf("reading service manifest %s: %w", target, err)
+				return nil, fmt.Errorf("reading service manifest %s: %w", service.Manifest, err)
 			}
-			name, _ := manifest["name"].(string)
-			if name == "" {
-				return nil, fmt.Errorf("service manifest %s declares no name", target)
+			if manifest.Name == "" {
+				return nil, fmt.Errorf("service manifest %s declares no name", service.Manifest)
 			}
-			result[xstrings.ToPascalCase(servedService)] = name
+			result[xstrings.ToPascalCase(service.Service)] = manifest.Name
 		}
 	}
 	return result, nil
 }
 
-// clientDependencies returns the proto service names of a manifest's `grpc_client` entries.
-func clientDependencies(manifest map[string]any) []string {
-	var result []string
-	dependencies, _ := manifest["dependencies"].([]any)
-	for _, dependency := range dependencies {
-		dependencyMap, ok := dependency.(map[string]any)
-		if !ok {
-			continue
-		}
-		if dependencyType, _ := dependencyMap["type"].(string); dependencyType != "grpc_client" {
-			continue
-		}
-		if service, _ := dependencyMap["service"].(string); service != "" {
-			result = append(result, service)
-		}
-	}
-	return result
-}
-
-// serviceDependencies returns the `type: service` entries of a manifest's dependency list.
-func serviceDependencies(manifest map[string]any) []map[string]any {
-	var result []map[string]any
-	dependencies, _ := manifest["dependencies"].([]any)
-	for _, dependency := range dependencies {
-		dependencyMap, ok := dependency.(map[string]any)
-		if !ok {
-			continue
-		}
-		if dependencyType, _ := dependencyMap["type"].(string); dependencyType == "service" {
-			result = append(result, dependencyMap)
-		}
-	}
-	return result
-}
-
 // render copies this node's manifest for the template, naming each service dependency and
 // adding the level and roots the graph computed.
-func (n *serviceNode) render() map[string]any {
+func (n *serviceNode) render() (map[string]any, error) {
 	rendered := map[string]any{}
-	for key, value := range n.manifest {
+	for key, value := range n.raw {
 		rendered[key] = value
 	}
 	rendered["level"] = n.level
-	rendered["roots"] = n.roots
+	rendered["roots"] = n.roots.list()
 
-	dependencies, _ := n.manifest["dependencies"].([]any)
-	renderedDependencies := make([]any, 0, len(dependencies))
-	serviceDependencyIndex := 0
-	for _, dependency := range dependencies {
-		dependencyMap, ok := dependency.(map[string]any)
-		if !ok {
-			renderedDependencies = append(renderedDependencies, dependency)
+	rawDependencies, _ := n.raw["dependencies"].([]any)
+	if len(rawDependencies) != len(n.manifest.Dependencies) {
+		return nil, fmt.Errorf("service %s: %d dependencies typed, %d raw", n.name(), len(n.manifest.Dependencies), len(rawDependencies))
+	}
+	renderedDependencies := make([]any, 0, len(rawDependencies))
+	for i, rawDependency := range rawDependencies {
+		dependency := n.manifest.Dependencies[i]
+		rawDependencyMap, ok := rawDependency.(map[string]any)
+		if !ok || dependency.Type != "service" {
+			renderedDependencies = append(renderedDependencies, rawDependency)
 			continue
 		}
-		if dependencyType, _ := dependencyMap["type"].(string); dependencyType != "service" {
-			renderedDependencies = append(renderedDependencies, dependency)
-			continue
+		name := dependency.Name
+		if dependency.Manifest != "" {
+			manifest, err := parseServiceManifest(dependency.Manifest)
+			if err != nil {
+				return nil, fmt.Errorf("service %s: reading dependency manifest %s: %w", n.name(), dependency.Manifest, err)
+			}
+			name = manifest.Name
 		}
 		renderedDependency := map[string]any{}
-		for key, value := range dependencyMap {
+		for key, value := range rawDependencyMap {
 			renderedDependency[key] = value
 		}
-		renderedDependency["name"] = n.depNames[serviceDependencyIndex]
-		serviceDependencyIndex++
+		renderedDependency["name"] = name
 		renderedDependencies = append(renderedDependencies, renderedDependency)
 	}
-	if len(dependencies) > 0 {
+	if len(rawDependencies) > 0 {
 		rendered["dependencies"] = renderedDependencies
 	}
-	return rendered
+	return rendered, nil
 }
