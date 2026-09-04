@@ -80,6 +80,10 @@ for target in "${sorted_targets[@]}"; do
   done
 done
 
+# Directories that received a file this run; a BUILD.plz anywhere else is stale.
+declare -A ACTIVE_DIRS
+for f in "${!ACTIVE_FILES[@]}"; do ACTIVE_DIRS["${f%/*}"]=1; done
+
 for dest_dir in "${!DEST_DIRS[@]}"; do
   [[ ! -d "$dest_dir" || "$dest_dir" == "." ]] && continue
 
@@ -88,12 +92,7 @@ for dest_dir in "${!DEST_DIRS[@]}"; do
   done < <(find "$dest_dir" -type f ! -name "BUILD.plz")
 
   while read -r build_file; do
-    dir=$(dirname "$build_file")
-    has_active=false
-    for f in "${!ACTIVE_FILES[@]}"; do
-      [[ $(dirname "$f") == "$dir" ]] && has_active=true && break
-    done
-    [[ "$has_active" == false ]] && rm -f "$build_file" && echo "🗑 Removed unused $build_file"
+    [[ ! -v ACTIVE_DIRS["${build_file%/*}"] ]] && rm -f "$build_file" && echo "🗑 Removed unused $build_file"
   done < <(find "$dest_dir" -type f -name "BUILD.plz")
 
   find "$dest_dir" -type d -empty -delete 2>/dev/null || true
